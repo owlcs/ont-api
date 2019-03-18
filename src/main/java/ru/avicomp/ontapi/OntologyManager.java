@@ -116,7 +116,8 @@ public interface OntologyManager extends OWLOntologyManager {
     /**
      * Sets the {@link OntLoaderConfiguration Ontology Loader Configuration}.
      * Any ontology from the manager will reflect this configuration, but only if it was not loaded by the
-     * {@link #loadOntologyFromOntologyDocument(OWLOntologyDocumentSource, OWLOntologyLoaderConfiguration)} method.
+     * {@link #loadOntologyFromOntologyDocument(OWLOntologyDocumentSource, OWLOntologyLoaderConfiguration)} method
+     * or passed by the {@link #addOntology(Graph, OntLoaderConfiguration)} method.
      * Also note: calling this method overrides the global configuration settings related to the loading process.
      *
      * @param conf {@link OWLOntologyLoaderConfiguration} or {@code null} to reset defaults

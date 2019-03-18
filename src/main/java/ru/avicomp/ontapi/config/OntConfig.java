@@ -38,8 +38,9 @@ import java.util.stream.Stream;
  * Additional (new) ONT-API methods:
  * <ul>
  * <li>{@link #getManagerIRIsCacheSize()} (<b>since 1.4.0</b>)</li>
- * <li>{@link #getLoadNodesCacheSize()} (<b>since 1.4.0</b>)</li>
- * <li>{@link #getLoadObjectsCacheSize()}  (<b>since 1.4.0</b>)</li>
+ * <li>{@link #getLoadNodesCacheSize()} and {@link #setLoadNodesCacheSize(int)} (<b>since 1.4.0</b>)</li>
+ * <li>{@link #getLoadObjectsCacheSize()} and {@link #setLoadObjectsCacheSize(int)} (<b>since 1.4.0</b>)</li>
+ * <li>{@link #isContentCacheEnabled()} and {@link #setUseContentCache(boolean)} (<b>since 1.4.0</b>)</li>
  * <li>{@link #getPersonality()} and {@link #setPersonality(OntPersonality)}</li>
  * <li>{@link #getGraphTransformers()} amd {@link #setGraphTransformers(GraphTransformers.Store)}</li>
  * <li>{@link #isPerformTransformation()} and {@link #setPerformTransformation(boolean)}</li>

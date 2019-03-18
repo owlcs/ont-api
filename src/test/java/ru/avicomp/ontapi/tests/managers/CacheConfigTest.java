@@ -38,15 +38,11 @@ import java.util.Objects;
 
 /**
  * Created by @ssz on 04.03.2019.
+ *
+ * @see ru.avicomp.ontapi.config.CacheSettings
  */
 public class CacheConfigTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(CacheConfigTest.class);
-
-    @Test
-    public void testConfigureManagerIRICacheSize() {
-        testConfigureIRICacheSize(OntManagers.createONT());
-        testConfigureIRICacheSize(OntManagers.createConcurrentONT());
-    }
 
     private static void testConfigureIRICacheSize(OntologyManager m) {
         int def = Prop.IRI_CACHE_SIZE.getInt();
@@ -59,6 +55,12 @@ public class CacheConfigTest {
         Assert.assertEquals(1, c2.getManagerIRIsCacheSize());
         m.setOntologyConfigurator(c2);
         Assert.assertEquals(1, m.getOntologyConfigurator().getManagerIRIsCacheSize());
+    }
+
+    @Test
+    public void testConfigureManagerIRICacheSize() {
+        testConfigureIRICacheSize(OntManagers.createONT());
+        testConfigureIRICacheSize(OntManagers.createConcurrentONT());
     }
 
     @Test
@@ -160,6 +162,31 @@ public class CacheConfigTest {
 
     }
 
+    enum Prop {
+        IRI_CACHE_SIZE(OntSettings.ONT_API_MANAGER_CACHE_IRIS.key() + ".integer"),
+        NODES_CACHE_SIZE(OntSettings.ONT_API_LOAD_CONF_CACHE_NODES.key() + ".integer"),
+        OBJECTS_CACHE_SIZE(OntSettings.ONT_API_LOAD_CONF_CACHE_OBJECTS.key() + ".integer"),
+        CONTENT_CACHE(OntSettings.ONT_API_LOAD_CONF_CACHE_CONTENT.key() + ".boolean");
+        private final String key;
+
+        Prop(String key) {
+            this.key = key;
+        }
+
+        int getInt() {
+            return Integer.parseInt(get());
+        }
+
+        boolean getBoolean() {
+            return Boolean.parseBoolean(get());
+        }
+
+        private String get() {
+            return Objects.requireNonNull(OntSettings.PROPERTIES.getProperty(key), "Null " + key);
+        }
+
+    }
+
     private static class LogFindGraph extends WrappedGraph {
         private final List<Triple> track = new ArrayList<>();
 
@@ -181,32 +208,6 @@ public class CacheConfigTest {
 
         public List<Triple> getFindPatterns() {
             return track;
-        }
-
-    }
-
-    enum Prop {
-        IRI_CACHE_SIZE(OntSettings.ONT_API_MANAGER_CACHE_IRIS.key() + ".integer"),
-        NODES_CACHE_SIZE(OntSettings.ONT_API_LOAD_CONF_CACHE_NODES.key() + ".integer"),
-        OBJECTS_CACHE_SIZE(OntSettings.ONT_API_LOAD_CONF_CACHE_OBJECTS.key() + ".integer"),
-        CONTENT_CACHE(OntSettings.ONT_API_LOAD_CONF_CACHE_CONTENT.key() + ".boolean")
-        ;
-        private final String key;
-
-        Prop(String key) {
-            this.key = key;
-        }
-
-        int getInt() {
-            return Integer.parseInt(get());
-        }
-
-        boolean getBoolean() {
-            return Boolean.parseBoolean(get());
-        }
-
-        private String get() {
-            return Objects.requireNonNull(OntSettings.PROPERTIES.getProperty(key), "Null " + key);
         }
 
     }

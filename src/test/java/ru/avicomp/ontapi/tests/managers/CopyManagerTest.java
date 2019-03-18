@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -35,6 +35,78 @@ import java.util.stream.Collectors;
  */
 public class CopyManagerTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(CopyManagerTest.class);
+
+    /**
+     * Copies managers content to new instance
+     *
+     * @param from {@link OntologyManager}
+     * @return new instance of {@link OntologyManager}
+     */
+    public static OntologyManager copyManager(OntologyManager from) {
+        OntologyManager res = OntManagers.createONT();
+        copyManager(from, res, false);
+        return res;
+    }
+
+    /**
+     * Copies managers content.
+     *
+     * @param from     source
+     * @param to       destination
+     * @param silently if true ignore {@link OWLOntologyCreationException} while coping
+     * @throws OntApiException if there are some exceptions and {@code silently = true}
+     */
+    public static void copyManager(OntologyManager from, OntologyManager to, boolean silently) throws OntApiException {
+        OntApiException ex = new OntApiException("Can't copy manager:");
+        from.ontologies()
+                .sorted(Comparator.comparingInt(o -> (int) o.imports().count()))
+                .forEach(o -> {
+                    try {
+                        to.copyOntology(o, OntologyCopy.DEEP);
+                    } catch (OWLOntologyCreationException e) {
+                        ex.addSuppressed(e);
+                    }
+                });
+        if (!silently && ex.getSuppressed().length != 0) {
+            throw ex;
+        }
+    }
+
+    private static void simpleCopyTest(OWLOntologyManager from, OWLOntologyManager to, OntologyCopy mode) throws Exception {
+        LOGGER.debug("Copy (" + mode + ") " + from.getClass().getInterfaces()[0].getSimpleName() + " -> " + to.getClass().getInterfaces()[0].getSimpleName());
+        long fromCount = from.ontologies().count();
+        long toCount = to.ontologies().count();
+
+        OWLDataFactory df = from.getOWLDataFactory();
+        IRI iri = IRI.create("test" + System.currentTimeMillis());
+        LOGGER.debug("Create ontology " + iri);
+        OWLClass clazz = df.getOWLClass("x");
+        OWLOntology o1 = from.createOntology(iri);
+        o1.add(df.getOWLDeclarationAxiom(clazz));
+
+        to.copyOntology(o1, OntologyCopy.DEEP);
+        Assert.assertEquals("Incorrect ontologies count inside OWL-manager", fromCount + 1, from.ontologies().count());
+        Assert.assertEquals("Incorrect ontologies count inside ONT-manager", toCount + 1, to.ontologies().count());
+        Assert.assertTrue("Can't find " + iri, to.contains(iri));
+        OWLOntology o2 = to.getOntology(iri);
+        Assert.assertNotNull("Can't find " + to, o2);
+        Assert.assertNotSame("Should not be same", o1, o2);
+        Set<OWLClass> classes = o2.classesInSignature().collect(Collectors.toSet());
+        Assert.assertEquals("Should be single class inside", 1, classes.size());
+        Assert.assertTrue("Can't find " + clazz, classes.contains(clazz));
+    }
+
+    private static void compareManagersContentTest(OntologyManager left, OntologyManager right) {
+        Assert.assertEquals(left.ontologies().count(), right.ontologies().count());
+        left.ontologies().forEach(src -> {
+            OWLOntologyID id = src.getOntologyID();
+            OntologyModel dst = right.getOntology(id);
+            Assert.assertNotNull("Can't find ontology " + id, dst);
+            List<OWLAxiom> expectedAxioms = src.axioms(Imports.EXCLUDED).filter(t -> !t.getAxiomType().equals(AxiomType.DECLARATION)).collect(Collectors.toList());
+            List<OWLAxiom> actualAxioms = dst.axioms(Imports.EXCLUDED).filter(t -> !t.getAxiomType().equals(AxiomType.DECLARATION)).collect(Collectors.toList());
+            Assert.assertEquals("Axioms list differ for " + id, expectedAxioms.size(), actualAxioms.size());
+        });
+    }
 
     @Test
     public void testSimpleCoping() throws Exception {
@@ -202,78 +274,6 @@ public class CopyManagerTest {
         OntologyManager to = CopyManagerTest.copyManager(from);
         to.ontologies().forEach(x -> LOGGER.debug("{}", x));
         compareManagersContentTest(from, to);
-    }
-
-    /**
-     * Copies managers content to new instance
-     *
-     * @param from {@link OntologyManager}
-     * @return new instance of {@link OntologyManager}
-     */
-    public static OntologyManager copyManager(OntologyManager from) {
-        OntologyManager res = OntManagers.createONT();
-        copyManager(from, res, false);
-        return res;
-    }
-
-    /**
-     * Copies managers content.
-     *
-     * @param from     source
-     * @param to       destination
-     * @param silently if true ignore {@link OWLOntologyCreationException} while coping
-     * @throws OntApiException if there are some exceptions and {@code silently = true}
-     */
-    public static void copyManager(OntologyManager from, OntologyManager to, boolean silently) throws OntApiException {
-        OntApiException ex = new OntApiException("Can't copy manager:");
-        from.ontologies()
-                .sorted(Comparator.comparingInt(o -> (int) o.imports().count()))
-                .forEach(o -> {
-                    try {
-                        to.copyOntology(o, OntologyCopy.DEEP);
-                    } catch (OWLOntologyCreationException e) {
-                        ex.addSuppressed(e);
-                    }
-                });
-        if (!silently && ex.getSuppressed().length != 0) {
-            throw ex;
-        }
-    }
-
-    private static void simpleCopyTest(OWLOntologyManager from, OWLOntologyManager to, OntologyCopy mode) throws Exception {
-        LOGGER.debug("Copy (" + mode + ") " + from.getClass().getInterfaces()[0].getSimpleName() + " -> " + to.getClass().getInterfaces()[0].getSimpleName());
-        long fromCount = from.ontologies().count();
-        long toCount = to.ontologies().count();
-
-        OWLDataFactory df = from.getOWLDataFactory();
-        IRI iri = IRI.create("test" + System.currentTimeMillis());
-        LOGGER.debug("Create ontology " + iri);
-        OWLClass clazz = df.getOWLClass("x");
-        OWLOntology o1 = from.createOntology(iri);
-        o1.add(df.getOWLDeclarationAxiom(clazz));
-
-        to.copyOntology(o1, OntologyCopy.DEEP);
-        Assert.assertEquals("Incorrect ontologies count inside OWL-manager", fromCount + 1, from.ontologies().count());
-        Assert.assertEquals("Incorrect ontologies count inside ONT-manager", toCount + 1, to.ontologies().count());
-        Assert.assertTrue("Can't find " + iri, to.contains(iri));
-        OWLOntology o2 = to.getOntology(iri);
-        Assert.assertNotNull("Can't find " + to, o2);
-        Assert.assertNotSame("Should not be same", o1, o2);
-        Set<OWLClass> classes = o2.classesInSignature().collect(Collectors.toSet());
-        Assert.assertEquals("Should be single class inside", 1, classes.size());
-        Assert.assertTrue("Can't find " + clazz, classes.contains(clazz));
-    }
-
-    private static void compareManagersContentTest(OntologyManager left, OntologyManager right) {
-        Assert.assertEquals(left.ontologies().count(), right.ontologies().count());
-        left.ontologies().forEach(src -> {
-            OWLOntologyID id = src.getOntologyID();
-            OntologyModel dst = right.getOntology(id);
-            Assert.assertNotNull("Can't find ontology " + id, dst);
-            List<OWLAxiom> expectedAxioms = src.axioms(Imports.EXCLUDED).filter(t -> !t.getAxiomType().equals(AxiomType.DECLARATION)).collect(Collectors.toList());
-            List<OWLAxiom> actualAxioms = dst.axioms(Imports.EXCLUDED).filter(t -> !t.getAxiomType().equals(AxiomType.DECLARATION)).collect(Collectors.toList());
-            Assert.assertEquals("Axioms list differ for " + id, expectedAxioms.size(), actualAxioms.size());
-        });
     }
 
 }

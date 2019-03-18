@@ -22,7 +22,10 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.io.FileDocumentSource;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
-import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLDocumentFormat;
+import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.*;
@@ -47,6 +50,13 @@ import java.util.stream.Collectors;
 public class MiscOntologyTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(MiscOntologyTest.class);
 
+    private static Graph makeGraphWithRecursion() {
+        Model m = OntModelFactory.createDefaultModel().setNsPrefixes(OntModelFactory.STANDARD);
+        Resource anon = m.createResource().addProperty(RDF.type, OWL.Class);
+        anon.addProperty(OWL.complementOf, anon);
+        return m.getGraph();
+    }
+
     @Test(expected = OntApiException.class) // not a StackOverflowError
     public void testReadRecursiveGraph() throws OWLOntologyCreationException {
         IRI iri = IRI.create(ReadWriteUtils.getResourceURI("ontapi/recursive-graph.ttl"));
@@ -56,19 +66,6 @@ public class MiscOntologyTest {
         OntologyModel o = m.loadOntology(iri);
         ReadWriteUtils.print(o.asGraphModel());
         o.axioms().forEach(a -> LOGGER.debug("{}", a));
-    }
-
-    @Test
-    public void testLoadWithIgnoreReadAxiomsErrors() throws OWLOntologyCreationException {
-        IRI iri = IRI.create(ReadWriteUtils.getResourceURI("ontapi/recursive-graph.ttl"));
-        LOGGER.debug("The file: {}", iri);
-        OntologyManager m = OntManagers.createONT();
-        m.getOntologyConfigurator().setIgnoreAxiomsReadErrors(true).setPerformTransformation(false);
-        OntologyModel o = m.loadOntology(iri);
-        ReadWriteUtils.print(o.asGraphModel());
-        o.axioms().forEach(a -> LOGGER.debug("{}", a));
-        Assert.assertEquals("Wrong axioms count", 5, o.getAxiomCount());
-        Assert.assertEquals(1, o.axioms(AxiomType.SUBCLASS_OF).count());
     }
 
     @Test(expected = OntJenaException.class) // not a StackOverflowError
@@ -89,13 +86,6 @@ public class MiscOntologyTest {
         ReadWriteUtils.print(o);
         Assert.assertEquals(0, o.ontObjects(OntCE.ComplementOf.class).count());
         Assert.assertEquals(0, o.ontObjects(OntCE.class).count());
-    }
-
-    private Graph makeGraphWithRecursion() {
-        Model m = OntModelFactory.createDefaultModel().setNsPrefixes(OntModelFactory.STANDARD);
-        Resource anon = m.createResource().addProperty(RDF.type, OWL.Class);
-        anon.addProperty(OWL.complementOf, anon);
-        return m.getGraph();
     }
 
     @Test

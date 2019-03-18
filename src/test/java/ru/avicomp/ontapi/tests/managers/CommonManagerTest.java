@@ -64,254 +64,6 @@ public class CommonManagerTest {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CommonManagerTest.class);
 
-    @Test
-    public void testBasics() throws OWLOntologyCreationException {
-        final IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI("ontapi/test1.ttl"));
-        final OWLOntologyID id = OntIRI.create("http://dummy").toOwlOntologyID();
-
-        Assert.assertNotSame("The same manager", OntManagers.createONT(), OntManagers.createONT());
-        Assert.assertNotSame("The same concurrent manager",
-                OntManagers.createConcurrentONT(), OntManagers.createConcurrentONT());
-
-        OntologyManagerImpl m1 = (OntologyManagerImpl) OntManagers.createONT();
-        Assert.assertFalse("Concurrent", m1.isConcurrent());
-
-        OntologyModel ont1 = m1.loadOntology(fileIRI);
-        OntologyModel ont2 = m1.createOntology(id);
-        Assert.assertEquals("Incorrect num of ontologies", 2, m1.ontologies().count());
-        Stream.of(ont1, ont2).forEach(o -> {
-            Assert.assertEquals("Incorrect impl", OntologyModelImpl.class, ont1.getClass());
-            Assert.assertNotEquals("Incorrect impl", OntologyModelImpl.Concurrent.class, ont1.getClass());
-        });
-
-        OntologyManagerImpl m2 = (OntologyManagerImpl) OntManagers.createConcurrentONT();
-        Assert.assertTrue("Not Concurrent", m2.isConcurrent());
-        OntologyModel ont3 = m2.loadOntology(fileIRI);
-        OntologyModel ont4 = m2.createOntology(id);
-        Assert.assertEquals("Incorrect num of ontologies", 2, m2.ontologies().count());
-        Stream.of(ont3, ont4).forEach(o -> {
-            Assert.assertNotEquals("Incorrect impl", OntologyModelImpl.class, ont3.getClass());
-            Assert.assertEquals("Incorrect impl", OntologyModelImpl.Concurrent.class, ont3.getClass());
-        });
-    }
-
-    @Test
-    public void testConfigs() {
-        OntologyManager m1 = OntManagers.createONT();
-        OntologyManager m2 = OntManagers.createONT();
-        OntLoaderConfiguration conf1 = m1.getOntologyLoaderConfiguration();
-        conf1.setPersonality(OntModelConfig.ONT_PERSONALITY_LAX);
-        OntLoaderConfiguration conf2 = m2.getOntologyLoaderConfiguration();
-        conf2.setPersonality(OntModelConfig.ONT_PERSONALITY_STRICT);
-        Assert.assertEquals("Not the same loader configs", conf1, conf2);
-        Assert.assertEquals("Not the same personalities", conf1.getPersonality(), conf2.getPersonality());
-        m1.setOntologyLoaderConfiguration(conf1.setPersonality(OntModelConfig.ONT_PERSONALITY_LAX));
-        m2.setOntologyLoaderConfiguration(conf1.setPersonality(OntModelConfig.ONT_PERSONALITY_STRICT));
-        Assert.assertNotEquals("The same personalities", m1.getOntologyLoaderConfiguration().getPersonality(),
-                m2.getOntologyLoaderConfiguration().getPersonality());
-
-        boolean doTransformation = !conf1.isPerformTransformation();
-        m1.getOntologyLoaderConfiguration().setPerformTransformation(doTransformation);
-        Assert.assertNotEquals("The 'perform transformation' flag is changed", doTransformation,
-                m1.getOntologyLoaderConfiguration().isPerformTransformation());
-        m1.setOntologyLoaderConfiguration(conf2.setPerformTransformation(doTransformation));
-        Assert.assertEquals("The same 'perform transformation' flag", doTransformation,
-                m1.getOntologyLoaderConfiguration().isPerformTransformation());
-
-        GraphTransformers.Store store = new GraphTransformers.Store().add(graph -> null);
-        OntLoaderConfiguration conf3 = m1.getOntologyLoaderConfiguration().setGraphTransformers(store);
-        Assert.assertNotEquals("Graph transform action store is changed", store,
-                m1.getOntologyLoaderConfiguration().getGraphTransformers());
-        m1.setOntologyLoaderConfiguration(conf3);
-        Assert.assertEquals("Can't set transform action store.", store,
-                m1.getOntologyLoaderConfiguration().getGraphTransformers());
-    }
-
-    @Test
-    public void testConcurrentManager() throws Exception {
-        OWLOntologyManager m = OntManagers.createConcurrentONT();
-        OWLOntology o1 = m.createOntology();
-        OWLOntology o2 = m.loadOntology(IRI.create(ReadWriteUtils.getResourceFile("ontapi/test1.ttl")));
-        Assert.assertEquals("Expected 2 ontologies.", 2, m.ontologies().count());
-        Assert.assertTrue("(1)Not concurrent model!", o1 instanceof OntologyModelImpl.Concurrent);
-        Assert.assertTrue("(2)Not concurrent model!", o2 instanceof OntologyModelImpl.Concurrent);
-        ReadWriteLock managerLock = ((OntologyManagerImpl) m).getLock();
-        Assert.assertNotNull(managerLock);
-        Assert.assertEquals(managerLock, ((OntologyModelImpl.Concurrent) o1).getLock());
-        Assert.assertEquals(managerLock, ((OntologyModelImpl.Concurrent) o2).getLock());
-        Assert.assertTrue("(1)Not concurrent graph!",
-                ((OntologyModel) o1).asGraphModel().getBaseGraph() instanceof RWLockedGraph);
-        Assert.assertTrue("(2)Not concurrent graph!",
-                ((OntologyModel) o2).asGraphModel().getBaseGraph() instanceof RWLockedGraph);
-        Assert.assertEquals(managerLock, ((RWLockedGraph) ((OntologyModel) o1).asGraphModel().getBaseGraph()).lock());
-        Assert.assertEquals(managerLock, ((RWLockedGraph) ((OntologyModel) o2).asGraphModel().getBaseGraph()).lock());
-
-        o1.axioms().forEach(a -> LOGGER.debug("{}", a));
-        ((OntologyModel) o1).asGraphModel().createOntClass("urn:c1").createIndividual("urn:i");
-        OWLDataFactory df = m.getOWLDataFactory();
-        o1.add(df.getOWLAnnotationAssertionAxiom(df.getOWLAnnotationProperty(IRI.create("urn:ap")),
-                IRI.create("urn:c1"), df.getOWLLiteral("test", "e")));
-        Assert.assertEquals(4, o1.getAxiomCount());
-        ((OntologyModel) o1).clearCache();
-        Assert.assertEquals("+ 1 declaration", 5, o1.getAxiomCount());
-
-        o2.axioms().forEach(a -> LOGGER.debug("{}", a));
-        Assert.assertEquals(12, o2.getAxiomCount());
-        ((OntologyModel) o2).clearCache();
-        Assert.assertEquals(12, o2.getAxiomCount());
-    }
-
-    @Test
-    public void testSerialization() throws Exception {
-        serializationTest(OntManagers.createONT());
-    }
-
-    @Test
-    public void testSerializationWithConcurrency() throws Exception {
-        serializationTest(OntManagers.createConcurrentONT());
-    }
-
-    @Test
-    public void testLoadAnnotationsOption() {
-        OntologyManager m = OntManagers.createONT();
-        Assert.assertTrue("Incorrect default settings", m.getOntologyLoaderConfiguration().isLoadAnnotationAxioms());
-        OWLDataFactory df = m.getOWLDataFactory();
-
-        OntologyModel o1 = m.createOntology();
-        OWLClass cl = df.getOWLClass(IRI.create("C"));
-        OWLAnnotationProperty ap = df.getOWLAnnotationProperty(IRI.create("http://a"));
-        OWLAnnotation a1 = df.getOWLAnnotation(ap, df.getOWLLiteral("assertion1"));
-        OWLAnnotation a2 = df.getOWLAnnotation(df.getRDFSComment(), df.getOWLLiteral("assertion2"));
-
-        o1.add(df.getOWLDeclarationAxiom(cl));
-        o1.add(df.getOWLDeclarationAxiom(ap));
-        o1.add(df.getOWLAnnotationPropertyDomainAxiom(ap, IRI.create("domain")));
-        o1.add(df.getOWLAnnotationPropertyRangeAxiom(ap, IRI.create("range")));
-        o1.add(df.getOWLAnnotationAssertionAxiom(cl.getIRI(), a1));
-        o1.add(df.getOWLAnnotationAssertionAxiom(cl.getIRI(), a2));
-        List<OWLAxiom> axioms = o1.axioms().collect(Collectors.toList());
-        axioms.forEach(a -> LOGGER.debug("{}", a));
-        ReadWriteUtils.print(o1);
-
-        LOGGER.debug("Change Load Annotation settings");
-        m.setOntologyLoaderConfiguration(m.getOntologyLoaderConfiguration().setLoadAnnotationAxioms(false));
-        Assert.assertFalse("Incorrect settings", m.getOntologyLoaderConfiguration().isLoadAnnotationAxioms());
-        // check the axioms changed.
-        List<OWLAxiom> axioms1 = o1.axioms().collect(Collectors.toList());
-        axioms1.forEach(a -> LOGGER.debug("{}", a));
-        Assert.assertEquals("Should be 2 axioms only", 2, axioms1.size());
-        Assert.assertTrue("Can't find declaration for " + ap, axioms1.contains(df.getOWLDeclarationAxiom(ap)));
-        Assert.assertTrue("The declaration for " + cl + " should be with annotations now",
-                axioms1.contains(df.getOWLDeclarationAxiom(cl, Arrays.asList(a1, a2))));
-
-        LOGGER.debug("Create new ontology ");
-        OntologyModel o2 = m.createOntology();
-        axioms.forEach(o2::add);
-        ReadWriteUtils.print(o2);
-        List<OWLAxiom> axioms2 = o2.axioms().collect(Collectors.toList());
-        axioms2.forEach(a -> LOGGER.debug("{}", a));
-        Assert.assertEquals("Should be 2 axioms only", 2, axioms2.size());
-        Assert.assertTrue("Can't find declaration for " + ap, axioms2.contains(df.getOWLDeclarationAxiom(ap)));
-        Assert.assertTrue("The declaration for " + cl + " should not be unannotated now",
-                axioms2.contains(df.getOWLDeclarationAxiom(cl)));
-    }
-
-    @Test
-    public void testBulkAnnotationsSetting() throws Exception {
-        OntologyManager m = OntManagers.createONT();
-        Assert.assertTrue("Incorrect default settings",
-                m.getOntologyLoaderConfiguration().isAllowBulkAnnotationAssertions());
-        OWLDataFactory df = m.getOWLDataFactory();
-
-        OntologyModel o1 = m.createOntology();
-        OWLClass cl = df.getOWLClass(IRI.create("http://class"));
-        OWLAnnotation a1 = df.getOWLAnnotation(df.getRDFSComment(), df.getOWLLiteral("plain assertion"));
-        OWLAnnotation a2 = df.getOWLAnnotation(df.getRDFSLabel(), df.getOWLLiteral("bulk assertion"),
-                df.getOWLAnnotation(df.getRDFSComment(), df.getOWLLiteral("the child")));
-        Set<OWLAxiom> axioms1 = Stream.of(
-                df.getOWLDeclarationAxiom(cl),
-                df.getOWLAnnotationAssertionAxiom(cl.getIRI(), a1),
-                df.getOWLAnnotationAssertionAxiom(cl.getIRI(), a2)
-        ).collect(Collectors.toSet());
-        LOGGER.debug("Axioms to be added: ");
-        axioms1.forEach(a -> LOGGER.debug("{}", a));
-        axioms1.forEach(o1::add);
-
-        LOGGER.debug("Create second ontology with the same content.");
-        String txt = ReadWriteUtils.toString(o1, OntFormat.TURTLE);
-        LOGGER.debug("\n" + txt);
-        OWLOntology o2 = m.loadOntologyFromOntologyDocument(ReadWriteUtils.toInputStream(txt));
-        Assert.assertEquals("Incorrect axioms collection in the copied ontology",
-                axioms1, o2.axioms().collect(Collectors.toSet()));
-
-        LOGGER.debug("Change Allow Bulk Annotation Assertion setting");
-        m.setOntologyLoaderConfiguration(m.getOntologyLoaderConfiguration().setAllowBulkAnnotationAssertions(false));
-        Assert.assertFalse("Incorrect settings", m.getOntologyLoaderConfiguration().isAllowBulkAnnotationAssertions());
-        o1.axioms().forEach(a -> LOGGER.debug("{}", a));
-        Set<OWLAxiom> axioms2 = Stream.of(
-                df.getOWLAnnotationAssertionAxiom(cl.getIRI(), a1),
-                df.getOWLDeclarationAxiom(cl, Stream.of(a2).collect(Collectors.toSet()))
-        ).collect(Collectors.toSet());
-
-        Assert.assertEquals("Incorrect axioms count", axioms2.size(), o1.getAxiomCount());
-        Assert.assertEquals("Incorrect axioms collection in the first ontology",
-                axioms2, o1.axioms().collect(Collectors.toSet()));
-        Assert.assertEquals("Incorrect axioms collection in the second ontology",
-                axioms2, o2.axioms().collect(Collectors.toSet()));
-        LOGGER.debug("Create third ontology with the same content.");
-        OWLOntology o3 = m.loadOntologyFromOntologyDocument(ReadWriteUtils.toInputStream(txt));
-        Assert.assertEquals("Incorrect axioms collection in the third ontology",
-                axioms2, o3.axioms().collect(Collectors.toSet()));
-    }
-
-    @Test
-    public void testLoadSplitBulkRootAnnotations() throws OWLOntologyCreationException {
-        OntologyManager m = OntManagers.createONT();
-        Assert.assertTrue(m.getOntologyConfigurator().shouldLoadAnnotations());
-        Assert.assertFalse(m.getOntologyConfigurator().isSplitAxiomAnnotations());
-        m.getOntologyConfigurator().setLoadAnnotationAxioms(false).setSplitAxiomAnnotations(true);
-
-        String file = "ontapi/test-annotations-3.ttl";
-        OWLOntology o = m.loadOntologyFromOntologyDocument(IRI.create(ReadWriteUtils.getResourceURI(file)));
-        o.axioms().map(String::valueOf).forEach(LOGGER::debug);
-        Assert.assertEquals(0, o.axioms(AxiomType.ANNOTATION_ASSERTION).count());
-        Assert.assertEquals(3, o.axioms(AxiomType.DECLARATION).count());
-        long annotationsCount = o.axioms(AxiomType.DECLARATION)
-                .filter(a -> a.getEntity().isOWLClass()).mapToLong(a -> a.annotations().count()).sum();
-        Assert.assertEquals("Wrong annotations count", 3, annotationsCount);
-    }
-
-    @Test
-    public void testPassingGraph() throws Exception {
-        LOGGER.debug("Build MultiUnion graph using jena OntModel");
-        OntModelSpec spec = OntModelSpec.OWL_DL_MEM;
-        FileManager jenaFileManager = spec.getDocumentManager().getFileManager();
-        SpinModels.addMappings(jenaFileManager);
-        OntModel ontologyModel = ModelFactory.createOntologyModel(spec);
-        ontologyModel.read(SpinModels.SPINMAPL.getIRI().getIRIString(), "ttl");
-
-        LOGGER.debug("Load spin-rdf ontology family using file-iri-mappings");
-        OntologyManager m1 = OntManagers.createONT();
-        SpinModels.addMappings(m1);
-        m1.loadOntologyFromOntologyDocument(SpinModels.SPINMAPL.getIRI());
-        long expected = m1.ontologies().count();
-
-        LOGGER.debug("Pass ready composite graph to the manager as-is");
-        OntologyManager m2 = OntManagers.createONT();
-        m2.addOntology(ontologyModel.getGraph());
-        long actual = m2.ontologies().count();
-
-        Assert.assertEquals("Counts of ontologies does not match", expected, actual);
-
-        LOGGER.debug("Add several additional ontologies");
-        m2.addOntology(OntModelFactory.createDefaultGraph());
-        OntGraphModel o2 = OntModelFactory.createModel();
-        o2.setID("http://example.org/test");
-        m2.addOntology(o2.getGraph());
-        Assert.assertEquals("Counts of ontologies does not match", expected + 2, m2.ontologies().count());
-
-    }
-
     private static void serializationTest(OWLOntologyManager origin) throws Exception {
         setUpManager(origin);
         debugManager(origin);
@@ -464,6 +216,144 @@ public class CommonManagerTest {
             LOGGER.debug("ONT entities: {}", actualEntities);
             Assert.assertEquals("Incorrect ont entities", expectedEntities, actualEntities);
         }
+    }
+
+    @Test
+    public void testBasics() throws OWLOntologyCreationException {
+        final IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI("ontapi/test1.ttl"));
+        final OWLOntologyID id = OntIRI.create("http://dummy").toOwlOntologyID();
+
+        Assert.assertNotSame("The same manager", OntManagers.createONT(), OntManagers.createONT());
+        Assert.assertNotSame("The same concurrent manager",
+                OntManagers.createConcurrentONT(), OntManagers.createConcurrentONT());
+
+        OntologyManagerImpl m1 = (OntologyManagerImpl) OntManagers.createONT();
+        Assert.assertFalse("Concurrent", m1.isConcurrent());
+
+        OntologyModel ont1 = m1.loadOntology(fileIRI);
+        OntologyModel ont2 = m1.createOntology(id);
+        Assert.assertEquals("Incorrect num of ontologies", 2, m1.ontologies().count());
+        Stream.of(ont1, ont2).forEach(o -> {
+            Assert.assertEquals("Incorrect impl", OntologyModelImpl.class, ont1.getClass());
+            Assert.assertNotEquals("Incorrect impl", OntologyModelImpl.Concurrent.class, ont1.getClass());
+        });
+
+        OntologyManagerImpl m2 = (OntologyManagerImpl) OntManagers.createConcurrentONT();
+        Assert.assertTrue("Not Concurrent", m2.isConcurrent());
+        OntologyModel ont3 = m2.loadOntology(fileIRI);
+        OntologyModel ont4 = m2.createOntology(id);
+        Assert.assertEquals("Incorrect num of ontologies", 2, m2.ontologies().count());
+        Stream.of(ont3, ont4).forEach(o -> {
+            Assert.assertNotEquals("Incorrect impl", OntologyModelImpl.class, ont3.getClass());
+            Assert.assertEquals("Incorrect impl", OntologyModelImpl.Concurrent.class, ont3.getClass());
+        });
+    }
+
+    @Test
+    public void testConfigs() {
+        OntologyManager m1 = OntManagers.createONT();
+        OntologyManager m2 = OntManagers.createONT();
+        OntLoaderConfiguration conf1 = m1.getOntologyLoaderConfiguration();
+        conf1.setPersonality(OntModelConfig.ONT_PERSONALITY_LAX);
+        OntLoaderConfiguration conf2 = m2.getOntologyLoaderConfiguration();
+        conf2.setPersonality(OntModelConfig.ONT_PERSONALITY_STRICT);
+        Assert.assertEquals("Not the same loader configs", conf1, conf2);
+        Assert.assertEquals("Not the same personalities", conf1.getPersonality(), conf2.getPersonality());
+        m1.setOntologyLoaderConfiguration(conf1.setPersonality(OntModelConfig.ONT_PERSONALITY_LAX));
+        m2.setOntologyLoaderConfiguration(conf1.setPersonality(OntModelConfig.ONT_PERSONALITY_STRICT));
+        Assert.assertNotEquals("The same personalities", m1.getOntologyLoaderConfiguration().getPersonality(),
+                m2.getOntologyLoaderConfiguration().getPersonality());
+
+        boolean doTransformation = !conf1.isPerformTransformation();
+        m1.getOntologyLoaderConfiguration().setPerformTransformation(doTransformation);
+        Assert.assertNotEquals("The 'perform transformation' flag is changed", doTransformation,
+                m1.getOntologyLoaderConfiguration().isPerformTransformation());
+        m1.setOntologyLoaderConfiguration(conf2.setPerformTransformation(doTransformation));
+        Assert.assertEquals("The same 'perform transformation' flag", doTransformation,
+                m1.getOntologyLoaderConfiguration().isPerformTransformation());
+
+        GraphTransformers.Store store = new GraphTransformers.Store().add(graph -> null);
+        OntLoaderConfiguration conf3 = m1.getOntologyLoaderConfiguration().setGraphTransformers(store);
+        Assert.assertNotEquals("Graph transform action store is changed", store,
+                m1.getOntologyLoaderConfiguration().getGraphTransformers());
+        m1.setOntologyLoaderConfiguration(conf3);
+        Assert.assertEquals("Can't set transform action store.", store,
+                m1.getOntologyLoaderConfiguration().getGraphTransformers());
+    }
+
+    @Test
+    public void testConcurrentManager() throws Exception {
+        OWLOntologyManager m = OntManagers.createConcurrentONT();
+        OWLOntology o1 = m.createOntology();
+        OWLOntology o2 = m.loadOntology(IRI.create(ReadWriteUtils.getResourceFile("ontapi/test1.ttl")));
+        Assert.assertEquals("Expected 2 ontologies.", 2, m.ontologies().count());
+        Assert.assertTrue("(1)Not concurrent model!", o1 instanceof OntologyModelImpl.Concurrent);
+        Assert.assertTrue("(2)Not concurrent model!", o2 instanceof OntologyModelImpl.Concurrent);
+        ReadWriteLock managerLock = ((OntologyManagerImpl) m).getLock();
+        Assert.assertNotNull(managerLock);
+        Assert.assertEquals(managerLock, ((OntologyModelImpl.Concurrent) o1).getLock());
+        Assert.assertEquals(managerLock, ((OntologyModelImpl.Concurrent) o2).getLock());
+        Assert.assertTrue("(1)Not concurrent graph!",
+                ((OntologyModel) o1).asGraphModel().getBaseGraph() instanceof RWLockedGraph);
+        Assert.assertTrue("(2)Not concurrent graph!",
+                ((OntologyModel) o2).asGraphModel().getBaseGraph() instanceof RWLockedGraph);
+        Assert.assertEquals(managerLock, ((RWLockedGraph) ((OntologyModel) o1).asGraphModel().getBaseGraph()).lock());
+        Assert.assertEquals(managerLock, ((RWLockedGraph) ((OntologyModel) o2).asGraphModel().getBaseGraph()).lock());
+
+        o1.axioms().forEach(a -> LOGGER.debug("{}", a));
+        ((OntologyModel) o1).asGraphModel().createOntClass("urn:c1").createIndividual("urn:i");
+        OWLDataFactory df = m.getOWLDataFactory();
+        o1.add(df.getOWLAnnotationAssertionAxiom(df.getOWLAnnotationProperty(IRI.create("urn:ap")),
+                IRI.create("urn:c1"), df.getOWLLiteral("test", "e")));
+        Assert.assertEquals(4, o1.getAxiomCount());
+        ((OntologyModel) o1).clearCache();
+        Assert.assertEquals("+ 1 declaration", 5, o1.getAxiomCount());
+
+        o2.axioms().forEach(a -> LOGGER.debug("{}", a));
+        Assert.assertEquals(12, o2.getAxiomCount());
+        ((OntologyModel) o2).clearCache();
+        Assert.assertEquals(12, o2.getAxiomCount());
+    }
+
+    @Test
+    public void testSerialization() throws Exception {
+        serializationTest(OntManagers.createONT());
+    }
+
+    @Test
+    public void testSerializationWithConcurrency() throws Exception {
+        serializationTest(OntManagers.createConcurrentONT());
+    }
+
+    @Test
+    public void testPassingGraph() throws Exception {
+        LOGGER.debug("Build MultiUnion graph using jena OntModel");
+        OntModelSpec spec = OntModelSpec.OWL_DL_MEM;
+        FileManager jenaFileManager = spec.getDocumentManager().getFileManager();
+        SpinModels.addMappings(jenaFileManager);
+        OntModel ontologyModel = ModelFactory.createOntologyModel(spec);
+        ontologyModel.read(SpinModels.SPINMAPL.getIRI().getIRIString(), "ttl");
+
+        LOGGER.debug("Load spin-rdf ontology family using file-iri-mappings");
+        OntologyManager m1 = OntManagers.createONT();
+        SpinModels.addMappings(m1);
+        m1.loadOntologyFromOntologyDocument(SpinModels.SPINMAPL.getIRI());
+        long expected = m1.ontologies().count();
+
+        LOGGER.debug("Pass ready composite graph to the manager as-is");
+        OntologyManager m2 = OntManagers.createONT();
+        m2.addOntology(ontologyModel.getGraph());
+        long actual = m2.ontologies().count();
+
+        Assert.assertEquals("Counts of ontologies does not match", expected, actual);
+
+        LOGGER.debug("Add several additional ontologies");
+        m2.addOntology(OntModelFactory.createDefaultGraph());
+        OntGraphModel o2 = OntModelFactory.createModel();
+        o2.setID("http://example.org/test");
+        m2.addOntology(o2.getGraph());
+        Assert.assertEquals("Counts of ontologies does not match", expected + 2, m2.ontologies().count());
+
     }
 
 }

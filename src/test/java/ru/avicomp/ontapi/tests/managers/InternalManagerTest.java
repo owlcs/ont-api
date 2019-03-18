@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -41,6 +41,57 @@ import java.util.stream.IntStream;
  */
 public class InternalManagerTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(InternalManagerTest.class);
+    private static final PrintStream OUT = ReadWriteUtils.NULL_OUT;
+
+    private static void performSomeModifying(OntologyCollection<IDHolder> list) {
+        Random r = ThreadLocalRandom.current();
+        addRandom(list, r, 5000);
+        OUT.println(list);
+
+        list.clear();
+        addRandom(list, r, 1500);
+        changeVersionIRIs(list);
+        OUT.println(list);
+
+        changeOntologyIRIs(list);
+        list.keys().skip(r.nextInt((int) list.size() + 1)).collect(Collectors.toList()).forEach(list::remove);
+        OUT.println(list);
+
+        addRandom(list, r, 3000);
+        changeVersionIRIs(list);
+        changeOntologyIRIs(list);
+        OUT.println(list);
+
+        list.values().limit(r.nextInt((int) list.size() + 1)).collect(Collectors.toSet()).forEach(list::delete);
+        OUT.println(list);
+        list.clear();
+    }
+
+    private static void addRandom(OntologyCollection<IDHolder> list, Random r, int count) {
+        IntStream.rangeClosed(0, r.nextInt(count) + 1)
+                .mapToObj(i -> IDHolder.of(String.valueOf(i)))
+                .forEach(list::add);
+    }
+
+    private static void changeOntologyIRIs(OntologyCollection<IDHolder> list) {
+        list.values().forEach(o -> {
+            String iri = o.getOntologyIRI();
+            Assert.assertNotNull(iri);
+            o.setOntologyIRI(iri + "_x");
+        });
+    }
+
+    private static void changeVersionIRIs(OntologyCollection<IDHolder> list) {
+        list.values().forEach(o -> {
+            String ver = o.getVersionIRI();
+            if (ver == null) {
+                ver = "y";
+            } else {
+                ver += "_y";
+            }
+            o.setVersionIRI(ver);
+        });
+    }
 
     @Test
     public void testCommonOntologyCollection() {
@@ -138,58 +189,6 @@ public class InternalManagerTest {
         Assert.assertTrue(list.isEmpty());
     }
 
-    private static final PrintStream OUT = ReadWriteUtils.NULL_OUT;
-
-    private static void performSomeModifying(OntologyCollection<IDHolder> list) {
-        Random r = ThreadLocalRandom.current();
-        addRandom(list, r, 5000);
-        OUT.println(list);
-
-        list.clear();
-        addRandom(list, r, 1500);
-        changeVersionIRIs(list);
-        OUT.println(list);
-
-        changeOntologyIRIs(list);
-        list.keys().skip(r.nextInt((int) list.size() + 1)).collect(Collectors.toList()).forEach(list::remove);
-        OUT.println(list);
-
-        addRandom(list, r, 3000);
-        changeVersionIRIs(list);
-        changeOntologyIRIs(list);
-        OUT.println(list);
-
-        list.values().limit(r.nextInt((int) list.size() + 1)).collect(Collectors.toSet()).forEach(list::delete);
-        OUT.println(list);
-        list.clear();
-    }
-
-    private static void addRandom(OntologyCollection<IDHolder> list, Random r, int count) {
-        IntStream.rangeClosed(0, r.nextInt(count) + 1)
-                .mapToObj(i -> IDHolder.of(String.valueOf(i)))
-                .forEach(list::add);
-    }
-
-    private static void changeOntologyIRIs(OntologyCollection<IDHolder> list) {
-        list.values().forEach(o -> {
-            String iri = o.getOntologyIRI();
-            Assert.assertNotNull(iri);
-            o.setOntologyIRI(iri + "_x");
-        });
-    }
-
-    private static void changeVersionIRIs(OntologyCollection<IDHolder> list) {
-        list.values().forEach(o -> {
-            String ver = o.getVersionIRI();
-            if (ver == null) {
-                ver = "y";
-            } else {
-                ver += "_y";
-            }
-            o.setVersionIRI(ver);
-        });
-    }
-
     @SuppressWarnings("WeakerAccess")
     public static class IDHolder implements HasOntologyID {
         private OntologyID id;
@@ -215,20 +214,20 @@ public class InternalManagerTest {
             this.id = OntologyID.asONT(id);
         }
 
-        public void setVersionIRI(String x) {
-            setOntologyID(OntologyID.create(getOntologyIRI(), x));
+        public String getOntologyIRI() {
+            return id.getOntologyIRI().map(IRI::getIRIString).orElse(null);
         }
 
         public void setOntologyIRI(String x) {
             setOntologyID(OntologyID.create(x, getVersionIRI()));
         }
 
-        public String getOntologyIRI() {
-            return id.getOntologyIRI().map(IRI::getIRIString).orElse(null);
-        }
-
         public String getVersionIRI() {
             return id.getVersionIRI().map(IRI::getIRIString).orElse(null);
+        }
+
+        public void setVersionIRI(String x) {
+            setOntologyID(OntologyID.create(getOntologyIRI(), x));
         }
 
         @Override

@@ -211,19 +211,19 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     /**
      * Sets {@link OntLoaderConfiguration} config to the manager.
      *
-     * @param conf {@link OWLOntologyLoaderConfiguration}
+     * @param config {@link OWLOntologyLoaderConfiguration}
      */
     @Override
-    public void setOntologyLoaderConfiguration(@Nullable OWLOntologyLoaderConfiguration conf) {
+    public void setOntologyLoaderConfiguration(@Nullable OWLOntologyLoaderConfiguration config) {
         getLock().writeLock().lock();
         try {
-            OntLoaderConfiguration config = OWLAdapter.get().asONT(conf);
-            boolean hasChanges = ModelConfig.hasChanges(getOntLoaderConfiguration(), config);
+            OntLoaderConfiguration conf = OWLAdapter.get().asONT(config);
+            boolean hasChanges = ModelConfig.hasChanges(getOntLoaderConfiguration(), conf);
             content.values()
-                    .filter(x -> x.getModelConfig().useManagerConfig() ? hasChanges : x.getModelConfig().hasChanges(config))
+                    .filter(x -> x.getModelConfig().useManagerConfig() ? hasChanges : x.getModelConfig().hasChanges(conf))
                     .map(OntInfo::get)
                     .forEach(OntologyModel::clearCache);
-            this.loaderConfig = config;
+            this.loaderConfig = conf;
         } finally {
             getLock().writeLock().unlock();
         }
