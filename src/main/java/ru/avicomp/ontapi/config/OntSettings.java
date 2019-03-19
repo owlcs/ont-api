@@ -20,18 +20,16 @@ import org.semanticweb.owlapi.model.PriorityCollectionSorting;
 import org.semanticweb.owlapi.model.parameters.ConfigurationOptions;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.impl.conf.OntModelConfig;
-import ru.avicomp.ontapi.transforms.OWLCommonTransform;
-import ru.avicomp.ontapi.transforms.OWLDeclarationTransform;
-import ru.avicomp.ontapi.transforms.OWLIDTransform;
-import ru.avicomp.ontapi.transforms.RDFSTransform;
+import ru.avicomp.ontapi.transforms.*;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Enum of all ONT-API settings (20 origin OWL-API options + 9 new ONT-API options + ignored imports)
@@ -40,14 +38,14 @@ import java.util.stream.Stream;
  * See <a href="file:../resources/ontapi.properties">ontapi.properties</a>
  * <p>
  * Created by @szuev on 14.04.2017.
+ *
  * @see ConfigurationOptions
  */
-public enum OntSettings implements OntConfig.OptionSetting {
+public enum OntSettings {
     OWL_API_LOAD_CONF_IGNORED_IMPORTS(new ArrayList<String>()),
 
-    ONT_API_LOAD_CONF_TRANSFORMERS(Stream.of(OWLIDTransform.class, RDFSTransform.class, OWLCommonTransform.class, OWLDeclarationTransform.class)
-            .collect(Collectors.toCollection(ArrayList::new))),
-    ONT_API_LOAD_CONF_SUPPORTED_SCHEMES(OntConfig.DefaultScheme.all().collect(Collectors.toCollection(ArrayList::new))),
+    ONT_API_LOAD_CONF_TRANSFORMERS(OWLIDTransform.class, RDFSTransform.class, OWLCommonTransform.class, OWLDeclarationTransform.class),
+    ONT_API_LOAD_CONF_SUPPORTED_SCHEMES(OntConfig.DefaultScheme.values()),
     ONT_API_LOAD_CONF_PERSONALITY_MODE(OntModelConfig.StdMode.MEDIUM),
     ONT_API_LOAD_CONF_PERFORM_TRANSFORMATIONS(true),
     ONT_API_LOAD_CONF_ALLOW_BULK_ANNOTATION_ASSERTIONS(true),
@@ -86,27 +84,78 @@ public enum OntSettings implements OntConfig.OptionSetting {
     OWL_API_WRITE_CONF_INDENTING(true),
     OWL_API_WRITE_CONF_LABEL_AS_BANNER(false),
     OWL_API_WRITE_CONF_BANNERS_ENABLED(true),
-    OWL_API_WRITE_CONF_INDENT_SIZE(4),;
+    OWL_API_WRITE_CONF_INDENT_SIZE(4),
+
+    ONT_PERSONALITY() {
+        @Override
+        public Object getDefaultValue() { // note: the return object is not Serializable
+            OntModelConfig.StdMode mode = (OntModelConfig.StdMode) ONT_API_LOAD_CONF_PERSONALITY_MODE.getDefaultValue();
+            switch (mode) {
+                case LAX:
+                    return OntModelConfig.ONT_PERSONALITY_LAX;
+                case MEDIUM:
+                    return OntModelConfig.ONT_PERSONALITY_MEDIUM;
+                case STRICT:
+                    return OntModelConfig.ONT_PERSONALITY_STRICT;
+                default:
+                    throw new OntApiException.Unsupported("Unsupported personality mode " + mode);
+            }
+        }
+    },
+    ONT_TRANSFORMERS() {
+        @SuppressWarnings("unchecked")
+        @Override
+        public Object getDefaultValue() {
+            List<Class> transformers = (List<Class>) ONT_API_LOAD_CONF_TRANSFORMERS.getDefaultValue();
+            GraphTransformers.Store res = new GraphTransformers.Store();
+            for (Class c : transformers) {
+                res = res.add(new GraphTransformers.DefaultMaker(c));
+            }
+            return res;
+        }
+    };
 
     public static final ExtendedProperties PROPERTIES = loadProperties();
 
-    protected final Serializable secondary;
+    static final OntSettings[] LOAD_CONFIG_KEYS = filter(OntSettings::isLoad);
+    static final OntSettings[] WRITE_CONFIG_KEYS = filter(OntSettings::isWrite);
+
+    private final Serializable secondary;
+    private final String key;
+    private final boolean isONT;
+    private final boolean isLoad;
+    private final boolean isWrite;
+
+    OntSettings() {
+        this.secondary = null;
+        this.key = null;
+        this.isONT = true;
+        this.isLoad = true;
+        this.isWrite = false;
+    }
+
+    OntSettings(Serializable... values) {
+        this(Arrays.stream(values).collect(Collectors.toCollection(ArrayList::new)));
+    }
 
     OntSettings(Serializable value) {
         this.secondary = value;
+        this.key = name().toLowerCase().replace("_", ".");
+        this.isONT = key.startsWith("ont.api");
+        this.isLoad = key.contains(".load.conf.");
+        this.isWrite = key.contains(".write.conf.");
     }
 
-    @Override
-    public Serializable getDefaultValue() {
+    public Object getDefaultValue() {
         String k = key();
-        Serializable primary;
+        Object primary;
         if (secondary instanceof Enum) {
             primary = PROPERTIES.getEnumProperty(k);
         } else if (secondary instanceof Class) {
             primary = PROPERTIES.getClassProperty(k);
         } else if (secondary instanceof List) {
             List<?> list = PROPERTIES.getListProperty(k);
-            primary = list == null ? new ArrayList<>() : list instanceof Serializable ? (Serializable) list : new ArrayList<>(list);
+            primary = list == null ? new ArrayList<>() : asSerializableList(list);
         } else if (secondary instanceof Boolean) {
             primary = PROPERTIES.getBooleanProperty(k);
         } else if (secondary instanceof Integer) {
@@ -124,19 +173,19 @@ public enum OntSettings implements OntConfig.OptionSetting {
     }
 
     public boolean isLoad() {
-        return name().contains("_LOAD_CONF_");
+        return isLoad;
     }
 
     public boolean isWrite() {
-        return name().contains("_WRITE_CONF_");
+        return isWrite;
     }
 
     public boolean isONT() {
-        return name().startsWith("ONT_API");
+        return isONT;
     }
 
     public String key() {
-        return name().toLowerCase().replace("_", ".");
+        return key;
     }
 
     private static ExtendedProperties loadProperties() {
@@ -145,8 +194,16 @@ public enum OntSettings implements OntConfig.OptionSetting {
                 "Null properties")) {
             res.load(io);
         } catch (IOException e) {
-            throw new OntApiException("No properties", e);
+            throw new OntApiException("No ontapi.properties found.", e);
         }
         return res;
+    }
+
+    static <X> List<X> asSerializableList(List<X> list) {
+        return list instanceof Serializable ? list : new ArrayList<>(list);
+    }
+
+    private static OntSettings[] filter(Predicate<OntSettings> filter) {
+        return Arrays.stream(values()).filter(filter).toArray(OntSettings[]::new);
     }
 }

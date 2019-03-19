@@ -24,6 +24,8 @@ import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
 import ru.avicomp.ontapi.transforms.GraphTransformers;
 
 import javax.annotation.Nonnull;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.*;
@@ -45,50 +47,37 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     private static final Logger LOGGER = LoggerFactory.getLogger(OntLoaderConfiguration.class);
     private static final long serialVersionUID = 1599596390911768315L;
 
-    protected final Map<OntConfig.OptionSetting, Object> map = new HashMap<>();
+    protected final Map<OntSettings, Object> map;
 
-    // WARNING: OntPersonality is not serializable!
-    protected transient OntPersonality personality;
-    protected GraphTransformers.Store transformers;
+    protected OntLoaderConfiguration() {
+        this.map = new EnumMap<>(OntSettings.class);
+    }
 
-    public OntLoaderConfiguration(OWLOntologyLoaderConfiguration owl) {
-        if (owl == null) return;
-        if (owl instanceof OntLoaderConfiguration) {
-            copyONTSettings((OntLoaderConfiguration) owl);
+    public OntLoaderConfiguration(OWLOntologyLoaderConfiguration from) {
+        this();
+        if (from == null) return;
+        if (from instanceof OntLoaderConfiguration) {
+            copyONTSettings((OntLoaderConfiguration) from);
         } else {
-            copyOWLSettings(owl);
+            copyOWLSettings(from);
         }
     }
 
-    /**
-     * The analogue of {@link OWLOntologyLoaderConfiguration#copyConfiguration()}, since the original method is private.
-     *
-     * @param owl to copy from.
-     * @return new instance of {@link OntLoaderConfiguration}
-     */
-    @SuppressWarnings("JavadocReference")
-    protected OntLoaderConfiguration copy(OWLOntologyLoaderConfiguration owl) {
-        return new OntLoaderConfiguration(owl);
-    }
 
     @SuppressWarnings("unchecked")
-    protected <X> X get(OntConfig.OptionSetting key) {
-        return (X) key.fromMap(map);
+    protected <X> X get(OntSettings key) {
+        return (X) map.computeIfAbsent(key, OntSettings::getDefaultValue);
     }
 
-    @SuppressWarnings("unchecked")
-    protected <X> X getOrCompute(OntConfig.OptionSetting key) {
-        return (X) map.computeIfAbsent(key, x -> key.getDefaultValue());
-    }
-
-    protected OntLoaderConfiguration setPositive(OntConfig.OptionSetting k, int v) {
+    private OntLoaderConfiguration setPositive(OntSettings k, int v) {
         return set(k, OntConfig.requirePositive(v, k));
     }
 
-    protected OntLoaderConfiguration set(OntConfig.OptionSetting key, Object o) {
-        if (Objects.equals(get(key), o)) return this;
-        OntLoaderConfiguration copy = copy(this);
-        copy.map.put(key, o);
+    protected OntLoaderConfiguration set(OntSettings key, Object v) {
+        Objects.requireNonNull(v);
+        if (Objects.equals(get(key), v)) return this;
+        OntLoaderConfiguration copy = new OntLoaderConfiguration(this);
+        copy.map.put(key, v);
         return copy;
     }
 
@@ -111,8 +100,6 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     protected void copyONTSettings(OntLoaderConfiguration conf) {
-        this.personality = conf.getPersonality();
-        this.transformers = conf.getGraphTransformers();
         this.map.putAll(conf.map);
     }
 
@@ -158,7 +145,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
      * @see #setPerformTransformation(boolean)
      */
     public GraphTransformers.Store getGraphTransformers() {
-        return transformers == null ? transformers = OntConfig.getDefaultTransformers() : transformers;
+        return get(OntSettings.ONT_TRANSFORMERS);
     }
 
     /**
@@ -170,34 +157,28 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
      * @see OntLoaderConfiguration#setPerformTransformation(boolean)
      */
     public OntLoaderConfiguration setGraphTransformers(GraphTransformers.Store t) {
-        if (Objects.equals(transformers, t)) return this;
-        OntLoaderConfiguration res = copy(this);
-        res.transformers = t;
-        return res;
+        return set(OntSettings.ONT_TRANSFORMERS, t);
     }
 
     /**
      * ONT-API config method.
-     * Note: after deserialization it is always default ({@link OntConfig#getDefaultPersonality()}).
+     * Note: after deserialization it is always default (see {@link OntSettings#ONT_PERSONALITY}).
      *
      * @return {@link OntPersonality}, not {@code null}
      */
     public OntPersonality getPersonality() {
-        return personality == null ? personality = OntConfig.getDefaultPersonality() : personality;
+        return get(OntSettings.ONT_PERSONALITY);
     }
 
     /**
      * ONT-API config setter.
      *
      * @param p {@link OntPersonality} new personality;
-     *          {@code null} means default ({@link OntConfig#getDefaultPersonality()}).
+     *          {@code null} means default (see {@link OntSettings#ONT_PERSONALITY}).
      * @return {@link OntLoaderConfiguration}
      */
     public OntLoaderConfiguration setPersonality(OntPersonality p) {
-        if (Objects.equals(personality, p)) return this;
-        OntLoaderConfiguration res = copy(this);
-        res.personality = p;
-        return res;
+        return set(OntSettings.ONT_PERSONALITY, p);
     }
 
     /**
@@ -279,8 +260,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
      * @return {@link OntLoaderConfiguration}, new instance
      */
     public OntLoaderConfiguration setSupportedSchemes(List<OntConfig.Scheme> schemes) {
-        List<OntConfig.Scheme> res = schemes instanceof Serializable ? schemes : new ArrayList<>(schemes);
-        return set(OntSettings.ONT_API_LOAD_CONF_SUPPORTED_SCHEMES, res);
+        return set(OntSettings.ONT_API_LOAD_CONF_SUPPORTED_SCHEMES, OntSettings.asSerializableList(schemes));
     }
 
     /**
@@ -479,7 +459,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
      * @return List of IRIs (Strings)
      */
     protected List<String> getIgnoredImports() {
-        return getOrCompute(OntSettings.OWL_API_LOAD_CONF_IGNORED_IMPORTS);
+        return get(OntSettings.OWL_API_LOAD_CONF_IGNORED_IMPORTS);
     }
 
     /**
@@ -487,33 +467,13 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
      */
     @Override
     public OntLoaderConfiguration addIgnoredImport(@Nonnull IRI iri) {
-        if (getIgnoredImports().contains(iri.getIRIString())) {
+        List<String> list = getIgnoredImports();
+        if (list.contains(iri.getIRIString())) {
             return this;
         }
-        OntLoaderConfiguration res = copy(this);
-        res.getIgnoredImports().add(iri.getIRIString());
-        return res;
-    }
-
-    /**
-     * @see OWLOntologyLoaderConfiguration#clearIgnoredImports()
-     */
-    @Override
-    public OntLoaderConfiguration clearIgnoredImports() {
-        if (getIgnoredImports().isEmpty()) {
-            return this;
-        }
-        OntLoaderConfiguration res = copy(this);
-        res.getIgnoredImports().clear();
-        return res;
-    }
-
-    /**
-     * @see OWLOntologyLoaderConfiguration#isIgnoredImport(IRI)
-     */
-    @Override
-    public boolean isIgnoredImport(@Nonnull IRI iri) {
-        return Namespaces.isDefaultIgnoredImport(iri) || getIgnoredImports().contains(iri.getIRIString());
+        List<String> imports = new ArrayList<>(list);
+        imports.add(iri.getIRIString());
+        return set(OntSettings.OWL_API_LOAD_CONF_IGNORED_IMPORTS, imports);
     }
 
     /**
@@ -521,12 +481,34 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
      */
     @Override
     public OntLoaderConfiguration removeIgnoredImport(@Nonnull IRI iri) {
-        if (!getIgnoredImports().contains(iri.getIRIString())) {
+        List<String> list = getIgnoredImports();
+        if (!list.contains(iri.getIRIString())) {
             return this;
         }
-        OntLoaderConfiguration res = copy(this);
-        res.getIgnoredImports().remove(iri.getIRIString());
-        return res;
+        List<String> imports = new ArrayList<>(list);
+        imports.remove(iri.getIRIString());
+        return set(OntSettings.OWL_API_LOAD_CONF_IGNORED_IMPORTS, imports);
+    }
+
+    /**
+     * @see OWLOntologyLoaderConfiguration#clearIgnoredImports()
+     */
+    @Override
+    public OntLoaderConfiguration clearIgnoredImports() {
+        List<String> list = getIgnoredImports();
+        if (list.isEmpty()) {
+            return this;
+        }
+        return set(OntSettings.OWL_API_LOAD_CONF_IGNORED_IMPORTS, new ArrayList<>());
+    }
+
+    /**
+     * @see OWLOntologyLoaderConfiguration#isIgnoredImport(IRI)
+     */
+    @Override
+    public boolean isIgnoredImport(@Nonnull IRI iri) {
+        // todo: must be in default properties:
+        return Namespaces.isDefaultIgnoredImport(iri) || getIgnoredImports().contains(iri.getIRIString());
     }
 
     /**
@@ -802,19 +784,31 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
         return this;
     }
 
+    protected Map<OntSettings, Object> asMap() {
+        return OntConfig.loadMap(this.map, OntSettings.LOAD_CONFIG_KEYS);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof OntLoaderConfiguration)) return false;
         OntLoaderConfiguration that = (OntLoaderConfiguration) o;
-        return Objects.equals(this.getPersonality(), that.getPersonality()) &&
-                Objects.equals(this.getGraphTransformers(), that.getGraphTransformers()) &&
-                Objects.equals(this.map, that.map);
+        return Objects.equals(this.asMap(), that.asMap());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.getPersonality(), this.getGraphTransformers(), this.map);
+        return Objects.hash(asMap());
+    }
+
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        Map<OntSettings, Object> tmp = new EnumMap<>(OntSettings.class);
+        this.map.forEach((k, v) -> {
+            if (v instanceof Serializable) {
+                tmp.put(k, v);
+            }
+        });
+        out.writeObject(tmp);
     }
 
 }

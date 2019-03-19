@@ -16,7 +16,7 @@ package ru.avicomp.ontapi.config;
 
 import org.semanticweb.owlapi.model.OWLOntologyWriterConfiguration;
 
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -32,26 +32,39 @@ import java.util.Objects;
 public class OntWriterConfiguration extends OWLOntologyWriterConfiguration {
 
     private static final long serialVersionUID = 2369276991908772369L;
-    protected final Map<OntConfig.OptionSetting, Object> map = new HashMap<>();
+    protected final Map<OntSettings, Object> map;
 
-    public OntWriterConfiguration(OWLOntologyWriterConfiguration owl) {
-        if (owl == null) return;
-        this.map.put(OntSettings.OWL_API_WRITE_CONF_SAVE_IDS, owl.shouldSaveIdsForAllAnonymousIndividuals());
-        this.map.put(OntSettings.OWL_API_WRITE_CONF_REMAP_IDS, owl.shouldRemapAllAnonymousIndividualsIds());
-        this.map.put(OntSettings.OWL_API_WRITE_CONF_USE_NAMESPACE_ENTITIES, owl.isUseNamespaceEntities());
-        this.map.put(OntSettings.OWL_API_WRITE_CONF_INDENTING, owl.isIndenting());
-        this.map.put(OntSettings.OWL_API_WRITE_CONF_LABEL_AS_BANNER, owl.isLabelsAsBanner());
-        this.map.put(OntSettings.OWL_API_WRITE_CONF_BANNERS_ENABLED, owl.shouldUseBanners());
-        this.map.put(OntSettings.OWL_API_WRITE_CONF_INDENT_SIZE, owl.getIndentSize());
+    protected OntWriterConfiguration() {
+        this.map = new EnumMap<>(OntSettings.class);
     }
 
-    protected OntWriterConfiguration copy(OWLOntologyWriterConfiguration owl) {
-        return new OntWriterConfiguration(owl);
+    public OntWriterConfiguration(OWLOntologyWriterConfiguration from) {
+        this();
+        if (from == null) return;
+        if (from instanceof OntWriterConfiguration) {
+            copyONTSettings((OntWriterConfiguration) from);
+        } else {
+            copyOWLSettings(from);
+        }
+    }
+
+    protected void copyONTSettings(OntWriterConfiguration from) {
+        this.map.putAll(from.map);
+    }
+
+    protected void copyOWLSettings(OWLOntologyWriterConfiguration from) {
+        this.map.put(OntSettings.OWL_API_WRITE_CONF_SAVE_IDS, from.shouldSaveIdsForAllAnonymousIndividuals());
+        this.map.put(OntSettings.OWL_API_WRITE_CONF_REMAP_IDS, from.shouldRemapAllAnonymousIndividualsIds());
+        this.map.put(OntSettings.OWL_API_WRITE_CONF_USE_NAMESPACE_ENTITIES, from.isUseNamespaceEntities());
+        this.map.put(OntSettings.OWL_API_WRITE_CONF_INDENTING, from.isIndenting());
+        this.map.put(OntSettings.OWL_API_WRITE_CONF_LABEL_AS_BANNER, from.isLabelsAsBanner());
+        this.map.put(OntSettings.OWL_API_WRITE_CONF_BANNERS_ENABLED, from.shouldUseBanners());
+        this.map.put(OntSettings.OWL_API_WRITE_CONF_INDENT_SIZE, from.getIndentSize());
     }
 
     @SuppressWarnings("unchecked")
-    protected <X> X get(OntConfig.OptionSetting key) {
-        return (X) key.fromMap(map);
+    protected <X> X get(OntSettings key) {
+        return (X) map.computeIfAbsent(key, OntSettings::getDefaultValue);
     }
 
     @SuppressWarnings("SameParameterValue")
@@ -59,16 +72,18 @@ public class OntWriterConfiguration extends OWLOntologyWriterConfiguration {
         return set(k, OntConfig.requirePositive(v, k));
     }
 
-    protected OntWriterConfiguration set(OntSettings key, Object o) {
-        if (Objects.equals(get(key), o)) return this;
-        OntWriterConfiguration copy = copy(this);
-        copy.map.put(key, o);
+    protected OntWriterConfiguration set(OntSettings key, Object v) {
+        Objects.requireNonNull(v);
+        if (Objects.equals(get(key), v)) return this;
+        OntWriterConfiguration copy = new OntWriterConfiguration(this);
+        copy.map.put(key, v);
         return copy;
     }
 
     /**
      * ONT-API getter.
-     * by default it is true.
+     * by default it is {@code true}.
+     * TODO: it is wrong: by default must be false!
      *
      * @return true if imports control is allowed.
      * @see #setControlImports(boolean)
@@ -208,16 +223,20 @@ public class OntWriterConfiguration extends OWLOntologyWriterConfiguration {
         return setPositive(OntSettings.OWL_API_WRITE_CONF_INDENT_SIZE, indent);
     }
 
+    protected Map<OntSettings, Object> asMap() {
+        return OntConfig.loadMap(this.map, OntSettings.WRITE_CONFIG_KEYS);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof OntWriterConfiguration)) return false;
         OntWriterConfiguration that = (OntWriterConfiguration) o;
-        return Objects.equals(map, that.map);
+        return Objects.equals(this.asMap(), that.asMap());
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(map);
+        return Objects.hash(asMap());
     }
 }
