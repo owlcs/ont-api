@@ -23,6 +23,7 @@ import ru.avicomp.ontapi.OntFormat;
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
+import ru.avicomp.ontapi.config.AxiomsSettings;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
 import java.util.Arrays;
@@ -34,7 +35,7 @@ import java.util.stream.Stream;
 /**
  * Created by @ssz on 18.03.2019.
  *
- * @see ru.avicomp.ontapi.config.AxiomSettings
+ * @see AxiomsSettings
  */
 public class AxiomsConfigTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(AxiomsConfigTest.class);

@@ -21,7 +21,7 @@ package ru.avicomp.ontapi.config;
  *
  * @since 1.4.0
  */
-public interface AxiomSettings {
+public interface AxiomsSettings {
 
     /**
      * Answers whether annotation axioms (instances of {@link org.semanticweb.owlapi.model.OWLAnnotationAxiom})

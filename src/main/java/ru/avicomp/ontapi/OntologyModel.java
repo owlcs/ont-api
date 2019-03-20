@@ -15,6 +15,7 @@
 package ru.avicomp.ontapi;
 
 import org.semanticweb.owlapi.model.OWLOntology;
+import ru.avicomp.ontapi.config.AxiomsSettings;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 
 /**
@@ -66,7 +67,7 @@ public interface OntologyModel extends OWLOntology {
      * after calling the {@code clearCache()} method will respond with a list that also includes each entity declaration:
      * {@code Declaration(AnnotationProperty(<P>))}, {@code Declaration(Class(<A>))} and {@code Declaration(Class(<B>))}.
      * In general, a complete list of axioms is configurable and depends on various settings,
-     * for more details see {@link ru.avicomp.ontapi.config.AxiomSettings}.
+     * for more details see {@link AxiomsSettings}.
      */
     void clearCache();
 

@@ -157,13 +157,13 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
-     * Copies configuration from one config to another.
+     * Copies configuration from the given config.
      *
      * @param from {@link OntologyConfigurator}, the source, can be {@code null}
      * @return {@link OntConfig} this config
      * @since 1.4.0
      */
-    protected OntConfig putAll(OntologyConfigurator from) {
+    public OntConfig putAll(OntologyConfigurator from) {
         if (from == null) return this;
         if (from instanceof OntConfig) {
             Map<OntSettings, Object> tmp;
@@ -222,7 +222,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
      * @see OntLoaderConfiguration#getPersonality()
      */
     public OntPersonality getPersonality() {
-        return get(OntSettings.ONT_PERSONALITY);
+        return get(OntSettings.ONT_API_LOAD_CONF_PERSONALITY_MODE);
     }
 
     /**
@@ -233,7 +233,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
      * @see OntLoaderConfiguration#setPersonality(OntPersonality)
      */
     public OntConfig setPersonality(OntPersonality p) {
-        return put(OntSettings.ONT_PERSONALITY, p);
+        return put(OntSettings.ONT_API_LOAD_CONF_PERSONALITY_MODE, p);
     }
 
     /**
@@ -243,7 +243,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
      * @see OntLoaderConfiguration#getGraphTransformers()
      */
     public GraphTransformers.Store getGraphTransformers() {
-        return get(OntSettings.ONT_TRANSFORMERS);
+        return get(OntSettings.ONT_API_LOAD_CONF_TRANSFORMERS);
     }
 
     /**
@@ -254,7 +254,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
      * @see OntLoaderConfiguration#setGraphTransformers(GraphTransformers.Store)
      */
     public OntConfig setGraphTransformers(GraphTransformers.Store t) {
-        return put(OntSettings.ONT_TRANSFORMERS, t);
+        return put(OntSettings.ONT_API_LOAD_CONF_TRANSFORMERS, t);
     }
 
     /**
@@ -352,7 +352,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     /**
      * ONT-API manager load config getter.
      *
-     * @return List of supported {@link Scheme schemes}
+     * @return unmodifiable {@code List} of supported {@link Scheme schemes}
      * @see OntLoaderConfiguration#getSupportedSchemes()
      */
     public List<OntConfig.Scheme> getSupportedSchemes() {
@@ -367,7 +367,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
      * @see OntLoaderConfiguration#setSupportedSchemes(List)
      */
     public OntConfig setSupportedSchemes(List<Scheme> schemes) {
-        return put(OntSettings.ONT_API_LOAD_CONF_SUPPORTED_SCHEMES, OntSettings.asSerializableList(schemes));
+        return put(OntSettings.ONT_API_LOAD_CONF_SUPPORTED_SCHEMES, Collections.unmodifiableList(schemes));
     }
 
     /**
@@ -687,7 +687,11 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     protected List<String> getIgnoredImports() {
-        return get(OntSettings.OWL_API_LOAD_CONF_IGNORED_IMPORTS);
+        return new ArrayList<>(get(OntSettings.OWL_API_LOAD_CONF_IGNORED_IMPORTS));
+    }
+
+    protected OntConfig putIgnoredImports(List<String> imports) {
+        return put(OntSettings.OWL_API_LOAD_CONF_IGNORED_IMPORTS, Collections.unmodifiableList(imports));
     }
 
     /**
@@ -696,10 +700,11 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     @Override
     public OntConfig addIgnoredImport(@Nonnull IRI iri) {
         List<String> list = getIgnoredImports();
-        if (!list.contains(iri.getIRIString())) {
-            list.add(iri.getIRIString());
+        if (list.contains(iri.getIRIString())) {
+            return this;
         }
-        return this;
+        list.add(iri.getIRIString());
+        return putIgnoredImports(list);
     }
 
     /**
@@ -707,8 +712,10 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
      */
     @Override
     public OntConfig clearIgnoredImports() {
-        getIgnoredImports().clear();
+        List<String> list = getIgnoredImports();
+        if (list.isEmpty())
         return this;
+        return putIgnoredImports(new ArrayList<>());
     }
 
     /**
@@ -716,8 +723,12 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
      */
     @Override
     public OntConfig removeIgnoredImport(@Nonnull IRI iri) {
-        getIgnoredImports().remove(iri.getIRIString());
-        return this;
+        List<String> list = getIgnoredImports();
+        if (!list.contains(iri.getIRIString())) {
+            return this;
+        }
+        list.remove(iri.getIRIString());
+        return putIgnoredImports(list);
     }
 
     /**
@@ -1121,7 +1132,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
         }
 
         @Override
-        protected OntConfig putAll(OntologyConfigurator from) {
+        public OntConfig putAll(OntologyConfigurator from) {
             lock.writeLock().lock();
             try {
                 delegate.putAll(from);

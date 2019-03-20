@@ -18,6 +18,7 @@ import org.semanticweb.owlapi.model.MissingImportHandlingStrategy;
 import org.semanticweb.owlapi.model.MissingOntologyHeaderStrategy;
 import org.semanticweb.owlapi.model.PriorityCollectionSorting;
 import org.semanticweb.owlapi.model.parameters.ConfigurationOptions;
+import org.semanticweb.owlapi.vocab.Namespaces;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.impl.conf.OntModelConfig;
 import ru.avicomp.ontapi.transforms.*;
@@ -27,14 +28,17 @@ import java.io.InputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
- * Enum of all ONT-API settings (20 origin OWL-API options + 9 new ONT-API options + ignored imports)
- * Note: System properties are not taken into account (this is a difference from OWL-API).
- * We use the properties file as the primary settings store and this enum goes as secondary attempt to load.
+ * The {@code Enum} of all ONT-API settings (22 OWL-API options + 15 ONT-API specific options)
+ * Note: System properties are not taken into account (this is a difference from OWL-API-impl).
+ * The properties file is used as the primary settings store.
+ * The default value, that is encoding in this enum,
+ * is used as secondary attempt in case a property entry is absent in the file.
  * See <a href="file:../resources/ontapi.properties">ontapi.properties</a>
  * <p>
  * Created by @szuev on 14.04.2017.
@@ -42,11 +46,19 @@ import java.util.stream.Collectors;
  * @see ConfigurationOptions
  */
 public enum OntSettings {
-    OWL_API_LOAD_CONF_IGNORED_IMPORTS(new ArrayList<String>()),
+    OWL_API_LOAD_CONF_IGNORED_IMPORTS(Namespaces.OWL
+            , Namespaces.RDF
+            , Namespaces.RDFS
+            , Namespaces.SWRL
+            , Namespaces.SWRLB
+            , Namespaces.XML
+            , Namespaces.XSD),
 
-    ONT_API_LOAD_CONF_TRANSFORMERS(OWLIDTransform.class, RDFSTransform.class, OWLCommonTransform.class, OWLDeclarationTransform.class),
-    ONT_API_LOAD_CONF_SUPPORTED_SCHEMES(OntConfig.DefaultScheme.values()),
-    ONT_API_LOAD_CONF_PERSONALITY_MODE(OntModelConfig.StdMode.MEDIUM),
+    ONT_API_LOAD_CONF_SUPPORTED_SCHEMES(OntConfig.DefaultScheme.HTTP
+            , OntConfig.DefaultScheme.HTTPS
+            , OntConfig.DefaultScheme.FTP
+            , OntConfig.DefaultScheme.FILE),
+
     ONT_API_LOAD_CONF_PERFORM_TRANSFORMATIONS(true),
     ONT_API_LOAD_CONF_ALLOW_BULK_ANNOTATION_ASSERTIONS(true),
     ONT_API_LOAD_CONF_ALLOW_READ_DECLARATIONS(true),
@@ -86,10 +98,10 @@ public enum OntSettings {
     OWL_API_WRITE_CONF_BANNERS_ENABLED(true),
     OWL_API_WRITE_CONF_INDENT_SIZE(4),
 
-    ONT_PERSONALITY() {
+    ONT_API_LOAD_CONF_PERSONALITY_MODE(OntModelConfig.StdMode.MEDIUM) {
         @Override
         public Object getDefaultValue() { // note: the return object is not Serializable
-            OntModelConfig.StdMode mode = (OntModelConfig.StdMode) ONT_API_LOAD_CONF_PERSONALITY_MODE.getDefaultValue();
+            OntModelConfig.StdMode mode = getPersonalityMode();
             switch (mode) {
                 case LAX:
                     return OntModelConfig.ONT_PERSONALITY_LAX;
@@ -101,17 +113,36 @@ public enum OntSettings {
                     throw new OntApiException.Unsupported("Unsupported personality mode " + mode);
             }
         }
+
+        OntModelConfig.StdMode getPersonalityMode() {
+            OntModelConfig.StdMode res = (OntModelConfig.StdMode) PROPERTIES.getEnumProperty(key);
+            if (res == null) {
+                res = (OntModelConfig.StdMode) secondary;
+            }
+            return res;
+        }
     },
-    ONT_TRANSFORMERS() {
-        @SuppressWarnings("unchecked")
+    ONT_API_LOAD_CONF_TRANSFORMERS(OWLIDTransform.class
+            , RDFSTransform.class
+            , OWLCommonTransform.class
+            , OWLDeclarationTransform.class
+            , SWRLTransform.class) {
         @Override
         public Object getDefaultValue() {
-            List<Class> transformers = (List<Class>) ONT_API_LOAD_CONF_TRANSFORMERS.getDefaultValue();
             GraphTransformers.Store res = new GraphTransformers.Store();
-            for (Class c : transformers) {
+            for (Class<? extends Transform> c : getTransformTypes()) {
                 res = res.add(new GraphTransformers.DefaultMaker(c));
             }
             return res;
+        }
+
+        @SuppressWarnings("unchecked")
+        List<Class<? extends Transform>> getTransformTypes() {
+            List<?> res = PROPERTIES.getListProperty(key);
+            if (res == null) {
+                res = (List<?>) secondary;
+            }
+            return (List<Class<? extends Transform>>) res;
         }
     };
 
@@ -120,19 +151,11 @@ public enum OntSettings {
     static final OntSettings[] LOAD_CONFIG_KEYS = filter(OntSettings::isLoad);
     static final OntSettings[] WRITE_CONFIG_KEYS = filter(OntSettings::isWrite);
 
-    private final Serializable secondary;
-    private final String key;
+    protected final Serializable secondary;
+    protected final String key;
     private final boolean isONT;
     private final boolean isLoad;
     private final boolean isWrite;
-
-    OntSettings() {
-        this.secondary = null;
-        this.key = null;
-        this.isONT = true;
-        this.isLoad = true;
-        this.isWrite = false;
-    }
 
     OntSettings(Serializable... values) {
         this(Arrays.stream(values).collect(Collectors.toCollection(ArrayList::new)));
@@ -146,6 +169,11 @@ public enum OntSettings {
         this.isWrite = key.contains(".write.conf.");
     }
 
+    /**
+     * Returns a default option value.
+     *
+     * @return an immutable (or unmodifiable) object that is associated with this key
+     */
     public Object getDefaultValue() {
         String k = key();
         Object primary;
@@ -155,7 +183,10 @@ public enum OntSettings {
             primary = PROPERTIES.getClassProperty(k);
         } else if (secondary instanceof List) {
             List<?> list = PROPERTIES.getListProperty(k);
-            primary = list == null ? new ArrayList<>() : asSerializableList(list);
+            if (list == null) {
+                list = (List<?>) secondary;
+            }
+            return Collections.unmodifiableList(list);
         } else if (secondary instanceof Boolean) {
             primary = PROPERTIES.getBooleanProperty(k);
         } else if (secondary instanceof Integer) {
@@ -197,10 +228,6 @@ public enum OntSettings {
             throw new OntApiException("No ontapi.properties found.", e);
         }
         return res;
-    }
-
-    static <X> List<X> asSerializableList(List<X> list) {
-        return list instanceof Serializable ? list : new ArrayList<>(list);
     }
 
     private static OntSettings[] filter(Predicate<OntSettings> filter) {

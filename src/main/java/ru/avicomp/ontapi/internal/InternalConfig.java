@@ -14,7 +14,7 @@
 
 package ru.avicomp.ontapi.internal;
 
-import ru.avicomp.ontapi.config.AxiomSettings;
+import ru.avicomp.ontapi.config.AxiomsSettings;
 import ru.avicomp.ontapi.config.CacheSettings;
 import ru.avicomp.ontapi.config.OntConfig;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
@@ -28,7 +28,7 @@ import java.util.Objects;
  * <p>
  * Created by @szuev on 05.04.2017.
  */
-public interface InternalConfig extends CacheSettings, AxiomSettings {
+public interface InternalConfig extends CacheSettings, AxiomsSettings {
 
     InternalConfig DEFAULT = createFrom(new OntConfig().buildLoaderConfiguration());
 

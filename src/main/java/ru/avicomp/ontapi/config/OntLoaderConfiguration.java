@@ -15,7 +15,6 @@
 package ru.avicomp.ontapi.config;
 
 import org.semanticweb.owlapi.model.*;
-import org.semanticweb.owlapi.vocab.Namespaces;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.OntApiException;
@@ -145,7 +144,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
      * @see #setPerformTransformation(boolean)
      */
     public GraphTransformers.Store getGraphTransformers() {
-        return get(OntSettings.ONT_TRANSFORMERS);
+        return get(OntSettings.ONT_API_LOAD_CONF_TRANSFORMERS);
     }
 
     /**
@@ -157,28 +156,28 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
      * @see OntLoaderConfiguration#setPerformTransformation(boolean)
      */
     public OntLoaderConfiguration setGraphTransformers(GraphTransformers.Store t) {
-        return set(OntSettings.ONT_TRANSFORMERS, t);
+        return set(OntSettings.ONT_API_LOAD_CONF_TRANSFORMERS, t);
     }
 
     /**
      * ONT-API config method.
-     * Note: after deserialization it is always default (see {@link OntSettings#ONT_PERSONALITY}).
+     * Note: after deserialization it is always default (see {@link OntSettings#ONT_API_LOAD_CONF_PERSONALITY_MODE}).
      *
      * @return {@link OntPersonality}, not {@code null}
      */
     public OntPersonality getPersonality() {
-        return get(OntSettings.ONT_PERSONALITY);
+        return get(OntSettings.ONT_API_LOAD_CONF_PERSONALITY_MODE);
     }
 
     /**
      * ONT-API config setter.
      *
      * @param p {@link OntPersonality} new personality;
-     *          {@code null} means default (see {@link OntSettings#ONT_PERSONALITY}).
+     *          {@code null} means default (see {@link OntSettings#ONT_API_LOAD_CONF_PERSONALITY_MODE}).
      * @return {@link OntLoaderConfiguration}
      */
     public OntLoaderConfiguration setPersonality(OntPersonality p) {
-        return set(OntSettings.ONT_PERSONALITY, p);
+        return set(OntSettings.ONT_API_LOAD_CONF_PERSONALITY_MODE, p);
     }
 
     /**
@@ -260,7 +259,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
      * @return {@link OntLoaderConfiguration}, new instance
      */
     public OntLoaderConfiguration setSupportedSchemes(List<OntConfig.Scheme> schemes) {
-        return set(OntSettings.ONT_API_LOAD_CONF_SUPPORTED_SCHEMES, OntSettings.asSerializableList(schemes));
+        return set(OntSettings.ONT_API_LOAD_CONF_SUPPORTED_SCHEMES, Collections.unmodifiableList(schemes));
     }
 
     /**
@@ -455,11 +454,19 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
         return set(OntSettings.OWL_API_LOAD_CONF_LOAD_ANNOTATIONS, b);
     }
 
-    /**
-     * @return List of IRIs (Strings)
-     */
     protected List<String> getIgnoredImports() {
         return get(OntSettings.OWL_API_LOAD_CONF_IGNORED_IMPORTS);
+    }
+
+    /**
+     * @return unmodifiable {@code List} of IRIs (Strings)
+     */
+    protected List<String> getIgnoredImportsModifiableList() {
+        return new ArrayList<>(getIgnoredImports());
+    }
+
+    protected OntLoaderConfiguration setIgnoredImports(List<String> imports) {
+        return set(OntSettings.OWL_API_LOAD_CONF_IGNORED_IMPORTS, Collections.unmodifiableList(imports));
     }
 
     /**
@@ -467,13 +474,12 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
      */
     @Override
     public OntLoaderConfiguration addIgnoredImport(@Nonnull IRI iri) {
-        List<String> list = getIgnoredImports();
+        List<String> list = getIgnoredImportsModifiableList();
         if (list.contains(iri.getIRIString())) {
             return this;
         }
-        List<String> imports = new ArrayList<>(list);
-        imports.add(iri.getIRIString());
-        return set(OntSettings.OWL_API_LOAD_CONF_IGNORED_IMPORTS, imports);
+        list.add(iri.getIRIString());
+        return setIgnoredImports(list);
     }
 
     /**
@@ -481,13 +487,12 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
      */
     @Override
     public OntLoaderConfiguration removeIgnoredImport(@Nonnull IRI iri) {
-        List<String> list = getIgnoredImports();
+        List<String> list = getIgnoredImportsModifiableList();
         if (!list.contains(iri.getIRIString())) {
             return this;
         }
-        List<String> imports = new ArrayList<>(list);
-        imports.remove(iri.getIRIString());
-        return set(OntSettings.OWL_API_LOAD_CONF_IGNORED_IMPORTS, imports);
+        list.remove(iri.getIRIString());
+        return setIgnoredImports(list);
     }
 
     /**
@@ -495,11 +500,11 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
      */
     @Override
     public OntLoaderConfiguration clearIgnoredImports() {
-        List<String> list = getIgnoredImports();
+        List<String> list = getIgnoredImportsModifiableList();
         if (list.isEmpty()) {
             return this;
         }
-        return set(OntSettings.OWL_API_LOAD_CONF_IGNORED_IMPORTS, new ArrayList<>());
+        return setIgnoredImports(new ArrayList<>());
     }
 
     /**
@@ -507,8 +512,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
      */
     @Override
     public boolean isIgnoredImport(@Nonnull IRI iri) {
-        // todo: must be in default properties:
-        return Namespaces.isDefaultIgnoredImport(iri) || getIgnoredImports().contains(iri.getIRIString());
+        return getIgnoredImports().contains(iri.getIRIString());
     }
 
     /**

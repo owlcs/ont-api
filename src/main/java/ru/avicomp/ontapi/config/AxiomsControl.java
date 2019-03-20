@@ -22,7 +22,7 @@ package ru.avicomp.ontapi.config;
  * @param <R> config, either {@link OntConfig} (this instance) or {@link OntLoaderConfiguration} (a copied instance)
  * @since 1.4.0
  */
-interface AxiomsControl<R> extends AxiomSettings {
+interface AxiomsControl<R> extends AxiomsSettings {
 
     /**
      * Sets the read annotation axioms option to the specified state.
