@@ -82,8 +82,7 @@ public class OntWriterConfiguration extends OWLOntologyWriterConfiguration {
 
     /**
      * ONT-API getter.
-     * by default it is {@code true}.
-     * TODO: it is wrong: by default must be false!
+     * by default it is {@code false}.
      *
      * @return true if imports control is allowed.
      * @see #setControlImports(boolean)

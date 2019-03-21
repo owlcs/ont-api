@@ -217,12 +217,15 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public void setOntologyLoaderConfiguration(@Nullable OWLOntologyLoaderConfiguration config) {
         getLock().writeLock().lock();
         try {
+            // NOTE: OWL-API-contract tests shows that the configurator may shared, so need to pass the same instance
+            // This fact greatly and unnecessarily complicates the matter
             OntLoaderConfiguration conf = OWLAdapter.get().asONT(config);
-            boolean hasChanges = ModelConfig.hasChanges(getOntLoaderConfiguration(), conf);
-            content.values()
-                    .filter(x -> x.getModelConfig().useManagerConfig() ? hasChanges : x.getModelConfig().hasChanges(conf))
-                    .map(OntInfo::get)
-                    .forEach(OntologyModel::clearCache);
+            if (ModelConfig.hasChanges(getOntLoaderConfiguration(), conf)) {
+                content.values()
+                        .filter(x -> x.getModelConfig().useManagerConfig())
+                        .map(OntInfo::get)
+                        .forEach(OntologyModel::clearCache);
+            }
             this.loaderConfig = conf;
         } finally {
             getLock().writeLock().unlock();
@@ -245,7 +248,10 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     }
 
     protected OntLoaderConfiguration getOntLoaderConfiguration() {
-        return loaderConfig == null ? loaderConfig = config.buildLoaderConfiguration() : loaderConfig;
+        if (loaderConfig != null) {
+            return loaderConfig;
+        }
+        return config.buildLoaderConfiguration();
     }
 
     /**
@@ -274,7 +280,10 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public OntWriterConfiguration getOntologyWriterConfiguration() {
         getLock().readLock().lock();
         try {
-            return writerConfig == null ? writerConfig = this.config.buildWriterConfiguration() : writerConfig;
+            if (writerConfig != null) {
+                return writerConfig;
+            }
+            return this.config.buildWriterConfiguration();
         } finally {
             getLock().readLock().unlock();
         }

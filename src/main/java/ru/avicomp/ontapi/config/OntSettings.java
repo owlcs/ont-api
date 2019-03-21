@@ -14,13 +14,14 @@
 
 package ru.avicomp.ontapi.config;
 
+import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.MissingImportHandlingStrategy;
 import org.semanticweb.owlapi.model.MissingOntologyHeaderStrategy;
 import org.semanticweb.owlapi.model.PriorityCollectionSorting;
 import org.semanticweb.owlapi.model.parameters.ConfigurationOptions;
-import org.semanticweb.owlapi.vocab.Namespaces;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.impl.conf.OntModelConfig;
+import ru.avicomp.ontapi.jena.vocabulary.*;
 import ru.avicomp.ontapi.transforms.*;
 
 import java.io.IOException;
@@ -46,13 +47,13 @@ import java.util.stream.Collectors;
  * @see ConfigurationOptions
  */
 public enum OntSettings {
-    OWL_API_LOAD_CONF_IGNORED_IMPORTS(Namespaces.OWL
-            , Namespaces.RDF
-            , Namespaces.RDFS
-            , Namespaces.SWRL
-            , Namespaces.SWRLB
-            , Namespaces.XML
-            , Namespaces.XSD),
+    OWL_API_LOAD_CONF_IGNORED_IMPORTS(OWL.NS
+            , RDF.getURI()
+            , RDFS.getURI()
+            , SWRL.NS
+            , SWRLB.NS
+            , "http://www.w3.org/XML/1998/namespace"
+            , XSD.NS),
 
     ONT_API_LOAD_CONF_SUPPORTED_SCHEMES(OntConfig.DefaultScheme.HTTP
             , OntConfig.DefaultScheme.HTTPS
@@ -88,7 +89,7 @@ public enum OntSettings {
     OWL_API_LOAD_CONF_ENTITY_EXPANSION_LIMIT("100000000"),
     OWL_API_AUTHORIZATION_VALUE(""),
 
-    ONT_API_WRITE_CONF_CONTROL_IMPORTS(true),
+    ONT_API_WRITE_CONF_CONTROL_IMPORTS(false),
 
     OWL_API_WRITE_CONF_SAVE_IDS(false),
     OWL_API_WRITE_CONF_REMAP_IDS(true),
@@ -171,6 +172,7 @@ public enum OntSettings {
 
     /**
      * Returns a default option value.
+     * Looks firstly into properties file, if the record is not found returns the default enum value.
      *
      * @return an immutable (or unmodifiable) object that is associated with this key
      */

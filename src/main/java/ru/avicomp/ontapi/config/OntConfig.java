@@ -68,6 +68,8 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     private static final long serialVersionUID = 656765031127374396L;
 
     protected final Map<OntSettings, Object> map;
+    private transient OntLoaderConfiguration loader;
+    private transient OntWriterConfiguration writer;
 
     public OntConfig() {
         this.map = new EnumMap<>(OntSettings.class);
@@ -207,7 +209,12 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     protected OntConfig put(OntSettings key, Object value) {
-        map.put(key, Objects.requireNonNull(value));
+        if (Objects.requireNonNull(value).equals(map.put(key, value))) {
+            return this;
+        }
+        // the config's change is detected
+        loader = null;
+        writer = null;
         return this;
     }
 
@@ -563,7 +570,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
 
     /**
      * ONT-API manager write config getter.
-     * By default 'ont.api.write.conf.control.imports' is enabled.
+     * By default 'ont.api.write.conf.control.imports' is disabled.
      *
      * @return {@code true} if 'ont.api.write.conf.control.imports' is enabled
      * @see OntWriterConfiguration#isControlImports()
@@ -1020,11 +1027,12 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
      */
     @Override
     public OntLoaderConfiguration buildLoaderConfiguration() {
+        if (loader != null) return loader;
         OntLoaderConfiguration res = new OntLoaderConfiguration();
         for (OntSettings s : OntSettings.LOAD_CONFIG_KEYS) {
             res.map.put(s, get(s));
         }
-        return res;
+        return loader = res;
     }
 
     /**
@@ -1035,11 +1043,12 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
      */
     @Override
     public OntWriterConfiguration buildWriterConfiguration() {
+        if (writer != null) return writer;
         OntWriterConfiguration res = new OntWriterConfiguration();
         for (OntSettings s : OntSettings.WRITE_CONFIG_KEYS) {
             res.map.put(s, get(s));
         }
-        return res;
+        return writer = res;
     }
 
     @Override
