@@ -197,6 +197,10 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public void setOntologyConfigurator(OntologyConfigurator conf) {
         getLock().writeLock().lock();
         try {
+            // NOTE: OWL-API-contract tests shows that the configurator
+            // may be shared between different manager instances, so need to pass the same instance,
+            // just copying all settings is not suitable in this case.
+            // This fact greatly and unnecessarily complicates the matter
             int size = this.config.getManagerIRIsCacheSize();
             this.config = OntConfig.withLock(OWLAdapter.get().asONT(conf), lock);
             if (size != this.config.getManagerIRIsCacheSize()) {
@@ -217,8 +221,6 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public void setOntologyLoaderConfiguration(@Nullable OWLOntologyLoaderConfiguration config) {
         getLock().writeLock().lock();
         try {
-            // NOTE: OWL-API-contract tests shows that the configurator may shared, so need to pass the same instance
-            // This fact greatly and unnecessarily complicates the matter
             OntLoaderConfiguration conf = OWLAdapter.get().asONT(config);
             if (ModelConfig.hasChanges(getOntLoaderConfiguration(), conf)) {
                 content.values()

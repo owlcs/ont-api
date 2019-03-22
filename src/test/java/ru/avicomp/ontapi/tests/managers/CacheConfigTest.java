@@ -51,7 +51,12 @@ public class CacheConfigTest {
         Assert.assertEquals(def, c1.getManagerIRIsCacheSize());
         Assert.assertEquals(def, m.getOntologyConfigurator().getManagerIRIsCacheSize());
 
-        OntConfig c2 = OntConfig.createConfig(null, 1);
+        OntConfig c2 = new OntConfig() {
+            @Override
+            protected OntConfig setManagerIRIsCacheSize(int size) {
+                return super.setManagerIRIsCacheSize(size);
+            }
+        }.setManagerIRIsCacheSize(1);
         Assert.assertEquals(1, c2.getManagerIRIsCacheSize());
         m.setOntologyConfigurator(c2);
         Assert.assertEquals(1, m.getOntologyConfigurator().getManagerIRIsCacheSize());

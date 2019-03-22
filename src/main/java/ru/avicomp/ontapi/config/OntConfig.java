@@ -76,19 +76,6 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
-     * Creates a new config with the given R/W lock ans IRI cache size.
-     *
-     * @param lock         {@link ReadWriteLock}
-     * @param iriCacheSize int, possible non-positive for disabling cache
-     * @return {@link OntConfig}
-     * @see #setManagerIRIsCacheSize(int)
-     * @since 1.4.0
-     */
-    public static OntConfig createConfig(ReadWriteLock lock, int iriCacheSize) {
-        return createConfig(lock).setManagerIRIsCacheSize(iriCacheSize);
-    }
-
-    /**
      * Creates a new config instance.
      * All its settings are taken from {@code ./resources/ontapi.properties} file
      * or default, if missed in the file.
@@ -282,9 +269,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
      * ONT-API manager load config setter.
      * Sets a new IRIs cache size.
      * Protected, since this is a manager's initialization setting,
-     * which must not be changed during manager's lifetime.
-     * To change IRIs cache use {@link ru.avicomp.ontapi.OntologyManager#setOntologyConfigurator(OntologyConfigurator)}
-     * and {@link #createConfig(ReadWriteLock, int)} methods.
+     * that must not be changed during manager's lifetime.
      *
      * @param size int, possible negative
      * @return this instance
