@@ -23,10 +23,7 @@ import org.semanticweb.owlapi.util.OWLAxiomSearchFilter;
 
 import javax.annotation.Nullable;
 import java.io.OutputStream;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -97,13 +94,25 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
      * @param res Stream of {@link R}s
      * @param <R> anything
      * @return Stream of {@link R}s
+     * @deprecated todo: move into {@link ru.avicomp.ontapi.internal.InternalModel}
      */
+    @Deprecated
     protected <R> Stream<R> reduce(Stream<R> res) {
         // use ArrayList since it is faster in common cases than HashSet,
         // and unique is provided by other mechanisms:
         return isConcurrent() ? res.collect(Collectors.toList()).stream() : res;
     }
 
+    /**
+     * Creates a {@code Set} from the given {@code Stream}, preserving the order.
+     *
+     * @param s   {@link Stream}
+     * @param <X> element type
+     * @return {@link Set}
+     */
+    protected <X> Set<X> toSet(Stream<X> s) {
+        return s.collect(Collectors.toCollection(LinkedHashSet::new));
+    }
 
     @Override
     public int hashCode() {
@@ -258,7 +267,7 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
     public Stream<OWLOntology> directImports() {
         lock.readLock().lock();
         try {
-            return reduce(delegate.directImports());
+            return getOWLOntologyManager().directImports(this);
         } finally {
             lock.readLock().unlock();
         }
@@ -268,7 +277,7 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
     public Set<OWLOntology> getImports() {
         lock.readLock().lock();
         try {
-            return delegate.getImports();
+            return toSet(imports());
         } finally {
             lock.readLock().unlock();
         }
@@ -278,7 +287,7 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
     public Stream<OWLOntology> imports() {
         lock.readLock().lock();
         try {
-            return reduce(delegate.imports());
+            return getOWLOntologyManager().imports(this);
         } finally {
             lock.readLock().unlock();
         }
@@ -288,7 +297,7 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
     public Set<OWLOntology> getImportsClosure() {
         lock.readLock().lock();
         try {
-            return delegate.getImportsClosure();
+            return toSet(importsClosure());
         } finally {
             lock.readLock().unlock();
         }
@@ -298,7 +307,7 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
     public Stream<OWLOntology> importsClosure() {
         lock.readLock().lock();
         try {
-            return reduce(delegate.importsClosure());
+            return getOWLOntologyManager().importsClosure(this);
         } finally {
             lock.readLock().unlock();
         }
@@ -308,7 +317,7 @@ public class OWLOntologyWrapper implements OWLMutableOntology {
     public Set<OWLImportsDeclaration> getImportsDeclarations() {
         lock.readLock().lock();
         try {
-            return delegate.getImportsDeclarations();
+            return toSet(importsDeclarations());
         } finally {
             lock.readLock().unlock();
         }

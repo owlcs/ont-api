@@ -22,10 +22,7 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.io.FileDocumentSource;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLDocumentFormat;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyStorageException;
+import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.*;
@@ -55,6 +52,31 @@ public class MiscOntologyTest {
         Resource anon = m.createResource().addProperty(RDF.type, OWL.Class);
         anon.addProperty(OWL.complementOf, anon);
         return m.getGraph();
+    }
+
+
+    @Test
+    public void testImportsOnConcurrentManager() {
+        Class<? extends OWLOntology> expected = OntologyModelImpl.Concurrent.class;
+        OntologyManager m = OntManagers.createConcurrentONT();
+        DataFactory df = m.getOWLDataFactory();
+        OntologyModel a = m.createOntology(IRI.create("A"));
+        OntologyModel b = m.createOntology(IRI.create("B"));
+        OntologyModel c = m.createOntology(IRI.create("C"));
+        OntologyModel d = m.createOntology(IRI.create("D"));
+        a.asGraphModel().addImport(b.asGraphModel());
+        m.applyChange(new AddImport(a,
+                df.getOWLImportsDeclaration(c.getOntologyID().getOntologyIRI().orElseThrow(AssertionError::new))));
+        b.asGraphModel().addImport(d.asGraphModel());
+        ReadWriteUtils.print(a);
+        ReadWriteUtils.print(b);
+
+        Assert.assertEquals(3, a.imports()
+                .peek(x -> Assert.assertTrue(expected.isInstance(x))).count());
+        Assert.assertEquals(2, a.directImports()
+                .peek(x -> Assert.assertTrue(expected.isInstance(x))).count());
+        Assert.assertEquals(4, a.importsClosure()
+                .peek(x -> Assert.assertTrue(expected.isInstance(x))).count());
     }
 
     @Test(expected = OntApiException.class) // not a StackOverflowError
