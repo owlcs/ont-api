@@ -250,16 +250,16 @@ public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHold
 
     @Override
     public Set<IRI> getPunnedIRIs(Imports imports) {
-        return base.ambiguousEntities(Imports.INCLUDED.equals(imports))
+        return base.ambiguousEntities(Imports.INCLUDED == imports)
                 .map(Resource::getURI)
                 .map(IRI::create)
                 .collect(Collectors.toSet());
     }
 
     @Override
-    public boolean isDeclared(@Nullable OWLEntity owlEntity) {
+    public boolean isDeclared(@Nullable OWLEntity entity) {
         return base.listOWLAxioms(OWLDeclarationAxiom.class).map(OWLDeclarationAxiom::getEntity)
-                .anyMatch(obj -> obj.equals(owlEntity));
+                .anyMatch(obj -> obj.equals(entity));
     }
 
     @Override
@@ -273,18 +273,8 @@ public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHold
     }
 
     @Override
-    public boolean containsClassInSignature(IRI iri, Imports imports) {
-        return imports.stream(this).anyMatch(o -> o.containsClassInSignature(iri));
-    }
-
-    @Override
     public boolean containsObjectPropertyInSignature(IRI iri) {
         return objectPropertiesInSignature().map(HasIRI::getIRI).anyMatch(iri::equals);
-    }
-
-    @Override
-    public boolean containsObjectPropertyInSignature(IRI iri, Imports imports) {
-        return imports.stream(this).anyMatch(o -> o.containsObjectPropertyInSignature(iri));
     }
 
     @Override
@@ -293,18 +283,8 @@ public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHold
     }
 
     @Override
-    public boolean containsDataPropertyInSignature(IRI iri, Imports imports) {
-        return imports.stream(this).anyMatch(o -> o.containsDataPropertyInSignature(iri));
-    }
-
-    @Override
     public boolean containsAnnotationPropertyInSignature(IRI iri) {
         return annotationPropertiesInSignature().map(HasIRI::getIRI).anyMatch(iri::equals);
-    }
-
-    @Override
-    public boolean containsAnnotationPropertyInSignature(IRI iri, Imports imports) {
-        return imports.stream(this).anyMatch(o -> o.containsAnnotationPropertyInSignature(iri));
     }
 
     @Override
@@ -313,18 +293,8 @@ public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHold
     }
 
     @Override
-    public boolean containsDatatypeInSignature(IRI iri, Imports imports) {
-        return imports.stream(this).anyMatch(o -> o.containsDatatypeInSignature(iri));
-    }
-
-    @Override
     public boolean containsIndividualInSignature(IRI iri) {
         return individualsInSignature().map(HasIRI::getIRI).anyMatch(iri::equals);
-    }
-
-    @Override
-    public boolean containsIndividualInSignature(IRI iri, Imports imports) {
-        return imports.stream(this).anyMatch(o -> o.containsIndividualInSignature(iri));
     }
 
     @Override
@@ -654,11 +624,6 @@ public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHold
         return base.listOWLAxioms(filter.getAxiomTypes()).filter(a -> filter.pass(a, key)).map(x -> (T) x);
     }
 
-    @Override
-    public <T extends OWLAxiom> Stream<T> axioms(OWLAxiomSearchFilter filter, Object key, Imports imports) {
-        return imports.stream(this).flatMap(o -> o.axioms(filter, key));
-    }
-
     /**
      * Generic search method: results all axioms which refer the given object.
      * This method may walk over the whole axiom cache in the {@link #base internal model} or read graph directly,
@@ -800,11 +765,6 @@ public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHold
     }
 
     @Override
-    public Stream<OWLAxiom> axiomsIgnoreAnnotations(OWLAxiom axiom, Imports imports) {
-        return imports.stream(this).flatMap(o -> o.axiomsIgnoreAnnotations(axiom));
-    }
-
-    @Override
     public Stream<OWLAxiom> referencingAxioms(OWLPrimitive primitive) {
         if (primitive instanceof IRI) {
             return axioms().filter(a -> OwlObjects.iris(a).anyMatch(primitive::equals));
@@ -841,18 +801,8 @@ public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHold
     }
 
     @Override
-    public int getAxiomCount(Imports imports) {
-        return imports.stream(this).mapToInt(OWLAxiomCollection::getAxiomCount).sum();
-    }
-
-    @Override
     public <T extends OWLAxiom> int getAxiomCount(AxiomType<T> axiomType) {
         return (int) axioms(axiomType).count();
-    }
-
-    @Override
-    public <T extends OWLAxiom> int getAxiomCount(AxiomType<T> axiomType, Imports imports) {
-        return imports.stream(this).mapToInt(o -> o.getAxiomCount(axiomType)).sum();
     }
 
     @Override
@@ -861,18 +811,8 @@ public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHold
     }
 
     @Override
-    public int getLogicalAxiomCount(Imports imports) {
-        return imports.stream(this).mapToInt(OWLAxiomCollection::getLogicalAxiomCount).sum();
-    }
-
-    @Override
     public boolean containsAxiom(OWLAxiom axiom) {
         return base.contains(axiom);
-    }
-
-    @Override
-    public boolean containsAxiom(OWLAxiom axiom, Imports imports, AxiomAnnotations ignoreAnnotations) {
-        return imports.stream(this).anyMatch(o -> ignoreAnnotations.contains(o, axiom));
     }
 
     @Override
@@ -886,9 +826,296 @@ public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHold
     }
 
     @Override
+    public boolean containsClassInSignature(IRI iri, Imports imports) {
+        return imports.stream(this).anyMatch(o -> o.containsClassInSignature(iri));
+    }
+
+    @Override
+    public boolean containsObjectPropertyInSignature(IRI iri, Imports imports) {
+        return imports.stream(this).anyMatch(o -> o.containsObjectPropertyInSignature(iri));
+    }
+
+    @Override
+    public boolean containsDataPropertyInSignature(IRI iri, Imports imports) {
+        return imports.stream(this).anyMatch(o -> o.containsDataPropertyInSignature(iri));
+    }
+
+    @Override
+    public boolean containsAnnotationPropertyInSignature(IRI iri, Imports imports) {
+        return imports.stream(this).anyMatch(o -> o.containsAnnotationPropertyInSignature(iri));
+    }
+
+    @Override
+    public boolean containsDatatypeInSignature(IRI iri, Imports imports) {
+        return imports.stream(this).anyMatch(o -> o.containsDatatypeInSignature(iri));
+    }
+
+    @Override
+    public boolean containsIndividualInSignature(IRI iri, Imports imports) {
+        return imports.stream(this).anyMatch(o -> o.containsIndividualInSignature(iri));
+    }
+
+    @Override
+    public boolean containsAxiom(OWLAxiom axiom, Imports imports, AxiomAnnotations ignoreAnnotations) {
+        return imports.stream(this).anyMatch(o -> ignoreAnnotations.contains(o, axiom));
+    }
+
+    @Override
     public boolean contains(OWLAxiomSearchFilter filter, Object key, Imports imports) {
         return imports.stream(this).anyMatch(o -> o.contains(filter, key));
     }
+
+    @Override
+    public <T extends OWLAxiom> Stream<T> axioms(OWLAxiomSearchFilter filter, Object key, Imports imports) {
+        if (Imports.EXCLUDED == imports) {
+            return axioms(filter, key);
+        }
+        return imports.stream(this).flatMap(o -> o.axioms(filter, key));
+    }
+
+    @Override
+    public Stream<OWLAxiom> axiomsIgnoreAnnotations(OWLAxiom axiom, Imports imports) {
+        if (Imports.EXCLUDED == imports) {
+            return axiomsIgnoreAnnotations(axiom);
+        }
+        return imports.stream(this).flatMap(o -> o.axiomsIgnoreAnnotations(axiom));
+    }
+
+    @Override
+    public int getAxiomCount(Imports imports) {
+        return imports.stream(this).mapToInt(OWLAxiomCollection::getAxiomCount).sum();
+    }
+
+    @Override
+    public <T extends OWLAxiom> int getAxiomCount(AxiomType<T> axiomType, Imports imports) {
+        return imports.stream(this).mapToInt(o -> o.getAxiomCount(axiomType)).sum();
+    }
+
+    @Override
+    public int getLogicalAxiomCount(Imports imports) {
+        return imports.stream(this).mapToInt(OWLAxiomCollection::getLogicalAxiomCount).sum();
+    }
+
+    /*
+     * ===============================================================================
+     * The overridden default methods from org.semanticweb.owlapi.model.OWLAxiomIndex:
+     * ===============================================================================
+     */
+
+    @Override
+    public Stream<OWLDeclarationAxiom> declarationAxioms(OWLEntity subject) {
+        return axioms(OWLDeclarationAxiom.class, subject, Navigation.IN_SUB_POSITION);
+    }
+
+    @Override
+    public Stream<OWLAnnotationAssertionAxiom> annotationAssertionAxioms(OWLAnnotationSubject entity) {
+        return axioms(OWLAnnotationAssertionAxiom.class, OWLAnnotationSubject.class, entity, Navigation.IN_SUB_POSITION);
+    }
+
+    @Override
+    public Stream<OWLSubClassOfAxiom> subClassAxiomsForSubClass(OWLClass clazz) {
+        return axioms(OWLSubClassOfAxiom.class, OWLClass.class, clazz, Navigation.IN_SUB_POSITION);
+    }
+
+    @Override
+    public Stream<OWLSubClassOfAxiom> subClassAxiomsForSuperClass(OWLClass clazz) {
+        return axioms(OWLSubClassOfAxiom.class, OWLClass.class, clazz, Navigation.IN_SUPER_POSITION);
+    }
+
+    @Override
+    public Stream<OWLEquivalentClassesAxiom> equivalentClassesAxioms(OWLClass clazz) {
+        return axioms(OWLEquivalentClassesAxiom.class, OWLClass.class, clazz, Navigation.IN_SUB_POSITION);
+    }
+
+    @Override
+    public Stream<OWLDisjointClassesAxiom> disjointClassesAxioms(OWLClass clazz) {
+        return axioms(OWLDisjointClassesAxiom.class, OWLClass.class, clazz, Navigation.IN_SUB_POSITION);
+    }
+
+    @Override
+    public Stream<OWLDisjointUnionAxiom> disjointUnionAxioms(OWLClass clazz) {
+        return axioms(OWLDisjointUnionAxiom.class, OWLClass.class, clazz, Navigation.IN_SUB_POSITION);
+    }
+
+    @Override
+    public Stream<OWLHasKeyAxiom> hasKeyAxioms(OWLClass clazz) {
+        return axioms(OWLHasKeyAxiom.class, OWLClass.class, clazz, Navigation.IN_SUB_POSITION);
+    }
+
+    @Override
+    public Stream<OWLSubObjectPropertyOfAxiom> objectSubPropertyAxiomsForSubProperty(OWLObjectPropertyExpression property) {
+        return axioms(OWLSubObjectPropertyOfAxiom.class, OWLObjectPropertyExpression.class,
+                property, Navigation.IN_SUB_POSITION);
+    }
+
+    @Override
+    public Stream<OWLSubObjectPropertyOfAxiom> objectSubPropertyAxiomsForSuperProperty(OWLObjectPropertyExpression property) {
+        return axioms(OWLSubObjectPropertyOfAxiom.class, OWLObjectPropertyExpression.class,
+                property, Navigation.IN_SUPER_POSITION);
+    }
+
+    @Override
+    public Stream<OWLObjectPropertyDomainAxiom> objectPropertyDomainAxioms(OWLObjectPropertyExpression property) {
+        return axioms(OWLObjectPropertyDomainAxiom.class, OWLObjectPropertyExpression.class,
+                property, Navigation.IN_SUB_POSITION);
+    }
+
+    @Override
+    public Stream<OWLObjectPropertyRangeAxiom> objectPropertyRangeAxioms(OWLObjectPropertyExpression property) {
+        return axioms(OWLObjectPropertyRangeAxiom.class, OWLObjectPropertyExpression.class,
+                property, Navigation.IN_SUB_POSITION);
+    }
+
+    @Override
+    public Stream<OWLInverseObjectPropertiesAxiom> inverseObjectPropertyAxioms(OWLObjectPropertyExpression property) {
+        return axioms(OWLInverseObjectPropertiesAxiom.class, OWLObjectPropertyExpression.class,
+                property, Navigation.IN_SUB_POSITION);
+    }
+
+    @Override
+    public Stream<OWLEquivalentObjectPropertiesAxiom> equivalentObjectPropertiesAxioms(OWLObjectPropertyExpression property) {
+        return axioms(OWLEquivalentObjectPropertiesAxiom.class, OWLObjectPropertyExpression.class,
+                property, Navigation.IN_SUB_POSITION);
+    }
+
+    @Override
+    public Stream<OWLDisjointObjectPropertiesAxiom> disjointObjectPropertiesAxioms(OWLObjectPropertyExpression property) {
+        return axioms(OWLDisjointObjectPropertiesAxiom.class, OWLObjectPropertyExpression.class,
+                property, Navigation.IN_SUB_POSITION);
+    }
+
+    @Override
+    public Stream<OWLFunctionalObjectPropertyAxiom> functionalObjectPropertyAxioms(OWLObjectPropertyExpression property) {
+        return axioms(OWLFunctionalObjectPropertyAxiom.class, OWLObjectPropertyExpression.class,
+                property, Navigation.IN_SUB_POSITION);
+    }
+
+    @Override
+    public Stream<OWLInverseFunctionalObjectPropertyAxiom> inverseFunctionalObjectPropertyAxioms(OWLObjectPropertyExpression property) {
+        return axioms(OWLInverseFunctionalObjectPropertyAxiom.class, OWLObjectPropertyExpression.class,
+                property, Navigation.IN_SUB_POSITION);
+    }
+
+    @Override
+    public Stream<OWLSymmetricObjectPropertyAxiom> symmetricObjectPropertyAxioms(OWLObjectPropertyExpression property) {
+        return axioms(OWLSymmetricObjectPropertyAxiom.class, OWLObjectPropertyExpression.class,
+                property, Navigation.IN_SUB_POSITION);
+    }
+
+    @Override
+    public Stream<OWLAsymmetricObjectPropertyAxiom> asymmetricObjectPropertyAxioms(OWLObjectPropertyExpression property) {
+        return axioms(OWLAsymmetricObjectPropertyAxiom.class, OWLObjectPropertyExpression.class,
+                property, Navigation.IN_SUB_POSITION);
+    }
+
+    @Override
+    public Stream<OWLReflexiveObjectPropertyAxiom> reflexiveObjectPropertyAxioms(OWLObjectPropertyExpression property) {
+        return axioms(OWLReflexiveObjectPropertyAxiom.class, OWLObjectPropertyExpression.class,
+                property, Navigation.IN_SUB_POSITION);
+    }
+
+    @Override
+    public Stream<OWLIrreflexiveObjectPropertyAxiom> irreflexiveObjectPropertyAxioms(OWLObjectPropertyExpression property) {
+        return axioms(OWLIrreflexiveObjectPropertyAxiom.class, OWLObjectPropertyExpression.class,
+                property, Navigation.IN_SUB_POSITION);
+    }
+
+    @Override
+    public Stream<OWLTransitiveObjectPropertyAxiom> transitiveObjectPropertyAxioms(OWLObjectPropertyExpression property) {
+        return axioms(OWLTransitiveObjectPropertyAxiom.class, OWLObjectPropertyExpression.class,
+                property, Navigation.IN_SUB_POSITION);
+    }
+
+    @Override
+    public Stream<OWLSubDataPropertyOfAxiom> dataSubPropertyAxiomsForSubProperty(OWLDataProperty property) {
+        return axioms(OWLSubDataPropertyOfAxiom.class, OWLDataPropertyExpression.class,
+                property, Navigation.IN_SUB_POSITION);
+    }
+
+    @Override
+    public Stream<OWLSubDataPropertyOfAxiom> dataSubPropertyAxiomsForSuperProperty(OWLDataPropertyExpression property) {
+        return axioms(OWLSubDataPropertyOfAxiom.class, OWLDataPropertyExpression.class,
+                property, Navigation.IN_SUPER_POSITION);
+    }
+
+    @Override
+    public Stream<OWLDataPropertyDomainAxiom> dataPropertyDomainAxioms(OWLDataProperty property) {
+        return axioms(OWLDataPropertyDomainAxiom.class, OWLDataPropertyExpression.class,
+                property, Navigation.IN_SUB_POSITION);
+    }
+
+    @Override
+    public Stream<OWLDataPropertyRangeAxiom> dataPropertyRangeAxioms(OWLDataProperty property) {
+        return axioms(OWLDataPropertyRangeAxiom.class, OWLDataPropertyExpression.class,
+                property, Navigation.IN_SUB_POSITION);
+    }
+
+    @Override
+    public Stream<OWLEquivalentDataPropertiesAxiom> equivalentDataPropertiesAxioms(OWLDataProperty property) {
+        return axioms(OWLEquivalentDataPropertiesAxiom.class, OWLDataPropertyExpression.class,
+                property, Navigation.IN_SUB_POSITION);
+    }
+
+    @Override
+    public Stream<OWLDisjointDataPropertiesAxiom> disjointDataPropertiesAxioms(OWLDataProperty property) {
+        return axioms(OWLDisjointDataPropertiesAxiom.class, OWLDataPropertyExpression.class,
+                property, Navigation.IN_SUB_POSITION);
+    }
+
+    @Override
+    public Stream<OWLFunctionalDataPropertyAxiom> functionalDataPropertyAxioms(OWLDataPropertyExpression property) {
+        return axioms(OWLFunctionalDataPropertyAxiom.class, OWLDataPropertyExpression.class,
+                property, Navigation.IN_SUB_POSITION);
+    }
+
+    @Override
+    public Stream<OWLClassAssertionAxiom> classAssertionAxioms(OWLIndividual individual) {
+        return axioms(OWLClassAssertionAxiom.class, OWLIndividual.class,
+                individual, Navigation.IN_SUB_POSITION);
+    }
+
+    @Override
+    public Stream<OWLClassAssertionAxiom> classAssertionAxioms(OWLClassExpression ce) {
+        return axioms(OWLClassAssertionAxiom.class, OWLClassExpression.class,
+                ce, Navigation.IN_SUB_POSITION);
+    }
+
+    @Override
+    public Stream<OWLDataPropertyAssertionAxiom> dataPropertyAssertionAxioms(OWLIndividual individual) {
+        return axioms(OWLDataPropertyAssertionAxiom.class, OWLIndividual.class,
+                individual, Navigation.IN_SUB_POSITION);
+    }
+
+    @Override
+    public Stream<OWLObjectPropertyAssertionAxiom> objectPropertyAssertionAxioms(OWLIndividual individual) {
+        return axioms(OWLObjectPropertyAssertionAxiom.class, OWLIndividual.class,
+                individual, Navigation.IN_SUB_POSITION);
+    }
+
+    @Override
+    public Stream<OWLNegativeObjectPropertyAssertionAxiom> negativeObjectPropertyAssertionAxioms(OWLIndividual individual) {
+        return axioms(OWLNegativeObjectPropertyAssertionAxiom.class, OWLIndividual.class,
+                individual, Navigation.IN_SUB_POSITION);
+    }
+
+    @Override
+    public Stream<OWLNegativeDataPropertyAssertionAxiom> negativeDataPropertyAssertionAxioms(OWLIndividual individual) {
+        return axioms(OWLNegativeDataPropertyAssertionAxiom.class, OWLIndividual.class,
+                individual, Navigation.IN_SUB_POSITION);
+    }
+
+    @Override
+    public Stream<OWLSameIndividualAxiom> sameIndividualAxioms(OWLIndividual individual) {
+        return axioms(OWLSameIndividualAxiom.class, OWLIndividual.class,
+                individual, Navigation.IN_SUB_POSITION);
+    }
+
+    @Override
+    public Stream<OWLDifferentIndividualsAxiom> differentIndividualAxioms(OWLIndividual individual) {
+        return axioms(OWLDifferentIndividualsAxiom.class, OWLIndividual.class,
+                individual, Navigation.IN_SUB_POSITION);
+    }
+
 
     /*
      * ======================
