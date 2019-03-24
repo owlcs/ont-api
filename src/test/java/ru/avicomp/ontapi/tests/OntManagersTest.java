@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -86,25 +86,27 @@ public class OntManagersTest {
                                   String fieldName,
                                   Class<?> holderClass,
                                   Object holderInstance) {
-        Field res;
-        try {
-            res = holderClass.getDeclaredField(fieldName);
-        } catch (NoSuchFieldException ex) {
+        AssertionError error = new AssertionError("Class " + holderClass.getName() + ": can't find field " + fieldName);
+        Field res = null;
+        Class<?> clazz = holderClass;
+        while (clazz != null) {
             try {
-                res = holderInstance.getClass().getSuperclass().getDeclaredField(fieldName);
-            } catch (NoSuchFieldException e) {
-                ex.addSuppressed(e);
-                throw new AssertionError(holderClass + "::" + ex);
+                res = clazz.getDeclaredField(fieldName);
+                break;
+            } catch (NoSuchFieldException ex) {
+                error.addSuppressed(ex);
+                clazz = clazz.getSuperclass();
             }
         }
+        if (res == null) throw error;
         if (!fieldType.isAssignableFrom(res.getType())) {
-            throw new AssertionError(holderClass + "::" + res + " is not subtype of " + fieldType.getName());
+            throw new AssertionError(holderClass.getName() + "::" + res + " is not subtype of " + fieldType.getName());
         }
         res.setAccessible(true);
         try {
             return (T) res.get(holderInstance);
         } catch (IllegalAccessException | ClassCastException e) {
-            throw new AssertionError(holderClass + "::" + e);
+            throw new AssertionError(holderClass.getName() + "::" + e, e);
         }
     }
 
