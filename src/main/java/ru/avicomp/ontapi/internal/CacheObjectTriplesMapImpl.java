@@ -23,6 +23,7 @@ import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
 
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -65,6 +66,11 @@ public class CacheObjectTriplesMapImpl<X extends OWLObject> implements ObjectTri
         this.map = InternalCache.createSoft(CacheObjectTriplesMapImpl::loadMap, this.parallel = parallel);
     }
 
+    /**
+     * Loads cache using {@link #loader} into memory.
+     *
+     * @return {@link CachedMap}
+     */
     protected CachedMap loadMap() {
         this.hasNew = false;
         Iterator<ONTObject<X>> it = loader.get();
@@ -86,7 +92,7 @@ public class CacheObjectTriplesMapImpl<X extends OWLObject> implements ObjectTri
     protected <K, V> Map<K, V> createMap() {
         // Iteration over LHM is a little bit faster than iteration over HashMap.
         // On the other hand LHM requires more memory -
-        // but we don't care about memory since all important things contains in the very Graph
+        // but memory consumption doesn't really bother me since all important things contains in the very Graph
         // and this is just a temporary storage which is always free for GC.
         return new LinkedHashMap<>();
     }
@@ -324,7 +330,13 @@ public class CacheObjectTriplesMapImpl<X extends OWLObject> implements ObjectTri
         }
 
         protected List<X> loadObjects() {
-            return new ArrayList<>(objectsMap.keySet());
+            if (!parallel) {
+                return new ArrayList<>(objectsMap.keySet());
+            }
+            // R/W lock does not guarantee thread-safety in multithreading,
+            // since iterator go beyond a locked-block where it has been initialized,
+            // but (I believe), R/W locking reduces the List's mutation costs
+            return new CopyOnWriteArrayList<>(objectsMap.keySet());
         }
     }
 

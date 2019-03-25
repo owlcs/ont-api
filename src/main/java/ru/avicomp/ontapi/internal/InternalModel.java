@@ -51,6 +51,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -326,7 +327,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      */
     public Stream<OWLImportsDeclaration> listOWLImportDeclarations() {
         InternalObjectFactory df = getObjectFactory();
-        return getID().imports().map(df::toIRI).map(i -> df.getOWLDataFactory().getOWLImportsDeclaration(i));
+        return reduce(getID().imports().map(df::toIRI).map(i -> df.getOWLDataFactory().getOWLImportsDeclaration(i)));
     }
 
     /**
@@ -474,7 +475,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * Lists {@link OWLDeclarationAxiom Declaration Axiom}s for the specified {@link OWLEntity entity}.
      * Note: method returns non-cached axioms.
      *
-     * @param e {@link OWLEntity}, not null
+     * @param e {@link OWLEntity}, not {@code null}
      * @return Stream of {@link OWLDeclarationAxiom}s
      */
     public Stream<OWLDeclarationAxiom> listOWLDeclarationAxioms(OWLEntity e) {
@@ -483,9 +484,9 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         // they can be affected by some other user-defined axiom.
         // A direct graph reading returns uniformed axioms,
         // and a just added axiom may be absent in that list,
-        // since there a lot of ways how to write the same bulk of information via axioms.
+        // since there a lot of ways how to write the same amount of information via axioms.
         // This differs from OWL-API expectations, so need to perform traversing over whole cache
-        // to get an axiom in the same form as it has been specified manually:
+        // to get an axiom in the exactly same form as it has been specified manually:
         if (hasManuallyAddedAxioms()) {
             return listOWLAxioms(OWLDeclarationAxiom.class).filter(a -> e.equals(a.getEntity()));
         }
@@ -504,7 +505,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * with the given {@link OWLAnnotationSubject subject}.
      * Note: method returns non-cached axioms.
      *
-     * @param s {@link OWLAnnotationSubject}, not null
+     * @param s {@link OWLAnnotationSubject}, not {@code null}
      * @return Stream of {@link OWLAnnotationAssertionAxiom}s
      */
     public Stream<OWLAnnotationAssertionAxiom> listOWLAnnotationAssertionAxioms(OWLAnnotationSubject s) {
@@ -517,14 +518,14 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         AxiomTranslator<OWLAnnotationAssertionAxiom> t = AxiomParserProvider.get(OWLAnnotationAssertionAxiom.class);
         ExtendedIterator<OntStatement> res = m.listLocalStatements(WriteHelper.toResource(s), null, null)
                 .filterKeep(x -> t.testStatement(x, getSnapshotConfig()));
-        return Iter.asStream(t.translate(res, df, getSnapshotConfig()).mapWith(ONTObject::getObject));
+        return reduce(Iter.asStream(t.translate(res, df, getSnapshotConfig()).mapWith(ONTObject::getObject)));
     }
 
     /**
      * Lists {@link OWLSubClassOfAxiom SubClassOf Axiom}s by the given sub {@link OWLClass class}.
      * Note: method returns non-cached axioms.
      *
-     * @param sub {@link OWLClass}, not null
+     * @param sub {@link OWLClass}, not {@code null}
      * @return Stream of {@link OWLSubClassOfAxiom}s
      */
     public Stream<OWLSubClassOfAxiom> listOWLSubClassOfAxioms(OWLClass sub) {
@@ -536,14 +537,14 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         SubClassOfTranslator t = (SubClassOfTranslator) AxiomParserProvider.get(OWLSubClassOfAxiom.class);
         ExtendedIterator<OntStatement> res = m.listLocalStatements(WriteHelper.toResource(sub), RDFS.subClassOf, null)
                 .filterKeep(t::filter);
-        return Iter.asStream(t.translate(res, df, getSnapshotConfig()).mapWith(ONTObject::getObject));
+        return reduce(Iter.asStream(t.translate(res, df, getSnapshotConfig()).mapWith(ONTObject::getObject)));
     }
 
     /**
      * Lists {@link OWLEquivalentClassesAxiom EquivalentClasses Axiom}s by the given {@link OWLClass class}-component.
      * Note: method returns non-cached axioms.
      *
-     * @param c {@link OWLClass}, not null
+     * @param c {@link OWLClass}, not {@code null}
      * @return Stream of {@link OWLEquivalentClassesAxiom}s
      * @see AbstractNaryTranslator#axioms(OntGraphModel)
      */
@@ -558,7 +559,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         ExtendedIterator<OntStatement> res = m.listLocalStatements(r, OWL.equivalentClass, null)
                 .andThen(m.listLocalStatements(null, OWL.equivalentClass, r))
                 .filterKeep(s -> t.testStatement(s, getSnapshotConfig()));
-        return Iter.asStream(t.translate(res, df, getSnapshotConfig()).mapWith(ONTObject::getObject));
+        return reduce(Iter.asStream(t.translate(res, df, getSnapshotConfig()).mapWith(ONTObject::getObject)));
     }
 
     /**
@@ -568,7 +569,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @see #listOWLAnnotations()
      */
     public Stream<OWLAxiom> listOWLAxioms() {
-        return getAxioms().values().stream().flatMap(ObjectTriplesMap::objects);
+        return flatMap(getAxioms().values().stream(), ObjectTriplesMap::objects);
     }
 
     /**
@@ -579,18 +580,18 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      */
     public Stream<OWLAxiom> listOWLAxioms(Collection<AxiomKey> types) {
         Map<AxiomKey, ObjectTriplesMap<OWLAxiom>> axioms = getAxioms();
-        return types.stream().flatMap(t -> axioms.get(t).objects());
+        return flatMap(types.stream(), t -> axioms.get(t).objects());
     }
 
     /**
      * Lists axioms for the specified types.
      *
-     * @param filter a collection of {@link AxiomType}s
+     * @param filter a {@code Iterable} of {@link AxiomType}s
      * @return Stream of {@link OWLAxiom}s
      */
     public Stream<OWLAxiom> listOWLAxioms(Iterable<AxiomType<?>> filter) {
         Map<AxiomKey, ObjectTriplesMap<OWLAxiom>> axioms = getAxioms();
-        return AxiomKey.list(filter).flatMap(x -> axioms.get(x).objects());
+        return flatMap(AxiomKey.list(filter), x -> axioms.get(x).objects());
     }
 
     /**
@@ -615,6 +616,67 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     @SuppressWarnings("unchecked")
     public <A extends OWLAxiom> Stream<A> listOWLAxioms(AxiomType<A> type) {
         return (Stream<A>) getAxioms().get(AxiomKey.get(type)).objects();
+    }
+
+    /**
+     * Performs a final operation over the specified {@code stream} before releasing it out.
+     * <p>
+     * It is for ensuring safety in case of multithreading environment,
+     * as indicated by the parameter {@link InternalConfig#parallel()}.
+     * If {@code parallel} is {@code true} and {@code stream} is unknown nature
+     * then the collecting must not go beyond this method, otherwise it is allowed to be lazy.
+     * Although the upper API uses {@code ReadWriteLock R/W lock} everywhere
+     * (that is an original OWL-API locking style), it does not guarantee thread-safety on iterating,
+     * and, therefore, without the help of this method,
+     * there is a dangerous of {@link java.util.ConcurrentModificationException} (at best),
+     * if some processing go outside a method who spawned the stream, in spite of the dedicated lock-section.
+     * So need to make sure stream is created from a snapshot state.
+     * <p>
+     * Notice that this class does not produce parallel streams.
+     * It is due to the dangerous of livelocks or even deadlocks while interacting with loading-caches,
+     * since all of them are based on the standard Java {@code ConcurrentHashMap}.
+     *
+     * @param stream Stream of {@link R}s
+     * @param <R>    anything
+     * @return Stream of {@link R}s
+     * @see #flatMap(Stream, Function)
+     */
+    protected <R> Stream<R> reduce(Stream<R> stream) {
+        InternalConfig conf = getSnapshotConfig();
+        // model is non-modifiable if cache is disabled
+        if (!conf.parallel() || !conf.isContentCacheEnabled()) {
+            return stream;
+        }
+        // use ArrayList since it is faster while iterating,
+        // Uniqueness is guaranteed by other mechanisms.
+        // 1024 is a magic approximate number of axioms/objects; it is not tested yet.
+        ArrayList<R> res = new ArrayList<>(1024);
+        stream.collect(Collectors.toCollection(() -> res));
+        res.trimToSize();
+        return res.stream();
+    }
+
+    /**
+     * Returns a stream consisting of the results of replacing each element of this stream
+     * with the contents of a mapped stream produced by applying the provided mapping function to each element.
+     * The purpose of this method is the same as for {@link #reduce(Stream)}:
+     * for thread-safety reasons calculations should not go beyond the bounds of this method.
+     *
+     * @param stream {@code Stream} of {@link X}
+     * @param map    a {@link Function} for mapping {@link X} to {@code Stream} of {@link R}
+     * @param <R>    anything
+     * @param <X>    anything
+     * @return {@code Stream} of {@link R}
+     * @see #reduce(Stream)
+     */
+    protected <R, X> Stream<R> flatMap(Stream<X> stream, Function<X, Stream<R>> map) {
+        InternalConfig conf = getSnapshotConfig();
+        if (!conf.parallel() || !conf.isContentCacheEnabled()) {
+            return stream.flatMap(map);
+        }
+        // force put everything into cache (memory) and get data snapshot
+        // for now there is no any better solution
+        return stream.map(map).collect(Collectors.toList()).stream().flatMap(Function.identity());
     }
 
     /**
