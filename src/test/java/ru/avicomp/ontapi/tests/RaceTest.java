@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -39,73 +40,84 @@ import java.util.stream.Stream;
  */
 public class RaceTest {
     // constants for test tuning:
-    private static final long TIMEOUT = 15_000; // 15s
+    private static final long TIMEOUT = 15_000; // ms
     private static final Logger LOGGER = LoggerFactory.getLogger(RaceTest.class);
     private static final boolean ADD_WITH_ANNOTATIONS = true;
-    private static final int ADD_THREADS_NUM = 6;
-    private static final int REMOVE_THREADS_NUM = 4;
-
-    @Test
-    public void test() throws InterruptedException, ExecutionException {
-        OntologyManager m = OntManagers.createConcurrentONT();
-        m.getOntologyConfigurator().setAllowReadDeclarations(false);
-        OntologyModel o = m.createOntology();
-        AtomicBoolean flag = new AtomicBoolean(true);
-        ThreadLocalRandom random = ThreadLocalRandom.current();
-        ExecutorService service = Executors.newFixedThreadPool(ADD_THREADS_NUM + REMOVE_THREADS_NUM);
-        List<Future<?>> res = new ArrayList<>();
-        LOGGER.debug("Start racing");
-        for (int i = 0; i < ADD_THREADS_NUM; i++)
-            res.add(service.submit(() -> add(o, random, flag)));
-        for (int i = 0; i < REMOVE_THREADS_NUM; i++)
-            res.add(service.submit(() -> remove(o, random, flag)));
-        service.shutdown();
-        Thread.sleep(TIMEOUT);
-        flag.set(false);
-        for (Future<?> f : res) {
-            f.get();
-        }
-        LOGGER.debug("Fin.");
-    }
+    private static final int ADD_THREADS_NUM = 4;
+    private static final int REMOVE_THREADS_NUM = 6;
 
     /**
      * Adds sub-class-of axioms in loop
      *
-     * @param o      {@link OntologyModel}
-     * @param random {@link ThreadLocalRandom}
-     * @param ready  {@link AtomicBoolean}
+     * @param o     {@link OntologyModel}
+     * @param ready {@link AtomicBoolean}
      */
-    private static void add(OntologyModel o, ThreadLocalRandom random, AtomicBoolean ready) {
+    private static void add(OntologyModel o, AtomicBoolean ready) {
         OWLDataFactory df = o.getOWLOntologyManager().getOWLDataFactory();
         List<OWLAnnotation> annotations = ADD_WITH_ANNOTATIONS ?
-                Stream.of(df.getOWLAnnotation(df.getRDFSComment(), df.getOWLLiteral("comm"), df.getRDFSLabel("lab"))).collect(Collectors.toList()) :
-                Collections.emptyList();
+                Stream.of(df.getOWLAnnotation(df.getRDFSComment(), df.getOWLLiteral("comm"), df.getRDFSLabel("lab")))
+                        .collect(Collectors.toList()) : Collections.emptyList();
         while (ready.get()) {
-            OWLClass c = df.getOWLClass(IRI.create("test", "clazz" + random.nextInt()));
+            OWLClass c = df.getOWLClass(IRI.create("test", "clazz" + ThreadLocalRandom.current().nextInt()));
             OWLAxiom a = df.getOWLSubClassOfAxiom(c, df.getOWLThing(), annotations);
             if (LOGGER.isDebugEnabled())
                 LOGGER.debug("+ {}", a);
             o.add(a);
-            long l = o.subClassAxiomsForSubClass(c).count();
-            Assert.assertTrue(l == 0 || l == 1);
+            long res = o.subClassAxiomsForSubClass(c).count();
+            Assert.assertTrue(res == 0 || res == 1);
         }
     }
 
     /**
      * Removes axioms in loop.
      *
-     * @param o      {@link OntologyModel}
-     * @param random {@link ThreadLocalRandom}
-     * @param ready  {@link AtomicBoolean}
+     * @param o     {@link OntologyModel}
+     * @param ready {@link AtomicBoolean}
      */
-    private static void remove(OntologyModel o, ThreadLocalRandom random, AtomicBoolean ready) {
+    private static void remove(OntologyModel o, AtomicBoolean ready) {
         while (ready.get()) {
-            Stream<? extends OWLAxiom> axioms = random.nextBoolean() ? o.axioms() : o.generalClassAxioms();
+            Stream<? extends OWLAxiom> axioms = ThreadLocalRandom.current().nextBoolean() ?
+                    o.axioms() : o.generalClassAxioms();
             axioms.findFirst().ifPresent(a -> {
                 if (LOGGER.isDebugEnabled())
                     LOGGER.debug("- {}", a);
                 o.remove(a);
             });
         }
+    }
+
+    private static Runnable toTask(OntologyModel o,
+                                   AtomicBoolean process,
+                                   BiConsumer<OntologyModel, AtomicBoolean> func) {
+        return () -> {
+            try {
+                func.accept(o, process);
+            } catch (Exception e) {
+                process.set(false);
+                throw e;
+            }
+        };
+    }
+
+    @Test
+    public void testConcurrency() throws InterruptedException, ExecutionException {
+        OntologyManager m = OntManagers.createConcurrentONT();
+        m.getOntologyConfigurator().setAllowReadDeclarations(false);
+        OntologyModel o = m.createOntology();
+        AtomicBoolean process = new AtomicBoolean(true);
+        int threads = ADD_THREADS_NUM + REMOVE_THREADS_NUM + 1;
+        ScheduledExecutorService service = Executors.newScheduledThreadPool(threads);
+        List<Future<?>> res = new ArrayList<>();
+        LOGGER.debug("Start racing");
+        for (int i = 0; i < ADD_THREADS_NUM; i++)
+            res.add(service.submit(toTask(o, process, RaceTest::add)));
+        for (int i = 0; i < REMOVE_THREADS_NUM; i++)
+            res.add(service.submit(toTask(o, process, RaceTest::remove)));
+        service.schedule(() -> process.set(false), TIMEOUT, TimeUnit.MILLISECONDS);
+        service.shutdown();
+        for (Future<?> f : res) {
+            f.get();
+        }
+        LOGGER.debug("Fin.");
     }
 }
