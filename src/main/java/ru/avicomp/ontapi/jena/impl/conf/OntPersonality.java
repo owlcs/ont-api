@@ -141,6 +141,16 @@ public interface OntPersonality {
     interface Builtins extends Vocabulary.Entities {
 
         /**
+         * Answers {@code true} if the behaviour should match OWL-API, since
+         * <a href='https://github.com/owlcs/owlapi/issues/783'>it does not list some builtin entities</a>
+         *
+         * @return boolean
+         */
+        default boolean matchOWLAPI() {
+            return true;
+        }
+
+        /**
          * Returns a {@code Set} of all OWL builtin properties
          * (annotation, datatype and object named property expressions)
          *

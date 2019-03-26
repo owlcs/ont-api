@@ -28,6 +28,8 @@ import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 import java.util.*;
+import java.util.function.BooleanSupplier;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 /**
@@ -127,66 +129,91 @@ public class OntClassImpl extends OntObjectImpl implements OntClass {
      */
     public static Set<OntClass> getBuiltinClasses(OntGraphModelImpl m) {
         Set<OntClass> res = new HashSet<>();
-        // todo: check if res already contains all possible builtins and stop.
+        int max = m.getOntPersonality().getBuiltins().getClasses().size();
+        BooleanSupplier exit = () -> res.size() >= max;
+        Predicate<OntClass> test = c -> !exit.getAsBoolean() && c.isBuiltIn();
+
+        // rdfs:range
+        m.listLocalObjects(OntOPE.class, RDFS.range, OntClass.class)
+                .filterKeep(test)
+                .forEachRemaining(res::add);
+        if (exit.getAsBoolean()) return Collections.unmodifiableSet(res);
+
+        // rdfs:domain
+        m.listLocalObjects(OntDOP.class, RDFS.domain, OntClass.class)
+                .filterKeep(test)
+                .forEachRemaining(res::add);
+        if (exit.getAsBoolean()) return Collections.unmodifiableSet(res);
+
+        // class assertions (rdf:type):
+        m.listLocalObjects(OntIndividual.class, RDF.type, OntClass.class)
+                .filterKeep(test)
+                .forEachRemaining(res::add);
+        if (exit.getAsBoolean()) return Collections.unmodifiableSet(res);
+
+        // rdfs:subClassOf, owl:equivalentClass, owl:disjointWith
+        filterBuiltin(m, exit, Iter.flatMap(Iter.of(RDFS.subClassOf, OWL.equivalentClass, OWL.disjointWith),
+                p -> m.listLocalSubjectAndObjects(p, OntCE.class)))
+                .forEachRemaining(res::add);
+        if (exit.getAsBoolean()) return Collections.unmodifiableSet(res);
 
         // UnionOf and IntersectionOf class expressions (owl:unionOf,  owl:intersectionOf)
-        filterBuiltin(OntClass.class, Iter.flatMap(Iter.of(OWL.unionOf, OWL.intersectionOf),
+        filterBuiltin(m, exit, Iter.flatMap(Iter.of(OWL.unionOf, OWL.intersectionOf),
                 p -> m.fromLocalList(OntCE.class, p, OntCE.class, false)))
                 .forEachRemaining(res::add);
+        if (exit.getAsBoolean()) return Collections.unmodifiableSet(res);
+
         //  ObjectComplementOf (owl:complementOf)
         m.listLocalObjects(OntCE.ComplementOf.class, OWL.complementOf, OntClass.class)
-                .filterKeep(OntEntity::isBuiltIn)
+                .filterKeep(test)
                 .forEachRemaining(res::add);
+        if (exit.getAsBoolean()) return Collections.unmodifiableSet(res);
 
         // ObjectSomeValuesFrom, ObjectAllValuesFrom (owl:someValuesFrom, owl:allValuesFrom)
         Iter.flatMap(Iter.of(OWL.someValuesFrom, OWL.allValuesFrom), p -> listClassValuesFrom(m, p))
-                .filterKeep(OntEntity::isBuiltIn)
+                .filterKeep(test)
                 .forEachRemaining(res::add);
+        if (exit.getAsBoolean()) return Collections.unmodifiableSet(res);
 
         // Qualified restrictions
         m.listLocalObjects(CardinalityRestrictionCE.class, OWL.onClass, OntClass.class)
-                .filterKeep(OntEntity::isBuiltIn)
+                .filterKeep(test)
                 .forEachRemaining(res::add);
+        if (exit.getAsBoolean()) return Collections.unmodifiableSet(res);
+
         // Unqualified restrictions (owl:Thing)
-        OntClass thing = m.getOWLThing();
-        if (thing != null  // maybe null if it is absent in OntPersonality.Builtins
-                && !res.contains(thing)) {
+        OntClass topCE = m.getOWLThing();
+        if (topCE != null  // maybe null if it is absent in OntPersonality.Builtins
+                && !res.contains(topCE)) {
             Iter.findFirst(Iter.flatMap(Iter.of(OWL.maxCardinality, OWL.cardinality, OWL.minCardinality),
                     p -> m.listLocalStatements(null, p, null)).mapWith(OntStatement::getSubject)
-                    .filterKeep(s -> s.canAs(CardinalityRestrictionCE.class))).ifPresent(x -> res.add(thing));
+                    .filterKeep(OntClassImpl::isRestriction)).ifPresent(x -> res.add(topCE));
         }
-
-        // rdfs:range
-        m.listLocalObjects(OntOPE.class, RDFS.range, OntClass.class).filterKeep(OntEntity::isBuiltIn)
-                .forEachRemaining(res::add);
-        // rdfs:domain
-        m.listLocalObjects(OntDOP.class, RDFS.domain, OntClass.class).filterKeep(OntEntity::isBuiltIn)
-                .forEachRemaining(res::add);
-        // class assertions (rdf:type):
-        m.listLocalObjects(OntIndividual.class, RDF.type, OntClass.class).filterKeep(OntEntity::isBuiltIn)
-                .forEachRemaining(res::add);
-
-        // rdfs:subClassOf, owl:equivalentClass, owl:disjointWith
-        filterBuiltin(OntClass.class, Iter.flatMap(Iter.of(RDFS.subClassOf, OWL.equivalentClass, OWL.disjointWith),
-                p -> m.listLocalSubjectAndObjects(p, OntCE.class)))
-                .forEachRemaining(res::add);
+        if (exit.getAsBoolean()) return Collections.unmodifiableSet(res);
 
         // owl:disjointUnionOf
-        filterBuiltin(OntClass.class, m.fromLocalList(OntClass.class, OWL.disjointUnionOf, OntCE.class, true))
+        filterBuiltin(m, exit, m.fromLocalList(OntClass.class, OWL.disjointUnionOf, OntCE.class, true))
                 .forEachRemaining(res::add);
+        if (exit.getAsBoolean()) return Collections.unmodifiableSet(res);
 
         // owl:AllDisjointClasses:
-        filterBuiltin(OntClass.class, Iter.flatMap(m.listLocalOntObjects(OntDisjoint.Classes.class)
+        filterBuiltin(m, exit, Iter.flatMap(m.listLocalOntObjects(OntDisjoint.Classes.class)
                 .mapWith(OntDisjoint::getList), list -> ((OntListImpl<? extends OntCE>) list).listMembers()))
                 .forEachRemaining(res::add);
+        if (exit.getAsBoolean()) return Collections.unmodifiableSet(res);
 
         // hasKey
-        filterBuiltin(OntClass.class, m.listLocalStatements(null, OWL.hasKey, null)
+        filterBuiltin(m, exit, m.listLocalStatements(null, OWL.hasKey, null)
                 .filterKeep(x -> x.getObject().canAs(RDFList.class))
                 .mapWith(OntStatement::getSubject))
                 .forEachRemaining(res::add);
-
         return Collections.unmodifiableSet(res);
+    }
+
+    private static boolean isRestriction(OntObject s) {
+        return s.canAs(OntCE.ObjectMinCardinality.class)
+                || s.canAs(OntCE.ObjectMaxCardinality.class)
+                || s.canAs(OntCE.ObjectCardinality.class);
     }
 
     private static ExtendedIterator<OntClass> listClassValuesFrom(OntGraphModelImpl m, Property predicate) {
@@ -199,6 +226,13 @@ public class OntClassImpl extends OntObjectImpl implements OntClass {
             throw new IllegalArgumentException();
         }
         return m.listLocalObjects(type, predicate, OntClass.class);
+    }
+
+    private static ExtendedIterator<OntClass> filterBuiltin(OntGraphModelImpl m,
+                                                            BooleanSupplier exit,
+                                                            ExtendedIterator<? extends RDFNode> from) {
+
+        return filterBuiltin(OntClass.class, m, exit, from);
     }
 
 }

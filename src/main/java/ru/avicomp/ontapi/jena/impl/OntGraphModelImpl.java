@@ -283,10 +283,9 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
      * @param <E> subtype of {@link OntObjectImpl} and {@link OntEntity}
      * @return boolean
      */
-    @SuppressWarnings("unchecked")
     public <E extends OntObjectImpl & OntEntity> boolean isBuiltIn(E e) {
         return getOntPersonality().getBuiltins()
-                .get((Class<? extends OntEntity>) e.getActualClass())
+                .get(e.getActualClass())
                 .contains(e.asNode());
     }
 
@@ -577,9 +576,15 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
         if (OntClass.class == type) {
             return getEntitySet(OntClassImpl::getBuiltinClasses, local);
         }
+        if (OntDT.class == type) {
+            return getEntitySet(OntDatatypeImpl::getBuiltinDatatypes, local);
+        }
+        if (OntIndividual.Named.class == type) {
+            return Collections.emptySet();
+        }
         // TODO: issue #40
         throw new OntJenaException.Unsupported("Attempt to get builtins for " + OntObjectImpl.viewAsString(type) +
-                ".This functionality is not ready, see https://github.com/avicomp/ont-api/issues/40");
+                ". This functionality is not ready, see https://github.com/avicomp/ont-api/issues/40");
     }
 
     @SuppressWarnings("unchecked")
@@ -745,39 +750,39 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
     }
 
     @Override
-    public OntCE.ObjectMinCardinality createObjectMinCardinality(OntOPE onProperty, int cardinality, OntCE onObject) {
+    public OntCE.ObjectMinCardinality createObjectMinCardinality(OntOPE property, int cardinality, OntCE ce) {
         return OntCEImpl.createCardinalityRestrictionCE(this,
-                OntCE.ObjectMinCardinality.class, onProperty, cardinality, onObject);
+                OntCE.ObjectMinCardinality.class, property, cardinality, ce);
     }
 
     @Override
-    public OntCE.DataMinCardinality createDataMinCardinality(OntNDP onProperty, int cardinality, OntDR onObject) {
+    public OntCE.DataMinCardinality createDataMinCardinality(OntNDP property, int cardinality, OntDR dr) {
         return OntCEImpl.createCardinalityRestrictionCE(this,
-                OntCE.DataMinCardinality.class, onProperty, cardinality, onObject);
+                OntCE.DataMinCardinality.class, property, cardinality, dr);
     }
 
     @Override
-    public OntCE.ObjectMaxCardinality createObjectMaxCardinality(OntOPE onProperty, int cardinality, OntCE onObject) {
+    public OntCE.ObjectMaxCardinality createObjectMaxCardinality(OntOPE property, int cardinality, OntCE ce) {
         return OntCEImpl.createCardinalityRestrictionCE(this,
-                OntCE.ObjectMaxCardinality.class, onProperty, cardinality, onObject);
+                OntCE.ObjectMaxCardinality.class, property, cardinality, ce);
     }
 
     @Override
-    public OntCE.DataMaxCardinality createDataMaxCardinality(OntNDP onProperty, int cardinality, OntDR onObject) {
+    public OntCE.DataMaxCardinality createDataMaxCardinality(OntNDP property, int cardinality, OntDR dr) {
         return OntCEImpl.createCardinalityRestrictionCE(this,
-                OntCE.DataMaxCardinality.class, onProperty, cardinality, onObject);
+                OntCE.DataMaxCardinality.class, property, cardinality, dr);
     }
 
     @Override
-    public OntCE.ObjectCardinality createObjectCardinality(OntOPE onProperty, int cardinality, OntCE onObject) {
+    public OntCE.ObjectCardinality createObjectCardinality(OntOPE property, int cardinality, OntCE ce) {
         return OntCEImpl.createCardinalityRestrictionCE(this,
-                OntCE.ObjectCardinality.class, onProperty, cardinality, onObject);
+                OntCE.ObjectCardinality.class, property, cardinality, ce);
     }
 
     @Override
-    public OntCE.DataCardinality createDataCardinality(OntNDP onProperty, int cardinality, OntDR onObject) {
+    public OntCE.DataCardinality createDataCardinality(OntNDP property, int cardinality, OntDR dr) {
         return OntCEImpl.createCardinalityRestrictionCE(this,
-                OntCE.DataCardinality.class, onProperty, cardinality, onObject);
+                OntCE.DataCardinality.class, property, cardinality, dr);
     }
 
     @Override
@@ -1027,6 +1032,11 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
     @Override
     public OntClass getOWLThing() {
         return findNodeAs(OWL.Thing.asNode(), OntClass.class);
+    }
+
+    @Override
+    public OntDT getRDFSLiteral() {
+        return findNodeAs(RDFS.Literal.asNode(), OntDT.class);
     }
 
     @Override

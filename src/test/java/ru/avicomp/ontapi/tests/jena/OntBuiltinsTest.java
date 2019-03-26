@@ -15,24 +15,29 @@
 package ru.avicomp.ontapi.tests.jena;
 
 import org.apache.jena.graph.Factory;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.vocabulary.RDFS;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.impl.conf.OntModelConfig;
 import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
 import ru.avicomp.ontapi.jena.impl.conf.PersonalityBuilder;
-import ru.avicomp.ontapi.jena.model.OntClass;
-import ru.avicomp.ontapi.jena.model.OntGraphModel;
-import ru.avicomp.ontapi.jena.model.OntNOP;
+import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
+import ru.avicomp.ontapi.jena.vocabulary.RDF;
+import ru.avicomp.ontapi.jena.vocabulary.XSD;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -41,11 +46,26 @@ import java.util.stream.Stream;
 public class OntBuiltinsTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(OntBuiltinsTest.class);
 
+
+    private static void assertBuiltins(OntGraphModel m, Class<? extends OntEntity> type, Collection<Resource> expected) {
+        List<? extends Resource> actual = m.ontBuiltins(type)
+                .peek(x -> LOGGER.debug("Builtin:{}", x)).collect(Collectors.toList());
+        Assert.assertEquals(expected.size(), actual.size());
+        expected.forEach(x -> Assert.assertTrue(actual.contains(x)));
+    }
+
     @Test
     public void testPizzaBuiltins() {
         OntGraphModel m = OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("ontapi/pizza.ttl").getGraph());
-        Assert.assertEquals(1, m.ontBuiltins(OntClass.class).peek(x -> LOGGER.debug("{}", x)).count());
-        Assert.assertEquals(OWL.Thing, m.ontBuiltins(OntClass.class, true).findFirst().orElseThrow(AssertionError::new));
+        assertBuiltins(m, OntClass.class, Collections.singletonList(OWL.Thing));
+        assertBuiltins(m, OntDT.class, Arrays.asList(RDF.langString, XSD.xstring));
+    }
+
+    @Test
+    public void testFamilyBuiltins() {
+        OntGraphModel m = OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("ontapi/family.ttl").getGraph());
+        assertBuiltins(m, OntClass.class, Collections.emptySet());
+        assertBuiltins(m, OntDT.class, Arrays.asList(XSD.xstring, XSD.integer));
     }
 
     @Test
@@ -99,5 +119,46 @@ public class OntBuiltinsTest {
         OntGraphModel m2 = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         m2.getOWLThing().addHasKey();
         Assert.assertEquals(1, m2.ontBuiltins(OntClass.class).peek(x -> LOGGER.debug("2) Builtin: {}", x)).count());
+    }
+
+
+    @Test
+    public void testMatchOWLAPIOption() {
+        OntPersonality from = OntModelConfig.ONT_PERSONALITY_LAX;
+        OntPersonality.Builtins test = new OntPersonality.Builtins() {
+            @Override
+            public boolean matchOWLAPI() {
+                return false;
+            }
+
+            @Override
+            public Set<Node> get(Class<? extends OntObject> type) throws OntJenaException {
+                return from.getBuiltins().get(type);
+            }
+        };
+        OntPersonality personality = PersonalityBuilder.from(from).setBuiltins(test).build();
+
+        Graph g = Factory.createGraphMem();
+        g.getPrefixMapping().setNsPrefixes(OntModelFactory.STANDARD);
+        OntGraphModel m1 = OntModelFactory.createModel(g, from);
+        OntClass c = m1.createOntClass("C");
+        OntNOP op = m1.createObjectProperty("OP");
+        OntNDP dp = m1.createDataProperty("DP");
+
+        OntCE.ObjectCardinality r1 = m1.createObjectCardinality(op, 12, c);
+        OntCE.DataMinCardinality r2 = m1.createDataMinCardinality(dp, 1, null);
+        Assert.assertTrue(r1.isQualified());
+        Assert.assertFalse(r2.isQualified());
+
+        m1.createHasSelf(op);
+
+        ReadWriteUtils.print(m1);
+        assertBuiltins(m1, OntClass.class, Collections.emptySet());
+        assertBuiltins(m1, OntDT.class, Collections.singleton(RDFS.Literal));
+
+        LOGGER.debug("----------");
+        OntGraphModel m2 = OntModelFactory.createModel(g, personality);
+        assertBuiltins(m2, OntClass.class, Collections.emptySet());
+        assertBuiltins(m2, OntDT.class, Arrays.asList(RDFS.Literal, XSD.nonNegativeInteger, XSD.xboolean));
     }
 }

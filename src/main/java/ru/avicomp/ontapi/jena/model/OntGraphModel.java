@@ -22,6 +22,8 @@ import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.vocabulary.RDFS;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
+import ru.avicomp.ontapi.jena.vocabulary.RDF;
+import ru.avicomp.ontapi.jena.vocabulary.XSD;
 
 import java.util.Collection;
 import java.util.Map;
@@ -231,9 +233,9 @@ public interface OntGraphModel extends Model {
      * Note that the result can be configured
      * through {@link ru.avicomp.ontapi.jena.impl.conf.OntPersonality.Builtins Builtins Vocabulary}.
      *
-     * @param type a concrete class-type of entity
+     * @param type  a concrete class-type of entity
      * @param local if {@code true} only the base graph is considered
-     * @param <E>  any subtype of {@link OntEntity}
+     * @param <E>   any subtype of {@link OntEntity}
      * @return Stream of builtin {@link OntEntity}s
      * @see ru.avicomp.ontapi.jena.impl.conf.OntPersonality#getBuiltins()
      * @since 1.4.0
@@ -423,17 +425,17 @@ public interface OntGraphModel extends Model {
 
     OntCE.DataHasValue createDataHasValue(OntNDP onProperty, Literal other);
 
-    OntCE.ObjectMinCardinality createObjectMinCardinality(OntOPE onProperty, int cardinality, OntCE onObject);
+    OntCE.ObjectMinCardinality createObjectMinCardinality(OntOPE property, int cardinality, OntCE ce);
 
-    OntCE.DataMinCardinality createDataMinCardinality(OntNDP onProperty, int cardinality, OntDR onObject);
+    OntCE.DataMinCardinality createDataMinCardinality(OntNDP property, int cardinality, OntDR dr);
 
-    OntCE.ObjectMaxCardinality createObjectMaxCardinality(OntOPE onProperty, int cardinality, OntCE onObject);
+    OntCE.ObjectMaxCardinality createObjectMaxCardinality(OntOPE property, int cardinality, OntCE ce);
 
-    OntCE.DataMaxCardinality createDataMaxCardinality(OntNDP onProperty, int cardinality, OntDR onObject);
+    OntCE.DataMaxCardinality createDataMaxCardinality(OntNDP property, int cardinality, OntDR dr);
 
-    OntCE.ObjectCardinality createObjectCardinality(OntOPE onProperty, int cardinality, OntCE onObject);
+    OntCE.ObjectCardinality createObjectCardinality(OntOPE property, int cardinality, OntCE ce);
 
-    OntCE.DataCardinality createDataCardinality(OntNDP onProperty, int cardinality, OntDR onObject);
+    OntCE.DataCardinality createDataCardinality(OntNDP property, int cardinality, OntDR dr);
 
     OntCE.UnionOf createUnionOf(Collection<OntCE> classes);
 
@@ -595,6 +597,18 @@ public interface OntGraphModel extends Model {
         return getDatatype(uri.getURI());
     }
 
+    default OntDT getDatatype(Literal literal) {
+        String uri = literal.getDatatypeURI();
+        if (uri != null) {
+            return getDatatype(uri);
+        }
+        String lang = literal.getLanguage();
+        if (lang != null) {
+            return getDatatype(RDF.langString);
+        }
+        return getDatatype(XSD.xstring);
+    }
+
     default OntIndividual.Named getIndividual(Resource uri) {
         return getIndividual(uri.getURI());
     }
@@ -672,6 +686,10 @@ public interface OntGraphModel extends Model {
 
     default OntClass getOWLThing() {
         return getOntEntity(OntClass.class, OWL.Thing);
+    }
+
+    default OntDT getRDFSLiteral() {
+        return getOntEntity(OntDT.class, RDFS.Literal);
     }
 
     default OntClass getOWLNothing() {

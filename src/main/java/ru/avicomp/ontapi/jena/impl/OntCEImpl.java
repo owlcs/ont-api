@@ -233,7 +233,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
     }
 
     protected static Literal createNonNegativeIntegerLiteral(int n) {
-        if (n < 0) throw new IllegalArgumentException("Can't accept negative value.");
+        if (n < 0) throw new OntJenaException.IllegalArgument("Can't accept negative value: " + n);
         return ResourceFactory.createTypedLiteral(String.valueOf(n), CardinalityType.NON_NEGATIVE_INTEGER);
     }
 

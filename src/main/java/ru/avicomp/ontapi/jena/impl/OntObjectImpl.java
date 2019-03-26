@@ -37,6 +37,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.BooleanSupplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -117,13 +118,19 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * Filters the given extended iterator to contain only builtin entities of the specified type.
      *
      * @param type type of entity
+     * @param m {@link OntGraphModelImpl}
+     * @param exit {@code BooleanSupplier}
      * @param from {@link ExtendedIterator} of {@link RDFNode}s
      * @param <E>  subclass of {@link OntEntity}
      * @return {@link ExtendedIterator} of {@link E}s
      */
     static <E extends OntEntity> ExtendedIterator<E> filterBuiltin(Class<E> type,
+                                                                   OntGraphModelImpl m,
+                                                                   BooleanSupplier exit,
                                                                    ExtendedIterator<? extends RDFNode> from) {
-        return from.filterKeep(x -> x.canAs(type) && x.as(type).isBuiltIn()).mapWith(x -> x.as(type));
+        return from.filterDrop(x -> exit.getAsBoolean())
+                .mapWith(x -> m.findNodeAs(x.asNode(), type))
+                .filterKeep(x -> x != null && x.isBuiltIn());
     }
 
     /**

@@ -789,5 +789,36 @@ public class OntModelTest {
         // todo: handle all other types
     }
 
+    @Test
+    public void testCreateCardinalityRestrictions() {
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntClass c = m.createOntClass("C");
+        OntNOP op = m.createObjectProperty("OP");
+        OntNDP dp = m.createDataProperty("DP");
+
+        OntCE.ObjectCardinality r1 = m.createObjectCardinality(op, 12, c);
+        OntCE.DataMinCardinality r2 = m.createDataMinCardinality(dp, 1, null);
+        OntCE.DataMaxCardinality r3 = m.createDataMaxCardinality(dp, 2, m.getRDFSLiteral());
+        OntCE.ObjectMinCardinality r4 = m.createObjectMinCardinality(op, 12, m.getOWLThing());
+        OntCE.CardinalityRestrictionCE r5 = m.createDataCardinality(dp, 0, m.getDatatype(XSD.xstring));
+        ReadWriteUtils.print(m);
+
+        Assert.assertTrue(r1.isQualified());
+        Assert.assertFalse(r2.isQualified());
+        Assert.assertFalse(r3.isQualified());
+        Assert.assertFalse(r4.isQualified());
+        Assert.assertTrue(r5.isQualified());
+        long size = m.size();
+
+        try {
+            m.createObjectMaxCardinality(op, -12, c);
+            Assert.fail("Possible to create restriction with negative cardinality.");
+        } catch (OntJenaException.IllegalArgument e) {
+            LOGGER.debug("Expected: '{}'", e.getMessage());
+        }
+        Assert.assertEquals(size, m.size());
+
+    }
+
 }
 
