@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -33,6 +33,7 @@ import java.util.stream.Stream;
  * Examples of rdf-patterns see <a href='https://www.w3.org/TR/owl2-quick-reference/'>here</a>.
  * <p>
  * Created by szuev on 01.11.2016.
+ *
  * @see OntClass
  * @see <a href='https://www.w3.org/TR/owl2-quick-reference/'>2.1 Class Expressions</a>
  * @see <a href='https://www.w3.org/TR/owl2-syntax/#Class_Expressions'>8 Class Expressions</a>
@@ -236,29 +237,26 @@ public interface OntCE extends OntObject {
     /**
      * Lists all key properties.
      * I.e. returns all object- and datatype- properties which belong to
-     * the {@code C owl:hasKey (P1 ... Pm R1 ... Rn)} statements,
-     * where {@code C} - this class expression, {@code P} is a property expression, and {@code R} is a data(-type) property.
+     * the {@code C owl:hasKey ( P1 ... Pm R1 ... Rn )} statements,
+     * where {@code C} is this class expression,
+     * {@code Pi} is a property expression, and {@code Ri} is a data(-type) property.
      * If there are several []-lists in the model that satisfy these conditions,
      * all their content will be merged into the one distinct stream.
      *
-     * @return distinct Stream of {@link OntOPE}s and {@link OntNDP}s
+     * @return <b>distinct</b> Stream of {@link OntOPE object} and {@link OntNDP data} properties
      * @see #listHasKeys()
-     * @deprecated use {@code listHasKeys()} with filtering instead
      */
-    @Deprecated
-    default Stream<OntPE> hasKey() {
-        return listHasKeys().flatMap(OntList::members);
+    default Stream<OntDOP> hasKey() {
+        return listHasKeys().flatMap(OntList::members).distinct();
     }
 
     /**
-     * Creates an {@code owl:hasKey} statement.
+     * Creates an {@code owl:hasKey} statement returning root statement to allow adding annotations.
      *
      * @param objectProperties the collection of {@link OntOPE}s
      * @param dataProperties   the collection of {@link OntNDP}s
      * @return {@link OntStatement}
-     * @deprecated redundant method: use {@code createHasKey(objectProperties, dataProperties)} instead
      */
-    @Deprecated
     default OntStatement addHasKey(Collection<OntOPE> objectProperties, Collection<OntNDP> dataProperties) {
         return createHasKey(objectProperties, dataProperties).getRoot();
     }
@@ -273,16 +271,6 @@ public interface OntCE extends OntObject {
     default void clearHasKeys() {
         listHasKeys().collect(Collectors.toSet()).forEach(this::removeHasKey);
     }
-
-    /**
-     * Removes all key properties.
-     * I.e. removes all statements with their content from a {@code owl:hasKey} axiom.
-     *
-     * @see #clearHasKeys()
-     * @deprecated this method does not take into account possible annotations of HasKey statement, use instead {@code clearHasKeys()}
-     */
-    @Deprecated
-    void removeHasKey();
 
     /*
      * ============================

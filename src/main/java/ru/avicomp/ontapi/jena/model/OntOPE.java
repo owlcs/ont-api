@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -79,15 +79,6 @@ public interface OntOPE extends OntDOP {
     void removePropertyChain(RDFNode list) throws OntJenaException;
 
     /**
-     * Removes all statements with predicate {@code owl:propertyChainAxiom} (i.e. {@code _:this owl:propertyChainAxiom ( ... )})
-     *
-     * @see #clearPropertyChains()
-     * @deprecated this method does not take into account possible annotations of property chains, use instead {@code clearPropertyChains()}
-     */
-    @Deprecated
-    void removeSuperPropertyOf();
-
-    /**
      * Returns all associated negative object property assertions.
      *
      * @return Stream of {@link OntNPA.ObjectAssertion}s
@@ -149,31 +140,18 @@ public interface OntOPE extends OntDOP {
     }
 
     /**
-     * Returns all 'sub-property-of' chains in form of {@link RDFList} stream.
+     * Lists all members from the right part of statement {@code P owl:propertyChainAxiom ( P1 ... Pn )},
+     * where {@code P} is this property.
+     * Note: the result ignores repetitions, e.g. for
+     * {@code SubObjectPropertyOf( ObjectPropertyChain( :hasParent :hasParent ) :hasGrandparent )},
+     * it returns only {@code :hasParent} property.
      *
-     * @return Stream of {@link RDFList}s
-     * @deprecated use {@code listPropertyChains()} instead
+     * @return <b>distinct</b> Stream of all super {@link OntOPE object properties},
+     * possible empty in case of nil-list or if there is no property-chains at all
      * @see #listPropertyChains()
      */
-    @Deprecated
-    default Stream<RDFList> propertyChains() {
-        return listPropertyChains().map(c -> c.as(RDFList.class));
-    }
-
-    /**
-     * Lists all members from the right part of statement {@code P owl:propertyChainAxiom (P1 ... Pn)}.
-     * Note(1): in the return result there could be repetitions.
-     * Example: {@code SubObjectPropertyOf( ObjectPropertyChain( :hasParent :hasParent ) :hasGrandparent )}
-     * Note(2): there can be several chains, the method returns the one which is defined as first at the graph level,
-     * i.e., in general, the result is unpredictable.
-     *
-     * @return Stream of {@link OntOPE}s, can be empty in case of nil-list or if there is no property-chains at all
-     * @see #listPropertyChains()
-     * @deprecated use {@code listPropertyChains()} with filtering instead
-     */
-    @Deprecated
     default Stream<OntOPE> superPropertyOf() {
-        return listPropertyChains().map(OntList::members).findFirst().orElse(Stream.empty());
+        return listPropertyChains().flatMap(OntList::members).distinct();
     }
 
     /**
@@ -183,10 +161,8 @@ public interface OntOPE extends OntDOP {
      * @return the {@link OntStatement} ({@code _:this owl:propertyChainAxiom ( ... )})
      * @see #createPropertyChain(Collection)
      * @see #addSuperPropertyOf(OntOPE...)
-     * @deprecated redundant method: use {@code createPropertyChain(properties)} instead
      * @see #createPropertyChain(Collection)
      */
-    @Deprecated
     default OntStatement addSuperPropertyOf(Collection<OntOPE> properties) {
         return createPropertyChain(new ArrayList<>(properties)).getRoot();
     }

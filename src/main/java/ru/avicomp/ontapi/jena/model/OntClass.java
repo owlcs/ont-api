@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -65,14 +65,6 @@ public interface OntClass extends OntEntity, OntCE {
     void removeDisjointUnion(RDFNode list);
 
     /**
-     * Removes all statements with predicate {@link OWL#disjointUnionOf owl:disjointUnionOf} including their content.
-     * @deprecated this method does not take into account possible annotations of disjoint union statement, use instead {@code clearDisjointUnions()}
-     * @see #clearDisjointUnions()
-     */
-    @Deprecated
-    void removeDisjointUnionOf();
-
-    /**
      * Deletes all DisjointUnion lists including their annotations
      * with predicate {@link OWL#disjointUnionOf owl:disjointUnionOf} for this resource from its associated model.
      *
@@ -112,29 +104,26 @@ public interface OntClass extends OntEntity, OntCE {
 
     /**
      * Returns all class expressions from the right part of the statement with this class as a subject
-     * and {@link OWL#disjointUnionOf owl:disjointUnionOf} as a predicate.
+     * and {@link OWL#disjointUnionOf owl:disjointUnionOf} as a predicate
+     * (the pattern: {@code CN owl:disjointUnionOf ( C1 ... Cn )}).
      * If there are several []-lists in the model that satisfy these conditions,
      * all their content will be merged into the one distinct stream.
      *
-     * @return distinct stream of {@link OntCE}s
-     * @deprecated use {@code listDisjointUnions()} with filtering instead
+     * @return <b>distinct</b> stream of {@link OntCE class expressions}s
      * @see #listDisjointUnions()
      */
-    @Deprecated
     default Stream<OntCE> disjointUnionOf() {
         return listDisjointUnions().flatMap(OntList::members).distinct();
     }
 
     /**
-     * Creates a disjoint-union section.
-     * The pattern: {@code CN owl:disjointUnionOf (C1 ... CN)}.
+     * Creates a disjoint-union section returning its root statement to allow adding annotations.
+     * The pattern: {@code CN owl:disjointUnionOf ( C1 ... CN )}.
      *
-     * @param classes the collection of {@link OntCE}s
+     * @param classes the collection of {@link OntCE class expression}s
      * @return {@link OntStatement}
-     * @deprecated redundant method: use {@code createDisjointUnion(classes)} instead
      * @see #createDisjointUnion(Collection)
      */
-    @Deprecated
     default OntStatement addDisjointUnionOf(Collection<OntCE> classes) {
         return createDisjointUnion(classes).getRoot();
     }

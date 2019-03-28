@@ -159,15 +159,6 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         super(n, m);
     }
 
-    @Deprecated
-    protected static ObjectFactory createCEFactory(Class<? extends OntCEImpl> impl, Property predicate) {
-        OntMaker maker = new OntMaker.WithType(impl, OWL.Class);
-        OntFilter filter = OntFilter.BLANK
-                .and(new OntFilter.HasType(OWL.Class))
-                .and(new OntFilter.HasPredicate(predicate));
-        return Factories.createCommon(maker, CLASS_FINDER, filter);
-    }
-
     protected static ObjectFactory createCEFactory(Class<? extends OntCEImpl> impl,
                                                    Property predicate,
                                                    Class<? extends RDFNode> view) {
@@ -364,11 +355,6 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
     @Override
     public void removeHasKey(RDFNode list) throws OntJenaException.IllegalArgument {
         removeHasKey(getModel(), this, list);
-    }
-
-    @Override
-    public void removeHasKey() {
-        clearAll(OWL.hasKey);
     }
 
     protected enum ObjectRestrictionType implements PredicateFilterProvider {

@@ -23,6 +23,7 @@ import org.apache.jena.rdf.model.ResourceFactory;
  * <a href='https://www.w3.org/Submission/SWRL/'>SWRL: A Semantic Web Rule Language Combining OWL and RuleML</a>.
  * <p>
  * Created by szuev on 20.10.2016.
+ *
  * @see <a href='https://www.w3.org/Submission/SWRL/swrl.rdf'>SWRL schema</a>
  * @see org.semanticweb.owlapi.vocab.SWRLVocabulary
  * @see SWRLB

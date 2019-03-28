@@ -118,7 +118,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * Filters the given extended iterator to contain only builtin entities of the specified type.
      *
      * @param type type of entity
-     * @param m {@link OntGraphModelImpl}
+     * @param m    {@link OntGraphModelImpl}
      * @param exit {@code BooleanSupplier}
      * @param from {@link ExtendedIterator} of {@link RDFNode}s
      * @param <E>  subclass of {@link OntEntity}

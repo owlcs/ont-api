@@ -38,7 +38,6 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -62,20 +61,6 @@ public class Models {
 
     public static final Literal TRUE = ResourceFactory.createTypedLiteral(Boolean.TRUE);
     public static final Literal FALSE = ResourceFactory.createTypedLiteral(Boolean.FALSE);
-
-    /**
-     * Builds typed list from the Stream of RDFNode's.
-     *
-     * @param model   Model
-     * @param type    type of list to create
-     * @param members Stream of members
-     * @return the head of created list.
-     * @deprecated using stream as input parameter is a bad idea
-     */
-    @Deprecated
-    public static Resource createTypedList(Model model, Resource type, Stream<? extends RDFNode> members) {
-        return createTypedList(model, type, members.collect(Collectors.toList()));
-    }
 
     /**
      * Creates a typed []-list with the given type containing the resources from the given given collection.
@@ -421,23 +406,23 @@ public class Models {
      *
      * @param m {@link OntGraphModel}
      * @return Stream of models, not empty (contains at least the input model)
+     * @throws StackOverflowError in case the given model has a recursion in the hierarchy
      * @see Graphs#flat(Graph)
      * @since 1.3.0
-     * @throws StackOverflowError in case the given model has a recursion in the hierarchy
      */
     public static Stream<OntGraphModel> flat(OntGraphModel m) {
         return Stream.concat(Stream.of(m), m.imports().flatMap(Models::flat));
     }
 
     /**
-     * Synchronizes the imports with the graph hierarchy.
+     * Synchronizes the import declarations with the graph hierarchy.
      * Underling graph tree may content named graphs which are not included to the {@code owl:imports} declaration.
      * This method tries to fix such situation by modifying base graph.
      *
      * @param m {@link OntGraphModel}, not {@code null}
+     * @throws StackOverflowError in case the given model has a recursion in the hierarchy
      * @see Graphs#importsTreeAsString(Graph)
      * @since 1.3.2
-     * @throws StackOverflowError in case the given model has a recursion in the hierarchy
      */
     public static void syncImports(OntGraphModel m) {
         OntID id = m.getID();

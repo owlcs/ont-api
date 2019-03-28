@@ -27,6 +27,7 @@ public class OWL extends org.apache.jena.vocabulary.OWL2 {
 
     /**
      * The {@code owl:real} datatype does not directly provide any lexical forms.
+     *
      * @see <a href='https://www.w3.org/TR/owl2-syntax/#Real_Numbers.2C_Decimal_Numbers.2C_and_Integers'>4.1 Real Numbers, Decimal Numbers, and Integers</a>
      */
     public final static Resource real = resource("real");
@@ -36,6 +37,7 @@ public class OWL extends org.apache.jena.vocabulary.OWL2 {
      * (whitespace within the grammar MUST be ignored and MUST NOT be included in the lexical forms of owl:rational,
      * and single quotes are used to introduce terminal symbols):
      * numerator '/' denominator
+     *
      * @see <a href='https://www.w3.org/TR/owl2-syntax/#Real_Numbers.2C_Decimal_Numbers.2C_and_Integers'>4.1 Real Numbers, Decimal Numbers, and Integers</a>
      */
     public final static Resource rational = resource("rational");

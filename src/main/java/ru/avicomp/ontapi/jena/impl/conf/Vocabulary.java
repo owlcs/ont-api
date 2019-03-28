@@ -29,8 +29,8 @@ import java.util.Set;
  * Created by @ssz on 16.01.2019.
  *
  * @param <T> any subtype of {@link Resource}
- * @since 1.4.0
  * @see ru.avicomp.ontapi.jena.utils.BuiltIn.Vocabulary
+ * @since 1.4.0
  */
 @FunctionalInterface
 interface Vocabulary<T extends Resource> {

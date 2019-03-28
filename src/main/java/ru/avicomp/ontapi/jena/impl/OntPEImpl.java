@@ -70,6 +70,7 @@ public abstract class OntPEImpl extends OntObjectImpl implements OntPE {
     public static ObjectFactory createObjectPropertyExpressionFactory() {
         return new HasAnonymous() {
             private final ObjectFactory named = of(OntNOP.class);
+
             @Override
             public ExtendedIterator<EnhNode> iterator(EnhGraph eg) {
                 ExtendedIterator<EnhNode> res = eg.asGraph().find(Node.ANY, RDF.Nodes.type, OWL.ObjectProperty.asNode())

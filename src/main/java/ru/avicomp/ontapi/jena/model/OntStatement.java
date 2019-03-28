@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -119,14 +119,11 @@ public interface OntStatement extends Statement {
     List<OntAnnotation> getAnnotationList();
 
     /**
-     * Answers {@code true} if this statement is a root (i.e. it is a main definition of an OntObject).
+     * Answers {@code true} iff this statement is a root (i.e. it is a main definition of an OntObject).
      *
      * @return {@code true} if it is a root object statement
      * @see OntResource#getRoot()
-     * @deprecated redundant method, which is more suitable to be placed inside the implementation
-     * and seems not very useful in public interfaces
      */
-    @Deprecated
     boolean isRoot();
 
     /**
@@ -245,6 +242,7 @@ public interface OntStatement extends Statement {
 
     /**
      * Removes all sub-annotations including their children.
+     *
      * @see OntObject#clearAnnotations()
      */
     default void clearAnnotations() {

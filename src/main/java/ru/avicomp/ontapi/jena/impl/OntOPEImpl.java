@@ -137,11 +137,6 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
     }
 
     @Override
-    public void removeSuperPropertyOf() {
-        clearAll(OWL.propertyChainAxiom);
-    }
-
-    @Override
     public OntList<OntOPE> createPropertyChain(Collection<OntOPE> properties) {
         return OntListImpl.create(getModel(), this, OWL.propertyChainAxiom, OntOPE.class, properties.iterator());
     }

@@ -63,6 +63,7 @@ public class BuiltIn {
 
     /**
      * Sets a new system-wide vocabulary.
+     *
      * @param vocabulary {@link Vocabulary}, not {@code null}
      * @return {@link Vocabulary}
      */
@@ -162,6 +163,7 @@ public class BuiltIn {
         /**
          * Returns all reserved resources:
          * OWL entities can not have an uri belonging to the return collection.
+         *
          * @return {@code Set} of {@link Resource Resources}
          */
         Set<Resource> reservedResources();
@@ -169,6 +171,7 @@ public class BuiltIn {
         /**
          * Returns all reserved properties:
          * OWL2 ontology can not contain assertion with predicate belonging to the return collection.
+         *
          * @return {@code Set} of {@link Property Properties}
          */
         Set<Property> reservedProperties();

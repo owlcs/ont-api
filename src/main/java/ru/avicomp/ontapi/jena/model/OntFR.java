@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -20,6 +20,7 @@ import org.apache.jena.rdf.model.Literal;
  * Interface encapsulating an Ontology <b>F</b>acet <b>R</b>estriction abstraction.
  * <p>
  * Created by @szuev on 02.11.2016.
+ *
  * @see <a href='https://www.w3.org/TR/owl2-quick-reference/#Facets'>3.2 Facets</a>
  * @see <a href='https://www.w3.org/TR/xmlschema11-2/#rf-facets'>4.3 Constraining Facets</a>
  * @see ru.avicomp.ontapi.jena.vocabulary.XSD

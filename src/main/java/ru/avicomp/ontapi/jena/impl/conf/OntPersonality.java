@@ -198,6 +198,7 @@ public interface OntPersonality {
      * But, of course, all these things are customizable, and vocabularies may contain more or less restrictions.
      * <p>
      * Each node obtained from this class must be IRI (i.e. {@code node.isURI() = true}).
+     *
      * @since 1.4.0
      */
     interface Reserved extends Vocabulary<Resource> {

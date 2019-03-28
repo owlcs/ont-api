@@ -70,11 +70,6 @@ public class OntClassImpl extends OntObjectImpl implements OntClass {
     }
 
     @Override
-    public void removeHasKey() {
-        clearAll(OWL.hasKey);
-    }
-
-    @Override
     public OntList<OntDOP> createHasKey(Collection<OntOPE> ope, Collection<OntNDP> dpe) {
         return OntCEImpl.createHasKey(getModel(), this, Stream.of(ope, dpe).flatMap(Collection::stream));
     }
@@ -113,11 +108,6 @@ public class OntClassImpl extends OntObjectImpl implements OntClass {
     @Override
     public void removeDisjointUnion(RDFNode rdfList) throws OntJenaException.IllegalArgument {
         getModel().deleteOntList(this, OWL.disjointUnionOf, findDisjointUnion(rdfList).orElse(null));
-    }
-
-    @Override
-    public void removeDisjointUnionOf() {
-        clearAll(OWL.disjointUnionOf);
     }
 
     /**

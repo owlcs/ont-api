@@ -24,6 +24,7 @@ import java.util.stream.Stream;
  * In OWL2 terms it is any {@link OntPE Property Expression} minus {@link OntNAP Annotation Property}.
  * <p>
  * Created by @szuev on 21.07.2018.
+ *
  * @since 1.3.0
  */
 public interface OntDOP extends OntPE {
@@ -41,9 +42,9 @@ public interface OntDOP extends OntPE {
      * In other words, returns all objects from statements of the form {@code P rdfs:subPropertyOf R},
      * where {@code P} is this property.
      *
-     * @return Stream of {@link OntObject ontology object}s
+     * @return Stream of {@link OntDOP object and data properties}s
      */
-    Stream<? extends OntObject> subPropertyOf();
+    Stream<? extends OntDOP> subPropertyOf();
 
     /**
      * Lists all properties which are disjoint with this property.
