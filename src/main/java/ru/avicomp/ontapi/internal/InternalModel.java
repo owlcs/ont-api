@@ -455,6 +455,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @return Set of object
      */
     protected <O extends OWLObject> Set<O> readOWLObjects(Class<O> type) {
+        // todo: see issue #64
         return Stream.concat(
                 listOWLAnnotations().flatMap(a -> OwlObjects.objects(type, a)),
                 listOWLAxioms().flatMap(a -> OwlObjects.objects(type, a)))
@@ -778,8 +779,12 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     }
 
     /**
-     * Removes the {@code component} from the given {@link ObjectTriplesMap map} and the model.
-     * Note: need also remove associated objects from the {@link #objects} cache!
+     * Removes the given {@code component} from the given {@link ObjectTriplesMap map} and the model.
+     * In case some component's triple is associated with other object it cannot be deleted from the graph.
+     * Example of such intersection in triples is reusing b-nodes:
+     * {@code <A> rdfs:subClassOf _:b0} and {@code <B> rdfs:subClassOf _:b0}.
+     * Also, OWL-Entity declaration root-triples are shared between different axioms.
+     * Note: need also to remove associated objects from the {@link #objects} cache!
      *
      * @param component either {@link OWLAxiom} or {@link OWLAnnotation}
      * @param map       {@link ObjectTriplesMap}
@@ -789,11 +794,43 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     protected <O extends OWLObject> void remove(O component, ObjectTriplesMap<O> map) {
         Set<Triple> triples = map.getTripleSet(component);
         map.delete(component);
-        triples.stream().filter(t -> !containsTriple(t)).forEach(this::delete);
+        triples.stream().filter(t -> maps().noneMatch(m -> m.contains(t))).forEach(this::delete);
     }
 
-    protected boolean containsTriple(Triple triple) {
-        return maps().anyMatch(c -> c.contains(triple));
+    /**
+     * Clears the cache for the specified triple.
+     * This method is called if work directly through jena model interface.
+     *
+     * @param triple {@link Triple}
+     */
+    protected void clearCacheOnDelete(Triple triple) {
+        maps().filter(ObjectTriplesMap::isLoaded)
+                .filter(x -> needInvalidate(x, triple))
+                .forEach(ObjectTriplesMap::clear);
+        // todo: there is no need to invalidate *whole* objects cache
+        clearObjectsCaches();
+    }
+
+    private static <O extends OWLObject> boolean needInvalidate(ObjectTriplesMap<O> map, Triple t) {
+        return map.objects().anyMatch(o -> {
+            try {
+                return map.contains(o, t);
+            } catch (JenaException j) {
+                // may occur in case a previous operation
+                // (ObjectTriplesMap#unregister() or direct working through jena interface)
+                // breaks the object structure
+                return true;
+            }
+        });
+    }
+
+    /**
+     * Gets all cache buckets.
+     *
+     * @return {@code Stream} of {@link ObjectTriplesMap}s
+     */
+    private Stream<ObjectTriplesMap<? extends OWLObject>> maps() {
+        return Stream.concat(Stream.of(getHeader()), getAxioms().values().stream());
     }
 
     /**
@@ -818,42 +855,6 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         getNodeCache().clear();
         super.removeAll();
         return this;
-    }
-
-    /**
-     * Clears the cache for the specified triple.
-     * This method is called if work directly through jena model interface.
-     *
-     * @param triple {@link Triple}
-     */
-    protected void clearCacheOnDelete(Triple triple) {
-        maps().filter(ObjectTriplesMap::isLoaded)
-                .filter(x -> findObjectsToInvalidate(x, triple).findFirst().isPresent())
-                .forEach(ObjectTriplesMap::clear);
-        // todo: there is no need to invalidate *whole* objects cache
-        clearObjectsCaches();
-    }
-
-    protected <O extends OWLObject> Stream<O> findObjectsToInvalidate(ObjectTriplesMap<O> map, Triple t) {
-        return map.objects().filter(o -> {
-            try {
-                return map.contains(o, t);
-            } catch (JenaException j) {
-                // may occur in case a previous operation
-                // (ObjectTriplesMap#unregister() or direct working through jena interface)
-                // breaks the object structure
-                return true;
-            }
-        });
-    }
-
-    /**
-     * Gets all cache buckets.
-     *
-     * @return {@code Stream} of {@link ObjectTriplesMap}s
-     */
-    private Stream<ObjectTriplesMap<? extends OWLObject>> maps() {
-        return Stream.concat(Stream.of(getHeader()), getAxioms().values().stream());
     }
 
     /**

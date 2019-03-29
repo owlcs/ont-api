@@ -35,8 +35,7 @@ import java.util.stream.Stream;
 public interface ObjectTriplesMap<O extends OWLObject> {
 
     /**
-     * Answers {@code true}
-     * if any of the encapsulated object-triples pair
+     * Answers {@code true} if any of the encapsulated object-triples pair
      * has been added manually through the method {@link #addListener(OWLObject)},
      * not just loaded by the internal loader.
      * This flag is for optimization.
@@ -95,15 +94,6 @@ public interface ObjectTriplesMap<O extends OWLObject> {
     void clear();
 
     /**
-     * List all {@code Triple}s encapsulated by this map.
-     *
-     * @return Stream of {@link Triple}s
-     */
-    default Stream<Triple> triples() {
-        return objects().flatMap(this::triples);
-    }
-
-    /**
      * Answers {@code true} is the map contains the object.
      *
      * @param key {@link O} key-object, not {@code null}
@@ -111,6 +101,16 @@ public interface ObjectTriplesMap<O extends OWLObject> {
      */
     default boolean contains(O key) {
         return objects().anyMatch(key::equals);
+    }
+
+    /**
+     * Answers {@code true} if the given {@link Triple} is present into the map.
+     *
+     * @param triple {@link Triple}, not {@code null}
+     * @return boolean
+     */
+    default boolean contains(Triple triple) {
+        return objects().anyMatch(o -> contains(o, triple));
     }
 
     /**
@@ -122,16 +122,6 @@ public interface ObjectTriplesMap<O extends OWLObject> {
      */
     default boolean contains(O key, Triple triple) {
         return triples(key).anyMatch(triple::equals);
-    }
-
-    /**
-     * Answers {@code true} if the given {@link Triple} is present into the map.
-     *
-     * @param triple {@link Triple}, not {@code null}
-     * @return boolean
-     */
-    default boolean contains(Triple triple) {
-        return objects().anyMatch(o -> contains(o, triple));
     }
 
     /**

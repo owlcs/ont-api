@@ -23,21 +23,24 @@ import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
  * An auxiliary class-container (bucket) to provide
  * a common way for working with {@link OWLObject}s and {@link Triple}s all together.
  * It is logically based on the {@link ONTObject} container,
- * that is a wrapper around classic {@link OWLObject OWLObject}
- * but with a possibility to get all associated {@link Triple RDF triple}s.
- * This class is used by the {@link InternalModel Internal Model} cache as indivisible bucket per axiom/object type.
+ * that is a wrapper around classic {@link OWLObject OWL-API Object}
+ * but with a possibility to get all associated {@link Triple Jena RDF Triple}s.
+ * In the {@link InternalModel Internal Model}
+ * instances of this class are used as indivisible buckets per axiom/object type.
  * <p>
  * Created by @ssz on 09.03.2019.
  *
- * @param <X> any subtype of {@link OWLObject} (in system either {@link OWLAxiom} or {@link OWLAnnotation})
+ * @param <X> any subtype of {@link OWLObject} (in the system it is either {@link OWLAxiom} or {@link OWLAnnotation})
  */
 @SuppressWarnings("WeakerAccess")
 public class CacheObjectTriplesMapImpl<X extends OWLObject> implements ObjectTriplesMap<X> {
@@ -54,16 +57,33 @@ public class CacheObjectTriplesMapImpl<X extends OWLObject> implements ObjectTri
     // to use either Caffeine (if true) or LHM based cache,
     // both are synchronized, but Caffeine works faster in multi-thread, and LHM in single-thread environment.
     private final boolean parallel;
+    // to control key-iteration
+    private final boolean fastIterator;
+    // to control mutation
+    private final boolean tripleStore;
+
+    public CacheObjectTriplesMapImpl(Supplier<Iterator<ONTObject<X>>> loader,
+                                     boolean parallel) {
+        this(loader, parallel, true, true);
+    }
 
     /**
      * Constructs a bucket instance.
      *
-     * @param loader   a {@code Supplier} to load object-triples pairs, not {@code null}
-     * @param parallel if {@code true} use caffeine cache, otherwise LHM based cache
+     * @param loader       a {@code Supplier} to load object-triples pairs, not {@code null}
+     * @param parallel     if {@code true} use caffeine cache, otherwise LHM based cache
+     * @param fastIterator if {@code true} use Array-based cache to speedup iteration over {@link X}-keys
+     * @param tripleStore  if {@code true} use {@code Map}-based cache to speedup mutations of this bucket
      */
-    public CacheObjectTriplesMapImpl(Supplier<Iterator<ONTObject<X>>> loader, boolean parallel) {
+    public CacheObjectTriplesMapImpl(Supplier<Iterator<ONTObject<X>>> loader,
+                                     boolean parallel,
+                                     boolean fastIterator,
+                                     boolean tripleStore) {
         this.loader = Objects.requireNonNull(loader);
-        this.map = InternalCache.createSoft(CacheObjectTriplesMapImpl::loadMap, this.parallel = parallel);
+        this.parallel = parallel;
+        this.fastIterator = fastIterator;
+        this.tripleStore = tripleStore;
+        this.map = InternalCache.createSoft(CacheObjectTriplesMapImpl::loadMap, parallel);
     }
 
     /**
@@ -89,7 +109,11 @@ public class CacheObjectTriplesMapImpl<X extends OWLObject> implements ObjectTri
      * @param <V> value type
      * @return {@link Map}
      */
-    protected <K, V> Map<K, V> createMap() {
+    private <K, V> Map<K, V> createMap() {
+        if (parallel && !fastIterator) {
+            // use ConcurrentMap to ensure the objects list will not be broken by some mutation
+            return new ConcurrentHashMap<>();
+        }
         // Iteration over LHM is a little bit faster than iteration over HashMap.
         // On the other hand LHM requires more memory -
         // but memory consumption doesn't really bother me since all important things contains in the very Graph
@@ -118,26 +142,49 @@ public class CacheObjectTriplesMapImpl<X extends OWLObject> implements ObjectTri
 
     @Override
     public Stream<X> objects() {
-        // OWL-API-impl also stores objects in ArrayList before creating a Stream
-        // In our case it extremely speeds up axioms listing (even faster than in OWL-API-impl)
-        return getMap().getObjectsList().stream();
-    }
-
-    @Override
-    public Stream<Triple> triples() {
-        return getMap().getTriplesMap().keySet().stream();
+        if (fastIterator) {
+            // OWL-API-impl also stores objects in ArrayList before creating a Stream
+            // In our case it extremely speeds up axioms listing (even faster than in OWL-API-impl)
+            return getMap().getObjectsList().stream();
+        }
+        return getMap().getObjectsMap().keySet().stream();
     }
 
     @Override
     public Stream<Triple> triples(X o) throws JenaException {
-        return getMap().getObjectsMap().get(o).triples();
+        return getONTObject(o).triples();
     }
 
+    @Override
+    public Set<Triple> getTripleSet(X key) {
+        ONTObject<X> res = getONTObject(key);
+        return key instanceof TripleSet ? ((TripleSet<X>) res).triples : res.triples().collect(Collectors.toSet());
+    }
+
+    private ONTObject<X> getONTObject(X key) {
+        return getMap().getObjectsMap().get(key);
+    }
+
+    /**
+     * {@inheritDoc}
+     * It is used directly by OWL-API interfaces.
+     *
+     * @param o {@link X} key-object, not {@code null}
+     * @return boolean
+     */
     @Override
     public boolean contains(X o) {
         return getMap().getObjectsMap().containsKey(o);
     }
 
+    /**
+     * {@inheritDoc}
+     * It is used while deleting Triple through Jena interfaces.
+     *
+     * @param o {@link X} key-object, not {@code null}
+     * @param t {@link Triple}, not {@code null}
+     * @return boolean
+     */
     @Override
     public boolean contains(X o, Triple t) {
         CachedMap m;
@@ -148,14 +195,26 @@ public class CacheObjectTriplesMapImpl<X extends OWLObject> implements ObjectTri
         return triples(o).anyMatch(t::equals);
     }
 
+    /**
+     * {@inheritDoc}
+     * It is used while deleting OWLObject through OWL-API interfaces.
+     *
+     * @param triple {@link Triple}, not {@code null}
+     * @return boolean
+     */
     @Override
     public boolean contains(Triple triple) {
-        return getMap().getTriplesMap().containsKey(triple);
+        if (tripleStore) {
+            // load all triples to memory:
+            return getMap().getTriplesMap().containsKey(triple);
+        }
+        // long-time searching:
+        return objects().anyMatch(x -> contains(x, triple));
     }
 
     @Override
     public GraphListener addListener(X key) {
-        return new Listener<>(this, key);
+        return new Listener(key);
     }
 
     /**
@@ -181,12 +240,13 @@ public class CacheObjectTriplesMapImpl<X extends OWLObject> implements ObjectTri
         if (map.hasTriplesMap()) {
             map.getTriplesMap().computeIfAbsent(triple, t -> new HashSet<>()).add(key);
         }
-        if (map.hasObjectsList()) {
-            // for a given object operations 'add' are sequential and isolated by R/W lock upwards
-            List<X> list = map.getObjectsList();
-            if (list.isEmpty() || !key.equals(list.get(list.size() - 1))) {
-                list.add(key);
-            }
+        if (!map.hasObjectsList()) {
+            return;
+        }
+        // for a given object operations 'add' are sequential and isolated by R/W lock upwards
+        List<X> list = map.getObjectsList();
+        if (list.isEmpty() || !key.equals(list.get(list.size() - 1))) {
+            list.add(key);
         }
     }
 
@@ -230,12 +290,13 @@ public class CacheObjectTriplesMapImpl<X extends OWLObject> implements ObjectTri
                 }
             });
         }
-        if (map.hasObjectsList()) {
-            List<X> list = map.getObjectsList();
-            int index;
-            if (!list.isEmpty() && key.equals(list.get(index = (list.size() - 1)))) {
-                list.remove(index);
-            }
+        if (!map.hasObjectsList()) {
+            return;
+        }
+        List<X> list = map.getObjectsList();
+        int index;
+        if (!list.isEmpty() && key.equals(list.get(index = (list.size() - 1)))) {
+            list.remove(index);
         }
     }
 
@@ -258,14 +319,15 @@ public class CacheObjectTriplesMapImpl<X extends OWLObject> implements ObjectTri
                 }
             }));
         }
-        if (map.hasObjectsList()) {
-            List<X> list = map.getObjectsList();
-            // must be in the end of list:
-            for (int i = list.size() - 1; i >= 0; i--) {
-                if (key.equals(list.get(i))) {
-                    list.remove(i);
-                    break;
-                }
+        if (!map.hasObjectsList()) {
+            return;
+        }
+        List<X> list = map.getObjectsList();
+        // must be in the end of list:
+        for (int i = list.size() - 1; i >= 0; i--) {
+            if (key.equals(list.get(i))) {
+                list.remove(i);
+                break;
             }
         }
     }
@@ -300,6 +362,7 @@ public class CacheObjectTriplesMapImpl<X extends OWLObject> implements ObjectTri
             return objectsMap;
         }
 
+        @SuppressWarnings("BooleanMethodIsAlwaysInverted")
         protected boolean hasObjectsList() {
             return !objectsListCache.asCache().isEmpty();
         }
@@ -317,7 +380,7 @@ public class CacheObjectTriplesMapImpl<X extends OWLObject> implements ObjectTri
         }
 
         protected Map<Triple, Set<X>> loadTriples() {
-            Map<Triple, Set<X>> res = createMap();
+            Map<Triple, Set<X>> res = new HashMap<>();
             for (ONTObject<X> v : objectsMap.values()) {
                 try {
                     v.triples().forEach(t -> res.computeIfAbsent(t, x -> new HashSet<>()).add(v.getObject()));
@@ -389,27 +452,23 @@ public class CacheObjectTriplesMapImpl<X extends OWLObject> implements ObjectTri
 
     /**
      * A {@link GraphListenerBase Graph Listener} implementation
-     * that monitors the triples addition and deletion for the specified {@link O object}.
-     *
-     * @param <O> a subtype of {@link OWLObject}
+     * that monitors the {@code Graph} mutation while adding {@link X OWLObject} into tis cache-map.
      */
-    public static class Listener<O extends OWLObject> extends GraphListenerBase {
-        protected final CacheObjectTriplesMapImpl<O> store;
-        protected final O object;
+    public class Listener extends GraphListenerBase {
+        protected final X object;
 
-        protected Listener(CacheObjectTriplesMapImpl<O> store, O object) {
-            this.store = Objects.requireNonNull(store);
+        protected Listener(X object) {
             this.object = Objects.requireNonNull(object);
         }
 
         @Override
         protected void addEvent(Triple t) {
-            store.register(object, t);
+            register(object, t);
         }
 
         @Override
         protected void deleteEvent(Triple t) {
-            store.unregister(object, t);
+            unregister(object, t);
         }
     }
 
