@@ -965,11 +965,14 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         InternalConfig conf = getSnapshotConfig();
         if (!conf.isContentCacheEnabled())
             return new DirectObjectTripleMapImpl<>(loader);
+        boolean parallel = conf.parallel();
+        boolean fastIterator = conf.useIteratorContentCache();
+        boolean tripleStore = conf.useTriplesContentCache();
         if (!LOGGER.isDebugEnabled()) {
-            return new CacheObjectTriplesMapImpl<>(loader, conf.parallel());
+            return new CacheObjectTriplesMapImpl<>(loader, parallel, fastIterator, tripleStore);
         }
         OntID id = getID();
-        return new CacheObjectTriplesMapImpl<O>(loader, conf.parallel()) {
+        return new CacheObjectTriplesMapImpl<O>(loader, parallel, fastIterator, tripleStore) {
             @Override
             protected CachedMap loadMap() {
                 Instant start = Instant.now();

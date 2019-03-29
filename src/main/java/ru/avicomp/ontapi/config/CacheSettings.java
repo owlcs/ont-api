@@ -23,6 +23,10 @@ package ru.avicomp.ontapi.config;
  */
 public interface CacheSettings {
 
+    int CONTENT_CACHE_LEVEL_FAST_ITERATOR = 2;
+    int CONTENT_CACHE_LEVEL_TRIPLE_STORE = 4;
+    int CONTENT_CACHE_LEVEL_ALL = CONTENT_CACHE_LEVEL_FAST_ITERATOR | CONTENT_CACHE_LEVEL_TRIPLE_STORE;
+
     /**
      * Returns the maximum size of nodes cache,
      * which is used as optimization while reading OWLObjects from a graph
@@ -65,6 +69,25 @@ public interface CacheSettings {
     int getLoadObjectsCacheSize();
 
     /**
+     * Returns the content cache level.
+     * Currently there are following possible levels:
+     * <ul>
+     * <li>{@code 1} - use content cache but without any optimizations</li>
+     * <li>{@link #CONTENT_CACHE_LEVEL_FAST_ITERATOR}
+     * - use cache-optimization to speed up iteration over components (axioms) found in a graph</li>
+     * <li>{@link #CONTENT_CACHE_LEVEL_TRIPLE_STORE}
+     * - use cache-optimization to optimize modification of components found in a graph</li>
+     * <li>{@link #CONTENT_CACHE_LEVEL_ALL} - all possible cache-optimizations</li>
+     * </ul>
+     * Note: the list above may be changed in the ONT-API evolution.
+     *
+     * @return int, the current level (positive) or a non-positive in case of no content cache should be used
+     * @see OntSettings#ONT_API_LOAD_CONF_CACHE_CONTENT
+     * @see CacheControl#setContentCacheLevel(int)
+     */
+    int getContentCacheLevel();
+
+    /**
      * Answers whether an internal model content cache is enabled, that is {@code true} by default.
      * An internal model content cache speedups axiom listing and controls add/remove components behaviour.
      * In case it is turned off,
@@ -81,10 +104,29 @@ public interface CacheSettings {
      * In the normal case, it is better not to turn off this cache.
      *
      * @return boolean
-     * @see OntSettings#ONT_API_LOAD_CONF_CACHE_CONTENT
      * @see CacheControl#setUseContentCache(boolean)
      */
-    boolean isContentCacheEnabled();
+    default boolean isContentCacheEnabled() {
+        return getContentCacheLevel() > 0;
+    }
+
+    /**
+     * Answers {@code true} iff cache content optimization is enabled.
+     *
+     * @return boolean
+     */
+    default boolean useIteratorContentCache() {
+        return (getContentCacheLevel() & CONTENT_CACHE_LEVEL_FAST_ITERATOR) == CONTENT_CACHE_LEVEL_FAST_ITERATOR;
+    }
+
+    /**
+     * Answers {@code true} iff components modification content optimization is enabled.
+     *
+     * @return boolean
+     */
+    default boolean useTriplesContentCache() {
+        return (getContentCacheLevel() & CONTENT_CACHE_LEVEL_TRIPLE_STORE) == CONTENT_CACHE_LEVEL_TRIPLE_STORE;
+    }
 
     /**
      * Answers {@code true} if nodes cache is enabled.

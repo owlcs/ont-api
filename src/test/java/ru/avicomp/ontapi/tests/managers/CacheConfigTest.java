@@ -21,10 +21,14 @@ import org.apache.jena.graph.impl.WrappedGraph;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.junit.Assert;
 import org.junit.Test;
+import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.OWLAxiom;
+import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.*;
+import ru.avicomp.ontapi.config.CacheSettings;
 import ru.avicomp.ontapi.config.OntConfig;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.config.OntSettings;
@@ -33,6 +37,7 @@ import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -116,7 +121,7 @@ public class CacheConfigTest {
         long axioms1 = 945;
         OntologyManager m1 = OntManagers.createONT();
         DataFactory df = m1.getOWLDataFactory();
-        Assert.assertTrue(Prop.CONTENT_CACHE.getBoolean());
+        Assert.assertEquals(CacheSettings.CONTENT_CACHE_LEVEL_ALL, Prop.CONTENT_CACHE_LEVEL.getInt());
         Assert.assertTrue(m1.getOntologyConfigurator().isContentCacheEnabled());
         LogFindGraph g1 = new LogFindGraph(g);
         OntologyModel o1 = m1.addOntology(g1);
@@ -164,14 +169,67 @@ public class CacheConfigTest {
             LOGGER.debug("Expected: '{}'", e.getMessage());
         }
         Assert.assertEquals(size, g.size());
-
     }
+
+    @Test
+    public void testContentCacheLevels() {
+        OntConfig c = new OntConfig();
+        c.setContentCacheLevel(CacheSettings.CONTENT_CACHE_LEVEL_FAST_ITERATOR);
+        Assert.assertFalse(c.useTriplesContentCache());
+        Assert.assertTrue(c.useIteratorContentCache());
+        Assert.assertTrue(c.isContentCacheEnabled());
+
+        c.setContentCacheLevel(CacheSettings.CONTENT_CACHE_LEVEL_TRIPLE_STORE);
+        Assert.assertTrue(c.useTriplesContentCache());
+        Assert.assertFalse(c.useIteratorContentCache());
+        Assert.assertTrue(c.isContentCacheEnabled());
+
+        c.setContentCacheLevel(1);
+        Assert.assertFalse(c.useTriplesContentCache());
+        Assert.assertFalse(c.useIteratorContentCache());
+        Assert.assertTrue(c.isContentCacheEnabled());
+
+        c.setUseContentCache(false);
+        Assert.assertFalse(c.useTriplesContentCache());
+        Assert.assertFalse(c.useIteratorContentCache());
+        Assert.assertFalse(c.isContentCacheEnabled());
+
+        c.setUseContentCache(true);
+        Assert.assertTrue(c.useTriplesContentCache());
+        Assert.assertTrue(c.useIteratorContentCache());
+        Assert.assertTrue(c.isContentCacheEnabled());
+    }
+
+    @Test
+    public void testNoCacheContentOptimization() throws OWLOntologyCreationException {
+        OWLOntologyDocumentSource s = ReadWriteUtils.getDocumentSource("/ontapi/pizza.ttl", OntFormat.TURTLE);
+
+        long axioms = 945;
+        OntologyManager m = OntManagers.createONT();
+        DataFactory df = m.getOWLDataFactory();
+        m.getOntologyConfigurator().setContentCacheLevel(1);
+
+        OntologyModel o = m.loadOntologyFromOntologyDocument(s);
+        Assert.assertEquals(axioms, o.getAxiomCount());
+        OWLClass c = df.getOWLClass("C");
+        OWLAxiom a = df.getOWLSubClassOfAxiom(c, df.getOWLNothing(), Collections.singletonList(df.getRDFSLabel("x1")));
+        o.add(a);
+        Assert.assertEquals(axioms + 1, o.getAxiomCount());
+        o.clearCache();
+        Assert.assertEquals(axioms + 2, o.getAxiomCount());
+
+        o.remove(a);
+        Assert.assertEquals(axioms + 1, o.axioms().count());
+        o.remove(df.getOWLDeclarationAxiom(c));
+        Assert.assertEquals(axioms, o.getAxiomCount());
+    }
+
 
     enum Prop {
         IRI_CACHE_SIZE(OntSettings.ONT_API_MANAGER_CACHE_IRIS.key() + ".integer"),
         NODES_CACHE_SIZE(OntSettings.ONT_API_LOAD_CONF_CACHE_NODES.key() + ".integer"),
         OBJECTS_CACHE_SIZE(OntSettings.ONT_API_LOAD_CONF_CACHE_OBJECTS.key() + ".integer"),
-        CONTENT_CACHE(OntSettings.ONT_API_LOAD_CONF_CACHE_CONTENT.key() + ".boolean");
+        CONTENT_CACHE_LEVEL(OntSettings.ONT_API_LOAD_CONF_CACHE_CONTENT.key() + ".integer");
         private final String key;
 
         Prop(String key) {
@@ -180,10 +238,6 @@ public class CacheConfigTest {
 
         int getInt() {
             return Integer.parseInt(get());
-        }
-
-        boolean getBoolean() {
-            return Boolean.parseBoolean(get());
         }
 
         private String get() {
@@ -211,7 +265,7 @@ public class CacheConfigTest {
             return super.find(s, p, o);
         }
 
-        public List<Triple> getFindPatterns() {
+        List<Triple> getFindPatterns() {
             return track;
         }
 

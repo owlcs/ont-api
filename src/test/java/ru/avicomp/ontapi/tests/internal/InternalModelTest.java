@@ -185,7 +185,7 @@ public class InternalModelTest {
             Axiom axiom = e.getObject();
             Set<Triple> triples = e.triples().collect(Collectors.toSet());
             Assert.assertNotNull("Null axiom", axiom);
-            Assert.assertTrue("No associated triples", !triples.isEmpty());
+            Assert.assertFalse("No associated triples", triples.isEmpty());
             LOGGER.debug("{} {}", axiom, triples);
         });
     }

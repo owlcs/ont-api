@@ -176,8 +176,8 @@ public class ModelConfig implements InternalConfig, Serializable {
     }
 
     @Override
-    public boolean isContentCacheEnabled() {
-        return getLoaderConfig().isContentCacheEnabled();
+    public int getContentCacheLevel() {
+        return getLoaderConfig().getContentCacheLevel();
     }
 
     @Override

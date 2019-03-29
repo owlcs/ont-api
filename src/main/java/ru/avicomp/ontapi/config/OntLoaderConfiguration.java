@@ -225,12 +225,12 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     /**
      * {@inheritDoc}
      *
-     * @param b boolean
+     * @param level int
      * @return this or copied instance
      */
     @Override
-    public OntLoaderConfiguration setUseContentCache(boolean b) {
-        return set(OntSettings.ONT_API_LOAD_CONF_CACHE_CONTENT, b);
+    public OntLoaderConfiguration setContentCacheLevel(int level) {
+        return set(OntSettings.ONT_API_LOAD_CONF_CACHE_CONTENT, level);
     }
 
     /**
@@ -239,7 +239,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
      * @return boolean
      */
     @Override
-    public boolean isContentCacheEnabled() {
+    public int getContentCacheLevel() {
         return get(OntSettings.ONT_API_LOAD_CONF_CACHE_CONTENT);
     }
 

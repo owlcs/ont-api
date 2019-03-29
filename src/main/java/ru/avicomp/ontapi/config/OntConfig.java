@@ -323,12 +323,12 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     /**
      * {@inheritDoc}
      *
-     * @param b boolean
+     * @param level int
      * @return this instance
      */
     @Override
-    public OntConfig setUseContentCache(boolean b) {
-        return put(OntSettings.ONT_API_LOAD_CONF_CACHE_CONTENT, b);
+    public OntConfig setContentCacheLevel(int level) {
+        return put(OntSettings.ONT_API_LOAD_CONF_CACHE_CONTENT, level);
     }
 
     /**
@@ -337,7 +337,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
      * @return boolean
      */
     @Override
-    public boolean isContentCacheEnabled() {
+    public int getContentCacheLevel() {
         return get(OntSettings.ONT_API_LOAD_CONF_CACHE_CONTENT);
     }
 

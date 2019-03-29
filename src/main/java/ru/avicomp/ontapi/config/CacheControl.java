@@ -47,13 +47,25 @@ interface CacheControl<R> extends CacheSettings {
     R setLoadObjectsCacheSize(int size);
 
     /**
-     * Sets the content cache parameter to the desired state.
+     * Sets the content cache level to the specified integer value.
+     * A non-positive number means disabling the whole content caching.
+     *
+     * @param level int
+     * @return {@link R}
+     * @see #getContentCacheLevel()
+     * @see OntSettings#ONT_API_LOAD_CONF_CACHE_CONTENT
+     */
+    R setContentCacheLevel(int level);
+
+    /**
+     * Turns on/off the content cache use.
      *
      * @param b boolean
      * @return {@link R}
      * @see #isContentCacheEnabled()
-     * @see OntSettings#ONT_API_LOAD_CONF_CACHE_CONTENT
      */
-    R setUseContentCache(boolean b);
+    default R setUseContentCache(boolean b) {
+        return setContentCacheLevel(b ? CONTENT_CACHE_LEVEL_ALL : 0);
+    }
 
 }

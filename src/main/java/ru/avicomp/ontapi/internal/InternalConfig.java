@@ -67,7 +67,7 @@ public interface InternalConfig extends CacheSettings, AxiomsSettings {
             map.put(Key.IGNORE_READ_ERRORS, delegate.isIgnoreAxiomsReadErrors());
             map.put(Key.CACHE_NODES_SIZE, delegate.getLoadNodesCacheSize());
             map.put(Key.CACHE_OBJECTS_SIZE, delegate.getLoadObjectsCacheSize());
-            map.put(Key.CONTENT_CACHE, delegate.isContentCacheEnabled());
+            map.put(Key.CONTENT_CACHE_LEVEL, delegate.getContentCacheLevel());
         }
 
         @SuppressWarnings("unchecked")
@@ -116,8 +116,8 @@ public interface InternalConfig extends CacheSettings, AxiomsSettings {
         }
 
         @Override
-        public boolean isContentCacheEnabled() {
-            return get(Key.CONTENT_CACHE);
+        public int getContentCacheLevel() {
+            return get(Key.CONTENT_CACHE_LEVEL);
         }
 
         @Override
@@ -151,7 +151,7 @@ public interface InternalConfig extends CacheSettings, AxiomsSettings {
             IGNORE_READ_ERRORS,
             CACHE_NODES_SIZE,
             CACHE_OBJECTS_SIZE,
-            CONTENT_CACHE,
+            CONTENT_CACHE_LEVEL,
         }
     }
 
@@ -204,8 +204,8 @@ public interface InternalConfig extends CacheSettings, AxiomsSettings {
             }
 
             @Override
-            public boolean isContentCacheEnabled() {
-                return conf.isContentCacheEnabled();
+            public int getContentCacheLevel() {
+                return conf.getContentCacheLevel();
             }
 
         };
