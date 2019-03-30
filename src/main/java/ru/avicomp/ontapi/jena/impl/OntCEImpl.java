@@ -357,6 +357,16 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         removeHasKey(getModel(), this, list);
     }
 
+    @Override
+    public Stream<OntCE> listSuperClasses(boolean direct) {
+        return listHierarchy(this, OntCE.class, RDFS.subClassOf, false, direct);
+    }
+
+    @Override
+    public Stream<OntCE> listSubClasses(boolean direct) {
+        return listHierarchy(this, OntCE.class, RDFS.subClassOf, true, direct);
+    }
+
     protected enum ObjectRestrictionType implements PredicateFilterProvider {
         CLASS {
             @Override

@@ -70,6 +70,16 @@ public class OntClassImpl extends OntObjectImpl implements OntClass {
     }
 
     @Override
+    public Stream<OntCE> listSuperClasses(boolean direct) {
+        return listHierarchy(this, OntCE.class, RDFS.subClassOf, false, direct);
+    }
+
+    @Override
+    public Stream<OntCE> listSubClasses(boolean direct) {
+        return listHierarchy(this, OntCE.class, RDFS.subClassOf, true, direct);
+    }
+
+    @Override
     public OntList<OntDOP> createHasKey(Collection<OntOPE> ope, Collection<OntNDP> dpe) {
         return OntCEImpl.createHasKey(getModel(), this, Stream.of(ope, dpe).flatMap(Collection::stream));
     }

@@ -33,11 +33,9 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.BooleanSupplier;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -132,6 +130,74 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
                 .mapWith(x -> m.findNodeAs(x.asNode(), type))
                 .filterKeep(x -> x != null && x.isBuiltIn());
     }
+
+    /**
+     * Lists all descendants for the specified object and the predicate.
+     *
+     * @param object    {@link X}
+     * @param type      the class-type of {@link X}
+     * @param predicate the {@link Property} whose values are required
+     * @param inverse   if {@code true}, use the inverse of {@code predicate} rather than {@code predicate}
+     * @param direct    if {@code true}, only returns the direct (adjacent) values
+     * @param <X>       subtype of {@link OntObject}
+     * @return {@code Stream} of {@link X}s
+     * @since 1.4.0
+     */
+    protected static <X extends OntObject> Stream<X> listHierarchy(X object,
+                                                                   Class<X> type,
+                                                                   Property predicate,
+                                                                   boolean inverse,
+                                                                   boolean direct) {
+        Function<X, ExtendedIterator<X>> listChildren = inverse ?
+                x -> ((OntObjectImpl) x).listSubjects(predicate, type) :
+                x -> ((OntObjectImpl) x).listObjects(predicate, type);
+        return getHierarchy(object, listChildren, direct).stream();
+    }
+
+    /**
+     * For the given object returns a {@code Set} of objects the same type,
+     * that are its children which is determined by the operation {@code listChildren}.
+     * If the flag {@code direct} is {@code true}, then only direct children are considered,
+     * otherwise performs recursive searching over the whole graph.
+     * The given object is not included in the return {@code Set}
+     *
+     * @param object       {@link X}
+     * @param listChildren a {@code Function} that returns {@code Iterator} for an object of type {@link X}
+     * @param direct       boolean, if {@code false} performs a complex search over whole graph,
+     *                     otherwise only direct descendants are included into  the result
+     * @param <X>          subtype of {@link OntObject}
+     * @return {@code Set} of {@link X}
+     * @since 1.4.0
+     */
+    protected static <X extends OntObject> Set<X> getHierarchy(X object,
+                                                               Function<X, ExtendedIterator<X>> listChildren,
+                                                               boolean direct) {
+        Set<X> res;
+        if (direct) {
+            res = listChildren.apply(object).toSet();
+        } else {
+            collectIndirect(object, listChildren, res = new HashSet<>());
+        }
+        res.remove(object);
+        return res;
+    }
+
+    /**
+     * For the given object recursively collects all children determined by the operation {@code listChildren}.
+     *
+     * @param object       {@link X}
+     * @param listChildren a {@code Function} that returns {@code Iterator} for an object of type {@link X}
+     * @param res          {@code Set} to store result
+     * @param <X>          any subtype of {@link OntObject}
+     * @since 1.4.0
+     */
+    static <X extends OntObject> void collectIndirect(X object,
+                                                      Function<X, ? extends Iterator<X>> listChildren,
+                                                      Set<X> res) {
+        if (!res.add(object)) return;
+        listChildren.apply(object).forEachRemaining(c -> collectIndirect(c, listChildren, res));
+    }
+
 
     /**
      * {@inheritDoc}
@@ -537,13 +603,14 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     }
 
     /**
-     * Lists all objects for the given predicate and type.
+     * Lists all objects for the given predicate and type, considering this instance in a subject relation.
      *
-     * @param predicate {@link Property}, can be null
-     * @param type      Interface to find and cast, not null
+     * @param predicate {@link Property}, can be {@code null}
+     * @param type      class-type of interface to find and cast, not {@code null}
      * @param <O>       subtype of {@link RDFNode rdf-node}
-     * @return {@link ExtendedIterator} of {@link RDFNode node}s of the {@link O} type
+     * @return {@link ExtendedIterator} of {@link RDFNode node}s of the type {@link O}
      * @see #object(Property, Class)
+     * @see #listSubjects(Property, Class)
      * @since 1.3.0
      */
     public <O extends RDFNode> ExtendedIterator<O> listObjects(Property predicate, Class<O> type) {
@@ -552,6 +619,24 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
                 .mapWith(s -> m.findNodeAs(s.getObject().asNode(), type))
                 .filterDrop(Objects::isNull);
     }
+
+    /**
+     * Lists all subjects for the given predicate and type, considering this instance in a object relation.
+     *
+     * @param predicate {@link Property}, can be {@code null}
+     * @param type      class-type of interface to find and cast, not {@code null}
+     * @param <S>       subtype of {@link RDFNode rdf-node}
+     * @return {@link ExtendedIterator} of {@link RDFNode node}s of the type {@link S}
+     * @see #listObjects(Property, Class)
+     * @since 1.4.0
+     */
+    public <S extends RDFNode> ExtendedIterator<S> listSubjects(Property predicate, Class<S> type) {
+        OntGraphModelImpl m = getModel();
+        return m.listStatements(null, predicate, this)
+                .mapWith(s -> m.findNodeAs(s.getSubject().asNode(), type))
+                .filterDrop(Objects::isNull);
+    }
+
 
     /**
      * Lists all objects for the given predicate.

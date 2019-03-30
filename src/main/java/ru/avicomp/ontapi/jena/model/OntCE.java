@@ -41,21 +41,73 @@ import java.util.stream.Stream;
 public interface OntCE extends OntObject {
 
     /**
-     * Creates an anonymous individual which is of this class type.
+     * Creates an anonymous individual which is of this class-expression type.
      *
      * @return {@link OntIndividual.Anonymous}
      * @see OntIndividual#attachClass(OntCE)
+     * @see #individuals()
      */
     OntIndividual.Anonymous createIndividual();
 
     /**
      * Creates a named individual which is of this class type.
      *
-     * @param uri, String not null
+     * @param uri, String, not {@code null}
      * @return {@link OntIndividual.Named}
      * @see OntIndividual#attachClass(OntCE)
+     * @see #individuals()
      */
     OntIndividual.Named createIndividual(String uri);
+
+    /**
+     * Answers a {@code Stream} over the class-expressions
+     * for which this class expression is declared to be sub-class.
+     * The return {@code Stream} is distinct and this instance is not included into it.
+     * <p>
+     * The flag {@code direct} allows some selectivity over the classes that appear in the {@code Stream}.
+     * If it is {@code true} only direct sub-classes are returned,
+     * and the method is equivalent to the method {@link #subClassOf()}
+     * with except of some boundary cases (e.g. {@code <A> rdfs:subClassOf <A>}).
+     * If it is {@code false}, the method returns all super classes recursively.
+     * Consider the following scenario:
+     * <pre>{@code
+     *   :A rdfs:subClassOf :B .
+     *   :B rdfs:subClassOf :C .
+     * }</pre>
+     * If the flag {@code direct} is {@code true},
+     * the listing super classes for the class {@code A} will return only {@code B}.
+     * And otherwise, if the flag {@code direct} is {@code false}, it will return {@code B} and also {@code C}.
+     *
+     * @param direct boolean: if {@code true}, only answers the directly adjacent classes in the super-class relation,
+     *               otherwise answers all super-classes found in the {@code Graph} recursively
+     * @return <b>distinct</b> {@code Stream} of super {@link OntCE class expression}s
+     * @see #subClassOf()
+     * @see #listSubClasses(boolean)
+     * @since 1.4.0
+     */
+    Stream<OntCE> listSuperClasses(boolean direct);
+
+    /**
+     * Answer a {@code Stream} over all of the class expressions
+     * that are declared to be sub-classes of this class expression.
+     * The return {@code Stream} is distinct and this instance is not included into it.
+     * The flag {@code direct} allows some selectivity over the classes that appear in the {@code Stream}.
+     * Consider the following scenario:
+     * <pre>{@code
+     *   :B rdfs:subClassOf :A .
+     *   :C rdfs:subClassOf :B .
+     * }</pre>
+     * If the flag {@code direct} is {@code true},
+     * the listing sub classes for the class {@code A} will return only {@code B}.
+     * And otherwise, if the flag {@code direct} is {@code false}, it will return {@code B} and also {@code C}.
+     *
+     * @param direct boolean: if {@code true}, only answers the directly adjacent classes in the sub-class relation,
+     *               otherwise answers all sub-classes found in the {@code Graph} recursively
+     * @return <b>distinct</b> {@code Stream} of sub {@link OntCE class expression}s
+     * @see #listSuperClasses(boolean)
+     * @since 1.4.0
+     */
+    Stream<OntCE> listSubClasses(boolean direct);
 
     /**
      * Lists all individuals,
@@ -89,9 +141,12 @@ public interface OntCE extends OntObject {
     }
 
     /**
-     * Returns all super classes.
+     * Lists all super classes for this class expression.
+     * The search pattern is {@code C rdfs:subClassOf Ci},
+     * where {@code C} is this instance, and {@code Ci} is one of the returned.
      *
-     * @return Stream of {@link OntCE}s.
+     * @return Stream of {@link OntCE}s
+     * @see #listSuperClasses(boolean)
      */
     default Stream<OntCE> subClassOf() {
         return objects(RDFS.subClassOf, OntCE.class);

@@ -817,6 +817,32 @@ public class OntModelTest {
             LOGGER.debug("Expected: '{}'", e.getMessage());
         }
         Assert.assertEquals(size, m.size());
+    }
+
+    @Test
+    public void testListClassHierarchy() {
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntClass a = m.createOntClass("A");
+        OntClass b = m.createOntClass("B");
+        OntClass c = m.createOntClass("C");
+        OntClass d = m.createOntClass("D");
+        OntClass e = m.createOntClass("E");
+        e.addSubClassOf(d);
+        a.addSubClassOf(b);
+        a.addSubClassOf(c);
+        b.addSubClassOf(m.createComplementOf(b));
+        b.addSubClassOf(d);
+        ReadWriteUtils.print(m);
+
+        Assert.assertEquals(2, a.listSuperClasses(true)
+                .peek(x -> LOGGER.debug("{} has direct super class: {}", a, x)).count());
+        Assert.assertEquals(4, a.listSuperClasses(false)
+                .peek(x -> LOGGER.debug("{} has super class: {}", a, x)).count());
+
+        Assert.assertEquals(2, d.listSubClasses(true)
+                .peek(x -> LOGGER.debug("{} has direct sub class: {}", d, x)).count());
+        Assert.assertEquals(3, d.listSubClasses(false)
+                .peek(x -> LOGGER.debug("{} has sub class: {}", d, x)).count());
 
     }
 
