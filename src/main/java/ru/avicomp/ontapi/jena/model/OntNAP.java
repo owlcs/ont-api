@@ -32,6 +32,20 @@ import java.util.stream.Stream;
 public interface OntNAP extends OntPE, OntProperty {
 
     /**
+     * {@inheritDoc}
+     *
+     * @return <b>distinct</b> {@code Stream} of annotation properties
+     */
+    Stream<OntNAP> listSuperProperties(boolean direct);
+
+    /**
+     * {@inheritDoc}
+     *
+     * @return <b>distinct</b> {@code Stream} of annotation properties
+     */
+    Stream<OntNAP> listSubProperties(boolean direct);
+
+    /**
      * Adds domain statement {@code A rdfs:domain U}, where {@code A} is an annotation property, {@code U} is any IRI.
      *
      * @param domain uri-{@link Resource}
@@ -70,8 +84,9 @@ public interface OntNAP extends OntPE, OntProperty {
     Stream<Resource> range();
 
     /**
-     * Returns all super properties.
-     * The pattern is {@code A1 rdfs:subPropertyOf A2}, where {@code A1} is this property and {@code A2} is what needs to be returned.
+     * Lists all direct super properties.
+     * The pattern is {@code A1 rdfs:subPropertyOf A2},
+     * where {@code A1} is this property and {@code A2} is what needs to be returned.
      *
      * @return Stream of {@link OntNAP}s
      * @see #addSubPropertyOf(OntNAP)

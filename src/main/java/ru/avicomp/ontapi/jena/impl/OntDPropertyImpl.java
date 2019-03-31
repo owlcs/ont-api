@@ -20,6 +20,7 @@ import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.impl.PropertyImpl;
+import org.apache.jena.vocabulary.RDFS;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
 import ru.avicomp.ontapi.jena.model.OntNDP;
 import ru.avicomp.ontapi.jena.model.OntNPA;
@@ -27,6 +28,7 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * An ontology object implementation with declarative type {@link OWL#DatatypeProperty owl:DatatypeProperty}.
@@ -42,6 +44,16 @@ public class OntDPropertyImpl extends OntPEImpl implements OntNDP {
     @Override
     public Class<OntNDP> getActualClass() {
         return OntNDP.class;
+    }
+
+    @Override
+    public Stream<OntNDP> listSuperProperties(boolean direct) {
+        return listHierarchy(this, OntNDP.class, RDFS.subPropertyOf, false, direct);
+    }
+
+    @Override
+    public Stream<OntNDP> listSubProperties(boolean direct) {
+        return listHierarchy(this, OntNDP.class, RDFS.subPropertyOf, true, direct);
     }
 
     @Override

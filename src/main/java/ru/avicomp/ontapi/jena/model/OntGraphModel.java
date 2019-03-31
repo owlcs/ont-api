@@ -176,7 +176,7 @@ public interface OntGraphModel extends Model {
      * @param other {@link OntGraphModel} to test
      * @return boolean
      * @since 1.3.2
-     * @deprecated use {@code hasImport(...)}
+     * @deprecated use {@code hasImport(...)}, since 1.4.0
      */
     @Deprecated
     default boolean hasInImports(OntGraphModel other) {

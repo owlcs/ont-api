@@ -22,7 +22,8 @@ import java.util.stream.Stream;
 
 /**
  * An abstraction for any Ontology <b>P</b>roperty <b>E</b>xpression.
- * In OWL2 there are four such property expressions: Data Property, Object Property (Entity and InverseOf) and Annotation Property.
+ * In OWL2 there are four such property expressions:
+ * Data Property, Object Property (OWL Entity and InverseOf) and Annotation Property.
  * <p>
  * Created by @szuev on 02.11.2016.
  *
@@ -32,6 +33,71 @@ import java.util.stream.Stream;
  * @see OntNDP
  */
 public interface OntPE extends OntObject {
+
+    /**
+     * Answers a {@code Stream} over all of the properties that are declared to be super-properties of this property.
+     * Each element of the {@code Stream} will have the same type as this property instance:
+     * if it is datatype property the method will return only data properties, etc.
+     * The parameter {@code direct} controls selectivity over the properties that appear in the {@code Stream}.
+     * Consider the following scenario:
+     * <pre>{@code
+     *  :A rdfs:subPropertyOf :B .
+     *  :A rdfs:subPropertyOf :C .
+     *  :C rdfs:subPropertyOf :D .
+     * } </pre>
+     * If the flag {@code direct} is {@code true}, then the output will contain only direct super properties:
+     * {@code B} and {@code C}. In this case the method is almost equivalent to the method {@link #subPropertyOf()}.
+     * If the flag {@code direct} is {@code false}, then the output will contain three properties:
+     * {@code B}, {@code C} and {@code D} (indirectly).
+     * This property instance is not included into the output in any case.
+     *
+     * @param direct if {@code true}, only answers the directly adjacent properties in the property hierarchy:
+     *               i.e. eliminate any property for which there is a longer route
+     *               to reach that child under the super-property relation
+     * @return <b>distinct</b> {@code Stream} of properties with the same type as this property
+     * @see #subPropertyOf()
+     * @see #listSubProperties(boolean)
+     * @since 1.4.0
+     */
+    Stream<? extends OntPE> listSuperProperties(boolean direct);
+
+    /**
+     * Answers a {@code Stream} over all of the properties that are declared to be sub-properties of this property.
+     * Each element of the {@code Stream} will have the same type as this property instance:
+     * if it is datatype property the method will return only data properties, etc.
+     * The parameter {@code direct} controls selectivity over the properties that appear in the {@code Stream}.
+     * Consider the following scenario:
+     * <pre>{@code
+     *  :D rdfs:subPropertyOf :C .
+     *  :C rdfs:subPropertyOf :A .
+     *  :B rdfs:subPropertyOf :A .
+     * } </pre>
+     * If the flag {@code direct} is {@code true}, then the output contains only direct sub properties:
+     * {@code B} and {@code C}.
+     * If the flag {@code direct} is {@code false}, then the output contains three properties:
+     * {@code B}, {@code C} and {@code D}.
+     * This property instance is not included into the output in any case.
+     *
+     * @param direct if {@code true}, only answers the directly adjacent properties in the property hierarchy:
+     *               i.e. eliminate any property for which there is a longer route
+     *               to reach that child under the super-property relation
+     * @return <b>distinct</b> {@code Stream} of properties with the same type as this property
+     * @see #listSuperProperties(boolean)
+     * @since 1.4.0
+     */
+    Stream<? extends OntPE> listSubProperties(boolean direct);
+
+    /**
+     * Lists all direct super properties for this property expression.
+     * The pattern: {@code P1 rdfs:subPropertyOf P2}.
+     * Note: the return elements have the same type as this instance.
+     *
+     * @return {@code Stream} of {@link Resource jena resource}s
+     * @see OntNAP#subPropertyOf()
+     * @see OntOPE#subPropertyOf()
+     * @see OntNDP#subPropertyOf()
+     */
+    Stream<? extends OntPE> subPropertyOf();
 
     /**
      * Lists all property domains.
@@ -52,16 +118,6 @@ public interface OntPE extends OntObject {
      * @see OntNDP#range()
      */
     Stream<? extends Resource> range();
-
-    /**
-     * List all super properties for this property expression.
-     *
-     * @return Stream of {@link Resource jena resource}s
-     * @see OntNAP#subPropertyOf()
-     * @see OntOPE#subPropertyOf()
-     * @see OntNDP#subPropertyOf()
-     */
-    Stream<? extends OntPE> subPropertyOf();
 
     /**
      * Returns a named part of this property expression.

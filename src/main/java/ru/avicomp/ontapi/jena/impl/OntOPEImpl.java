@@ -22,6 +22,7 @@ import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.impl.PropertyImpl;
+import org.apache.jena.vocabulary.RDFS;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.Iter;
@@ -129,6 +130,16 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
         public Property asProperty() {
             return getDirect().asProperty();
         }
+    }
+
+    @Override
+    public Stream<OntOPE> listSuperProperties(boolean direct) {
+        return listHierarchy(this, OntOPE.class, RDFS.subPropertyOf, false, direct);
+    }
+
+    @Override
+    public Stream<OntOPE> listSubProperties(boolean direct) {
+        return listHierarchy(this, OntOPE.class, RDFS.subPropertyOf, true, direct);
     }
 
     @Override

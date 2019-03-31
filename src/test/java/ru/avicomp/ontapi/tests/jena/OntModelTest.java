@@ -843,7 +843,56 @@ public class OntModelTest {
                 .peek(x -> LOGGER.debug("{} has direct sub class: {}", d, x)).count());
         Assert.assertEquals(3, d.listSubClasses(false)
                 .peek(x -> LOGGER.debug("{} has sub class: {}", d, x)).count());
+    }
 
+
+    @Test
+    public void testListPropertyHierarchy() {
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntNDP da = m.createDataProperty("dA");
+        OntNDP db = m.createDataProperty("dB");
+
+        OntNOP oa = m.createObjectProperty("oA");
+        OntOPE.Inverse iob = m.createObjectProperty("oB").createInverse();
+        OntNOP oc = m.createObjectProperty("oC");
+
+        OntNAP aa = m.createAnnotationProperty("aA");
+        OntNAP ab = m.createAnnotationProperty("aB");
+        OntNAP ac = m.createAnnotationProperty("aC");
+
+        da.addSubPropertyOf(db);
+        db.addSubPropertyOf(m.getOWLBottomDataProperty());
+
+        oc.addSubPropertyOf(iob);
+        iob.addSubPropertyOf(oa);
+
+        aa.addSubPropertyOf(ab);
+        ab.addSubPropertyOf(ac);
+        ab.addSubPropertyOf(m.getRDFSComment());
+        ac.addSubPropertyOf(aa);
+
+        ReadWriteUtils.print(m);
+
+        Assert.assertEquals(1, da.listSuperProperties(true)
+                .peek(x -> LOGGER.debug("{} has direct data super property: {}", da, x)).count());
+        Assert.assertEquals(2, da.listSuperProperties(false)
+                .peek(x -> LOGGER.debug("{} has data super property: {}", da, x)).count());
+
+        Assert.assertEquals(1, iob.listSubProperties(true)
+                .peek(x -> LOGGER.debug("{} has direct object sub property: {}", iob, x)).count());
+        Assert.assertEquals(1, iob.listSubProperties(false)
+                .peek(x -> LOGGER.debug("{} has object sub property: {}", iob, x)).count());
+        Assert.assertEquals(2, oa.listSubProperties(false)
+                .peek(x -> LOGGER.debug("{} has object sub property: {}", oa, x)).count());
+
+        Assert.assertEquals(1, ac.listSuperProperties(true)
+                .peek(x -> LOGGER.debug("{} has direct annotation super property: {}", ac, x)).count());
+        Assert.assertEquals(1, ac.listSubProperties(true)
+                .peek(x -> LOGGER.debug("{} has direct annotation sub property: {}", ac, x)).count());
+        Assert.assertEquals(3, ac.listSuperProperties(false)
+                .peek(x -> LOGGER.debug("{} has annotation super property: {}", ac, x)).count());
+        Assert.assertEquals(3, m.getRDFSComment().listSubProperties(false)
+                .peek(x -> LOGGER.debug("{} has annotation sub property: {}", m.getRDFSComment(), x)).count());
     }
 
 }

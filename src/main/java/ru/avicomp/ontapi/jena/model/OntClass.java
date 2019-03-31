@@ -114,6 +114,7 @@ public interface OntClass extends OntEntity, OntCE {
      *
      * @return <b>distinct</b> stream of {@link OntCE class expressions}s
      * @see #listDisjointUnions()
+     * @since 1.4.0
      */
     default Stream<OntCE> fromDisjointUnionOf() {
         return listDisjointUnions().flatMap(OntList::members).distinct();

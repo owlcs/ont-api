@@ -30,6 +30,20 @@ import java.util.stream.Stream;
 public interface OntDOP extends OntPE {
 
     /**
+     * {@inheritDoc}
+     *
+     * @return <b>distinct</b> {@code Stream} of data <b>or</b> object properties
+     */
+    Stream<? extends OntDOP> listSuperProperties(boolean direct);
+
+    /**
+     * {@inheritDoc}
+     *
+     * @return <b>distinct</b> {@code Stream} of data <b>or</b> object properties
+     */
+    Stream<? extends OntDOP> listSubProperties(boolean direct);
+
+    /**
      * Lists all property ranges,
      * i.e. all objects from statements with this property as subject and {@code rdfs:range} as predicate.
      *

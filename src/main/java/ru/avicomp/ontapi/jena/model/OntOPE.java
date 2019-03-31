@@ -38,6 +38,26 @@ import java.util.stream.Stream;
 public interface OntOPE extends OntDOP {
 
     /**
+     * {@inheritDoc}
+     * Note: a {@code PropertyChain} is not included into consideration:
+     * even this property is a member of some chain ({@code P owl:propertyChainAxiom ( P1 ... Pn )},
+     * where {@code Pj} is this property), it does not mean it has the same super property ({@code P}).
+     *
+     * @return <b>distinct</b> {@code Stream} of object property expressions
+     */
+    Stream<OntOPE> listSuperProperties(boolean direct);
+
+    /**
+     * {@inheritDoc}
+     * Note: a {@code PropertyChain} is not included into consideration,
+     * even this property is a super property of some chain ({@code P owl:propertyChainAxiom ( P1 ... Pn )},
+     * where {@code P} is this property), each of chain members is not considered as sub property of this property.
+     *
+     * @return <b>distinct</b> {@code Stream} of object property expressions
+     */
+    Stream<OntOPE> listSubProperties(boolean direct);
+
+    /**
      * Adds a negative property assertion ontology object.
      *
      * @param source {@link OntIndividual}
@@ -53,7 +73,7 @@ public interface OntOPE extends OntDOP {
      * using the predicate {@link OWL#propertyChainAxiom owl:propertyChainAxiom}.
      * The resulting rdf-list will consist of all the elements of the specified collection
      * in the same order with the possibility of duplication.
-     * Note: {@code null}s in collection will cause {@link NullPointerException NullPointerException}.
+     * Note: {@code null}s in collection will cause {@link OntJenaException.IllegalArgument exception}.
      * For additional information about {@code PropertyChain} logical construction see
      * <a href='https://www.w3.org/TR/owl2-syntax/#Object_Subproperties'>9.2.1 Object Subproperties</a> specification.
      *
@@ -120,21 +140,6 @@ public interface OntOPE extends OntDOP {
     }
 
     /**
-     * Creates a property chain {@link OntList ontology list}
-     * and returns statement {@code P owl:propertyChainAxiom ( P1 ... Pn )} to allow the addition of annotations.
-     * About RDF Graph annotation specification see, for example,
-     * <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Translation_of_Annotations'>2.3.1 Axioms that Generate a Main Triple</a>.
-     *
-     * @param properties Array of {@link OntOPE}s without {@code null}s
-     * @return {@link OntStatement}
-     * @see #createPropertyChain(Collection)
-     * @since 1.3.0
-     */
-    default OntStatement addSuperPropertyOf(OntOPE... properties) {
-        return createPropertyChain(Arrays.asList(properties)).getRoot();
-    }
-
-    /**
      * Deletes all property chain lists including their annotations
      * with predicate {@link OWL#propertyChainAxiom owl:propertyChainAxiom} for this resource from its associated model.
      *
@@ -154,9 +159,25 @@ public interface OntOPE extends OntDOP {
      * @return <b>distinct</b> Stream of all super {@link OntOPE object properties},
      * possible empty in case of nil-list or if there is no property-chains at all
      * @see #listPropertyChains()
+     * @since 1.4.0
      */
     default Stream<OntOPE> fromPropertyChain() {
         return listPropertyChains().flatMap(OntList::members).distinct();
+    }
+
+    /**
+     * Creates a property chain {@link OntList ontology list}
+     * and returns statement {@code P owl:propertyChainAxiom ( P1 ... Pn )} to allow the addition of annotations.
+     * About RDF Graph annotation specification see, for example,
+     * <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Translation_of_Annotations'>2.3.1 Axioms that Generate a Main Triple</a>.
+     *
+     * @param properties Array of {@link OntOPE}s without {@code null}s
+     * @return {@link OntStatement}
+     * @see #createPropertyChain(Collection)
+     * @since 1.3.0
+     */
+    default OntStatement addSuperPropertyOf(OntOPE... properties) {
+        return createPropertyChain(Arrays.asList(properties)).getRoot();
     }
 
     /**
@@ -167,6 +188,7 @@ public interface OntOPE extends OntDOP {
      * @see #createPropertyChain(Collection)
      * @see #addSuperPropertyOf(OntOPE...)
      * @see #createPropertyChain(Collection)
+     * @see <a href='https://www.w3.org/TR/owl2-syntax/#a_SubObjectPropertyOfChain'>9.2.1 Object Subproperties</a>
      */
     default OntStatement addSuperPropertyOf(Collection<OntOPE> properties) {
         return createPropertyChain(new ArrayList<>(properties)).getRoot();

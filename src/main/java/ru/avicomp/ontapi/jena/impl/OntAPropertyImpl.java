@@ -46,6 +46,16 @@ public class OntAPropertyImpl extends OntPEImpl implements OntNAP {
     }
 
     @Override
+    public Stream<OntNAP> listSuperProperties(boolean direct) {
+        return listHierarchy(this, OntNAP.class, RDFS.subPropertyOf, false, direct);
+    }
+
+    @Override
+    public Stream<OntNAP> listSubProperties(boolean direct) {
+        return listHierarchy(this, OntNAP.class, RDFS.subPropertyOf, true, direct);
+    }
+
+    @Override
     public OntStatement addDomain(Resource domain) {
         return addStatement(RDFS.domain, checkNamed(domain));
     }

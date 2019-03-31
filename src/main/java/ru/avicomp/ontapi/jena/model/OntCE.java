@@ -308,6 +308,7 @@ public interface OntCE extends OntObject {
      *
      * @return <b>distinct</b> Stream of {@link OntOPE object} and {@link OntNDP data} properties
      * @see #listHasKeys()
+     * @since 1.4.0
      */
     default Stream<OntDOP> fromHasKey() {
         return listHasKeys().flatMap(OntList::members).distinct();

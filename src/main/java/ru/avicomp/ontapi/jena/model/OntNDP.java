@@ -35,6 +35,20 @@ import java.util.stream.Stream;
 public interface OntNDP extends OntDOP, OntProperty {
 
     /**
+     * {@inheritDoc}
+     *
+     * @return <b>distinct</b> {@code Stream} of datatype properties
+     */
+    Stream<OntNDP> listSuperProperties(boolean direct);
+
+    /**
+     * {@inheritDoc}
+     *
+     * @return <b>distinct</b> {@code Stream} of datatype properties
+     */
+    Stream<OntNDP> listSubProperties(boolean direct);
+
+    /**
      * Adds negative data property assertion
      *
      * @param source {@link OntIndividual}, the source
