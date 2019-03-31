@@ -23,6 +23,7 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.Collection;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -235,11 +236,13 @@ public interface OntCE extends OntObject {
     }
 
     /**
-     * Creates a HasKey logical construction as {@link OntList ontology list} of {@link OntDOP Object or Data Property Expression}s
+     * Creates a {@code HasKey} logical construction as {@link OntList ontology []-list}
+     * of {@link OntDOP Object or Data Property Expression}s
      * that is attached to this Class Expression using the predicate {@link OWL#hasKey owl:hasKey}.
-     * The resulting rdf-list will consist of all the elements of the specified collection in the same order but with exclusion of duplicates.
-     * Note: {@code null}s in collection will cause {@link NullPointerException NullPointerException}.
-     * For additional information about HasKey logical construction see
+     * The resulting rdf-list will consist of all the elements of the specified collection
+     * in the same order but with exclusion of duplicates.
+     * Note: {@code null}s in collection will cause {@link OntJenaException.IllegalArgument exception}.
+     * For additional information about {@code HasKey} logical construction see
      * <a href='https://www.w3.org/TR/owl2-syntax/#Keys'>9.5 Keys</a> specification.
      *
      * @param objectProperties {@link Collection} (preferably {@link Set})of {@link OntOPE object property expression}s
@@ -250,8 +253,8 @@ public interface OntCE extends OntObject {
     OntList<OntDOP> createHasKey(Collection<OntOPE> objectProperties, Collection<OntNDP> dataProperties);
 
     /**
-     * Creates a HasKey logical construction as {@link OntList ontology list} and returns statement {@code C owl:hasKey (P1 ... Pm R1 ... Rn)}
-     * to allow the addition of annotations.
+     * Creates a {@code HasKey} logical construction as {@link OntList ontology list}
+     * and returns statement {@code C owl:hasKey ( P1 ... Pm R1 ... Rn )} to allow the addition of annotations.
      * About RDF Graph annotation specification see, for example,
      * <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Translation_of_Annotations'>2.3.1 Axioms that Generate a Main Triple</a>.
      *
@@ -262,17 +265,8 @@ public interface OntCE extends OntObject {
     OntStatement addHasKey(OntDOP... properties);
 
     /**
-     * Finds a HasKey logical construction attached to this class expression by the specified rdf-node in the form of {@link OntList}.
-     *
-     * @param list {@link RDFNode}
-     * @return Optional around {@link OntList} of {@link OntDOP data and object property expression}s
-     * @since 1.3.0
-     */
-    Optional<OntList<OntDOP>> findHasKey(RDFNode list);
-
-    /**
-     * Lists all HasKey {@link OntList ontology list}s that are attached to this class expression
-     * on predicate {@link OWL#hasKey owl:hasKey}.
+     * Lists all {@code HasKey} {@link OntList ontology []-list}s
+     * that are attached to this class expression on predicate {@link OWL#hasKey owl:hasKey}.
      *
      * @return Stream of {@link OntList}s with parameter-type {@code OntDOP}
      * @since 1.3.0
@@ -280,7 +274,7 @@ public interface OntCE extends OntObject {
     Stream<OntList<OntDOP>> listHasKeys();
 
     /**
-     * Deletes the given HasKey list including its annotations
+     * Deletes the given {@code HasKey} list including its annotations
      * with predicate {@link OWL#hasKey owl:hasKey} for this resource from its associated model.
      *
      * @param list {@link RDFNode} can be {@link OntList} or {@link RDFList}
@@ -288,6 +282,20 @@ public interface OntCE extends OntObject {
      * @since 1.3.0
      */
     void removeHasKey(RDFNode list);
+
+    /**
+     * Finds a {@code HasKey} logical construction
+     * attached to this class expression by the specified rdf-node in the form of {@link OntList}.
+     *
+     * @param list {@link RDFNode}
+     * @return Optional around {@link OntList} of {@link OntDOP data and object property expression}s
+     * @since 1.3.0
+     */
+    default Optional<OntList<OntDOP>> findHasKey(RDFNode list) {
+        try (Stream<OntList<OntDOP>> res = listHasKeys().filter(r -> Objects.equals(r, list))) {
+            return res.findFirst();
+        }
+    }
 
     /**
      * Lists all key properties.
@@ -301,7 +309,7 @@ public interface OntCE extends OntObject {
      * @return <b>distinct</b> Stream of {@link OntOPE object} and {@link OntNDP data} properties
      * @see #listHasKeys()
      */
-    default Stream<OntDOP> hasKey() {
+    default Stream<OntDOP> fromHasKey() {
         return listHasKeys().flatMap(OntList::members).distinct();
     }
 
@@ -317,7 +325,7 @@ public interface OntCE extends OntObject {
     }
 
     /**
-     * Deletes all HasKey list including its annotations
+     * Deletes all {@code HasKey} []-list including its annotations
      * with predicate {@link OWL#hasKey owl:hasKey} for this resource from its associated model.
      *
      * @throws OntJenaException if the list is not found

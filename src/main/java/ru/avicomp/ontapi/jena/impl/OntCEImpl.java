@@ -298,12 +298,6 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
                 collection.distinct().map(OntDOP.class::cast).iterator());
     }
 
-    public static Optional<OntList<OntDOP>> findHasKey(OntCE clazz, RDFNode list) {
-        return clazz.listHasKeys()
-                .filter(r -> Objects.equals(r, list))
-                .findFirst();
-    }
-
     public static Stream<OntList<OntDOP>> listHasKeys(OntGraphModelImpl m, OntCE clazz) {
         return OntListImpl.stream(m, clazz, OWL.hasKey, OntDOP.class);
     }
@@ -340,11 +334,6 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
     @Override
     public OntStatement addHasKey(OntDOP... properties) {
         return createHasKey(getModel(), this, Arrays.stream(properties)).getRoot();
-    }
-
-    @Override
-    public Optional<OntList<OntDOP>> findHasKey(RDFNode list) {
-        return findHasKey(this, list);
     }
 
     @Override

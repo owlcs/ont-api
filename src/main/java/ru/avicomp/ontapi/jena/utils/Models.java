@@ -388,7 +388,11 @@ public class Models {
     public static void insert(Supplier<Stream<OntGraphModel>> manager, OntGraphModel ont, boolean replace) {
         String uri = Objects.requireNonNull(ont.getID().getURI(), "Must be named ontology");
         manager.get()
-                .filter(m -> m.getID().imports().anyMatch(uri::equals))
+                .filter(m -> {
+                    try (Stream<String> uris = m.getID().imports()) {
+                        return uris.anyMatch(uri::equals);
+                    }
+                })
                 .peek(m -> {
                     if (!replace) return;
                     m.imports()

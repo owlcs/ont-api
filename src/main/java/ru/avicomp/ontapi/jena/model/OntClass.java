@@ -32,11 +32,12 @@ import java.util.stream.Stream;
 public interface OntClass extends OntEntity, OntCE {
 
     /**
-     * Creates a DisjointUnion as {@link OntList ontology list} of {@link OntCE Class Expression}s
-     * that is attached to this Class using the predicate {@link OWL#disjointUnionOf owl:disjointUnionOf}.
-     * The resulting rdf-list will consist of all the elements of the specified collection in the same order but with exclusion of duplicates.
-     * Note: {@code null}s in collection will cause {@link NullPointerException NullPointerException}.
-     * For additional information about DisjointUnion logical construction see
+     * Creates a {@code DisjointUnion} as {@link OntList ontology []-list} of {@link OntCE Class Expression}s
+     * that is attached to this OWL Class using the predicate {@link OWL#disjointUnionOf owl:disjointUnionOf}.
+     * The resulting rdf-list will consist of all the elements of the specified collection
+     * in the same order but with exclusion of duplicates.
+     * Note: {@code null}s in collection will cause {@link OntJenaException.IllegalArgument exception}.
+     * For additional information about {@code DisjointUnion} logical construction see
      * <a href='https://www.w3.org/TR/owl2-syntax/#Disjoint_Union_of_Class_Expressions'>9.1.4 Disjoint Union of Class Expressions</a>.
      *
      * @param classes {@link Collection} (preferably {@link Set}) of {@link OntCE class expression}s
@@ -46,7 +47,7 @@ public interface OntClass extends OntEntity, OntCE {
     OntList<OntCE> createDisjointUnion(Collection<OntCE> classes);
 
     /**
-     * Lists all DisjointUnion {@link OntList ontology list}s that are attached to this OWL Class
+     * Lists all {@code DisjointUnion} {@link OntList ontology list}s that are attached to this OWL Class
      * on predicate {@link OWL#disjointUnionOf owl:disjointUnionOf}.
      *
      * @return Stream of {@link OntList}s with parameter-type {@code OntCE}
@@ -55,7 +56,7 @@ public interface OntClass extends OntEntity, OntCE {
     Stream<OntList<OntCE>> listDisjointUnions();
 
     /**
-     * Deletes the given DisjointUnion list including its annotations
+     * Deletes the given {@code DisjointUnion} list including its annotations
      * with predicate {@link OWL#disjointUnionOf owl:disjointUnionOf} for this resource from its associated model.
      *
      * @param list {@link RDFNode} can be {@link OntList} or {@link RDFList}
@@ -65,7 +66,7 @@ public interface OntClass extends OntEntity, OntCE {
     void removeDisjointUnion(RDFNode list);
 
     /**
-     * Deletes all DisjointUnion lists including their annotations
+     * Deletes all {@code DisjointUnion} []-lists including their annotations
      * with predicate {@link OWL#disjointUnionOf owl:disjointUnionOf} for this resource from its associated model.
      *
      * @since 1.3.0
@@ -75,25 +76,27 @@ public interface OntClass extends OntEntity, OntCE {
     }
 
     /**
-     * Finds a DisjointUnion logical construction attached to this class by the specified rdf-node in the form of {@link OntList}.
+     * Finds a {@code DisjointUnion} logical construction
+     * attached to this class by the specified rdf-node in the form of {@link OntList}.
      *
      * @param list {@link RDFNode}
      * @return Optional around {@link OntList} of {@link OntCE class expression}s
      * @since 1.3.0
      */
     default Optional<OntList<OntCE>> findDisjointUnion(RDFNode list) {
-        return listDisjointUnions()
-                .filter(r -> Objects.equals(r, list))
-                .findFirst();
+        try (Stream<OntList<OntCE>> res = listDisjointUnions().filter(r -> Objects.equals(r, list))) {
+            return res.findFirst();
+        }
     }
 
     /**
-     * Creates a DisjointUnion {@link OntList ontology list} and returns statement {@code CN owl:disjointUnionOf (C1 ... CN)}
-     * to allow the addition of annotations.
+     * Creates a {@code DisjointUnion} {@link OntList ontology list}
+     * and returns statement {@code CN owl:disjointUnionOf ( C1 ... CN )} to allow the addition of annotations.
      * About RDF Graph annotation specification see, for example,
      * <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Translation_of_Annotations'>2.3.1 Axioms that Generate a Main Triple</a>.
      *
-     * @param classes Array of {@link OntCE class expressions} without {@code null}s, duplicates will be discarded and order will be saved
+     * @param classes Array of {@link OntCE class expressions} without {@code null}s,
+     *                duplicates will be discarded and order will be saved
      * @return {@link OntStatement}
      * @see #createDisjointUnion(Collection)
      * @since 1.3.0
@@ -112,7 +115,7 @@ public interface OntClass extends OntEntity, OntCE {
      * @return <b>distinct</b> stream of {@link OntCE class expressions}s
      * @see #listDisjointUnions()
      */
-    default Stream<OntCE> disjointUnionOf() {
+    default Stream<OntCE> fromDisjointUnionOf() {
         return listDisjointUnions().flatMap(OntList::members).distinct();
     }
 

@@ -259,7 +259,7 @@ public interface OntStatement extends Statement {
      */
     default boolean hasAnnotations() {
         try (Stream<OntStatement> annotations = annotations()) {
-            return annotations.findAny().isPresent();
+            return annotations.findFirst().isPresent();
         }
     }
 

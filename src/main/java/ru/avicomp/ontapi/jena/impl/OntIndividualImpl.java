@@ -193,10 +193,12 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
 
         @Override
         public void detachClass(OntCE clazz) {
-            if (classes().allMatch(clazz::equals)) {
-                // otherwise the anonymous individual could be lost.
-                // use another way for removing the single class-assertion.
-                throw new OntJenaException("Can't detach class " + clazz + ": it is a single for individual " + this);
+            try (Stream<OntCE> classes = classes()) {
+                if (classes.allMatch(clazz::equals)) {
+                    // otherwise the anonymous individual could be lost.
+                    // use another way for removing the single class-assertion.
+                    throw new OntJenaException("Can't detach class " + clazz + ": it is a single for individual " + this);
+                }
             }
             super.detachClass(clazz);
         }

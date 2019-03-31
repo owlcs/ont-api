@@ -28,8 +28,10 @@ import java.util.stream.Stream;
 
 /**
  * A common interface for any Ontology <b>O</b>bject <b>P</b>roperty <b>E</b>xpression.
- * In OWL2 there are two types of object property expressions: named object property (entity) and InverseOf anonymous property expression.
- * Range values for this property expression are restricted to individuals (as distinct from datatype valued {@link OntNDP properties}).
+ * In OWL2 there are two types of object property expressions:
+ * named object property (entity) and InverseOf anonymous property expression.
+ * Range values for this property expression are restricted to individuals
+ * (as distinct from datatype valued {@link OntNDP properties}).
  * <p>
  * Created by @szuev on 08.11.2016.
  */
@@ -46,11 +48,13 @@ public interface OntOPE extends OntDOP {
     OntNPA.ObjectAssertion addNegativeAssertion(OntIndividual source, OntIndividual target);
 
     /**
-     * Creates a property chain as {@link OntList ontology list} of {@link OntOPE Object Property Expression}s
-     * that is attached to this Object Property Expression using the predicate {@link OWL#propertyChainAxiom owl:propertyChainAxiom}.
-     * The resulting rdf-list will consist of all the elements of the specified collection in the same order with the possibility of duplication.
+     * Creates a property chain as {@link OntList ontology []-list} of {@link OntOPE Object Property Expression}s
+     * that is attached to this Object Property Expression
+     * using the predicate {@link OWL#propertyChainAxiom owl:propertyChainAxiom}.
+     * The resulting rdf-list will consist of all the elements of the specified collection
+     * in the same order with the possibility of duplication.
      * Note: {@code null}s in collection will cause {@link NullPointerException NullPointerException}.
-     * For additional information about PropertyChain logical construction see
+     * For additional information about {@code PropertyChain} logical construction see
      * <a href='https://www.w3.org/TR/owl2-syntax/#Object_Subproperties'>9.2.1 Object Subproperties</a> specification.
      *
      * @param properties {@link Collection} (preferably {@link List}) of {@link OntOPE object property expression}s
@@ -102,21 +106,22 @@ public interface OntOPE extends OntDOP {
     }
 
     /**
-     * Finds a PropertyChain logical construction attached to this property by the specified rdf-node in the form of {@link OntList}.
+     * Finds a {@code PropertyChain} logical construction
+     * attached to this property by the specified rdf-node in the form of {@link OntList}.
      *
      * @param list {@link RDFNode}
      * @return Optional around {@link OntList} of {@link OntOPE object property expression}s
      * @since 1.3.0
      */
     default Optional<OntList<OntOPE>> findPropertyChain(RDFNode list) {
-        return listPropertyChains()
-                .filter(r -> Objects.equals(r, list))
-                .findFirst();
+        try (Stream<OntList<OntOPE>> res = listPropertyChains().filter(r -> Objects.equals(r, list))) {
+            return res.findFirst();
+        }
     }
 
     /**
-     * Creates a property chain {@link OntList ontology list} and returns statement {@code P owl:propertyChainAxiom (P1 ... Pn)}
-     * to allow the addition of annotations.
+     * Creates a property chain {@link OntList ontology list}
+     * and returns statement {@code P owl:propertyChainAxiom ( P1 ... Pn )} to allow the addition of annotations.
      * About RDF Graph annotation specification see, for example,
      * <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Translation_of_Annotations'>2.3.1 Axioms that Generate a Main Triple</a>.
      *
@@ -150,7 +155,7 @@ public interface OntOPE extends OntDOP {
      * possible empty in case of nil-list or if there is no property-chains at all
      * @see #listPropertyChains()
      */
-    default Stream<OntOPE> superPropertyOf() {
+    default Stream<OntOPE> fromPropertyChain() {
         return listPropertyChains().flatMap(OntList::members).distinct();
     }
 
@@ -168,7 +173,9 @@ public interface OntOPE extends OntDOP {
     }
 
     /**
-     * Returns all ranges (statement pattern: "P rdfs:range C")
+     * Returns all ranges.
+     * The statement pattern is {@code P rdfs:range C}, where {@code P} is this object property,
+     * and {@code C} is one of the return class expressions.
      *
      * @return Stream of {@link OntCE}s
      */
@@ -233,7 +240,8 @@ public interface OntOPE extends OntDOP {
     }
 
     /**
-     * Clears all {@code P1 owl:propertyDisjointWith P2} statements for the specified object property (subject, {@code P1}).
+     * Clears all {@code P1 owl:propertyDisjointWith P2} statements
+     * for the specified object property (subject, {@code P1}).
      *
      * @param other {@link OntOPE}
      * @see OntNDP#removeDisjointWith(OntNDP)
@@ -244,7 +252,8 @@ public interface OntOPE extends OntDOP {
     }
 
     /**
-     * Returns all equivalent object properties (i.e. {@code Pi owl:equivalentProperty Pj}, where {@code Pi} - this property).
+     * Returns all equivalent object properties
+     * (i.e. {@code Pi owl:equivalentProperty Pj}, where {@code Pi} - this property).
      *
      * @return Stream of {@link OntOPE}s.
      * @see OntNDP#equivalentProperty()
@@ -275,7 +284,8 @@ public interface OntOPE extends OntDOP {
     }
 
     /**
-     * Gets the <b>first</b> object property from the right part of statement {@code _:x owl:inverseOf PN} or {@code P1 owl:inverseOf P2}.
+     * Gets the <b>first</b> object property
+     * from the right part of the statements {@code _:x owl:inverseOf PN} or {@code P1 owl:inverseOf P2}.
      * What exactly is the first statement is defined at the level of graph; in general it is unpredictable.
      *
      * @return {@link OntOPE} or {@code null}

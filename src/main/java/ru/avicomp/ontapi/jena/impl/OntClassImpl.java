@@ -90,11 +90,6 @@ public class OntClassImpl extends OntObjectImpl implements OntClass {
     }
 
     @Override
-    public Optional<OntList<OntDOP>> findHasKey(RDFNode list) {
-        return OntCEImpl.findHasKey(this, list);
-    }
-
-    @Override
     public Stream<OntList<OntDOP>> listHasKeys() {
         return OntCEImpl.listHasKeys(getModel(), this);
     }

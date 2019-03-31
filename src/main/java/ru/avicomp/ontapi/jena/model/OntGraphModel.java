@@ -30,20 +30,31 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 /**
- * An enhanced view of a {@link Model Jena model} that is known to contain <b>OWL2</b> ontology data.
+ * An enhanced view of a {@link Model Jena Model} that is known to contain <b>OWL2</b> ontology data.
  * This is an analogue of {@link org.apache.jena.ontology.OntModel Apache Jena OntModel}
- * to work with Ontology graph in accordance with OWL2 DL specification.
- * Note: since this model is only for OWL2 semantics, it does not support {@link org.apache.jena.ontology.Profile Jena Profile}s,
- * and model configuration is delegated directly to {@link ru.avicomp.ontapi.jena.impl.conf.OntPersonality Ont Personality}.
- * Also note: it does not extends {@link InfModel} interface,
- * although encapsulated graph always can be wrapped as {@link InfModel} (see {@link OntGraphModel#getInferenceModel(Reasoner)}).
+ * to work with Ontology {@code Graph} in accordance with OWL2 DL specification.
  * <p>
- * In addition to the standard {@link Resource Resource}s and {@link Statement Statement}s this model provides access
- * to different ontological components in the form of {@link OntObject Object}s and {@link OntStatement Ontology Statement}s
- * with support for OWL Annotations. Some of the {@link OntObject}s can be constructed using another kind of resource -
- * {@link OntList}, which is an extended analogue of standard {@link RDFList RDFList}.
+ * In addition to the standard {@link Resource Jena Resource}s and {@link Statement Jena Statement}s
+ * this model provides access to different ontological components in the form of {@link OntObject Object}s
+ * and {@link OntStatement Ontology Statement}s that support OWL Annotations.
+ * Some of the {@link OntObject}s can be constructed using another kind of resource -
+ * {@link OntList}, which is an extended analogue of the standard {@link RDFList Jena RDFList}.
  * <p>
  * The model also has a component-level support of Semantic Web Rule Language (SWRL).
+ * <p>
+ * Note: since this model is only for OWL2 semantics,
+ * it does not support {@link org.apache.jena.ontology.Profile Jena Profile}s, and model configuration
+ * is delegated directly to the {@link ru.avicomp.ontapi.jena.impl.conf.OntPersonality Ontology Personality}.
+ * <p>
+ * Note: it does not extends {@link InfModel} interface, although
+ * encapsulated graph can always be wrapped as {@link InfModel} (see {@link OntGraphModel#getInferenceModel(Reasoner)}).
+ * <p>
+ * Note: in additional to native Jena {@link org.apache.jena.util.iterator.ExtendedIterator Extended Iterator}s,
+ * this model also provides access to RDF in the from of {@link Stream}s, that obey the same rules:
+ * both {@code Stream} and {@code ExtendedIterator} must be closed explicitly
+ * if they are no longer needed but not yet exhausted.
+ * For more details see {@link org.apache.jena.util.iterator.ClosableIterator}.
+ * In case of {@code Stream} try-with-resources can be used.
  * <p>
  * Created by @szuev on 11.11.2016.
  *

@@ -149,8 +149,8 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
         if (!RDFListImpl.factory.canWrap(node, graph)) return false;
         if (view == null) return true;
         RDFList list = RDFListImpl.factory.wrap(node, graph).as(RDFList.class);
-        return (list.isEmpty() && allowEmptyList) || Iter.asStream(list.iterator().mapWith(RDFNode::asNode))
-                .anyMatch(n -> PersonalityModel.canAs(view, n, graph));
+        return (list.isEmpty() && allowEmptyList) ||
+                Iter.anyMatch(list.iterator().mapWith(RDFNode::asNode), n -> PersonalityModel.canAs(view, n, graph));
     }
 
     public static Classes createDisjointClasses(OntGraphModelImpl model, Stream<OntCE> classes) {
