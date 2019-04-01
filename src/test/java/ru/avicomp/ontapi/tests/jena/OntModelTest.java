@@ -895,5 +895,36 @@ public class OntModelTest {
                 .peek(x -> LOGGER.debug("{} has annotation sub property: {}", m.getRDFSComment(), x)).count());
     }
 
+    @Test
+    public void testListIndividualTypes() {
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntClass a = m.createOntClass("A");
+        OntClass b = m.createOntClass("B");
+        OntClass c = m.createOntClass("C");
+        OntClass d = m.createOntClass("D");
+        OntClass e = m.createOntClass("E");
+
+        b.addSubClassOf(m.createComplementOf(c));
+        b.addSubClassOf(a);
+        OntCE ae = m.createIntersectionOf(Arrays.asList(a, e));
+        d.addSubClassOf(ae);
+        a.addSubClassOf(d);
+        ae.addSubClassOf(a);
+        ae.addSubClassOf(b);
+
+        OntIndividual i1 = a.createIndividual("i");
+        OntIndividual i2 = d.createIndividual();
+        i2.attachClass(b);
+        i1.attachClass(d);
+
+        ReadWriteUtils.print(m);
+
+        Assert.assertEquals(2, i2.listClasses(true).count());
+        Assert.assertEquals(5, i2.listClasses(false).count());
+
+        Assert.assertEquals(2, i1.listClasses(true).count());
+        Assert.assertEquals(5, i1.listClasses(false).count());
+    }
+
 }
 

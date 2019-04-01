@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -43,6 +43,22 @@ public interface OntIndividual extends OntObject {
      * @throws ru.avicomp.ontapi.jena.OntJenaException in case it is anonymous individual and there is no more class-assertions.
      */
     void detachClass(OntCE clazz);
+
+    /**
+     * Answers a {@code Stream} over the class expressions to which this individual belongs,
+     * including super-classes if the flag {@code direct} is {@code false}.
+     * If the flag {@code direct} is {@code true}, then only direct types are returned,
+     * and the method is almost equivalent to the method {@link #classes()}.
+     * See also {@link OntCE#listSuperClasses(boolean)}.
+     *
+     * @param direct if {@code true}, only answers those {@link OntCE}s that are direct types of this individual,
+     *               not the super-classes of the class etc
+     * @return <b>distinct</b> {@code Stream} of {@link OntCE class expressions}
+     * @see #classes()
+     * @see OntCE#listSuperClasses(boolean)
+     * @since 1.4.0
+     */
+    Stream<OntCE> listClasses(boolean direct);
 
     /**
      * Returns all direct class types.

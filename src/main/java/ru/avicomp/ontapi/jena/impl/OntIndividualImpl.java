@@ -20,6 +20,7 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.vocabulary.RDFS;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.conf.ObjectFactory;
 import ru.avicomp.ontapi.jena.impl.conf.OntFinder;
@@ -32,8 +33,10 @@ import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -135,6 +138,18 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
     @Override
     public void detachClass(OntCE clazz) {
         removeRDFType(clazz);
+    }
+
+    @Override
+    public Stream<OntCE> listClasses(boolean direct) {
+        if (direct) {
+            return listObjects(RDF.type, OntCE.class).toSet().stream();
+        }
+        Set<OntCE> res = new HashSet<>();
+        Function<OntCE, ExtendedIterator<OntCE>> listSuperClasses =
+                x -> ((OntObjectImpl) x).listObjects(RDFS.subClassOf, OntCE.class);
+        listObjects(RDF.type, OntCE.class).forEachRemaining(c -> collectIndirect(c, listSuperClasses, res));
+        return res.stream();
     }
 
     public static class NamedImpl extends OntIndividualImpl implements OntIndividual.Named {

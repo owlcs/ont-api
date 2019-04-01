@@ -64,6 +64,11 @@ public class DirectObjectTripleMapImpl<X extends OWLObject> implements ObjectTri
     }
 
     @Override
+    public boolean contains(X o) {
+        return Iter.anyMatch(listONTObjects(), x -> Objects.equals(o, x.getObject()));
+    }
+
+    @Override
     public Stream<Triple> triples(X key) throws RuntimeException {
         return Iter.findFirst(listONTObjects().filterKeep(x -> key.equals(x.getObject()))
                 .mapWith(ONTObject::triples)).orElse(Stream.empty());
