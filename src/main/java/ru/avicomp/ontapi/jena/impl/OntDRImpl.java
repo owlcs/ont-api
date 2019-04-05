@@ -27,13 +27,13 @@ import ru.avicomp.ontapi.jena.impl.conf.ObjectFactory;
 import ru.avicomp.ontapi.jena.impl.conf.OntFilter;
 import ru.avicomp.ontapi.jena.impl.conf.OntFinder;
 import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -136,8 +136,8 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
         }
 
         @Override
-        public Stream<OntStatement> spec() {
-            return Stream.concat(super.spec(), required(OWL.datatypeComplementOf));
+        public ExtendedIterator<OntStatement> listSpec() {
+            return Iter.concat(super.listSpec(), listRequired(OWL.datatypeComplementOf));
         }
 
         @Override
@@ -173,16 +173,16 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
         }
 
         @Override
-        public Stream<OntStatement> spec() {
-            return Stream.of(declaration(), required(OWL.onDatatype), withRestrictionsSpec()).flatMap(Function.identity());
+        public ExtendedIterator<OntStatement> listSpec() {
+            return Iter.concat(listDeclaration(), listRequired(OWL.onDatatype), withRestrictionsSpec());
         }
 
-        public Stream<OntStatement> withRestrictionsSpec() {
-            return getList().content().flatMap(s -> {
+        public ExtendedIterator<OntStatement> withRestrictionsSpec() {
+            return Iter.flatMap(getList().listContent(), s -> {
                 if (!s.getObject().canAs(OntFR.class)) {
-                    return Stream.of(s);
+                    return Iter.of(s);
                 }
-                return Stream.of(s, s.getObject().as(OntFR.class).getRoot());
+                return Iter.of(s, s.getObject().as(OntFR.class).getRoot());
             });
         }
     }
@@ -226,16 +226,16 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
         }
 
         @Override
-        public Stream<OntStatement> spec() {
-            return Stream.concat(declaration(), getList().content());
+        public ExtendedIterator<OntStatement> listSpec() {
+            return Iter.concat(listDeclaration(), getList().listContent());
         }
 
-        public Stream<OntStatement> declaration() {
-            return super.spec();
+        public ExtendedIterator<OntStatement> listDeclaration() {
+            return super.listSpec();
         }
 
         @Override
-        public OntList<N> getList() {
+        public OntListImpl<N> getList() {
             return OntListImpl.asSafeOntList(getRequiredObject(predicate, RDFList.class), getModel(), this, predicate, null, type);
         }
     }

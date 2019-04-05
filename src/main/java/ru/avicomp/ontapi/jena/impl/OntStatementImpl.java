@@ -280,6 +280,12 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
     }
 
     @Override
+    public void clearAnnotations() {
+        Iter.peek(listAnnotations(), OntStatement::clearAnnotations).toSet()
+                .forEach(a -> deleteAnnotation(a.getPredicate().as(OntNAP.class), a.getObject()));
+    }
+
+    @Override
     public OntStatementImpl deleteAnnotation(OntNAP property, RDFNode value) {
         OntJenaException.notNull(property, "Null property.");
         OntJenaException.notNull(value, "Null value.");

@@ -27,6 +27,7 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.impl.LiteralImpl;
 import org.apache.jena.rdf.model.impl.RDFListImpl;
 import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.util.iterator.NullIterator;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.conf.*;
 import ru.avicomp.ontapi.jena.model.*;
@@ -38,8 +39,6 @@ import ru.avicomp.ontapi.jena.vocabulary.SWRL;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Function;
-import java.util.stream.Stream;
 
 /**
  * Ont SWRL Object Implementation.
@@ -329,20 +328,20 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         }
 
         @Override
-        public OntList<DArg> getArgList() {
+        public OntListImpl<DArg> getArgList() {
             return OntListImpl.asOntList(getRequiredObject(SWRL.arguments, RDFList.class),
                     getModel(), this, SWRL.arguments, null, DArg.class);
         }
 
-        public Stream<OntStatement> predicateStatements() {
+        public ExtendedIterator<OntStatement> listPredicateStatements() {
             OntStatement p = getRequiredProperty(SWRL.builtin);
             OntStatement b = getPredicate().getRoot();
-            return b == null ? Stream.of(p) : Stream.of(p, b);
+            return b == null ? Iter.of(p) : Iter.of(p, b);
         }
 
         @Override
-        public Stream<OntStatement> spec() {
-            return Stream.of(super.spec(), predicateStatements(), getArgList().content()).flatMap(Function.identity());
+        public ExtendedIterator<OntStatement> listSpec() {
+            return Iter.concat(super.listSpec(), listPredicateStatements(), getArgList().listContent());
         }
 
         @Override
@@ -374,8 +373,8 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         }
 
         @Override
-        public Stream<OntStatement> spec() {
-            return Stream.concat(super.spec(), required(predicate, SWRL.argument1));
+        public ExtendedIterator<OntStatement> listSpec() {
+            return Iter.concat(super.listSpec(), listRequired(predicate, SWRL.argument1));
         }
     }
 
@@ -446,13 +445,12 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         }
 
         @Override
-        public Stream<OntStatement> spec() {
-            return Stream.of(super.spec(), predicateSpec(), required(SWRL.argument1, SWRL.argument2))
-                    .flatMap(Function.identity());
+        public ExtendedIterator<OntStatement> listSpec() {
+            return Iter.concat(super.listSpec(), listPredicateSpec(), listRequired(SWRL.argument1, SWRL.argument2));
         }
 
-        protected Stream<OntStatement> predicateSpec() {
-            return required(predicate);
+        protected ExtendedIterator<OntStatement> listPredicateSpec() {
+            return listRequired(predicate);
         }
     }
 
@@ -506,9 +504,9 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         }
 
         @Override
-        protected Stream<OntStatement> predicateSpec() {
+        protected ExtendedIterator<OntStatement> listPredicateSpec() {
             OntStatement s = getPredicate().getRoot();
-            return s == null ? Stream.empty() : Stream.of(s);
+            return s == null ? NullIterator.instance() : Iter.of(s);
         }
     }
 
@@ -551,24 +549,23 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         }
 
         @Override
-        public OntList<Atom> getHeadList() {
+        public OntListImpl<Atom> getHeadList() {
             return getList(SWRL.head);
         }
 
         @Override
-        public OntList<Atom> getBodyList() {
+        public OntListImpl<Atom> getBodyList() {
             return getList(SWRL.body);
         }
 
-        protected OntList<Atom> getList(Property predicate) {
+        protected OntListImpl<Atom> getList(Property predicate) {
             RDFList list = getRequiredObject(predicate, RDFList.class);
             return OntListImpl.asOntList(list, getModel(), this, predicate, SWRL.AtomList, Atom.class);
         }
 
         @Override
-        public Stream<OntStatement> spec() {
-            return Stream.of(super.spec(), getHeadList().content(), getBodyList().content())
-                    .flatMap(Function.identity());
+        public ExtendedIterator<OntStatement> listSpec() {
+            return Iter.concat(super.listSpec(), getHeadList().listContent(), getBodyList().listContent());
         }
 
         @Override

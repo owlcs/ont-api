@@ -138,6 +138,29 @@ public class Iter {
     }
 
     /**
+     * Creates a lazily concatenated {@link ExtendedIterator Extended Iterator} whose elements are all the
+     * elements of the given iterators.
+     * If the specified array has length equals {@code 2},
+     * than this method is equivalent to the method {@link #concat(ExtendedIterator, ExtendedIterator)}).
+     * An {@link ExtendedIterator}-based functional equivalent of
+     * the expression {@code Stream#of(Stream, ..., Stream).flatMap(Function.identity())}.
+     *
+     * @param iterators Array of iterators
+     * @param <X>       the type of iterator elements
+     * @return all input elements as a single {@link ExtendedIterator} of type {@link X}
+     * @see #concat(ExtendedIterator, ExtendedIterator)
+     * @since 1.4.0
+     */
+    @SafeVarargs
+    public static <X> ExtendedIterator<X> concat(ExtendedIterator<? extends X>... iterators) {
+        ExtendedIterator<X> res = NullIterator.instance();
+        for (ExtendedIterator<? extends X> i : iterators) {
+            res = res.andThen(i);
+        }
+        return res;
+    }
+
+    /**
      * Returns an {@link ExtendedIterator Extended Iterator} consisting of the elements
      * of the given {@code base} iterator, additionally performing the provided {@code action}
      * on each element as elements are consumed from the resulting iterator.
@@ -245,6 +268,7 @@ public class Iter {
      * and whose values are the result of applying a value mapping function to all input elements
      * equal to the key and combining them using the merge function
      * @see Collectors#toMap(Function, Function, BinaryOperator, Supplier)
+     * @since 1.4.0
      */
     public static <X, K, V, M extends Map<K, V>> M toMap(Iterator<X> iterator,
                                                          Function<? super X, ? extends K> keyMapper,

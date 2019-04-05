@@ -88,19 +88,23 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
     protected abstract Resource getResourceType();
 
     @Override
-    public Stream<O> members() {
-        return getList().members();
+    public final Stream<O> members() {
+        return Iter.asStream(listMembers());
+    }
+
+    public ExtendedIterator<O> listMembers() {
+        return getList().listMembers();
     }
 
     @Override
-    public OntList<O> getList() {
+    public OntListImpl<O> getList() {
         return OntListImpl.asOntList(getRequiredObject(getPredicate(), RDFList.class),
                 getModel(), this, getPredicate(), null, getComponentType());
     }
 
     @Override
-    public Stream<OntStatement> spec() {
-        return Stream.concat(super.spec(), getList().content());
+    public ExtendedIterator<OntStatement> listSpec() {
+        return Iter.concat(super.listSpec(), getList().listContent());
     }
 
     private static ObjectFactory createFactory(Class<? extends OntDisjointImpl> impl,
@@ -223,30 +227,30 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
         }
 
         @Override
-        public Stream<OntIndividual> members() {
-            return lists().flatMap(OntList::members);
+        public ExtendedIterator<OntIndividual> listMembers() {
+            return Iter.flatMap(lists(), OntListImpl::listMembers);
         }
 
         @Override
-        public Stream<OntStatement> spec() {
-            return Stream.concat(super.spec(), lists().flatMap(OntList::content));
+        public ExtendedIterator<OntStatement> listSpec() {
+            return Iter.concat(super.listSpec(), Iter.flatMap(lists(), OntListImpl::listContent));
         }
 
-        public Stream<Property> predicates() {
-            return Stream.of(getPredicate(), getAlternativePredicate());
+        public ExtendedIterator<Property> listPredicates() {
+            return Iter.of(getPredicate(), getAlternativePredicate());
         }
 
-        public Stream<OntList<OntIndividual>> lists() {
-            return predicates()
-                    .map(this::findList)
-                    .filter(Optional::isPresent)
-                    .map(Optional::get);
+        public ExtendedIterator<OntListImpl<OntIndividual>> lists() {
+            return listPredicates()
+                    .mapWith(this::findList)
+                    .filterKeep(Optional::isPresent)
+                    .mapWith(Optional::get);
         }
 
         @Override
-        public OntList<OntIndividual> getList() {
-            Optional<OntList<OntIndividual>> p = findList(getPredicate());
-            Optional<OntList<OntIndividual>> a = findList(getAlternativePredicate());
+        public OntListImpl<OntIndividual> getList() {
+            Optional<OntListImpl<OntIndividual>> p = findList(getPredicate());
+            Optional<OntListImpl<OntIndividual>> a = findList(getAlternativePredicate());
             if (p.isPresent() && a.isPresent()) {
                 if (p.get().size() > a.get().size()) return p.get();
                 if (p.get().size() < a.get().size()) return a.get();
@@ -260,7 +264,7 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
             throw new OntJenaException.IllegalState("Neither owl:members or owl:distinctMembers could be found");
         }
 
-        public Optional<OntList<OntIndividual>> findList(Property predicate) {
+        public Optional<OntListImpl<OntIndividual>> findList(Property predicate) {
             if (!hasProperty(predicate)) return Optional.empty();
             return Optional.of(OntListImpl.asOntList(getRequiredObject(predicate, RDFList.class),
                     getModel(), this, predicate, null, getComponentType()));

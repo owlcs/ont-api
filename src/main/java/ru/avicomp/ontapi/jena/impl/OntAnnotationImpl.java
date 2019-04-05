@@ -107,9 +107,9 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
     }
 
     @Override
-    public Stream<OntStatement> spec() {
+    public ExtendedIterator<OntStatement> listSpec() {
         //return SPEC.stream().map(this::getRequiredProperty);
-        return Iter.asStream(listStatements().filterKeep(s -> SPEC.contains(s.getPredicate()) || s.isAnnotation()));
+        return listStatements().filterKeep(s -> SPEC.contains(s.getPredicate()) || s.isAnnotation());
     }
 
     @Override

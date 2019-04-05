@@ -20,15 +20,16 @@ import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.util.iterator.ExtendedIterator;
 import ru.avicomp.ontapi.jena.impl.conf.ObjectFactory;
 import ru.avicomp.ontapi.jena.impl.conf.OntFilter;
 import ru.avicomp.ontapi.jena.impl.conf.OntFinder;
 import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.Optional;
-import java.util.stream.Stream;
 
 /**
  * Implementation of the Negative Property Assertion.
@@ -79,8 +80,8 @@ public abstract class OntNPAImpl<P extends OntPE, T extends RDFNode> extends Ont
     }
 
     @Override
-    public Stream<OntStatement> spec() {
-        return Stream.concat(super.spec(), required(OWL.sourceIndividual, OWL.assertionProperty, targetPredicate()));
+    public ExtendedIterator<OntStatement> listSpec() {
+        return Iter.concat(super.listSpec(), listRequired(OWL.sourceIndividual, OWL.assertionProperty, targetPredicate()));
     }
 
     abstract Class<P> propertyClass();

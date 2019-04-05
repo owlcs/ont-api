@@ -416,10 +416,23 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
     }
 
     @Override
-    public Stream<OntStatement> spec() {
+    public final Stream<OntStatement> spec() {
+        return Iter.asStream(listSpec());
+    }
+
+    public ExtendedIterator<OntStatement> listSpec() {
         RDFList list = getRDFList();
-        if (isEmpty(list)) return Stream.empty();
-        return createSafeRDFListStream(list.asNode()).flatMap(this::toListStatements);
+        if (isEmpty(list)) return NullIterator.instance();
+        return Iter.flatMap(createSafeRDFListIterator(list.asNode()), this::toListStatements);
+    }
+
+    public ExtendedIterator<OntStatement> listContent() {
+        return Iter.of(getRoot()).andThen(listSpec());
+    }
+
+    @Override
+    public final Stream<OntStatement> content() {
+        return Iter.asStream(listContent());
     }
 
     /**
@@ -435,9 +448,9 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
         return createRDFListIterator(list.asNode());
     }
 
-    protected Stream<List<Triple>> createSafeRDFListStream(Node list) {
-        return Iter.asStream(WrappedIterator.create(new SafeRDFListIterator(getModel().getGraph(), list)))
-                .filter(Objects::nonNull);
+    protected ExtendedIterator<List<Triple>> createSafeRDFListIterator(Node list) {
+        return WrappedIterator.create(new SafeRDFListIterator(getModel().getGraph(), list))
+                .filterKeep(Objects::nonNull);
     }
 
     @SuppressWarnings("unused")
@@ -449,12 +462,12 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
         return WrappedIterator.create(new RDFListIterator(getModel().getGraph(), list));
     }
 
-    protected Stream<OntStatement> toListStatements(List<Triple> triples) {
+    protected ExtendedIterator<OntStatement> toListStatements(List<Triple> triples) {
         OntGraphModelImpl m = getModel();
         if (listType != null) {
-            return Stream.of(createRDFType(m, triples, listType), createRDFFirst(m, triples), createRDFRest(m, triples));
+            return Iter.of(createRDFType(m, triples, listType), createRDFFirst(m, triples), createRDFRest(m, triples));
         }
-        return Stream.of(createRDFFirst(m, triples), createRDFRest(m, triples));
+        return Iter.of(createRDFFirst(m, triples), createRDFRest(m, triples));
     }
 
     /**

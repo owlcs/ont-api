@@ -41,7 +41,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Stream;
 
 import static ru.avicomp.ontapi.jena.impl.WrappedFactoryImpl.of;
@@ -674,8 +673,8 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         }
 
         @Override
-        public Stream<OntStatement> spec() {
-            return Stream.concat(super.spec(), required(OWL.hasSelf));
+        public ExtendedIterator<OntStatement> listSpec() {
+            return Iter.concat(super.listSpec(), listRequired(OWL.hasSelf));
         }
 
         @Override
@@ -690,8 +689,8 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         }
 
         @Override
-        public Stream<OntStatement> spec() {
-            return Stream.concat(super.spec(), required(OWL.complementOf));
+        public ExtendedIterator<OntStatement> listSpec() {
+            return Iter.concat(super.listSpec(), listRequired(OWL.complementOf));
         }
 
         @Override
@@ -757,12 +756,12 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         }
 
         @Override
-        public Stream<OntStatement> spec() {
-            return Stream.concat(super.spec(), getList().content());
+        public ExtendedIterator<OntStatement> listSpec() {
+            return Iter.concat(super.listSpec(), getList().listContent());
         }
 
         @Override
-        public OntList<O> getList() {
+        public OntListImpl<O> getList() {
             return OntListImpl.asSafeOntList(getRequiredObject(predicate, RDFList.class),
                     getModel(), this, predicate, null, type);
         }
@@ -809,10 +808,9 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         }
 
         @Override
-        public Stream<OntStatement> spec() {
-            return Stream.concat(super.spec(), required(OWL.onProperty));
+        public ExtendedIterator<OntStatement> listSpec() {
+            return Iter.concat(super.listSpec(), listRequired(OWL.onProperty));
         }
-
     }
 
     /**
@@ -845,12 +843,12 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         }
 
         @Override
-        public Stream<OntStatement> spec() {
-            return spec(true);
+        public ExtendedIterator<OntStatement> listSpec() {
+            return listSpec(true);
         }
 
-        protected Stream<OntStatement> spec(boolean requireObject) {
-            return requireObject ? Stream.concat(super.spec(), required(predicate)) : super.spec();
+        protected ExtendedIterator<OntStatement> listSpec(boolean requireObject) {
+            return requireObject ? Iter.concat(super.listSpec(), listRequired(predicate)) : super.listSpec();
         }
 
         @Override
@@ -895,10 +893,10 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         }
 
         @Override
-        public Stream<OntStatement> spec() {
+        public ExtendedIterator<OntStatement> listSpec() {
             // note: object value <O> is null for non-qualified restrictions.
             boolean q;
-            return Stream.concat(super.spec(q = isQualified()), required(getCardinalityPredicate(q)));
+            return Iter.concat(super.listSpec(q = isQualified()), listRequired(getCardinalityPredicate(q)));
         }
 
         @Override
@@ -974,12 +972,12 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         }
 
         @Override
-        public Stream<OntStatement> spec() {
-            return Stream.of(super.spec(), required(predicate), getList().content()).flatMap(Function.identity());
+        public ExtendedIterator<OntStatement> listSpec() {
+            return Iter.concat(super.listSpec(), listRequired(predicate), getList().listContent());
         }
 
         @Override
-        public OntList<P> getList() {
+        public OntListImpl<P> getList() {
             return OntListImpl.asSafeOntList(getRequiredObject(OWL.onProperties, RDFList.class), getModel(),
                     this, predicate, null, propertyType);
         }

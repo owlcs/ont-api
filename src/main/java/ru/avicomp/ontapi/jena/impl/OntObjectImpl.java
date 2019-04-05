@@ -21,6 +21,7 @@ import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.shared.PropertyNotFoundException;
 import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.util.iterator.NullIterator;
 import org.apache.jena.util.iterator.WrappedIterator;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.conf.ObjectFactory;
@@ -36,7 +37,6 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import java.util.*;
 import java.util.function.BooleanSupplier;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -198,7 +198,6 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
         listChildren.apply(object).forEachRemaining(c -> collectIndirect(c, listChildren, res));
     }
 
-
     /**
      * {@inheritDoc}
      *
@@ -225,8 +224,42 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @return Stream of {@link OntStatement}s
      */
     @Override
-    public Stream<OntStatement> spec() {
-        return findRootStatement().map(Stream::of).orElse(Stream.empty());
+    public final Stream<OntStatement> spec() {
+        return Iter.asStream(listSpec());
+    }
+
+    /**
+     * Lists all object's characteristic statements according to its OWL2 specification.
+     *
+     * @return {@code ExtendedIterator} of {@link OntStatement}s
+     * @since 1.4.0
+     */
+    public ExtendedIterator<OntStatement> listSpec() {
+        return findRootStatement().map(Iter::of).orElse(NullIterator.instance());
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @return <b>distinct</b> Stream of {@link OntStatement}s
+     */
+    @Override
+    public final Stream<OntStatement> content() {
+        return getContent().stream();
+    }
+
+    /**
+     * Gets the content of the object, i.e. its all characteristic statements (see {@link #listSpec()}),
+     * plus all the additional statements in which this object is the subject,
+     * excluding those of them whose predicate is an annotation property.
+     *
+     * @return {@code Set} of {@link OntStatement}s
+     * @since 1.4.0
+     */
+    public Set<OntStatement> getContent() {
+        Set<OntStatement> res = listSpec().toSet();
+        listStatements().filterDrop(OntStatement::isAnnotation).forEachRemaining(res::add);
+        return res;
     }
 
     /**
@@ -239,17 +272,6 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     public Optional<OntStatement> findRootStatement() {
         return Iter.findFirst(listObjects(RDF.type))
                 .map(o -> getModel().createStatement(this, RDF.type, o).asRootStatement());
-    }
-
-    /**
-     * {@inheritDoc}
-     *
-     * @return <b>distinct</b> Stream of {@link OntStatement}s
-     */
-    @Override
-    public Stream<OntStatement> content() {
-        return Stream.concat(spec(), statements().filter(x -> !x.isAnnotation()).collect(Collectors.toSet()).stream())
-                .distinct();
     }
 
     /**
@@ -294,9 +316,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      */
     @Override
     public Optional<OntStatement> statement(Property property) {
-        try (Stream<OntStatement> res = statements(property)) {
-            return res.findFirst();
-        }
+        return Iter.findFirst(listStatements(property));
     }
 
     /**
@@ -308,9 +328,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      */
     @Override
     public Optional<OntStatement> statement(Property property, RDFNode value) {
-        try (Stream<OntStatement> res = getModel().statements(this, property, value)) {
-            return res.findFirst();
-        }
+        return Iter.findFirst(getModel().listOntStatements(this, property, value));
     }
 
     /**
@@ -325,17 +343,17 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      */
     @Override
     public OntStatement getRequiredProperty(Property property) throws PropertyNotFoundException {
-        return Iter.findFirst(listStatements(property)).orElseThrow(() -> new PropertyNotFoundException(property));
+        return statement(property).orElseThrow(() -> new PropertyNotFoundException(property));
     }
 
     /**
      * Lists all statements for the given predicates and this ontology object as subject.
      *
      * @param properties Array of {@link Property properties}
-     * @return Stream of {@link OntStatement}s
+     * @return {@code ExtendedIterator} of {@link OntStatement}s
      */
-    protected Stream<OntStatement> required(Property... properties) {
-        return Arrays.stream(properties).map(this::getRequiredProperty);
+    protected ExtendedIterator<OntStatement> listRequired(Property... properties) {
+        return Iter.of(properties).mapWith(this::getRequiredProperty);
     }
 
     @Override
@@ -537,7 +555,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     @Override
     public OntObjectImpl clearAnnotations() {
         // for built-ins
-        assertions().peek(OntStatement::clearAnnotations).collect(Collectors.toSet())
+        Iter.peek(listAssertions(), OntStatement::clearAnnotations).toSet()
                 .forEach(a -> getModel().remove(a));
         // for others
         findRootStatement().ifPresent(OntStatement::clearAnnotations);
@@ -549,6 +567,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      *
      * @param predicate Property
      */
+    @SuppressWarnings("unused")
     public void clearAll(Property predicate) {
         listProperties(predicate).mapWith(Statement::getObject)
                 .filterKeep(n -> n.canAs(RDFList.class))
@@ -636,7 +655,6 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
                 .mapWith(s -> m.findNodeAs(s.getSubject().asNode(), type))
                 .filterDrop(Objects::isNull);
     }
-
 
     /**
      * Lists all objects for the given predicate.
