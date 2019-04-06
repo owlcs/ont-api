@@ -14,13 +14,18 @@
 
 package ru.avicomp.ontapi.tests.jena;
 
+import org.apache.jena.graph.Factory;
 import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.GraphStatisticsHandler;
+import org.apache.jena.graph.Node;
+import org.apache.jena.shared.PrefixMapping;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.avicomp.ontapi.NoOpReadWriteLock;
 import ru.avicomp.ontapi.internal.AxiomParserProvider;
 import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.jena.OntModelFactory;
@@ -35,11 +40,9 @@ import ru.avicomp.ontapi.utils.ReadWriteUtils;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -63,17 +66,16 @@ public class RWLockedGraphTest {
 
     private static void testRace(OntGraphModel m) throws ExecutionException, InterruptedException {
         AtomicBoolean process = new AtomicBoolean(true);
-        int threads = THREADS_NUM_1 + THREADS_NUM_2;
-        ExecutorService service = Executors.newFixedThreadPool(threads);
+        int threads = THREADS_NUM_1 + THREADS_NUM_2 + 1;
+        ScheduledExecutorService service = Executors.newScheduledThreadPool(threads);
         List<Future<?>> res = new ArrayList<>();
         LOGGER.debug("Start racing");
         for (int i = 0; i < THREADS_NUM_1; i++)
             res.add(service.submit(toTask(m, process, RWLockedGraphTest::listAxiomsAndModifyClasses)));
         for (int i = 0; i < THREADS_NUM_2; i++)
             res.add(service.submit(toTask(m, process, RWLockedGraphTest::modifyClassesAndListClasses)));
+        service.schedule(() -> process.set(false), TIMEOUT, TimeUnit.MILLISECONDS);
         service.shutdown();
-        Thread.sleep(TIMEOUT);
-        process.set(false);
         for (Future<?> f : res) {
             f.get();
         }
@@ -134,7 +136,7 @@ public class RWLockedGraphTest {
     }
 
     @Test
-    public void testRace() throws Exception {
+    public void testRaceModifyAndList() throws Exception {
         Graph g = loadPizza();
         Graph gg = new RWLockedGraph(g, new ReentrantReadWriteLock());
         OntGraphModel m = OntModelFactory.createModel(gg);
@@ -142,5 +144,49 @@ public class RWLockedGraphTest {
         testRace(m);
         Instant e = Instant.now();
         LOGGER.debug("Duration: {}", Duration.between(s, e));
+    }
+
+    @Test
+    public void testConcurrentPrefixes() throws ExecutionException, InterruptedException {
+        PrefixMapping pm = new RWLockedGraph(Factory.createGraphMem(), new ReentrantReadWriteLock()).getPrefixMapping();
+        ExecutorService service = Executors.newScheduledThreadPool(3);
+        List<Future<?>> res = new ArrayList<>();
+        for (int i = 0; i < THREADS_NUM_1; i++) {
+            res.add(service.submit(() -> {
+                String pref = Thread.currentThread().getName();
+                pm.setNsPrefix(pref + "1", "a");
+                pm.setNsPrefix(pref + "2", "b");
+                Assert.assertTrue(pm.numPrefixes() >= 2);
+                pm.removeNsPrefix(pref + "1");
+                Assert.assertTrue(pm.numPrefixes() >= 1);
+                pm.removeNsPrefix(pref + "2");
+                Assert.assertTrue(pm.numPrefixes() >= 0);
+            }));
+        }
+        AtomicInteger index = new AtomicInteger();
+        for (int i = 0; i < THREADS_NUM_2; i++) {
+            res.add(service.submit(() -> {
+                String pref = "p" + index.incrementAndGet();
+                pm.setNsPrefix(pref, "a");
+                pm.getNsPrefixMap();
+            }));
+        }
+        service.shutdown();
+        for (Future<?> f : res) {
+            f.get();
+        }
+        LOGGER.debug("{}", pm);
+        Assert.assertFalse(pm.hasNoMappings());
+        Assert.assertEquals(THREADS_NUM_2, pm.numPrefixes());
+    }
+
+    @Test
+    public void testGraphStatisticHandler() {
+        RWLockedGraph g = new RWLockedGraph(loadPizza(), NoOpReadWriteLock.NO_OP_RW_LOCK);
+        GraphStatisticsHandler gsh = g.getStatisticsHandler();
+        int size = g.size();
+        LOGGER.debug("Total size: {}", size);
+        Assert.assertEquals(size, g.get().getStatisticsHandler().getStatistic(Node.ANY, Node.ANY, Node.ANY));
+        Assert.assertEquals(size, gsh.getStatistic(Node.ANY, Node.ANY, Node.ANY));
     }
 }

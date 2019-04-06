@@ -15,10 +15,13 @@
 package ru.avicomp.ontapi.jena;
 
 import org.apache.jena.graph.*;
+import org.apache.jena.graph.impl.SimpleEventManager;
+import org.apache.jena.graph.impl.SimpleTransactionHandler;
 import org.apache.jena.mem.GraphMem;
 import org.apache.jena.shared.AddDeniedException;
 import org.apache.jena.shared.DeleteDeniedException;
 import org.apache.jena.shared.PrefixMapping;
+import org.apache.jena.shared.impl.PrefixMappingImpl;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.util.iterator.FilterIterator;
 import org.apache.jena.util.iterator.WrappedIterator;
@@ -30,11 +33,12 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
  * A {@code Graph} Wrapper with {@link ReadWriteLock} inside (that is the OWL-API synchronization style).
- * There is also an additional synchronization type that ensures the thread-safety of using iterators.
+ * There is also an additional other type of synchronization that ensures thread-safety of using iterators.
  * This is necessary since {@link Iterator iterator}s are lazy in nature.
  * <p>
  * Note: the current implementation may temporarily put the iterator data in memory,
@@ -47,6 +51,9 @@ import java.util.stream.Collectors;
  * For example, constructing an {@link ru.avicomp.ontapi.jena.model.OntClass OWL Class} may be failed,
  * since the root triple {@code _:x rdf:type owl:Class} may be deleted by another thread
  * immediately after retrieving it.
+ * <p>
+ * Note: currently this {@code Graph} does not support transactions.
+ * I.e. the method {@link TransactionHandler#transactionsSupported()} returns {@code false}.
  * <p>
  * Created by @szuev on 07.04.2017.
  */
@@ -69,31 +76,63 @@ public class RWLockedGraph implements Graph {
      * since it is possible that some iterator was simply forgotten.
      */
     protected final Collection<WIT<?>> iterators = Collections.newSetFromMap(new WeakHashMap<>());
+    /**
+     * {@link GraphEventManager}, cannot be {@code null}
+     */
+    protected final GraphEventManager gem;
 
     /**
-     * Constructs a new {@link RWLockedGraph Read/Write Locked Graph Wrapper}.
+     * Constructs a new {@link RWLockedGraph Read/Write Locked Graph Wrapper}
+     * with {@link SimpleEventManager} and {@link #delay delay} equaled to {@code 500}ms.
      *
      * @param base {@link Graph}, not {@code null}
      * @param lock {@link ReadWriteLock}, not {@code null}
+     * @throws RuntimeException if any input parameter is wrong
      */
     public RWLockedGraph(Graph base, ReadWriteLock lock) {
         this(base, lock, 500);
     }
 
     /**
-     * Constructs a new {@link RWLockedGraph Read/Write Locked Graph Wrapper}.
+     * Constructs a new {@link RWLockedGraph Read/Write Locked Graph Wrapper} with {@link SimpleEventManager},
+     * that currently (at the time of writing the jena version is <b>3.10.0</b>)
+     * uses {@link java.util.concurrent.CopyOnWriteArrayList}
+     * and, therefore, seems to be thread safe, at least if it is used only to register/unregister listeners.
      *
      * @param base                {@link Graph}, not {@code null}
      * @param lock                {@link ReadWriteLock}, not {@code null}
      * @param delayInMilliseconds long, positive number
-     * @throws RuntimeException if wrong input parameters
+     * @throws RuntimeException if any input parameter is wrong
      */
     public RWLockedGraph(Graph base, ReadWriteLock lock, long delayInMilliseconds) {
+        this(base, lock, delayInMilliseconds, new SimpleEventManager());
+    }
+
+    /**
+     * The base constructor.
+     *
+     * @param base                {@link Graph}, not {@code null}
+     * @param lock                {@link ReadWriteLock}, not {@code null}
+     * @param delayInMilliseconds long, positive number
+     * @param gem                 {@link GraphEventManager}, not {@code null}
+     * @throws RuntimeException if any input parameter is wrong
+     */
+    protected RWLockedGraph(Graph base, ReadWriteLock lock, long delayInMilliseconds, GraphEventManager gem) {
         this.base = Objects.requireNonNull(base, "Null base graph");
         this.lock = Objects.requireNonNull(lock, "Null lock");
+        this.gem = Objects.requireNonNull(gem, "Null event manager");
         if (delayInMilliseconds <= 0)
             throw new IllegalArgumentException("Non-positive delay specified.");
         this.delay = delayInMilliseconds;
+    }
+
+    /**
+     * Returns the current time in milliseconds to use as timestamp inside {@link WIT}-iterators.
+     *
+     * @return long
+     */
+    public static long currentTimeInMilliSeconds() {
+        return System.currentTimeMillis();
     }
 
     public Graph get() {
@@ -201,22 +240,12 @@ public class RWLockedGraph implements Graph {
 
     @Override
     public boolean contains(Node s, Node p, Node o) {
-        lock.readLock().lock();
-        try {
-            return base.contains(s, p, o);
-        } finally {
-            lock.readLock().unlock();
-        }
+        return withReadLock(() -> base.contains(s, p, o));
     }
 
     @Override
     public boolean contains(Triple t) {
-        lock.readLock().lock();
-        try {
-            return base.contains(t);
-        } finally {
-            lock.readLock().unlock();
-        }
+        return withReadLock(() -> base.contains(t));
     }
 
     @Override
@@ -271,85 +300,55 @@ public class RWLockedGraph implements Graph {
 
     @Override
     public int size() {
-        lock.readLock().lock();
-        try {
-            return base.size();
-        } finally {
-            lock.readLock().unlock();
-        }
+        return withReadLock(base::size);
     }
 
     @Override
     public boolean isClosed() {
-        lock.readLock().lock();
-        try {
-            return base.isClosed();
-        } finally {
-            lock.readLock().unlock();
-        }
+        return withReadLock(base::isClosed);
     }
 
     @Override
     public Capabilities getCapabilities() {
-        lock.readLock().lock();
-        try {
-            return base.getCapabilities();
-        } finally {
-            lock.readLock().unlock();
-        }
+        return base.getCapabilities();
     }
 
     @Override
     public TransactionHandler getTransactionHandler() {
-        lock.readLock().lock();
-        try {
-            // todo: not thread-safe
-            return base.getTransactionHandler();
-        } finally {
-            lock.readLock().unlock();
-        }
+        return new SimpleTransactionHandler();
     }
 
     @Override
     public GraphEventManager getEventManager() {
-        lock.readLock().lock();
-        try {
-            // todo: not thread-safe
-            return base.getEventManager();
-        } finally {
-            lock.readLock().unlock();
-        }
+        return gem;
     }
 
     @Override
     public GraphStatisticsHandler getStatisticsHandler() {
-        lock.readLock().lock();
-        try {
-            // todo: not thread-safe
-            return base.getStatisticsHandler();
-        } finally {
-            lock.readLock().unlock();
-        }
+        return (s, p, o) -> withReadLock(() -> base.getStatisticsHandler().getStatistic(s, p, o));
     }
 
     @Override
     public PrefixMapping getPrefixMapping() {
-        lock.readLock().lock();
+        return new WPM();
+    }
+
+    protected <X> X withWriteLock(Supplier<X> op) {
+        lock.writeLock().lock();
         try {
-            // todo: not thread-safe
-            return base.getPrefixMapping();
+            return op.get();
         } finally {
-            lock.readLock().unlock();
+            lock.writeLock().unlock();
         }
     }
 
-    /**
-     * Returns the current time in milliseconds to use as timestamp inside {@link WIT}-iterators.
-     *
-     * @return long
-     */
-    public static long currentTimeInMilliSeconds() {
-        return System.currentTimeMillis();
+    protected <X> X withReadLock(Supplier<X> op) {
+        lock.readLock().lock();
+        try {
+            return op.get();
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 
     /**
@@ -389,7 +388,7 @@ public class RWLockedGraph implements Graph {
      * Selects the oldest iterator.
      *
      * @param iterators {@link Collection}
-     * @return {@code Optional} around {@link WIT}
+     * @return {@code Optional} around {@link WIT}s
      * @see #delay
      */
     protected Optional<WIT<?>> selectOldestIterator(Collection<WIT<?>> iterators) {
@@ -401,7 +400,7 @@ public class RWLockedGraph implements Graph {
     /**
      * Returns iterators that were created by other threads.
      *
-     * @return {@code Collection} of {@link WIT}
+     * @return {@code Collection} of {@link WIT}s
      */
     protected Collection<WIT<?>> findOtherIterators() {
         synchronized (iterators) {
@@ -434,13 +433,14 @@ public class RWLockedGraph implements Graph {
     }
 
     /**
-     * A {@code WrappedIterator} with timestamp and possibility to change base iterator.
+     * A {@code WrappedIterator} with timestamp and possibility to change the base iterator.
      *
      * @param <X> anything
+     * @since 1.4.0
      */
     public class WIT<X> extends WrappedIterator<X> {
-        protected volatile ExtendedIterator<X> base;
         protected final Thread thread;
+        protected volatile ExtendedIterator<X> base;
         protected long timestamp;
 
         protected WIT(ExtendedIterator<X> base) {
@@ -487,11 +487,16 @@ public class RWLockedGraph implements Graph {
         @Override
         public boolean hasNext() {
             refreshTimestamp();
-            boolean res = base().hasNext();
-            if (!res) {
+            try {
+                boolean res = base().hasNext();
+                if (!res) {
+                    deleteFromCollection();
+                }
+                return res;
+            } catch (Exception e) {
                 deleteFromCollection();
+                throw e;
             }
-            return res;
         }
 
         @Override
@@ -499,7 +504,7 @@ public class RWLockedGraph implements Graph {
             refreshTimestamp();
             try {
                 return base().next();
-            } catch (NoSuchElementException e) {
+            } catch (Exception e) {
                 deleteFromCollection();
                 throw e;
             }
@@ -582,6 +587,101 @@ public class RWLockedGraph implements Graph {
             } finally {
                 deleteFromCollection();
             }
+        }
+    }
+
+    /**
+     * A wrapper for {@link PrefixMapping}.
+     *
+     * @since 1.4.0
+     */
+    protected class WPM implements PrefixMapping {
+        private final PrefixMapping pm;
+
+        protected WPM() {
+            this.pm = Objects.requireNonNull(base.getPrefixMapping());
+        }
+
+        @Override
+        public PrefixMapping setNsPrefix(String prefix, String uri) {
+            return withWriteLock(() -> pm.setNsPrefix(prefix, uri));
+        }
+
+        @Override
+        public PrefixMapping removeNsPrefix(String prefix) {
+            return withWriteLock(() -> pm.removeNsPrefix(prefix));
+        }
+
+        @Override
+        public PrefixMapping clearNsPrefixMap() {
+            return withWriteLock(pm::clearNsPrefixMap);
+        }
+
+        @Override
+        public PrefixMapping setNsPrefixes(PrefixMapping other) {
+            return withWriteLock(() -> pm.setNsPrefixes(other));
+        }
+
+        @Override
+        public PrefixMapping setNsPrefixes(Map<String, String> map) {
+            return withWriteLock(() -> pm.setNsPrefixes(map));
+        }
+
+        @Override
+        public PrefixMapping withDefaultMappings(PrefixMapping map) {
+            return withWriteLock(() -> pm.withDefaultMappings(map));
+        }
+
+        @Override
+        public PrefixMapping lock() {
+            return withWriteLock(pm::lock);
+        }
+
+        @Override
+        public String getNsPrefixURI(String prefix) {
+            return withReadLock(() -> pm.getNsPrefixURI(prefix));
+        }
+
+        @Override
+        public String getNsURIPrefix(String uri) {
+            return withReadLock(() -> pm.getNsURIPrefix(uri));
+        }
+
+        @Override
+        public Map<String, String> getNsPrefixMap() {
+            return withReadLock(pm::getNsPrefixMap);
+        }
+
+        @Override
+        public String expandPrefix(String prefixed) {
+            return withReadLock(() -> pm.expandPrefix(prefixed));
+        }
+
+        @Override
+        public String shortForm(String uri) {
+            return withReadLock(() -> pm.shortForm(uri));
+        }
+
+        @Override
+        public String qnameFor(String uri) {
+            return withReadLock(() -> pm.qnameFor(uri));
+        }
+
+        @Override
+        public int numPrefixes() {
+            return withReadLock(pm::numPrefixes);
+        }
+
+        @Override
+        public boolean samePrefixMappingAs(PrefixMapping other) {
+            return withReadLock(() -> pm.samePrefixMappingAs(other));
+        }
+
+        @Override
+        public String toString() {
+            if (pm instanceof PrefixMappingImpl)
+                return withReadLock(pm::toString);
+            return super.toString();
         }
     }
 
