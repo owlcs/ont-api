@@ -132,12 +132,14 @@ public class NoCacheObjectFactory implements InternalObjectFactory {
         DataFactory df = getOWLDataFactory();
         OWLLiteral owl = df.getOWLLiteral(literal.asNode().getLiteral());
         ONTObject<OWLLiteral> res = ONTObject.create(owl);
-        OntDT dt = literal.getModel().getResource(literal.getDatatypeURI()).as(OntDT.class);
-        if (!dt.isBuiltIn()) {
-            if (owl instanceof OWLLiteralImpl) {
-                ((OWLLiteralImpl) owl).putOWLDatatype(get(dt).getObject());
+        OntGraphModel m = (OntGraphModel) literal.getModel();
+        OntDT jdt = m.getDatatype(literal);
+        if (!jdt.isBuiltIn()) {
+            ONTObject<OWLDatatype> odt = get(jdt);
+            if (owl instanceof OWLLiteralImpl) { // force cache dt:
+                ((OWLLiteralImpl) owl).putOWLDatatype(odt.getObject());
             }
-            return res.append(get(dt));
+            return res.append(odt);
         }
         return res;
     }

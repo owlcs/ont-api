@@ -26,8 +26,8 @@ import ru.avicomp.ontapi.jena.utils.Models;
 import java.util.Collection;
 
 /**
- * property that belongs to individual.
- * individual could be anonymous!
+ * Translator Impl for a data property assertion axioms that belongs to individual.
+ * The pattern is {@code a R v}.
  * <p>
  * Created by @szuev on 28.09.2016.
  */
@@ -41,7 +41,7 @@ public class DataPropertyAssertionTranslator extends AxiomTranslator<OWLDataProp
      * Lists positive data property assertions: the rule {@code a R v}.
      * See <a href='https://www.w3.org/TR/owl2-quick-reference/'>Assertions</a>
      *
-     * @param model {@link OntGraphModel} the model
+     * @param model  {@link OntGraphModel} the model
      * @param config {@link InternalConfig}
      * @return {@link ExtendedIterator} of {@link OntStatement}s
      */
@@ -52,20 +52,22 @@ public class DataPropertyAssertionTranslator extends AxiomTranslator<OWLDataProp
 
     @Override
     public boolean testStatement(OntStatement statement, InternalConfig config) {
-        return statement.isData()
-                && statement.getObject().isLiteral()
+        return statement.getObject().isLiteral()
+                && statement.isData()
                 && statement.getSubject().canAs(OntIndividual.class);
     }
 
     @Override
-    public ONTObject<OWLDataPropertyAssertionAxiom> toAxiom(OntStatement statement, InternalObjectFactory reader, InternalConfig config) {
+    public ONTObject<OWLDataPropertyAssertionAxiom> toAxiom(OntStatement statement,
+                                                            InternalObjectFactory reader,
+                                                            InternalConfig config) {
         ONTObject<? extends OWLIndividual> i = reader.get(statement.getSubject(OntIndividual.class));
         ONTObject<OWLDataProperty> p = reader.get(statement.getPredicate().as(OntNDP.class));
-        ONTObject<OWLLiteral> l = reader.get(statement.getObject().asLiteral());
+        ONTObject<OWLLiteral> literal = reader.get(statement.getLiteral());
         Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLDataPropertyAssertionAxiom res = reader.getOWLDataFactory()
-                .getOWLDataPropertyAssertionAxiom(p.getObject(), i.getObject(), l.getObject(),
+                .getOWLDataPropertyAssertionAxiom(p.getObject(), i.getObject(), literal.getObject(),
                         ONTObject.extract(annotations));
-        return ONTObject.create(res, statement).append(annotations).append(i).append(p).append(l);
+        return ONTObject.create(res, statement).append(annotations).append(i).append(p).append(literal);
     }
 }
