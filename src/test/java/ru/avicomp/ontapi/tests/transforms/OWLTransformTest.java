@@ -57,6 +57,31 @@ public class OWLTransformTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(OWLTransformTest.class);
 
     @Test
+    public void testNCBITAXONTransform() throws OWLOntologyCreationException {
+        OWLOntologyDocumentSource src = ReadWriteUtils.getDocumentSource("/ontapi/NCBITAXON-CUT.ttl", OntFormat.TURTLE);
+        OWLOntologyManager m = OntManagers.createONT();
+        OWLOntology o = m.loadOntologyFromOntologyDocument(src);
+
+        TestUtils.assertAxiom(o, AxiomType.TRANSITIVE_OBJECT_PROPERTY, 3);
+        TestUtils.assertAxiom(o, AxiomType.FUNCTIONAL_OBJECT_PROPERTY, 1);
+        TestUtils.assertAxiom(o, AxiomType.SYMMETRIC_OBJECT_PROPERTY, 4);
+        TestUtils.assertAxiom(o, AxiomType.INVERSE_OBJECT_PROPERTIES, 4);
+
+        TestUtils.assertAxiom(o, AxiomType.OBJECT_PROPERTY_RANGE, 6);
+        TestUtils.assertAxiom(o, AxiomType.OBJECT_PROPERTY_DOMAIN, 5);
+        TestUtils.assertAxiom(o, AxiomType.SUB_OBJECT_PROPERTY, 15);
+        TestUtils.assertAxiom(o, AxiomType.SUB_ANNOTATION_PROPERTY_OF, 9);
+
+        TestUtils.assertAxiom(o, AxiomType.DATA_PROPERTY_ASSERTION, 2913);
+        TestUtils.assertAxiom(o, AxiomType.ANNOTATION_ASSERTION, 3139);
+
+        TestUtils.assertAxiom(o, AxiomType.SUBCLASS_OF, 3);
+        TestUtils.assertAxiom(o, AxiomType.DISJOINT_CLASSES, 3);
+        // 1011 without named individuals:
+        TestUtils.assertAxiom(o, AxiomType.DECLARATION, 1984);
+    }
+
+    @Test
     public void testOWL11OntologyWithTransform() throws Exception {
         OWLOntologyDocumentSource src = ReadWriteUtils.getDocumentSource("/owlapi/owl11/family/family.owl",
                 OntFormat.RDF_XML);

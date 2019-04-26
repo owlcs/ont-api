@@ -80,6 +80,10 @@ public abstract class BaseDeclarator extends Transform {
         return builtins.classes().contains(candidate) || hasType(candidate, OWL.Class) || hasType(candidate, OWL.Restriction);
     }
 
+    protected boolean isClass(Resource candidate) {
+        return (candidate.isURIResource() && hasType(candidate, OWL.Class)) || builtins.classes().contains(candidate);
+    }
+
     protected boolean isDataRange(Resource candidate) {
         return builtins.datatypes().contains(candidate) || hasType(candidate, RDFS.Datatype);
     }

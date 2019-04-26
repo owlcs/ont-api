@@ -67,8 +67,8 @@ public class GraphTransformersTest {
 
     @Test
     public void testLoadSpinLibraryWithTransformation() throws Exception {
-        int axiomsCountSPINMAPL = 902;//856;
-        int axiomsCountTotal = 7796; //7625;
+        int axiomsCountSPINMAPL = 895;//902;//856;
+        int axiomsCountTotal = 7685; //7796; //7625;
 
         OntologyManager m = OntManagers.createONT();
         // Setup spin manager:

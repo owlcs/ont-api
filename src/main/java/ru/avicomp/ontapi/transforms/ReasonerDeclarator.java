@@ -130,13 +130,15 @@ public class ReasonerDeclarator extends BaseDeclarator {
         parseDataAndObjectRestrictions();
         parsePropertyDomains();
         parseRanges();
-        parsePropertyAssertions();
 
         parseEquivalentClasses();
         parseUnionAndIntersectionClassExpressions();
         parseEquivalentAndDisjointProperties();
         parseAllDisjointProperties();
         parseSubProperties();
+
+        // last, since it traverses over whole graph
+        parsePropertyAssertions();
     }
 
     protected Set<Statement> parseTail() {
@@ -295,7 +297,7 @@ public class ReasonerDeclarator extends BaseDeclarator {
 
             @Override
             protected void parsePropertyAssertions() {
-                listStatements(null, null, null)
+                listStatements(null, null, null) // everything!
                         .filterDrop(s -> builtins.reservedProperties().contains(s.getPredicate()))
                         .forEachRemaining(this::parse);
             }
@@ -321,27 +323,27 @@ public class ReasonerDeclarator extends BaseDeclarator {
                 return Res.TRUE;
             }
             if (mustBeDataOrObjectProperty(property)) {
-                declareDataProperty(property);
-                declareIndividual(subject);
+                declareDataProperty(property).declareIndividual(subject);
+                return Res.TRUE;
+            }
+            if (isClass(subject)) {
+                // empirically workaround for NCBITAXON (issue #67)
+                declareIndividual(subject).declareAnnotationProperty(property);
                 return Res.TRUE;
             }
         } else {
             Resource object = right.asResource();
             if (isIndividual(object) || canBeIndividual(object)) {  // object property assertion ("a1 PN a2")
                 if (isObjectPropertyExpression(property)) {
-                    declareIndividual(subject);
-                    declareIndividual(object);
+                    declareIndividual(subject).declareIndividual(object);
                     return Res.TRUE;
                 }
                 if (isIndividual(subject)) {
-                    declareObjectProperty(property);
-                    declareIndividual(object);
+                    declareObjectProperty(property).declareIndividual(object);
                     return Res.TRUE;
                 }
                 if (mustBeDataOrObjectProperty(property)) {
-                    declareObjectProperty(property);
-                    declareIndividual(subject);
-                    declareIndividual(object);
+                    declareObjectProperty(property).declareIndividual(subject).declareIndividual(object);
                     return Res.TRUE;
                 }
             }
