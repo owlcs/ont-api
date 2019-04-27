@@ -78,21 +78,22 @@ public interface OntObject extends OntResource {
     /**
      * Adds an ont-statement by attaching predicate and object (value) to this resource.
      *
-     * @param property {@link Property} predicate, not null
-     * @param value,   {@link RDFNode} object, not null
+     * @param property {@link Property} predicate, not {@code null}
+     * @param value,   {@link RDFNode} object, not {@code null}
      * @return {@link OntStatement}
      * @see Resource#addProperty(Property, RDFNode)
      */
     OntStatement addStatement(Property property, RDFNode value);
 
     /**
-     * Deletes an associated statement with given predicate and object, not caring about their annotations.
+     * Deletes the specific property-value pair, including all its annotation hierarchy, from this object.
      * No-op in case no match found.
      *
-     * @param property {@link Property} predicate, not null
-     * @param object   {@link RDFNode} object, not null
+     * @param property {@link Property} predicate, not {@code null}
+     * @param object   {@link RDFNode} object, not {@code null}
      * @return this object to allow cascading calls
      * @see #addStatement(Property, RDFNode)
+     * @see OntStatement#clearAnnotations()
      */
     OntObject remove(Property property, RDFNode object);
 

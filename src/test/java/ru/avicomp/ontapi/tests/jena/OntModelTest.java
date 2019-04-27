@@ -926,5 +926,24 @@ public class OntModelTest {
         Assert.assertEquals(5, i1.listClasses(false).count());
     }
 
+    @Test
+    public void testRemoveStatement() {
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntClass c = m.createOntClass("c");
+        OntNDP d = m.createDataProperty("d");
+        OntStatement s = d.addDomain(c);
+        s.addAnnotation(m.getRDFSLabel(), "a1").addAnnotation(m.getRDFSComment(), "a2");
+        s.addAnnotation(m.getRDFSComment(), "a3");
+
+        ReadWriteUtils.print(m);
+        Assert.assertEquals(14, m.size());
+
+        d.removeDomain(c);
+        ReadWriteUtils.print(m);
+        Assert.assertEquals(2, m.size());
+
+        d.removeRange(c);
+        Assert.assertEquals(2, m.size());
+    }
 }
 
