@@ -230,7 +230,7 @@ public class OntModelTest {
         Assert.assertEquals(5, person.listHasKeys().findFirst().orElseThrow(AssertionError::new).members().count());
         Assert.assertEquals(numClasses, m.ontObjects(OntCE.class).distinct().count());
         Assert.assertEquals(statementsCount + 16, m.statements().count());
-        statement.deleteAnnotation(m.getRDFSComment());
+        Assert.assertNotNull(statement.deleteAnnotation(m.getRDFSComment()));
 
         Assert.assertEquals(statementsCount + 11, m.statements().count());
         person.clearHasKeys();
@@ -287,7 +287,7 @@ public class OntModelTest {
         m.createObjectProperty(ns + "o-p-3").createInverse().addComment("Anonymous property expression");
         m.createObjectProperty(ns + "o-p-4")
                 .addInverseOf(m.createObjectProperty(ns + "o-p-5"))
-                .addAnnotation(a1, m.createLiteral("inverse statement, not inverse-property"));
+                .annotate(a1, m.createLiteral("inverse statement, not inverse-property"));
         m.createDataProperty(ns + "d-p-1");
         m.createDataProperty(ns + "d-p-2").addAnnotation(a2, m.createLiteral("data-property"));
 

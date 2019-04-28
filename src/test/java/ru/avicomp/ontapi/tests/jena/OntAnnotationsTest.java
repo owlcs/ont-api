@@ -164,7 +164,7 @@ public class OntAnnotationsTest {
 
         disjointClasses.addLabel("label1", "en");
         disjointClasses.addLabel("comment", "kjpopo")
-                .addAnnotation(nap1, ResourceFactory.createTypedLiteral("some txt"));
+                .annotate(nap1, ResourceFactory.createTypedLiteral("some txt"));
         ReadWriteUtils.print(m);
         Assert.assertEquals("Expected two assertions", 2, disjointClasses.as(OntAnnotation.class).assertions().count());
         Assert.assertEquals("Expected two annotations", 2, disjointClasses.as(OntAnnotation.class)
@@ -334,7 +334,7 @@ public class OntAnnotationsTest {
         Assert.assertEquals(1, subPropertyOf.annotations().count());
         Assert.assertEquals(1, subPropertyOf.annotations().mapToLong(a -> a.annotations().count()).sum());
 
-        subPropertyOf.clearAnnotations();
+        Assert.assertSame(subPropertyOf, subPropertyOf.clearAnnotations());
         ReadWriteUtils.print(m);
         Assert.assertFalse(subPropertyOf.hasAnnotations());
         Assert.assertEquals(3, m.size());
@@ -479,8 +479,7 @@ public class OntAnnotationsTest {
         Assert.assertEquals(2, model.ontObjects(OntAnnotation.class).count());
         OntStatement base = model.statements(a, b, c).findFirst().orElseThrow(AssertionError::new);
         Assert.assertEquals(2, base.annotations().count());
-        base.addAnnotation(model.getRDFSLabel(), "com-1");
-        base.addAnnotation(model.getRDFSLabel(), "com-2");
+        base.annotate(model.getRDFSLabel(), "com-1").annotate(model.getRDFSLabel(), "com-2");
         ReadWriteUtils.print(m);
 
         Assert.assertEquals(an1, base.asAnnotationResource().orElseThrow(AssertionError::new));
@@ -570,8 +569,7 @@ public class OntAnnotationsTest {
     public void testCachedAnnotations() {
         OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntClass clazz = m.createOntClass("A");
-        clazz.getRoot().addAnnotation(m.getRDFSLabel(), "X");
-        clazz.getRoot().addAnnotation(m.getRDFSLabel(), "Y");
+        clazz.getRoot().annotate(m.getRDFSLabel(), "X").annotate(m.getRDFSLabel(), "Y");
         m.createResource(null, OWL.Axiom)
                 .addProperty(OWL.annotatedSource, clazz)
                 .addProperty(OWL.annotatedProperty, RDF.type)
@@ -647,7 +645,6 @@ public class OntAnnotationsTest {
                 .peek(x -> LOGGER.debug("Split second des: {}, {}", x, x.getBase())).count());
     }
 
-
     @Test
     public void testListAnnotationValues() {
         OntGraphModel m = OntModelFactory.createModel();
@@ -674,5 +671,29 @@ public class OntAnnotationsTest {
         Assert.assertEquals(0, c.annotationValues(m.getRDFSLabel(), "en-gb").count());
         Assert.assertEquals(1, c.annotationValues(m.getRDFSLabel(), "en").count());
         Assert.assertEquals(1, c.annotationValues(m.getRDFSLabel(), "ru").count());
+    }
+
+    @Test
+    public void testAddAnnotations() {
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntClass c = m.createOntClass("C");
+        OntStatement s2 = c.addSubClassOf(m.getOWLNothing());
+        OntStatement s1 = c.getRoot();
+
+        ReadWriteUtils.print(m);
+        Assert.assertTrue(s1.isRoot());
+        Assert.assertFalse(s2.isRoot());
+        Assert.assertFalse(s1.isBulkAnnotation());
+        Assert.assertFalse(s2.isBulkAnnotation());
+
+        OntStatement a1 = s1.addAnnotation(m.getRDFSComment(), "x");
+        ReadWriteUtils.print(m);
+        Assert.assertFalse(a1.isBulkAnnotation());
+        Assert.assertFalse(a1.isRoot());
+
+        OntStatement a2 = s2.addAnnotation(m.getRDFSComment(), "y");
+        ReadWriteUtils.print(m);
+        Assert.assertTrue(a2.isBulkAnnotation());
+        Assert.assertFalse(a2.isRoot());
     }
 }

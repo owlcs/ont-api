@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -55,7 +55,8 @@ public interface OntAnnotation extends OntObject {
     /**
      * Returns the annotations assertions attached to this annotation resource.
      * The annotation assertion is a statements with an {@link OntNAP annotation property} as predicate.
-     * The example above contains two such statements: {@code _:x rdfs:comment "some comment 1"} and {@code _:x rdfs:comment "some comment 2"@fr}.
+     * The example above contains two such statements:
+     * {@code _:x rdfs:comment "some comment 1"} and {@code _:x rdfs:comment "some comment 2"@fr}.
      *
      * @return Stream of annotation statements {@link OntStatement}s
      * @see OntObject#annotations()
@@ -82,7 +83,8 @@ public interface OntAnnotation extends OntObject {
 
     /**
      * Adds a new annotation assertion to this annotation resource.
-     * If this {@link OntAnnotation} contains annotation property assertion {@code this x y} and it does not have sub-annotations yet,
+     * If this {@link OntAnnotation} contains annotation property assertion {@code this x y}
+     * and it does not have sub-annotations yet,
      * the given annotation property {@code p} and value {@code v} will produce following {@link OntAnnotation} object:
      * <pre>{@code
      * _:x rdf:type              owl:Annotation .
@@ -91,14 +93,16 @@ public interface OntAnnotation extends OntObject {
      * _:x owl:annotatedProperty x .
      * _:x owl:annotatedTarget   y .
      * }</pre>
-     * and this method will return {@code _:x p v} triple wrapped as {@link OntStatement} to allow adding new sub-annotations.
+     * and this method will return {@code _:x p v} triple wrapped as {@link OntStatement}
+     * to allow adding subsequent sub-annotations.
      * If this annotation object already has a sub-annotation for the statement {@code this x y},
      * the new triple will be added to the existing anonymous resource.
      *
      * @param property {@link OntNAP}
      * @param value    {@link RDFNode}
-     * @return {@link OntStatement}
+     * @return {@link OntStatement} - an annotation assertion belonging to this object
      * @see OntStatement#addAnnotation(OntNAP, RDFNode)
+     * @see OntObject#addAnnotation(OntNAP, RDFNode)
      */
     @Override
     OntStatement addAnnotation(OntNAP property, RDFNode value);

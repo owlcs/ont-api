@@ -74,7 +74,7 @@ public class SWRLModelTest {
         OntSWRL.Atom.DataProperty atom4 = m.createDataPropertySWRLAtom(p, i2.as(OntSWRL.IArg.class), dArg2);
 
         OntSWRL.Imp imp = m.createSWRLImp(Collections.singletonList(atom1), Arrays.asList(atom2, atom3, atom4));
-        imp.addComment("This is SWRL Imp").addAnnotation(m.getRDFSLabel(), cl1.createIndividual());
+        imp.addComment("This is SWRL Imp").annotate(m.getRDFSLabel(), cl1.createIndividual());
 
         ReadWriteUtils.print(m);
 

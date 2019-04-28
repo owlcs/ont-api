@@ -239,9 +239,9 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
         OntJenaException.notNull(property, "Null property.");
         OntJenaException.notNull(value, "Null value.");
         if (isRootStatement()) {
-            model.add(getSubject(), OntJenaException.notNull(property, "Null property."),
-                    OntJenaException.notNull(value, "Null value."));
-            return getModel().createStatement(getSubject(), property, value);
+            OntStatement res = getModel().createStatement(getSubject(), property, value);
+            model.add(res);
+            return res;
         }
         return asAnnotationResource()
                 .orElseGet(() -> OntAnnotationImpl.createAnnotation(getModel(),
@@ -280,9 +280,10 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
     }
 
     @Override
-    public void clearAnnotations() {
+    public OntStatementImpl clearAnnotations() {
         Iter.peek(listAnnotations(), OntStatement::clearAnnotations).toSet()
                 .forEach(a -> deleteAnnotation(a.getPredicate().as(OntNAP.class), a.getObject()));
+        return this;
     }
 
     @Override
@@ -328,7 +329,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
     }
 
     @Override
-    public Stream<OntAnnotation> annotationResources() {
+    public final Stream<OntAnnotation> annotationResources() {
         return Iter.asStream(listAnnotationResources());
     }
 

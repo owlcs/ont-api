@@ -228,7 +228,7 @@ public class OntListTest {
         // following checking does not really belong to this test (https://github.com/avicomp/ont-api/issues/24):
         Assert.assertEquals(XSD.xdouble.getURI(), literal_z.getDatatypeURI());
 
-        p1.addSuperPropertyOf(p4, p4, p3, p2).addAnnotation(m.getRDFSLabel(), literal_x);
+        p1.addSuperPropertyOf(p4, p4, p3, p2).annotate(m.getRDFSLabel(), literal_x);
         debug(m);
         OntList<OntOPE> list = p1.listPropertyChains().findFirst().orElseThrow(AssertionError::new);
         Assert.assertEquals(literal_x, getSingleAnnotation(list).getLiteral());
@@ -243,19 +243,19 @@ public class OntListTest {
         Assert.assertEquals(literal_x, getSingleAnnotation(list).getLiteral());
         Assert.assertEquals(2, list.size());
         try {
-            list.get(1).getRoot().addAnnotation(m.getRDFSLabel(), literal_z);
+            list.get(1).getRoot().annotate(m.getRDFSLabel(), literal_z);
             Assert.fail("Possible to annotate sub-lists");
         } catch (OntJenaException.Unsupported j) {
             LOGGER.debug("Expected: {}", j.getMessage());
         }
 
-        getSingleAnnotation(list).addAnnotation(m.getRDFSLabel(), literal_y);
+        getSingleAnnotation(list).annotate(m.getRDFSLabel(), literal_y);
         list.removeFirst();
         debug(m);
         Assert.assertEquals(1, list.size());
         Assert.assertEquals(literal_x, getSingleAnnotation(list).getLiteral());
         Assert.assertEquals(literal_y, getSingleAnnotation(getSingleAnnotation(list)).getLiteral());
-        list.getRoot().addAnnotation(p5, literal_z);
+        list.getRoot().annotate(p5, literal_z);
         debug(m);
         Assert.assertEquals(2, list.getRoot().annotations().count());
         list.remove();
@@ -268,7 +268,7 @@ public class OntListTest {
                 .filter(s -> RDFS.label.equals(s.getPredicate()) && literal_x.equals(s.getLiteral()))
                 .findFirst().orElseThrow(AssertionError::new);
         Assert.assertTrue(list.isEmpty());
-        list.getRoot().clearAnnotations();
+        Assert.assertNotNull(list.getRoot().clearAnnotations());
         Assert.assertEquals(0, list.getRoot().annotations().count());
         Assert.assertEquals(6, m.statements().count());
     }
@@ -395,8 +395,8 @@ public class OntListTest {
                 .findFirst()
                 .orElseThrow(AssertionError::new);
         Assert.assertEquals(Arrays.asList(p2, p3), p23.members().collect(Collectors.toList()));
-        p334.getRoot().addAnnotation(m.getRDFSComment(), m.createLiteral("p3, p3, p4"));
-        p23.getRoot().addAnnotation(m.getRDFSComment(), m.createLiteral("p2, p3"));
+        p334.getRoot().annotate(m.getRDFSComment(), m.createLiteral("p3, p3, p4"));
+        p23.getRoot().annotate(m.getRDFSComment(), m.createLiteral("p2, p3"));
         debug(m);
         Assert.assertEquals(2, m.statements(null, RDF.type, OWL.Axiom).count());
         p1.removePropertyChain(p334);

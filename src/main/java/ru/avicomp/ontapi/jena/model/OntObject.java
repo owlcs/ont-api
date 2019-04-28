@@ -29,7 +29,8 @@ import java.util.stream.Stream;
 /**
  * A base {@link OntResource Ontology Object RDF Resource}.
  * A common super-type for all of the abstractions in the {@link OntGraphModel Ontology RDF Model},
- * which support Jena Polymorphism, can be annotated and have a structure that is strictly defined according to the OWL2 specification.
+ * which support Jena Polymorphism,
+ * can be annotated and have a structure that is strictly defined according to the OWL2 specification.
  * <p>
  * Created by szuev on 01.11.2016.
  */
@@ -40,10 +41,12 @@ public interface OntObject extends OntResource {
      * In most cases it wraps a triple with predicate {@code rdf:type}.
      * Note that the returned ont-statement differs from that
      * which could be obtained directly from the model using one of its {@code statement(..)} method:
-     * an statement's annotations are added in the form of annotation property assertions (so-called 'plain annotations'),
+     * an statement's annotations
+     * are added in the form of annotation property assertions (so-called 'plain annotations'),
      * not as typed anonymous resources (so-called 'bulk annotations').
      * Note: for anonymous ontology objects (i.e. for not OWL Entities) this behaviour of root statement may not meet
-     * OWL2 specification: it describes only bulk annotations for all anonymous OWL2 components with except of an individual.
+     * OWL2 specification:
+     * it describes only bulk annotations for all anonymous OWL2 components with except of an individual.
      * To get a common ontology statement with support bulk annotations
      * the expression {@code getModel().asStatement(this.getRoot().asTriple())} can be used.
      * It is legal for a root statement to have both plain and bulk annotations.
@@ -101,7 +104,7 @@ public interface OntObject extends OntResource {
      * Returns the <b>first</b> statement for the specified property and object.
      * What exactly is the first triple is defined at the level of graph; in general it is unpredictable.
      * Also note, that common jena implementation of in-memory graph does not allow duplicated triples,
-     * therefore, there can usually be no more than one statement for the given {@code property} and {@code value}.
+     * and, therefore, there is be no more than one statement for the given {@code property} and {@code value}.
      *
      * @param property {@link Property}, the predicate
      * @param value    {@link RDFNode}, the object
@@ -111,7 +114,7 @@ public interface OntObject extends OntResource {
 
     /**
      * Returns the <b>first</b> statement for the specified property.
-     * What is the first triple is defined at the level of graph.
+     * What is the first triple is defined at the level of graph; in general it is unpredictable.
      *
      * @param property {@link Property}
      * @return {@link Optional} around {@link OntStatement}
@@ -136,20 +139,23 @@ public interface OntObject extends OntResource {
     Stream<OntStatement> statements();
 
     /**
-     * Adds an annotation assertion with the given {@link OntNAP annotation property}
-     * and any {@link RDFNode RDF Node} as value.
+     * Adds an annotation assertion with the given {@link OntNAP annotation property} as predicate
+     * and {@link RDFNode RDF Node} as value.
+     * The method is equivalent to the expression {@code getRoot().addAnnotation(property, value)}.
      *
      * @param property {@link OntNAP} - named annotation property
      * @param value    {@link RDFNode} - the value: uri-resource, literal or anonymous individual
-     * @return {@link OntStatement} for a newly added annotation with possibility to add subsequently sub annotations
+     * @return {@link OntStatement} for newly added annotation
+     * to provide the possibility of adding subsequent sub-annotations
      * @throws OntJenaException in case input is wrong
+     * @see OntStatement#addAnnotation(OntNAP, RDFNode)
      */
     OntStatement addAnnotation(OntNAP property, RDFNode value);
 
     /**
      * Lists all top-level annotations attached to the root statement of this object.
      * Each annotation can be plain (annotation property assertion) or bulk
-     * (anonymous resource with type {@code owl:Axiom} or {@code owl:Annotation}, possibly with sub-annotations).
+     * (anonymous resource with the type {@code owl:Axiom} or {@code owl:Annotation}, possibly with sub-annotations).
      * Sub-annotations are not included into the returned stream.
      * For non-built-in ontology objects this is equivalent to the expression {@code getRoot().annotations()}.
      *
@@ -167,7 +173,8 @@ public interface OntObject extends OntResource {
      * An empty string as language tag means searching for plain no-language literals.
      *
      * @param predicate {@link OntNAP}, not {@code null}
-     * @param lang      String, the language tag to restrict the listed literals to, or {@code null} to select all literals
+     * @param lang      String, the language tag to restrict the listed literals to,
+     *                  or {@code null} to select all literals
      * @return Stream of String's, i.e. literal lexical forms
      * @see #annotationValues(OntNAP)
      * @since 1.3.2
@@ -177,9 +184,11 @@ public interface OntObject extends OntResource {
     /**
      * Removes all root annotations including their sub-annotations hierarchy.
      * Any non-root annotations are untouched.
-     * For example, in case of deleting an OWL class, if it is present on the left side of the {@code rdfs:subClassOf} statement,
+     * For example, in case of deleting an OWL class,
+     * if it is present on the left side of the {@code rdfs:subClassOf} statement,
      * all the annotations of that statement will remain in the graph,
-     * but all root annotations (which belongs to the statement with predicate {@code rdf:type}) will be deleted from the graph.
+     * but all root annotations (which belongs to the statement with the predicate {@code rdf:type})
+     * will be deleted from the graph.
      * For non-built-in ontology objects this is equivalent to the expression {@code getRoot().clearAnnotations()}.
      *
      * @return this object to allow cascading calls
@@ -261,7 +270,7 @@ public interface OntObject extends OntResource {
      * @param predicate {@link OntNAP} predicate
      * @param txt       String, the literal lexical form, not {@code null}
      * @param lang      String, the language tag, nullable
-     * @return {@link OntStatement} - new statement: {@code @subject @predicate 'lexicalForm'@lang}
+     * @return {@link OntStatement} - new statement: {@code @subject @predicate "txt"@lang}
      */
     default OntStatement addAnnotation(OntNAP predicate, String txt, String lang) {
         return addAnnotation(predicate, getModel().createLiteral(txt, lang));
@@ -272,6 +281,7 @@ public interface OntObject extends OntResource {
      *
      * @param txt String, not {@code null}
      * @return {@link OntStatement} to allow the subsequent annotate
+     * @see OntGraphModel#getRDFSComment()
      */
     default OntStatement addComment(String txt) {
         return addComment(txt, null);
@@ -283,6 +293,7 @@ public interface OntObject extends OntResource {
      * @param txt  String, the literal lexical form, not {@code null}
      * @param lang String, the language tag, nullable
      * @return {@link OntStatement} to allow the subsequent annotate
+     * @see OntGraphModel#getRDFSComment()
      */
     default OntStatement addComment(String txt, String lang) {
         return addAnnotation(getModel().getRDFSComment(), txt, lang);
@@ -293,6 +304,7 @@ public interface OntObject extends OntResource {
      *
      * @param txt String, the literal lexical form, not {@code null}
      * @return {@link OntStatement} to allow the subsequent annotate
+     * @see OntGraphModel#getRDFSLabel()
      */
     default OntStatement addLabel(String txt) {
         return addLabel(txt, null);
@@ -304,6 +316,7 @@ public interface OntObject extends OntResource {
      * @param txt  String, the literal lexical form, not {@code null}
      * @param lang String, the language tag, nullable
      * @return {@link OntStatement} to allow the subsequent annotate
+     * @see OntGraphModel#getRDFSLabel()
      */
     default OntStatement addLabel(String txt, String lang) {
         return addAnnotation(getModel().getRDFSLabel(), txt, lang);
@@ -314,6 +327,7 @@ public interface OntObject extends OntResource {
      * If there is more than one such resource, an arbitrary selection is made.
      *
      * @return a {@code rdfs:comment} string or {@code null} if there is no comments
+     * @see OntGraphModel#getRDFSComment()
      */
     default String getComment() {
         return getComment(null);
@@ -325,7 +339,9 @@ public interface OntObject extends OntResource {
      *
      * @param lang String, the language attribute for the desired comment (EN, FR, etc) or {@code null} for don't care.
      *             Will attempt to retrieve the most specific comment matching the given language
-     * @return a {@code rdfs:comment} string matching the given language, or {@code null} if there is no matching comment
+     * @return a {@code rdfs:comment} string matching the given language,
+     * or {@code null} if there is no matching comment
+     * @see OntGraphModel#getRDFSComment()
      */
     default String getComment(String lang) {
         try (Stream<String> res = annotationValues(getModel().getRDFSComment(), lang)) {
@@ -338,6 +354,7 @@ public interface OntObject extends OntResource {
      * If there is more than one such resource, an arbitrary selection is made.
      *
      * @return a {@code rdfs:label} string or {@code null} if there is no comments
+     * @see OntGraphModel#getRDFSLabel()
      */
     default String getLabel() {
         return getLabel(null);
@@ -350,6 +367,7 @@ public interface OntObject extends OntResource {
      * @param lang String, the language attribute for the desired comment (EN, FR, etc) or {@code null} for don't care.
      *             Will attempt to retrieve the most specific comment matching the given language
      * @return a {@code rdfs:label} string matching the given language, or {@code null}  if there is no matching label
+     * @see OntGraphModel#getRDFSLabel()
      */
     default String getLabel(String lang) {
         try (Stream<String> res = annotationValues(getModel().getRDFSLabel(), lang)) {
