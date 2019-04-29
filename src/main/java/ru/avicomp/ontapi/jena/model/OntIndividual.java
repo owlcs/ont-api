@@ -89,9 +89,9 @@ public interface OntIndividual extends OntObject {
     }
 
     /**
-     * Removes owl:sameAs statement for the specified object.
+     * Removes a {@code owl:sameAs} statement for the specified object.
      *
-     * @param other {@link OntIndividual}
+     * @param other {@link OntIndividual}, or {@code null} to remove all same individuals
      */
     default void removeSameAs(OntIndividual other) {
         remove(OWL.sameAs, other);
@@ -121,9 +121,9 @@ public interface OntIndividual extends OntObject {
     }
 
     /**
-     * Removes different individual statement.
+     * Removes a different individual statement for the specified individual.
      *
-     * @param other {@link OntIndividual}
+     * @param other {@link OntIndividual} or {@code null} to remove all different individuals
      * @see OntDisjoint.Individuals
      */
     default void removeDifferentFrom(OntIndividual other) {

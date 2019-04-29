@@ -127,27 +127,29 @@ public interface OntPE extends OntObject {
     Property asProperty();
 
     /**
-     * Removes the specified domain (predicate {@link RDFS#domain rdfs:domain}).
+     * Removes the specified domain resource (predicate is {@link RDFS#domain rdfs:domain}).
+     * No-op in case no such domain found.
+     * Removes all domains if {@code null} is specified.
      *
-     * @param domain {@link Resource}
+     * @param domain {@link Resource}, or {@code null} to remove all domains
+     * @return <b>this</b> instance to allow cascading calls
      */
-    default void removeDomain(Resource domain) {
-        remove(RDFS.domain, domain);
-    }
+    OntPE removeDomain(Resource domain);
 
     /**
-     * Removes specified {@code rdfs:range}.
+     * Removes the specified range resource (predicate is {@link RDFS#range rdfs:range}).
+     * No-op in case no such range found.
+     * Removes all ranges if {@code null} is specified.
      *
-     * @param range {@link Resource}
+     * @param range {@link Resource}, or {@code null} to remove all ranges
+     * @return <b>this</b> instance to allow cascading calls
      */
-    default void removeRange(Resource range) {
-        remove(RDFS.range, range);
-    }
+    OntPE removeRange(Resource range);
 
     /**
-     * Removes specified super property (predicate {@link RDFS#subPropertyOf rdfs:subPropertyOf}).
+     * Removes the specified super property (predicate is {@link RDFS#subPropertyOf rdfs:subPropertyOf}).
      *
-     * @param superProperty {@link Resource}
+     * @param superProperty {@link Resource} or {@code null} to remove all super properties.
      */
     default void removeSubPropertyOf(Resource superProperty) {
         remove(RDFS.subPropertyOf, superProperty);

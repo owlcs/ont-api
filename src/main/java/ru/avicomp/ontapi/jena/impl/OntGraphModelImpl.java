@@ -554,7 +554,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
         OntJenaException.notNull(object, "Null list for subject " + subject + " and predicate " + predicate);
         object.getRoot().clearAnnotations();
         object.clear();
-        subject.remove(predicate, object);
+        remove(subject, predicate, object);
     }
 
     @Override

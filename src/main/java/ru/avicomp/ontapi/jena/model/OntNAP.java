@@ -46,15 +46,17 @@ public interface OntNAP extends OntPE, OntProperty {
     Stream<OntNAP> listSubProperties(boolean direct);
 
     /**
-     * Adds domain statement {@code A rdfs:domain U}, where {@code A} is an annotation property, {@code U} is any IRI.
+     * Adds domain statement {@code A rdfs:domain U},
+     * where {@code A} is this annotation property and {@code U} is any IRI.
      *
      * @param domain uri-{@link Resource}
      * @return {@link OntStatement}
      * @throws ru.avicomp.ontapi.jena.OntJenaException in case anonymous resource.
      * @see #domain()
      * @see OntPE#removeDomain(Resource)
+     * @see #addDomain(Resource)
      */
-    OntStatement addDomain(Resource domain);
+    OntStatement addDomainStatement(Resource domain);
 
     /**
      * Adds range statement {@code A rdfs:range U}, where {@code A} is an annotation property, {@code U} is any IRI.
@@ -64,8 +66,9 @@ public interface OntNAP extends OntPE, OntProperty {
      * @throws ru.avicomp.ontapi.jena.OntJenaException in case input is anonymous resource
      * @see #range()
      * @see OntPE#removeRange(Resource)
+     * @see #addRange(Resource)
      */
-    OntStatement addRange(Resource range);
+    OntStatement addRangeStatement(Resource range);
 
     /**
      * Returns property domains as java util stream.
@@ -76,12 +79,52 @@ public interface OntNAP extends OntPE, OntProperty {
     Stream<Resource> domain();
 
     /**
-     * Returns all annotation property ranges.
+     * Lists all annotation property ranges.
      *
      * @return Stream of uri-{@link Resource}s
      */
     @Override
     Stream<Resource> range();
+
+    /**
+     * Adds a statement with the {@link RDFS#range} as predicate and the specified {@code uri} as an object.
+     *
+     * @param uri an URI-{@link Resource}, not {@code null}
+     * @return <b>this</b> instance to allow cascading calls
+     * @see #addRangeStatement(Resource)
+     */
+    default OntNAP addRange(Resource uri) {
+        addRangeStatement(uri);
+        return this;
+    }
+
+    /**
+     * Adds a statement with the {@link RDFS#domain} as predicate and the specified {@code uri} as an object.
+     *
+     * @param uri an URI-{@link Resource}, not {@code null}
+     * @return <b>this</b> instance to allow cascading calls
+     * @see #addDomainStatement(Resource)
+     */
+    default OntNAP addDomain(Resource uri) {
+        addDomainStatement(uri);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    default OntNAP removeDomain(Resource domain) {
+        remove(RDFS.domain, domain);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    default OntNAP removeRange(Resource range) {
+        remove(RDFS.range, range);
+        return this;
+    }
 
     /**
      * Lists all direct super properties.
@@ -91,6 +134,7 @@ public interface OntNAP extends OntPE, OntProperty {
      * @return Stream of {@link OntNAP}s
      * @see #addSubPropertyOf(OntNAP)
      * @see OntPE#removeSubPropertyOf(Resource)
+     * @see #listSuperProperties(boolean)
      */
     @Override
     default Stream<OntNAP> subPropertyOf() {

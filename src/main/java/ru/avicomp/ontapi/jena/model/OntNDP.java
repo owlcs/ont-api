@@ -59,6 +59,60 @@ public interface OntNDP extends OntDOP, OntProperty {
     OntNPA.DataAssertion addNegativeAssertion(OntIndividual source, Literal target);
 
     /**
+     * Adds a statement {@code R rdfs:range D},
+     * where {@code R} is this data property and {@code D} is data range expression.
+     *
+     * @param range {@link OntDR}
+     * @return {@link OntStatement}
+     * @see #addRange(OntDR)
+     */
+    default OntStatement addRangeStatement(OntDR range) {
+        return addStatement(RDFS.range, range);
+    }
+
+    /**
+     * Adds a statement with the {@link RDFS#range} as predicate
+     * and the specified {@link OntDR data range} as an object.
+     *
+     * @param range {@link OntDR}, not {@code null}
+     * @return <b>this</b> instance to allow cascading calls
+     * @see #addRangeStatement(OntDR)
+     */
+    default OntNDP addRange(OntDR range) {
+        addRangeStatement(range);
+        return this;
+    }
+
+    /**
+     * Adds a statement with the {@link RDFS#domain} as predicate
+     * and the specified {@link OntCE class expression} as an object.
+     *
+     * @param domain {@link OntCE}, not {@code null}
+     * @return <b>this</b> instance to allow cascading calls
+     * @see #addDomainStatement(OntCE)
+     */
+    default OntNDP addDomain(OntCE domain) {
+        addDomainStatement(domain);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    default OntNDP removeDomain(Resource domain) {
+        remove(RDFS.domain, domain);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    default OntNDP removeRange(Resource range) {
+        remove(RDFS.range, range);
+        return this;
+    }
+
+    /**
      * Returns all associated negative data property assertions.
      *
      * @return Stream of {@link OntNPA.DataAssertion}s
@@ -88,16 +142,6 @@ public interface OntNDP extends OntDOP, OntProperty {
     @Override
     default Stream<OntDR> range() {
         return objects(RDFS.range, OntDR.class);
-    }
-
-    /**
-     * Adds a statement {@code R rdfs:range D}, where {@code R} is this data property and {@code D} is data range expression.
-     *
-     * @param range {@link OntDR}
-     * @return {@link OntStatement}
-     */
-    default OntStatement addRange(OntDR range) {
-        return addStatement(RDFS.range, range);
     }
 
     /**

@@ -97,7 +97,7 @@ public class OntIDImpl extends OntObjectImpl implements OntID {
     }
 
     public void removeImportResource(Resource uri) {
-        remove(OWL.imports, uri);
+        getModel().remove(this, OWL.imports, uri);
     }
 
     @Override

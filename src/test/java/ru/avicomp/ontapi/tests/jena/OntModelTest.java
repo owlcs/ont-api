@@ -58,7 +58,7 @@ public class OntModelTest {
         return Arrays.stream(lists).flatMap(Collection::stream).collect(Iter.toUnmodifiableSet());
     }
 
-    private static void assertOntObjects(OntGraphModel m, Class<? extends OntObject> type, long expected) {
+    private static void assertOntObjectsCount(OntGraphModel m, Class<? extends OntObject> type, long expected) {
         Assert.assertEquals(expected, m.ontObjects(type).count());
     }
 
@@ -392,11 +392,11 @@ public class OntModelTest {
         OntClass person = m.createOntClass(schemaNS + "Person");
         OntNOP hasContact = m.createObjectProperty(schemaNS + "contact");
 
-        hasContact.addDomain(person).getSubject(OntNOP.class).addRange(contact);
+        hasContact.addDomain(person).addRange(contact);
 
-        contactInfo.addDomain(contact).getSubject(OntNDP.class)
-                .addRange(email).getSubject(OntNDP.class)
-                .addRange(phone).getSubject(OntNDP.class)
+        contactInfo.addDomain(contact)
+                .addRange(email)
+                .addRange(phone)
                 .addRange(skype);
 
         // data:
@@ -764,27 +764,27 @@ public class OntModelTest {
     public void testFamilyListObjects() {
         OntGraphModel m = OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("ontapi/family.ttl").getGraph(),
                 OntModelConfig.ONT_PERSONALITY_LAX);
-        assertOntObjects(m, OntEntity.class, 656);
-        assertOntObjects(m, OntProperty.class, 90);
+        assertOntObjectsCount(m, OntEntity.class, 656);
+        assertOntObjectsCount(m, OntProperty.class, 90);
 
-        assertOntObjects(m, OntClass.class, 58);
-        assertOntObjects(m, OntDT.class, 0);
-        assertOntObjects(m, OntIndividual.Named.class, 508);
-        assertOntObjects(m, OntNOP.class, 80);
-        assertOntObjects(m, OntNAP.class, 1);
-        assertOntObjects(m, OntNDP.class, 9);
+        assertOntObjectsCount(m, OntClass.class, 58);
+        assertOntObjectsCount(m, OntDT.class, 0);
+        assertOntObjectsCount(m, OntIndividual.Named.class, 508);
+        assertOntObjectsCount(m, OntNOP.class, 80);
+        assertOntObjectsCount(m, OntNAP.class, 1);
+        assertOntObjectsCount(m, OntNDP.class, 9);
 
-        assertOntObjects(m, OntOPE.class, 80);
-        assertOntObjects(m, OntDOP.class, 89);
+        assertOntObjectsCount(m, OntOPE.class, 80);
+        assertOntObjectsCount(m, OntDOP.class, 89);
 
-        assertOntObjects(m, OntDR.class, 0);
+        assertOntObjectsCount(m, OntDR.class, 0);
 
-        assertOntObjects(m, OntDisjoint.class, 1);
-        assertOntObjects(m, OntDisjoint.Classes.class, 0);
-        assertOntObjects(m, OntDisjoint.Individuals.class, 1);
-        assertOntObjects(m, OntDisjoint.DataProperties.class, 0);
-        assertOntObjects(m, OntDisjoint.ObjectProperties.class, 0);
-        assertOntObjects(m, OntDisjoint.Properties.class, 0);
+        assertOntObjectsCount(m, OntDisjoint.class, 1);
+        assertOntObjectsCount(m, OntDisjoint.Classes.class, 0);
+        assertOntObjectsCount(m, OntDisjoint.Individuals.class, 1);
+        assertOntObjectsCount(m, OntDisjoint.DataProperties.class, 0);
+        assertOntObjectsCount(m, OntDisjoint.ObjectProperties.class, 0);
+        assertOntObjectsCount(m, OntDisjoint.Properties.class, 0);
 
         // todo: handle all other types
     }
@@ -931,7 +931,7 @@ public class OntModelTest {
         OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntClass c = m.createOntClass("c");
         OntNDP d = m.createDataProperty("d");
-        OntStatement s = d.addDomain(c);
+        OntStatement s = d.addDomainStatement(c);
         s.addAnnotation(m.getRDFSLabel(), "a1").addAnnotation(m.getRDFSComment(), "a2");
         s.addAnnotation(m.getRDFSComment(), "a3");
 
@@ -943,6 +943,60 @@ public class OntModelTest {
         Assert.assertEquals(2, m.size());
 
         d.removeRange(c);
+        Assert.assertEquals(2, m.size());
+    }
+
+    @Test
+    public void testAnnotationPropertyDomainsAndRanges() {
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntNAP p = m.createAnnotationProperty("A");
+        Assert.assertNotNull(p.addRangeStatement(m.getRDFSComment()));
+        Assert.assertNotNull(p.addDomainStatement(m.getRDFSComment()));
+        Assert.assertSame(p, p.addDomain(m.getOWLThing()).addRange(m.getOWLNothing()).addDomain(m.getRDFSLabel()));
+        Assert.assertEquals(2, p.range().count());
+        Assert.assertEquals(3, p.domain().count());
+
+        Assert.assertSame(p, p.removeDomain(m.getOWLThing()).removeRange(m.getRDFSComment()));
+        Assert.assertEquals(1, p.range().count());
+        Assert.assertEquals(2, p.domain().count());
+    }
+
+    @Test
+    public void testDataPropertyDomainsAndRanges() {
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntClass c = m.createOntClass("C");
+        OntDT d = m.getDatatype(XSD.xstring);
+        OntNDP p = m.createDataProperty("D");
+        Assert.assertNotNull(p.addRangeStatement(m.getRDFSLiteral()));
+        Assert.assertNotNull(p.addDomainStatement(m.getOWLNothing()));
+        Assert.assertSame(p, p.addDomain(m.getOWLThing()).addRange(d).addDomain(c));
+        Assert.assertEquals(2, p.range().count());
+        Assert.assertEquals(3, p.domain().count());
+
+        Assert.assertSame(p, p.removeDomain(m.getOWLThing()).removeRange(d));
+        Assert.assertEquals(1, p.range().count());
+        Assert.assertEquals(2, p.domain().count());
+
+        p.removeRange(null).removeDomain(null);
+        Assert.assertEquals(2, m.size());
+    }
+
+    @Test
+    public void testObjectPropertyDomainsAndRanges() {
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntClass c = m.createOntClass("C");
+        OntNOP p = m.createObjectProperty("O");
+        Assert.assertNotNull(p.addRangeStatement(m.getOWLThing()));
+        Assert.assertNotNull(p.addDomainStatement(m.getOWLNothing()));
+        Assert.assertSame(p, p.addDomain(m.getOWLThing()).addRange(m.getOWLNothing()).addDomain(c));
+        Assert.assertEquals(2, p.range().count());
+        Assert.assertEquals(3, p.domain().count());
+
+        Assert.assertSame(p, p.removeDomain(m.getOWLThing()).removeRange(m.getOWLNothing()));
+        Assert.assertEquals(1, p.range().count());
+        Assert.assertEquals(2, p.domain().count());
+
+        p.removeRange(null).removeDomain(null);
         Assert.assertEquals(2, m.size());
     }
 }

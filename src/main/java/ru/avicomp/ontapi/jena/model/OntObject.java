@@ -89,11 +89,14 @@ public interface OntObject extends OntResource {
     OntStatement addStatement(Property property, RDFNode value);
 
     /**
-     * Deletes the specific property-value pair, including all its annotation hierarchy, from this object.
-     * No-op in case no match found.
+     * Deletes the specific property-value pair from this object.
+     * All of the corresponding statement's annotations is also deleted.
+     * In case the given {@code object} is {@code null},
+     * all statements with the {@code property}-predicate will be deleted.
+     * No-op if no match found.
      *
      * @param property {@link Property} predicate, not {@code null}
-     * @param object   {@link RDFNode} object, not {@code null}
+     * @param object   {@link RDFNode} object, <b>can be {@code null}</b>
      * @return this object to allow cascading calls
      * @see #addStatement(Property, RDFNode)
      * @see OntStatement#clearAnnotations()

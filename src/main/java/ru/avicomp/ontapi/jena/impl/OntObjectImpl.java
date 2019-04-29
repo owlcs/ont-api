@@ -302,7 +302,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * Removes {@code @this rdf:type @type} statement.
      * No-op in case no the statement is found.
      *
-     * @param type URI-{@link Resource}, the type
+     * @param type URI-{@link Resource}, the type, or {@code null} to remove all types
      */
     protected void removeRDFType(Resource type) {
         remove(RDF.type, type);
@@ -368,11 +368,10 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     @Override
     public OntObjectImpl remove(Property property, RDFNode value) {
         OntGraphModelImpl m = getModel();
-        OntStatement res = m.createStatement(this,
-                OntJenaException.notNull(property, "Null property."),
-                OntJenaException.notNull(value, "Null value."));
-        res.clearAnnotations();
-        m.remove(res);
+        m.listStatements(this, OntJenaException.notNull(property, "Null property."), value)
+                .mapWith(s -> (OntStatement) s)
+                .toList()
+                .forEach(s -> m.remove(s.clearAnnotations()));
         return this;
     }
 

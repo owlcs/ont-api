@@ -211,8 +211,8 @@ public class OntAnnotationsTest {
         OntNDP p = m.createDataProperty("x");
         OntClass c = m.createOntClass("c");
         OntDT dt = m.getDatatype(RDFS.Literal);
-        p.addRange(dt).addAnnotation(m.getRDFSComment(), "This is a range", null);
-        p.addDomain(c).addAnnotation(m.getRDFSLabel(), "This is a domain", null)
+        p.addRangeStatement(dt).addAnnotation(m.getRDFSComment(), "This is a range", null);
+        p.addDomainStatement(c).addAnnotation(m.getRDFSLabel(), "This is a domain", null)
                 .addAnnotation(m.getRDFSLabel(), "label", "hg");
 
         OntIndividual i = c.createIndividual("i");

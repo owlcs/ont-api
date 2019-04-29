@@ -209,19 +209,63 @@ public interface OntOPE extends OntDOP {
     /**
      * Adds a property range (i.e. {@code P rdfs:range C} statement).
      *
-     * @param range {@link OntCE}
+     * @param range {@link OntCE}, not {@code null}
      * @return {@link OntStatement} to allow processing annotations
+     * @see #addRange(OntCE)
      */
-    default OntStatement addRange(OntCE range) {
+    default OntStatement addRangeStatement(OntCE range) {
         return addStatement(RDFS.range, range);
     }
 
     /**
-     * Lists all super properties, the pattern is {@code P1 rdfs:subPropertyOf P2}.
+     * Adds a statement with the {@link RDFS#range} as predicate
+     * and the specified {@link OntCE class expression} as an object.
+     *
+     * @param range {@link OntCE}, not {@code null}
+     * @return <b>this</b> instance to allow cascading calls
+     * @see #addRangeStatement(OntCE)
+     */
+    default OntOPE addRange(OntCE range) {
+        addRangeStatement(range);
+        return this;
+    }
+
+    /**
+     * Adds a statement with the {@link RDFS#domain} as predicate
+     * and the specified {@link OntCE class expression} as an object.
+     *
+     * @param domain {@link OntCE}, not {@code null}
+     * @return <b>this</b> instance to allow cascading calls
+     * @see #addDomainStatement(OntCE)
+     */
+    default OntOPE addDomain(OntCE domain) {
+        addDomainStatement(domain);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    default OntOPE removeDomain(Resource domain) {
+        remove(RDFS.domain, domain);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    default OntOPE removeRange(Resource range) {
+        remove(RDFS.range, range);
+        return this;
+    }
+
+    /**
+     * Lists all direct super properties, the pattern is {@code P1 rdfs:subPropertyOf P2}.
      *
      * @return Stream of {@link OntOPE}s
      * @see #addSubPropertyOf(OntOPE)
      * @see OntPE#removeSubPropertyOf(Resource)
+     * @see #listSuperProperties(boolean)
      */
     @Override
     default Stream<OntOPE> subPropertyOf() {

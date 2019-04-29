@@ -164,9 +164,9 @@ public interface OntCE extends OntObject {
     }
 
     /**
-     * Removes a super class.
+     * Removes the given super class.
      *
-     * @param superClass {@link OntCE}
+     * @param superClass {@link OntCE}, or {@code null} to remove all super classes
      */
     default void removeSubClassOf(OntCE superClass) {
         remove(RDFS.subClassOf, superClass);
@@ -195,9 +195,9 @@ public interface OntCE extends OntObject {
     }
 
     /**
-     * Removes a disjoint class.
+     * Removes the specified disjoint class.
      *
-     * @param other {@link OntCE}
+     * @param other {@link OntCE}, or {@code null} to remove all disjoint classes
      * @see OntDisjoint.Classes
      */
     default void removeDisjointWith(OntCE other) {
@@ -226,9 +226,9 @@ public interface OntCE extends OntObject {
     }
 
     /**
-     * Removes an equivalent class.
+     * Removes the given equivalent class.
      *
-     * @param other {@link OntCE}
+     * @param other {@link OntCE} or {@code null} to remove all equivalent classes
      * @see OntDT#removeEquivalentClass(OntDR)
      */
     default void removeEquivalentClass(OntCE other) {

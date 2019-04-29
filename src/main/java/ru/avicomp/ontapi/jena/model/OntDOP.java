@@ -14,6 +14,7 @@
 
 package ru.avicomp.ontapi.jena.model;
 
+import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDFS;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
@@ -96,6 +97,16 @@ public interface OntDOP extends OntPE {
     void setFunctional(boolean functional);
 
     /**
+     * {@inheritDoc}
+     */
+    OntDOP removeDomain(Resource domain);
+
+    /**
+     * {@inheritDoc}
+     */
+    OntDOP removeRange(Resource range);
+
+    /**
      * Lists all of the declared domain class expressions of this property expression.
      * In other words, returns the right-hand sides of statement {@code P rdfs:domain C},
      * where {@code P} is this property expression.
@@ -113,9 +124,23 @@ public interface OntDOP extends OntPE {
      *
      * @param domain {@link OntCE class expression}, not null
      * @return {@link OntStatement} to allow the addition of annotations
+     * @see #addDomain(OntCE)
      */
-    default OntStatement addDomain(OntCE domain) {
+    default OntStatement addDomainStatement(OntCE domain) {
         return addStatement(RDFS.domain, domain);
+    }
+
+    /**
+     * Adds a statement with the {@link RDFS#domain} as predicate
+     * and the specified {@link OntCE class expression} as an object.
+     *
+     * @param domain {@link OntCE}, not {@code null}
+     * @return <b>this</b> instance to allow cascading calls
+     * @see #addDomainStatement(OntCE)
+     */
+    default OntDOP addDomain(OntCE domain) {
+        addDomainStatement(domain);
+        return this;
     }
 
     /**

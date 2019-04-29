@@ -56,12 +56,12 @@ public class OntAPropertyImpl extends OntPEImpl implements OntNAP {
     }
 
     @Override
-    public OntStatement addDomain(Resource domain) {
+    public OntStatement addDomainStatement(Resource domain) {
         return addStatement(RDFS.domain, checkNamed(domain));
     }
 
     @Override
-    public OntStatement addRange(Resource range) {
+    public OntStatement addRangeStatement(Resource range) {
         return addStatement(RDFS.range, checkNamed(range));
     }
 
