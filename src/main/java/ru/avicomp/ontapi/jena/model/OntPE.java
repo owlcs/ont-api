@@ -102,7 +102,7 @@ public interface OntPE extends OntObject {
     /**
      * Lists all property domains.
      *
-     * @return Stream of {@link Resource}s
+     * @return {@code Stream} of {@link Resource}s
      * @see OntNAP#domain()
      * @see OntOPE#domain()
      * @see OntNDP#domain()
@@ -112,7 +112,7 @@ public interface OntPE extends OntObject {
     /**
      * Lists all property ranges.
      *
-     * @return Stream of {@link Resource}s
+     * @return {@code Stream} of {@link Resource}s
      * @see OntNAP#range()
      * @see OntOPE#range()
      * @see OntNDP#range()
@@ -138,7 +138,7 @@ public interface OntPE extends OntObject {
 
     /**
      * Removes the specified range resource (predicate is {@link RDFS#range rdfs:range}).
-     * No-op in case no such range found.
+     * No-op in case no such range is found.
      * Removes all ranges if {@code null} is specified.
      *
      * @param range {@link Resource}, or {@code null} to remove all ranges
@@ -148,10 +148,23 @@ public interface OntPE extends OntObject {
 
     /**
      * Removes the specified super property (predicate is {@link RDFS#subPropertyOf rdfs:subPropertyOf}).
+     * No-op in case no such super-property is found.
+     * Removes all triples with predicate {@code rdfs:subPropertyOf} if {@code null} is specified.
      *
-     * @param superProperty {@link Resource} or {@code null} to remove all super properties.
+     * @param property {@link Resource} or {@code null} to remove all direct super properties
+     * @return <b>this</b> instance to allow cascading calls
+     * @since 1.4.0
      */
+    OntPE removeSuperProperty(Resource property);
+
+    /**
+     * Removes the specified super property (predicate is {@link RDFS#subPropertyOf rdfs:subPropertyOf}).
+     *
+     * @param superProperty {@link Resource} or {@code null} to remove all direct super properties
+     * @deprecated (since 1.4.0) use the method {@link #removeSuperProperty(Resource)}
+     */
+    @Deprecated
     default void removeSubPropertyOf(Resource superProperty) {
-        remove(RDFS.subPropertyOf, superProperty);
+        removeSuperProperty(superProperty);
     }
 }

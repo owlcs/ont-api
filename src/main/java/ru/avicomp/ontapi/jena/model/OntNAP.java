@@ -35,6 +35,7 @@ public interface OntNAP extends OntPE, OntProperty {
      * {@inheritDoc}
      *
      * @return <b>distinct</b> {@code Stream} of annotation properties
+     * @since 1.4.0
      */
     Stream<OntNAP> listSuperProperties(boolean direct);
 
@@ -42,6 +43,7 @@ public interface OntNAP extends OntPE, OntProperty {
      * {@inheritDoc}
      *
      * @return <b>distinct</b> {@code Stream} of annotation properties
+     * @since 1.4.0
      */
     Stream<OntNAP> listSubProperties(boolean direct);
 
@@ -49,42 +51,62 @@ public interface OntNAP extends OntPE, OntProperty {
      * Adds domain statement {@code A rdfs:domain U},
      * where {@code A} is this annotation property and {@code U} is any IRI.
      *
-     * @param domain uri-{@link Resource}
-     * @return {@link OntStatement}
-     * @throws ru.avicomp.ontapi.jena.OntJenaException in case anonymous resource.
+     * @param domain uri-{@link Resource}, not {@code null}
+     * @return {@link OntStatement} to allow subsequent annotations adding
+     * @throws ru.avicomp.ontapi.jena.OntJenaException in case of anonymous resource is specified
      * @see #domain()
-     * @see OntPE#removeDomain(Resource)
+     * @see #removeDomain(Resource)
      * @see #addDomain(Resource)
+     * @see #addRangeStatement(Resource)
+     * @since 1.4.0
      */
     OntStatement addDomainStatement(Resource domain);
 
     /**
      * Adds range statement {@code A rdfs:range U}, where {@code A} is an annotation property, {@code U} is any IRI.
      *
-     * @param range uri-{@link Resource}
-     * @return {@link OntStatement}
-     * @throws ru.avicomp.ontapi.jena.OntJenaException in case input is anonymous resource
+     * @param range uri-{@link Resource}, not {@code null}
+     * @return {@link OntStatement} to allow subsequent annotations adding
+     * @throws ru.avicomp.ontapi.jena.OntJenaException in case of input is anonymous resource
      * @see #range()
-     * @see OntPE#removeRange(Resource)
+     * @see #removeRange(Resource)
      * @see #addRange(Resource)
+     * @see #addDomainStatement(Resource)
+     * @since 1.4.0
      */
     OntStatement addRangeStatement(Resource range);
 
     /**
-     * Returns property domains as java util stream.
+     * Lists all valid annotation property domains in the form of java {@code Stream}.
      *
-     * @return Stream of uri-{@link Resource}s
+     * @return {@code Stream} of uri-{@link Resource}s
      */
     @Override
     Stream<Resource> domain();
 
     /**
-     * Lists all annotation property ranges.
+     * Lists all valid annotation property ranges.
      *
-     * @return Stream of uri-{@link Resource}s
+     * @return {@code Stream} of uri-{@link Resource}s
      */
     @Override
     Stream<Resource> range();
+
+    /**
+     * Lists all direct super properties.
+     * The pattern is {@code A1 rdfs:subPropertyOf A2},
+     * where {@code A1} is this property and {@code A2} is what needs to be returned.
+     *
+     * @return {@code Stream} of {@link OntNAP}s
+     * @see #addSubPropertyOfStatement(OntNAP)
+     * @see #addSuperProperty(OntNAP)
+     * @see #removeSuperProperty(Resource)
+     * @see #listSuperProperties(boolean)
+     */
+    @Override
+    default Stream<OntNAP> subPropertyOf() {
+        return objects(RDFS.subPropertyOf, OntNAP.class);
+    }
 
     /**
      * Adds a statement with the {@link RDFS#range} as predicate and the specified {@code uri} as an object.
@@ -127,28 +149,49 @@ public interface OntNAP extends OntPE, OntProperty {
     }
 
     /**
-     * Lists all direct super properties.
-     * The pattern is {@code A1 rdfs:subPropertyOf A2},
-     * where {@code A1} is this property and {@code A2} is what needs to be returned.
+     * Adds the given property as super property returning this property itself.
      *
-     * @return Stream of {@link OntNAP}s
-     * @see #addSubPropertyOf(OntNAP)
-     * @see OntPE#removeSubPropertyOf(Resource)
-     * @see #listSuperProperties(boolean)
+     * @param property {@link OntNAP}, not {@code null}
+     * @return <b>this</b> instance to allow cascading calls
+     * @see #removeSuperProperty(Resource)
+     * @since 1.4.0
      */
-    @Override
-    default Stream<OntNAP> subPropertyOf() {
-        return objects(RDFS.subPropertyOf, OntNAP.class);
+    default OntNAP addSuperProperty(OntNAP property) {
+        addSubPropertyOfStatement(property);
+        return this;
     }
 
     /**
-     * Adds super property.
+     * {@inheritDoc}
+     */
+    @Override
+    default OntNAP removeSuperProperty(Resource property) {
+        remove(RDFS.subPropertyOf, property);
+        return this;
+    }
+
+    /**
+     * Adds the given property as super property returning a new statement to annotate.
+     * The triple pattern is {@code this rdfs:subPropertyOf property}).
+     *
+     * @param property {@link OntNAP}, not {@code null}
+     * @return {@link OntStatement} to allow subsequent annotations adding
+     * @since 1.4.0
+     */
+    default OntStatement addSubPropertyOfStatement(OntNAP property) {
+        return addStatement(RDFS.subPropertyOf, property);
+    }
+
+
+    /**
+     * Adds a super property.
      *
      * @param superProperty {@link OntNAP}
      * @return {@link OntStatement}
+     * @deprecated (since 1.4.0) use the method {@link #addSubPropertyOfStatement(OntNAP)}
      */
+    @Deprecated
     default OntStatement addSubPropertyOf(OntNAP superProperty) {
-        return addStatement(RDFS.subPropertyOf, superProperty);
+        return addSubPropertyOfStatement(superProperty);
     }
-
 }

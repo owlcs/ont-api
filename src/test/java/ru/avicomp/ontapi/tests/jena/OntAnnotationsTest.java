@@ -249,7 +249,8 @@ public class OntAnnotationsTest {
         m.getOWLThing().clearAnnotations();
         Assert.assertTrue(m.isEmpty());
         m.getOWLBottomDataProperty()
-                .addSubPropertyOf(m.getOWLTopDataProperty()).addAnnotation(m.getRDFSComment(), "Some sub-property-of");
+                .addSubPropertyOfStatement(m.getOWLTopDataProperty())
+                .annotate(m.getRDFSComment(), "Some sub-property-of");
 
         m.getOWLBottomDataProperty().addComment("x");
         Assert.assertEquals("x", m.getOWLBottomDataProperty().getComment());

@@ -48,7 +48,7 @@ public interface OntDOP extends OntPE {
      * Lists all property ranges,
      * i.e. all objects from statements with this property as subject and {@code rdfs:range} as predicate.
      *
-     * @return Stream of {@link OntObject ontology object}s
+     * @return {@code Stream} of {@link OntObject ontology object}s
      */
     Stream<? extends OntObject> range();
 
@@ -57,7 +57,7 @@ public interface OntDOP extends OntPE {
      * In other words, returns all objects from statements of the form {@code P rdfs:subPropertyOf R},
      * where {@code P} is this property.
      *
-     * @return Stream of {@link OntDOP object and data properties}s
+     * @return {@code Stream} of {@link OntDOP object and data properties}s
      */
     Stream<? extends OntDOP> subPropertyOf();
 
@@ -66,7 +66,7 @@ public interface OntDOP extends OntPE {
      * In other words, returns all objects from statements of the form {@code P owl:propertyDisjointWith R},
      * where {@code P} is this property.
      *
-     * @return Stream of {@link OntObject ontology object}s
+     * @return {@code Stream} of {@link OntObject ontology object}s
      */
     Stream<? extends OntObject> disjointWith();
 
@@ -75,16 +75,18 @@ public interface OntDOP extends OntPE {
      * In other words, returns all objects from statements of the form {@code P owl:equivalentProperty R},
      * where {@code P} is this property.
      *
-     * @return Stream of {@link OntObject ontology object}s
+     * @return {@code Stream} of {@link OntObject ontology object}s
      */
     Stream<? extends OntObject> equivalentProperty();
 
     /**
      * Lists all negative property assertions.
-     * Negative property assertion is anonymous resource with the type {@link OWL#NegativePropertyAssertion owl:NegativePropertyAssertion}
-     * that has this property expression as an object with predicate {@link OWL#assertionProperty owl:assertionProperty}.
+     * A negative property assertion is anonymous resource
+     * with the type {@link OWL#NegativePropertyAssertion owl:NegativePropertyAssertion}
+     * that has a data or object property expression as an object
+     * on the predicate {@link OWL#assertionProperty owl:assertionProperty}.
      *
-     * @return Stream of {@link OntNPA}
+     * @return {@code Stream} of {@link OntNPA}
      */
     Stream<? extends OntNPA> negativeAssertions();
 
@@ -97,21 +99,39 @@ public interface OntDOP extends OntPE {
     void setFunctional(boolean functional);
 
     /**
+     * Adds a statement with the {@link RDFS#domain} as predicate
+     * and the specified {@link OntCE class expression} as an object.
+     *
+     * @param ce {@link OntCE}, not {@code null}
+     * @return <b>this</b> instance to allow cascading calls
+     * @see #addDomainStatement(OntCE)
+     */
+    OntDOP addDomain(OntCE ce);
+
+    /**
      * {@inheritDoc}
      */
+    @Override
     OntDOP removeDomain(Resource domain);
 
     /**
      * {@inheritDoc}
      */
+    @Override
     OntDOP removeRange(Resource range);
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    OntDOP removeSuperProperty(Resource property);
 
     /**
      * Lists all of the declared domain class expressions of this property expression.
      * In other words, returns the right-hand sides of statement {@code P rdfs:domain C},
      * where {@code P} is this property expression.
      *
-     * @return Stream of {@link OntCE class expression}s
+     * @return {@code Stream} of {@link OntCE class expression}s
      */
     @Override
     default Stream<OntCE> domain() {
@@ -122,29 +142,17 @@ public interface OntDOP extends OntPE {
      * Adds a statement {@code P rdfs:domain C},
      * where {@code P} is this property expression and {@code C} is the specified class expression.
      *
-     * @param domain {@link OntCE class expression}, not null
-     * @return {@link OntStatement} to allow the addition of annotations
+     * @param ce {@link OntCE class expression}, not null
+     * @return {@link OntStatement} to allow the subsequent addition of annotations
      * @see #addDomain(OntCE)
+     * @since 1.4.0
      */
-    default OntStatement addDomainStatement(OntCE domain) {
-        return addStatement(RDFS.domain, domain);
+    default OntStatement addDomainStatement(OntCE ce) {
+        return addStatement(RDFS.domain, ce);
     }
 
     /**
-     * Adds a statement with the {@link RDFS#domain} as predicate
-     * and the specified {@link OntCE class expression} as an object.
-     *
-     * @param domain {@link OntCE}, not {@code null}
-     * @return <b>this</b> instance to allow cascading calls
-     * @see #addDomainStatement(OntCE)
-     */
-    default OntDOP addDomain(OntCE domain) {
-        addDomainStatement(domain);
-        return this;
-    }
-
-    /**
-     * Answers {@code true} if it is a functional (data or object) property expression.
+     * Answers {@code true} iff it is a functional (data or object) property expression.
      * A functional property is defined by the statement {@code P rdf:type owl:FunctionalProperty},
      * where {@code P} is this property expression.
      *

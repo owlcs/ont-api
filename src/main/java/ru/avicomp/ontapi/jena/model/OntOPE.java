@@ -87,7 +87,7 @@ public interface OntOPE extends OntDOP {
      * Lists all property chain {@link OntList ontology list}s that are attached to this Object Property Expression
      * on predicate {@link OWL#propertyChainAxiom owl:propertyChainAxiom}.
      *
-     * @return Stream of {@link OntList}s with parameter-type {@code OntOPE}
+     * @return {@code Stream} of {@link OntList}s with parameter-type {@code OntOPE}
      * @since 1.3.0
      */
     Stream<OntList<OntOPE>> listPropertyChains();
@@ -105,7 +105,7 @@ public interface OntOPE extends OntDOP {
     /**
      * Returns all associated negative object property assertions.
      *
-     * @return Stream of {@link OntNPA.ObjectAssertion}s
+     * @return {@code Stream} of {@link OntNPA.ObjectAssertion}s
      * @see OntNDP#negativeAssertions()
      */
     default Stream<OntNPA.ObjectAssertion> negativeAssertions() {
@@ -116,7 +116,7 @@ public interface OntOPE extends OntDOP {
      * Returns all associated negative object property assertions for the specified source individual.
      *
      * @param source {@link OntIndividual}
-     * @return Stream of {@link OntNPA.ObjectAssertion}s
+     * @return {@code Stream} of {@link OntNPA.ObjectAssertion}s
      * @see OntNDP#negativeAssertions(OntIndividual)
      */
 
@@ -156,7 +156,7 @@ public interface OntOPE extends OntDOP {
      * {@code SubObjectPropertyOf( ObjectPropertyChain( :hasParent :hasParent ) :hasGrandparent )},
      * it returns only {@code :hasParent} property.
      *
-     * @return <b>distinct</b> Stream of all super {@link OntOPE object properties},
+     * @return <b>distinct</b> {@code Stream} of all super {@link OntOPE object properties},
      * possible empty in case of nil-list or if there is no property-chains at all
      * @see #listPropertyChains()
      * @since 1.4.0
@@ -199,7 +199,7 @@ public interface OntOPE extends OntDOP {
      * The statement pattern is {@code P rdfs:range C}, where {@code P} is this object property,
      * and {@code C} is one of the return class expressions.
      *
-     * @return Stream of {@link OntCE}s
+     * @return {@code Stream} of {@link OntCE}s
      */
     @Override
     default Stream<OntCE> range() {
@@ -234,12 +234,12 @@ public interface OntOPE extends OntDOP {
      * Adds a statement with the {@link RDFS#domain} as predicate
      * and the specified {@link OntCE class expression} as an object.
      *
-     * @param domain {@link OntCE}, not {@code null}
+     * @param ce {@link OntCE}, not {@code null}
      * @return <b>this</b> instance to allow cascading calls
      * @see #addDomainStatement(OntCE)
      */
-    default OntOPE addDomain(OntCE domain) {
-        addDomainStatement(domain);
+    default OntOPE addDomain(OntCE ce) {
+        addDomainStatement(ce);
         return this;
     }
 
@@ -262,9 +262,11 @@ public interface OntOPE extends OntDOP {
     /**
      * Lists all direct super properties, the pattern is {@code P1 rdfs:subPropertyOf P2}.
      *
-     * @return Stream of {@link OntOPE}s
-     * @see #addSubPropertyOf(OntOPE)
-     * @see OntPE#removeSubPropertyOf(Resource)
+     * @return {@code Stream} of {@link OntOPE}s
+     * @see #addSuperProperty(OntOPE)
+     * @see #addSuperPropertyOf(OntOPE...)
+     * @see #removeSuperProperty(Resource)
+     * @see #addSubPropertyOfStatement(OntOPE)
      * @see #listSuperProperties(boolean)
      */
     @Override
@@ -273,19 +275,54 @@ public interface OntOPE extends OntDOP {
     }
 
     /**
+     * Adds the given property as super property returning this property itself.
+     *
+     * @param property {@link OntNDP}, not {@code null}
+     * @return <b>this</b> instance to allow cascading calls
+     * @see #removeSuperProperty(Resource)
+     * @since 1.4.0
+     */
+    default OntOPE addSuperProperty(OntOPE property) {
+        addSubPropertyOfStatement(property);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    default OntOPE removeSuperProperty(Resource property) {
+        remove(RDFS.subPropertyOf, property);
+        return this;
+    }
+
+    /**
+     * Adds the given property as super property returning a new statement to annotate.
+     * The triple pattern is {@code this rdfs:subPropertyOf property}).
+     *
+     * @param property {@link OntOPE}, not {@code null}
+     * @return {@link OntStatement} to allow subsequent annotations adding
+     */
+    default OntStatement addSubPropertyOfStatement(OntOPE property) {
+        return addStatement(RDFS.subPropertyOf, property);
+    }
+
+    /**
      * Add a super-property of this property (i.e. {@code _:this rdfs:subPropertyOf @superProperty} statement).
      *
      * @param superProperty {@link OntOPE}
      * @return {@link OntStatement}
+     * @deprecated (since 1.4.0) use the method {@link #addSubPropertyOfStatement(OntOPE)}
      */
+    @Deprecated
     default OntStatement addSubPropertyOf(OntOPE superProperty) {
-        return addStatement(RDFS.subPropertyOf, superProperty);
+        return addSubPropertyOfStatement(superProperty);
     }
 
     /**
      * Returns disjoint properties (statement: {@code P1 owl:propertyDisjointWith P2}).
      *
-     * @return Stream of {@link OntOPE}s
+     * @return {@code Stream} of {@link OntOPE}s
      * @see OntNDP#disjointWith()
      * @see OntDisjoint.ObjectProperties
      */
@@ -321,7 +358,7 @@ public interface OntOPE extends OntDOP {
      * Returns all equivalent object properties
      * (i.e. {@code Pi owl:equivalentProperty Pj}, where {@code Pi} - this property).
      *
-     * @return Stream of {@link OntOPE}s.
+     * @return {@code Stream} of {@link OntOPE}s.
      * @see OntNDP#equivalentProperty()
      */
     default Stream<OntOPE> equivalentProperty() {
@@ -366,7 +403,7 @@ public interface OntOPE extends OntDOP {
     /**
      * Lists all object properties from the right part of statement {@code _:this owl:inverseOf P}.
      *
-     * @return Stream of {@link OntOPE}s.
+     * @return {@code Stream} of {@link OntOPE}s.
      */
     default Stream<OntOPE> inverseOf() {
         return objects(OWL.inverseOf, OntOPE.class);

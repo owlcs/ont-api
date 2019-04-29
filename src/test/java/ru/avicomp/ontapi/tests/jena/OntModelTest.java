@@ -17,6 +17,7 @@ package ru.avicomp.ontapi.tests.jena;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.riot.Lang;
+import org.apache.jena.vocabulary.RDFS;
 import org.hamcrest.core.IsEqual;
 import org.junit.Assert;
 import org.junit.Test;
@@ -860,16 +861,15 @@ public class OntModelTest {
         OntNAP ab = m.createAnnotationProperty("aB");
         OntNAP ac = m.createAnnotationProperty("aC");
 
-        da.addSubPropertyOf(db);
-        db.addSubPropertyOf(m.getOWLBottomDataProperty());
+        da.addSuperProperty(db);
+        db.addSuperProperty(m.getOWLBottomDataProperty());
 
-        oc.addSubPropertyOf(iob);
-        iob.addSubPropertyOf(oa);
+        oc.addSuperProperty(iob);
+        iob.addSuperProperty(oa);
 
-        aa.addSubPropertyOf(ab);
-        ab.addSubPropertyOf(ac);
-        ab.addSubPropertyOf(m.getRDFSComment());
-        ac.addSubPropertyOf(aa);
+        aa.addSuperProperty(ab);
+        ab.addSuperProperty(ac).addSuperProperty(m.getRDFSComment());
+        ac.addSuperProperty(aa);
 
         ReadWriteUtils.print(m);
 
@@ -998,6 +998,53 @@ public class OntModelTest {
 
         p.removeRange(null).removeDomain(null);
         Assert.assertEquals(2, m.size());
+    }
+
+    @Test
+    public void testAnnotationSuperProperties() {
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntNAP p = m.createAnnotationProperty("A");
+        Assert.assertNotNull(p.addSubPropertyOfStatement(m.getRDFSComment()));
+        Assert.assertSame(p, p.addSuperProperty(m.getRDFSLabel())
+                .addSuperProperty(m.getAnnotationProperty(RDFS.seeAlso)));
+        Assert.assertEquals(3, p.subPropertyOf().count());
+
+        Assert.assertSame(p, p.removeSuperProperty(m.getOWLThing()).removeSuperProperty(m.getRDFSComment()));
+        Assert.assertEquals(2, p.subPropertyOf().count());
+        p.removeSuperProperty(null);
+        Assert.assertEquals(0, p.subPropertyOf().count());
+    }
+
+    @Test
+    public void testDataSuperProperties() {
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntNDP p1 = m.createDataProperty("D");
+        OntNDP p2 = m.createDataProperty("P");
+        Assert.assertNotNull(p1.addSubPropertyOfStatement(m.getOWLBottomDataProperty()));
+        Assert.assertSame(p1, p1.addSuperProperty(m.getOWLTopDataProperty())
+                .addSuperProperty(p2));
+        Assert.assertEquals(3, p1.subPropertyOf().count());
+
+        Assert.assertSame(p1, p1.removeSuperProperty(m.getOWLThing()).removeSuperProperty(m.getOWLTopDataProperty()));
+        Assert.assertEquals(2, p1.subPropertyOf().count());
+        p1.removeSuperProperty(null);
+        Assert.assertEquals(0, p1.subPropertyOf().count());
+    }
+
+    @Test
+    public void testObjectSuperProperties() {
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntNOP p1 = m.createObjectProperty("O");
+        OntNOP p2 = m.createObjectProperty("P");
+        Assert.assertNotNull(p1.addSubPropertyOfStatement(m.getOWLBottomObjectProperty()));
+        Assert.assertSame(p1, p1.addSuperProperty(m.getOWLTopObjectProperty())
+                .addSuperProperty(p2));
+        Assert.assertEquals(3, p1.subPropertyOf().count());
+
+        Assert.assertSame(p1, p1.removeSuperProperty(m.getOWLThing()).removeSuperProperty(m.getOWLTopObjectProperty()));
+        Assert.assertEquals(2, p1.subPropertyOf().count());
+        p1.removeSuperProperty(null);
+        Assert.assertEquals(0, p1.subPropertyOf().count());
     }
 }
 

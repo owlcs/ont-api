@@ -222,10 +222,11 @@ public interface OntObject extends OntResource {
     OntStatement getRequiredProperty(Property property);
 
     /**
-     * Answers iff this object has declaration triple {@code @this rdf:type @any}.
+     * Answers {@code true} iff this object has the declaration triple {@code this rdf:type type},
+     * where {@code type} is what specified as parameter.
      *
      * @param type {@link Resource} to test
-     * @return true if it has
+     * @return {@code true} if the given type is present
      */
     default boolean hasType(Resource type) {
         try (Stream<Resource> types = types()) {

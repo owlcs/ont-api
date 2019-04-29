@@ -60,7 +60,7 @@ public class JenaReasonerTest {
         OntGraphModel example = OntModelFactory.createModel();
         OntNDP p = example.createDataProperty(NS + "p");
         OntNDP q = example.createDataProperty(NS + "q");
-        p.addSubPropertyOf(q);
+        p.addSuperProperty(q);
         example.createIndividual(NS + "a").addProperty(p, "foo");
         LOGGER.debug("Example model:");
         example.setNsPrefixes(OntModelFactory.STANDARD);
