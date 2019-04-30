@@ -21,6 +21,7 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDFS;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
+import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -36,26 +37,6 @@ import java.util.stream.Stream;
  * Created by @szuev on 08.11.2016.
  */
 public interface OntOPE extends OntDOP {
-
-    /**
-     * {@inheritDoc}
-     * Note: a {@code PropertyChain} is not included into consideration:
-     * even this property is a member of some chain ({@code P owl:propertyChainAxiom ( P1 ... Pn )},
-     * where {@code Pj} is this property), it does not mean it has the same super property ({@code P}).
-     *
-     * @return <b>distinct</b> {@code Stream} of object property expressions
-     */
-    Stream<OntOPE> listSuperProperties(boolean direct);
-
-    /**
-     * {@inheritDoc}
-     * Note: a {@code PropertyChain} is not included into consideration,
-     * even this property is a super property of some chain ({@code P owl:propertyChainAxiom ( P1 ... Pn )},
-     * where {@code P} is this property), each of chain members is not considered as sub property of this property.
-     *
-     * @return <b>distinct</b> {@code Stream} of object property expressions
-     */
-    Stream<OntOPE> listSubProperties(boolean direct);
 
     /**
      * Adds a negative property assertion ontology object.
@@ -101,6 +82,85 @@ public interface OntOPE extends OntDOP {
      * @since 1.3.0
      */
     void removePropertyChain(RDFNode list) throws OntJenaException;
+
+    /**
+     * {@inheritDoc}
+     * Note: a {@code PropertyChain} is not included into consideration:
+     * even this property is a member of some chain ({@code P owl:propertyChainAxiom ( P1 ... Pn )},
+     * where {@code Pj} is this property), it does not mean it has the same super property ({@code P}).
+     *
+     * @return <b>distinct</b> {@code Stream} of object property expressions
+     */
+    Stream<OntOPE> listSuperProperties(boolean direct);
+
+    /**
+     * {@inheritDoc}
+     * Note: a {@code PropertyChain} is not included into consideration,
+     * even this property is a super property of some chain ({@code P owl:propertyChainAxiom ( P1 ... Pn )},
+     * where {@code P} is this property), each of chain members is not considered as sub property of this property.
+     *
+     * @return <b>distinct</b> {@code Stream} of object property expressions
+     */
+    Stream<OntOPE> listSubProperties(boolean direct);
+
+
+    /**
+     * Returns all ranges.
+     * The statement pattern is {@code P rdfs:range C}, where {@code P} is this object property,
+     * and {@code C} is one of the return class expressions.
+     *
+     * @return {@code Stream} of {@link OntCE}s
+     */
+    @Override
+    default Stream<OntCE> range() {
+        return objects(RDFS.range, OntCE.class);
+    }
+
+    /**
+     * Returns disjoint properties (statement: {@code P1 owl:propertyDisjointWith P2}).
+     *
+     * @return {@code Stream} of {@link OntOPE}s
+     * @see OntNDP#disjointWith()
+     * @see OntDisjoint.ObjectProperties
+     */
+    default Stream<OntOPE> disjointWith() {
+        return objects(OWL.propertyDisjointWith, OntOPE.class);
+    }
+
+    /**
+     * Lists all direct super properties, the pattern is {@code P1 rdfs:subPropertyOf P2}.
+     *
+     * @return {@code Stream} of {@link OntOPE}s
+     * @see #addSuperProperty(OntOPE)
+     * @see #addSuperPropertyOf(OntOPE...)
+     * @see #removeSuperProperty(Resource)
+     * @see #addSubPropertyOfStatement(OntOPE)
+     * @see #listSuperProperties(boolean)
+     */
+    @Override
+    default Stream<OntOPE> subPropertyOf() {
+        return objects(RDFS.subPropertyOf, OntOPE.class);
+    }
+
+    /**
+     * Returns all equivalent object properties
+     * (i.e. {@code Pi owl:equivalentProperty Pj}, where {@code Pi} - this property).
+     *
+     * @return {@code Stream} of {@link OntOPE}s.
+     * @see OntNDP#equivalentProperty()
+     */
+    default Stream<OntOPE> equivalentProperty() {
+        return objects(OWL.equivalentProperty, OntOPE.class);
+    }
+
+    /**
+     * Lists all object properties from the right part of statement {@code _:this owl:inverseOf P}.
+     *
+     * @return {@code Stream} of {@link OntOPE}s.
+     */
+    default Stream<OntOPE> inverseOf() {
+        return objects(OWL.inverseOf, OntOPE.class);
+    }
 
     /**
      * Returns all associated negative object property assertions.
@@ -195,15 +255,75 @@ public interface OntOPE extends OntDOP {
     }
 
     /**
-     * Returns all ranges.
-     * The statement pattern is {@code P rdfs:range C}, where {@code P} is this object property,
-     * and {@code C} is one of the return class expressions.
+     * Creates the {@code P rdf:type owl:InverseFunctionalProperty} property declaration statement,
+     * where {@code P} is this property.
      *
-     * @return {@code Stream} of {@link OntCE}s
+     * @return {@link OntStatement} to allow the subsequent addition of annotations
+     * @see #setInverseFunctional(boolean)
+     * @since 1.4.0
      */
-    @Override
-    default Stream<OntCE> range() {
-        return objects(RDFS.range, OntCE.class);
+    default OntStatement addInverseFunctionalDeclaration() {
+        return addStatement(RDF.type, OWL.InverseFunctionalProperty);
+    }
+
+    /**
+     * Creates the {@code P rdf:type owl:TransitiveProperty} property declaration statement,
+     * where {@code P} is this property.
+     *
+     * @return {@link OntStatement} to allow the subsequent addition of annotations
+     * @see #setTransitive(boolean)
+     * @since 1.4.0
+     */
+    default OntStatement addTransitiveDeclaration() {
+        return addStatement(RDF.type, OWL.TransitiveProperty);
+    }
+
+    /**
+     * Creates the {@code P rdf:type owl:SymmetricProperty} property declaration statement,
+     * where {@code P} is this property.
+     *
+     * @return {@link OntStatement} to allow the subsequent addition of annotations
+     * @see #setSymmetric(boolean)
+     * @since 1.4.0
+     */
+    default OntStatement addSymmetricDeclaration() {
+        return addStatement(RDF.type, OWL.SymmetricProperty);
+    }
+
+    /**
+     * Creates the {@code P rdf:type owl:AsymmetricProperty} property declaration statement,
+     * where {@code P} is this property.
+     *
+     * @return {@link OntStatement} to allow the subsequent addition of annotations
+     * @see #setAsymmetric(boolean)
+     * @since 1.4.0
+     */
+    default OntStatement addAsymmetricDeclaration() {
+        return addStatement(RDF.type, OWL.AsymmetricProperty);
+    }
+
+    /**
+     * Creates the {@code P rdf:type owl:ReflexiveProperty} property declaration statement,
+     * where {@code P} is this property.
+     *
+     * @return {@link OntStatement} to allow the subsequent addition of annotations
+     * @see #setReflexive(boolean)
+     * @since 1.4.0
+     */
+    default OntStatement addReflexiveDeclaration() {
+        return addStatement(RDF.type, OWL.ReflexiveProperty);
+    }
+
+    /**
+     * Creates the {@code P rdf:type owl:IrreflexiveProperty} property declaration statement,
+     * where {@code P} is this property.
+     *
+     * @return {@link OntStatement} to allow the subsequent addition of annotations
+     * @see #setIrreflexive(boolean)
+     * @since 1.4.0
+     */
+    default OntStatement addIrreflexiveDeclaration() {
+        return addStatement(RDF.type, OWL.IrreflexiveProperty);
     }
 
     /**
@@ -238,6 +358,7 @@ public interface OntOPE extends OntDOP {
      * @return <b>this</b> instance to allow cascading calls
      * @see #addDomainStatement(OntCE)
      */
+    @Override
     default OntOPE addDomain(OntCE ce) {
         addDomainStatement(ce);
         return this;
@@ -260,18 +381,124 @@ public interface OntOPE extends OntDOP {
     }
 
     /**
-     * Lists all direct super properties, the pattern is {@code P1 rdfs:subPropertyOf P2}.
-     *
-     * @return {@code Stream} of {@link OntOPE}s
-     * @see #addSuperProperty(OntOPE)
-     * @see #addSuperPropertyOf(OntOPE...)
-     * @see #removeSuperProperty(Resource)
-     * @see #addSubPropertyOfStatement(OntOPE)
-     * @see #listSuperProperties(boolean)
+     * {@inheritDoc}
      */
     @Override
-    default Stream<OntOPE> subPropertyOf() {
-        return objects(RDFS.subPropertyOf, OntOPE.class);
+    default OntOPE setFunctional(boolean functional) {
+        if (functional) {
+            addFunctionalDeclaration();
+        } else {
+            remove(RDF.type, OWL.FunctionalProperty);
+        }
+        return this;
+    }
+
+    /**
+     * Adds or removes the {@code P rdf:type owl:InverseFunctionalProperty} statement depending on the given flag
+     * and returns this property to allow cascading calls.
+     * Note: the statement is removed along with all its annotations.
+     *
+     * @param inverseFunctional if {@code true} the property must be inverse-functional
+     * @return <b>this</b> instance to allow cascading calls
+     * @see #addInverseFunctionalDeclaration()
+     */
+    default OntOPE setInverseFunctional(boolean inverseFunctional) {
+        if (inverseFunctional) {
+            addInverseFunctionalDeclaration();
+        } else {
+            remove(RDF.type, OWL.InverseFunctionalProperty);
+        }
+        return this;
+    }
+
+    /**
+     * Adds or removes the {@code P rdf:type owl:TransitiveProperty} statement depending on the given flag
+     * and returns this property to allow cascading calls.
+     * Note: the statement is removed along with all its annotations.
+     *
+     * @param transitive if {@code true} the property must be transitive
+     * @return <b>this</b> instance to allow cascading calls
+     * @see #addTransitiveDeclaration()
+     */
+    default OntOPE setTransitive(boolean transitive) {
+        if (transitive) {
+            addTransitiveDeclaration();
+        } else {
+            remove(RDF.type, OWL.TransitiveProperty);
+        }
+        return this;
+    }
+
+    /**
+     * Adds or removes the {@code P rdf:type owl:SymmetricProperty} statement depending on the given flag
+     * and returns this property to allow cascading calls.
+     * Note: the statement is removed along with all its annotations.
+     *
+     * @param symmetric if {@code true} the property must be symmetric
+     * @return <b>this</b> instance to allow cascading calls
+     * @see #addSymmetricDeclaration()
+     */
+    default OntOPE setSymmetric(boolean symmetric) {
+        if (symmetric) {
+            addSymmetricDeclaration();
+        } else {
+            remove(RDF.type, OWL.SymmetricProperty);
+        }
+        return this;
+    }
+
+    /**
+     * Adds or removes the {@code P rdf:type owl:AsymmetricProperty} statement depending on the given flag
+     * and returns this property to allow cascading calls.
+     * Note: the statement is removed along with all its annotations.
+     *
+     * @param asymmetric if {@code true} the property must be asymmetric
+     * @return <b>this</b> instance to allow cascading calls
+     * @see #addAsymmetricDeclaration()
+     */
+    default OntOPE setAsymmetric(boolean asymmetric) {
+        if (asymmetric) {
+            addAsymmetricDeclaration();
+        } else {
+            remove(RDF.type, OWL.AsymmetricProperty);
+        }
+        return this;
+    }
+
+    /**
+     * Adds or removes the {@code P rdf:type owl:ReflexiveProperty} statement depending on the given flag
+     * and returns this property to allow cascading calls.
+     * Note: the statement is removed along with all its annotations.
+     *
+     * @param reflexive if {@code true} the property must be reflexive
+     * @return <b>this</b> instance to allow cascading calls
+     * @see #addReflexiveDeclaration()
+     */
+    default OntOPE setReflexive(boolean reflexive) {
+        if (reflexive) {
+            addReflexiveDeclaration();
+        } else {
+            remove(RDF.type, OWL.ReflexiveProperty);
+        }
+        return this;
+    }
+
+    /**
+     * Adds or removes the {@code P rdf:type owl:IrreflexiveProperty} statement depending on the given flag
+     * and returns this property to allow cascading calls.
+     * Note: the statement is removed along with all its annotations.
+     *
+     * @param irreflexive if {@code true} the property must be irreflexive
+     * @return <b>this</b> instance to allow cascading calls
+     * @see #addIrreflexiveDeclaration()
+     */
+    default OntOPE setIrreflexive(boolean irreflexive) {
+        if (irreflexive) {
+            addIrreflexiveDeclaration();
+        } else {
+            remove(RDF.type, OWL.IrreflexiveProperty);
+        }
+        return this;
     }
 
     /**
@@ -308,29 +535,6 @@ public interface OntOPE extends OntDOP {
     }
 
     /**
-     * Add a super-property of this property (i.e. {@code _:this rdfs:subPropertyOf @superProperty} statement).
-     *
-     * @param superProperty {@link OntOPE}
-     * @return {@link OntStatement}
-     * @deprecated (since 1.4.0) use the method {@link #addSubPropertyOfStatement(OntOPE)}
-     */
-    @Deprecated
-    default OntStatement addSubPropertyOf(OntOPE superProperty) {
-        return addSubPropertyOfStatement(superProperty);
-    }
-
-    /**
-     * Returns disjoint properties (statement: {@code P1 owl:propertyDisjointWith P2}).
-     *
-     * @return {@code Stream} of {@link OntOPE}s
-     * @see OntNDP#disjointWith()
-     * @see OntDisjoint.ObjectProperties
-     */
-    default Stream<OntOPE> disjointWith() {
-        return objects(OWL.propertyDisjointWith, OntOPE.class);
-    }
-
-    /**
      * Adds a disjoint object property (i.e. {@code _:this owl:propertyDisjointWith @other} statement).
      *
      * @param other {@link OntOPE}
@@ -352,17 +556,6 @@ public interface OntOPE extends OntDOP {
      */
     default void removeDisjointWith(OntOPE other) {
         remove(OWL.propertyDisjointWith, other);
-    }
-
-    /**
-     * Returns all equivalent object properties
-     * (i.e. {@code Pi owl:equivalentProperty Pj}, where {@code Pi} - this property).
-     *
-     * @return {@code Stream} of {@link OntOPE}s.
-     * @see OntNDP#equivalentProperty()
-     */
-    default Stream<OntOPE> equivalentProperty() {
-        return objects(OWL.equivalentProperty, OntOPE.class);
     }
 
     /**
@@ -401,16 +594,7 @@ public interface OntOPE extends OntDOP {
     }
 
     /**
-     * Lists all object properties from the right part of statement {@code _:this owl:inverseOf P}.
-     *
-     * @return {@code Stream} of {@link OntOPE}s.
-     */
-    default Stream<OntOPE> inverseOf() {
-        return objects(OWL.inverseOf, OntOPE.class);
-    }
-
-    /**
-     * Adds new inverse-of statement.
+     * Adds a new inverse-of statement.
      *
      * @param other {@link OntOPE}
      * @return {@link OntStatement}
@@ -429,88 +613,58 @@ public interface OntOPE extends OntDOP {
     }
 
     /**
-     * @return true iff it is an inverse functional property
+     * @return {@code true} iff it is an inverse functional property
      */
     default boolean isInverseFunctional() {
         return hasType(OWL.InverseFunctionalProperty);
     }
 
     /**
-     * To add or remove {@code P rdf:type owl:InverseFunctionalProperty} statement.
-     *
-     * @param inverseFunctional true if should be inverse functional
-     */
-    void setInverseFunctional(boolean inverseFunctional);
-
-    /**
-     * @return true iff it is a transitive property
+     * @return {@code true} iff it is a transitive property
      */
     default boolean isTransitive() {
         return hasType(OWL.TransitiveProperty);
     }
 
     /**
-     * To add or remove {@code P rdf:type owl:TransitiveProperty} statement.
-     *
-     * @param transitive true if should be transitive
-     */
-    void setTransitive(boolean transitive);
-
-    /**
-     * @return true iff it is a symmetric property
+     * @return {@code true} iff it is a symmetric property
      */
     default boolean isSymmetric() {
         return hasType(OWL.SymmetricProperty);
     }
 
     /**
-     * To add or remove {@code P rdf:type owl:SymmetricProperty} statement.
-     *
-     * @param symmetric true if should be symmetric
-     */
-    void setSymmetric(boolean symmetric);
-
-    /**
-     * @return true iff it is an asymmetric property
+     * @return {@code true} iff it is an asymmetric property
      */
     default boolean isAsymmetric() {
         return hasType(OWL.AsymmetricProperty);
     }
 
     /**
-     * To add or remove {@code P rdf:type owl:AsymmetricProperty} statement.
-     *
-     * @param asymmetric true if should be asymmetric
-     */
-    void setAsymmetric(boolean asymmetric);
-
-    /**
-     * @return true iff it is a reflexive property
+     * @return {@code true} iff it is a reflexive property
      */
     default boolean isReflexive() {
         return hasType(OWL.ReflexiveProperty);
     }
 
     /**
-     * To add or remove {@code P rdf:type owl:ReflexiveProperty} statement.
-     *
-     * @param reflexive true if should be reflexive
-     */
-    void setReflexive(boolean reflexive);
-
-    /**
-     * @return true iff it is an irreflexive property
+     * @return {@code true} iff it is an irreflexive property
      */
     default boolean isIrreflexive() {
         return hasType(OWL.IrreflexiveProperty);
     }
 
     /**
-     * To add or remove {@code P rdf:type owl:IrreflexiveProperty} statement.
+     * Add a super-property of this property (i.e. {@code _:this rdfs:subPropertyOf @superProperty} statement).
      *
-     * @param irreflexive true if should be irreflexive
+     * @param superProperty {@link OntOPE}
+     * @return {@link OntStatement}
+     * @deprecated (since 1.4.0) use the method {@link #addSubPropertyOfStatement(OntOPE)}
      */
-    void setIrreflexive(boolean irreflexive);
+    @Deprecated
+    default OntStatement addSubPropertyOf(OntOPE superProperty) {
+        return addSubPropertyOfStatement(superProperty);
+    }
 
     /**
      * Represents a <a href="http://www.w3.org/TR/owl2-syntax/#Inverse_Object_Properties">ObjectInverseOf</a>.

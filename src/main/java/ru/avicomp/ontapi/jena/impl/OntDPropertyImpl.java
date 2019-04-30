@@ -62,8 +62,9 @@ public class OntDPropertyImpl extends OntPEImpl implements OntNDP {
     }
 
     @Override
-    public void setFunctional(boolean functional) {
+    public OntDPropertyImpl setFunctional(boolean functional) {
         changeRDFType(OWL.FunctionalProperty, functional);
+        return this;
     }
 
     @Override

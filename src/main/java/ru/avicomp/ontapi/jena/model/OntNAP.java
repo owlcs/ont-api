@@ -182,7 +182,6 @@ public interface OntNAP extends OntPE, OntProperty {
         return addStatement(RDFS.subPropertyOf, property);
     }
 
-
     /**
      * Adds a super property.
      *

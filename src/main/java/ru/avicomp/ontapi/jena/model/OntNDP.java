@@ -19,6 +19,7 @@ import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDFS;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
+import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.stream.Stream;
 
@@ -35,6 +36,16 @@ import java.util.stream.Stream;
 public interface OntNDP extends OntDOP, OntProperty {
 
     /**
+     * Adds a negative data property assertion.
+     *
+     * @param source {@link OntIndividual}, the source
+     * @param target {@link Literal}, the target
+     * @return {@link OntNPA.DataAssertion}
+     * @see OntOPE#addNegativeAssertion(OntIndividual, OntIndividual)
+     */
+    OntNPA.DataAssertion addNegativeAssertion(OntIndividual source, Literal target);
+
+    /**
      * {@inheritDoc}
      *
      * @return <b>distinct</b> {@code Stream} of datatype properties
@@ -49,18 +60,98 @@ public interface OntNDP extends OntDOP, OntProperty {
     Stream<OntNDP> listSubProperties(boolean direct);
 
     /**
-     * Adds a negative data property assertion.
+     * Returns all associated negative data property assertions.
      *
-     * @param source {@link OntIndividual}, the source
-     * @param target {@link Literal}, the target
-     * @return {@link OntNPA.DataAssertion}
-     * @see OntOPE#addNegativeAssertion(OntIndividual, OntIndividual)
+     * @return {@code Stream} of {@link OntNPA.DataAssertion}s
+     * @see OntOPE#negativeAssertions()
      */
-    OntNPA.DataAssertion addNegativeAssertion(OntIndividual source, Literal target);
+    default Stream<OntNPA.DataAssertion> negativeAssertions() {
+        return getModel().ontObjects(OntNPA.DataAssertion.class).filter(a -> OntNDP.this.equals(a.getProperty()));
+    }
+
+    /**
+     * Returns all associated negative data property assertions for the specified source individual.
+     *
+     * @param source {@link OntIndividual}
+     * @return {@code Stream} of {@link OntNPA.DataAssertion}s.
+     * @see OntOPE#negativeAssertions(OntIndividual)
+     */
+    default Stream<OntNPA.DataAssertion> negativeAssertions(OntIndividual source) {
+        return negativeAssertions()
+                .filter(a -> a.getSource().equals(source));
+    }
+
+    /**
+     * Returns all property ranges (statement pattern: {@code R rdfs:range D}).
+     *
+     * @return {@code Stream} of {@link OntDR}s
+     */
+    @Override
+    default Stream<OntDR> range() {
+        return objects(RDFS.range, OntDR.class);
+    }
+
+    /**
+     * Lists all super properties.
+     * The pattern is {@code R1 rdfs:subPropertyOf R2},
+     * where {@code R1} is this data property and {@code R2} is a retrieved data property.
+     *
+     * @return {@code Stream} of {@link OntNDP}s
+     * @see #addSuperProperty(OntNDP)
+     * @see #removeSuperProperty(Resource)
+     * @see #addSubPropertyOfStatement(OntNDP)
+     */
+    @Override
+    default Stream<OntNDP> subPropertyOf() {
+        return objects(RDFS.subPropertyOf, OntNDP.class);
+    }
+
+    /**
+     * Returns disjoint properties (statement: {@code R1 owl:propertyDisjointWith R2}, where {@code Ri} - this property).
+     *
+     * @return {@code Stream} of {@link OntNDP}s
+     * @see OntOPE#disjointWith()
+     * @see OntDisjoint.DataProperties
+     */
+    default Stream<OntNDP> disjointWith() {
+        return objects(OWL.propertyDisjointWith, OntNDP.class);
+    }
+
+    /**
+     * Returns all equivalent data properties (statement: {@code Ri owl:equivalentProperty Rj}, where {@code Ri} - this property).
+     *
+     * @return {@code Stream} of {@link OntNDP}s.
+     * @see OntOPE#equivalentProperty()
+     */
+    default Stream<OntNDP> equivalentProperty() {
+        return objects(OWL.equivalentProperty, OntNDP.class);
+    }
+
+    /**
+     * Adds the given property as super property returning this property itself.
+     *
+     * @param property {@link OntNDP}, not {@code null}
+     * @return <b>this</b> instance to allow cascading calls
+     * @see #removeSuperProperty(Resource)
+     * @since 1.4.0
+     */
+    default OntNDP addSuperProperty(OntNDP property) {
+        addSubPropertyOfStatement(property);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    default OntNDP removeSuperProperty(Resource property) {
+        remove(RDFS.subPropertyOf, property);
+        return this;
+    }
 
     /**
      * Adds a statement {@code R rdfs:range D},
-     * where {@code R} is this data property and {@code D} is data range expression.
+     * where {@code R} is this data property and {@code D} is the given data range expression.
      *
      * @param range {@link OntDR}, not {@code null}
      * @return {@link OntStatement} to allow subsequent annotations adding
@@ -69,6 +160,40 @@ public interface OntNDP extends OntDOP, OntProperty {
      */
     default OntStatement addRangeStatement(OntDR range) {
         return addStatement(RDFS.range, range);
+    }
+
+    /**
+     * Adds the given property as super property returning a new statement to annotate.
+     * The triple pattern is {@code this rdfs:subPropertyOf property}).
+     *
+     * @param property {@link OntNDP}, not {@code null}
+     * @return {@link OntStatement} to allow subsequent annotations adding
+     */
+    default OntStatement addSubPropertyOfStatement(OntNDP property) {
+        return addStatement(RDFS.subPropertyOf, property);
+    }
+
+    /**
+     * Adds disjoint data property.
+     *
+     * @param other {@link OntNDP}
+     * @return {@link OntStatement}
+     * @see OntOPE#addDisjointWith(OntOPE)
+     * @see OntDisjoint.DataProperties
+     */
+    default OntStatement addDisjointWith(OntNDP other) {
+        return addStatement(OWL.propertyDisjointWith, other);
+    }
+
+    /**
+     * Adds new {@link OWL#equivalentProperty owl:equivalentProperty} statement.
+     *
+     * @param other {@link OntNDP}
+     * @return {@link OntStatement}
+     * @see OntOPE#addEquivalentProperty(OntOPE)
+     */
+    default OntStatement addEquivalentProperty(OntNDP other) {
+        return addStatement(OWL.equivalentProperty, other);
     }
 
     /**
@@ -114,83 +239,37 @@ public interface OntNDP extends OntDOP, OntProperty {
     }
 
     /**
-     * Returns all associated negative data property assertions.
-     *
-     * @return {@code Stream} of {@link OntNPA.DataAssertion}s
-     * @see OntOPE#negativeAssertions()
-     */
-    default Stream<OntNPA.DataAssertion> negativeAssertions() {
-        return getModel().ontObjects(OntNPA.DataAssertion.class).filter(a -> OntNDP.this.equals(a.getProperty()));
-    }
-
-    /**
-     * Returns all associated negative data property assertions for the specified source individual.
-     *
-     * @param source {@link OntIndividual}
-     * @return {@code Stream} of {@link OntNPA.DataAssertion}s.
-     * @see OntOPE#negativeAssertions(OntIndividual)
-     */
-    default Stream<OntNPA.DataAssertion> negativeAssertions(OntIndividual source) {
-        return negativeAssertions()
-                .filter(a -> a.getSource().equals(source));
-    }
-
-    /**
-     * Returns all property ranges (statement pattern: {@code R rdfs:range D}).
-     *
-     * @return {@code Stream} of {@link OntDR}s
-     */
-    @Override
-    default Stream<OntDR> range() {
-        return objects(RDFS.range, OntDR.class);
-    }
-
-    /**
-     * Lists all super properties.
-     * The pattern is {@code R1 rdfs:subPropertyOf R2},
-     * where {@code R1} is this data property and {@code R2} is retrieved data property.
-     *
-     * @return {@code Stream} of {@link OntNDP}s
-     * @see #addSuperProperty(OntNDP)
-     * @see #removeSuperProperty(Resource)
-     * @see #addSubPropertyOfStatement(OntNDP)
-     */
-    @Override
-    default Stream<OntNDP> subPropertyOf() {
-        return objects(RDFS.subPropertyOf, OntNDP.class);
-    }
-
-    /**
-     * Adds the given property as super property returning this property itself.
-     *
-     * @param property {@link OntNDP}, not {@code null}
-     * @return <b>this</b> instance to allow cascading calls
-     * @see #removeSuperProperty(Resource)
-     * @since 1.4.0
-     */
-    default OntNDP addSuperProperty(OntNDP property) {
-        addSubPropertyOfStatement(property);
-        return this;
-    }
-
-    /**
      * {@inheritDoc}
      */
     @Override
-    default OntNDP removeSuperProperty(Resource property) {
-        remove(RDFS.subPropertyOf, property);
+    default OntNDP setFunctional(boolean functional) {
+        if (functional) {
+            addFunctionalDeclaration();
+        } else {
+            remove(RDF.type, OWL.FunctionalProperty);
+        }
         return this;
     }
 
     /**
-     * Adds the given property as super property returning a new statement to annotate.
-     * The triple pattern is {@code this rdfs:subPropertyOf property}).
+     * Clears all {@code R1 owl:propertyDisjointWith R2} statements for the specified data property.
      *
-     * @param property {@link OntNDP}, not {@code null}
-     * @return {@link OntStatement} to allow subsequent annotations adding
+     * @param other {@link OntNDP}
+     * @see OntOPE#removeDisjointWith(OntOPE)
+     * @see OntDisjoint.DataProperties
      */
-    default OntStatement addSubPropertyOfStatement(OntNDP property) {
-        return addStatement(RDFS.subPropertyOf, property);
+    default void removeDisjointWith(OntNDP other) {
+        remove(OWL.propertyDisjointWith, other);
+    }
+
+    /**
+     * Removes all equivalent-property statements for the specified data property.
+     *
+     * @param other {@link OntNDP}
+     * @see OntOPE#removeEquivalentProperty(OntOPE)
+     */
+    default void removeEquivalentProperty(OntNDP other) {
+        remove(OWL.equivalentProperty, other);
     }
 
     /**
@@ -203,71 +282,6 @@ public interface OntNDP extends OntDOP, OntProperty {
     @Deprecated
     default OntStatement addSubPropertyOf(OntNDP superProperty) {
         return addSubPropertyOfStatement(superProperty);
-    }
-
-    /**
-     * Returns disjoint properties (statement: {@code R1 owl:propertyDisjointWith R2}, where {@code Ri} - this property).
-     *
-     * @return {@code Stream} of {@link OntNDP}s
-     * @see OntOPE#disjointWith()
-     * @see OntDisjoint.DataProperties
-     */
-    default Stream<OntNDP> disjointWith() {
-        return objects(OWL.propertyDisjointWith, OntNDP.class);
-    }
-
-    /**
-     * Adds disjoint data property.
-     *
-     * @param other {@link OntNDP}
-     * @return {@link OntStatement}
-     * @see OntOPE#addDisjointWith(OntOPE)
-     * @see OntDisjoint.DataProperties
-     */
-    default OntStatement addDisjointWith(OntNDP other) {
-        return addStatement(OWL.propertyDisjointWith, other);
-    }
-
-    /**
-     * Clears all "R1 owl:propertyDisjointWith R2" statements for the specified data property.
-     *
-     * @param other {@link OntNDP}
-     * @see OntOPE#removeDisjointWith(OntOPE)
-     * @see OntDisjoint.DataProperties
-     */
-    default void removeDisjointWith(OntNDP other) {
-        remove(OWL.propertyDisjointWith, other);
-    }
-
-    /**
-     * Returns all equivalent data properties (statement: {@code Ri owl:equivalentProperty Rj}, where {@code Ri} - this property).
-     *
-     * @return {@code Stream} of {@link OntNDP}s.
-     * @see OntOPE#equivalentProperty()
-     */
-    default Stream<OntNDP> equivalentProperty() {
-        return objects(OWL.equivalentProperty, OntNDP.class);
-    }
-
-    /**
-     * Adds new {@link OWL#equivalentProperty owl:equivalentProperty} statement.
-     *
-     * @param other {@link OntNDP}
-     * @return {@link OntStatement}
-     * @see OntOPE#addEquivalentProperty(OntOPE)
-     */
-    default OntStatement addEquivalentProperty(OntNDP other) {
-        return addStatement(OWL.equivalentProperty, other);
-    }
-
-    /**
-     * Removes all equivalent-property statements for the specified data property.
-     *
-     * @param other {@link OntNDP}
-     * @see OntOPE#removeEquivalentProperty(OntOPE)
-     */
-    default void removeEquivalentProperty(OntNDP other) {
-        remove(OWL.equivalentProperty, other);
     }
 
 }

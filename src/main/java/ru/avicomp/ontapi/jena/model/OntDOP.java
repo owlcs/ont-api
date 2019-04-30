@@ -17,6 +17,7 @@ package ru.avicomp.ontapi.jena.model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDFS;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
+import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.stream.Stream;
 
@@ -54,7 +55,7 @@ public interface OntDOP extends OntPE {
 
     /**
      * List all super properties for this property expression.
-     * In other words, returns all objects from statements of the form {@code P rdfs:subPropertyOf R},
+     * In other words, returns all objects {@code R} from statements like {@code P rdfs:subPropertyOf R},
      * where {@code P} is this property.
      *
      * @return {@code Stream} of {@link OntDOP object and data properties}s
@@ -93,10 +94,13 @@ public interface OntDOP extends OntPE {
     /**
      * Adds or removes {@link OWL#FunctionalProperty owl:FunctionalProperty} declaration
      * for this property according to the given boolean flag.
+     * Note: the statement is removed along with all its annotations.
      *
      * @param functional {@code true} if should be functional
+     * @return <b>this</b> instance to allow cascading calls
+     * @see #addFunctionalDeclaration()
      */
-    void setFunctional(boolean functional);
+    OntDOP setFunctional(boolean functional);
 
     /**
      * Adds a statement with the {@link RDFS#domain} as predicate
@@ -136,6 +140,18 @@ public interface OntDOP extends OntPE {
     @Override
     default Stream<OntCE> domain() {
         return objects(RDFS.domain, OntCE.class);
+    }
+
+    /**
+     * Creates the {@code P rdf:type owl:FunctionalProperty} property declaration statement,
+     * where {@code P} is this property.
+     *
+     * @return {@link OntStatement} to allow the subsequent addition of annotations
+     * @see #setFunctional(boolean)
+     * @since 1.4.0
+     */
+    default OntStatement addFunctionalDeclaration() {
+        return addStatement(RDF.type, OWL.FunctionalProperty);
     }
 
     /**

@@ -163,38 +163,44 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
     }
 
     @Override
-    public void setFunctional(boolean functional) {
-        changeRDFType(OWL.FunctionalProperty, functional);
+    protected OntOPEImpl changeRDFType(Resource type, boolean add) {
+        super.changeRDFType(type, add);
+        return this;
     }
 
     @Override
-    public void setInverseFunctional(boolean inverseFunctional) {
-        changeRDFType(OWL.InverseFunctionalProperty, inverseFunctional);
+    public OntOPEImpl setFunctional(boolean functional) {
+        return changeRDFType(OWL.FunctionalProperty, functional);
     }
 
     @Override
-    public void setAsymmetric(boolean asymmetric) {
-        changeRDFType(OWL.AsymmetricProperty, asymmetric);
+    public OntOPEImpl setInverseFunctional(boolean inverseFunctional) {
+        return changeRDFType(OWL.InverseFunctionalProperty, inverseFunctional);
     }
 
     @Override
-    public void setTransitive(boolean transitive) {
-        changeRDFType(OWL.TransitiveProperty, transitive);
+    public OntOPEImpl setSymmetric(boolean symmetric) {
+        return changeRDFType(OWL.SymmetricProperty, symmetric);
     }
 
     @Override
-    public void setReflexive(boolean reflexive) {
-        changeRDFType(OWL.ReflexiveProperty, reflexive);
+    public OntOPEImpl setAsymmetric(boolean asymmetric) {
+        return changeRDFType(OWL.AsymmetricProperty, asymmetric);
     }
 
     @Override
-    public void setIrreflexive(boolean irreflexive) {
-        changeRDFType(OWL.IrreflexiveProperty, irreflexive);
+    public OntOPEImpl setTransitive(boolean transitive) {
+        return changeRDFType(OWL.TransitiveProperty, transitive);
     }
 
     @Override
-    public void setSymmetric(boolean symmetric) {
-        changeRDFType(OWL.SymmetricProperty, symmetric);
+    public OntOPEImpl setReflexive(boolean reflexive) {
+        return changeRDFType(OWL.ReflexiveProperty, reflexive);
+    }
+
+    @Override
+    public OntOPEImpl setIrreflexive(boolean irreflexive) {
+        return changeRDFType(OWL.IrreflexiveProperty, irreflexive);
     }
 
 }

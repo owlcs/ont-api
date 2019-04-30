@@ -26,7 +26,7 @@ import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.jena.model.OntCE;
 import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
-import ru.avicomp.ontapi.jena.model.OntNOP;
+import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.utils.OntIRI;
@@ -86,9 +86,8 @@ public class DisjointClassesOntModelTest extends OntModelTestBase {
         OntClass ontComplex1 = jena.createOntClass(owlComplex1.getIRI().getIRIString());
         OntClass ontComplex2 = jena.createOntClass(owlComplex2.getIRI().getIRIString());
 
-        OntNOP property = jena.createObjectProperty(iri.addFragment("hasSimple1").getIRIString());
-        property.setFunctional(true);
-        property.addRange(ontSimple1);
+        OntOPE property = jena.createObjectProperty(iri.addFragment("hasSimple1").getIRIString())
+                .setFunctional(true).addRange(ontSimple1);
         OntCE.ObjectSomeValuesFrom restriction = jena.createObjectSomeValuesFrom(property, ontSimple2);
         ontComplex2.addSubClassOf(restriction);
         ontComplex2.addSubClassOf(ontComplex1);

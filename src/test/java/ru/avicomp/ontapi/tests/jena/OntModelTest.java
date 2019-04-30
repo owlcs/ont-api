@@ -1046,5 +1046,54 @@ public class OntModelTest {
         p1.removeSuperProperty(null);
         Assert.assertEquals(0, p1.subPropertyOf().count());
     }
+
+    @Test
+    public void testDataPropertyAdditionalDeclarations() {
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntNDP p = m.createDataProperty("P");
+        Assert.assertNotNull(p.addFunctionalDeclaration());
+        Assert.assertTrue(p.isFunctional());
+        Assert.assertSame(p, p.setFunctional(false));
+        Assert.assertFalse(p.isFunctional());
+    }
+
+    @Test
+    public void testObjectPropertyAdditionalDeclarations() {
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntNOP p = m.createObjectProperty("P");
+        Assert.assertNotNull(p.addFunctionalDeclaration().getSubject(OntOPE.class)
+                .addInverseFunctionalDeclaration().getSubject(OntOPE.class)
+                .addAsymmetricDeclaration().getSubject(OntOPE.class)
+                .addSymmetricDeclaration().getSubject(OntOPE.class)
+                .addReflexiveDeclaration().getSubject(OntOPE.class)
+                .addIrreflexiveDeclaration().getSubject(OntOPE.class)
+                .addTransitiveDeclaration().getSubject(OntOPE.class));
+
+        Assert.assertTrue(p.isFunctional());
+        Assert.assertTrue(p.isInverseFunctional());
+        Assert.assertTrue(p.isSymmetric());
+        Assert.assertTrue(p.isAsymmetric());
+        Assert.assertTrue(p.isReflexive());
+        Assert.assertTrue(p.isIrreflexive());
+        Assert.assertTrue(p.isTransitive());
+
+        Assert.assertSame(p, p.setFunctional(false)
+                .setInverseFunctional(false)
+                .setAsymmetric(false)
+                .setSymmetric(false)
+                .setIrreflexive(false)
+                .setReflexive(false)
+                .setTransitive(false));
+        Assert.assertEquals(1, m.size());
+
+        Assert.assertSame(p, p.setFunctional(true)
+                .setInverseFunctional(true)
+                .setAsymmetric(true)
+                .setSymmetric(true)
+                .setIrreflexive(true)
+                .setReflexive(true)
+                .setTransitive(true));
+        Assert.assertEquals(8, m.size());
+    }
 }
 

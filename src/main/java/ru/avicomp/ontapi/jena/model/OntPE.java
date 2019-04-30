@@ -94,8 +94,7 @@ public interface OntPE extends OntObject {
      *
      * @return {@code Stream} of {@link Resource jena resource}s
      * @see OntNAP#subPropertyOf()
-     * @see OntOPE#subPropertyOf()
-     * @see OntNDP#subPropertyOf()
+     * @see OntDOP#subPropertyOf()
      */
     Stream<? extends OntPE> subPropertyOf();
 
@@ -114,8 +113,7 @@ public interface OntPE extends OntObject {
      *
      * @return {@code Stream} of {@link Resource}s
      * @see OntNAP#range()
-     * @see OntOPE#range()
-     * @see OntNDP#range()
+     * @see OntDOP#range()
      */
     Stream<? extends Resource> range();
 

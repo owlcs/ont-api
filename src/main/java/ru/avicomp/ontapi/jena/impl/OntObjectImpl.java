@@ -279,13 +279,15 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      *
      * @param type URI-{@link Resource}, the type
      * @param add  if {@code true} the add operation is performed, otherwise the remove
+     * @return <b>this</b> instance to allow cascading calls
      */
-    protected void changeRDFType(Resource type, boolean add) {
+    protected OntObjectImpl changeRDFType(Resource type, boolean add) {
         if (add) {
             addRDFType(type);
         } else {
             removeRDFType(type);
         }
+        return this;
     }
 
     /**
