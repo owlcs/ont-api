@@ -58,27 +58,28 @@ public interface OntDOP extends OntPE {
      * In other words, returns all objects {@code R} from statements like {@code P rdfs:subPropertyOf R},
      * where {@code P} is this property.
      *
-     * @return {@code Stream} of {@link OntDOP object and data properties}s
+     * @return {@code Stream} of {@link OntDOP}s - object <b>or</b> data properties
      */
     Stream<? extends OntDOP> subPropertyOf();
 
     /**
-     * Lists all properties which are disjoint with this property.
+     * Lists all properties that are disjoint with this property.
      * In other words, returns all objects from statements of the form {@code P owl:propertyDisjointWith R},
-     * where {@code P} is this property.
+     * where {@code P} is this property and {@code R} is a returned property of the same type.
      *
-     * @return {@code Stream} of {@link OntObject ontology object}s
+     * @return {@code Stream} of {@link OntDOP}s - object <b>or</b> data properties
+     * @see OntDisjoint.Properties
      */
-    Stream<? extends OntObject> disjointWith();
+    Stream<? extends OntDOP> disjointWith();
 
     /**
      * Lists all properties that equivalent to this one.
      * In other words, returns all objects from statements of the form {@code P owl:equivalentProperty R},
-     * where {@code P} is this property.
+     * where {@code P} is this property and {@code R} is a returned property of the same type.
      *
-     * @return {@code Stream} of {@link OntObject ontology object}s
+     * @return {@code Stream} of {@link OntDOP}s - object <b>or</b> data properties
      */
-    Stream<? extends OntObject> equivalentProperty();
+    Stream<? extends OntDOP> equivalentProperty();
 
     /**
      * Lists all negative property assertions.
@@ -103,8 +104,8 @@ public interface OntDOP extends OntPE {
     OntDOP setFunctional(boolean functional);
 
     /**
-     * Adds a statement with the {@link RDFS#domain} as predicate
-     * and the specified {@link OntCE class expression} as an object.
+     * Adds a statement with the {@link RDFS#domain} as predicate,
+     * this property as a subject, and the specified {@link OntCE class expression} as an object.
      *
      * @param ce {@link OntCE}, not {@code null}
      * @return <b>this</b> instance to allow cascading calls
@@ -129,6 +130,35 @@ public interface OntDOP extends OntPE {
      */
     @Override
     OntDOP removeSuperProperty(Resource property);
+
+    /**
+     * Removes the equivalent property statement
+     * (a statement with the predicate {@link OWL#equivalentProperty owl:equivalentProperty})
+     * for the specified resource (considered as object), including the corresponding statement's annotations.
+     * No-op in case no such equivalent property relationship is found.
+     * Removes all triples with predicate {@code owl:equivalentProperty} (and all theirs annotation triples)
+     * if {@code null} is given.
+     *
+     * @param property {@link Resource} or {@code null} to remove all equivalent properties
+     * @return <b>this</b> instance to allow cascading calls
+     * @since 1.4.0
+     */
+    OntDOP removeEquivalentProperty(Resource property);
+
+    /**
+     * Removes the {@code owl:propertyDisjointWith} statement
+     * (a statement with the predicate {@link OWL#propertyDisjointWith owl:propertyDisjointWith})
+     * for the specified resource (considered as object), including the corresponding statement's annotations.
+     * No-op in case no such disjoint property relationship is found.
+     * Removes all triples with predicate {@code owl:propertyDisjointWith} (and all theirs annotation triples)
+     * if {@code null} is given.
+     *
+     * @param property {@link Resource} or {@code null} to remove all disjoint properties
+     * @return <b>this</b> instance to allow cascading calls
+     * @see OntDisjoint.Properties
+     * @since 1.4.0
+     */
+    OntDOP removeDisjointProperty(Resource property);
 
     /**
      * Lists all of the declared domain class expressions of this property expression.

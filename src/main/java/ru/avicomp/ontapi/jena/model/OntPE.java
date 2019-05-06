@@ -125,7 +125,8 @@ public interface OntPE extends OntObject {
     Property asProperty();
 
     /**
-     * Removes the specified domain resource (predicate is {@link RDFS#domain rdfs:domain}).
+     * Removes the specified domain resource (predicate is {@link RDFS#domain rdfs:domain}),
+     * including the corresponding statement's annotations.
      * No-op in case no such domain found.
      * Removes all domains if {@code null} is specified.
      *
@@ -135,7 +136,8 @@ public interface OntPE extends OntObject {
     OntPE removeDomain(Resource domain);
 
     /**
-     * Removes the specified range resource (predicate is {@link RDFS#range rdfs:range}).
+     * Removes the specified range resource (predicate is {@link RDFS#range rdfs:range}),
+     * including the corresponding statement's annotations.
      * No-op in case no such range is found.
      * Removes all ranges if {@code null} is specified.
      *
@@ -145,7 +147,8 @@ public interface OntPE extends OntObject {
     OntPE removeRange(Resource range);
 
     /**
-     * Removes the specified super property (predicate is {@link RDFS#subPropertyOf rdfs:subPropertyOf}).
+     * Removes the specified super property (predicate is {@link RDFS#subPropertyOf rdfs:subPropertyOf}),
+     * including the corresponding statement's annotations.
      * No-op in case no such super-property is found.
      * Removes all triples with predicate {@code rdfs:subPropertyOf} if {@code null} is specified.
      *

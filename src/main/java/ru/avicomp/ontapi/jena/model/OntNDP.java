@@ -50,6 +50,7 @@ public interface OntNDP extends OntDOP, OntProperty {
      *
      * @return <b>distinct</b> {@code Stream} of datatype properties
      */
+    @Override
     Stream<OntNDP> listSuperProperties(boolean direct);
 
     /**
@@ -57,14 +58,16 @@ public interface OntNDP extends OntDOP, OntProperty {
      *
      * @return <b>distinct</b> {@code Stream} of datatype properties
      */
+    @Override
     Stream<OntNDP> listSubProperties(boolean direct);
 
     /**
-     * Returns all associated negative data property assertions.
+     * {@inheritDoc}
      *
      * @return {@code Stream} of {@link OntNPA.DataAssertion}s
      * @see OntOPE#negativeAssertions()
      */
+    @Override
     default Stream<OntNPA.DataAssertion> negativeAssertions() {
         return getModel().ontObjects(OntNPA.DataAssertion.class).filter(a -> OntNDP.this.equals(a.getProperty()));
     }
@@ -82,7 +85,7 @@ public interface OntNDP extends OntDOP, OntProperty {
     }
 
     /**
-     * Returns all property ranges (statement pattern: {@code R rdfs:range D}).
+     * Returns all property ranges (the statement pattern: {@code R rdfs:range D}).
      *
      * @return {@code Stream} of {@link OntDR}s
      */
@@ -98,7 +101,7 @@ public interface OntNDP extends OntDOP, OntProperty {
      *
      * @return {@code Stream} of {@link OntNDP}s
      * @see #addSuperProperty(OntNDP)
-     * @see #removeSuperProperty(Resource)
+     * @see OntPE#removeSuperProperty(Resource)
      * @see #addSubPropertyOfStatement(OntNDP)
      */
     @Override
@@ -113,40 +116,22 @@ public interface OntNDP extends OntDOP, OntProperty {
      * @see OntOPE#disjointWith()
      * @see OntDisjoint.DataProperties
      */
+    @Override
     default Stream<OntNDP> disjointWith() {
         return objects(OWL.propertyDisjointWith, OntNDP.class);
     }
 
     /**
-     * Returns all equivalent data properties (statement: {@code Ri owl:equivalentProperty Rj}, where {@code Ri} - this property).
+     * Returns all equivalent data properties
+     * The statement pattern is {@code Ri owl:equivalentProperty Rj},
+     * where {@code Ri} - this property, {@code Rj} - the property of the same type to return.
      *
-     * @return {@code Stream} of {@link OntNDP}s.
+     * @return {@code Stream} of {@link OntNDP}s
      * @see OntOPE#equivalentProperty()
      */
+    @Override
     default Stream<OntNDP> equivalentProperty() {
         return objects(OWL.equivalentProperty, OntNDP.class);
-    }
-
-    /**
-     * Adds the given property as super property returning this property itself.
-     *
-     * @param property {@link OntNDP}, not {@code null}
-     * @return <b>this</b> instance to allow cascading calls
-     * @see #removeSuperProperty(Resource)
-     * @since 1.4.0
-     */
-    default OntNDP addSuperProperty(OntNDP property) {
-        addSubPropertyOfStatement(property);
-        return this;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    default OntNDP removeSuperProperty(Resource property) {
-        remove(RDFS.subPropertyOf, property);
-        return this;
     }
 
     /**
@@ -168,32 +153,53 @@ public interface OntNDP extends OntDOP, OntProperty {
      *
      * @param property {@link OntNDP}, not {@code null}
      * @return {@link OntStatement} to allow subsequent annotations adding
+     * @since 1.4.0
      */
     default OntStatement addSubPropertyOfStatement(OntNDP property) {
         return addStatement(RDFS.subPropertyOf, property);
     }
 
     /**
-     * Adds disjoint data property.
+     * Creates and returns a new {@link OWL#equivalentProperty owl:equivalentProperty} statement
+     * with the given property as an object and this property as a subject.
      *
-     * @param other {@link OntNDP}
-     * @return {@link OntStatement}
-     * @see OntOPE#addDisjointWith(OntOPE)
-     * @see OntDisjoint.DataProperties
+     * @param other {@link OntNDP}, not {@code null}
+     * @return {@link OntStatement} to allow subsequent annotations adding
+     * @see #addEquivalentProperty(OntNDP)
+     * @see #removeEquivalentProperty(Resource)
+     * @see OntOPE#addEquivalentPropertyStatement(OntOPE)
+     * @since 1.4.0
      */
-    default OntStatement addDisjointWith(OntNDP other) {
+    default OntStatement addEquivalentPropertyStatement(OntNDP other) {
+        return addStatement(OWL.equivalentProperty, other);
+    }
+
+    /**
+     * Adds a disjoint object property (i.e. the {@code _:this owl:propertyDisjointWith @other} statement).
+     *
+     * @param other {@link OntNDP}, not {@code null}
+     * @return {@link OntStatement} to allow subsequent annotations adding
+     * @see #addDisjointProperty(OntNDP)
+     * @see #removeDisjointProperty(Resource)
+     * @see OntOPE#addPropertyDisjointWithStatement(OntOPE)
+     * @see OntDisjoint.ObjectProperties
+     * @since 1.4.0
+     */
+    default OntStatement addPropertyDisjointWithStatement(OntNDP other) {
         return addStatement(OWL.propertyDisjointWith, other);
     }
 
     /**
-     * Adds new {@link OWL#equivalentProperty owl:equivalentProperty} statement.
+     * Adds the given property as super property returning this property itself.
      *
-     * @param other {@link OntNDP}
-     * @return {@link OntStatement}
-     * @see OntOPE#addEquivalentProperty(OntOPE)
+     * @param property {@link OntNDP}, not {@code null}
+     * @return <b>this</b> instance to allow cascading calls
+     * @see #removeSuperProperty(Resource)
+     * @since 1.4.0
      */
-    default OntStatement addEquivalentProperty(OntNDP other) {
-        return addStatement(OWL.equivalentProperty, other);
+    default OntNDP addSuperProperty(OntNDP property) {
+        addSubPropertyOfStatement(property);
+        return this;
     }
 
     /**
@@ -210,21 +216,58 @@ public interface OntNDP extends OntDOP, OntProperty {
     }
 
     /**
-     * Adds a statement with the {@link RDFS#domain} as predicate
-     * and the specified {@link OntCE class expression} as an object.
-     *
-     * @param ce {@link OntCE}, not {@code null}
-     * @return <b>this</b> instance to allow cascading calls
-     * @see #addDomainStatement(OntCE)
+     * {@inheritDoc}
      */
+    @Override
     default OntNDP addDomain(OntCE ce) {
         addDomainStatement(ce);
         return this;
     }
 
     /**
+     * Adds a new {@link OWL#equivalentProperty owl:equivalentProperty} statement.
+     *
+     * @param other {@link OntNDP}, not {@code null}
+     * @return {@link OntNDP} <b>this</b> instance to allow cascading calls
+     * @see #addEquivalentPropertyStatement(OntNDP)
+     * @see OntDOP#removeEquivalentProperty(Resource)
+     * @see OntOPE#addEquivalentProperty(OntOPE)
+     */
+    default OntNDP addEquivalentProperty(OntNDP other) {
+        addEquivalentPropertyStatement(other);
+        return this;
+    }
+
+    /**
+     * Adds a new {@link OWL#propertyDisjointWith owl:propertyDisjointWith} statement
+     * for this and the specified property.
+     *
+     * @param other {@link OntNDP}, not {@code null}
+     * @return {@link OntNDP} <b>this</b> instance to allow cascading calls
+     * @see #addPropertyDisjointWithStatement(OntNDP)
+     * @see OntOPE#addDisjointProperty(OntOPE)
+     * @see OntDOP#removeDisjointProperty(Resource)
+     * @see OntDisjoint.DataProperties
+     * @since 1.4.0
+     */
+    default OntNDP addDisjointProperty(OntNDP other) {
+        addPropertyDisjointWithStatement(other);
+        return this;
+    }
+
+    /**
      * {@inheritDoc}
      */
+    @Override
+    default OntNDP removeSuperProperty(Resource property) {
+        remove(RDFS.subPropertyOf, property);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     default OntNDP removeDomain(Resource domain) {
         remove(RDFS.domain, domain);
         return this;
@@ -233,8 +276,27 @@ public interface OntNDP extends OntDOP, OntProperty {
     /**
      * {@inheritDoc}
      */
+    @Override
     default OntNDP removeRange(Resource range) {
         remove(RDFS.range, range);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    default OntNDP removeEquivalentProperty(Resource property) {
+        remove(OWL.equivalentProperty, property);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    default OntNDP removeDisjointProperty(Resource property) {
+        remove(OWL.propertyDisjointWith, property);
         return this;
     }
 
@@ -252,27 +314,6 @@ public interface OntNDP extends OntDOP, OntProperty {
     }
 
     /**
-     * Clears all {@code R1 owl:propertyDisjointWith R2} statements for the specified data property.
-     *
-     * @param other {@link OntNDP}
-     * @see OntOPE#removeDisjointWith(OntOPE)
-     * @see OntDisjoint.DataProperties
-     */
-    default void removeDisjointWith(OntNDP other) {
-        remove(OWL.propertyDisjointWith, other);
-    }
-
-    /**
-     * Removes all equivalent-property statements for the specified data property.
-     *
-     * @param other {@link OntNDP}
-     * @see OntOPE#removeEquivalentProperty(OntOPE)
-     */
-    default void removeEquivalentProperty(OntNDP other) {
-        remove(OWL.equivalentProperty, other);
-    }
-
-    /**
      * Adds super property.
      *
      * @param superProperty {@link OntNDP}
@@ -282,6 +323,29 @@ public interface OntNDP extends OntDOP, OntProperty {
     @Deprecated
     default OntStatement addSubPropertyOf(OntNDP superProperty) {
         return addSubPropertyOfStatement(superProperty);
+    }
+
+    /**
+     * Adds disjoint data property.
+     *
+     * @param other {@link OntNDP}, not {@code null}
+     * @return {@link OntStatement} to allow subsequent annotations adding
+     * @deprecated (since 1.4.0) use the method {@link #addDisjointProperty(OntNDP)}
+     */
+    @Deprecated
+    default OntStatement addDisjointWith(OntNDP other) {
+        return addPropertyDisjointWithStatement(other);
+    }
+
+    /**
+     * Clears all {@code R1 owl:propertyDisjointWith R2} statements for the specified data property.
+     *
+     * @param other {@link OntNDP}
+     * @deprecated (since 1.4.0) use the method {@link #removeDisjointProperty(Resource)}
+     */
+    @Deprecated
+    default void removeDisjointWith(OntNDP other) {
+        removeDisjointProperty(other);
     }
 
 }

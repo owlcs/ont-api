@@ -267,12 +267,12 @@ public class OntModelTest {
         }
         simplePropertiesValidation(m);
         OntOPE p1 = m.listObjectProperties().findFirst().orElseThrow(AssertionError::new);
-        Assert.assertNull(p1.getInverseOf());
+        Assert.assertFalse(p1.findInverseProperty().isPresent());
         OntOPE p2 = m.createResource().addProperty(OWL.inverseOf, p1).as(OntOPE.class);
-        Assert.assertNotNull(p2.getInverseOf());
+        Assert.assertTrue(p2.findInverseProperty().isPresent());
         Assert.assertEquals(1, p2.inverseOf().count());
         Assert.assertEquals(p1.asProperty(), p2.asProperty());
-        Assert.assertEquals(p1, p2.getInverseOf());
+        Assert.assertEquals(p1, p2.findInverseProperty().orElseThrow(AssertionError::new));
         Assert.assertEquals(1, m.ontObjects(OntOPE.Inverse.class).count());
     }
 
@@ -287,7 +287,7 @@ public class OntModelTest {
         m.createObjectProperty(ns + "o-p-2").createInverse();
         m.createObjectProperty(ns + "o-p-3").createInverse().addComment("Anonymous property expression");
         m.createObjectProperty(ns + "o-p-4")
-                .addInverseOf(m.createObjectProperty(ns + "o-p-5"))
+                .addInverseOfStatement(m.createObjectProperty(ns + "o-p-5"))
                 .annotate(a1, m.createLiteral("inverse statement, not inverse-property"));
         m.createDataProperty(ns + "d-p-1");
         m.createDataProperty(ns + "d-p-2").addAnnotation(a2, m.createLiteral("data-property"));
@@ -1107,6 +1107,83 @@ public class OntModelTest {
         Assert.assertEquals(0, p.fromPropertyChain().count());
         Assert.assertEquals(p, p.addPropertyChain(Arrays.asList(p1, p1)).addPropertyChain(Arrays.asList(p2, p2)));
         Assert.assertEquals(2, p.fromPropertyChain().count());
+    }
+
+    @Test
+    public void testObjectPropertyInverseOf() {
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntNOP a = m.createObjectProperty("A");
+        OntNOP b = m.createObjectProperty("B");
+        OntNOP c = m.createObjectProperty("C");
+        Assert.assertNotNull(a.addInverseOfStatement(b));
+        Assert.assertEquals(b, a.findInverseProperty().orElseThrow(AssertionError::new));
+        Assert.assertEquals(1, a.inverseOf().count());
+        Assert.assertSame(c, c.addInverseProperty(b).addInverseProperty(a));
+        Assert.assertEquals(2, c.inverseOf().count());
+        Assert.assertSame(c, c.removeInverseProperty(c).removeInverseProperty(b));
+        Assert.assertEquals(1, c.inverseOf().count());
+        Assert.assertSame(a, a.removeInverseProperty(null));
+        Assert.assertEquals(4, m.size());
+    }
+
+    @Test
+    public void testDataPropertyEquivalentProperties() {
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntNDP a = m.createDataProperty("A");
+        OntNDP b = m.createDataProperty("B");
+        OntNDP c = m.createDataProperty("C");
+        Assert.assertNotNull(a.addEquivalentPropertyStatement(b));
+        Assert.assertSame(a, a.addEquivalentProperty(c).addEquivalentProperty(m.getOWLBottomDataProperty()));
+        Assert.assertEquals(3, a.equivalentProperty().count());
+        Assert.assertSame(a, a.removeEquivalentProperty(b).removeEquivalentProperty(m.getRDFSComment()));
+        Assert.assertEquals(2, a.equivalentProperty().count());
+        a.removeEquivalentProperty(null);
+        Assert.assertEquals(3, m.size());
+    }
+
+    @Test
+    public void testObjectPropertyEquivalentProperties() {
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntNOP a = m.createObjectProperty("A");
+        OntNOP b = m.createObjectProperty("B");
+        OntNOP c = m.createObjectProperty("C");
+        Assert.assertNotNull(a.addEquivalentPropertyStatement(b));
+        Assert.assertSame(a, a.addEquivalentProperty(c).addEquivalentProperty(m.getOWLTopObjectProperty()));
+        Assert.assertEquals(3, a.equivalentProperty().count());
+        Assert.assertSame(a, a.removeEquivalentProperty(b).removeEquivalentProperty(m.getOWLThing()));
+        Assert.assertEquals(2, a.equivalentProperty().count());
+        a.removeEquivalentProperty(null);
+        Assert.assertEquals(3, m.size());
+    }
+
+    @Test
+    public void testDataPropertyDisjointProperties() {
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntNDP a = m.createDataProperty("A");
+        OntNDP b = m.createDataProperty("B");
+        OntNDP c = m.createDataProperty("C");
+        Assert.assertNotNull(a.addPropertyDisjointWithStatement(b));
+        Assert.assertSame(a, a.addDisjointProperty(c).addDisjointProperty(m.getOWLBottomDataProperty()));
+        Assert.assertEquals(3, a.disjointWith().count());
+        Assert.assertSame(a, a.removeDisjointProperty(b).removeDisjointProperty(m.getRDFSComment()));
+        Assert.assertEquals(2, a.disjointWith().count());
+        a.removeDisjointProperty(null);
+        Assert.assertEquals(3, m.size());
+    }
+
+    @Test
+    public void testObjectPropertyDisjointProperties() {
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntNOP a = m.createObjectProperty("A");
+        OntNOP b = m.createObjectProperty("B");
+        OntNOP c = m.createObjectProperty("C");
+        Assert.assertNotNull(a.addPropertyDisjointWithStatement(b));
+        Assert.assertSame(a, a.addDisjointProperty(c).addDisjointProperty(m.getOWLTopObjectProperty()));
+        Assert.assertEquals(3, a.disjointWith().count());
+        Assert.assertSame(a, a.removeDisjointProperty(b).removeDisjointProperty(m.getOWLThing()));
+        Assert.assertEquals(2, a.disjointWith().count());
+        a.removeDisjointProperty(null);
+        Assert.assertEquals(3, m.size());
     }
 }
 
