@@ -1095,5 +1095,18 @@ public class OntModelTest {
                 .setTransitive(true));
         Assert.assertEquals(8, m.size());
     }
+
+    @Test
+    public void testPropertyChains() {
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntNOP p = m.createObjectProperty("P");
+        OntNOP p1 = m.createObjectProperty("P1");
+        OntNOP p2 = m.createObjectProperty("P2");
+        Assert.assertNotNull(p.addPropertyChainAxiomStatement());
+        Assert.assertEquals(p, p.addPropertyChain());
+        Assert.assertEquals(0, p.fromPropertyChain().count());
+        Assert.assertEquals(p, p.addPropertyChain(Arrays.asList(p1, p1)).addPropertyChain(Arrays.asList(p2, p2)));
+        Assert.assertEquals(2, p.fromPropertyChain().count());
+    }
 }
 

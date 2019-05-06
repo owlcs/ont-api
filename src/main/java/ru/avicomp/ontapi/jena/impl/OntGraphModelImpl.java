@@ -547,14 +547,16 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
      * @param subject   {@link OntObject} the subject of the OntList root statement
      * @param predicate {@link Property} the predicate of the OntList root statement
      * @param object    {@link OntList} to be deleted
+     * @return this model instance
      */
-    public void deleteOntList(OntObject subject, Property predicate, OntList object) {
+    @SuppressWarnings("UnusedReturnValue")
+    public OntGraphModelImpl deleteOntList(OntObject subject, Property predicate, OntList object) {
         Objects.requireNonNull(subject);
         Objects.requireNonNull(predicate);
         OntJenaException.notNull(object, "Null list for subject " + subject + " and predicate " + predicate);
         object.getRoot().clearAnnotations();
         object.clear();
-        remove(subject, predicate, object);
+        return remove(subject, predicate, object);
     }
 
     @Override

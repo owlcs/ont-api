@@ -50,7 +50,7 @@ public class OntListTest {
         OntNOP p1 = m.createObjectProperty("p1");
         OntNOP p2 = m.createObjectProperty("p2");
         OntNOP p3 = m.createObjectProperty("p3");
-        p1.addSuperPropertyOf();
+        p1.addPropertyChainAxiomStatement();
         check(m, 1, OntNOP.class);
 
         OntList<OntOPE> list = p2.createPropertyChain(Collections.emptyList());
@@ -228,7 +228,7 @@ public class OntListTest {
         // following checking does not really belong to this test (https://github.com/avicomp/ont-api/issues/24):
         Assert.assertEquals(XSD.xdouble.getURI(), literal_z.getDatatypeURI());
 
-        p1.addSuperPropertyOf(p4, p4, p3, p2).annotate(m.getRDFSLabel(), literal_x);
+        p1.addPropertyChainAxiomStatement(p4, p4, p3, p2).annotate(m.getRDFSLabel(), literal_x);
         debug(m);
         OntList<OntOPE> list = p1.listPropertyChains().findFirst().orElseThrow(AssertionError::new);
         Assert.assertEquals(literal_x, getSingleAnnotation(list).getLiteral());
@@ -380,10 +380,9 @@ public class OntListTest {
         OntNOP p2 = m.createObjectProperty("p2");
         OntNOP p3 = m.createObjectProperty("p3");
         OntNOP p4 = m.createObjectProperty("p4");
-        p1.addSuperPropertyOf(p2, p3);
-        p1.addSuperPropertyOf(p3, p3, p4);
-        p1.addSuperPropertyOf(p4, p4);
+        p1.addPropertyChain(p2, p3).addPropertyChain(p3, p3, p4).addPropertyChain(p4, p4);
         debug(m);
+        Assert.assertEquals(3, p1.fromPropertyChain().count());
         Assert.assertEquals(3, m.listObjectProperties().flatMap(OntOPE::listPropertyChains).count());
         OntList<OntOPE> p334 = p1.listPropertyChains()
                 .filter(c -> c.first().filter(p3::equals).isPresent())
