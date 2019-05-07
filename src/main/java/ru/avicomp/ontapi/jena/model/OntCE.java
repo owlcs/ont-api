@@ -130,15 +130,20 @@ public interface OntCE extends OntObject {
 
     /**
      * Creates a {@code HasKey} logical construction as {@link OntList ontology list}
-     * and returns statement {@code C owl:hasKey ( P1 ... Pm R1 ... Rn )} to allow the addition of annotations.
+     * and returns the statement {@code C owl:hasKey ( P1 ... Pm R1 ... Rn )}
+     * to allow the subsequent addition of annotations.
      * About RDF Graph annotation specification see, for example,
      * <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Translation_of_Annotations'>2.3.1 Axioms that Generate a Main Triple</a>.
      *
      * @param properties Array of {@link OntDOP}s without {@code null}s
-     * @return {@link OntStatement}
-     * @since 1.3.0
+     * @return {@link OntStatement} with a possibility to annotate
+     * @see #addHasKeyStatement(Collection, Collection)
+     * @see #addHasKey(OntDOP...)
+     * @see #removeHasKey(RDFNode)
+     * @see #clearHasKeys()
+     * @since 1.4.0
      */
-    OntStatement addHasKey(OntDOP... properties);
+    OntStatement addHasKeyStatement(OntDOP... properties);
 
     /**
      * Lists all {@code HasKey} {@link OntList ontology []-list}s
@@ -154,10 +159,11 @@ public interface OntCE extends OntObject {
      * with predicate {@link OWL#hasKey owl:hasKey} for this resource from its associated model.
      *
      * @param list {@link RDFNode} can be {@link OntList} or {@link RDFList}
+     * @return <b>this</b> instance to allow cascading calls
      * @throws OntJenaException if the list is not found
      * @since 1.3.0
      */
-    void removeHasKey(RDFNode list);
+    OntCE removeHasKey(RDFNode list);
 
     /**
      * Lists all individuals,
@@ -267,6 +273,21 @@ public interface OntCE extends OntObject {
     }
 
     /**
+     * Creates an {@code owl:hasKey} statement returning root statement to allow the subsequent annotations adding.
+     *
+     * @param objectProperties the collection of {@link OntOPE}s
+     * @param dataProperties   the collection of {@link OntNDP}s
+     * @return {@link OntStatement}
+     * @see #addHasKeyStatement(OntDOP...)
+     * @see #addHasKey(OntDOP...)
+     * @see <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Translation_of_Annotations'>2.3.1 Axioms that Generate a Main Triple</a>
+     * @since 1.4.0
+     */
+    default OntStatement addHasKeyStatement(Collection<OntOPE> objectProperties, Collection<OntNDP> dataProperties) {
+        return createHasKey(objectProperties, dataProperties).getRoot();
+    }
+
+    /**
      * Adds the given class as a super class
      * and returns this class expression instance to allow cascading calls.
      *
@@ -306,6 +327,36 @@ public interface OntCE extends OntObject {
      */
     default OntCE addEquivalentClass(OntCE other) {
         addEquivalentClassStatement(other);
+        return this;
+    }
+
+    /**
+     * Creates an {@code owl:hasKey} statement returning this class to allow cascading calls.
+     *
+     * @param objectProperties the collection of {@link OntOPE}s
+     * @param dataProperties   the collection of {@link OntNDP}s
+     * @return <b>this</b> instance to allow cascading calls
+     * @see #addHasKeyStatement(Collection, Collection)
+     * @see #addHasKey(OntDOP...)
+     */
+    default OntCE addHasKey(Collection<OntOPE> objectProperties, Collection<OntNDP> dataProperties) {
+        addHasKeyStatement(objectProperties, dataProperties);
+        return this;
+    }
+
+    /**
+     * Creates an {@code owl:hasKey} statement returning this class to allow cascading calls.
+     *
+     * @param properties Array of {@link OntDOP}s without {@code null}s
+     * @return <b>this</b> instance to allow cascading calls
+     * @see #addHasKeyStatement(OntDOP...)
+     * @see #addHasKey(Collection, Collection)
+     * @see #removeHasKey(RDFNode)
+     * @see #clearHasKeys()
+     * @since 1.3.0
+     */
+    default OntCE addHasKey(OntDOP... properties) {
+        addHasKeyStatement(properties);
         return this;
     }
 
@@ -362,6 +413,19 @@ public interface OntCE extends OntObject {
     }
 
     /**
+     * Deletes all {@code HasKey} []-list including its annotations
+     * with predicate {@link OWL#hasKey owl:hasKey} for this resource from its associated model.
+     *
+     * @return <b>this</b> instance to allow cascading calls
+     * @throws OntJenaException if the list is not found
+     * @since 1.3.0
+     */
+    default OntCE clearHasKeys() {
+        listHasKeys().collect(Collectors.toList()).forEach(this::removeHasKey);
+        return this;
+    }
+
+    /**
      * Finds a {@code HasKey} logical construction
      * attached to this class expression by the specified rdf-node in the form of {@link OntList}.
      *
@@ -393,33 +457,11 @@ public interface OntCE extends OntObject {
     }
 
     /**
-     * Creates an {@code owl:hasKey} statement returning root statement to allow adding annotations.
-     *
-     * @param objectProperties the collection of {@link OntOPE}s
-     * @param dataProperties   the collection of {@link OntNDP}s
-     * @return {@link OntStatement}
-     */
-    default OntStatement addHasKey(Collection<OntOPE> objectProperties, Collection<OntNDP> dataProperties) {
-        return createHasKey(objectProperties, dataProperties).getRoot();
-    }
-
-    /**
-     * Deletes all {@code HasKey} []-list including its annotations
-     * with predicate {@link OWL#hasKey owl:hasKey} for this resource from its associated model.
-     *
-     * @throws OntJenaException if the list is not found
-     * @since 1.3.0
-     */
-    default void clearHasKeys() {
-        listHasKeys().collect(Collectors.toSet()).forEach(this::removeHasKey);
-    }
-
-    /**
      * Adds a super class.
      *
      * @param superClass {@link OntCE}
      * @return {@link OntStatement}
-     * @deprecated since 1.4.0: use the method {@link #addSubClassOfStatement(OntCE)}
+     * @deprecated since 1.4.0: use the method {@link #addSubClassOfStatement(OntCE)} instead
      */
     @Deprecated
     default OntStatement addSubClassOf(OntCE superClass) {
@@ -430,7 +472,7 @@ public interface OntCE extends OntObject {
      * Removes the given super class.
      *
      * @param superClass {@link OntCE}, or {@code null} to remove all super classes
-     * @deprecated since 1.4.0: use the method {@link #removeSuperClass(Resource)}
+     * @deprecated since 1.4.0: use the method {@link #removeSuperClass(Resource)} instead
      */
     @Deprecated
     default void removeSubClassOf(OntCE superClass) {

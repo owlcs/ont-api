@@ -398,11 +398,11 @@ public class OntListTest {
         p23.getRoot().annotate(m.getRDFSComment(), m.createLiteral("p2, p3"));
         debug(m);
         Assert.assertEquals(2, m.statements(null, RDF.type, OWL.Axiom).count());
-        p1.removePropertyChain(p334);
+        Assert.assertSame(p1, p1.removePropertyChain(p334));
         debug(m);
         Assert.assertEquals(2, m.listObjectProperties().flatMap(OntOPE::listPropertyChains).count());
         Assert.assertEquals(1, m.statements(null, RDF.type, OWL.Axiom).count());
-        p1.clearPropertyChains();
+        Assert.assertSame(p1, p1.clearPropertyChains());
         debug(m);
         Assert.assertEquals(4, m.size());
     }
@@ -461,9 +461,9 @@ public class OntListTest {
         OntNDP p4 = m.createDataProperty("p4");
         OntOPE p5 = m.createObjectProperty("p5").createInverse();
 
-        Assert.assertEquals(2, clazz.addHasKey(p2, p3).getObject().as(RDFList.class).size());
-        Assert.assertEquals(2, clazz.addHasKey(p3, p3, p4).getObject().as(RDFList.class).size());
-        Assert.assertEquals(3, clazz.addHasKey(p4, p4, p5, p1, p1).getObject().as(RDFList.class).size());
+        Assert.assertEquals(2, clazz.addHasKeyStatement(p2, p3).getObject(RDFList.class).size());
+        Assert.assertEquals(2, clazz.addHasKeyStatement(p3, p3, p4).getObject(RDFList.class).size());
+        Assert.assertEquals(3, clazz.addHasKeyStatement(p4, p4, p5, p1, p1).getObject(RDFList.class).size());
         debug(m);
         Assert.assertEquals(3, clazz.listHasKeys().count());
         Assert.assertEquals(3, m.listClasses().flatMap(OntClass::listHasKeys).count());
@@ -488,12 +488,12 @@ public class OntListTest {
         h23.getRoot().addAnnotation(m.getRDFSComment(), "p2, p3");
         debug(m);
         Assert.assertEquals(2, m.statements(null, RDF.type, OWL.Axiom).count());
-        clazz.removeHasKey(h451);
+        Assert.assertSame(clazz, clazz.removeHasKey(h451));
 
         debug(m);
         Assert.assertEquals(2, m.listClasses().flatMap(OntClass::listHasKeys).count());
         Assert.assertEquals(1, m.statements(null, RDF.type, OWL.Axiom).count());
-        clazz.clearHasKeys();
+        Assert.assertSame(clazz, clazz.clearHasKeys());
         debug(m);
         Assert.assertEquals(7, m.size());
     }

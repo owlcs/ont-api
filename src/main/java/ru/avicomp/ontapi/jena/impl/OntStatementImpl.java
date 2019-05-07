@@ -218,7 +218,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
     }
 
     @Override
-    public <N extends RDFNode> N getSubject(Class<N> type) {
+    public <N extends Resource> N getSubject(Class<N> type) {
         return subject.as(type);
     }
 

@@ -117,7 +117,7 @@ public class OntBuiltinsTest {
         Assert.assertNotNull(m1.getOWLThing());
 
         OntGraphModel m2 = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        m2.getOWLThing().addHasKey();
+        Assert.assertEquals(OWL.Thing, m2.getOWLThing().addHasKey());
         Assert.assertEquals(1, m2.ontBuiltins(OntClass.class).peek(x -> LOGGER.debug("2) Builtin: {}", x)).count());
     }
 

@@ -1098,9 +1098,9 @@ public class OntModelTest {
         OntNOP p1 = m.createObjectProperty("P1");
         OntNOP p2 = m.createObjectProperty("P2");
         Assert.assertNotNull(p.addPropertyChainAxiomStatement());
-        Assert.assertEquals(p, p.addPropertyChain());
+        Assert.assertSame(p, p.addPropertyChain());
         Assert.assertEquals(0, p.fromPropertyChain().count());
-        Assert.assertEquals(p, p.addPropertyChain(Arrays.asList(p1, p1)).addPropertyChain(Arrays.asList(p2, p2)));
+        Assert.assertSame(p, p.addPropertyChain(Arrays.asList(p1, p1)).addPropertyChain(Arrays.asList(p2, p2)));
         Assert.assertEquals(2, p.fromPropertyChain().count());
     }
 
@@ -1231,6 +1231,26 @@ public class OntModelTest {
         Assert.assertEquals(2, a.equivalentClass().count());
         Assert.assertSame(a, a.removeEquivalentClass(null));
         Assert.assertEquals(3, m.size());
+    }
+
+    @Test
+    public void testHasKeys() {
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntNOP o1 = m.createObjectProperty("O1");
+        OntNOP o2 = m.createObjectProperty("O2");
+        OntNDP d1 = m.createDataProperty("D1");
+        OntNDP d2 = m.createDataProperty("D2");
+        OntClass c = m.getOWLThing();
+        Assert.assertNotNull(c.addHasKeyStatement());
+        Assert.assertSame(c, c.addHasKey());
+        Assert.assertEquals(1, c.listHasKeys().count());
+
+        Assert.assertEquals(0, c.fromHasKey().count());
+        Assert.assertSame(c, c.addHasKey(o1, d1).addHasKey(Arrays.asList(o1, o2), Collections.singletonList(d2)));
+        Assert.assertEquals(3, c.listHasKeys().count());
+        Assert.assertEquals(4, c.fromHasKey().count());
+        Assert.assertSame(c, c.clearHasKeys());
+        Assert.assertEquals(4, m.size());
     }
 }
 

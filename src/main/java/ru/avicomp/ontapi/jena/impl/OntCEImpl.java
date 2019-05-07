@@ -331,7 +331,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
     }
 
     @Override
-    public OntStatement addHasKey(OntDOP... properties) {
+    public OntStatement addHasKeyStatement(OntDOP... properties) {
         return createHasKey(getModel(), this, Arrays.stream(properties)).getRoot();
     }
 
@@ -341,8 +341,9 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
     }
 
     @Override
-    public void removeHasKey(RDFNode list) throws OntJenaException.IllegalArgument {
+    public OntCEImpl removeHasKey(RDFNode list) throws OntJenaException.IllegalArgument {
         removeHasKey(getModel(), this, list);
+        return this;
     }
 
     @Override

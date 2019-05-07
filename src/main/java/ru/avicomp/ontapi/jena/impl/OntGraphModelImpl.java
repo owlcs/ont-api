@@ -554,9 +554,13 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
         Objects.requireNonNull(subject);
         Objects.requireNonNull(predicate);
         OntJenaException.notNull(object, "Null list for subject " + subject + " and predicate " + predicate);
+        boolean hasNil = !object.isEmpty() && contains(subject, predicate, RDF.nil);
         object.getRoot().clearAnnotations();
-        object.clear();
-        return remove(subject, predicate, object);
+        object.clear(); // now it is nil-list
+        if (!hasNil) {
+            return remove(subject, predicate, object);
+        }
+        return this;
     }
 
     @Override

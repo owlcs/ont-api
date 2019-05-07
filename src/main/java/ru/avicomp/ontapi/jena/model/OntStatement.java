@@ -15,6 +15,7 @@
 package ru.avicomp.ontapi.jena.model;
 
 import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
@@ -353,16 +354,32 @@ public interface OntStatement extends Statement {
     }
 
     /**
-     * Gets a typed statement subject.
+     * Answers a typed subject of the statement.
      *
      * @param type Class type
-     * @param <N>  subtype of {@link RDFNode}
-     * @return {@link RDFNode} instance
-     * @throws org.apache.jena.enhanced.UnsupportedPolymorphismException if subject node and type are incompatible
+     * @param <S>  subtype of {@link Resource}
+     * @return {@link Resource} instance
+     * @throws org.apache.jena.enhanced.UnsupportedPolymorphismException if the subject node
+     *                                                                   and the given type are incompatible
+     * @see #getSubject()
      * @since 1.3.0
      */
-    default <N extends RDFNode> N getSubject(Class<N> type) {
+    default <S extends Resource> S getSubject(Class<S> type) {
         return getSubject().as(type);
     }
 
+    /**
+     * Answers a typed object of the statement.
+     *
+     * @param type Class type
+     * @param <O>  subtype of {@link RDFNode}
+     * @return {@link RDFNode} instance
+     * @throws org.apache.jena.enhanced.UnsupportedPolymorphismException if the object node
+     *                                                                   and the given type are incompatible
+     * @see #getObject()
+     * @since 1.4.0
+     */
+    default <O extends RDFNode> O getObject(Class<O> type) {
+        return getObject().as(type);
+    }
 }

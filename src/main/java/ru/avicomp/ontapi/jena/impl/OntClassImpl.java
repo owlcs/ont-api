@@ -85,7 +85,7 @@ public class OntClassImpl extends OntObjectImpl implements OntClass {
     }
 
     @Override
-    public OntStatement addHasKey(OntDOP... properties) {
+    public OntStatement addHasKeyStatement(OntDOP... properties) {
         return OntCEImpl.createHasKey(getModel(), this, Arrays.stream(properties)).getRoot();
     }
 
@@ -95,8 +95,9 @@ public class OntClassImpl extends OntObjectImpl implements OntClass {
     }
 
     @Override
-    public void removeHasKey(RDFNode list) throws OntJenaException.IllegalArgument {
+    public OntClassImpl removeHasKey(RDFNode list) throws OntJenaException.IllegalArgument {
         OntCEImpl.removeHasKey(getModel(), this, list);
+        return this;
     }
 
     @Override
