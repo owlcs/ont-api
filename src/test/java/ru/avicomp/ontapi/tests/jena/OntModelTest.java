@@ -242,18 +242,18 @@ public class OntModelTest {
         Assert.assertEquals(marsupials, person.disjointWith().findFirst().orElse(null));
         Assert.assertEquals(person, marsupials.disjointWith().findAny().orElse(null));
 
-        marsupials.addDisjointWith(animal);
+        marsupials.addDisjointClass(animal);
         Assert.assertEquals(2, marsupials.disjointWith().count());
         Assert.assertEquals(0, animal.disjointWith().count());
         Assert.assertEquals(1, person.disjointWith().count());
-        marsupials.removeDisjointWith(animal);
+        marsupials.removeDisjointClass(animal);
         Assert.assertEquals(1, marsupials.disjointWith().count());
         Assert.assertEquals(0, animal.disjointWith().count());
         Assert.assertEquals(1, person.disjointWith().count());
 
-        person.addSubClassOf(marsupials);
+        person.addSuperClass(marsupials);
         Assert.assertEquals(2, person.subClassOf().count());
-        person.removeSubClassOf(marsupials);
+        person.removeSuperClass(marsupials);
         Assert.assertEquals(1, person.subClassOf().count());
 
         Assert.assertEquals(statementsCount, m.statements().count());
@@ -359,7 +359,7 @@ public class OntModelTest {
         OntGraphModel child = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD)
                 .setID(childURI).getModel().addImport(base);
         OntClass cl3 = child.createOntClass(childNS + "Class3");
-        cl3.addSubClassOf(child.createIntersectionOf(Arrays.asList(cl1, cl2)));
+        cl3.addSuperClass(child.createIntersectionOf(Arrays.asList(cl1, cl2)));
         cl3.createIndividual(childNS + "Individual1");
 
         LOGGER.debug("Base:");
@@ -473,9 +473,8 @@ public class OntModelTest {
         OntCE.ObjectCardinality class6 = m.createObjectCardinality(p2, 1234, class5);
         OntCE.HasSelf class7 = m.createHasSelf(p2);
         class3.addComment("The Restriction");
-        class1.addSubClassOf(class2).getSubject(OntCE.class).addSubClassOf(class3);
-        class1.addDisjointWith(class4);
-        class2.addSubClassOf(m.createComplementOf(class5));
+        class1.addSuperClass(class2).addSuperClass(class3).addDisjointClass(class4);
+        class2.addSuperClass(m.createComplementOf(class5));
         class5.addEquivalentClass(m.getOWLNothing());
         // data-ranges:
         OntDT dr1 = m.getDatatype(XSD.xint);
@@ -828,11 +827,9 @@ public class OntModelTest {
         OntClass c = m.createOntClass("C");
         OntClass d = m.createOntClass("D");
         OntClass e = m.createOntClass("E");
-        e.addSubClassOf(d);
-        a.addSubClassOf(b);
-        a.addSubClassOf(c);
-        b.addSubClassOf(m.createComplementOf(b));
-        b.addSubClassOf(d);
+        e.addSuperClass(d);
+        a.addSuperClass(b).addSuperClass(c);
+        b.addSuperClass(m.createComplementOf(b)).addSuperClass(d);
         ReadWriteUtils.print(m);
 
         Assert.assertEquals(2, a.listSuperClasses(true)
@@ -904,13 +901,11 @@ public class OntModelTest {
         OntClass d = m.createOntClass("D");
         OntClass e = m.createOntClass("E");
 
-        b.addSubClassOf(m.createComplementOf(c));
-        b.addSubClassOf(a);
+        b.addSuperClass(m.createComplementOf(c)).addSuperClass(a);
         OntCE ae = m.createIntersectionOf(Arrays.asList(a, e));
-        d.addSubClassOf(ae);
-        a.addSubClassOf(d);
-        ae.addSubClassOf(a);
-        ae.addSubClassOf(b);
+        d.addSuperClass(ae);
+        a.addSuperClass(d);
+        ae.addSuperClass(a).addSuperClass(b);
 
         OntIndividual i1 = a.createIndividual("i");
         OntIndividual i2 = d.createIndividual();
@@ -1137,7 +1132,7 @@ public class OntModelTest {
         Assert.assertEquals(3, a.equivalentProperty().count());
         Assert.assertSame(a, a.removeEquivalentProperty(b).removeEquivalentProperty(m.getRDFSComment()));
         Assert.assertEquals(2, a.equivalentProperty().count());
-        a.removeEquivalentProperty(null);
+        Assert.assertSame(a, a.removeEquivalentProperty(null));
         Assert.assertEquals(3, m.size());
     }
 
@@ -1152,7 +1147,7 @@ public class OntModelTest {
         Assert.assertEquals(3, a.equivalentProperty().count());
         Assert.assertSame(a, a.removeEquivalentProperty(b).removeEquivalentProperty(m.getOWLThing()));
         Assert.assertEquals(2, a.equivalentProperty().count());
-        a.removeEquivalentProperty(null);
+        Assert.assertSame(a, a.removeEquivalentProperty(null));
         Assert.assertEquals(3, m.size());
     }
 
@@ -1167,7 +1162,7 @@ public class OntModelTest {
         Assert.assertEquals(3, a.disjointWith().count());
         Assert.assertSame(a, a.removeDisjointProperty(b).removeDisjointProperty(m.getRDFSComment()));
         Assert.assertEquals(2, a.disjointWith().count());
-        a.removeDisjointProperty(null);
+        Assert.assertSame(a, a.removeDisjointProperty(null));
         Assert.assertEquals(3, m.size());
     }
 
@@ -1182,7 +1177,59 @@ public class OntModelTest {
         Assert.assertEquals(3, a.disjointWith().count());
         Assert.assertSame(a, a.removeDisjointProperty(b).removeDisjointProperty(m.getOWLThing()));
         Assert.assertEquals(2, a.disjointWith().count());
-        a.removeDisjointProperty(null);
+        Assert.assertSame(a, a.removeDisjointProperty(null));
+        Assert.assertEquals(3, m.size());
+    }
+
+    @Test
+    public void testClassExpressionSubClassOf() {
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntClass a = m.createOntClass("A");
+        OntClass b = m.createOntClass("B");
+        OntClass c = m.createOntClass("C");
+        Assert.assertNotNull(a.addSubClassOfStatement(b));
+        Assert.assertSame(a, a.addSuperClass(c).addSuperClass(m.getOWLThing()).removeSuperClass(b));
+        Assert.assertEquals(2, a.subClassOf().count());
+        Assert.assertSame(a, a.removeSuperClass(null));
+        Assert.assertEquals(3, m.size());
+    }
+
+    @Test
+    public void testClassExpressionDisjointWith() {
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntClass a = m.createOntClass("A");
+        OntClass b = m.createOntClass("B");
+        OntClass c = m.createOntClass("C");
+        Assert.assertNotNull(a.addDisjointWithStatement(b));
+        Assert.assertSame(a, a.addDisjointClass(c).addDisjointClass(m.getOWLThing()).removeDisjointClass(b));
+        Assert.assertEquals(2, a.disjointWith().count());
+        Assert.assertSame(a, a.removeDisjointClass(null));
+        Assert.assertEquals(3, m.size());
+    }
+
+    @Test
+    public void testClassExpressionEquivalentClass() {
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntClass a = m.createOntClass("A");
+        OntClass b = m.createOntClass("B");
+        OntClass c = m.createOntClass("C");
+        Assert.assertNotNull(a.addEquivalentClassStatement(b));
+        Assert.assertSame(a, a.addEquivalentClass(c).addEquivalentClass(m.getOWLThing()).removeEquivalentClass(b));
+        Assert.assertEquals(2, a.equivalentClass().count());
+        Assert.assertSame(a, a.removeEquivalentClass(null));
+        Assert.assertEquals(3, m.size());
+    }
+
+    @Test
+    public void testDatatypeEquivalentClass() {
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntDT a = m.createDatatype("A");
+        OntDT b = m.createDatatype("B");
+        OntDT c = m.createDatatype("C");
+        Assert.assertNotNull(a.addEquivalentClassStatement(b));
+        Assert.assertSame(a, a.addEquivalentClass(c).addEquivalentClass(m.getRDFSLiteral()).removeEquivalentClass(b));
+        Assert.assertEquals(2, a.equivalentClass().count());
+        Assert.assertSame(a, a.removeEquivalentClass(null));
         Assert.assertEquals(3, m.size());
     }
 }

@@ -89,11 +89,10 @@ public class DisjointClassesOntModelTest extends OntModelTestBase {
         OntOPE property = jena.createObjectProperty(iri.addFragment("hasSimple1").getIRIString())
                 .setFunctional(true).addRange(ontSimple1);
         OntCE.ObjectSomeValuesFrom restriction = jena.createObjectSomeValuesFrom(property, ontSimple2);
-        ontComplex2.addSubClassOf(restriction);
-        ontComplex2.addSubClassOf(ontComplex1);
+        ontComplex2.addSuperClass(restriction).addSuperClass(ontComplex1);
         ontComplex2.addComment("comment1", "es");
         Assert.assertEquals("comment1", ontComplex2.getComment("es"));
-        ontComplex1.addDisjointWith(ontSimple1);
+        ontComplex1.addDisjointClass(ontSimple1);
 
         // bulk disjoint instead adding one by one (to have the same list of axioms):
         jena.createResource(OWL.AllDisjointClasses).addProperty(

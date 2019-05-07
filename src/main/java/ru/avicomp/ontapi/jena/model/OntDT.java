@@ -17,6 +17,7 @@ package ru.avicomp.ontapi.jena.model;
 import org.apache.jena.datatypes.RDFDatatype;
 import org.apache.jena.datatypes.TypeMapper;
 import org.apache.jena.rdf.model.Literal;
+import org.apache.jena.rdf.model.Resource;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 import java.util.stream.Stream;
@@ -44,24 +45,48 @@ public interface OntDT extends OntEntity, OntDR {
     /**
      * Creates an equivalent class statement with the given {@link OntDR Data Range expression}.
      *
-     * @param other {@link OntDR}, not null
-     * @return {@link OntStatement}
-     * @see OntCE#addEquivalentClass(OntCE)
+     * @param other {@link OntDR}, not {@code null}
+     * @return {@link OntStatement} to allow the subsequent annotations addition
+     * @see #addEquivalentClass(OntDR)
+     * @see #removeEquivalentClass(Resource)
+     * @see OntCE#addEquivalentClassStatement(OntCE)
+     * @since 1.4.0
      */
-    default OntStatement addEquivalentClass(OntDR other) {
+    default OntStatement addEquivalentClassStatement(OntDR other) {
         return addStatement(OWL.equivalentClass, other);
     }
 
     /**
-     * Removes the given equivalent data range,
-     * that is attached to this data-type on predicate {@link OWL#equivalentClass owl:equivalenrClass}.
-     * No-op in case nothing is found.
+     * Creates an equivalent class statement with the given {@link OntDR Data Range expression}.
      *
-     * @param other {@link OntDR}, or {@code null} to remove all equivalent data ranges
-     * @see OntCE#removeEquivalentClass(OntCE)
+     * @param other {@link OntDR}, not {@code null}
+     * @return <b>this</b> instance to allow cascading calls
+     * @see #addEquivalentClassStatement(OntDR)
+     * @see #removeEquivalentClass(Resource)
+     * @see OntCE#addEquivalentClass(OntCE)
      */
-    default void removeEquivalentClass(OntDR other) {
+    default OntDT addEquivalentClass(OntDR other) {
+        addEquivalentClassStatement(other);
+        return this;
+    }
+
+    /**
+     * Removes the given equivalent data range,
+     * that is attached to this data-type on predicate {@link OWL#equivalentClass owl:equivalenrClass},
+     * including all the statement's related annotations.
+     * No-op in case nothing is found.
+     * The {@code null} input means removing all {@link OWL#equivalentClass owl:equivalentClass} statements
+     * with all their annotations.
+     *
+     * @param other {@link Resource}, or {@code null} to remove all equivalent data ranges
+     * @return <b>this</b> instance to allow cascading calls
+     * @see #addEquivalentClass(OntDR)
+     * @see #addEquivalentClassStatement(OntDR)
+     * @see OntCE#removeEquivalentClass(Resource)
+     */
+    default OntDT removeEquivalentClass(Resource other) {
         remove(OWL.equivalentClass, other);
+        return this;
     }
 
     /**

@@ -116,7 +116,7 @@ public class OntAnnotationsTest {
         Assert.assertFalse("There is owl:Annotation", m.contains(null, RDF.type, OWL.Annotation));
 
         LOGGER.debug("7) Annotate sub-class-of");
-        OntStatement subClassOf = cl.addSubClassOf(m.getOWLThing());
+        OntStatement subClassOf = cl.addSubClassOfStatement(m.getOWLThing());
         OntStatement subClassOfAnnotation = subClassOf
                 .addAnnotation(nap1, ResourceFactory.createPlainLiteral("test"));
         subClassOfAnnotation.addAnnotation(m.getRDFSLabel(), ResourceFactory.createPlainLiteral("test2"))
@@ -193,7 +193,7 @@ public class OntAnnotationsTest {
         ReadWriteUtils.print(m);
 
         Assert.assertEquals("Should only be two roots", 2, m.ontObjects(OntAnnotation.class).count());
-        OntStatement disjointWith = cl1.addDisjointWith(cl3);
+        OntStatement disjointWith = cl1.addDisjointWithStatement(cl3);
         Assert.assertFalse("No annotation resource is expected.", disjointWith.asAnnotationResource().isPresent());
         disjointWith.addAnnotation(m.getAnnotationProperty(OWL.deprecated), "disjoint with comment N1", null)
                 .addAnnotation(m.getAnnotationProperty(OWL.incompatibleWith), "disjoint with comment N2", "rur");
@@ -298,7 +298,7 @@ public class OntAnnotationsTest {
         ReadWriteUtils.print(m);
         Assert.assertEquals(3, clazz.annotations().peek(a -> LOGGER.debug("{}", Models.toString(a))).count());
 
-        clazz.addSubClassOf(m.getOWLThing()).addAnnotation(m.getRDFSComment(), "mmm")
+        clazz.addSubClassOfStatement(m.getOWLThing()).addAnnotation(m.getRDFSComment(), "mmm")
                 .addAnnotation(m.getRDFSComment(), "ggg");
         ReadWriteUtils.print(m);
         Assert.assertEquals(3, m.listClasses().findFirst().orElseThrow(AssertionError::new)
@@ -364,8 +364,8 @@ public class OntAnnotationsTest {
         class3.addComment("Class3::1").addAnnotation(m.getRDFSComment(), "Class3::1::1");
         class3.statements().filter(OntStatement::isAnnotation).findFirst().orElseThrow(AssertionError::new)
                 .addAnnotation(m.getRDFSComment(), "Class3::2").addAnnotation(m.getRDFSComment(), "Class3::2::1");
-        class3.addDisjointWith(class1).addAnnotation(m.getRDFSComment(), "class2 disjoint with class1");
-        class3.addDisjointWith(m.getOWLNothing()).addAnnotation(m.getRDFSComment(), "class2 disjoint with nothing");
+        class3.addDisjointWithStatement(class1).annotate(m.getRDFSComment(), "class2 disjoint with class1");
+        class3.addDisjointWithStatement(m.getOWLNothing()).annotate(m.getRDFSComment(), "class2 disjoint with nothing");
 
         ReadWriteUtils.print(m);
 
@@ -496,7 +496,7 @@ public class OntAnnotationsTest {
     public void testAnnotationSplitting() {
         OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntClass clazz = m.createOntClass("A");
-        OntStatement subClassOf = clazz.addSubClassOf(m.getOWLThing());
+        OntStatement subClassOf = clazz.addSubClassOfStatement(m.getOWLThing());
 
         Assert.assertEquals(0, subClassOf.annotations().count());
         subClassOf.addAnnotation(m.getRDFSLabel(), "label1").addAnnotation(m.getRDFSComment(), "comment1");
@@ -678,7 +678,7 @@ public class OntAnnotationsTest {
     public void testAddAnnotations() {
         OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntClass c = m.createOntClass("C");
-        OntStatement s2 = c.addSubClassOf(m.getOWLNothing());
+        OntStatement s2 = c.addSubClassOfStatement(m.getOWLNothing());
         OntStatement s1 = c.getRoot();
 
         ReadWriteUtils.print(m);

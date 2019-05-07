@@ -17,6 +17,7 @@ package ru.avicomp.ontapi.jena.model;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.RDFList;
 import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDFS;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
@@ -111,131 +112,6 @@ public interface OntCE extends OntObject {
     Stream<OntCE> listSubClasses(boolean direct);
 
     /**
-     * Lists all individuals,
-     * i.e. subjects from class-assertion statements {@code a rdf:type C}.
-     *
-     * @return Stream of {@link OntIndividual}s
-     */
-    default Stream<OntIndividual> individuals() {
-        return getModel().statements(null, RDF.type, this)
-                .map(OntStatement::getSubject).map(s -> s.as(OntIndividual.class));
-    }
-
-    /**
-     * Lists all properties attached to the class in a {@code rdfs:domain} statement.
-     * The property is considered as attached if
-     * it and the class expression are both included in property domain axiom description:
-     * <ul>
-     * <li>{@code R rdfs:domain C} - {@code R} is a data property {@code C} - this class expression</li>
-     * <li>{@code P rdfs:domain C} - {@code P} is an object property expression, {@code C} - this class expression</li>
-     * <li>{@code A rdfs:domain U} - {@code A} is annotation property, {@code U} is IRI, this class expression</li>
-     * </ul>
-     *
-     * @return Stream of {@link OntPE}s
-     * @see OntPE#domain()
-     */
-    default Stream<OntPE> properties() {
-        return getModel().statements(null, RDFS.domain, this)
-                .map(OntStatement::getSubject)
-                .filter(s -> s.canAs(OntPE.class))
-                .map(s -> s.as(OntPE.class));
-    }
-
-    /**
-     * Lists all super classes for this class expression.
-     * The search pattern is {@code C rdfs:subClassOf Ci},
-     * where {@code C} is this instance, and {@code Ci} is one of the returned.
-     *
-     * @return Stream of {@link OntCE}s
-     * @see #listSuperClasses(boolean)
-     */
-    default Stream<OntCE> subClassOf() {
-        return objects(RDFS.subClassOf, OntCE.class);
-    }
-
-    /**
-     * Adds a super class.
-     *
-     * @param superClass {@link OntCE}
-     * @return {@link OntStatement}
-     */
-    default OntStatement addSubClassOf(OntCE superClass) {
-        return addStatement(RDFS.subClassOf, superClass);
-    }
-
-    /**
-     * Removes the given super class.
-     *
-     * @param superClass {@link OntCE}, or {@code null} to remove all super classes
-     */
-    default void removeSubClassOf(OntCE superClass) {
-        remove(RDFS.subClassOf, superClass);
-    }
-
-    /**
-     * Returns all disjoint classes.
-     * The statement patter to search for is {@code C1 owl:disjointWith C2}.
-     *
-     * @return Stream of {@link OntCE}s
-     * @see OntDisjoint.Classes
-     */
-    default Stream<OntCE> disjointWith() {
-        return objects(OWL.disjointWith, OntCE.class);
-    }
-
-    /**
-     * Adds a disjoint class.
-     *
-     * @param other {@link OntCE}
-     * @return {@link OntStatement}
-     * @see OntDisjoint.Classes
-     */
-    default OntStatement addDisjointWith(OntCE other) {
-        return addStatement(OWL.disjointWith, other);
-    }
-
-    /**
-     * Removes the specified disjoint class.
-     *
-     * @param other {@link OntCE}, or {@code null} to remove all disjoint classes
-     * @see OntDisjoint.Classes
-     */
-    default void removeDisjointWith(OntCE other) {
-        remove(OWL.disjointWith, other);
-    }
-
-    /**
-     * Lists all equivalent classes.
-     *
-     * @return Stream of {@link OntCE}s
-     * @see OntDT#equivalentClass()
-     */
-    default Stream<OntCE> equivalentClass() {
-        return objects(OWL.equivalentClass, OntCE.class);
-    }
-
-    /**
-     * Adds new equivalent class.
-     *
-     * @param other {@link OntCE}
-     * @return {@link OntStatement}
-     * @see OntDT#addEquivalentClass(OntDR)
-     */
-    default OntStatement addEquivalentClass(OntCE other) {
-        return addStatement(OWL.equivalentClass, other);
-    }
-
-    /**
-     * Removes the given equivalent class.
-     *
-     * @param other {@link OntCE} or {@code null} to remove all equivalent classes
-     * @see OntDT#removeEquivalentClass(OntDR)
-     */
-    default void removeEquivalentClass(OntCE other) {
-        remove(OWL.equivalentClass, other);
-    }
-
-    /**
      * Creates a {@code HasKey} logical construction as {@link OntList ontology []-list}
      * of {@link OntDOP Object or Data Property Expression}s
      * that is attached to this Class Expression using the predicate {@link OWL#hasKey owl:hasKey}.
@@ -282,6 +158,208 @@ public interface OntCE extends OntObject {
      * @since 1.3.0
      */
     void removeHasKey(RDFNode list);
+
+    /**
+     * Lists all individuals,
+     * i.e. subjects from class-assertion statements {@code a rdf:type C}, where {@code C} is this class expression.
+     *
+     * @return Stream of {@link OntIndividual}s
+     */
+    default Stream<OntIndividual> individuals() {
+        return getModel().statements(null, RDF.type, this)
+                .map(OntStatement::getSubject).map(s -> s.as(OntIndividual.class));
+    }
+
+    /**
+     * Lists all properties attached to the class in a {@code rdfs:domain} statement.
+     * The property is considered as attached if
+     * it and the class expression are both included in property domain axiom description:
+     * <ul>
+     * <li>{@code R rdfs:domain C} - {@code R} is a data property {@code C} - this class expression</li>
+     * <li>{@code P rdfs:domain C} - {@code P} is an object property expression, {@code C} - this class expression</li>
+     * <li>{@code A rdfs:domain U} - {@code A} is annotation property, {@code U} is IRI, this class expression</li>
+     * </ul>
+     *
+     * @return Stream of {@link OntPE}s
+     * @see OntPE#domain()
+     */
+    default Stream<OntPE> properties() {
+        return getModel().statements(null, RDFS.domain, this)
+                .map(OntStatement::getSubject)
+                .filter(s -> s.canAs(OntPE.class))
+                .map(s -> s.as(OntPE.class));
+    }
+
+    /**
+     * Lists all super classes for this class expression.
+     * The search pattern is {@code C rdfs:subClassOf Ci},
+     * where {@code C} is this instance, and {@code Ci} is one of the returned.
+     *
+     * @return Stream of {@link OntCE}s
+     * @see #listSuperClasses(boolean)
+     */
+    default Stream<OntCE> subClassOf() {
+        return objects(RDFS.subClassOf, OntCE.class);
+    }
+
+    /**
+     * Returns all disjoint classes.
+     * The statement patter to search for is {@code C1 owl:disjointWith C2}.
+     *
+     * @return Stream of {@link OntCE}s
+     * @see OntDisjoint.Classes
+     */
+    default Stream<OntCE> disjointWith() {
+        return objects(OWL.disjointWith, OntCE.class);
+    }
+
+    /**
+     * Lists all equivalent classes.
+     *
+     * @return Stream of {@link OntCE}s
+     * @see OntDT#equivalentClass()
+     */
+    default Stream<OntCE> equivalentClass() {
+        return objects(OWL.equivalentClass, OntCE.class);
+    }
+
+    /**
+     * Adds the given class as a super class
+     * and returns the corresponding statement to provide the ability to add annotations.
+     *
+     * @param other {@link OntCE}, not {@code null}
+     * @return {@link OntStatement} to allow the subsequent annotations addition
+     * @see #addSuperClass(OntCE)
+     * @see #removeSuperClass(Resource)
+     * @since 1.4.0
+     */
+    default OntStatement addSubClassOfStatement(OntCE other) {
+        return addStatement(RDFS.subClassOf, other);
+    }
+
+    /**
+     * Adds the given class as a disjoint class
+     * and returns the corresponding statement to provide the ability to add annotations.
+     *
+     * @param other {@link OntCE}, not {@code null}
+     * @return {@link OntStatement} to allow the subsequent annotations addition
+     * @see #addDisjointClass(OntCE)
+     * @see #removeDisjointClass(Resource)
+     * @see OntDisjoint.Classes
+     */
+    default OntStatement addDisjointWithStatement(OntCE other) {
+        return addStatement(OWL.disjointWith, other);
+    }
+
+    /**
+     * Adds the given class as a equivalent class
+     * and returns the corresponding statement to provide the ability to add annotations.
+     *
+     * @param other {@link OntCE}, not {@code null}
+     * @return {@link OntStatement} to allow the subsequent annotations addition
+     * @see #addEquivalentClass(OntCE)
+     * @see #removeEquivalentClass(Resource)
+     * @see OntDT#addEquivalentClassStatement(OntDR)
+     * @since 1.4.0
+     */
+    default OntStatement addEquivalentClassStatement(OntCE other) {
+        return addStatement(OWL.equivalentClass, other);
+    }
+
+    /**
+     * Adds the given class as a super class
+     * and returns this class expression instance to allow cascading calls.
+     *
+     * @param other {@link OntCE}, not {@code null}
+     * @return <b>this</b> instance to allow cascading calls
+     * @see #addSubClassOfStatement(OntCE)
+     * @see #removeSuperClass(Resource)
+     * @since 1.4.0
+     */
+    default OntCE addSuperClass(OntCE other) {
+        addSubClassOfStatement(other);
+        return this;
+    }
+
+    /**
+     * Adds the given class as a disjoint class
+     * and returns this class expression instance to allow cascading calls.
+     *
+     * @param other {@link OntCE}, not {@code null}
+     * @return <b>this</b> instance to allow cascading calls
+     * @see #addDisjointWithStatement(OntCE)
+     * @see #removeDisjointClass(Resource)
+     * @since 1.4.0
+     */
+    default OntCE addDisjointClass(OntCE other) {
+        addDisjointWithStatement(other);
+        return this;
+    }
+
+    /**
+     * Adds a new equivalent class.
+     *
+     * @param other {@link OntCE}, not {@code null}
+     * @return <b>this</b> instance to allow cascading calls
+     * @see #addEquivalentClassStatement(OntCE)
+     * @see #removeDisjointClass(Resource)
+     */
+    default OntCE addEquivalentClass(OntCE other) {
+        addEquivalentClassStatement(other);
+        return this;
+    }
+
+    /**
+     * Removes a super-class relationship for the given resource including all possible annotations.
+     * No-op in case no match found.
+     * Removes all {@link RDFS#subClassOf rdfs:subClassOf} statements with all their annotations
+     * in case {@code null} is specified.
+     *
+     * @param other {@link Resource} or {@code null} to remove all {@code rdfs:subClassOf} statements
+     * @return <b>this</b> instance to allow cascading calls
+     * @see #addSubClassOfStatement(OntCE)
+     * @see #addSuperClass(OntCE)
+     * @since 1.4.0
+     */
+    default OntCE removeSuperClass(Resource other) {
+        remove(RDFS.subClassOf, other);
+        return this;
+    }
+
+    /**
+     * Removes the specified disjoint class resource.
+     * No-op in case no match found.
+     * Removes all {@link OWL#disjointWith owl:disjointWith} statements with all their annotations
+     * in case {@code null} is specified.
+     *
+     * @param other {@link Resource}, or {@code null} to remove all disjoint classes
+     * @return <b>this</b> instance to allow cascading calls
+     * @see #addDisjointWithStatement(OntCE)
+     * @see #addDisjointClass(OntCE)
+     * @see OntDisjoint.Classes
+     * @since 1.4.0
+     */
+    default OntCE removeDisjointClass(Resource other) {
+        remove(OWL.disjointWith, other);
+        return this;
+    }
+
+    /**
+     * Removes the given equivalent class resource including the statement's annotations.
+     * No-op in case no match found.
+     * Removes all {@link OWL#equivalentClass owl:equivalentClass} statements with all their annotations
+     * in case {@code null} is specified.
+     *
+     * @param other {@link Resource}, or {@code null} to remove all equivalent classes
+     * @return <b>this</b> instance to allow cascading calls
+     * @see #addEquivalentClassStatement(OntCE)
+     * @see #addEquivalentClass(OntCE)
+     * @see OntDT#removeEquivalentClass(Resource)
+     */
+    default OntCE removeEquivalentClass(Resource other) {
+        remove(OWL.equivalentClass, other);
+        return this;
+    }
 
     /**
      * Finds a {@code HasKey} logical construction
@@ -334,6 +412,53 @@ public interface OntCE extends OntObject {
      */
     default void clearHasKeys() {
         listHasKeys().collect(Collectors.toSet()).forEach(this::removeHasKey);
+    }
+
+    /**
+     * Adds a super class.
+     *
+     * @param superClass {@link OntCE}
+     * @return {@link OntStatement}
+     * @deprecated since 1.4.0: use the method {@link #addSubClassOfStatement(OntCE)}
+     */
+    @Deprecated
+    default OntStatement addSubClassOf(OntCE superClass) {
+        return addSubClassOfStatement(superClass);
+    }
+
+    /**
+     * Removes the given super class.
+     *
+     * @param superClass {@link OntCE}, or {@code null} to remove all super classes
+     * @deprecated since 1.4.0: use the method {@link #removeSuperClass(Resource)}
+     */
+    @Deprecated
+    default void removeSubClassOf(OntCE superClass) {
+        removeSuperClass(superClass);
+    }
+
+    /**
+     * Adds a disjoint class.
+     *
+     * @param other {@link OntCE}
+     * @return {@link OntStatement}
+     * @deprecated since 1.4.0: use the method {@link #addDisjointWithStatement(OntCE)} instead
+     */
+    @Deprecated
+    default OntStatement addDisjointWith(OntCE other) {
+        return addDisjointWithStatement(other);
+    }
+
+    /**
+     * Removes the specified disjoint class.
+     *
+     * @param other {@link OntCE}, or {@code null} to remove all disjoint classes
+     * @see OntDisjoint.Classes
+     * @deprecated since 1.4.0: use the method {@link #removeDisjointClass(Resource)} instead
+     */
+    @Deprecated
+    default void removeDisjointWith(OntCE other) {
+        removeDisjointClass(other);
     }
 
     /*

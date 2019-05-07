@@ -78,7 +78,7 @@ public class OntBuiltinsTest {
         OntGraphModel m1 = OntModelFactory.createModel(Factory.createGraphMem(), personality)
                 .setNsPrefixes(OntModelFactory.STANDARD).setID("m1").getModel();
         OntClass c = m1.createOntClass("b");
-        c.addSubClassOf(m1.getOntClass("B"));
+        c.addSuperClass(m1.getOntClass("B"));
         c.addDisjointUnionOf(m1.getOntClass("D"));
         ReadWriteUtils.print(m1);
         OntGraphModel m2 = OntModelFactory.createModel(Factory.createGraphMem(), personality)
