@@ -318,7 +318,7 @@ public class OntAnnotationsTest {
         m.asStatement(nap.getRoot().asTriple()).addAnnotation(m.getRDFSComment(), "test2")
                 .addAnnotation(m.getRDFSLabel(), "sub-test2");
 
-        OntStatement subPropertyOf = nap.addSubPropertyOf(m.getOWLBottomDataProperty()
+        OntStatement subPropertyOf = nap.addSubPropertyOfStatement(m.getOWLBottomDataProperty()
                 .addProperty(RDF.type, OWL.AnnotationProperty).as(OntNAP.class));
         subPropertyOf.addAnnotation(m.getRDFSLabel(), "test3")
                 .addAnnotation(m.getRDFSLabel(), "sub-test3")

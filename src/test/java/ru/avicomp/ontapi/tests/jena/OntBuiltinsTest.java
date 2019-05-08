@@ -55,6 +55,17 @@ public class OntBuiltinsTest {
     }
 
     @Test
+    public void testBuiltInsGeneralFunctionality() {
+        OntGraphModel m = OntModelFactory.createModel();
+        Assert.assertEquals(0, m.getOWLBottomObjectProperty().spec().count());
+        Assert.assertEquals(0, m.getOWLBottomObjectProperty().statements().count());
+        Assert.assertFalse(m.getOWLTopObjectProperty().isLocal());
+        Assert.assertNull(m.getOWLTopDataProperty().getRoot());
+        Assert.assertEquals(0, m.getOWLNothing().types().count());
+        Assert.assertEquals(0, m.getRDFSLabel().content().count());
+    }
+
+    @Test
     public void testPizzaBuiltins() {
         OntGraphModel m = OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("ontapi/pizza.ttl").getGraph());
         assertBuiltins(m, OntClass.class, Collections.singletonList(OWL.Thing));
