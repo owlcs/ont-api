@@ -509,61 +509,87 @@ public interface OntCE extends OntObject {
      * ============================
      */
 
-    interface ObjectSomeValuesFrom extends ComponentRestrictionCE<OntCE, OntOPE> {
+    interface ObjectSomeValuesFrom extends ComponentRestrictionCE<OntCE, OntOPE>,
+            SetValue<OntCE, ObjectSomeValuesFrom>, SetONProperty<OntOPE, ObjectSomeValuesFrom> {
     }
 
-    interface DataSomeValuesFrom extends ComponentRestrictionCE<OntDR, OntNDP> {
+    interface DataSomeValuesFrom extends ComponentRestrictionCE<OntDR, OntNDP>,
+            SetValue<OntDR, DataSomeValuesFrom>, SetONProperty<OntNDP, DataSomeValuesFrom> {
     }
 
-    interface ObjectAllValuesFrom extends ComponentRestrictionCE<OntCE, OntOPE> {
+    interface ObjectAllValuesFrom extends ComponentRestrictionCE<OntCE, OntOPE>,
+            SetValue<OntCE, ObjectAllValuesFrom>, SetONProperty<OntOPE, ObjectAllValuesFrom> {
     }
 
-    interface DataAllValuesFrom extends ComponentRestrictionCE<OntDR, OntNDP> {
+    interface DataAllValuesFrom extends ComponentRestrictionCE<OntDR, OntNDP>,
+            SetValue<OntDR, DataAllValuesFrom>, SetONProperty<OntNDP, DataAllValuesFrom> {
     }
 
-    interface ObjectHasValue extends ComponentRestrictionCE<OntIndividual, OntOPE> {
+    interface ObjectHasValue extends ComponentRestrictionCE<OntIndividual, OntOPE>,
+            SetValue<OntIndividual, ObjectHasValue>, SetONProperty<OntOPE, ObjectHasValue> {
     }
 
-    interface DataHasValue extends ComponentRestrictionCE<Literal, OntNDP> {
+    interface DataHasValue extends ComponentRestrictionCE<Literal, OntNDP>,
+            SetValue<Literal, DataHasValue>, SetONProperty<OntNDP, DataHasValue> {
     }
 
-    interface ObjectMinCardinality extends CardinalityRestrictionCE<OntCE, OntOPE> {
+    interface ObjectMinCardinality extends CardinalityRestrictionCE<OntCE, OntOPE>,
+            SetValue<OntCE, ObjectMinCardinality>,
+            SetONProperty<OntOPE, ObjectMinCardinality>,
+            SetCardinality<ObjectMinCardinality> {
     }
 
-    interface DataMinCardinality extends CardinalityRestrictionCE<OntDR, OntNDP> {
+    interface DataMinCardinality extends CardinalityRestrictionCE<OntDR, OntNDP>,
+            SetValue<OntDR, DataMinCardinality>,
+            SetONProperty<OntNDP, DataMinCardinality>,
+            SetCardinality<DataMinCardinality> {
     }
 
-    interface ObjectMaxCardinality extends CardinalityRestrictionCE<OntCE, OntOPE> {
+    interface ObjectMaxCardinality extends CardinalityRestrictionCE<OntCE, OntOPE>,
+            SetValue<OntCE, ObjectMaxCardinality>,
+            SetONProperty<OntOPE, ObjectMaxCardinality>,
+            SetCardinality<ObjectMaxCardinality> {
     }
 
-    interface DataMaxCardinality extends CardinalityRestrictionCE<OntDR, OntNDP> {
+    interface DataMaxCardinality extends CardinalityRestrictionCE<OntDR, OntNDP>,
+            SetValue<OntDR, DataMaxCardinality>,
+            SetONProperty<OntNDP, DataMaxCardinality>,
+            SetCardinality<DataMaxCardinality> {
     }
 
-    interface ObjectCardinality extends CardinalityRestrictionCE<OntCE, OntOPE> {
+    interface ObjectCardinality extends CardinalityRestrictionCE<OntCE, OntOPE>,
+            SetValue<OntCE, ObjectCardinality>,
+            SetONProperty<OntOPE, ObjectCardinality>,
+            SetCardinality<ObjectCardinality> {
     }
 
-    interface DataCardinality extends CardinalityRestrictionCE<OntDR, OntNDP> {
+    interface DataCardinality extends CardinalityRestrictionCE<OntDR, OntNDP>,
+            SetValue<OntDR, DataCardinality>,
+            SetONProperty<OntNDP, DataCardinality>,
+            SetCardinality<DataCardinality> {
     }
 
-    interface HasSelf extends RestrictionCE, ONProperty<OntOPE> {
+    interface HasSelf extends PropertyRestrictionCE<OntOPE>, SetONProperty<OntOPE, HasSelf> {
     }
 
-    interface UnionOf extends ComponentsCE<OntCE> {
+    interface UnionOf extends ComponentsCE<OntCE>, SetComponents<OntCE, UnionOf> {
     }
 
-    interface OneOf extends ComponentsCE<OntIndividual> {
+    interface OneOf extends ComponentsCE<OntIndividual>, SetComponents<OntIndividual, OneOf> {
     }
 
-    interface IntersectionOf extends ComponentsCE<OntCE> {
+    interface IntersectionOf extends ComponentsCE<OntCE>, SetComponents<OntCE, IntersectionOf> {
     }
 
-    interface ComplementOf extends OntCE, Value<OntCE> {
+    interface ComplementOf extends OntCE, HasValue<OntCE>, SetValue<OntCE, ComplementOf> {
     }
 
-    interface NaryDataAllValuesFrom extends NaryRestrictionCE<OntDR, OntNDP> {
+    interface NaryDataAllValuesFrom extends NaryRestrictionCE<OntDR, OntNDP>,
+            SetValue<OntDR, NaryDataAllValuesFrom>, SetONProperties<NaryDataAllValuesFrom> {
     }
 
-    interface NaryDataSomeValuesFrom extends NaryRestrictionCE<OntDR, OntNDP> {
+    interface NaryDataSomeValuesFrom extends NaryRestrictionCE<OntDR, OntNDP>,
+            SetValue<OntDR, NaryDataSomeValuesFrom>, SetONProperties<NaryDataSomeValuesFrom> {
     }
 
     /*
@@ -572,90 +598,27 @@ public interface OntCE extends OntObject {
      * ===========================
      */
 
-    interface ComponentsCE<O extends OntObject> extends OntCE, Components<O> {
+    interface ComponentsCE<O extends OntObject> extends OntCE, HasRDFNodeList<O> {
     }
 
-    interface CardinalityRestrictionCE<O extends OntObject, P extends OntDOP> extends Cardinality, ComponentRestrictionCE<O, P> {
+    interface CardinalityRestrictionCE<O extends OntObject, P extends OntDOP>
+            extends HasCardinality, ComponentRestrictionCE<O, P> {
     }
 
-    interface ComponentRestrictionCE<O extends RDFNode, P extends OntDOP> extends RestrictionCE, ONProperty<P>, Value<O> {
+    interface ComponentRestrictionCE<O extends RDFNode, P extends OntDOP>
+            extends PropertyRestrictionCE<P>, HasValue<O> {
     }
 
-    interface NaryRestrictionCE<O extends OntObject, P extends OntDOP> extends RestrictionCE, ONProperties<P>, Value<O> {
+    interface NaryRestrictionCE<O extends OntObject, P extends OntDOP>
+            extends RestrictionCE, HasONProperties<P>, HasValue<O> {
     }
 
+    // todo: add a factory
+    interface PropertyRestrictionCE<P extends OntDOP> extends RestrictionCE, HasONProperty<P> {
+    }
+
+    // todo: the meaning has been changed -> fix
     interface RestrictionCE extends OntCE {
-    }
-
-    /*
-     * ============================
-     * Common technical interfaces:
-     * ============================
-     */
-
-    interface ONProperty<P extends OntDOP> {
-        P getOnProperty();
-
-        void setOnProperty(P p);
-    }
-
-    interface ONProperties<P extends OntPE> {
-        /**
-         * Gets the ONT-List that contains resources of type {@link P}.
-         *
-         * @return {@link OntList}
-         * @since 1.3.0
-         */
-        OntList<P> getList();
-
-        default Stream<P> onProperties() {
-            return getList().members();
-        }
-
-        default void setOnProperties(Collection<P> properties) {
-            getList().clear().addAll(properties);
-        }
-    }
-
-    interface Components<O extends OntObject> {
-        /**
-         * Gets the ONT-List that contains resources of type {@link O}.
-         *
-         * @return {@link OntList}
-         * @since 1.3.0
-         */
-        OntList<O> getList();
-
-        default Stream<O> components() {
-            return getList().members();
-        }
-
-        default void setComponents(Collection<O> components) {
-            getList().clear().addAll(components);
-        }
-    }
-
-    interface Value<O extends RDFNode> {
-        O getValue();
-
-        void setValue(O value);
-    }
-
-    interface Cardinality {
-        int getCardinality();
-
-        void setCardinality(int cardinality);
-
-        /**
-         * Determines if this restriction is qualified.
-         * Qualified cardinality restrictions are defined to be cardinality restrictions
-         * that have fillers which aren't TOP (owl:Thing or rdfs:Literal).
-         * An object restriction is unqualified if it has a filler that is owl:Thing.
-         * A data restriction is unqualified if it has a filler which is the top data type (rdfs:Literal).
-         *
-         * @return {@code true} if this restriction is qualified, or {@code false} if this restriction is unqualified.
-         */
-        boolean isQualified();
     }
 }
 

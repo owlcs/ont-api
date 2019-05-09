@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -27,15 +27,7 @@ import java.util.stream.Stream;
  *
  * @param <O> {@link OntIndividual individual}, {@link OntCE class expression}, {@link OntOPE object property expression} or {@link OntNDP data property}
  */
-public interface OntDisjoint<O extends OntObject> extends OntObject {
-
-    /**
-     * Answers an {@link OntList ONT-List}, which is an resource-collection of all pair-wise disjoint members of type {@link O}.
-     *
-     * @return {@link OntList}
-     * @since 1.3.0
-     */
-    OntList<O> getList();
+public interface OntDisjoint<O extends OntObject> extends OntObject, HasRDFNodeList<O> {
 
     /**
      * Lists all pair-wise disjoint members holding by this {@link OntDisjoint Ontology Disjoint} resource.
@@ -43,20 +35,22 @@ public interface OntDisjoint<O extends OntObject> extends OntObject {
      *
      * @return Stream (<b>not distinct</b>) of {@link OntObject}s
      */
-    Stream<O> members();
+    default Stream<O> members() {
+        return getList().members();
+    }
 
     /**
      * @see <a href='https://www.w3.org/TR/owl2-syntax/#Disjoint_Classes'>9.1.3 Disjoint Classes</a>
      * @see OntGraphModel#createDisjointClasses(Collection)
      */
-    interface Classes extends OntDisjoint<OntCE> {
+    interface Classes extends OntDisjoint<OntCE>, SetComponents<OntCE, Classes> {
     }
 
     /**
      * @see <a href='https://www.w3.org/TR/owl2-syntax/#Individual_Inequality'>9.6.2 Individual Inequality</a>
      * @see OntGraphModel#createDifferentIndividuals(Collection)
      */
-    interface Individuals extends OntDisjoint<OntIndividual> {
+    interface Individuals extends OntDisjoint<OntIndividual>, SetComponents<OntIndividual, Individuals> {
 
         /**
          * Gets an {@link OntList ONT-List}.
@@ -89,14 +83,14 @@ public interface OntDisjoint<O extends OntObject> extends OntObject {
      * @see <a href='https://www.w3.org/TR/owl2-syntax/#Disjoint_Object_Properties'>9.2.3 Disjoint Object Properties</a>
      * @see OntGraphModel#createDisjointObjectProperties(Collection)
      */
-    interface ObjectProperties extends Properties<OntOPE> {
+    interface ObjectProperties extends Properties<OntOPE>, SetComponents<OntOPE, ObjectProperties> {
     }
 
     /**
      * @see <a href='https://www.w3.org/TR/owl2-syntax/#Disjoint_Data_Properties'>9.3.3 Disjoint Data Properties</a>
      * @see OntGraphModel#createDisjointDataProperties(Collection)
      */
-    interface DataProperties extends Properties<OntNDP> {
+    interface DataProperties extends Properties<OntNDP>, SetComponents<OntNDP, DataProperties> {
     }
 
     /**

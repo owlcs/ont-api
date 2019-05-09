@@ -267,7 +267,7 @@ public class ReadHelper {
         }
         if (dr instanceof OntDR.OneOf) {
             OntDR.OneOf _dr = (OntDR.OneOf) dr;
-            Set<ONTObject<OWLLiteral>> literals = _dr.values().map(of::get)
+            Set<ONTObject<OWLLiteral>> literals = _dr.getList().members().map(of::get)
                     .collect(Collectors.toSet());
             OWLDataRange res = df.getOWLDataOneOf(literals.stream().map(ONTObject::getObject));
             return ONTObject.create(res, _dr);
@@ -542,11 +542,11 @@ public class ReadHelper {
     /**
      * Lists all members from {@link OntList Ontology List}.
      *
-     * @param list {@link OntList}
+     * @param list {@link RDFNodeList}
      * @param <R>  {@link RDFNode}, a type of list members
      * @return {@link ExtendedIterator} of {@link R}
      */
-    public static <R extends RDFNode> ExtendedIterator<R> listMembers(OntList<R> list) {
+    public static <R extends RDFNode> ExtendedIterator<R> listMembers(RDFNodeList<R> list) {
         if (list instanceof OntListImpl) {
             return ((OntListImpl<R>) list).listMembers();
         }

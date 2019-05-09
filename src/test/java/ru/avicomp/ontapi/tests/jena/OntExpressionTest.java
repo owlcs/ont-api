@@ -14,6 +14,9 @@
 
 package ru.avicomp.ontapi.tests.jena;
 
+import org.apache.jena.rdf.model.Literal;
+import org.apache.jena.rdf.model.RDFList;
+import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.junit.Assert;
 import org.junit.Test;
@@ -26,8 +29,8 @@ import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.XSD;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
-import java.util.Arrays;
-import java.util.Collections;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * To test class and data-range expressions: {@link OntCE}, {@link OntDR} and all their descendants.
@@ -232,4 +235,172 @@ public class OntExpressionTest {
         Assert.assertSame(c, c.clearHasKeys());
         Assert.assertEquals(4, m.size());
     }
+
+    @Test
+    public void testComponentRestrictionValues() {
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntNOP po1 = m.createObjectProperty("PO1");
+        OntNOP po2 = m.createObjectProperty("PO2");
+        OntNDP pd1 = m.createDataProperty("PD1");
+        OntNDP pd2 = m.createDataProperty("PD2");
+        OntDT dt1 = m.createDatatype("DT1");
+        OntDT dt2 = m.createDatatype("DT2");
+        OntClass c1 = m.createOntClass("C1");
+        OntClass c2 = m.createOntClass("C2");
+        OntIndividual i1 = c1.createIndividual();
+        OntIndividual i2 = c2.createIndividual("I2");
+        Literal l1 = dt1.createLiteral("L1");
+        Literal l2 = dt1.createLiteral("L2");
+
+        OntCE.DataSomeValuesFrom r1 = m.createDataSomeValuesFrom(pd1, dt1);
+        Assert.assertEquals(dt1, r1.getValue());
+        Assert.assertSame(r1, r1.setValue(dt2));
+        Assert.assertEquals(dt2, r1.getValue());
+
+        OntCE.ObjectMinCardinality r2 = m.createObjectMinCardinality(po1, 1, c1);
+        Assert.assertEquals(c1, r2.getValue());
+        Assert.assertSame(r2, r2.setValue(c2));
+        Assert.assertEquals(c2, r2.getValue());
+
+        OntCE.ObjectHasValue r3 = m.createObjectHasValue(po2, i1);
+        Assert.assertEquals(i1, r3.getValue());
+        Assert.assertSame(r3, r3.setValue(i2));
+        Assert.assertEquals(i2, r3.getValue());
+
+        OntCE.DataHasValue r4 = m.createDataHasValue(pd2, l1);
+        Assert.assertEquals(l1, r4.getValue());
+        Assert.assertSame(r4, r4.setValue(l2));
+        Assert.assertEquals(l2, r4.getValue());
+
+        Set<RDFNode> expected = new HashSet<>(Arrays.asList(dt2, c2, i2, l2));
+        Set<RDFNode> actual = m.ontObjects(OntCE.ComponentRestrictionCE.class)
+                .map(x -> x.getValue()).collect(Collectors.toSet());
+        Assert.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testClassExpressionComponents() {
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntClass c1 = m.createOntClass("C1");
+        OntClass c2 = m.createOntClass("C2");
+        OntClass c3 = m.createOntClass("C3");
+        OntClass c4 = m.createOntClass("C4");
+        OntIndividual i1 = c1.createIndividual();
+        OntIndividual i2 = c2.createIndividual("I2");
+        OntIndividual i3 = c1.createIndividual();
+        OntIndividual i4 = c4.createIndividual("I4");
+
+        List<OntIndividual> list1 = Arrays.asList(i1, i2, i3);
+        OntCE.OneOf e1 = m.createOneOf(list1);
+        Assert.assertEquals(list1, e1.getList().members().collect(Collectors.toList()));
+        Assert.assertSame(e1, e1.setComponents(i1, i4));
+        Assert.assertEquals(Arrays.asList(i1, i4), e1.getList().members().collect(Collectors.toList()));
+
+        List<OntCE> list2 = Arrays.asList(c3, c4);
+        OntCE.UnionOf e2 = m.createUnionOf(list2);
+        Assert.assertEquals(2, e2.getList().members().count());
+        Assert.assertTrue(e2.setComponents().getList().isEmpty());
+
+        OntCE.IntersectionOf e3 = m.createIntersectionOf(list2);
+        Assert.assertEquals(3, e3.setComponents(Arrays.asList(c1, c2, m.getOWLThing())).getList().members().count());
+
+        Set<RDFNode> expected = new HashSet<>(Arrays.asList(i1, i4, c1, c2, m.getOWLThing()));
+        Set<RDFNode> actual = m.ontObjects(OntCE.ComponentsCE.class)
+                .map(x -> x.getList())
+                .map(x -> x.as(RDFList.class))
+                .map(RDFList::asJavaList)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toSet());
+        Assert.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testDataRangeComponents() {
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntDT dt1 = m.createDatatype("DT1");
+        OntDT dt2 = m.createDatatype("DT2");
+        OntDT dt3 = m.createDatatype("DT3");
+        OntDT dt4 = m.createDatatype("DT4");
+        Literal l1 = dt1.createLiteral("L1");
+        Literal l2 = dt1.createLiteral("L2");
+        Literal l3 = m.createTypedLiteral(3);
+        Literal l4 = m.createTypedLiteral(4);
+        OntFR fr1 = m.createFacetRestriction(OntFR.MaxExclusive.class, l3);
+        OntFR fr2 = m.createFacetRestriction(OntFR.MaxInclusive.class, l4);
+        OntFR fr3 = m.createFacetRestriction(OntFR.TotalDigits.class, l4);
+
+        List<Literal> list1 = Arrays.asList(l1, l2);
+        OntDR.OneOf dr1 = m.createOneOfDataRange(list1);
+        Assert.assertEquals(list1, dr1.getList().members().collect(Collectors.toList()));
+        Assert.assertSame(dr1, dr1.setComponents(l2, l3));
+        Assert.assertEquals(Arrays.asList(l2, l3), dr1.getList().members().collect(Collectors.toList()));
+
+        OntDR.IntersectionOf dr2 = m.createIntersectionOfDataRange(Arrays.asList(dt2, dt3, dt4));
+        Assert.assertEquals(3, dr2.getList().members().count());
+        Assert.assertTrue(dr2.setComponents().getList().isEmpty());
+
+        OntDR.Restriction dr3 = m.createRestrictionDataRange(dt3, Arrays.asList(fr1, fr2));
+        Assert.assertEquals(3, dr3.setComponents(Arrays.asList(fr3, fr1, fr2)).getList().members().count());
+
+        ReadWriteUtils.print(m);
+
+        Set<RDFNode> expected = new HashSet<>(Arrays.asList(l2, l3, fr3, fr1, fr2));
+        Set<RDFNode> actual = m.ontObjects(OntDR.ComponentsDR.class)
+                .map(x -> x.getList())
+                .map(x -> x.as(RDFList.class))
+                .map(RDFList::asJavaList)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toSet());
+        Assert.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testRestrictionOnProperties() {
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntClass c1 = m.createOntClass("C1");
+        OntDT dt1 = m.createDatatype("DT1");
+        OntNDP dp1 = m.createDataProperty("DP1");
+        OntNDP dp2 = m.createDataProperty("DP2");
+        OntNOP op1 = m.createObjectProperty("OP1");
+        OntNOP op2 = m.createObjectProperty("OP2");
+
+        OntCE.DataAllValuesFrom r1 = m.createDataAllValuesFrom(dp1, dt1);
+        Assert.assertEquals(dp1, r1.getOnProperty());
+        Assert.assertSame(r1, r1.setOnProperty(dp2));
+        Assert.assertEquals(dp2, r1.getOnProperty());
+
+        OntCE.ObjectMaxCardinality r2 = m.createObjectMaxCardinality(op1, 2, c1);
+        Assert.assertEquals(op1, r2.getOnProperty());
+        Assert.assertSame(r2, r2.setOnProperty(op2));
+        Assert.assertEquals(op2, r2.getOnProperty());
+
+        OntCE.HasSelf r3 = m.createHasSelf(op1);
+        Assert.assertEquals(op1, r3.getOnProperty());
+        Assert.assertSame(r3, r3.setOnProperty(op2));
+        Assert.assertEquals(op2, r3.getOnProperty());
+
+        // todo: add test for OntCE.PropertyRestrictionCE
+    }
+
+    @Test
+    public void testRestrictionCardinality() {
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntNDP dp1 = m.createDataProperty("DP1");
+        OntNOP op2 = m.createObjectProperty("OP2");
+
+        OntCE.DataMinCardinality r1 = m.createDataMinCardinality(dp1, 5, null);
+        Assert.assertEquals(5, r1.getCardinality());
+        Assert.assertSame(r1, r1.setCardinality(6));
+        Assert.assertEquals(6, r1.getCardinality());
+
+        OntCE.ObjectCardinality r2 = m.createObjectCardinality(op2, 2, m.createOntClass("C1"));
+        Assert.assertEquals(2, r2.getCardinality());
+        Assert.assertSame(r2, r2.setCardinality(3));
+        Assert.assertEquals(3, r2.getCardinality());
+
+        long expected = 6 + 3;
+        long actual = m.ontObjects(OntCE.CardinalityRestrictionCE.class).mapToLong(x -> x.getCardinality()).sum();
+        Assert.assertEquals(expected, actual);
+    }
+
 }

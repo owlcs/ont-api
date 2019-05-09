@@ -733,5 +733,46 @@ public class OntModelTest {
         Assert.assertEquals(2, m.size());
     }
 
+    @Test
+    public void testDisjointComponents() {
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntClass c1 = m.createOntClass("C1");
+        OntClass c2 = m.createOntClass("C1");
+        OntNOP op1 = m.createObjectProperty("OP1");
+        OntNOP op2 = m.createObjectProperty("OP2");
+        OntNOP op3 = m.createObjectProperty("OP3");
+        OntNDP dp1 = m.createDataProperty("DP1");
+        OntNDP dp2 = m.createDataProperty("DP2");
+        OntNDP dp3 = m.createDataProperty("DP3");
+        OntIndividual i1 = m.createIndividual("I1");
+        OntIndividual i2 = c1.createIndividual("I2");
+        OntIndividual i3 = c2.createIndividual();
+
+        List<OntIndividual> list1 = Arrays.asList(i1, i2);
+        OntDisjoint.Individuals d1 = m.createDifferentIndividuals(list1);
+        Assert.assertEquals(list1, d1.getList().members().collect(Collectors.toList()));
+        Assert.assertEquals(2, d1.members().count());
+        Assert.assertSame(d1, d1.setComponents(i2, i3));
+        Assert.assertEquals(Arrays.asList(i2, i3), d1.members().collect(Collectors.toList()));
+
+        OntDisjoint.ObjectProperties d2 = m.createDisjointObjectProperties(Arrays.asList(op1, op2, op3));
+        Assert.assertEquals(3, d2.getList().members().count());
+        Assert.assertTrue(d2.setComponents().getList().isEmpty());
+
+        OntDisjoint.DataProperties d3 = m.createDisjointDataProperties(Arrays.asList(dp1, dp2));
+        Assert.assertEquals(2, d3.setComponents(Arrays.asList(dp3, m.getOWLBottomDataProperty())).members().count());
+
+        ReadWriteUtils.print(m);
+
+        Set<RDFNode> expected = new HashSet<>(Arrays.asList(i2, i3, dp3, OWL.bottomDataProperty));
+        Set<RDFNode> actual = m.ontObjects(OntDisjoint.class)
+                .map(x -> x.getList())
+                .map(x -> x.as(RDFList.class))
+                .map(RDFList::asJavaList)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toSet());
+        Assert.assertEquals(expected, actual);
+    }
+
 }
 

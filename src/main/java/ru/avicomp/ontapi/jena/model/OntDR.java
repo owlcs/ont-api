@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -44,7 +44,14 @@ public interface OntDR extends OntObject {
      * @see <a href='https://www.w3.org/TR/owl2-syntax/#Intersection_of_Data_Ranges'>7.1 Intersection of Data Ranges</a>
      * @see OntGraphModel#createIntersectionOfDataRange(Collection)
      */
-    interface IntersectionOf extends ComponentsDR<OntDR> {
+    interface IntersectionOf extends ComponentsDR<OntDR>, SetComponents<OntDR, IntersectionOf> {
+        /**
+         * Lists all data-ranges.
+         *
+         * @return a {@code Stream} of {@link OntDR}s
+         * @deprecated since 1.4.0: use {@code getList().members()} instead
+         */
+        @Deprecated
         default Stream<OntDR> dataRanges() {
             return getList().members();
         }
@@ -54,7 +61,14 @@ public interface OntDR extends OntObject {
      * @see <a href='https://www.w3.org/TR/owl2-syntax/#Union_of_Data_Ranges'>7.2 Union of Data Ranges</a>
      * @see OntGraphModel#createUnionOfDataRange(Collection)
      */
-    interface UnionOf extends ComponentsDR<OntDR> {
+    interface UnionOf extends ComponentsDR<OntDR>, SetComponents<OntDR, UnionOf> {
+        /**
+         * Lists all data-ranges.
+         *
+         * @return a {@code Stream} of {@link OntDR}s
+         * @deprecated since 1.4.0: use {@code getList().members()} instead
+         */
+        @Deprecated
         default Stream<OntDR> dataRanges() {
             return getList().members();
         }
@@ -64,7 +78,13 @@ public interface OntDR extends OntObject {
      * @see <a href='https://www.w3.org/TR/owl2-syntax/#Enumeration_of_Literals'>7.4 Enumeration of Literals</a>
      * @see OntGraphModel#createOneOfDataRange(Collection)
      */
-    interface OneOf extends ComponentsDR<Literal> {
+    interface OneOf extends ComponentsDR<Literal>, SetComponents<Literal, OneOf> {
+        /**
+         * Lists all literals.
+         * @return a {@code Stream} of {@link Literal literal}s
+         * @deprecated since 1.4.0: use {@code getList().members()} instead
+         */
+        @Deprecated
         default Stream<Literal> values() {
             return getList().members();
         }
@@ -76,7 +96,7 @@ public interface OntDR extends OntObject {
      * @see OntGraphModel#createFacetRestriction(Class, Literal)
      * @see OntGraphModel#createRestrictionDataRange(OntDT, Collection)
      */
-    interface Restriction extends ComponentsDR<OntFR> {
+    interface Restriction extends ComponentsDR<OntFR>, SetComponents<OntFR, Restriction> {
         /**
          * Returns the datatype from the right side of
          * the statement {@code _:x owl:onDatatype DN}, where {@code _:x} this Restriction.
@@ -95,6 +115,12 @@ public interface OntDR extends OntObject {
         @Override
         Stream<OntStatement> spec();
 
+        /**
+         * Lists all facet restrictions.
+         * @return a {@code Stream} of {@link OntFR}s
+         * @deprecated since 1.4.0: use {@code getList().members()} instead
+         */
+        @Deprecated
         default Stream<OntFR> facetRestrictions() {
             return getList().members();
         }
@@ -105,14 +131,7 @@ public interface OntDR extends OntObject {
      *
      * @param <N> {@link RDFNode}
      */
-    interface ComponentsDR<N extends RDFNode> extends OntDR {
-        /**
-         * Gets the ONT-List that contains resources of type {@link N}.
-         *
-         * @return {@link OntList}
-         * @since 1.3.0
-         */
-        OntList<N> getList();
+    interface ComponentsDR<N extends RDFNode> extends OntDR, HasRDFNodeList<N> {
     }
 
 }
