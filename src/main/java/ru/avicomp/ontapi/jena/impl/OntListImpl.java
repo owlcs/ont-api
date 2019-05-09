@@ -289,7 +289,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
      * @param list {@link RDFNode}, not {@code null}
      * @return boolean
      */
-    public static boolean isEmpty(RDFNode list) {
+    public static boolean isNil(RDFNode list) {
         return RDF.nil.equals(list);
     }
 
@@ -390,7 +390,12 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
 
     @Override
     public boolean isEmpty() {
-        return isEmpty(getRDFList());
+        return isNil() || !Iter.findFirst(listMembers()).isPresent();
+    }
+
+    @Override
+    public boolean isNil() {
+        return isNil(getRDFList());
     }
 
     @Override
@@ -422,7 +427,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
 
     public ExtendedIterator<OntStatement> listSpec() {
         RDFList list = getRDFList();
-        if (isEmpty(list)) return NullIterator.instance();
+        if (isNil(list)) return NullIterator.instance();
         return Iter.flatMap(createSafeRDFListIterator(list.asNode()), this::toListStatements);
     }
 
@@ -442,7 +447,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
      */
     public Iterator<List<Triple>> createRDFListIterator() {
         RDFList list = getRDFList();
-        if (isEmpty(list)) {
+        if (isNil(list)) {
             return null;
         }
         return createRDFListIterator(list.asNode());
@@ -649,7 +654,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
         RDFList list = getRDFList();
         int i = 0;
         OntGraphModelImpl m = getModel();
-        while (!isEmpty(list)) {
+        while (!isNil(list)) {
             Statement rest = list.getRequiredProperty(RDF.rest);
             list = rest.getObject().as(RDFList.class);
             if (++i != index) {

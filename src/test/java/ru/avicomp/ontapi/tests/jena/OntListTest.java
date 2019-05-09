@@ -44,6 +44,33 @@ import java.util.stream.Collectors;
 public class OntListTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(OntListTest.class);
 
+    private static OntStatement getSingleAnnotation(OntList<?> list) {
+        return getSingleAnnotation(list.getRoot());
+    }
+
+    private static OntStatement getSingleAnnotation(OntStatement s) {
+        List<OntStatement> res = s.annotations().collect(Collectors.toList());
+        Assert.assertEquals(1, res.size());
+        return res.get(0);
+    }
+
+    private static void check(OntGraphModel m, int numLists, Class<? extends RDFNode> type) {
+        debug(m);
+        Assert.assertFalse(m.contains(null, RDF.type, RDF.List));
+        Assert.assertEquals(numLists, m.statements(null, null, RDF.nil).count());
+        m.statements(null, RDF.first, null).map(Statement::getObject).forEach(n -> Assert.assertTrue(n.canAs(type)));
+        m.statements(null, RDF.rest, null)
+                .map(Statement::getObject)
+                .forEach(n -> Assert.assertTrue(RDF.nil.equals(n) ||
+                        (n.isAnon() && m.statements().map(OntStatement::getSubject).anyMatch(n::equals))));
+    }
+
+    private static void debug(OntGraphModel m) {
+        ReadWriteUtils.print(m);
+        LOGGER.debug("====");
+        m.statements().map(Models::toString).forEach(LOGGER::debug);
+    }
+
     @Test
     public void testCommonFunctionality1() {
         OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
@@ -68,7 +95,7 @@ public class OntListTest {
         list.remove();
         Assert.assertEquals(2, list.members().count());
         Assert.assertEquals(2, list.as(RDFList.class).size());
-        Assert.assertFalse(list.isEmpty());
+        Assert.assertFalse(list.isNil());
         Assert.assertFalse(list.members().anyMatch(p -> p.equals(p1)));
         Assert.assertEquals(p3, list.last().orElseThrow(AssertionError::new));
         Assert.assertEquals(p3, list.first().orElseThrow(AssertionError::new));
@@ -76,15 +103,14 @@ public class OntListTest {
 
         Assert.assertEquals(1, (list = list.remove()).members().count());
         Assert.assertEquals(1, list.as(RDFList.class).size());
-        Assert.assertFalse(list.isEmpty());
+        Assert.assertFalse(list.isNil());
         check(m, 2, OntOPE.class);
 
         list = list.remove();
         Assert.assertEquals(0, list.members().count());
         Assert.assertEquals(0, list.as(RDFList.class).size());
-        Assert.assertTrue(list.isEmpty());
+        Assert.assertTrue(list.isNil());
         check(m, 2, OntOPE.class);
-
     }
 
     @Test
@@ -110,7 +136,7 @@ public class OntListTest {
         Assert.assertTrue(list.last().filter(p3::equals).isPresent());
         check(m, 1, OntNOP.class);
 
-        Assert.assertTrue(list.removeFirst().removeFirst().isEmpty());
+        Assert.assertTrue(list.removeFirst().removeFirst().isNil());
         check(m, 1, OntPE.class);
         Assert.assertEquals(1, list.addFirst(p4).members().count());
         Assert.assertTrue(list.first().filter(p4::equals).isPresent());
@@ -130,7 +156,7 @@ public class OntListTest {
 
         list.clear();
         Assert.assertEquals(0, list.members().count());
-        Assert.assertTrue(p1.listPropertyChains().findFirst().orElseThrow(AssertionError::new).isEmpty());
+        Assert.assertTrue(p1.listPropertyChains().findFirst().orElseThrow(AssertionError::new).isNil());
         Assert.assertEquals(0, list.members().count());
         Assert.assertEquals(3, list.addLast(p2).addFirst(p4).addFirst(p3).size());
         Assert.assertEquals(Arrays.asList(p3, p4, p2), list.as(RDFList.class).asJavaList());
@@ -158,7 +184,7 @@ public class OntListTest {
             LOGGER.debug("Expected: {}", j.getMessage());
         }
 
-        Assert.assertTrue(list.get(2).clear().isEmpty());
+        Assert.assertTrue(list.get(2).clear().isNil());
         check(m, 1, OntOPE.class);
         Assert.assertEquals(2, list.size());
     }
@@ -267,7 +293,7 @@ public class OntListTest {
         list.getRoot().annotations()
                 .filter(s -> RDFS.label.equals(s.getPredicate()) && literal_x.equals(s.getLiteral()))
                 .findFirst().orElseThrow(AssertionError::new);
-        Assert.assertTrue(list.isEmpty());
+        Assert.assertTrue(list.isNil());
         Assert.assertNotNull(list.getRoot().clearAnnotations());
         Assert.assertEquals(0, list.getRoot().annotations().count());
         Assert.assertEquals(6, m.statements().count());
@@ -358,7 +384,7 @@ public class OntListTest {
         Assert.assertEquals(15, list.spec().count());
 
         list.clear();
-        Assert.assertTrue(list.isEmpty());
+        Assert.assertTrue(list.isNil());
         Assert.assertEquals(0, list.size());
         Assert.assertEquals(1, m.size());
         ReadWriteUtils.print(m);
@@ -366,7 +392,7 @@ public class OntListTest {
         OntList<Resource> empty = OntListImpl.create(m, m.createResource("empty").as(OntObject.class), p, RDF.List,
                 Resource.class,
                 NullIterator.instance());
-        Assert.assertTrue(empty.isEmpty());
+        Assert.assertTrue(empty.isNil());
         Assert.assertEquals(0, empty.size());
         Assert.assertEquals(2, m.size());
 
@@ -546,30 +572,28 @@ public class OntListTest {
                 .findFirst().orElseThrow(AssertionError::new).members().count());
     }
 
-    private static OntStatement getSingleAnnotation(OntList<?> list) {
-        return getSingleAnnotation(list.getRoot());
-    }
+    @Test
+    public void testOntListWithIncompatibleTypes() {
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntList<OntCE> list = m.createUnionOf(Arrays.asList(m.createOntClass("C1"),
+                m.getOWLThing(), m.createOntClass("C2"))).getList();
+        Assert.assertFalse(list.isEmpty());
+        Assert.assertFalse(list.isNil());
+        Assert.assertEquals(3, list.size());
+        Assert.assertEquals(3, list.members().count());
 
-    private static OntStatement getSingleAnnotation(OntStatement s) {
-        List<OntStatement> res = s.annotations().collect(Collectors.toList());
-        Assert.assertEquals(1, res.size());
-        return res.get(0);
-    }
-
-    private static void check(OntGraphModel m, int numLists, Class<? extends RDFNode> type) {
-        debug(m);
-        Assert.assertFalse(m.contains(null, RDF.type, RDF.List));
-        Assert.assertEquals(numLists, m.statements(null, null, RDF.nil).count());
-        m.statements(null, RDF.first, null).map(Statement::getObject).forEach(n -> Assert.assertTrue(n.canAs(type)));
-        m.statements(null, RDF.rest, null)
-                .map(Statement::getObject)
-                .forEach(n -> Assert.assertTrue(RDF.nil.equals(n) ||
-                        (n.isAnon() && m.statements().map(OntStatement::getSubject).anyMatch(n::equals))));
-    }
-
-    private static void debug(OntGraphModel m) {
+        OntStatement s = m.statements(null, null, OWL.Thing).findFirst().orElseThrow(AssertionError::new);
+        m.remove(s).add(s.getSubject(), s.getPredicate(), m.createTypedLiteral(0));
         ReadWriteUtils.print(m);
-        LOGGER.debug("====");
-        m.statements().map(Models::toString).forEach(LOGGER::debug);
+        Assert.assertFalse(list.isEmpty());
+        Assert.assertFalse(list.isNil());
+        Assert.assertEquals(3, list.size());
+        Assert.assertEquals(2, list.members().count());
+        list.removeFirst().removeLast();
+
+        Assert.assertTrue(list.isEmpty());
+        Assert.assertFalse(list.isNil());
+        Assert.assertEquals(1, list.size());
+        Assert.assertEquals(0, list.members().count());
     }
 }

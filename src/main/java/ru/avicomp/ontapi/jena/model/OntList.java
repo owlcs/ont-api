@@ -55,44 +55,34 @@ import java.util.stream.Stream;
  * Created by @szuev on 10.07.2018.
  *
  * @param <E> the type of {@link RDFNode rdf-node}s in this list
+ * @see RDFNodeList
  * @since 1.3.0
  */
-public interface OntList<E extends RDFNode> extends OntResource {
-
-    /**
-     * Answers {@code true} if this list is the empty list (nil).
-     *
-     * @return boolean
-     */
-    boolean isEmpty();
-
-    /**
-     * Lists all elements of type {@link E} from this list.
-     * Note: the list may contain nodes with incompatible type, in this case they will be skipped.
-     *
-     * @return Stream of {@link E}-elements
-     */
-    Stream<E> members();
+public interface OntList<E extends RDFNode> extends RDFNodeList<E>, OntResource {
 
     /**
      * Adds the given value to the end of the list.
      *
      * @param e {@link E} rdf-node
      * @return this list instance
+     * @see #add(RDFNode)
      */
     OntList<E> addLast(E e);
 
     /**
      * Removes the last element from this list.
-     * No-op in case of empty list.
-     * Note: the last element can be of any type, not necessarily of type {@link E}.
+     * No-op in case of nil-list.
+     * Note: the removed element can be of any type, not necessarily of the type {@link E}.
      *
      * @return this list instance
+     * @see #remove()
      */
     OntList<E> removeLast();
 
     /**
      * Inserts the specified element at the beginning of this list.
+     * As a rule, this operation is faster than {@link #addLast(RDFNode)},
+     * since it does not require iteration to the end of the list.
      *
      * @param e {@link E} rdf-node
      * @return this list instance
@@ -103,6 +93,8 @@ public interface OntList<E extends RDFNode> extends OntResource {
      * Removes and the first element from this list.
      * No-op in case of empty list.
      * Note: the last element can be of any type, not necessarily of type {@link E}.
+     * As a rule, this operation is faster than {@link #removeLast()} ,
+     * since the last one requires iteration to the end of the list.
      *
      * @return the first element from this list
      */
@@ -118,9 +110,9 @@ public interface OntList<E extends RDFNode> extends OntResource {
 
     /**
      * Answers the list that is the tail of this list starting from the given position.
-     * Note: the result list is not annotable.
+     * Note: the returned list cannot be annotated.
      * This method can be used to insert/remove/clear the parent list at any position,
-     * e.g. the operation {@code get(1).addFirst(e)} will insert element {@code e} at second position.
+     * e.g. the operation {@code get(1).addFirst(e)} will insert the element {@code e} at second position.
      *
      * @param index int, not negative
      * @return new {@code OntList} instance
@@ -130,13 +122,16 @@ public interface OntList<E extends RDFNode> extends OntResource {
 
     /**
      * Answers the resource-type of this ONT-list, if it is typed.
-     * A standard RDF-list does not contain any {@link ru.avicomp.ontapi.jena.vocabulary.RDF#type rdf:type} in its deeps.
-     * For its description, predicates {@link ru.avicomp.ontapi.jena.vocabulary.RDF#first rdf:first},
-     * {@link ru.avicomp.ontapi.jena.vocabulary.RDF#rest rdf:rest} and {@link ru.avicomp.ontapi.jena.vocabulary.RDF#nil rdf:nil} are sufficient.
-     * In this case this method returns {@link Optional#empty() empty}.
-     * But in some rare semantics (e.g. see {@link ru.avicomp.ontapi.jena.vocabulary.SWRL}), the []-list must to be typed
-     * (see {@link ru.avicomp.ontapi.jena.vocabulary.SWRL#AtomList}).
-     * In that case this method returns an URI-{@code Resource}(in {@code Optional}) describing the []-list type.
+     * A standard RDF-list does not require any {@link ru.avicomp.ontapi.jena.vocabulary.RDF#type rdf:type}
+     * in its RDF-deeps, since predicates {@link ru.avicomp.ontapi.jena.vocabulary.RDF#first rdf:first},
+     * {@link ru.avicomp.ontapi.jena.vocabulary.RDF#rest rdf:rest}
+     * and {@link ru.avicomp.ontapi.jena.vocabulary.RDF#nil rdf:nil} are sufficient for its description.
+     * In this case the method returns {@link Optional#empty() empty} result.
+     * But in some rare semantics (e.g. see {@link ru.avicomp.ontapi.jena.vocabulary.SWRL}),
+     * the []-list must to be typed.
+     * In that case this method returns an URI-{@code Resource} (that is wrapped as {@code Optional})
+     * describing the []-list's type
+     * (for SWRL it is {@link ru.avicomp.ontapi.jena.vocabulary.SWRL#AtomList swrl:AtomList}).
      *
      * @return {@link Optional} around the URI-{@link Resource}, can be empty.
      */
@@ -144,8 +139,10 @@ public interface OntList<E extends RDFNode> extends OntResource {
 
     /**
      * Lists all statements related to this list.
-     * For nil-list empty stream is expected.
-     * Inherit java-docs:
+     * For nil-list an empty stream is expected.
+     * Note: it returns all statements even if the list contains incompatible types.
+     * <p>
+     * See also inherit java-docs:
      * {@inheritDoc}
      *
      * @return Stream of {@link OntStatement Ontology Statement}s that does not support annotations
@@ -155,21 +152,12 @@ public interface OntList<E extends RDFNode> extends OntResource {
 
     /**
      * Returns the root statement plus spec.
+     * Please note: only the first item (root) is allowed to be annotated.
      *
-     * @return Stream of {@link OntStatement Ontology Statement}s, only the first item of stream can be annotated
+     * @return {@code Stream} of {@link OntStatement Ontology Statement}s
      */
     default Stream<OntStatement> content() {
         return Stream.concat(Stream.of(getRoot()), spec());
-    }
-
-    /**
-     * Answers the number of {@link RDFNode rdf-node}s in the list.
-     * Note: in general this operation is not equivalent to {@code this.members().count()}.
-     *
-     * @return the real size of the list as an integer
-     */
-    default int size() {
-        return as(RDFList.class).size();
     }
 
     /**
@@ -178,6 +166,7 @@ public interface OntList<E extends RDFNode> extends OntResource {
      *
      * @param e {@link E} rdf-node
      * @return this list instance
+     * @see #addLast(RDFNode)
      */
     default OntList<E> add(E e) {
         return addLast(e);
@@ -188,27 +177,10 @@ public interface OntList<E extends RDFNode> extends OntResource {
      * This is a synonym for the {@code this.removeLast(e)}.
      *
      * @return this list instance
+     * @see #removeLast()
      */
     default OntList<E> remove() {
         return removeLast();
-    }
-
-    /**
-     * Answers the first element with type {@link E}.
-     *
-     * @return Optional around rdf-node
-     */
-    default Optional<E> first() {
-        return members().findFirst();
-    }
-
-    /**
-     * Answers the last element with type {@link E}.
-     *
-     * @return Optional around rdf-node
-     */
-    default Optional<E> last() {
-        return members().reduce((f, s) -> s);
     }
 
     /**
@@ -223,6 +195,9 @@ public interface OntList<E extends RDFNode> extends OntResource {
         return this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     default boolean isLocal() {
         return getRoot().isLocal();
