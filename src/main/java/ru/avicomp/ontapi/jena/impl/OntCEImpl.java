@@ -245,9 +245,13 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         return ResourceFactory.createTypedLiteral(String.valueOf(n), CardinalityType.NON_NEGATIVE_INTEGER);
     }
 
+    private static Resource createRestriction(OntGraphModel model) {
+        return model.createResource(OWL.Restriction);
+    }
+
     protected static Resource createOnPropertyRestriction(OntGraphModelImpl model, OntPE onProperty) {
         OntJenaException.notNull(onProperty, "Null property.");
-        return model.createResource().addProperty(RDF.type, OWL.Restriction).addProperty(OWL.onProperty, onProperty);
+        return createRestriction(model).addProperty(OWL.onProperty, onProperty);
     }
 
     public static <CE extends ComponentRestrictionCE> CE createComponentRestrictionCE(OntGraphModelImpl model,
@@ -273,6 +277,18 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
             model.add(res, onProperty instanceof OntOPE ? OWL.onClass : OWL.onDataRange, object);
         }
         return model.getNodeAs(res.asNode(), view);
+    }
+
+    public static <CE extends NaryRestrictionCE> CE createNaryRestrictionCE(OntGraphModelImpl model,
+                                                                            Class<CE> type,
+                                                                            OntDR dr,
+                                                                            Collection<OntNDP> properties) {
+        NaryRestrictionCEImpl.validateArity(dr, properties);
+        Property predicate = OntCE.NaryDataAllValuesFrom.class.equals(type) ? OWL.allValuesFrom : OWL.someValuesFrom;
+        Resource res = createRestriction(model)
+                .addProperty(predicate, dr)
+                .addProperty(OWL.onProperties, model.createList(properties.iterator()));
+        return model.getNodeAs(res.asNode(), type);
     }
 
     public static <CE extends ComponentsCE, R extends OntObject> CE createComponentsCE(OntGraphModelImpl model,
@@ -990,7 +1006,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
     protected static abstract class NaryRestrictionCEImpl<O extends OntObject, P extends OntDOP, R extends NaryRestrictionCEImpl>
             extends OntCEImpl implements NaryRestrictionCE<O, P> {
         protected final Property predicate;
-        protected final Class<O> objectType;
+        protected final Class<O> objectType; // always OntDR
         protected final Class<P> propertyType;
 
         protected NaryRestrictionCEImpl(Node n,
@@ -1014,10 +1030,18 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
             return getRequiredObject(predicate, objectType);
         }
 
-        @SuppressWarnings("unused")
+        @SuppressWarnings("unchecked")
         public R setValue(O value) {
-            // TODO: implement (in bounds of issue #52)
-            throw new OntJenaException.Unsupported("TODO: https://github.com/avicomp/ont-api/issues/52");
+            Objects.requireNonNull(value);
+            removeAll(predicate).addProperty(predicate, value);
+            return (R) this;
+        }
+
+        @SuppressWarnings("unchecked")
+        public R setComponents(Collection<P> properties) {
+            validateArity((OntDR) getValue(), (Collection<OntNDP>) properties);
+            getList().clear().addAll(properties);
+            return (R) this;
         }
 
         @Override
@@ -1033,7 +1057,14 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         @Override
         public OntListImpl<P> getList() {
             return OntListImpl.asSafeOntList(getRequiredObject(OWL.onProperties, RDFList.class), getModel(),
-                    this, predicate, null, propertyType);
+                    this, OWL.onProperties, null, propertyType);
+        }
+
+        public static void validateArity(OntDR dr, Collection<OntNDP> properties) {
+            properties.forEach(x -> OntJenaException.notNull(x, "Null data property"));
+            if (dr.arity() == properties.size()) return;
+            throw new OntJenaException.IllegalArgument("The number of data properties (" + properties.size() + ") " +
+                    "must be equal to the data range arity (" + dr.arity() + ").");
         }
     }
 

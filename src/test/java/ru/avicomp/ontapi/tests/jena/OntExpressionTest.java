@@ -453,4 +453,42 @@ public class OntExpressionTest {
         Assert.assertTrue(m.contains(null, OWL.minQualifiedCardinality, v));
     }
 
+    @Test
+    public void testNaryDataRestrictions() {
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntNDP dp1 = m.createDataProperty("DP1");
+        OntNDP dp2 = m.createDataProperty("DP2");
+        OntDT d1 = m.getDatatype(XSD.xstring);
+        OntDR d2 = m.createDatatype("x");
+
+        OntCE.NaryDataAllValuesFrom r1 = m.createDataAllValuesFrom(Collections.singleton(dp1), d1);
+        long s = m.size();
+        Assert.assertSame(r1, r1.setValue(d2));
+        Assert.assertEquals(d2, r1.getValue());
+        Assert.assertEquals(s, m.size());
+        Assert.assertFalse(m.contains(null, OWL.someValuesFrom, (RDFNode) null));
+        Assert.assertTrue(m.contains(null, OWL.allValuesFrom, (RDFNode) null));
+
+        try {
+            m.createDataAllValuesFrom(Arrays.asList(dp1, dp2), d1);
+            Assert.fail("Possible to create wrong n-ary restriction");
+        } catch (OntJenaException e) {
+            LOGGER.debug("Expected: '{}'", e.getMessage());
+        }
+        Assert.assertEquals(s, m.size());
+
+        OntCE.NaryDataSomeValuesFrom r2 = m.createDataSomeValuesFrom(Collections.singleton(dp2), d1);
+        Assert.assertEquals(s = s + 5, m.size());
+        Assert.assertTrue(m.contains(null, OWL.someValuesFrom, (RDFNode) null));
+        Assert.assertTrue(m.contains(null, OWL.allValuesFrom, (RDFNode) null));
+
+        try {
+            r2.setComponents(dp1, dp2);
+            Assert.fail("Possible to set more than one properties");
+        } catch (OntJenaException e) {
+            LOGGER.debug("Expected: '{}'", e.getMessage());
+        }
+        Assert.assertEquals(s, m.size());
+        Assert.assertEquals(dp1, r2.setComponents(dp1).getList().first().orElseThrow(AssertionError::new));
+    }
 }

@@ -815,16 +815,12 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
 
     @Override
     public OntCE.NaryDataAllValuesFrom createDataAllValuesFrom(Collection<OntNDP> properties, OntDR other) {
-        //TODO: implement (issue #52)
-        throw new OntJenaException.Unsupported("Creation of " + OntCE.NaryDataAllValuesFrom.class
-                + " is not yet. See issue https://github.com/avicomp/ont-api/issues/52");
+        return OntCEImpl.createNaryRestrictionCE(this, OntCE.NaryDataAllValuesFrom.class, other, properties);
     }
 
     @Override
     public OntCE.NaryDataSomeValuesFrom createDataSomeValuesFrom(Collection<OntNDP> properties, OntDR other) {
-        //TODO: implement (issue #52)
-        throw new OntJenaException.Unsupported("Creation of " + OntCE.NaryDataSomeValuesFrom.class.getName()
-                + " is not yet. See issue https://github.com/avicomp/ont-api/issues/52");
+        return OntCEImpl.createNaryRestrictionCE(this, OntCE.NaryDataSomeValuesFrom.class, other, properties);
     }
 
     @Override

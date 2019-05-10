@@ -456,9 +456,9 @@ public interface OntGraphModel extends Model {
 
     OntCE.HasSelf createHasSelf(OntOPE onProperty);
 
-    OntCE.NaryDataAllValuesFrom createDataAllValuesFrom(Collection<OntNDP> onProperties, OntDR other);
+    OntCE.NaryDataAllValuesFrom createDataAllValuesFrom(Collection<OntNDP> properties, OntDR other);
 
-    OntCE.NaryDataSomeValuesFrom createDataSomeValuesFrom(Collection<OntNDP> onProperties, OntDR other);
+    OntCE.NaryDataSomeValuesFrom createDataSomeValuesFrom(Collection<OntNDP> properties, OntDR other);
 
     OntCE.ComplementOf createComplementOf(OntCE other);
 

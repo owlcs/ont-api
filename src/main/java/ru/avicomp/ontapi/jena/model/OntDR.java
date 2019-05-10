@@ -33,6 +33,19 @@ import java.util.stream.Stream;
 public interface OntDR extends OntObject {
 
     /**
+     * Returns a data range arity.
+     * OWL2 spec says:
+     * <pre>{@code This specification currently does not define data ranges of arity more than one}.</pre>
+     * So n-ary data ranges are not supported and, therefore, the method always returns {@code 1}.
+     *
+     * @return int, positive number
+     * @since 1.4.0
+     */
+    default int arity() {
+        return 1;
+    }
+
+    /**
      * @see <a href='https://www.w3.org/TR/owl2-syntax/#Complement_of_Data_Ranges'>7.3 Complement of Data Ranges</a>
      * @see OntGraphModel#createComplementOfDataRange(OntDR)
      */
@@ -81,6 +94,7 @@ public interface OntDR extends OntObject {
     interface OneOf extends ComponentsDR<Literal>, SetComponents<Literal, OneOf> {
         /**
          * Lists all literals.
+         *
          * @return a {@code Stream} of {@link Literal literal}s
          * @deprecated since 1.4.0: use {@code getList().members()} instead
          */
@@ -117,6 +131,7 @@ public interface OntDR extends OntObject {
 
         /**
          * Lists all facet restrictions.
+         *
          * @return a {@code Stream} of {@link OntFR}s
          * @deprecated since 1.4.0: use {@code getList().members()} instead
          */
