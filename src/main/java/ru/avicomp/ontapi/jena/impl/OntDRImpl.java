@@ -131,7 +131,7 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
         }
 
         @Override
-        public OntDR getDataRange() {
+        public OntDR getValue() {
             return getRequiredObject(OWL.datatypeComplementOf, OntDR.class);
         }
 
@@ -143,6 +143,13 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
         @Override
         public Class<? extends OntObject> getActualClass() {
             return ComplementOf.class;
+        }
+
+        @Override
+        public ComplementOf setValue(OntDR value) {
+            Objects.requireNonNull(value);
+            removeAll(OWL.datatypeComplementOf).addProperty(OWL.datatypeComplementOf, value);
+            return this;
         }
     }
 
@@ -168,8 +175,15 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
         }
 
         @Override
-        public OntDT getDatatype() {
+        public OntDT getValue() {
             return getRequiredObject(OWL.onDatatype, OntDT.class);
+        }
+
+        @Override
+        public RestrictionImpl setValue(OntDT value) {
+            Objects.requireNonNull(value);
+            removeAll(OWL.onDatatype).addProperty(OWL.onDatatype, value);
+            return this;
         }
 
         @Override
@@ -185,6 +199,7 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
                 return Iter.of(s, s.getObject().as(OntFR.class).getRoot());
             });
         }
+
     }
 
     public static class UnionOfImpl extends ComponentsDRImpl<OntDR> implements UnionOf {

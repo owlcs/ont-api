@@ -49,8 +49,17 @@ public interface OntDR extends OntObject {
      * @see <a href='https://www.w3.org/TR/owl2-syntax/#Complement_of_Data_Ranges'>7.3 Complement of Data Ranges</a>
      * @see OntGraphModel#createComplementOfDataRange(OntDR)
      */
-    interface ComplementOf extends OntDR {
-        OntDR getDataRange();
+    interface ComplementOf extends OntDR, SetValue<OntDR, ComplementOf>, HasValue<OntDR> {
+        /**
+         * Gets a data-range.
+         *
+         * @return {@link OntDR}, not {@code null}
+         * @deprecated since 1.4.0: use {@link #getValue()} instead.
+         */
+        @Deprecated
+        default OntDR getDataRange() {
+            return getValue();
+        }
     }
 
     /**
@@ -110,24 +119,30 @@ public interface OntDR extends OntObject {
      * @see OntGraphModel#createFacetRestriction(Class, Literal)
      * @see OntGraphModel#createRestrictionDataRange(OntDT, Collection)
      */
-    interface Restriction extends ComponentsDR<OntFR>, SetComponents<OntFR, Restriction> {
-        /**
-         * Returns the datatype from the right side of
-         * the statement {@code _:x owl:onDatatype DN}, where {@code _:x} this Restriction.
-         *
-         * @return {@link OntDT}
-         */
-        OntDT getDatatype();
-
+    interface Restriction extends ComponentsDR<OntFR>,
+            SetComponents<OntFR, Restriction>, SetValue<OntDT, Restriction>, HasValue<OntDT> {
         /**
          * {@inheritDoc}
          * The result stream for {@link Restriction Restriction Data Range} also includes
          * {@link OntFR facet restrinction} definition triples.
          *
-         * @return Stream of {@link OntStatement}s.
+         * @return {@code Stream} of {@link OntStatement}s.
          */
         @Override
         Stream<OntStatement> spec();
+
+        /**
+         * Adds a facet restriction to the end of the []-list.
+         *
+         * @param type    subclass of {@link OntFR}, not {@code null}
+         * @param literal value, not {@code null}
+         * @return <b>this</b> instance to allow cascading calls
+         * @since 1.4.0
+         */
+        default Restriction addFacet(Class<? extends OntFR> type, Literal literal) {
+            getList().add(getModel().createFacetRestriction(type, literal));
+            return this;
+        }
 
         /**
          * Lists all facet restrictions.
@@ -138,6 +153,18 @@ public interface OntDR extends OntObject {
         @Deprecated
         default Stream<OntFR> facetRestrictions() {
             return getList().members();
+        }
+
+        /**
+         * Returns the datatype from the right side of
+         * the statement {@code _:x owl:onDatatype DN}, where {@code _:x} this Restriction.
+         *
+         * @return {@link OntDT}
+         * @deprecated since 1.4.0: use {@link #getValue()}
+         */
+        @Deprecated
+        default OntDT getDatatype() {
+            return getValue();
         }
     }
 

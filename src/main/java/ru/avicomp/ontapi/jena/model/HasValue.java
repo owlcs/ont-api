@@ -17,9 +17,9 @@ package ru.avicomp.ontapi.jena.model;
 import org.apache.jena.rdf.model.RDFNode;
 
 /**
- * A technical interface to provide {@link RDFNode} value,
+ * A technical generic interface to provide {@link RDFNode} value,
  * which can be either {@link OntCE}, {@link OntDR}, {@link OntIndividual} or {@link org.apache.jena.rdf.model.Literal}.
- * It is used to construct {@link OntCE class expressions}.
+ * This interface is used to construct {@link OntCE class expression}s and {@link OntDR data range}s as a base.
  * <p>
  * Created by @ssz on 08.05.2019.
  *
@@ -31,8 +31,11 @@ import org.apache.jena.rdf.model.RDFNode;
 interface HasValue<V extends RDFNode> {
 
     /**
-     * Gets a RDF-value (a filler in OWL-API terms) encapsulated by this {@link OntCE class expression}.
-     * The result is not {@code null} even if it is a Unqualified Cardinality Restriction
+     * Gets a RDF-value (a filler in OWL-API terms) encapsulated by this expression
+     * (that can be either {@link OntCE class} or {@link OntDR data range} expression).
+     *
+     * The result is not {@code null} even if it is a Unqualified Cardinality Restriction,
+     * that has no explicit filler in RDF
      * (the filler is expected to be either {@link ru.avicomp.ontapi.jena.vocabulary.OWL#Thing owl:Thing}
      * for object restriction or {@link org.apache.jena.vocabulary.RDFS#Literal} for data restriction).
      *

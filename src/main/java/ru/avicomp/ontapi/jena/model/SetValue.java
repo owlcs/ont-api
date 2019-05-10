@@ -17,25 +17,28 @@ package ru.avicomp.ontapi.jena.model;
 import org.apache.jena.rdf.model.RDFNode;
 
 /**
- * A technical interface to provide a possibility to assign {@link RDFNode} value (filler) into class expression.
+ * A technical generic interface to provide a possibility to assign {@link RDFNode} value (so called filler)
+ * into a class expression.
  * A value can be either {@link OntCE}, {@link OntDR}, {@link OntIndividual}
- * or {@link org.apache.jena.rdf.model.Literal}, depending on a concrete {@link OntCE} type.
- * It is used to construct {@link OntCE class expressions}.
+ * or {@link org.apache.jena.rdf.model.Literal}, depending on a concrete {@link OntCE} or {@link OntDR} type.
+ * This interface is used to construct {@link OntCE class expression}s and {@link OntDR data range}s as a base.
  * <p>
  * Created by @ssz on 08.05.2019.
  *
  * @param <V> - any subtype of {@link RDFNode} ({@link OntCE}, {@link OntDR}, {@link OntIndividual}
  *            or {@link org.apache.jena.rdf.model.Literal}).
- * @param <R> - return type, a subtype of {@link OntCE}
+ * @param <R> - return type, a subtype of {@link OntCE} or {@link OntDR}
  * @see HasValue
  * @since 1.4.0
  */
-interface SetValue<V extends RDFNode, R extends OntCE> {
+interface SetValue<V extends RDFNode, R extends OntObject> {
     /**
-     * Sets the specified value (a filler in OWL-API terms) into this {@link OntCE class expression}.
+     * Sets the specified value (a filler in OWL-API terms)
+     * into this {@link OntCE class} or {@link OntDR data range} expression.
+     *
      * A {@code value} can be {@code null} if this is a Cardinality Restriction
      * (the null-filler is considered as {@link ru.avicomp.ontapi.jena.vocabulary.OWL#Thing owl:Thing}
-     * for an object restriction or as {@link org.apache.jena.vocabulary.RDFS#Literal} for a data restriction).
+     * for an object restriction and as {@link org.apache.jena.vocabulary.RDFS#Literal} for a data restriction).
      *
      * @param value {@link V}, possible {@code null} in case of Cardinality Restriction
      * @return <b>this</b> instance to allow cascading calls

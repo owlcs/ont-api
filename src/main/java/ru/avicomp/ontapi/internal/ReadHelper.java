@@ -244,7 +244,7 @@ public class ReadHelper {
         DataFactory df = of.getOWLDataFactory();
         if (dr instanceof OntDR.Restriction) {
             OntDR.Restriction _dr = (OntDR.Restriction) dr;
-            ONTObject<OWLDatatype> d = of.get(_dr.getDatatype());
+            ONTObject<OWLDatatype> d = of.get(_dr.getValue());
             Set<ONTObject<OWLFacetRestriction>> restrictions = listMembers(_dr.getList())
                     .mapWith(f -> getFacetRestriction(f, of)).toSet();
             OWLDataRange res = df.getOWLDatatypeRestriction(d.getObject(),
@@ -253,7 +253,7 @@ public class ReadHelper {
         }
         if (dr instanceof OntDR.ComplementOf) {
             OntDR.ComplementOf _dr = (OntDR.ComplementOf) dr;
-            ONTObject<? extends OWLDataRange> d = calcDataRange(_dr.getDataRange(), of, seen);
+            ONTObject<? extends OWLDataRange> d = calcDataRange(_dr.getValue(), of, seen);
             return ONTObject.create(df.getOWLDataComplementOf(d.getObject()), _dr).append(d);
         }
         if (dr instanceof OntDR.UnionOf || dr instanceof OntDR.IntersectionOf) {

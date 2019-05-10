@@ -90,7 +90,7 @@ public class OntExpressionTest {
     }
 
     @Test
-    public void testDataRanges() {
+    public void testListDataRanges() {
         OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntFR f1 = m.createFacetRestriction(OntFR.MaxExclusive.class, m.createTypedLiteral(12));
         OntFR f2 = m.createFacetRestriction(OntFR.Pattern.class, m.createTypedLiteral("\\d+"));
@@ -109,7 +109,7 @@ public class OntExpressionTest {
         Assert.assertEquals(d3, m.ontObjects(OntDR.class).filter(s -> s.canAs(OntDR.Restriction.class))
                 .findFirst().orElseThrow(AssertionError::new));
 
-        Assert.assertEquals(XSD.xstring, d3.as(OntDR.Restriction.class).getDatatype());
+        Assert.assertEquals(XSD.xstring, d3.as(OntDR.Restriction.class).getValue());
         Assert.assertEquals(12, d3.spec().peek(s -> LOGGER.debug("{}", Models.toString(s))).count());
     }
 
@@ -517,5 +517,40 @@ public class OntExpressionTest {
 
         Assert.assertSame(c0, c0.clearDisjointUnions());
         Assert.assertEquals(s, m.size());
+    }
+
+    @Test
+    public void testDataRangeValues() {
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntDT d1 = m.getDatatype(XSD.xstring);
+        OntDT d2 = m.createDatatype("x");
+
+        OntDR.ComplementOf dr1 = m.createComplementOfDataRange(d2);
+        Assert.assertEquals(d2, dr1.getValue());
+        Assert.assertSame(dr1, dr1.setValue(d1));
+        Assert.assertEquals(d1, dr1.getValue());
+
+        OntDR.Restriction dr2 = m.createRestrictionDataRange(d1, Collections.emptySet());
+        Assert.assertEquals(d1, dr2.getValue());
+        Assert.assertSame(dr2, dr2.setValue(d2));
+        Assert.assertEquals(d2, dr2.getValue());
+    }
+
+    @Test
+    public void testFacetRestriction() {
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntDT d1 = m.getDatatype(XSD.xstring);
+        OntDT d2 = m.getDatatype(XSD.positiveInteger);
+
+        OntDR.Restriction dr = m.createRestrictionDataRange(d1, Collections.emptySet());
+        Assert.assertTrue(dr.getList().isEmpty());
+        dr.addFacet(OntFR.Pattern.class, d1.createLiteral(".*")).addFacet(OntFR.Length.class, d2.createLiteral("21"));
+
+        Assert.assertEquals(2, dr.getList().size());
+        Assert.assertEquals(9, m.size());
+        List<OntDT> actual = dr.getList().members()
+                .map(OntFR::getValue)
+                .map(m::getDatatype).collect(Collectors.toList());
+        Assert.assertEquals(Arrays.asList(d1, d2), actual);
     }
 }
