@@ -18,6 +18,7 @@ import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.RDFList;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.ResourceFactory;
+import org.apache.jena.vocabulary.RDFS;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -26,6 +27,7 @@ import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.Models;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.XSD;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
@@ -279,6 +281,24 @@ public class OntExpressionTest {
     }
 
     @Test
+    public void testExpressionSetWrongComponents() {
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntDT dt1 = m.createDatatype("DT1");
+        OntDT dt2 = m.createDatatype("DT2");
+        OntDT dt3 = m.createDatatype("DT3");
+        OntDT dt4 = m.createDatatype("DT4");
+
+        OntDR.UnionOf u = m.createUnionOfDataRange(Arrays.asList(dt1, dt2, dt3));
+        try {
+            u.setComponents(u, dt4);
+            Assert.fail("Possible to set itself inside a []-list");
+        } catch (OntJenaException e) {
+            LOGGER.debug("Expected: {}", e.getMessage());
+        }
+        Assert.assertEquals(3, u.getList().size());
+    }
+
+    @Test
     public void testClassExpressionComponents() {
         OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntClass c1 = m.createOntClass("C1");
@@ -404,6 +424,33 @@ public class OntExpressionTest {
         long expected = 6 + 3;
         long actual = m.ontObjects(OntCE.CardinalityRestrictionCE.class).mapToLong(x -> x.getCardinality()).sum();
         Assert.assertEquals(expected, actual);
+    }
+
+    @Test
+    public void testChangeCardinalityQualification() {
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntNDP dp1 = m.createDataProperty("DP1");
+        OntNOP op2 = m.createObjectProperty("OP2");
+        OntClass c1 = m.createOntClass("C1");
+        OntDT d1 = m.getDatatype(XSD.xstring);
+        Literal v = m.getDatatype(XSD.nonNegativeInteger).createLiteral("2");
+
+        OntCE.DataCardinality r1 = m.createDataCardinality(dp1, v.getInt(), d1);
+        Assert.assertEquals(d1, r1.getValue());
+        Assert.assertFalse(m.containsResource(OWL.cardinality));
+        Assert.assertTrue(m.contains(null, OWL.qualifiedCardinality, v));
+        Assert.assertSame(r1, r1.setValue(null));
+        Assert.assertEquals(RDFS.Literal, r1.getValue());
+        Assert.assertFalse(m.containsResource(OWL.qualifiedCardinality));
+        Assert.assertTrue(m.contains(null, OWL.cardinality, v));
+
+        OntCE.ObjectMinCardinality r2 = m.createObjectMinCardinality(op2, v.getInt(), null);
+        Assert.assertEquals(OWL.Thing, r2.getValue());
+        Assert.assertFalse(m.containsResource(OWL.minQualifiedCardinality));
+        Assert.assertTrue(m.contains(null, OWL.minCardinality, v));
+        Assert.assertEquals(c1, r2.setValue(c1).getValue());
+        Assert.assertFalse(m.containsResource(OWL.minCardinality));
+        Assert.assertTrue(m.contains(null, OWL.minQualifiedCardinality, v));
     }
 
 }

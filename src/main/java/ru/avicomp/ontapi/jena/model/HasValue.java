@@ -32,8 +32,12 @@ interface HasValue<V extends RDFNode> {
 
     /**
      * Gets a RDF-value (a filler in OWL-API terms) encapsulated by this {@link OntCE class expression}.
+     * The result is not {@code null} even if it is a Unqualified Cardinality Restriction
+     * (the filler is expected to be either {@link ru.avicomp.ontapi.jena.vocabulary.OWL#Thing owl:Thing}
+     * for object restriction or {@link org.apache.jena.vocabulary.RDFS#Literal} for data restriction).
      *
-     * @return {@link V}
+     * @return {@link V}, not {@code null}
+     * @see SetValue#setValue(RDFNode)
      */
     V getValue();
 }

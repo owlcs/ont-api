@@ -33,9 +33,13 @@ import org.apache.jena.rdf.model.RDFNode;
 interface SetValue<V extends RDFNode, R extends OntCE> {
     /**
      * Sets the specified value (a filler in OWL-API terms) into this {@link OntCE class expression}.
+     * A {@code value} can be {@code null} if this is a Cardinality Restriction
+     * (the null-filler is considered as {@link ru.avicomp.ontapi.jena.vocabulary.OWL#Thing owl:Thing}
+     * for an object restriction or as {@link org.apache.jena.vocabulary.RDFS#Literal} for a data restriction).
      *
-     * @param value {@link V}, not {@code null}
+     * @param value {@link V}, possible {@code null} in case of Cardinality Restriction
      * @return <b>this</b> instance to allow cascading calls
+     * @see HasValue#getValue()
      */
     R setValue(V value);
 }

@@ -823,13 +823,8 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         @SuppressWarnings("unchecked")
         public R setOnProperty(P property) {
             Objects.requireNonNull(property, "Null " + viewAsString(propertyView));
-            clearProperty(OWL.onProperty);
-            addProperty(OWL.onProperty, property);
+            removeAll(OWL.onProperty).addProperty(OWL.onProperty, property);
             return (R) this;
-        }
-
-        protected void clearProperty(Property property) {
-            removeAll(property);
         }
 
         @Override
@@ -886,8 +881,8 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
 
         @SuppressWarnings("unchecked")
         public R setValue(O c) {
-            clearProperty(predicate);
-            addProperty(predicate, c);
+            Objects.requireNonNull(c, "Null filler");
+            removeAll(predicate).addProperty(predicate, c);
             return (R) this;
         }
     }
@@ -933,20 +928,45 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
 
         @Override
         public O getValue() { // null for non-qualified restrictions:
-            return object(predicate, objectView).orElse(null);
+            return object(predicate, objectView).orElseGet(this::getUnqualifiedValue);
+        }
+
+        @SuppressWarnings("unchecked")
+        private O getUnqualifiedValue() {
+            OntGraphModel m = getModel();
+            return (O) (OntCE.class.isAssignableFrom(objectView) ? m.getOWLThing() : m.getRDFSLiteral());
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public R setValue(O value) {
+            Literal c = getCardinalityLiteral();
+            removeAll(predicate);
+            if (!isQualified(value)) { // null, owl:Thing, rdfs:Label
+                removeAll(getCardinalityPredicate(true))
+                        .addProperty(getCardinalityPredicate(false), c);
+            } else {
+                removeAll(getCardinalityPredicate(false))
+                        .addProperty(getCardinalityPredicate(true), c)
+                        .addProperty(predicate, value);
+            }
+            return (R) this;
         }
 
         @Override
         public int getCardinality() {
-            return getRequiredObject(getCardinalityPredicate(), Literal.class).getInt();
+            return getCardinalityLiteral().getInt();
+        }
+
+        private Literal getCardinalityLiteral() {
+            return getRequiredObject(getCardinalityPredicate(), Literal.class);
         }
 
         @SuppressWarnings("unchecked")
         public R setCardinality(int cardinality) {
             Literal value = createNonNegativeIntegerLiteral(cardinality);
             Property property = getCardinalityPredicate();
-            clearProperty(property);
-            addLiteral(property, value);
+            removeAll(property).addLiteral(property, value);
             return (R) this;
         }
 
