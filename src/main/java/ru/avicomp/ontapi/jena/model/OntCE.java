@@ -613,11 +613,9 @@ public interface OntCE extends OntObject {
             extends RestrictionCE, HasONProperties<P>, HasValue<O> {
     }
 
-    // todo: add a factory
     interface PropertyRestrictionCE<P extends OntDOP> extends RestrictionCE, HasONProperty<P> {
     }
 
-    // todo: the meaning has been changed -> fix
     interface RestrictionCE extends OntCE {
     }
 }

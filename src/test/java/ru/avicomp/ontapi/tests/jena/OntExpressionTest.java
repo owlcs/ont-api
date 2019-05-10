@@ -374,12 +374,15 @@ public class OntExpressionTest {
         Assert.assertSame(r2, r2.setOnProperty(op2));
         Assert.assertEquals(op2, r2.getOnProperty());
 
-        OntCE.HasSelf r3 = m.createHasSelf(op1);
-        Assert.assertEquals(op1, r3.getOnProperty());
-        Assert.assertSame(r3, r3.setOnProperty(op2));
+        OntCE.HasSelf r3 = m.createHasSelf(op2);
         Assert.assertEquals(op2, r3.getOnProperty());
+        Assert.assertSame(r3, r3.setOnProperty(op1));
+        Assert.assertEquals(op1, r3.getOnProperty());
 
-        // todo: add test for OntCE.PropertyRestrictionCE
+        Set<OntDOP> actual = new HashSet<>(Arrays.asList(dp2, op2, op1));
+        Set<OntDOP> expected = m.ontObjects(OntCE.PropertyRestrictionCE.class)
+                .map(x -> x.getOnProperty()).collect(Collectors.toSet());
+        Assert.assertEquals(expected, actual);
     }
 
     @Test

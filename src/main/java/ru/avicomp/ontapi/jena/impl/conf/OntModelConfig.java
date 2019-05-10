@@ -112,6 +112,7 @@ public class OntModelConfig {
             .add(OntCE.ComponentsCE.class, OntCEImpl.abstractComponentsCEFactory)
             .add(OntCE.CardinalityRestrictionCE.class, OntCEImpl.abstractCardinalityRestrictionCEFactory)
             .add(OntCE.ComponentRestrictionCE.class, OntCEImpl.abstractComponentRestrictionCEFactory)
+            .add(OntCE.PropertyRestrictionCE.class, OntCEImpl.abstractPropertyRestrictionCEFactory)
             .add(OntCE.RestrictionCE.class, OntCEImpl.abstractRestrictionCEFactory)
             .add(OntCE.class, OntCEImpl.abstractCEFactory)
 
@@ -195,7 +196,7 @@ public class OntModelConfig {
 
     /**
      * Returns a fresh copy of {@link PersonalityBuilder} with {@code 93} resource factories inside
-     * ({@code 10} standard + {@code 86} ontological).
+     * ({@code 10} standard + {@code 87} ontological).
      * The returned instance contains everything needed, and can be modified to build a new {@link OntPersonality}.
      *
      * @return {@link PersonalityBuilder}

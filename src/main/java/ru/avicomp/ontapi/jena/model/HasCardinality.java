@@ -35,10 +35,11 @@ interface HasCardinality {
      * Determines if this restriction is qualified.
      * Qualified cardinality restrictions are defined to be cardinality restrictions
      * that have fillers which aren't TOP (owl:Thing or rdfs:Literal).
-     * An object restriction is unqualified if it has a filler that is owl:Thing.
-     * A data restriction is unqualified if it has a filler which is the top data type (rdfs:Literal).
+     * An object restriction is unqualified if it has a filler that is {@link OntGraphModel#getOWLThing() owl:Thing}.
+     * A data restriction is unqualified
+     * if it has a filler which is the top data type ({@link OntGraphModel#getRDFSLiteral() rdfs:Literal}).
      *
-     * @return {@code true} if this restriction is qualified, or {@code false} if this restriction is unqualified.
+     * @return {@code true} if this restriction is qualified, or {@code false} if this restriction is unqualified
      */
     boolean isQualified();
 }

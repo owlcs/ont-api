@@ -118,7 +118,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
             , ObjectCardinality.class
             , DataCardinality.class);
 
-    // Cardinality + existential/universal Restrictions:
+    // Cardinality + Existential/Universal Restrictions + Value Restrictions:
     public static ObjectFactory abstractComponentRestrictionCEFactory = Factories.createFrom(RESTRICTION_FINDER
             , ObjectMaxCardinality.class
             , DataMaxCardinality.class
@@ -133,7 +133,25 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
             , ObjectHasValue.class
             , DataHasValue.class);
 
-    // Cardinality + existential/universal Restrictions + n-ary existential/universal + local reflexivity (hasSelf):
+    // Cardinality + Existential/Universal Restrictions + Local reflexivity (hasSelf) + Value Restrictions
+    // (all them have owl:onProperty):
+    public static ObjectFactory abstractPropertyRestrictionCEFactory = Factories.createFrom(RESTRICTION_FINDER
+            , ObjectMaxCardinality.class
+            , DataMaxCardinality.class
+            , ObjectMinCardinality.class
+            , DataMinCardinality.class
+            , ObjectCardinality.class
+            , DataCardinality.class
+            , ObjectSomeValuesFrom.class
+            , DataSomeValuesFrom.class
+            , ObjectAllValuesFrom.class
+            , DataAllValuesFrom.class
+            , ObjectHasValue.class
+            , DataHasValue.class
+            , HasSelf.class);
+
+    // Cardinality + Existential/Universal Restrictions + N-ary existential/universal +
+    // Local reflexivity (hasSelf) + Value Restrictions:
     public static ObjectFactory abstractRestrictionCEFactory = Factories.createFrom(RESTRICTION_FINDER
             , ObjectMaxCardinality.class
             , DataMaxCardinality.class
