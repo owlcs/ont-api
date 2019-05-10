@@ -19,6 +19,7 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFList;
 import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
@@ -95,7 +96,7 @@ public class OntClassImpl extends OntObjectImpl implements OntClass {
     }
 
     @Override
-    public OntClassImpl removeHasKey(RDFNode list) throws OntJenaException.IllegalArgument {
+    public OntClassImpl removeHasKey(Resource list) throws OntJenaException.IllegalArgument {
         OntCEImpl.removeHasKey(getModel(), this, list);
         return this;
     }
@@ -112,8 +113,9 @@ public class OntClassImpl extends OntObjectImpl implements OntClass {
     }
 
     @Override
-    public void removeDisjointUnion(RDFNode rdfList) throws OntJenaException.IllegalArgument {
+    public OntClassImpl removeDisjointUnion(Resource rdfList) throws OntJenaException.IllegalArgument {
         getModel().deleteOntList(this, OWL.disjointUnionOf, findDisjointUnion(rdfList).orElse(null));
+        return this;
     }
 
     /**

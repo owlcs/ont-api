@@ -375,7 +375,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
     }
 
     @Override
-    public OntCEImpl removeHasKey(RDFNode list) throws OntJenaException.IllegalArgument {
+    public OntCEImpl removeHasKey(Resource list) throws OntJenaException.IllegalArgument {
         removeHasKey(getModel(), this, list);
         return this;
     }

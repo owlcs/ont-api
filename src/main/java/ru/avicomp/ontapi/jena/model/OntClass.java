@@ -16,6 +16,7 @@ package ru.avicomp.ontapi.jena.model;
 
 import org.apache.jena.rdf.model.RDFList;
 import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.Resource;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
@@ -43,6 +44,8 @@ public interface OntClass extends OntEntity, OntCE {
      * @param classes {@link Collection} (preferably {@link Set}) of {@link OntCE class expression}s
      * @return {@link OntList} of {@link OntCE}s
      * @since 1.3.0
+     * @see #addDisjointUnionOfStatement(OntCE...)
+     * @see #removeDisjointUnion(Resource)
      */
     OntList<OntCE> createDisjointUnion(Collection<OntCE> classes);
 
@@ -54,26 +57,6 @@ public interface OntClass extends OntEntity, OntCE {
      * @since 1.3.0
      */
     Stream<OntList<OntCE>> listDisjointUnions();
-
-    /**
-     * Deletes the given {@code DisjointUnion} list including its annotations
-     * with predicate {@link OWL#disjointUnionOf owl:disjointUnionOf} for this resource from its associated model.
-     *
-     * @param list {@link RDFNode} can be {@link OntList} or {@link RDFList}
-     * @throws OntJenaException if the list is not found
-     * @since 1.3.0
-     */
-    void removeDisjointUnion(RDFNode list);
-
-    /**
-     * Deletes all {@code DisjointUnion} []-lists including their annotations
-     * with predicate {@link OWL#disjointUnionOf owl:disjointUnionOf} for this resource from its associated model.
-     *
-     * @since 1.3.0
-     */
-    default void clearDisjointUnions() {
-        listDisjointUnions().collect(Collectors.toSet()).forEach(this::removeDisjointUnion);
-    }
 
     /**
      * Finds a {@code DisjointUnion} logical construction
@@ -91,24 +74,173 @@ public interface OntClass extends OntEntity, OntCE {
 
     /**
      * Creates a {@code DisjointUnion} {@link OntList ontology list}
-     * and returns statement {@code CN owl:disjointUnionOf ( C1 ... CN )} to allow the addition of annotations.
+     * and returns the statement {@code CN owl:disjointUnionOf ( C1 ... Cn )} to allow the addition of annotations.
      * About RDF Graph annotation specification see, for example,
      * <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Translation_of_Annotations'>2.3.1 Axioms that Generate a Main Triple</a>.
      *
      * @param classes Array of {@link OntCE class expressions} without {@code null}s,
      *                duplicates will be discarded and order will be saved
-     * @return {@link OntStatement}
+     * @return {@link OntStatement} to allow the subsequent annotations addition
+     * @see #createDisjointUnion(Collection)
+     *
+     * @see #createDisjointUnion(Collection)
+     * @see #addDisjointUnion(OntCE...)
+     * @see #addDisjointUnionOfStatement(OntCE...)
+     * @see #removeDisjointUnion(Resource)
+     * @since 1.4.0
+     */
+    default OntStatement addDisjointUnionOfStatement(OntCE... classes) {
+        return addDisjointUnionOfStatement(Arrays.stream(classes).collect(Collectors.toCollection(LinkedHashSet::new)));
+    }
+
+    /**
+     * Creates a disjoint-union section returning its root statement to allow adding annotations.
+     * The triple pattern: {@code CN owl:disjointUnionOf ( C1 ... Cn )}.
+     *
+     * @param classes a collection of {@link OntCE class expression}s without {@code null}s
+     * @return {@link OntStatement} to allow the subsequent annotations addition
+     * @see #createDisjointUnion(Collection)
+     * @see <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Translation_of_Annotations'>2.3.1 Axioms that Generate a Main Triple</a>
+     * @see #createDisjointUnion(Collection)
+     * @see #addDisjointUnion(Collection)
+     * @see #addDisjointUnionOfStatement(Collection)
+     * @see #removeDisjointUnion(Resource)
+     * @since 1.4.0
+     */
+    default OntStatement addDisjointUnionOfStatement(Collection<OntCE> classes) {
+        return createDisjointUnion(classes).getRoot();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    default OntClass addSuperClass(OntCE other) {
+        addSubClassOfStatement(other);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    default OntClass addDisjointClass(OntCE other) {
+        addDisjointWithStatement(other);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    default OntClass addEquivalentClass(OntCE other) {
+        addEquivalentClassStatement(other);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    default OntClass addHasKey(Collection<OntOPE> objectProperties, Collection<OntNDP> dataProperties) {
+        addHasKeyStatement(objectProperties, dataProperties);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    default OntClass addHasKey(OntDOP... properties) {
+        addHasKeyStatement(properties);
+        return this;
+    }
+
+    /**
+     * @param classes a collection of {@link OntCE class expression}s without {@code null}s
+     * @return <b>this</b> instance to allow cascading calls
+     * @since 1.4.0
+     */
+    default OntClass addDisjointUnion(Collection<OntCE> classes) {
+        addDisjointUnionOfStatement(classes);
+        return this;
+    }
+
+    /**
+     * @param classes Array of {@link OntCE class expressions} without {@code null}s,
+     *                duplicates will be discarded and order will be saved
+     * @return <b>this</b> instance to allow cascading calls
+     * @since 1.4.0
+     */
+    default OntClass addDisjointUnion(OntCE... classes) {
+        addDisjointUnionOfStatement(classes);
+        return this;
+    }
+
+    /**
+     * Deletes the given {@code DisjointUnion} list including its annotations.
+     *
+     * @param list {@link Resource} can be {@link OntList} or {@link RDFList}
+     * @return <b>this</b> instance to allow cascading calls
+     * @throws OntJenaException if the list is not found
+     * @see #addDisjointUnion(Collection)
+     * @see #createDisjointUnion(Collection)
+     * @see #addDisjointUnionOfStatement(OntCE...)
      * @see #createDisjointUnion(Collection)
      * @since 1.3.0
      */
-    default OntStatement addDisjointUnionOf(OntCE... classes) {
-        return createDisjointUnion(Arrays.stream(classes).collect(Collectors.toCollection(LinkedHashSet::new))).getRoot();
+    OntClass removeDisjointUnion(Resource list);
+
+    /**
+     * {@inheritDoc}
+     */
+    default OntClass removeSuperClass(Resource other) {
+        OntCE.super.removeSuperClass(other);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    default OntClass removeDisjointClass(Resource other) {
+        OntCE.super.removeDisjointClass(other);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    default OntClass removeEquivalentClass(Resource other) {
+        OntCE.super.removeEquivalentClass(other);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    default OntClass clearHasKeys() {
+        OntCE.super.clearHasKeys();
+        return this;
+    }
+
+    /**
+     * Deletes all {@code DisjointUnion} []-lists including their annotations,
+     * i.e. all those statements with the predicate {@link OWL#disjointUnionOf owl:disjointUnionOf}
+     * for which this resource is a subject.
+     *
+     * @return <b>this</b> instance to allow cascading calls
+     * @see #removeDisjointUnion(Resource)
+     * @since 1.3.0
+     */
+    default OntClass clearDisjointUnions() {
+        listDisjointUnions().collect(Collectors.toSet()).forEach(this::removeDisjointUnion);
+        return this;
     }
 
     /**
      * Returns all class expressions from the right part of the statement with this class as a subject
      * and {@link OWL#disjointUnionOf owl:disjointUnionOf} as a predicate
-     * (the pattern: {@code CN owl:disjointUnionOf ( C1 ... Cn )}).
+     * (the triple pattern: {@code CN owl:disjointUnionOf ( C1 ... Cn )}).
      * If there are several []-lists in the model that satisfy these conditions,
      * all their content will be merged into the one distinct stream.
      *
@@ -121,15 +253,30 @@ public interface OntClass extends OntEntity, OntCE {
     }
 
     /**
+     * Creates a {@code DisjointUnion} {@link OntList ontology list}
+     * and returns statement {@code CN owl:disjointUnionOf ( C1 ... Cn )} to allow the addition of annotations.
+     *
+     * @param classes Array of {@link OntCE class expression}s
+     * @return {@link OntStatement}
+     * @since 1.3.0
+     * @deprecated since 1.4.0: use {@link #addDisjointUnionOfStatement(OntCE...)}
+     */
+    @Deprecated
+    default OntStatement addDisjointUnionOf(OntCE... classes) {
+        return addDisjointUnionOfStatement(classes);
+    }
+
+    /**
      * Creates a disjoint-union section returning its root statement to allow adding annotations.
-     * The pattern: {@code CN owl:disjointUnionOf ( C1 ... CN )}.
+     * The pattern: {@code CN owl:disjointUnionOf ( C1 ... Cn )}.
      *
      * @param classes the collection of {@link OntCE class expression}s
      * @return {@link OntStatement}
-     * @see #createDisjointUnion(Collection)
+     * @deprecated since 1.4.0: use {@link #addDisjointUnionOfStatement(Collection)}
      */
+    @Deprecated
     default OntStatement addDisjointUnionOf(Collection<OntCE> classes) {
-        return createDisjointUnion(classes).getRoot();
+        return addDisjointUnionOfStatement(classes);
     }
 
 }

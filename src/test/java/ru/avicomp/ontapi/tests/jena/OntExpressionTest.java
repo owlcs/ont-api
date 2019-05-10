@@ -28,6 +28,7 @@ import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
+import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.jena.vocabulary.XSD;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
@@ -490,5 +491,31 @@ public class OntExpressionTest {
         }
         Assert.assertEquals(s, m.size());
         Assert.assertEquals(dp1, r2.setComponents(dp1).getList().first().orElseThrow(AssertionError::new));
+    }
+
+    @Test
+    public void testDisjointUnion() {
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntClass c1 = m.createOntClass("C1");
+        OntClass c2 = m.createOntClass("C2");
+        OntClass c3 = m.createOntClass("C3");
+        OntCE c4 = m.createComplementOf(c3);
+        long s = m.size();
+        OntClass c0 = m.getOWLThing();
+        Assert.assertNotNull(c0.addDisjointUnionOfStatement());
+        Assert.assertSame(c0, c0.addDisjointUnion());
+        Assert.assertEquals(1, c0.listDisjointUnions().count());
+
+        Assert.assertEquals(0, c0.fromDisjointUnionOf().count());
+        Assert.assertSame(c0, c0.addDisjointUnion(c1, c3).addDisjointUnion(Arrays.asList(c1, c2, c4)));
+        Assert.assertEquals(3, c0.listDisjointUnions().count());
+        Assert.assertEquals(4, c0.fromDisjointUnionOf().count());
+
+        Assert.assertSame(c0, c0.removeDisjointUnion(RDF.nil));
+        Assert.assertEquals(2, c0.listDisjointUnions().count());
+        Assert.assertEquals(4, c0.fromDisjointUnionOf().count());
+
+        Assert.assertSame(c0, c0.clearDisjointUnions());
+        Assert.assertEquals(s, m.size());
     }
 }

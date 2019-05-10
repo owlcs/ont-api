@@ -81,14 +81,14 @@ public interface OntOPE extends OntDOP {
     /**
      * Deletes the given property chain list including all its annotations.
      *
-     * @param list {@link RDFNode} can be {@link OntList} or {@link RDFList}
+     * @param list {@link Resource} can be {@link OntList} or {@link RDFList}
      * @return <b>this</b> instance to allow cascading calls
      * @throws OntJenaException if in the whole graph there is no property chain with the specified []-list
      * @see #clearPropertyChains()
      * @see #createPropertyChain(Collection)
      * @since 1.3.0
      */
-    OntOPE removePropertyChain(RDFNode list) throws OntJenaException;
+    OntOPE removePropertyChain(Resource list) throws OntJenaException;
 
     /**
      * {@inheritDoc}
@@ -214,7 +214,7 @@ public interface OntOPE extends OntDOP {
      * Deletes all property chain lists including their annotations.
      *
      * @return <b>this</b> instance to allow cascading calls
-     * @see #removePropertyChain(RDFNode)
+     * @see #removePropertyChain(Resource)
      * @see #createPropertyChain(Collection)
      * @since 1.3.0
      */

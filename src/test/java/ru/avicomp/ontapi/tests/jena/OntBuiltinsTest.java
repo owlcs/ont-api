@@ -88,9 +88,7 @@ public class OntBuiltinsTest {
         OntPersonality personality = PersonalityBuilder.from(OntModelConfig.ONT_PERSONALITY_LAX).setBuiltins(test).build();
         OntGraphModel m1 = OntModelFactory.createModel(Factory.createGraphMem(), personality)
                 .setNsPrefixes(OntModelFactory.STANDARD).setID("m1").getModel();
-        OntClass c = m1.createOntClass("b");
-        c.addSuperClass(m1.getOntClass("B"));
-        c.addDisjointUnionOf(m1.getOntClass("D"));
+        m1.createOntClass("b").addSuperClass(m1.getOntClass("B")).addDisjointUnion(m1.getOntClass("D"));
         ReadWriteUtils.print(m1);
         OntGraphModel m2 = OntModelFactory.createModel(Factory.createGraphMem(), personality)
                 .setNsPrefixes(OntModelFactory.STANDARD).setID("m2").getModel().addImport(m1);

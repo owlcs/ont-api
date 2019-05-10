@@ -158,7 +158,7 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
     }
 
     @Override
-    public OntOPEImpl removePropertyChain(RDFNode rdfList) throws OntJenaException.IllegalArgument {
+    public OntOPEImpl removePropertyChain(Resource rdfList) throws OntJenaException.IllegalArgument {
         getModel().deleteOntList(this, OWL.propertyChainAxiom, findPropertyChain(rdfList).orElse(null));
         return this;
     }

@@ -139,7 +139,7 @@ public interface OntCE extends OntObject {
      * @return {@link OntStatement} with a possibility to annotate
      * @see #addHasKeyStatement(Collection, Collection)
      * @see #addHasKey(OntDOP...)
-     * @see #removeHasKey(RDFNode)
+     * @see #removeHasKey(Resource)
      * @see #clearHasKeys()
      * @since 1.4.0
      */
@@ -155,15 +155,14 @@ public interface OntCE extends OntObject {
     Stream<OntList<OntDOP>> listHasKeys();
 
     /**
-     * Deletes the given {@code HasKey} list including its annotations
-     * with predicate {@link OWL#hasKey owl:hasKey} for this resource from its associated model.
+     * Deletes the given {@code HasKey} list including its annotations.
      *
-     * @param list {@link RDFNode} can be {@link OntList} or {@link RDFList}
+     * @param list {@link Resource} can be {@link OntList} or {@link RDFList}
      * @return <b>this</b> instance to allow cascading calls
      * @throws OntJenaException if the list is not found
      * @since 1.3.0
      */
-    OntCE removeHasKey(RDFNode list);
+    OntCE removeHasKey(Resource list);
 
     /**
      * Lists all individuals,
@@ -275,9 +274,9 @@ public interface OntCE extends OntObject {
     /**
      * Creates an {@code owl:hasKey} statement returning root statement to allow the subsequent annotations adding.
      *
-     * @param objectProperties the collection of {@link OntOPE}s
-     * @param dataProperties   the collection of {@link OntNDP}s
-     * @return {@link OntStatement}
+     * @param objectProperties the collection of {@link OntOPE}s, not {@code null} and cannot contain {@code null}s
+     * @param dataProperties   the collection of {@link OntNDP}s, not {@code null} and cannot contain {@code null}s
+     * @return {@link OntStatement} to allow the subsequent annotations addition
      * @see #addHasKeyStatement(OntDOP...)
      * @see #addHasKey(OntDOP...)
      * @see <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Translation_of_Annotations'>2.3.1 Axioms that Generate a Main Triple</a>
@@ -351,7 +350,7 @@ public interface OntCE extends OntObject {
      * @return <b>this</b> instance to allow cascading calls
      * @see #addHasKeyStatement(OntDOP...)
      * @see #addHasKey(Collection, Collection)
-     * @see #removeHasKey(RDFNode)
+     * @see #removeHasKey(Resource)
      * @see #clearHasKeys()
      * @since 1.3.0
      */
@@ -413,8 +412,8 @@ public interface OntCE extends OntObject {
     }
 
     /**
-     * Deletes all {@code HasKey} []-list including its annotations
-     * with predicate {@link OWL#hasKey owl:hasKey} for this resource from its associated model.
+     * Deletes all {@code HasKey} []-list including its annotations,
+     * i.e. all those statements with the predicate {@link OWL#hasKey owl:hasKey} for which this resource is a subject.
      *
      * @return <b>this</b> instance to allow cascading calls
      * @throws OntJenaException if the list is not found

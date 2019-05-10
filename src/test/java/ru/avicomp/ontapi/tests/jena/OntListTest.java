@@ -440,9 +440,10 @@ public class OntListTest {
         OntCE ce1, ce3, ce4;
         OntCE ce2 = m.createComplementOf(ce1 = m.createOntClass("c1"));
         OntCE ce5 = m.createUnionOf(Arrays.asList(ce3 = m.createOntClass("c3"), ce4 = m.createOntClass("c4")));
-        Assert.assertEquals(2, clazz.addDisjointUnionOf(ce2, ce3).getObject().as(RDFList.class).size());
-        Assert.assertEquals(2, clazz.addDisjointUnionOf(ce3, ce3, ce4).getObject().as(RDFList.class).size());
-        Assert.assertEquals(3, clazz.addDisjointUnionOf(ce4, ce4, ce5, ce1, ce1).getObject().as(RDFList.class).size());
+        Assert.assertEquals(2, clazz.addDisjointUnionOfStatement(ce2, ce3).getObject(RDFList.class).size());
+        Assert.assertEquals(2, clazz.addDisjointUnionOfStatement(ce3, ce3, ce4).getObject(RDFList.class).size());
+        Assert.assertEquals(3, clazz.addDisjointUnionOfStatement(ce4, ce4, ce5, ce1, ce1)
+                .getObject(RDFList.class).size());
         debug(m);
         Assert.assertEquals(3, clazz.listDisjointUnions().count());
         Assert.assertEquals(3, m.listClasses().flatMap(OntClass::listDisjointUnions).count());
