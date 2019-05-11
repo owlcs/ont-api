@@ -149,7 +149,7 @@ public interface OntCE extends OntObject {
      * Lists all {@code HasKey} {@link OntList ontology []-list}s
      * that are attached to this class expression on predicate {@link OWL#hasKey owl:hasKey}.
      *
-     * @return Stream of {@link OntList}s with parameter-type {@code OntDOP}
+     * @return {@code Stream} of {@link OntList}s with parameter-type {@code OntDOP}
      * @since 1.3.0
      */
     Stream<OntList<OntDOP>> listHasKeys();
@@ -168,7 +168,7 @@ public interface OntCE extends OntObject {
      * Lists all individuals,
      * i.e. subjects from class-assertion statements {@code a rdf:type C}, where {@code C} is this class expression.
      *
-     * @return Stream of {@link OntIndividual}s
+     * @return {@code Stream} of {@link OntIndividual}s
      */
     default Stream<OntIndividual> individuals() {
         return getModel().statements(null, RDF.type, this)
@@ -185,7 +185,7 @@ public interface OntCE extends OntObject {
      * <li>{@code A rdfs:domain U} - {@code A} is annotation property, {@code U} is IRI, this class expression</li>
      * </ul>
      *
-     * @return Stream of {@link OntPE}s
+     * @return {@code Stream} of {@link OntPE}s
      * @see OntPE#domain()
      */
     default Stream<OntPE> properties() {
@@ -200,7 +200,7 @@ public interface OntCE extends OntObject {
      * The search pattern is {@code C rdfs:subClassOf Ci},
      * where {@code C} is this instance, and {@code Ci} is one of the returned.
      *
-     * @return Stream of {@link OntCE}s
+     * @return {@code Stream} of {@link OntCE}s
      * @see #listSuperClasses(boolean)
      */
     default Stream<OntCE> subClassOf() {
@@ -211,7 +211,7 @@ public interface OntCE extends OntObject {
      * Returns all disjoint classes.
      * The statement patter to search for is {@code C1 owl:disjointWith C2}.
      *
-     * @return Stream of {@link OntCE}s
+     * @return {@code Stream} of {@link OntCE}s
      * @see OntDisjoint.Classes
      */
     default Stream<OntCE> disjointWith() {
@@ -221,7 +221,7 @@ public interface OntCE extends OntObject {
     /**
      * Lists all equivalent classes.
      *
-     * @return Stream of {@link OntCE}s
+     * @return {@code Stream} of {@link OntCE}s
      * @see OntDT#equivalentClass()
      */
     default Stream<OntCE> equivalentClass() {
@@ -429,7 +429,7 @@ public interface OntCE extends OntObject {
      * attached to this class expression by the specified rdf-node in the form of {@link OntList}.
      *
      * @param list {@link RDFNode}
-     * @return Optional around {@link OntList} of {@link OntDOP data and object property expression}s
+     * @return {@code Optional} around {@link OntList} of {@link OntDOP data and object property expression}s
      * @since 1.3.0
      */
     default Optional<OntList<OntDOP>> findHasKey(RDFNode list) {
@@ -447,59 +447,12 @@ public interface OntCE extends OntObject {
      * If there are several []-lists in the model that satisfy these conditions,
      * all their content will be merged into the one distinct stream.
      *
-     * @return <b>distinct</b> Stream of {@link OntOPE object} and {@link OntNDP data} properties
+     * @return <b>distinct</b> {@code Stream} of {@link OntOPE object} and {@link OntNDP data} properties
      * @see #listHasKeys()
      * @since 1.4.0
      */
     default Stream<OntDOP> fromHasKey() {
         return listHasKeys().flatMap(OntList::members).distinct();
-    }
-
-    /**
-     * Adds a super class.
-     *
-     * @param superClass {@link OntCE}
-     * @return {@link OntStatement}
-     * @deprecated since 1.4.0: use the method {@link #addSubClassOfStatement(OntCE)} instead
-     */
-    @Deprecated
-    default OntStatement addSubClassOf(OntCE superClass) {
-        return addSubClassOfStatement(superClass);
-    }
-
-    /**
-     * Removes the given super class.
-     *
-     * @param superClass {@link OntCE}, or {@code null} to remove all super classes
-     * @deprecated since 1.4.0: use the method {@link #removeSuperClass(Resource)} instead
-     */
-    @Deprecated
-    default void removeSubClassOf(OntCE superClass) {
-        removeSuperClass(superClass);
-    }
-
-    /**
-     * Adds a disjoint class.
-     *
-     * @param other {@link OntCE}
-     * @return {@link OntStatement}
-     * @deprecated since 1.4.0: use the method {@link #addDisjointWithStatement(OntCE)} instead
-     */
-    @Deprecated
-    default OntStatement addDisjointWith(OntCE other) {
-        return addDisjointWithStatement(other);
-    }
-
-    /**
-     * Removes the specified disjoint class.
-     *
-     * @param other {@link OntCE}, or {@code null} to remove all disjoint classes
-     * @see OntDisjoint.Classes
-     * @deprecated since 1.4.0: use the method {@link #removeDisjointClass(Resource)} instead
-     */
-    @Deprecated
-    default void removeDisjointWith(OntCE other) {
-        removeDisjointClass(other);
     }
 
     /*
@@ -568,7 +521,8 @@ public interface OntCE extends OntObject {
             SetCardinality<DataCardinality> {
     }
 
-    interface HasSelf extends PropertyRestrictionCE<OntOPE>, SetONProperty<OntOPE, HasSelf> {
+    @SuppressWarnings("deprecation")
+    interface HasSelf extends PropertyRestrictionCE<OntOPE>, SetONProperty<OntOPE, HasSelf>, ONProperty<OntOPE> {
     }
 
     interface UnionOf extends ComponentsCE<OntCE>, SetComponents<OntCE, UnionOf> {
@@ -580,7 +534,8 @@ public interface OntCE extends OntObject {
     interface IntersectionOf extends ComponentsCE<OntCE>, SetComponents<OntCE, IntersectionOf> {
     }
 
-    interface ComplementOf extends OntCE, HasValue<OntCE>, SetValue<OntCE, ComplementOf> {
+    @SuppressWarnings("deprecation")
+    interface ComplementOf extends OntCE, HasValue<OntCE>, SetValue<OntCE, ComplementOf>, Value<OntCE> {
     }
 
     interface NaryDataAllValuesFrom extends NaryRestrictionCE<OntDR, OntNDP>,
@@ -597,25 +552,116 @@ public interface OntCE extends OntObject {
      * ===========================
      */
 
-    interface ComponentsCE<O extends OntObject> extends OntCE, HasRDFNodeList<O> {
+    @SuppressWarnings("deprecation")
+    interface ComponentsCE<O extends OntObject> extends OntCE, HasRDFNodeList<O>, Components<O> {
     }
 
+    @SuppressWarnings("deprecation")
     interface CardinalityRestrictionCE<O extends OntObject, P extends OntDOP>
-            extends HasCardinality, ComponentRestrictionCE<O, P> {
+            extends HasCardinality, ComponentRestrictionCE<O, P>, Cardinality {
     }
 
+    @SuppressWarnings("deprecation")
     interface ComponentRestrictionCE<O extends RDFNode, P extends OntDOP>
-            extends PropertyRestrictionCE<P>, HasValue<O> {
+            extends PropertyRestrictionCE<P>, HasValue<O>, Value<O>, ONProperty<P> {
     }
 
+    @SuppressWarnings("deprecation")
     interface NaryRestrictionCE<O extends OntObject, P extends OntDOP>
-            extends RestrictionCE, HasONProperties<P>, HasValue<O> {
+            extends RestrictionCE, HasONProperties<P>, HasValue<O>, Value<O>, ONProperties<P> {
     }
 
     interface PropertyRestrictionCE<P extends OntDOP> extends RestrictionCE, HasONProperty<P> {
     }
 
     interface RestrictionCE extends OntCE {
+    }
+
+    /**
+     * Adds a super class.
+     *
+     * @param superClass {@link OntCE}
+     * @return {@link OntStatement}
+     * @deprecated since 1.4.0: use the method {@link #addSubClassOfStatement(OntCE)} instead
+     */
+    @Deprecated
+    default OntStatement addSubClassOf(OntCE superClass) {
+        return addSubClassOfStatement(superClass);
+    }
+
+    /**
+     * Removes the given super class.
+     *
+     * @param superClass {@link OntCE}, or {@code null} to remove all super classes
+     * @deprecated since 1.4.0: use the method {@link #removeSuperClass(Resource)} instead
+     */
+    @Deprecated
+    default void removeSubClassOf(OntCE superClass) {
+        removeSuperClass(superClass);
+    }
+
+    /**
+     * Adds a disjoint class.
+     *
+     * @param other {@link OntCE}
+     * @return {@link OntStatement}
+     * @deprecated since 1.4.0: use the method {@link #addDisjointWithStatement(OntCE)} instead
+     */
+    @Deprecated
+    default OntStatement addDisjointWith(OntCE other) {
+        return addDisjointWithStatement(other);
+    }
+
+    /**
+     * Removes the specified disjoint class.
+     *
+     * @param other {@link OntCE}, or {@code null} to remove all disjoint classes
+     * @see OntDisjoint.Classes
+     * @deprecated since 1.4.0: use the method {@link #removeDisjointClass(Resource)} instead
+     */
+    @Deprecated
+    default void removeDisjointWith(OntCE other) {
+        removeDisjointClass(other);
+    }
+
+    /**
+     * @deprecated since 1.4.0: not for public usage, will be removed in next version
+     */
+    @SuppressWarnings("DeprecatedIsStillUsed")
+    @Deprecated
+    interface ONProperty<P extends OntDOP> extends HasONProperty<P> {
+    }
+
+    /**
+     * @deprecated since 1.4.0: not for public usage, will be removed in next version
+     */
+    @SuppressWarnings("DeprecatedIsStillUsed")
+    @Deprecated
+    interface ONProperties<P extends OntDOP> extends HasONProperties<P> {
+    }
+
+    /**
+     * @deprecated since 1.4.0: not for public usage, will be removed in next version
+     */
+    @SuppressWarnings("DeprecatedIsStillUsed")
+    @Deprecated
+    interface Components<O extends OntObject> extends HasRDFNodeList<O> {
+    }
+
+    /**
+     * @deprecated since 1.4.0: not for public usage, will be removed in next version
+     */
+    @SuppressWarnings("DeprecatedIsStillUsed")
+    @Deprecated
+    interface Value<O extends RDFNode> extends HasValue<O> {
+    }
+
+    /**
+     * @deprecated ince 1.4.0: not for public usage, will be removed in next version
+     */
+    @SuppressWarnings("DeprecatedIsStillUsed")
+    @Deprecated
+    interface Cardinality extends HasCardinality {
     }
 }
 
