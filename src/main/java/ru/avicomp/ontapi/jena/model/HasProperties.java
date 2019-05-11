@@ -14,25 +14,42 @@
 
 package ru.avicomp.ontapi.jena.model;
 
+import ru.avicomp.ontapi.jena.OntJenaException;
+
+import java.util.stream.Stream;
+
 /**
- * A technical interface to provide a possibility to assign {@link OntDOP data or object} property
- * into {@link OntCE.RestrictionCE restriction class expression}.
+ * A technical interface to access {@link P} properties from a []-list on
+ * on predicate {@link ru.avicomp.ontapi.jena.vocabulary.OWL#onProperties owl:onProperties}.
  * <p>
  * Created by @ssz on 09.05.2019.
  *
- * @param <P> {@link OntDOP data or object} property expression
- * @param <R> - return type, a subtype of {@link OntCE.RestrictionCE}
- * @see HasONProperty
+ * @param <P> - any subtype of {@link OntDOP} in general case, but in the current model it can only be {@link OntNDP}
+ * @see SetProperties
  * @since 1.4.0
  */
-interface SetONProperty<P extends OntDOP, R extends OntCE.RestrictionCE> {
+interface HasProperties<P extends OntDOP> extends HasRDFNodeList<P>, HasProperty<P> {
 
     /**
-     * Sets the given property into this Restriction
-     * (as an object with predicate {@link ru.avicomp.ontapi.jena.vocabulary.OWL#onProperty owl:onProperty}).
+     * Lists all {@link ru.avicomp.ontapi.jena.vocabulary.OWL#onProperties owl:onProperties}.
      *
-     * @param property {@link P}, not {@code null}
-     * @return <b>this</b> instance to allow cascading calls
+     * @return a {@code Stream} of {@link P}
+     * @deprecated since 1.4.0: use {@code getList().members()} instead
      */
-    R setOnProperty(P property);
+    @Deprecated
+    default Stream<P> onProperties() {
+        return getList().members();
+    }
+
+    /**
+     * Gets the first property from {@code owl:onProperties} []-list.
+     * Currently in OWL2, a []-list from n-ary Restrictions may contain one and only one (data) property.
+     *
+     * @return {@link P}
+     * @see OntDR#arity()
+     */
+    @Override
+    default P getProperty() {
+        return getList().first().orElseThrow(OntJenaException.IllegalState::new);
+    }
 }

@@ -302,7 +302,7 @@ public class ReadHelper {
         Class<? extends OntObject> type = getType(ce);
         if (OntCE.ObjectSomeValuesFrom.class.equals(type) || OntCE.ObjectAllValuesFrom.class.equals(type)) {
             OntCE.ComponentRestrictionCE<OntCE, OntOPE> _ce = (OntCE.ComponentRestrictionCE<OntCE, OntOPE>) ce;
-            ONTObject<? extends OWLObjectPropertyExpression> p = of.get(_ce.getOnProperty());
+            ONTObject<? extends OWLObjectPropertyExpression> p = of.get(_ce.getProperty());
             ONTObject<? extends OWLClassExpression> c = calcClassExpression(_ce.getValue(), of, seen);
             OWLClassExpression owl;
             if (OntCE.ObjectSomeValuesFrom.class.equals(type)) {
@@ -314,7 +314,7 @@ public class ReadHelper {
         }
         if (OntCE.DataSomeValuesFrom.class.equals(type) || OntCE.DataAllValuesFrom.class.equals(type)) {
             OntCE.ComponentRestrictionCE<OntDR, OntNDP> _ce = (OntCE.ComponentRestrictionCE<OntDR, OntNDP>) ce;
-            ONTObject<OWLDataProperty> p = of.get(_ce.getOnProperty());
+            ONTObject<OWLDataProperty> p = of.get(_ce.getProperty());
             ONTObject<? extends OWLDataRange> d = of.get(_ce.getValue());
             OWLClassExpression owl;
             if (OntCE.DataSomeValuesFrom.class.equals(type)) {
@@ -326,13 +326,13 @@ public class ReadHelper {
         }
         if (OntCE.ObjectHasValue.class.equals(type)) {
             OntCE.ObjectHasValue _ce = (OntCE.ObjectHasValue) ce;
-            ONTObject<? extends OWLObjectPropertyExpression> p = of.get(_ce.getOnProperty());
+            ONTObject<? extends OWLObjectPropertyExpression> p = of.get(_ce.getProperty());
             ONTObject<? extends OWLIndividual> i = of.get(_ce.getValue());
             return ONTObject.create(df.getOWLObjectHasValue(p.getObject(), i.getObject()), _ce).append(p).append(i);
         }
         if (OntCE.DataHasValue.class.equals(type)) {
             OntCE.DataHasValue _ce = (OntCE.DataHasValue) ce;
-            ONTObject<OWLDataProperty> p = of.get(_ce.getOnProperty());
+            ONTObject<OWLDataProperty> p = of.get(_ce.getProperty());
             ONTObject<OWLLiteral> l = of.get(_ce.getValue());
             return ONTObject.create(df.getOWLDataHasValue(p.getObject(), l.getObject()), _ce).append(p);
         }
@@ -340,7 +340,7 @@ public class ReadHelper {
                 || OntCE.ObjectMaxCardinality.class.equals(type)
                 || OntCE.ObjectCardinality.class.equals(type)) {
             OntCE.CardinalityRestrictionCE<OntCE, OntOPE> _ce = (OntCE.CardinalityRestrictionCE<OntCE, OntOPE>) ce;
-            ONTObject<? extends OWLObjectPropertyExpression> p = of.get(_ce.getOnProperty());
+            ONTObject<? extends OWLObjectPropertyExpression> p = of.get(_ce.getProperty());
             ONTObject<? extends OWLClassExpression> c = calcClassExpression(_ce.getValue() == null ?
                     _ce.getModel().getOWLThing() : _ce.getValue(), of, seen);
             OWLObjectCardinalityRestriction owl;
@@ -357,7 +357,7 @@ public class ReadHelper {
                 || OntCE.DataMaxCardinality.class.equals(type)
                 || OntCE.DataCardinality.class.equals(type)) {
             OntCE.CardinalityRestrictionCE<OntDR, OntNDP> _ce = (OntCE.CardinalityRestrictionCE<OntDR, OntNDP>) ce;
-            ONTObject<OWLDataProperty> p = of.get(_ce.getOnProperty());
+            ONTObject<OWLDataProperty> p = of.get(_ce.getProperty());
             ONTObject<? extends OWLDataRange> d = of.get(_ce.getValue() == null ?
                     _ce.getModel().getOntEntity(OntDT.class, RDFS.Literal) : _ce.getValue());
             OWLDataCardinalityRestriction owl;
@@ -372,7 +372,7 @@ public class ReadHelper {
         }
         if (OntCE.HasSelf.class.equals(type)) {
             OntCE.HasSelf _ce = (OntCE.HasSelf) ce;
-            ONTObject<? extends OWLObjectPropertyExpression> p = of.get(_ce.getOnProperty());
+            ONTObject<? extends OWLObjectPropertyExpression> p = of.get(_ce.getProperty());
             return ONTObject.create(df.getOWLObjectHasSelf(p.getObject()), _ce).append(p);
         }
         if (OntCE.UnionOf.class.equals(type) || OntCE.IntersectionOf.class.equals(type)) {

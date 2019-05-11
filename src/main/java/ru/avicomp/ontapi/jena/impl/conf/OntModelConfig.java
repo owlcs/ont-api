@@ -112,7 +112,7 @@ public class OntModelConfig {
             .add(OntCE.ComponentsCE.class, OntCEImpl.abstractComponentsCEFactory)
             .add(OntCE.CardinalityRestrictionCE.class, OntCEImpl.abstractCardinalityRestrictionCEFactory)
             .add(OntCE.ComponentRestrictionCE.class, OntCEImpl.abstractComponentRestrictionCEFactory)
-            .add(OntCE.PropertyRestrictionCE.class, OntCEImpl.abstractPropertyRestrictionCEFactory)
+            .add(OntCE.UnaryRestrictionCE.class, OntCEImpl.abstractPropertyRestrictionCEFactory)
             .add(OntCE.RestrictionCE.class, OntCEImpl.abstractRestrictionCEFactory)
             .add(OntCE.class, OntCEImpl.abstractCEFactory)
 

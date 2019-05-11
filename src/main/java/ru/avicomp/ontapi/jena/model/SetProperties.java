@@ -23,20 +23,35 @@ import java.util.Collection;
  * <p>
  * Created by @ssz on 09.05.2019.
  *
+ * @param <P> - any subtype of {@link OntDOP} in general case, but in the current model it can only be {@link OntNDP}
  * @param <R> - return type, a subtype of {@link OntCE.NaryRestrictionCE}
- * @see HasONProperties
+ * @see HasProperties
  * @since 1.4.0
  */
-interface SetONProperties<R extends OntCE.NaryRestrictionCE> extends SetComponents<OntNDP, R> {
+interface SetProperties<P extends OntDOP, R extends OntCE.NaryRestrictionCE> extends SetComponents<P, R>, SetProperty<P, R> {
 
     /**
      * Sets new properties list.
      *
-     * @param properties {@code Collection} of {@link OntNDP}s
+     * @param properties {@code Collection} of {@link P}s
      * @deprecated since 1.4.0: use {@link #setComponents(Collection)} instead
      */
     @Deprecated
-    default void setOnProperties(Collection<OntNDP> properties) {
+    default void setOnProperties(Collection<P> properties) {
         setComponents(properties);
+    }
+
+    /**
+     * Sets the given property as the only member of the []-list.
+     *
+     * @param property {@link P}, not {@code null}
+     * @return <b>this</b> instance to allow cascading calls
+     * @see HasProperties#getProperty()
+     */
+    @SuppressWarnings("unchecked")
+    @Override
+    default R setProperty(P property) {
+        getList().clear().add(property);
+        return (R) this;
     }
 }

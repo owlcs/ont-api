@@ -14,27 +14,38 @@
 
 package ru.avicomp.ontapi.jena.model;
 
-import java.util.stream.Stream;
-
 /**
- * A technical interface to access {@link P} properties from a []-list on
- * on predicate {@link ru.avicomp.ontapi.jena.vocabulary.OWL#onProperties owl:onProperties}.
+ * A technical interface to provide a possibility to assign {@link OntDOP data or object} property
+ * into {@link OntCE.RestrictionCE restriction class expression}.
  * <p>
  * Created by @ssz on 09.05.2019.
  *
- * @param <P> can be only {@link OntNDP}
- * @see SetONProperties
+ * @param <P> {@link OntDOP data or object} property expression
+ * @param <R> - return type, a subtype of {@link OntCE.RestrictionCE}
+ * @see HasProperty
  * @since 1.4.0
  */
-interface HasONProperties<P extends OntDOP> extends HasRDFNodeList<P> {
+interface SetProperty<P extends OntDOP, R extends OntCE.RestrictionCE> {
+
     /**
-     * Lists all {@link ru.avicomp.ontapi.jena.vocabulary.OWL#onProperties owl:onProperties}.
+     * Sets the given property into this Restriction
+     * (as an object with predicate {@link ru.avicomp.ontapi.jena.vocabulary.OWL#onProperty owl:onProperty}
+     * if it is Unary Restriction).
      *
-     * @return a {@code Stream} of {@link P}
-     * @deprecated since 1.4.0: use {@code getList().members()} instead
+     * @param property {@link P}, not {@code null}
+     * @return <b>this</b> instance to allow cascading calls
+     */
+    R setProperty(P property);
+
+    /**
+     * Sets the property.
+     *
+     * @param property {@link P}, not {@code null}
+     * @return <b>this</b> instance to allow cascading calls
+     * @deprecated since 1.4.0: use {@link #setProperty(OntDOP)} instead
      */
     @Deprecated
-    default Stream<P> onProperties() {
-        return getList().members();
+    default R setOnProperty(P property) {
+        return setProperty(property);
     }
 }

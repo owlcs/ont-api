@@ -461,89 +461,146 @@ public interface OntCE extends OntObject {
      * ============================
      */
 
+    /**
+     * @see OntGraphModel#createObjectSomeValuesFrom(OntOPE, OntCE)
+     */
     interface ObjectSomeValuesFrom extends ComponentRestrictionCE<OntCE, OntOPE>,
-            SetValue<OntCE, ObjectSomeValuesFrom>, SetONProperty<OntOPE, ObjectSomeValuesFrom> {
+            SetValue<OntCE, ObjectSomeValuesFrom>, SetProperty<OntOPE, ObjectSomeValuesFrom> {
     }
 
+    /**
+     * @see OntGraphModel#createDataSomeValuesFrom(OntNDP, OntDR)
+     */
     interface DataSomeValuesFrom extends ComponentRestrictionCE<OntDR, OntNDP>,
-            SetValue<OntDR, DataSomeValuesFrom>, SetONProperty<OntNDP, DataSomeValuesFrom> {
+            SetValue<OntDR, DataSomeValuesFrom>, SetProperty<OntNDP, DataSomeValuesFrom> {
     }
 
+    /**
+     * @see OntGraphModel#createObjectAllValuesFrom(OntOPE, OntCE)
+     */
     interface ObjectAllValuesFrom extends ComponentRestrictionCE<OntCE, OntOPE>,
-            SetValue<OntCE, ObjectAllValuesFrom>, SetONProperty<OntOPE, ObjectAllValuesFrom> {
+            SetValue<OntCE, ObjectAllValuesFrom>, SetProperty<OntOPE, ObjectAllValuesFrom> {
     }
 
+    /**
+     * @see OntGraphModel#createDataAllValuesFrom(OntNDP, OntDR)
+     */
     interface DataAllValuesFrom extends ComponentRestrictionCE<OntDR, OntNDP>,
-            SetValue<OntDR, DataAllValuesFrom>, SetONProperty<OntNDP, DataAllValuesFrom> {
+            SetValue<OntDR, DataAllValuesFrom>, SetProperty<OntNDP, DataAllValuesFrom> {
     }
 
+    /**
+     * @see OntGraphModel#createObjectHasValue(OntOPE, OntIndividual)
+     */
     interface ObjectHasValue extends ComponentRestrictionCE<OntIndividual, OntOPE>,
-            SetValue<OntIndividual, ObjectHasValue>, SetONProperty<OntOPE, ObjectHasValue> {
+            SetValue<OntIndividual, ObjectHasValue>, SetProperty<OntOPE, ObjectHasValue> {
     }
 
+    /**
+     * @see OntGraphModel#createDataHasValue(OntNDP, Literal)
+     */
     interface DataHasValue extends ComponentRestrictionCE<Literal, OntNDP>,
-            SetValue<Literal, DataHasValue>, SetONProperty<OntNDP, DataHasValue> {
+            SetValue<Literal, DataHasValue>, SetProperty<OntNDP, DataHasValue> {
     }
 
+    /**
+     * @see OntGraphModel#createObjectMinCardinality(OntOPE, int, OntCE)
+     */
     interface ObjectMinCardinality extends CardinalityRestrictionCE<OntCE, OntOPE>,
             SetValue<OntCE, ObjectMinCardinality>,
-            SetONProperty<OntOPE, ObjectMinCardinality>,
+            SetProperty<OntOPE, ObjectMinCardinality>,
             SetCardinality<ObjectMinCardinality> {
     }
 
+    /**
+     * @see OntGraphModel#createDataMinCardinality(OntNDP, int, OntDR)
+     */
     interface DataMinCardinality extends CardinalityRestrictionCE<OntDR, OntNDP>,
             SetValue<OntDR, DataMinCardinality>,
-            SetONProperty<OntNDP, DataMinCardinality>,
+            SetProperty<OntNDP, DataMinCardinality>,
             SetCardinality<DataMinCardinality> {
     }
 
+    /**
+     * @see OntGraphModel#createDataMaxCardinality(OntNDP, int, OntDR)
+     */
     interface ObjectMaxCardinality extends CardinalityRestrictionCE<OntCE, OntOPE>,
             SetValue<OntCE, ObjectMaxCardinality>,
-            SetONProperty<OntOPE, ObjectMaxCardinality>,
+            SetProperty<OntOPE, ObjectMaxCardinality>,
             SetCardinality<ObjectMaxCardinality> {
     }
 
+    /**
+     * @see OntGraphModel#createDataMaxCardinality(OntNDP, int, OntDR)
+     */
     interface DataMaxCardinality extends CardinalityRestrictionCE<OntDR, OntNDP>,
             SetValue<OntDR, DataMaxCardinality>,
-            SetONProperty<OntNDP, DataMaxCardinality>,
+            SetProperty<OntNDP, DataMaxCardinality>,
             SetCardinality<DataMaxCardinality> {
     }
 
+    /**
+     * @see OntGraphModel#createObjectCardinality(OntOPE, int, OntCE)
+     */
     interface ObjectCardinality extends CardinalityRestrictionCE<OntCE, OntOPE>,
             SetValue<OntCE, ObjectCardinality>,
-            SetONProperty<OntOPE, ObjectCardinality>,
+            SetProperty<OntOPE, ObjectCardinality>,
             SetCardinality<ObjectCardinality> {
     }
 
+    /**
+     * @see OntGraphModel#createDataCardinality(OntNDP, int, OntDR)
+     */
     interface DataCardinality extends CardinalityRestrictionCE<OntDR, OntNDP>,
             SetValue<OntDR, DataCardinality>,
-            SetONProperty<OntNDP, DataCardinality>,
+            SetProperty<OntNDP, DataCardinality>,
             SetCardinality<DataCardinality> {
     }
 
+    /**
+     * @see OntGraphModel#createHasSelf(OntOPE)
+     */
     @SuppressWarnings("deprecation")
-    interface HasSelf extends PropertyRestrictionCE<OntOPE>, SetONProperty<OntOPE, HasSelf>, ONProperty<OntOPE> {
+    interface HasSelf extends UnaryRestrictionCE<OntOPE>, SetProperty<OntOPE, HasSelf>, ONProperty<OntOPE> {
     }
 
+    /**
+     * @see OntGraphModel#createUnionOf(Collection)
+     */
     interface UnionOf extends ComponentsCE<OntCE>, SetComponents<OntCE, UnionOf> {
     }
 
+    /**
+     * @see OntGraphModel#createOneOf(Collection)
+     */
     interface OneOf extends ComponentsCE<OntIndividual>, SetComponents<OntIndividual, OneOf> {
     }
 
+    /**
+     * @see OntGraphModel#createIntersectionOf(Collection)
+     */
     interface IntersectionOf extends ComponentsCE<OntCE>, SetComponents<OntCE, IntersectionOf> {
     }
 
+    /**
+     * @see OntGraphModel#createComplementOf(OntCE)
+     */
     @SuppressWarnings("deprecation")
     interface ComplementOf extends OntCE, HasValue<OntCE>, SetValue<OntCE, ComplementOf>, Value<OntCE> {
     }
 
+    /**
+     * @see OntGraphModel#createDataAllValuesFrom(Collection, OntDR)
+     */
     interface NaryDataAllValuesFrom extends NaryRestrictionCE<OntDR, OntNDP>,
-            SetValue<OntDR, NaryDataAllValuesFrom>, SetONProperties<NaryDataAllValuesFrom> {
+            SetValue<OntDR, NaryDataAllValuesFrom>, SetProperties<OntNDP, NaryDataAllValuesFrom> {
     }
 
+    /**
+     * @see OntGraphModel#createDataSomeValuesFrom(Collection, OntDR)
+     */
     interface NaryDataSomeValuesFrom extends NaryRestrictionCE<OntDR, OntNDP>,
-            SetValue<OntDR, NaryDataSomeValuesFrom>, SetONProperties<NaryDataSomeValuesFrom> {
+            SetValue<OntDR, NaryDataSomeValuesFrom>, SetProperties<OntNDP, NaryDataSomeValuesFrom> {
     }
 
     /*
@@ -552,29 +609,66 @@ public interface OntCE extends OntObject {
      * ===========================
      */
 
+    /**
+     * An abstraction for Boolean Connectives (with exclude of {@link ComplementOf}) and Enumeration of Individuals.
+     *
+     * @param <O> a component type
+     */
     @SuppressWarnings("deprecation")
     interface ComponentsCE<O extends OntObject> extends OntCE, HasRDFNodeList<O>, Components<O> {
     }
 
+    /**
+     * An abstraction for Cardinality Restrictions.
+     *
+     * @param <O> a value type
+     * @param <P> any subtype of {@link OntDOP}
+     */
     @SuppressWarnings("deprecation")
     interface CardinalityRestrictionCE<O extends OntObject, P extends OntDOP>
             extends HasCardinality, ComponentRestrictionCE<O, P>, Cardinality {
     }
 
+    /**
+     * An abstract class expression (Restriction) that has component (i.e. 'filler' in OWL-API terms):
+     * all Cardinality Restrictions, Existential/Universal Restrictions, Individual/Literal Value Restrictions.
+     *
+     * @param <O> a value type
+     * @param <P> any subtype of {@link OntDOP}
+     */
     @SuppressWarnings("deprecation")
     interface ComponentRestrictionCE<O extends RDFNode, P extends OntDOP>
-            extends PropertyRestrictionCE<P>, HasValue<O>, Value<O>, ONProperty<P> {
+            extends UnaryRestrictionCE<P>, HasValue<O>, Value<O>, ONProperty<P> {
     }
 
+    /**
+     * An abstraction that unites all {@link RestrictionCE Restriction}s
+     * with the predicate {@link OWL#onProperties owl:onProperties}.
+     *
+     * @param <O> a value type
+     * @param <P> any subtype of {@link OntDOP}
+     */
     @SuppressWarnings("deprecation")
     interface NaryRestrictionCE<O extends OntObject, P extends OntDOP>
-            extends RestrictionCE, HasONProperties<P>, HasValue<O>, Value<O>, ONProperties<P> {
+            extends RestrictionCE<P>, HasProperties<P>, HasValue<O>, Value<O>, ONProperties<P> {
     }
 
-    interface PropertyRestrictionCE<P extends OntDOP> extends RestrictionCE, HasONProperty<P> {
+    /**
+     * An abstract class expression that unites all {@link RestrictionCE Restriction}s
+     * with the predicate {@link OWL#onProperty owl:onProperty}.
+     *
+     * @param <P> any subtype of {@link OntDOP}
+     * @since 1.4.0
+     */
+    interface UnaryRestrictionCE<P extends OntDOP> extends RestrictionCE<P> {
     }
 
-    interface RestrictionCE extends OntCE {
+    /**
+     * An abstract class expression that unites all class expressions with the type {@link OWL#Restriction}.
+     *
+     * @param <P> any subtype of {@link OntDOP}
+     */
+    interface RestrictionCE<P extends OntDOP> extends OntCE, HasProperty<P> {
     }
 
     /**
@@ -616,7 +710,6 @@ public interface OntCE extends OntObject {
      * Removes the specified disjoint class.
      *
      * @param other {@link OntCE}, or {@code null} to remove all disjoint classes
-     * @see OntDisjoint.Classes
      * @deprecated since 1.4.0: use the method {@link #removeDisjointClass(Resource)} instead
      */
     @Deprecated
@@ -629,7 +722,7 @@ public interface OntCE extends OntObject {
      */
     @SuppressWarnings("DeprecatedIsStillUsed")
     @Deprecated
-    interface ONProperty<P extends OntDOP> extends HasONProperty<P> {
+    interface ONProperty<P extends OntDOP> extends HasProperty<P> {
     }
 
     /**
@@ -637,7 +730,7 @@ public interface OntCE extends OntObject {
      */
     @SuppressWarnings("DeprecatedIsStillUsed")
     @Deprecated
-    interface ONProperties<P extends OntDOP> extends HasONProperties<P> {
+    interface ONProperties<P extends OntDOP> extends HasProperties<P> {
     }
 
     /**

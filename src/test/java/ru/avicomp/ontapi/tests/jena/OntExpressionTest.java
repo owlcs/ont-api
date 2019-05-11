@@ -386,23 +386,23 @@ public class OntExpressionTest {
         OntNOP op2 = m.createObjectProperty("OP2");
 
         OntCE.DataAllValuesFrom r1 = m.createDataAllValuesFrom(dp1, dt1);
-        Assert.assertEquals(dp1, r1.getOnProperty());
-        Assert.assertSame(r1, r1.setOnProperty(dp2));
-        Assert.assertEquals(dp2, r1.getOnProperty());
+        Assert.assertEquals(dp1, r1.getProperty());
+        Assert.assertSame(r1, r1.setProperty(dp2));
+        Assert.assertEquals(dp2, r1.getProperty());
 
         OntCE.ObjectMaxCardinality r2 = m.createObjectMaxCardinality(op1, 2, c1);
-        Assert.assertEquals(op1, r2.getOnProperty());
-        Assert.assertSame(r2, r2.setOnProperty(op2));
-        Assert.assertEquals(op2, r2.getOnProperty());
+        Assert.assertEquals(op1, r2.getProperty());
+        Assert.assertSame(r2, r2.setProperty(op2));
+        Assert.assertEquals(op2, r2.getProperty());
 
         OntCE.HasSelf r3 = m.createHasSelf(op2);
-        Assert.assertEquals(op2, r3.getOnProperty());
-        Assert.assertSame(r3, r3.setOnProperty(op1));
-        Assert.assertEquals(op1, r3.getOnProperty());
+        Assert.assertEquals(op2, r3.getProperty());
+        Assert.assertSame(r3, r3.setProperty(op1));
+        Assert.assertEquals(op1, r3.getProperty());
 
         Set<OntDOP> actual = new HashSet<>(Arrays.asList(dp2, op2, op1));
-        Set<OntDOP> expected = m.ontObjects(OntCE.PropertyRestrictionCE.class)
-                .map(x -> x.getOnProperty()).collect(Collectors.toSet());
+        Set<OntDOP> expected = m.ontObjects(OntCE.UnaryRestrictionCE.class)
+                .map(x -> x.getProperty()).collect(Collectors.toSet());
         Assert.assertEquals(expected, actual);
     }
 
@@ -466,6 +466,7 @@ public class OntExpressionTest {
         long s = m.size();
         Assert.assertSame(r1, r1.setValue(d2));
         Assert.assertEquals(d2, r1.getValue());
+        Assert.assertEquals(dp1, r1.getProperty());
         Assert.assertEquals(s, m.size());
         Assert.assertFalse(m.contains(null, OWL.someValuesFrom, (RDFNode) null));
         Assert.assertTrue(m.contains(null, OWL.allValuesFrom, (RDFNode) null));
@@ -490,7 +491,8 @@ public class OntExpressionTest {
             LOGGER.debug("Expected: '{}'", e.getMessage());
         }
         Assert.assertEquals(s, m.size());
-        Assert.assertEquals(dp1, r2.setComponents(dp1).getList().first().orElseThrow(AssertionError::new));
+        Assert.assertEquals(dp2, r2.getProperty());
+        Assert.assertEquals(dp1, r2.setProperty(dp1).getProperty());
     }
 
     @Test

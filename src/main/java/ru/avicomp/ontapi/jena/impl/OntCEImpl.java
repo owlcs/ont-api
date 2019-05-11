@@ -813,7 +813,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
      * @param <R> return type for {@link OWL#onProperty} setter
      */
     protected static abstract class OnPropertyRestrictionCEImpl<P extends OntDOP, R extends OntCEImpl>
-            extends OntCEImpl implements PropertyRestrictionCE<P> {
+            extends OntCEImpl implements UnaryRestrictionCE<P> {
         protected final Class<P> propertyView;
 
         /**
@@ -832,12 +832,12 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         }
 
         @Override
-        public P getOnProperty() {
+        public P getProperty() {
             return getRequiredObject(OWL.onProperty, propertyView);
         }
 
         @SuppressWarnings("unchecked")
-        public R setOnProperty(P property) {
+        public R setProperty(P property) {
             Objects.requireNonNull(property, "Null " + viewAsString(propertyView));
             removeAll(OWL.onProperty).addProperty(OWL.onProperty, property);
             return (R) this;

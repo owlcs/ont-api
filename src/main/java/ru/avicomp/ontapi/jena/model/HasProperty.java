@@ -21,16 +21,27 @@ package ru.avicomp.ontapi.jena.model;
  * Created by @ssz on 09.05.2019.
  *
  * @param <P> - {@link OntDOP Data or Object} property expression
- * @see SetONProperty
+ * @see SetProperty
  * @since 1.4.0
  */
-interface HasONProperty<P extends OntDOP> {
+interface HasProperty<P extends OntDOP> {
     /**
-     * Gets a property,
-     * that this {@link ru.avicomp.ontapi.jena.model.OntCE.PropertyRestrictionCE} has inside RDF structure
+     * Gets the property,
+     * that this {@link OntCE.UnaryRestrictionCE} has inside its RDF structure
      * on predicate {@link ru.avicomp.ontapi.jena.vocabulary.OWL#onProperty owl:onProperty}.
      *
      * @return {@link P}
      */
-    P getOnProperty();
+    P getProperty();
+
+    /**
+     * Gets the property.
+     *
+     * @return {@link P}
+     * @deprecated since 1.4.0: use {@link #getProperty()} instead
+     */
+    @Deprecated
+    default P getOnProperty() {
+        return getProperty();
+    }
 }
