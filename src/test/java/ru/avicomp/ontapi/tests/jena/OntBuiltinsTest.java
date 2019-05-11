@@ -46,7 +46,6 @@ import java.util.stream.Stream;
 public class OntBuiltinsTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(OntBuiltinsTest.class);
 
-
     private static void assertBuiltins(OntGraphModel m, Class<? extends OntEntity> type, Collection<Resource> expected) {
         List<? extends Resource> actual = m.ontBuiltins(type)
                 .peek(x -> LOGGER.debug("Builtin:{}", x)).collect(Collectors.toList());
