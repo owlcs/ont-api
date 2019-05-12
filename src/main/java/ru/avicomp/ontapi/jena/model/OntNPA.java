@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -23,9 +23,19 @@ import org.apache.jena.rdf.model.RDFNode;
  * {@link OntOPE object property exception} ({@code P}).
  * Assuming {@code _:x} is a blank node, {@code ai} is an individual and {@code v} is literal,
  * a Negative Object Property Assertion in Turtle syntax looks like this:
- * {@code _:x rdf:type owl:NegativePropertyAssertion ; _:x owl:sourceIndividual a1; _:x owl:assertionProperty P; _:x owl:targetIndividual a2.}
+ * <pre>{@code
+ * _:x rdf:type owl:NegativePropertyAssertion ;
+ * _:x owl:sourceIndividual a1 ;
+ * _:x owl:assertionProperty P ;
+ * _:x owl:targetIndividual a2 .
+ * }</pre>
  * In turn, a Negative Data Property Assertion looks like following:
- * {@code _:x rdf:type owl:NegativePropertyAssertion; _:x owl:sourceIndividual a; _:x owl:assertionProperty R;  _:x owl:targetValue v.}
+ * <pre>{@code
+ * _:x rdf:type owl:NegativePropertyAssertion ;
+ * _:x owl:sourceIndividual a ;
+ * _:x owl:assertionProperty R ;
+ * _:x owl:targetValue v .
+ * }</pre>
  *
  * <p>
  * Created by @szuev on 15.11.2016.
@@ -40,14 +50,14 @@ public interface OntNPA<P extends OntPE, T extends RDFNode> extends OntObject {
     OntIndividual getSource();
 
     /**
-     * Returns the assertion property
+     * Returns the assertion property.
      *
      * @return either {@link OntOPE} or {@link OntNDP}
      */
     P getProperty();
 
     /**
-     * Returns the target
+     * Returns the target node.
      *
      * @return either {@link OntIndividual} or {@link Literal}
      */

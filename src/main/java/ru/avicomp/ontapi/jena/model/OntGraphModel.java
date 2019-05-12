@@ -171,19 +171,6 @@ public interface OntGraphModel extends Model {
     Stream<OntGraphModel> imports();
 
     /**
-     * Equivalent to {@link #hasImport(OntGraphModel)}.
-     *
-     * @param other {@link OntGraphModel} to test
-     * @return boolean
-     * @since 1.3.2
-     * @deprecated use {@code hasImport(...)}, since 1.4.0
-     */
-    @Deprecated
-    default boolean hasInImports(OntGraphModel other) {
-        return hasImport(other);
-    }
-
-    /**
      * Answers {@code true} if the given model is present in the {@link OWL#imports owl:imports} of this model.
      * This means that at the top-level of the import hierarchy there is a base graph of the given {@code other} model.
      * Please note: the model may contain the same uri as that of the specified model, but a different (base) graph,
@@ -307,7 +294,7 @@ public interface OntGraphModel extends Model {
     /**
      * Lists all statements from the {@link OntGraphModel#getBaseGraph() base graph}
      * for the specified subject, predicate and object.
-     * Equivalent to {@code model.statements(s, p, o).filter(OntStatement::isLocal)}
+     * Effectively equivalent to the {@code model.statements(s, p, o).filter(OntStatement::isLocal)} expression.
      *
      * @param s {@link Resource}, the subject
      * @param p {@link Property}, the predicate
@@ -340,13 +327,17 @@ public interface OntGraphModel extends Model {
     boolean isLocal(Statement statement);
 
     /**
-     * Removes the given {@link OntObject Ontology Object} from the graph-model including its content and annotations.
-     * Note: for example, if you delete an OWL class
-     * that is on the right side in a statement with predicate {@code rdfs:subClassOf},
-     * that statement remains unchanged in the graph, but it will be meaningless:
+     * Removes the given {@link OntObject Ontology Object} from the graph-model
+     * including its {@link OntObject#content() content} and annotations.
+     * This operation does not guarantee clearing all object references:
+     * it takes into account only statements where the given object in a subject position.
+     * For example, in case of deleting an OWL class
+     * that is on the right side in a statement with the predicate {@code rdfs:subClassOf},
+     * that statement remains unchanged in the graph, but becomes meaningless:
      * its right side will no longer be a class, but just uri.
      * But if a class is on the left side of the statement with the {@code rdfs:subClassOf} predicate,
-     * that statement will be removed from the graph along with its annotations, because it is belongs to class content.
+     * that statement is be removed from the graph along with its annotations,
+     * because it is belongs to the class content.
      *
      * @param obj {@link OntObject}
      * @return this model
@@ -723,4 +714,16 @@ public interface OntGraphModel extends Model {
         return getOntEntity(OntNDP.class, OWL.bottomDataProperty);
     }
 
+    /**
+     * Equivalent to {@link #hasImport(OntGraphModel)}.
+     *
+     * @param other {@link OntGraphModel} to test
+     * @return boolean
+     * @since 1.3.2
+     * @deprecated since 1.4.0: use {@link #hasImport(OntGraphModel)}
+     */
+    @Deprecated
+    default boolean hasInImports(OntGraphModel other) {
+        return hasImport(other);
+    }
 }

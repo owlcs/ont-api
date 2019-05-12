@@ -461,7 +461,7 @@ public class OntModelTest {
 
         Assert.assertEquals(1, i1.spec().map(Models::toString)
                 .peek(x -> LOGGER.debug("1::INDIVIDUAL SPEC: {}", x)).count());
-        Assert.assertEquals(2, i1.content().map(Models::toString)
+        Assert.assertEquals(6, i1.content().map(Models::toString)
                 .peek(x -> LOGGER.debug("1::INDIVIDUAL CONTENT: {}", x)).count());
 
         Assert.assertEquals(0, i2.spec().map(Models::toString)

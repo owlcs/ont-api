@@ -430,8 +430,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
 
     @Override
     public OntGraphModelImpl removeOntStatement(OntStatement statement) {
-        statement.clearAnnotations();
-        return remove(statement);
+        return remove(statement.clearAnnotations());
     }
 
     @Override

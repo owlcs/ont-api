@@ -59,21 +59,22 @@ public interface OntObject extends OntResource {
     OntStatement getRoot();
 
     /**
-     * Lists all objects characteristic statements according to its OWL2 specification.
+     * {@inheritDoc}
      * For OWL Entities the returned stream will contain only single root statement (see {@link #getRoot()}),
      * or even will be empty for built-in entities.
      *
-     * @return Stream of {@link OntStatement Ontology Statement}s
+     * @return {@code Stream} of {@link OntStatement Ontology Statement}s
+     * @see #content()
      */
     @Override
     Stream<OntStatement> spec();
 
     /**
      * Lists the content of the object, i.e. its all characteristic statements (see {@link #spec()}),
-     * plus all the additional statements in which this object is the subject,
-     * minus those of them whose predicate is an annotation property.
+     * plus all additional statements in which this object is the subject,
+     * minus those of them whose predicate is an annotation property (annotations are not included).
      *
-     * @return Stream of {@link OntStatement Ontology Statement}s
+     * @return {@code Stream} of {@link OntStatement Ontology Statement}s
      * @see #spec()
      */
     Stream<OntStatement> content();
@@ -119,7 +120,7 @@ public interface OntObject extends OntResource {
      * Returns the <b>first</b> statement for the specified property.
      * What is the first triple is defined at the level of graph; in general it is unpredictable.
      *
-     * @param property {@link Property}
+     * @param property {@link Property}, can be {@code null}
      * @return {@link Optional} around {@link OntStatement}
      * @see Resource#getProperty(Property)
      */
@@ -128,15 +129,15 @@ public interface OntObject extends OntResource {
     /**
      * Lists ont-statements by the predicate.
      *
-     * @param property {@link Property}, predicate
-     * @return Stream of {@link OntStatement}s
+     * @param property {@link Property}, predicate, can be {@code null}
+     * @return {@code Stream} of {@link OntStatement}s
      */
     Stream<OntStatement> statements(Property property);
 
     /**
      * Lists all top-level statements related to this object (i.e. with subject={@code this}).
      *
-     * @return Stream of all statements
+     * @return {@code Stream} of all statements
      * @see #listProperties()
      */
     Stream<OntStatement> statements();
@@ -162,7 +163,7 @@ public interface OntObject extends OntResource {
      * Sub-annotations are not included into the returned stream.
      * For non-built-in ontology objects this is equivalent to the expression {@code getRoot().annotations()}.
      *
-     * @return Stream of {@link OntStatement}s that have an {@link OntNAP annotation property} as predicate
+     * @return {@code Stream} of {@link OntStatement}s that have an {@link OntNAP annotation property} as predicate
      * @see OntStatement#annotations()
      * @see OntAnnotation#assertions()
      */
@@ -178,7 +179,7 @@ public interface OntObject extends OntResource {
      * @param predicate {@link OntNAP}, not {@code null}
      * @param lang      String, the language tag to restrict the listed literals to,
      *                  or {@code null} to select all literals
-     * @return Stream of String's, i.e. literal lexical forms
+     * @return {@code Stream} of String's, i.e. literal lexical forms
      * @see #annotationValues(OntNAP)
      * @since 1.3.2
      */
@@ -205,7 +206,7 @@ public interface OntObject extends OntResource {
      * @param predicate {@link Property} predicate
      * @param type      Interface to find and cast
      * @param <O>       a class-type of rdf-node
-     * @return Stream of {@link RDFNode RDF Node}s
+     * @return {@code Stream} of {@link RDFNode RDF Node}s
      */
     <O extends RDFNode> Stream<O> objects(Property predicate, Class<O> type);
 
@@ -237,7 +238,7 @@ public interface OntObject extends OntResource {
     /**
      * Lists all declarations (statements with {@code rdf:type} predicate).
      *
-     * @return Stream of {@link Resource}s
+     * @return {@code Stream} of {@link Resource}s
      */
     default Stream<Resource> types() {
         return objects(RDF.type, Resource.class);
@@ -247,7 +248,7 @@ public interface OntObject extends OntResource {
      * Lists all annotation values for the given predicate.
      *
      * @param predicate {@link OntNAP}, not {@code null}
-     * @return Stream of {@link RDFNode}s
+     * @return {@code Stream} of {@link RDFNode}s
      * @see #annotations()
      * @since 1.3.2
      */

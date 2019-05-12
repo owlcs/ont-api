@@ -19,16 +19,14 @@ import org.apache.jena.graph.FrontsNode;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDFS;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.conf.ObjectFactory;
 import ru.avicomp.ontapi.jena.impl.conf.OntFinder;
 import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
-import ru.avicomp.ontapi.jena.model.OntCE;
-import ru.avicomp.ontapi.jena.model.OntIndividual;
-import ru.avicomp.ontapi.jena.model.OntObject;
-import ru.avicomp.ontapi.jena.model.OntStatement;
+import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
@@ -46,7 +44,7 @@ import java.util.stream.Stream;
  * Created by szuev on 09.11.2016.
  */
 @SuppressWarnings("WeakerAccess")
-public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
+public abstract class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
 
     private static final String FORBIDDEN_SUBJECTS = OntIndividual.Anonymous.class.getName() + ".InSubject";
     private static final String FORBIDDEN_OBJECTS = OntIndividual.Anonymous.class.getName() + ".InObject";
@@ -131,13 +129,19 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
     }
 
     @Override
-    public OntStatement attachClass(OntCE clazz) {
-        return addRDFType(clazz);
+    public final Stream<OntNPA> negativeAssertions() {
+        return Iter.asStream(listNegativeAssertions());
+    }
+
+    public ExtendedIterator<OntNPA> listNegativeAssertions() {
+        return listSubjects(OWL.sourceIndividual, OntNPA.class);
     }
 
     @Override
-    public void detachClass(OntCE clazz) {
-        removeRDFType(clazz);
+    protected Set<OntStatement> getContent() {
+        Set<OntStatement> res = super.getContent();
+        listNegativeAssertions().forEachRemaining(x -> res.addAll(((OntObjectImpl) x).getContent()));
+        return res;
     }
 
     @Override
@@ -171,6 +175,17 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
         @Override
         public Class<? extends OntObject> getActualClass() {
             return OntIndividual.Named.class;
+        }
+
+        @Override
+        public NamedImpl detachClass(Resource clazz) {
+            OntGraphModelImpl m = getModel();
+            m.listStatements(this, RDF.type, clazz)
+                    .mapWith(s -> (OntStatement) s)
+                    .filterDrop(s -> OWL.NamedIndividual.equals(s.getObject()))
+                    .toList()
+                    .forEach(s -> m.remove(s.clearAnnotations()));
+            return this;
         }
     }
 
@@ -207,15 +222,19 @@ public class OntIndividualImpl extends OntObjectImpl implements OntIndividual {
         }
 
         @Override
-        public void detachClass(OntCE clazz) {
-            try (Stream<OntCE> classes = classes()) {
-                if (classes.allMatch(clazz::equals)) {
-                    // otherwise the anonymous individual could be lost.
-                    // use another way for removing the single class-assertion.
-                    throw new OntJenaException("Can't detach class " + clazz + ": it is a single for individual " + this);
-                }
+        public AnonymousImpl detachClass(Resource clazz) {
+            Set<OntCE> classes = classes().collect(Collectors.toSet());
+            if (clazz == null && !classes.isEmpty()) {
+                throw new OntJenaException.IllegalState("Detaching classes is prohibited: " +
+                        "the anonymous individual (" + this + ") should contain at least one class assertion, " +
+                        "otherwise it can be lost");
             }
-            super.detachClass(clazz);
+            if (classes.size() == 1 && classes.iterator().next().equals(clazz)) {
+                throw new OntJenaException.IllegalState("Detaching class (" + clazz + ") is prohibited: " +
+                        "it is a single class assertion for the individual " + this + ".");
+            }
+            remove(RDF.type, clazz);
+            return this;
         }
 
     }

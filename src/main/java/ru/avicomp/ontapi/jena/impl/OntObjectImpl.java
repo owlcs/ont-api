@@ -235,7 +235,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @since 1.4.0
      */
     public ExtendedIterator<OntStatement> listSpec() {
-        return findRootStatement().map(Iter::of).orElse(NullIterator.instance());
+        return findRootStatement().map(Iter::of).orElseGet(NullIterator::instance);
     }
 
     /**
@@ -244,7 +244,8 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @return <b>distinct</b> Stream of {@link OntStatement}s
      */
     @Override
-    public final Stream<OntStatement> content() {
+    public Stream<OntStatement> content() {
+        // Use Set to ensure safety of subsequent operations:
         return getContent().stream();
     }
 
@@ -256,7 +257,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @return {@code Set} of {@link OntStatement}s
      * @since 1.4.0
      */
-    public Set<OntStatement> getContent() {
+    protected Set<OntStatement> getContent() {
         Set<OntStatement> res = listSpec().toSet();
         listStatements().filterDrop(OntStatement::isAnnotation).forEachRemaining(res::add);
         return res;
@@ -283,31 +284,11 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      */
     protected OntObjectImpl changeRDFType(Resource type, boolean add) {
         if (add) {
-            addRDFType(type);
+            addStatement(RDF.type, type);
         } else {
-            removeRDFType(type);
+            remove(RDF.type, type);
         }
         return this;
-    }
-
-    /**
-     * Adds {@code @this rdf:type @type} statement.
-     *
-     * @param type URI-{@link Resource}, the type
-     * @return newly added {@link OntStatement}, that does not supports plain annotations
-     */
-    protected OntStatement addRDFType(Resource type) {
-        return addStatement(RDF.type, OntJenaException.notNull(type, "Null rdf:type"));
-    }
-
-    /**
-     * Removes {@code @this rdf:type @type} statement.
-     * No-op in case no the statement is found.
-     *
-     * @param type URI-{@link Resource}, the type, or {@code null} to remove all types
-     */
-    protected void removeRDFType(Resource type) {
-        remove(RDF.type, type);
     }
 
     /**

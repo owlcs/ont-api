@@ -69,8 +69,7 @@ public class OntExpressionTest {
         OntDR dr2 = m.createIntersectionOfDataRange(Arrays.asList(dt1, dt2));
         OntIndividual i1 = ce1.createIndividual(ns + "individual1");
         OntCE ce2 = m.createDataMaxCardinality(ndp1, 343434, dr2);
-        i1.attachClass(ce2);
-        i1.attachClass(m.createOntClass(ns + "Class1"));
+        i1.attachClass(ce2).attachClass(m.createOntClass(ns + "Class1"));
 
         OntIndividual i2 = ce2.createIndividual();
         i2.addStatement(ndp1, ResourceFactory.createPlainLiteral("individual value"));
