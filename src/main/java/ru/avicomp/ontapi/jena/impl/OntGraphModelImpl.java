@@ -720,38 +720,38 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
     }
 
     @Override
-    public OntCE.ObjectSomeValuesFrom createObjectSomeValuesFrom(OntOPE onProperty, OntCE other) {
+    public OntCE.ObjectSomeValuesFrom createObjectSomeValuesFrom(OntOPE property, OntCE ce) {
         return OntCEImpl.createComponentRestrictionCE(this,
-                OntCE.ObjectSomeValuesFrom.class, onProperty, other, OWL.someValuesFrom);
+                OntCE.ObjectSomeValuesFrom.class, property, ce, OWL.someValuesFrom);
     }
 
     @Override
-    public OntCE.DataSomeValuesFrom createDataSomeValuesFrom(OntNDP onProperty, OntDR other) {
+    public OntCE.DataSomeValuesFrom createDataSomeValuesFrom(OntNDP property, OntDR dr) {
         return OntCEImpl.createComponentRestrictionCE(this,
-                OntCE.DataSomeValuesFrom.class, onProperty, other, OWL.someValuesFrom);
+                OntCE.DataSomeValuesFrom.class, property, dr, OWL.someValuesFrom);
     }
 
     @Override
-    public OntCE.ObjectAllValuesFrom createObjectAllValuesFrom(OntOPE onProperty, OntCE other) {
+    public OntCE.ObjectAllValuesFrom createObjectAllValuesFrom(OntOPE property, OntCE ce) {
         return OntCEImpl.createComponentRestrictionCE(this,
-                OntCE.ObjectAllValuesFrom.class, onProperty, other, OWL.allValuesFrom);
+                OntCE.ObjectAllValuesFrom.class, property, ce, OWL.allValuesFrom);
     }
 
     @Override
-    public OntCE.DataAllValuesFrom createDataAllValuesFrom(OntNDP onProperty, OntDR other) {
+    public OntCE.DataAllValuesFrom createDataAllValuesFrom(OntNDP property, OntDR dr) {
         return OntCEImpl.createComponentRestrictionCE(this,
-                OntCE.DataAllValuesFrom.class, onProperty, other, OWL.allValuesFrom);
+                OntCE.DataAllValuesFrom.class, property, dr, OWL.allValuesFrom);
     }
 
     @Override
-    public OntCE.ObjectHasValue createObjectHasValue(OntOPE onProperty, OntIndividual other) {
+    public OntCE.ObjectHasValue createObjectHasValue(OntOPE property, OntIndividual individual) {
         return OntCEImpl.createComponentRestrictionCE(this,
-                OntCE.ObjectHasValue.class, onProperty, other, OWL.hasValue);
+                OntCE.ObjectHasValue.class, property, individual, OWL.hasValue);
     }
 
     @Override
-    public OntCE.DataHasValue createDataHasValue(OntNDP onProperty, Literal other) {
-        return OntCEImpl.createComponentRestrictionCE(this, OntCE.DataHasValue.class, onProperty, other, OWL.hasValue);
+    public OntCE.DataHasValue createDataHasValue(OntNDP property, Literal literal) {
+        return OntCEImpl.createComponentRestrictionCE(this, OntCE.DataHasValue.class, property, literal, OWL.hasValue);
     }
 
     @Override
@@ -808,23 +808,23 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
     }
 
     @Override
-    public OntCE.HasSelf createHasSelf(OntOPE onProperty) {
-        return OntCEImpl.createHasSelf(this, onProperty);
+    public OntCE.HasSelf createHasSelf(OntOPE property) {
+        return OntCEImpl.createHasSelf(this, property);
     }
 
     @Override
-    public OntCE.NaryDataAllValuesFrom createDataAllValuesFrom(Collection<OntNDP> properties, OntDR other) {
-        return OntCEImpl.createNaryRestrictionCE(this, OntCE.NaryDataAllValuesFrom.class, other, properties);
+    public OntCE.NaryDataAllValuesFrom createDataAllValuesFrom(Collection<OntNDP> properties, OntDR dr) {
+        return OntCEImpl.createNaryRestrictionCE(this, OntCE.NaryDataAllValuesFrom.class, dr, properties);
     }
 
     @Override
-    public OntCE.NaryDataSomeValuesFrom createDataSomeValuesFrom(Collection<OntNDP> properties, OntDR other) {
-        return OntCEImpl.createNaryRestrictionCE(this, OntCE.NaryDataSomeValuesFrom.class, other, properties);
+    public OntCE.NaryDataSomeValuesFrom createDataSomeValuesFrom(Collection<OntNDP> properties, OntDR dr) {
+        return OntCEImpl.createNaryRestrictionCE(this, OntCE.NaryDataSomeValuesFrom.class, dr, properties);
     }
 
     @Override
-    public OntCE.ComplementOf createComplementOf(OntCE other) {
-        return OntCEImpl.createComplementOf(this, other);
+    public OntCE.ComplementOf createComplementOf(OntCE ce) {
+        return OntCEImpl.createComplementOf(this, ce);
     }
 
     @Override

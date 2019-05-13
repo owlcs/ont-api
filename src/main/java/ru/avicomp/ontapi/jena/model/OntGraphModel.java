@@ -63,7 +63,7 @@ import java.util.stream.Stream;
  * @see <a href='https://www.w3.org/TR/owl2-syntax/'>OWL 2 Web Ontology Language Structural Specification and Functional-Style Syntax (Second Edition)</a>
  * @see <a href='https://www.w3.org/Submission/SWRL/'>SWRL: A Semantic Web Rule Language Combining OWL and RuleML</a>
  */
-public interface OntGraphModel extends Model {
+public interface OntGraphModel extends Model, CreateClasses {
 
     /**
      * Returns the base {@code Graph},
@@ -408,50 +408,6 @@ public interface OntGraphModel extends Model {
     OntDR.UnionOf createUnionOfDataRange(Collection<OntDR> values);
 
     OntDR.IntersectionOf createIntersectionOfDataRange(Collection<OntDR> values);
-
-    /*
-     * ===========================
-     * Creation Class Expressions:
-     * ===========================
-     */
-
-    OntCE.ObjectSomeValuesFrom createObjectSomeValuesFrom(OntOPE onProperty, OntCE other);
-
-    OntCE.DataSomeValuesFrom createDataSomeValuesFrom(OntNDP onProperty, OntDR other);
-
-    OntCE.ObjectAllValuesFrom createObjectAllValuesFrom(OntOPE onProperty, OntCE other);
-
-    OntCE.DataAllValuesFrom createDataAllValuesFrom(OntNDP onProperty, OntDR other);
-
-    OntCE.ObjectHasValue createObjectHasValue(OntOPE onProperty, OntIndividual other);
-
-    OntCE.DataHasValue createDataHasValue(OntNDP onProperty, Literal other);
-
-    OntCE.ObjectMinCardinality createObjectMinCardinality(OntOPE property, int cardinality, OntCE ce);
-
-    OntCE.DataMinCardinality createDataMinCardinality(OntNDP property, int cardinality, OntDR dr);
-
-    OntCE.ObjectMaxCardinality createObjectMaxCardinality(OntOPE property, int cardinality, OntCE ce);
-
-    OntCE.DataMaxCardinality createDataMaxCardinality(OntNDP property, int cardinality, OntDR dr);
-
-    OntCE.ObjectCardinality createObjectCardinality(OntOPE property, int cardinality, OntCE ce);
-
-    OntCE.DataCardinality createDataCardinality(OntNDP property, int cardinality, OntDR dr);
-
-    OntCE.UnionOf createUnionOf(Collection<OntCE> classes);
-
-    OntCE.IntersectionOf createIntersectionOf(Collection<OntCE> classes);
-
-    OntCE.OneOf createOneOf(Collection<OntIndividual> individuals);
-
-    OntCE.HasSelf createHasSelf(OntOPE onProperty);
-
-    OntCE.NaryDataAllValuesFrom createDataAllValuesFrom(Collection<OntNDP> properties, OntDR other);
-
-    OntCE.NaryDataSomeValuesFrom createDataSomeValuesFrom(Collection<OntNDP> properties, OntDR other);
-
-    OntCE.ComplementOf createComplementOf(OntCE other);
 
     /*
      * ====================================
