@@ -63,7 +63,7 @@ public interface OntIndividual extends OntObject {
      * @see OntCE#superClasses(boolean)
      * @since 1.4.0
      */
-    Stream<OntCE> listClasses(boolean direct);
+    Stream<OntCE> classes(boolean direct);
 
     /**
      * {@inheritDoc}
@@ -78,17 +78,20 @@ public interface OntIndividual extends OntObject {
      * Returns all direct class types.
      *
      * @return {@code Stream} of {@link OntCE}s
+     * @since 1.4.0
      */
     default Stream<OntCE> classes() {
         return objects(RDF.type, OntCE.class);
     }
 
     /**
-     * Returns all same individuals. The pattern to search for is "ai owl:sameAs aj"
+     * Lists all same individuals.
+     * The pattern to search for is {@code ai owl:sameAs aj}, where {@code ai} is this individual.
      *
-     * @return {@code Stream} of {@link OntIndividual}s.
+     * @return {@code Stream} of {@link OntIndividual}s
+     * @since 1.4.0
      */
-    default Stream<OntIndividual> sameAs() {
+    default Stream<OntIndividual> sameIndividuals() {
         return objects(OWL.sameAs, OntIndividual.class);
     }
 
@@ -99,8 +102,9 @@ public interface OntIndividual extends OntObject {
      *
      * @return {@code Stream} of {@link OntIndividual}s
      * @see OntDisjoint.Individuals
+     * @since 1.4.0
      */
-    default Stream<OntIndividual> differentFrom() {
+    default Stream<OntIndividual> differentIndividuals() {
         return objects(OWL.differentFrom, OntIndividual.class);
     }
 
@@ -406,6 +410,55 @@ public interface OntIndividual extends OntObject {
     }
 
     /**
+     * An interface for <b>Named</b> Individual which is an {@link OWL Entity OntEntity}.
+     * <p>
+     * Created by szuev on 01.11.2016.
+     */
+    interface Named extends OntIndividual, OntEntity {
+    }
+
+    /**
+     * An interface for Anonymous Individuals.
+     * The anonymous individual is a blank node ({@code _:a}) which satisfies one of the following conditions:
+     * <ul>
+     * <li>it has a class declaration (i.e. there is a triple {@code _:a rdf:type C},
+     * where {@code C} is a {@link OntCE class expression})</li>
+     * <li>it is a subject or an object in a statement with predicate
+     * {@link OWL#sameAs owl:sameAs} or {@link OWL#differentFrom owl:differentFrom}</li>
+     * <li>it is contained in a {@code rdf:List} with predicate {@code owl:distinctMembers} or {@code owl:members}
+     * in a blank node with {@code rdf:type = owl:AllDifferent}, see {@link OntDisjoint.Individuals}</li>
+     * <li>it is contained in a {@code rdf:List} with predicate {@code owl:oneOf}
+     * in a blank node with {@code rdf:type = owl:Class}, see {@link OntCE.OneOf}</li>
+     * <li>it is a part of {@link OntNPA owl:NegativePropertyAssertion} section with predicates
+     * {@link OWL#sourceIndividual owl:sourceIndividual} or {@link OWL#targetIndividual owl:targetIndividual}</li>
+     * <li>it is an object with predicate {@code owl:hasValue} inside {@code _:x rdf:type owl:Restriction}
+     * (see {@link OntCE.ObjectHasValue Object Property HasValue Restriction})</li>
+     * <li>it is a subject or an object in a statement where predicate is
+     * an uri-resource with {@code rdf:type = owl:AnnotationProperty}
+     * (i.e. {@link OntNAP annotation property} assertion {@code s A t})</li>
+     * <li>it is a subject in a triple which corresponds data property assertion {@code _:a R v}
+     * (where {@code R} is a {@link OntNDP datatype property}, {@code v} is a {@link Literal literal})</li>
+     * <li>it is a subject or an object in a triple which corresponds object property assertion {@code _:a1 PN _:a2}
+     * (where {@code PN} is a {@link OntNOP named object property}, and {@code _:ai} are individuals)</li>
+     * </ul>
+     * <p>
+     * Created by szuev on 10.11.2016.
+     */
+    interface Anonymous extends OntIndividual {
+
+        /**
+         * {@inheritDoc}
+         * For an anonymous individual a primary class assertion is also a definition, so deleting it is prohibited.
+         *
+         * @param clazz {@link OntCE}, not {@code null}
+         * @return <b>this</b> instance to allow cascading calls
+         * @throws OntJenaException in case the individual has only one class assertion and it is for the given class
+         */
+        @Override
+        Anonymous detachClass(Resource clazz) throws OntJenaException;
+    }
+
+    /**
      * Adds different individual.
      *
      * @param other {@link OntIndividual}
@@ -453,51 +506,24 @@ public interface OntIndividual extends OntObject {
     }
 
     /**
-     * An interface for <b>Named</b> Individual which is an {@link OWL Entity OntEntity}.
-     * <p>
-     * Created by szuev on 01.11.2016.
+     * Lists same individuals.
+     *
+     * @return {@code Stream}
+     * @deprecated since 1.4.0: use {@link #sameIndividuals()} instead
      */
-    interface Named extends OntIndividual, OntEntity {
+    @Deprecated
+    default Stream<OntIndividual> sameAs() {
+        return sameIndividuals();
     }
 
     /**
-     * An interface for Anonymous Individuals.
-     * The anonymous individual is a blank node ({@code _:a}) which satisfies one of the following conditions:
-     * <ul>
-     * <li>it has a class declaration (i.e. there is a triple {@code _:a rdf:type C},
-     * where {@code C} is a {@link OntCE class expression})</li>
-     * <li>it is a subject or an object in a statement with predicate
-     * {@link OWL#sameAs owl:sameAs} or {@link OWL#differentFrom owl:differentFrom}</li>
-     * <li>it is contained in a {@code rdf:List} with predicate {@code owl:distinctMembers} or {@code owl:members}
-     * in a blank node with {@code rdf:type = owl:AllDifferent}, see {@link OntDisjoint.Individuals}</li>
-     * <li>it is contained in a {@code rdf:List} with predicate {@code owl:oneOf}
-     * in a blank node with {@code rdf:type = owl:Class}, see {@link OntCE.OneOf}</li>
-     * <li>it is a part of {@link OntNPA owl:NegativePropertyAssertion} section with predicates
-     * {@link OWL#sourceIndividual owl:sourceIndividual} or {@link OWL#targetIndividual owl:targetIndividual}</li>
-     * <li>it is an object with predicate {@code owl:hasValue} inside {@code _:x rdf:type owl:Restriction}
-     * (see {@link OntCE.ObjectHasValue Object Property HasValue Restriction})</li>
-     * <li>it is a subject or an object in a statement where predicate is
-     * an uri-resource with {@code rdf:type = owl:AnnotationProperty}
-     * (i.e. {@link OntNAP annotation property} assertion {@code s A t})</li>
-     * <li>it is a subject in a triple which corresponds data property assertion {@code _:a R v}
-     * (where {@code R} is a {@link OntNDP datatype property}, {@code v} is a {@link Literal literal})</li>
-     * <li>it is a subject or an object in a triple which corresponds object property assertion {@code _:a1 PN _:a2}
-     * (where {@code PN} is a {@link OntNOP named object property}, and {@code _:ai} are individuals)</li>
-     * </ul>
-     * <p>
-     * Created by szuev on 10.11.2016.
+     * Lists different individuals.
+     *
+     * @return {@code Stream}
+     * @deprecated since 1.4.0: use {@link #differentIndividuals()} instead
      */
-    interface Anonymous extends OntIndividual {
-
-        /**
-         * {@inheritDoc}
-         * For an anonymous individual a primary class assertion is also a definition, so deleting it is prohibited.
-         *
-         * @param clazz {@link OntCE}, not {@code null}
-         * @return <b>this</b> instance to allow cascading calls
-         * @throws OntJenaException in case the individual has only one class assertion and it is for the given class
-         */
-        @Override
-        Anonymous detachClass(Resource clazz) throws OntJenaException;
+    @Deprecated
+    default Stream<OntIndividual> differentFrom() {
+        return differentIndividuals();
     }
 }

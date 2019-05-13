@@ -706,11 +706,11 @@ public class OntModelTest {
 
         ReadWriteUtils.print(m);
 
-        Assert.assertEquals(2, i2.listClasses(true).count());
-        Assert.assertEquals(5, i2.listClasses(false).count());
+        Assert.assertEquals(2, i2.classes(true).count());
+        Assert.assertEquals(5, i2.classes(false).count());
 
-        Assert.assertEquals(2, i1.listClasses(true).count());
-        Assert.assertEquals(5, i1.listClasses(false).count());
+        Assert.assertEquals(2, i1.classes(true).count());
+        Assert.assertEquals(5, i1.classes(false).count());
     }
 
     @Test

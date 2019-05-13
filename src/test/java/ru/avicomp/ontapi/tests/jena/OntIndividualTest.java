@@ -63,7 +63,7 @@ public class OntIndividualTest {
 
         Assert.assertNotNull(a.addDifferentFromStatement(b));
         Assert.assertSame(a, a.addDifferentIndividual(c).addDifferentIndividual(d).removeDifferentIndividual(b));
-        Assert.assertEquals(2, a.differentFrom().count());
+        Assert.assertEquals(2, a.differentIndividuals().count());
         Assert.assertSame(a, a.removeDifferentIndividual(null));
         Assert.assertEquals(7, m.size());
     }
@@ -78,7 +78,7 @@ public class OntIndividualTest {
 
         Assert.assertNotNull(a.addSameAsStatement(b));
         Assert.assertSame(a, a.addSameIndividual(c).addSameIndividual(d).removeSameIndividual(b));
-        Assert.assertEquals(2, a.sameAs().count());
+        Assert.assertEquals(2, a.sameIndividuals().count());
         Assert.assertSame(a, a.removeSameIndividual(null));
         Assert.assertEquals(7, m.size());
     }

@@ -145,7 +145,7 @@ public abstract class OntIndividualImpl extends OntObjectImpl implements OntIndi
     }
 
     @Override
-    public Stream<OntCE> listClasses(boolean direct) {
+    public Stream<OntCE> classes(boolean direct) {
         if (direct) {
             return listObjects(RDF.type, OntCE.class).toSet().stream();
         }
