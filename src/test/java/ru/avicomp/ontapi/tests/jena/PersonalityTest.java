@@ -71,7 +71,7 @@ public class PersonalityTest {
         Assert.assertEquals(1, m1.classes().peek(x -> LOGGER.debug("Class::{}", x)).count());
         Assert.assertNull(m1.getOntClass(agent));
         Assert.assertNull(m1.getOntClass(document));
-        Assert.assertEquals(0, m1.getOntClass(clazz).subClassOf().count());
+        Assert.assertEquals(0, m1.getOntClass(clazz).superClasses().count());
 
         BuiltIn.Vocabulary SIMPLE_FOAF_VOC = new BuiltIn.Empty() {
             @Override
@@ -88,7 +88,7 @@ public class PersonalityTest {
         Assert.assertEquals(1, m2.classes().peek(x -> LOGGER.debug("Class::{}", x)).count());
         Assert.assertNotNull(m2.getOntClass(agent));
         Assert.assertNotNull(m2.getOntClass(document));
-        Assert.assertEquals(1, m2.getOntClass(clazz).subClassOf()
+        Assert.assertEquals(1, m2.getOntClass(clazz).superClasses()
                 .peek(x -> LOGGER.debug("SuperClass::{}", x)).count());
     }
 

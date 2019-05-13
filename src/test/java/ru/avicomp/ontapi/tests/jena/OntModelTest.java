@@ -227,7 +227,7 @@ public class OntModelTest {
         statement.addAnnotation(m.getRDFSComment(), "These are keys", "xz");
         ReadWriteUtils.print(m);
 
-        Assert.assertEquals(5, person.listHasKeys().findFirst().orElseThrow(AssertionError::new).members().count());
+        Assert.assertEquals(5, person.hasKeys().findFirst().orElseThrow(AssertionError::new).members().count());
         Assert.assertEquals(numClasses, m.ontObjects(OntCE.class).distinct().count());
         Assert.assertEquals(statementsCount + 16, m.statements().count());
         Assert.assertNotNull(statement.deleteAnnotation(m.getRDFSComment()));
@@ -238,22 +238,22 @@ public class OntModelTest {
 
         OntClass marsupials = m.getOntClass(ns + "Marsupials");
         Assert.assertNotNull(marsupials);
-        Assert.assertEquals(marsupials, person.disjointWith().findFirst().orElse(null));
-        Assert.assertEquals(person, marsupials.disjointWith().findAny().orElse(null));
+        Assert.assertEquals(marsupials, person.disjointClasses().findFirst().orElse(null));
+        Assert.assertEquals(person, marsupials.disjointClasses().findAny().orElse(null));
 
         marsupials.addDisjointClass(animal);
-        Assert.assertEquals(2, marsupials.disjointWith().count());
-        Assert.assertEquals(0, animal.disjointWith().count());
-        Assert.assertEquals(1, person.disjointWith().count());
+        Assert.assertEquals(2, marsupials.disjointClasses().count());
+        Assert.assertEquals(0, animal.disjointClasses().count());
+        Assert.assertEquals(1, person.disjointClasses().count());
         marsupials.removeDisjointClass(animal);
-        Assert.assertEquals(1, marsupials.disjointWith().count());
-        Assert.assertEquals(0, animal.disjointWith().count());
-        Assert.assertEquals(1, person.disjointWith().count());
+        Assert.assertEquals(1, marsupials.disjointClasses().count());
+        Assert.assertEquals(0, animal.disjointClasses().count());
+        Assert.assertEquals(1, person.disjointClasses().count());
 
         person.addSuperClass(marsupials);
-        Assert.assertEquals(2, person.subClassOf().count());
+        Assert.assertEquals(2, person.superClasses().count());
         person.removeSuperClass(marsupials);
-        Assert.assertEquals(1, person.subClassOf().count());
+        Assert.assertEquals(1, person.superClasses().count());
 
         Assert.assertEquals(statementsCount, m.statements().count());
     }

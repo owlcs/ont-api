@@ -370,7 +370,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
     }
 
     @Override
-    public Stream<OntList<OntDOP>> listHasKeys() {
+    public Stream<OntList<OntDOP>> hasKeys() {
         return listHasKeys(getModel(), this);
     }
 
@@ -381,12 +381,12 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
     }
 
     @Override
-    public Stream<OntCE> listSuperClasses(boolean direct) {
+    public Stream<OntCE> superClasses(boolean direct) {
         return listHierarchy(this, OntCE.class, RDFS.subClassOf, false, direct);
     }
 
     @Override
-    public Stream<OntCE> listSubClasses(boolean direct) {
+    public Stream<OntCE> subClasses(boolean direct) {
         return listHierarchy(this, OntCE.class, RDFS.subClassOf, true, direct);
     }
 

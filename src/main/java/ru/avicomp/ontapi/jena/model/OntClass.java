@@ -33,6 +33,15 @@ import java.util.stream.Stream;
 public interface OntClass extends OntEntity, OntCE {
 
     /**
+     * Lists all {@code DisjointUnion} {@link OntList ontology list}s that are attached to this OWL Class
+     * on predicate {@link OWL#disjointUnionOf owl:disjointUnionOf}.
+     *
+     * @return {@code Stream} of {@link OntList}s with parameter-type {@code OntCE}
+     * @since 1.4.0
+     */
+    Stream<OntList<OntCE>> disjointUnions();
+
+    /**
      * Creates a {@code DisjointUnion} as {@link OntList ontology []-list} of {@link OntCE Class Expression}s
      * that is attached to this OWL Class using the predicate {@link OWL#disjointUnionOf owl:disjointUnionOf}.
      * The resulting rdf-list will consist of all the elements of the specified collection
@@ -50,15 +59,6 @@ public interface OntClass extends OntEntity, OntCE {
     OntList<OntCE> createDisjointUnion(Collection<OntCE> classes);
 
     /**
-     * Lists all {@code DisjointUnion} {@link OntList ontology list}s that are attached to this OWL Class
-     * on predicate {@link OWL#disjointUnionOf owl:disjointUnionOf}.
-     *
-     * @return Stream of {@link OntList}s with parameter-type {@code OntCE}
-     * @since 1.3.0
-     */
-    Stream<OntList<OntCE>> listDisjointUnions();
-
-    /**
      * Finds a {@code DisjointUnion} logical construction
      * attached to this class by the specified rdf-node in the form of {@link OntList}.
      *
@@ -67,7 +67,7 @@ public interface OntClass extends OntEntity, OntCE {
      * @since 1.3.0
      */
     default Optional<OntList<OntCE>> findDisjointUnion(RDFNode list) {
-        try (Stream<OntList<OntCE>> res = listDisjointUnions().filter(r -> Objects.equals(r, list))) {
+        try (Stream<OntList<OntCE>> res = disjointUnions().filter(r -> Objects.equals(r, list))) {
             return res.findFirst();
         }
     }
@@ -233,7 +233,7 @@ public interface OntClass extends OntEntity, OntCE {
      * @since 1.3.0
      */
     default OntClass clearDisjointUnions() {
-        listDisjointUnions().collect(Collectors.toSet()).forEach(this::removeDisjointUnion);
+        disjointUnions().collect(Collectors.toSet()).forEach(this::removeDisjointUnion);
         return this;
     }
 
@@ -245,11 +245,11 @@ public interface OntClass extends OntEntity, OntCE {
      * all their content will be merged into the one distinct stream.
      *
      * @return <b>distinct</b> stream of {@link OntCE class expressions}s
-     * @see #listDisjointUnions()
+     * @see #disjointUnions()
      * @since 1.4.0
      */
     default Stream<OntCE> fromDisjointUnionOf() {
-        return listDisjointUnions().flatMap(OntList::members).distinct();
+        return disjointUnions().flatMap(OntList::members).distinct();
     }
 
     /**
@@ -277,6 +277,18 @@ public interface OntClass extends OntEntity, OntCE {
     @Deprecated
     default OntStatement addDisjointUnionOf(Collection<OntCE> classes) {
         return addDisjointUnionOfStatement(classes);
+    }
+
+    /**
+     * Lists all {@code DisjointUnion}s.
+     *
+     * @return {@code Stream} of {@link OntList}s with parameter-type {@code OntCE}
+     * @since 1.3.0
+     * @deprecated since 1.4.0: use {@link #disjointUnions()} instead
+     */
+    @Deprecated
+    default Stream<OntList<OntCE>> _listDisjointUnions() {
+        return disjointUnions();
     }
 
 }

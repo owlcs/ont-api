@@ -54,13 +54,13 @@ public interface OntIndividual extends OntObject {
      * including super-classes if the flag {@code direct} is {@code false}.
      * If the flag {@code direct} is {@code true}, then only direct types are returned,
      * and the method is almost equivalent to the method {@link #classes()}.
-     * See also {@link OntCE#listSuperClasses(boolean)}.
+     * See also {@link OntCE#superClasses(boolean)}.
      *
      * @param direct if {@code true}, only answers those {@link OntCE}s that are direct types of this individual,
      *               not the super-classes of the class etc
      * @return <b>distinct</b> {@code Stream} of {@link OntCE class expressions}
      * @see #classes()
-     * @see OntCE#listSuperClasses(boolean)
+     * @see OntCE#superClasses(boolean)
      * @since 1.4.0
      */
     Stream<OntCE> listClasses(boolean direct);

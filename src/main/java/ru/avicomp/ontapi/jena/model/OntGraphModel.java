@@ -644,26 +644,62 @@ public interface OntGraphModel extends Model {
         return res == null ? createOntEntity(type, uri) : res;
     }
 
+    /**
+     * Lists all named class expressions (OWL classes).
+     *
+     * @return {@code Stream} of {@link OntClass}s
+     * @since 1.4.0
+     */
     default Stream<OntClass> classes() {
         return ontEntities(OntClass.class);
     }
 
+    /**
+     * Lists all annotation properties.
+     *
+     * @return {@code Stream} of {@link OntNAP}s
+     * @since 1.4.0
+     */
     default Stream<OntNAP> annotationProperties() {
         return ontEntities(OntNAP.class);
     }
 
+    /**
+     * Lists all data properties.
+     *
+     * @return {@code Stream} of {@link OntNDP}s
+     * @since 1.4.0
+     */
     default Stream<OntNDP> dataProperties() {
         return ontEntities(OntNDP.class);
     }
 
+    /**
+     * Lists all named object property expressions (object properties in short).
+     *
+     * @return {@code Stream} of {@link OntNOP}s
+     * @since 1.4.0
+     */
     default Stream<OntNOP> objectProperties() {
         return ontEntities(OntNOP.class);
     }
 
+    /**
+     * Lists all datatypes (named data range expressions).
+     *
+     * @return {@code Stream} of {@link OntDT}s
+     * @since 1.4.0
+     */
     default Stream<OntDT> datatypes() {
         return ontEntities(OntDT.class);
     }
 
+    /**
+     * Lists all named individuals.
+     *
+     * @return {@code Stream} of {@link OntIndividual.Named}
+     * @since 1.4.0
+     */
     default Stream<OntIndividual.Named> namedIndividuals() {
         return ontEntities(OntIndividual.Named.class);
     }

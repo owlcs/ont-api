@@ -130,14 +130,14 @@ public class OntExpressionTest {
         b.addSuperClass(m.createComplementOf(b)).addSuperClass(d);
         ReadWriteUtils.print(m);
 
-        Assert.assertEquals(2, a.listSuperClasses(true)
+        Assert.assertEquals(2, a.superClasses(true)
                 .peek(x -> LOGGER.debug("{} has direct super class: {}", a, x)).count());
-        Assert.assertEquals(4, a.listSuperClasses(false)
+        Assert.assertEquals(4, a.superClasses(false)
                 .peek(x -> LOGGER.debug("{} has super class: {}", a, x)).count());
 
-        Assert.assertEquals(2, d.listSubClasses(true)
+        Assert.assertEquals(2, d.subClasses(true)
                 .peek(x -> LOGGER.debug("{} has direct sub class: {}", d, x)).count());
-        Assert.assertEquals(3, d.listSubClasses(false)
+        Assert.assertEquals(3, d.subClasses(false)
                 .peek(x -> LOGGER.debug("{} has sub class: {}", d, x)).count());
     }
 
@@ -149,7 +149,7 @@ public class OntExpressionTest {
         OntClass c = m.createOntClass("C");
         Assert.assertNotNull(a.addSubClassOfStatement(b));
         Assert.assertSame(a, a.addSuperClass(c).addSuperClass(m.getOWLThing()).removeSuperClass(b));
-        Assert.assertEquals(2, a.subClassOf().count());
+        Assert.assertEquals(2, a.superClasses().count());
         Assert.assertSame(a, a.removeSuperClass(null));
         Assert.assertEquals(3, m.size());
     }
@@ -162,7 +162,7 @@ public class OntExpressionTest {
         OntClass c = m.createOntClass("C");
         Assert.assertNotNull(a.addDisjointWithStatement(b));
         Assert.assertSame(a, a.addDisjointClass(c).addDisjointClass(m.getOWLThing()).removeDisjointClass(b));
-        Assert.assertEquals(2, a.disjointWith().count());
+        Assert.assertEquals(2, a.disjointClasses().count());
         Assert.assertSame(a, a.removeDisjointClass(null));
         Assert.assertEquals(3, m.size());
     }
@@ -175,7 +175,7 @@ public class OntExpressionTest {
         OntClass c = m.createOntClass("C");
         Assert.assertNotNull(a.addEquivalentClassStatement(b));
         Assert.assertSame(a, a.addEquivalentClass(c).addEquivalentClass(m.getOWLThing()).removeEquivalentClass(b));
-        Assert.assertEquals(2, a.equivalentClass().count());
+        Assert.assertEquals(2, a.equivalentClasses().count());
         Assert.assertSame(a, a.removeEquivalentClass(null));
         Assert.assertEquals(3, m.size());
     }
@@ -190,11 +190,11 @@ public class OntExpressionTest {
         OntClass c = m.getOWLThing();
         Assert.assertNotNull(c.addHasKeyStatement());
         Assert.assertSame(c, c.addHasKey());
-        Assert.assertEquals(1, c.listHasKeys().count());
+        Assert.assertEquals(1, c.hasKeys().count());
 
         Assert.assertEquals(0, c.fromHasKey().count());
         Assert.assertSame(c, c.addHasKey(o1, d1).addHasKey(Arrays.asList(o1, o2), Collections.singletonList(d2)));
-        Assert.assertEquals(3, c.listHasKeys().count());
+        Assert.assertEquals(3, c.hasKeys().count());
         Assert.assertEquals(4, c.fromHasKey().count());
         Assert.assertSame(c, c.clearHasKeys());
         Assert.assertEquals(4, m.size());
@@ -427,15 +427,15 @@ public class OntExpressionTest {
         OntClass c0 = m.getOWLThing();
         Assert.assertNotNull(c0.addDisjointUnionOfStatement());
         Assert.assertSame(c0, c0.addDisjointUnion());
-        Assert.assertEquals(1, c0.listDisjointUnions().count());
+        Assert.assertEquals(1, c0.disjointUnions().count());
 
         Assert.assertEquals(0, c0.fromDisjointUnionOf().count());
         Assert.assertSame(c0, c0.addDisjointUnion(c1, c3).addDisjointUnion(Arrays.asList(c1, c2, c4)));
-        Assert.assertEquals(3, c0.listDisjointUnions().count());
+        Assert.assertEquals(3, c0.disjointUnions().count());
         Assert.assertEquals(4, c0.fromDisjointUnionOf().count());
 
         Assert.assertSame(c0, c0.removeDisjointUnion(RDF.nil));
-        Assert.assertEquals(2, c0.listDisjointUnions().count());
+        Assert.assertEquals(2, c0.disjointUnions().count());
         Assert.assertEquals(4, c0.fromDisjointUnionOf().count());
 
         Assert.assertSame(c0, c0.clearDisjointUnions());

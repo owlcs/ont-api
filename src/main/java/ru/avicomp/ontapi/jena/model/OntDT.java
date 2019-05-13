@@ -36,7 +36,7 @@ public interface OntDT extends OntEntity, OntDR {
      * and {@code D} is a search object, the {@link OntDR data-range expression}.
      *
      * @return Stream of {@link OntDR}s
-     * @see OntCE#equivalentClass()
+     * @see OntCE#equivalentClasses()
      */
     default Stream<OntDR> equivalentClass() {
         return objects(OWL.equivalentClass, OntDR.class);

@@ -71,12 +71,12 @@ public class OntClassImpl extends OntObjectImpl implements OntClass {
     }
 
     @Override
-    public Stream<OntCE> listSuperClasses(boolean direct) {
+    public Stream<OntCE> superClasses(boolean direct) {
         return listHierarchy(this, OntCE.class, RDFS.subClassOf, false, direct);
     }
 
     @Override
-    public Stream<OntCE> listSubClasses(boolean direct) {
+    public Stream<OntCE> subClasses(boolean direct) {
         return listHierarchy(this, OntCE.class, RDFS.subClassOf, true, direct);
     }
 
@@ -91,7 +91,7 @@ public class OntClassImpl extends OntObjectImpl implements OntClass {
     }
 
     @Override
-    public Stream<OntList<OntDOP>> listHasKeys() {
+    public Stream<OntList<OntDOP>> hasKeys() {
         return OntCEImpl.listHasKeys(getModel(), this);
     }
 
@@ -108,7 +108,7 @@ public class OntClassImpl extends OntObjectImpl implements OntClass {
     }
 
     @Override
-    public Stream<OntList<OntCE>> listDisjointUnions() {
+    public Stream<OntList<OntCE>> disjointUnions() {
         return OntListImpl.stream(getModel(), this, OWL.disjointUnionOf, OntCE.class);
     }
 

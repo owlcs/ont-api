@@ -43,6 +43,65 @@ import java.util.stream.Stream;
 public interface OntCE extends OntObject {
 
     /**
+     * Answers a {@code Stream} over the class-expressions
+     * for which this class expression is declared to be sub-class.
+     * The return {@code Stream} is distinct and this instance is not included into it.
+     * <p>
+     * The flag {@code direct} allows some selectivity over the classes that appear in the {@code Stream}.
+     * If it is {@code true} only direct sub-classes are returned,
+     * and the method is equivalent to the method {@link #superClasses()}
+     * with except of some boundary cases (e.g. {@code <A> rdfs:subClassOf <A>}).
+     * If it is {@code false}, the method returns all super classes recursively.
+     * Consider the following scenario:
+     * <pre>{@code
+     *   :A rdfs:subClassOf :B .
+     *   :B rdfs:subClassOf :C .
+     * }</pre>
+     * If the flag {@code direct} is {@code true},
+     * the listing super classes for the class {@code A} will return only {@code B}.
+     * And otherwise, if the flag {@code direct} is {@code false}, it will return {@code B} and also {@code C}.
+     *
+     * @param direct boolean: if {@code true}, only answers the directly adjacent classes in the super-class relation,
+     *               otherwise answers all super-classes found in the {@code Graph} recursively
+     * @return <b>distinct</b> {@code Stream} of super {@link OntCE class expression}s
+     * @see #superClasses()
+     * @see #subClasses(boolean)
+     * @since 1.4.0
+     */
+    Stream<OntCE> superClasses(boolean direct);
+
+    /**
+     * Answer a {@code Stream} over all of the class expressions
+     * that are declared to be sub-classes of this class expression.
+     * The return {@code Stream} is distinct and this instance is not included into it.
+     * The flag {@code direct} allows some selectivity over the classes that appear in the {@code Stream}.
+     * Consider the following scenario:
+     * <pre>{@code
+     *   :B rdfs:subClassOf :A .
+     *   :C rdfs:subClassOf :B .
+     * }</pre>
+     * If the flag {@code direct} is {@code true},
+     * the listing sub classes for the class {@code A} will return only {@code B}.
+     * And otherwise, if the flag {@code direct} is {@code false}, it will return {@code B} and also {@code C}.
+     *
+     * @param direct boolean: if {@code true}, only answers the directly adjacent classes in the sub-class relation,
+     *               otherwise answers all sub-classes found in the {@code Graph} recursively
+     * @return <b>distinct</b> {@code Stream} of sub {@link OntCE class expression}s
+     * @see #superClasses(boolean)
+     * @since 1.4.0
+     */
+    Stream<OntCE> subClasses(boolean direct);
+
+    /**
+     * Lists all {@code HasKey} {@link OntList ontology []-list}s
+     * that are attached to this class expression on predicate {@link OWL#hasKey owl:hasKey}.
+     *
+     * @return {@code Stream} of {@link OntList}s with parameter-type {@code OntDOP}
+     * @since 1.4.0
+     */
+    Stream<OntList<OntDOP>> hasKeys();
+
+    /**
      * Creates an anonymous individual which is of this class-expression type.
      *
      * @return {@link OntIndividual.Anonymous}
@@ -62,56 +121,6 @@ public interface OntCE extends OntObject {
     OntIndividual.Named createIndividual(String uri);
 
     /**
-     * Answers a {@code Stream} over the class-expressions
-     * for which this class expression is declared to be sub-class.
-     * The return {@code Stream} is distinct and this instance is not included into it.
-     * <p>
-     * The flag {@code direct} allows some selectivity over the classes that appear in the {@code Stream}.
-     * If it is {@code true} only direct sub-classes are returned,
-     * and the method is equivalent to the method {@link #subClassOf()}
-     * with except of some boundary cases (e.g. {@code <A> rdfs:subClassOf <A>}).
-     * If it is {@code false}, the method returns all super classes recursively.
-     * Consider the following scenario:
-     * <pre>{@code
-     *   :A rdfs:subClassOf :B .
-     *   :B rdfs:subClassOf :C .
-     * }</pre>
-     * If the flag {@code direct} is {@code true},
-     * the listing super classes for the class {@code A} will return only {@code B}.
-     * And otherwise, if the flag {@code direct} is {@code false}, it will return {@code B} and also {@code C}.
-     *
-     * @param direct boolean: if {@code true}, only answers the directly adjacent classes in the super-class relation,
-     *               otherwise answers all super-classes found in the {@code Graph} recursively
-     * @return <b>distinct</b> {@code Stream} of super {@link OntCE class expression}s
-     * @see #subClassOf()
-     * @see #listSubClasses(boolean)
-     * @since 1.4.0
-     */
-    Stream<OntCE> listSuperClasses(boolean direct);
-
-    /**
-     * Answer a {@code Stream} over all of the class expressions
-     * that are declared to be sub-classes of this class expression.
-     * The return {@code Stream} is distinct and this instance is not included into it.
-     * The flag {@code direct} allows some selectivity over the classes that appear in the {@code Stream}.
-     * Consider the following scenario:
-     * <pre>{@code
-     *   :B rdfs:subClassOf :A .
-     *   :C rdfs:subClassOf :B .
-     * }</pre>
-     * If the flag {@code direct} is {@code true},
-     * the listing sub classes for the class {@code A} will return only {@code B}.
-     * And otherwise, if the flag {@code direct} is {@code false}, it will return {@code B} and also {@code C}.
-     *
-     * @param direct boolean: if {@code true}, only answers the directly adjacent classes in the sub-class relation,
-     *               otherwise answers all sub-classes found in the {@code Graph} recursively
-     * @return <b>distinct</b> {@code Stream} of sub {@link OntCE class expression}s
-     * @see #listSuperClasses(boolean)
-     * @since 1.4.0
-     */
-    Stream<OntCE> listSubClasses(boolean direct);
-
-    /**
      * Creates a {@code HasKey} logical construction as {@link OntList ontology []-list}
      * of {@link OntDOP Object or Data Property Expression}s
      * that is attached to this Class Expression using the predicate {@link OWL#hasKey owl:hasKey}.
@@ -124,6 +133,7 @@ public interface OntCE extends OntObject {
      * @param objectProperties {@link Collection} (preferably {@link Set})of {@link OntOPE object property expression}s
      * @param dataProperties   {@link Collection} (preferably {@link Set})of {@link OntNDP data property expression}s
      * @return {@link OntList} of {@link OntDOP}s
+     * @see #addHasKey(Collection, Collection)
      * @since 1.3.0
      */
     OntList<OntDOP> createHasKey(Collection<OntOPE> objectProperties, Collection<OntNDP> dataProperties);
@@ -144,15 +154,6 @@ public interface OntCE extends OntObject {
      * @since 1.4.0
      */
     OntStatement addHasKeyStatement(OntDOP... properties);
-
-    /**
-     * Lists all {@code HasKey} {@link OntList ontology []-list}s
-     * that are attached to this class expression on predicate {@link OWL#hasKey owl:hasKey}.
-     *
-     * @return {@code Stream} of {@link OntList}s with parameter-type {@code OntDOP}
-     * @since 1.3.0
-     */
-    Stream<OntList<OntDOP>> listHasKeys();
 
     /**
      * Deletes the given {@code HasKey} list including its annotations.
@@ -176,13 +177,13 @@ public interface OntCE extends OntObject {
     }
 
     /**
-     * Lists all properties attached to the class in a {@code rdfs:domain} statement.
+     * Lists all properties attached to this class in a {@code rdfs:domain} statement.
      * The property is considered as attached if
-     * it and the class expression are both included in property domain axiom description:
+     * the property and the class expression are both included in the property domain axiom statement:
      * <ul>
-     * <li>{@code R rdfs:domain C} - {@code R} is a data property {@code C} - this class expression</li>
+     * <li>{@code R rdfs:domain C} - {@code R} is a data property, {@code C} - this class expression</li>
      * <li>{@code P rdfs:domain C} - {@code P} is an object property expression, {@code C} - this class expression</li>
-     * <li>{@code A rdfs:domain U} - {@code A} is annotation property, {@code U} is IRI, this class expression</li>
+     * <li>{@code A rdfs:domain U} - {@code A} is annotation property, {@code U} is IRI (this class expression)</li>
      * </ul>
      *
      * @return {@code Stream} of {@link OntPE}s
@@ -201,9 +202,10 @@ public interface OntCE extends OntObject {
      * where {@code C} is this instance, and {@code Ci} is one of the returned.
      *
      * @return {@code Stream} of {@link OntCE}s
-     * @see #listSuperClasses(boolean)
+     * @see #superClasses(boolean)
+     * @since 1.4.0
      */
-    default Stream<OntCE> subClassOf() {
+    default Stream<OntCE> superClasses() {
         return objects(RDFS.subClassOf, OntCE.class);
     }
 
@@ -214,17 +216,19 @@ public interface OntCE extends OntObject {
      * @return {@code Stream} of {@link OntCE}s
      * @see OntDisjoint.Classes
      */
-    default Stream<OntCE> disjointWith() {
+    default Stream<OntCE> disjointClasses() {
         return objects(OWL.disjointWith, OntCE.class);
     }
 
     /**
      * Lists all equivalent classes.
+     * The statement patter to search for is {@code C1 owl:equivalentClass C2}.
      *
      * @return {@code Stream} of {@link OntCE}s
      * @see OntDT#equivalentClass()
+     * @since 1.4.0
      */
-    default Stream<OntCE> equivalentClass() {
+    default Stream<OntCE> equivalentClasses() {
         return objects(OWL.equivalentClass, OntCE.class);
     }
 
@@ -420,7 +424,7 @@ public interface OntCE extends OntObject {
      * @since 1.3.0
      */
     default OntCE clearHasKeys() {
-        listHasKeys().collect(Collectors.toList()).forEach(this::removeHasKey);
+        hasKeys().collect(Collectors.toList()).forEach(this::removeHasKey);
         return this;
     }
 
@@ -433,7 +437,7 @@ public interface OntCE extends OntObject {
      * @since 1.3.0
      */
     default Optional<OntList<OntDOP>> findHasKey(RDFNode list) {
-        try (Stream<OntList<OntDOP>> res = listHasKeys().filter(r -> Objects.equals(r, list))) {
+        try (Stream<OntList<OntDOP>> res = hasKeys().filter(r -> Objects.equals(r, list))) {
             return res.findFirst();
         }
     }
@@ -448,11 +452,11 @@ public interface OntCE extends OntObject {
      * all their content will be merged into the one distinct stream.
      *
      * @return <b>distinct</b> {@code Stream} of {@link OntOPE object} and {@link OntNDP data} properties
-     * @see #listHasKeys()
+     * @see #hasKeys()
      * @since 1.4.0
      */
     default Stream<OntDOP> fromHasKey() {
-        return listHasKeys().flatMap(OntList::members).distinct();
+        return hasKeys().flatMap(OntList::members).distinct();
     }
 
     /*
@@ -669,6 +673,52 @@ public interface OntCE extends OntObject {
      * @param <P> any subtype of {@link OntDOP}
      */
     interface RestrictionCE<P extends OntDOP> extends OntCE, HasProperty<P> {
+    }
+
+    /**
+     * Lists all {@code HasKey} {@link OntList ontology []-list}s.
+     *
+     * @return {@code Stream} of {@link OntList}s with parameter-type {@code OntDOP}
+     * @since 1.3.0
+     * @deprecated since 1.4.0: use {@link #hasKeys()} instead
+     */
+    @Deprecated
+    default Stream<OntList<OntDOP>> listHasKeys() {
+        return hasKeys();
+    }
+
+    /**
+     * Lists all super classes for this class expression.
+     *
+     * @return {@code Stream} of {@link OntCE}s
+     * @see #superClasses(boolean)
+     * @deprecated since 1.4.0: use {@link #superClasses()} instead
+     */
+    @Deprecated
+    default Stream<OntCE> subClassOf() {
+        return superClasses();
+    }
+
+    /**
+     * Returns all disjoint classes.
+     *
+     * @return {@code Stream} of {@link OntCE}s
+     * @deprecated since 1.4.0: use {@link #disjointClasses()} instead
+     */
+    @Deprecated
+    default Stream<OntCE> disjointWith() {
+        return disjointClasses();
+    }
+
+    /**
+     * Lists all equivalent classes.
+     *
+     * @return {@code Stream} of {@link OntCE}s
+     * @deprecated since 1.4.0: use {@link #equivalentClasses()} instead
+     */
+    @Deprecated
+    default Stream<OntCE> equivalentClass() {
+        return equivalentClasses();
     }
 
     /**

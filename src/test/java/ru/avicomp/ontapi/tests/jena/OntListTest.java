@@ -445,18 +445,18 @@ public class OntListTest {
         Assert.assertEquals(3, clazz.addDisjointUnionOfStatement(ce4, ce4, ce5, ce1, ce1)
                 .getObject(RDFList.class).size());
         debug(m);
-        Assert.assertEquals(3, clazz.listDisjointUnions().count());
-        Assert.assertEquals(3, m.classes().flatMap(OntClass::listDisjointUnions).count());
+        Assert.assertEquals(3, clazz.disjointUnions().count());
+        Assert.assertEquals(3, m.classes().flatMap(OntClass::disjointUnions).count());
 
-        OntList<OntCE> d23 = clazz.listDisjointUnions()
+        OntList<OntCE> d23 = clazz.disjointUnions()
                 .filter(c -> c.first().filter(ce2::equals).isPresent())
                 .findFirst()
                 .orElseThrow(AssertionError::new);
-        OntList<OntCE> d34 = clazz.listDisjointUnions()
+        OntList<OntCE> d34 = clazz.disjointUnions()
                 .filter(c -> c.last().filter(ce4::equals).isPresent())
                 .findFirst()
                 .orElseThrow(AssertionError::new);
-        OntList<OntCE> d451 = clazz.listDisjointUnions()
+        OntList<OntCE> d451 = clazz.disjointUnions()
                 .filter(c -> c.last().filter(ce1::equals).isPresent())
                 .findFirst()
                 .orElseThrow(AssertionError::new);
@@ -471,7 +471,7 @@ public class OntListTest {
         clazz.removeDisjointUnion(d451);
 
         debug(m);
-        Assert.assertEquals(2, m.classes().flatMap(OntClass::listDisjointUnions).count());
+        Assert.assertEquals(2, m.classes().flatMap(OntClass::disjointUnions).count());
         Assert.assertEquals(1, m.statements(null, RDF.type, OWL.Axiom).count());
         clazz.clearDisjointUnions();
         debug(m);
@@ -492,18 +492,18 @@ public class OntListTest {
         Assert.assertEquals(2, clazz.addHasKeyStatement(p3, p3, p4).getObject(RDFList.class).size());
         Assert.assertEquals(3, clazz.addHasKeyStatement(p4, p4, p5, p1, p1).getObject(RDFList.class).size());
         debug(m);
-        Assert.assertEquals(3, clazz.listHasKeys().count());
-        Assert.assertEquals(3, m.classes().flatMap(OntClass::listHasKeys).count());
+        Assert.assertEquals(3, clazz.hasKeys().count());
+        Assert.assertEquals(3, m.classes().flatMap(OntClass::hasKeys).count());
 
-        OntList<OntDOP> h23 = clazz.listHasKeys()
+        OntList<OntDOP> h23 = clazz.hasKeys()
                 .filter(c -> c.first().filter(p2::equals).isPresent())
                 .findFirst()
                 .orElseThrow(AssertionError::new);
-        OntList<OntDOP> h34 = clazz.listHasKeys()
+        OntList<OntDOP> h34 = clazz.hasKeys()
                 .filter(c -> c.last().filter(p4::equals).isPresent())
                 .findFirst()
                 .orElseThrow(AssertionError::new);
-        OntList<OntDOP> h451 = clazz.listHasKeys()
+        OntList<OntDOP> h451 = clazz.hasKeys()
                 .filter(c -> c.last().filter(p1::equals).isPresent())
                 .findFirst()
                 .orElseThrow(AssertionError::new);
@@ -518,7 +518,7 @@ public class OntListTest {
         Assert.assertSame(clazz, clazz.removeHasKey(h451));
 
         debug(m);
-        Assert.assertEquals(2, m.classes().flatMap(OntClass::listHasKeys).count());
+        Assert.assertEquals(2, m.classes().flatMap(OntClass::hasKeys).count());
         Assert.assertEquals(1, m.statements(null, RDF.type, OWL.Axiom).count());
         Assert.assertSame(clazz, clazz.clearHasKeys());
         debug(m);
