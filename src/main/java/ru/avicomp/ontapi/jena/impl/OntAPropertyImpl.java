@@ -46,12 +46,12 @@ public class OntAPropertyImpl extends OntPEImpl implements OntNAP {
     }
 
     @Override
-    public Stream<OntNAP> listSuperProperties(boolean direct) {
+    public Stream<OntNAP> superProperties(boolean direct) {
         return listHierarchy(this, OntNAP.class, RDFS.subPropertyOf, false, direct);
     }
 
     @Override
-    public Stream<OntNAP> listSubProperties(boolean direct) {
+    public Stream<OntNAP> subProperties(boolean direct) {
         return listHierarchy(this, OntNAP.class, RDFS.subPropertyOf, true, direct);
     }
 
@@ -66,12 +66,12 @@ public class OntAPropertyImpl extends OntPEImpl implements OntNAP {
     }
 
     @Override
-    public Stream<Resource> domain() {
+    public Stream<Resource> domains() {
         return objects(RDFS.domain, Resource.class).filter(RDFNode::isURIResource);
     }
 
     @Override
-    public Stream<Resource> range() {
+    public Stream<Resource> ranges() {
         return objects(RDFS.range, Resource.class).filter(RDFNode::isURIResource);
     }
 

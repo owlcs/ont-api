@@ -46,7 +46,7 @@ public interface OntPE extends OntObject {
      *  :C rdfs:subPropertyOf :D .
      * } </pre>
      * If the flag {@code direct} is {@code true}, then the output will contain only direct super properties:
-     * {@code B} and {@code C}. In this case the method is almost equivalent to the method {@link #subPropertyOf()}.
+     * {@code B} and {@code C}. In this case the method is almost equivalent to the method {@link #superProperties()}.
      * If the flag {@code direct} is {@code false}, then the output will contain three properties:
      * {@code B}, {@code C} and {@code D} (indirectly).
      * This property instance is not included into the output in any case.
@@ -55,11 +55,11 @@ public interface OntPE extends OntObject {
      *               i.e. eliminate any property for which there is a longer route
      *               to reach that child under the super-property relation
      * @return <b>distinct</b> {@code Stream} of properties with the same type as this property
-     * @see #subPropertyOf()
-     * @see #listSubProperties(boolean)
+     * @see #superProperties()
+     * @see #subProperties(boolean)
      * @since 1.4.0
      */
-    Stream<? extends OntPE> listSuperProperties(boolean direct);
+    Stream<? extends OntPE> superProperties(boolean direct);
 
     /**
      * Answers a {@code Stream} over all of the properties that are declared to be sub-properties of this property.
@@ -82,10 +82,10 @@ public interface OntPE extends OntObject {
      *               i.e. eliminate any property for which there is a longer route
      *               to reach that child under the super-property relation
      * @return <b>distinct</b> {@code Stream} of properties with the same type as this property
-     * @see #listSuperProperties(boolean)
+     * @see #superProperties(boolean)
      * @since 1.4.0
      */
-    Stream<? extends OntPE> listSubProperties(boolean direct);
+    Stream<? extends OntPE> subProperties(boolean direct);
 
     /**
      * Lists all direct super properties for this property expression.
@@ -93,29 +93,32 @@ public interface OntPE extends OntObject {
      * Note: the return elements have the same type as this instance.
      *
      * @return {@code Stream} of {@link Resource jena resource}s
-     * @see OntNAP#subPropertyOf()
-     * @see OntDOP#subPropertyOf()
+     * @see OntNAP#superProperties()
+     * @see OntDOP#superProperties()
+     * @since 1.4.0
      */
-    Stream<? extends OntPE> subPropertyOf();
+    Stream<? extends OntPE> superProperties();
 
     /**
      * Lists all property domains.
      *
      * @return {@code Stream} of {@link Resource}s
-     * @see OntNAP#domain()
-     * @see OntOPE#domain()
-     * @see OntNDP#domain()
+     * @see OntNAP#domains()
+     * @see OntOPE#domains()
+     * @see OntNDP#domains()
+     * @since 1.4.0
      */
-    Stream<? extends Resource> domain();
+    Stream<? extends Resource> domains();
 
     /**
      * Lists all property ranges.
      *
      * @return {@code Stream} of {@link Resource}s
-     * @see OntNAP#range()
-     * @see OntDOP#range()
+     * @see OntNAP#ranges()
+     * @see OntDOP#ranges()
+     * @since 1.4.0
      */
-    Stream<? extends Resource> range();
+    Stream<? extends Resource> ranges();
 
     /**
      * Returns a named part of this property expression.
@@ -167,5 +170,38 @@ public interface OntPE extends OntObject {
     @Deprecated
     default void removeSubPropertyOf(Resource superProperty) {
         removeSuperProperty(superProperty);
+    }
+
+    /**
+     * Lists all property domains.
+     *
+     * @return {@code Stream} of {@link Resource}s
+     * @deprecated since 1.4.0: use {@link #domains()} instead
+     */
+    @Deprecated
+    default Stream<? extends Resource> domain() {
+        return domains();
+    }
+
+    /**
+     * Lists all property ranges.
+     *
+     * @return {@code Stream} of {@link Resource}s
+     * @deprecated since 1.4.0: use {@link #ranges()}} instead
+     */
+    @Deprecated
+    default Stream<? extends Resource> range() {
+        return ranges();
+    }
+
+    /**
+     * Lists all direct super properties.
+     *
+     * @return {@code Stream} of {@link Resource}s
+     * @deprecated since 1.4.0: use {@link #superProperties()} instead
+     */
+    @Deprecated
+    default Stream<? extends OntPE> subPropertyOf() {
+        return superProperties();
     }
 }

@@ -99,7 +99,7 @@ public class OntModelTest {
                 expectedDOs.size(), actualDOs.size());
 
         Assert.assertEquals("Incorrect number of owl:inverseOf for object properties", inverseStatements.size(),
-                ont.objectProperties().flatMap(OntOPE::inverseOf).count());
+                ont.objectProperties().flatMap(OntOPE::inverseProperties).count());
     }
 
     @Test
@@ -269,7 +269,7 @@ public class OntModelTest {
         Assert.assertFalse(p1.findInverseProperty().isPresent());
         OntOPE p2 = m.createResource().addProperty(OWL.inverseOf, p1).as(OntOPE.class);
         Assert.assertTrue(p2.findInverseProperty().isPresent());
-        Assert.assertEquals(1, p2.inverseOf().count());
+        Assert.assertEquals(1, p2.inverseProperties().count());
         Assert.assertEquals(p1.asProperty(), p2.asProperty());
         Assert.assertEquals(p1, p2.findInverseProperty().orElseThrow(AssertionError::new));
         Assert.assertEquals(1, m.ontObjects(OntOPE.Inverse.class).count());

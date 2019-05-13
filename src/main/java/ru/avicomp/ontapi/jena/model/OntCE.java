@@ -187,7 +187,7 @@ public interface OntCE extends OntObject {
      * </ul>
      *
      * @return {@code Stream} of {@link OntPE}s
-     * @see OntPE#domain()
+     * @see OntPE#domains()
      */
     default Stream<OntPE> properties() {
         return getModel().statements(null, RDFS.domain, this)

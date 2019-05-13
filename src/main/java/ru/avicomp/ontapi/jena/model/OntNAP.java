@@ -37,7 +37,7 @@ public interface OntNAP extends OntPE, OntProperty {
      * @return <b>distinct</b> {@code Stream} of annotation properties
      * @since 1.4.0
      */
-    Stream<OntNAP> listSuperProperties(boolean direct);
+    Stream<OntNAP> superProperties(boolean direct);
 
     /**
      * {@inheritDoc}
@@ -45,7 +45,25 @@ public interface OntNAP extends OntPE, OntProperty {
      * @return <b>distinct</b> {@code Stream} of annotation properties
      * @since 1.4.0
      */
-    Stream<OntNAP> listSubProperties(boolean direct);
+    Stream<OntNAP> subProperties(boolean direct);
+
+    /**
+     * Lists all valid annotation property domains in the form of java {@code Stream}.
+     *
+     * @return {@code Stream} of uri-{@link Resource}s
+     * @since 1.4.0
+     */
+    @Override
+    Stream<Resource> domains();
+
+    /**
+     * Lists all valid annotation property ranges.
+     *
+     * @return {@code Stream} of uri-{@link Resource}s
+     * @since 1.4.0
+     */
+    @Override
+    Stream<Resource> ranges();
 
     /**
      * Adds domain statement {@code A rdfs:domain U},
@@ -54,7 +72,7 @@ public interface OntNAP extends OntPE, OntProperty {
      * @param domain uri-{@link Resource}, not {@code null}
      * @return {@link OntStatement} to allow subsequent annotations adding
      * @throws ru.avicomp.ontapi.jena.OntJenaException in case of anonymous resource is specified
-     * @see #domain()
+     * @see #domains()
      * @see #removeDomain(Resource)
      * @see #addDomain(Resource)
      * @see #addRangeStatement(Resource)
@@ -68,29 +86,13 @@ public interface OntNAP extends OntPE, OntProperty {
      * @param range uri-{@link Resource}, not {@code null}
      * @return {@link OntStatement} to allow subsequent annotations adding
      * @throws ru.avicomp.ontapi.jena.OntJenaException in case of input is anonymous resource
-     * @see #range()
+     * @see #ranges()
      * @see #removeRange(Resource)
      * @see #addRange(Resource)
      * @see #addDomainStatement(Resource)
      * @since 1.4.0
      */
     OntStatement addRangeStatement(Resource range);
-
-    /**
-     * Lists all valid annotation property domains in the form of java {@code Stream}.
-     *
-     * @return {@code Stream} of uri-{@link Resource}s
-     */
-    @Override
-    Stream<Resource> domain();
-
-    /**
-     * Lists all valid annotation property ranges.
-     *
-     * @return {@code Stream} of uri-{@link Resource}s
-     */
-    @Override
-    Stream<Resource> range();
 
     /**
      * Lists all direct super properties.
@@ -101,10 +103,10 @@ public interface OntNAP extends OntPE, OntProperty {
      * @see #addSubPropertyOfStatement(OntNAP)
      * @see #addSuperProperty(OntNAP)
      * @see #removeSuperProperty(Resource)
-     * @see #listSuperProperties(boolean)
+     * @see #superProperties(boolean)
      */
     @Override
-    default Stream<OntNAP> subPropertyOf() {
+    default Stream<OntNAP> superProperties() {
         return objects(RDFS.subPropertyOf, OntNAP.class);
     }
 
@@ -193,4 +195,44 @@ public interface OntNAP extends OntPE, OntProperty {
     default OntStatement addSubPropertyOf(OntNAP superProperty) {
         return addSubPropertyOfStatement(superProperty);
     }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @return {@code Stream}
+     * @deprecated since 1.4.0: use {@link #domains()} instead
+     */
+    @SuppressWarnings("deprecation")
+    @Deprecated
+    @Override
+    default Stream<Resource> domain() {
+        return domains();
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @return {@code Stream}
+     * @deprecated since 1.4.0: use {@link #ranges()} instead
+     */
+    @SuppressWarnings("deprecation")
+    @Deprecated
+    @Override
+    default Stream<Resource> range() {
+        return ranges();
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @return {@code Stream}
+     * @deprecated since 1.4.0: use {@link #superProperties()} instead
+     */
+    @SuppressWarnings("deprecation")
+    @Deprecated
+    @Override
+    default Stream<OntNAP> subPropertyOf() {
+        return superProperties();
+    }
+
 }

@@ -133,12 +133,12 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
     }
 
     @Override
-    public Stream<OntOPE> listSuperProperties(boolean direct) {
+    public Stream<OntOPE> superProperties(boolean direct) {
         return listHierarchy(this, OntOPE.class, RDFS.subPropertyOf, false, direct);
     }
 
     @Override
-    public Stream<OntOPE> listSubProperties(boolean direct) {
+    public Stream<OntOPE> subProperties(boolean direct) {
         return listHierarchy(this, OntOPE.class, RDFS.subPropertyOf, true, direct);
     }
 
@@ -153,7 +153,7 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
     }
 
     @Override
-    public Stream<OntList<OntOPE>> listPropertyChains() {
+    public Stream<OntList<OntOPE>> propertyChains() {
         return OntListImpl.stream(getModel(), this, OWL.propertyChainAxiom, OntOPE.class);
     }
 

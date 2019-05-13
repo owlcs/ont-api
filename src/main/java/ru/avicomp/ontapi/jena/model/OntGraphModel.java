@@ -647,7 +647,7 @@ public interface OntGraphModel extends Model {
     /**
      * Lists all named class expressions (OWL classes).
      *
-     * @return {@code Stream} of {@link OntClass}s
+     * @return {@code Stream} of {@link OntClass Ontology Class}es
      * @since 1.4.0
      */
     default Stream<OntClass> classes() {
@@ -657,7 +657,7 @@ public interface OntGraphModel extends Model {
     /**
      * Lists all annotation properties.
      *
-     * @return {@code Stream} of {@link OntNAP}s
+     * @return {@code Stream} of {@link OntNAP Annotation Property}s
      * @since 1.4.0
      */
     default Stream<OntNAP> annotationProperties() {
@@ -667,7 +667,7 @@ public interface OntGraphModel extends Model {
     /**
      * Lists all data properties.
      *
-     * @return {@code Stream} of {@link OntNDP}s
+     * @return {@code Stream} of {@link OntNDP Data Property}s
      * @since 1.4.0
      */
     default Stream<OntNDP> dataProperties() {
@@ -677,7 +677,7 @@ public interface OntGraphModel extends Model {
     /**
      * Lists all named object property expressions (object properties in short).
      *
-     * @return {@code Stream} of {@link OntNOP}s
+     * @return {@code Stream} of {@link OntNOP Named Object Property}s
      * @since 1.4.0
      */
     default Stream<OntNOP> objectProperties() {
@@ -687,7 +687,7 @@ public interface OntGraphModel extends Model {
     /**
      * Lists all datatypes (named data range expressions).
      *
-     * @return {@code Stream} of {@link OntDT}s
+     * @return {@code Stream} of {@link OntDT Ontology Datatype}s
      * @since 1.4.0
      */
     default Stream<OntDT> datatypes() {
@@ -697,8 +697,10 @@ public interface OntGraphModel extends Model {
     /**
      * Lists all named individuals.
      *
-     * @return {@code Stream} of {@link OntIndividual.Named}
+     * @return {@code Stream} of {@link OntIndividual.Named Named Individual}s
      * @since 1.4.0
+     * @see #classAssertions()
+     * @see OntCE#individuals()
      */
     default Stream<OntIndividual.Named> namedIndividuals() {
         return ontEntities(OntIndividual.Named.class);

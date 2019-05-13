@@ -84,25 +84,25 @@ public class OntPropertyTest {
 
         ReadWriteUtils.print(m);
 
-        Assert.assertEquals(1, da.listSuperProperties(true)
+        Assert.assertEquals(1, da.superProperties(true)
                 .peek(x -> LOGGER.debug("{} has direct data super property: {}", da, x)).count());
-        Assert.assertEquals(2, da.listSuperProperties(false)
+        Assert.assertEquals(2, da.superProperties(false)
                 .peek(x -> LOGGER.debug("{} has data super property: {}", da, x)).count());
 
-        Assert.assertEquals(1, iob.listSubProperties(true)
+        Assert.assertEquals(1, iob.subProperties(true)
                 .peek(x -> LOGGER.debug("{} has direct object sub property: {}", iob, x)).count());
-        Assert.assertEquals(1, iob.listSubProperties(false)
+        Assert.assertEquals(1, iob.subProperties(false)
                 .peek(x -> LOGGER.debug("{} has object sub property: {}", iob, x)).count());
-        Assert.assertEquals(2, oa.listSubProperties(false)
+        Assert.assertEquals(2, oa.subProperties(false)
                 .peek(x -> LOGGER.debug("{} has object sub property: {}", oa, x)).count());
 
-        Assert.assertEquals(1, ac.listSuperProperties(true)
+        Assert.assertEquals(1, ac.superProperties(true)
                 .peek(x -> LOGGER.debug("{} has direct annotation super property: {}", ac, x)).count());
-        Assert.assertEquals(1, ac.listSubProperties(true)
+        Assert.assertEquals(1, ac.subProperties(true)
                 .peek(x -> LOGGER.debug("{} has direct annotation sub property: {}", ac, x)).count());
-        Assert.assertEquals(3, ac.listSuperProperties(false)
+        Assert.assertEquals(3, ac.superProperties(false)
                 .peek(x -> LOGGER.debug("{} has annotation super property: {}", ac, x)).count());
-        Assert.assertEquals(3, m.getRDFSComment().listSubProperties(false)
+        Assert.assertEquals(3, m.getRDFSComment().subProperties(false)
                 .peek(x -> LOGGER.debug("{} has annotation sub property: {}", m.getRDFSComment(), x)).count());
     }
 
@@ -113,12 +113,12 @@ public class OntPropertyTest {
         Assert.assertNotNull(p.addRangeStatement(m.getRDFSComment()));
         Assert.assertNotNull(p.addDomainStatement(m.getRDFSComment()));
         Assert.assertSame(p, p.addDomain(m.getOWLThing()).addRange(m.getOWLNothing()).addDomain(m.getRDFSLabel()));
-        Assert.assertEquals(2, p.range().count());
-        Assert.assertEquals(3, p.domain().count());
+        Assert.assertEquals(2, p.ranges().count());
+        Assert.assertEquals(3, p.domains().count());
 
         Assert.assertSame(p, p.removeDomain(m.getOWLThing()).removeRange(m.getRDFSComment()));
-        Assert.assertEquals(1, p.range().count());
-        Assert.assertEquals(2, p.domain().count());
+        Assert.assertEquals(1, p.ranges().count());
+        Assert.assertEquals(2, p.domains().count());
     }
 
     @Test
@@ -130,12 +130,12 @@ public class OntPropertyTest {
         Assert.assertNotNull(p.addRangeStatement(m.getRDFSLiteral()));
         Assert.assertNotNull(p.addDomainStatement(m.getOWLNothing()));
         Assert.assertSame(p, p.addDomain(m.getOWLThing()).addRange(d).addDomain(c));
-        Assert.assertEquals(2, p.range().count());
-        Assert.assertEquals(3, p.domain().count());
+        Assert.assertEquals(2, p.ranges().count());
+        Assert.assertEquals(3, p.domains().count());
 
         Assert.assertSame(p, p.removeDomain(m.getOWLThing()).removeRange(d));
-        Assert.assertEquals(1, p.range().count());
-        Assert.assertEquals(2, p.domain().count());
+        Assert.assertEquals(1, p.ranges().count());
+        Assert.assertEquals(2, p.domains().count());
 
         p.removeRange(null).removeDomain(null);
         Assert.assertEquals(2, m.size());
@@ -149,12 +149,12 @@ public class OntPropertyTest {
         Assert.assertNotNull(p.addRangeStatement(m.getOWLThing()));
         Assert.assertNotNull(p.addDomainStatement(m.getOWLNothing()));
         Assert.assertSame(p, p.addDomain(m.getOWLThing()).addRange(m.getOWLNothing()).addDomain(c));
-        Assert.assertEquals(2, p.range().count());
-        Assert.assertEquals(3, p.domain().count());
+        Assert.assertEquals(2, p.ranges().count());
+        Assert.assertEquals(3, p.domains().count());
 
         Assert.assertSame(p, p.removeDomain(m.getOWLThing()).removeRange(m.getOWLNothing()));
-        Assert.assertEquals(1, p.range().count());
-        Assert.assertEquals(2, p.domain().count());
+        Assert.assertEquals(1, p.ranges().count());
+        Assert.assertEquals(2, p.domains().count());
 
         p.removeRange(null).removeDomain(null);
         Assert.assertEquals(2, m.size());
@@ -167,12 +167,12 @@ public class OntPropertyTest {
         Assert.assertNotNull(p.addSubPropertyOfStatement(m.getRDFSComment()));
         Assert.assertSame(p, p.addSuperProperty(m.getRDFSLabel())
                 .addSuperProperty(m.getAnnotationProperty(RDFS.seeAlso)));
-        Assert.assertEquals(3, p.subPropertyOf().count());
+        Assert.assertEquals(3, p.superProperties().count());
 
         Assert.assertSame(p, p.removeSuperProperty(m.getOWLThing()).removeSuperProperty(m.getRDFSComment()));
-        Assert.assertEquals(2, p.subPropertyOf().count());
+        Assert.assertEquals(2, p.superProperties().count());
         p.removeSuperProperty(null);
-        Assert.assertEquals(0, p.subPropertyOf().count());
+        Assert.assertEquals(0, p.superProperties().count());
     }
 
     @Test
@@ -183,12 +183,12 @@ public class OntPropertyTest {
         Assert.assertNotNull(p1.addSubPropertyOfStatement(m.getOWLBottomDataProperty()));
         Assert.assertSame(p1, p1.addSuperProperty(m.getOWLTopDataProperty())
                 .addSuperProperty(p2));
-        Assert.assertEquals(3, p1.subPropertyOf().count());
+        Assert.assertEquals(3, p1.superProperties().count());
 
         Assert.assertSame(p1, p1.removeSuperProperty(m.getOWLThing()).removeSuperProperty(m.getOWLTopDataProperty()));
-        Assert.assertEquals(2, p1.subPropertyOf().count());
+        Assert.assertEquals(2, p1.superProperties().count());
         p1.removeSuperProperty(null);
-        Assert.assertEquals(0, p1.subPropertyOf().count());
+        Assert.assertEquals(0, p1.superProperties().count());
     }
 
     @Test
@@ -199,12 +199,12 @@ public class OntPropertyTest {
         Assert.assertNotNull(p1.addSubPropertyOfStatement(m.getOWLBottomObjectProperty()));
         Assert.assertSame(p1, p1.addSuperProperty(m.getOWLTopObjectProperty())
                 .addSuperProperty(p2));
-        Assert.assertEquals(3, p1.subPropertyOf().count());
+        Assert.assertEquals(3, p1.superProperties().count());
 
         Assert.assertSame(p1, p1.removeSuperProperty(m.getOWLThing()).removeSuperProperty(m.getOWLTopObjectProperty()));
-        Assert.assertEquals(2, p1.subPropertyOf().count());
+        Assert.assertEquals(2, p1.superProperties().count());
         p1.removeSuperProperty(null);
-        Assert.assertEquals(0, p1.subPropertyOf().count());
+        Assert.assertEquals(0, p1.superProperties().count());
     }
 
     @Test
@@ -277,11 +277,11 @@ public class OntPropertyTest {
         OntNOP c = m.createObjectProperty("C");
         Assert.assertNotNull(a.addInverseOfStatement(b));
         Assert.assertEquals(b, a.findInverseProperty().orElseThrow(AssertionError::new));
-        Assert.assertEquals(1, a.inverseOf().count());
+        Assert.assertEquals(1, a.inverseProperties().count());
         Assert.assertSame(c, c.addInverseProperty(b).addInverseProperty(a));
-        Assert.assertEquals(2, c.inverseOf().count());
+        Assert.assertEquals(2, c.inverseProperties().count());
         Assert.assertSame(c, c.removeInverseProperty(c).removeInverseProperty(b));
-        Assert.assertEquals(1, c.inverseOf().count());
+        Assert.assertEquals(1, c.inverseProperties().count());
         Assert.assertSame(a, a.removeInverseProperty(null));
         Assert.assertEquals(4, m.size());
     }
@@ -294,9 +294,9 @@ public class OntPropertyTest {
         OntNDP c = m.createDataProperty("C");
         Assert.assertNotNull(a.addEquivalentPropertyStatement(b));
         Assert.assertSame(a, a.addEquivalentProperty(c).addEquivalentProperty(m.getOWLBottomDataProperty()));
-        Assert.assertEquals(3, a.equivalentProperty().count());
+        Assert.assertEquals(3, a.equivalentProperties().count());
         Assert.assertSame(a, a.removeEquivalentProperty(b).removeEquivalentProperty(m.getRDFSComment()));
-        Assert.assertEquals(2, a.equivalentProperty().count());
+        Assert.assertEquals(2, a.equivalentProperties().count());
         Assert.assertSame(a, a.removeEquivalentProperty(null));
         Assert.assertEquals(3, m.size());
     }
@@ -309,9 +309,9 @@ public class OntPropertyTest {
         OntNOP c = m.createObjectProperty("C");
         Assert.assertNotNull(a.addEquivalentPropertyStatement(b));
         Assert.assertSame(a, a.addEquivalentProperty(c).addEquivalentProperty(m.getOWLTopObjectProperty()));
-        Assert.assertEquals(3, a.equivalentProperty().count());
+        Assert.assertEquals(3, a.equivalentProperties().count());
         Assert.assertSame(a, a.removeEquivalentProperty(b).removeEquivalentProperty(m.getOWLThing()));
-        Assert.assertEquals(2, a.equivalentProperty().count());
+        Assert.assertEquals(2, a.equivalentProperties().count());
         Assert.assertSame(a, a.removeEquivalentProperty(null));
         Assert.assertEquals(3, m.size());
     }
@@ -324,9 +324,9 @@ public class OntPropertyTest {
         OntNDP c = m.createDataProperty("C");
         Assert.assertNotNull(a.addPropertyDisjointWithStatement(b));
         Assert.assertSame(a, a.addDisjointProperty(c).addDisjointProperty(m.getOWLBottomDataProperty()));
-        Assert.assertEquals(3, a.disjointWith().count());
+        Assert.assertEquals(3, a.disjointProperties().count());
         Assert.assertSame(a, a.removeDisjointProperty(b).removeDisjointProperty(m.getRDFSComment()));
-        Assert.assertEquals(2, a.disjointWith().count());
+        Assert.assertEquals(2, a.disjointProperties().count());
         Assert.assertSame(a, a.removeDisjointProperty(null));
         Assert.assertEquals(3, m.size());
     }
@@ -339,9 +339,9 @@ public class OntPropertyTest {
         OntNOP c = m.createObjectProperty("C");
         Assert.assertNotNull(a.addPropertyDisjointWithStatement(b));
         Assert.assertSame(a, a.addDisjointProperty(c).addDisjointProperty(m.getOWLTopObjectProperty()));
-        Assert.assertEquals(3, a.disjointWith().count());
+        Assert.assertEquals(3, a.disjointProperties().count());
         Assert.assertSame(a, a.removeDisjointProperty(b).removeDisjointProperty(m.getOWLThing()));
-        Assert.assertEquals(2, a.disjointWith().count());
+        Assert.assertEquals(2, a.disjointProperties().count());
         Assert.assertSame(a, a.removeDisjointProperty(null));
         Assert.assertEquals(3, m.size());
     }

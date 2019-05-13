@@ -47,12 +47,12 @@ public class OntDPropertyImpl extends OntPEImpl implements OntNDP {
     }
 
     @Override
-    public Stream<OntNDP> listSuperProperties(boolean direct) {
+    public Stream<OntNDP> superProperties(boolean direct) {
         return listHierarchy(this, OntNDP.class, RDFS.subPropertyOf, false, direct);
     }
 
     @Override
-    public Stream<OntNDP> listSubProperties(boolean direct) {
+    public Stream<OntNDP> subProperties(boolean direct) {
         return listHierarchy(this, OntNDP.class, RDFS.subPropertyOf, true, direct);
     }
 

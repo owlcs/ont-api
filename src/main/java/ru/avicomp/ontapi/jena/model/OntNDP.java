@@ -51,7 +51,7 @@ public interface OntNDP extends OntDOP, OntProperty {
      * @return <b>distinct</b> {@code Stream} of datatype properties
      */
     @Override
-    Stream<OntNDP> listSuperProperties(boolean direct);
+    Stream<OntNDP> superProperties(boolean direct);
 
     /**
      * {@inheritDoc}
@@ -59,7 +59,7 @@ public interface OntNDP extends OntDOP, OntProperty {
      * @return <b>distinct</b> {@code Stream} of datatype properties
      */
     @Override
-    Stream<OntNDP> listSubProperties(boolean direct);
+    Stream<OntNDP> subProperties(boolean direct);
 
     /**
      * {@inheritDoc}
@@ -88,9 +88,10 @@ public interface OntNDP extends OntDOP, OntProperty {
      * Returns all property ranges (the statement pattern: {@code R rdfs:range D}).
      *
      * @return {@code Stream} of {@link OntDR}s
+     * @since 1.4.0
      */
     @Override
-    default Stream<OntDR> range() {
+    default Stream<OntDR> ranges() {
         return objects(RDFS.range, OntDR.class);
     }
 
@@ -103,9 +104,10 @@ public interface OntNDP extends OntDOP, OntProperty {
      * @see #addSuperProperty(OntNDP)
      * @see OntPE#removeSuperProperty(Resource)
      * @see #addSubPropertyOfStatement(OntNDP)
+     * @since 1.4.0
      */
     @Override
-    default Stream<OntNDP> subPropertyOf() {
+    default Stream<OntNDP> superProperties() {
         return objects(RDFS.subPropertyOf, OntNDP.class);
     }
 
@@ -113,11 +115,12 @@ public interface OntNDP extends OntDOP, OntProperty {
      * Returns disjoint properties (statement: {@code R1 owl:propertyDisjointWith R2}, where {@code Ri} - this property).
      *
      * @return {@code Stream} of {@link OntNDP}s
-     * @see OntOPE#disjointWith()
+     * @see OntOPE#disjointProperties()
      * @see OntDisjoint.DataProperties
+     * @since 1.4.0
      */
     @Override
-    default Stream<OntNDP> disjointWith() {
+    default Stream<OntNDP> disjointProperties() {
         return objects(OWL.propertyDisjointWith, OntNDP.class);
     }
 
@@ -127,10 +130,11 @@ public interface OntNDP extends OntDOP, OntProperty {
      * where {@code Ri} - this property, {@code Rj} - the property of the same type to return.
      *
      * @return {@code Stream} of {@link OntNDP}s
-     * @see OntOPE#equivalentProperty()
+     * @see OntOPE#equivalentProperties()
+     * @since 1.4.0
      */
     @Override
-    default Stream<OntNDP> equivalentProperty() {
+    default Stream<OntNDP> equivalentProperties() {
         return objects(OWL.equivalentProperty, OntNDP.class);
     }
 
@@ -348,4 +352,55 @@ public interface OntNDP extends OntDOP, OntProperty {
         removeDisjointProperty(other);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @return {@code Stream}
+     * @deprecated since 1.4.0: use {@link #ranges()} instead
+     */
+    @SuppressWarnings("deprecation")
+    @Deprecated
+    @Override
+    default Stream<OntDR> range() {
+        return ranges();
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @return {@code Stream}
+     * @deprecated since 1.4.0: use {@link #superProperties()} instead
+     */
+    @SuppressWarnings("deprecation")
+    @Deprecated
+    @Override
+    default Stream<OntNDP> subPropertyOf() {
+        return superProperties();
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @return {@code Stream}
+     * @deprecated since 1.4.0: use {@link #disjointProperties()} instead
+     */
+    @SuppressWarnings("deprecation")
+    @Deprecated
+    @Override
+    default Stream<OntNDP> disjointWith() {
+        return disjointProperties();
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @return {@code Stream}
+     * @deprecated since 1.4.0: use {@link #equivalentProperties()} instead
+     */
+    @SuppressWarnings("deprecation")
+    @Deprecated
+    @Override
+    default Stream<OntNDP> equivalentProperty() {
+        return equivalentProperties();
+    }
 }

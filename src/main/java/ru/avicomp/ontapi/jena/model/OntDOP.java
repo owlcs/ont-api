@@ -36,22 +36,23 @@ public interface OntDOP extends OntPE {
      *
      * @return <b>distinct</b> {@code Stream} of data <b>or</b> object properties
      */
-    Stream<? extends OntDOP> listSuperProperties(boolean direct);
+    Stream<? extends OntDOP> superProperties(boolean direct);
 
     /**
      * {@inheritDoc}
      *
      * @return <b>distinct</b> {@code Stream} of data <b>or</b> object properties
      */
-    Stream<? extends OntDOP> listSubProperties(boolean direct);
+    Stream<? extends OntDOP> subProperties(boolean direct);
 
     /**
      * Lists all property ranges,
      * i.e. all objects from statements with this property as subject and {@code rdfs:range} as predicate.
      *
      * @return {@code Stream} of {@link OntObject ontology object}s
+     * @since 1.4.0
      */
-    Stream<? extends OntObject> range();
+    Stream<? extends OntObject> ranges();
 
     /**
      * List all super properties for this property expression.
@@ -59,8 +60,9 @@ public interface OntDOP extends OntPE {
      * where {@code P} is this property.
      *
      * @return {@code Stream} of {@link OntDOP}s - object <b>or</b> data properties
+     * @since 1.4.0
      */
-    Stream<? extends OntDOP> subPropertyOf();
+    Stream<? extends OntDOP> superProperties();
 
     /**
      * Lists all properties that are disjoint with this property.
@@ -69,8 +71,9 @@ public interface OntDOP extends OntPE {
      *
      * @return {@code Stream} of {@link OntDOP}s - object <b>or</b> data properties
      * @see OntDisjoint.Properties
+     * @since 1.4.0
      */
-    Stream<? extends OntDOP> disjointWith();
+    Stream<? extends OntDOP> disjointProperties();
 
     /**
      * Lists all properties that equivalent to this one.
@@ -78,8 +81,9 @@ public interface OntDOP extends OntPE {
      * where {@code P} is this property and {@code R} is a returned property of the same type.
      *
      * @return {@code Stream} of {@link OntDOP}s - object <b>or</b> data properties
+     * @since 1.4.0
      */
-    Stream<? extends OntDOP> equivalentProperty();
+    Stream<? extends OntDOP> equivalentProperties();
 
     /**
      * Lists all negative property assertions.
@@ -166,9 +170,10 @@ public interface OntDOP extends OntPE {
      * where {@code P} is this property expression.
      *
      * @return {@code Stream} of {@link OntCE class expression}s
+     * @since 1.4.0
      */
     @Override
-    default Stream<OntCE> domain() {
+    default Stream<OntCE> domains() {
         return objects(RDFS.domain, OntCE.class);
     }
 
@@ -208,4 +213,64 @@ public interface OntDOP extends OntPE {
         return hasType(OWL.FunctionalProperty);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @return {@code Stream}
+     * @deprecated since 1.4.0: use {@link #domains()} instead
+     */
+    @SuppressWarnings("deprecation")
+    @Deprecated
+    @Override
+    default Stream<OntCE> domain() {
+        return domains();
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @return {@code Stream}
+     * @deprecated since 1.4.0: use {@link #ranges()} instead
+     */
+    @SuppressWarnings("deprecation")
+    @Deprecated
+    @Override
+    default Stream<? extends OntObject> range() {
+        return ranges();
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @return {@code Stream}
+     * @deprecated since 1.4.0: use {@link #superProperties()} instead
+     */
+    @SuppressWarnings("deprecation")
+    @Deprecated
+    @Override
+    default Stream<? extends OntDOP> subPropertyOf() {
+        return superProperties();
+    }
+
+    /**
+     * Lists all disjoint properties.
+     *
+     * @return {@code Stream} of {@link OntDOP}s - object <b>or</b> data properties
+     * @deprecated since 1.4.0: use {@link #disjointProperties()} instead
+     */
+    @Deprecated
+    default Stream<? extends OntDOP> disjointWith() {
+        return disjointProperties();
+    }
+
+    /**
+     * Lists all equivalent properties.
+     *
+     * @return {@code Stream} of {@link OntDOP}s - object <b>or</b> data properties
+     * @deprecated since 1.4.0: use {@link #equivalentProperties()} instead
+     */
+    @Deprecated
+    default Stream<? extends OntDOP> equivalentProperty() {
+        return equivalentProperties();
+    }
 }

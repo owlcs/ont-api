@@ -87,9 +87,9 @@ public class OntListTest {
         Assert.assertEquals(3, list.add(p3).add(p3).add(p1).members().count());
         Assert.assertEquals(3, list.members().count());
         Assert.assertEquals(3, list.as(RDFList.class).size());
-        Assert.assertEquals(1, p2.listPropertyChains().count());
-        Assert.assertEquals(0, p3.listPropertyChains().count());
-        Assert.assertEquals(2, m.objectProperties().flatMap(OntOPE::listPropertyChains).count());
+        Assert.assertEquals(1, p2.propertyChains().count());
+        Assert.assertEquals(0, p3.propertyChains().count());
+        Assert.assertEquals(2, m.objectProperties().flatMap(OntOPE::propertyChains).count());
         check(m, 2, OntNOP.class);
 
         list.remove();
@@ -123,14 +123,14 @@ public class OntListTest {
         p1.createPropertyChain(Collections.singletonList(p2)).add(p3);
         check(m, 1, OntOPE.class);
 
-        Assert.assertEquals(1, p1.listPropertyChains().count());
-        OntList<OntOPE> list = p1.listPropertyChains().findFirst().orElseThrow(AssertionError::new);
+        Assert.assertEquals(1, p1.propertyChains().count());
+        OntList<OntOPE> list = p1.propertyChains().findFirst().orElseThrow(AssertionError::new);
         Assert.assertEquals(3, list.addFirst(p4).members().count());
         Assert.assertTrue(list.first().filter(p4::equals).isPresent());
         Assert.assertTrue(list.last().filter(p3::equals).isPresent());
         check(m, 1, OntOPE.class);
 
-        Assert.assertEquals(1, p1.listPropertyChains().count());
+        Assert.assertEquals(1, p1.propertyChains().count());
         Assert.assertEquals(2, list.removeFirst().members().count());
         Assert.assertTrue(list.first().filter(p2::equals).isPresent());
         Assert.assertTrue(list.last().filter(p3::equals).isPresent());
@@ -140,23 +140,23 @@ public class OntListTest {
         check(m, 1, OntPE.class);
         Assert.assertEquals(1, list.addFirst(p4).members().count());
         Assert.assertTrue(list.first().filter(p4::equals).isPresent());
-        Assert.assertEquals(1, p1.listPropertyChains().count());
-        list = p1.listPropertyChains().findFirst().orElseThrow(AssertionError::new);
+        Assert.assertEquals(1, p1.propertyChains().count());
+        list = p1.propertyChains().findFirst().orElseThrow(AssertionError::new);
         Assert.assertEquals(1, list.members().count());
         Assert.assertTrue(list.last().filter(p4::equals).isPresent());
         check(m, 1, OntOPE.class);
 
-        Assert.assertEquals(3, p1.listPropertyChains().findFirst().orElseThrow(AssertionError::new).addLast(p3).addFirst(p2).size());
+        Assert.assertEquals(3, p1.propertyChains().findFirst().orElseThrow(AssertionError::new).addLast(p3).addFirst(p2).size());
         check(m, 1, OntNOP.class);
-        list = p1.listPropertyChains().findFirst().orElseThrow(AssertionError::new);
+        list = p1.propertyChains().findFirst().orElseThrow(AssertionError::new);
         Assert.assertEquals(3, list.size());
         list.removeLast().removeLast();
-        Assert.assertEquals(1, p1.listPropertyChains().findFirst().orElseThrow(AssertionError::new).size());
+        Assert.assertEquals(1, p1.propertyChains().findFirst().orElseThrow(AssertionError::new).size());
         Assert.assertEquals(1, list.members().count());
 
         list.clear();
         Assert.assertEquals(0, list.members().count());
-        Assert.assertTrue(p1.listPropertyChains().findFirst().orElseThrow(AssertionError::new).isNil());
+        Assert.assertTrue(p1.propertyChains().findFirst().orElseThrow(AssertionError::new).isNil());
         Assert.assertEquals(0, list.members().count());
         Assert.assertEquals(3, list.addLast(p2).addFirst(p4).addFirst(p3).size());
         Assert.assertEquals(Arrays.asList(p3, p4, p2), list.as(RDFList.class).asJavaList());
@@ -204,7 +204,7 @@ public class OntListTest {
         // p2, p3, p2, p4, p2
         Assert.assertEquals(Arrays.asList(p2, p3, p2, p4, p2), list.as(RDFList.class).asJavaList());
         // link expired:
-        p1.listPropertyChains().findFirst().orElseThrow(AssertionError::new).clear();
+        p1.propertyChains().findFirst().orElseThrow(AssertionError::new).clear();
         try {
             list.size();
             Assert.fail("Possible to work with expired ont-list instance");
@@ -230,7 +230,7 @@ public class OntListTest {
         } catch (OntJenaException.IllegalState j) {
             LOGGER.debug("Expected: {}", j.getMessage());
         }
-        list = p1.listPropertyChains().findFirst().orElseThrow(AssertionError::new);
+        list = p1.propertyChains().findFirst().orElseThrow(AssertionError::new);
         Assert.assertEquals(3, list.size());
         Assert.assertEquals(2, list.members().count());
         Assert.assertEquals(3, list.addFirst(p3).members().count());
@@ -256,7 +256,7 @@ public class OntListTest {
 
         p1.addPropertyChainAxiomStatement(p4, p4, p3, p2).annotate(m.getRDFSLabel(), literal_x);
         debug(m);
-        OntList<OntOPE> list = p1.listPropertyChains().findFirst().orElseThrow(AssertionError::new);
+        OntList<OntOPE> list = p1.propertyChains().findFirst().orElseThrow(AssertionError::new);
         Assert.assertEquals(literal_x, getSingleAnnotation(list).getLiteral());
         list.clear();
         debug(m);
@@ -409,13 +409,13 @@ public class OntListTest {
         p1.addPropertyChain(p2, p3).addPropertyChain(p3, p3, p4).addPropertyChain(p4, p4);
         debug(m);
         Assert.assertEquals(3, p1.fromPropertyChain().count());
-        Assert.assertEquals(3, m.objectProperties().flatMap(OntOPE::listPropertyChains).count());
-        OntList<OntOPE> p334 = p1.listPropertyChains()
+        Assert.assertEquals(3, m.objectProperties().flatMap(OntOPE::propertyChains).count());
+        OntList<OntOPE> p334 = p1.propertyChains()
                 .filter(c -> c.first().filter(p3::equals).isPresent())
                 .findFirst()
                 .orElseThrow(AssertionError::new);
         Assert.assertEquals(Arrays.asList(p3, p3, p4), p334.members().collect(Collectors.toList()));
-        OntList<OntOPE> p23 = p1.listPropertyChains()
+        OntList<OntOPE> p23 = p1.propertyChains()
                 .filter(c -> c.last().filter(p3::equals).isPresent())
                 .findFirst()
                 .orElseThrow(AssertionError::new);
@@ -426,7 +426,7 @@ public class OntListTest {
         Assert.assertEquals(2, m.statements(null, RDF.type, OWL.Axiom).count());
         Assert.assertSame(p1, p1.removePropertyChain(p334));
         debug(m);
-        Assert.assertEquals(2, m.objectProperties().flatMap(OntOPE::listPropertyChains).count());
+        Assert.assertEquals(2, m.objectProperties().flatMap(OntOPE::propertyChains).count());
         Assert.assertEquals(1, m.statements(null, RDF.type, OWL.Axiom).count());
         Assert.assertSame(p1, p1.clearPropertyChains());
         debug(m);

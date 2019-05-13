@@ -39,6 +39,42 @@ import java.util.stream.Stream;
 public interface OntOPE extends OntDOP {
 
     /**
+     * {@inheritDoc}
+     * Note: a {@code PropertyChain} is not included into consideration:
+     * even this property is a member of some chain ({@code P owl:propertyChainAxiom ( P1 ... Pn )},
+     * where {@code Pj} is this property), it does not mean it has the same super property ({@code P}).
+     *
+     * @return <b>distinct</b> {@code Stream} of object property expressions
+     * @see #propertyChains()
+     * @since 1.4.0
+     */
+    @Override
+    Stream<OntOPE> superProperties(boolean direct);
+
+    /**
+     * {@inheritDoc}
+     * Note: a {@code PropertyChain} is not included into consideration,
+     * even this property is a super property of some chain ({@code P owl:propertyChainAxiom ( P1 ... Pn )},
+     * where {@code P} is this property), each of chain members is not considered as sub property of this property.
+     *
+     * @return <b>distinct</b> {@code Stream} of object property expressions
+     * @see #propertyChains()
+     * @since 1.4.0
+     */
+    @Override
+    Stream<OntOPE> subProperties(boolean direct);
+
+    /**
+     * Returns a {@code Stream} over all property chain {@link OntList ontology list}s
+     * that are attached to this Object Property Expression
+     * on the predicate {@link OWL#propertyChainAxiom owl:propertyChainAxiom}.
+     *
+     * @return {@code Stream} of {@link OntList}s with generic-parameter {@code OntOPE}
+     * @since 1.3.0
+     */
+    Stream<OntList<OntOPE>> propertyChains();
+
+    /**
      * Adds a negative property assertion ontology object.
      *
      * @param source {@link OntIndividual}
@@ -62,21 +98,11 @@ public interface OntOPE extends OntDOP {
      * @see <a href='https://www.w3.org/TR/owl2-syntax/#a_SubObjectPropertyOfChain'>9.2.1 Object Subproperties</a>
      * @see #addPropertyChainAxiomStatement(Collection)
      * @see #addPropertyChain(Collection)
-     * @see #listPropertyChains()
+     * @see #propertyChains()
      * @see #findPropertyChain(RDFNode)
      * @since 1.3.0
      */
     OntList<OntOPE> createPropertyChain(Collection<OntOPE> properties);
-
-    /**
-     * Returns a {@code Stream} over all property chain {@link OntList ontology list}s
-     * that are attached to this Object Property Expression
-     * on the predicate {@link OWL#propertyChainAxiom owl:propertyChainAxiom}.
-     *
-     * @return {@code Stream} of {@link OntList}s with generic-parameter {@code OntOPE}
-     * @since 1.3.0
-     */
-    Stream<OntList<OntOPE>> listPropertyChains();
 
     /**
      * Deletes the given property chain list including all its annotations.
@@ -91,49 +117,16 @@ public interface OntOPE extends OntDOP {
     OntOPE removePropertyChain(Resource list) throws OntJenaException;
 
     /**
-     * {@inheritDoc}
-     * Note: a {@code PropertyChain} is not included into consideration:
-     * even this property is a member of some chain ({@code P owl:propertyChainAxiom ( P1 ... Pn )},
-     * where {@code Pj} is this property), it does not mean it has the same super property ({@code P}).
-     *
-     * @return <b>distinct</b> {@code Stream} of object property expressions
-     */
-    @Override
-    Stream<OntOPE> listSuperProperties(boolean direct);
-
-    /**
-     * {@inheritDoc}
-     * Note: a {@code PropertyChain} is not included into consideration,
-     * even this property is a super property of some chain ({@code P owl:propertyChainAxiom ( P1 ... Pn )},
-     * where {@code P} is this property), each of chain members is not considered as sub property of this property.
-     *
-     * @return <b>distinct</b> {@code Stream} of object property expressions
-     */
-    @Override
-    Stream<OntOPE> listSubProperties(boolean direct);
-
-    /**
      * Returns all ranges.
      * The statement pattern is {@code P rdfs:range C}, where {@code P} is this object property,
      * and {@code C} is one of the return class expressions.
      *
      * @return {@code Stream} of {@link OntCE}s
+     * @since 1.4.0
      */
     @Override
-    default Stream<OntCE> range() {
+    default Stream<OntCE> ranges() {
         return objects(RDFS.range, OntCE.class);
-    }
-
-    /**
-     * Returns disjoint properties (statement: {@code P1 owl:propertyDisjointWith P2}).
-     *
-     * @return {@code Stream} of {@link OntOPE}s
-     * @see OntNDP#disjointWith()
-     * @see OntDisjoint.ObjectProperties
-     */
-    @Override
-    default Stream<OntOPE> disjointWith() {
-        return objects(OWL.propertyDisjointWith, OntOPE.class);
     }
 
     /**
@@ -142,12 +135,26 @@ public interface OntOPE extends OntDOP {
      * @return {@code Stream} of {@link OntOPE}s
      * @see #addSuperProperty(OntOPE)
      * @see OntPE#removeSuperProperty(Resource)
-     * @see OntPE#listSuperProperties(boolean)
-     * @see #listPropertyChains()
+     * @see OntPE#superProperties(boolean)
+     * @see #propertyChains()
+     * @since 1.4.0
      */
     @Override
-    default Stream<OntOPE> subPropertyOf() {
+    default Stream<OntOPE> superProperties() {
         return objects(RDFS.subPropertyOf, OntOPE.class);
+    }
+
+    /**
+     * Returns disjoint properties (statement: {@code P1 owl:propertyDisjointWith P2}).
+     *
+     * @return {@code Stream} of {@link OntOPE}s
+     * @see OntNDP#disjointProperties()
+     * @see OntDisjoint.ObjectProperties
+     * @since 1.4.0
+     */
+    @Override
+    default Stream<OntOPE> disjointProperties() {
+        return objects(OWL.propertyDisjointWith, OntOPE.class);
     }
 
     /**
@@ -155,20 +162,23 @@ public interface OntOPE extends OntDOP {
      * (i.e. {@code Pi owl:equivalentProperty Pj}, where {@code Pi} - this property).
      *
      * @return {@code Stream} of {@link OntOPE}s.
-     * @see OntNDP#equivalentProperty()
+     * @see OntNDP#equivalentProperties()
+     * @since 1.4.0
      */
     @Override
-    default Stream<OntOPE> equivalentProperty() {
+    default Stream<OntOPE> equivalentProperties() {
         return objects(OWL.equivalentProperty, OntOPE.class);
     }
 
     /**
      * Lists all object properties from the right part of the statement {@code _:this owl:inverseOf P}.
+     * Please note: the return list items are not required to be {@link Inverse Inverse Object Property Expression}s.
      *
-     * @return {@code Stream} of {@link OntOPE}s.
+     * @return {@code Stream} of {@link OntOPE}s (either {@link Inverse} or {@link OntNOP})
      * @see OntNOP#createInverse()
+     * @since 1.4.0
      */
-    default Stream<OntOPE> inverseOf() {
+    default Stream<OntOPE> inverseProperties() {
         return objects(OWL.inverseOf, OntOPE.class);
     }
 
@@ -177,6 +187,7 @@ public interface OntOPE extends OntDOP {
      *
      * @return {@code Stream} of {@link OntNPA.ObjectAssertion}s
      * @see OntNDP#negativeAssertions()
+     * @see OntIndividual#negativeAssertions()
      */
     @Override
     default Stream<OntNPA.ObjectAssertion> negativeAssertions() {
@@ -189,10 +200,10 @@ public interface OntOPE extends OntDOP {
      * @param source {@link OntIndividual}
      * @return {@code Stream} of {@link OntNPA.ObjectAssertion}s
      * @see OntNDP#negativeAssertions(OntIndividual)
+     * @see OntIndividual#negativeAssertions(OntProperty)
      */
     default Stream<OntNPA.ObjectAssertion> negativeAssertions(OntIndividual source) {
-        return negativeAssertions()
-                .filter(a -> a.getSource().equals(source));
+        return negativeAssertions().filter(a -> a.getSource().equals(source));
     }
 
     /**
@@ -205,7 +216,7 @@ public interface OntOPE extends OntDOP {
      * @since 1.3.0
      */
     default Optional<OntList<OntOPE>> findPropertyChain(RDFNode list) {
-        try (Stream<OntList<OntOPE>> res = listPropertyChains().filter(r -> Objects.equals(r, list))) {
+        try (Stream<OntList<OntOPE>> res = propertyChains().filter(r -> Objects.equals(r, list))) {
             return res.findFirst();
         }
     }
@@ -219,7 +230,7 @@ public interface OntOPE extends OntDOP {
      * @since 1.3.0
      */
     default OntOPE clearPropertyChains() {
-        listPropertyChains().collect(Collectors.toList()).forEach(this::removePropertyChain);
+        propertyChains().collect(Collectors.toList()).forEach(this::removePropertyChain);
         return this;
     }
 
@@ -232,11 +243,11 @@ public interface OntOPE extends OntDOP {
      *
      * @return <b>distinct</b> {@code Stream} of all sub-{@link OntOPE object properties},
      * possible empty in case of nil-list or if there is no property-chains at all
-     * @see #listPropertyChains()
+     * @see #propertyChains()
      * @since 1.4.0
      */
     default Stream<OntOPE> fromPropertyChain() {
-        return listPropertyChains().flatMap(OntList::members).distinct();
+        return propertyChains().flatMap(OntList::members).distinct();
     }
 
     /**
@@ -370,7 +381,7 @@ public interface OntOPE extends OntDOP {
      * @param other {@link OntOPE}, not {@code null}
      * @return {@link OntStatement} to allow subsequent annotations adding
      * @see #addInverseProperty(OntOPE)
-     * @see #inverseOf()
+     * @see #inverseProperties()
      * @since 1.4.0
      */
     default OntStatement addInverseOfStatement(OntOPE other) {
@@ -712,12 +723,12 @@ public interface OntOPE extends OntDOP {
      * What exactly is the first statement is defined at the level of model; in general it is unpredictable.
      *
      * @return {@code Optional} of {@link OntOPE}
-     * @see #inverseOf()
+     * @see #inverseProperties()
      * @see Inverse#getDirect()
      * @since 1.4.0
      */
     default Optional<OntOPE> findInverseProperty() {
-        try (Stream<OntOPE> res = inverseOf()) {
+        try (Stream<OntOPE> res = inverseProperties()) {
             return res.findFirst();
         }
     }
@@ -762,6 +773,22 @@ public interface OntOPE extends OntDOP {
      */
     default boolean isIrreflexive() {
         return hasType(OWL.IrreflexiveProperty);
+    }
+
+    /**
+     * Represents a <a href="http://www.w3.org/TR/owl2-syntax/#Inverse_Object_Properties">ObjectInverseOf</a>.
+     * Anonymous triple {@code _:x owl:inverseOf PN} which is also object property expression.
+     */
+    interface Inverse extends OntOPE {
+
+        /**
+         * Returns a named object property companion.
+         * Every {@link Inverse} property has its own {@link OntNOP} property.
+         * The triple pattern is {@code _:x owl:inverseOf PN}.
+         *
+         * @return {@link OntNDP}, not {@code null}
+         */
+        OntNOP getDirect();
     }
 
     /**
@@ -865,18 +892,76 @@ public interface OntOPE extends OntDOP {
     }
 
     /**
-     * Represents a <a href="http://www.w3.org/TR/owl2-syntax/#Inverse_Object_Properties">ObjectInverseOf</a>.
-     * Anonymous triple {@code _:x owl:inverseOf PN} which is also object property expression.
+     * {@inheritDoc}
+     * @return {@code Stream}
+     * @deprecated since 1.4.0: use {@link OntOPE#ranges()} instead
      */
-    interface Inverse extends OntOPE {
+    @SuppressWarnings("deprecation")
+    @Deprecated
+    @Override
+    default Stream<OntCE> range() {
+        return ranges();
+    }
 
-        /**
-         * Returns a named object property companion.
-         * Every {@link Inverse} property has its own {@link OntNOP} property.
-         * The triple pattern is {@code _:x owl:inverseOf PN}.
-         *
-         * @return {@link OntNDP}, not {@code null}
-         */
-        OntNOP getDirect();
+    /**
+     * {@inheritDoc}
+     *
+     * @return {@code Stream}
+     * @deprecated since 1.4.0: use {@link OntOPE#superProperties()} instead
+     */
+    @SuppressWarnings("deprecation")
+    @Deprecated
+    @Override
+    default Stream<OntOPE> subPropertyOf() {
+        return superProperties();
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @return {@code Stream}
+     * @deprecated since 1.4.0: use {@link OntOPE#disjointProperties()} instead
+     */
+    @SuppressWarnings("deprecation")
+    @Deprecated
+    @Override
+    default Stream<OntOPE> disjointWith() {
+        return disjointProperties();
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @return {@code Stream}
+     * @deprecated since 1.4.0: use {@link OntOPE#equivalentProperties()} instead
+     */
+    @SuppressWarnings("deprecation")
+    @Deprecated
+    @Override
+    default Stream<OntOPE> equivalentProperty() {
+        return equivalentProperties();
+    }
+
+    /**
+     * Lists all object properties, that are inverse to this.
+     *
+     * @return {@code Stream} of {@link OntOPE}s.
+     * @deprecated since 1.4.0: use {@link OntOPE#inverseProperties()} instead
+     */
+    @Deprecated
+    default Stream<OntOPE> inverseOf() {
+        return inverseProperties();
+    }
+
+    /**
+     * Returns a {@code Stream} over all property chain {@link OntList ontology list}s.
+     *
+     * @return {@code Stream} of {@link OntList}s with generic-parameter {@code OntOPE}
+     * @since 1.3.0
+     * @deprecated since 1.4.0: use {@link OntOPE#propertyChains()} instead
+     */
+    @Deprecated
+    default Stream<OntList<OntOPE>> listPropertyChains() {
+        return propertyChains();
     }
 }
