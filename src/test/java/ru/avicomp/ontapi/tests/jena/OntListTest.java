@@ -89,7 +89,7 @@ public class OntListTest {
         Assert.assertEquals(3, list.as(RDFList.class).size());
         Assert.assertEquals(1, p2.listPropertyChains().count());
         Assert.assertEquals(0, p3.listPropertyChains().count());
-        Assert.assertEquals(2, m.listObjectProperties().flatMap(OntOPE::listPropertyChains).count());
+        Assert.assertEquals(2, m.objectProperties().flatMap(OntOPE::listPropertyChains).count());
         check(m, 2, OntNOP.class);
 
         list.remove();
@@ -409,7 +409,7 @@ public class OntListTest {
         p1.addPropertyChain(p2, p3).addPropertyChain(p3, p3, p4).addPropertyChain(p4, p4);
         debug(m);
         Assert.assertEquals(3, p1.fromPropertyChain().count());
-        Assert.assertEquals(3, m.listObjectProperties().flatMap(OntOPE::listPropertyChains).count());
+        Assert.assertEquals(3, m.objectProperties().flatMap(OntOPE::listPropertyChains).count());
         OntList<OntOPE> p334 = p1.listPropertyChains()
                 .filter(c -> c.first().filter(p3::equals).isPresent())
                 .findFirst()
@@ -426,7 +426,7 @@ public class OntListTest {
         Assert.assertEquals(2, m.statements(null, RDF.type, OWL.Axiom).count());
         Assert.assertSame(p1, p1.removePropertyChain(p334));
         debug(m);
-        Assert.assertEquals(2, m.listObjectProperties().flatMap(OntOPE::listPropertyChains).count());
+        Assert.assertEquals(2, m.objectProperties().flatMap(OntOPE::listPropertyChains).count());
         Assert.assertEquals(1, m.statements(null, RDF.type, OWL.Axiom).count());
         Assert.assertSame(p1, p1.clearPropertyChains());
         debug(m);
@@ -446,7 +446,7 @@ public class OntListTest {
                 .getObject(RDFList.class).size());
         debug(m);
         Assert.assertEquals(3, clazz.listDisjointUnions().count());
-        Assert.assertEquals(3, m.listClasses().flatMap(OntClass::listDisjointUnions).count());
+        Assert.assertEquals(3, m.classes().flatMap(OntClass::listDisjointUnions).count());
 
         OntList<OntCE> d23 = clazz.listDisjointUnions()
                 .filter(c -> c.first().filter(ce2::equals).isPresent())
@@ -471,7 +471,7 @@ public class OntListTest {
         clazz.removeDisjointUnion(d451);
 
         debug(m);
-        Assert.assertEquals(2, m.listClasses().flatMap(OntClass::listDisjointUnions).count());
+        Assert.assertEquals(2, m.classes().flatMap(OntClass::listDisjointUnions).count());
         Assert.assertEquals(1, m.statements(null, RDF.type, OWL.Axiom).count());
         clazz.clearDisjointUnions();
         debug(m);
@@ -493,7 +493,7 @@ public class OntListTest {
         Assert.assertEquals(3, clazz.addHasKeyStatement(p4, p4, p5, p1, p1).getObject(RDFList.class).size());
         debug(m);
         Assert.assertEquals(3, clazz.listHasKeys().count());
-        Assert.assertEquals(3, m.listClasses().flatMap(OntClass::listHasKeys).count());
+        Assert.assertEquals(3, m.classes().flatMap(OntClass::listHasKeys).count());
 
         OntList<OntDOP> h23 = clazz.listHasKeys()
                 .filter(c -> c.first().filter(p2::equals).isPresent())
@@ -518,7 +518,7 @@ public class OntListTest {
         Assert.assertSame(clazz, clazz.removeHasKey(h451));
 
         debug(m);
-        Assert.assertEquals(2, m.listClasses().flatMap(OntClass::listHasKeys).count());
+        Assert.assertEquals(2, m.classes().flatMap(OntClass::listHasKeys).count());
         Assert.assertEquals(1, m.statements(null, RDF.type, OWL.Axiom).count());
         Assert.assertSame(clazz, clazz.clearHasKeys());
         debug(m);

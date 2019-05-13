@@ -168,20 +168,20 @@ public class ImportsOntModelTest extends OntModelTestBase {
         b.add(df.getOWLDeclarationAxiom(df.getOWLClass(IRI.create(b_uri + "#b-1"))));
         b.asGraphModel().createOntClass(b_uri + "#b-2");
         Assert.assertEquals(4, a.axioms(Imports.INCLUDED).count());
-        Assert.assertEquals(4, a.asGraphModel().listClasses().count());
+        Assert.assertEquals(4, a.asGraphModel().classes().count());
 
         a.asGraphModel().imports().findFirst().orElseThrow(AssertionError::new)
                 .createOntClass(b_uri + "#b-3");
         a.imports().findFirst().orElseThrow(AssertionError::new)
                 .add(df.getOWLDeclarationAxiom(df.getOWLClass(IRI.create(b_uri + "#b-4"))));
         Assert.assertEquals(6, a.axioms(Imports.INCLUDED).count());
-        Assert.assertEquals(6, a.asGraphModel().listClasses().count());
+        Assert.assertEquals(6, a.asGraphModel().classes().count());
 
         OntModelFactory.createModel(a.asGraphModel().getGraph()).createOntClass(a_uri + "#a-3");
         OntModelFactory.createModel(a.asGraphModel().imports().findFirst()
                 .orElseThrow(AssertionError::new).getGraph()).createOntClass(b_uri + "#b-5");
         Assert.assertEquals(8, a.axioms(Imports.INCLUDED).count());
-        Assert.assertEquals(8, a.asGraphModel().listClasses().count());
+        Assert.assertEquals(8, a.asGraphModel().classes().count());
 
         Optional.ofNullable(m.getOntology(IRI.create("http://b")))
                 .orElseThrow(AssertionError::new).asGraphModel().createOntClass(b_uri + "#b-6");
@@ -189,21 +189,21 @@ public class ImportsOntModelTest extends OntModelTestBase {
                 .orElseThrow(AssertionError::new)
                 .add(df.getOWLDeclarationAxiom(df.getOWLClass(IRI.create(b_uri + "#b-7"))));
         Assert.assertEquals(10, a.axioms(Imports.INCLUDED).count());
-        Assert.assertEquals(10, a.asGraphModel().listClasses().count());
+        Assert.assertEquals(10, a.asGraphModel().classes().count());
 
         OntModelFactory.createModel(a.asGraphModel().getGraph()).addImport(c.asGraphModel());
         Assert.assertEquals(11, a.axioms(Imports.INCLUDED).count());
-        Assert.assertEquals(11, a.asGraphModel().listClasses().count());
+        Assert.assertEquals(11, a.asGraphModel().classes().count());
         OntModelFactory.createModel(a.asGraphModel().getGraph()).removeImport(c.asGraphModel());
         Assert.assertEquals(10, a.axioms(Imports.INCLUDED).count());
-        Assert.assertEquals(10, a.asGraphModel().listClasses().count());
+        Assert.assertEquals(10, a.asGraphModel().classes().count());
 
         OntModelFactory.createModel(a.asGraphModel().getGraph()).addImport(m.getGraphModel("http://c"));
         Assert.assertEquals(11, a.axioms(Imports.INCLUDED).count());
-        Assert.assertEquals(11, a.asGraphModel().listClasses().count());
+        Assert.assertEquals(11, a.asGraphModel().classes().count());
         OntModelFactory.createModel(a.asGraphModel().getGraph()).removeImport("http://c");
         Assert.assertEquals(10, a.axioms(Imports.INCLUDED).count());
-        Assert.assertEquals(10, a.asGraphModel().listClasses().count());
+        Assert.assertEquals(10, a.asGraphModel().classes().count());
     }
 
     private static void assertDeclarationInModels(OntGraphModel mustHave,
@@ -538,13 +538,13 @@ public class ImportsOntModelTest extends OntModelTestBase {
         a.asGraphModel().createOntClass("A-C");
         b.asGraphModel().createOntClass("B-C");
         Assert.assertEquals(2, a.signature(Imports.INCLUDED).count());
-        Assert.assertEquals(2, a.asGraphModel().listClasses().count());
+        Assert.assertEquals(2, a.asGraphModel().classes().count());
 
         Assert.assertEquals(0, a.asGraphModel().removeImport("b").imports().count());
         Assert.assertEquals(0, a.imports().count());
         Assert.assertEquals(0, a.asGraphModel().imports().count());
         Assert.assertEquals(1, a.signature(Imports.INCLUDED).count());
-        Assert.assertEquals(1, a.asGraphModel().listClasses().count());
+        Assert.assertEquals(1, a.asGraphModel().classes().count());
     }
 
     @Test

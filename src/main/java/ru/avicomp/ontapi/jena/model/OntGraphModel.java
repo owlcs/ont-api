@@ -248,7 +248,7 @@ public interface OntGraphModel extends Model {
      * while this method returns only class-assertion individuals.
      *
      * @return Stream of {@link OntIndividual}s
-     * @see OntGraphModel#listNamedIndividuals()
+     * @see OntGraphModel#namedIndividuals()
      * @since 1.3.0
      */
     Stream<OntIndividual> classAssertions();
@@ -644,27 +644,27 @@ public interface OntGraphModel extends Model {
         return res == null ? createOntEntity(type, uri) : res;
     }
 
-    default Stream<OntClass> listClasses() {
+    default Stream<OntClass> classes() {
         return ontEntities(OntClass.class);
     }
 
-    default Stream<OntNAP> listAnnotationProperties() {
+    default Stream<OntNAP> annotationProperties() {
         return ontEntities(OntNAP.class);
     }
 
-    default Stream<OntNDP> listDataProperties() {
+    default Stream<OntNDP> dataProperties() {
         return ontEntities(OntNDP.class);
     }
 
-    default Stream<OntNOP> listObjectProperties() {
+    default Stream<OntNOP> objectProperties() {
         return ontEntities(OntNOP.class);
     }
 
-    default Stream<OntDT> listDatatypes() {
+    default Stream<OntDT> datatypes() {
         return ontEntities(OntDT.class);
     }
 
-    default Stream<OntIndividual.Named> listNamedIndividuals() {
+    default Stream<OntIndividual.Named> namedIndividuals() {
         return ontEntities(OntIndividual.Named.class);
     }
 
@@ -715,12 +715,78 @@ public interface OntGraphModel extends Model {
     }
 
     /**
+     * Lists classes.
+     *
+     * @return {@code Stream} of {@link OntClass}s
+     * @deprecated since 1.4.0: use {@link #classes()} instead
+     */
+    @Deprecated
+    default Stream<OntClass> listClasses() {
+        return classes();
+    }
+
+    /**
+     * Lists annotation properties.
+     *
+     * @return {@code Stream} of {@link OntNAP}s
+     * @deprecated since 1.4.0: use {@link #annotationProperties()} instead
+     */
+    @Deprecated
+    default Stream<OntNAP> listAnnotationProperties() {
+        return annotationProperties();
+    }
+
+    /**
+     * Lists data properties.
+     *
+     * @return {@code Stream} of {@link OntNDP}s
+     * @deprecated since 1.4.0: use {@link #dataProperties()} instead
+     */
+    @Deprecated
+    default Stream<OntNDP> listDataProperties() {
+        return dataProperties();
+    }
+
+    /**
+     * Lists named object properties.
+     *
+     * @return {@code Stream} of {@link OntNOP}s
+     * @deprecated since 1.4.0: use {@link #objectProperties()} instead
+     */
+    @Deprecated
+    default Stream<OntNOP> listObjectProperties() {
+        return objectProperties();
+    }
+
+    /**
+     * Lists datatypes (named data ranges).
+     *
+     * @return {@code Stream} of {@link OntDT}s
+     * @deprecated since 1.4.0: use {@link #datatypes()} instead
+     */
+    @Deprecated
+    default Stream<OntDT> listDatatypes() {
+        return datatypes();
+    }
+
+    /**
+     * Lists named individuals.
+     *
+     * @return {@code Stream} of {@link OntIndividual.Named}
+     * @deprecated since 1.4.0: use {@link #namedIndividuals()} instead
+     */
+    @Deprecated
+    default Stream<OntIndividual.Named> listNamedIndividuals() {
+        return namedIndividuals();
+    }
+
+    /**
      * Equivalent to {@link #hasImport(OntGraphModel)}.
      *
      * @param other {@link OntGraphModel} to test
      * @return boolean
      * @since 1.3.2
-     * @deprecated since 1.4.0: use {@link #hasImport(OntGraphModel)}
+     * @deprecated since 1.4.0: use {@link #hasImport(OntGraphModel)} instead
      */
     @Deprecated
     default boolean hasInImports(OntGraphModel other) {

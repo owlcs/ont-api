@@ -364,15 +364,15 @@ public class GraphTransformersTest {
 
     private static void signatureTest(OWLOntology owl, OntGraphModel jena) {
         List<String> expectedClasses = owlToList(owl.classesInSignature(Imports.INCLUDED));
-        List<String> actualClasses = jenaToList(jena.listClasses());
+        List<String> actualClasses = jenaToList(jena.classes());
         Assert.assertTrue("Classes", actualClasses.containsAll(expectedClasses));
 
         List<String> expectedAnnotationProperties = owlToList(owl.annotationPropertiesInSignature(Imports.INCLUDED));//, RDFS.comment, RDFS.label, OWL2.deprecated, OWL.versionInfo);
-        List<String> actualAnnotationProperties = jenaToList(jena.listAnnotationProperties());
+        List<String> actualAnnotationProperties = jenaToList(jena.annotationProperties());
         List<String> expectedDataProperties = owlToList(owl.dataPropertiesInSignature(Imports.INCLUDED));
-        List<String> actualDataProperties = jenaToList(jena.listDataProperties());
+        List<String> actualDataProperties = jenaToList(jena.dataProperties());
         List<String> expectedObjectProperties = owlToList(owl.objectPropertiesInSignature(Imports.INCLUDED));
-        List<String> actualObjectProperties = jenaToList(jena.listObjectProperties());
+        List<String> actualObjectProperties = jenaToList(jena.objectProperties());
         LOGGER.debug("Actual AnnotationProperties: " + actualAnnotationProperties);
         LOGGER.debug("Actual ObjectProperties: " + actualObjectProperties);
         LOGGER.debug("Actual DataProperties: " + actualDataProperties);
@@ -382,11 +382,11 @@ public class GraphTransformersTest {
         //Assert.assertThat("ObjectProperties", actualObjectProperties, IsEqual.equalTo(expectedObjectProperties));
 
         List<String> expectedDatatypes = owlToList(owl.datatypesInSignature(Imports.INCLUDED));
-        List<String> actualDatatypes = jenaToList(jena.listDatatypes());
+        List<String> actualDatatypes = jenaToList(jena.datatypes());
         Assert.assertThat("Datatypes", actualDatatypes, IsEqual.equalTo(expectedDatatypes));
 
         List<String> expectedIndividuals = owlToList(owl.individualsInSignature(Imports.INCLUDED));
-        List<String> actualIndividuals = jenaToList(jena.listNamedIndividuals());
+        List<String> actualIndividuals = jenaToList(jena.namedIndividuals());
         Assert.assertThat("Individuals", actualIndividuals, IsEqual.equalTo(expectedIndividuals));
     }
 

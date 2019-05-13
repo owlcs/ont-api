@@ -70,7 +70,7 @@ public class ModelUtilsTest {
         Models.deleteAll(r);
         LOGGER.debug("Delete {}", d);
         Models.deleteAll(d);
-        List<OntCE> classes = m.listClasses()
+        List<OntCE> classes = m.classes()
                 .filter(s -> s.getLocalName().contains("CL"))
                 .collect(Collectors.toList());
         classes.forEach(c -> {

@@ -102,9 +102,9 @@ public class SpinMappingTest {
 
     public void validate(OntGraphModel source, OntGraphModel target) {
         LOGGER.debug("Validate.");
-        OntClass targetClass = target.listClasses().findFirst().orElse(null);
-        OntNDP targetProperty = target.listDataProperties().findFirst().orElse(null);
-        List<OntIndividual> sourceIndividuals = source.listNamedIndividuals().collect(Collectors.toList());
+        OntClass targetClass = target.classes().findFirst().orElse(null);
+        OntNDP targetProperty = target.dataProperties().findFirst().orElse(null);
+        List<OntIndividual> sourceIndividuals = source.namedIndividuals().collect(Collectors.toList());
         List<Resource> targetIndividuals = target.listSubjectsWithProperty(RDF.type, targetClass).toList();
         LOGGER.debug("Individuals count: {}", targetIndividuals.size());
         Assert.assertEquals("Incorrect count of individuals", sourceIndividuals.size(), targetIndividuals.size());
@@ -129,10 +129,10 @@ public class SpinMappingTest {
      */
     public OntGraphModel composeMapping(OntGraphModel source, OntGraphModel target) {
         LOGGER.debug("Compose mapping.");
-        OntClass sourceClass = source.listClasses().findFirst().orElseThrow(AssertionError::new);
-        OntClass targetClass = target.listClasses().findFirst().orElseThrow(AssertionError::new);
-        List<OntNDP> sourceProperties = source.listDataProperties().collect(Collectors.toList());
-        OntNDP targetProperty = target.listDataProperties().findFirst().orElse(null);
+        OntClass sourceClass = source.classes().findFirst().orElseThrow(AssertionError::new);
+        OntClass targetClass = target.classes().findFirst().orElseThrow(AssertionError::new);
+        List<OntNDP> sourceProperties = source.dataProperties().collect(Collectors.toList());
+        OntNDP targetProperty = target.dataProperties().findFirst().orElse(null);
 
         OntGraphModel mapping = manager.createGraphModel("http://spin.avicomp.ru");
         OntGraphModel spinmapl = manager.getGraphModel(SpinModels.SPINMAPL.getIRI().getIRIString());

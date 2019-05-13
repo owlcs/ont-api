@@ -301,7 +301,7 @@ public class OntAnnotationsTest {
         clazz.addSubClassOfStatement(m.getOWLThing()).addAnnotation(m.getRDFSComment(), "mmm")
                 .addAnnotation(m.getRDFSComment(), "ggg");
         ReadWriteUtils.print(m);
-        Assert.assertEquals(3, m.listClasses().findFirst().orElseThrow(AssertionError::new)
+        Assert.assertEquals(3, m.classes().findFirst().orElseThrow(AssertionError::new)
                 .annotations().peek(a -> LOGGER.debug("{}", Models.toString(a))).count());
 
         Assert.assertEquals(24, m.size());
