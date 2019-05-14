@@ -19,7 +19,7 @@ import org.apache.jena.rdf.model.Literal;
 import java.util.Collection;
 
 /**
- * A technical interface to generate different types of {@link OntCE Class Expression}s.
+ * A technical interface to generate {@link OntCE Class Expression}s.
  * Created by @ssz on 13.05.2019.
  *
  * @since 1.4.0

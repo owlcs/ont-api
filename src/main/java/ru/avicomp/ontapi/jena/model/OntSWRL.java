@@ -17,6 +17,7 @@ package ru.avicomp.ontapi.jena.model;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 
+import java.util.Collection;
 import java.util.stream.Stream;
 
 /**
@@ -29,6 +30,9 @@ import java.util.stream.Stream;
  */
 public interface OntSWRL extends OntObject {
 
+    /**
+     * @see OntGraphModel#createSWRLImp(Collection, Collection)
+     */
     interface Imp extends OntSWRL {
 
         /**
@@ -72,6 +76,7 @@ public interface OntSWRL extends OntObject {
 
     /**
      * Represents {@link ru.avicomp.ontapi.jena.vocabulary.SWRL#Variable} entity.
+     * @see OntGraphModel#createSWRLVariable(String)
      */
     interface Variable extends OntSWRL, DArg, IArg {
     }
@@ -113,6 +118,9 @@ public interface OntSWRL extends OntObject {
          */
         Stream<? extends Arg> arguments();
 
+        /**
+         * @see OntGraphModel#createBuiltInSWRLAtom(Resource, Collection)
+         */
         interface BuiltIn extends Atom<Builtin> {
             /**
              * Gets the argument's ONT-List.
@@ -131,21 +139,39 @@ public interface OntSWRL extends OntObject {
             }
         }
 
+        /**
+         * @see OntGraphModel#createClassSWRLAtom(OntCE, OntSWRL.IArg)
+         */
         interface OntClass extends Unary<OntCE, IArg> {
         }
 
+        /**
+         * @see OntGraphModel#createDataRangeSWRLAtom(OntDR, OntSWRL.DArg)
+         */
         interface DataRange extends Unary<OntDR, DArg> {
         }
 
+        /**
+         * @see OntGraphModel#createDataPropertySWRLAtom(OntNDP, OntSWRL.IArg, OntSWRL.DArg)
+         */
         interface DataProperty extends Binary<OntNDP, IArg, DArg> {
         }
 
+        /**
+         * @see OntGraphModel#createObjectPropertySWRLAtom(OntOPE, OntSWRL.IArg, OntSWRL.IArg)
+         */
         interface ObjectProperty extends Binary<OntOPE, IArg, IArg> {
         }
 
+        /**
+         * @see CreateSWRL#createDifferentIndividualsSWRLAtom(OntSWRL.IArg, OntSWRL.IArg)
+         */
         interface DifferentIndividuals extends Binary<OntNOP, IArg, IArg> {
         }
 
+        /**
+         * @see CreateSWRL#createSameIndividualsSWRLAtom(OntSWRL.IArg, OntSWRL.IArg)
+         */
         interface SameIndividuals extends Binary<OntNOP, IArg, IArg> {
         }
 

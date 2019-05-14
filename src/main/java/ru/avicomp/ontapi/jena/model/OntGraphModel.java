@@ -63,7 +63,7 @@ import java.util.stream.Stream;
  * @see <a href='https://www.w3.org/TR/owl2-syntax/'>OWL 2 Web Ontology Language Structural Specification and Functional-Style Syntax (Second Edition)</a>
  * @see <a href='https://www.w3.org/Submission/SWRL/'>SWRL: A Semantic Web Rule Language Combining OWL and RuleML</a>
  */
-public interface OntGraphModel extends Model, CreateClasses {
+public interface OntGraphModel extends Model, CreateClasses, CreateRanges, CreateDisjoint, CreateSWRL {
 
     /**
      * Returns the base {@code Graph},
@@ -107,7 +107,7 @@ public interface OntGraphModel extends Model, CreateClasses {
      * it chooses the most bulky one (i.e. those that contains the most number of associated statements)
      * and all the others leave intact.
      *
-     * @return {@link OntID} an existing or fresh {@link Resource}
+     * @return {@link OntID} an existing or fresh {@link Resource},
      * that is subject in the {@code _:x rdf:type owl:Ontology} statement
      * @see ru.avicomp.ontapi.jena.utils.Graphs#ontologyNode
      */
@@ -142,7 +142,7 @@ public interface OntGraphModel extends Model, CreateClasses {
      * Matching is performed by graph, not uri (see {@link #hasImport(OntGraphModel)} description).
      *
      * @param m {@link OntGraphModel ont jena model} to remove, not {@code null}
-     * @return this model to allow cascading calls
+     * @return <b>this</b> model to allow cascading calls
      * @see OntID#removeImport(String)
      * @see #hasImport(OntGraphModel)
      */
@@ -153,7 +153,7 @@ public interface OntGraphModel extends Model, CreateClasses {
      * by the given uri if it is found.
      *
      * @param uri String, an iri of ontology to find, not {@code null}
-     * @return this model to allow cascading calls
+     * @return <b>this</b> model to allow cascading calls
      * @see OntID#getImportsIRI()
      * @see #hasImport(String)
      */
@@ -340,7 +340,7 @@ public interface OntGraphModel extends Model, CreateClasses {
      * because it is belongs to the class content.
      *
      * @param obj {@link OntObject}
-     * @return this model
+     * @return <b>this</b> model
      * @see OntObject#content()
      */
     OntGraphModel removeOntObject(OntObject obj);
@@ -349,7 +349,7 @@ public interface OntGraphModel extends Model, CreateClasses {
      * Removes the statement from the graph-model including its annotations with sub-annotations hierarchy.
      *
      * @param statement {@link OntStatement}
-     * @return this model
+     * @return <b>this</b> model
      * @see #remove(Statement)
      */
     OntGraphModel removeOntStatement(OntStatement statement);
@@ -378,60 +378,6 @@ public interface OntGraphModel extends Model, CreateClasses {
      * @see OntGraphModel#createRestrictionDataRange(OntDT, Collection)
      */
     <F extends OntFR> F createFacetRestriction(Class<F> type, Literal literal);
-
-    /*
-     * ===========================
-     * Creation Disjoint sections:
-     * ===========================
-     */
-
-    OntDisjoint.Classes createDisjointClasses(Collection<OntCE> classes);
-
-    OntDisjoint.Individuals createDifferentIndividuals(Collection<OntIndividual> individuals);
-
-    OntDisjoint.ObjectProperties createDisjointObjectProperties(Collection<OntOPE> properties);
-
-    OntDisjoint.DataProperties createDisjointDataProperties(Collection<OntNDP> properties);
-
-    /*
-     * =====================
-     * Creation Data Ranges:
-     * =====================
-     */
-
-    OntDR.OneOf createOneOfDataRange(Collection<Literal> values);
-
-    OntDR.Restriction createRestrictionDataRange(OntDT other, Collection<OntFR> values);
-
-    OntDR.ComplementOf createComplementOfDataRange(OntDR other);
-
-    OntDR.UnionOf createUnionOfDataRange(Collection<OntDR> values);
-
-    OntDR.IntersectionOf createIntersectionOfDataRange(Collection<OntDR> values);
-
-    /*
-     * ====================================
-     * SWRL Objects (Variable, Atoms, Imp):
-     * ====================================
-     */
-
-    OntSWRL.Variable createSWRLVariable(String uri);
-
-    OntSWRL.Atom.BuiltIn createBuiltInSWRLAtom(Resource predicate, Collection<OntSWRL.DArg> arguments);
-
-    OntSWRL.Atom.OntClass createClassSWRLAtom(OntCE clazz, OntSWRL.IArg arg);
-
-    OntSWRL.Atom.DataRange createDataRangeSWRLAtom(OntDR range, OntSWRL.DArg arg);
-
-    OntSWRL.Atom.DataProperty createDataPropertySWRLAtom(OntNDP property, OntSWRL.IArg first, OntSWRL.DArg second);
-
-    OntSWRL.Atom.ObjectProperty createObjectPropertySWRLAtom(OntOPE property, OntSWRL.IArg first, OntSWRL.IArg second);
-
-    OntSWRL.Atom.DifferentIndividuals createDifferentIndividualsSWRLAtom(OntSWRL.IArg first, OntSWRL.IArg second);
-
-    OntSWRL.Atom.SameIndividuals createSameIndividualsSWRLAtom(OntSWRL.IArg first, OntSWRL.IArg second);
-
-    OntSWRL.Imp createSWRLImp(Collection<OntSWRL.Atom> head, Collection<OntSWRL.Atom> body);
 
     /*
      * ================================================
@@ -654,9 +600,9 @@ public interface OntGraphModel extends Model, CreateClasses {
      * Lists all named individuals.
      *
      * @return {@code Stream} of {@link OntIndividual.Named Named Individual}s
-     * @since 1.4.0
      * @see #classAssertions()
      * @see OntCE#individuals()
+     * @since 1.4.0
      */
     default Stream<OntIndividual.Named> namedIndividuals() {
         return ontEntities(OntIndividual.Named.class);
