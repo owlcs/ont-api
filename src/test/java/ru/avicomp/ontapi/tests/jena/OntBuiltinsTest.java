@@ -105,8 +105,7 @@ public class OntBuiltinsTest {
         OntGraphModel m3 = OntModelFactory.createModel(Factory.createGraphMem(), personality)
                 .setNsPrefixes(OntModelFactory.STANDARD).addImport(m2);
         Assert.assertEquals(0, m3.ontBuiltins(OntClass.class, true).count());
-        m3.createDisjointClasses(Arrays.asList(m1.getOntClass("B"),
-                m1.getOntClass("E")));
+        m3.createDisjointClasses(m1.getOntClass("B"), m1.getOntClass("E"));
         m3.createObjectMaxCardinality(m3.createObjectProperty("p"), 12, m2.getOntClass("F"));
         ReadWriteUtils.print(m3);
         Assert.assertEquals(5, m3.ontBuiltins(OntClass.class).peek(x -> LOGGER.debug("4) Builtin: {}", x)).count());

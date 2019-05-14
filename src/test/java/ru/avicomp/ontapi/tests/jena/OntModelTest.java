@@ -289,7 +289,7 @@ public class OntModelTest {
         OntGraphModel child = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD)
                 .setID(childURI).getModel().addImport(base);
         OntClass cl3 = child.createOntClass(childNS + "Class3");
-        cl3.addSuperClass(child.createIntersectionOf(Arrays.asList(cl1, cl2)));
+        cl3.addSuperClass(child.createIntersectionOf(cl1, cl2));
         cl3.createIndividual(childNS + "Individual1");
 
         LOGGER.debug("Base:");
@@ -383,8 +383,7 @@ public class OntModelTest {
         OntNOP p2 = m.createObjectProperty("p2");
         // classes:
         OntClass class1 = m.createOntClass("c");
-        OntCE.UnionOf class2 = m.createUnionOf(Arrays.asList(m.createOntClass("c1"),
-                m.createOntClass("c2")));
+        OntCE.UnionOf class2 = m.createUnionOf(m.createOntClass("c1"), m.createOntClass("c2"));
         OntCE.DataHasValue class3 = m.createDataHasValue(p1, m.createLiteral("2"));
         OntCE.DataMinCardinality class4 = m.createDataMinCardinality(p1, 2,
                 m.getDatatype(XSD.xdouble));
@@ -397,8 +396,7 @@ public class OntModelTest {
         class5.addEquivalentClass(m.getOWLNothing());
         // data-ranges:
         OntDT dr1 = m.getDatatype(XSD.xint);
-        OntDR.IntersectionOf dr2 = m.createIntersectionOfDataRange(Arrays.asList(dr1,
-                m.getDatatype(XSD.xdouble)));
+        OntDR.IntersectionOf dr2 = m.createIntersectionOfDataRange(dr1, m.getDatatype(XSD.xdouble));
         OntDR.ComplementOf dr3 = m.createComplementOfDataRange(dr2);
         dr3.addComment("Data range: complement of intersection int and double");
         // individuals:
@@ -485,10 +483,10 @@ public class OntModelTest {
         OntOPE p = m.createObjectProperty("P");
         OntCE class4 = m.createComplementOf(class3);
         OntCE class5 = m.createObjectSomeValuesFrom(p, class4);
-        OntCE class6 = m.createIntersectionOf(Arrays.asList(m.getOWLThing(), class2, class4, class5));
+        OntCE class6 = m.createIntersectionOf(m.getOWLThing(), class2, class4, class5);
         Assert.assertEquals(6, m.ontObjects(OntCE.class).count());
         long size = m.size();
-        OntDisjoint d = m.createDisjointClasses(Arrays.asList(m.getOWLNothing(), class1, class6));
+        OntDisjoint d = m.createDisjointClasses(m.getOWLNothing(), class1, class6);
         ReadWriteUtils.print(m);
 
         m.removeOntObject(d);
@@ -694,7 +692,7 @@ public class OntModelTest {
         OntClass e = m.createOntClass("E");
 
         b.addSuperClass(m.createComplementOf(c)).addSuperClass(a);
-        OntCE ae = m.createIntersectionOf(Arrays.asList(a, e));
+        OntCE ae = m.createIntersectionOf(a, e);
         d.addSuperClass(ae);
         a.addSuperClass(d);
         ae.addSuperClass(a).addSuperClass(b);
@@ -755,11 +753,11 @@ public class OntModelTest {
         Assert.assertSame(d1, d1.setComponents(i2, i3));
         Assert.assertEquals(Arrays.asList(i2, i3), d1.members().collect(Collectors.toList()));
 
-        OntDisjoint.ObjectProperties d2 = m.createDisjointObjectProperties(Arrays.asList(op1, op2, op3));
+        OntDisjoint.ObjectProperties d2 = m.createDisjointObjectProperties(op1, op2, op3);
         Assert.assertEquals(3, d2.getList().members().count());
         Assert.assertTrue(d2.setComponents().getList().isEmpty());
 
-        OntDisjoint.DataProperties d3 = m.createDisjointDataProperties(Arrays.asList(dp1, dp2));
+        OntDisjoint.DataProperties d3 = m.createDisjointDataProperties(dp1, dp2);
         Assert.assertEquals(2, d3.setComponents(Arrays.asList(dp3, m.getOWLBottomDataProperty())).members().count());
 
         ReadWriteUtils.print(m);
@@ -774,5 +772,56 @@ public class OntModelTest {
         Assert.assertEquals(expected, actual);
     }
 
+    @Test
+    public void testCreateDifferentExpressions() {
+        String uri = "http://test.com/graph/3";
+        String ns = uri + "#";
+
+        OntGraphModel m = OntModelFactory.createModel()
+                .setNsPrefix("test", ns)
+                .setNsPrefixes(OntModelFactory.STANDARD)
+                .setID(uri)
+                .getModel();
+
+        OntNDP ndp1 = m.createDataProperty(ns + "dataProperty1");
+        OntDT dt1 = m.createOntEntity(OntDT.class, ns + "dataType1");
+        dt1.addEquivalentClass(m.getDatatype(XSD.dateTime));
+
+        OntDT dt2 = m.createOntEntity(OntDT.class, ns + "dataType2");
+
+        OntFR fr1 = m.createFacetRestriction(OntFR.MaxExclusive.class, ResourceFactory.createTypedLiteral(12));
+        OntFR fr2 = m.createFacetRestriction(OntFR.LangRange.class, ResourceFactory.createTypedLiteral("\\d+"));
+
+        OntDR dr1 = m.createRestrictionDataRange(dt1, fr1, fr2);
+
+        OntCE ce1 = m.createDataSomeValuesFrom(ndp1, dr1);
+
+        OntDR dr2 = m.createIntersectionOfDataRange(dt1, dt2);
+        OntIndividual i1 = ce1.createIndividual(ns + "individual1");
+        OntCE ce2 = m.createDataMaxCardinality(ndp1, 343434, dr2);
+        i1.attachClass(ce2).attachClass(m.createOntClass(ns + "Class1"));
+
+        OntDR dr3 = m.createOneOfDataRange(m.getDatatype(XSD.integer).createLiteral("1"), dt1.createLiteral("2"));
+        OntDR dr4 = m.createComplementOfDataRange(dr3);
+        m.createOntEntity(OntDT.class, ns + "dataType3")
+                .addEquivalentClass(m.createUnionOfDataRange(dr1, dr2, m.createIntersectionOfDataRange(dr1, dr4)));
+
+        OntIndividual i2 = ce2.createIndividual();
+        i2.addStatement(ndp1, ResourceFactory.createPlainLiteral("individual value"));
+
+        m.createOneOf(i1, i2, ce2.createIndividual());
+
+        ReadWriteUtils.print(m);
+        Assert.assertEquals("Incorrect count of individuals", 3, m.ontObjects(OntIndividual.class).count());
+        Assert.assertEquals("Incorrect count of class expressions", 4, m.ontObjects(OntCE.class).count());
+        Assert.assertEquals("Incorrect count of restrictions", 2, m.ontObjects(OntCE.RestrictionCE.class).count());
+        Assert.assertEquals("Incorrect count of cardinality restrictions", 1,
+                m.ontObjects(OntCE.CardinalityRestrictionCE.class).count());
+        Assert.assertEquals("Incorrect count of datatype entities", 3, m.ontObjects(OntDT.class).count());
+        Assert.assertEquals("Incorrect count of data properties", 1, m.ontObjects(OntNDP.class).count());
+        Assert.assertEquals("Incorrect count of facet restrictions", 2, m.ontObjects(OntFR.class).count());
+        Assert.assertEquals("Incorrect count of data ranges", 9, m.ontObjects(OntDR.class).count());
+        Assert.assertEquals("Incorrect count of entities", 6, m.ontObjects(OntEntity.class).count());
+    }
 }
 

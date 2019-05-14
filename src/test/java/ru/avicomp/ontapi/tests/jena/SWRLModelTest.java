@@ -60,7 +60,7 @@ public class SWRLModelTest {
         OntNOP p = m.createObjectProperty(ns + "OP");
         OntIndividual i1 = cl1.createIndividual(ns + "Individual1");
 
-        OntCE.UnionOf cl3 = m.createUnionOf(Arrays.asList(cl1, cl2));
+        OntCE.OneOf cl3 = m.createOneOf(i1);
         OntIndividual i2 = cl3.createIndividual();
 
         OntSWRL.Variable var1 = m.createSWRLVariable(ns + "Variable1");

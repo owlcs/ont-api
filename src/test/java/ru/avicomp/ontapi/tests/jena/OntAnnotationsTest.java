@@ -32,7 +32,6 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -158,7 +157,7 @@ public class OntAnnotationsTest {
         OntClass cl3 = m.createOntClass(ns + "Class3");
         OntNAP nap1 = m.createAnnotationProperty(ns + "AnnotationProperty1");
 
-        OntDisjoint.Classes disjointClasses = m.createDisjointClasses(Arrays.asList(cl1, cl2, cl3));
+        OntDisjoint.Classes disjointClasses = m.createDisjointClasses(cl1, cl2, cl3);
         Assert.assertEquals("Incorrect owl:AllDisjointClasses number", 1,
                 m.ontObjects(OntDisjoint.Classes.class).count());
 
@@ -360,7 +359,7 @@ public class OntAnnotationsTest {
                 .addAnnotation(m.getRDFSComment(), "Class2::2::1::1");
         long size2 = m.size();
 
-        OntCE class3 = m.createIntersectionOf(Arrays.asList(class2, m.getOWLNothing()));
+        OntCE class3 = m.createIntersectionOf(class2, m.getOWLNothing());
         class3.addComment("Class3::1").addAnnotation(m.getRDFSComment(), "Class3::1::1");
         class3.statements().filter(OntStatement::isAnnotation).findFirst().orElseThrow(AssertionError::new)
                 .addAnnotation(m.getRDFSComment(), "Class3::2").addAnnotation(m.getRDFSComment(), "Class3::2::1");

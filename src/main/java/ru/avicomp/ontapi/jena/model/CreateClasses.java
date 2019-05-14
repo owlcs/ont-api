@@ -16,6 +16,7 @@ package ru.avicomp.ontapi.jena.model;
 
 import org.apache.jena.rdf.model.Literal;
 
+import java.util.Arrays;
 import java.util.Collection;
 
 /**
@@ -372,4 +373,39 @@ interface CreateClasses {
      */
     OntCE.NaryDataSomeValuesFrom createDataSomeValuesFrom(Collection<OntNDP> properties, OntDR dr);
 
+    /**
+     * Creates an Intersection of Class Expressions.
+     *
+     * @param classes Array of {@link OntCE class expression}s without {@code null}s
+     * @return {@link OntCE.IntersectionOf}
+     * @see #createIntersectionOf(Collection)
+     * @since 1.4.0
+     */
+    default OntCE.IntersectionOf createIntersectionOf(OntCE... classes) {
+        return createIntersectionOf(Arrays.asList(classes));
+    }
+
+    /**
+     * Creates an Union of Class Expressions.
+     *
+     * @param classes Array of {@link OntCE class expression}s without {@code null}s
+     * @return {@link OntCE.UnionOf}
+     * @see #createUnionOf(Collection)
+     * @since 1.4.0
+     */
+    default OntCE.UnionOf createUnionOf(OntCE... classes) {
+        return createUnionOf(Arrays.asList(classes));
+    }
+
+    /**
+     * Creates an Enumeration of Individuals.
+     *
+     * @param individuals Array of {@link OntIndividual individual}s without {@code null}s
+     * @return {@link OntCE.OneOf}
+     * @see #createOneOf(Collection)
+     * @since 1.4.0
+     */
+    default OntCE.OneOf createOneOf(OntIndividual... individuals) {
+        return createOneOf(Arrays.asList(individuals));
+    }
 }

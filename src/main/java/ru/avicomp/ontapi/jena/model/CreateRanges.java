@@ -16,6 +16,7 @@ package ru.avicomp.ontapi.jena.model;
 
 import org.apache.jena.rdf.model.Literal;
 
+import java.util.Arrays;
 import java.util.Collection;
 
 /**
@@ -100,4 +101,53 @@ interface CreateRanges {
      * @see <a href='https://www.w3.org/TR/owl-syntax/#Intersection_of_Data_Ranges'>7.1 Intersection of Data Ranges</a>
      */
     OntDR.IntersectionOf createIntersectionOfDataRange(Collection<OntDR> values);
+
+    /**
+     * Creates an Enumeration of Literals.
+     *
+     * @param values Array of {@link Literal literal}s, without {@code null}-elements
+     * @return {@link OntDR.OneOf}
+     * @see #createOneOfDataRange(Collection)
+     * @since 1.4.0
+     */
+    default OntDR.OneOf createOneOfDataRange(Literal... values) {
+        return createOneOfDataRange(Arrays.asList(values));
+    }
+
+    /**
+     * Creates a Datatype Restriction.
+     *
+     * @param other  {@link OntDT Named Data Range}, not {@code null}
+     * @param values Array of {@link OntFR facet restriction}s, without {@code null}s
+     * @return {@link OntDR.Restriction}
+     * @see #createRestrictionDataRange(OntDT, Collection)
+     * @since 1.4.0
+     */
+    default OntDR.Restriction createRestrictionDataRange(OntDT other, OntFR... values) {
+        return createRestrictionDataRange(other, Arrays.asList(values));
+    }
+
+    /**
+     * Creates an Union of Data Ranges.
+     *
+     * @param values {@code Collection} of {@link OntDR data range}s, without {@code null}-elements
+     * @return {@link OntDR.UnionOf}
+     * @see #createUnionOfDataRange(Collection)
+     * @since 1.4.0
+     */
+    default OntDR.UnionOf createUnionOfDataRange(OntDR... values) {
+        return createUnionOfDataRange(Arrays.asList(values));
+    }
+
+    /**
+     * Creates an Intersection of Data Ranges.
+     *
+     * @param values Array of {@link OntDR data range}s, without {@code null}-elements
+     * @return {@link OntDR.IntersectionOf}
+     * @see #createIntersectionOfDataRange(Collection)
+     * @since 1.4.0
+     */
+    default OntDR.IntersectionOf createIntersectionOfDataRange(OntDR... values) {
+        return createIntersectionOfDataRange(Arrays.asList(values));
+    }
 }

@@ -47,14 +47,14 @@ public class ModelUtilsTest {
         OntGraphModel m = OntModelFactory.createModel();
         m.read(ModelUtilsTest.class.getResourceAsStream("/ontapi/recursive-graph.ttl"), null, "ttl");
         String ns = m.getID().getURI() + "#";
-        OntObject d = m.createDisjointClasses(Arrays.asList(
+        OntObject d = m.createDisjointClasses(
                 m.createOntClass(ns + "CL1"),
                 m.createOntClass(ns + "CL2"),
                 m.createUnionOf(Arrays.asList(
                         m.createOntClass(ns + "CL4"),
                         m.createOntClass(ns + "CL5"),
                         m.createOntClass(ns + "CL6"))),
-                m.createOntClass(ns + "CL3")));
+                m.createOntClass(ns + "CL3"));
 
         ReadWriteUtils.print(m);
         Assert.assertEquals(40, m.localStatements().count());

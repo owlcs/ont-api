@@ -14,6 +14,7 @@
 
 package ru.avicomp.ontapi.jena.model;
 
+import java.util.Arrays;
 import java.util.Collection;
 
 /**
@@ -81,4 +82,52 @@ interface CreateDisjoint {
      * @see <a href='https://www.w3.org/TR/owl-syntax/#Disjoint_Data_Properties'>9.3.3 Disjoint Data Properties</a>
      */
     OntDisjoint.DataProperties createDisjointDataProperties(Collection<OntNDP> properties);
+
+    /**
+     * Creates a Disjoint Classes Axiom Resource.
+     *
+     * @param classes Array of {@link OntCE Class Expression}s without {@code null}-elements
+     * @return {@link OntDisjoint.Classes}
+     * @see #createDisjointClasses(Collection)
+     * @since 1.4.0
+     */
+    default OntDisjoint.Classes createDisjointClasses(OntCE... classes) {
+        return createDisjointClasses(Arrays.asList(classes));
+    }
+
+    /**
+     * Creates a Different Individuals Axiom Resource.
+     *
+     * @param individuals Array of {@link OntIndividual individual}s without {@code null}-elements
+     * @return {@link OntDisjoint.Individuals}
+     * @see #createDifferentIndividuals(Collection)
+     * @since 1.4.0
+     */
+    default OntDisjoint.Individuals createDifferentIndividuals(OntIndividual... individuals) {
+        return createDifferentIndividuals(Arrays.asList(individuals));
+    }
+
+    /**
+     * Creates a Disjoint Object Properties Axiom Resource.
+     *
+     * @param properties Array of {@link OntOPE Object Property Expression}s without {@code null}-elements
+     * @return {@link OntDisjoint.ObjectProperties}
+     * @see #createDisjointObjectProperties(Collection)
+     * @since 1.4.0
+     */
+    default OntDisjoint.ObjectProperties createDisjointObjectProperties(OntOPE... properties) {
+        return createDisjointObjectProperties(Arrays.asList(properties));
+    }
+
+    /**
+     * Creates a Disjoint Data Properties Axiom Resource.
+     *
+     * @param properties Array of {@link OntNDP Data Properties} without {@code null}-elements
+     * @return {@link OntDisjoint.DataProperties}
+     * @see #createDisjointDataProperties(Collection)
+     * @since 1.4.0
+     */
+    default OntDisjoint.DataProperties createDisjointDataProperties(OntNDP... properties) {
+        return createDisjointDataProperties(Arrays.asList(properties));
+    }
 }

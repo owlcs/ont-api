@@ -50,7 +50,7 @@ public class OntDatatypeTest {
 
         OntDT d1 = m.getDatatype(XSD.xstring);
         OntDR d2 = m.createComplementOfDataRange(d1);
-        OntDR d3 = m.createRestrictionDataRange(d1, Arrays.asList(f1, f2, f3));
+        OntDR d3 = m.createRestrictionDataRange(d1, f1, f2, f3);
 
         ReadWriteUtils.print(m);
         Assert.assertEquals(3, m.ontObjects(OntFR.class).count());
@@ -99,11 +99,11 @@ public class OntDatatypeTest {
         Assert.assertSame(dr1, dr1.setComponents(l2, l3));
         Assert.assertEquals(Arrays.asList(l2, l3), dr1.getList().members().collect(Collectors.toList()));
 
-        OntDR.IntersectionOf dr2 = m.createIntersectionOfDataRange(Arrays.asList(dt2, dt3, dt4));
+        OntDR.IntersectionOf dr2 = m.createIntersectionOfDataRange(dt2, dt3, dt4);
         Assert.assertEquals(3, dr2.getList().members().count());
         Assert.assertTrue(dr2.setComponents().getList().isEmpty());
 
-        OntDR.Restriction dr3 = m.createRestrictionDataRange(dt3, Arrays.asList(fr1, fr2));
+        OntDR.Restriction dr3 = m.createRestrictionDataRange(dt3, fr1, fr2);
         Assert.assertEquals(3, dr3.setComponents(Arrays.asList(fr3, fr1, fr2)).getList().members().count());
 
         ReadWriteUtils.print(m);
@@ -141,7 +141,7 @@ public class OntDatatypeTest {
         OntDT d1 = m.getDatatype(XSD.xstring);
         OntDT d2 = m.getDatatype(XSD.positiveInteger);
 
-        OntDR.Restriction dr = m.createRestrictionDataRange(d1, Collections.emptySet());
+        OntDR.Restriction dr = m.createRestrictionDataRange(d1);
         Assert.assertTrue(dr.getList().isEmpty());
         dr.addFacet(OntFR.Pattern.class, d1.createLiteral(".*")).addFacet(OntFR.Length.class, d2.createLiteral("21"));
 

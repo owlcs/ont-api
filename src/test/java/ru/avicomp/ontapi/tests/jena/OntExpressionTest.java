@@ -17,7 +17,6 @@ package ru.avicomp.ontapi.tests.jena;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.RDFList;
 import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.vocabulary.RDFS;
 import org.junit.Assert;
 import org.junit.Test;
@@ -41,51 +40,6 @@ import java.util.stream.Collectors;
  */
 public class OntExpressionTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(OntExpressionTest.class);
-
-    @Test
-    public void testCreateExpressions() {
-        String uri = "http://test.com/graph/3";
-        String ns = uri + "#";
-
-        OntGraphModel m = OntModelFactory.createModel()
-                .setNsPrefix("test", ns)
-                .setNsPrefixes(OntModelFactory.STANDARD)
-                .setID(uri)
-                .getModel();
-
-        OntNDP ndp1 = m.createDataProperty(ns + "dataProperty1");
-        OntDT dt1 = m.createOntEntity(OntDT.class, ns + "dataType1");
-        dt1.addEquivalentClass(m.getDatatype(XSD.dateTime));
-
-        OntDT dt2 = m.createOntEntity(OntDT.class, ns + "dataType2");
-
-        OntFR fr1 = m.createFacetRestriction(OntFR.MaxExclusive.class, ResourceFactory.createTypedLiteral(12));
-        OntFR fr2 = m.createFacetRestriction(OntFR.LangRange.class, ResourceFactory.createTypedLiteral("\\d+"));
-
-        OntDR dr1 = m.createRestrictionDataRange(dt1, Arrays.asList(fr1, fr2));
-
-        OntCE ce1 = m.createDataSomeValuesFrom(ndp1, dr1);
-
-        OntDR dr2 = m.createIntersectionOfDataRange(Arrays.asList(dt1, dt2));
-        OntIndividual i1 = ce1.createIndividual(ns + "individual1");
-        OntCE ce2 = m.createDataMaxCardinality(ndp1, 343434, dr2);
-        i1.attachClass(ce2).attachClass(m.createOntClass(ns + "Class1"));
-
-        OntIndividual i2 = ce2.createIndividual();
-        i2.addStatement(ndp1, ResourceFactory.createPlainLiteral("individual value"));
-
-        ReadWriteUtils.print(m);
-        Assert.assertEquals("Incorrect count of individuals", 2, m.ontObjects(OntIndividual.class).count());
-        Assert.assertEquals("Incorrect count of class expressions", 3, m.ontObjects(OntCE.class).count());
-        Assert.assertEquals("Incorrect count of restrictions", 2, m.ontObjects(OntCE.RestrictionCE.class).count());
-        Assert.assertEquals("Incorrect count of cardinality restrictions", 1,
-                m.ontObjects(OntCE.CardinalityRestrictionCE.class).count());
-        Assert.assertEquals("Incorrect count of datatype entities", 2, m.ontObjects(OntDT.class).count());
-        Assert.assertEquals("Incorrect count of data properties", 1, m.ontObjects(OntNDP.class).count());
-        Assert.assertEquals("Incorrect count of facet restrictions", 2, m.ontObjects(OntFR.class).count());
-        Assert.assertEquals("Incorrect count of data ranges", 4, m.ontObjects(OntDR.class).count());
-        Assert.assertEquals("Incorrect count of entities", 5, m.ontObjects(OntEntity.class).count());
-    }
 
     @Test
     public void testCreateCardinalityRestrictions() {
@@ -250,7 +204,7 @@ public class OntExpressionTest {
         OntDT dt3 = m.createDatatype("DT3");
         OntDT dt4 = m.createDatatype("DT4");
 
-        OntDR.UnionOf u = m.createUnionOfDataRange(Arrays.asList(dt1, dt2, dt3));
+        OntDR.UnionOf u = m.createUnionOfDataRange(dt1, dt2, dt3);
         try {
             u.setComponents(u, dt4);
             Assert.fail("Possible to set itself inside a []-list");

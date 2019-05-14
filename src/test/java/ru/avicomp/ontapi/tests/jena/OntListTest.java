@@ -439,7 +439,7 @@ public class OntListTest {
         OntClass clazz = m.createOntClass("c");
         OntCE ce1, ce3, ce4;
         OntCE ce2 = m.createComplementOf(ce1 = m.createOntClass("c1"));
-        OntCE ce5 = m.createUnionOf(Arrays.asList(ce3 = m.createOntClass("c3"), ce4 = m.createOntClass("c4")));
+        OntCE ce5 = m.createUnionOf(ce3 = m.createOntClass("c3"), ce4 = m.createOntClass("c4"));
         Assert.assertEquals(2, clazz.addDisjointUnionOfStatement(ce2, ce3).getObject(RDFList.class).size());
         Assert.assertEquals(2, clazz.addDisjointUnionOfStatement(ce3, ce3, ce4).getObject(RDFList.class).size());
         Assert.assertEquals(3, clazz.addDisjointUnionOfStatement(ce4, ce4, ce5, ce1, ce1)
@@ -537,8 +537,8 @@ public class OntListTest {
         OntNDP p6 = m.createDataProperty("p6");
         OntNDP p7 = m.createDataProperty("p7");
 
-        OntDisjoint.ObjectProperties d1 = m.createDisjointObjectProperties(Arrays.asList(p1, p2));
-        OntDisjoint.DataProperties d2 = m.createDisjointDataProperties(Arrays.asList(p5, p7));
+        OntDisjoint.ObjectProperties d1 = m.createDisjointObjectProperties(p1, p2);
+        OntDisjoint.DataProperties d2 = m.createDisjointDataProperties(p5, p7);
         ReadWriteUtils.print(m);
         Assert.assertEquals(2, m.ontObjects(OntDisjoint.class).count());
         d1.getList().addFirst(p3).addFirst(p4);
@@ -558,8 +558,8 @@ public class OntListTest {
         OntCE ce3 = m.createHasSelf(m.createObjectProperty("p1"));
         OntCE ce2 = m.createDataHasValue(m.createDataProperty("p2"), m.createLiteral("2"));
 
-        OntDisjoint.Classes d1 = m.createDisjointClasses(Arrays.asList(m.getOWLNothing(), ce1, ce3));
-        OntDisjoint.Individuals d2 = m.createDifferentIndividuals(Arrays.asList(ce2.createIndividual(), ce3.createIndividual("I")));
+        OntDisjoint.Classes d1 = m.createDisjointClasses(m.getOWLNothing(), ce1, ce3);
+        OntDisjoint.Individuals d2 = m.createDifferentIndividuals(ce2.createIndividual(), ce3.createIndividual("I"));
 
         ReadWriteUtils.print(m);
         Assert.assertEquals(2, m.statements(null, OWL.members, null).count());
@@ -576,8 +576,7 @@ public class OntListTest {
     @Test
     public void testOntListWithIncompatibleTypes() {
         OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntList<OntCE> list = m.createUnionOf(Arrays.asList(m.createOntClass("C1"),
-                m.getOWLThing(), m.createOntClass("C2"))).getList();
+        OntList<OntCE> list = m.createUnionOf(m.createOntClass("C1"), m.getOWLThing(), m.createOntClass("C2")).getList();
         Assert.assertFalse(list.isEmpty());
         Assert.assertFalse(list.isNil());
         Assert.assertEquals(3, list.size());

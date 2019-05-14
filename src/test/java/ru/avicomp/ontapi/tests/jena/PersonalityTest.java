@@ -177,7 +177,7 @@ public class PersonalityTest {
         OntIndividual i1 = c1.createIndividual(ns + "indi1");
         OntIndividual i2 = m.createComplementOf(c1).createIndividual(ns + "indi2");
         OntIndividual i3 = c2.createIndividual(ns + "indi3");
-        m.createDifferentIndividuals(Arrays.asList(i1, i2, i3));
+        m.createDifferentIndividuals(i1, i2, i3);
         ReadWriteUtils.print(m);
         Assert.assertEquals(0, m.datatypes().count());
         Assert.assertEquals(2, m.classes().count());
@@ -224,7 +224,7 @@ public class PersonalityTest {
         OntIndividual i2 = m.createComplementOf(c1).createIndividual(ns + "indi2");
         OntIndividual i3 = m.createObjectSomeValuesFrom(p1, c1).createIndividual(ns + "indi3");
         OntIndividual i4 = m.createObjectCardinality(p2, 1, c1).createIndividual(ns + "indi4");
-        m.createDifferentIndividuals(Arrays.asList(i1, i2, i3, i4));
+        m.createDifferentIndividuals(i1, i2, i3, i4);
         ReadWriteUtils.print(m);
         Assert.assertEquals(0, m.dataProperties().count());
         Assert.assertEquals(0, m.annotationProperties().count());
@@ -293,7 +293,8 @@ public class PersonalityTest {
         Assert.assertEquals(6, m2.ontObjects(OntIndividual.class).count());
         Assert.assertEquals(6, m2.classAssertions().count());
 
-        OntDisjoint.Individuals disjoint2 = m2.createDifferentIndividuals(m2.ontObjects(OntIndividual.class).collect(Collectors.toList()));
+        OntDisjoint.Individuals disjoint2 = m2.createDifferentIndividuals(m2.ontObjects(OntIndividual.class)
+                .collect(Collectors.toList()));
         ReadWriteUtils.print(m2);
         Assert.assertEquals(6, disjoint2.members().count());
 
@@ -302,7 +303,8 @@ public class PersonalityTest {
         OntGraphModel m3 = OntModelFactory.createModel(m2.getGraph(), OntModelConfig.ONT_PERSONALITY_MEDIUM);
         Assert.assertEquals(2, m3.namedIndividuals().count());
         Assert.assertEquals(3, m3.ontObjects(OntIndividual.class).count());
-        OntDisjoint.Individuals disjoint3 = m3.ontObjects(OntDisjoint.Individuals.class).findFirst().orElseThrow(AssertionError::new);
+        OntDisjoint.Individuals disjoint3 = m3.ontObjects(OntDisjoint.Individuals.class).findFirst()
+                .orElseThrow(AssertionError::new);
         Assert.assertEquals(3, disjoint3.members().count());
     }
 
