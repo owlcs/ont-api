@@ -63,7 +63,10 @@ import java.util.stream.Stream;
  * @see OntWriterConfiguration
  */
 @SuppressWarnings({"WeakerAccess", "unused"})
-public class OntConfig extends OntologyConfigurator implements CacheControl<OntConfig>, AxiomsControl<OntConfig> {
+public class OntConfig extends OntologyConfigurator implements
+        LoadControl<OntConfig>,
+        CacheControl<OntConfig>,
+        AxiomsControl<OntConfig> {
     private static final Logger LOGGER = LoggerFactory.getLogger(OntConfig.class);
     private static final long serialVersionUID = 656765031127374396L;
 
@@ -210,49 +213,54 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
-     * ONT-API manager load config getter.
+     * An ONT-API manager's load config getter.
+     * {@inheritDoc}
      *
      * @return {@link OntPersonality}
      * @see OntLoaderConfiguration#getPersonality()
      */
+    @Override
     public OntPersonality getPersonality() {
         return get(OntSettings.ONT_API_LOAD_CONF_PERSONALITY_MODE);
     }
 
     /**
-     * ONT-API manager load config setter.
+     * An ONT-API manager's load config setter.
+     * {@inheritDoc}
      *
      * @param p {@link OntPersonality} the personality
      * @return this instance
      * @see OntLoaderConfiguration#setPersonality(OntPersonality)
      */
+    @Override
     public OntConfig setPersonality(OntPersonality p) {
         return put(OntSettings.ONT_API_LOAD_CONF_PERSONALITY_MODE, p);
     }
 
     /**
-     * ONT-API manager load config getter.
-     *
-     * @return {@link ru.avicomp.ontapi.transforms.GraphTransformers.Store}
-     * @see OntLoaderConfiguration#getGraphTransformers()
+     * An ONT-API manager's load config getter.
+     * {@inheritDoc}
      */
+    @Override
     public GraphTransformers.Store getGraphTransformers() {
         return get(OntSettings.ONT_API_LOAD_CONF_TRANSFORMERS);
     }
 
     /**
-     * ONT-API manager load config setter.
+     * An ONT-API manager's load config setter.
+     * {@inheritDoc}
      *
      * @param t {@link ru.avicomp.ontapi.transforms.GraphTransformers.Store}
      * @return this instance
      * @see OntLoaderConfiguration#setGraphTransformers(GraphTransformers.Store)
      */
+    @Override
     public OntConfig setGraphTransformers(GraphTransformers.Store t) {
         return put(OntSettings.ONT_API_LOAD_CONF_TRANSFORMERS, t);
     }
 
     /**
-     * ONT-API manager load config getter.
+     * An ONT-API manager's load config getter.
      * Returns the IRI cache size, that is used inside a manager to share IRIs between ontologies.
      * The default size is {@code 2048}, it is a magic number which is taken from OWL-API impl
      * (see uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryInternalsImpl, v5)
@@ -266,7 +274,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
-     * ONT-API manager load config setter.
+     * An ONT-API manager's load config setter.
      * Sets a new IRIs cache size.
      * Protected, since this is a manager's initialization setting,
      * that must not be changed during manager's lifetime.
@@ -279,6 +287,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
+     * An ONT-API manager's load config getter.
      * {@inheritDoc}
      *
      * @return int
@@ -289,6 +298,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
+     * An ONT-API manager's load config setter.
      * {@inheritDoc}
      *
      * @param size int
@@ -300,6 +310,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
+     * An ONT-API manager's load config getter.
      * {@inheritDoc}
      *
      * @return int
@@ -310,6 +321,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
+     * An ONT-API manager's load config setter.
      * {@inheritDoc}
      *
      * @param size int
@@ -321,6 +333,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
+     * An ONT-API manager's load config setter.
      * {@inheritDoc}
      *
      * @param level int
@@ -332,6 +345,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
+     * An ONT-API manager's load config getter.
      * {@inheritDoc}
      *
      * @return boolean
@@ -342,61 +356,64 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
-     * ONT-API manager load config getter.
-     *
-     * @return unmodifiable {@code List} of supported {@link Scheme schemes}
-     * @see OntLoaderConfiguration#getSupportedSchemes()
+     * An ONT-API manager's load config getter.
+     * {@inheritDoc}
      */
+    @Override
     public List<OntConfig.Scheme> getSupportedSchemes() {
         return get(OntSettings.ONT_API_LOAD_CONF_SUPPORTED_SCHEMES);
     }
 
     /**
-     * ONT-API manager load config setter.
-     *
-     * @param schemes List of {@link Scheme}
-     * @return this instance
-     * @see OntLoaderConfiguration#setSupportedSchemes(List)
-     */
-    public OntConfig setSupportedSchemes(List<Scheme> schemes) {
-        return put(OntSettings.ONT_API_LOAD_CONF_SUPPORTED_SCHEMES, Collections.unmodifiableList(schemes));
-    }
-
-    /**
-     * Disables all schemes with except 'file://' to prevent internet diving.
+     * An ONT-API manager's load config setter.
+     * {@inheritDoc}
      *
      * @return this manager
      * @see OntConfig#setSupportedSchemes(List)
      * @since 1.1.0
      */
+    @Override
     public OntConfig disableWebAccess() {
         return setSupportedSchemes(Collections.singletonList(DefaultScheme.FILE));
     }
 
     /**
-     * ONT-API manager load config getter.
+     * An ONT-API manager's load config setter.
+     * {@inheritDoc}
      *
-     * @return {@code true} if transformation is enabled
-     * @see OntLoaderConfiguration#isPerformTransformation()
-     * @see ru.avicomp.ontapi.transforms.Transform
+     * @param schemes List of {@link Scheme}
+     * @return {@link OntConfig} this instance
+     * @see OntLoaderConfiguration#setSupportedSchemes(List)
      */
+    @Override
+    public OntConfig setSupportedSchemes(List<Scheme> schemes) {
+        return put(OntSettings.ONT_API_LOAD_CONF_SUPPORTED_SCHEMES, Collections.unmodifiableList(schemes));
+    }
+
+    /**
+     * An ONT-API manager's load config getter.
+     * {@inheritDoc}
+     */
+    @Override
     public boolean isPerformTransformation() {
         return get(OntSettings.ONT_API_LOAD_CONF_PERFORM_TRANSFORMATIONS);
     }
 
     /**
-     * ONT-API manager load config setter.
+     * An ONT-API manager's load config setter.
+     * {@inheritDoc}
      *
      * @param b {@code true} to enable transformation (by default it is enabled)
      * @return {@link OntConfig} this instance
      * @see OntLoaderConfiguration#setPerformTransformation(boolean)
      */
+    @Override
     public OntConfig setPerformTransformation(boolean b) {
         return put(OntSettings.ONT_API_LOAD_CONF_PERFORM_TRANSFORMATIONS, b);
     }
 
     /**
-     * ONT-API manager load config getter.
+     * An ONT-API manager's load config getter.
      * {@inheritDoc}
      *
      * @return {@code true} if bulk annotations are allowed (that is by default)
@@ -408,19 +425,20 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
-     * ONT-API manager load config setter.
+     * An ONT-API manager's load config setter.
      * {@inheritDoc}
      *
      * @param b {@code true} to enable bulk annotations
      * @return this instance
      * @see OntLoaderConfiguration#setAllowBulkAnnotationAssertions(boolean)
      */
+    @Override
     public OntConfig setAllowBulkAnnotationAssertions(boolean b) {
         return put(OntSettings.ONT_API_LOAD_CONF_ALLOW_BULK_ANNOTATION_ASSERTIONS, b);
     }
 
     /**
-     * ONT-API manager load config getter.
+     * An ONT-API manager's load config getter.
      * {@inheritDoc}
      *
      * @return {@code true} if declarations are enabled (default)
@@ -432,7 +450,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
-     * ONT-API manager load config setter.
+     * An ONT-API manager's load config setter.
      * {@inheritDoc}
      *
      * @param b boolean enable/disable declarations
@@ -445,7 +463,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
-     * ONT-API manager load config getter.
+     * An ONT-API manager's load config getter.
      * {@inheritDoc}
      *
      * @return {@code true} if annotation axiom overlaps are ignored (default)
@@ -457,7 +475,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
-     * ONT-API manager load config setter.
+     * An ONT-API manager's load config setter.
      * {@inheritDoc}
      *
      * @param b boolean to enable/disable this config parameter
@@ -470,38 +488,28 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
-     * ONT-API manager load config getter.
-     *
-     * @return {@code true} if ONT-API loading disabled (false by default)
-     * @see OntLoaderConfiguration#isUseOWLParsersToLoad()
+     * An ONT-API manager's load config getter.
+     * {@inheritDoc}
      */
+    @Override
     public boolean isUseOWLParsersToLoad() {
         return get(OntSettings.ONT_API_LOAD_CONF_USE_OWL_PARSERS_TO_LOAD);
     }
 
     /**
-     * Sets an {@link #isUseOWLParsersToLoad()} parameter.
-     * It is an ONT-API manager load config setter.
-     * Used in {@link ru.avicomp.ontapi.OntologyFactoryImpl Default Ontology Factory Implementation} to choose preferable way to load.
-     * If this parameter is set to {@code true} then Apache Jena loading mechanisms are used in case it is supported both by Jena and OWL-API.
-     * Otherwise, loading is performed by using native OWL-API Parsers, which do not read full graph, but assemble it axiom by axiom.
-     * Please note, OWL-API loading mechanisms are OWL-centric and, in fact, work buggy:
-     * a graph may be corrupted after that loading, if source document does not fully correspond OWL2 specification.
-     * For example, <a href='http://spinrdf.org/spin'>spin</a> ontology contains a lot of SPARQL queries in spin form,
-     * which are using {@code rdf:List}s (an example of such []-list is the right part of any triple with predicate {@code sp:where}).
-     * After loading this ontology with OWL Turtle Parser (checked v 5.1.4), it will contain garbage instead of the original constructs.
-     * So please use this method with great care!
+     * An ONT-API manager's load config setter.
+     * {@inheritDoc}
      *
      * @param b boolean to enable/disable this config parameter
      * @return this instance
-     * @see OntLoaderConfiguration#setUseOWLParsersToLoad(boolean)
      */
+    @Override
     public OntConfig setUseOWLParsersToLoad(boolean b) {
         return put(OntSettings.ONT_API_LOAD_CONF_USE_OWL_PARSERS_TO_LOAD, b);
     }
 
     /**
-     * ONT-API manager load config getter.
+     * An ONT-API manager's load config getter.
      * {@inheritDoc}
      *
      * @return {@code true} if any errors while reading axioms are ignored (by default it is {@code false})
@@ -514,7 +522,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
-     * ONT-API manager load config setter.
+     * An ONT-API manager's load config setter.
      * {@inheritDoc}
      *
      * @param b boolean to enable/disable ignoring axioms reading errors
@@ -528,12 +536,8 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
-     * ONT-API manager load config getter.
+     * An ONT-API manager's load config getter.
      * {@inheritDoc}
-     *
-     * @return boolean
-     * @see OntLoaderConfiguration#isSplitAxiomAnnotations()
-     * @since 1.3.0
      */
     @Override
     public boolean isSplitAxiomAnnotations() {
@@ -541,7 +545,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
-     * ONT-API manager load config setter.
+     * An ONT-API manager's load config setter.
      * {@inheritDoc}
      *
      * @param b boolean
@@ -549,12 +553,13 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
      * @see OntLoaderConfiguration#setSplitAxiomAnnotations(boolean)
      * @since 1.3.0
      */
+    @Override
     public OntConfig setSplitAxiomAnnotations(boolean b) {
         return put(OntSettings.ONT_API_LOAD_CONF_SPLIT_AXIOM_ANNOTATIONS, b);
     }
 
     /**
-     * ONT-API manager write config getter.
+     * An ONT-API manager's write config getter.
      * By default 'ont.api.write.conf.control.imports' is disabled.
      *
      * @return {@code true} if 'ont.api.write.conf.control.imports' is enabled
@@ -565,7 +570,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
-     * ONT-API manager write config setter.
+     * An ONT-API manager's write config setter.
      *
      * @param b boolean to enable/disable this config parameter
      * @return this instance
@@ -598,18 +603,8 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
-     * Specifies whether or not annotation axioms (instances of {@code OWLAnnotationAxiom}) should be loaded or
-     * whether they should be discarded on loading. By default, the loading of annotation axioms is enabled.
-     * <p>
-     * Note(1): The behaviour is slightly different from OWL-API (v5.1.4).
-     * If loading axioms is disabled all annotation property assertion axioms turn into annotations in the composition of nearest declaration axioms.
-     * E.g. the snippet
-     * {@code
-     * <http://class> a       owl:Class ;
-     * rdfs:comment "comment1"@es .
-     * } looks like {@code Declaration(Annotation(rdfs:comment "comment1"@es) Class(<http://class>))} in ON-API structural view, while in OWL-API
-     * it would be just naked declaration (i.e. {@code Declaration(Class(<http://class>))}).
-     * Note(2): this method does not affect underling graph.
+     * An ONT-API manager's load config setter.
+     * {@inheritDoc}
      *
      * @see OntologyConfigurator#setLoadAnnotationAxioms(boolean)
      */
@@ -647,6 +642,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
+     * {@inheritDoc}
      * @see OntologyConfigurator#withBannedParsers(String)
      */
     @Override
@@ -655,6 +651,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
+     * {@inheritDoc}
      * @see OntologyConfigurator#getBannedParsers()
      */
     @Override
@@ -663,6 +660,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
+     * {@inheritDoc}
      * @see OntologyConfigurator#getPriorityCollectionSorting()
      */
     @Override
@@ -671,6 +669,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
+     * {@inheritDoc}
      * @see OntologyConfigurator#setPriorityCollectionSorting(PriorityCollectionSorting)
      */
     @Override
@@ -687,6 +686,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
+     * {@inheritDoc}
      * @see OntologyConfigurator#addIgnoredImport(IRI)
      */
     @Override
@@ -700,17 +700,19 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
+     * {@inheritDoc}
      * @see OntologyConfigurator#clearIgnoredImports()
      */
     @Override
     public OntConfig clearIgnoredImports() {
         List<String> list = getIgnoredImports();
         if (list.isEmpty())
-        return this;
+            return this;
         return putIgnoredImports(new ArrayList<>());
     }
 
     /**
+     * {@inheritDoc}
      * @see OntologyConfigurator#removeIgnoredImport(IRI)
      */
     @Override
@@ -724,6 +726,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
+     * {@inheritDoc}
      * @see OntologyConfigurator#setAcceptingHTTPCompression(boolean)
      */
     @Override
@@ -732,6 +735,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
+     * {@inheritDoc}
      * @see OntologyConfigurator#shouldAcceptHTTPCompression()
      */
     @Override
@@ -740,6 +744,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
+     * {@inheritDoc}
      * @see OntologyConfigurator#getConnectionTimeout()
      */
     @Override
@@ -748,6 +753,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
+     * {@inheritDoc}
      * @see OntologyConfigurator#setConnectionTimeout(int)
      */
     @Override
@@ -756,6 +762,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
+     * {@inheritDoc}
      * @see OntologyConfigurator#setFollowRedirects(boolean)
      */
     @Override
@@ -764,6 +771,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
+     * {@inheritDoc}
      * @see OntologyConfigurator#shouldFollowRedirects()
      */
     @Override
@@ -772,6 +780,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
+     * {@inheritDoc}
      * @see OntologyConfigurator#getMissingImportHandlingStrategy()
      */
     @Override
@@ -780,6 +789,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
+     * {@inheritDoc}
      * @see OntologyConfigurator#setMissingImportHandlingStrategy(MissingImportHandlingStrategy)
      */
     @Override
@@ -788,6 +798,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
+     * {@inheritDoc}
      * @see OntologyConfigurator#getMissingOntologyHeaderStrategy()
      */
     @Override
@@ -796,6 +807,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
+     * {@inheritDoc}
      * @see OntologyConfigurator#setMissingOntologyHeaderStrategy(MissingOntologyHeaderStrategy)
      */
     @Override
@@ -804,6 +816,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
+     * {@inheritDoc}
      * @see OntologyConfigurator#setReportStackTraces(boolean)
      */
     @Override
@@ -812,6 +825,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
+     * {@inheritDoc}
      * @see OntologyConfigurator#shouldReportStackTraces()
      */
     @Override
@@ -820,6 +834,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
+     * {@inheritDoc}
      * @see OntologyConfigurator#getRetriesToAttempt()
      */
     @Override
@@ -828,6 +843,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
+     * {@inheritDoc}
      * @see OntologyConfigurator#setRetriesToAttempt(int)
      */
     @Override
@@ -836,6 +852,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
+     * {@inheritDoc}
      * @see OntologyConfigurator#setStrict(boolean)
      */
     @Override
@@ -844,6 +861,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
+     * {@inheritDoc}
      * @see OntologyConfigurator#shouldParseWithStrictConfiguration()
      */
     @Override
@@ -852,6 +870,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
+     * {@inheritDoc}
      * @see OntologyConfigurator#setTreatDublinCoreAsBuiltIn(boolean)
      */
     @Override
@@ -860,6 +879,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
+     * {@inheritDoc}
      * @see OntologyConfigurator#shouldTreatDublinCoreAsBuiltin()
      */
     @Override
@@ -868,6 +888,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
+     * {@inheritDoc}
      * @see OntologyConfigurator#withSaveIdsForAllAnonymousIndividuals(boolean)
      */
     @Override
@@ -876,6 +897,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
+     * {@inheritDoc}
      * @see OntologyConfigurator#shouldSaveIds()
      */
     @Override
@@ -884,6 +906,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
+     * {@inheritDoc}
      * @see OntologyConfigurator#withRemapAllAnonymousIndividualsIds(boolean)
      */
     @Override
@@ -892,6 +915,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
+     * {@inheritDoc}
      * @see OntologyConfigurator#shouldRemapIds()
      */
     @Override
@@ -900,6 +924,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
+     * {@inheritDoc}
      * @see OntologyConfigurator#withUseNamespaceEntities(boolean)
      */
     @Override
@@ -908,6 +933,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
+     * {@inheritDoc}
      * @see OntologyConfigurator#shouldUseNamespaceEntities()
      */
     @Override
@@ -916,6 +942,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
+     * {@inheritDoc}
      * @see OntologyConfigurator#withIndenting(boolean)
      */
     @Override
@@ -924,6 +951,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
+     * {@inheritDoc}
      * @see OntologyConfigurator#shouldIndent()
      */
     @Override
@@ -932,6 +960,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
+     * {@inheritDoc}
      * @see OntologyConfigurator#withIndentSize(int)
      */
     @Override
@@ -940,6 +969,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
+     * {@inheritDoc}
      * @see OntologyConfigurator#getIndentSize()
      */
     @Override
@@ -948,6 +978,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
+     * {@inheritDoc}
      * @see OntologyConfigurator#withLabelsAsBanner(boolean)
      */
     @Override
@@ -956,6 +987,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
+     * {@inheritDoc}
      * @see OntologyConfigurator#shouldUseLabelsAsBanner()
      */
     @Override
@@ -964,6 +996,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
+     * {@inheritDoc}
      * @see OntologyConfigurator#withBannersEnabled(boolean)
      */
     @Override
@@ -972,6 +1005,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
+     * {@inheritDoc}
      * @see OntologyConfigurator#shouldUseBanners()
      */
     @Override
@@ -980,18 +1014,21 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
     }
 
     /**
+     * {@inheritDoc}
      * Always returns {@code true} since this functionality is not supported by ONT-API.
      *
      * @return {@code true}
      * @since OWL-API 5.1.1
      * @since ONT-API 1.3.0
      */
+    @Override
     public boolean shouldRepairIllegalPunnings() {
         LOGGER.warn("ONT-API does not support RepairIllegalPunnings");
         return true;
     }
 
     /**
+     * {@inheritDoc}
      * No-op since this functionality is not supported by ONT-API.
      *
      * @param b anything
@@ -999,6 +1036,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
      * @since OWL-API 5.1.1
      * @since ONT-API 1.3.0
      */
+    @Override
     public OntConfig withRepairIllegalPunnings(boolean b) {
         LOGGER.warn("ONT-API does not support RepairIllegalPunnings");
         return this;
@@ -1069,6 +1107,11 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
         FTP,
         FILE,
         ;
+        private final String value;
+
+        DefaultScheme() {
+            this.value = name().toLowerCase();
+        }
 
         public static Stream<DefaultScheme> all() {
             return Stream.of(values());
@@ -1076,32 +1119,7 @@ public class OntConfig extends OntologyConfigurator implements CacheControl<OntC
 
         @Override
         public String key() {
-            return name().toLowerCase();
-        }
-    }
-
-    /**
-     * Interface for working with IRI scheme.
-     * It is used as parameter in {@link OntConfig} and {@link OntLoaderConfiguration}.
-     */
-    @FunctionalInterface
-    public interface Scheme extends Serializable {
-
-        /**
-         * Returns this scheme as String
-         *
-         * @return String
-         */
-        String key();
-
-        /**
-         * Answers {@code true} if the given IRI has this schema.
-         *
-         * @param iri {@link IRI}
-         * @return boolean
-         */
-        default boolean same(IRI iri) {
-            return iri != null && Objects.equals(key(), iri.getScheme());
+            return value;
         }
     }
 

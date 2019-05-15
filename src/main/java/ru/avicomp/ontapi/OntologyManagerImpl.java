@@ -40,10 +40,16 @@ import ru.avicomp.ontapi.jena.utils.Graphs;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.*;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.OutputStream;
+import java.io.Serializable;
 import java.net.URL;
 import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -1763,12 +1769,11 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         }
     }
 
-    @SuppressWarnings("ResultOfMethodCallIgnored")
     private static OutputStream openStream(IRI iri) throws IOException {
         if (OntConfig.DefaultScheme.FILE.same(iri)) {
-            File file = new File(iri.toURI());
-            file.getParentFile().mkdirs();
-            return new FileOutputStream(file);
+            Path file = Paths.get(iri.toURI());
+            Files.createDirectories(file.getParent());
+            return Files.newOutputStream(file);
         }
         URL url = iri.toURI().toURL();
         URLConnection conn = url.openConnection();

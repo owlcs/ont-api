@@ -18,7 +18,6 @@ import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.OntApiException;
-import ru.avicomp.ontapi.OntFormat;
 import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
 import ru.avicomp.ontapi.transforms.GraphTransformers;
 
@@ -41,8 +40,10 @@ import java.util.*;
  * @see OntConfig
  */
 @SuppressWarnings({"WeakerAccess", "SameParameterValue", "unused"})
-public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
-        implements CacheControl<OntLoaderConfiguration>, AxiomsControl<OntLoaderConfiguration> {
+public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration implements
+        LoadControl<OntLoaderConfiguration>,
+        CacheControl<OntLoaderConfiguration>,
+        AxiomsControl<OntLoaderConfiguration> {
     private static final Logger LOGGER = LoggerFactory.getLogger(OntLoaderConfiguration.class);
     private static final long serialVersionUID = 1599596390911768315L;
 
@@ -114,77 +115,74 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
-     * ONT-API config method.
-     *
-     * @return if true some graph transformations will be performed after loading graph.
-     * @see #getGraphTransformers()
-     * @see #setGraphTransformers(GraphTransformers.Store)
+     * An ONT-API config getter.
+     * {@inheritDoc}
      */
+    @Override
     public boolean isPerformTransformation() {
         return get(OntSettings.ONT_API_LOAD_CONF_PERFORM_TRANSFORMATIONS);
     }
 
     /**
-     * ONT-API config setter.
+     * An ONT-API config setter.
+     * {@inheritDoc}
      *
-     * @param b if false all graph transformations will be disabled.
-     * @return {@link OntLoaderConfiguration}
-     * @see #getGraphTransformers()
-     * @see #setGraphTransformers(GraphTransformers.Store)
+     * @param b if {@code false} all graph transformations will be disabled
+     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes is made
      */
+    @Override
     public OntLoaderConfiguration setPerformTransformation(boolean b) {
         return set(OntSettings.ONT_API_LOAD_CONF_PERFORM_TRANSFORMATIONS, b);
     }
 
     /**
-     * ONT-API config method.
-     *
-     * @return {@link GraphTransformers.Store} a collection with {@link GraphTransformers.Maker}s.
-     * @see #isPerformTransformation()
-     * @see #setPerformTransformation(boolean)
+     * An ONT-API config getter.
+     * {@inheritDoc}
      */
+    @Override
     public GraphTransformers.Store getGraphTransformers() {
         return get(OntSettings.ONT_API_LOAD_CONF_TRANSFORMERS);
     }
 
     /**
-     * ONT-API config setter.
+     * An ONT-API config setter.
+     * {@inheritDoc}
      *
-     * @param t {@link GraphTransformers.Store} new graph transformers store. null means the system defaults
-     * @return {@link OntLoaderConfiguration} new instance.
-     * @see OntLoaderConfiguration#isPerformTransformation()
-     * @see OntLoaderConfiguration#setPerformTransformation(boolean)
+     * @param t {@link GraphTransformers.Store} new graph transformers store
+     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes is made
      */
+    @Override
     public OntLoaderConfiguration setGraphTransformers(GraphTransformers.Store t) {
         return set(OntSettings.ONT_API_LOAD_CONF_TRANSFORMERS, t);
     }
 
     /**
-     * ONT-API config method.
-     * Note: after deserialization it is always default (see {@link OntSettings#ONT_API_LOAD_CONF_PERSONALITY_MODE}).
-     *
-     * @return {@link OntPersonality}, not {@code null}
+     * An ONT-API config getter.
+     * {@inheritDoc}
      */
+    @Override
     public OntPersonality getPersonality() {
         return get(OntSettings.ONT_API_LOAD_CONF_PERSONALITY_MODE);
     }
 
     /**
-     * ONT-API config setter.
+     * An ONT-API config setter.
+     * {@inheritDoc}
      *
-     * @param p {@link OntPersonality} new personality;
-     *          {@code null} means default (see {@link OntSettings#ONT_API_LOAD_CONF_PERSONALITY_MODE}).
-     * @return {@link OntLoaderConfiguration}
+     * @param p {@link OntPersonality} new personality
+     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes is made
      */
+    @Override
     public OntLoaderConfiguration setPersonality(OntPersonality p) {
         return set(OntSettings.ONT_API_LOAD_CONF_PERSONALITY_MODE, p);
     }
 
     /**
+     * An ONT-API config setter.
      * {@inheritDoc}
      *
-     * @param size int
-     * @return this or copied instance
+     * @param size int, non-negative integer
+     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes is made
      */
     @Override
     public OntLoaderConfiguration setLoadNodesCacheSize(int size) {
@@ -192,9 +190,8 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
+     * An ONT-API config getter.
      * {@inheritDoc}
-     *
-     * @return int
      */
     @Override
     public int getLoadNodesCacheSize() {
@@ -202,10 +199,11 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
+     * An ONT-API config setter.
      * {@inheritDoc}
      *
-     * @param size int
-     * @return this or copied instance
+     * @param size int, non-negative integer
+     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes is made
      */
     @Override
     public OntLoaderConfiguration setLoadObjectsCacheSize(int size) {
@@ -213,9 +211,8 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
+     * An ONT-API config getter.
      * {@inheritDoc}
-     *
-     * @return int
      */
     @Override
     public int getLoadObjectsCacheSize() {
@@ -223,10 +220,11 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
+     * An ONT-API config setter.
      * {@inheritDoc}
      *
-     * @param level int
-     * @return this or copied instance
+     * @param level, int, non-negative integer
+     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes is made
      */
     @Override
     public OntLoaderConfiguration setContentCacheLevel(int level) {
@@ -234,9 +232,8 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
+     * An ONT-API config getter.
      * {@inheritDoc}
-     *
-     * @return boolean
      */
     @Override
     public int getContentCacheLevel() {
@@ -244,43 +241,43 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
-     * ONT-API config method.
-     *
-     * @return Set of {@link OntConfig.Scheme}
+     * An ONT-API config getter.
+     * {@inheritDoc}
      */
+    @Override
     public List<OntConfig.Scheme> getSupportedSchemes() {
         return get(OntSettings.ONT_API_LOAD_CONF_SUPPORTED_SCHEMES);
     }
 
     /**
-     * ONT-API config setter.
+     * An ONT-API config setter.
+     * {@inheritDoc}
      *
-     * @param schemes the collection of {@link OntConfig.Scheme}
-     * @return {@link OntLoaderConfiguration}, new instance
+     * @param schemes the collection of {@link OntConfig.Scheme}s
+     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes is made
      */
+    @Override
     public OntLoaderConfiguration setSupportedSchemes(List<OntConfig.Scheme> schemes) {
         return set(OntSettings.ONT_API_LOAD_CONF_SUPPORTED_SCHEMES, Collections.unmodifiableList(schemes));
     }
 
+
     /**
-     * Disables all schemes with except of {@code file://} to prevent internet diving.
+     * An ONT-API config setter.
+     * {@inheritDoc}
      *
-     * @return {@link OntLoaderConfiguration}, new instance
+     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes is made
      * @see OntConfig#disableWebAccess()
      * @since 1.3.0
      */
+    @Override
     public OntLoaderConfiguration disableWebAccess() {
         return setSupportedSchemes(Collections.singletonList(OntConfig.DefaultScheme.FILE));
     }
 
     /**
-     * ONT-API config method.
+     * An ONT-API config method.
      * {@inheritDoc}
-     *
-     * @return {@code true} if annotation assertions could be annotated
-     * @see #setAllowBulkAnnotationAssertions(boolean)
-     * @see #setLoadAnnotationAxioms(boolean)
-     * @see #isLoadAnnotationAxioms()
      */
     @Override
     public boolean isAllowBulkAnnotationAssertions() {
@@ -288,15 +285,11 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
-     * ONT-API config setter.
+     * An ONT-API config setter.
      * {@inheritDoc}
      *
-     * @param b if false only plain annotation assertions axioms expected.
-     * @return {@link OntLoaderConfiguration}
-     * @see #isAllowBulkAnnotationAssertions()
-     * @see #setLoadAnnotationAxioms(boolean)
-     * @see #isLoadAnnotationAxioms()
-     * @see OntFormat#MANCHESTER_SYNTAX
+     * @param b if {@code false} only plain annotation assertions axioms expected
+     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes is made
      */
     @Override
     public OntLoaderConfiguration setAllowBulkAnnotationAssertions(boolean b) {
@@ -304,10 +297,8 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
-     * ONT-API config method.
+     * An ONT-API config getter.
      * {@inheritDoc}
-     *
-     * @return {@code true} if declarations are allowed in the structural view
      */
     @Override
     public boolean isAllowReadDeclarations() {
@@ -315,11 +306,11 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
-     * ONT-API config setter.
+     * An ONT-API config setter.
      * {@inheritDoc}
      *
      * @param b {@code true} to skip declarations while reading graph
-     * @return new or the same instance of config.
+     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes is made
      */
     @Override
     public OntLoaderConfiguration setAllowReadDeclarations(boolean b) {
@@ -327,10 +318,8 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
-     * ONT-API config method.
+     * An ONT-API config getter.
      * {@inheritDoc}
-     *
-     * @return {@code true} if possible ambiguities with annotation axioms should be ignored
      */
     @Override
     public boolean isIgnoreAnnotationAxiomOverlaps() {
@@ -338,12 +327,12 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
-     * ONT-API config setter.
+     * An ONT-API config setter.
      * {@inheritDoc}
      *
      * @param b if {@code false} all overlapping annotation axioms
      *          will be skipped in favour of data or/and object property axioms
-     * @return this or new config
+     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes is made
      */
     @Override
     public OntLoaderConfiguration setIgnoreAnnotationAxiomOverlaps(boolean b) {
@@ -351,37 +340,29 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
-     * ONT-API config method.
-     * Returns {@code false} by default.
-     *
-     * @return {@code true} if loading through Jena is disabled
-     * (i.e. the loading is done through the OWL-API mechanisms by one axiom at a time).
+     * An ONT-API config getter.
+     * {@inheritDoc}
      */
+    @Override
     public boolean isUseOWLParsersToLoad() {
         return get(OntSettings.ONT_API_LOAD_CONF_USE_OWL_PARSERS_TO_LOAD);
     }
 
     /**
-     * ONT-API config setter.
-     * Changes the preferable way to load ontology from a document source (ONT-API (Jena+OWL-API) vs pure OWL-API).
-     * Caution: do not enable this setting without valid reasons.
-     * For more information see description for the {@link OntConfig}'s method with the same name.
+     * An ONT-API config setter.
+     * {@inheritDoc}
      *
      * @param b {@code true} to use pure OWL-API parsers to load
-     * @return this or new config
-     * @see OntConfig#setUseOWLParsersToLoad(boolean)
+     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes is made
      */
+    @Override
     public OntLoaderConfiguration setUseOWLParsersToLoad(boolean b) {
         return set(OntSettings.ONT_API_LOAD_CONF_USE_OWL_PARSERS_TO_LOAD, b);
     }
 
     /**
-     * ONT-API config getter.
+     * An ONT-API config getter.
      * {@inheritDoc}
-     *
-     * @return {@code true} if errors while axioms reading must be ignored
-     * @see OntConfig#isIgnoreAxiomsReadErrors()
-     * @since 1.1.0
      */
     @Override
     public boolean isIgnoreAxiomsReadErrors() {
@@ -389,13 +370,12 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
-     * ONT-API config setter.
+     * An ONT-API config setter.
      * {@inheritDoc}
      *
-     * @param b {@code true} to ignore errors while reading axioms of some type from a graph, false to trow exception
-     * @return this or new config
-     * @see OntConfig#setIgnoreAxiomsReadErrors(boolean)
-     * @since 1.1.0
+     * @param b {@code true} to ignore errors while reading axioms of some type from a graph,
+     *          {@code false} to trow exception
+     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes is made
      */
     @Override
     public OntLoaderConfiguration setIgnoreAxiomsReadErrors(boolean b) {
@@ -403,7 +383,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
-     * ONT-API config getter.
+     * An ONT-API config getter.
      * {@inheritDoc}
      *
      * @return {@code true} if this setting is enabled
@@ -416,13 +396,11 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
-     * ONT-API config setter.
+     * An ONT-API config setter.
      * {@inheritDoc}
      *
      * @param b boolean {@code true} to enable 'ont.api.load.conf.split.axiom.annotations' setting
-     * @return this or new config
-     * @see OntConfig#setSplitAxiomAnnotations(boolean)
-     * @since 1.3.0
+     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes is made
      */
     @Override
     public OntLoaderConfiguration setSplitAxiomAnnotations(boolean b) {
@@ -430,12 +408,8 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
-     * Determines whether annotation axioms should be read.
+     * An ONT-API config getter.
      * {@inheritDoc}
-     *
-     * @return if {@code false} all annotation axioms (assertion, range and domain) will be discarded on loading
-     * @see OWLOntologyLoaderConfiguration#isLoadAnnotationAxioms()
-     * @see OntConfig#shouldLoadAnnotations()
      */
     @Override
     public boolean isLoadAnnotationAxioms() {
@@ -443,11 +417,11 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
+     * An ONT-API config setter.
      * {@inheritDoc}
      *
      * @param b {@code true} to enable reading and writing annotation axioms
-     * @return instance of new config.
-     * @see OWLOntologyLoaderConfiguration#setLoadAnnotationAxioms(boolean)
+     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes is made
      */
     @Override
     public OntLoaderConfiguration setLoadAnnotationAxioms(boolean b) {
@@ -470,6 +444,8 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
+     * {@inheritDoc}
+     *
      * @see OWLOntologyLoaderConfiguration#addIgnoredImport(IRI)
      */
     @Override
@@ -483,6 +459,8 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
+     * {@inheritDoc}
+     *
      * @see OWLOntologyLoaderConfiguration#removeIgnoredImport(IRI)
      */
     @Override
@@ -496,6 +474,8 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
+     * {@inheritDoc}
+     *
      * @see OWLOntologyLoaderConfiguration#clearIgnoredImports()
      */
     @Override
@@ -508,6 +488,8 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
+     * {@inheritDoc}
+     *
      * @see OWLOntologyLoaderConfiguration#isIgnoredImport(IRI)
      */
     @Override
@@ -516,6 +498,8 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
+     * {@inheritDoc}
+     *
      * @see OWLOntologyLoaderConfiguration#getPriorityCollectionSorting()
      */
     @Override
@@ -524,6 +508,8 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
+     * {@inheritDoc}
+     *
      * @see OWLOntologyLoaderConfiguration#setPriorityCollectionSorting(PriorityCollectionSorting)
      */
     @Override
@@ -532,6 +518,8 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
+     * {@inheritDoc}
+     *
      * @see OWLOntologyLoaderConfiguration#getConnectionTimeout()
      */
     @Override
@@ -540,6 +528,8 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
+     * {@inheritDoc}
+     *
      * @see OWLOntologyLoaderConfiguration#setConnectionTimeout(int)
      */
     @Override
@@ -548,6 +538,8 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
+     * {@inheritDoc}
+     *
      * @see OWLOntologyLoaderConfiguration#getMissingImportHandlingStrategy()
      */
     @Override
@@ -556,6 +548,8 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
+     * {@inheritDoc}
+     *
      * @see OWLOntologyLoaderConfiguration#setMissingImportHandlingStrategy(MissingImportHandlingStrategy)
      */
     @Override
@@ -564,6 +558,8 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
+     * {@inheritDoc}
+     *
      * @see OWLOntologyLoaderConfiguration#getMissingOntologyHeaderStrategy()
      */
     @Override
@@ -572,6 +568,8 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
+     * {@inheritDoc}
+     *
      * @see OWLOntologyLoaderConfiguration#setMissingOntologyHeaderStrategy(MissingOntologyHeaderStrategy)
      */
     @Override
@@ -580,6 +578,8 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
+     * {@inheritDoc}
+     *
      * @see OWLOntologyLoaderConfiguration#getRetriesToAttempt()
      */
     @Override
@@ -588,6 +588,8 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
+     * {@inheritDoc}
+     *
      * @see OWLOntologyLoaderConfiguration#setRetriesToAttempt(int)
      */
     @Override
@@ -596,6 +598,8 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
+     * {@inheritDoc}
+     *
      * @see OWLOntologyLoaderConfiguration#isAcceptingHTTPCompression()
      */
     @Override
@@ -604,6 +608,8 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
+     * {@inheritDoc}
+     *
      * @see OWLOntologyLoaderConfiguration#setAcceptingHTTPCompression(boolean)
      */
     @Override
@@ -612,6 +618,8 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
+     * {@inheritDoc}
+     *
      * @see OWLOntologyLoaderConfiguration#isFollowRedirects()
      */
     @Override
@@ -620,6 +628,8 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
+     * {@inheritDoc}
+     *
      * @see OWLOntologyLoaderConfiguration#setFollowRedirects(boolean)
      */
     @Override
@@ -628,6 +638,8 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
+     * {@inheritDoc}
+     *
      * @see OWLOntologyLoaderConfiguration#isReportStackTrace()
      */
     @Override
@@ -636,6 +648,8 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
+     * {@inheritDoc}
+     *
      * @see OWLOntologyLoaderConfiguration#setReportStackTraces(boolean)
      */
     @Override
@@ -644,6 +658,8 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
+     * {@inheritDoc}
+     *
      * @see OWLOntologyLoaderConfiguration#isStrict()
      */
     @Override
@@ -652,6 +668,8 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
+     * {@inheritDoc}
+     *
      * @see OWLOntologyLoaderConfiguration#setStrict(boolean)
      */
     @Override
@@ -660,6 +678,8 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
+     * {@inheritDoc}
+     *
      * @see OWLOntologyLoaderConfiguration#isTreatDublinCoreAsBuiltIn()
      */
     @Override
@@ -668,6 +688,8 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
+     * {@inheritDoc}
+     *
      * @see OWLOntologyLoaderConfiguration#setTreatDublinCoreAsBuiltIn(boolean)
      */
     @Override
@@ -676,6 +698,8 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
+     * {@inheritDoc}
+     *
      * @see OWLOntologyLoaderConfiguration#getBannedParsers()
      */
     @Override
@@ -684,6 +708,8 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
+     * {@inheritDoc}
+     *
      * @see OWLOntologyLoaderConfiguration#setBannedParsers(String)
      */
     @Override
@@ -692,6 +718,8 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
+     * {@inheritDoc}
+     *
      * @see OWLOntologyLoaderConfiguration#getEntityExpansionLimit()
      */
     @Override
@@ -700,6 +728,8 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
+     * {@inheritDoc}
+     *
      * @see OWLOntologyLoaderConfiguration#setEntityExpansionLimit(String)
      */
     @Override
@@ -735,6 +765,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
+     * {@inheritDoc}
      * Always returns {@code true} since this functionality is not supported by ONT-API.
      *
      * @return {@code true}
@@ -748,6 +779,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
+     * {@inheritDoc}
      * No-op since this functionality is not supported by ONT-API.
      *
      * @param b anything
@@ -762,6 +794,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
+     * {@inheritDoc}
      * Always returns {@code true} since this functionality is not supported by ONT-API.
      *
      * @return {@code true}
@@ -775,6 +808,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration
     }
 
     /**
+     * {@inheritDoc}
      * No-op since this functionality is not supported by ONT-API.
      *
      * @param b anything

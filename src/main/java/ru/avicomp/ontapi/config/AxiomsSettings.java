@@ -175,6 +175,7 @@ public interface AxiomsSettings {
      * @return boolean
      * @see OntSettings#ONT_API_LOAD_CONF_SPLIT_AXIOM_ANNOTATIONS
      * @see AxiomsControl#setSplitAxiomAnnotations(boolean)
+     * @since 1.3.0
      */
     boolean isSplitAxiomAnnotations();
 
@@ -188,6 +189,7 @@ public interface AxiomsSettings {
      * @return boolean
      * @see OntSettings#ONT_API_LOAD_CONF_IGNORE_AXIOMS_READ_ERRORS
      * @see AxiomsControl#setIgnoreAxiomsReadErrors(boolean)
+     * @since 1.1.0
      */
     boolean isIgnoreAxiomsReadErrors();
 

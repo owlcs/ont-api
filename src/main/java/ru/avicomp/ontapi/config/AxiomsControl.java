@@ -30,7 +30,7 @@ interface AxiomsControl<R> extends AxiomsSettings {
      * @param b boolean
      * @return {@link R}
      * @see OntSettings#OWL_API_LOAD_CONF_LOAD_ANNOTATIONS
-     * @see #isLoadAnnotationAxioms()
+     * @see AxiomsSettings#isLoadAnnotationAxioms()
      */
     R setLoadAnnotationAxioms(boolean b);
 
@@ -40,7 +40,7 @@ interface AxiomsControl<R> extends AxiomsSettings {
      * @param b boolean
      * @return {@link R}
      * @see OntSettings#ONT_API_LOAD_CONF_ALLOW_BULK_ANNOTATION_ASSERTIONS
-     * @see #isAllowBulkAnnotationAssertions()
+     * @see AxiomsSettings#isAllowBulkAnnotationAssertions()
      */
     R setAllowBulkAnnotationAssertions(boolean b);
 
@@ -50,7 +50,7 @@ interface AxiomsControl<R> extends AxiomsSettings {
      * @param b boolean
      * @return {@link R}
      * @see OntSettings#ONT_API_LOAD_CONF_IGNORE_ANNOTATION_AXIOM_OVERLAPS
-     * @see #isIgnoreAnnotationAxiomOverlaps()
+     * @see AxiomsSettings#isIgnoreAnnotationAxiomOverlaps()
      */
     R setIgnoreAnnotationAxiomOverlaps(boolean b);
 
@@ -60,7 +60,7 @@ interface AxiomsControl<R> extends AxiomsSettings {
      * @param b boolean
      * @return {@link R}
      * @see OntSettings#ONT_API_LOAD_CONF_ALLOW_READ_DECLARATIONS
-     * @see #isAllowReadDeclarations()
+     * @see AxiomsSettings#isAllowReadDeclarations()
      */
     R setAllowReadDeclarations(boolean b);
 
@@ -70,7 +70,8 @@ interface AxiomsControl<R> extends AxiomsSettings {
      * @param b boolean
      * @return {@link R}
      * @see OntSettings#ONT_API_LOAD_CONF_SPLIT_AXIOM_ANNOTATIONS
-     * @see #isSplitAxiomAnnotations()
+     * @see AxiomsSettings#isSplitAxiomAnnotations()
+     * @since 1.3.0
      */
     R setSplitAxiomAnnotations(boolean b);
 
@@ -80,7 +81,8 @@ interface AxiomsControl<R> extends AxiomsSettings {
      * @param b boolean
      * @return {@link R}
      * @see OntSettings#ONT_API_LOAD_CONF_IGNORE_AXIOMS_READ_ERRORS
-     * @see #isIgnoreAxiomsReadErrors()
+     * @see AxiomsSettings#isIgnoreAxiomsReadErrors()
+     * @since 1.1.0
      */
     R setIgnoreAxiomsReadErrors(boolean b);
 

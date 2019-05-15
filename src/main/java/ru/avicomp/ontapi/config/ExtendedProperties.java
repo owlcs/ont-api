@@ -14,10 +14,7 @@
 
 package ru.avicomp.ontapi.config;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Properties;
+import java.util.*;
 import java.util.stream.Stream;
 
 /**
@@ -180,6 +177,7 @@ public class ExtendedProperties extends Properties {
 
     /**
      * Gets a {@code List} if strings corresponding the given {@code key}.
+     *
      * @param key String, not {@code null}
      * @return {@code List} of {@code String}s
      */
@@ -189,6 +187,7 @@ public class ExtendedProperties extends Properties {
 
     /**
      * Gets a {@code Class} that corresponds the property record with the given {@code key}.
+     *
      * @param key String, not {@code null}
      * @return {@code Class}
      */
@@ -198,6 +197,7 @@ public class ExtendedProperties extends Properties {
 
     /**
      * Gets a {@code Enum} that corresponds the property record with the given {@code key}.
+     *
      * @param key String, not {@code null}
      * @return {@code Enum}
      */
@@ -207,6 +207,7 @@ public class ExtendedProperties extends Properties {
 
     /**
      * Gets a {@code Boolean} that corresponds the property record with the given {@code key}.
+     *
      * @param key String, not {@code null}
      * @return boolean
      */
@@ -216,6 +217,7 @@ public class ExtendedProperties extends Properties {
 
     /**
      * Gets a {@code Integer} that corresponds the property record with the given {@code key}.
+     *
      * @param key String, not {@code null}
      * @return int
      */
@@ -225,6 +227,7 @@ public class ExtendedProperties extends Properties {
 
     /**
      * Gets a {@code Lomg} that corresponds the property record with the given {@code key}.
+     *
      * @param key String, not {@code null}
      * @return long
      */
@@ -234,6 +237,7 @@ public class ExtendedProperties extends Properties {
 
     /**
      * Gets a {@code Double} that corresponds the property record with the given {@code key}.
+     *
      * @param key String, not {@code null}
      * @return double
      */
@@ -258,11 +262,49 @@ public class ExtendedProperties extends Properties {
             public Object toObject(String value) throws Exception {
                 String path = value.replaceAll("^(.+)#.+$", "$1");
                 String name = value.replaceAll("^.+#(.+)$", "$1");
-
-                for (Object o : Class.forName(path).getEnumConstants()) {
+                Class<?> clazz = getEnumHolderClass(path);
+                for (Object o : clazz.getEnumConstants()) {
                     if (String.valueOf(o).equals(name)) return o;
                 }
                 throw new RuntimeException(value + " is not enum.");
+            }
+
+            private Class<?> getEnumHolderClass(String path) throws ClassNotFoundException {
+                try {
+                    return Class.forName(path);
+                } catch (ClassNotFoundException e) {
+                    // it is possible to have a desired class-reference inside any super interface,
+                    // not inside the specified class
+                    if (!path.contains("$")) {
+                        throw e;
+                    }
+                    String outer = path.replaceAll("\\$.+$", "");
+                    String inner = path.replaceAll("^.+\\$", "");
+                    Class<?> clazz = Class.forName(outer);
+                    for (Class<?> c : getInterfaces(clazz)) {
+                        try {
+                            return Class.forName(c.getName() + "$" + inner);
+                        } catch (ClassNotFoundException x) {
+                            e.addSuppressed(x);
+                        }
+                    }
+                    throw e;
+                }
+            }
+
+            /**
+             * Gets all super interfaces for the given class.
+             *
+             * @param clazz {@link Class}
+             * @return {@code Set}
+             */
+            private Set<Class<?>> getInterfaces(Class<?> clazz) {
+                Set<Class<?>> res = new HashSet<>();
+                for (Class<?> c : clazz.getInterfaces()) {
+                    if (res.add(c))
+                        res.addAll(getInterfaces(c));
+                }
+                return res;
             }
 
             @Override

@@ -30,7 +30,7 @@ interface CacheControl<R> extends CacheSettings {
      *
      * @param size int
      * @return {@link R}
-     * @see #getLoadNodesCacheSize()
+     * @see CacheSettings#getLoadNodesCacheSize()
      * @see OntSettings#ONT_API_LOAD_CONF_CACHE_NODES
      */
     R setLoadNodesCacheSize(int size);
@@ -41,7 +41,7 @@ interface CacheControl<R> extends CacheSettings {
      *
      * @param size int
      * @return {@link R}
-     * @see #getLoadObjectsCacheSize()
+     * @see CacheSettings#getLoadObjectsCacheSize()
      * @see OntSettings#ONT_API_LOAD_CONF_CACHE_OBJECTS
      */
     R setLoadObjectsCacheSize(int size);
@@ -52,7 +52,7 @@ interface CacheControl<R> extends CacheSettings {
      *
      * @param level int
      * @return {@link R}
-     * @see #getContentCacheLevel()
+     * @see CacheSettings#getContentCacheLevel()
      * @see OntSettings#ONT_API_LOAD_CONF_CACHE_CONTENT
      */
     R setContentCacheLevel(int level);
@@ -62,7 +62,7 @@ interface CacheControl<R> extends CacheSettings {
      *
      * @param b boolean
      * @return {@link R}
-     * @see #isContentCacheEnabled()
+     * @see CacheSettings#isContentCacheEnabled()
      */
     default R setUseContentCache(boolean b) {
         return setContentCacheLevel(b ? CONTENT_CACHE_LEVEL_ALL : 0);

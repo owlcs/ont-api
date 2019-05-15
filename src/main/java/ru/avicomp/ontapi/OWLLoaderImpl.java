@@ -20,7 +20,6 @@ import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.PriorityCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import ru.avicomp.ontapi.config.OntConfig;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 
 import java.io.IOException;
@@ -117,9 +116,7 @@ public class OWLLoaderImpl implements OntologyFactory.Loader {
 
         @Override
         public boolean canAttemptLoading(OWLOntologyDocumentSource source) {
-            return !source.hasAlredyFailedOnStreams() ||
-                    !source.hasAlredyFailedOnIRIResolution() &&
-                            OntConfig.DefaultScheme.all().anyMatch(s -> s.same(source.getDocumentIRI()));
+            return !source.hasAlredyFailedOnStreams() || !source.hasAlredyFailedOnIRIResolution();
         }
 
         @Override
