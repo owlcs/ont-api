@@ -108,7 +108,7 @@ public class SearchModel extends OntGraphModelImpl {
                 // do not cache SWRL.DArg (and, therefore, SWRL.Arg) since an instance of this type
                 // can be Literal with unpredictable length
                 .filter(x -> x != OntSWRL.DArg.class && x != OntSWRL.Arg.class)
-                .forEach(x -> CachedFactory.cache(res, from, x, size, conf.parallel()));
+                .forEach(x -> CachedFactory.cache(res, from, x, size));
         return res.build();
     }
 
@@ -183,20 +183,21 @@ public class SearchModel extends OntGraphModelImpl {
 
         private static CachedFactory create(Class<? extends OntObject> type,
                                             ObjectFactory from,
-                                            int limit,
-                                            boolean parallel) {
+                                            int limit) {
+
+            // Do not use caffeine due to danger of LiveLock
+            // See issue #71 (https://github.com/avicomp/ont-api/issues/71)
             return new CachedFactory(type,
                     from instanceof CachedFactory ? ((CachedFactory) from).from : from,
                     limit,
-                    parallel);
+                    false);
         }
 
         static void cache(PersonalityBuilder res,
                           OntPersonality from,
                           Class<? extends OntObject> type,
-                          int limit,
-                          boolean parallel) {
-            res.add(type, create(type, from.getObjectFactory(type), limit, parallel));
+                          int limit) {
+            res.add(type, create(type, from.getObjectFactory(type), limit));
         }
 
         @Override

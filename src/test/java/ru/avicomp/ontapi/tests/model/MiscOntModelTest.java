@@ -16,6 +16,7 @@ package ru.avicomp.ontapi.tests.model;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.*;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
@@ -30,6 +31,23 @@ import ru.avicomp.ontapi.utils.StringInputStreamDocumentSource;
  * Created by @szuev on 20.07.2018.
  */
 public class MiscOntModelTest extends OntModelTestBase {
+
+    @Test
+    public void testConcurrentLoadAndListInCycle() throws OWLOntologyCreationException {
+        OWLOntologyDocumentSource src = ReadWriteUtils.getDocumentSource("/ontapi/family.ttl", OntFormat.TURTLE);
+        for (int i = 0; i < 10; i++) {
+            LOGGER.debug("Iter: #{}", i);
+            OWLOntologyManager m = OntManagers.createConcurrentONT();
+            OWLOntology o = m.loadOntologyFromOntologyDocument(src);
+            Assert.assertEquals(58, o.classesInSignature().peek(x -> LOGGER.debug("CL:{}", x)).count());
+            Assert.assertEquals(2, o.datatypesInSignature().peek(x -> LOGGER.debug("DT:{}", x)).count());
+            Assert.assertEquals(508, o.individualsInSignature().peek(x -> LOGGER.debug("NI:{}", x)).count());
+            Assert.assertEquals(80, o.objectPropertiesInSignature().peek(x -> LOGGER.debug("OP:{}", x)).count());
+            Assert.assertEquals(2, o.datatypesInSignature().peek(x -> LOGGER.debug("DP:{}", x)).count());
+            Assert.assertEquals(1, o.annotationPropertiesInSignature().peek(x -> LOGGER.debug("AP:{}", x)).count());
+            Assert.assertEquals(2845, o.axioms().peek(x -> LOGGER.debug("AXIOM:{}", x)).count());
+        }
+    }
 
     @Test
     public void testDeleteAxiomWithSharedEntity() {
