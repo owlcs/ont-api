@@ -98,6 +98,13 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
         return type.getName().replace(OntObject.class.getPackage().getName() + ".", "");
     }
 
+    /**
+     * Tests the node is named.
+     *
+     * @param res {@link Node} to test, not {@code null}
+     * @return the same node
+     * @throws OntJenaException in case {@code null} or anonymous node is given
+     */
     public static Node checkNamed(Node res) {
         if (OntJenaException.notNull(res, "Null node").isURI()) {
             return res;
@@ -105,6 +112,13 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
         throw new OntJenaException.IllegalArgument("Not uri node " + res);
     }
 
+    /**
+     * Tests the RDF resource is named.
+     *
+     * @param res {@link Resource} to test, not {@code null}
+     * @return the same resource
+     * @throws OntJenaException in case {@code null} or anonymous resource is given
+     */
     public static Resource checkNamed(Resource res) {
         if (OntJenaException.notNull(res, "Null resource").isURIResource()) {
             return res;
@@ -143,11 +157,11 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @return {@code Stream} of {@link X}s
      * @since 1.4.0
      */
-    protected static <X extends OntObject> Stream<X> listHierarchy(X object,
-                                                                   Class<X> type,
-                                                                   Property predicate,
-                                                                   boolean inverse,
-                                                                   boolean direct) {
+    public static <X extends OntObject> Stream<X> listHierarchy(X object,
+                                                                Class<X> type,
+                                                                Property predicate,
+                                                                boolean inverse,
+                                                                boolean direct) {
         Function<X, ExtendedIterator<X>> listChildren = inverse ?
                 x -> ((OntObjectImpl) x).listSubjects(predicate, type) :
                 x -> ((OntObjectImpl) x).listObjects(predicate, type);
@@ -169,9 +183,9 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @return {@code Set} of {@link X}
      * @since 1.4.0
      */
-    protected static <X extends OntObject> Set<X> getHierarchy(X object,
-                                                               Function<X, ExtendedIterator<X>> listChildren,
-                                                               boolean direct) {
+    public static <X extends OntObject> Set<X> getHierarchy(X object,
+                                                            Function<X, ExtendedIterator<X>> listChildren,
+                                                            boolean direct) {
         Set<X> res;
         if (direct) {
             res = listChildren.apply(object).toSet();
@@ -196,6 +210,21 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
                                                       Set<X> res) {
         if (!res.add(object)) return;
         listChildren.apply(object).forEachRemaining(c -> collectIndirect(c, listChildren, res));
+    }
+
+    /**
+     * Finds a public {@link OntObject Ontology Object} class-type.
+     *
+     * @param o {@link OntObject}, not {@code null}
+     * @return Class of the given {@link OntObject}
+     */
+    @SuppressWarnings("unchecked")
+    public static Class<? extends OntObject> findActualClass(OntObject o) {
+        return Arrays.stream(o.getClass().getInterfaces())
+                .filter(OntObject.class::isAssignableFrom)
+                .map(c -> (Class<? extends OntObject>) c)
+                .findFirst()
+                .orElse(null);
     }
 
     /**
@@ -676,21 +705,6 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      */
     public Class<? extends OntObject> getActualClass() {
         return findActualClass(this);
-    }
-
-    /**
-     * Finds a public {@link OntObject Ontology Object} class-type.
-     *
-     * @param o {@link OntObject}, not {@code null}
-     * @return Class of the given {@link OntObject}
-     */
-    @SuppressWarnings("unchecked")
-    public static Class<? extends OntObject> findActualClass(OntObject o) {
-        return Arrays.stream(o.getClass().getInterfaces())
-                .filter(OntObject.class::isAssignableFrom)
-                .map(c -> (Class<? extends OntObject>) c)
-                .findFirst()
-                .orElse(null);
     }
 
     @Override
