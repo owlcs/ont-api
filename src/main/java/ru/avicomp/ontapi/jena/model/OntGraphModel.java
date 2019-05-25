@@ -165,7 +165,7 @@ public interface OntGraphModel extends Model, CreateClasses, CreateRanges, Creat
      * Caution: since recursive hierarchies are not prohibited,
      * the rectilinear usage of this method may cause a StackOverflow Error.
      *
-     * @return Stream of {@link OntGraphModel}s
+     * @return {@code Stream} of {@link OntGraphModel}s
      * @see OntID#imports()
      */
     Stream<OntGraphModel> imports();
@@ -198,7 +198,7 @@ public interface OntGraphModel extends Model, CreateClasses, CreateRanges, Creat
      *
      * @param type {@link Class} the concrete type of {@link OntObject}, not {@code null}
      * @param <O>  any ont-object subtype
-     * @return Stream of {@link OntObject}s of the type {@link O}
+     * @return {@code Stream} of {@link OntObject}s of the type {@link O}
      * @see #ontEntities()
      */
     <O extends OntObject> Stream<O> ontObjects(Class<? extends O> type);
@@ -212,7 +212,7 @@ public interface OntGraphModel extends Model, CreateClasses, CreateRanges, Creat
      * The duplicate elements (by {@code equals} and {@code hasCode}, not by real class-type)
      * means that there is so called punning.
      *
-     * @return Stream of {@link OntEntity}
+     * @return {@code Stream} of {@link OntEntity}
      * @see #ontObjects(Class)
      * @see #ontEntities(Class)
      * @see #ontBuiltins(Class)
@@ -230,24 +230,33 @@ public interface OntGraphModel extends Model, CreateClasses, CreateRanges, Creat
      * not only from the base graph) the method {@link #ontBuiltins(Class)} can also be used.
      * Note that the result can be configured
      * through {@link ru.avicomp.ontapi.jena.impl.conf.OntPersonality.Builtins Builtins Vocabulary}.
+     * todo: make deprecated ?
      *
      * @param type  a concrete class-type of entity
      * @param local if {@code true} only the base graph is considered
      * @param <E>   any subtype of {@link OntEntity}
-     * @return Stream of builtin {@link OntEntity}s
+     * @return {@code Stream} of builtin {@link OntEntity}s
      * @see ru.avicomp.ontapi.jena.impl.conf.OntPersonality#getBuiltins()
      * @since 1.4.0
      */
     <E extends OntEntity> Stream<E> ontBuiltins(Class<E> type, boolean local);
 
     /**
-     * Lists all typed individuals from the model.
-     * Notice that the method {@link OntGraphModel#ontObjects(Class)} called with parameter {@code OntIndividual.class}
-     * (i.e. {@code model.ontObject(OntIndividual.class)}) will return all individuals from a model,
+     * Lists all individuals that participate in class assertion axioms.
+     * A class assertion axiom is a statement {@code a rdf:type C},
+     * where {@code a} an individual (named or anonymous) to be returned, and {@code C} any class expression.
+     * Notice, that the method {@link OntGraphModel#ontObjects(Class)} called with parameter {@code OntIndividual.class}
+     * (i.e. {@code model.ontObject(OntIndividual.class)}) must return all individuals from a model,
      * even those which have no explicit declarations (e.g. any part of {@code owl:sameAs} is an individual),
      * while this method returns only class-assertion individuals.
+     * Also notice: the method {@link #namedIndividuals()} must return only named individuals
+     * with the declaration {@link OWL#NamedIndividual owl:NamedIndividual}.
+     * In general, a named individual may not have this declaration explicitly, see
+     * <a href='https://www.w3.org/TR/owl2-syntax/#Typing_Constraints_of_OWL_2_DL'>5.8.1 Typing Constraints of OWL 2 DL</a>
+     * for more details.
+     * todo: rename to #individuals()
      *
-     * @return Stream of {@link OntIndividual}s
+     * @return {@code Stream} of {@link OntIndividual}s
      * @see OntGraphModel#namedIndividuals()
      * @since 1.3.0
      */
@@ -275,7 +284,7 @@ public interface OntGraphModel extends Model, CreateClasses, CreateRanges, Creat
     /**
      * Lists all ont-statements.
      *
-     * @return Stream of {@link OntStatement}
+     * @return {@code Stream} of {@link OntStatement}
      * @see Model#listStatements()
      */
     Stream<OntStatement> statements();
@@ -286,7 +295,7 @@ public interface OntGraphModel extends Model, CreateClasses, CreateRanges, Creat
      * @param s {@link Resource}, the subject
      * @param p {@link Property}, the predicate
      * @param o {@link RDFNode}, the object
-     * @return Stream of {@link OntStatement}
+     * @return {@code Stream} of {@link OntStatement}
      * @see Model#listStatements(Resource, Property, RDFNode)
      */
     Stream<OntStatement> statements(Resource s, Property p, RDFNode o);
@@ -299,7 +308,7 @@ public interface OntGraphModel extends Model, CreateClasses, CreateRanges, Creat
      * @param s {@link Resource}, the subject
      * @param p {@link Property}, the predicate
      * @param o {@link RDFNode}, the object
-     * @return Stream of {@link OntStatement}
+     * @return {@code Stream} of {@link OntStatement}
      * @see OntGraphModel#statements(Resource, Property, RDFNode)
      * @see OntStatement#isLocal()
      * @since 1.3.0
@@ -597,7 +606,8 @@ public interface OntGraphModel extends Model, CreateClasses, CreateRanges, Creat
     }
 
     /**
-     * Lists all named individuals.
+     * Lists all named individuals,
+     * i.e. all those individuals which have explicitly {@link OWL#NamedIndividual owl:NamedIndividual} declaration.
      *
      * @return {@code Stream} of {@link OntIndividual.Named Named Individual}s
      * @see #classAssertions()

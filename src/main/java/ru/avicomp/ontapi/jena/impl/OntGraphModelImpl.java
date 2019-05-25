@@ -381,12 +381,20 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
     }
 
     @Override
-    public Stream<OntIndividual> classAssertions() {
-        return statements(null, RDF.type, null)
-                .filter(s -> s.getObject().canAs(OntCE.class))
-                .map(OntStatement::getSubject)
-                .map(s -> findNodeAs(s.asNode(), OntIndividual.class))
-                .filter(Objects::nonNull);
+    public final Stream<OntIndividual> classAssertions() {
+        return Iter.asStream(listIndividuals());
+    }
+
+    /**
+     * Returns an {@code ExtendedIterator} over all individuals
+     * that participate in class assertion statement {@code a rdf:type C}.
+     *
+     * @return {@link ExtendedIterator} of {@link OntIndividual}s
+     */
+    public ExtendedIterator<OntIndividual> listIndividuals() {
+        return listOntStatements(null, RDF.type, null)
+                .filterKeep(s -> s.getObject().canAs(OntCE.class) && s.getSubject().canAs(OntIndividual.class))
+                .mapWith(s -> s.getSubject(OntIndividual.class));
     }
 
     @Override

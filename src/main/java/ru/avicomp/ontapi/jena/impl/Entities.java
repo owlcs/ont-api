@@ -17,17 +17,17 @@ package ru.avicomp.ontapi.jena.impl;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
+import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDFS;
 import ru.avicomp.ontapi.jena.impl.conf.*;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Function;
 
 /**
  * This is an enumeration of all entity (configurable-)factories.
@@ -37,70 +37,49 @@ import java.util.Set;
  * @see OntEntity
  */
 public enum Entities {
-    CLASS(OWL.Class, OntClass.class, OntClassImpl.class) {
+    CLASS(OWL.Class, OntClass.class, OntClassImpl.class, Vocabulary.Entities::getClasses),
+    DATATYPE(RDFS.Datatype, OntDT.class, OntDatatypeImpl.class, Vocabulary.Entities::getDatatypes),
+    ANNOTATION_PROPERTY(OWL.AnnotationProperty, OntNAP.class, OntAPropertyImpl.class, Vocabulary.Entities::getAnnotationProperties),
+    DATA_PROPERTY(OWL.DatatypeProperty, OntNDP.class, OntDPropertyImpl.class, Vocabulary.Entities::getDatatypeProperties),
+    OBJECT_PROPERTY(OWL.ObjectProperty, OntNOP.class, OntOPEImpl.NamedPropertyImpl.class, Vocabulary.Entities::getObjectProperties),
+    INDIVIDUAL(OWL.NamedIndividual, OntIndividual.Named.class, OntIndividualImpl.NamedImpl.class, Vocabulary.Entities::getIndividuals) {
         @Override
-        Set<Node> bannedTypes(EnhGraph g) {
-            return punnings(g).getClasses();
+        OntFilter createPrimaryFilter() {
+            return (n, g) -> n.isURI() && filterType(n, g);
         }
 
-        @Override
-        Set<Node> builtInURIs(EnhGraph g) {
-            return builtins(g).getClasses();
-        }
-    },
-    DATATYPE(RDFS.Datatype, OntDT.class, OntDatatypeImpl.class) {
-        @Override
-        Set<Node> bannedTypes(EnhGraph g) {
-            return punnings(g).getDatatypes();
-        }
-
-        @Override
-        Set<Node> builtInURIs(EnhGraph g) {
-            return builtins(g).getDatatypes();
-        }
-    },
-    ANNOTATION_PROPERTY(OWL.AnnotationProperty, OntNAP.class, OntAPropertyImpl.class) {
-        @Override
-        Set<Node> bannedTypes(EnhGraph g) {
-            return punnings(g).getAnnotationProperties();
-        }
-
-        @Override
-        Set<Node> builtInURIs(EnhGraph g) {
-            return builtins(g).getAnnotationProperties();
-        }
-    },
-    DATA_PROPERTY(OWL.DatatypeProperty, OntNDP.class, OntDPropertyImpl.class) {
-        @Override
-        Set<Node> bannedTypes(EnhGraph g) {
-            return punnings(g).getDatatypeProperties();
-        }
-
-        @Override
-        Set<Node> builtInURIs(EnhGraph g) {
-            return builtins(g).getDatatypeProperties();
-        }
-    },
-    OBJECT_PROPERTY(OWL.ObjectProperty, OntNOP.class, OntOPEImpl.NamedPropertyImpl.class) {
-        @Override
-        Set<Node> bannedTypes(EnhGraph g) {
-            return punnings(g).getObjectProperties();
-        }
-
-        @Override
-        Set<Node> builtInURIs(EnhGraph g) {
-            return builtins(g).getObjectProperties();
-        }
-    },
-    INDIVIDUAL(OWL.NamedIndividual, OntIndividual.Named.class, OntIndividualImpl.NamedImpl.class) {
-        @Override
-        Set<Node> bannedTypes(EnhGraph g) {
-            return punnings(g).getIndividuals();
-        }
-
-        @Override
-        Set<Node> builtInURIs(EnhGraph g) {
-            return builtins(g).getIndividuals();
+        private boolean filterType(Node n, EnhGraph g) {
+            if (builtInURIs(g).contains(n)) { // just in case
+                return true;
+            }
+            Set<Node> forbidden = bannedTypes(g);
+            List<Node> candidates = new ArrayList<>();
+            boolean hasDeclaration = false;
+            ExtendedIterator<Triple> it = g.asGraph().find(n, RDF.Nodes.type, Node.ANY);
+            try {
+                while (it.hasNext()) {
+                    Node type = it.next().getObject();
+                    if (forbidden.contains(type)) {
+                        return false;
+                    }
+                    if (resourceType.asNode().equals(type)) {
+                        hasDeclaration = true;
+                    } else {
+                        candidates.add(type);
+                    }
+                }
+            } finally {
+                it.close();
+            }
+            if (hasDeclaration) {
+                return true;
+            }
+            // In general, owl:NamedIndividual declaration is optional,
+            // see https://github.com/avicomp/ont-api/issues/73
+            for (Node c : candidates) {
+                if (PersonalityModel.canAs(OntCE.class, c, g)) return true;
+            }
+            return false;
         }
     },
     ;
@@ -108,36 +87,44 @@ public enum Entities {
     public static final ObjectFactory ALL = Factories.createFrom(ENTITY_FINDER,
             Arrays.stream(values()).map(Entities::getActualType));
 
-    private final Class<? extends OntObjectImpl> impl;
-    private final Class<? extends OntEntity> classType;
-    private final Resource resourceType;
+    final Class<? extends OntObjectImpl> impl;
+    final Class<? extends OntEntity> classType;
+    final Resource resourceType;
+    final Function<Vocabulary.Entities, Set<Node>> extractNodeSet;
 
     /**
+     * Creates an entity enum.
      * @param resourceType {@link Resource}-type
      * @param classType    class-type of the corresponding {@link OntEntity}
      * @param impl         class-implementation
+     * @param extractNodeSet to retrieve {@link Node}s
      */
-    Entities(Resource resourceType, Class<? extends OntEntity> classType, Class<? extends OntObjectImpl> impl) {
+    Entities(Resource resourceType,
+             Class<? extends OntEntity> classType,
+             Class<? extends OntObjectImpl> impl,
+             Function<Vocabulary.Entities, Set<Node>> extractNodeSet) {
         this.classType = classType;
         this.resourceType = resourceType;
         this.impl = impl;
+        this.extractNodeSet = extractNodeSet;
     }
 
     /**
      * Returns entity class-type.
      *
-     * @return {@link Class}
+     * @return {@link Class}, one of {@link OntEntity}
      */
     public Class<? extends OntEntity> getActualType() {
         return classType;
     }
 
-    OntPersonality.Builtins builtins(EnhGraph g) {
-        return personality(g).getBuiltins();
-    }
-
-    OntPersonality.Punnings punnings(EnhGraph g) {
-        return personality(g).getPunnings();
+    /**
+     * Returns entity resource-type.
+     *
+     * @return {@link Resource}
+     */
+    public Resource getResourceType() {
+        return resourceType;
     }
 
     private OntPersonality personality(EnhGraph g) {
@@ -150,7 +137,9 @@ public enum Entities {
      * @param g {@link EnhGraph}
      * @return Set of {@link Node}s
      */
-    abstract Set<Node> bannedTypes(EnhGraph g);
+    Set<Node> bannedTypes(EnhGraph g) {
+        return extractNodeSet.apply(personality(g).getPunnings());
+    }
 
     /**
      * Answers a {@code Set} of URI Nodes
@@ -159,15 +148,8 @@ public enum Entities {
      * @param g {@link EnhGraph}
      * @return Set of {@link Node}s
      */
-    abstract Set<Node> builtInURIs(EnhGraph g);
-
-    /**
-     * Returns entity resource-type.
-     *
-     * @return {@link Resource}
-     */
-    public Resource getResourceType() {
-        return resourceType;
+    Set<Node> builtInURIs(EnhGraph g) {
+        return extractNodeSet.apply(personality(g).getBuiltins());
     }
 
     /**
@@ -177,23 +159,26 @@ public enum Entities {
      */
     public ObjectFactory createFactory() {
         OntFinder finder = new OntFinder.ByType(resourceType);
+        OntFilter filter = createPrimaryFilter();
+        OntMaker maker = new OntMaker.WithType(impl, resourceType).restrict(createIllegalPunningsFilter());
+        return Factories.createCommon(classType, maker, finder, filter);
+    }
 
-        OntFilter illegalPunningsFilter = (n, eg) -> {
+    OntFilter createIllegalPunningsFilter() {
+        return (n, eg) -> {
             Graph g = eg.asGraph();
             for (Node t : bannedTypes(eg)) {
                 if (g.contains(n, RDF.Nodes.type, t)) return false;
             }
             return true;
         };
+    }
 
+    OntFilter createPrimaryFilter() {
         OntFilter builtInEntity = (n, g) -> builtInURIs(g).contains(n);
-        OntFilter modelEntity = new OntFilter.HasType(resourceType).and(illegalPunningsFilter);
-
+        OntFilter modelEntity = new OntFilter.HasType(resourceType).and(createIllegalPunningsFilter());
         OntFilter entity = modelEntity.or(builtInEntity);
-
-        OntFilter filter = OntFilter.URI.and(entity);
-        OntMaker maker = new OntMaker.WithType(impl, resourceType).restrict(illegalPunningsFilter);
-        return Factories.createCommon(classType, maker, finder, filter);
+        return OntFilter.URI.and(entity);
     }
 
     /**

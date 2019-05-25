@@ -60,6 +60,34 @@ public abstract class OntIndividualImpl extends OntObjectImpl implements OntIndi
         super(n, m);
     }
 
+    @Override
+    public final Stream<OntCE> classes() {
+        return Iter.asStream(listClasses());
+    }
+
+    public ExtendedIterator<OntCE> listClasses() {
+        return listObjects(RDF.type, OntCE.class);
+    }
+
+    @Override
+    public boolean isLocal() {
+        Optional<OntStatement> root = findRootStatement();
+        return (root.isPresent() && root.get().isLocal()) || hasLocalClassAssertions();
+    }
+
+    protected boolean hasLocalClassAssertions() {
+        return Iter.findFirst(listClassAssertions().filterKeep(OntStatement::isLocal)).isPresent();
+    }
+
+    /**
+     * Lists all class assertion statements.
+     *
+     * @return {@link ExtendedIterator} over all class assertions.
+     */
+    public ExtendedIterator<OntStatement> listClassAssertions() {
+        return listStatements(RDF.type).filterKeep(s -> s.getObject().canAs(OntCE.class));
+    }
+
     public static boolean testAnonymousIndividual(Node node, EnhGraph eg) {
         if (!node.isBlank()) {
             return false;
@@ -156,20 +184,24 @@ public abstract class OntIndividualImpl extends OntObjectImpl implements OntIndi
         return res.stream();
     }
 
+    /**
+     * Represents a named individual.
+     * Note: it may not have {@link OntObject#getRoot()} statement.
+     */
     public static class NamedImpl extends OntIndividualImpl implements OntIndividual.Named {
         public NamedImpl(Node n, EnhGraph m) {
             super(OntObjectImpl.checkNamed(n), m);
         }
 
         @Override
-        public boolean isBuiltIn() {
-            return false;
+        public Optional<OntStatement> findRootStatement() {
+            return Optional.of(getModel().createStatement(this, RDF.type, OWL.NamedIndividual).asRootStatement())
+                    .filter(r -> getModel().contains(r));
         }
 
         @Override
-        public Optional<OntStatement> findRootStatement() {
-            // there are no built-in named individuals, the root is required:
-            return getRequiredRootStatement(this, OWL.NamedIndividual);
+        public boolean isBuiltIn() {
+            return false;
         }
 
         @Override
@@ -209,6 +241,11 @@ public abstract class OntIndividualImpl extends OntObjectImpl implements OntIndi
 
         public AnonymousImpl(Node n, EnhGraph m) {
             super(n, m);
+        }
+
+        @Override
+        public boolean isLocal() {
+            return hasLocalClassAssertions();
         }
 
         @Override

@@ -27,7 +27,6 @@ import ru.avicomp.ontapi.jena.impl.OntListImpl;
 import ru.avicomp.ontapi.jena.impl.OntObjectImpl;
 import ru.avicomp.ontapi.jena.impl.OntStatementImpl;
 import ru.avicomp.ontapi.jena.model.*;
-import ru.avicomp.ontapi.jena.utils.Iter;
 
 import java.util.List;
 import java.util.Set;
@@ -121,17 +120,6 @@ public class ReadHelper {
             res = res.filterDrop(s -> isAnnotationAssertionStatement(s, conf));
         }
         return res.mapWith(a -> getAnnotation(a, of)).toSet();
-    }
-
-    /**
-     * Lists all annotations related to the object (including assertions).
-     *
-     * @param obj {@link OntObject}
-     * @param of  {@link InternalObjectFactory}
-     * @return Stream of {@link ONTObject}s of {@link OWLAnnotation}
-     */
-    public static Stream<ONTObject<OWLAnnotation>> objectAnnotations(OntObject obj, InternalObjectFactory of) {
-        return Iter.asStream(listOWLAnnotations(obj, of));
     }
 
     /**

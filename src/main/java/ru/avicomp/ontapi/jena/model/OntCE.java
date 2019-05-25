@@ -172,8 +172,7 @@ public interface OntCE extends OntObject {
      * @return {@code Stream} of {@link OntIndividual}s
      */
     default Stream<OntIndividual> individuals() {
-        return getModel().statements(null, RDF.type, this)
-                .map(OntStatement::getSubject).map(s -> s.as(OntIndividual.class));
+        return getModel().statements(null, RDF.type, this).map(s -> s.getSubject(OntIndividual.class));
     }
 
     /**

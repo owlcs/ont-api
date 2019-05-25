@@ -494,7 +494,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         OntGraphModelImpl m = getSearchModel();
         // in the case of a large ontology, the direct traverse over the graph works significantly faster:
         DeclarationTranslator t = (DeclarationTranslator) AxiomParserProvider.get(OWLDeclarationAxiom.class);
-        OntEntity res = m.findNodeAs(WriteHelper.toResource(e).asNode(), WriteHelper.getEntityView(e));
+        OntEntity res = m.findNodeAs(WriteHelper.toResource(e).asNode(), WriteHelper.getEntityType(e));
         if (res == null) return Stream.empty();
         InternalObjectFactory df = getObjectFactory();
         OntStatement s = res.getRoot();

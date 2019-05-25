@@ -23,8 +23,8 @@ import java.util.Set;
 
 /**
  * This is a resource type mapper.
- * It is a technical interface that is used by the {@link OntPersonality}.
- * All methods must return a IRIs, not literals or blank-nodes.
+ * It is a technical interface that is included into the {@link OntPersonality}.
+ * Note: all its methods must return a IRIs (as {@code String}s), not literals or blank-nodes.
  * <p>
  * Created by @ssz on 16.01.2019.
  *
@@ -33,7 +33,7 @@ import java.util.Set;
  * @since 1.4.0
  */
 @FunctionalInterface
-interface Vocabulary<T extends Resource> {
+public interface Vocabulary<T extends Resource> {
 
     /**
      * Returns a {@code Set} of {@link Node Jena Graph Node}s for the given {@code Class}-type.
@@ -45,7 +45,7 @@ interface Vocabulary<T extends Resource> {
     Set<Node> get(Class<? extends T> type) throws OntJenaException;
 
     /**
-     * A vocabulary for {@link OntEntity OWL Entity} types.
+     * A technical interface to describe vocabulary for {@link OntEntity OWL Entity} types.
      * <p>
      * Created by @ssz on 18.01.2019.
      *

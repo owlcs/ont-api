@@ -44,10 +44,10 @@ public class SWRLTransformTest {
         ReadWriteUtils.print(o);
 
         TestUtils.assertAxiom(o, AxiomType.DECLARATION, 6);
-        TestUtils.assertAxiom(o, AxiomType.DATA_PROPERTY_ASSERTION, 0);
-        TestUtils.assertAxiom(o, AxiomType.CLASS_ASSERTION, 0);
+        TestUtils.assertAxiom(o, AxiomType.DATA_PROPERTY_ASSERTION, 6);
+        TestUtils.assertAxiom(o, AxiomType.CLASS_ASSERTION, 1);
         TestUtils.assertAxiom(o, AxiomType.SWRL_RULE, 0);
-        Assert.assertEquals(6, o.axioms().count());
+        Assert.assertEquals(13, o.axioms().count());
     }
 
     @Test

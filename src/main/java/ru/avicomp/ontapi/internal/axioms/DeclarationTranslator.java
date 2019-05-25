@@ -43,12 +43,17 @@ import java.util.Objects;
 public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> {
     @Override
     public void write(OWLDeclarationAxiom axiom, OntGraphModel model) {
-        WriteHelper.writeDeclarationTriple(model, axiom.getEntity(), RDF.type, WriteHelper.getType(axiom.getEntity()), axiom.annotations());
+        WriteHelper.writeDeclarationTriple(model, axiom.getEntity(), RDF.type,
+                WriteHelper.getRDFType(axiom.getEntity()), axiom.annotations());
     }
 
     @Override
     public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
         if (!config.isAllowReadDeclarations()) return NullIterator.instance();
+        // this way is used for two reasons:
+        // 1) performance (union of several find operation for the pattern [ANY,rdf:type,Resource] is faster
+        // then single find operation [ANY,rdf:type,ANY] and subsequent filter)
+        // 2) to filter out punnings using standard entity factories
         return Models.listEntities(model).mapWith(OntObject::getRoot).filterDrop(Objects::isNull);
     }
 
@@ -57,6 +62,7 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
         if (!statement.getSubject().isURIResource()) return false;
         if (!statement.getObject().isURIResource()) return false;
         if (!statement.isDeclaration()) return false;
+        // again. this way is used to restrict illegal punnings
         return Entities.find(statement.getResource())
                 .map(Entities::getActualType)
                 .map(t -> statement.getModel().getOntEntity(t, statement.getSubject()))

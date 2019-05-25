@@ -128,9 +128,9 @@ public class OWLTransformTest {
         TestUtils.assertAxiom(o, AxiomType.EQUIVALENT_CLASSES, 5);
         TestUtils.assertAxiom(o, AxiomType.SUBCLASS_OF, 2);
         TestUtils.assertAxiom(o, AxiomType.DISJOINT_UNION, 1);
-        TestUtils.assertAxiom(o, AxiomType.CLASS_ASSERTION, 0);
-        TestUtils.assertAxiom(o, AxiomType.OBJECT_PROPERTY_ASSERTION, 0);
-        TestUtils.assertAxiom(o, AxiomType.DATA_PROPERTY_ASSERTION, 0);
+        TestUtils.assertAxiom(o, AxiomType.CLASS_ASSERTION, 13);
+        TestUtils.assertAxiom(o, AxiomType.OBJECT_PROPERTY_ASSERTION, 13);
+        TestUtils.assertAxiom(o, AxiomType.DATA_PROPERTY_ASSERTION, 5);
         TestUtils.assertAxiom(o, AxiomType.SUB_OBJECT_PROPERTY, 7);
         TestUtils.assertAxiom(o, AxiomType.INVERSE_OBJECT_PROPERTIES, 3);
         TestUtils.assertAxiom(o, AxiomType.SYMMETRIC_OBJECT_PROPERTY, 1);
@@ -143,7 +143,7 @@ public class OWLTransformTest {
         TestUtils.assertAxiom(o, AxiomType.ANNOTATION_ASSERTION, 0);
         TestUtils.assertAxiom(o, AxiomType.SUB_PROPERTY_CHAIN_OF, 0);
 
-        Assert.assertEquals(65, o.getAxiomCount());
+        Assert.assertEquals(96, o.getAxiomCount());
     }
 
     @Test

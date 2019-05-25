@@ -18,11 +18,7 @@ import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.graph.Factory;
 import org.apache.jena.graph.Node;
-import org.apache.jena.graph.Triple;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.*;
 import org.apache.jena.sparql.vocabulary.FOAF;
 import org.apache.jena.vocabulary.RDFS;
 import org.junit.Assert;
@@ -32,7 +28,6 @@ import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.impl.OntIndividualImpl;
-import ru.avicomp.ontapi.jena.impl.PersonalityModel;
 import ru.avicomp.ontapi.jena.impl.conf.*;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.BuiltIn;
@@ -269,43 +264,44 @@ public class PersonalityTest {
 
         String ns = "http://ex.com#";
         OntGraphModel m = OntModelFactory.createModel(OntModelFactory.createDefaultGraph(), OntModelConfig.ONT_PERSONALITY_LAX)
-                .setNsPrefixes(OntModelFactory.STANDARD);
+                .setNsPrefixes(OntModelFactory.STANDARD); // STANDARD PERSONALITY
         OntCE c1 = m.createOntClass(ns + "class1");
         OntNDP p1 = m.createDataProperty(ns + "prop1");
         OntDT d1 = m.createDatatype(ns + "dt1");
+        OntCE c2 = m.createDataAllValuesFrom(p1, d1);
+
         c1.createIndividual();
         c1.createIndividual(ns + "indi1");
-        OntCE c2 = m.createDataAllValuesFrom(p1, d1);
         c2.createIndividual(ns + "indi2");
         m.createResource(ns + "indi3", c2);
         m.createResource(ns + "inid4", c1);
 
         ReadWriteUtils.print(m);
         Assert.assertEquals(2, m.namedIndividuals().count());
-        Assert.assertEquals(3, m.ontObjects(OntIndividual.class).count());
+        Assert.assertEquals(5, m.ontObjects(OntIndividual.class).count());
+        Assert.assertEquals(5, m.classAssertions().count());
 
-        LOGGER.debug("===================");
-
+        LOGGER.debug("==================="); // CUSTOM PERSONALITY (owl:NamedIndividual is required)
         OntGraphModel m2 = OntModelFactory.createModel(m.getGraph(), personality);
-        Assert.assertEquals(4, m2.namedIndividuals().count());
-        Assert.assertEquals(5, m2.ontObjects(OntIndividual.class).count());
-        m.createResource(ns + "inid5", c2);
-        Assert.assertEquals(6, m2.ontObjects(OntIndividual.class).count());
-        Assert.assertEquals(6, m2.classAssertions().count());
+        Assert.assertEquals(2, m2.namedIndividuals().count());
+        Assert.assertEquals(3, m2.ontObjects(OntIndividual.class).count());
+        Resource indi5 = m.createResource(ns + "inid5", c2);
+        Assert.assertEquals(3, m2.ontObjects(OntIndividual.class).count());
+        Assert.assertEquals(3, m2.classAssertions().count());
 
         OntDisjoint.Individuals disjoint2 = m2.createDifferentIndividuals(m2.ontObjects(OntIndividual.class)
                 .collect(Collectors.toList()));
+        disjoint2.getList().as(RDFList.class).add(indi5);
         ReadWriteUtils.print(m2);
-        Assert.assertEquals(6, disjoint2.members().count());
+        Assert.assertEquals(3, disjoint2.members().count());
 
-        LOGGER.debug("===================");
-
+        LOGGER.debug("==================="); // BACK TO STANDARD PERSONALITY
         OntGraphModel m3 = OntModelFactory.createModel(m2.getGraph(), OntModelConfig.ONT_PERSONALITY_MEDIUM);
         Assert.assertEquals(2, m3.namedIndividuals().count());
-        Assert.assertEquals(3, m3.ontObjects(OntIndividual.class).count());
+        Assert.assertEquals(6, m3.ontObjects(OntIndividual.class).count());
         OntDisjoint.Individuals disjoint3 = m3.ontObjects(OntDisjoint.Individuals.class).findFirst()
                 .orElseThrow(AssertionError::new);
-        Assert.assertEquals(3, disjoint3.members().count());
+        Assert.assertEquals(4, disjoint3.members().count());
     }
 
     public static OntPersonality buildCustomPersonality() {
@@ -331,10 +327,7 @@ public class PersonalityTest {
             }
         };
         OntFinder finder = new OntFinder.ByPredicate(RDF.type);
-        OntFilter filter = OntFilter.URI
-                .and(new OntFilter.HasPredicate(RDF.type))
-                .and((s, g) -> Iter.asStream(g.asGraph().find(s, RDF.type.asNode(), Node.ANY)).map(Triple::getObject)
-                        .anyMatch(o -> PersonalityModel.canAs(OntCE.class, o, g)));
+        OntFilter filter = OntFilter.URI.and(new OntFilter.HasType(OWL.NamedIndividual));
         return new CommonFactoryImpl(maker, finder, filter) {
             @Override
             public String toString() {
@@ -344,7 +337,7 @@ public class PersonalityTest {
     }
 
     /**
-     * Named individual which does not required explicit {@code _:x rdf:type owl:NamedIndividual} declaration, just only class.
+     * Named individual that requires explicit {@code _:x rdf:type owl:NamedIndividual} declaration, just only class.
      */
     public static class IndividualImpl extends OntIndividualImpl.NamedImpl {
         private IndividualImpl(Node n, EnhGraph m) {
@@ -353,7 +346,7 @@ public class PersonalityTest {
 
         @Override
         public Optional<OntStatement> findRootStatement() {
-            return getOptionalRootStatement(this, OWL.NamedIndividual);
+            return getRequiredRootStatement(this, OWL.NamedIndividual);
         }
     }
 }

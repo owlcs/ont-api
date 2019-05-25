@@ -190,7 +190,14 @@ public class OntModelTest {
     public void testKoalaCommon() throws IOException {
         // koala has 4 cardinality restrictions with wrong 'xsd:int' instead of 'xsd:nonNegativeInteger'
         // see issue #56
-        long numClasses = 32;
+        // OntClass => 20,
+        // OntCE$ObjectSomeValuesFrom => 3,
+        // OntCE$ObjectAllValuesFrom => 1,
+        // OntCE$OneOf => 1,
+        // OntCE$IntersectionOf => 4,
+        // OntCE$ObjectHasValue => 4,
+        // OntCE$DataHasValue => 3
+        long numClasses = 36;
 
         OntGraphModel m = OntModelFactory.createModel();
         try (InputStream in = OntModelTest.class.getResourceAsStream("/owlapi/koala.owl")) {

@@ -99,7 +99,13 @@ public class WriteHelper {
         return NodeFactory.createLiteral(lab);
     }
 
-    public static Resource getType(OWLEntity entity) {
+    /**
+     * Gets an ONT-API entity resource-type from a {@link OWLEntity} object.
+     *
+     * @param entity {@link OWLEntity}, not {@code null}
+     * @return a {@link Resource}-type of {@link OntEntity}
+     */
+    public static Resource getRDFType(OWLEntity entity) {
         if (entity.isOWLClass()) {
             return OWL.Class;
         } else if (entity.isOWLDataProperty()) {
@@ -116,7 +122,13 @@ public class WriteHelper {
         throw new OntApiException("Unsupported " + entity);
     }
 
-    public static Class<? extends OntEntity> getEntityView(OWLEntity entity) {
+    /**
+     * Gets an ONT-API entity class-type from a {@link OWLEntity} object.
+     *
+     * @param entity {@link OWLEntity}, not {@code null}
+     * @return a {@code Class}-type of {@link OntEntity}
+     */
+    public static Class<? extends OntEntity> getEntityType(OWLEntity entity) {
         if (entity.isOWLClass()) {
             return OntClass.class;
         } else if (entity.isOWLDataProperty()) {
@@ -133,7 +145,7 @@ public class WriteHelper {
         throw new OntApiException("Unsupported " + entity);
     }
 
-    public static Class<? extends OntFR> getFRView(OWLFacet facet) {
+    public static Class<? extends OntFR> getFRType(OWLFacet facet) {
         switch (facet) {
             case LENGTH:
                 return OntFR.Length.class;
@@ -178,7 +190,7 @@ public class WriteHelper {
                                               RDFNode object,
                                               Stream<OWLAnnotation> annotations) {
         addAnnotations(toResource(subject)
-                .inModel(model).addProperty(predicate, object).as(getEntityView(subject)).getRoot(), annotations);
+                .inModel(model).addProperty(predicate, object).as(getEntityType(subject)).getRoot(), annotations);
     }
 
     public static void writeTriple(OntGraphModel model,
@@ -230,7 +242,7 @@ public class WriteHelper {
     }
 
     public static OntEntity addOntEntity(OntGraphModel model, OWLEntity entity) {
-        Class<? extends OntEntity> view = getEntityView(entity);
+        Class<? extends OntEntity> view = getEntityType(entity);
         String uri = entity.getIRI().getIRIString();
         return fetchOntEntity(model, view, uri);
     }
@@ -241,7 +253,7 @@ public class WriteHelper {
     }
 
     public static OntFR addFacetRestriction(OntGraphModel model, OWLFacetRestriction fr) {
-        return model.createFacetRestriction(getFRView(fr.getFacet()), addLiteral(model, fr.getFacetValue()));
+        return model.createFacetRestriction(getFRType(fr.getFacet()), addLiteral(model, fr.getFacetValue()));
     }
 
     public static OntCE addClassExpression(OntGraphModel model, OWLClassExpression ce) {
@@ -363,6 +375,12 @@ public class WriteHelper {
         addAnnotations(OntApiException.notNull(object.getRoot(), "Can't determine root statement for " + object), annotations);
     }
 
+    /**
+     * Extracts {@link IRI} from {@link OWLObject}.
+     *
+     * @param object {@link OWLObject}, not {@code null}
+     * @return {@link IRI}
+     */
     public static IRI toIRI(OWLObject object) {
         if (OntApiException.notNull(object, "Null owl-object specified.").isIRI()) return (IRI) object;
         if (object instanceof HasIRI) {
