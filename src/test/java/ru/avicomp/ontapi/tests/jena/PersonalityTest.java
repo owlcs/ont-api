@@ -130,7 +130,7 @@ public class PersonalityTest {
         m1.createOntClass(i1.getURI());
         ReadWriteUtils.print(m1);
         Assert.assertEquals(3, m1.classes().peek(x -> LOGGER.debug("1)Class: {}", x)).count());
-        Assert.assertEquals(3, m1.classAssertions().peek(x -> LOGGER.debug("1)Individual: {}", x)).count());
+        Assert.assertEquals(3, m1.individuals().peek(x -> LOGGER.debug("1)Individual: {}", x)).count());
         Assert.assertEquals(1, m1.datatypes().peek(x -> LOGGER.debug("1)Datatype: {}", x)).count());
 
         OntPersonality.Punnings punnings = new OntPersonality.Punnings() {
@@ -157,7 +157,7 @@ public class PersonalityTest {
         OntEntity.entityTypes().forEach(t -> Assert.assertEquals(2, p2.getPunnings().get(t).size()));
 
         OntGraphModel m2 = OntModelFactory.createModel(m1.getGraph(), p2);
-        Assert.assertEquals(1, m2.classAssertions().peek(x -> LOGGER.debug("2)Individuals: {}", x)).count());
+        Assert.assertEquals(1, m2.individuals().peek(x -> LOGGER.debug("2)Individuals: {}", x)).count());
         Assert.assertEquals(0, m2.datatypes().peek(x -> LOGGER.debug("2)Datatype: {}", x)).count());
         Assert.assertEquals(2, m2.classes().peek(x -> LOGGER.debug("2)Classes: {}", x)).count());
     }
@@ -279,7 +279,7 @@ public class PersonalityTest {
         ReadWriteUtils.print(m);
         Assert.assertEquals(2, m.namedIndividuals().count());
         Assert.assertEquals(5, m.ontObjects(OntIndividual.class).count());
-        Assert.assertEquals(5, m.classAssertions().count());
+        Assert.assertEquals(5, m.individuals().count());
 
         LOGGER.debug("==================="); // CUSTOM PERSONALITY (owl:NamedIndividual is required)
         OntGraphModel m2 = OntModelFactory.createModel(m.getGraph(), personality);
@@ -287,7 +287,7 @@ public class PersonalityTest {
         Assert.assertEquals(3, m2.ontObjects(OntIndividual.class).count());
         Resource indi5 = m.createResource(ns + "inid5", c2);
         Assert.assertEquals(3, m2.ontObjects(OntIndividual.class).count());
-        Assert.assertEquals(3, m2.classAssertions().count());
+        Assert.assertEquals(3, m2.individuals().count());
 
         OntDisjoint.Individuals disjoint2 = m2.createDifferentIndividuals(m2.ontObjects(OntIndividual.class)
                 .collect(Collectors.toList()));

@@ -37,21 +37,21 @@ import java.util.stream.Stream;
 public interface OntObject extends OntResource {
 
     /**
-     * Returns the ontology object declaration statement.
-     * In most cases it wraps a triple with predicate {@code rdf:type}.
-     * Note that the returned ont-statement differs from that
-     * which could be obtained directly from the model using one of its {@code statement(..)} method:
+     * Returns the ontology object root statement.
+     * In most cases it is a declaration and wraps a triple with predicate {@code rdf:type}.
+     * The returned ont-statement differs from that
+     * which could be obtained directly from the model using one of its {@code statement(..)} methods:
      * an statement's annotations
      * are added in the form of annotation property assertions (so-called 'plain annotations'),
      * not as typed anonymous resources (so-called 'bulk annotations').
-     * Note: for anonymous ontology objects (i.e. for not OWL Entities) this behaviour of root statement may not meet
-     * OWL2 specification:
-     * it describes only bulk annotations for all anonymous OWL2 components with except of an individual.
-     * To get a common ontology statement with support bulk annotations
+     * In ONT-API it is legal for a root statement to have both plain and bulk annotations.
+     * Note: for anonymous ontology objects (i.e. not for OWL Entities) this behaviour may not fully meet
+     * OWL2 specification: the specification describes only bulk annotations
+     * for all anonymous OWL2 components with except of an individual.
+     * To get a common ontology statement that supports bulk annotations only,
      * the expression {@code getModel().asStatement(this.getRoot().asTriple())} can be used.
-     * It is legal for a root statement to have both plain and bulk annotations.
      *
-     * @return {@link OntStatement} or {@code null} in some boundary cases (e.g. for built-ins)
+     * @return {@link OntStatement} or {@code null} in some boundary cases (e.g. for builtins)
      * @see OntGraphModel#asStatement(Triple)
      * @see OntStatement#addAnnotation(OntNAP, RDFNode)
      */
@@ -60,8 +60,8 @@ public interface OntObject extends OntResource {
 
     /**
      * {@inheritDoc}
-     * For OWL Entities the returned stream will contain only single root statement (see {@link #getRoot()}),
-     * or even will be empty for built-in entities.
+     * For OWL Entities the returned stream will contain only single root statement (i.e. {@link #getRoot()}),
+     * or even will be empty for built-in entities and individuals.
      *
      * @return {@code Stream} of {@link OntStatement Ontology Statement}s
      * @see #content()

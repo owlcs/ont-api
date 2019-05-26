@@ -381,7 +381,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
     }
 
     @Override
-    public final Stream<OntIndividual> classAssertions() {
+    public final Stream<OntIndividual> individuals() {
         return Iter.asStream(listIndividuals());
     }
 

@@ -230,7 +230,6 @@ public interface OntGraphModel extends Model, CreateClasses, CreateRanges, Creat
      * not only from the base graph) the method {@link #ontBuiltins(Class)} can also be used.
      * Note that the result can be configured
      * through {@link ru.avicomp.ontapi.jena.impl.conf.OntPersonality.Builtins Builtins Vocabulary}.
-     * todo: make deprecated ?
      *
      * @param type  a concrete class-type of entity
      * @param local if {@code true} only the base graph is considered
@@ -254,13 +253,12 @@ public interface OntGraphModel extends Model, CreateClasses, CreateRanges, Creat
      * In general, a named individual may not have this declaration explicitly, see
      * <a href='https://www.w3.org/TR/owl2-syntax/#Typing_Constraints_of_OWL_2_DL'>5.8.1 Typing Constraints of OWL 2 DL</a>
      * for more details.
-     * todo: rename to #individuals()
      *
      * @return {@code Stream} of {@link OntIndividual}s
      * @see OntGraphModel#namedIndividuals()
-     * @since 1.3.0
+     * @since 1.4.1
      */
-    Stream<OntIndividual> classAssertions();
+    Stream<OntIndividual> individuals();
 
     /**
      * Returns an ont-entity for the specified type and uri.
@@ -510,18 +508,6 @@ public interface OntGraphModel extends Model, CreateClasses, CreateRanges, Creat
         return getDatatype(uri.getURI());
     }
 
-    default OntDT getDatatype(Literal literal) {
-        String uri = literal.getDatatypeURI();
-        if (uri != null) {
-            return getDatatype(uri);
-        }
-        String lang = literal.getLanguage();
-        if (lang != null) {
-            return getDatatype(RDF.langString);
-        }
-        return getDatatype(XSD.xstring);
-    }
-
     default OntIndividual.Named getIndividual(Resource uri) {
         return getIndividual(uri.getURI());
     }
@@ -548,6 +534,18 @@ public interface OntGraphModel extends Model, CreateClasses, CreateRanges, Creat
 
     default <E extends OntEntity> Stream<E> ontBuiltins(Class<E> type) {
         return ontBuiltins(type, false);
+    }
+
+    default OntDT getDatatype(Literal literal) {
+        String uri = literal.getDatatypeURI();
+        if (uri != null) {
+            return getDatatype(uri);
+        }
+        String lang = literal.getLanguage();
+        if (lang != null) {
+            return getDatatype(RDF.langString);
+        }
+        return getDatatype(XSD.xstring);
     }
 
     default <E extends OntEntity> E fetchOntEntity(Class<E> type, String uri) {
@@ -610,7 +608,7 @@ public interface OntGraphModel extends Model, CreateClasses, CreateRanges, Creat
      * i.e. all those individuals which have explicitly {@link OWL#NamedIndividual owl:NamedIndividual} declaration.
      *
      * @return {@code Stream} of {@link OntIndividual.Named Named Individual}s
-     * @see #classAssertions()
+     * @see #individuals()
      * @see OntCE#individuals()
      * @since 1.4.0
      */
@@ -637,31 +635,31 @@ public interface OntGraphModel extends Model, CreateClasses, CreateRanges, Creat
     }
 
     default OntClass getOWLThing() {
-        return getOntEntity(OntClass.class, OWL.Thing);
-    }
-
-    default OntDT getRDFSLiteral() {
-        return getOntEntity(OntDT.class, RDFS.Literal);
+        return getOntClass(OWL.Thing);
     }
 
     default OntClass getOWLNothing() {
-        return getOntEntity(OntClass.class, OWL.Nothing);
+        return getOntClass(OWL.Nothing);
+    }
+
+    default OntDT getRDFSLiteral() {
+        return getDatatype(RDFS.Literal);
     }
 
     default OntNOP getOWLTopObjectProperty() {
-        return getOntEntity(OntNOP.class, OWL.topObjectProperty);
+        return getObjectProperty(OWL.topObjectProperty);
     }
 
     default OntNOP getOWLBottomObjectProperty() {
-        return getOntEntity(OntNOP.class, OWL.bottomObjectProperty);
+        return getObjectProperty(OWL.bottomObjectProperty);
     }
 
     default OntNDP getOWLTopDataProperty() {
-        return getOntEntity(OntNDP.class, OWL.topDataProperty);
+        return getDataProperty(OWL.topDataProperty);
     }
 
     default OntNDP getOWLBottomDataProperty() {
-        return getOntEntity(OntNDP.class, OWL.bottomDataProperty);
+        return getDataProperty(OWL.bottomDataProperty);
     }
 
     /**
@@ -741,5 +739,17 @@ public interface OntGraphModel extends Model, CreateClasses, CreateRanges, Creat
     @Deprecated
     default boolean hasInImports(OntGraphModel other) {
         return hasImport(other);
+    }
+
+    /**
+     * Lists all individuals that participate in class assertion axioms.
+     *
+     * @return {@code Stream} of {@link OntIndividual}s
+     * @since 1.3.0
+     * @deprecated since 1.4.1: use {@link #individuals()} instead
+     */
+    @Deprecated
+    default Stream<OntIndividual> classAssertions() {
+        return individuals();
     }
 }
