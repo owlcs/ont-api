@@ -45,7 +45,7 @@ public class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
 
     @Override
     public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
-        return Models.listOntObjects(model, OntSWRL.Imp.class).mapWith(OntObject::getRoot);
+        return Models.listLocalObjects(model, OntSWRL.Imp.class).mapWith(OntObject::getRoot);
     }
 
     @Override

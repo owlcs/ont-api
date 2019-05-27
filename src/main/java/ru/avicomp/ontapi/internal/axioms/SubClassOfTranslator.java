@@ -45,7 +45,7 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
 
     @Override
     public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
-        return Models.listStatements(model, null, RDFS.subClassOf, null).filterKeep(this::filter);
+        return Models.listLocalStatements(model, null, RDFS.subClassOf, null).filterKeep(this::filter);
     }
 
     @Override

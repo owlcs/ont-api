@@ -43,7 +43,7 @@ public abstract class AbstractPropertyDomainTranslator<Axiom extends OWLAxiom & 
 
     @Override
     public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
-        return Models.listStatements(model, null, RDFS.domain, null).filterKeep(s -> filter(s, config));
+        return Models.listLocalStatements(model, null, RDFS.domain, null).filterKeep(s -> filter(s, config));
     }
 
     protected boolean filter(OntStatement statement, InternalConfig config) {

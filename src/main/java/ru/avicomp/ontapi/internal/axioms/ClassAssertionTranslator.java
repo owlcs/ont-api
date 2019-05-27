@@ -53,7 +53,7 @@ public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionA
     @Override
     public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
         Set<? extends RDFNode> forbidden = getSystemClasses(model);
-        return Models.listStatements(model, null, RDF.type, null)
+        return Models.listLocalStatements(model, null, RDF.type, null)
                 .filterKeep(s -> !forbidden.contains(s.getObject()) && filterSO(s));
     }
 

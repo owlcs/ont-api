@@ -50,7 +50,7 @@ public class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInvers
                 .filter(OntStatement::isLocal)
                 .filter(s -> s.getSubject().canAs(OntOPE.class))
                 .filter(s -> s.getObject().canAs(OntOPE.class));*/
-        return Models.listStatements(model, null, OWL.inverseOf, null) // skip {@code _:x owl:inverseOf PN}
+        return Models.listLocalStatements(model, null, OWL.inverseOf, null) // skip {@code _:x owl:inverseOf PN}
                 .filterDrop(s -> s.getSubject().isAnon() && s.getObject().isURIResource());
     }
 

@@ -67,7 +67,7 @@ public abstract class AbstractListBasedTranslator<Axiom extends OWLLogicalAxiom,
 
     @Override
     public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
-        return Models.listStatements(model, null, getPredicate(), null)
+        return Models.listLocalStatements(model, null, getPredicate(), null)
                 .filterKeep(this::filter);
     }
 

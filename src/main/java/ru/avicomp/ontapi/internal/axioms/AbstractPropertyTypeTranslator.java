@@ -53,7 +53,7 @@ public abstract class AbstractPropertyTypeTranslator<Axiom extends OWLAxiom & Ha
 
     @Override
     public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
-        return Models.listStatements(model, null, RDF.type, getType())
+        return Models.listLocalStatements(model, null, RDF.type, getType())
                 .filterKeep(s -> s.getSubject().canAs(getView()));
     }
 

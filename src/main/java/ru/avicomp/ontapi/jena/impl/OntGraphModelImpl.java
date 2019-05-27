@@ -422,11 +422,12 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
                 .filterKeep(s ->
                         // to speedup the process,
                         // investigation (that includes TTO, PS, HP, GALEN, FAMILY and PIZZA ontologies),
-                        // shows that the profit exists:
+                        // shows that the profit exists and it is significant:
                         !forbidden.contains(s.getObject())
                                 // primary rule that determines class assertion:
                                 && s.getObject().canAs(OntCE.class)
-                                // an individual may have a factory with punnings restrictions, so need to check its type also:
+                                // an individual may have a factory with punnings restrictions,
+                                // so need to check its type also:
                                 && s.getSubject().canAs(OntIndividual.class))
                 .mapWith(s -> s.getSubject(OntIndividual.class));
     }

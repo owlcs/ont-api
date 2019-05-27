@@ -57,7 +57,7 @@ public abstract class AbstractPropertyAssertionTranslator<P extends OWLPropertyE
      * @return {@link ExtendedIterator} of {@link OntStatement}s
      */
     public ExtendedIterator<OntStatement> listStatements(OntGraphModel model) {
-        return Models.listStatements(model, null, null, null);
+        return Models.listLocalStatements(model, null, null, null);
     }
 
 }

@@ -45,7 +45,7 @@ public class DatatypeDefinitionTranslator extends AxiomTranslator<OWLDatatypeDef
 
     @Override
     public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
-        return Models.listStatements(model, null, OWL.equivalentClass, null)
+        return Models.listLocalStatements(model, null, OWL.equivalentClass, null)
                 .filterKeep(s -> s.getSubject().canAs(OntDT.class)
                         && s.getObject().canAs(OntDR.class));
     }
