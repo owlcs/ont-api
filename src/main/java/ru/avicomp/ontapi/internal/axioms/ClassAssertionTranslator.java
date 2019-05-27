@@ -26,12 +26,15 @@ import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.Collection;
+import java.util.Set;
 
 /**
  * Creating individual (both named and anonymous):
  * <pre>{@code pizza:France rdf:type owl:NamedIndividual, pizza:Country, owl:Thing.}</pre>
  * <p>
  * Created by @szuev on 28.09.2016.
+ *
+ * @see ru.avicomp.ontapi.jena.impl.OntGraphModelImpl#listIndividuals()
  */
 @SuppressWarnings("WeakerAccess")
 public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionAxiom> {
@@ -49,7 +52,9 @@ public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionA
 
     @Override
     public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
-        return Models.listStatements(model, null, RDF.type, null).filterKeep(this::filterSO);
+        Set<? extends RDFNode> forbidden = getSystemClasses(model);
+        return Models.listStatements(model, null, RDF.type, null)
+                .filterKeep(s -> !forbidden.contains(s.getObject()) && filterSO(s));
     }
 
     @Override

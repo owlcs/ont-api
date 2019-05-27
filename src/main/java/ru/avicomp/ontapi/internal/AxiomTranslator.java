@@ -14,24 +14,31 @@
 
 package ru.avicomp.ontapi.internal;
 
+import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.shared.JenaException;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAxiom;
+import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
+import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.utils.Models;
 
+import java.util.Collections;
+import java.util.Set;
 import java.util.stream.Stream;
 
 /**
- * The base abstract class to perform Axiom Graph Translator (operator 'T'), both for reading and writing.
- * It is designed to work with any {@link OntGraphModel}, but is optimized to use {@link InternalModel}.
- * Specification: <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Mapping_from_the_Structural_Specification_to_RDF_Graphs'>2.1 Translation of Axioms without Annotations</a>.
- * Additional info about annotations translation <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Axioms_that_are_Translated_to_Multiple_Triples'>2.3.2 Axioms that are Translated to Multiple Triples</a>.
- * One more (and most useful) link: <a href='https://www.w3.org/TR/owl2-quick-reference/'>Quick Reference Guide</a>.
- * To get particular instance of this class the method {@link AxiomParserProvider#get(AxiomType)} can be used.
+ * The base abstract class that intended to perform Axiom Graph Translator (operator {@code T}) in both directions:
+ * for reading and writing.
+ * It is designed to work with any {@link OntGraphModel}, but it is optimized to use {@link InternalModel}.
+ * See the specification about operator {@code T} and about annotations translation (operator 'TANN'):
+ * <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Mapping_from_the_Structural_Specification_to_RDF_Graphs'>2.1 Translation of Axioms without Annotations</a>,
+ * <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Axioms_that_are_Translated_to_Multiple_Triples'>2.3.2 Axioms that are Translated to Multiple Triples</a>.
+ * And one more (and most useful) link: <a href='https://www.w3.org/TR/owl2-quick-reference/'>Quick Reference Guide</a>.
+ * To get a particular instance of this class the method {@link AxiomParserProvider#get(AxiomType)} can be used.
  * <p>
  * Created by @szuev on 28.09.2016.
  *
@@ -175,5 +182,18 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      */
     public static InternalObjectFactory getObjectFactory(OntGraphModel model) {
         return model instanceof InternalModel ? ((InternalModel) model).getObjectFactory() : InternalObjectFactory.DEFAULT;
+    }
+
+    /**
+     * Gets all {@link Resource}s that are reserved for a model and cannot represent a {@link OntClass}.
+     *
+     * @param model {@link OntGraphModel}, not {@code null}
+     * @return a {@code Set} of {@link Resource}s
+     */
+    protected static Set<Resource> getSystemClasses(OntGraphModel model) {
+        if (model instanceof OntGraphModelImpl) {
+            return ((OntGraphModelImpl) model).getSystemResources(OntClass.class);
+        }
+        return Collections.emptySet();
     }
 }

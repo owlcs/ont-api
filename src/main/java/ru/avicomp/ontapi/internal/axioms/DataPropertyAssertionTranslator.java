@@ -16,12 +16,14 @@ package ru.avicomp.ontapi.internal.axioms;
 
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.*;
-import ru.avicomp.ontapi.internal.*;
+import ru.avicomp.ontapi.internal.InternalConfig;
+import ru.avicomp.ontapi.internal.InternalObjectFactory;
+import ru.avicomp.ontapi.internal.ONTObject;
+import ru.avicomp.ontapi.internal.WriteHelper;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
 import ru.avicomp.ontapi.jena.model.OntNDP;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import ru.avicomp.ontapi.jena.utils.Models;
 
 import java.util.Collection;
 
@@ -31,7 +33,9 @@ import java.util.Collection;
  * <p>
  * Created by @szuev on 28.09.2016.
  */
-public class DataPropertyAssertionTranslator extends AxiomTranslator<OWLDataPropertyAssertionAxiom> {
+public class DataPropertyAssertionTranslator
+        extends AbstractPropertyAssertionTranslator<OWLDataPropertyExpression, OWLDataPropertyAssertionAxiom> {
+
     @Override
     public void write(OWLDataPropertyAssertionAxiom axiom, OntGraphModel model) {
         WriteHelper.writeAssertionTriple(model, axiom.getSubject(), axiom.getProperty(), axiom.getObject(), axiom.annotations());
@@ -47,7 +51,7 @@ public class DataPropertyAssertionTranslator extends AxiomTranslator<OWLDataProp
      */
     @Override
     public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
-        return Models.listStatements(model, null, null, null).filterKeep(s -> testStatement(s, config));
+        return listStatements(model).filterKeep(s -> testStatement(s, config));
     }
 
     @Override

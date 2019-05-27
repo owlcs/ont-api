@@ -536,6 +536,12 @@ public interface OntGraphModel extends Model, CreateClasses, CreateRanges, Creat
         return ontBuiltins(type, false);
     }
 
+    /**
+     * Retrieves a {@link OntDT datatype} from the given literal.
+     *
+     * @param literal {@link Literal}, not {@code null}
+     * @return {@link OntDT}
+     */
     default OntDT getDatatype(Literal literal) {
         String uri = literal.getDatatypeURI();
         if (uri != null) {
@@ -548,6 +554,14 @@ public interface OntGraphModel extends Model, CreateClasses, CreateRanges, Creat
         return getDatatype(XSD.xstring);
     }
 
+    /**
+     * Fetches a entity of the given type and with the specified URI.
+     *
+     * @param type a class-type of entity
+     * @param uri  String uri, not {@code null}
+     * @param <E>  any subtype of {@link OntEntity}
+     * @return {@link E}
+     */
     default <E extends OntEntity> E fetchOntEntity(Class<E> type, String uri) {
         E res = getOntEntity(type, uri);
         return res == null ? createOntEntity(type, uri) : res;

@@ -35,7 +35,7 @@ import java.util.function.Function;
  * which has good benchmarks both in multi-thread and single-thread environments.
  * <p>
  * In general case, an implementation of this cache-adapter may not guarantee full thread safety.
- * This is optimization for conditions in which this cache is used: the upper-system uses R/W lock for any accessors,
+ * This is an optimization for conditions in which this cache is used: the upper-system uses R/W lock for any accessors,
  * and, therefore, the data on which the cache should rely does not change in the process of reading,
  * whatever single- or multi- thread environment is used it.
  * This fact allows to make some read operations to be simpler and a little bit faster,
@@ -376,7 +376,7 @@ public interface InternalCache<K, V> {
         protected final Map<K, V> map;
 
         protected MapWrapper(Map<K, V> map) {
-            this.map = map;
+            this.map = Objects.requireNonNull(map);
         }
 
         @Override

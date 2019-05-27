@@ -380,6 +380,31 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
                 .filter(view -> e.canAs(view) && (withImports || e.as(view).isLocal())).count() > 1);
     }
 
+    /**
+     * Returns all {@link Resource}s from the reserved vocabulary,
+     * that cannot represent the specified type in the model.
+     * Currently there are {@code 185} such resources for a {@link OntClass}
+     * (from OWL, RDFS, RDF, XSD, SWRL, SWRLB vocabularies).
+     * It is an auxiliary method for iteration optimization.
+     *
+     * @param type a {@code Class}-type of {@link OntEntity}, not {@code null}
+     * @return an unmodifiable {@code Set} of {@link Resource}s
+     * @since 1.4.1
+     */
+    public Set<Resource> getSystemResources(Class<? extends OntEntity> type) {
+        return reservedClasses().filter(x -> !x.canAs(type)).collect(Iter.toUnmodifiableSet());
+    }
+
+    /**
+     * Lists all reserved nodes as {@link Resource}s.
+     *
+     * @return {@code Stream} of {@link Resource}s.
+     * @since 1.4.1
+     */
+    protected Stream<Resource> reservedClasses() {
+        return getOntPersonality().getReserved().getResources().stream().map(s -> getRDFNode(s).asResource());
+    }
+
     @Override
     public final Stream<OntIndividual> individuals() {
         return Iter.asStream(listIndividuals());
@@ -392,8 +417,17 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
      * @return {@link ExtendedIterator} of {@link OntIndividual}s
      */
     public ExtendedIterator<OntIndividual> listIndividuals() {
+        Set<? extends RDFNode> forbidden = getSystemResources(OntClass.class);
         return listOntStatements(null, RDF.type, null)
-                .filterKeep(s -> s.getObject().canAs(OntCE.class) && s.getSubject().canAs(OntIndividual.class))
+                .filterKeep(s ->
+                        // to speedup the process,
+                        // investigation (that includes TTO, PS, HP, GALEN, FAMILY and PIZZA ontologies),
+                        // shows that the profit exists:
+                        !forbidden.contains(s.getObject())
+                                // primary rule that determines class assertion:
+                                && s.getObject().canAs(OntCE.class)
+                                // an individual may have a factory with punnings restrictions, so need to check its type also:
+                                && s.getSubject().canAs(OntIndividual.class))
                 .mapWith(s -> s.getSubject(OntIndividual.class));
     }
 

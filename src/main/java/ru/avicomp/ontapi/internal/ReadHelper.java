@@ -23,6 +23,7 @@ import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.OWLFacet;
 import ru.avicomp.ontapi.DataFactory;
 import ru.avicomp.ontapi.OntApiException;
+import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.OntListImpl;
 import ru.avicomp.ontapi.jena.impl.OntObjectImpl;
 import ru.avicomp.ontapi.jena.impl.OntStatementImpl;
@@ -212,9 +213,9 @@ public class ReadHelper {
      * Calculates an {@link OWLDataRange} wrapped by {@link ONTObject}.
      * Note: this method is recursive.
      *
-     * @param dr                  {@link OntDR Ontology Data Range} to map
-     * @param of {@link InternalObjectFactory}
-     * @param seen                Set of {@link Resource}
+     * @param dr   {@link OntDR Ontology Data Range} to map
+     * @param of   {@link InternalObjectFactory}
+     * @param seen Set of {@link Resource}
      * @return {@link ONTObject} around {@link OWLDataRange}
      * @throws OntApiException if something is wrong.
      */
@@ -267,11 +268,11 @@ public class ReadHelper {
      * Calculates an {@link OWLClassExpression} wrapped by {@link ONTObject}.
      * Note: this method is recursive.
      *
-     * @param ce                  {@link OntCE Ontology Class Expression} to map
-     * @param of {@link InternalObjectFactory}
-     * @param seen                Set of {@link Resource},
-     *                            a subsidiary collection to prevent possible graph recursions
-     *                            (e.g. {@code _:b0 owl:complementOf _:b0})
+     * @param ce   {@link OntCE Ontology Class Expression} to map
+     * @param of   {@link InternalObjectFactory}
+     * @param seen Set of {@link Resource},
+     *             a subsidiary collection to prevent possible graph recursions
+     *             (e.g. {@code _:b0 owl:complementOf _:b0})
      * @return {@link ONTObject} around {@link OWLClassExpression}
      * @throws OntApiException if something is wrong.
      */
@@ -287,7 +288,7 @@ public class ReadHelper {
         }
         seen.add(ce);
         DataFactory df = of.getOWLDataFactory();
-        Class<? extends OntObject> type = getType(ce);
+        Class<? extends OntObject> type = getOntType(ce);
         if (OntCE.ObjectSomeValuesFrom.class.equals(type) || OntCE.ObjectAllValuesFrom.class.equals(type)) {
             OntCE.ComponentRestrictionCE<OntCE, OntOPE> _ce = (OntCE.ComponentRestrictionCE<OntCE, OntOPE>) ce;
             ONTObject<? extends OWLObjectPropertyExpression> p = of.get(_ce.getProperty());
@@ -499,19 +500,27 @@ public class ReadHelper {
         throw new OntApiException("Unsupported SWRL atom " + atom);
     }
 
-    public static Class<? extends OntObject> getType(OntCE ce) {
-        if (ce instanceof OntObjectImpl) {
-            return OntApiException.notNull(((OntObjectImpl) ce).getActualClass(),
-                    "Can't determine type of class expression " + ce);
+    /**
+     * Determines the actual ontology object type.
+     * todo: move to Models.
+     *
+     * @param object {@link OntObject} instance
+     * @return object's {@code Class}-type
+     */
+    public static Class<? extends OntObject> getOntType(OntObject object) {
+        if (object instanceof OntObjectImpl) {
+            return OntJenaException.notNull(((OntObjectImpl) object).getActualClass(),
+                    "Can't determine type of object " + object);
         }
-        return OntObjectImpl.findActualClass(ce);
+        return OntObjectImpl.findActualClass(object);
     }
 
     /**
-     * Returns an iterator over all annotations of the given statement.
+     * Returns an iterator over all annotations of the given ontology statement.
+     * todo: move to Models.
      *
      * @param s {@link OntStatement}
-     * @return {@link ExtendedIterator}
+     * @return {@link ExtendedIterator} over {@link OntStatement}s
      */
     public static ExtendedIterator<OntStatement> listAnnotations(OntStatement s) {
         if (s instanceof OntStatementImpl) {
@@ -520,6 +529,13 @@ public class ReadHelper {
         return WrappedIterator.create(s.annotations().iterator());
     }
 
+    /**
+     * Lists all object's annotations.
+     * todo: move to Models.
+     *
+     * @param o {@link OntObject}, not {@code null}
+     * @return {@link ExtendedIterator} over {@link OntStatement}s
+     */
     public static ExtendedIterator<OntStatement> listAnnotations(OntObject o) {
         if (o instanceof OntObjectImpl) {
             return ((OntObjectImpl) o).listAnnotations();
@@ -529,6 +545,7 @@ public class ReadHelper {
 
     /**
      * Lists all members from {@link OntList Ontology List}.
+     * todo: move to Models.
      *
      * @param list {@link RDFNodeList}
      * @param <R>  {@link RDFNode}, a type of list members

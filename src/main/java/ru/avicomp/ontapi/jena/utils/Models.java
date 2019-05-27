@@ -486,7 +486,8 @@ public class Models {
      * @see OntGraphModel#ontObjects(Class)
      * @since 1.3.0
      */
-    public static <O extends OntObject> ExtendedIterator<O> listOntObjects(OntGraphModel model, Class<? extends O> type) {
+    public static <O extends OntObject> ExtendedIterator<O> listOntObjects(OntGraphModel model,
+                                                                           Class<? extends O> type) {
         if (model instanceof OntGraphModelImpl) {
             return ((OntGraphModelImpl) model).listLocalOntObjects(type);
         }

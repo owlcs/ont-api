@@ -119,7 +119,6 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * This object can be modified externally.
      */
     private final InternalConfig config;
-
     /**
      * A {@link InternalConfig} snapshot-config, that should be used while any R/W operations through OWL-API interface.
      * It should be reset on {@link #clearCache()}.
@@ -138,6 +137,11 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * Ontology header {@link OWLAnnotation}s cache.
      */
     protected volatile ObjectTriplesMap<OWLAnnotation> header;
+    /**
+     * A collection of reserved {@link Resource}s, that cannot be OWL-entities.
+     * Used to speedup iteration in some cases (e.g. for class assertions).
+     */
+    protected final InternalCache<Class<? extends OntObject>, Set<? extends Resource>> systemResources;
 
     /**
      * Constructs an instance.
@@ -157,8 +161,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         this.config = Objects.requireNonNull(config);
         this.objectFactoryCache = InternalCache.createSoft(x -> factory.get(), config.parallel());
         this.searchModelCache = InternalCache.createSoft(x -> createSearchModel(), config.parallel());
-        // for caches use parallel mode to ensure thread-safety fon read operations even for non-concurrent model
-        this.objects = InternalCache.createSoft(config.parallel()).asLoading(this::readOWLObjects);
+        this.objects = InternalCache.createSoft(this::readOWLObjects, config.parallel());
+        this.systemResources = InternalCache.createSoft(config.parallel());
         getGraph().getEventManager().register(new DirectListener());
     }
 
@@ -170,7 +174,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      */
     @Override
     public OntologyID getOntologyID() {
-        // sure the last condition justifies having a cache
+        // believe the last condition (which is very fast) justifies having a cache
         if (cachedID != null && getBaseGraph().contains(cachedID.asNode(), RDF.Nodes.type, OWL.Ontology.asNode())) {
             return cachedID;
         }
@@ -285,6 +289,12 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         } catch (OntJenaException e) {
             return SearchModel.handleFetchNodeAsException(e, node, type, this, getSnapshotConfig());
         }
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Set<Resource> getSystemResources(Class<? extends OntEntity> type) {
+        return (Set<Resource>) systemResources.get(type, x -> super.getSystemResources(type));
     }
 
     /**
@@ -908,6 +918,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         objects.asCache().clear();
         objectFactoryCache.asCache().clear();
         searchModelCache.asCache().clear();
+        systemResources.clear();
     }
 
     @Override

@@ -19,12 +19,14 @@ import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
-import ru.avicomp.ontapi.internal.*;
+import ru.avicomp.ontapi.internal.InternalConfig;
+import ru.avicomp.ontapi.internal.InternalObjectFactory;
+import ru.avicomp.ontapi.internal.ONTObject;
+import ru.avicomp.ontapi.internal.WriteHelper;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
 import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import ru.avicomp.ontapi.jena.utils.Models;
 
 import java.util.Collection;
 
@@ -35,7 +37,8 @@ import java.util.Collection;
  * }</pre>
  * Created by @szuev on 01.10.2016.
  */
-public class ObjectPropertyAssertionTranslator extends AxiomTranslator<OWLObjectPropertyAssertionAxiom> {
+public class ObjectPropertyAssertionTranslator
+        extends AbstractPropertyAssertionTranslator<OWLObjectPropertyExpression, OWLObjectPropertyAssertionAxiom> {
 
     /**
      * Note: ObjectPropertyAssertion(ObjectInverseOf(P) S O) = ObjectPropertyAssertion(P O S)
@@ -45,7 +48,8 @@ public class ObjectPropertyAssertionTranslator extends AxiomTranslator<OWLObject
      */
     @Override
     public void write(OWLObjectPropertyAssertionAxiom axiom, OntGraphModel model) {
-        OWLObjectPropertyExpression property = axiom.getProperty().isAnonymous() ? axiom.getProperty().getInverseProperty() : axiom.getProperty();
+        OWLObjectPropertyExpression property = axiom.getProperty().isAnonymous() ?
+                axiom.getProperty().getInverseProperty() : axiom.getProperty();
         OWLIndividual subject = axiom.getProperty().isAnonymous() ? axiom.getObject() : axiom.getSubject();
         OWLIndividual object = axiom.getProperty().isAnonymous() ? axiom.getSubject() : axiom.getObject();
         WriteHelper.writeAssertionTriple(model, subject, property, object, axiom.annotations());
@@ -55,13 +59,13 @@ public class ObjectPropertyAssertionTranslator extends AxiomTranslator<OWLObject
      * Lists positive object property assertion: {@code a1 PN a2}.
      * See <a href='https://www.w3.org/TR/owl2-quick-reference/'>Assertions</a>
      *
-     * @param model {@link OntGraphModel} the model
+     * @param model  {@link OntGraphModel} the model
      * @param config {@link InternalConfig}
      * @return {@link ExtendedIterator} of {@link OntStatement}s
      */
     @Override
     public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
-        return Models.listStatements(model, null, null, null).filterKeep(s -> testStatement(s, config));
+        return listStatements(model).filterKeep(s -> testStatement(s, config));
     }
 
     @Override
@@ -72,7 +76,9 @@ public class ObjectPropertyAssertionTranslator extends AxiomTranslator<OWLObject
     }
 
     @Override
-    public ONTObject<OWLObjectPropertyAssertionAxiom> toAxiom(OntStatement statement, InternalObjectFactory reader, InternalConfig config) {
+    public ONTObject<OWLObjectPropertyAssertionAxiom> toAxiom(OntStatement statement,
+                                                              InternalObjectFactory reader,
+                                                              InternalConfig config) {
         ONTObject<? extends OWLIndividual> subject = reader.get(statement.getSubject(OntIndividual.class));
         ONTObject<? extends OWLObjectPropertyExpression> property = reader.get(statement.getPredicate().as(OntOPE.class));
         ONTObject<? extends OWLIndividual> object = reader.get(statement.getObject().as(OntIndividual.class));

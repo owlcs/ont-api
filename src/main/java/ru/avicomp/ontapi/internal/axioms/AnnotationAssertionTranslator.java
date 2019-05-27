@@ -19,7 +19,6 @@ import org.apache.jena.util.iterator.NullIterator;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.internal.*;
 import ru.avicomp.ontapi.jena.model.*;
-import ru.avicomp.ontapi.jena.utils.Models;
 
 import java.util.Collection;
 
@@ -33,7 +32,9 @@ import java.util.Collection;
  * <p>
  * Created by @szuev on 28.09.2016.
  */
-public class AnnotationAssertionTranslator extends AxiomTranslator<OWLAnnotationAssertionAxiom> {
+public class AnnotationAssertionTranslator
+        extends AbstractPropertyAssertionTranslator<OWLAnnotationProperty, OWLAnnotationAssertionAxiom> {
+
     @Override
     public void write(OWLAnnotationAssertionAxiom axiom, OntGraphModel model) {
         WriteHelper.writeAssertionTriple(model, axiom.getSubject(), axiom.getProperty(), axiom.getValue(), axiom.annotations());
@@ -57,8 +58,7 @@ public class AnnotationAssertionTranslator extends AxiomTranslator<OWLAnnotation
     public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
         if (!config.isLoadAnnotationAxioms()) return NullIterator.instance();
         OntID id = model.getID();
-        return Models.listStatements(model, null, null, null)
-                .filterKeep(s -> !id.equals(s.getSubject()) && filter(s, config));
+        return listStatements(model).filterKeep(s -> !id.equals(s.getSubject()) && filter(s, config));
     }
 
     @Override
@@ -74,7 +74,9 @@ public class AnnotationAssertionTranslator extends AxiomTranslator<OWLAnnotation
     }
 
     @Override
-    public ONTObject<OWLAnnotationAssertionAxiom> toAxiom(OntStatement statement, InternalObjectFactory reader, InternalConfig config) {
+    public ONTObject<OWLAnnotationAssertionAxiom> toAxiom(OntStatement statement,
+                                                          InternalObjectFactory reader,
+                                                          InternalConfig config) {
         ONTObject<? extends OWLAnnotationSubject> s = reader.get(statement.getSubject(OntObject.class));
         ONTObject<OWLAnnotationProperty> p = reader.get(statement.getPredicate().as(OntNAP.class));
         ONTObject<? extends OWLAnnotationValue> v = reader.get(statement.getObject());
