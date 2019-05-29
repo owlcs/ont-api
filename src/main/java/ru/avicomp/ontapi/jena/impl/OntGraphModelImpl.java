@@ -605,21 +605,20 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
         return this;
     }
 
-    @Override
-    public <E extends OntEntity> Stream<E> ontBuiltins(Class<E> type, boolean local) {
-        return getBuiltinEntities(type, local).stream();
-    }
-
     /**
      * Gets all builtin entities of the given type and returns them as {@code Set}.
      * It is not expected a huge amount of builtins,
      * so a {@code Set} is more applicable here as returned object than {@code Stream} or {@code ExtendedIterator}.
+     *
+     * Note: this method is a part of obsolete functionality (see issue #40), and can be deleted on any time.
+     * If you find it useful, please contact me.
      *
      * @param type  a concrete class-type of entity
      * @param local if {@code true} only the base graph is considered
      * @param <E>   any subtype of {@link OntEntity}
      * @return Stream of builtin {@link OntEntity}s
      */
+    @SuppressWarnings("unused")
     public <E extends OntEntity> Set<E> getBuiltinEntities(Class<E> type, boolean local) {
         if (OntClass.class == type) {
             return getEntitySet(OntClassImpl::getBuiltinClasses, local);

@@ -149,28 +149,42 @@ public class Models {
     }
 
     /**
-     * Lists all literal string values with specified lang found by the subject and predicate.
+     * Lists all literal string values (lexical forms) with the given language tag
+     * for the specified subject and predicate.
      *
-     * @param subject   {@link Resource}
-     * @param predicate {@link Property}
-     * @param lang      String lang, maybe null or empty
+     * @param subject   {@link Resource}, not {@code null}
+     * @param predicate {@link Property}, can be {@code null}
+     * @param lang      String lang, maybe {@code null} or empty
      * @return Stream of Strings
      * @since 1.3.0
      */
     public static Stream<String> langValues(Resource subject, Property predicate, String lang) {
-        return Iter.asStream(subject.listProperties(predicate))
-                .map(Statement::getObject)
-                .filter(RDFNode::isLiteral)
-                .map(RDFNode::asLiteral)
-                .filter(l -> filterByLang(l, lang))
-                .map(Literal::getString);
+        return Iter.asStream(subject.listProperties(predicate)
+                .mapWith(s -> {
+                    if (!s.getObject().isLiteral())
+                        return null;
+                    if (!filterByLangTag(s.getLiteral(), lang))
+                        return null;
+                    return s.getString();
+                })
+                .filterDrop(Objects::isNull));
     }
 
-    private static boolean filterByLang(Literal literal, String lang) {
+    /**
+     * Answers {@code true} if the literal has the given language tag.
+     * The comparison is case insensitive and ignores trailing spaces,
+     * so two tags {@code  en } and {@code En} are considered as equaled.
+     *
+     * @param literal {@link Literal}, not {@code null}
+     * @param tag     String, possible {@code null}
+     * @return {@code true} if the given literal has the given tag
+     * @since 1.4.1
+     */
+    public static boolean filterByLangTag(Literal literal, String tag) {
         String other = literal.getLanguage();
-        if (StringUtils.isEmpty(lang))
+        if (StringUtils.isEmpty(tag))
             return StringUtils.isEmpty(other);
-        return lang.trim().equalsIgnoreCase(other);
+        return tag.trim().equalsIgnoreCase(other);
     }
 
     /**
@@ -184,12 +198,10 @@ public class Models {
     }
 
     private static void deleteAll(Resource r, Set<Node> viewed) {
-        if (viewed.contains(r.asNode())) {
+        if (!viewed.add(r.asNode())) {
             return;
         }
-        viewed.add(r.asNode());
-        Set<Statement> props = r.listProperties().toSet();
-        props.forEach(s -> {
+        r.listProperties().toSet().forEach(s -> {
             RDFNode o = s.getObject();
             if (o.isAnon()) {
                 deleteAll(o.asResource(), viewed);

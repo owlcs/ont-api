@@ -215,30 +215,8 @@ public interface OntGraphModel extends Model, CreateClasses, CreateRanges, Creat
      * @return {@code Stream} of {@link OntEntity}
      * @see #ontObjects(Class)
      * @see #ontEntities(Class)
-     * @see #ontBuiltins(Class)
      */
     Stream<OntEntity> ontEntities();
-
-    /**
-     * Lists all built-in OWL entities,
-     * that are present somewhere in the whole or only the base graph (depending on the second parameter).
-     * The presence means that a builtin entity (e.g. a built-in OWL Class {@link #getOWLThing()} owl:Thing}),
-     * is a part of some OWL statement (SPO) (e.g. {@code <SomeClass> rdfs:subClassOf owl:Thing}).
-     * If an entity is only mentioned in some SPO, which is beyond the OWL2 syntax,
-     * than it is not included in the returned {@code Stream}.
-     * To list all model builtins (i.e. from sub-model hierarchy also,
-     * not only from the base graph) the method {@link #ontBuiltins(Class)} can also be used.
-     * Note that the result can be configured
-     * through {@link ru.avicomp.ontapi.jena.impl.conf.OntPersonality.Builtins Builtins Vocabulary}.
-     *
-     * @param type  a concrete class-type of entity
-     * @param local if {@code true} only the base graph is considered
-     * @param <E>   any subtype of {@link OntEntity}
-     * @return {@code Stream} of builtin {@link OntEntity}s
-     * @see ru.avicomp.ontapi.jena.impl.conf.OntPersonality#getBuiltins()
-     * @since 1.4.0
-     */
-    <E extends OntEntity> Stream<E> ontBuiltins(Class<E> type, boolean local);
 
     /**
      * Lists all individuals that participate in class assertion axioms.
@@ -267,9 +245,6 @@ public interface OntGraphModel extends Model, CreateClasses, CreateRanges, Creat
      * An IRI for such a built-in entity must be in
      * the {@link ru.avicomp.ontapi.jena.impl.conf.OntPersonality.Builtins Builtins Vocabulary},
      * otherwise the method returns {@code null}.
-     * Also please note, the fact that a builtin entity is found by this method
-     * does not mean that it also contains in the result of the {@link #ontBuiltins(Class)} method,
-     * which works with the graph content.
      *
      * @param type {@link Class}, the type of {@link OntEntity}, not {@code null}.
      * @param uri, String, not {@code null}.
@@ -532,10 +507,6 @@ public interface OntGraphModel extends Model, CreateClasses, CreateRanges, Creat
         return ontObjects(type);
     }
 
-    default <E extends OntEntity> Stream<E> ontBuiltins(Class<E> type) {
-        return ontBuiltins(type, false);
-    }
-
     /**
      * Retrieves a {@link OntDT datatype} from the given literal.
      *
@@ -548,14 +519,14 @@ public interface OntGraphModel extends Model, CreateClasses, CreateRanges, Creat
             return getDatatype(uri);
         }
         String lang = literal.getLanguage();
-        if (lang != null) {
+        if (lang != null && !lang.isEmpty()) {
             return getDatatype(RDF.langString);
         }
         return getDatatype(XSD.xstring);
     }
 
     /**
-     * Fetches a entity of the given type and with the specified URI.
+     * Returns a entity of the given type and with the specified URI, creating it if needed.
      *
      * @param type a class-type of entity
      * @param uri  String uri, not {@code null}
@@ -765,5 +736,55 @@ public interface OntGraphModel extends Model, CreateClasses, CreateRanges, Creat
     @Deprecated
     default Stream<OntIndividual> classAssertions() {
         return individuals();
+    }
+
+    /**
+     * Lists all built-in OWL entities,
+     * that are present somewhere in the whole or only the base graph (depending on the second parameter).
+     * <p>
+     * The original comment:
+     * The presence means that a builtin entity (e.g. a built-in OWL Class {@link #getOWLThing()} owl:Thing}),
+     * is a part of some OWL statement (SPO) (e.g. {@code <SomeClass> rdfs:subClassOf owl:Thing}).
+     * If an entity is only mentioned in some SPO, which is beyond the OWL2 syntax,
+     * than it is not included in the returned {@code Stream}.
+     * To list all model builtins (i.e. from sub-model hierarchy also,
+     * not only from the base graph) the method {@link #ontBuiltins(Class)} can also be used.
+     * Note that the result can be configured
+     * through {@link ru.avicomp.ontapi.jena.impl.conf.OntPersonality.Builtins Builtins Vocabulary}.
+     * <p>
+     * Note: since 1.4.1 this functionality is scheduled to be deleted,
+     * though it is possible that it will be returned after a time.
+     * If you find this functionality useful, please contact me.
+     *
+     * @param type  a concrete class-type of entity
+     * @param local if {@code true} only the base graph is considered
+     * @param <E>   any subtype of {@link OntEntity}
+     * @return {@code Stream} of builtin {@link OntEntity}s
+     * @see <a href='https://github.com/avicomp/ont-api/issues/40'>functionality description</a>
+     * @since 1.4.0
+     * @deprecated since 1.4.1: marked as obsolete because it is almost useless at this time, see issue #40
+     */
+    @Deprecated
+    default <E extends OntEntity> Stream<E> ontBuiltins(Class<E> type, boolean local) {
+        if (local) return ontBuiltins(type);
+        return Stream.concat(ontEntities(type), imports().flatMap(x -> x.ontBuiltins(type))).distinct();
+    }
+
+    /**
+     * Lists all built-in OWL entities, that participate somewhere in the base graph.
+     *
+     * @param type a concrete class-type of entity
+     * @param <E>  any subtype of {@link OntEntity}
+     * @return <b>distinct</b> {@code Stream} of builtin entities
+     * @see <a href='https://github.com/avicomp/ont-api/issues/40'>functionality description</a>
+     * @since 1.4.0
+     * @deprecated since 1.4.1: marked as obsolete because it is almost useless at this time, see issue #40
+     */
+    @Deprecated
+    default <E extends OntEntity> Stream<E> ontBuiltins(Class<E> type) {
+        return localStatements().flatMap(s -> Stream.of(s.getSubject(), s.getPredicate(), s.getObject()))
+                .filter(x -> x.canAs(type)).map(o -> o.as(type))
+                .filter(OntEntity::isBuiltIn)
+                .distinct();
     }
 }
