@@ -94,7 +94,9 @@ public class SpinMappingTest {
         Assert.assertEquals("Incorrect ontologies count", SpinModels.values().length + 3, manager.ontologies().count());
 
         ReadWriteUtils.print(mapping);
-        runInferences(manager.getOntology(IRI.create(mapping.getID().getURI())), target);
+        OntologyModel map = manager.getOntology(IRI.create(mapping.getID().getURI()));
+        Assert.assertNotNull(map);
+        runInferences(map, target);
         ReadWriteUtils.print(target);
 
         validate(source, target);
@@ -181,12 +183,8 @@ public class SpinMappingTest {
         String ns = uri + "#";
         OntGraphModel res = manager.createGraphModel(uri).setNsPrefixes(OntModelFactory.STANDARD);
         OntClass clazz = res.createOntClass(ns + "ClassSource");
-        OntNDP prop1 = res.createDataProperty(ns + "prop1");
-        OntNDP prop2 = res.createDataProperty(ns + "prop2");
-        prop1.addRange(res.getDatatype(XSD.xstring));
-        prop2.addRange(res.getDatatype(XSD.integer));
-        prop1.addDomain(clazz);
-        prop2.addDomain(clazz);
+        OntNDP prop1 = res.createDataProperty(ns + "prop1").addRange(XSD.xstring).addDomain(clazz);
+        OntNDP prop2 = res.createDataProperty(ns + "prop2").addRange(XSD.integer).addDomain(clazz);
         OntIndividual i1 = clazz.createIndividual(ns + "Inst1");
         OntIndividual i2 = clazz.createIndividual(ns + "Inst2");
         i1.addLiteral(prop1, "val1");
@@ -212,9 +210,7 @@ public class SpinMappingTest {
         String ns = uri + "#";
         OntGraphModel res = manager.createGraphModel(uri).setNsPrefixes(OntModelFactory.STANDARD);
         OntClass clazz = res.createOntClass(ns + "ClassTarget");
-        OntNDP prop = res.createDataProperty(ns + "targetProperty");
-        prop.addRange(res.getDatatype(XSD.xstring));
-        prop.addDomain(clazz);
+        res.createDataProperty(ns + "targetProperty").addRange(XSD.xstring).addDomain(clazz);
         OntologyModel o = manager.getOntology(IRI.create(uri));
         Assert.assertNotNull("Can't find ontology " + uri, o);
         o.axioms().forEach(x -> LOGGER.debug("{}", x));

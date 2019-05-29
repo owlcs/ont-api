@@ -207,6 +207,18 @@ public interface OntNDP extends OntDOP, OntProperty {
     }
 
     /**
+     * Adds a range statement.
+     *
+     * @param range {@link Resource}, that represents a {@link OntDR data range}, not {@code null}
+     * @return <b>this</b> instance to allow cascading calls
+     * @throws org.apache.jena.enhanced.UnsupportedPolymorphismException in case wrong resource is specified
+     * @since 1.4.1
+     */
+    default OntNDP addRange(Resource range) {
+        return addRange(range.inModel(getModel()).as(OntDR.class));
+    }
+
+    /**
      * Adds a statement with the {@link RDFS#range} as predicate
      * and the specified {@link OntDR data range} as an object.
      *
