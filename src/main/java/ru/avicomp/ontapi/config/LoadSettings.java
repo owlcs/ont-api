@@ -94,6 +94,25 @@ public interface LoadSettings {
     boolean isPerformTransformation();
 
     /**
+     * Answers {@code true} if the processing imports is enabled.
+     * In this case the document source loading entails {@code owl:imports} processing
+     * and subsequent loading all related to them sources.
+     * If the processing imports is disabled,
+     * then no additional work is performed and one document source is matched with one ontology.
+     * Note: there is also possible to prohibit the processing of one IRI
+     * (see {@link OntConfig#addIgnoredImport(IRI)} and {@link OntLoaderConfiguration#addIgnoredImport(IRI)})
+     * or whole scheme (see {@link LoadControl#setSupportedSchemes(List)}).
+     *
+     * @return boolean, ({@code true} by default)
+     * @see LoadControl#setProcessImports(boolean)
+     * @see org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration#getMissingImportHandlingStrategy()
+     * @see org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration#isIgnoredImport(IRI)
+     * @see OntSettings#ONT_API_LOAD_CONF_PROCESS_IMPORTS
+     * @since 1.4.1
+     */
+    boolean isProcessImports();
+
+    /**
      * Answers {@code true} if the native OWL-API parsers must be preferred while loading ontology,
      * which is strongly not recommended (and the method returns {@code false} by default).
      * <p>
@@ -127,10 +146,14 @@ public interface LoadSettings {
      * This mechanism is used during preliminary analysis of {@link IRI} before loading a document.
      * If an {@link IRI} fails any of the {@link Scheme}-tests from the {@code Collection},
      * the document source is rejected and the system throws an exception.
+     * Note: there is also possible to prohibit the processing of only one IRI
+     * (see {@link OntConfig#addIgnoredImport(IRI)} and {@link OntLoaderConfiguration#addIgnoredImport(IRI)})
+     * or all imports (see {@link LoadControl#setProcessImports(boolean)}).
      *
      * @return unmodifiable {@code Collection} of supported {@link Scheme schema}s
      * @see LoadControl#setSupportedSchemes(List)
      * @see OntSettings#ONT_API_LOAD_CONF_SUPPORTED_SCHEMES
+     * @see LoadControl#isProcessImports()
      */
     Collection<Scheme> getSupportedSchemes();
 

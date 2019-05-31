@@ -123,6 +123,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
         return get(OntSettings.ONT_API_LOAD_CONF_PERFORM_TRANSFORMATIONS);
     }
 
+
     /**
      * An ONT-API config setter.
      * {@inheritDoc}
@@ -175,6 +176,24 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
     @Override
     public OntLoaderConfiguration setPersonality(OntPersonality p) {
         return set(OntSettings.ONT_API_LOAD_CONF_PERSONALITY_MODE, p);
+    }
+
+    /**
+     * An ONT-API config getter.
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isProcessImports() {
+        return get(OntSettings.ONT_API_LOAD_CONF_PROCESS_IMPORTS);
+    }
+
+    /**
+     * An ONT-API config setter.
+     * {@inheritDoc}
+     */
+    @Override
+    public OntLoaderConfiguration setProcessImports(boolean b) {
+        return set(OntSettings.ONT_API_LOAD_CONF_PROCESS_IMPORTS, b);
     }
 
     /**

@@ -45,6 +45,7 @@ import java.util.stream.Stream;
  * <li>{@link #getPersonality()} and {@link #setPersonality(OntPersonality)}</li>
  * <li>{@link #getGraphTransformers()} amd {@link #setGraphTransformers(GraphTransformers.Store)}</li>
  * <li>{@link #isPerformTransformation()} and {@link #setPerformTransformation(boolean)}</li>
+ * <li>{@link #isProcessImports()} and {@link #setProcessImports(boolean)} (<b>since 1.4.1</b>)</li>
  * <li>{@link #getSupportedSchemes()} and {@link #setSupportedSchemes(List)}</li>
  * <li>{@link #disableWebAccess()} (<b>since 1.1.0</b>)</li>
  * <li>{@link #isAllowReadDeclarations()} and {@link #setAllowReadDeclarations(boolean)}</li>
@@ -415,6 +416,24 @@ public class OntConfig extends OntologyConfigurator implements
     /**
      * An ONT-API manager's load config getter.
      * {@inheritDoc}
+     */
+    @Override
+    public boolean isProcessImports() {
+        return get(OntSettings.ONT_API_LOAD_CONF_PROCESS_IMPORTS);
+    }
+
+    /**
+     * An ONT-API manager's load config setter.
+     * {@inheritDoc}
+     */
+    @Override
+    public OntConfig setProcessImports(boolean b) {
+        return put(OntSettings.ONT_API_LOAD_CONF_PROCESS_IMPORTS, b);
+    }
+
+    /**
+     * An ONT-API manager's load config getter.
+     * {@inheritDoc}
      *
      * @return {@code true} if bulk annotations are allowed (that is by default)
      * @see OntLoaderConfiguration#isAllowBulkAnnotationAssertions()
@@ -643,6 +662,7 @@ public class OntConfig extends OntologyConfigurator implements
 
     /**
      * {@inheritDoc}
+     *
      * @see OntologyConfigurator#withBannedParsers(String)
      */
     @Override
@@ -652,6 +672,7 @@ public class OntConfig extends OntologyConfigurator implements
 
     /**
      * {@inheritDoc}
+     *
      * @see OntologyConfigurator#getBannedParsers()
      */
     @Override
@@ -661,6 +682,7 @@ public class OntConfig extends OntologyConfigurator implements
 
     /**
      * {@inheritDoc}
+     *
      * @see OntologyConfigurator#getPriorityCollectionSorting()
      */
     @Override
@@ -670,6 +692,7 @@ public class OntConfig extends OntologyConfigurator implements
 
     /**
      * {@inheritDoc}
+     *
      * @see OntologyConfigurator#setPriorityCollectionSorting(PriorityCollectionSorting)
      */
     @Override
@@ -687,6 +710,7 @@ public class OntConfig extends OntologyConfigurator implements
 
     /**
      * {@inheritDoc}
+     *
      * @see OntologyConfigurator#addIgnoredImport(IRI)
      */
     @Override
@@ -701,6 +725,7 @@ public class OntConfig extends OntologyConfigurator implements
 
     /**
      * {@inheritDoc}
+     *
      * @see OntologyConfigurator#clearIgnoredImports()
      */
     @Override
@@ -713,6 +738,7 @@ public class OntConfig extends OntologyConfigurator implements
 
     /**
      * {@inheritDoc}
+     *
      * @see OntologyConfigurator#removeIgnoredImport(IRI)
      */
     @Override
@@ -727,6 +753,7 @@ public class OntConfig extends OntologyConfigurator implements
 
     /**
      * {@inheritDoc}
+     *
      * @see OntologyConfigurator#setAcceptingHTTPCompression(boolean)
      */
     @Override
@@ -736,6 +763,7 @@ public class OntConfig extends OntologyConfigurator implements
 
     /**
      * {@inheritDoc}
+     *
      * @see OntologyConfigurator#shouldAcceptHTTPCompression()
      */
     @Override
@@ -745,6 +773,7 @@ public class OntConfig extends OntologyConfigurator implements
 
     /**
      * {@inheritDoc}
+     *
      * @see OntologyConfigurator#getConnectionTimeout()
      */
     @Override
@@ -754,6 +783,7 @@ public class OntConfig extends OntologyConfigurator implements
 
     /**
      * {@inheritDoc}
+     *
      * @see OntologyConfigurator#setConnectionTimeout(int)
      */
     @Override
@@ -763,6 +793,7 @@ public class OntConfig extends OntologyConfigurator implements
 
     /**
      * {@inheritDoc}
+     *
      * @see OntologyConfigurator#setFollowRedirects(boolean)
      */
     @Override
@@ -772,6 +803,7 @@ public class OntConfig extends OntologyConfigurator implements
 
     /**
      * {@inheritDoc}
+     *
      * @see OntologyConfigurator#shouldFollowRedirects()
      */
     @Override
@@ -781,6 +813,7 @@ public class OntConfig extends OntologyConfigurator implements
 
     /**
      * {@inheritDoc}
+     *
      * @see OntologyConfigurator#getMissingImportHandlingStrategy()
      */
     @Override
@@ -790,6 +823,7 @@ public class OntConfig extends OntologyConfigurator implements
 
     /**
      * {@inheritDoc}
+     *
      * @see OntologyConfigurator#setMissingImportHandlingStrategy(MissingImportHandlingStrategy)
      */
     @Override
@@ -799,6 +833,7 @@ public class OntConfig extends OntologyConfigurator implements
 
     /**
      * {@inheritDoc}
+     *
      * @see OntologyConfigurator#getMissingOntologyHeaderStrategy()
      */
     @Override
@@ -808,6 +843,7 @@ public class OntConfig extends OntologyConfigurator implements
 
     /**
      * {@inheritDoc}
+     *
      * @see OntologyConfigurator#setMissingOntologyHeaderStrategy(MissingOntologyHeaderStrategy)
      */
     @Override
@@ -817,6 +853,7 @@ public class OntConfig extends OntologyConfigurator implements
 
     /**
      * {@inheritDoc}
+     *
      * @see OntologyConfigurator#setReportStackTraces(boolean)
      */
     @Override
@@ -826,6 +863,7 @@ public class OntConfig extends OntologyConfigurator implements
 
     /**
      * {@inheritDoc}
+     *
      * @see OntologyConfigurator#shouldReportStackTraces()
      */
     @Override
@@ -835,6 +873,7 @@ public class OntConfig extends OntologyConfigurator implements
 
     /**
      * {@inheritDoc}
+     *
      * @see OntologyConfigurator#getRetriesToAttempt()
      */
     @Override
@@ -844,6 +883,7 @@ public class OntConfig extends OntologyConfigurator implements
 
     /**
      * {@inheritDoc}
+     *
      * @see OntologyConfigurator#setRetriesToAttempt(int)
      */
     @Override
@@ -853,6 +893,7 @@ public class OntConfig extends OntologyConfigurator implements
 
     /**
      * {@inheritDoc}
+     *
      * @see OntologyConfigurator#setStrict(boolean)
      */
     @Override
@@ -862,6 +903,7 @@ public class OntConfig extends OntologyConfigurator implements
 
     /**
      * {@inheritDoc}
+     *
      * @see OntologyConfigurator#shouldParseWithStrictConfiguration()
      */
     @Override
@@ -871,6 +913,7 @@ public class OntConfig extends OntologyConfigurator implements
 
     /**
      * {@inheritDoc}
+     *
      * @see OntologyConfigurator#setTreatDublinCoreAsBuiltIn(boolean)
      */
     @Override
@@ -880,6 +923,7 @@ public class OntConfig extends OntologyConfigurator implements
 
     /**
      * {@inheritDoc}
+     *
      * @see OntologyConfigurator#shouldTreatDublinCoreAsBuiltin()
      */
     @Override
@@ -889,6 +933,7 @@ public class OntConfig extends OntologyConfigurator implements
 
     /**
      * {@inheritDoc}
+     *
      * @see OntologyConfigurator#withSaveIdsForAllAnonymousIndividuals(boolean)
      */
     @Override
@@ -898,6 +943,7 @@ public class OntConfig extends OntologyConfigurator implements
 
     /**
      * {@inheritDoc}
+     *
      * @see OntologyConfigurator#shouldSaveIds()
      */
     @Override
@@ -907,6 +953,7 @@ public class OntConfig extends OntologyConfigurator implements
 
     /**
      * {@inheritDoc}
+     *
      * @see OntologyConfigurator#withRemapAllAnonymousIndividualsIds(boolean)
      */
     @Override
@@ -916,6 +963,7 @@ public class OntConfig extends OntologyConfigurator implements
 
     /**
      * {@inheritDoc}
+     *
      * @see OntologyConfigurator#shouldRemapIds()
      */
     @Override
@@ -925,6 +973,7 @@ public class OntConfig extends OntologyConfigurator implements
 
     /**
      * {@inheritDoc}
+     *
      * @see OntologyConfigurator#withUseNamespaceEntities(boolean)
      */
     @Override
@@ -934,6 +983,7 @@ public class OntConfig extends OntologyConfigurator implements
 
     /**
      * {@inheritDoc}
+     *
      * @see OntologyConfigurator#shouldUseNamespaceEntities()
      */
     @Override
@@ -943,6 +993,7 @@ public class OntConfig extends OntologyConfigurator implements
 
     /**
      * {@inheritDoc}
+     *
      * @see OntologyConfigurator#withIndenting(boolean)
      */
     @Override
@@ -952,6 +1003,7 @@ public class OntConfig extends OntologyConfigurator implements
 
     /**
      * {@inheritDoc}
+     *
      * @see OntologyConfigurator#shouldIndent()
      */
     @Override
@@ -961,6 +1013,7 @@ public class OntConfig extends OntologyConfigurator implements
 
     /**
      * {@inheritDoc}
+     *
      * @see OntologyConfigurator#withIndentSize(int)
      */
     @Override
@@ -970,6 +1023,7 @@ public class OntConfig extends OntologyConfigurator implements
 
     /**
      * {@inheritDoc}
+     *
      * @see OntologyConfigurator#getIndentSize()
      */
     @Override
@@ -979,6 +1033,7 @@ public class OntConfig extends OntologyConfigurator implements
 
     /**
      * {@inheritDoc}
+     *
      * @see OntologyConfigurator#withLabelsAsBanner(boolean)
      */
     @Override
@@ -988,6 +1043,7 @@ public class OntConfig extends OntologyConfigurator implements
 
     /**
      * {@inheritDoc}
+     *
      * @see OntologyConfigurator#shouldUseLabelsAsBanner()
      */
     @Override
@@ -997,6 +1053,7 @@ public class OntConfig extends OntologyConfigurator implements
 
     /**
      * {@inheritDoc}
+     *
      * @see OntologyConfigurator#withBannersEnabled(boolean)
      */
     @Override
@@ -1006,6 +1063,7 @@ public class OntConfig extends OntologyConfigurator implements
 
     /**
      * {@inheritDoc}
+     *
      * @see OntologyConfigurator#shouldUseBanners()
      */
     @Override

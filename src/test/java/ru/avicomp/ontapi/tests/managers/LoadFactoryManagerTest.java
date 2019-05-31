@@ -51,6 +51,7 @@ import java.util.stream.Stream;
 
 /**
  * To test loading mechanisms from {@link OntologyFactoryImpl}
+ * including different {@link ru.avicomp.ontapi.config.LoadSettings lading settings}.
  * <p>
  * Created by @szuev on 16.01.2018.
  */
@@ -105,7 +106,7 @@ public class LoadFactoryManagerTest {
 
     @Test
     public void testOntologyAlreadyExistsException() throws Exception {
-        Path p = Paths.get(LoadFactoryManagerTest.class.getResource("/ontapi/pizza.ttl").toURI()).toRealPath();
+        Path p = ReadWriteUtils.getResourcePath("ontapi", "pizza.ttl");
         OWLOntologyDocumentSource src = new FileDocumentSource(p.toFile(), OntFormat.TURTLE.createOwlFormat());
         OntologyManager m = OntManagers.createONT();
         m.loadOntologyFromOntologyDocument(src);
@@ -133,7 +134,7 @@ public class LoadFactoryManagerTest {
 
     @Test
     public void testPrefixesRoundTrips() throws Exception {
-        URI uri = LoadFactoryManagerTest.class.getResource("/ontapi/foaf.rdf").toURI();
+        URI uri = ReadWriteUtils.getResourcePath("ontapi", "foaf.rdf").toUri();
         Path p = Paths.get(uri);
         OWLOntologyManager m = OntManagers.createONT();
         OWLOntologyDocumentSource src = new FileDocumentSource(p.toFile(), OntFormat.RDF_XML.createOwlFormat());
@@ -442,7 +443,7 @@ public class LoadFactoryManagerTest {
                 .setMissingOntologyHeaderStrategy(MissingOntologyHeaderStrategy.IMPORT_GRAPH));
         loadLoopedOntologyFamily(m6);
         Assert.assertEquals("Wrong ontologies.", 4, m6.ontologies().count());
-        // todo: it would be nice to validate the result ontologie
+        // todo: it would be nice to validate the result ontologies
     }
 
     @Test
@@ -588,7 +589,7 @@ public class LoadFactoryManagerTest {
                 .map(IRI::getIRIString).orElseThrow(AssertionError::new));
         Assert.assertEquals(comment, getOWLComment(o1));
 
-        OntologyModel o2 = manager.loadOntology(IRI.create(LoadFactoryManagerTest.class.getResource("/ontapi/test1.ttl")));
+        OntologyModel o2 = manager.loadOntology(IRI.create(ReadWriteUtils.getResourceURI("/ontapi/test1.ttl")));
         Assert.assertNotNull(o2);
         ReadWriteUtils.print(o2);
         Assert.assertEquals("http://test.test/complex", o2.getOntologyID().getOntologyIRI()
@@ -606,7 +607,7 @@ public class LoadFactoryManagerTest {
                 .disableWebAccess();
         Assert.assertFalse(conf.buildLoaderConfiguration().isUseOWLParsersToLoad());
 
-        OWLOntologyDocumentSource source = new IRIDocumentSource(IRI.create(LoadFactoryManagerTest.class.getResource("/etc/spl.spin.ttl")));
+        OWLOntologyDocumentSource source = new IRIDocumentSource(IRI.create(ReadWriteUtils.getResourceURI("/etc/spl.spin.ttl")));
 
         // Load using Jena turtle reader:
         OntologyManager m1 = OntManagers.createONT();
@@ -632,4 +633,55 @@ public class LoadFactoryManagerTest {
                 .map(Statement::getObject).noneMatch(l -> l.canAs(RDFList.class)));
     }
 
+    @Test
+    public void testLoadWithDisabledProcessImports() throws OWLOntologyCreationException {
+        OntologyManager m = OntManagers.createONT();
+        String uri_a = "urn:a";
+        String uri_b = "urn:b";
+        String prefixes = "@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n" +
+                "@prefix owl:   <http://www.w3.org/2002/07/owl#> .\n" +
+                "@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .\n" +
+                "@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .";
+
+
+        String txt1 = String.format("%s[ a owl:Ontology; owl:imports  <%s>, <%s> ].", prefixes, uri_a, uri_b);
+        OWLOntologyDocumentSource src1 = new StringInputStreamDocumentSource(txt1, OntFormat.TURTLE);
+        Assert.assertTrue(m.getOntologyConfigurator().isProcessImports());
+        Assert.assertTrue(m.getOntologyLoaderConfiguration().isProcessImports());
+        OntologyModel o1 = m.loadOntologyFromOntologyDocument(src1,
+                m.getOntologyLoaderConfiguration().setProcessImports(false));
+        ReadWriteUtils.print(o1);
+
+        Assert.assertTrue(m.getOntologyConfigurator().isProcessImports());
+        Assert.assertTrue(m.getOntologyLoaderConfiguration().isProcessImports());
+
+        Assert.assertEquals(1, m.ontologies().count());
+        Assert.assertEquals(2, o1.importsDeclarations().count());
+        Assert.assertEquals(0, o1.directImports().count());
+
+
+        String txt2 = String.format("%s <%s> a owl:Ontology; owl:imports <%s> .", prefixes, uri_a, uri_b);
+        OWLOntologyDocumentSource src2 = new StringInputStreamDocumentSource(txt2, OntFormat.TURTLE);
+        OntologyModel o2 = m.loadOntologyFromOntologyDocument(src2,
+                m.getOntologyLoaderConfiguration().setProcessImports(false));
+        ReadWriteUtils.print(o2);
+
+        Assert.assertEquals(2, m.ontologies().count());
+        Assert.assertEquals(2, o1.importsDeclarations().count());
+        Assert.assertEquals(1, o2.importsDeclarations().count());
+        Assert.assertEquals(1, o1.directImports().count());
+        Assert.assertEquals(0, o2.directImports().count());
+
+        String txt3 = String.format("%s <%s> a owl:Ontology .", prefixes, uri_b);
+        OWLOntologyDocumentSource src3 = new StringInputStreamDocumentSource(txt3, OntFormat.TURTLE);
+        OntologyModel o3 = m.loadOntologyFromOntologyDocument(src3,
+                m.getOntologyLoaderConfiguration().setProcessImports(false));
+        ReadWriteUtils.print(o3);
+
+        Assert.assertEquals(3, m.ontologies().count());
+        Assert.assertEquals(2, o1.imports().count());
+        Assert.assertEquals(1, o2.imports().count());
+        Assert.assertEquals(0, o3.directImports().count());
+        Assert.assertEquals(0, o3.imports().count());
+    }
 }

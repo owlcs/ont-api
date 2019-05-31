@@ -42,7 +42,9 @@ public class OntologyBuilderImpl implements OntologyFactory.Builder {
         return withLock(createOntologyImpl(graph, m, config), m.getLock());
     }
 
-    public OntologyModelImpl createOntologyImpl(Graph graph, OntologyManagerImpl manager, OntLoaderConfiguration config) {
+    public OntologyModelImpl createOntologyImpl(Graph graph,
+                                                OntologyManagerImpl manager,
+                                                OntLoaderConfiguration config) {
         ModelConfig modelConfig = manager.createModelConfig();
         if (config != null)
             modelConfig.setLoaderConf(config);

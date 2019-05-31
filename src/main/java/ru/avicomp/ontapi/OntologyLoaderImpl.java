@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -221,8 +221,9 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
      * Assembles the {@link UnionGraph} from the inner collection ({@link #graphs}).
      * Note: this collection can be modified by this method.
      *
-     * @param node    {@link GraphInfo}
-     * @param seen    Collection of URIs to avoid recursion infinite loops in imports (ontology A imports ontology B, which in turn imports A).
+     * @param node    {@link GraphInfo} the root graph
+     * @param seen    a {@code Collection} of URIs to avoid recursion infinite loops in imports
+     *                (ontology A imports ontology B, which in turn imports A)
      * @param manager {@link OntologyManager} the manager
      * @param config  {@link OntLoaderConfiguration} the config
      * @return {@link UnionGraph}
@@ -232,11 +233,35 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
                                         Collection<String> seen,
                                         OntologyManager manager,
                                         OntLoaderConfiguration config) {
-        // it is important to have the same order on each call
-        Set<GraphInfo> children = new LinkedHashSet<>();
-        Graph main = node.getGraph();
+        UnionGraph res = new UnionGraph(node.getGraph());
+        if (config.isProcessImports()) {
+            processImports(node, seen, manager, config)
+                    .forEach(ch -> res.addGraph(makeUnionGraph(ch, new HashSet<>(seen), manager, config)));
+        }
+        return res;
+    }
+
+    /**
+     * Processes the {@code owl:imports} declarations for the given (root) graph,
+     * returns a ready collection of children {@link GraphInfo graphs}.
+     *
+     * @param node    {@link GraphInfo} the root graph
+     * @param seen    a {@code Collection} of URIs to avoid recursion infinite loops in imports
+     *                (ontology A imports ontology B, which in turn imports A)
+     * @param manager {@link OntologyManager} the manager
+     * @param config  {@link OntLoaderConfiguration} the config
+     * @return a {@code Collection} of {@link GraphInfo}s
+     * @throws OntApiException if something wrong
+     */
+    protected Collection<GraphInfo> processImports(GraphInfo node,
+                                                   Collection<String> seen,
+                                                   OntologyManager manager,
+                                                   OntLoaderConfiguration config) {
+        Graph base = node.getGraph();
         String name = node.name();
         seen.add(node.getURI());
+        // it is important to have the same order on each call
+        Set<GraphInfo> res = new LinkedHashSet<>();
         List<String> imports = node.getImports().stream().sorted().collect(Collectors.toCollection(ArrayList::new));
         for (int i = 0; i < imports.size(); i++) {
             String uri = imports.get(i);
@@ -259,19 +284,20 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
                 // Anonymous ontology or ontology without header (i.e. if no "_:x rdf:type owl:Ontology") could be loaded
                 // if there is some resource-mapping in the manager on the import declaration.
                 // In this case we may load it as separated model or include to the parent graph:
-                if (info.isAnonymous() && MissingOntologyHeaderStrategy.INCLUDE_GRAPH.equals(config.getMissingOntologyHeaderStrategy())) {
+                if (info.isAnonymous()
+                        && MissingOntologyHeaderStrategy.INCLUDE_GRAPH.equals(config.getMissingOntologyHeaderStrategy())) {
                     if (LOGGER.isDebugEnabled()) {
                         LOGGER.debug("<{}>: remove import declaration <{}>.", name, uri);
                     }
-                    main.remove(Node.ANY, OWL.imports.asNode(), NodeFactory.createURI(uri));
-                    GraphUtil.addInto(main, info.getGraph());
+                    base.remove(Node.ANY, OWL.imports.asNode(), NodeFactory.createURI(uri));
+                    GraphUtil.addInto(base, info.getGraph());
                     // skip assembling new model for this graph:
                     info.setProcessed();
                     // recollect imports (in case of anonymous ontology):
                     imports.addAll(i + 1, info.getImports());
                     continue;
                 }
-                children.add(info);
+                res.add(info);
             } catch (OWLOntologyCreationException e) {
                 if (MissingImportHandlingStrategy.THROW_EXCEPTION.equals(config.getMissingImportHandlingStrategy())) {
                     throw new UnloadableImportException(e, declaration);
@@ -280,8 +306,6 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
                         name, declaration, e.getMessage());
             }
         }
-        UnionGraph res = new UnionGraph(main);
-        children.forEach(ch -> res.addGraph(makeUnionGraph(ch, new HashSet<>(seen), manager, config)));
         return res;
     }
 

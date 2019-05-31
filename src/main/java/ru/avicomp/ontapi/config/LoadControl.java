@@ -60,6 +60,19 @@ interface LoadControl<R> extends LoadSettings {
     R setPerformTransformation(boolean b);
 
     /**
+     * Disables or enables the processing imports depending on the given flag.
+     *
+     * @param b boolean
+     * @return {@link R} (this or copied instance)
+     * @see LoadSettings#isProcessImports()
+     * @see org.semanticweb.owlapi.model.OntologyConfigurator#setMissingOntologyHeaderStrategy(org.semanticweb.owlapi.model.MissingOntologyHeaderStrategy)
+     * @see org.semanticweb.owlapi.model.OntologyConfigurator#addIgnoredImport(org.semanticweb.owlapi.model.IRI)
+     * @see LoadControl#disableWebAccess()
+     * @since 1.4.1
+     */
+    R setProcessImports(boolean b);
+
+    /**
      * Changes the preferable way to load a {@code Graph}.
      * If {@code true} specified, the OWL-API native parsers will be used.
      * Though, it is not recommended,
@@ -86,6 +99,7 @@ interface LoadControl<R> extends LoadSettings {
      *
      * @return {@link R}
      * @see LoadControl#setSupportedSchemes(List)
+     * @see #setProcessImports(boolean)
      */
     default R disableWebAccess() {
         return setSupportedSchemes(Collections.singletonList((Scheme) () -> "file"));

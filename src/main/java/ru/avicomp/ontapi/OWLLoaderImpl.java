@@ -120,7 +120,10 @@ public class OWLLoaderImpl implements OntologyFactory.Loader {
         }
 
         @Override
-        public OWLOntology createOWLOntology(OWLOntologyManager manager, OWLOntologyID ontologyID, IRI documentIRI, OWLOntologyCreationHandler handler) {
+        public OWLOntology createOWLOntology(OWLOntologyManager manager,
+                                             OWLOntologyID ontologyID,
+                                             IRI documentIRI,
+                                             OWLOntologyCreationHandler handler) {
             OWLOntology ont = builder.createOWLOntology(manager, ontologyID);
             handler.ontologyCreated(ont);
             handler.setOntologyFormat(ont, new RDFXMLDocumentFormat());
@@ -209,7 +212,8 @@ public class OWLLoaderImpl implements OntologyFactory.Loader {
          * @param parsers parsers
          * @return selected parsers
          */
-        public static Iterable<OWLParserFactory> select(OWLOntologyDocumentSource source, PriorityCollection<OWLParserFactory> parsers) {
+        public static Iterable<OWLParserFactory> select(OWLOntologyDocumentSource source,
+                                                        PriorityCollection<OWLParserFactory> parsers) {
             if (parsers.isEmpty()) {
                 return parsers;
             }
