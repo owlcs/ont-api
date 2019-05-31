@@ -309,7 +309,7 @@ public class OntExpressionTest {
         OntNOP op2 = m.createObjectProperty("OP2");
         OntClass c1 = m.createOntClass("C1");
         OntDT d1 = m.getDatatype(XSD.xstring);
-        Literal v = m.getDatatype(XSD.nonNegativeInteger).createLiteral("2");
+        Literal v = m.getDatatype(XSD.nonNegativeInteger).createLiteral(2);
 
         OntCE.DataCardinality r1 = m.createDataCardinality(dp1, v.getInt(), d1);
         Assert.assertEquals(d1, r1.getValue());

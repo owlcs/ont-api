@@ -341,7 +341,7 @@ public class OntModelTest {
         OntIndividual bobs = contact.createIndividual(dataNS + "bobs");
         bobs.addAssertion(contactInfo, email.createLiteral("bob@x-email.com"))
                 .addAssertion(m.getRDFSLabel(), m.createLiteral("Bob's contacts"))
-                .addAssertion(contactInfo, phone.createLiteral(String.valueOf(98_968_78_98_792L)));
+                .addAssertion(contactInfo, phone.createLiteral(98_968_78_98_792L));
         OntIndividual bob = person.createIndividual(dataNS + "Bob").addAssertion(hasContact, bobs)
                 .addAssertion(m.getRDFSLabel(), m.createLiteral("Bob Label"));
 
@@ -808,7 +808,7 @@ public class OntModelTest {
         OntCE ce2 = m.createDataMaxCardinality(ndp1, 343434, dr2);
         i1.attachClass(ce2).attachClass(m.createOntClass(ns + "Class1"));
 
-        OntDR dr3 = m.createOneOfDataRange(m.getDatatype(XSD.integer).createLiteral("1"), dt1.createLiteral("2"));
+        OntDR dr3 = m.createOneOfDataRange(m.getDatatype(XSD.integer).createLiteral(1), dt1.createLiteral(2));
         OntDR dr4 = m.createComplementOfDataRange(dr3);
         m.createOntEntity(OntDT.class, ns + "dataType3")
                 .addEquivalentClass(m.createUnionOfDataRange(dr1, dr2, m.createIntersectionOfDataRange(dr1, dr4)));

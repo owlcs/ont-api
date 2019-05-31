@@ -20,6 +20,7 @@ import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Resource;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
+import java.util.Objects;
 import java.util.stream.Stream;
 
 /**
@@ -99,13 +100,28 @@ public interface OntDT extends OntEntity, OntDR {
     }
 
     /**
-     * Builds a typed literal from its value form.
+     * Builds a typed literal from its value form given as an object.
+     * Note: there is no validation for lexical form.
      *
-     * @param lex String, lexical form of the result literal
+     * @param obj anything, not {@code null}
+     * @return {@link Literal}
+     * @since 1.4.1
+     */
+    default Literal createLiteral(Object obj) {
+        return createLiteral(String.valueOf(Objects.requireNonNull(obj)));
+    }
+
+    /**
+     * Builds a typed literal from its value form.
+     * Note: there is no validation for lexical form,
+     * so it is possible to create an illegal literal, e.g. {@code "wrong"^^xsd:int}.
+     *
+     * @param lex String, lexical form of the result literal, not {@code null}
      * @return {@link Literal}
      * @see org.apache.jena.rdf.model.Model#createTypedLiteral(String, RDFDatatype)
      */
     default Literal createLiteral(String lex) {
-        return getModel().createTypedLiteral(lex, toRDFDatatype());
+        return getModel().createTypedLiteral(Objects.requireNonNull(lex), toRDFDatatype());
     }
+
 }

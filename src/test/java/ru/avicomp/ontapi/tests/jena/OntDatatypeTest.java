@@ -143,7 +143,7 @@ public class OntDatatypeTest {
 
         OntDR.Restriction dr = m.createRestrictionDataRange(d1);
         Assert.assertTrue(dr.getList().isEmpty());
-        dr.addFacet(OntFR.Pattern.class, d1.createLiteral(".*")).addFacet(OntFR.Length.class, d2.createLiteral("21"));
+        dr.addFacet(OntFR.Pattern.class, d1.createLiteral(".*")).addFacet(OntFR.Length.class, d2.createLiteral(21));
 
         Assert.assertEquals(2, dr.getList().size());
         Assert.assertEquals(9, m.size());
