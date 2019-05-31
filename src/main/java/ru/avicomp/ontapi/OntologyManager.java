@@ -23,8 +23,8 @@ import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.config.OntWriterConfiguration;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.File;
 import java.io.InputStream;
 import java.io.Serializable;
@@ -55,6 +55,7 @@ import java.util.stream.Stream;
  * <p>
  * Created by szuev on 24.10.2016.
  */
+@ParametersAreNonnullByDefault
 public interface OntologyManager extends OWLOntologyManager {
 
     /**
@@ -214,7 +215,7 @@ public interface OntologyManager extends OWLOntologyManager {
      * @see OWLOntologyID#match(IRI)
      */
     @Override
-    OntologyModel getOntology(@Nonnull IRI iri);
+    OntologyModel getOntology(IRI iri);
 
     /**
      * Finds the ontology by the specified {@code id}, which is allowed to be anonymous.
@@ -227,7 +228,7 @@ public interface OntologyManager extends OWLOntologyManager {
      * @see OWLOntologyID#matchOntology(IRI)
      */
     @Override
-    OntologyModel getOntology(@Nonnull OWLOntologyID id);
+    OntologyModel getOntology(OWLOntologyID id);
 
     /**
      * Answers {@code true} if the manager contains an ontology with the given ontology {@code iri}.
@@ -239,7 +240,7 @@ public interface OntologyManager extends OWLOntologyManager {
      * @see OWLOntologyID#match(IRI)
      */
     @Override
-    boolean contains(@Nonnull IRI iri);
+    boolean contains(IRI iri);
 
     /**
      * Answers {@code true} if the manager contains an ontology with the given ontology {@code id}.
@@ -253,7 +254,7 @@ public interface OntologyManager extends OWLOntologyManager {
      * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java#L355'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#contains(OWLOntologyID)</a>
      */
     @Override
-    boolean contains(@Nonnull OWLOntologyID id);
+    boolean contains(OWLOntologyID id);
 
     /**
      * Given an imports declaration, obtains the ontology that this import has been resolved to.
@@ -266,7 +267,7 @@ public interface OntologyManager extends OWLOntologyManager {
      * @see #getImportedOntology(IRI)
      */
     @Nullable
-    OntologyModel getImportedOntology(@Nonnull OWLImportsDeclaration iri);
+    OntologyModel getImportedOntology(OWLImportsDeclaration iri);
 
     /**
      * Lists all ontologies contained within the manager.
@@ -296,7 +297,7 @@ public interface OntologyManager extends OWLOntologyManager {
      * @throws OntApiException in case something wrong.
      */
     @Override
-    OntologyModel createOntology(@Nonnull OWLOntologyID id);
+    OntologyModel createOntology(OWLOntologyID id);
 
     /**
      * Creates an ontology model from the {@link Graph Jena Graph}, taking into account the given loading settings.
@@ -311,7 +312,7 @@ public interface OntologyManager extends OWLOntologyManager {
      * @see OntGraphDocumentSource
      * @since 1.2.0
      */
-    OntologyModel addOntology(@Nonnull Graph graph, @Nonnull OntLoaderConfiguration conf);
+    OntologyModel addOntology(Graph graph, OntLoaderConfiguration conf);
 
     /**
      * Copies an ontology to the manager.
@@ -327,7 +328,7 @@ public interface OntologyManager extends OWLOntologyManager {
      * @see OWLOntologyManager#copyOntology(OWLOntology, OntologyCopy)
      */
     @Override
-    OntologyModel copyOntology(@Nonnull OWLOntology source, @Nonnull OntologyCopy settings) throws OWLOntologyCreationException;
+    OntologyModel copyOntology(OWLOntology source, OntologyCopy settings) throws OWLOntologyCreationException;
 
     /**
      * Loads an ontology by the specified {@code source} IRI.
@@ -348,7 +349,7 @@ public interface OntologyManager extends OWLOntologyManager {
      * @see OWLOntologyManager#loadOntology(IRI)
      */
     @Override
-    OntologyModel loadOntology(@Nonnull IRI source) throws OWLOntologyCreationException;
+    OntologyModel loadOntology(IRI source) throws OWLOntologyCreationException;
 
     /**
      * Loads an ontology from the specified {@link OWLOntologyDocumentSource document source} using
@@ -364,8 +365,8 @@ public interface OntologyManager extends OWLOntologyManager {
      * @see OWLOntologyManager#loadOntologyFromOntologyDocument(OWLOntologyDocumentSource, OWLOntologyLoaderConfiguration)
      */
     @Override
-    OntologyModel loadOntologyFromOntologyDocument(@Nonnull OWLOntologyDocumentSource source,
-                                                   @Nonnull OWLOntologyLoaderConfiguration config) throws OWLOntologyCreationException;
+    OntologyModel loadOntologyFromOntologyDocument(OWLOntologyDocumentSource source,
+                                                   OWLOntologyLoaderConfiguration config) throws OWLOntologyCreationException;
 
 
     /**
@@ -384,7 +385,7 @@ public interface OntologyManager extends OWLOntologyManager {
      * @since 1.3.2
      */
     @Nullable
-    default OntologyModel getImportedOntology(@Nonnull IRI iri) {
+    default OntologyModel getImportedOntology(IRI iri) {
         return getImportedOntology(getOWLDataFactory().getOWLImportsDeclaration(iri));
     }
 
@@ -402,7 +403,7 @@ public interface OntologyManager extends OWLOntologyManager {
      */
     @Deprecated
     @Override
-    default void setOntologyFactories(@Nonnull Set<OWLOntologyFactory> factories) throws OntApiException {
+    default void setOntologyFactories(Set<OWLOntologyFactory> factories) throws OntApiException {
         getOntologyFactories().set(factories);
     }
 
@@ -419,7 +420,7 @@ public interface OntologyManager extends OWLOntologyManager {
      */
     @Deprecated
     @Override
-    default void setIRIMappers(@Nonnull Set<OWLOntologyIRIMapper> mappers) {
+    default void setIRIMappers(Set<OWLOntologyIRIMapper> mappers) {
         getIRIMappers().set(mappers);
     }
 
@@ -432,7 +433,7 @@ public interface OntologyManager extends OWLOntologyManager {
      */
     @Deprecated
     @Override
-    default void addIRIMapper(@Nonnull OWLOntologyIRIMapper mapper) {
+    default void addIRIMapper(OWLOntologyIRIMapper mapper) {
         getIRIMappers().add(mapper);
     }
 
@@ -445,7 +446,7 @@ public interface OntologyManager extends OWLOntologyManager {
      */
     @Deprecated
     @Override
-    default void removeIRIMapper(@Nonnull OWLOntologyIRIMapper mapper) {
+    default void removeIRIMapper(OWLOntologyIRIMapper mapper) {
         getIRIMappers().remove(mapper);
     }
 
@@ -509,7 +510,7 @@ public interface OntologyManager extends OWLOntologyManager {
      */
     @Deprecated
     @Override
-    default void setOntologyParsers(@Nonnull Set<OWLParserFactory> parsers) {
+    default void setOntologyParsers(Set<OWLParserFactory> parsers) {
         getOntologyParsers().set(parsers);
     }
 
@@ -522,7 +523,7 @@ public interface OntologyManager extends OWLOntologyManager {
      */
     @Deprecated
     @Override
-    default void setOntologyStorers(@Nonnull Set<OWLStorerFactory> storers) {
+    default void setOntologyStorers(Set<OWLStorerFactory> storers) {
         getOntologyStorers().set(storers);
     }
 
@@ -535,7 +536,7 @@ public interface OntologyManager extends OWLOntologyManager {
      */
     @Deprecated
     @Override
-    default void addOntologyStorer(@Nonnull OWLStorerFactory storer) {
+    default void addOntologyStorer(OWLStorerFactory storer) {
         getOntologyStorers().add(storer);
     }
 
@@ -548,7 +549,7 @@ public interface OntologyManager extends OWLOntologyManager {
      */
     @Deprecated
     @Override
-    default void removeOntologyStorer(@Nonnull OWLStorerFactory storer) {
+    default void removeOntologyStorer(OWLStorerFactory storer) {
         getOntologyStorers().remove(storer);
     }
 
@@ -573,7 +574,7 @@ public interface OntologyManager extends OWLOntologyManager {
      * @return {@link OntologyModel}
      * @since 1.0.1
      */
-    default OntologyModel addOntology(@Nonnull Graph graph) {
+    default OntologyModel addOntology(Graph graph) {
         return addOntology(graph, getOntologyLoaderConfiguration().setPerformTransformation(false));
     }
 
@@ -621,7 +622,7 @@ public interface OntologyManager extends OWLOntologyManager {
      * @see OWLOntologyManager#loadOntologyFromOntologyDocument(OWLOntologyDocumentSource)
      */
     @Override
-    default OntologyModel loadOntologyFromOntologyDocument(@Nonnull OWLOntologyDocumentSource source)
+    default OntologyModel loadOntologyFromOntologyDocument(OWLOntologyDocumentSource source)
             throws OWLOntologyCreationException {
         return loadOntologyFromOntologyDocument(source, getOntologyLoaderConfiguration());
     }
@@ -643,7 +644,7 @@ public interface OntologyManager extends OWLOntologyManager {
      * @see OWLOntologyManager#loadOntologyFromOntologyDocument(IRI)
      */
     @Override
-    default OntologyModel loadOntologyFromOntologyDocument(@Nonnull IRI iri) throws OWLOntologyCreationException {
+    default OntologyModel loadOntologyFromOntologyDocument(IRI iri) throws OWLOntologyCreationException {
         return loadOntologyFromOntologyDocument(new IRIDocumentSource(iri));
     }
 
@@ -662,7 +663,7 @@ public interface OntologyManager extends OWLOntologyManager {
      * @see OWLOntologyManager#loadOntologyFromOntologyDocument(File)
      */
     @Override
-    default OntologyModel loadOntologyFromOntologyDocument(@Nonnull File file) throws OWLOntologyCreationException {
+    default OntologyModel loadOntologyFromOntologyDocument(File file) throws OWLOntologyCreationException {
         return loadOntologyFromOntologyDocument(new FileDocumentSource(file));
     }
 
@@ -682,15 +683,15 @@ public interface OntologyManager extends OWLOntologyManager {
      * @see OWLOntologyManager#loadOntologyFromOntologyDocument(InputStream)
      */
     @Override
-    default OntologyModel loadOntologyFromOntologyDocument(@Nonnull InputStream input) throws OWLOntologyCreationException {
+    default OntologyModel loadOntologyFromOntologyDocument(InputStream input) throws OWLOntologyCreationException {
         return loadOntologyFromOntologyDocument(new StreamDocumentSource(input));
     }
 
     /**
      * Gets {@link OntGraphModel Ontology Graph Model} by the ontology and version IRIs passed as strings.
      *
-     * @param iri     String, nullable
-     * @param version String, nullable
+     * @param iri     String, can be {@code null} to find anonymous ontology
+     * @param version String, must be {@code null} if {@code iri} is {@code null}
      * @return {@link OntGraphModel} or {@code null} if no ontology found
      */
     default OntGraphModel getGraphModel(@Nullable String iri, @Nullable String version) {
@@ -702,7 +703,7 @@ public interface OntologyManager extends OWLOntologyManager {
     /**
      * Gets {@link OntGraphModel Ontology Graph Model} by the ontology IRI.
      *
-     * @param iri String, nullable
+     * @param iri String, can be {@code null} to find anonymous ontology
      * @return {@link OntGraphModel} or {@code null} if no ontology found
      */
     default OntGraphModel getGraphModel(@Nullable String iri) {
@@ -712,8 +713,8 @@ public interface OntologyManager extends OWLOntologyManager {
     /**
      * Creates an {@link OntGraphModel Ontology Graph Model} with specified ontology and version IRIs.
      *
-     * @param iri     String, can be {@code null}
-     * @param version String, can be {@code null}
+     * @param iri     String, can be {@code null} to create anonymous ontology
+     * @param version String, must be {@code null} if {@code iri} is {@code null}
      * @return {@link OntGraphModel}
      */
     default OntGraphModel createGraphModel(@Nullable String iri, @Nullable String version) {
@@ -723,7 +724,7 @@ public interface OntologyManager extends OWLOntologyManager {
     /**
      * Creates an {@link OntGraphModel Ontology Graph Model} with specified IRI.
      *
-     * @param iri String, nullable
+     * @param iri String, can be {@code null} to create anonymous ontology
      * @return {@link OntGraphModel}
      */
     default OntGraphModel createGraphModel(@Nullable String iri) {
@@ -763,7 +764,7 @@ public interface OntologyManager extends OWLOntologyManager {
          * object by the {@link IRI} that may be either version IRI or ontology IRI.
          *
          * @param iri {@link IRI}, not {@code null}
-         * @return {@link OWLOntologyDocumentSource} or {@code null}
+         * @return {@link OWLOntologyDocumentSource} or {@code null} if no mapping found
          * @since 1.3.2
          */
         default OWLOntologyDocumentSource map(IRI iri) {
