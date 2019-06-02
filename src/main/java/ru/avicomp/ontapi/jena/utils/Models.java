@@ -385,31 +385,39 @@ public class Models {
     }
 
     /**
-     * Inserts the given ontology in the dependencies of each ontology from the specified collection ({@code manager}).
-     * Can be used to fix missed graphs or to replace existing dependency with new one in case {@code replace = true}.
+     * Inserts the given ontology in the dependencies of each ontology from the specified collection,
+     * provided as {@code Supplier} (the {@code manager} parameter).
+     * Can be used to fix missed graph links or
+     * to replace existing dependency with the new one in case {@code replace} is {@code true}.
      *
-     * @param manager the collection of other ontologies in form of {@link Supplier} providing Stream
+     * @param manager the collection of other ontologies in form of {@link Supplier} that answers a {@code Stream}
      * @param ont     {@link OntGraphModel} the ontology to insert, must be named
-     * @param replace if {@code true} existing graphs will be replaced with new one,
-     *                otherwise the model will be inserted only if there is {@code owl:import} without a graph
+     * @param replace if {@code true} then any existing graph,
+     *                that is linked through the {@code owl:import} declaration,
+     *                will be replaced with the given graph,
+     *                otherwise the graph will be inserted only if
+     *                there is a declaration {@code owl:import} without any graph associated
+     * @see OntID#getImportsIRI()
      * @since 1.3.0
      */
     public static void insert(Supplier<Stream<OntGraphModel>> manager, OntGraphModel ont, boolean replace) {
-        String uri = Objects.requireNonNull(ont.getID().getURI(), "Must be named ontology");
+        String uri = Objects.requireNonNull(ont.getID().getImportsIRI(), "Must be named ontology");
         manager.get()
                 .filter(m -> {
+                    // select only those, that have the uri in owl:imports:
                     try (Stream<String> uris = m.getID().imports()) {
                         return uris.anyMatch(uri::equals);
                     }
                 })
                 .peek(m -> {
                     if (!replace) return;
+                    // remove a first found previously associated graph:
                     m.imports()
-                            .filter(i -> uri.equals(i.getID().getURI()))
+                            .filter(i -> uri.equals(i.getID().getImportsIRI()))
                             .findFirst()
                             .ifPresent(i -> ((UnionGraph) m.getGraph()).removeGraph(i.getGraph()));
                 })
-                .filter(m -> m.imports().map(OntGraphModel::getID).map(Resource::getURI).noneMatch(uri::equals))
+                .filter(m -> m.imports().map(OntGraphModel::getID).map(OntID::getImportsIRI).noneMatch(uri::equals))
                 .forEach(m -> m.addImport(ont));
     }
 

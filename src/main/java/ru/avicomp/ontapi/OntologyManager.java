@@ -315,20 +315,48 @@ public interface OntologyManager extends OWLOntologyManager {
     OntologyModel addOntology(Graph graph, OntLoaderConfiguration conf);
 
     /**
-     * Copies an ontology to the manager.
-     * Note: the axioms list may differ in source and result due to different config settings etc.
-     * TODO: this method should not throw checked exception: in ONT-API it doesn't make sense,
-     * see {@link #createOntology(OWLOntologyID)} explanation.
+     * Copies an ontology from another manager to this one.
+     * The returned {@code OntologyModel} will return this manager instance,
+     * when {@link OntologyModel#getOWLOntologyManager()} is invoked.
+     * <p>
+     * Note: the axioms list, retrieved from the returned ontology, may differ with the source axioms
+     * due to different config settings (see {@link ru.avicomp.ontapi.config.AxiomsSettings}).
+     * <p>
+     * The second parameter is allowed to be either {@link OntologyCopy#SHALLOW SHALLOW}
+     * or {@link OntologyCopy#DEEP DEEP}.
+     * The moving operation (i.e. {@code settings} = {@link OntologyCopy#MOVE MOVE}) is not supported,
+     * since the original (base) OWL-API method requires the same instance returned.
+     * This condition cannot be satisfied since we are dealing with different implementation.
+     * If you want to move, then just copy ontology using this method
+     * and then delete the source ontology using the method {@link #removeOntology(OWLOntology)}.
+     * <p>
+     * If the second parameter is {@link OntologyCopy#SHALLOW SHALLOW} and the source ontology is {@link OntologyModel},
+     * then the operation is effectively equivalent to calling the {@link #addOntology(Graph, OntLoaderConfiguration)}
+     * method with a configuration that has disabled transformations and import processing
+     * (see {@link ru.avicomp.ontapi.config.LoadSettings#isPerformTransformation()
+     * and {@link ru.avicomp.ontapi.config.LoadSettings#isProcessImports()}}.
+     * In this case only a base graph reference is copied and,
+     * therefore, there is a possibility to share an ontology data between different managers.
+     * <p>
+     * If the second parameter is {@link OntologyCopy#DEEP DEEP},
+     * then the document format (see {@link #getOntologyFormat(OWLOntology)}) and
+     * the document source iri (see {@link #getOntologyDocumentIRI(OWLOntology)}) are also copied.
+     * <p>
+     * In any case, the method copies only the base graph data,
+     * but also it tries to restore any missed import ontology references.
+     * In case the source ontology has an import to another ontology,
+     * the returned ontology would also have a reference to an ontology with the same import declaration IRI,
+     * if it is found in this manager.
      *
-     * @param source   {@link OWLOntology} the source, could be pure OWL-API ontology
-     * @param settings {@link OntologyCopy} the settings
-     * @return new {@link OntologyModel}
-     * @throws OWLOntologyCreationException in case of error
-     * @throws OntApiException              if any unexpected error occurs
+     * @param source   {@link OWLOntology} the source, possible, not an {@link OntologyModel} instance
+     * @param settings {@link OntologyCopy} the settings,
+     *                 either {@link OntologyCopy#DEEP} or {@link OntologyCopy#SHALLOW}
+     * @return a new (copied) {@link OntologyModel}
+     * @throws OntApiException if any unexpected error occurs or input parameters are wrong
      * @see OWLOntologyManager#copyOntology(OWLOntology, OntologyCopy)
      */
     @Override
-    OntologyModel copyOntology(OWLOntology source, OntologyCopy settings) throws OWLOntologyCreationException;
+    OntologyModel copyOntology(OWLOntology source, OntologyCopy settings);
 
     /**
      * Loads an ontology by the specified {@code source} IRI.

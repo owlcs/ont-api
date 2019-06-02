@@ -16,6 +16,7 @@ package ru.avicomp.ontapi;
 
 import org.apache.commons.io.output.WriterOutputStream;
 import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.GraphUtil;
 import org.apache.jena.graph.impl.WrappedGraph;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.shared.JenaException;
@@ -36,7 +37,9 @@ import ru.avicomp.ontapi.internal.InternalModel;
 import ru.avicomp.ontapi.internal.InternalModelHolder;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
+import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.utils.Graphs;
+import ru.avicomp.ontapi.jena.utils.Models;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -1366,58 +1369,60 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     }
 
     /**
+     * {@inheritDoc}
+     *
      * @param source   {@link OWLOntology}
      * @param settings {@link OntologyCopy}
      * @return {@link OntologyModel}
-     * @throws OWLOntologyCreationException ex
      */
     @Override
     public OntologyModel copyOntology(@Nonnull OWLOntology source,
-                                      @Nonnull OntologyCopy settings) throws OWLOntologyCreationException {
+                                      @Nonnull OntologyCopy settings) {
         getLock().writeLock().lock();
         try {
-            OntApiException.notNull(source, "Null ontology.");
-            OntApiException.notNull(settings, "Null settings.");
-            OWLOntologyManager m = source.getOWLOntologyManager();
+            OntApiException.notNull(source, "Null source ontology.");
+            if (settings != OntologyCopy.SHALLOW && settings != OntologyCopy.DEEP)
+                throw new OntApiException.Unsupported("Not supported parameter: " + settings);
+
+            if (settings == OntologyCopy.SHALLOW && source instanceof OntologyModel) {
+                // copy only ref to the base graph, no transformations, no import processing
+                return addOntology(((OntologyModel) source).asGraphModel().getBaseGraph(),
+                        getOntologyLoaderConfiguration().setPerformTransformation(false).setProcessImports(false));
+            }
+
+            OWLOntologyID id = source.getOntologyID();
             OntologyModel res;
-            switch (settings) {
-                case MOVE:
-                    if (!(source instanceof OntologyModel)) {
-                        throw new OWLOntologyCreationException(
-                                String.format("Can't move %s: not an %s. Use %s or %s parameter.",
-                                        source.getOntologyID(), OntologyModel.class.getSimpleName(),
-                                        OntologyCopy.DEEP, OntologyCopy.SHALLOW));
-                    }
-                    // todo: what about ontologies with imports? what about moving between managers with different lock ?
-                    res = (OntologyModel) source;
-                    ontologyCreated(res);
-                    break;
-                case SHALLOW:
-                case DEEP:
-                    // todo: in case of ONT replace coping axioms with coping graphs
-                    OntInfo info = create(source.getOntologyID());
-                    OntologyModel o = info.get();
-                    AxiomType.AXIOM_TYPES.forEach(t -> OntologyManagerImpl.this.addAxioms(o, source.axioms(t)));
-                    source.annotations().forEach(a -> applyChange(new AddOntologyAnnotation(o, a)));
-                    source.importsDeclarations().forEach(a -> applyChange(new AddImport(o, a)));
-                    res = o;
-                    break;
-                default:
-                    throw new OWLRuntimeException("settings value not understood: " + settings);
+            try {
+                res = create(id).get();
+            } catch (OWLOntologyCreationException e) {
+                throw new OntApiException("Unable to create a fresh ontology with id=" + id, e);
             }
-            if (settings == OntologyCopy.MOVE || settings == OntologyCopy.DEEP) {
-                // todo: what about configs?
+            if (source instanceof OntologyModel) {
+                Graph src = ((OntologyModel) source).asGraphModel().getBaseGraph();
+                OntGraphModel dst = res.asGraphModel();
+                // copy the whole graph
+                GraphUtil.addInto(dst.getBaseGraph(), src);
+                dst.getID().imports().forEach(u -> importedOntology(IRI.create(u))
+                        .ifPresent(x -> dst.addImport(x.asGraphModel())));
+            } else {
+                // copy all OWL2 content
+                source.importsDeclarations().forEach(i -> applyChange(new AddImport(res, i)));
+                source.annotations().forEach(n -> applyChange(new AddOntologyAnnotation(res, n)));
+                source.axioms().forEach(a -> applyChange(new AddAxiom(res, a)));
+            }
+
+            if (!res.isAnonymous()) {
+                // restore missed dependencies
+                Models.insert(this::models, res.asGraphModel(), false);
+            }
+
+            if (settings == OntologyCopy.DEEP) {
+                OWLOntologyManager m = source.getOWLOntologyManager();
                 setOntologyDocumentIRI(res, m.getOntologyDocumentIRI(source));
-                OWLDocumentFormat ontologyFormat = m.getOntologyFormat(source);
-                if (ontologyFormat != null) {
-                    setOntologyFormat(res, ontologyFormat);
+                OWLDocumentFormat format = m.getOntologyFormat(source);
+                if (format != null) {
+                    setOntologyFormat(res, format);
                 }
-            }
-            if (settings == OntologyCopy.MOVE) {
-                m.removeOntology(source);
-                // at this point toReturn and toCopy are the same object
-                // change the manager on the ontology
-                res.setOWLOntologyManager(this);
             }
             return res;
         } finally {

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -13,6 +13,7 @@
  */
 package ru.avicomp.owlapi.tests.api.ontology;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.semanticweb.owlapi.io.StringDocumentSource;
@@ -20,23 +21,23 @@ import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.parameters.OntologyCopy;
+import ru.avicomp.ontapi.OntApiException;
+import ru.avicomp.owlapi.OWLManager;
 import ru.avicomp.owlapi.tests.api.baseclasses.TestBase;
 
-import javax.annotation.Nonnull;
-
-import static org.junit.Assert.*;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asSet;
+import java.util.LinkedHashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
- * @author Matthew Horridge, The University Of Manchester, Bio-Health
- *         Informatics Group
+ * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
  * @since 2.0.0
  */
 @SuppressWarnings({"javadoc"})
 public class MoveOntologyTestCase extends TestBase {
 
     private final static
-    @Nonnull
     String s = "<?xml version=\"1.0\"?>\n" + "<rdf:RDF xmlns=\"urn:test#test\"\n"
             + "     xml:base=\"urn:test#test\"\n" + "     xmlns:rdfs=\"http://www.w3.org/2000/01/rdf-schema#\"\n"
             + "     xmlns:swrl=\"http://www.w3.org/2003/11/swrl#\"\n"
@@ -54,6 +55,10 @@ public class MoveOntologyTestCase extends TestBase {
             + "            <rdfs:Datatype rdf:about=\"http://www.w3.org/2001/XMLSchema#double\"/>\n"
             + "        </owl:annotatedTarget>\n" + "    </owl:Axiom></rdf:RDF>";
 
+    private static <T> Set<T> asSet(Stream<T> s) {
+        return s.collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
     @Before
     public void setUp() throws OWLOntologyCreationException {
         m.createOntology(IRI.create("urn:test#", "test"));
@@ -61,38 +66,51 @@ public class MoveOntologyTestCase extends TestBase {
 
     @Test
     public void testMove() throws OWLOntologyCreationException {
+        boolean isONT = !OWLManager.DEBUG_USE_OWL;
         OWLOntology o = m.loadOntologyFromOntologyDocument(new StringDocumentSource(s));
-        OWLOntology copy = m1.copyOntology(o, OntologyCopy.MOVE);
-        assertSame(o, copy);
-        assertEquals(m1, copy.getOWLOntologyManager());
-        assertFalse(m.contains(o));
-        assertTrue(m1.contains(copy));
-        assertEquals(asSet(o.annotations()), asSet(copy.annotations()));
-        assertNull(m.getOntologyFormat(o));
+        OWLOntology copy;
+        try {
+            copy = m1.copyOntology(o, OntologyCopy.MOVE);
+            if (isONT) {
+                Assert.fail("This functionality is expected to be disabled");
+            }
+        } catch (OntApiException.Unsupported e) {
+            if (isONT) {
+                LOGGER.debug("OK: '{}'", e.getMessage());
+                return;
+            }
+            throw e;
+        }
+        Assert.assertSame(o, copy);
+        Assert.assertEquals(m1, copy.getOWLOntologyManager());
+        Assert.assertFalse(m.contains(o));
+        Assert.assertTrue(m1.contains(copy));
+        Assert.assertEquals(asSet(o.annotations()), asSet(copy.annotations()));
+        Assert.assertNull(m.getOntologyFormat(o));
     }
 
     @Test
     public void testShallow() throws OWLOntologyCreationException {
         OWLOntology o = m.loadOntologyFromOntologyDocument(new StringDocumentSource(s));
         OWLOntology copy = m1.copyOntology(o, OntologyCopy.SHALLOW);
-        assertEquals(m1, copy.getOWLOntologyManager());
-        assertTrue(m.contains(o));
-        assertTrue(m1.contains(copy));
-        assertNotNull(m.getOntologyFormat(o));
-        assertEquals(asSet(o.annotations()), asSet(copy.annotations()));
-        assertEquals(asSet(o.importsDeclarations()), asSet(copy.importsDeclarations()));
+        Assert.assertEquals(m1, copy.getOWLOntologyManager());
+        Assert.assertTrue(m.contains(o));
+        Assert.assertTrue(m1.contains(copy));
+        Assert.assertNotNull(m.getOntologyFormat(o));
+        Assert.assertEquals(asSet(o.annotations()), asSet(copy.annotations()));
+        Assert.assertEquals(asSet(o.importsDeclarations()), asSet(copy.importsDeclarations()));
     }
 
     @Test
     public void testDeep() throws OWLOntologyCreationException {
         OWLOntology o = m.loadOntologyFromOntologyDocument(new StringDocumentSource(s));
         OWLOntology copy = m1.copyOntology(o, OntologyCopy.DEEP);
-        assertEquals(m1, copy.getOWLOntologyManager());
-        assertTrue(m.contains(o));
-        assertTrue(m1.contains(copy));
-        assertNotNull(m.getOntologyFormat(o));
-        assertNotNull(m1.getOntologyFormat(o));
-        assertEquals(asSet(o.annotations()), asSet(copy.annotations()));
-        assertEquals(asSet(o.importsDeclarations()), asSet(copy.importsDeclarations()));
+        Assert.assertEquals(m1, copy.getOWLOntologyManager());
+        Assert.assertTrue(m.contains(o));
+        Assert.assertTrue(m1.contains(copy));
+        Assert.assertNotNull(m.getOntologyFormat(o));
+        Assert.assertNotNull(m1.getOntologyFormat(o));
+        Assert.assertEquals(asSet(o.annotations()), asSet(copy.annotations()));
+        Assert.assertEquals(asSet(o.importsDeclarations()), asSet(copy.importsDeclarations()));
     }
 }
