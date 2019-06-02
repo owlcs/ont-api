@@ -31,7 +31,7 @@
         <maven.compiler.target>1.8</maven.compiler.target>
         <maven.compiler.source>1.8</maven.compiler.source>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <version.jena>3.11.0</version.jena>
+        <version.jena>3.12.0</version.jena>
         <version.owlapi>5.1.9</version.owlapi>
         <version.slf4j>1.7.26</version.slf4j>
         <version.caffeine>2.7.0</version.caffeine>
