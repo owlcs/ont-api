@@ -559,7 +559,7 @@ public class LoadFactoryManagerTest {
         manager.getOntologyFactories().clear();
         Assert.assertTrue(manager.getOntologyFactories().isEmpty());
 
-        OWLOntologyFactory owlFactory = new OWLLoaderImpl.FactoryImpl((m, i) ->
+        OWLOntologyFactory owlFactory = new OWLFactoryWrapper.FactoryImpl((m, i) ->
                 new OntManagers.OWLAPIImplProfile().createOWLOntologyImpl(m, i));
         try {
             manager.getOntologyFactories().add(owlFactory);

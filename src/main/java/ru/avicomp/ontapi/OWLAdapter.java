@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -30,7 +30,7 @@ import java.util.Objects;
  * Created by @szuev on 01.07.2018.
  */
 @SuppressWarnings("WeakerAccess")
-public class OWLAdapter {
+public class OWLAdapter implements HasAdapter.Adapter {
 
     private static OWLAdapter instance = new OWLAdapter();
 
@@ -49,9 +49,10 @@ public class OWLAdapter {
      * @return {@link OntologyManager}
      * @throws OntApiException if wrong instance specified
      */
+    @Override
     public OntologyManager asONT(OWLOntologyManager manager) {
         try {
-            return (OntologyManager) manager;
+            return (OntologyManager) OntApiException.notNull(manager);
         } catch (ClassCastException c) {
             throw new OntApiException("Wrong Ontology Manager", c);
         }
@@ -66,7 +67,7 @@ public class OWLAdapter {
      */
     public DataFactory asONT(OWLDataFactory factory) {
         try {
-            return (DataFactory) factory;
+            return (DataFactory) OntApiException.notNull(factory);
         } catch (ClassCastException c) {
             throw new OntApiException("Wrong Ontology Data Factory", c);
         }
@@ -88,6 +89,7 @@ public class OWLAdapter {
      * @param conf {@link OWLOntologyLoaderConfiguration}
      * @return {@link OntLoaderConfiguration}
      */
+    @Override
     public OntLoaderConfiguration asONT(OWLOntologyLoaderConfiguration conf) {
         return conf instanceof OntLoaderConfiguration ? (OntLoaderConfiguration) conf : new OntLoaderConfiguration(conf);
     }
@@ -103,6 +105,28 @@ public class OWLAdapter {
     }
 
     /**
+     * Converts id.
+     *
+     * @param id {@link OWLOntologyID}, not {@code null}
+     * @return {@link OntologyID}, must not be {@code null}
+     */
+    @Override
+    public OntologyID asONT(OWLOntologyID id) {
+        return OntologyID.asONT(id);
+    }
+
+    /**
+     * Gets ontology creation handler.
+     *
+     * @param m {@link OWLOntologyManager} instance, not {@code null}
+     * @return {@link OWLOntologyFactory.OWLOntologyCreationHandler}
+     */
+    @Override
+    public OWLOntologyFactory.OWLOntologyCreationHandler asHandler(OWLOntologyManager m) {
+        return asIMPL(m);
+    }
+
+    /**
      * Casts to the default ONT-API manager implementation.
      * The implementation contains a lot of useful methods,
      * that are used by the implementation classes (e.g. by the {@link OntologyFactoryImpl Ontogy Factory Impl}),
@@ -114,6 +138,10 @@ public class OWLAdapter {
      * @throws ClassCastException in case of wrong instance specified
      */
     protected OntologyManagerImpl asIMPL(OWLOntologyManager manager) {
-        return (OntologyManagerImpl) manager;
+        try {
+            return (OntologyManagerImpl) OntApiException.notNull(manager);
+        } catch (ClassCastException c) {
+            throw new OntApiException("Wrong Ontology Manager Impl", c);
+        }
     }
 }

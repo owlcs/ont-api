@@ -69,7 +69,10 @@ import java.util.stream.Stream;
  * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl</a>
  */
 @SuppressWarnings("WeakerAccess")
-public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.OWLOntologyCreationHandler, Serializable {
+public class OntologyManagerImpl implements OntologyManager,
+        OWLOntologyFactory.OWLOntologyCreationHandler,
+        HasAdapter,
+        Serializable {
     private static final Logger LOGGER = LoggerFactory.getLogger(OntologyManagerImpl.class);
     private static final long serialVersionUID = -4764329329583952286L;
     // listeners:
@@ -143,6 +146,11 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         this.iris = createIRICache();
     }
 
+    @Override
+    public OWLAdapter getAdapter() {
+        return OWLAdapter.get();
+    }
+
     /**
      * Creates a fresh {@link IRI} cache instance depending on this manager settings.
      * Note if caching is disabled ({@link OntConfig#getManagerIRIsCacheSize()} is not positive),
@@ -211,7 +219,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
             // just copying all settings is not suitable in this case.
             // This fact greatly and unnecessarily complicates the matter
             int size = this.config.getManagerIRIsCacheSize();
-            this.config = OntConfig.withLock(OWLAdapter.get().asONT(conf), lock);
+            this.config = OntConfig.withLock(getAdapter().asONT(conf), lock);
             if (size != this.config.getManagerIRIsCacheSize()) {
                 // reset cache:
                 this.iris = createIRICache();
@@ -230,7 +238,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
     public void setOntologyLoaderConfiguration(@Nullable OWLOntologyLoaderConfiguration config) {
         getLock().writeLock().lock();
         try {
-            OntLoaderConfiguration conf = OWLAdapter.get().asONT(config);
+            OntLoaderConfiguration conf = getAdapter().asONT(config);
             if (ModelConfig.hasChanges(getOntLoaderConfiguration(), conf)) {
                 content.values()
                         .filter(x -> x.getModelConfig().useManagerConfig())
@@ -275,7 +283,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
         getLock().writeLock().lock();
         try {
             if (Objects.equals(writerConfig, conf)) return;
-            writerConfig = OWLAdapter.get().asONT(conf);
+            writerConfig = getAdapter().asONT(conf);
         } finally {
             getLock().writeLock().unlock();
         }
@@ -537,7 +545,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
      * @throws OWLOntologyFactoryNotFoundException if no suitable factory found,
      */
     protected OntInfo create(OWLOntologyID ontologyID) throws OWLOntologyCreationException, OWLOntologyFactoryNotFoundException {
-        OntologyID id = OntologyID.asONT(ontologyID);
+        OntologyID id = getAdapter().asONT(ontologyID);
         Optional<OntInfo> ont = content.get(id);
         if (ont.isPresent()) {
             throw new OWLOntologyAlreadyExistsException(id);
@@ -2115,7 +2123,7 @@ public class OntologyManagerImpl implements OntologyManager, OWLOntologyFactory.
 
         @Override
         public OntologyID getOntologyID() {
-            return OntologyID.asONT(ont.getOntologyID());
+            return getAdapter().asONT(ont.getOntologyID());
         }
 
         public OntologyModel get() {

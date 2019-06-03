@@ -27,15 +27,15 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * An implementation of {@link OntologyFactory.Loader} which is actually {@link OWLOntologyFactory} decorator.
+ * An implementation of {@link OntologyLoader} which is actually {@link OWLOntologyFactory} decorator.
  * Used to load {@link OntologyModel ontology} through pure OWL-API mechanisms (i.e. owl-api parsers).
  * Some formats (such as {@link org.semanticweb.owlapi.formats.ManchesterSyntaxDocumentFormat} or
  * {@link org.semanticweb.owlapi.formats.FunctionalSyntaxDocumentFormat}) are not supported by jena,
  * so it is the only way to handle them by ONT-API.
  */
 @SuppressWarnings("WeakerAccess")
-public class OWLLoaderImpl implements OntologyFactory.Loader {
-    private static final Logger LOGGER = LoggerFactory.getLogger(OWLLoaderImpl.class);
+public class OWLFactoryWrapper implements OntologyFactory.Loader {
+    private static final Logger LOGGER = LoggerFactory.getLogger(OWLFactoryWrapper.class);
 
     protected final OWLOntologyFactory factory;
 
@@ -48,7 +48,7 @@ public class OWLLoaderImpl implements OntologyFactory.Loader {
      *
      * @param builder {@link OntologyFactory.Builder}, not null
      */
-    public OWLLoaderImpl(OntologyFactory.Builder builder) {
+    public OWLFactoryWrapper(OntologyFactory.Builder builder) {
         this(new FactoryImpl(Objects.requireNonNull(builder, "Null ONT Builder specified.")));
     }
 
@@ -57,13 +57,15 @@ public class OWLLoaderImpl implements OntologyFactory.Loader {
      *
      * @param factory {@link OWLOntologyFactory}, not null
      */
-    protected OWLLoaderImpl(OWLOntologyFactory factory) {
+    protected OWLFactoryWrapper(OWLOntologyFactory factory) {
         this.factory = OntApiException.notNull(factory, "Null OWL Ontology Factory impl.");
     }
 
     /**
-     * @param source  {@link OWLOntologyDocumentSource}
+     * {@inheritDoc}
+     *
      * @param manager {@link OntologyManager}
+     * @param source  {@link OWLOntologyDocumentSource}
      * @param conf    {@link OntLoaderConfiguration}
      * @return an ontology inside manager
      * @throws OntologyFactoryImpl.BadRecursionException if recursion occurs
@@ -72,8 +74,9 @@ public class OWLLoaderImpl implements OntologyFactory.Loader {
      * @throws OWLOntologyCreationException              if any other problem occurs
      */
     @Override
-    public OntologyModel load(OWLOntologyDocumentSource source, OntologyManager manager, OntLoaderConfiguration conf)
-            throws OWLOntologyCreationException {
+    public OntologyModel loadOntology(OntologyManager manager,
+                                      OWLOntologyDocumentSource source,
+                                      OntLoaderConfiguration conf) throws OWLOntologyCreationException {
         IRI doc = source.getDocumentIRI();
         if (sources.contains(doc)) {
             throw new OntologyFactoryImpl.BadRecursionException("Cycle loading for source " + doc);
@@ -255,8 +258,8 @@ public class OWLLoaderImpl implements OntologyFactory.Loader {
             Map<String, TreeSet<Integer>> map = new HashMap<>();
             parsers.forEach(p -> addToMap(map, p.getMIMETypes()));
             return map.entrySet().stream()
-                    .sorted(OWLLoaderImpl.AcceptHeaderBuilder::compare)
-                    .map(OWLLoaderImpl.AcceptHeaderBuilder::asString)
+                    .sorted(OWLFactoryWrapper.AcceptHeaderBuilder::compare)
+                    .map(OWLFactoryWrapper.AcceptHeaderBuilder::asString)
                     .collect(Collectors.joining(", "));
         }
 

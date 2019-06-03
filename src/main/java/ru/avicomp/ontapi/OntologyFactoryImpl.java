@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -16,10 +16,9 @@ package ru.avicomp.ontapi;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.riot.system.ErrorHandlerFactory;
-import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
-import org.semanticweb.owlapi.model.*;
-import ru.avicomp.ontapi.config.OntLoaderConfiguration;
-import ru.avicomp.ontapi.jena.utils.Models;
+import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.model.OWLOntologyFactory;
 import ru.avicomp.ontapi.transforms.TransformException;
 
 import java.util.Objects;
@@ -50,30 +49,14 @@ public class OntologyFactoryImpl implements OntologyFactory {
         this.loader = Objects.requireNonNull(loader, "Null loader");
     }
 
-    /**
-     * Creates a fresh ontology (ONT) inside the given manager.
-     * Note: the default format is Turtle, not RDF/XML as in OWL-API impl, since it is more widely used in Jena-world.
-     *
-     * @param manager {@link OntologyManager}, not null
-     * @param id      {@link OWLOntologyID}, not null
-     * @return {@link OntologyModel}
-     * @see OntFormat#TURTLE
-     */
     @Override
-    public OntologyModel createOntology(OntologyManager manager, OWLOntologyID id) {
-        OntologyModel res = this.builder.createOWLOntology(manager, id);
-        OWLAdapter.get().asIMPL(manager).ontologyCreated(res);
-        OWLDocumentFormat format = OntFormat.TURTLE.createOwlFormat();
-        Models.setNsPrefixes(res.asGraphModel(), format.asPrefixOWLDocumentFormat().getPrefixName2PrefixMap());
-        manager.setOntologyFormat(res, format);
-        return res;
+    public Builder getBuilder() {
+        return builder;
     }
 
     @Override
-    public OntologyModel loadOntology(OntologyManager manager,
-                                      OWLOntologyDocumentSource source,
-                                      OntLoaderConfiguration configuration) throws OWLOntologyCreationException {
-        return loader.load(source, manager, configuration);
+    public Loader getLoader() {
+        return loader;
     }
 
     public static class ConfigMismatchException extends OWLOntologyCreationException {

@@ -15,10 +15,10 @@
 package ru.avicomp.ontapi;
 
 import org.apache.jena.graph.Graph;
-import org.semanticweb.owlapi.model.OWLOntologyID;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.jena.OntModelFactory;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.concurrent.locks.ReadWriteLock;
 
 /**
@@ -26,11 +26,17 @@ import java.util.concurrent.locks.ReadWriteLock;
  * This should be the only way to create {@link OntologyModel} instances.
  */
 @SuppressWarnings("WeakerAccess")
+@ParametersAreNonnullByDefault
 public class OntologyBuilderImpl implements OntologyFactory.Builder {
 
     @Override
-    public OntologyModel createOntology(OntologyManager manager, OWLOntologyID id) {
-        OntologyManagerImpl m = OWLAdapter.get().asIMPL(manager);
+    public OWLAdapter getAdapter() {
+        return OWLAdapter.get();
+    }
+
+    @Override
+    public OntologyModel createOntology(OntologyManager manager, OntologyID id) {
+        OntologyManagerImpl m = getAdapter().asIMPL(manager);
         OntologyModelImpl res = createOntologyImpl(createGraph(), m, m.getOntologyLoaderConfiguration());
         res.setOntologyID(id);
         return withLock(res, m.getLock());
@@ -38,7 +44,7 @@ public class OntologyBuilderImpl implements OntologyFactory.Builder {
 
     @Override
     public OntologyModel createOntology(Graph graph, OntologyManager manager, OntLoaderConfiguration config) {
-        OntologyManagerImpl m = OWLAdapter.get().asIMPL(manager);
+        OntologyManagerImpl m = getAdapter().asIMPL(manager);
         return withLock(createOntologyImpl(graph, m, config), m.getLock());
     }
 
@@ -46,8 +52,7 @@ public class OntologyBuilderImpl implements OntologyFactory.Builder {
                                                 OntologyManagerImpl manager,
                                                 OntLoaderConfiguration config) {
         ModelConfig modelConfig = manager.createModelConfig();
-        if (config != null)
-            modelConfig.setLoaderConf(config);
+        modelConfig.setLoaderConf(config);
         return new OntologyModelImpl(graph, modelConfig);
     }
 
@@ -55,7 +60,6 @@ public class OntologyBuilderImpl implements OntologyFactory.Builder {
         if (!NoOpReadWriteLock.isConcurrent(lock)) return ont;
         return new OntologyModelImpl.Concurrent(ont, lock);
     }
-
 
     /**
      * Creates an {@link org.apache.jena.mem.GraphMem in-memory graph}.
