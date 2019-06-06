@@ -200,7 +200,7 @@ public class ManifestDeclarator extends BaseDeclarator {
                 .forEachRemaining(s -> {
                     List<RDFNode> values = s.getObject().as(RDFList.class).asJavaList();
                     if (values.isEmpty()) return;
-                    if (values.stream().allMatch(RDFNode::isLiteral)) {
+                    if (Iter.allMatch(Iter.create(values), RDFNode::isLiteral)) {
                         declareDatatype(s.getSubject());
                     } else {
                         declareClass(s.getSubject());

@@ -45,17 +45,20 @@ import java.util.stream.Stream;
 public class Iter {
 
     /**
-     * Wraps CloseableIterator as Stream.
-     * Don't forget to call explicit {@link Stream#close()} if the inner iterator are not exhausted
-     * ({@link Iterator#hasNext()} is still true).
-     * It seems it should be called for such operations as {@link Stream#findFirst()}, {@link Stream#findAny()}, {@link Stream#anyMatch(Predicate)} etc.
+     * Creates a new sequential {@code Stream} from the given {@code CloseableIterator}.
+     * <p>
+     * Do not forget to call {@link Stream#close()} explicitly if the inner iterator is not exhausted
+     * (i.e. in case {@link Iterator#hasNext()} is still {@code true}).
+     * It should be done for all short-circuiting terminal operations such as {@link Stream#findFirst()},
+     * {@link Stream#findAny()}, {@link Stream#anyMatch(Predicate)} etc.
      *
-     * @param iterator {@link ClosableIterator}
+     * @param iterator {@link ClosableIterator}, not {@code null}
      * @param <X>      the class-type of iterator
-     * @return Stream
+     * @return {@code Stream}
      */
-    public static <X> Stream<X> asStream(ClosableIterator<X> iterator) {
-        return org.apache.jena.atlas.iterator.Iter.asStream(iterator).onClose(iterator::close);
+    @SuppressWarnings("unchecked")
+    public static <X> Stream<X> asStream(ClosableIterator<? extends X> iterator) {
+        return (Stream<X>) org.apache.jena.atlas.iterator.Iter.asStream(iterator).onClose(iterator::close);
     }
 
     /**
@@ -200,6 +203,7 @@ public class Iter {
      * @param predicate {@link Predicate} to apply to elements of the iterator
      * @param <X>       the element type of the input and output iterators
      * @return {@code true} if any elements of the stream match the provided predicate, otherwise {@code false}
+     * @see #allMatch(ExtendedIterator, Predicate)
      */
     public static <X> boolean anyMatch(ExtendedIterator<X> iterator, Predicate<? super X> predicate) {
         if (iterator instanceof NullIterator) return false;
@@ -211,6 +215,30 @@ public class Iter {
             iterator.close();
         }
         return false;
+    }
+
+    /**
+     * Returns whether all elements of the given iterator match the provided predicate.
+     * A functional equivalent of {@link Stream#allMatch(Predicate)}, but for {@link ExtendedIterator}s.
+     *
+     * @param iterator  {@link ExtendedIterator} with elements of type {@link X}
+     * @param predicate {@link Predicate} to apply to elements of the iterator
+     * @param <X>       the element type of the input and output iterators
+     * @return {@code true} if either all elements of the iterator match the provided predicate
+     * or the iterator is empty, otherwise {@code false}
+     * @see #anyMatch(ExtendedIterator, Predicate)
+     * @since 1.4.2
+     */
+    public static <X> boolean allMatch(ExtendedIterator<X> iterator, Predicate<? super X> predicate) {
+        if (iterator instanceof NullIterator) return true;
+        try {
+            while (iterator.hasNext()) {
+                if (!predicate.test(iterator.next())) return false;
+            }
+        } finally {
+            iterator.close();
+        }
+        return true;
     }
 
     /**

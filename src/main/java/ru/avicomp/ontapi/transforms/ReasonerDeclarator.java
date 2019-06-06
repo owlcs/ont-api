@@ -420,18 +420,18 @@ public class ReasonerDeclarator extends BaseDeclarator {
 
     protected Res testUnionAndIntersectionClassExpressions(Statement statement) {
         Set<Resource> set = subjectAndObjects(statement).toSet();
-        if (set.stream().anyMatch(this::isClassExpression)) {
+        if (Iter.anyMatch(Iter.create(set), this::isClassExpression)) {
             set.forEach(this::declareClass);
             return Res.TRUE;
         }
-        if (set.stream().anyMatch(this::isDataRange)) {
+        if (Iter.anyMatch(Iter.create(set), this::isDataRange)) {
             set.forEach(this::declareDatatype);
             return Res.TRUE;
         }
         if (decider.chooseClass()) {
-            if (set.stream().allMatch(this::canBeClass)) {
+            if (Iter.allMatch(Iter.create(set), this::canBeClass)) {
                 set.forEach(this::declareClass);
-            } else if (set.stream().allMatch(this::canBeDatatype)) {
+            } else if (Iter.allMatch(Iter.create(set), this::canBeDatatype)) {
                 set.forEach(this::declareDatatype);
             } else {
                 return Res.FALSE;

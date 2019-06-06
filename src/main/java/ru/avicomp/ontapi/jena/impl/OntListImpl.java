@@ -414,8 +414,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
         if (it == null) return NullIterator.instance();
         OntGraphModelImpl m = getModel();
         return WrappedIterator.create(it)
-                .mapWith(l -> createRDFFirst(m, l))
-                .mapWith(Statement::getObject)
+                .mapWith(x -> createRDFFirst(m, x).getObject())
                 .filterKeep(this::isValid)
                 .mapWith(this::cast);
     }
