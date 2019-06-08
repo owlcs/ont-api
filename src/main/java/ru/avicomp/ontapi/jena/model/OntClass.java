@@ -252,43 +252,4 @@ public interface OntClass extends OntEntity, OntCE {
         return disjointUnions().flatMap(OntList::members).distinct();
     }
 
-    /**
-     * Creates a {@code DisjointUnion} {@link OntList ontology list}
-     * and returns statement {@code CN owl:disjointUnionOf ( C1 ... Cn )} to allow the addition of annotations.
-     *
-     * @param classes Array of {@link OntCE class expression}s
-     * @return {@link OntStatement}
-     * @since 1.3.0
-     * @deprecated since 1.4.0: use {@link #addDisjointUnionOfStatement(OntCE...)}
-     */
-    @Deprecated
-    default OntStatement addDisjointUnionOf(OntCE... classes) {
-        return addDisjointUnionOfStatement(classes);
-    }
-
-    /**
-     * Creates a disjoint-union section returning its root statement to allow adding annotations.
-     * The pattern: {@code CN owl:disjointUnionOf ( C1 ... Cn )}.
-     *
-     * @param classes the collection of {@link OntCE class expression}s
-     * @return {@link OntStatement}
-     * @deprecated since 1.4.0: use {@link #addDisjointUnionOfStatement(Collection)}
-     */
-    @Deprecated
-    default OntStatement addDisjointUnionOf(Collection<OntCE> classes) {
-        return addDisjointUnionOfStatement(classes);
-    }
-
-    /**
-     * Lists all {@code DisjointUnion}s.
-     *
-     * @return {@code Stream} of {@link OntList}s with parameter-type {@code OntCE}
-     * @since 1.3.0
-     * @deprecated since 1.4.0: use {@link #disjointUnions()} instead
-     */
-    @Deprecated
-    default Stream<OntList<OntCE>> _listDisjointUnions() {
-        return disjointUnions();
-    }
-
 }

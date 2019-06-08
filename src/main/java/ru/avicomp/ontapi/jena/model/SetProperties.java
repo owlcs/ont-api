@@ -14,8 +14,6 @@
 
 package ru.avicomp.ontapi.jena.model;
 
-import java.util.Collection;
-
 /**
  * A technical interface to provide a possibility to assign {@link OntNDP} properties
  * into {@link OntCE.NaryRestrictionCE n-ary restriction class expression}
@@ -29,17 +27,6 @@ import java.util.Collection;
  * @since 1.4.0
  */
 interface SetProperties<P extends OntDOP, R extends OntCE.NaryRestrictionCE> extends SetComponents<P, R>, SetProperty<P, R> {
-
-    /**
-     * Sets new properties list.
-     *
-     * @param properties {@code Collection} of {@link P}s
-     * @deprecated since 1.4.0: use {@link #setComponents(Collection)} instead
-     */
-    @Deprecated
-    default void setOnProperties(Collection<P> properties) {
-        setComponents(properties);
-    }
 
     /**
      * Sets the given property as the only member of the []-list.

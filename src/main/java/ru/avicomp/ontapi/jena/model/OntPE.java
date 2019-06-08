@@ -161,47 +161,4 @@ public interface OntPE extends OntObject {
      */
     OntPE removeSuperProperty(Resource property);
 
-    /**
-     * Removes the specified super property (predicate is {@link RDFS#subPropertyOf rdfs:subPropertyOf}).
-     *
-     * @param superProperty {@link Resource} or {@code null} to remove all direct super properties
-     * @deprecated (since 1.4.0) use the method {@link #removeSuperProperty(Resource)}
-     */
-    @Deprecated
-    default void removeSubPropertyOf(Resource superProperty) {
-        removeSuperProperty(superProperty);
-    }
-
-    /**
-     * Lists all property domains.
-     *
-     * @return {@code Stream} of {@link Resource}s
-     * @deprecated since 1.4.0: use {@link #domains()} instead
-     */
-    @Deprecated
-    default Stream<? extends Resource> domain() {
-        return domains();
-    }
-
-    /**
-     * Lists all property ranges.
-     *
-     * @return {@code Stream} of {@link Resource}s
-     * @deprecated since 1.4.0: use {@link #ranges()}} instead
-     */
-    @Deprecated
-    default Stream<? extends Resource> range() {
-        return ranges();
-    }
-
-    /**
-     * Lists all direct super properties.
-     *
-     * @return {@code Stream} of {@link Resource}s
-     * @deprecated since 1.4.0: use {@link #superProperties()} instead
-     */
-    @Deprecated
-    default Stream<? extends OntPE> subPropertyOf() {
-        return superProperties();
-    }
 }

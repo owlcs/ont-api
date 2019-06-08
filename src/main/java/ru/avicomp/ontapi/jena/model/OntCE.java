@@ -563,8 +563,7 @@ public interface OntCE extends OntObject {
     /**
      * @see OntGraphModel#createHasSelf(OntOPE)
      */
-    @SuppressWarnings("deprecation")
-    interface HasSelf extends UnaryRestrictionCE<OntOPE>, SetProperty<OntOPE, HasSelf>, ONProperty<OntOPE> {
+    interface HasSelf extends UnaryRestrictionCE<OntOPE>, SetProperty<OntOPE, HasSelf> {
     }
 
     /**
@@ -588,8 +587,7 @@ public interface OntCE extends OntObject {
     /**
      * @see OntGraphModel#createComplementOf(OntCE)
      */
-    @SuppressWarnings("deprecation")
-    interface ComplementOf extends OntCE, HasValue<OntCE>, SetValue<OntCE, ComplementOf>, Value<OntCE> {
+    interface ComplementOf extends OntCE, HasValue<OntCE>, SetValue<OntCE, ComplementOf> {
     }
 
     /**
@@ -617,8 +615,7 @@ public interface OntCE extends OntObject {
      *
      * @param <O> a component type
      */
-    @SuppressWarnings("deprecation")
-    interface ComponentsCE<O extends OntObject> extends OntCE, HasRDFNodeList<O>, Components<O> {
+    interface ComponentsCE<O extends OntObject> extends OntCE, HasRDFNodeList<O> {
     }
 
     /**
@@ -627,9 +624,8 @@ public interface OntCE extends OntObject {
      * @param <O> a value type
      * @param <P> any subtype of {@link OntDOP}
      */
-    @SuppressWarnings("deprecation")
     interface CardinalityRestrictionCE<O extends OntObject, P extends OntDOP>
-            extends HasCardinality, ComponentRestrictionCE<O, P>, Cardinality {
+            extends HasCardinality, ComponentRestrictionCE<O, P> {
     }
 
     /**
@@ -639,9 +635,8 @@ public interface OntCE extends OntObject {
      * @param <O> a value type
      * @param <P> any subtype of {@link OntDOP}
      */
-    @SuppressWarnings("deprecation")
     interface ComponentRestrictionCE<O extends RDFNode, P extends OntDOP>
-            extends UnaryRestrictionCE<P>, HasValue<O>, Value<O>, ONProperty<P> {
+            extends UnaryRestrictionCE<P>, HasValue<O> {
     }
 
     /**
@@ -651,9 +646,8 @@ public interface OntCE extends OntObject {
      * @param <O> a value type
      * @param <P> any subtype of {@link OntDOP}
      */
-    @SuppressWarnings("deprecation")
     interface NaryRestrictionCE<O extends OntObject, P extends OntDOP>
-            extends RestrictionCE<P>, HasProperties<P>, HasValue<O>, Value<O>, ONProperties<P> {
+            extends RestrictionCE<P>, HasProperties<P>, HasValue<O> {
     }
 
     /**
@@ -674,136 +668,5 @@ public interface OntCE extends OntObject {
     interface RestrictionCE<P extends OntDOP> extends OntCE, HasProperty<P> {
     }
 
-    /**
-     * Lists all {@code HasKey} {@link OntList ontology []-list}s.
-     *
-     * @return {@code Stream} of {@link OntList}s with parameter-type {@code OntDOP}
-     * @since 1.3.0
-     * @deprecated since 1.4.0: use {@link #hasKeys()} instead
-     */
-    @Deprecated
-    default Stream<OntList<OntDOP>> listHasKeys() {
-        return hasKeys();
-    }
-
-    /**
-     * Lists all super classes for this class expression.
-     *
-     * @return {@code Stream} of {@link OntCE}s
-     * @see #superClasses(boolean)
-     * @deprecated since 1.4.0: use {@link #superClasses()} instead
-     */
-    @Deprecated
-    default Stream<OntCE> subClassOf() {
-        return superClasses();
-    }
-
-    /**
-     * Returns all disjoint classes.
-     *
-     * @return {@code Stream} of {@link OntCE}s
-     * @deprecated since 1.4.0: use {@link #disjointClasses()} instead
-     */
-    @Deprecated
-    default Stream<OntCE> disjointWith() {
-        return disjointClasses();
-    }
-
-    /**
-     * Lists all equivalent classes.
-     *
-     * @return {@code Stream} of {@link OntCE}s
-     * @deprecated since 1.4.0: use {@link #equivalentClasses()} instead
-     */
-    @Deprecated
-    default Stream<OntCE> equivalentClass() {
-        return equivalentClasses();
-    }
-
-    /**
-     * Adds a super class.
-     *
-     * @param superClass {@link OntCE}
-     * @return {@link OntStatement}
-     * @deprecated since 1.4.0: use the method {@link #addSubClassOfStatement(OntCE)} instead
-     */
-    @Deprecated
-    default OntStatement addSubClassOf(OntCE superClass) {
-        return addSubClassOfStatement(superClass);
-    }
-
-    /**
-     * Removes the given super class.
-     *
-     * @param superClass {@link OntCE}, or {@code null} to remove all super classes
-     * @deprecated since 1.4.0: use the method {@link #removeSuperClass(Resource)} instead
-     */
-    @Deprecated
-    default void removeSubClassOf(OntCE superClass) {
-        removeSuperClass(superClass);
-    }
-
-    /**
-     * Adds a disjoint class.
-     *
-     * @param other {@link OntCE}
-     * @return {@link OntStatement}
-     * @deprecated since 1.4.0: use the method {@link #addDisjointWithStatement(OntCE)} instead
-     */
-    @Deprecated
-    default OntStatement addDisjointWith(OntCE other) {
-        return addDisjointWithStatement(other);
-    }
-
-    /**
-     * Removes the specified disjoint class.
-     *
-     * @param other {@link OntCE}, or {@code null} to remove all disjoint classes
-     * @deprecated since 1.4.0: use the method {@link #removeDisjointClass(Resource)} instead
-     */
-    @Deprecated
-    default void removeDisjointWith(OntCE other) {
-        removeDisjointClass(other);
-    }
-
-    /**
-     * @deprecated since 1.4.0: not for public usage, will be removed in next version
-     */
-    @SuppressWarnings("DeprecatedIsStillUsed")
-    @Deprecated
-    interface ONProperty<P extends OntDOP> extends HasProperty<P> {
-    }
-
-    /**
-     * @deprecated since 1.4.0: not for public usage, will be removed in next version
-     */
-    @SuppressWarnings("DeprecatedIsStillUsed")
-    @Deprecated
-    interface ONProperties<P extends OntDOP> extends HasProperties<P> {
-    }
-
-    /**
-     * @deprecated since 1.4.0: not for public usage, will be removed in next version
-     */
-    @SuppressWarnings("DeprecatedIsStillUsed")
-    @Deprecated
-    interface Components<O extends OntObject> extends HasRDFNodeList<O> {
-    }
-
-    /**
-     * @deprecated since 1.4.0: not for public usage, will be removed in next version
-     */
-    @SuppressWarnings("DeprecatedIsStillUsed")
-    @Deprecated
-    interface Value<O extends RDFNode> extends HasValue<O> {
-    }
-
-    /**
-     * @deprecated ince 1.4.0: not for public usage, will be removed in next version
-     */
-    @SuppressWarnings("DeprecatedIsStillUsed")
-    @Deprecated
-    interface Cardinality extends HasCardinality {
-    }
 }
 

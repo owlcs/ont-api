@@ -50,16 +50,6 @@ public interface OntDR extends OntObject {
      * @see OntGraphModel#createComplementOfDataRange(OntDR)
      */
     interface ComplementOf extends OntDR, SetValue<OntDR, ComplementOf>, HasValue<OntDR> {
-        /**
-         * Gets a data-range.
-         *
-         * @return {@link OntDR}, not {@code null}
-         * @deprecated since 1.4.0: use {@link #getValue()} instead.
-         */
-        @Deprecated
-        default OntDR getDataRange() {
-            return getValue();
-        }
     }
 
     /**
@@ -67,16 +57,6 @@ public interface OntDR extends OntObject {
      * @see OntGraphModel#createIntersectionOfDataRange(Collection)
      */
     interface IntersectionOf extends ComponentsDR<OntDR>, SetComponents<OntDR, IntersectionOf> {
-        /**
-         * Lists all data-ranges.
-         *
-         * @return a {@code Stream} of {@link OntDR}s
-         * @deprecated since 1.4.0: use {@code getList().members()} instead
-         */
-        @Deprecated
-        default Stream<OntDR> dataRanges() {
-            return getList().members();
-        }
     }
 
     /**
@@ -84,16 +64,6 @@ public interface OntDR extends OntObject {
      * @see OntGraphModel#createUnionOfDataRange(Collection)
      */
     interface UnionOf extends ComponentsDR<OntDR>, SetComponents<OntDR, UnionOf> {
-        /**
-         * Lists all data-ranges.
-         *
-         * @return a {@code Stream} of {@link OntDR}s
-         * @deprecated since 1.4.0: use {@code getList().members()} instead
-         */
-        @Deprecated
-        default Stream<OntDR> dataRanges() {
-            return getList().members();
-        }
     }
 
     /**
@@ -101,16 +71,6 @@ public interface OntDR extends OntObject {
      * @see OntGraphModel#createOneOfDataRange(Collection)
      */
     interface OneOf extends ComponentsDR<Literal>, SetComponents<Literal, OneOf> {
-        /**
-         * Lists all literals.
-         *
-         * @return a {@code Stream} of {@link Literal literal}s
-         * @deprecated since 1.4.0: use {@code getList().members()} instead
-         */
-        @Deprecated
-        default Stream<Literal> values() {
-            return getList().members();
-        }
     }
 
     /**
@@ -142,29 +102,6 @@ public interface OntDR extends OntObject {
         default Restriction addFacet(Class<? extends OntFR> type, Literal literal) {
             getList().add(getModel().createFacetRestriction(type, literal));
             return this;
-        }
-
-        /**
-         * Lists all facet restrictions.
-         *
-         * @return a {@code Stream} of {@link OntFR}s
-         * @deprecated since 1.4.0: use {@code getList().members()} instead
-         */
-        @Deprecated
-        default Stream<OntFR> facetRestrictions() {
-            return getList().members();
-        }
-
-        /**
-         * Returns the datatype from the right side of
-         * the statement {@code _:x owl:onDatatype DN}, where {@code _:x} this Restriction.
-         *
-         * @return {@link OntDT}
-         * @deprecated since 1.4.0: use {@link #getValue()}
-         */
-        @Deprecated
-        default OntDT getDatatype() {
-            return getValue();
         }
     }
 

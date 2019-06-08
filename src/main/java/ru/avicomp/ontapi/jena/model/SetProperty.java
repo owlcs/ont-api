@@ -37,15 +37,4 @@ interface SetProperty<P extends OntDOP, R extends OntCE.RestrictionCE> {
      */
     R setProperty(P property);
 
-    /**
-     * Sets the property.
-     *
-     * @param property {@link P}, not {@code null}
-     * @return <b>this</b> instance to allow cascading calls
-     * @deprecated since 1.4.0: use {@link #setProperty(OntDOP)} instead
-     */
-    @Deprecated
-    default R setOnProperty(P property) {
-        return setProperty(property);
-    }
 }

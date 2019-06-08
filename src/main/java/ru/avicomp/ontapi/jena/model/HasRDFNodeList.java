@@ -16,8 +16,6 @@ package ru.avicomp.ontapi.jena.model;
 
 import org.apache.jena.rdf.model.RDFNode;
 
-import java.util.stream.Stream;
-
 /**
  * A technical interface to provide {@link RDFNodeList} instance.
  * Created by @ssz on 08.05.2019.
@@ -36,12 +34,4 @@ interface HasRDFNodeList<E extends RDFNode> {
      */
     RDFNodeList<E> getList();
 
-    /**
-     * @return a {@code Stream} of {@link E}
-     * @deprecated since 1.4.0: use {@code getList().members()} instead
-     */
-    @Deprecated
-    default Stream<E> components() {
-        return getList().members();
-    }
 }

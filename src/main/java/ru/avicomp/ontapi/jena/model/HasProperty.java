@@ -34,14 +34,4 @@ interface HasProperty<P extends OntDOP> {
      */
     P getProperty();
 
-    /**
-     * Gets the property.
-     *
-     * @return {@link P}
-     * @deprecated since 1.4.0: use {@link #getProperty()} instead
-     */
-    @Deprecated
-    default P getOnProperty() {
-        return getProperty();
-    }
 }

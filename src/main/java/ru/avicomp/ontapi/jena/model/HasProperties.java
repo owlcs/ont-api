@@ -16,8 +16,6 @@ package ru.avicomp.ontapi.jena.model;
 
 import ru.avicomp.ontapi.jena.OntJenaException;
 
-import java.util.stream.Stream;
-
 /**
  * A technical interface to access {@link P} properties from a []-list on
  * on predicate {@link ru.avicomp.ontapi.jena.vocabulary.OWL#onProperties owl:onProperties}.
@@ -29,17 +27,6 @@ import java.util.stream.Stream;
  * @since 1.4.0
  */
 interface HasProperties<P extends OntDOP> extends HasRDFNodeList<P>, HasProperty<P> {
-
-    /**
-     * Lists all {@link ru.avicomp.ontapi.jena.vocabulary.OWL#onProperties owl:onProperties}.
-     *
-     * @return a {@code Stream} of {@link P}
-     * @deprecated since 1.4.0: use {@code getList().members()} instead
-     */
-    @Deprecated
-    default Stream<P> onProperties() {
-        return getList().members();
-    }
 
     /**
      * Gets the first property from {@code owl:onProperties} []-list.
