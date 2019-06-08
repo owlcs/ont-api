@@ -469,6 +469,25 @@ public class Models {
     }
 
     /**
+     * Determines the actual ontology object type.
+     *
+     * @param object instance of {@link O}
+     * @param <O>    any subtype of {@link OntObject}
+     * @return {@link Class}-type of {@link O}
+     * @since 1.4.1
+     */
+    @SuppressWarnings("unchecked")
+    public static <O extends OntObject> Class<O> getOntType(O object) {
+        Class<O> res;
+        if (object instanceof OntObjectImpl) {
+            res = (Class<O>) ((OntObjectImpl) object).getActualClass();
+        } else {
+            res = (Class<O>) OntObjectImpl.findActualClass(object);
+        }
+        return OntJenaException.notNull(res, "Can't determine the type of object " + object);
+    }
+
+    /**
      * Lists all model statements, which belong to the base graph, using the given SPO.
      * <p>
      * It is placed here because there is no certainty that methods for working with {@code ExtendedIterator}
@@ -530,21 +549,6 @@ public class Models {
             return ((OntGraphModelImpl) model).listLocalOntEntities();
         }
         return WrappedIterator.create(model.ontEntities().iterator()).filterKeep(OntObject::isLocal);
-    }
-
-    /**
-     * Determines the actual ontology object type.
-     *
-     * @param object {@link OntObject} instance
-     * @return object's {@code Class}-type
-     * @since 1.4.1
-     */
-    public static Class<? extends OntObject> getOntType(OntObject object) {
-        if (object instanceof OntObjectImpl) {
-            return OntJenaException.notNull(((OntObjectImpl) object).getActualClass(),
-                    "Can't determine type of object " + object);
-        }
-        return OntObjectImpl.findActualClass(object);
     }
 
     /**
