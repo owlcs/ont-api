@@ -47,12 +47,12 @@ public class OntAPropertyImpl extends OntPEImpl implements OntNAP {
 
     @Override
     public Stream<OntNAP> superProperties(boolean direct) {
-        return listHierarchy(this, OntNAP.class, RDFS.subPropertyOf, false, direct);
+        return hierarchy(this, OntNAP.class, RDFS.subPropertyOf, false, direct);
     }
 
     @Override
     public Stream<OntNAP> subProperties(boolean direct) {
-        return listHierarchy(this, OntNAP.class, RDFS.subPropertyOf, true, direct);
+        return hierarchy(this, OntNAP.class, RDFS.subPropertyOf, true, direct);
     }
 
     @Override

@@ -72,12 +72,12 @@ public class OntClassImpl extends OntObjectImpl implements OntClass {
 
     @Override
     public Stream<OntCE> superClasses(boolean direct) {
-        return listHierarchy(this, OntCE.class, RDFS.subClassOf, false, direct);
+        return hierarchy(this, OntCE.class, RDFS.subClassOf, false, direct);
     }
 
     @Override
     public Stream<OntCE> subClasses(boolean direct) {
-        return listHierarchy(this, OntCE.class, RDFS.subClassOf, true, direct);
+        return hierarchy(this, OntCE.class, RDFS.subClassOf, true, direct);
     }
 
     @Override

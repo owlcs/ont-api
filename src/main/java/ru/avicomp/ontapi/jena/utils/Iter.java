@@ -22,10 +22,8 @@ import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.rdf.model.impl.StmtIteratorImpl;
-import org.apache.jena.util.iterator.ClosableIterator;
-import org.apache.jena.util.iterator.ExtendedIterator;
-import org.apache.jena.util.iterator.NullIterator;
-import org.apache.jena.util.iterator.WrappedIterator;
+import org.apache.jena.util.iterator.*;
+import ru.avicomp.ontapi.jena.OntJenaException;
 
 import java.util.*;
 import java.util.function.*;
@@ -38,7 +36,7 @@ import java.util.stream.Stream;
  * which are related somehow to Jena or/and used inside {@link ru.avicomp.ontapi.jena} package.
  * Created by szuev on 11.04.2017.
  *
- * @see org.apache.jena.util.iterator.ExtendedIterator
+ * @see ExtendedIterator
  * @see org.apache.jena.atlas.iterator.Iter
  * @see ClosableIterator
  */
@@ -313,7 +311,6 @@ public class Iter {
         return res;
     }
 
-
     /**
      * Creates a new {@link ExtendedIterator Extended Iterator}} containing the specified elements.
      *
@@ -335,6 +332,61 @@ public class Iter {
      */
     public static <X> ExtendedIterator<X> create(Collection<X> members) {
         return members.isEmpty() ? NullIterator.instance() : WrappedIterator.create(members.iterator());
+    }
+
+    /**
+     * Creates a new {@link ExtendedIterator Extended Iterator}} over all elements of an iterator
+     * which will be created by the {@code provider} on first iteration.
+     * The returned iterator does not contains any elements,
+     * but they will be derived at once when calling any of the {@code ExtendedIterator} methods.
+     * <p>
+     * The idea is to provide a truly lazy iterator
+     * and, subsequently, a stream (through the {@link #asStream(ClosableIterator)} method).
+     * When any distinct operation (i.e. {@link #distinct(ExtendedIterator)} or {@link Stream#distinct()}) is used,
+     * it, in fact, collects on demand an in-memory {@code Set} containing all elements,
+     * but it will be appeared in process and an iterator or a stream initially weighs nothing.
+     * This method allows to achieve a similar behaviour:
+     * when creating an {@code ExtendedIterator} does not weight anything,
+     * but it materializes itself when processing.
+     * <p>
+     * The returned iterator is not thread-safe, just as like any other RDF extended iterator, with whom we work.
+     *
+     * @param provider {@link Supplier} deriving nonnull {@link Iterator}, cannot be {@code null}
+     * @param <X>      the element type of the new iterator
+     * @return a fresh {@link ExtendedIterator} instance wrapping a feature iterator
+     * @since 1.4.2
+     */
+    public static <X> ExtendedIterator<X> create(Supplier<Iterator<? extends X>> provider) {
+        Objects.requireNonNull(provider);
+        return new NiceIterator<X>() {
+            private Iterator<? extends X> base;
+
+            Iterator<? extends X> base() {
+                return base == null ? base = OntJenaException.notNull(provider.get()) : base;
+            }
+
+            @Override
+            public boolean hasNext() {
+                return base().hasNext();
+            }
+
+            @Override
+            public X next() {
+                return base().next();
+            }
+
+            @Override
+            public void remove() {
+                base().remove();
+            }
+
+            @Override
+            public void close() {
+                if (base != null) {
+                    close(base);
+                }
+            }
+        };
     }
 
 }
