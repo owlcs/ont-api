@@ -14,6 +14,7 @@
 
 package ru.avicomp.ontapi.tests.managers;
 
+import org.apache.jena.mem.GraphMem;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -32,6 +33,7 @@ import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.RWLockedGraph;
+import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.conf.OntModelConfig;
 import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntEntity;
@@ -50,6 +52,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -326,7 +329,7 @@ public class CommonManagerTest {
     }
 
     @Test
-    public void testPassingGraph() throws Exception {
+    public void testPassingJenaOntModel() throws Exception {
         LOGGER.debug("Build MultiUnion graph using jena OntModel");
         OntModelSpec spec = OntModelSpec.OWL_DL_MEM;
         FileManager jenaFileManager = spec.getDocumentManager().getFileManager();
@@ -353,7 +356,49 @@ public class CommonManagerTest {
         o2.setID("http://example.org/test");
         m2.addOntology(o2.getGraph());
         Assert.assertEquals("Counts of ontologies does not match", expected + 2, m2.ontologies().count());
-
     }
 
+    @Test
+    public void testPassingOntGraphModel() {
+        testPassingOntGraphModel(OntManagers.createONT(), o -> assertOntology(o, false));
+    }
+
+    @Test
+    public void testPassingOntGraphModelInConcurrentManager() {
+        testPassingOntGraphModel(OntManagers.createConcurrentONT(), o -> assertOntology(o, true));
+    }
+
+    private void testPassingOntGraphModel(OntologyManager m, Consumer<OWLOntology> tester) {
+        OntGraphModel a = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD).setID("a").getModel();
+        OntGraphModel b = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD).setID("b").getModel();
+        OntGraphModel c = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD).setID("c").getModel();
+        OntGraphModel d = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD).setID("d").getModel();
+        a.addImport(b.addImport(c).addImport(d));
+
+        m.addOntology(a.getGraph());
+        Assert.assertEquals(4, m.ontologies().peek(tester).count());
+    }
+
+    private void assertOntology(OWLOntology ont, boolean isConcurrent) {
+        OntGraphModel m = ((OntologyModel) ont).asGraphModel();
+        LOGGER.debug("Test {}", m);
+        Assert.assertNotNull(m);
+        if (isConcurrent) {
+            Assert.assertTrue(m.getBaseGraph() instanceof RWLockedGraph);
+            Assert.assertTrue(((RWLockedGraph) m.getBaseGraph()).get() instanceof GraphMem);
+        } else {
+            Assert.assertTrue(m.getBaseGraph() instanceof GraphMem);
+        }
+        Assert.assertTrue(m.getGraph() instanceof UnionGraph);
+        Assert.assertEquals(m.getID().imports().count(), m.imports().count());
+        UnionGraph u = (UnionGraph) m.getGraph();
+        u.getUnderlying().listGraphs().forEachRemaining(g -> {
+            if (g instanceof UnionGraph) {
+                Assert.assertTrue(((UnionGraph) g).getBaseGraph() instanceof GraphMem);
+            } else {
+                Assert.assertTrue(g instanceof GraphMem);
+            }
+        });
+        u.listBaseGraphs().forEachRemaining(g -> Assert.assertFalse(g instanceof UnionGraph));
+    }
 }

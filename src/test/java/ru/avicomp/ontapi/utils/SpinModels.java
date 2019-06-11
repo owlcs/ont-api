@@ -14,12 +14,26 @@
 
 package ru.avicomp.ontapi.utils;
 
+import org.apache.jena.graph.Graph;
+import org.apache.jena.mem.GraphMem;
+import org.apache.jena.riot.Lang;
+import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.util.FileManager;
 import org.semanticweb.owlapi.model.IRI;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.jena.impl.conf.OntModelConfig;
 import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
 import ru.avicomp.ontapi.jena.impl.conf.PersonalityBuilder;
+import ru.avicomp.ontapi.tests.jena.UnionGraphTest;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 
 /**
@@ -44,6 +58,8 @@ public enum SpinModels {
             .addPersonality(ru.avicomp.ontapi.utils.SP.SPIN_PERSONALITY)
             .build();
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(SpinModels.class);
+
     private final String file, uri;
 
     SpinModels(String file, String uri) {
@@ -61,6 +77,21 @@ public enum SpinModels {
         for (SpinModels spin : values()) {
             fileManager.getLocationMapper().addAltEntry(spin.getIRI().getIRIString(), spin.getFile().toURI().toString());
         }
+    }
+
+    public static Map<String, Graph> loadSpinGraphs() throws UncheckedIOException {
+        Map<String, Graph> res = new HashMap<>();
+        for (SpinModels f : values()) {
+            Graph g = new GraphMem();
+            try (InputStream in = UnionGraphTest.class.getResourceAsStream(f.file())) {
+                RDFDataMgr.read(g, in, null, Lang.TURTLE);
+            } catch (IOException e) {
+                throw new UncheckedIOException("Can't load " + f.file(), e);
+            }
+            LOGGER.debug("Graph {} is loaded, size: {}", f.uri(), g.size());
+            res.put(f.uri(), new UnmodifiableGraph(g));
+        }
+        return Collections.unmodifiableMap(res);
     }
 
     public String uri() {

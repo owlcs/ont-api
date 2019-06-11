@@ -20,8 +20,6 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.mem.GraphMem;
-import org.apache.jena.riot.Lang;
-import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.shared.AddDeniedException;
 import org.apache.jena.shared.ClosedException;
 import org.apache.jena.shared.DeleteDeniedException;
@@ -36,43 +34,33 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
-import ru.avicomp.ontapi.utils.SpinModels;
 import ru.avicomp.ontapi.utils.UnmodifiableGraph;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UncheckedIOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Arrays;
+import java.util.HashSet;
 
 /**
- * To test {@link UnionGraph} and also {@link Graphs} utils.
- *
+ * To test {@link UnionGraph}.
+ * <p>
  * Created by @ssz on 21.10.2018.
  */
+@SuppressWarnings("WeakerAccess")
 public class UnionGraphTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(UnionGraphTest.class);
 
-    private static Graph createNamedGraph(String uri) {
+    static Graph createNamedGraph(String uri) {
         OntGraphModel m = OntModelFactory.createModel();
         m.setID(uri);
         return m.getBaseGraph();
     }
 
-    private static Map<String, Graph> loadSpinGraphs() throws UncheckedIOException {
-        Map<String, Graph> res = new HashMap<>();
-        for (SpinModels f : SpinModels.values()) {
-            Graph g = new GraphMem();
-            try (InputStream in = UnionGraphTest.class.getResourceAsStream(f.file())) {
-                RDFDataMgr.read(g, in, null, Lang.TURTLE);
-            } catch (IOException e) {
-                throw new UncheckedIOException("Can't load " + f.file(), e);
+    static Graph createTestMemGraph(String name) {
+        return new GraphMem() {
+            @Override
+            public String toString() {
+                return String.format("[%s]", name);
             }
-            LOGGER.debug("Graph {} is loaded, size: {}", f.uri(), g.size());
-            res.put(f.uri(), new UnmodifiableGraph(g));
-        }
-        return Collections.unmodifiableMap(res);
+        };
     }
 
     private static void assertClosed(UnionGraph g, boolean expectedClosed) {
@@ -83,17 +71,6 @@ public class UnionGraphTest {
         }
         Assert.assertFalse(g.isClosed());
         Assert.assertFalse(g.getBaseGraph().isClosed());
-    }
-
-    @Test
-    public void testToUnionUtilsMethod() {
-        Map<String, Graph> graphs = loadSpinGraphs();
-        Assert.assertEquals(10, graphs.size());
-        UnionGraph g = Graphs.toUnion(graphs.get(SpinModels.SPINMAPL.uri()), graphs.values());
-        LOGGER.debug("\n{}", Graphs.toTurtleString(g));
-        String tree = Graphs.importsTreeAsString(g);
-        LOGGER.debug("----------\n{}", tree);
-        Assert.assertEquals(27, tree.split("\n").length);
     }
 
     @Test
@@ -283,5 +260,36 @@ public class UnionGraphTest {
         Assert.assertTrue(d.dependsOn(c));
         Assert.assertTrue(d.dependsOn(a));
         Assert.assertFalse(a.dependsOn(g2));
+    }
+
+    @Test
+    public void testListBaseGraphs1() {
+        Graph a = createTestMemGraph("a");
+        Graph b = createTestMemGraph("b");
+        Graph c = createTestMemGraph("c");
+        UnionGraph u1 = new UnionGraph(a);
+        UnionGraph u2 = new UnionGraph(b);
+        UnionGraph u3 = new UnionGraph(c);
+        u1.addGraph(u1);
+        u1.addGraph(u2);
+        u1.addGraph(u3);
+        u1.addGraph(b);
+        Assert.assertEquals(new HashSet<>(Arrays.asList(a, b, c)), u1.listBaseGraphs().toSet());
+    }
+
+    @Test
+    public void testListBaseGraphs2() {
+        Graph a = createTestMemGraph("a");
+        Graph b = createTestMemGraph("b");
+        Graph c = createTestMemGraph("c");
+        Graph d = createTestMemGraph("d");
+        UnionGraph u1 = new UnionGraph(new UnionGraph(a).addGraph(d));
+        UnionGraph u2 = new UnionGraph(b);
+        UnionGraph u3 = new UnionGraph(new UnionGraph(c));
+        u1.addGraph(u1);
+        u1.addGraph(u2);
+        u1.addGraph(u3);
+        u1.addGraph(b);
+        Assert.assertEquals(new HashSet<>(Arrays.asList(a, b, c, d)), u1.listBaseGraphs().toSet());
     }
 }

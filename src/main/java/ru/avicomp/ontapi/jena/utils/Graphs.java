@@ -81,7 +81,9 @@ public class Graphs {
     /**
      * Extracts the base (primary) primitive graph from a composite or wrapper graph if it is possible
      * otherwise returns the same graph untouched.
-     * Note: this is a recursive method.
+     * Warning: this is a recursive method.
+     * The {@link org.apache.jena.graph.impl.WrappedGraph} is intentionally not included into the consideration:
+     * any sub-instances of that class are considered as indivisible.
      *
      * @param graph {@link Graph}
      * @return {@link Graph}
@@ -115,21 +117,23 @@ public class Graphs {
     }
 
     /**
-     * Lists all graphs extracted from the composite or wrapper graph
+     * Lists all indivisible graphs extracted from the composite or wrapper graph
      * including the base as flat stream of non-composite (primitive) graphs.
-     * Note: this method is safe for {@link UnionGraph}, but for any other composite graphs it is recursive
-     * and if a graph has a recursion in its hierarchy than {@code StackOverflowError} may occur.
+     * Note: this method is safe for a common {@link UnionGraph}, that produced by the system,
+     * but for any other composite graph there is a dangerous of {@code StackOverflowError} method
+     * in case a considered graph has a recursion somewhere in its hierarchy.
      *
      * @param graph {@link Graph}
      * @return {@code Stream} of {@link Graph}
      * @throws StackOverflowError in case the given graph is not {@link UnionGraph}
      *                            and has a recursion in the hierarchy
      * @see UnionGraph#listBaseGraphs()
+     * @since 1.4.2
      */
     public static Stream<Graph> baseGraphs(Graph graph) {
         if (graph == null) return Stream.empty();
         if (graph instanceof UnionGraph) {
-            return Iter.asStream(((UnionGraph) graph).listBaseGraphs());
+            return Iter.asStream(((UnionGraph) graph).listBaseGraphs().mapWith(Graphs::getBase));
         }
         return Stream.concat(Stream.of(getBase(graph)), subGraphs(graph).flatMap(Graphs::baseGraphs));
     }
@@ -165,7 +169,7 @@ public class Graphs {
     }
 
     /**
-     * Builds an union-graph using specified components.
+     * Builds an union-graph using the specified components.
      * Note: this is a recursive method.
      *
      * @param graph     {@link Graph} the base graph (root)

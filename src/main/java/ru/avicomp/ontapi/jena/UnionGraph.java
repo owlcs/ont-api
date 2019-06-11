@@ -68,7 +68,8 @@ public class UnionGraph extends CompositionBase {
      * Note: it results a distinct graph (i.e. its parameter {@link #distinct} is {@code true}).
      * This means that the method {@link #find(Triple)} does not produce duplicates.
      * The additional duplicate checking may lead to temporary writing
-     * the whole graph in memory in the form of {@code Set}, and for huge ontologies it is unacceptable.
+     * the whole graph or some its part into memory in the form of {@code Set},
+     * and for huge ontologies it is unacceptable.
      * This checking is not performed if the graph is single (underlying part is empty).
      * <p>
      * Also notice, a top-level ontology view of in-memory graph is not sensitive to the distinct parameter
@@ -200,9 +201,11 @@ public class UnionGraph extends CompositionBase {
     }
 
     /**
-     * Lists all base {@code Graph}s that are encapsulated in the hierarchy.
+     * Lists all indivisible (base) data {@code Graph}s
+     * that are encapsulated either in the hierarchy
+     * or (which is possible) inside the {@link #getBaseGraph() base} (root) graph itself.
      *
-     * @return {@link ExtendedIterator} of {@link Graph}s, including the base graph
+     * @return <b>distinct</b> {@link ExtendedIterator} of {@link Graph}s, including the base graph
      * @see #getBaseGraph()
      */
     public ExtendedIterator<Graph> listBaseGraphs() {
@@ -317,15 +320,19 @@ public class UnionGraph extends CompositionBase {
     }
 
     /**
-     * Calculates and returns a {@code Set} of all base {@link Graph graph}s that are placed lower in the hierarchy.
-     * A {@link #getBaseGraph() base} of this union graph is also included into the returned collection.
+     * Calculates and returns a {@code Set} of all indivisible {@link Graph graph}s
+     * that are placed somewhere lower in the hierarchy.
+     * The method also includes into consideration a rare possibility
+     * when the {@link #getBaseGraph() base} graph is also an {@code UnionGraph}.
+     * The primary indivisible part of the base graph (which is usually a base graph itself)
+     * is added to the beginning of the returned collection.
      *
-     * @return Set (ordered) of {@link Graph}s
+     * @return a {@code Set} (ordered) of {@link Graph}s
      */
     protected Set<Graph> collectBaseGraphs() {
-        // use LinkedHasSet to save the order: the base graph from this UnionGraph must be the first
+        // use LinkedHasSet to save the order:
+        // the base graph from this UnionGraph must be the first for better searching
         Set<Graph> res = new LinkedHashSet<>();
-        res.add(getBaseGraph());
         collectBaseGraphs(res, new HashSet<>());
         return res;
     }
@@ -334,17 +341,24 @@ public class UnionGraph extends CompositionBase {
      * Recursively collects all base {@link Graph graph}s
      * that are present in this collection or anywhere under the hierarchy.
      *
-     * @param res  {@code Set} of {@link Graph}s
+     * @param res a {@code Set} of non-union {@link Graph}s to return
      * @param seen {@code Set} of {@link UnionGraph}s to control recursion
      */
     private void collectBaseGraphs(Set<Graph> res, Set<UnionGraph> seen) {
-        getUnderlying().graphs().forEach(g -> {
+        Graph base = getBaseGraph();
+        Set<Graph> underlying = new HashSet<>();
+        if (base instanceof UnionGraph) {
+            underlying.add(base);
+        } else {
+            res.add(base);
+        }
+        underlying.addAll(getUnderlying().graphs);
+        underlying.forEach(g -> {
             if (!(g instanceof UnionGraph)) {
                 res.add(g);
                 return;
             }
             UnionGraph u = (UnionGraph) g;
-            res.add(u.getBaseGraph());
             if (seen.add(u)) {
                 u.collectBaseGraphs(res, seen);
             }

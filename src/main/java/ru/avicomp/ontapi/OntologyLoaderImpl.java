@@ -236,12 +236,23 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
      * @param config  {@link OntLoaderConfiguration} the config
      * @return {@link UnionGraph}
      * @throws OntApiException if something wrong
+     * @see OntGraphUtils#toGraphMap(Graph)
      */
     protected UnionGraph makeUnionGraph(GraphInfo node,
                                         Collection<String> seen,
                                         OntologyManager manager,
                                         OntLoaderConfiguration config) {
-        UnionGraph res = new UnionGraph(node.getGraph());
+        Graph graph = node.getGraph();
+        if (graph instanceof UnionGraph) {
+            // this situation may occur only in a single case
+            // when the graph is passed into OntologyManager#addOntology, see OntGraphUtils#toGraphMap(Graph)
+            UnionGraph u = (UnionGraph) graph;
+            if (!u.getUnderlying().isEmpty())
+                throw new OntApiException.IllegalState("A given graph has a hierarchy structure: " + graph);
+            // always need to create a _new_ UnionGraph: the old may have listeners or caches attached
+            graph = u.getBaseGraph();
+        }
+        UnionGraph res = new UnionGraph(graph);
         if (config.isProcessImports()) {
             processImports(node, seen, manager, config)
                     .forEach(ch -> res.addGraph(makeUnionGraph(ch, new HashSet<>(seen), manager, config)));
