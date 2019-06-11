@@ -137,7 +137,7 @@ public class OntModels {
      * @param m {@link OntGraphModel}, not {@code null}
      * @return {@code Stream} of models, cannot be empty: must contains at least the input (root) model
      * @throws StackOverflowError in case the given model has a recursion in the hierarchy
-     * @see Graphs#flat(Graph)
+     * @see Graphs#baseGraphs(Graph)
      * @see OntID#getImportsIRI()
      */
     public static Stream<OntGraphModel> importsClosure(OntGraphModel m) {

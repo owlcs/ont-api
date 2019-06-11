@@ -362,7 +362,6 @@ public class Models {
      * @param m {@link OntGraphModel}
      * @return Stream of models, not empty (contains at least the input model)
      * @throws StackOverflowError in case the given model has a recursion in the hierarchy
-     * @see Graphs#flat(Graph)
      * @since 1.3.0
      * @deprecated since 1.4.2: it is replaced by the {@link OntModels#importsClosure(OntGraphModel)}
      */

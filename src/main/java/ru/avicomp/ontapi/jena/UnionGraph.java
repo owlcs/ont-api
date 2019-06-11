@@ -202,7 +202,8 @@ public class UnionGraph extends CompositionBase {
     /**
      * Lists all base {@code Graph}s that are encapsulated in the hierarchy.
      *
-     * @return {@link ExtendedIterator} of {@link Graph}s
+     * @return {@link ExtendedIterator} of {@link Graph}s, including the base graph
+     * @see #getBaseGraph()
      */
     public ExtendedIterator<Graph> listBaseGraphs() {
         return Iter.create(graphs == null ? graphs = collectBaseGraphs() : graphs);

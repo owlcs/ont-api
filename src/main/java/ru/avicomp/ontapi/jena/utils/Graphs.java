@@ -24,7 +24,6 @@ import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.GraphWrapper;
 import org.apache.jena.sparql.util.graph.GraphUtils;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import org.apache.jena.util.iterator.WrappedIterator;
 import ru.avicomp.ontapi.jena.RWLockedGraph;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
@@ -53,14 +52,14 @@ public class Graphs {
     public static final String RECURSIVE_GRAPH_IDENTIFIER = "Recursion";
 
     /**
-     * Lists all top-level sub-graphs from the given composite graph-container,
+     * Extracts and lists all top-level sub-graphs from the given composite graph-container,
      * that is allowed to be either {@link UnionGraph} or {@link Polyadic} or {@link Dyadic}.
      * If the graph is not of the list above, an empty stream is expected.
      * The base graph is not included in the resulting stream.
      * In case of {@link Dyadic}, the left graph is considered as base.
      *
      * @param graph {@link Graph}
-     * @return Stream of {@link Graph}s
+     * @return {@code Stream} of {@link Graph}s
      * @see Graphs#getBase(Graph)
      * @see UnionGraph
      * @see Polyadic
@@ -74,7 +73,7 @@ public class Graphs {
             return ((Polyadic) graph).getSubGraphs().stream();
         }
         if (graph instanceof Dyadic) {
-            return Stream.of((Graph) ((Dyadic) graph).getR());
+            return Stream.of(((Dyadic) graph).getR());
         }
         return Stream.empty();
     }
@@ -86,7 +85,7 @@ public class Graphs {
      *
      * @param graph {@link Graph}
      * @return {@link Graph}
-     * @see #subGraphs(Graph)
+     * @see Graphs#subGraphs(Graph)
      * @see GraphWrapper
      * @see RWLockedGraph
      * @see UnionGraph
@@ -110,23 +109,29 @@ public class Graphs {
             return getBase(((Polyadic) graph).getBaseGraph());
         }
         if (graph instanceof Dyadic) {
-            return getBase((Graph) ((Dyadic) graph).getL());
+            return getBase(((Dyadic) graph).getL());
         }
         return graph;
     }
 
     /**
-     * Lists all graphs from the composite or wrapper graph
+     * Lists all graphs extracted from the composite or wrapper graph
      * including the base as flat stream of non-composite (primitive) graphs.
-     * Note: this is a recursive method: if a graph has a recursive hierarchy than StackOverflow error is expected.
+     * Note: this method is safe for {@link UnionGraph}, but for any other composite graphs it is recursive
+     * and if a graph has a recursion in its hierarchy than {@code StackOverflowError} may occur.
      *
      * @param graph {@link Graph}
-     * @return Stream of {@link Graph}
-     * @throws StackOverflowError in case the given graph has a recursion in the hierarchy
+     * @return {@code Stream} of {@link Graph}
+     * @throws StackOverflowError in case the given graph is not {@link UnionGraph}
+     *                            and has a recursion in the hierarchy
+     * @see UnionGraph#listBaseGraphs()
      */
-    public static Stream<Graph> flat(Graph graph) {
-        return graph == null ? Stream.empty() :
-                Stream.concat(Stream.of(getBase(graph)), subGraphs(graph).flatMap(Graphs::flat));
+    public static Stream<Graph> baseGraphs(Graph graph) {
+        if (graph == null) return Stream.empty();
+        if (graph instanceof UnionGraph) {
+            return Iter.asStream(((UnionGraph) graph).listBaseGraphs());
+        }
+        return Stream.concat(Stream.of(getBase(graph)), subGraphs(graph).flatMap(Graphs::baseGraphs));
     }
 
     /**
@@ -156,7 +161,7 @@ public class Graphs {
     public static UnionGraph toUnion(Graph g) {
         if (g instanceof UnionGraph) return (UnionGraph) g;
         if (g instanceof GraphMem) return new UnionGraph(g);
-        return toUnion(getBase(g), flat(g).collect(Collectors.toSet()));
+        return toUnion(getBase(g), baseGraphs(g).collect(Collectors.toSet()));
     }
 
     /**
@@ -164,7 +169,7 @@ public class Graphs {
      * Note: this is a recursive method.
      *
      * @param graph     {@link Graph} the base graph (root)
-     * @param dependent collection of dependent {@link Graph graph}x to search in
+     * @param dependent a {@code Collection} of dependent {@link Graph graph}x to search in
      * @return {@link UnionGraph}
      * @since 1.0.1
      */
@@ -180,7 +185,7 @@ public class Graphs {
     }
 
     /**
-     * Creates a new {@code UnionGraph} with a given base {@code Graph}
+     * Creates a new {@code UnionGraph} with the given base {@code Graph}
      * and the same structure and settings as in the specified {@code UnionGraph}.
      *
      * @param base  {@link Graph} new base, not {@code null}
@@ -264,15 +269,28 @@ public class Graphs {
      * Returns all uri-objects from the {@code _:x owl:imports _:uri} statements.
      * In case of composite graph imports are listed transitively.
      *
-     * @param graph {@link Graph}
-     * @return unordered Set of uris from whole graph (it may be composite).
+     * @param graph {@link Graph}, not {@code null}
+     * @return unordered Set of uris from the whole graph (it may be composite)
      * @see #getURI(Graph)
      */
     public static Set<String> getImports(Graph graph) {
+        return listImports(graph).toSet();
+    }
+
+    /**
+     * Returns an {@code ExtendedIterator} over all URIs from the {@code _:x owl:imports _:uri} statements.
+     * In case of composite graph imports are listed transitively.
+     *
+     * @param graph {@link Graph}, not {@code null}
+     * @return {@link ExtendedIterator} of {@code String}-URIs
+     * @see #getURI(Graph)
+     * @since 1.4.2
+     */
+    public static ExtendedIterator<String> listImports(Graph graph) {
         return graph.find(Node.ANY, OWL.imports.asNode(), Node.ANY).mapWith(t -> {
             Node n = t.getObject();
             return n.isURI() ? n.getURI() : null;
-        }).filterDrop(Objects::isNull).toSet();
+        }).filterDrop(Objects::isNull);
     }
 
     /**
@@ -364,8 +382,8 @@ public class Graphs {
      * it makes an {@code UnionGraph} where only the base (primary) contains the specified R/W lock.
      * The result graph has the same structure as specified.
      *
-     * @param graph {@link Graph}, not null
-     * @param lock  {@link ReadWriteLock}, not null
+     * @param graph {@link Graph}, not {@code null}
+     * @param lock  {@link ReadWriteLock}, not {@code null}
      * @return {@link Graph} with {@link ReadWriteLock}
      * @throws StackOverflowError in case the given graph has a recursion in its hierarchy
      */
@@ -412,51 +430,6 @@ public class Graphs {
     }
 
     /**
-     * Makes a fresh node instance according to the given iri.
-     *
-     * @param iri String, an IRI to create URI-Node or {@code null} to create Blank-Node
-     * @return {@link Node}, not null
-     */
-    public static Node createNode(String iri) {
-        return iri == null ? NodeFactory.createBlankNode() : NodeFactory.createURI(iri);
-    }
-
-    /**
-     * Lists all unique subject nodes in the given graph.
-     * Warning: the result is stored in-memory!
-     *
-     * @param g {@link Graph}
-     * @return an {@link ExtendedIterator Extended Iterator} (distinct) of all subjects in the graph
-     */
-    public static ExtendedIterator<Node> subjects(Graph g) {
-        return GraphUtil.listSubjects(g, Node.ANY, Node.ANY);
-    }
-
-    /**
-     * Lists all unique nodes in the given graph, which are used as subject or object.
-     * Warning: the result is stored in-memory!
-     *
-     * @param g {@link Graph}, not null
-     * @return an {@link ExtendedIterator Extended Iterator} (distinct) of all subjects or objects in the graph
-     */
-    public static ExtendedIterator<Node> subjectsAndObjects(Graph g) {
-        return WrappedIterator.create(GraphUtils.allNodes(g));
-    }
-
-    /**
-     * Lists all unique nodes in the given graph.
-     * Warning: the result is stored in-memory!
-     *
-     * @param g {@link Graph}, not null
-     * @return an {@link ExtendedIterator Extended Iterator} (distinct) of all nodes in the graph
-     */
-    public static ExtendedIterator<Node> all(Graph g) {
-        Set<Node> res = Iter.flatMap(g.find(Triple.ANY),
-                t -> Iter.of(t.getSubject(), t.getPredicate(), t.getObject())).toSet();
-        return WrappedIterator.create(res.iterator());
-    }
-
-    /**
      * Answers {@code true} if the left graph depends on the right one.
      *
      * @param left  {@link Graph}
@@ -467,4 +440,112 @@ public class Graphs {
     public static boolean dependsOn(Graph left, Graph right) {
         return left == right || (left != null && left.dependsOn(right));
     }
+
+    /**
+     * Makes a fresh node instance according to the given iri.
+     *
+     * @param iri String, an IRI to create URI-Node or {@code null} to create Blank-Node
+     * @return {@link Node}, not {@code null}
+     */
+    public static Node createNode(String iri) {
+        return iri == null ? NodeFactory.createBlankNode() : NodeFactory.createURI(iri);
+    }
+
+    /**
+     * Lists all unique subject nodes in the given graph.
+     * Warning: the result is temporary stored in-memory!
+     *
+     * @param g {@link Graph}, not {@code null}
+     * @return an {@link ExtendedIterator ExtendedIterator} (<b>distinct</b>) of all subjects in the graph
+     * @throws OutOfMemoryError while iterating in case the graph is too large
+     *                          so that all its subjects can be placed in memory as a {@code Set}
+     * @see GraphUtil#listSubjects(Graph, Node, Node)
+     * @since 1.4.2
+     */
+    public static ExtendedIterator<Node> listSubjects(Graph g) {
+        return Iter.create(() -> Collections.unmodifiableSet(g.find().mapWith(Triple::getSubject).toSet()).iterator());
+    }
+
+    /**
+     * Lists all unique nodes in the given graph, which are used in a subject or an object positions.
+     * Warning: the result is temporary stored in-memory!
+     *
+     * @param g {@link Graph}, not {@code null}
+     * @return an {@link ExtendedIterator ExtendedIterator} (<b>distinct</b>) of all subjects or objects in the graph
+     * @throws OutOfMemoryError while iterating in case the graph is too large
+     *                          so that all its subjects and objects can be placed in memory as a {@code Set}
+     * @see GraphUtils#allNodes(Graph)
+     * @since 1.4.2
+     */
+    public static ExtendedIterator<Node> listSubjectsAndObjects(Graph g) {
+        return Iter.create(() -> Collections.unmodifiableSet(Iter.flatMap(g.find(),
+                t -> Iter.of(t.getSubject(), t.getObject())).toSet()).iterator());
+    }
+
+    /**
+     * Lists all unique nodes in the given graph.
+     * Warning: the result is temporary stored in-memory!
+     *
+     * @param g {@link Graph}, not {@code null}
+     * @return an {@link ExtendedIterator ExtendedIterator} (<b>distinct</b>) of all nodes in the graph
+     * @throws OutOfMemoryError while iterating in case the graph is too large to be placed in memory as a {@code Set}
+     * @since 1.4.2
+     */
+    public static ExtendedIterator<Node> listAllNodes(Graph g) {
+        return Iter.create(() -> Collections.unmodifiableSet(Iter.flatMap(g.find(),
+                t -> Iter.of(t.getSubject(), t.getPredicate(), t.getObject())).toSet()).iterator());
+    }
+
+    /**
+     * Lists all graphs from the composite or wrapper graph
+     * including the base as flat stream of non-composite (primitive) graphs.
+     *
+     * @param graph {@link Graph}
+     * @return {@code Stream} of {@link Graph}
+     * @deprecated since 1.4.2: use the method {@link #baseGraphs(Graph)} instead
+     */
+    @Deprecated
+    public static Stream<Graph> flat(Graph graph) {
+        return baseGraphs(graph);
+    }
+
+    /**
+     * Lists all unique nodes in the given graph.
+     * Warning: the result is stored in-memory!
+     *
+     * @param g {@link Graph}, not {@code null}
+     * @return an {@link ExtendedIterator Extended Iterator} (<b>distinct</b>) of all nodes in the graph
+     * @deprecated since 1.4.2: use the method {@link #listAllNodes(Graph)} instead
+     */
+    @Deprecated
+    public static ExtendedIterator<Node> all(Graph g) {
+        return listAllNodes(g);
+    }
+
+    /**
+     * Lists all unique subject nodes in the given graph.
+     * Warning: the result is stored in-memory!
+     *
+     * @param g {@link Graph}
+     * @return an {@link ExtendedIterator Extended Iterator} (distinct) of all subjects in the graph
+     * @deprecated since 1.4.2: use the method {@link #listSubjects(Graph)} instead
+     */
+    @Deprecated
+    public static ExtendedIterator<Node> subjects(Graph g) {
+        return listSubjects(g);
+    }
+
+    /**
+     * Lists all unique nodes in the given graph, which are used as subject or object.
+     * Warning: the result is temporary stored in-memory!
+     *
+     * @param g {@link Graph}, not {@code null}
+     * @return an {@link ExtendedIterator Extended Iterator} (distinct) of all subjects or objects in the graph
+     * @deprecated since 1.4.2: use the method {@link #listSubjectsAndObjects(Graph)} instead
+     */
+    @Deprecated
+    public static ExtendedIterator<Node> subjectsAndObjects(Graph g) {
+        return listSubjectsAndObjects(g);
+    }
+
 }

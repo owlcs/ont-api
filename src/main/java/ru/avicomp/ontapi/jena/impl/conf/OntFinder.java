@@ -37,9 +37,10 @@ import java.util.stream.Stream;
  */
 @FunctionalInterface
 public interface OntFinder {
-    OntFinder ANY_SUBJECT = eg -> Graphs.subjects(eg.asGraph());
-    OntFinder ANY_SUBJECT_AND_OBJECT = eg -> Graphs.subjectsAndObjects(eg.asGraph());
-    OntFinder ANYTHING = eg -> Graphs.all(eg.asGraph());
+    OntFinder ANY_SUBJECT = eg -> Graphs.listSubjects(eg.asGraph());
+    OntFinder ANY_BLANK_SUBJECT = eg -> Iter.distinct(eg.asGraph().find().mapWith(Triple::getSubject).filterKeep(Node::isBlank));
+    OntFinder ANY_SUBJECT_AND_OBJECT = eg -> Graphs.listSubjectsAndObjects(eg.asGraph());
+    OntFinder ANYTHING = eg -> Graphs.listAllNodes(eg.asGraph());
     OntFinder TYPED = new ByPredicate(RDF.type);
 
     /**

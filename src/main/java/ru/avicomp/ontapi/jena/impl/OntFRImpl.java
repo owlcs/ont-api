@@ -61,7 +61,7 @@ public abstract class OntFRImpl extends OntObjectImpl implements OntFR {
     public static ObjectFactory langRangeFRFactory = Factories.createCommon(LangRangeImpl.class,
             makeFinder(RDF.langRange), makeFilter(RDF.langRange));
 
-    public static ObjectFactory abstractFRFactory = Factories.createFrom(OntFinder.ANY_SUBJECT
+    public static ObjectFactory abstractFRFactory = Factories.createFrom(OntFinder.ANY_BLANK_SUBJECT
             , Length.class
             , MinLength.class
             , MaxLength.class
