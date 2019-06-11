@@ -24,7 +24,7 @@ import ru.avicomp.ontapi.internal.WriteHelper;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import ru.avicomp.ontapi.jena.utils.Models;
+import ru.avicomp.ontapi.jena.utils.OntModels;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 /**
@@ -53,7 +53,7 @@ public abstract class AbstractPropertyTypeTranslator<Axiom extends OWLAxiom & Ha
 
     @Override
     public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
-        return Models.listLocalStatements(model, null, RDF.type, getType())
+        return OntModels.listLocalStatements(model, null, RDF.type, getType())
                 .filterKeep(s -> s.getSubject().canAs(getView()));
     }
 

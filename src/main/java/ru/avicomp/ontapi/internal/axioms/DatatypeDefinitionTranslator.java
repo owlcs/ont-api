@@ -24,7 +24,7 @@ import ru.avicomp.ontapi.jena.model.OntDR;
 import ru.avicomp.ontapi.jena.model.OntDT;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import ru.avicomp.ontapi.jena.utils.Models;
+import ru.avicomp.ontapi.jena.utils.OntModels;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 import java.util.Collection;
@@ -45,7 +45,7 @@ public class DatatypeDefinitionTranslator extends AxiomTranslator<OWLDatatypeDef
 
     @Override
     public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
-        return Models.listLocalStatements(model, null, OWL.equivalentClass, null)
+        return OntModels.listLocalStatements(model, null, OWL.equivalentClass, null)
                 .filterKeep(s -> s.getSubject().canAs(OntDT.class)
                         && s.getObject().canAs(OntDR.class));
     }

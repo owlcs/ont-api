@@ -23,7 +23,7 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntSWRL;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import ru.avicomp.ontapi.jena.utils.Models;
+import ru.avicomp.ontapi.jena.utils.OntModels;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
@@ -45,7 +45,7 @@ public class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
 
     @Override
     public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
-        return Models.listLocalObjects(model, OntSWRL.Imp.class).mapWith(OntObject::getRoot);
+        return OntModels.listLocalObjects(model, OntSWRL.Imp.class).mapWith(OntObject::getRoot);
     }
 
     @Override

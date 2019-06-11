@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.Models;
+import ru.avicomp.ontapi.jena.utils.OntModels;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
@@ -116,7 +117,7 @@ public class ModelUtilsTest {
         Assert.assertTrue(ModelFactory.createModelForGraph(m2.getGraph()).containsResource(c1));
         Assert.assertFalse(ModelFactory.createModelForGraph(m2.getGraph()).containsResource(c2));
 
-        Models.insert(() -> Stream.of(m1, m2), a2, true);
+        OntModels.insert(() -> Stream.of(m1, m2), a2, true);
         Assert.assertTrue(ModelFactory.createModelForGraph(m1.getGraph()).containsResource(c2));
         Assert.assertFalse(ModelFactory.createModelForGraph(m1.getGraph()).containsResource(c1));
         Assert.assertTrue(ModelFactory.createModelForGraph(m2.getGraph()).containsResource(c2));

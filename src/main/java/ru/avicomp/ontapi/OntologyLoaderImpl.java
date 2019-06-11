@@ -28,7 +28,7 @@ import ru.avicomp.ontapi.config.OntConfig;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.utils.Graphs;
-import ru.avicomp.ontapi.jena.utils.Models;
+import ru.avicomp.ontapi.jena.utils.OntModels;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.transforms.GraphTransformers;
 import ru.avicomp.ontapi.transforms.TransformException;
@@ -151,7 +151,7 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
                 // Such situation may occur if some ontology has been added with unresolved imports,
                 // which is possible, for example
                 // if org.semanticweb.owlapi.model.MissingImportHandlingStrategy#SILENT was specified.
-                Models.insert(manager::models, res.asGraphModel(), false);
+                OntModels.insert(manager::models, res.asGraphModel(), false);
             }
             // put ontology inside manager:
             getAdapter().asHandler(manager).ontologyCreated(res);

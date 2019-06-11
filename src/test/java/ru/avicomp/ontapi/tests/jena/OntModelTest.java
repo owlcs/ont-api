@@ -33,6 +33,7 @@ import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.utils.Models;
+import ru.avicomp.ontapi.jena.utils.OntModels;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.jena.vocabulary.XSD;
@@ -581,11 +582,11 @@ public class OntModelTest {
 
         // sync imports:
         ((UnionGraph) c.getGraph()).addGraph(av2.getGraph());
-        Models.syncImports(b);
+        OntModels.syncImports(b);
         tree = Graphs.importsTreeAsString(b.getGraph());
         LOGGER.debug("3) Tree: \n{}", tree);
-        Assert.assertEquals(4, Models.flat(b).count());
-        Assert.assertEquals(3, Models.flat(c).count());
+        Assert.assertEquals(4, OntModels.importsClosure(b).count());
+        Assert.assertEquals(3, OntModels.importsClosure(c).count());
         Assert.assertEquals(Arrays.asList("<b>", "<c>", "<a[v1]>", "<a[v2]>"),
                 Arrays.stream(tree.split("\n")).map(String::trim).collect(Collectors.toList()));
         Assert.assertEquals(Arrays.asList("v1", "v2"), c.statements(null, OWL.imports, null)

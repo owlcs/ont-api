@@ -31,6 +31,7 @@ import ru.avicomp.ontapi.jena.model.OntList;
 import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.utils.Models;
+import ru.avicomp.ontapi.jena.utils.OntModels;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -67,7 +68,7 @@ public abstract class AbstractListBasedTranslator<Axiom extends OWLLogicalAxiom,
 
     @Override
     public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
-        return Models.listLocalStatements(model, null, getPredicate(), null)
+        return OntModels.listLocalStatements(model, null, getPredicate(), null)
                 .filterKeep(this::filter);
     }
 

@@ -25,7 +25,7 @@ import ru.avicomp.ontapi.jena.model.OntDisjoint;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import ru.avicomp.ontapi.jena.utils.Models;
+import ru.avicomp.ontapi.jena.utils.OntModels;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.Collection;
@@ -73,7 +73,7 @@ public abstract class AbstractTwoWayNaryTranslator<Axiom extends OWLAxiom & OWLN
     @Override
     public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
         return super.listStatements(model, config)
-                .andThen(Models.listLocalObjects(model, getDisjointView()).mapWith(OntObject::getRoot));
+                .andThen(OntModels.listLocalObjects(model, getDisjointView()).mapWith(OntObject::getRoot));
     }
 
     @Override

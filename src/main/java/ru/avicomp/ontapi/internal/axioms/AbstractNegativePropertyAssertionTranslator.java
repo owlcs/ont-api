@@ -23,7 +23,7 @@ import ru.avicomp.ontapi.internal.WriteHelper;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntNPA;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import ru.avicomp.ontapi.jena.utils.Models;
+import ru.avicomp.ontapi.jena.utils.OntModels;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 /**
@@ -47,7 +47,7 @@ public abstract class AbstractNegativePropertyAssertionTranslator<Axiom extends 
 
     @Override
     public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
-        return Models.listLocalStatements(model, null, RDF.type, OWL.NegativePropertyAssertion)
+        return OntModels.listLocalStatements(model, null, RDF.type, OWL.NegativePropertyAssertion)
                 .filterKeep(s -> s.getSubject().canAs(getView()));
     }
 

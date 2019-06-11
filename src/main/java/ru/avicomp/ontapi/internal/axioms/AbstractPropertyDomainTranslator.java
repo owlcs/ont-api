@@ -25,7 +25,7 @@ import ru.avicomp.ontapi.internal.WriteHelper;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import ru.avicomp.ontapi.jena.utils.Models;
+import ru.avicomp.ontapi.jena.utils.OntModels;
 
 /**
  * The base class for {@link ObjectPropertyDomainTranslator} and {@link DataPropertyDomainTranslator} and {@link AnnotationPropertyDomainTranslator}.
@@ -43,7 +43,7 @@ public abstract class AbstractPropertyDomainTranslator<Axiom extends OWLAxiom & 
 
     @Override
     public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
-        return Models.listLocalStatements(model, null, RDFS.domain, null).filterKeep(s -> filter(s, config));
+        return OntModels.listLocalStatements(model, null, RDFS.domain, null).filterKeep(s -> filter(s, config));
     }
 
     protected boolean filter(OntStatement statement, InternalConfig config) {

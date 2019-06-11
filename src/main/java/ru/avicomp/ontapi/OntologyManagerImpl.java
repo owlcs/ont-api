@@ -39,7 +39,7 @@ import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.utils.Graphs;
-import ru.avicomp.ontapi.jena.utils.Models;
+import ru.avicomp.ontapi.jena.utils.OntModels;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -1421,7 +1421,7 @@ public class OntologyManagerImpl implements OntologyManager,
 
             if (!res.isAnonymous()) {
                 // restore missed dependencies
-                Models.insert(this::models, res.asGraphModel(), false);
+                OntModels.insert(this::models, res.asGraphModel(), false);
             }
 
             if (settings == OntologyCopy.DEEP) {

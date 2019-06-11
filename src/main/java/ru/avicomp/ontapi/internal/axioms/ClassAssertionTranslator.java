@@ -22,7 +22,7 @@ import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLIndividual;
 import ru.avicomp.ontapi.internal.*;
 import ru.avicomp.ontapi.jena.model.*;
-import ru.avicomp.ontapi.jena.utils.Models;
+import ru.avicomp.ontapi.jena.utils.OntModels;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.Collection;
@@ -53,7 +53,7 @@ public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionA
     @Override
     public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
         Set<? extends RDFNode> forbidden = getSystemClasses(model);
-        return Models.listLocalStatements(model, null, RDF.type, null)
+        return OntModels.listLocalStatements(model, null, RDF.type, null)
                 .filterKeep(s -> !forbidden.contains(s.getObject()) && filterSO(s));
     }
 

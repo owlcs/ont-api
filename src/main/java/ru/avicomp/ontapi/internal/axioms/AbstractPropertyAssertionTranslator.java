@@ -21,7 +21,7 @@ import org.semanticweb.owlapi.model.OWLPropertyExpression;
 import ru.avicomp.ontapi.internal.AxiomTranslator;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import ru.avicomp.ontapi.jena.utils.Models;
+import ru.avicomp.ontapi.jena.utils.OntModels;
 
 /**
  * A common super-type for all property assertion axiom translators.
@@ -57,7 +57,7 @@ public abstract class AbstractPropertyAssertionTranslator<P extends OWLPropertyE
      * @return {@link ExtendedIterator} of {@link OntStatement}s
      */
     public ExtendedIterator<OntStatement> listStatements(OntGraphModel model) {
-        return Models.listLocalStatements(model, null, null, null);
+        return OntModels.listLocalStatements(model, null, null, null);
     }
 
 }

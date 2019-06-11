@@ -23,7 +23,7 @@ import ru.avicomp.ontapi.DataFactory;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.impl.OntObjectImpl;
 import ru.avicomp.ontapi.jena.model.*;
-import ru.avicomp.ontapi.jena.utils.Models;
+import ru.avicomp.ontapi.jena.utils.OntModels;
 
 import java.util.List;
 import java.util.Set;
@@ -110,7 +110,7 @@ public class ReadHelper {
     public static Set<ONTObject<OWLAnnotation>> getAnnotations(OntStatement statement,
                                                                InternalConfig conf,
                                                                InternalObjectFactory of) {
-        ExtendedIterator<OntStatement> res = Models.listAnnotations(statement);
+        ExtendedIterator<OntStatement> res = OntModels.listAnnotations(statement);
         if (conf.isLoadAnnotationAxioms() && isDeclarationStatement(statement)) {
             // for compatibility with OWL-API skip all plain annotations attached to an entity (or anonymous individual)
             // they would go separately as annotation-assertions.
@@ -128,7 +128,7 @@ public class ReadHelper {
      */
     public static ExtendedIterator<ONTObject<OWLAnnotation>> listOWLAnnotations(OntObject obj,
                                                                                 InternalObjectFactory of) {
-        return Models.listAnnotations(obj).mapWith(a -> getAnnotation(a, of));
+        return OntModels.listAnnotations(obj).mapWith(a -> getAnnotation(a, of));
     }
 
     /**
@@ -153,7 +153,7 @@ public class ReadHelper {
         Resource subject = root.getSubject();
         ONTObject<OWLAnnotationProperty> p = of.get(root.getPredicate().as(OntNAP.class));
         ONTObject<? extends OWLAnnotationValue> v = of.get(root.getObject());
-        Set<ONTObject<OWLAnnotation>> children = Models.listAnnotations(root)
+        Set<ONTObject<OWLAnnotation>> children = OntModels.listAnnotations(root)
                 .mapWith(a -> getHierarchicalAnnotations(a, of)).toSet();
         OWLAnnotation object = of.getOWLDataFactory()
                 .getOWLAnnotation(p.getObject(), v.getObject(), children.stream().map(ONTObject::getObject));
@@ -230,7 +230,7 @@ public class ReadHelper {
         if (dr instanceof OntDR.Restriction) {
             OntDR.Restriction _dr = (OntDR.Restriction) dr;
             ONTObject<OWLDatatype> d = of.get(_dr.getValue());
-            Set<ONTObject<OWLFacetRestriction>> restrictions = Models.listMembers(_dr.getList())
+            Set<ONTObject<OWLFacetRestriction>> restrictions = OntModels.listMembers(_dr.getList())
                     .mapWith(f -> getFacetRestriction(f, of)).toSet();
             OWLDataRange res = df.getOWLDatatypeRestriction(d.getObject(),
                     restrictions.stream().map(ONTObject::getObject).collect(Collectors.toList()));
@@ -243,7 +243,7 @@ public class ReadHelper {
         }
         if (dr instanceof OntDR.UnionOf || dr instanceof OntDR.IntersectionOf) {
             OntDR.ComponentsDR<OntDR> _dr = (OntDR.ComponentsDR<OntDR>) dr;
-            Set<ONTObject<OWLDataRange>> dataRanges = Models.listMembers(_dr.getList())
+            Set<ONTObject<OWLDataRange>> dataRanges = OntModels.listMembers(_dr.getList())
                     .mapWith(d -> (ONTObject<OWLDataRange>) calcDataRange(d, of, seen)).toSet();
             OWLDataRange res = dr instanceof OntDR.UnionOf ?
                     df.getOWLDataUnionOf(dataRanges.stream().map(ONTObject::getObject)) :
@@ -284,7 +284,7 @@ public class ReadHelper {
         }
         seen.add(ce);
         DataFactory df = of.getOWLDataFactory();
-        Class<? extends OntObject> type = Models.getOntType(ce);
+        Class<? extends OntObject> type = OntModels.getOntType(ce);
         if (OntCE.ObjectSomeValuesFrom.class.equals(type) || OntCE.ObjectAllValuesFrom.class.equals(type)) {
             OntCE.ComponentRestrictionCE<OntCE, OntOPE> _ce = (OntCE.ComponentRestrictionCE<OntCE, OntOPE>) ce;
             ONTObject<? extends OWLObjectPropertyExpression> p = of.get(_ce.getProperty());
@@ -362,7 +362,7 @@ public class ReadHelper {
         }
         if (OntCE.UnionOf.class.equals(type) || OntCE.IntersectionOf.class.equals(type)) {
             OntCE.ComponentsCE<OntCE> _ce = (OntCE.ComponentsCE<OntCE>) ce;
-            Set<ONTObject<OWLClassExpression>> components = Models.listMembers(_ce.getList())
+            Set<ONTObject<OWLClassExpression>> components = OntModels.listMembers(_ce.getList())
                     .mapWith(c -> (ONTObject<OWLClassExpression>) calcClassExpression(c, of, seen))
                     .toSet();
             OWLClassExpression owl;
@@ -375,7 +375,7 @@ public class ReadHelper {
         }
         if (OntCE.OneOf.class.equals(type)) {
             OntCE.OneOf _ce = (OntCE.OneOf) ce;
-            Set<ONTObject<OWLIndividual>> components = Models.listMembers(_ce.getList())
+            Set<ONTObject<OWLIndividual>> components = OntModels.listMembers(_ce.getList())
                     .mapWith(i -> (ONTObject<OWLIndividual>) of.get(i)).toSet();
             OWLClassExpression owl = df.getOWLObjectOneOf(components.stream().map(ONTObject::getObject));
             return ONTObject.create(owl, _ce).append(components);

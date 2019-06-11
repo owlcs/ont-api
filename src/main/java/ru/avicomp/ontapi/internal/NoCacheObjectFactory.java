@@ -21,7 +21,7 @@ import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.DataFactory;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.model.*;
-import ru.avicomp.ontapi.jena.utils.Models;
+import ru.avicomp.ontapi.jena.utils.OntModels;
 import ru.avicomp.ontapi.owlapi.objects.OWLLiteralImpl;
 
 import java.util.Collection;
@@ -153,7 +153,7 @@ public class NoCacheObjectFactory implements InternalObjectFactory {
             return asIRI(value.as(OntObject.class));
         }
         if (value.isAnon()) {
-            return getAnonymous(Models.asAnonymousIndividual(value));
+            return getAnonymous(OntModels.asAnonymousIndividual(value));
         }
         throw new OntApiException("Not an AnnotationValue " + value);
     }
@@ -164,7 +164,7 @@ public class NoCacheObjectFactory implements InternalObjectFactory {
             return asIRI(subject);
         }
         if (subject.isAnon()) {
-            return getAnonymous(Models.asAnonymousIndividual(subject));
+            return getAnonymous(OntModels.asAnonymousIndividual(subject));
         }
         throw new OntApiException("Not an AnnotationSubject " + subject);
     }

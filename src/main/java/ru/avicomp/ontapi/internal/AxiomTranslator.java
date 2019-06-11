@@ -24,7 +24,7 @@ import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.utils.Iter;
-import ru.avicomp.ontapi.jena.utils.Models;
+import ru.avicomp.ontapi.jena.utils.OntModels;
 
 import java.util.Collections;
 import java.util.Set;
@@ -99,7 +99,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
         if (!config.isSplitAxiomAnnotations()) {
             return statements.mapWith(s -> toAxiom(s, factory, config));
         }
-        return Iter.flatMap(statements, Models::listSplitStatements).mapWith(s -> toAxiom(s, factory, config));
+        return Iter.flatMap(statements, OntModels::listSplitStatements).mapWith(s -> toAxiom(s, factory, config));
     }
 
     /**

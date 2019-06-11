@@ -26,7 +26,7 @@ import ru.avicomp.ontapi.jena.model.OntEntity;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import ru.avicomp.ontapi.jena.utils.Models;
+import ru.avicomp.ontapi.jena.utils.OntModels;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.Collection;
@@ -54,7 +54,7 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
         // 1) performance (union of several find operation for the pattern [ANY,rdf:type,Resource] is faster
         // then single find operation [ANY,rdf:type,ANY] and subsequent filter)
         // 2) to filter out punnings using standard entity factories
-        return Models.listLocalEntities(model).mapWith(OntObject::getRoot).filterDrop(Objects::isNull);
+        return OntModels.listLocalEntities(model).mapWith(OntObject::getRoot).filterDrop(Objects::isNull);
     }
 
     @Override

@@ -22,7 +22,7 @@ import ru.avicomp.ontapi.internal.*;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import ru.avicomp.ontapi.jena.utils.Models;
+import ru.avicomp.ontapi.jena.utils.OntModels;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 import java.util.Collection;
@@ -50,7 +50,7 @@ public class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInvers
                 .filter(OntStatement::isLocal)
                 .filter(s -> s.getSubject().canAs(OntOPE.class))
                 .filter(s -> s.getObject().canAs(OntOPE.class));*/
-        return Models.listLocalStatements(model, null, OWL.inverseOf, null) // skip {@code _:x owl:inverseOf PN}
+        return OntModels.listLocalStatements(model, null, OWL.inverseOf, null) // skip {@code _:x owl:inverseOf PN}
                 .filterDrop(s -> s.getSubject().isAnon() && s.getObject().isURIResource());
     }
 

@@ -26,14 +26,15 @@ import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.impl.CachedAnnotationImpl;
 import ru.avicomp.ontapi.jena.impl.CachedStatementImpl;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
+import ru.avicomp.ontapi.jena.impl.OntStatementImpl;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.Models;
+import ru.avicomp.ontapi.jena.utils.OntModels;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * To test annotated statements ({@link OntStatement}) and annotations within ont objects ({@link OntObject}).
@@ -168,7 +169,7 @@ public class OntAnnotationsTest {
         Assert.assertEquals("Expected two assertions", 2, disjointClasses.as(OntAnnotation.class).assertions().count());
         Assert.assertEquals("Expected two annotations", 2, disjointClasses.as(OntAnnotation.class)
                 .annotations().peek(a -> LOGGER.debug("1: {}", Models.toString(a))).count());
-        Assert.assertEquals("Expected three flat annotations", 3, Models.flat(disjointClasses.getRoot())
+        Assert.assertEquals("Expected three flat annotations", 3, OntModels.annotations(disjointClasses.getRoot())
                 .peek(a -> LOGGER.debug("2: {}", Models.toString(a))).count());
 
         Assert.assertFalse("There is owl:Axiom", m.contains(null, RDF.type, OWL.Axiom));
@@ -505,21 +506,21 @@ public class OntAnnotationsTest {
         sub.addAnnotation(m.getRDFSLabel(), "label4");
         ReadWriteUtils.print(m);
         Assert.assertEquals(2, subClassOf.annotations().count());
-        Assert.assertEquals(1, Models.split(subClassOf).count());
-        Assert.assertEquals(6, Models.flat(subClassOf).peek(x -> LOGGER.debug("1: {}", x)).count());
-        Assert.assertEquals(2, Models.flat(sub).peek(x -> LOGGER.debug("2: {}", x)).count());
+        Assert.assertEquals(1, OntModels.listSplitStatements(subClassOf).toList().size());
+        Assert.assertEquals(6, OntModels.annotations(subClassOf).peek(x -> LOGGER.debug("1: {}", x)).count());
+        Assert.assertEquals(2, OntModels.annotations(sub).peek(x -> LOGGER.debug("2: {}", x)).count());
 
         sub.deleteAnnotation(m.getRDFSLabel(), m.createLiteral("label4"));
         ReadWriteUtils.print(m);
-        Assert.assertEquals(5, Models.flat(subClassOf).peek(x -> LOGGER.debug("3: {}", x)).count());
+        Assert.assertEquals(5, OntModels.annotations(subClassOf).peek(x -> LOGGER.debug("3: {}", x)).count());
 
         Resource annotation = m.createResource(null, OWL.Axiom);
-        Assert.assertEquals(1, Models.split(subClassOf).count());
+        Assert.assertEquals(1, OntModels.listSplitStatements(subClassOf).toList().size());
         annotation.addProperty(OWL.annotatedSource, clazz)
                 .addProperty(OWL.annotatedProperty, RDFS.subClassOf)
                 .addProperty(OWL.annotatedTarget, OWL.Thing);
 
-        List<OntStatement> split1 = Models.split(subClassOf).collect(Collectors.toList());
+        List<OntStatement> split1 = OntModels.listSplitStatements(subClassOf).toList();
         Assert.assertEquals(2, split1.size());
         Assert.assertEquals(2, split1.get(0).annotations().count());
         Assert.assertEquals(0, split1.get(1).annotations().count());
@@ -531,20 +532,20 @@ public class OntAnnotationsTest {
         Assert.assertEquals(1, split1.get(1).annotations().count());
         Assert.assertEquals(split1.get(0), split1.get(1));
         Assert.assertEquals(subClassOf, split1.get(1));
-        Assert.assertEquals(5, Models.flat(split1.get(0)).peek(x -> LOGGER.debug("4: {}", x)).count());
-        Assert.assertEquals(1, Models.flat(split1.get(1)).peek(x -> LOGGER.debug("5: {}", x)).count());
+        Assert.assertEquals(5, OntModels.annotations(split1.get(0)).peek(x -> LOGGER.debug("4: {}", x)).count());
+        Assert.assertEquals(1, OntModels.annotations(split1.get(1)).peek(x -> LOGGER.debug("5: {}", x)).count());
 
         OntStatement foundSubClassOf = m.statements(clazz, RDFS.subClassOf, OWL.Thing)
                 .findFirst().orElseThrow(AssertionError::new);
         Assert.assertEquals(3, foundSubClassOf.annotations().peek(x -> LOGGER.debug("6: {}", x)).count());
-        Assert.assertEquals(6, Models.flat(foundSubClassOf).peek(x -> LOGGER.debug("7: {}", x)).count());
+        Assert.assertEquals(6, OntModels.annotations(foundSubClassOf).peek(x -> LOGGER.debug("7: {}", x)).count());
 
         OntStatement declaration = clazz.getRoot();
         declaration.addAnnotation(m.getRDFSLabel(), "comment4").addAnnotation(m.getRDFSLabel(), "label5");
         declaration.addAnnotation(m.getRDFSComment(), "comment5");
         ReadWriteUtils.print(m);
-        Assert.assertEquals(3, Models.flat(declaration).peek(x -> LOGGER.debug("8: {}", x)).count());
-        Assert.assertEquals(1, Models.split(declaration).count());
+        Assert.assertEquals(3, OntModels.annotations(declaration).peek(x -> LOGGER.debug("8: {}", x)).count());
+        Assert.assertEquals(1, OntModels.listSplitStatements(declaration).toList().size());
         m.createResource(null, OWL.Axiom)
                 .addProperty(OWL.annotatedSource, clazz)
                 .addProperty(OWL.annotatedProperty, RDF.type)
@@ -557,8 +558,8 @@ public class OntAnnotationsTest {
                 .addProperty(m.getRDFSComment(), "comment7");
 
         ReadWriteUtils.print(m);
-        Assert.assertEquals(5, Models.flat(declaration).peek(x -> LOGGER.debug("9: {}", x)).count());
-        List<OntStatement> split2 = Models.split(declaration).collect(Collectors.toList());
+        Assert.assertEquals(5, OntModels.annotations(declaration).peek(x -> LOGGER.debug("9: {}", x)).count());
+        List<OntStatement> split2 = OntModels.listSplitStatements(declaration).toList();
         Assert.assertEquals(2, split2.size());
         Assert.assertEquals(3, split2.get(0).annotations().count());
         Assert.assertEquals(1, split2.get(1).annotations().count());
@@ -599,7 +600,7 @@ public class OntAnnotationsTest {
                 .orElseThrow(AssertionError::new)
                 .assertions().peek(x -> LOGGER.debug("Descendant assertion: {}", x)).count());
 
-        OntStatement cachedRoot = Models.createCachedStatement(clazz.getRoot());
+        OntStatement cachedRoot = OntStatementImpl.createCachedOntStatementImpl(clazz.getRoot());
         Assert.assertEquals(5, cachedRoot.annotations().count());
         Assert.assertEquals(2, cachedRoot.annotationResources().count());
         Assert.assertEquals(2, cachedRoot.getAnnotationList().size());
@@ -615,20 +616,19 @@ public class OntAnnotationsTest {
 
         Assert.assertEquals(7, clazz.getRoot().annotations().peek(x -> LOGGER.debug("All root ann: {}", x)).count());
 
-        Assert.assertEquals(0, Models.split(clazz.getRoot()).collect(Collectors.toList()).get(1)
+        Assert.assertEquals(0, OntModels.listSplitStatements(clazz.getRoot()).toList().get(1)
                 .asAnnotationResource().orElseThrow(AssertionError::new)
                 .descendants()
                 .peek(x -> LOGGER.debug("Second des: {}, {}", x, x.getBase())).count());
 
-        List<OntStatement> split = Models.split(Models.createCachedStatement(clazz.getRoot()))
-                .collect(Collectors.toList());
+        List<OntStatement> split = OntModels.listSplitStatements(OntStatementImpl.createCachedOntStatementImpl(clazz.getRoot())).toList();
         Assert.assertEquals(2, split.size());
         split.forEach(s -> Assert.assertTrue(s instanceof CachedStatementImpl));
         Assert.assertEquals(6, split.get(0).annotations().peek(x -> LOGGER.debug("Split first ann: {}", x))
                 .peek(s -> Assert.assertTrue(s instanceof CachedStatementImpl)).count());
-        Assert.assertEquals(7, Models.flat(split.get(0))
+        Assert.assertEquals(7, OntModels.annotations(split.get(0))
                 .peek(s -> Assert.assertTrue(s instanceof CachedStatementImpl)).count());
-        Assert.assertEquals(1, Models.flat(split.get(1))
+        Assert.assertEquals(1, OntModels.annotations(split.get(1))
                 .peek(s -> Assert.assertTrue(s instanceof CachedStatementImpl)).count());
         Assert.assertEquals(1, split.get(0).annotationResources()
                 .peek(s -> Assert.assertTrue(s instanceof CachedAnnotationImpl)).count());

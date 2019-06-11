@@ -24,7 +24,7 @@ import ru.avicomp.ontapi.internal.*;
 import ru.avicomp.ontapi.jena.model.OntCE;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import ru.avicomp.ontapi.jena.utils.Models;
+import ru.avicomp.ontapi.jena.utils.OntModels;
 
 import java.util.Collection;
 
@@ -45,7 +45,7 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
 
     @Override
     public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
-        return Models.listLocalStatements(model, null, RDFS.subClassOf, null).filterKeep(this::filter);
+        return OntModels.listLocalStatements(model, null, RDFS.subClassOf, null).filterKeep(this::filter);
     }
 
     @Override
