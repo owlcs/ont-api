@@ -31,7 +31,9 @@ import ru.avicomp.ontapi.*;
 import ru.avicomp.ontapi.config.OntConfig;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.jena.OntModelFactory;
+import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
+import ru.avicomp.ontapi.jena.utils.OntModels;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.jena.vocabulary.XSD;
@@ -41,6 +43,7 @@ import ru.avicomp.ontapi.transforms.Transform;
 import ru.avicomp.ontapi.transforms.TransformException;
 import ru.avicomp.ontapi.utils.*;
 
+import javax.annotation.Nonnull;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Path;
@@ -643,7 +646,6 @@ public class LoadFactoryManagerTest {
                 "@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .\n" +
                 "@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .";
 
-
         String txt1 = String.format("%s[ a owl:Ontology; owl:imports  <%s>, <%s> ].", prefixes, uri_a, uri_b);
         OWLOntologyDocumentSource src1 = new StringInputStreamDocumentSource(txt1, OntFormat.TURTLE);
         Assert.assertTrue(m.getOntologyConfigurator().isProcessImports());
@@ -658,7 +660,6 @@ public class LoadFactoryManagerTest {
         Assert.assertEquals(1, m.ontologies().count());
         Assert.assertEquals(2, o1.importsDeclarations().count());
         Assert.assertEquals(0, o1.directImports().count());
-
 
         String txt2 = String.format("%s <%s> a owl:Ontology; owl:imports <%s> .", prefixes, uri_a, uri_b);
         OWLOntologyDocumentSource src2 = new StringInputStreamDocumentSource(txt2, OntFormat.TURTLE);
@@ -683,5 +684,57 @@ public class LoadFactoryManagerTest {
         Assert.assertEquals(1, o2.imports().count());
         Assert.assertEquals(0, o3.directImports().count());
         Assert.assertEquals(0, o3.imports().count());
+    }
+
+    @Test
+    public void testControlUnionGraphs() throws OWLOntologyCreationException {
+        class MyUnion extends UnionGraph {
+            MyUnion(Graph base) {
+                super(base);
+            }
+        }
+        OntologyFactory.Builder builder = new OntologyBuilderImpl() {
+
+            @Override
+            public UnionGraph createUnionGraph(@Nonnull Graph g) {
+                return new MyUnion(g);
+            }
+        };
+        OntologyFactory factory = new OntManagers.ONTAPIProfile().createOntologyFactory(builder);
+
+        OntologyManager m = OntManagers.createONT();
+        m.getOntologyFactories().clear();
+        Assert.assertEquals(0, m.getOntologyFactories().size());
+        m.getOntologyFactories().add(factory);
+
+        String uri_a = "urn:a";
+        String uri_b = "urn:b";
+        String uri_c = "urn:c";
+        String prefixes = "@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n" +
+                "@prefix owl:   <http://www.w3.org/2002/07/owl#> .\n" +
+                "@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .\n" +
+                "@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .";
+        String txt_a = String.format("%s <%s> a owl:Ontology; owl:imports <%s> .", prefixes, uri_a, uri_b);
+        String txt_b = String.format("%s <%s> a owl:Ontology .", prefixes, uri_b);
+
+        OWLOntologyDocumentSource src_a = new StringInputStreamDocumentSource(txt_a, OntFormat.TURTLE);
+        OWLOntologyDocumentSource src_b = new StringInputStreamDocumentSource(txt_b, OntFormat.TURTLE);
+
+        OntologyModel b = m.loadOntologyFromOntologyDocument(src_b);
+        OntologyModel a = m.loadOntologyFromOntologyDocument(src_a);
+        OntologyModel c = m.createOntology(IRI.create(uri_c));
+
+        m.applyChange(new AddImport(c, m.getOWLDataFactory().getOWLImportsDeclaration(IRI.create(uri_a))));
+
+        Assert.assertTrue(a.asGraphModel().getGraph() instanceof MyUnion);
+        Assert.assertTrue(b.asGraphModel().getGraph() instanceof MyUnion);
+        Assert.assertTrue(c.asGraphModel().getGraph() instanceof MyUnion);
+
+        Assert.assertEquals(3, OntModels.importsClosure(c.asGraphModel())
+                .peek(x -> Assert.assertTrue(x.getGraph() instanceof MyUnion)).count());
+        Assert.assertEquals(2, OntModels.importsClosure(a.asGraphModel())
+                .peek(x -> Assert.assertTrue(x.getGraph() instanceof MyUnion)).count());
+        Assert.assertEquals(1, OntModels.importsClosure(b.asGraphModel())
+                .peek(x -> Assert.assertTrue(x.getGraph() instanceof MyUnion)).count());
     }
 }

@@ -252,7 +252,7 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
             // always need to create a _new_ UnionGraph: the old may have listeners or caches attached
             graph = u.getBaseGraph();
         }
-        UnionGraph res = new UnionGraph(graph);
+        UnionGraph res = builder.createUnionGraph(graph);
         if (config.isProcessImports()) {
             processImports(node, seen, manager, config)
                     .forEach(ch -> res.addGraph(makeUnionGraph(ch, new HashSet<>(seen), manager, config)));

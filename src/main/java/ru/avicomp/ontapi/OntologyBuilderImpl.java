@@ -17,6 +17,7 @@ package ru.avicomp.ontapi;
 import org.apache.jena.graph.Graph;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.jena.OntModelFactory;
+import ru.avicomp.ontapi.jena.UnionGraph;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -48,14 +49,28 @@ public class OntologyBuilderImpl implements OntologyFactory.Builder {
         return withLock(createOntologyImpl(graph, m, config), m.getLock());
     }
 
+    /**
+     * Creates a {@link OntologyModelImpl Default Ontology Implementation} instance from the given components.
+     *
+     * @param graph   {@link Graph} obtained from {@link #createGraph()}, must not be {@code null}
+     * @param manager {@link OntologyManagerImpl}, must not be {@code null}
+     * @param config  {@link OntLoaderConfiguration}, the loading configuration, must not be {@code null}
+     * @return a fresh {@link OntologyManagerImpl}
+     */
     public OntologyModelImpl createOntologyImpl(Graph graph,
                                                 OntologyManagerImpl manager,
                                                 OntLoaderConfiguration config) {
         ModelConfig modelConfig = manager.createModelConfig();
         modelConfig.setLoaderConf(config);
-        return new OntologyModelImpl(graph, modelConfig);
+        return new OntologyModelImpl(wrap(graph), modelConfig);
     }
 
+    /**
+     * Wraps the given {@code ont} as a concurrent R/W locked view impl, if it is needed.
+     * @param ont {@link OntologyModelImpl}, not {@code null}
+     * @param lock {@link ReadWriteLock}, possible {@code null}
+     * @return {@link OntologyModel} instance
+     */
     public OntologyModel withLock(OntologyModelImpl ont, ReadWriteLock lock) {
         if (!NoOpReadWriteLock.isConcurrent(lock)) return ont;
         return new OntologyModelImpl.Concurrent(ont, lock);
@@ -69,5 +84,18 @@ public class OntologyBuilderImpl implements OntologyFactory.Builder {
     @Override
     public Graph createGraph() {
         return OntModelFactory.createDefaultGraph();
+    }
+
+    /**
+     * Wraps the given graph as {@link UnionGraph} if it is required.
+     * A graph is obtained from this builder with help of the method {@link #createGraph()},
+     * or it is coming from {@link ru.avicomp.ontapi.OntologyFactory.Loader Loader},
+     * and in the last case it is already {@link UnionGraph} and the method returns the same instance as specified.
+     *
+     * @param g {@link Graph}, not {@code null}
+     * @return {@link UnionGraph}
+     */
+    public UnionGraph wrap(Graph g) {
+        return g instanceof UnionGraph ? (UnionGraph) g : createUnionGraph(g);
     }
 }

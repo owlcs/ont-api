@@ -14,14 +14,17 @@
 
 package ru.avicomp.ontapi;
 
+import org.apache.jena.graph.Factory;
 import org.apache.jena.graph.Graph;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
+import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.utils.Models;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * The factory to create and load ontologies to the manager.
@@ -30,7 +33,7 @@ import java.io.Serializable;
  * An implementation of this interface can be divided into two different parts:
  * {@link Builder Builder}, which is responsible for creating fresh ontologies,
  * and {@link OntologyLoader Loader}, which is responsible to load ontologies into a manager.
- *
+ * <p>
  * Created by @szuev
  */
 @ParametersAreNonnullByDefault
@@ -173,16 +176,9 @@ public interface OntologyFactory extends OWLOntologyFactory, OntologyLoader, Ont
     interface Builder extends OWLOntologyBuilder, OntologyCreator, HasAdapter {
 
         /**
-         * Creates a fresh empty {@link Graph RDF Graph} instance.
-         *
-         * @return {@link Graph Jena Graph}
-         * @since 1.3.0
-         */
-        Graph createGraph();
-
-        /**
-         * Creates a new detached ontology model based on the specified graph.
-         * Does not change the manager state, although the result ontology will have a reference to it.
+         * Creates a new detached ontology model based on the specified {@link #createGraph()} graph}.
+         * The method must not change the manager state,
+         * although the result ontology should a reference to it.
          *
          * @param graph   {@link Graph} the graph, not {@code null}
          * @param manager {@link OntologyManager} manager, not {@code null}
@@ -191,6 +187,36 @@ public interface OntologyFactory extends OWLOntologyFactory, OntologyLoader, Ont
          * @since 1.3.0
          */
         OntologyModel createOntology(Graph graph, OntologyManager manager, OntLoaderConfiguration config);
+
+        /**
+         * Creates a fresh empty {@link Graph RDF Graph} instance.
+         * Any ontology in ONT-API relies on a graph and just serves as a facade for it.
+         * A {@code Graph} is a primary thing and a holder for raw data.
+         * <p>
+         * A Default Implementation Note:
+         * By default the method offers a {@link org.apache.jena.mem.GraphMem},
+         * which demonstrates great performance for relatively small data.
+         *
+         * @return {@link Graph Jena Graph}
+         * @see #createUnionGraph(Graph)
+         * @since 1.3.0
+         */
+        default Graph createGraph() {
+            return Factory.createGraphMem();
+        }
+
+        /**
+         * Wraps the specified graph as an {@link UnionGraph Union Graph},
+         * that maintains an ontology {@code owl:imports} hierarchical structure.
+         *
+         * @param g {@link Graph} to set as base, not {@code null}
+         * @return {@link UnionGraph} instance with {@code g} as base
+         * @see #createGraph()
+         * @since 1.4.2
+         */
+        default UnionGraph createUnionGraph(Graph g) {
+            return new UnionGraph(Objects.requireNonNull(g));
+        }
 
         @Override
         default OntologyModel createOWLOntology(OWLOntologyManager manager, OWLOntologyID id) {
