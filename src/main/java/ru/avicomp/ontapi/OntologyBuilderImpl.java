@@ -62,7 +62,7 @@ public class OntologyBuilderImpl implements OntologyFactory.Builder {
                                                 OntLoaderConfiguration config) {
         ModelConfig modelConfig = manager.createModelConfig();
         modelConfig.setLoaderConf(config);
-        return new OntologyModelImpl(wrap(graph), modelConfig);
+        return new OntologyModelImpl(wrap(graph, config), modelConfig);
     }
 
     /**
@@ -93,9 +93,10 @@ public class OntologyBuilderImpl implements OntologyFactory.Builder {
      * and in the last case it is already {@link UnionGraph} and the method returns the same instance as specified.
      *
      * @param g {@link Graph}, not {@code null}
+     * @param conf {@link OntLoaderConfiguration}
      * @return {@link UnionGraph}
      */
-    public UnionGraph wrap(Graph g) {
-        return g instanceof UnionGraph ? (UnionGraph) g : createUnionGraph(g);
+    public UnionGraph wrap(Graph g, OntLoaderConfiguration conf) {
+        return g instanceof UnionGraph ? (UnionGraph) g : createUnionGraph(g, conf);
     }
 }

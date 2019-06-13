@@ -133,6 +133,7 @@ public class OntModels {
     /**
      * Recursively lists all models that are associated with the given model in the form of a flat stream.
      * In normal situation, each of the models must have {@code owl:imports} statement in the overlying graph.
+     * In this case the returned stream must correspond the result of the {@link Graphs#baseGraphs(Graph)} method.
      *
      * @param m {@link OntGraphModel}, not {@code null}
      * @return {@code Stream} of models, cannot be empty: must contains at least the input (root) model

@@ -193,12 +193,11 @@ public interface OntologyFactory extends OWLOntologyFactory, OntologyLoader, Ont
          * Any ontology in ONT-API relies on a graph and just serves as a facade for it.
          * A {@code Graph} is a primary thing and a holder for raw data.
          * <p>
-         * A Default Implementation Note:
          * By default the method offers a {@link org.apache.jena.mem.GraphMem},
          * which demonstrates great performance for relatively small data.
          *
          * @return {@link Graph Jena Graph}
-         * @see #createUnionGraph(Graph)
+         * @see #createUnionGraph(Graph, OntLoaderConfiguration)
          * @since 1.3.0
          */
         default Graph createGraph() {
@@ -206,16 +205,22 @@ public interface OntologyFactory extends OWLOntologyFactory, OntologyLoader, Ont
         }
 
         /**
-         * Wraps the specified graph as an {@link UnionGraph Union Graph},
+         * Wraps the specified {@code graph} as an {@link UnionGraph Union Graph},
          * that maintains an ontology {@code owl:imports} hierarchical structure.
+         * <p>
+         * By default the second parameter {@code conf} is ignored.
+         * The purpose of this parameter is to provide a possibility of choosing different impls
+         * in accordance with a config settings.
          *
-         * @param g {@link Graph} to set as base, not {@code null}
-         * @return {@link UnionGraph} instance with {@code g} as base
+         * @param graph {@link Graph} to set as a base (root), not {@code null}
+         * @param conf  {@link OntLoaderConfiguration} the settings to control creation of the hierarchy container graph
+         * @return {@link UnionGraph}, a graph instance containing the {@code graph} as a base graph,
+         * which is responsible for a structure hierarchy;
          * @see #createGraph()
          * @since 1.4.2
          */
-        default UnionGraph createUnionGraph(Graph g) {
-            return new UnionGraph(Objects.requireNonNull(g));
+        default UnionGraph createUnionGraph(Graph graph, OntLoaderConfiguration conf) {
+            return new UnionGraph(Objects.requireNonNull(graph));
         }
 
         @Override

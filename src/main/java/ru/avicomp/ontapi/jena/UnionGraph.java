@@ -83,6 +83,9 @@ public class UnionGraph extends CompositionBase {
 
     /**
      * The base constructor.
+     * A well-formed ontology {@link UnionGraph} is expected to
+     * have a plain (non-union) graph as a {@link #getBaseGraph() root}
+     * and {@code UnionGraph} as {@link #getUnderlying() leaves}.
      *
      * @param base     {@link Graph}, not {@code null}
      * @param sub      {@link Underlying} or {@code null} to use default empty sub-graph container
@@ -346,14 +349,15 @@ public class UnionGraph extends CompositionBase {
      */
     private void collectBaseGraphs(Set<Graph> res, Set<UnionGraph> seen) {
         Graph base = getBaseGraph();
-        Set<Graph> underlying = new HashSet<>();
+        Set<Graph> graphs = new HashSet<>();
+        graphs.add(base);
         if (base instanceof UnionGraph) {
-            underlying.add(base);
+            graphs.add(base);
         } else {
             res.add(base);
         }
-        underlying.addAll(getUnderlying().graphs);
-        underlying.forEach(g -> {
+        graphs.addAll(getUnderlying().graphs);
+        graphs.forEach(g -> {
             if (!(g instanceof UnionGraph)) {
                 res.add(g);
                 return;
@@ -424,6 +428,9 @@ public class UnionGraph extends CompositionBase {
 
     /**
      * A container to hold sub-graphs.
+     * Such a representation of sub-graphs in the form of separate class allows
+     * sharing its instance among the several {@code UnionGraph} instances
+     * in order to impart whole hierarchy structure when it is needed.
      */
     public static class Underlying {
         protected final Collection<Graph> graphs;

@@ -26,6 +26,7 @@ import org.apache.jena.sparql.util.graph.GraphUtils;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import ru.avicomp.ontapi.jena.RWLockedGraph;
 import ru.avicomp.ontapi.jena.UnionGraph;
+import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
@@ -122,12 +123,15 @@ public class Graphs {
      * Note: this method is safe for a common {@link UnionGraph}, that produced by the system,
      * but for any other composite graph there is a dangerous of {@code StackOverflowError} method
      * in case a considered graph has a recursion somewhere in its hierarchy.
+     * For a well-formed ontological {@code Graph} the returned stream must
+     * correspond the result of the method {@link OntModels#importsClosure(OntGraphModel)}.
      *
      * @param graph {@link Graph}
-     * @return {@code Stream} of {@link Graph}
-     * @throws StackOverflowError in case the given graph is not {@link UnionGraph}
-     *                            and has a recursion in the hierarchy
+     * @return {@code Stream} of {@link Graph}s
+     * @throws StackOverflowError in case the given graph is not {@link UnionGraph} from a system
+     *                            and has a recursion in its hierarchy
      * @see UnionGraph#listBaseGraphs()
+     * @see OntModels#importsClosure(ru.avicomp.ontapi.jena.model.OntGraphModel)
      * @since 1.4.2
      */
     public static Stream<Graph> baseGraphs(Graph graph) {

@@ -43,7 +43,7 @@ import ru.avicomp.ontapi.transforms.Transform;
 import ru.avicomp.ontapi.transforms.TransformException;
 import ru.avicomp.ontapi.utils.*;
 
-import javax.annotation.Nonnull;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.file.Path;
@@ -693,10 +693,11 @@ public class LoadFactoryManagerTest {
                 super(base);
             }
         }
+        @ParametersAreNonnullByDefault
         OntologyFactory.Builder builder = new OntologyBuilderImpl() {
 
             @Override
-            public UnionGraph createUnionGraph(@Nonnull Graph g) {
+            public UnionGraph createUnionGraph(Graph g, OntLoaderConfiguration c) {
                 return new MyUnion(g);
             }
         };
