@@ -321,9 +321,9 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
     }
 
     public static OntIndividual.Named createNamedIndividual(OntGraphModelImpl model, OntCE source, String uri) {
-        Resource res = model.createResource(OntJenaException.notNull(uri, "Null uri"), source)
-                .addProperty(RDF.type, OWL.NamedIndividual);
-        return model.getNodeAs(res.asNode(), OntIndividual.Named.class);
+        OntIndividual.Named res = model.createIndividual(OntJenaException.notNull(uri, "Null uri"));
+        res.attachClass(source);
+        return res;
     }
 
     public static OntList<OntDOP> createHasKey(OntGraphModelImpl m, OntCE clazz, Stream<? extends OntDOP> collection) {

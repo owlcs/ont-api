@@ -117,7 +117,7 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
         Resource s = getRequiredObject(OWL.annotatedSource, Resource.class);
         Property p = getRequiredObject(OWL.annotatedProperty, Property.class);
         RDFNode o = getRequiredObject(OWL.annotatedTarget, RDFNode.class);
-        return (OntStatement) Iter.findFirst(getModel().listStatements(s, p, o))
+        return Iter.findFirst(getModel().listOntStatements(s, p, o))
                 .orElseThrow(() -> new OntJenaException("Can't find triple [" + s + ", " + p + ", " + o + "]"));
     }
 

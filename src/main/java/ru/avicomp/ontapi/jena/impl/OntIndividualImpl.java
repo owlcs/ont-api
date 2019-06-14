@@ -212,8 +212,7 @@ public abstract class OntIndividualImpl extends OntObjectImpl implements OntIndi
         @Override
         public NamedImpl detachClass(Resource clazz) {
             OntGraphModelImpl m = getModel();
-            m.listStatements(this, RDF.type, clazz)
-                    .mapWith(s -> (OntStatement) s)
+            m.listOntStatements(this, RDF.type, clazz)
                     .filterDrop(s -> OWL.NamedIndividual.equals(s.getObject()))
                     .toList()
                     .forEach(s -> m.remove(s.clearAnnotations()));
