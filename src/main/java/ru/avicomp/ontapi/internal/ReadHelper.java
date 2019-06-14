@@ -23,6 +23,7 @@ import ru.avicomp.ontapi.DataFactory;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.impl.OntObjectImpl;
 import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.utils.OntModels;
 
 import java.util.List;
@@ -62,7 +63,7 @@ public class ReadHelper {
                                                       AxiomType<? extends OWLObjectPropertyAxiom> o,
                                                       AxiomType<? extends OWLDataPropertyAxiom> d) {
         return !conf.isIgnoreAnnotationAxiomOverlaps() ||
-                Stream.of(o, d).map(AxiomParserProvider::get).noneMatch(a -> a.testStatement(statement, conf));
+                Iter.noneMatch(Iter.of(o, d).mapWith(AxiomParserProvider::get), a -> a.testStatement(statement, conf));
     }
 
     /**

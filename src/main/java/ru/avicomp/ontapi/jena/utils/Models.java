@@ -23,7 +23,6 @@ import org.apache.jena.rdf.model.impl.RDFListImpl;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.util.NodeUtils;
-import org.apache.jena.util.iterator.ClosableIterator;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.OntListImpl;
@@ -303,6 +302,7 @@ public class Models {
 
     /**
      * Converts rdf-node to anonymous individual.
+     *
      * @param node {@link RDFNode}
      * @return {@link OntIndividual.Anonymous}
      * @throws OntJenaException if the node cannot be present as anonymous individual
@@ -315,6 +315,7 @@ public class Models {
 
     /**
      * Determines the actual ontology object type.
+     *
      * @param object instance of {@link O}
      * @param <O>    any subtype of {@link OntObject}
      * @return {@link Class}-type of {@link O}
@@ -484,7 +485,7 @@ public class Models {
      * each element equals to the input statement but has different related annotations
      * @see OntModels#listSplitStatements(OntStatement)
      * @deprecated since 1.4.2: use the methods
-     * {@link OntModels#listSplitStatements(OntStatement)} and {@link Iter#asStream(ClosableIterator)} instead
+     * {@link OntModels#listSplitStatements(OntStatement)} and {@link Iter#asStream(Iterator)} instead
      */
     @Deprecated
     public static Stream<OntStatement> split(OntStatement statement) {

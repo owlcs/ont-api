@@ -43,20 +43,22 @@ import java.util.stream.Stream;
 public class Iter {
 
     /**
-     * Creates a new sequential {@code Stream} from the given {@code CloseableIterator}.
+     * Creates a new sequential {@code Stream} from the given {@code Iterator}.
      * <p>
-     * Do not forget to call {@link Stream#close()} explicitly if the inner iterator is not exhausted
+     * If the given parameter is {@link ClosableIterator},
+     * do not forget to call {@link Stream#close()} explicitly if the iterator is not exhausted
      * (i.e. in case {@link Iterator#hasNext()} is still {@code true}).
      * It should be done for all short-circuiting terminal operations such as {@link Stream#findFirst()},
      * {@link Stream#findAny()}, {@link Stream#anyMatch(Predicate)} etc.
      *
-     * @param iterator {@link ClosableIterator}, not {@code null}
+     * @param iterator {@link Iterator}, not {@code null}
      * @param <X>      the class-type of iterator
      * @return {@code Stream}
      */
     @SuppressWarnings("unchecked")
-    public static <X> Stream<X> asStream(ClosableIterator<? extends X> iterator) {
-        return (Stream<X>) org.apache.jena.atlas.iterator.Iter.asStream(iterator).onClose(iterator::close);
+    public static <X> Stream<X> asStream(Iterator<? extends X> iterator) {
+        Stream<X> res = (Stream<X>) org.apache.jena.atlas.iterator.Iter.asStream(iterator);
+        return iterator instanceof ClosableIterator ? res.onClose(((ClosableIterator) iterator)::close) : res;
     }
 
     /**
@@ -132,6 +134,7 @@ public class Iter {
      * @param b   the second iterator
      * @param <X> the type of iterator elements
      * @return the concatenation of the two input iterators
+     * @see Iter#concat(ExtendedIterator[])
      */
     @SuppressWarnings("unchecked")
     public static <X> ExtendedIterator<X> concat(ExtendedIterator<? extends X> a, ExtendedIterator<? extends X> b) {
@@ -149,7 +152,7 @@ public class Iter {
      * @param iterators Array of iterators
      * @param <X>       the type of iterator elements
      * @return all input elements as a single {@link ExtendedIterator} of type {@link X}
-     * @see #concat(ExtendedIterator, ExtendedIterator)
+     * @see Iter#concat(ExtendedIterator, ExtendedIterator)
      * @since 1.4.0
      */
     @SafeVarargs
@@ -159,6 +162,21 @@ public class Iter {
             res = res.andThen(i);
         }
         return res;
+    }
+
+    /**
+     * Returns an extended iterator consisting of the elements of the specified extended iterator
+     * that match the given predicate.
+     * A functional equivalent of {@link Stream#filter(Predicate)}, but for {@link ExtendedIterator}s.
+     *
+     * @param iterator  {@link ExtendedIterator} with elements of type {@link X}
+     * @param predicate {@link Predicate} to apply to elements of the iterator
+     * @param <X>       the element type of the input and output iterators
+     * @return a new iterator
+     */
+    @SuppressWarnings("unchecked")
+    public static <X> ExtendedIterator<X> filter(ExtendedIterator<X> iterator, Predicate<? super X> predicate) {
+        return iterator.filterKeep((Predicate<X>) predicate);
     }
 
     /**
@@ -195,82 +213,86 @@ public class Iter {
 
     /**
      * Returns whether any elements of the given iterator match the provided predicate.
-     * A functional equivalent of {@link Stream#anyMatch(Predicate)}, but for {@link ExtendedIterator}s.
+     * A functional equivalent of {@link Stream#anyMatch(Predicate)}, but for {@link Iterator}s.
      *
      * @param iterator  {@link ExtendedIterator} with elements of type {@link X}
      * @param predicate {@link Predicate} to apply to elements of the iterator
      * @param <X>       the element type of the input and output iterators
      * @return {@code true} if any elements of the stream match the provided predicate, otherwise {@code false}
-     * @see #allMatch(ExtendedIterator, Predicate)
+     * @see Iter#allMatch(Iterator, Predicate)
+     * @see Iter#noneMatch(Iterator, Predicate)
      */
-    public static <X> boolean anyMatch(ExtendedIterator<X> iterator, Predicate<? super X> predicate) {
+    public static <X> boolean anyMatch(Iterator<X> iterator, Predicate<? super X> predicate) {
         if (iterator instanceof NullIterator) return false;
         try {
             while (iterator.hasNext()) {
                 if (predicate.test(iterator.next())) return true;
             }
         } finally {
-            iterator.close();
+            close(iterator);
         }
         return false;
     }
 
     /**
      * Returns whether all elements of the given iterator match the provided predicate.
-     * A functional equivalent of {@link Stream#allMatch(Predicate)}, but for {@link ExtendedIterator}s.
+     * A functional equivalent of {@link Stream#allMatch(Predicate)}, but for {@link Iterator}s.
      *
-     * @param iterator  {@link ExtendedIterator} with elements of type {@link X}
+     * @param iterator  {@link Iterator} with elements of type {@link X}
      * @param predicate {@link Predicate} to apply to elements of the iterator
      * @param <X>       the element type of the input and output iterators
      * @return {@code true} if either all elements of the iterator match the provided predicate
      * or the iterator is empty, otherwise {@code false}
-     * @see #anyMatch(ExtendedIterator, Predicate)
+     * @see Iter#anyMatch(Iterator, Predicate)
+     * @see Iter#noneMatch(Iterator, Predicate)
      * @since 1.4.2
      */
-    public static <X> boolean allMatch(ExtendedIterator<X> iterator, Predicate<? super X> predicate) {
+    public static <X> boolean allMatch(Iterator<X> iterator, Predicate<? super X> predicate) {
         if (iterator instanceof NullIterator) return true;
         try {
             while (iterator.hasNext()) {
                 if (!predicate.test(iterator.next())) return false;
             }
         } finally {
-            iterator.close();
+            close(iterator);
         }
         return true;
     }
 
     /**
-     * Returns an extended iterator consisting of the elements of the specified extended iterator
-     * that match the given predicate.
-     * A functional equivalent of {@link Stream#filter(Predicate)}, but for {@link ExtendedIterator}s.
+     * Returns whether no elements of the given iterator match the provided predicate.
+     * A functional equivalent of {@link Stream#noneMatch(Predicate)}, but for {@link Iterator}s.
      *
-     * @param iterator  {@link ExtendedIterator} with elements of type {@link X}
+     * @param iterator  {@link Iterator} with elements of type {@link X}
      * @param predicate {@link Predicate} to apply to elements of the iterator
      * @param <X>       the element type of the input and output iterators
-     * @return a new iterator
+     * @return {@code true} if either no elements of the iterator match the provided predicate
+     * or the iterator is empty, otherwise {@code false}
+     * @see Iter#anyMatch(Iterator, Predicate)
+     * @see Iter#allMatch(Iterator, Predicate)
+     * @since 1.4.2
      */
-    @SuppressWarnings("unchecked")
-    public static <X> ExtendedIterator<X> filter(ExtendedIterator<X> iterator, Predicate<? super X> predicate) {
-        return iterator.filterKeep((Predicate<X>) predicate);
+    public static <X> boolean noneMatch(Iterator<X> iterator, Predicate<? super X> predicate) {
+        return allMatch(iterator, predicate.negate());
     }
 
     /**
      * Returns an {@link Optional} describing the first element of the iterator,
      * or an empty {@code Optional} if the iterator is empty.
-     * A functional equivalent of {@link Stream#findFirst()}, but for {@link ExtendedIterator}s.
+     * A functional equivalent of {@link Stream#findFirst()}, but for {@link Iterator}s.
      * Warning: the method closes the specified iterator, so it is no possible to reuse it after calling this method.
      *
-     * @param iterator {@link ClosableIterator}, not {@code null}
+     * @param iterator {@link Iterator}, not {@code null}
      * @param <X>      the element type of the iterator
      * @return {@link Optional} of {@link X}
      * @throws NullPointerException if the element selected is {@code null}
      */
-    public static <X> Optional<X> findFirst(ClosableIterator<X> iterator) {
+    public static <X> Optional<X> findFirst(Iterator<X> iterator) {
         if (iterator instanceof NullIterator) return Optional.empty();
         try {
             return iterator.hasNext() ? Optional.of(iterator.next()) : Optional.empty();
         } finally {
-            iterator.close();
+            close(iterator);
         }
     }
 
@@ -312,6 +334,18 @@ public class Iter {
     }
 
     /**
+     * Closes iterator if it is {@link ClosableIterator CloseableIterator}.
+     *
+     * @param iterator {@link Iterator}
+     * @since 1.4.2
+     */
+    public static void close(Iterator<?> iterator) {
+        if (iterator instanceof ClosableIterator) {
+            ((ClosableIterator<?>) iterator).close();
+        }
+    }
+
+    /**
      * Creates a new {@link ExtendedIterator Extended Iterator}} containing the specified elements.
      *
      * @param members Array of elements of the type {@link X}
@@ -341,7 +375,7 @@ public class Iter {
      * but they will be derived at once when calling any of the {@code ExtendedIterator} methods.
      * <p>
      * The idea is to provide a truly lazy iterator
-     * and, subsequently, a stream (through the {@link #asStream(ClosableIterator)} method).
+     * and, subsequently, a stream (through the {@link #asStream(Iterator)} method).
      * When any distinct operation (i.e. {@link #distinct(ExtendedIterator)} or {@link Stream#distinct()}) is used,
      * it, in fact, collects on demand an in-memory {@code Set} containing all elements,
      * but it will be appeared in process and an iterator or a stream initially weighs nothing.

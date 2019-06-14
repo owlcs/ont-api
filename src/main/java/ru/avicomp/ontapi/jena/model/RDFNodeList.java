@@ -17,7 +17,6 @@ package ru.avicomp.ontapi.jena.model;
 import org.apache.jena.rdf.model.RDFList;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.util.iterator.ClosableIterator;
 
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -42,7 +41,7 @@ public interface RDFNodeList<E extends RDFNode> extends Resource {
      *
      * @return {@code Stream} of {@link E}-elements
      * @see #as(Class)
-     * @see ru.avicomp.ontapi.jena.utils.Iter#asStream(ClosableIterator)
+     * @see ru.avicomp.ontapi.jena.utils.Iter#asStream(Iterator)
      */
     Stream<E> members();
 
