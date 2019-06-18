@@ -41,7 +41,7 @@ public interface RDFNodeList<E extends RDFNode> extends Resource {
      *
      * @return {@code Stream} of {@link E}-elements
      * @see #as(Class)
-     * @see ru.avicomp.ontapi.jena.utils.Iter#asStream(Iterator)
+     * @see ru.avicomp.ontapi.jena.utils.Iter#asStream(java.util.Iterator)
      */
     Stream<E> members();
 

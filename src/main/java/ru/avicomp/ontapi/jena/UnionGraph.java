@@ -156,6 +156,8 @@ public class UnionGraph extends CompositionBase {
 
     /**
      * Adds the specified graph to the underlying graph collection.
+     * Note: for a well-formed ontological {@code UnionGraph}
+     * the input {@code graph} must be also a {@code UnionGraph}, even it has no hierarchy structure.
      *
      * @param graph {@link Graph}, not {@code null}
      * @return this instance
@@ -349,13 +351,8 @@ public class UnionGraph extends CompositionBase {
      */
     private void collectBaseGraphs(Set<Graph> res, Set<UnionGraph> seen) {
         Graph base = getBaseGraph();
-        Set<Graph> graphs = new HashSet<>();
+        Set<Graph> graphs = new LinkedHashSet<>();
         graphs.add(base);
-        if (base instanceof UnionGraph) {
-            graphs.add(base);
-        } else {
-            res.add(base);
-        }
         graphs.addAll(getUnderlying().graphs);
         graphs.forEach(g -> {
             if (!(g instanceof UnionGraph)) {
@@ -427,9 +424,9 @@ public class UnionGraph extends CompositionBase {
     }
 
     /**
-     * A container to hold sub-graphs.
-     * Such a representation of sub-graphs in the form of separate class allows
-     * sharing its instance among the several {@code UnionGraph} instances
+     * A container to hold all sub-graphs, that make up the hierarchy.
+     * Such a representation of sub-graphs collection in the form of separate class allows
+     * to share its instance among different {@code UnionGraph} instances
      * in order to impart whole hierarchy structure when it is needed.
      */
     public static class Underlying {
