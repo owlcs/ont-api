@@ -21,6 +21,7 @@ import org.semanticweb.owlapi.model.OWLTransitiveObjectPropertyAxiom;
 import ru.avicomp.ontapi.internal.InternalConfig;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
+import ru.avicomp.ontapi.internal.ONTObjectImpl;
 import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
@@ -36,6 +37,7 @@ import java.util.Collection;
  * Created by @szuev on 28.09.2016.
  */
 public class TransitiveObjectPropertyTranslator extends AbstractPropertyTypeTranslator<OWLTransitiveObjectPropertyAxiom, OntOPE> {
+
     @Override
     Resource getType() {
         return OWL.TransitiveProperty;
@@ -47,11 +49,14 @@ public class TransitiveObjectPropertyTranslator extends AbstractPropertyTypeTran
     }
 
     @Override
-    public ONTObject<OWLTransitiveObjectPropertyAxiom> toAxiom(OntStatement statement, InternalObjectFactory reader, InternalConfig config) {
+    public ONTObject<OWLTransitiveObjectPropertyAxiom> toAxiom(OntStatement statement,
+                                                               InternalObjectFactory reader,
+                                                               InternalConfig config) {
         ONTObject<? extends OWLObjectPropertyExpression> p = reader.get(getSubject(statement));
         Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLTransitiveObjectPropertyAxiom res = reader.getOWLDataFactory()
                 .getOWLTransitiveObjectPropertyAxiom(p.getObject(), ONTObject.extract(annotations));
-        return ONTObject.create(res, statement).append(annotations).append(p);
+        return ONTObjectImpl.create(res, statement).append(annotations).append(p);
     }
+
 }

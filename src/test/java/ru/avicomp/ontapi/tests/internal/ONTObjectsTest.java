@@ -20,6 +20,7 @@ import org.semanticweb.owlapi.model.OWLDisjointClassesAxiom;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
+import ru.avicomp.ontapi.internal.ONTObjectImpl;
 import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntDisjoint;
@@ -46,7 +47,7 @@ public class ONTObjectsTest {
 
         ReadWriteUtils.print(m);
         ONTObject<OWLDisjointClassesAxiom> ax =
-                ONTObject.create(new OWLDisjointClassesAxiomImpl(Collections.emptySet(), Collections.emptySet()), c);
+                ONTObjectImpl.create(new OWLDisjointClassesAxiomImpl(Collections.emptySet(), Collections.emptySet()), c);
 
         Assert.assertEquals(8, ax.triples().peek(x -> LOGGER.debug("{}", x)).count());
         LOGGER.debug("---");

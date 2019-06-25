@@ -21,6 +21,7 @@ import org.semanticweb.owlapi.model.OWLSymmetricObjectPropertyAxiom;
 import ru.avicomp.ontapi.internal.InternalConfig;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
+import ru.avicomp.ontapi.internal.ONTObjectImpl;
 import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
@@ -36,6 +37,7 @@ import java.util.Collection;
  * Created by @szuev on 30.09.2016.
  */
 public class SymmetricObjectPropertyTranslator extends AbstractPropertyTypeTranslator<OWLSymmetricObjectPropertyAxiom, OntOPE> {
+
     @Override
     Resource getType() {
         return OWL.SymmetricProperty;
@@ -47,11 +49,14 @@ public class SymmetricObjectPropertyTranslator extends AbstractPropertyTypeTrans
     }
 
     @Override
-    public ONTObject<OWLSymmetricObjectPropertyAxiom> toAxiom(OntStatement statement, InternalObjectFactory reader, InternalConfig config) {
+    public ONTObject<OWLSymmetricObjectPropertyAxiom> toAxiom(OntStatement statement,
+                                                              InternalObjectFactory reader,
+                                                              InternalConfig config) {
         ONTObject<? extends OWLObjectPropertyExpression> p = reader.get(getSubject(statement));
         Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLSymmetricObjectPropertyAxiom res = reader.getOWLDataFactory()
                 .getOWLSymmetricObjectPropertyAxiom(p.getObject(), ONTObject.extract(annotations));
-        return ONTObject.create(res, statement).append(annotations).append(p);
+        return ONTObjectImpl.create(res, statement).append(annotations).append(p);
     }
+
 }

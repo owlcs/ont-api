@@ -36,6 +36,7 @@ import java.util.Collection;
  * Created by @szuev on 30.09.2016.
  */
 public class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInverseObjectPropertiesAxiom> {
+
     @Override
     public void write(OWLInverseObjectPropertiesAxiom axiom, OntGraphModel model) {
         WriteHelper.writeTriple(model, axiom.getFirstProperty(), OWL.inverseOf, axiom.getSecondProperty(), axiom.annotations());
@@ -63,12 +64,15 @@ public class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInvers
     }
 
     @Override
-    public ONTObject<OWLInverseObjectPropertiesAxiom> toAxiom(OntStatement statement, InternalObjectFactory reader, InternalConfig config) {
+    public ONTObject<OWLInverseObjectPropertiesAxiom> toAxiom(OntStatement statement,
+                                                              InternalObjectFactory reader,
+                                                              InternalConfig config) {
         ONTObject<? extends OWLObjectPropertyExpression> f = reader.get(statement.getSubject(OntOPE.class));
         ONTObject<? extends OWLObjectPropertyExpression> s = reader.get(statement.getObject().as(OntOPE.class));
         Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLInverseObjectPropertiesAxiom res = reader.getOWLDataFactory()
                 .getOWLInverseObjectPropertiesAxiom(f.getObject(), s.getObject(), ONTObject.extract(annotations));
-        return ONTObject.create(res, statement).append(annotations).append(f).append(s);
+        return ONTObjectImpl.create(res, statement).append(annotations).append(f).append(s);
     }
+
 }

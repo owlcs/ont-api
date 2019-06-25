@@ -84,7 +84,7 @@ public class AnnotationAssertionTranslator
         OWLAnnotationAssertionAxiom res = reader.getOWLDataFactory()
                 .getOWLAnnotationAssertionAxiom(p.getObject(), s.getObject(), v.getObject(),
                         ONTObject.extract(annotations));
-        return ONTObject.create(res, statement).append(annotations).append(s).append(p).append(v);
+        return ONTObjectImpl.create(res, statement).append(annotations).append(s).append(p).append(v);
     }
 
 }

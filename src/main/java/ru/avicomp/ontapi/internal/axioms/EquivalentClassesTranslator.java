@@ -21,6 +21,7 @@ import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import ru.avicomp.ontapi.internal.InternalConfig;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
+import ru.avicomp.ontapi.internal.ONTObjectImpl;
 import ru.avicomp.ontapi.jena.model.OntCE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
@@ -36,9 +37,11 @@ import java.util.Collection;
  * </pre>
  * <p>
  * Created by @szuev on 29.09.2016.
+ *
  * @see OWLEquivalentClassesAxiom
  */
 public class EquivalentClassesTranslator extends AbstractNaryTranslator<OWLEquivalentClassesAxiom, OWLClassExpression, OntCE> {
+
     @Override
     public Property getPredicate() {
         return OWL.equivalentClass;
@@ -50,12 +53,15 @@ public class EquivalentClassesTranslator extends AbstractNaryTranslator<OWLEquiv
     }
 
     @Override
-    public ONTObject<OWLEquivalentClassesAxiom> toAxiom(OntStatement statement, InternalObjectFactory reader, InternalConfig config) {
+    public ONTObject<OWLEquivalentClassesAxiom> toAxiom(OntStatement statement,
+                                                        InternalObjectFactory reader,
+                                                        InternalConfig config) {
         ONTObject<? extends OWLClassExpression> a = reader.get(statement.getSubject(getView()));
         ONTObject<? extends OWLClassExpression> b = reader.get(statement.getObject().as(getView()));
         Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLEquivalentClassesAxiom res = reader.getOWLDataFactory()
                 .getOWLEquivalentClassesAxiom(a.getObject(), b.getObject(), ONTObject.extract(annotations));
-        return ONTObject.create(res, statement).append(annotations).append(a).append(b);
+        return ONTObjectImpl.create(res, statement).append(annotations).append(a).append(b);
     }
+
 }

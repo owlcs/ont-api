@@ -15,10 +15,7 @@
 package ru.avicomp.ontapi.internal.axioms;
 
 import org.semanticweb.owlapi.model.*;
-import ru.avicomp.ontapi.internal.InternalConfig;
-import ru.avicomp.ontapi.internal.InternalObjectFactory;
-import ru.avicomp.ontapi.internal.ONTObject;
-import ru.avicomp.ontapi.internal.WriteHelper;
+import ru.avicomp.ontapi.internal.*;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntNPA;
 import ru.avicomp.ontapi.jena.model.OntStatement;
@@ -32,11 +29,14 @@ import java.util.Collection;
  * }</pre>
  * Created by szuev on 12.10.2016.
  */
-public class NegativeDataPropertyAssertionTranslator extends AbstractNegativePropertyAssertionTranslator<OWLNegativeDataPropertyAssertionAxiom, OntNPA.DataAssertion> {
+public class NegativeDataPropertyAssertionTranslator
+        extends AbstractNegativePropertyAssertionTranslator<OWLNegativeDataPropertyAssertionAxiom, OntNPA.DataAssertion> {
+
     @Override
     OntNPA.DataAssertion createNPA(OWLNegativeDataPropertyAssertionAxiom axiom, OntGraphModel model) {
         return WriteHelper.addDataProperty(model, axiom.getProperty())
-                .addNegativeAssertion(WriteHelper.addIndividual(model, axiom.getSubject()), WriteHelper.addLiteral(model, axiom.getObject()));
+                .addNegativeAssertion(WriteHelper.addIndividual(model, axiom.getSubject()),
+                        WriteHelper.addLiteral(model, axiom.getObject()));
     }
 
     @Override
@@ -45,7 +45,9 @@ public class NegativeDataPropertyAssertionTranslator extends AbstractNegativePro
     }
 
     @Override
-    public ONTObject<OWLNegativeDataPropertyAssertionAxiom> toAxiom(OntStatement statement, InternalObjectFactory reader, InternalConfig config) {
+    public ONTObject<OWLNegativeDataPropertyAssertionAxiom> toAxiom(OntStatement statement,
+                                                                    InternalObjectFactory reader,
+                                                                    InternalConfig config) {
         OntNPA.DataAssertion npa = statement.getSubject(getView());
         ONTObject<? extends OWLIndividual> s = reader.get(npa.getSource());
         ONTObject<OWLDataProperty> p = reader.get(npa.getProperty());
@@ -54,6 +56,7 @@ public class NegativeDataPropertyAssertionTranslator extends AbstractNegativePro
         OWLNegativeDataPropertyAssertionAxiom res = reader.getOWLDataFactory()
                 .getOWLNegativeDataPropertyAssertionAxiom(p.getObject(),
                         s.getObject(), o.getObject(), ONTObject.extract(annotations));
-        return ONTObject.create(res, npa).append(annotations).append(s).append(p).append(o);
+        return ONTObjectImpl.create(res, npa).append(annotations).append(s).append(p).append(o);
     }
+
 }

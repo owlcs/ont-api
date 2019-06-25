@@ -22,10 +22,7 @@ import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLLogicalAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
 import ru.avicomp.ontapi.OntApiException;
-import ru.avicomp.ontapi.internal.AxiomTranslator;
-import ru.avicomp.ontapi.internal.InternalConfig;
-import ru.avicomp.ontapi.internal.ONTObject;
-import ru.avicomp.ontapi.internal.WriteHelper;
+import ru.avicomp.ontapi.internal.*;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntList;
 import ru.avicomp.ontapi.jena.model.OntObject;
@@ -96,7 +93,7 @@ public abstract class AbstractListBasedTranslator<Axiom extends OWLLogicalAxiom,
         Collection<ONTObject<? extends OWL_MEMBER>> members = list.members().map(memberExtractor).collect(collector);
 
         Axiom res = axiomMaker.apply(subject, members);
-        return ONTObject.create(res, statement).append(() -> list.spec().map(FrontsTriple::asTriple));
+        return ONTObjectImpl.create(res, statement).append(() -> list.spec().map(FrontsTriple::asTriple));
     }
 
 }

@@ -38,6 +38,7 @@ import java.util.Collection;
  * Created by @szuev on 18.10.2016.
  */
 public class DatatypeDefinitionTranslator extends AxiomTranslator<OWLDatatypeDefinitionAxiom> {
+
     @Override
     public void write(OWLDatatypeDefinitionAxiom axiom, OntGraphModel model) {
         WriteHelper.writeTriple(model, axiom.getDatatype(), OWL.equivalentClass, axiom.getDataRange(), axiom.annotations());
@@ -58,12 +59,15 @@ public class DatatypeDefinitionTranslator extends AxiomTranslator<OWLDatatypeDef
     }
 
     @Override
-    public ONTObject<OWLDatatypeDefinitionAxiom> toAxiom(OntStatement statement, InternalObjectFactory reader, InternalConfig config) {
+    public ONTObject<OWLDatatypeDefinitionAxiom> toAxiom(OntStatement statement,
+                                                         InternalObjectFactory reader,
+                                                         InternalConfig config) {
         ONTObject<OWLDatatype> dt = reader.get(statement.getSubject(OntDT.class));
         ONTObject<? extends OWLDataRange> dr = reader.get(statement.getObject().as(OntDR.class));
         Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLDatatypeDefinitionAxiom res = reader.getOWLDataFactory()
                 .getOWLDatatypeDefinitionAxiom(dt.getObject(), dr.getObject(), ONTObject.extract(annotations));
-        return ONTObject.create(res, statement).append(annotations).append(dt).append(dr);
+        return ONTObjectImpl.create(res, statement).append(annotations).append(dt).append(dr);
     }
+
 }

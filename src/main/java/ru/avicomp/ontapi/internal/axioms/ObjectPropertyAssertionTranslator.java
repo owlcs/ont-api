@@ -19,10 +19,7 @@ import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
-import ru.avicomp.ontapi.internal.InternalConfig;
-import ru.avicomp.ontapi.internal.InternalObjectFactory;
-import ru.avicomp.ontapi.internal.ONTObject;
-import ru.avicomp.ontapi.internal.WriteHelper;
+import ru.avicomp.ontapi.internal.*;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
 import ru.avicomp.ontapi.jena.model.OntOPE;
@@ -86,6 +83,7 @@ public class ObjectPropertyAssertionTranslator
         OWLObjectPropertyAssertionAxiom res = reader.getOWLDataFactory()
                 .getOWLObjectPropertyAssertionAxiom(property.getObject(), subject.getObject(), object.getObject(),
                         ONTObject.extract(annotations));
-        return ONTObject.create(res, statement).append(annotations).append(subject).append(property).append(object);
+        return ONTObjectImpl.create(res, statement).append(annotations).append(subject).append(property).append(object);
     }
+
 }

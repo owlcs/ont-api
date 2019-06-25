@@ -22,6 +22,7 @@ import org.semanticweb.owlapi.model.OWLEquivalentDataPropertiesAxiom;
 import ru.avicomp.ontapi.internal.InternalConfig;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
+import ru.avicomp.ontapi.internal.ONTObjectImpl;
 import ru.avicomp.ontapi.jena.model.OntNDP;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
@@ -36,9 +37,11 @@ import java.util.Collection;
  * }
  * </pre>
  * Created by @szuev on 01.10.2016.
+ *
  * @see OWLEquivalentDataPropertiesAxiom
  */
-public class EquivalentDataPropertiesTranslator extends AbstractNaryTranslator<OWLEquivalentDataPropertiesAxiom, OWLDataPropertyExpression, OntNDP> {
+public class EquivalentDataPropertiesTranslator
+        extends AbstractNaryTranslator<OWLEquivalentDataPropertiesAxiom, OWLDataPropertyExpression, OntNDP> {
 
     @Override
     Property getPredicate() {
@@ -51,12 +54,15 @@ public class EquivalentDataPropertiesTranslator extends AbstractNaryTranslator<O
     }
 
     @Override
-    public ONTObject<OWLEquivalentDataPropertiesAxiom> toAxiom(OntStatement statement, InternalObjectFactory reader, InternalConfig config) {
+    public ONTObject<OWLEquivalentDataPropertiesAxiom> toAxiom(OntStatement statement,
+                                                               InternalObjectFactory reader,
+                                                               InternalConfig config) {
         ONTObject<OWLDataProperty> a = reader.get(statement.getSubject(getView()));
         ONTObject<OWLDataProperty> b = reader.get(statement.getObject().as(getView()));
         Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLEquivalentDataPropertiesAxiom res = reader.getOWLDataFactory()
                 .getOWLEquivalentDataPropertiesAxiom(a.getObject(), b.getObject(), ONTObject.extract(annotations));
-        return ONTObject.create(res, statement).append(annotations).append(a).append(b);
+        return ONTObjectImpl.create(res, statement).append(annotations).append(a).append(b);
     }
+
 }

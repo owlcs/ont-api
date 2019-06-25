@@ -18,10 +18,7 @@ import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLNegativeObjectPropertyAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
-import ru.avicomp.ontapi.internal.InternalConfig;
-import ru.avicomp.ontapi.internal.InternalObjectFactory;
-import ru.avicomp.ontapi.internal.ONTObject;
-import ru.avicomp.ontapi.internal.WriteHelper;
+import ru.avicomp.ontapi.internal.*;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntNPA;
 import ru.avicomp.ontapi.jena.model.OntStatement;
@@ -35,11 +32,14 @@ import java.util.Collection;
  * }</pre>
  * Created by szuev on 12.10.2016.
  */
-public class NegativeObjectPropertyAssertionTranslator extends AbstractNegativePropertyAssertionTranslator<OWLNegativeObjectPropertyAssertionAxiom, OntNPA.ObjectAssertion> {
+public class NegativeObjectPropertyAssertionTranslator
+        extends AbstractNegativePropertyAssertionTranslator<OWLNegativeObjectPropertyAssertionAxiom, OntNPA.ObjectAssertion> {
+
     @Override
     OntNPA.ObjectAssertion createNPA(OWLNegativeObjectPropertyAssertionAxiom axiom, OntGraphModel model) {
         return WriteHelper.addObjectProperty(model, axiom.getProperty())
-                .addNegativeAssertion(WriteHelper.addIndividual(model, axiom.getSubject()), WriteHelper.addIndividual(model, axiom.getObject()));
+                .addNegativeAssertion(WriteHelper.addIndividual(model, axiom.getSubject()),
+                        WriteHelper.addIndividual(model, axiom.getObject()));
     }
 
     @Override
@@ -48,7 +48,9 @@ public class NegativeObjectPropertyAssertionTranslator extends AbstractNegativeP
     }
 
     @Override
-    public ONTObject<OWLNegativeObjectPropertyAssertionAxiom> toAxiom(OntStatement statement, InternalObjectFactory reader, InternalConfig config) {
+    public ONTObject<OWLNegativeObjectPropertyAssertionAxiom> toAxiom(OntStatement statement,
+                                                                      InternalObjectFactory reader,
+                                                                      InternalConfig config) {
         OntNPA.ObjectAssertion npa = statement.getSubject(getView());
         ONTObject<? extends OWLIndividual> s = reader.get(npa.getSource());
         ONTObject<? extends OWLObjectPropertyExpression> p = reader.get(npa.getProperty());
@@ -57,6 +59,7 @@ public class NegativeObjectPropertyAssertionTranslator extends AbstractNegativeP
         OWLNegativeObjectPropertyAssertionAxiom res = reader.getOWLDataFactory()
                 .getOWLNegativeObjectPropertyAssertionAxiom(p.getObject(),
                         s.getObject(), o.getObject(), ONTObject.extract(annotations));
-        return ONTObject.create(res, npa).append(annotations).append(s).append(p).append(o);
+        return ONTObjectImpl.create(res, npa).append(annotations).append(s).append(p).append(o);
     }
+
 }

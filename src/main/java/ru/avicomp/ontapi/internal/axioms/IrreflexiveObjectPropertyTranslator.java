@@ -21,6 +21,7 @@ import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import ru.avicomp.ontapi.internal.InternalConfig;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
+import ru.avicomp.ontapi.internal.ONTObjectImpl;
 import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
@@ -29,7 +30,7 @@ import java.util.Collection;
 
 /**
  * Object property with owl:IrreflexiveProperty type
- *
+ * <p>
  * NOTE: owl AxiomType is "IrrefexiveObjectProperty" ({@link org.semanticweb.owlapi.model.AxiomType#IRREFLEXIVE_OBJECT_PROPERTY}), not "IrreflexiveObjectProperty"
  * example:
  * <pre>{@code
@@ -37,7 +38,9 @@ import java.util.Collection;
  * }</pre>
  * Created by @szuev on 18.10.2016.
  */
-public class IrreflexiveObjectPropertyTranslator extends AbstractPropertyTypeTranslator<OWLIrreflexiveObjectPropertyAxiom, OntOPE> {
+public class IrreflexiveObjectPropertyTranslator
+        extends AbstractPropertyTypeTranslator<OWLIrreflexiveObjectPropertyAxiom, OntOPE> {
+
     @Override
     Resource getType() {
         return OWL.IrreflexiveProperty;
@@ -49,11 +52,14 @@ public class IrreflexiveObjectPropertyTranslator extends AbstractPropertyTypeTra
     }
 
     @Override
-    public ONTObject<OWLIrreflexiveObjectPropertyAxiom> toAxiom(OntStatement statement, InternalObjectFactory reader, InternalConfig config) {
+    public ONTObject<OWLIrreflexiveObjectPropertyAxiom> toAxiom(OntStatement statement,
+                                                                InternalObjectFactory reader,
+                                                                InternalConfig config) {
         ONTObject<? extends OWLObjectPropertyExpression> p = reader.get(getSubject(statement));
         Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLIrreflexiveObjectPropertyAxiom res = reader.getOWLDataFactory()
                 .getOWLIrreflexiveObjectPropertyAxiom(p.getObject(), ONTObject.extract(annotations));
-        return ONTObject.create(res, statement).append(annotations).append(p);
+        return ONTObjectImpl.create(res, statement).append(annotations).append(p);
     }
+
 }

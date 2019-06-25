@@ -21,6 +21,7 @@ import org.semanticweb.owlapi.model.OWLDataRange;
 import ru.avicomp.ontapi.internal.InternalConfig;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
+import ru.avicomp.ontapi.internal.ONTObjectImpl;
 import ru.avicomp.ontapi.jena.model.OntDR;
 import ru.avicomp.ontapi.jena.model.OntNDP;
 import ru.avicomp.ontapi.jena.model.OntStatement;
@@ -33,6 +34,7 @@ import java.util.Collection;
  * Created by @szuev on 28.09.2016.
  */
 public class DataPropertyRangeTranslator extends AbstractPropertyRangeTranslator<OWLDataPropertyRangeAxiom, OntNDP> {
+
     @Override
     Class<OntNDP> getView() {
         return OntNDP.class;
@@ -43,13 +45,15 @@ public class DataPropertyRangeTranslator extends AbstractPropertyRangeTranslator
     }
 
     @Override
-    public ONTObject<OWLDataPropertyRangeAxiom> toAxiom(OntStatement statement, InternalObjectFactory reader, InternalConfig config) {
+    public ONTObject<OWLDataPropertyRangeAxiom> toAxiom(OntStatement statement,
+                                                        InternalObjectFactory reader,
+                                                        InternalConfig config) {
         ONTObject<OWLDataProperty> p = reader.get(statement.getSubject(getView()));
         ONTObject<? extends OWLDataRange> d = reader.get(statement.getObject().as(OntDR.class));
         Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLDataPropertyRangeAxiom res = reader.getOWLDataFactory()
                 .getOWLDataPropertyRangeAxiom(p.getObject(), d.getObject(), ONTObject.extract(annotations));
-        return ONTObject.create(res, statement).append(annotations).append(p).append(d);
+        return ONTObjectImpl.create(res, statement).append(annotations).append(p).append(d);
     }
 
 }

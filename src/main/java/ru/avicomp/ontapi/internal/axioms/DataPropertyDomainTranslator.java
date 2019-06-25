@@ -21,6 +21,7 @@ import org.semanticweb.owlapi.model.OWLDataPropertyDomainAxiom;
 import ru.avicomp.ontapi.internal.InternalConfig;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
+import ru.avicomp.ontapi.internal.ONTObjectImpl;
 import ru.avicomp.ontapi.jena.model.OntCE;
 import ru.avicomp.ontapi.jena.model.OntNDP;
 import ru.avicomp.ontapi.jena.model.OntStatement;
@@ -33,6 +34,7 @@ import java.util.Collection;
  * Created by @szuev on 28.09.2016.
  */
 public class DataPropertyDomainTranslator extends AbstractPropertyDomainTranslator<OWLDataPropertyDomainAxiom, OntNDP> {
+
     @Override
     Class<OntNDP> getView() {
         return OntNDP.class;
@@ -44,11 +46,15 @@ public class DataPropertyDomainTranslator extends AbstractPropertyDomainTranslat
     }
 
     @Override
-    public ONTObject<OWLDataPropertyDomainAxiom> toAxiom(OntStatement statement, InternalObjectFactory reader, InternalConfig config) {
+    public ONTObject<OWLDataPropertyDomainAxiom> toAxiom(OntStatement statement,
+                                                         InternalObjectFactory reader,
+                                                         InternalConfig config) {
         ONTObject<OWLDataProperty> p = reader.get(statement.getSubject(getView()));
         ONTObject<? extends OWLClassExpression> ce = reader.get(statement.getObject().as(OntCE.class));
         Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
-        OWLDataPropertyDomainAxiom res = reader.getOWLDataFactory().getOWLDataPropertyDomainAxiom(p.getObject(), ce.getObject(), ONTObject.extract(annotations));
-        return ONTObject.create(res, statement).append(annotations).append(p).append(ce);
+        OWLDataPropertyDomainAxiom res = reader.getOWLDataFactory().getOWLDataPropertyDomainAxiom(p.getObject(),
+                ce.getObject(), ONTObject.extract(annotations));
+        return ONTObjectImpl.create(res, statement).append(annotations).append(p).append(ce);
     }
+
 }

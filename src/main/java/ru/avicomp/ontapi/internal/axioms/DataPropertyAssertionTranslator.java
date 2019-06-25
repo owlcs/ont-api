@@ -16,10 +16,7 @@ package ru.avicomp.ontapi.internal.axioms;
 
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.*;
-import ru.avicomp.ontapi.internal.InternalConfig;
-import ru.avicomp.ontapi.internal.InternalObjectFactory;
-import ru.avicomp.ontapi.internal.ONTObject;
-import ru.avicomp.ontapi.internal.WriteHelper;
+import ru.avicomp.ontapi.internal.*;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
 import ru.avicomp.ontapi.jena.model.OntNDP;
@@ -38,7 +35,8 @@ public class DataPropertyAssertionTranslator
 
     @Override
     public void write(OWLDataPropertyAssertionAxiom axiom, OntGraphModel model) {
-        WriteHelper.writeAssertionTriple(model, axiom.getSubject(), axiom.getProperty(), axiom.getObject(), axiom.annotations());
+        WriteHelper.writeAssertionTriple(model, axiom.getSubject(), axiom.getProperty(), axiom.getObject(),
+                axiom.annotations());
     }
 
     /**
@@ -72,6 +70,7 @@ public class DataPropertyAssertionTranslator
         OWLDataPropertyAssertionAxiom res = reader.getOWLDataFactory()
                 .getOWLDataPropertyAssertionAxiom(p.getObject(), i.getObject(), literal.getObject(),
                         ONTObject.extract(annotations));
-        return ONTObject.create(res, statement).append(annotations).append(i).append(p).append(literal);
+        return ONTObjectImpl.create(res, statement).append(annotations).append(i).append(p).append(literal);
     }
+
 }

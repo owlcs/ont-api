@@ -17,10 +17,7 @@ package ru.avicomp.ontapi.internal.axioms;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.util.iterator.NullIterator;
 import org.semanticweb.owlapi.model.*;
-import ru.avicomp.ontapi.internal.InternalConfig;
-import ru.avicomp.ontapi.internal.InternalObjectFactory;
-import ru.avicomp.ontapi.internal.ONTObject;
-import ru.avicomp.ontapi.internal.ReadHelper;
+import ru.avicomp.ontapi.internal.*;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntNAP;
 import ru.avicomp.ontapi.jena.model.OntObject;
@@ -34,7 +31,9 @@ import java.util.Collection;
  * <p>
  * Created by @szuev on 30.09.2016.
  */
-public class AnnotationPropertyRangeTranslator extends AbstractPropertyRangeTranslator<OWLAnnotationPropertyRangeAxiom, OntNAP> {
+public class AnnotationPropertyRangeTranslator
+        extends AbstractPropertyRangeTranslator<OWLAnnotationPropertyRangeAxiom, OntNAP> {
+
     @Override
     Class<OntNAP> getView() {
         return OntNAP.class;
@@ -67,12 +66,15 @@ public class AnnotationPropertyRangeTranslator extends AbstractPropertyRangeTran
     }
 
     @Override
-    public ONTObject<OWLAnnotationPropertyRangeAxiom> toAxiom(OntStatement statement, InternalObjectFactory reader, InternalConfig config) {
+    public ONTObject<OWLAnnotationPropertyRangeAxiom> toAxiom(OntStatement statement,
+                                                              InternalObjectFactory reader,
+                                                              InternalConfig config) {
         ONTObject<OWLAnnotationProperty> p = reader.get(statement.getSubject(getView()));
         ONTObject<IRI> d = reader.asIRI(statement.getObject().as(OntObject.class));
         Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLAnnotationPropertyRangeAxiom res = reader.getOWLDataFactory()
                 .getOWLAnnotationPropertyRangeAxiom(p.getObject(), d.getObject(), ONTObject.extract(annotations));
-        return ONTObject.create(res, statement).append(annotations).append(p).append(d);
+        return ONTObjectImpl.create(res, statement).append(annotations).append(p).append(d);
     }
+
 }

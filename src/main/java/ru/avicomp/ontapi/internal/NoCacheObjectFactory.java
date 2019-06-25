@@ -63,37 +63,37 @@ public class NoCacheObjectFactory implements InternalObjectFactory {
     @Override
     public ONTObject<OWLClass> get(OntClass ce) {
         IRI iri = toIRI(OntApiException.notNull(ce, "Null class."));
-        return ONTObject.create(getOWLDataFactory().getOWLClass(iri), ce);
+        return ONTObjectImpl.create(getOWLDataFactory().getOWLClass(iri), ce);
     }
 
     @Override
     public ONTObject<OWLDatatype> get(OntDT dr) {
         IRI iri = toIRI(OntApiException.notNull(dr, "Null datatype."));
-        return ONTObject.create(getOWLDataFactory().getOWLDatatype(iri), dr);
+        return ONTObjectImpl.create(getOWLDataFactory().getOWLDatatype(iri), dr);
     }
 
     @Override
     public ONTObject<OWLObjectProperty> get(OntNOP nop) {
         IRI iri = toIRI(OntApiException.notNull(nop, "Null object property."));
-        return ONTObject.create(getOWLDataFactory().getOWLObjectProperty(iri), nop);
+        return ONTObjectImpl.create(getOWLDataFactory().getOWLObjectProperty(iri), nop);
     }
 
     @Override
     public ONTObject<OWLAnnotationProperty> get(OntNAP nap) {
         IRI iri = toIRI(OntApiException.notNull(nap, "Null annotation property."));
-        return ONTObject.create(getOWLDataFactory().getOWLAnnotationProperty(iri), nap);
+        return ONTObjectImpl.create(getOWLDataFactory().getOWLAnnotationProperty(iri), nap);
     }
 
     @Override
     public ONTObject<OWLDataProperty> get(OntNDP ndp) {
         IRI iri = toIRI(OntApiException.notNull(ndp, "Null data property."));
-        return ONTObject.create(getOWLDataFactory().getOWLDataProperty(iri), ndp);
+        return ONTObjectImpl.create(getOWLDataFactory().getOWLDataProperty(iri), ndp);
     }
 
     @Override
     public ONTObject<OWLNamedIndividual> get(OntIndividual.Named i) {
         IRI iri = toIRI(OntApiException.notNull(i, "Null individual."));
-        return ONTObject.create(getOWLDataFactory().getOWLNamedIndividual(iri), i);
+        return ONTObjectImpl.create(getOWLDataFactory().getOWLNamedIndividual(iri), i);
     }
 
     @Override
@@ -101,7 +101,7 @@ public class NoCacheObjectFactory implements InternalObjectFactory {
         OntApiException.notNull(ope, "Null object property.");
         if (ope.isAnon()) {
             OWLObjectProperty op = getOWLDataFactory().getOWLObjectProperty(toIRI(ope.as(OntOPE.Inverse.class).getDirect()));
-            return ONTObject.create(op.getInverseProperty(), ope);
+            return ONTObjectImpl.create(op.getInverseProperty(), ope);
         }
         return get(ope.as(OntNOP.class));
     }
@@ -124,14 +124,14 @@ public class NoCacheObjectFactory implements InternalObjectFactory {
         if (OntApiException.notNull(individual, "Null individual").isURIResource()) {
             return get(individual.as(OntIndividual.Named.class));
         }
-        return ONTObject.create(df.getOWLAnonymousIndividual(individual.asNode().getBlankNodeId()), individual);
+        return ONTObjectImpl.create(df.getOWLAnonymousIndividual(individual.asNode().getBlankNodeId()), individual);
     }
 
     @Override
     public ONTObject<OWLLiteral> get(Literal literal) {
         DataFactory df = getOWLDataFactory();
         OWLLiteral owl = df.getOWLLiteral(literal.asNode().getLiteral());
-        ONTObject<OWLLiteral> res = ONTObject.create(owl);
+        ONTObjectImpl<OWLLiteral> res = ONTObjectImpl.create(owl);
         OntGraphModel m = (OntGraphModel) literal.getModel();
         OntDT jdt = m.getDatatype(literal);
         if (!jdt.isBuiltIn()) {
@@ -181,7 +181,7 @@ public class NoCacheObjectFactory implements InternalObjectFactory {
 
     @Override
     public ONTObject<IRI> asIRI(OntObject object) {
-        return ONTObject.create(toIRI(object), object.canAs(OntEntity.class) ? object.as(OntEntity.class) : object);
+        return ONTObjectImpl.create(toIRI(object), object.canAs(OntEntity.class) ? object.as(OntEntity.class) : object);
     }
 
     @Override

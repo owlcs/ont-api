@@ -62,6 +62,7 @@ public class CacheObjectTriplesMapImpl<X extends OWLObject> implements ObjectTri
     // to control mutation
     private final boolean tripleStore;
 
+    @SuppressWarnings("unused")
     public CacheObjectTriplesMapImpl(Supplier<Iterator<ONTObject<X>>> loader,
                                      boolean parallel) {
         this(loader, parallel, true, true);
@@ -87,7 +88,7 @@ public class CacheObjectTriplesMapImpl<X extends OWLObject> implements ObjectTri
     }
 
     /**
-     * Loads cache using {@link #loader} into memory.
+     * Loads the cache into memory using {@link #loader}.
      *
      * @return {@link CachedMap}
      */
@@ -97,7 +98,7 @@ public class CacheObjectTriplesMapImpl<X extends OWLObject> implements ObjectTri
         Map<X, ONTObject<X>> res = createMap();
         while (it.hasNext()) {
             ONTObject<X> v = it.next();
-            res.merge(v.getObject(), v, ONTObject::append);
+            res.merge(v.getObject(), v, (a, b) -> ONTObjectImpl.asImpl(a).append(b));
         }
         return new CachedMap(res);
     }
@@ -232,8 +233,10 @@ public class CacheObjectTriplesMapImpl<X extends OWLObject> implements ObjectTri
         this.hasNew = true;
         CachedMap map = getMap();
         map.getObjectsMap().merge(key, new TripleSet<>(key, triple), (a, b) -> {
-            if (a.isDefinitelyEmpty()) return b;
-            return a.append(b);
+            ONTObjectImpl<X> x = ONTObjectImpl.asImpl(a);
+            ONTObjectImpl<X> y = ONTObjectImpl.asImpl(b);
+            if (x.isDefinitelyEmpty()) return b;
+            return x.append(y);
         });
         // operation 'Add' must be as quick as possible
         // since it is used while reading documents in native OWL-API formats
@@ -270,8 +273,7 @@ public class CacheObjectTriplesMapImpl<X extends OWLObject> implements ObjectTri
         if (!isLoaded()) return;
         CachedMap map = getMap();
         Map<X, ONTObject<X>> objectsCache = map.getObjectsMap();
-        Optional.ofNullable(objectsCache.get(key)).ifPresent(v -> {
-            ONTObject<X> x = v.delete(triple);
+        Optional.ofNullable(objectsCache.get(key)).map(ONTObjectImpl::asImpl).ifPresent(x -> {
             objectsCache.put(x.getObject(), x);
             try {
                 if (x.isDefinitelyEmpty() || x.triples().count() == 0) {
@@ -410,7 +412,7 @@ public class CacheObjectTriplesMapImpl<X extends OWLObject> implements ObjectTri
      *
      * @param <V> any subtype of {@link OWLObject}
      */
-    public static class TripleSet<V extends OWLObject> extends ONTObject<V> {
+    public static class TripleSet<V extends OWLObject> extends ONTObjectImpl<V> {
         protected final Set<Triple> triples;
 
         protected TripleSet(V object, Triple t) {
@@ -438,13 +440,13 @@ public class CacheObjectTriplesMapImpl<X extends OWLObject> implements ObjectTri
         }
 
         @Override
-        public ONTObject<V> add(Triple triple) {
+        public TripleSet<V> add(Triple triple) {
             triples.add(triple);
             return this;
         }
 
         @Override
-        public ONTObject<V> delete(Triple triple) {
+        public TripleSet<V> delete(Triple triple) {
             triples.remove(triple);
             return this;
         }

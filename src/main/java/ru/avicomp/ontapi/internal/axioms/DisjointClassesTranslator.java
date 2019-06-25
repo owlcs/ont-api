@@ -36,6 +36,7 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
  * </ul>
  * <p>
  * Created by @szuev on 28.09.2016.
+ *
  * @see OWLDisjointClassesAxiom
  */
 public class DisjointClassesTranslator extends AbstractTwoWayNaryTranslator<OWLDisjointClassesAxiom, OWLClassExpression, OntCE> {

@@ -21,6 +21,7 @@ import org.semanticweb.owlapi.model.OWLSubObjectPropertyOfAxiom;
 import ru.avicomp.ontapi.internal.InternalConfig;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
+import ru.avicomp.ontapi.internal.ONTObjectImpl;
 import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 
@@ -32,6 +33,7 @@ import java.util.Collection;
  * Created by @szuev on 29.09.2016.
  */
 public class SubObjectPropertyOfTranslator extends AbstractSubPropertyTranslator<OWLSubObjectPropertyOfAxiom, OntOPE> {
+
     @Override
     OWLPropertyExpression getSubProperty(OWLSubObjectPropertyOfAxiom axiom) {
         return axiom.getSubProperty();
@@ -48,12 +50,15 @@ public class SubObjectPropertyOfTranslator extends AbstractSubPropertyTranslator
     }
 
     @Override
-    public ONTObject<OWLSubObjectPropertyOfAxiom> toAxiom(OntStatement statement, InternalObjectFactory reader, InternalConfig config) {
+    public ONTObject<OWLSubObjectPropertyOfAxiom> toAxiom(OntStatement statement,
+                                                          InternalObjectFactory reader,
+                                                          InternalConfig config) {
         ONTObject<? extends OWLObjectPropertyExpression> sub = reader.get(statement.getSubject(OntOPE.class));
         ONTObject<? extends OWLObjectPropertyExpression> sup = reader.get(statement.getObject().as(OntOPE.class));
         Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLSubObjectPropertyOfAxiom res = reader.getOWLDataFactory()
                 .getOWLSubObjectPropertyOfAxiom(sub.getObject(), sup.getObject(), ONTObject.extract(annotations));
-        return ONTObject.create(res, statement).append(annotations).append(sub).append(sup);
+        return ONTObjectImpl.create(res, statement).append(annotations).append(sub).append(sup);
     }
+
 }

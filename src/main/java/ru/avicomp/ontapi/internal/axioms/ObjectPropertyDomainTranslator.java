@@ -21,6 +21,7 @@ import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import ru.avicomp.ontapi.internal.InternalConfig;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
+import ru.avicomp.ontapi.internal.ONTObjectImpl;
 import ru.avicomp.ontapi.jena.model.OntCE;
 import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
@@ -33,6 +34,7 @@ import java.util.Collection;
  * Created by @szuev on 29.09.2016.
  */
 public class ObjectPropertyDomainTranslator extends AbstractPropertyDomainTranslator<OWLObjectPropertyDomainAxiom, OntOPE> {
+
     @Override
     Class<OntOPE> getView() {
         return OntOPE.class;
@@ -44,12 +46,15 @@ public class ObjectPropertyDomainTranslator extends AbstractPropertyDomainTransl
     }
 
     @Override
-    public ONTObject<OWLObjectPropertyDomainAxiom> toAxiom(OntStatement statement, InternalObjectFactory reader, InternalConfig config) {
+    public ONTObject<OWLObjectPropertyDomainAxiom> toAxiom(OntStatement statement,
+                                                           InternalObjectFactory reader,
+                                                           InternalConfig config) {
         ONTObject<? extends OWLObjectPropertyExpression> p = reader.get(statement.getSubject(getView()));
         ONTObject<? extends OWLClassExpression> ce = reader.get(statement.getObject().as(OntCE.class));
         Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLObjectPropertyDomainAxiom res = reader.getOWLDataFactory()
                 .getOWLObjectPropertyDomainAxiom(p.getObject(), ce.getObject(), ONTObject.extract(annotations));
-        return ONTObject.create(res, statement).append(annotations).append(p).append(ce);
+        return ONTObjectImpl.create(res, statement).append(annotations).append(p).append(ce);
     }
+
 }

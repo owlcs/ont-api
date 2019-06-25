@@ -21,6 +21,7 @@ import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import ru.avicomp.ontapi.internal.InternalConfig;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
+import ru.avicomp.ontapi.internal.ONTObjectImpl;
 import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
@@ -29,10 +30,11 @@ import java.util.Collection;
 
 /**
  * Translator for axiom defining as object property with {@code owl:AsymmetricProperty} type.
- *
+ * <p>
  * Created by @szuev on 18.10.2016.
  */
-public class AsymmetricObjectPropertyTranslator extends AbstractPropertyTypeTranslator<OWLAsymmetricObjectPropertyAxiom, OntOPE> {
+public class AsymmetricObjectPropertyTranslator
+        extends AbstractPropertyTypeTranslator<OWLAsymmetricObjectPropertyAxiom, OntOPE> {
 
     @Override
     Resource getType() {
@@ -45,11 +47,14 @@ public class AsymmetricObjectPropertyTranslator extends AbstractPropertyTypeTran
     }
 
     @Override
-    public ONTObject<OWLAsymmetricObjectPropertyAxiom> toAxiom(OntStatement statement, InternalObjectFactory reader, InternalConfig config) {
+    public ONTObject<OWLAsymmetricObjectPropertyAxiom> toAxiom(OntStatement statement,
+                                                               InternalObjectFactory reader,
+                                                               InternalConfig config) {
         ONTObject<? extends OWLObjectPropertyExpression> p = reader.get(getSubject(statement));
         Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLAsymmetricObjectPropertyAxiom res = reader.getOWLDataFactory()
                 .getOWLAsymmetricObjectPropertyAxiom(p.getObject(), ONTObject.extract(annotations));
-        return ONTObject.create(res, statement).append(annotations).append(p);
+        return ONTObjectImpl.create(res, statement).append(annotations).append(p);
     }
+
 }

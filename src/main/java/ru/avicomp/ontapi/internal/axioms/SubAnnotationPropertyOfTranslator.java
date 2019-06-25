@@ -17,10 +17,7 @@ package ru.avicomp.ontapi.internal.axioms;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.util.iterator.NullIterator;
 import org.semanticweb.owlapi.model.*;
-import ru.avicomp.ontapi.internal.InternalConfig;
-import ru.avicomp.ontapi.internal.InternalObjectFactory;
-import ru.avicomp.ontapi.internal.ONTObject;
-import ru.avicomp.ontapi.internal.ReadHelper;
+import ru.avicomp.ontapi.internal.*;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntNAP;
 import ru.avicomp.ontapi.jena.model.OntStatement;
@@ -29,10 +26,11 @@ import java.util.Collection;
 
 /**
  * See {@link AbstractSubPropertyTranslator}.
- *
+ * <p>
  * Created by @szuev on 30.09.2016.
  */
 public class SubAnnotationPropertyOfTranslator extends AbstractSubPropertyTranslator<OWLSubAnnotationPropertyOfAxiom, OntNAP> {
+
     @Override
     OWLPropertyExpression getSubProperty(OWLSubAnnotationPropertyOfAxiom axiom) {
         return axiom.getSubProperty();
@@ -51,7 +49,7 @@ public class SubAnnotationPropertyOfTranslator extends AbstractSubPropertyTransl
     /**
      * Returns {@link OntStatement}s defining the {@link OWLSubAnnotationPropertyOfAxiom} axiom.
      *
-     * @param model {@link OntGraphModel}
+     * @param model  {@link OntGraphModel}
      * @param config {@link InternalConfig}
      * @return {@link ExtendedIterator} of {@link OntStatement}s
      */
@@ -74,12 +72,15 @@ public class SubAnnotationPropertyOfTranslator extends AbstractSubPropertyTransl
     }
 
     @Override
-    public ONTObject<OWLSubAnnotationPropertyOfAxiom> toAxiom(OntStatement statement, InternalObjectFactory reader, InternalConfig config) {
+    public ONTObject<OWLSubAnnotationPropertyOfAxiom> toAxiom(OntStatement statement,
+                                                              InternalObjectFactory reader,
+                                                              InternalConfig config) {
         ONTObject<OWLAnnotationProperty> sub = reader.get(statement.getSubject(OntNAP.class));
         ONTObject<OWLAnnotationProperty> sup = reader.get(statement.getObject().as(OntNAP.class));
         Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLSubAnnotationPropertyOfAxiom res = reader.getOWLDataFactory()
                 .getOWLSubAnnotationPropertyOfAxiom(sub.getObject(), sup.getObject(), ONTObject.extract(annotations));
-        return ONTObject.create(res, statement).append(annotations).append(sub).append(sup);
+        return ONTObjectImpl.create(res, statement).append(annotations).append(sub).append(sup);
     }
+
 }

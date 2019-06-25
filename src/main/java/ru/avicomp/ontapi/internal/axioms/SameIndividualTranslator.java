@@ -21,6 +21,7 @@ import org.semanticweb.owlapi.model.OWLSameIndividualAxiom;
 import ru.avicomp.ontapi.internal.InternalConfig;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
+import ru.avicomp.ontapi.internal.ONTObjectImpl;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
@@ -35,9 +36,11 @@ import java.util.Collection;
  * }</pre>
  * <p>
  * Created by szuev on 13.10.2016.
+ *
  * @see OWLSameIndividualAxiom
  */
 public class SameIndividualTranslator extends AbstractNaryTranslator<OWLSameIndividualAxiom, OWLIndividual, OntIndividual> {
+
     @Override
     public Property getPredicate() {
         return OWL.sameAs;
@@ -49,12 +52,15 @@ public class SameIndividualTranslator extends AbstractNaryTranslator<OWLSameIndi
     }
 
     @Override
-    public ONTObject<OWLSameIndividualAxiom> toAxiom(OntStatement statement, InternalObjectFactory reader, InternalConfig config) {
+    public ONTObject<OWLSameIndividualAxiom> toAxiom(OntStatement statement,
+                                                     InternalObjectFactory reader,
+                                                     InternalConfig config) {
         ONTObject<? extends OWLIndividual> a = reader.get(statement.getSubject(getView()));
         ONTObject<? extends OWLIndividual> b = reader.get(statement.getObject().as(getView()));
         Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLSameIndividualAxiom res = reader.getOWLDataFactory()
                 .getOWLSameIndividualAxiom(a.getObject(), b.getObject(), ONTObject.extract(annotations));
-        return ONTObject.create(res, statement).append(annotations).append(a).append(b);
+        return ONTObjectImpl.create(res, statement).append(annotations).append(a).append(b);
     }
+
 }

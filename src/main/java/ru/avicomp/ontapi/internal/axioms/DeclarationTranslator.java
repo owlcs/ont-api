@@ -41,6 +41,7 @@ import java.util.Objects;
  * Created by @szuev on 28.09.2016.
  */
 public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> {
+
     @Override
     public void write(OWLDeclarationAxiom axiom, OntGraphModel model) {
         WriteHelper.writeDeclarationTriple(model, axiom.getEntity(), RDF.type,
@@ -70,7 +71,9 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
     }
 
     @Override
-    public ONTObject<OWLDeclarationAxiom> toAxiom(OntStatement statement, InternalObjectFactory reader, InternalConfig config) {
+    public ONTObject<OWLDeclarationAxiom> toAxiom(OntStatement statement,
+                                                  InternalObjectFactory reader,
+                                                  InternalConfig config) {
         OntEntity e = Entities.find(statement.getResource())
                 .map(Entities::getActualType)
                 .map(t -> statement.getModel().getOntEntity(t, statement.getSubject()))
@@ -78,6 +81,7 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
         ONTObject<? extends OWLEntity> entity = reader.get(e);
         Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLDeclarationAxiom res = reader.getOWLDataFactory().getOWLDeclarationAxiom(entity.getObject(), ONTObject.extract(annotations));
-        return ONTObject.create(res, statement).append(annotations);
+        return ONTObjectImpl.create(res, statement).append(annotations);
     }
+
 }

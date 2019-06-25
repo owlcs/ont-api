@@ -21,6 +21,7 @@ import org.semanticweb.owlapi.model.OWLFunctionalDataPropertyAxiom;
 import ru.avicomp.ontapi.internal.InternalConfig;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
+import ru.avicomp.ontapi.internal.ONTObjectImpl;
 import ru.avicomp.ontapi.jena.model.OntNDP;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
@@ -36,6 +37,7 @@ import java.util.Collection;
  * Created by @szuev on 30.09.2016.
  */
 public class FunctionalDataPropertyTranslator extends AbstractPropertyTypeTranslator<OWLFunctionalDataPropertyAxiom, OntNDP> {
+
     @Override
     Resource getType() {
         return OWL.FunctionalProperty;
@@ -47,11 +49,14 @@ public class FunctionalDataPropertyTranslator extends AbstractPropertyTypeTransl
     }
 
     @Override
-    public ONTObject<OWLFunctionalDataPropertyAxiom> toAxiom(OntStatement statement, InternalObjectFactory reader, InternalConfig config) {
+    public ONTObject<OWLFunctionalDataPropertyAxiom> toAxiom(OntStatement statement,
+                                                             InternalObjectFactory reader,
+                                                             InternalConfig config) {
         ONTObject<OWLDataProperty> p = reader.get(getSubject(statement));
         Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLFunctionalDataPropertyAxiom res = reader.getOWLDataFactory()
                 .getOWLFunctionalDataPropertyAxiom(p.getObject(), ONTObject.extract(annotations));
-        return ONTObject.create(res, statement).append(annotations).append(p);
+        return ONTObjectImpl.create(res, statement).append(annotations).append(p);
     }
+
 }

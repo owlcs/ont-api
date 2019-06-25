@@ -36,11 +36,13 @@ import java.util.stream.Stream;
  * Created by szuev on 20.10.2016.
  */
 public class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
+
     @Override
     public void write(SWRLRule axiom, OntGraphModel model) {
         Stream<OntSWRL.Atom> head = axiom.head().map(atom -> WriteHelper.addSWRLAtom(model, atom));
         Stream<OntSWRL.Atom> body = axiom.body().map(atom -> WriteHelper.addSWRLAtom(model, atom));
-        WriteHelper.addAnnotations(model.createSWRLImp(head.collect(Collectors.toList()), body.collect(Collectors.toList())), axiom.annotations());
+        WriteHelper.addAnnotations(model.createSWRLImp(head.collect(Collectors.toList()),
+                body.collect(Collectors.toList())), axiom.annotations());
     }
 
     @Override
@@ -64,6 +66,7 @@ public class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
         SWRLRule res = reader.getOWLDataFactory()
                 .getSWRLRule(body.stream().map(ONTObject::getObject).collect(Collectors.toList()),
                         head.stream().map(ONTObject::getObject).collect(Collectors.toList()), ONTObject.extract(annotations));
-        return ONTObject.create(res, imp).append(annotations).appendWildcards(body).appendWildcards(head);
+        return ONTObjectImpl.create(res, imp).append(annotations).appendWildcards(body).appendWildcards(head);
     }
+
 }

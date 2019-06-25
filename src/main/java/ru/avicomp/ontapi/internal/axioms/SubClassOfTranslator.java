@@ -38,6 +38,7 @@ import java.util.Collection;
  * Created by @szuev on 28.09.2016.
  */
 public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
+
     @Override
     public void write(OWLSubClassOfAxiom axiom, OntGraphModel model) {
         WriteHelper.writeTriple(model, axiom.getSubClass(), RDFS.subClassOf, axiom.getSuperClass(), axiom.annotations());
@@ -58,12 +59,15 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
     }
 
     @Override
-    public ONTObject<OWLSubClassOfAxiom> toAxiom(OntStatement statement, InternalObjectFactory reader, InternalConfig config) {
+    public ONTObject<OWLSubClassOfAxiom> toAxiom(OntStatement statement,
+                                                 InternalObjectFactory reader,
+                                                 InternalConfig config) {
         ONTObject<? extends OWLClassExpression> sub = reader.get(statement.getSubject(OntCE.class));
         ONTObject<? extends OWLClassExpression> sup = reader.get(statement.getObject().as(OntCE.class));
         Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLSubClassOfAxiom res = reader.getOWLDataFactory()
                 .getOWLSubClassOfAxiom(sub.getObject(), sup.getObject(), ONTObject.extract(annotations));
-        return ONTObject.create(res, statement).append(annotations).append(sub).append(sup);
+        return ONTObjectImpl.create(res, statement).append(annotations).append(sub).append(sup);
     }
+
 }

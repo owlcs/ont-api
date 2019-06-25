@@ -14,195 +14,58 @@
 
 package ru.avicomp.ontapi.internal;
 
-import org.apache.jena.graph.FrontsTriple;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.graph.impl.CollectionGraph;
 import org.semanticweb.owlapi.model.OWLObject;
-import ru.avicomp.ontapi.jena.model.OntObject;
-import ru.avicomp.ontapi.jena.model.OntStatement;
 
 import java.util.Collection;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * An unmodifiable container for {@link OWLObject} and associated with it set of rdf-graph {@link Triple triple}s.
- * <p>
- * Created by @szuev on 27.11.2016.
+ * An unmodifiable container for {@link OWLObject} and associated with it {@link Triple RDF Triple}s.
+ * Created by @szz on 25.06.2019.
  *
  * @param <O> any subtype of {@link OWLObject}
  */
-public abstract class ONTObject<O extends OWLObject> {
-    private final O object;
+public interface ONTObject<O extends OWLObject> {
 
-    protected ONTObject(O object) {
-        this.object = Objects.requireNonNull(object, "Null OWLObject.");
+    static <X extends OWLObject> Set<X> extract(Collection<? extends ONTObject<X>> wraps) {
+        return objects(wraps).collect(Collectors.toSet());
+    }
+
+    static <X extends OWLObject> Set<X> extractWildcards(Collection<? extends ONTObject<? extends X>> wraps) {
+        return wraps.stream().map(ONTObject::getObject).collect(Collectors.toSet());
+    }
+
+    static <X extends OWLObject> Stream<X> objects(Collection<? extends ONTObject<X>> objects) {
+        return objects.stream().map(ONTObject::getObject);
     }
 
     /**
-     * Gets wrapped {@link OWLObject}.
+     * Gets the associated {@link O}.
      *
-     * @return OWL object
+     * @return {@code OWLObject}
      */
-    public O getObject() {
-        return object;
-    }
+    O getObject();
 
     /**
-     * Gets {@link Triple}s associated with encapsulated {@link OWLObject}.
+     * Lists all associated {@link Triple triple}s.
      *
-     * @return Stream of triples, may be no distinct.
+     * @return {@code Stream} of {@link Triple}s
      */
-    public abstract Stream<Triple> triples();
+    Stream<Triple> triples();
 
     /**
-     * Answers {@code true} if there are definitely no associated triples.
-     *
-     * @return boolean
-     */
-    protected boolean isDefinitelyEmpty() {
-        return false;
-    }
-
-    /**
-     * Presents this container as in-memory {@link Graph}.
+     * Represents this container as in-memory {@link Graph}.
      *
      * @return graph
      */
     @SuppressWarnings("unused")
-    public Graph toGraph() {
+    default Graph toGraph() {
         return new CollectionGraph(triples().collect(Collectors.toSet()));
     }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof ONTObject)) return false;
-        ONTObject<?> that = (ONTObject<?>) o;
-        return object.equals(that.object);
-    }
-
-    @Override
-    public int hashCode() {
-        return object.hashCode();
-    }
-
-    @Override
-    public String toString() {
-        return String.valueOf(object);
-    }
-
-    public static <O extends OWLObject> ONTObject<O> create(O o) {
-        return new ONTObject<O>(o) {
-            @Override
-            public Stream<Triple> triples() {
-                return Stream.empty();
-            }
-
-            @Override
-            public boolean isDefinitelyEmpty() {
-                return true;
-            }
-        };
-    }
-
-    public static <O extends OWLObject> ONTObject<O> create(O o, OntStatement root) {
-        return create(o, root.asTriple());
-    }
-
-    public static <O extends OWLObject> ONTObject<O> create(O o, Triple root) {
-        return new ONTObject<O>(o) {
-            @Override
-            public Stream<Triple> triples() {
-                return Stream.of(root);
-            }
-        };
-    }
-
-    public static <O extends OWLObject> ONTObject<O> create(O o, OntObject root) {
-        return new ONTObject<O>(o) {
-            @Override
-            public Stream<Triple> triples() {
-                return root.spec().map(FrontsTriple::asTriple);
-            }
-        };
-    }
-
-    public ONTObject<O> append(OntObject other) {
-        return append(() -> other.spec().map(FrontsTriple::asTriple));
-    }
-
-    public ONTObject<O> append(ONTObject<? extends OWLObject> other) {
-        return append(other::triples);
-    }
-
-    public <B extends OWLObject> ONTObject<O> append(Collection<ONTObject<B>> others) {
-        return append(() -> others.stream().flatMap(ONTObject::triples));
-    }
-
-    public <B extends OWLObject> ONTObject<O> appendWildcards(Collection<ONTObject<? extends B>> others) {
-        return append(() -> others.stream().flatMap(ONTObject::triples));
-    }
-
-    public ONTObject<O> append(Supplier<Stream<Triple>> triples) {
-        return new ONTObject<O>(object) {
-            @Override
-            public Stream<Triple> triples() {
-                return concat(triples.get());
-            }
-        };
-    }
-
-    private Stream<Triple> concat(Stream<Triple> other) {
-        return isDefinitelyEmpty() ? other : Stream.concat(this.triples(), other);
-    }
-
-    public ONTObject<O> add(Triple triple) {
-        return append(() -> Stream.of(triple));
-    }
-
-    public ONTObject<O> delete(Triple triple) {
-        if (isDefinitelyEmpty()) return this;
-        return new ONTObject<O>(object) {
-            @Override
-            public Stream<Triple> triples() {
-                return ONTObject.this.triples().filter(t -> !triple.equals(t));
-            }
-        };
-    }
-
-    /**
-     * Finds {@link ONTObject} by {@link OWLObject}
-     *
-     * @param set the collection of {@link ONTObject}
-     * @param key {@link OWLObject}
-     * @param <O> class-type of owl-object
-     * @return Optional around {@link ONTObject}
-     * @see ru.avicomp.ontapi.owlapi.OWLObjectImpl#equals(Object)
-     */
-    public static <O extends OWLObject> Optional<ONTObject<O>> find(Collection<ONTObject<O>> set, O key) {
-        return set.stream()
-                .filter(Objects::nonNull)
-                .filter(o -> key.equals(o.object))
-                .findAny();
-    }
-
-    public static <O extends OWLObject> Set<O> extract(Collection<ONTObject<O>> wraps) {
-        return objects(wraps).collect(Collectors.toSet());
-    }
-
-    public static <R extends OWLObject> Set<R> extractWildcards(Collection<ONTObject<? extends R>> wraps) {
-        return wraps.stream().map(ONTObject::getObject).collect(Collectors.toSet());
-    }
-
-    public static <O extends OWLObject> Stream<O> objects(Collection<ONTObject<O>> wraps) {
-        return wraps.stream().map(ONTObject::getObject);
-    }
-
 
 }

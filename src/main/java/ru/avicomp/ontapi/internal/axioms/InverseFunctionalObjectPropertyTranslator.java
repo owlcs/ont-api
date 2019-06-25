@@ -21,6 +21,7 @@ import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import ru.avicomp.ontapi.internal.InternalConfig;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
+import ru.avicomp.ontapi.internal.ONTObjectImpl;
 import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
@@ -35,7 +36,9 @@ import java.util.Collection;
  * <p>
  * Created by @szuev on 28.09.2016.
  */
-public class InverseFunctionalObjectPropertyTranslator extends AbstractPropertyTypeTranslator<OWLInverseFunctionalObjectPropertyAxiom, OntOPE> {
+public class InverseFunctionalObjectPropertyTranslator
+        extends AbstractPropertyTypeTranslator<OWLInverseFunctionalObjectPropertyAxiom, OntOPE> {
+
     @Override
     Resource getType() {
         return OWL.InverseFunctionalProperty;
@@ -47,11 +50,14 @@ public class InverseFunctionalObjectPropertyTranslator extends AbstractPropertyT
     }
 
     @Override
-    public ONTObject<OWLInverseFunctionalObjectPropertyAxiom> toAxiom(OntStatement statement, InternalObjectFactory reader, InternalConfig config) {
+    public ONTObject<OWLInverseFunctionalObjectPropertyAxiom> toAxiom(OntStatement statement,
+                                                                      InternalObjectFactory reader,
+                                                                      InternalConfig config) {
         ONTObject<? extends OWLObjectPropertyExpression> p = reader.get(getSubject(statement));
         Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLInverseFunctionalObjectPropertyAxiom res = reader.getOWLDataFactory()
                 .getOWLInverseFunctionalObjectPropertyAxiom(p.getObject(), ONTObject.extract(annotations));
-        return ONTObject.create(res, statement).append(annotations).append(p);
+        return ONTObjectImpl.create(res, statement).append(annotations).append(p);
     }
+
 }

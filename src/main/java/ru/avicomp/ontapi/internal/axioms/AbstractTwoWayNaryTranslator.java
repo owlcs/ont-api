@@ -20,6 +20,7 @@ import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.internal.InternalConfig;
 import ru.avicomp.ontapi.internal.ONTObject;
+import ru.avicomp.ontapi.internal.ONTObjectImpl;
 import ru.avicomp.ontapi.internal.WriteHelper;
 import ru.avicomp.ontapi.jena.model.OntDisjoint;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
@@ -51,7 +52,9 @@ import java.util.stream.Stream;
  * @param <OWL>   generic type of {@link OWLObject}
  * @param <ONT>   generic type of {@link OntObject}
  */
-public abstract class AbstractTwoWayNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxiom<OWL>, OWL extends OWLObject & IsAnonymous, ONT extends OntObject> extends AbstractNaryTranslator<Axiom, OWL, ONT> {
+public abstract class AbstractTwoWayNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxiom<OWL>,
+        OWL extends OWLObject & IsAnonymous, ONT extends OntObject> extends AbstractNaryTranslator<Axiom, OWL, ONT> {
+
     @Override
     public void write(Axiom axiom, OntGraphModel model) {
         Set<OWL> operands = axiom.operands().collect(Collectors.toSet());
@@ -78,7 +81,8 @@ public abstract class AbstractTwoWayNaryTranslator<Axiom extends OWLAxiom & OWLN
 
     @Override
     public boolean testStatement(OntStatement statement, InternalConfig config) {
-        return super.testStatement(statement, config) || (RDF.type.equals(statement.getPredicate()) && statement.getSubject().canAs(getDisjointView()));
+        return super.testStatement(statement, config)
+                || (RDF.type.equals(statement.getPredicate()) && statement.getSubject().canAs(getDisjointView()));
     }
 
     abstract Resource getMembersType();
@@ -103,8 +107,8 @@ public abstract class AbstractTwoWayNaryTranslator<Axiom extends OWLAxiom & OWLN
                     .map(membersExtractor).collect(Collectors.toSet());
         }
         Axiom axiom = creator.apply(members, annotations);
-        return (disjoint != null ? ONTObject.create(axiom, disjoint) : ONTObject.create(axiom, statement))
+        return (disjoint != null ? ONTObjectImpl.create(axiom, disjoint) : ONTObjectImpl.create(axiom, statement))
                 .append(annotations).appendWildcards(members);
-
     }
+
 }

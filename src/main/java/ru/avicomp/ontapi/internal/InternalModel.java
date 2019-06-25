@@ -80,7 +80,7 @@ import java.util.stream.Stream;
  * To work with such large ontologies, it is recommended to use {@link AxiomTranslator Axiom Translator}s directly
  * (see {@link AxiomParserProvider#get(AxiomType)}).
  * <p>
- * TODO: Should it return {@link ONTObject}s, not just naked {@link OWLObject}s?
+ * TODO: Should it return {@link ONTObjectImpl}s, not just naked {@link OWLObject}s?
  * It seems it would be more convenient and could make this class useful not only as part of inner implementation.
  * <p>
  * Created by @szuev on 26.10.2016.

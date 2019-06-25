@@ -51,9 +51,11 @@ import java.util.stream.Collectors;
  * @param <OWL>   generic type of {@link OWLObject}
  * @param <ONT>   generic type of {@link OntObject}
  */
-public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxiom<OWL>, OWL extends OWLObject & IsAnonymous, ONT extends OntObject> extends AxiomTranslator<Axiom> {
+public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxiom<OWL>,
+        OWL extends OWLObject & IsAnonymous, ONT extends OntObject> extends AxiomTranslator<Axiom> {
 
-    private final Comparator<OWL> uriFirstComparator = (a, b) -> a.isAnonymous() == b.isAnonymous() ? 0 : a.isAnonymous() ? -1 : 1;
+    private final Comparator<OWL> uriFirstComparator = (a, b) ->
+            a.isAnonymous() == b.isAnonymous() ? 0 : a.isAnonymous() ? -1 : 1;
 
     void write(OWLNaryAxiom<OWL> thisAxiom, Set<OWLAnnotation> annotations, OntGraphModel model) {
         List<OWL> operands = thisAxiom.operands().sorted(uriFirstComparator).distinct().collect(Collectors.toList());
@@ -95,7 +97,9 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
                                                          InternalConfig config) {
         Map<Axiom, ONTObject<Axiom>> res = new HashMap<>(); // memory!
         super.listAxioms(model, factory, config)
-                .forEachRemaining(c -> res.compute(c.getObject(), (a, w) -> w == null ? c : w.append(c)));
+                .forEachRemaining(c -> res.compute(c.getObject(),
+                        (a, b) -> b == null ? c : ONTObjectImpl.asImpl(b).append(c)));
         return Iter.create(res.values());
     }
+
 }
