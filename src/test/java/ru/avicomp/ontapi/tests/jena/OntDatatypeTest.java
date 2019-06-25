@@ -73,7 +73,7 @@ public class OntDatatypeTest {
         OntDT c = m.createDatatype("C");
         Assert.assertNotNull(a.addEquivalentClassStatement(b));
         Assert.assertSame(a, a.addEquivalentClass(c).addEquivalentClass(m.getRDFSLiteral()).removeEquivalentClass(b));
-        Assert.assertEquals(2, a.equivalentClass().count());
+        Assert.assertEquals(2, a.equivalentClasses().count());
         Assert.assertSame(a, a.removeEquivalentClass(null));
         Assert.assertEquals(3, m.size());
     }

@@ -224,7 +224,7 @@ public interface OntCE extends OntObject {
      * The statement patter to search for is {@code C1 owl:equivalentClass C2}.
      *
      * @return {@code Stream} of {@link OntCE}s
-     * @see OntDT#equivalentClass()
+     * @see OntDT#equivalentClasses()
      * @since 1.4.0
      */
     default Stream<OntCE> equivalentClasses() {

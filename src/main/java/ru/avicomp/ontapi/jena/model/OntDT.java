@@ -36,10 +36,11 @@ public interface OntDT extends OntEntity, OntDR {
      * The pattern to search is {@code DN owl:equivalentClass D}, where {@code DN} is this {@link OntDT Data Type},
      * and {@code D} is a search object, the {@link OntDR data-range expression}.
      *
-     * @return Stream of {@link OntDR}s
+     * @return {@code Stream} of {@link OntDR}s
      * @see OntCE#equivalentClasses()
+     * @since 1.4.2
      */
-    default Stream<OntDR> equivalentClass() {
+    default Stream<OntDR> equivalentClasses() {
         return objects(OWL.equivalentClass, OntDR.class);
     }
 
@@ -122,6 +123,17 @@ public interface OntDT extends OntEntity, OntDR {
      */
     default Literal createLiteral(String lex) {
         return getModel().createTypedLiteral(Objects.requireNonNull(lex), toRDFDatatype());
+    }
+
+    /**
+     * Lists all equivalent classes.
+     *
+     * @return {@code Stream} of equivalent {@link OntDR}s
+     * @deprecated since 1.4.2: use the method {@link #equivalentClasses()} instead
+     */
+    @Deprecated
+    default Stream<OntDR> equivalentClass() {
+        return equivalentClasses();
     }
 
 }

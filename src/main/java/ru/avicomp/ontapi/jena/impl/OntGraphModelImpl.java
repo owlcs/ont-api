@@ -14,6 +14,7 @@
 
 package ru.avicomp.ontapi.jena.impl;
 
+import org.apache.jena.datatypes.RDFDatatype;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
@@ -53,6 +54,9 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings({"WeakerAccess", "SameParameterValue"})
 public class OntGraphModelImpl extends UnionModel implements OntGraphModel, PersonalityModel {
+
+    // the model's types mapper
+    protected final Map<String, RDFDatatype> dtTypes = new HashMap<>();
 
     /**
      * @param graph       {@link Graph}

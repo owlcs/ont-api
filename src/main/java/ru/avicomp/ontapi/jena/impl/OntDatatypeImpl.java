@@ -65,8 +65,10 @@ public class OntDatatypeImpl extends OntObjectImpl implements OntDT {
 
     @Override
     public RDFDatatype toRDFDatatype() {
-        RDFDatatype res = TypeMapper.getInstance().getTypeByName(getURI());
-        return res == null ? new BaseDatatype(getURI()) : res;
+        return getModel().dtTypes.computeIfAbsent(getURI(), u -> {
+            RDFDatatype res = TypeMapper.getInstance().getTypeByName(u);
+            return res == null ? new BaseDatatype(u) : res;
+        });
     }
 
     /**
