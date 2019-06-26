@@ -24,6 +24,7 @@ import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.util.NodeUtils;
 import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.util.iterator.NullIterator;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.OntListImpl;
 import ru.avicomp.ontapi.jena.impl.OntStatementImpl;
@@ -42,7 +43,8 @@ import java.util.stream.Stream;
  * <p>
  * Created by szuev on 20.10.2016.
  */
-@SuppressWarnings({"WeakerAccess", "UnusedReturnValue", "unused"})
+
+@SuppressWarnings("WeakerAccess")
 public class Models {
     public static final Comparator<RDFNode> RDF_NODE_COMPARATOR = (r1, r2) -> NodeUtils.compareRDFTerms(r1.asNode(), r2.asNode());
     public static final Comparator<Statement> STATEMENT_COMPARATOR = Comparator
@@ -51,7 +53,8 @@ public class Models {
             .thenComparing(Statement::getObject, RDF_NODE_COMPARATOR);
     public static final RDFNode BLANK = new ResourceImpl();
     public static final Comparator<Statement> STATEMENT_COMPARATOR_IGNORE_BLANK = Comparator
-            .comparing((Function<Statement, RDFNode>) s -> s.getSubject().isAnon() ? BLANK : s.getSubject(), RDF_NODE_COMPARATOR)
+            .comparing((Function<Statement, RDFNode>) s -> s.getSubject().isAnon() ? BLANK : s.getSubject(),
+                    RDF_NODE_COMPARATOR)
             .thenComparing(s -> s.getPredicate().isAnon() ? BLANK : s.getPredicate(), RDF_NODE_COMPARATOR)
             .thenComparing(s -> s.getObject().isAnon() ? BLANK : s.getObject(), RDF_NODE_COMPARATOR);
 
@@ -141,7 +144,7 @@ public class Models {
      * @param subject   {@link Resource}, not {@code null}
      * @param predicate {@link Property}, can be {@code null}
      * @param lang      String lang, maybe {@code null} or empty
-     * @return Stream of Strings
+     * @return {@code Stream} of {@code String}s
      * @since 1.3.0
      */
     public static Stream<String> langValues(Resource subject, Property predicate, String lang) {
@@ -198,10 +201,12 @@ public class Models {
 
     /**
      * Recursively gets all statements related to the specified subject.
-     * Note: {@code rdf:List} may content a large number of members (1000+).
+     * Note: {@code rdf:List} may content a large number of members (1000+),
+     * which may imply heavy calculation.
      *
      * @param inModel Resource with associated model inside.
-     * @return the Set of {@link Statement}
+     * @return a {@code Set} of {@link Statement}s
+     * @see #listDescendingStatements(RDFNode)
      */
     public static Set<Statement> getAssociatedStatements(Resource inModel) {
         Set<Statement> res = new HashSet<>();
@@ -235,40 +240,72 @@ public class Models {
     }
 
     /**
-     * Recursively lists all statements for the specified subject (rdf-node).
-     * Note: there is a possibility of StackOverflowError in case graph contains a recursion.
+     * Recursively lists all ascending statements for the given {@link RDFNode RDF Node}.
+     * <p>
+     * More specifically, this function returns all statements,
+     * which have either the specified node in an object position,
+     * or its indirect ascendant in a graph tree, found by the same method.
+     * Consider, the specified node {@code r} belongs to the following RDF:
+     * <pre>{@code
+     * <a>  p0 _:b0 .
+     * _:b0 p1 _:b1 .
+     * _:b1 p2  <x> .
+     * _:b1 p3  r .
+     * }</pre>
+     * In this case the method will return three statements:
+     * {@code _:b1 p3 r}, {@code _:b0 p1 _:b1} and {@code <a> p0 _:b0}.
+     * The statement {@code _:b1 p2  <x>} is skipped since uri resource {@code <x>} is not an ascendant of {@code r}.
+     * <p>
+     * This is the opposite of the method {@link #listDescendingStatements(RDFNode)}.
+     * <p>
+     * Note: there is a danger of {@code StackOverflowError} in case graph contains a recursion.
      *
-     * @param subject {@link RDFNode}, nullable
-     * @return Stream of {@link Statement}s
-     * @throws StackOverflowError in case graph contains recursion
-     * @see Models#getAssociatedStatements(Resource)
+     * @param object, not {@code null} must be attached to a model
+     * @return {@link ExtendedIterator} of {@link Statement}s
      */
-    public static Stream<Statement> listProperties(RDFNode subject) {
-        if (subject == null || !subject.isAnon()) return Stream.empty();
-        return Iter.asStream(subject.asResource().listProperties())
-                .flatMap(s -> s.getObject().isAnon() ? listProperties(s.getObject().asResource()) : Stream.of(s));
+    public static ExtendedIterator<Statement> listAscendingStatements(RDFNode object) {
+        return Iter.flatMap(object.getModel().listStatements(null, null, object),
+                s -> s.getSubject().isAnon() ?
+                        Iter.concat(Iter.of(s), listAscendingStatements(s.getSubject())) : Iter.of(s));
     }
 
     /**
-     * Recursively lists all parent resources (subjects) for the specified object (rdf-node).
-     * Note: a possibility of StackOverflowError in case the graph contains a recursion.
+     * Recursively lists all descending statements for the given {@link RDFNode RDF Node}.
+     * <p>
+     * More specifically, this function returns all statements,
+     * which have either the specified node in an subject position,
+     * or its indirect descendant in a graph tree (if the node is anonymous resource), found by the same method.
+     * Consider, the specified node {@code <a>} belongs to the following RDF:
+     * <pre>{@code
+     * <a>  p0 _:b0 .
+     * _:b0 p1 _:b1 .
+     * _:b1 p2  <x> .
+     * <x> p3  <b> .
+     * }</pre>
+     * In this case the method will return three statements:
+     * {@code <a>  p0 _:b0}, {@code :b0 p1 _:b1} and {@code _:b1 p2  <x>}.
+     * The last statement is skipped, since {@code <x>} is uri resource.
+     * <p>
+     * This is the opposite of the method {@link #listAscendingStatements(RDFNode)}.
+     * <p>
+     * Note: there is a danger of {@code StackOverflowError} in case graph contains a recursion.
      *
-     * @param object {@link RDFNode}, not null
-     * @return Stream of {@link Resource}s
-     * @throws StackOverflowError in case graph contains recursion
+     * @param subject, not {@code null} must be attached to a model
+     * @return {@link ExtendedIterator} of {@link Statement}s
+     * @see #getAssociatedStatements(Resource)
      */
-    public static Stream<Resource> listSubjects(RDFNode object) {
-        return subjects(object).flatMap(s -> {
-            Stream<Resource> r = Stream.of(s);
-            return s.isAnon() ? Stream.concat(r, listSubjects(s)) : r;
-        });
+    public static ExtendedIterator<Statement> listDescendingStatements(RDFNode subject) {
+        if (!subject.isResource()) return NullIterator.instance();
+        return Iter.flatMap(subject.asResource().listProperties(),
+                s -> s.getObject().isAnon() ?
+                        Iter.concat(Iter.of(s), listDescendingStatements(s.getResource())) : Iter.of(s));
     }
 
     /**
      * Lists all direct subjects for the given object.
      *
-     * @param inModel {@link RDFNode}
-     * @return Stream of {@link Resource}s.
+     * @param inModel {@link RDFNode}, not {@code null}
+     * @return {@code Stream} of {@link Resource}s.
      */
     public static Stream<Resource> subjects(RDFNode inModel) {
         return Iter.asStream(inModel.getModel().listResourcesWithProperty(null, inModel));
@@ -361,7 +398,7 @@ public class Models {
      * Recursively lists all models that are associated with the given model in the form of a flat stream.
      *
      * @param m {@link OntGraphModel}
-     * @return Stream of models, not empty (contains at least the input model)
+     * @return {@code Stream} of models, not empty (contains at least the input model)
      * @throws StackOverflowError in case the given model has a recursion in the hierarchy
      * @since 1.3.0
      * @deprecated since 1.4.2: it is replaced by the {@link OntModels#importsClosure(OntGraphModel)}
@@ -481,7 +518,7 @@ public class Models {
      * Each of the returned statements is equal to the given, the difference is only in the related annotations.
      *
      * @param statement {@link OntStatement} the statement to split
-     * @return Stream of {@link OntStatement ont-statements}, not empty,
+     * @return {@code Stream} of {@link OntStatement ont-statements}, not empty,
      * each element equals to the input statement but has different related annotations
      * @see OntModels#listSplitStatements(OntStatement)
      * @deprecated since 1.4.2: use the methods
@@ -512,12 +549,48 @@ public class Models {
      * in the form of a flat stream.
      *
      * @param st {@link OntStatement}
-     * @return Stream of {@link OntStatement}s, each of them is annotation property assertion
+     * @return {@code Stream} of {@link OntStatement}s, each of them is annotation property assertion
      * @since 1.3.0
      * @deprecated since 1.4.2: use since {@link OntModels#annotations(OntStatement)} instead
      */
     @Deprecated
     public static Stream<OntStatement> flat(OntStatement st) {
         return OntModels.annotations(st);
+    }
+
+
+    /**
+     * Recursively lists all statements for the specified subject (rdf-node).
+     * Note: there is a possibility of StackOverflowError in case graph contains a recursion.
+     *
+     * @param subject {@link RDFNode}, nullable
+     * @return {@code Stream} of {@link Statement}s
+     * @throws StackOverflowError in case graph contains recursion
+     * @see Models#getAssociatedStatements(Resource)
+     * @deprecated since 1.4.2 (due to bad method name):
+     * use the method {@link #listDescendingStatements(RDFNode)} with {@link Iter#asStream(Iterator)}
+     */
+    @Deprecated
+    public static Stream<Statement> listProperties(RDFNode subject) {
+        if (subject == null || !subject.isAnon()) return Stream.empty();
+        return Iter.asStream(listDescendingStatements(subject));
+    }
+
+    /**
+     * Recursively lists all parent resources (subjects) for the specified object (rdf-node).
+     * Note: a possibility of StackOverflowError in case the graph contains a recursion.
+     *
+     * @param object {@link RDFNode}, not null
+     * @return {@code Stream} of {@link Resource}s
+     * @throws StackOverflowError in case graph contains recursion
+     * @deprecated since 1.4.2 (due to bad method name):
+     * use the method {@link #listAscendingStatements(RDFNode)} with {@link Iter#asStream(Iterator)}
+     */
+    @Deprecated
+    public static Stream<Resource> listSubjects(RDFNode object) {
+        return subjects(object).flatMap(s -> {
+            Stream<Resource> r = Stream.of(s);
+            return s.isAnon() ? Stream.concat(r, listSubjects(s)) : r;
+        });
     }
 }

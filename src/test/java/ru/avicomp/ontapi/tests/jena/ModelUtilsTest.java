@@ -14,10 +14,8 @@
 
 package ru.avicomp.ontapi.tests.jena;
 
-import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.rdf.model.*;
+import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 import org.junit.Assert;
 import org.junit.Test;
@@ -25,18 +23,21 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.utils.OntModels;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * To test {@link Models} utility.
+ * To test {@link Models} and {@link OntModels} utilities.
  * <p>
  * Created by @szuev on 25.04.2018.
  */
@@ -122,6 +123,47 @@ public class ModelUtilsTest {
         Assert.assertFalse(ModelFactory.createModelForGraph(m1.getGraph()).containsResource(c1));
         Assert.assertTrue(ModelFactory.createModelForGraph(m2.getGraph()).containsResource(c2));
         Assert.assertFalse(ModelFactory.createModelForGraph(m2.getGraph()).containsResource(c1));
+    }
+
+    @Test
+    public void testMiscModelsFunctionality() {
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntClass a = m.createOntClass("A");
+        OntClass b = m.createOntClass("B");
+        Resource t = m.getResource("type");
+        RDFList list = Models.createTypedList(m, t, Arrays.asList(a, b));
+        Assert.assertNotNull(list);
+        ReadWriteUtils.print(m);
+        Assert.assertEquals(8, m.size());
+        Assert.assertEquals(2, m.listStatements(null, RDF.type, t).toList().size());
+
+        Assert.assertTrue(Models.isInList(m, a));
+        Assert.assertTrue(Models.isInList(m, b));
+
+        Assert.assertEquals(6, Iter.peek(Models.listDescendingStatements(list),
+                s -> Assert.assertTrue(RDF.type.equals(s.getPredicate()) || Models.isInList(s))).toList().size());
+
+        Assert.assertEquals(2, Models.subjects(t).count());
+        Assert.assertEquals(2, Models.listAscendingStatements(RDF.nil.inModel(m)).toList().size());
+    }
+
+    @Test
+    public void testStatementsComparators() {
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntClass a = m.createOntClass("A");
+        OntClass b = m.createOntClass("B");
+        m.createObjectSomeValuesFrom(m.createObjectProperty("P"), m.createComplementOf(m.createUnionOf(a, b)));
+
+        testStatementsComparator(m, Models.STATEMENT_COMPARATOR);
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private static void testStatementsComparator(Model m, Comparator<Statement> comp) {
+        List<Statement> first = Iter.asStream(m.listStatements()).sorted(comp).collect(Collectors.toList());
+        List<Statement> tmp;
+        Collections.shuffle(tmp = m.listStatements().toList());
+        List<Statement> second = tmp.stream().sorted(comp).collect(Collectors.toList());
+        Assert.assertEquals(first, second);
     }
 
 }

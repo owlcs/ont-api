@@ -347,7 +347,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * the encapsulated graph still may contain some triples.
      */
     public boolean isOntologyEmpty() {
-        return listOWLAxioms().count() == 0 && listOWLAnnotations().count() == 0;
+        return !listOWLAxioms().findFirst().isPresent() && !listOWLAnnotations().findFirst().isPresent();
     }
 
     /**
