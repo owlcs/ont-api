@@ -18,7 +18,7 @@ import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.enhanced.Implementation;
 import org.apache.jena.graph.Node;
-import org.apache.jena.ontology.ConversionException;
+import ru.avicomp.ontapi.jena.OntJenaException;
 
 /**
  * An extended {@link Implementation} factory,
@@ -51,7 +51,7 @@ public abstract class BaseFactoryImpl extends Implementation implements ObjectFa
     protected static EnhNode safeWrap(Node n, EnhGraph g, ObjectFactory f) {
         try {
             return f.wrap(n, g);
-        } catch (ConversionException c) {
+        } catch (OntJenaException.Conversion c) {
             return null;
         }
     }
@@ -70,22 +70,22 @@ public abstract class BaseFactoryImpl extends Implementation implements ObjectFa
         return false;
     }
 
-    protected static EnhNode wrap(Node node, EnhGraph eg, ConversionException ex, ObjectFactory... factories) {
+    protected static EnhNode wrap(Node node, EnhGraph eg, OntJenaException.Conversion ex, ObjectFactory... factories) {
         for (ObjectFactory f : factories) {
             try {
                 return f.wrap(node, eg);
-            } catch (ConversionException c) {
+            } catch (OntJenaException.Conversion c) {
                 ex.addSuppressed(c);
             }
         }
         throw ex;
     }
 
-    protected static EnhNode wrap(Node node, EnhGraph eg, ConversionException ex, Iterable<ObjectFactory> factories) {
+    protected static EnhNode wrap(Node node, EnhGraph eg, OntJenaException.Conversion ex, Iterable<ObjectFactory> factories) {
         for (ObjectFactory f : factories) {
             try {
                 return f.wrap(node, eg);
-            } catch (ConversionException c) {
+            } catch (OntJenaException.Conversion c) {
                 ex.addSuppressed(c);
             }
         }
@@ -98,12 +98,12 @@ public abstract class BaseFactoryImpl extends Implementation implements ObjectFa
      * @param node the node to be wrapped
      * @param eg   the graph containing the node
      * @return A new enhanced node which wraps node but presents the interface(s) that this factory encapsulates.
-     * @throws ConversionException in case wrapping is impossible
+     * @throws OntJenaException.Conversion in case wrapping is impossible
      */
     @Override
     public EnhNode wrap(Node node, EnhGraph eg) {
         if (!canWrap(node, eg))
-            throw new ConversionException("Can't wrap node " + node + ". Use direct factory.");
+            throw new OntJenaException.Conversion("Can't wrap node " + node + ". Use direct factory.");
         return createInstance(node, eg);
     }
 }

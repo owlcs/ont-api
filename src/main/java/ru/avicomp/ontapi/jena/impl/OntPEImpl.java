@@ -19,7 +19,6 @@ import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.ontology.ConversionException;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.util.iterator.ExtendedIterator;
@@ -101,7 +100,7 @@ public abstract class OntPEImpl extends OntObjectImpl implements OntPE {
                     return named.wrap(node, eg);
                 if (node.isBlank())
                     return anonymous.wrap(node, eg);
-                throw new ConversionException("Can't convert node " + node + " to Object Property Expression.");
+                throw new OntJenaException.Conversion("Can't convert node " + node + " to Object Property Expression.");
             }
         };
     }
@@ -173,13 +172,14 @@ public abstract class OntPEImpl extends OntObjectImpl implements OntPE {
         public EnhNode wrap(Node node, EnhGraph eg) {
             if (node.isBlank())
                 return anonymous.wrap(node, eg);
-            ConversionException ex = new ConversionException("Can't convert node " + node + " to Property Expression");
+            OntJenaException.Conversion ex = new OntJenaException.Conversion("Can't convert node " +
+                    node + " to Property Expression");
             if (!node.isURI())
                 throw ex;
             for (Factory f : factories) {
                 try {
                     return f.f.wrap(node, eg);
-                } catch (ConversionException c) {
+                } catch (OntJenaException.Conversion c) {
                     ex.addSuppressed(c);
                 }
             }

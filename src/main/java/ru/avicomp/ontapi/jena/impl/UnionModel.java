@@ -18,7 +18,6 @@ import org.apache.jena.atlas.lib.Cache;
 import org.apache.jena.enhanced.Personality;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
-import org.apache.jena.ontology.ConversionException;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.ModelCom;
 import org.apache.jena.shared.JenaException;
@@ -29,6 +28,7 @@ import ru.avicomp.ontapi.jena.utils.Graphs;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -43,12 +43,14 @@ public class UnionModel extends ModelCom {
         super(asUnionGraph(base), personality);
     }
 
+    /**
+     * Creates an {@link UnionGraph} instance if it is needed.
+     *
+     * @param graph {@link Graph} to wrap or return as is
+     * @return {@link UnionGraph} (fresh or given)
+     */
     public static UnionGraph asUnionGraph(Graph graph) {
         return graph instanceof UnionGraph ? (UnionGraph) graph : new UnionGraph(graph);
-    }
-
-    protected Cache<Node, RDFNode> getNodeCache() {
-        return enhNodes;
     }
 
     @Override
@@ -100,22 +102,46 @@ public class UnionModel extends ModelCom {
         return this;
     }
 
+    /**
+     * Returns nodes cache.
+     *
+     * @return {@link Cache} with {@link Node} as key and {@link RDFNode} as value
+     */
+    protected Cache<Node, RDFNode> getNodeCache() {
+        return enhNodes;
+    }
+
+    /**
+     * Answers {@code true} if the given statement belongs to the base graph.
+     *
+     * @param s {@link Statement}, not {@code null}
+     * @return boolean
+     */
     public boolean isLocal(Statement s) {
         return isLocal(OntJenaException.notNull(s, "Null statement.").getSubject(), s.getPredicate(), s.getObject());
     }
 
+    /**
+     * Answers {@code true} if the given SPO belongs to the base graph.
+     *
+     * @param s {@link Resource}, not {@code null}
+     * @param p {@link Property}, not {@code null}
+     * @param o {@link RDFNode}, not {@code null}
+     * @return boolean
+     */
     public boolean isLocal(Resource s, Property p, RDFNode o) {
         return getBaseGraph().contains(s.asNode(), p.asNode(), o.asNode());
     }
 
     /**
-     * Returns a {@link RDFNode} for the given type and, if it is present, caches it in the model.
-     * Works silently: no exceptions are expected.
+     * Returns a {@link RDFNode} for the given type and, if the result is present, caches it node at the model level.
+     * The method works silently: normally no exception is expected.
      *
      * @param node {@link Node}
      * @param type {@link Class}-type
      * @param <N>  any subtype of {@link RDFNode}
      * @return {@link RDFNode} or {@code null}
+     * @throws RuntimeException unexpected misconfiguration (RDF recursion, wrong input, personality mismatch, etc)
      * @see #getNodeAs(Node, Class)
      * @since 1.3.0
      */
@@ -129,39 +155,45 @@ public class UnionModel extends ModelCom {
     }
 
     /**
-     * Answer an enhanced node that wraps the given node and conforms to the given interface type.
+     * Answers an enhanced node that wraps the given node and conforms to the given interface type.
+     * The returned RDF node is cached at the model-level.
      *
-     * @param node A node (assumed to be in this graph)
-     * @param view A type denoting the enhanced facet desired
-     * @param <N>  A subtype of {@link RDFNode}
-     * @return An enhanced node, not null
-     * @throws JenaException in case no RDFNode match found.
+     * @param node a node (assumed to be in this graph)
+     * @param type a type denoting the enhanced facet desired
+     * @param <N>  a subtype of {@link RDFNode}
+     * @return an enhanced node, cannot be {@code null}
+     * @throws OntJenaException unable to construct new RDF view for whatever reasons
+     * @throws RuntimeException unexpected misconfiguration (wrong inputs, personality mismatch)
      */
     @Override
-    public <N extends RDFNode> N getNodeAs(Node node, Class<N> view) {
+    public <N extends RDFNode> N getNodeAs(Node node, Class<N> type) {
         try {
-            return getNodeAsInternal(node, view);
-        } catch (ConversionException e) {
+            return getNodeAsInternal(node, type);
+        } catch (OntJenaException e) {
+            throw e;
+        } catch (JenaException e) {
             throw new OntJenaException.Conversion(String.format("Failed to convert node <%s> to <%s>",
-                    node, OntObjectImpl.viewAsString(view)), e);
+                    node, OntObjectImpl.viewAsString(type)), e);
         }
     }
 
-    protected ThreadLocal<Set<Node>> visited = ThreadLocal.withInitial(HashSet::new);
+    // to control graph recursion while casting a node to a RDF view
+    private ThreadLocal<Set<Node>> visited = ThreadLocal.withInitial(HashSet::new);
 
     /**
-     * Answer an enhanced node that wraps the given node and conforms to the given interface type,
+     * Answers an enhanced node that wraps the given node and conforms to the given interface type,
      * taking into account possible graph recursions.
      * For internal usage only.
      *
-     * @param node A node (assumed to be in this graph)
-     * @param view A type denoting the enhanced facet desired
-     * @param <N>  A subtype of {@link RDFNode}
-     * @return An enhanced node or {@code null} if no match found
+     * @param node a node (assumed to be in this graph)
+     * @param type a type denoting the enhanced facet desired
+     * @param <N>  a subtype of {@link RDFNode}
+     * @return an enhanced node or {@code null} if no match found
      * @throws OntJenaException.Recursion if a graph recursion is indicated
+     * @throws RuntimeException           unexpected misconfiguration
      * @see #getNodeAs(Node, Class)
      */
-    public <N extends RDFNode> N fetchNodeAs(Node node, Class<N> view) {
+    public <N extends RDFNode> N fetchNodeAs(Node node, Class<N> type) {
         // If node has already been seen up the stack, then a graph recursion is detected.
         // Although, in general case, using Map<Class, Set<Node>> seems to be more suitable and careful checking,
         // but it is also a little more expensive.
@@ -169,9 +201,9 @@ public class UnionModel extends ModelCom {
         Set<Node> nodes = visited.get();
         try {
             if (nodes.add(node)) {
-                return getNodeAsInternal(node, view);
+                return getNodeAsInternal(node, type);
             }
-            throw new OntJenaException.Recursion("Can't cast to " + OntObjectImpl.viewAsString(view) + ": " +
+            throw new OntJenaException.Recursion("Can't cast to " + OntObjectImpl.viewAsString(type) + ": " +
                     "graph contains a recursion for node <" + node + ">");
         } catch (OntJenaException.Recursion r) {
             throw r;
@@ -182,9 +214,23 @@ public class UnionModel extends ModelCom {
         }
     }
 
-    protected <N extends RDFNode> N getNodeAsInternal(Node node, Class<N> view) {
-        return super.getNodeAs(OntJenaException.notNull(node, "Null node"),
-                OntJenaException.notNull(view, "Null class view."));
+    /**
+     * Answers an enhanced node that wraps the given node and conforms to the given interface type.
+     * The returned RDF node is cached at the model-level.
+     *
+     * @param node a node (assumed to be in this graph)
+     * @param type a type denoting the enhanced facet desired
+     * @param <N>  a subtype of {@link RDFNode}
+     * @return an enhanced node
+     * @throws org.apache.jena.enhanced.PersonalityConfigException if personality is misconfigured
+     *                                                             or the given {@code type} is absent in it;
+     *                                                             normally this should not happen
+     * @throws NullPointerException                                if any input is {@code null}
+     * @throws JenaException                                       unable to construct a new RDF view
+     */
+    protected <N extends RDFNode> N getNodeAsInternal(Node node, Class<N> type) {
+        return super.getNodeAs(Objects.requireNonNull(node, "Null node"),
+                Objects.requireNonNull(type, "Null class view."));
     }
 
     @Override

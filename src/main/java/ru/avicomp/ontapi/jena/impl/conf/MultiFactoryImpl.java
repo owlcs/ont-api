@@ -17,8 +17,8 @@ package ru.avicomp.ontapi.jena.impl.conf;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.graph.Node;
-import org.apache.jena.ontology.ConversionException;
 import org.apache.jena.util.iterator.ExtendedIterator;
+import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.utils.Iter;
 
 import java.util.Arrays;
@@ -64,7 +64,7 @@ public class MultiFactoryImpl extends BaseFactoryImpl {
     public EnhNode wrap(Node node, EnhGraph eg) {
         EnhNode res = createInstance(node, eg);
         if (res != null) return res;
-        throw new ConversionException("Can't wrap node " + node + ". Use direct factory.");
+        throw new OntJenaException.Conversion("Can't wrap node " + node + ". Use direct factory.");
     }
 
     @Override

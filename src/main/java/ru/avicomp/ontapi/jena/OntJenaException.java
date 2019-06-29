@@ -51,10 +51,11 @@ public class OntJenaException extends JenaException {
     }
 
     /**
+     * Exception that is thrown when an ontology resource is converted to another facet,
+     * using {@link org.apache.jena.rdf.model.RDFNode#as as()},
+     * and the requested conversion is not possible.
      * This is an analogue of {@link org.apache.jena.ontology.ConversionException},
-     * used inside top level api ({@link ru.avicomp.ontapi.jena.model.OntGraphModel}
-     * and (maybe) inside {@link ru.avicomp.ontapi.jena.model.OntObject}) implementation.
-     * In the personality level a standard jena exception (ConversionException) should be used.
+     * and it is used mostly by {@link ru.avicomp.ontapi.jena.impl.conf.ObjectFactory}.
      */
     public static class Conversion extends OntJenaException {
         public Conversion(String message, Throwable cause) {
@@ -80,7 +81,8 @@ public class OntJenaException extends JenaException {
     }
 
     /**
-     * An exception to indicate that a feature is not supported right now or by design.
+     * An exception to indicate that a feature is not supported right now
+     * or by design for current conditions.
      */
     public static class Unsupported extends OntJenaException {
         public Unsupported() {

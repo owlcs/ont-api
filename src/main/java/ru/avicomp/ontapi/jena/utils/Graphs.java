@@ -211,7 +211,7 @@ public class Graphs {
      *
      * @param graph {@link Graph}
      * @return String uri or {@code null}
-     * @see #getImports(Graph)
+     * @see Graphs#getImports(Graph)
      */
     public static String getURI(Graph graph) {
         return ontologyNode(getBase(graph)).filter(Node::isURI).map(Node::getURI).orElse(null);
@@ -223,7 +223,7 @@ public class Graphs {
      *
      * @param graph {@link Graph}
      * @return String
-     * @see #getURI(Graph)
+     * @see Graphs#getURI(Graph)
      */
     public static String getName(Graph graph) {
         Optional<Node> res = ontologyNode(getBase(graph));
@@ -279,7 +279,7 @@ public class Graphs {
      *
      * @param graph {@link Graph}, not {@code null}
      * @return unordered Set of uris from the whole graph (it may be composite)
-     * @see #getURI(Graph)
+     * @see Graphs#getURI(Graph)
      */
     public static Set<String> getImports(Graph graph) {
         return listImports(graph).toSet();
@@ -291,7 +291,7 @@ public class Graphs {
      *
      * @param graph {@link Graph}, not {@code null}
      * @return {@link ExtendedIterator} of {@code String}-URIs
-     * @see #getURI(Graph)
+     * @see Graphs#getURI(Graph)
      * @since 1.4.2
      */
     public static ExtendedIterator<String> listImports(Graph graph) {

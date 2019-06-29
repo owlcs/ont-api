@@ -17,7 +17,6 @@ package ru.avicomp.ontapi.jena.impl;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.shared.JenaException;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.conf.ObjectFactory;
 import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
@@ -55,14 +54,15 @@ public interface PersonalityModel {
      * @param view a type denoting the enhanced facet desired
      * @param <N>  a subtype of {@link RDFNode}
      * @return an enhanced node, not {@code null}
-     * @throws JenaException in case no RDFNode match found
+     * @throws OntJenaException in case no RDFNode match found
+     * @see PersonalityModel#findNodeAs(Node, Class)
      * @see EnhGraph#getNodeAs(Node, Class)
      */
     <N extends RDFNode> N getNodeAs(Node node, Class<N> view);
 
     /**
      * Answers an enhanced node that wraps the given {@link Node node} and conforms to the given interface type.
-     * Works silently: no exception is thrown, instead returns {@code null}.
+     * It works silently: no exception is thrown, instead returns {@code null}.
      *
      * @param node {@link Node}
      * @param type {@link Class}-type
@@ -103,7 +103,7 @@ public interface PersonalityModel {
 
     /**
      * Checks if the given {@link Node node} can be viewed as the given type.
-     * This method caches the enhanced node, if possible, in the model,
+     * This method caches the enhanced node at the model level, if it is possible,
      * and, opposite to the method {@link PersonalityModel#findNodeAs(Node, Class)},
      * takes care about possible graph recursions.
      *

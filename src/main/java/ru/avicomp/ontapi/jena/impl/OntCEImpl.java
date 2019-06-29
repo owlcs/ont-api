@@ -23,7 +23,6 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.ontology.ConversionException;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.RDFListImpl;
 import org.apache.jena.util.iterator.ExtendedIterator;
@@ -1202,10 +1201,10 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         }
 
         @Override
-        public EnhNode wrap(Node node, EnhGraph eg) throws ConversionException {
+        public EnhNode wrap(Node node, EnhGraph eg) throws OntJenaException {
             Factory f = map(node, eg);
             if (f == null) {
-                throw new ConversionException("Can't convert node " + node + " to Class Expression.");
+                throw new OntJenaException.Conversion("Can't convert node " + node + " to Class Expression.");
             }
             EnhNode res = f.factory.createInstance(node, eg);
             if (res == null) {

@@ -206,7 +206,7 @@ public class Models {
      *
      * @param inModel Resource with associated model inside.
      * @return a {@code Set} of {@link Statement}s
-     * @see #listDescendingStatements(RDFNode)
+     * @see Models#listDescendingStatements(RDFNode)
      */
     public static Set<Statement> getAssociatedStatements(Resource inModel) {
         Set<Statement> res = new HashSet<>();
@@ -292,7 +292,7 @@ public class Models {
      *
      * @param subject, not {@code null} must be attached to a model
      * @return {@link ExtendedIterator} of {@link Statement}s
-     * @see #getAssociatedStatements(Resource)
+     * @see Models#getAssociatedStatements(Resource)
      */
     public static ExtendedIterator<Statement> listDescendingStatements(RDFNode subject) {
         if (!subject.isResource()) return NullIterator.instance();

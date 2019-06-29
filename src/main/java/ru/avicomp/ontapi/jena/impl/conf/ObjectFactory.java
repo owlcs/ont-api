@@ -18,7 +18,6 @@ import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.enhanced.Implementation;
 import org.apache.jena.graph.Node;
-import org.apache.jena.ontology.ConversionException;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.utils.Iter;
@@ -83,11 +82,11 @@ public interface ObjectFactory {
      * @param node {@link Node}, the node to be wrapped as {@link ru.avicomp.ontapi.jena.model.OntObject}, not {@code null}
      * @param eg   {@link EnhGraph}, the graph containing the node, not {@code null}
      * @return {@link EnhNode} a new enhanced node presenting the interface that this factory encapsulates
-     * @throws ConversionException in case wrapping is impossible
+     * @throws OntJenaException in case wrapping is impossible
      */
     default EnhNode wrap(Node node, EnhGraph eg) {
         if (!canWrap(node, eg))
-            throw new ConversionException("Can't wrap node " + node + ". Use direct factory.");
+            throw new OntJenaException.Conversion("Can't wrap node " + node + ". Use direct factory.");
         return createInstance(node, eg);
     }
 
@@ -98,7 +97,7 @@ public interface ObjectFactory {
      * @param node {@link Node}, the node to be wrapped as {@link ru.avicomp.ontapi.jena.model.OntObject}, not {@code null}
      * @param eg   {@link EnhGraph}, the graph which would contain the result {@link EnhNode}, not {@code null}
      * @return a new enhanced node
-     * @throws OntJenaException.Creation in case modification of graph is not allowed for the specified node
+     * @throws OntJenaException in case modification of graph is not allowed for the specified node
      */
     default EnhNode createInGraph(Node node, EnhGraph eg) {
         throw new OntJenaException.Unsupported("Creation is not allowed: " + node);

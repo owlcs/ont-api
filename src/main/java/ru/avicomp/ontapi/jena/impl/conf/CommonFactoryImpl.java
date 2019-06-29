@@ -17,7 +17,6 @@ package ru.avicomp.ontapi.jena.impl.conf;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.graph.Node;
-import org.apache.jena.ontology.ConversionException;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import ru.avicomp.ontapi.jena.OntJenaException;
 
@@ -61,7 +60,7 @@ public class CommonFactoryImpl extends BaseFactoryImpl {
     @Override
     public EnhNode wrap(Node node, EnhGraph eg) {
         if (!canWrap(node, eg))
-            throw new ConversionException(String.format("Can't wrap node %s to %s", node, maker.getImpl()));
+            throw new OntJenaException.Conversion(String.format("Can't wrap node %s to %s", node, maker.getImpl()));
         return createInstance(node, eg);
     }
 
