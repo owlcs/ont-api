@@ -190,9 +190,8 @@ public interface OntCE extends OntObject {
      */
     default Stream<OntPE> properties() {
         return getModel().statements(null, RDFS.domain, this)
-                .map(OntStatement::getSubject)
-                .filter(s -> s.canAs(OntPE.class))
-                .map(s -> s.as(OntPE.class));
+                .map(s -> s.getSubject().getAs(OntPE.class))
+                .filter(Objects::nonNull);
     }
 
     /**

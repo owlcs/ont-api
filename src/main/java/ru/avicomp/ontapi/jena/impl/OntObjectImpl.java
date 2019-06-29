@@ -15,6 +15,7 @@
 package ru.avicomp.ontapi.jena.impl;
 
 import org.apache.jena.enhanced.EnhGraph;
+import org.apache.jena.enhanced.UnsupportedPolymorphismException;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.*;
@@ -274,6 +275,25 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     @Override
     public final Stream<OntStatement> spec() {
         return Iter.asStream(listSpec());
+    }
+
+    /**
+     * {@inheritDoc}
+     * Impl remarks:
+     * - the method body is optimized to minimize graph querying;
+     * - we use {@code RDFNode}, not {@code Resource}, as generic supertype due to the fact {@code OntObject}
+     * can be {@code Literal} (but with only one exclusion: {@link ru.avicomp.ontapi.jena.model.OntSWRL.DArg}).
+     *
+     * @return boolean
+     * @since 1.4.2
+     */
+    @Override
+    public <X extends RDFNode> X getAs(Class<X> type) {
+        try {
+            return as(type);
+        } catch (UnsupportedPolymorphismException | OntJenaException.Conversion ignore) {
+            return null;
+        }
     }
 
     /**

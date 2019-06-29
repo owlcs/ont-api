@@ -14,6 +14,7 @@
 
 package ru.avicomp.ontapi.jena.model;
 
+import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 
@@ -74,5 +75,22 @@ interface OntResource extends Resource {
      * @return Stream of {@link Statement Jena Statement}s that fully describe this object in OWL2 terms
      */
     Stream<? extends Statement> spec();
+
+    /**
+     * Safely converts this RDF resource to the given {@code type} interface, if it is possible.
+     * Otherwise returns {@code null}.
+     * A calling of this method is effectively equivalent to
+     * the expression {@code this.canAs(type) ? this.as(type) : null}.
+     *
+     * @param type a {@code Class}-type of the desired RDF view (interface)
+     * @param <X>  any subtype of {@link RDFNode}
+     * @return a resource of the type {@link X} or {@code null}
+     * @see RDFNode#as(Class)
+     * @see RDFNode#canAs(Class)
+     * @since 1.4.2
+     */
+    default <X extends RDFNode> X getAs(Class<X> type) {
+        return canAs(type) ? as(type) : null;
+    }
 
 }

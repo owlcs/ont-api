@@ -22,6 +22,7 @@ import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -135,9 +136,8 @@ public interface OntIndividual extends OntObject {
      */
     default Stream<OntNPA> negativeAssertions() {
         return getModel().statements(null, OWL.sourceIndividual, this)
-                .map(OntStatement::getSubject)
-                .filter(x -> x.canAs(OntNAP.class))
-                .map(x -> x.as(OntNPA.class));
+                .map(x -> x.getSubject().getAs(OntNPA.class))
+                .filter(Objects::nonNull);
     }
 
     /**

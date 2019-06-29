@@ -151,7 +151,7 @@ public class ReadHelper {
     }
 
     private static ONTObject<OWLAnnotation> getHierarchicalAnnotations(OntStatement root, InternalObjectFactory of) {
-        Resource subject = root.getSubject();
+        OntObject subject = root.getSubject();
         ONTObject<OWLAnnotationProperty> p = of.get(root.getPredicate().as(OntNAP.class));
         ONTObject<? extends OWLAnnotationValue> v = of.get(root.getObject());
         Set<? extends ONTObject<OWLAnnotation>> children = OntModels.listAnnotations(root)
@@ -159,8 +159,9 @@ public class ReadHelper {
         OWLAnnotation object = of.getOWLDataFactory()
                 .getOWLAnnotation(p.getObject(), v.getObject(), children.stream().map(ONTObject::getObject));
         ONTObjectImpl<OWLAnnotation> res = ONTObjectImpl.create(object, root);
-        if (subject.canAs(OntAnnotation.class)) {
-            res = res.append(subject.as(OntAnnotation.class));
+        OntAnnotation a;
+        if ((a = subject.getAs(OntAnnotation.class)) != null) {
+            res = res.append(a);
         }
         return res.append(p).append(v).append(children);
     }
