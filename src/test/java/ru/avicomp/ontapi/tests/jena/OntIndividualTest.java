@@ -22,6 +22,8 @@ import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
+import ru.avicomp.ontapi.jena.vocabulary.RDF;
+import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
 /**
  * To test {@link OntIndividual}.
@@ -179,5 +181,33 @@ public class OntIndividualTest {
             LOGGER.debug("Expected: {}", j.getMessage());
         }
         Assert.assertEquals(size, m.size());
+    }
+
+    @Test
+    public void testListIndividuals() {
+        String ns = "http://xx#";
+        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD).setNsPrefix("x", ns);
+        m.getOWLThing().createIndividual(ns + "I1").addSameAsStatement(m.createIndividual(ns + "I2"));
+        OntClass c1 = m.createOntClass(ns + "C1");
+        OntClass c2 = m.createOntClass(ns + "C2");
+        OntClass c3 = m.createOntClass(ns + "C3");
+        m.createIndividual(ns + "I3")
+                .addDifferentIndividual(m.createIndividual(ns + "I4"))
+                .addDifferentIndividual(c3.createIndividual());
+        c1.createIndividual(ns + "I5");
+        c2.createIndividual(ns + "I5");
+        c2.createIndividual(ns + "I3");
+        c3.createIndividual(ns + "I3");
+        ReadWriteUtils.print(m);
+
+        // class-assertions:
+        Assert.assertEquals(6, m.statements(null, RDF.type, null)
+                .filter(x -> x.getObject().canAs(OntCE.class)).count());
+        // all individuals:
+        Assert.assertEquals(6, m.ontObjects(OntIndividual.class).count());
+        // distinct class asserted individuals:
+        Assert.assertEquals(4, m.individuals().count());
+        // named individuals:
+        Assert.assertEquals(5, m.namedIndividuals().peek(x -> Assert.assertTrue(x.isURIResource())).count());
     }
 }

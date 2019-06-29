@@ -54,7 +54,7 @@ public interface OntIndividual extends OntObject {
      * Answers a {@code Stream} over the class expressions to which this individual belongs,
      * including super-classes if the flag {@code direct} is {@code false}.
      * If the flag {@code direct} is {@code true}, then only direct types are returned,
-     * and the method is almost equivalent to the method {@link #classes()}.
+     * and the method is effectively equivalent to the method {@link #classes()}.
      * See also {@link OntCE#superClasses(boolean)}.
      *
      * @param direct if {@code true}, only answers those {@link OntCE}s that are direct types of this individual,

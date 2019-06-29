@@ -219,18 +219,22 @@ public interface OntGraphModel extends Model, CreateClasses, CreateRanges, Creat
     Stream<OntEntity> ontEntities();
 
     /**
-     * Lists all individuals that participate in class assertion axioms.
+     * Lists all class-asserted individuals.
+     * <p>
      * A class assertion axiom is a statement {@code a rdf:type C},
-     * where {@code a} an individual (named or anonymous) to be returned, and {@code C} any class expression.
-     * Notice, that the method {@link OntGraphModel#ontObjects(Class)} called with parameter {@code OntIndividual.class}
+     * where {@code a} is a retrieving individual (named or anonymous) and {@code C} is any class expression.
+     * Notice, that the method {@link OntGraphModel#ontObjects(Class)}
+     * called with the parameter {@code OntIndividual.class}
      * (i.e. {@code model.ontObject(OntIndividual.class)}) must return all individuals from a model,
      * even those which have no explicit declarations (e.g. any part of {@code owl:sameAs} is an individual),
-     * while this method returns only class-assertion individuals.
-     * Also notice: the method {@link #namedIndividuals()} must return only named individuals
-     * with the declaration {@link OWL#NamedIndividual owl:NamedIndividual}.
-     * In general, a named individual may not have this declaration explicitly, see
-     * <a href='https://www.w3.org/TR/owl2-syntax/#Typing_Constraints_of_OWL_2_DL'>5.8.1 Typing Constraints of OWL 2 DL</a>
-     * for more details.
+     * while this method returns only class-asserted individuals.
+     * Also notice: the method {@link #namedIndividuals()} must return only explicitly declared named individuals,
+     * while this method does not require the declaration {@link OWL#NamedIndividual owl:NamedIndividual}
+     * to be present for an individual: according to the specification it is optional, for more details see
+     * <a href='https://www.w3.org/TR/owl2-syntax/#Typing_Constraints_of_OWL_2_DL'>5.8.1 Typing Constraints of OWL 2 DL</a>.
+     * Also note: in case of valid distinct {@link #getGraph() RDF graph}
+     * the returned {@code Stream} is also distinct,
+     * which means an individual that has more than one class assertions, must appear in the stream only once.
      *
      * @return {@code Stream} of {@link OntIndividual}s
      * @see OntGraphModel#namedIndividuals()

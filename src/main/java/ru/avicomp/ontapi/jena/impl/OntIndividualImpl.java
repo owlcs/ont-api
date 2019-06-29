@@ -65,8 +65,50 @@ public abstract class OntIndividualImpl extends OntObjectImpl implements OntIndi
         return Iter.asStream(listClasses());
     }
 
+    @Override
+    public final Stream<OntCE> classes(boolean direct) {
+        return Iter.asStream(listClasses(direct));
+    }
+
+    /**
+     * Lists all right parts from class assertion statements where this individual is at subject position.
+     *
+     * @return {@link ExtendedIterator} over all direct {@link OntCE class}-types
+     */
     public ExtendedIterator<OntCE> listClasses() {
         return listObjects(RDF.type, OntCE.class);
+    }
+
+    /**
+     * Lists all right parts from class assertion statements where this individual is at subject position,
+     * and also all their super-classes if the parameter {@code direct} is {@code false}.
+     *
+     * @param direct if {@code true} returns only direct types, just like {@link #listClasses()}
+     * @return {@link ExtendedIterator} over all {@link OntCE class}-types
+     * @see #listClasses()
+     * @since 1.4.2
+     */
+    public ExtendedIterator<OntCE> listClasses(boolean direct) {
+        return Iter.create(() -> getClasses(direct).iterator());
+    }
+
+    /**
+     * Returns a {@code Set} of all class-types,
+     * including their super-classes if the parameter {@code direct} is {@code false}.
+     *
+     * @param direct if {@code true} returns only direct types, just like {@code #listClasses().toSet()}
+     * @return a {@code Set} of all {@link OntCE class}-types
+     * @since 1.4.2
+     */
+    public Set<OntCE> getClasses(boolean direct) {
+        if (direct) {
+            return listClasses().toSet();
+        }
+        Set<OntCE> res = new HashSet<>();
+        Function<OntCE, ExtendedIterator<OntCE>> listSuperClasses =
+                x -> ((OntObjectImpl) x).listObjects(RDFS.subClassOf, OntCE.class);
+        listObjects(RDF.type, OntCE.class).forEachRemaining(c -> collectIndirect(c, listSuperClasses, res));
+        return res;
     }
 
     @Override
@@ -170,18 +212,6 @@ public abstract class OntIndividualImpl extends OntObjectImpl implements OntIndi
         Set<OntStatement> res = super.getContent();
         listNegativeAssertions().forEachRemaining(x -> res.addAll(((OntObjectImpl) x).getContent()));
         return res;
-    }
-
-    @Override
-    public Stream<OntCE> classes(boolean direct) {
-        if (direct) {
-            return listObjects(RDF.type, OntCE.class).toSet().stream();
-        }
-        Set<OntCE> res = new HashSet<>();
-        Function<OntCE, ExtendedIterator<OntCE>> listSuperClasses =
-                x -> ((OntObjectImpl) x).listObjects(RDFS.subClassOf, OntCE.class);
-        listObjects(RDF.type, OntCE.class).forEachRemaining(c -> collectIndirect(c, listSuperClasses, res));
-        return res.stream();
     }
 
     /**

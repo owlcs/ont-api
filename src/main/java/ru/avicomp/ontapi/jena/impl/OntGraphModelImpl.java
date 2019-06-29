@@ -421,18 +421,41 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
      * @return {@link ExtendedIterator} of {@link OntIndividual}s
      */
     public ExtendedIterator<OntIndividual> listIndividuals() {
-        Set<? extends RDFNode> forbidden = getSystemResources(OntClass.class);
+        Set<? extends RDFNode> forbiddenObjects = getSystemResources(OntClass.class);
+        Set<Triple> forbiddenTriples = new HashSet<>();
         return listOntStatements(null, RDF.type, null)
-                .filterKeep(s ->
-                        // to speedup the process,
-                        // investigation (that includes TTO, PS, HP, GALEN, FAMILY and PIZZA ontologies),
-                        // shows that the profit exists and it is significant:
-                        !forbidden.contains(s.getObject())
-                                // primary rule that determines class assertion:
-                                && s.getObject().canAs(OntCE.class)
-                                // an individual may have a factory with punnings restrictions,
-                                // so need to check its type also:
-                                && s.getSubject().canAs(OntIndividual.class))
+                .filterKeep(s -> {
+                    // to speedup the process,
+                    // the investigation (that includes TTO, PS, HP, GALEN, FAMILY and PIZZA ontologies),
+                    // shows that the profit exists and it is significant sometimes:
+                    if (forbiddenObjects.contains(s.getObject())) return false;
+
+                    // skip duplicates:
+                    if (forbiddenTriples.remove(s.asTriple())) {
+                        return false;
+                    }
+
+                    // checking for the primary rule that determines class assertion.
+                    // use cache - it couldn't hurt, classes are often used
+                    RDFNode o = s.getObject();
+                    if (findNodeAs(o.asNode(), OntCE.class) == null) return false;
+
+                    // an individual may have a factory with punnings restrictions,
+                    // so need to check its type also.
+                    // this time do not cache in model
+                    OntIndividual i = s.getSubject().getAs(OntIndividual.class);
+                    if (i == null) return false;
+
+                    // update set with duplicates to ensure the stream is distinct
+                    ((OntIndividualImpl) i).listClasses()
+                            .forEachRemaining(x -> {
+                                if (o.equals(x)) { // skip this statement, otherwise all individuals fall into memory
+                                    return;
+                                }
+                                forbiddenTriples.add(Triple.create(i.asNode(), RDF.Nodes.type, x.asNode()));
+                            });
+                    return true;
+                })
                 .mapWith(s -> s.getSubject(OntIndividual.class));
     }
 
@@ -446,7 +469,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
         try {
             return createOntObject(type, iri);
         } catch (OntJenaException.Creation e) { // illegal punning:
-            throw new OntJenaException(String.format("Can't add entity [%s: %s]: perhaps it's illegal punning.",
+            throw new OntJenaException.Creation(String.format("Can't add entity [%s: %s]: perhaps it's illegal punning.",
                     type.getSimpleName(), iri), e);
         }
     }
@@ -613,7 +636,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
      * Gets all builtin entities of the given type and returns them as {@code Set}.
      * It is not expected a huge amount of builtins,
      * so a {@code Set} is more applicable here as returned object than {@code Stream} or {@code ExtendedIterator}.
-     *
+     * <p>
      * Note: this method is a part of obsolete functionality (see issue #40), and can be deleted on any time.
      * If you find it useful, please contact me.
      *

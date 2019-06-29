@@ -281,8 +281,9 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * {@inheritDoc}
      * Impl remarks:
      * - the method body is optimized to minimize graph querying;
-     * - we use {@code RDFNode}, not {@code Resource}, as generic supertype due to the fact {@code OntObject}
-     * can be {@code Literal} (but with only one exclusion: {@link ru.avicomp.ontapi.jena.model.OntSWRL.DArg}).
+     * - we use {@code RDFNode} (not {@code Resource}) as generic supertype due to the fact
+     * that an {@code OntObject} can be also a {@code Literal}
+     * (but in only single case when it is {@link ru.avicomp.ontapi.jena.model.OntSWRL.DArg}).
      *
      * @return boolean
      * @since 1.4.2
