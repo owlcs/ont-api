@@ -14,9 +14,11 @@
 
 package ru.avicomp.ontapi.jena.impl;
 
+import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.*;
+import org.apache.jena.rdf.model.impl.LiteralImpl;
 import org.apache.jena.rdf.model.impl.ModelCom;
 import org.apache.jena.rdf.model.impl.PropertyImpl;
 import org.apache.jena.rdf.model.impl.StatementImpl;
@@ -70,7 +72,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
      * @return {@link OntStatementImpl} fresh instance
      */
     public static OntStatementImpl createOntStatementImpl(Triple t, OntGraphModelImpl m) {
-        return createOntStatementImpl(new OntObjectImpl(t.getSubject(), m), t.getPredicate(), t.getObject(), m);
+        return createOntStatementImpl(createSubject(t.getSubject(), m), t.getPredicate(), t.getObject(), m);
     }
 
     /**
@@ -83,7 +85,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
      * @return {@link OntStatementImpl} fresh instance
      */
     public static OntStatementImpl createOntStatementImpl(Resource s, Node p, Node o, OntGraphModelImpl m) {
-        return createOntStatementImpl(s, new PropertyImpl(p, m), o, m);
+        return createOntStatementImpl(s, createProperty(p, m), o, m);
     }
 
     /**
@@ -121,6 +123,45 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
     public static CachedStatementImpl createCachedOntStatementImpl(OntStatement delegate) {
         return delegate instanceof CachedStatementImpl ?
                 (CachedStatementImpl) delegate : new CachedStatementImpl(delegate);
+    }
+
+    /**
+     * Creates an {@link OntObject} to be used in a statement at subject position.
+     *
+     * @param n {@link Node}, not variable, not literal, not {@code null}
+     * @param g {@link EnhGraph}, not {@code null}
+     * @return {@link OntObject}
+     * @since 1.4.2
+     */
+    static OntObject createSubject(Node n, EnhGraph g) {
+        return new OntObjectImpl(n, g);
+    }
+
+    /**
+     * Creates an {@link Property} to be used in a statement at predicate position.
+     *
+     * @param n {@link Node}, an URI, not {@code null}
+     * @param g {@link EnhGraph}, not {@code null}
+     * @return {@link Property}
+     * @since 1.4.2
+     */
+    static Property createProperty(Node n, EnhGraph g) {
+        return new PropertyImpl(n, g);
+    }
+
+    /**
+     * Creates an RDF node which might be a literal or resource,
+     * in the latter case it is wrapped as {@link OntObjectImpl}.
+     * The result is used in a statement at object position.
+     *
+     * @param n {@link Node}, not {@code null}
+     * @param g {@link EnhGraph}, not {@code null}
+     * @return {@link RDFNode}
+     * @see StatementImpl#createObject(Node, EnhGraph)
+     * @since 1.4.2
+     */
+    public static RDFNode createObject(Node n, EnhGraph g) {
+        return n.isLiteral() ? new LiteralImpl(n, g) : new OntObjectImpl(n, g);
     }
 
     /**

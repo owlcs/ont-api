@@ -15,11 +15,11 @@
 package ru.avicomp.ontapi.jena.impl;
 
 import org.apache.jena.enhanced.EnhGraph;
-import org.apache.jena.enhanced.UnsupportedPolymorphismException;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
+import org.apache.jena.shared.JenaException;
 import org.apache.jena.shared.PropertyNotFoundException;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.util.iterator.NullIterator;
@@ -248,6 +248,26 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     }
 
     /**
+     * Answers an enhanced node that wraps the given RDF node and conforms to the given interface {@code view}.
+     * The method does not change the model nodes cache,
+     * but changes the object's cache if {@code view} is suitable for the given node.
+     *
+     * @param node {@link RDFNode}, not {@code null}
+     * @param view a {@code Class}-type of the desired RDF view (interface)
+     * @param <X>  any subtype of {@link RDFNode}
+     * @return an instance of the type {@link X} or {@code null}
+     * @see UnionModel#getNodeAs(Node, Class)
+     * @since 1.4.2
+     */
+    public static <X extends RDFNode> X getNodeAs(RDFNode node, Class<X> view) {
+        try {
+            return node.as(view);
+        } catch (JenaException ignore) {
+            return null;
+        }
+    }
+
+    /**
      * {@inheritDoc}
      *
      * @return {@code true} if the root statement belongs to the base graph
@@ -290,11 +310,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      */
     @Override
     public <X extends RDFNode> X getAs(Class<X> type) {
-        try {
-            return as(type);
-        } catch (UnsupportedPolymorphismException | OntJenaException.Conversion ignore) {
-            return null;
-        }
+        return getNodeAs(this, type);
     }
 
     /**

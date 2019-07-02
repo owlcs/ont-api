@@ -21,7 +21,6 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.impl.PropertyImpl;
 import org.apache.jena.vocabulary.RDFS;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.model.*;
@@ -95,7 +94,7 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
 
         @Override
         public int getOrdinal() {
-            return new PropertyImpl(node, enhGraph).getOrdinal();
+            return OntStatementImpl.createProperty(node, enhGraph).getOrdinal();
         }
     }
 

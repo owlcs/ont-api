@@ -84,7 +84,7 @@ interface OntResource extends Resource {
      *
      * @param type a {@code Class}-type of the desired RDF view (interface)
      * @param <X>  any subtype of {@link RDFNode}
-     * @return a resource of the type {@link X} or {@code null}
+     * @return an instance of the type {@link X} or {@code null}
      * @see RDFNode#as(Class)
      * @see RDFNode#canAs(Class)
      * @since 1.4.2

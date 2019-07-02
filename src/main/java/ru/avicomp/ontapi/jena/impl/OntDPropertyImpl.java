@@ -19,7 +19,6 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.impl.PropertyImpl;
 import org.apache.jena.vocabulary.RDFS;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
 import ru.avicomp.ontapi.jena.model.OntNDP;
@@ -84,6 +83,6 @@ public class OntDPropertyImpl extends OntPEImpl implements OntNDP {
 
     @Override
     public int getOrdinal() {
-        return new PropertyImpl(node, enhGraph).getOrdinal();
+        return OntStatementImpl.createProperty(node, enhGraph).getOrdinal();
     }
 }
