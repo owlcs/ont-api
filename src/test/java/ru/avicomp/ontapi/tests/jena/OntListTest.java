@@ -227,7 +227,7 @@ public class OntListTest {
         try {
             long c = list.members().count();
             Assert.fail("Possible to get members count for expired ont-list: " + c);
-        } catch (OntJenaException.IllegalState j) {
+        } catch (OntJenaException j) {
             LOGGER.debug("Expected: {}", j.getMessage());
         }
         list = p1.propertyChains().findFirst().orElseThrow(AssertionError::new);

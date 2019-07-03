@@ -72,9 +72,9 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
     }
 
     /**
-     * Creates a fresh OntList based on the given {@code elementType}
+     * Creates a fresh {@link OntList} with the given {@code elementType} as a type constraint
      * containing all content from the specified collection preserving the original order.
-     * The resulting list will be attached to the model by the given {@code subject} and {@code predicate}.
+     * The returned []-list will be attached to the model by the given {@code subject} and {@code predicate}.
      *
      * @param model       {@link OntGraphModelImpl}
      * @param subject     {@link OntObject}
@@ -93,7 +93,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
     }
 
     /**
-     * Creates a fresh OntList using {@code Iterator} and other parameters.
+     * Creates a fresh {@link OntList} using the given {@code Iterator} to fill content and other parameters.
      *
      * @param model       {@link OntGraphModelImpl Ontology RDF Model Impl}, not {@code null}
      * @param subject     {@link OntObject} a subject for new root statement, not {@code null}
@@ -119,11 +119,16 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
             public boolean isValid(RDFNode n) {
                 return true;
             }
+
+            @Override
+            public N cast(RDFNode n) {
+                return getModel().getNodeAs(n.asNode(), elementType);
+            }
         };
     }
 
     /**
-     * Wraps the given RDFList as OntList.
+     * Wraps the existing {@link RDFList} as {@link OntList}.
      *
      * @param list        {@link RDFList} an existing rdf-list, not {@code null}
      * @param model       {@link OntGraphModelImpl Ontology RDF Model Impl}, not {@code null}
@@ -145,18 +150,24 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
         Objects.requireNonNull(list, "Null RDF-List");
         return new OntListImpl<N>(subject, predicate, list, listType, model, elementType) {
             @Override
-            public boolean isValid(RDFNode n) {
-                return n.canAs(elementType);
+            public boolean isValid(RDFNode n) { // n is already in cache
+                return OntObjectImpl.getNodeAs(n, elementType) != null;
+            }
+
+            @Override
+            public N cast(RDFNode n) {
+                return n.as(elementType);
             }
         };
     }
 
     /**
-     * Wraps the given RDFList as OntList.
+     * Wraps the existing {@link RDFList} as {@link OntList}.
      * This method creates an instance of {@code OntList} which takes care about possible graph-recursions.
-     * Used for class-expressions and data-ranges,
+     * The method is used for class-expressions and data-ranges,
      * because it is theoretically possible to have definition of some expression
-     * which relies on the definition of another (or the same) expression.
+     * which relies on the definition of another (or the same) expression presenting
+     * that represents a graph-recursion.
      *
      * @param list        {@link RDFList} an existing rdf-list, not {@code null}
      * @param model       {@link OntGraphModelImpl Ontology RDF Model Impl}, not {@code null}
@@ -179,6 +190,12 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
             public boolean isValid(RDFNode n) {
                 return PersonalityModel.canAs(elementType, n.asNode(), model);
             }
+
+            @Override
+            public N cast(RDFNode n) {
+                return model.getNodeAs(n.asNode(), elementType);
+            }
+
         };
     }
 
@@ -216,7 +233,8 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
                                                                    Resource listType,
                                                                    Class<N> elementType) {
         checkRequiredInput(model, subject, predicate, listType, elementType);
-        return subject.objects(predicate, RDFList.class).map(list -> asOntList(list, model, subject, predicate, listType, elementType));
+        return subject.objects(predicate, RDFList.class)
+                .map(list -> asOntList(list, model, subject, predicate, listType, elementType));
     }
 
 
@@ -488,14 +506,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
      * @param n {@link RDFNode}
      * @return {@link RDFNode} of type {@link E}
      */
-    public E cast(RDFNode n) {
-        try {
-            return getModel().getNodeAs(n.asNode(), elementType);
-        } catch (OntJenaException.Conversion j) {
-            throw new OntJenaException.IllegalState("Can't cast to " +
-                    elementType.getSimpleName() + ". Problem node: '" + n + "'", j);
-        }
-    }
+    public abstract E cast(RDFNode n);
 
     @Override
     public OntList<E> addLast(E e) {
@@ -668,6 +679,11 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
                 @Override
                 public boolean isValid(RDFNode n) {
                     return OntListImpl.this.isValid(n);
+                }
+
+                @Override
+                public E cast(RDFNode n) {
+                    return OntListImpl.this.cast(n);
                 }
             };
         }

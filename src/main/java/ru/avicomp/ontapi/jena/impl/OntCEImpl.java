@@ -1055,7 +1055,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
 
         @Override
         public OntListImpl<P> getList() {
-            return OntListImpl.asSafeOntList(getRequiredObject(OWL.onProperties, RDFList.class), getModel(),
+            return OntListImpl.asOntList(getRequiredObject(OWL.onProperties, RDFList.class), getModel(),
                     this, OWL.onProperties, null, propertyType);
         }
 
