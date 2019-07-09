@@ -20,6 +20,9 @@ import org.apache.jena.rdf.model.RDFNode;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.conf.ObjectFactory;
 import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
+import ru.avicomp.ontapi.jena.model.OntObject;
+
+import java.util.Set;
 
 /**
  * An abstraction to work with {@link OntPersonality}
@@ -84,6 +87,16 @@ public interface PersonalityModel {
      * @see PersonalityModel#getNodeAs(Node, Class)
      */
     <N extends RDFNode> N fetchNodeAs(Node node, Class<N> view);
+
+    /**
+     * Returns all {@link Node}s from the {@link OntPersonality#getReserved() reserved} vocabulary,
+     * that cannot be represented as the specified {@code type} in the model.
+     *
+     * @param type a {@code Class}-type of {@link OntObject}, not {@code null}
+     * @return a {@code Set} of {@link Node}s
+     * @since 1.4.2
+     */
+    Set<Node> getSystemResources(Class<? extends OntObject> type);
 
     /**
      * Represents the given {@code EnhGraph} as a {@link PersonalityModel}.

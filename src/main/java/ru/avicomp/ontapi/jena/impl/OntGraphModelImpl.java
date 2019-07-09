@@ -385,28 +385,19 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
     }
 
     /**
-     * Returns all {@link Resource}s from the reserved vocabulary,
-     * that cannot represent the specified type in the model.
+     * {@inheritDoc}
      * Currently there are {@code 185} such resources for a {@link OntClass}
      * (from OWL, RDFS, RDF, XSD, SWRL, SWRLB vocabularies).
      * It is an auxiliary method for iteration optimization.
      *
-     * @param type a {@code Class}-type of {@link OntEntity}, not {@code null}
-     * @return an unmodifiable {@code Set} of {@link Resource}s
-     * @since 1.4.1
+     * @param type a {@code Class}-type of {@link OntObject}, not {@code null}
+     * @return an unmodifiable {@code Set} of {@link Node}s
      */
-    public Set<Resource> getSystemResources(Class<? extends OntEntity> type) {
-        return reservedClasses().filter(x -> !x.canAs(type)).collect(Iter.toUnmodifiableSet());
-    }
-
-    /**
-     * Lists all reserved nodes as {@link Resource}s.
-     *
-     * @return {@code Stream} of {@link Resource}s.
-     * @since 1.4.1
-     */
-    protected Stream<Resource> reservedClasses() {
-        return getOntPersonality().getReserved().getResources().stream().map(s -> getRDFNode(s).asResource());
+    @Override
+    public Set<Node> getSystemResources(Class<? extends OntObject> type) {
+        return getOntPersonality().getReserved().getResources().stream() // do not use model's cache
+                .filter(x -> !OntObjectImpl.wrapAsOntObject(x, OntGraphModelImpl.this).canAs(type))
+                .collect(Iter.toUnmodifiableSet());
     }
 
     @Override
@@ -421,38 +412,63 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
      * @return {@link ExtendedIterator} of {@link OntIndividual}s
      */
     public ExtendedIterator<OntIndividual> listIndividuals() {
-        Set<? extends RDFNode> forbiddenObjects = getSystemResources(OntClass.class);
-        Set<Triple> forbiddenTriples = new HashSet<>();
-        return listOntStatements(null, RDF.type, null)
-                .filterKeep(s -> {
+        return listIndividuals(this,
+                getSystemResources(OntClass.class),
+                getGraph().find(Node.ANY, RDF.Nodes.type, Node.ANY));
+    }
+
+    /**
+     * Filters {@code OntIndividual}s from the specified {@code ExtendedIterator}.
+     *
+     * @param model      {@link M}, not {@code null}
+     * @param system     a {@code Set} of {@link Node}s,
+     *                   that cannot be treated as {@link OntCE Ontology Class}es, not {@code null}
+     * @param assertions {@link ExtendedIterator} of {@link Triple}s
+     *                   with the {@link RDF#type rdf:type} as predicate, not {@code null}
+     * @param <M>        a subtype of {@link OntGraphModel} and {@link PersonalityModel}
+     * @return {@link ExtendedIterator} of {@link OntIndividual}s that are attached to the {@code model}
+     * @since 1.4.2
+     */
+    public static <M extends OntGraphModel & PersonalityModel> ExtendedIterator<OntIndividual> listIndividuals(M model,
+                                                                                                               Set<Node> system,
+                                                                                                               ExtendedIterator<Triple> assertions) {
+        Set<Triple> seen = new HashSet<>();
+        return assertions
+                .mapWith(t -> {
                     // to speedup the process,
                     // the investigation (that includes TTO, PS, HP, GALEN, FAMILY and PIZZA ontologies),
                     // shows that the profit exists and it is significant sometimes:
-                    if (forbiddenObjects.contains(s.getObject())) return false;
-
-                    // skip duplicates:
-                    if (forbiddenTriples.remove(s.asTriple())) {
-                        return false;
+                    if (system.contains(t.getObject())) {
+                        return null;
                     }
 
-                    // checking for the primary rule that determines class assertion.
+                    // skip duplicates (an individual may have several class-assertions):
+                    if (seen.remove(t)) {
+                        return null;
+                    }
+                    // checking for the primary rule that determines a class assertion.
                     // use cache - it couldn't hurt, classes are often used
-                    RDFNode o = s.getObject();
-                    if (findNodeAs(o.asNode(), OntCE.class) == null) return false;
-
+                    if (model.findNodeAs(t.getObject(), OntCE.class) == null) {
+                        return null;
+                    }
+                    return model.asStatement(t);
+                })
+                .filterKeep(s -> {
+                    if (s == null) return false;
                     // an individual may have a factory with punnings restrictions,
                     // so need to check its type also.
                     // this time do not cache in model
                     OntIndividual i = s.getSubject().getAs(OntIndividual.class);
                     if (i == null) return false;
 
-                    // update set with duplicates to ensure the stream is distinct
+                    // update the set with duplicates to ensure the stream is distinct
                     ((OntIndividualImpl) i).listClasses()
                             .forEachRemaining(x -> {
-                                if (o.equals(x)) { // skip this statement, otherwise all individuals fall into memory
+                                if (s.getObject().equals(x)) {
+                                    // skip this statement, otherwise all individuals fall into memory
                                     return;
                                 }
-                                forbiddenTriples.add(Triple.create(i.asNode(), RDF.Nodes.type, x.asNode()));
+                                seen.add(Triple.create(i.asNode(), RDF.Nodes.type, x.asNode()));
                             });
                     return true;
                 })
@@ -656,7 +672,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
         if (OntIndividual.Named.class == type) {
             return Collections.emptySet();
         }
-        // TODO: issue #40
+        // TODO: issue #40 (that is now canceled -> delete the whole method?)
         throw new OntJenaException.Unsupported("Attempt to get builtins for " + OntObjectImpl.viewAsString(type) +
                 ". This functionality is not ready, see https://github.com/avicomp/ont-api/issues/40");
     }

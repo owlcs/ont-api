@@ -14,12 +14,12 @@
 
 package ru.avicomp.ontapi.internal;
 
-import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.graph.Node;
 import org.apache.jena.shared.JenaException;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAxiom;
-import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
+import ru.avicomp.ontapi.jena.impl.PersonalityModel;
 import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
@@ -185,14 +185,14 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
     }
 
     /**
-     * Gets all {@link Resource}s that are reserved for a model and cannot represent a {@link OntClass}.
+     * Gets all uri-{@link Node}s that are reserved for a model and cannot represent a {@link OntClass}.
      *
      * @param model {@link OntGraphModel}, not {@code null}
-     * @return a {@code Set} of {@link Resource}s
+     * @return a {@code Set} of {@link Node}s
      */
-    protected static Set<Resource> getSystemClasses(OntGraphModel model) {
-        if (model instanceof OntGraphModelImpl) {
-            return ((OntGraphModelImpl) model).getSystemResources(OntClass.class);
+    protected static Set<Node> getSystemResources(OntGraphModel model) {
+        if (model instanceof PersonalityModel) {
+            return ((PersonalityModel) model).getSystemResources(OntClass.class);
         }
         return Collections.emptySet();
     }

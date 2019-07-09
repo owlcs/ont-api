@@ -138,10 +138,10 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      */
     protected volatile ObjectTriplesMap<OWLAnnotation> header;
     /**
-     * A collection of reserved {@link Resource}s, that cannot be OWL-entities.
+     * A collection of reserved uri-{@link Node}s, that cannot be OWL-entities.
      * Used to speedup iteration in some cases (e.g. for class assertions).
      */
-    protected final InternalCache<Class<? extends OntObject>, Set<? extends Resource>> systemResources;
+    protected final InternalCache<Class<? extends OntObject>, Set<Node>> systemResources;
 
     /**
      * Constructs an instance.
@@ -291,10 +291,9 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         }
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public Set<Resource> getSystemResources(Class<? extends OntEntity> type) {
-        return (Set<Resource>) systemResources.get(type, x -> super.getSystemResources(type));
+    public Set<Node> getSystemResources(Class<? extends OntObject> type) {
+        return systemResources.get(type, x -> super.getSystemResources(type));
     }
 
     /**

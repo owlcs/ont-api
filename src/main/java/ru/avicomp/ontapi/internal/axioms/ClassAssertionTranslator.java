@@ -14,6 +14,7 @@
 
 package ru.avicomp.ontapi.internal.axioms;
 
+import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLAnnotation;
@@ -22,7 +23,6 @@ import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLIndividual;
 import ru.avicomp.ontapi.internal.*;
 import ru.avicomp.ontapi.jena.model.*;
-import ru.avicomp.ontapi.jena.utils.OntModels;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.Collection;
@@ -52,9 +52,11 @@ public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionA
 
     @Override
     public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
-        Set<? extends RDFNode> forbidden = getSystemClasses(model);
-        return OntModels.listLocalStatements(model, null, RDF.type, null)
-                .filterKeep(s -> !forbidden.contains(s.getObject()) && filterSO(s));
+        Set<Node> forbidden = getSystemResources(model);
+        return model.getBaseGraph().find(Node.ANY, RDF.Nodes.type, Node.ANY)
+                .filterDrop(t -> forbidden.contains(t.getObject()))
+                .mapWith(model::asStatement)
+                .filterKeep(this::filterSO);
     }
 
     @Override

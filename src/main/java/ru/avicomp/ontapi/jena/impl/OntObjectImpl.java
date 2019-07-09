@@ -174,14 +174,14 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @param predicate the {@link Property} whose values are required
      * @param inverse   if {@code true}, use the inverse of {@code predicate} rather than {@code predicate}
      * @param direct    if {@code true}, only returns the direct (adjacent) values
-     * @param <X>       subtype of {@link OntObject}
+     * @param <X>       subtype of {@link Resource}
      * @return <b>distinct</b> {@code ExtendedIterator} of {@link X}s
      */
-    public static <X extends OntObject> ExtendedIterator<X> listHierarchy(X object,
-                                                                          Class<X> type,
-                                                                          Property predicate,
-                                                                          boolean inverse,
-                                                                          boolean direct) {
+    public static <X extends Resource> ExtendedIterator<X> listHierarchy(X object,
+                                                                         Class<X> type,
+                                                                         Property predicate,
+                                                                         boolean inverse,
+                                                                         boolean direct) {
         Function<X, ExtendedIterator<X>> listChildren = inverse ?
                 x -> ((OntObjectImpl) x).listSubjects(predicate, type) :
                 x -> ((OntObjectImpl) x).listObjects(predicate, type);
@@ -199,13 +199,13 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @param listChildren a {@code Function} that returns {@code Iterator} for an object of type {@link X}
      * @param direct       boolean, if {@code false} performs a complex search over whole graph,
      *                     otherwise only direct descendants are included into  the result
-     * @param <X>          subtype of {@link OntObject}
+     * @param <X>          subtype of {@link Resource}
      * @return {@code Set} of {@link X}
      * @since 1.4.0
      */
-    public static <X extends OntObject> Set<X> getHierarchy(X object,
-                                                            Function<X, ExtendedIterator<X>> listChildren,
-                                                            boolean direct) {
+    public static <X extends Resource> Set<X> getHierarchy(X object,
+                                                           Function<X, ExtendedIterator<X>> listChildren,
+                                                           boolean direct) {
         Set<X> res;
         if (direct) {
             res = listChildren.apply(object).toSet();
@@ -222,12 +222,12 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @param object       {@link X}
      * @param listChildren a {@code Function} that returns {@code Iterator} for an object of type {@link X}
      * @param res          {@code Set} to store result
-     * @param <X>          any subtype of {@link OntObject}
+     * @param <X>          any subtype of {@link Resource}
      * @since 1.4.0
      */
-    static <X extends OntObject> void collectIndirect(X object,
-                                                      Function<X, ? extends Iterator<X>> listChildren,
-                                                      Set<X> res) {
+    static <X extends Resource> void collectIndirect(X object,
+                                                     Function<X, ? extends Iterator<X>> listChildren,
+                                                     Set<X> res) {
         if (!res.add(object)) return;
         listChildren.apply(object).forEachRemaining(c -> collectIndirect(c, listChildren, res));
     }
@@ -265,6 +265,18 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
         } catch (JenaException ignore) {
             return null;
         }
+    }
+
+    /**
+     * Creates a fresh {@link OntObject} instance.
+     *
+     * @param node  {@link Node}, not {@code null}
+     * @param model {@link EnhGraph}, not {@code null}
+     * @return {@link OntObject}
+     * @since 1.4.2
+     */
+    public static OntObject wrapAsOntObject(Node node, EnhGraph model) {
+        return new OntObjectImpl(node, model);
     }
 
     /**

@@ -18,6 +18,7 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.impl.ModelCom;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.util.iterator.WrappedIterator;
 import ru.avicomp.ontapi.jena.OntJenaException;
@@ -217,7 +218,8 @@ public class OntModels {
         if (model instanceof OntGraphModelImpl) {
             return ((OntGraphModelImpl) model).listLocalStatements(s, p, o);
         }
-        return WrappedIterator.create(model.localStatements(s, p, o).iterator());
+        return model.getBaseGraph().find(ModelCom.asNode(s), ModelCom.asNode(p), ModelCom.asNode(p))
+                .mapWith(model::asStatement);
     }
 
     /**

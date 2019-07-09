@@ -134,7 +134,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
      * @since 1.4.2
      */
     static OntObject createSubject(Node n, EnhGraph g) {
-        return new OntObjectImpl(n, g);
+        return OntObjectImpl.wrapAsOntObject(n, g);
     }
 
     /**
@@ -161,7 +161,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
      * @since 1.4.2
      */
     public static RDFNode createObject(Node n, EnhGraph g) {
-        return n.isLiteral() ? new LiteralImpl(n, g) : new OntObjectImpl(n, g);
+        return n.isLiteral() ? new LiteralImpl(n, g) : OntObjectImpl.wrapAsOntObject(n, g);
     }
 
     /**
