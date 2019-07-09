@@ -19,14 +19,17 @@ import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.OntApiException;
-import ru.avicomp.ontapi.internal.*;
+import ru.avicomp.ontapi.internal.AxiomTranslator;
+import ru.avicomp.ontapi.internal.InternalConfig;
+import ru.avicomp.ontapi.internal.WriteHelper;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.utils.OntModels;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -90,16 +93,4 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
     protected boolean filter(Statement statement) {
         return statement.getSubject().canAs(getView()) && statement.getObject().canAs(getView());
     }
-
-    @Override
-    public ExtendedIterator<ONTObject<Axiom>> listAxioms(OntGraphModel model,
-                                                         InternalObjectFactory factory,
-                                                         InternalConfig config) {
-        Map<Axiom, ONTObject<Axiom>> res = new HashMap<>(); // memory!
-        super.listAxioms(model, factory, config)
-                .forEachRemaining(c -> res.compute(c.getObject(),
-                        (a, b) -> b == null ? c : ONTObjectImpl.asImpl(b).append(c)));
-        return Iter.create(res.values());
-    }
-
 }
