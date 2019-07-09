@@ -68,7 +68,7 @@ public class Graphs {
      */
     public static Stream<Graph> subGraphs(Graph graph) {
         if (graph instanceof UnionGraph) {
-            return Iter.asStream(((UnionGraph) graph).getUnderlying().listGraphs());
+            return ((UnionGraph) graph).getUnderlying().graphs();
         }
         if (graph instanceof Polyadic) {
             return ((Polyadic) graph).getSubGraphs().stream();
@@ -143,7 +143,7 @@ public class Graphs {
     }
 
     /**
-     * Answers {@code true} if the two input graphs are based on the same primitive graph.
+     * Answers {@code true} iff the two input graphs are based on the same primitive graph.
      *
      * @param left  {@link Graph}
      * @param right {@link Graph}
@@ -151,6 +151,73 @@ public class Graphs {
      */
     public static boolean isSameBase(Graph left, Graph right) {
         return Objects.equals(getBase(left), getBase(right));
+    }
+
+    /**
+     * Answers {@code true} iff the given graph is distinct.
+     * A distinct {@code Graph} behaves like a {@code Set}:
+     * for each pair of encountered triples {@code t1, t2} from any iterator, {@code !t1.equals(t2)}.
+     *
+     * @param graph {@link Graph} to test
+     * @return boolean if {@code graph} is distinct
+     * @see Spliterator#DISTINCT
+     * @see UnionGraph#isDistinct()
+     * @since 1.4.2
+     */
+    public static boolean isDistinct(Graph graph) {
+        if (graph instanceof GraphMem) {
+            return true;
+        }
+        if (graph instanceof UnionGraph) {
+            UnionGraph u = (UnionGraph) graph;
+            if (u.isDistinct()) {
+                return true;
+            }
+            return u.getUnderlying().isEmpty() && isDistinct(((UnionGraph) graph).getBaseGraph());
+        }
+        return false;
+    }
+
+    /**
+     * Answers {@code true} iff the given {@code graph} has known size
+     * and therefore the operation {@code graph.size()} does not take significant efforts.
+     *
+     * @param graph {@link Graph} to test
+     * @return boolean if {@code graph} is sized
+     * @see Spliterator#SIZED
+     * @see Graphs#size(Graph)
+     * @since 1.4.2
+     */
+    public static boolean isSized(Graph graph) {
+        if (graph instanceof GraphMem) {
+            return true;
+        }
+        if (graph instanceof UnionGraph) {
+            UnionGraph u = (UnionGraph) graph;
+            return u.getUnderlying().isEmpty() && isSized(((UnionGraph) graph).getBaseGraph());
+        }
+        return false;
+    }
+
+    /**
+     * Returns the number of triples in the {@code graph} as {@code long}.
+     *
+     * @param graph {@link Graph}, not {@code null}
+     * @return long
+     * @see Graphs#isSized(Graph)
+     * @since 1.4.2
+     */
+    public static long size(Graph graph) {
+        if (graph instanceof GraphMem) {
+            return graph.size();
+        }
+        if (graph instanceof UnionGraph && ((UnionGraph) graph).getUnderlying().isEmpty()) {
+            Graph bg = ((UnionGraph) graph).getBaseGraph();
+            if (bg instanceof GraphMem) {
+                return bg.size();
+            }
+        }
+        return Iter.count(graph.find());
     }
 
     /**

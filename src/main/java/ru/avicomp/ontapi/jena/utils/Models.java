@@ -304,11 +304,14 @@ public class Models {
     /**
      * Lists all direct subjects for the given object.
      *
-     * @param inModel {@link RDFNode}, not {@code null}
-     * @return {@code Stream} of {@link Resource}s.
+     * @param object {@link RDFNode}, not {@code null}
+     * @return <b>distinct</b> {@code Stream} of {@link Resource}s
+     * @see Model#listResourcesWithProperty(Property, RDFNode)
      */
-    public static Stream<Resource> subjects(RDFNode inModel) {
-        return Iter.asStream(inModel.getModel().listResourcesWithProperty(null, inModel));
+    public static Stream<Resource> subjects(RDFNode object) {
+        Model m = Objects.requireNonNull(object.getModel(), "No model for a resource " + object);
+        return Iter.asStream(Iter.create(() -> m.getGraph().find(Node.ANY, Node.ANY, object.asNode())
+                .mapWith(t -> m.wrapAsResource(t.getSubject())).toSet().iterator()), Spliterator.DISTINCT);
     }
 
     /**

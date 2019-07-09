@@ -30,6 +30,7 @@ import java.util.function.*;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 /**
  * Misc utils to work with Iterators, Streams, Collections, etc,
@@ -37,13 +38,14 @@ import java.util.stream.Stream;
  * Created by szuev on 11.04.2017.
  *
  * @see ExtendedIterator
- * @see org.apache.jena.atlas.iterator.Iter
  * @see ClosableIterator
+ * @see org.apache.jena.atlas.iterator.Iter
  */
 public class Iter {
 
     /**
      * Creates a new sequential {@code Stream} from the given {@code Iterator}.
+     * The returned {@code Stream} has no characteristics.
      * <p>
      * If the given parameter is {@link ClosableIterator},
      * do not forget to call {@link Stream#close()} explicitly if the iterator is not exhausted
@@ -52,13 +54,62 @@ public class Iter {
      * {@link Stream#findAny()}, {@link Stream#anyMatch(Predicate)} etc.
      *
      * @param iterator {@link Iterator}, not {@code null}
-     * @param <X>      the class-type of iterator
+     * @param <X>      the type of iterator-items
      * @return {@code Stream}
      */
-    @SuppressWarnings("unchecked")
     public static <X> Stream<X> asStream(Iterator<? extends X> iterator) {
-        Stream<X> res = (Stream<X>) org.apache.jena.atlas.iterator.Iter.asStream(iterator);
+        return asStream(iterator, 0);
+    }
+
+    /**
+     * Constructs a new sequential {@code Stream} from the given {@code Iterator},
+     * with the specified {@code characteristics}.
+     *
+     * @param iterator        {@link Iterator}, the {@code Spliterator}'s source, not {@code null}
+     * @param characteristics {@code int}, characteristics of the {@code Spliterator}'s source
+     * @param <X>             the type of iterator-items
+     * @return a non-parallel {@code Stream}, that wraps the {@code iterator} with the given characteristics
+     * @since 1.4.2
+     */
+    public static <X> Stream<X> asStream(Iterator<? extends X> iterator, int characteristics) {
+        return asStream(iterator, -1, characteristics);
+    }
+
+    /**
+     * Constructs a new sequential {@code Stream} from the given {@code Iterator},
+     * with the specified {@code characteristics} and estimated {@code size}.
+     *
+     * @param iterator        {@link Iterator}, the {@code Spliterator}'s source, not {@code null}
+     * @param size            {@code long}, a {@code Spliterator}'s estimates size, positive number or {@code -1}
+     * @param characteristics {@code int}, characteristics of the {@code Spliterator}'s source
+     * @param <X>             the type of iterator-items
+     * @return a non-parallel {@code Stream}, that wraps the {@code iterator} with the given parameters
+     * @since 1.4.2
+     */
+    public static <X> Stream<X> asStream(Iterator<? extends X> iterator, long size, int characteristics) {
+        Stream<X> res = StreamSupport.stream(asSpliterator(iterator, size, characteristics), false);
         return iterator instanceof ClosableIterator ? res.onClose(((ClosableIterator) iterator)::close) : res;
+    }
+
+    /**
+     * Creates a {@code Spliterator} using a given {@code Iterator} as the source of elements.
+     * If the {@code size} is not {@code -1}, the returned {@code Spliterator} will report this number
+     * as its initial {@link Spliterator#estimateSize() estimated size}.
+     *
+     * @param iterator        {@link Iterator}, not {@code null}
+     * @param size            {@code long}, a positive number or {@code -1}
+     * @param characteristics {@code int}, characteristics of the spliterator's source
+     * @param <X>             the type of iterator-items
+     * @return {@link Spliterator}
+     * @throws NullPointerException if the given iterator is {@code null}
+     * @since 1.4.2
+     */
+    @SuppressWarnings("WeakerAccess")
+    public static <X> Spliterator<X> asSpliterator(Iterator<? extends X> iterator, long size, int characteristics) {
+        if (size < 0) {
+            return Spliterators.spliteratorUnknownSize(iterator, characteristics);
+        }
+        return Spliterators.spliterator(iterator, size, characteristics);
     }
 
     /**
@@ -294,6 +345,24 @@ public class Iter {
         } finally {
             close(iterator);
         }
+    }
+
+    /**
+     * Returns the count of elements in the given iterator.
+     * A functional equivalent of {@link Stream#count()}, but for {@link Iterator}s.
+     * Warning: the method closes the specified iterator, so it is no possible to reuse it after.
+     *
+     * @param iterator {@link Iterator}, not {@code null}
+     * @return long, the count of elements in the given {@code iterator}
+     * @since 1.4.2
+     */
+    public static long count(Iterator<?> iterator) {
+        long res = 0;
+        while (iterator.hasNext()) {
+            iterator.next();
+            res++;
+        }
+        return res;
     }
 
     /**

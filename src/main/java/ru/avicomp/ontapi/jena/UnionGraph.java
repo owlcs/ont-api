@@ -259,6 +259,21 @@ public class UnionGraph extends CompositionBase {
         return false;
     }
 
+    @Override
+    public int graphBaseSize() {
+        if (sub.isEmpty()) {
+            return base.size();
+        }
+        return super.graphBaseSize();
+    }
+
+    @Override
+    public boolean isEmpty() {
+        // the default implementation use size(), which is extremely ineffective in general,
+        // since implies iterating over whole graph
+        return !Iter.findFirst(find()).isPresent();
+    }
+
     /**
      * Creates an extended iterator to be used in {@link Graph#find(Triple)}.
      *
@@ -304,12 +319,6 @@ public class UnionGraph extends CompositionBase {
     public void close() {
         listBaseGraphs().forEachRemaining(Graph::close);
         collectUnionGraphs().forEach(x -> x.closed = true);
-    }
-
-    @Override
-    public boolean isEmpty() {
-        // the default implementation use size(), which is extremely ineffective for this case
-        return !Iter.findFirst(find()).isPresent();
     }
 
     /**

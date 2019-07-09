@@ -175,7 +175,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
      * Lists all top-level sub-models built with the the given {@code personality}.
      *
      * @param personality {@link OntPersonality}, not {@code null}
-     * @return Stream of {@link OntGraphModel}s
+     * @return {@code Stream} of {@link OntGraphModel}s
      */
     public Stream<OntGraphModel> imports(OntPersonality personality) {
         return importModels(personality).map(Function.identity());
@@ -218,7 +218,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
      * from the top tier of the imports hierarchy.
      *
      * @param personality {@link OntPersonality}, not {@code null}
-     * @return Stream of {@link OntGraphModelImpl}s
+     * @return {@code Stream} of {@link OntGraphModelImpl}s
      * @since 1.4.0
      */
     protected final Stream<OntGraphModelImpl> importModels(OntPersonality personality) {
@@ -230,7 +230,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
      * from the whole imports hierarchy.
      *
      * @param personality {@link OntPersonality}, not {@code null}
-     * @return Stream of {@link OntGraphModelImpl}s
+     * @return {@code Stream} of {@link OntGraphModelImpl}s
      * @since 1.4.0
      */
     protected final Stream<OntGraphModelImpl> allModels(OntPersonality personality) {
@@ -240,7 +240,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
     /**
      * Lists all top-level {@link UnionGraph}s of the model's hierarchy.
      *
-     * @return Stream of {@link UnionGraph}
+     * @return {@code Stream} of {@link UnionGraph}
      * @since 1.4.0
      */
     protected final Stream<UnionGraph> importGraphs() {
@@ -299,7 +299,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
      *
      * @param type {@link Class} the type of {@link OntObject}, not null
      * @param <O>  subtype of {@link OntObject}
-     * @return Stream of {@link OntObject}s
+     * @return {@code Stream} of {@link OntObject}s
      */
     @Override
     public <O extends OntObject> Stream<O> ontObjects(Class<? extends O> type) {
@@ -376,7 +376,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
      * Gets 'punnings', i.e. the {@link OntEntity}s which have not only single type.
      *
      * @param withImports if false takes into account only base model
-     * @return Stream of {@link OntEntity}s.
+     * @return {@code Stream} of {@link OntEntity}s.
      */
     public Stream<OntEntity> ambiguousEntities(boolean withImports) {
         Set<Class<? extends OntEntity>> types = OntEntity.listEntityTypes().toSet();
@@ -521,17 +521,59 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
 
     @Override
     public Stream<OntStatement> statements() {
-        return Iter.asStream(listStatements().mapWith(OntStatement.class::cast));
+        UnionGraph g = getGraph();
+        return asStream(g, g.find().mapWith(this::asStatement), true);
     }
 
     @Override
     public Stream<OntStatement> statements(Resource s, Property p, RDFNode o) {
-        return Iter.asStream(listOntStatements(s, p, o));
+        return asStream(getGraph(), listOntStatements(s, p, o), isANY(s, p, o));
     }
 
     @Override
     public Stream<OntStatement> localStatements(Resource s, Property p, RDFNode o) {
-        return Iter.asStream(listLocalStatements(s, p, o));
+        return asStream(getBaseGraph(), listLocalStatements(s, p, o), isANY(s, p, o));
+    }
+
+    /**
+     * Creates a {@code Stream} for a graph.
+     *
+     * @param graph    {@link Graph} to test
+     * @param it       {@code ExtendedIterator} obtained from the {@code graph}
+     * @param withSize if {@code true} attempts to include graph size as a estimated size of a future {@code Stream}
+     * @param <X>      type of iterator's items
+     * @return {@code Stream} of {@link X}s
+     * @since 1.4.2
+     */
+    private static <X> Stream<X> asStream(Graph graph,
+                                          ExtendedIterator<X> it,
+                                          boolean withSize) {
+        // a graph cannot return iterator with null-elements
+        int characteristics = Spliterator.NONNULL;
+        if (Graphs.isDistinct(graph)) {
+            characteristics = characteristics | Spliterator.DISTINCT;
+        }
+        long size = -1;
+        if (withSize && Graphs.isSized(graph)) {
+            size = Graphs.size(graph);
+            characteristics = characteristics | Spliterator.SIZED;
+        }
+        return Iter.asStream(it, size, characteristics);
+    }
+
+    /**
+     * Answers {@code true} iff the given {@code SPO} corresponds {@link Triple#ANY}
+     *
+     * @param s {@link Resource}, the subject
+     * @param p {@link Property}, the predicate
+     * @param o {@link RDFNode}, the object
+     * @return boolean
+     * @since 1.4.2
+     */
+    private static boolean isANY(Resource s, Property p, RDFNode o) {
+        if (s != null) return false;
+        if (p != null) return false;
+        return o == null;
     }
 
     /**
@@ -659,7 +701,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
      * @param type  a concrete class-type of entity
      * @param local if {@code true} only the base graph is considered
      * @param <E>   any subtype of {@link OntEntity}
-     * @return Stream of builtin {@link OntEntity}s
+     * @return {@code Stream} of builtin {@link OntEntity}s
      */
     @SuppressWarnings("unused")
     public <E extends OntEntity> Set<E> getBuiltinEntities(Class<E> type, boolean local) {
