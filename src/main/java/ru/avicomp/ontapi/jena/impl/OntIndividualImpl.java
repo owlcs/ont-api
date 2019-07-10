@@ -61,13 +61,13 @@ public abstract class OntIndividualImpl extends OntObjectImpl implements OntIndi
     }
 
     @Override
-    public final Stream<OntCE> classes() {
+    public Stream<OntCE> classes() {
         return Iter.asStream(listClasses());
     }
 
     @Override
-    public final Stream<OntCE> classes(boolean direct) {
-        return Iter.asStream(listClasses(direct));
+    public Stream<OntCE> classes(boolean direct) {
+        return Iter.fromSet(() -> getClasses(direct));
     }
 
     /**
@@ -88,6 +88,7 @@ public abstract class OntIndividualImpl extends OntObjectImpl implements OntIndi
      * @see #listClasses()
      * @since 1.4.2
      */
+    @SuppressWarnings("unused")
     public ExtendedIterator<OntCE> listClasses(boolean direct) {
         return Iter.create(() -> getClasses(direct).iterator());
     }
@@ -199,7 +200,7 @@ public abstract class OntIndividualImpl extends OntObjectImpl implements OntIndi
     }
 
     @Override
-    public final Stream<OntNPA> negativeAssertions() {
+    public Stream<OntNPA> negativeAssertions() {
         return Iter.asStream(listNegativeAssertions());
     }
 

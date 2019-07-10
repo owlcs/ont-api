@@ -155,7 +155,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @param inverse   if {@code true}, use the inverse of {@code predicate} rather than {@code predicate}
      * @param direct    if {@code true}, only returns the direct (adjacent) values
      * @param <X>       subtype of {@link OntObject}
-     * @return {@code Stream} of {@link X}s
+     * @return <b>distinct</b> {@code Stream} of {@link X}s
      * @since 1.4.2
      */
     public static <X extends OntObject> Stream<X> hierarchy(X object,
@@ -163,7 +163,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
                                                             Property predicate,
                                                             boolean inverse,
                                                             boolean direct) {
-        return Iter.asStream(listHierarchy(object, type, predicate, inverse, direct));
+        return Iter.fromSet(() -> getHierarchy(object, getListDirect(type, predicate, inverse), direct));
     }
 
     /**
@@ -174,18 +174,34 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @param predicate the {@link Property} whose values are required
      * @param inverse   if {@code true}, use the inverse of {@code predicate} rather than {@code predicate}
      * @param direct    if {@code true}, only returns the direct (adjacent) values
-     * @param <X>       subtype of {@link Resource}
+     * @param <X>       subtype of {@link OntObject}
      * @return <b>distinct</b> {@code ExtendedIterator} of {@link X}s
      */
-    public static <X extends Resource> ExtendedIterator<X> listHierarchy(X object,
-                                                                         Class<X> type,
-                                                                         Property predicate,
-                                                                         boolean inverse,
-                                                                         boolean direct) {
-        Function<X, ExtendedIterator<X>> listChildren = inverse ?
+    @SuppressWarnings("unused")
+    public static <X extends OntObject> ExtendedIterator<X> listHierarchy(X object,
+                                                                          Class<X> type,
+                                                                          Property predicate,
+                                                                          boolean inverse,
+                                                                          boolean direct) {
+        return Iter.create(() -> getHierarchy(object, getListDirect(type, predicate, inverse), direct).iterator());
+    }
+
+    /**
+     * Gets a facility to get direct iterator.
+     *
+     * @param type      the class-type of {@link X}
+     * @param predicate the {@link Property} whose values are required
+     * @param inverse   if {@code true}, use the inverse of {@code predicate} rather than {@code predicate}
+     * @param <X>       subtype of {@link OntObject} (actually {@link OntObjectImpl})
+     * @return a {@code Function} that responses a {@code ExtendedIterator} over direct listed {@link X}
+     * @since 1.4.2
+     */
+    private static <X extends OntObject> Function<X, ExtendedIterator<X>> getListDirect(Class<X> type,
+                                                                                        Property predicate,
+                                                                                        boolean inverse) {
+        return inverse ?
                 x -> ((OntObjectImpl) x).listSubjects(predicate, type) :
                 x -> ((OntObjectImpl) x).listObjects(predicate, type);
-        return Iter.create(() -> getHierarchy(object, listChildren, direct).iterator());
     }
 
     /**
@@ -196,7 +212,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * The given object is not included in the return {@code Set}
      *
      * @param object       {@link X}
-     * @param listChildren a {@code Function} that returns {@code Iterator} for an object of type {@link X}
+     * @param listDirect a {@code Function} that returns {@code Iterator} for an object of type {@link X}
      * @param direct       boolean, if {@code false} performs a complex search over whole graph,
      *                     otherwise only direct descendants are included into  the result
      * @param <X>          subtype of {@link Resource}
@@ -204,13 +220,13 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @since 1.4.0
      */
     public static <X extends Resource> Set<X> getHierarchy(X object,
-                                                           Function<X, ExtendedIterator<X>> listChildren,
+                                                           Function<X, ExtendedIterator<X>> listDirect,
                                                            boolean direct) {
         Set<X> res;
         if (direct) {
-            res = listChildren.apply(object).toSet();
+            res = listDirect.apply(object).toSet();
         } else {
-            collectIndirect(object, listChildren, res = new HashSet<>());
+            collectIndirect(object, listDirect, res = new HashSet<>());
         }
         res.remove(object);
         return res;
@@ -220,16 +236,16 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * For the given object recursively collects all children determined by the operation {@code listChildren}.
      *
      * @param object       {@link X}
-     * @param listChildren a {@code Function} that returns {@code Iterator} for an object of type {@link X}
+     * @param listDirect a {@code Function} that returns {@code Iterator} for an object of type {@link X}
      * @param res          {@code Set} to store result
      * @param <X>          any subtype of {@link Resource}
      * @since 1.4.0
      */
     static <X extends Resource> void collectIndirect(X object,
-                                                     Function<X, ? extends Iterator<X>> listChildren,
+                                                     Function<X, ? extends Iterator<X>> listDirect,
                                                      Set<X> res) {
         if (!res.add(object)) return;
-        listChildren.apply(object).forEachRemaining(c -> collectIndirect(c, listChildren, res));
+        listDirect.apply(object).forEachRemaining(c -> collectIndirect(c, listDirect, res));
     }
 
     /**
@@ -305,7 +321,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @return Stream of {@link OntStatement}s
      */
     @Override
-    public final Stream<OntStatement> spec() {
+    public Stream<OntStatement> spec() {
         return Iter.asStream(listSpec());
     }
 
@@ -341,8 +357,9 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @return <b>distinct</b> Stream of {@link OntStatement}s
      */
     @Override
-    public final Stream<OntStatement> content() {
-        return Iter.asStream(listContent());
+    public Stream<OntStatement> content() {
+        //return Iter.asStream(listContent());
+        return Iter.fromSet(this::getContent);
     }
 
     /**
@@ -353,8 +370,8 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @return <b>distinct</b> {@code ExtendedIterator} of {@link OntStatement}s
      * @since 1.4.2
      */
+    @SuppressWarnings("unused")
     public ExtendedIterator<OntStatement> listContent() {
-        // Use Set to ensure safety of subsequent operations:
         return Iter.create(() -> getContent().iterator());
     }
 
@@ -467,12 +484,12 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     }
 
     @Override
-    public final Stream<OntStatement> statements(Property property) {
+    public Stream<OntStatement> statements(Property property) {
         return Iter.asStream(listStatements(property));
     }
 
     @Override
-    public final Stream<OntStatement> statements() {
+    public Stream<OntStatement> statements() {
         return Iter.asStream(listStatements());
     }
 
@@ -552,7 +569,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @see #listAnnotations()
      */
     @Override
-    public final Stream<OntStatement> annotations() {
+    public Stream<OntStatement> annotations() {
         return Iter.asStream(listAnnotations());
     }
 
@@ -579,7 +596,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @return Stream of {@link OntStatement}s
      * @see #listAssertions()
      */
-    public final Stream<OntStatement> assertions() {
+    public Stream<OntStatement> assertions() {
         return Iter.asStream(listAssertions());
     }
 
@@ -756,7 +773,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @return Stream of {@link RDFNode}s
      * @see #listObjects(Property)
      */
-    public final Stream<RDFNode> objects(Property predicate) {
+    public Stream<RDFNode> objects(Property predicate) {
         return Iter.asStream(listObjects(predicate));
     }
 

@@ -88,7 +88,7 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
     protected abstract Resource getResourceType();
 
     @Override
-    public final Stream<O> members() {
+    public Stream<O> members() {
         return Iter.asStream(listMembers());
     }
 

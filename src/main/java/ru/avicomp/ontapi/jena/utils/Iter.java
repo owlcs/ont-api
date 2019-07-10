@@ -44,8 +44,12 @@ import java.util.stream.StreamSupport;
 public class Iter {
 
     /**
-     * Creates a new sequential {@code Stream} from the given {@code Iterator}.
-     * The returned {@code Stream} has no characteristics.
+     * Creates a new sequential {@code Stream} from the given {@code Iterator},
+     * which is expected to deliver nonnull items:
+     * it is required that the operation {@link Iterator#next()} must not return {@code null}
+     * if the method {@link Iterator#hasNext()} answers {@code true}.
+     * The method {@link Iter#asStream(Iterator, int)} with the second parameter equals {@code 0} can be used to
+     * create a {@code Stream} for an iterator that may deliver {@code null}s.
      * <p>
      * If the given parameter is {@link ClosableIterator},
      * do not forget to call {@link Stream#close()} explicitly if the iterator is not exhausted
@@ -53,17 +57,20 @@ public class Iter {
      * It should be done for all short-circuiting terminal operations such as {@link Stream#findFirst()},
      * {@link Stream#findAny()}, {@link Stream#anyMatch(Predicate)} etc.
      *
-     * @param iterator {@link Iterator}, not {@code null}
+     * @param iterator {@link Iterator} that delivers nonnull elements, cannot be {@code null}
      * @param <X>      the type of iterator-items
      * @return {@code Stream}
      */
     public static <X> Stream<X> asStream(Iterator<? extends X> iterator) {
-        return asStream(iterator, 0);
+        return asStream(iterator, Spliterator.NONNULL);
     }
 
     /**
      * Constructs a new sequential {@code Stream} from the given {@code Iterator},
      * with the specified {@code characteristics}.
+     *
+     * If the given parameter is {@link ClosableIterator}, an explicit call to the {@link Stream#close()} method
+     * is required for all short-circuiting terminal operations.
      *
      * @param iterator        {@link Iterator}, the {@code Spliterator}'s source, not {@code null}
      * @param characteristics {@code int}, characteristics of the {@code Spliterator}'s source
@@ -79,6 +86,9 @@ public class Iter {
      * Constructs a new sequential {@code Stream} from the given {@code Iterator},
      * with the specified {@code characteristics} and estimated {@code size}.
      *
+     * If the given parameter is {@link ClosableIterator}, an explicit call to the {@link Stream#close()} method
+     * is required for all short-circuiting terminal operations.
+
      * @param iterator        {@link Iterator}, the {@code Spliterator}'s source, not {@code null}
      * @param size            {@code long}, a {@code Spliterator}'s estimates size, positive number or {@code -1}
      * @param characteristics {@code int}, characteristics of the {@code Spliterator}'s source
@@ -110,6 +120,21 @@ public class Iter {
             return Spliterators.spliteratorUnknownSize(iterator, characteristics);
         }
         return Spliterators.spliterator(iterator, size, characteristics);
+    }
+
+    /**
+     * Creates a {@code Stream} for a future {@code Set}, which is produced by the factory-parameter {@code getAsSet}.
+     * The returned {@code Stream} is based on a data-snapshot and it is therefore always safe to use.
+     *
+     * @param getAsSet {@code Supplier} that produces a {@code Set} of {@link X}
+     * @param <X>      the type of items
+     * @return <b>distinct</b> sequential {@code Stream}
+     * @see Iter#create(Supplier)
+     * @since 1.4.2
+     */
+    public static <X> Stream<X> fromSet(Supplier<Set<X>> getAsSet) {
+        int chs = Spliterator.NONNULL | Spliterator.DISTINCT | Spliterator.IMMUTABLE;
+        return asStream(create(() -> getAsSet.get().iterator()), chs);
     }
 
     /**

@@ -370,7 +370,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
     }
 
     @Override
-    public final Stream<OntAnnotation> annotationResources() {
+    public Stream<OntAnnotation> annotationResources() {
         return Iter.asStream(listAnnotationResources());
     }
 

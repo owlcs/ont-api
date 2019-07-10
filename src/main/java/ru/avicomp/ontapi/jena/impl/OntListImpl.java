@@ -438,7 +438,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
     }
 
     @Override
-    public final Stream<OntStatement> spec() {
+    public Stream<OntStatement> spec() {
         return Iter.asStream(listSpec());
     }
 
@@ -453,7 +453,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
     }
 
     @Override
-    public final Stream<OntStatement> content() {
+    public Stream<OntStatement> content() {
         return Iter.asStream(listContent());
     }
 
