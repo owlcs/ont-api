@@ -353,6 +353,10 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
         throw new OntJenaException.IllegalState("Can't find []-list triple with predicate " + predicate + " in a batch " + batch);
     }
 
+    protected int getCharacteristics() {
+        return OntGraphModelImpl.getSpliteratorCharacteristics(getModel().getGraph());
+    }
+
     @Override
     public OntStatement getRoot() {
         return getModel().createStatement(subject, predicate, getRDFList());
@@ -439,7 +443,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
 
     @Override
     public Stream<OntStatement> spec() {
-        return Iter.asStream(listSpec());
+        return Iter.asStream(listSpec(), getCharacteristics());
     }
 
     public ExtendedIterator<OntStatement> listSpec() {
@@ -454,7 +458,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
 
     @Override
     public Stream<OntStatement> content() {
-        return Iter.asStream(listContent());
+        return Iter.asStream(listContent(), getCharacteristics());
     }
 
     /**
@@ -473,11 +477,6 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
     protected ExtendedIterator<List<Triple>> createSafeRDFListIterator(Node list) {
         return WrappedIterator.create(new SafeRDFListIterator(getModel().getGraph(), list))
                 .filterKeep(Objects::nonNull);
-    }
-
-    @SuppressWarnings("unused")
-    protected Stream<List<Triple>> createRDFListStream(Node list) {
-        return Iter.asStream(createRDFListIterator(list));
     }
 
     protected ExtendedIterator<List<Triple>> createRDFListIterator(Node list) {

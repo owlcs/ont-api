@@ -32,7 +32,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.semanticweb.owlapi.model.parameters.ChangeApplied.NO_OPERATION;
@@ -306,9 +305,9 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
                     lock.readLock().lock();
                     try {
                         OntPersonality p = getOntPersonality();
-                        List<OntGraphModel> res = importGraphs()
-                                .map(x -> asConcurrent(x, p, lock))
-                                .collect(Collectors.toList());
+                        List<OntGraphModel> res = listImportGraphs()
+                                .mapWith(x -> (OntGraphModel) asConcurrent(x, p, lock))
+                                .toList();
                         return res.stream();
                     } finally {
                         lock.readLock().unlock();

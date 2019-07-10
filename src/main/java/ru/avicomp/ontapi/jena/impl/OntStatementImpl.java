@@ -215,6 +215,10 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
         return OWL.Axiom;
     }
 
+    protected int getCharacteristics() {
+        return OntGraphModelImpl.getSpliteratorCharacteristics(getModel().getGraph());
+    }
+
     @Override
     public OntGraphModelImpl getModel() {
         return (OntGraphModelImpl) super.getModel();
@@ -292,7 +296,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
 
     @Override
     public Stream<OntStatement> annotations() {
-        return Iter.asStream(listAnnotations());
+        return Iter.asStream(listAnnotations(), getCharacteristics());
     }
 
     @Override
@@ -371,7 +375,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
 
     @Override
     public Stream<OntAnnotation> annotationResources() {
-        return Iter.asStream(listAnnotationResources());
+        return Iter.asStream(listAnnotationResources(), getCharacteristics());
     }
 
     /**

@@ -211,7 +211,7 @@ public class UnionGraph extends CompositionBase {
      * or (which is possible) inside the {@link #getBaseGraph() base} (root) graph itself.
      *
      * @return <b>distinct</b> {@link ExtendedIterator} of {@link Graph}s, including the base graph
-     * @see #getBaseGraph()
+     * @see UnionGraph#getBaseGraph()
      */
     public ExtendedIterator<Graph> listBaseGraphs() {
         return Iter.create(graphs == null ? graphs = collectBaseGraphs() : graphs);
@@ -220,7 +220,7 @@ public class UnionGraph extends CompositionBase {
     /**
      * Lists all {@link UnionGraph}s from the hierarchy including this graph at the first place.
      *
-     * @return {@link ExtendedIterator} of {@link UnionGraph}s
+     * @return <b>distinct</b> {@link ExtendedIterator} of {@link UnionGraph}s
      */
     public ExtendedIterator<UnionGraph> listUnionGraphs() {
         return Iter.create(collectUnionGraphs());

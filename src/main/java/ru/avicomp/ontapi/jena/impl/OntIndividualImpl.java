@@ -62,7 +62,7 @@ public abstract class OntIndividualImpl extends OntObjectImpl implements OntIndi
 
     @Override
     public Stream<OntCE> classes() {
-        return Iter.asStream(listClasses());
+        return Iter.asStream(listClasses(), getCharacteristics());
     }
 
     @Override
@@ -201,7 +201,7 @@ public abstract class OntIndividualImpl extends OntObjectImpl implements OntIndi
 
     @Override
     public Stream<OntNPA> negativeAssertions() {
-        return Iter.asStream(listNegativeAssertions());
+        return Iter.asStream(listNegativeAssertions(), getCharacteristics());
     }
 
     public ExtendedIterator<OntNPA> listNegativeAssertions() {

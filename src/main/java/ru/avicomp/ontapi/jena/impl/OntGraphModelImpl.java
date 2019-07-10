@@ -15,6 +15,7 @@
 package ru.avicomp.ontapi.jena.impl;
 
 import org.apache.jena.datatypes.RDFDatatype;
+import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
@@ -66,22 +67,6 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
         super(graph, OntPersonality.asJenaPersonality(personality));
     }
 
-    @Override
-    public OntPersonality getOntPersonality() {
-        return (OntPersonality) super.getPersonality();
-    }
-
-    @Override
-    public OntID getID() {
-        return getNodeAs(Graphs.ontologyNode(getBaseGraph())
-                .orElseGet(() -> createResource().addProperty(RDF.type, OWL.Ontology).asNode()), OntID.class);
-    }
-
-    @Override
-    public OntID setID(String uri) {
-        return getNodeAs(createOntologyID(getBaseModel(), uri).asNode(), OntID.class);
-    }
-
     /**
      * Creates a fresh ontology resource (i.e. {@code @uri rdf:type owl:Ontology} triple)
      * and moves to it all content from existing ontology resources (if they present).
@@ -122,6 +107,147 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
         Resource res = model.wrapAsResource(node).addProperty(RDF.type, OWL.Ontology);
         prev.forEach(s -> res.addProperty(s.getPredicate(), s.getObject()));
         return res;
+    }
+
+    /**
+     * Lists all {@code OntObject}s for the given {@code OntGraphModelImpl}.
+     *
+     * @param m    {@link OntGraphModelImpl} the impl to cache
+     * @param type {@link Class} the type of {@link OntObject}, not null
+     * @param <M>  a subtype of {@link EnhGraph} and {@link PersonalityModel}
+     * @param <O>  subtype of {@link OntObject}
+     * @return an {@link ExtendedIterator Extended Iterator} of {@link OntObject}s
+     */
+    public static <M extends EnhGraph & PersonalityModel, O extends OntObject> ExtendedIterator<O> listOntObjects(M m,
+                                                                                                                  Class<? extends O> type) {
+        return m.getOntPersonality().getObjectFactory(type).iterator(m).mapWith(e -> m.getNodeAs(e.asNode(), type));
+    }
+
+    /**
+     * Filters {@code OntIndividual}s from the specified {@code ExtendedIterator}.
+     *
+     * @param model      {@link M}, not {@code null}
+     * @param system     a {@code Set} of {@link Node}s,
+     *                   that cannot be treated as {@link OntCE Ontology Class}es, not {@code null}
+     * @param assertions {@link ExtendedIterator} of {@link Triple}s
+     *                   with the {@link RDF#type rdf:type} as predicate, not {@code null}
+     * @param <M>        a subtype of {@link OntGraphModel} and {@link PersonalityModel}
+     * @return {@link ExtendedIterator} of {@link OntIndividual}s that are attached to the {@code model}
+     * @since 1.4.2
+     */
+    public static <M extends OntGraphModel & PersonalityModel> ExtendedIterator<OntIndividual> listIndividuals(M model,
+                                                                                                               Set<Node> system,
+                                                                                                               ExtendedIterator<Triple> assertions) {
+        Set<Triple> seen = new HashSet<>();
+        return assertions
+                .mapWith(t -> {
+                    // to speedup the process,
+                    // the investigation (that includes TTO, PS, HP, GALEN, FAMILY and PIZZA ontologies),
+                    // shows that the profit exists and it is significant sometimes:
+                    if (system.contains(t.getObject())) {
+                        return null;
+                    }
+
+                    // skip duplicates (an individual may have several class-assertions):
+                    if (seen.remove(t)) {
+                        return null;
+                    }
+                    // checking for the primary rule that determines a class assertion.
+                    // use cache - it couldn't hurt, classes are often used
+                    if (model.findNodeAs(t.getObject(), OntCE.class) == null) {
+                        return null;
+                    }
+                    return model.asStatement(t);
+                })
+                .filterKeep(s -> {
+                    if (s == null) return false;
+                    // an individual may have a factory with punnings restrictions,
+                    // so need to check its type also.
+                    // this time do not cache in model
+                    OntIndividual i = s.getSubject().getAs(OntIndividual.class);
+                    if (i == null) return false;
+
+                    // update the set with duplicates to ensure the stream is distinct
+                    ((OntIndividualImpl) i).listClasses()
+                            .forEachRemaining(x -> {
+                                if (s.getObject().equals(x)) {
+                                    // skip this statement, otherwise all individuals fall into memory
+                                    return;
+                                }
+                                seen.add(Triple.create(i.asNode(), RDF.Nodes.type, x.asNode()));
+                            });
+                    return true;
+                })
+                .mapWith(s -> s.getSubject(OntIndividual.class));
+    }
+
+    /**
+     * Creates a {@code Stream} for a graph.
+     *
+     * @param graph    {@link Graph} to test
+     * @param it       {@code ExtendedIterator} obtained from the {@code graph}
+     * @param withSize if {@code true} attempts to include graph size as a estimated size of a future {@code Stream}
+     * @param <X>      type of iterator's items
+     * @return {@code Stream} of {@link X}s
+     * @since 1.4.2
+     */
+    private static <X> Stream<X> asStream(Graph graph,
+                                          ExtendedIterator<X> it,
+                                          boolean withSize) {
+        int characteristics = getSpliteratorCharacteristics(graph);
+        long size = -1;
+        if (withSize && Graphs.isSized(graph)) {
+            size = Graphs.size(graph);
+            characteristics = characteristics | Spliterator.SIZED;
+        }
+        return Iter.asStream(it, size, characteristics);
+    }
+
+    /**
+     * Returns a {@link Spliterator} characteristics based on graph analysis.
+     *
+     * @param graph {@link Graph}
+     * @return int
+     * @since 1.4.2
+     */
+    protected static int getSpliteratorCharacteristics(Graph graph) {
+        // a graph cannot return iterator with null-elements
+        int res = Spliterator.NONNULL;
+        if (Graphs.isDistinct(graph)) {
+            return res | Spliterator.DISTINCT;
+        }
+        return res;
+    }
+
+    /**
+     * Answers {@code true} iff the given {@code SPO} corresponds {@link Triple#ANY}.
+     *
+     * @param s {@link Resource}, the subject
+     * @param p {@link Property}, the predicate
+     * @param o {@link RDFNode}, the object
+     * @return boolean
+     * @since 1.4.2
+     */
+    private static boolean isANY(Resource s, Property p, RDFNode o) {
+        if (s != null) return false;
+        if (p != null) return false;
+        return o == null;
+    }
+
+    @Override
+    public OntPersonality getOntPersonality() {
+        return (OntPersonality) super.getPersonality();
+    }
+
+    @Override
+    public OntID getID() {
+        return getNodeAs(Graphs.ontologyNode(getBaseGraph())
+                .orElseGet(() -> createResource().addProperty(RDF.type, OWL.Ontology).asNode()), OntID.class);
+    }
+
+    @Override
+    public OntID setID(String uri) {
+        return getNodeAs(createOntologyID(getBaseModel(), uri).asNode(), OntID.class);
     }
 
     @Override
@@ -178,7 +304,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
      * @return {@code Stream} of {@link OntGraphModel}s
      */
     public Stream<OntGraphModel> imports(OntPersonality personality) {
-        return importModels(personality).map(Function.identity());
+        return Iter.asStream(listImportModels(personality));
     }
 
     /**
@@ -188,7 +314,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
      * @return {@code Optional} around {@link OntGraphModelImpl}
      */
     protected Optional<OntGraphModelImpl> findImport(Predicate<OntGraphModelImpl> filter) {
-        return importModels(getOntPersonality()).filter(filter).findFirst();
+        return Iter.findFirst(listImportModels(getOntPersonality()).filterKeep(filter));
     }
 
     /**
@@ -214,39 +340,41 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
     }
 
     /**
+     * Lists all {@link OntGraphModelImpl model impl}s with the specified {@code personality}
+     * from the whole imports hierarchy.
+     * This model is also included in the returned iterator.
+     *
+     * @param personality {@link OntPersonality}, not {@code null}
+     * @return <b>distinct</b> {@code ExtendedIterator} of {@link OntGraphModelImpl}s
+     * @since 1.4.2
+     */
+    protected final ExtendedIterator<OntGraphModelImpl> listAllModels(OntPersonality personality) {
+        return getGraph().listUnionGraphs().mapWith(u -> new OntGraphModelImpl(u, personality));
+    }
+
+    /**
      * Lists {@link OntGraphModelImpl model impl}s with the specified {@code personality}
      * from the top tier of the imports hierarchy.
      *
      * @param personality {@link OntPersonality}, not {@code null}
-     * @return {@code Stream} of {@link OntGraphModelImpl}s
-     * @since 1.4.0
+     * @return <b>non-distinct</b> {@code ExtendedIterator} of {@link OntGraphModelImpl}s
+     * @since 1.4.2
      */
-    protected final Stream<OntGraphModelImpl> importModels(OntPersonality personality) {
-        return importGraphs().map(u -> new OntGraphModelImpl(u, personality));
+    protected final ExtendedIterator<OntGraphModelImpl> listImportModels(OntPersonality personality) {
+        return listImportGraphs().mapWith(u -> new OntGraphModelImpl(u, personality));
     }
 
     /**
-     * Lists all {@link OntGraphModelImpl model impl}s with the specified {@code personality}
-     * from the whole imports hierarchy.
+     * Lists all top-level {@link UnionGraph}s of the model's {@code owl:import} hierarchy.
+     * This model graph is not included.
      *
-     * @param personality {@link OntPersonality}, not {@code null}
-     * @return {@code Stream} of {@link OntGraphModelImpl}s
-     * @since 1.4.0
+     * @return <b>non-distinct</b> {@code ExtendedIterator} of {@link UnionGraph}
+     * @since 1.4.2
      */
-    protected final Stream<OntGraphModelImpl> allModels(OntPersonality personality) {
-        return Iter.asStream(getGraph().listUnionGraphs().mapWith(u -> new OntGraphModelImpl(u, personality)));
-    }
-
-    /**
-     * Lists all top-level {@link UnionGraph}s of the model's hierarchy.
-     *
-     * @return {@code Stream} of {@link UnionGraph}
-     * @since 1.4.0
-     */
-    protected final Stream<UnionGraph> importGraphs() {
-        return Iter.asStream(getGraph().getUnderlying().listGraphs()
+    protected final ExtendedIterator<UnionGraph> listImportGraphs() {
+        return getGraph().getUnderlying().listGraphs()
                 .filterKeep(x -> x instanceof UnionGraph)
-                .mapWith(x -> (UnionGraph) x));
+                .mapWith(x -> (UnionGraph) x);
     }
 
     /**
@@ -303,7 +431,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
      */
     @Override
     public <O extends OntObject> Stream<O> ontObjects(Class<? extends O> type) {
-        return Iter.asStream(listOntObjects(type));
+        return Iter.asStream(listOntObjects(type), getSpliteratorCharacteristics(getGraph()));
     }
 
     /**
@@ -311,14 +439,14 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
      *
      * @param type {@link Class} the type of {@link OntObject}, not null
      * @param <O>  subtype of {@link OntObject}
-     * @return {@link ExtendedIterator Extended Iterator} of {@link OntObject}s
+     * @return an {@link ExtendedIterator Extended Iterator} of {@link OntObject}s
      */
     public <O extends OntObject> ExtendedIterator<O> listOntObjects(Class<? extends O> type) {
         return listOntObjects(this, type);
     }
 
     /**
-     * The same as {@link #listOntObjects(Class)}, but for the base graph.
+     * The same as {@link OntGraphModelImpl#listOntObjects(Class)}, but for the base graph.
      *
      * @param type {@link Class} the type of {@link OntObject}, not null
      * @param <O>  subtype of {@link OntObject}
@@ -326,19 +454,6 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
      */
     public <O extends OntObject> ExtendedIterator<O> listLocalOntObjects(Class<? extends O> type) {
         return listOntObjects(getTopModel(), type);
-    }
-
-    /**
-     * Lists all {@code OntObject}s for the given {@code OntGraphModelImpl}.
-     *
-     * @param m    {@link OntGraphModelImpl} the impl to cache
-     * @param type {@link Class} the type of {@link OntObject}, not null
-     * @param <O>  subtype of {@link OntObject}
-     * @return {@link ExtendedIterator Extended Iterator} of {@link OntObject}s
-     */
-    protected static <O extends OntObject> ExtendedIterator<O> listOntObjects(OntGraphModelImpl m,
-                                                                              Class<? extends O> type) {
-        return m.getOntPersonality().getObjectFactory(type).iterator(m).mapWith(e -> m.getNodeAs(e.asNode(), type));
     }
 
     @Override
@@ -402,7 +517,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
 
     @Override
     public Stream<OntIndividual> individuals() {
-        return Iter.asStream(listIndividuals());
+        return Iter.asStream(listIndividuals(), getSpliteratorCharacteristics(getGraph()));
     }
 
     /**
@@ -415,64 +530,6 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
         return listIndividuals(this,
                 getSystemResources(OntClass.class),
                 getGraph().find(Node.ANY, RDF.Nodes.type, Node.ANY));
-    }
-
-    /**
-     * Filters {@code OntIndividual}s from the specified {@code ExtendedIterator}.
-     *
-     * @param model      {@link M}, not {@code null}
-     * @param system     a {@code Set} of {@link Node}s,
-     *                   that cannot be treated as {@link OntCE Ontology Class}es, not {@code null}
-     * @param assertions {@link ExtendedIterator} of {@link Triple}s
-     *                   with the {@link RDF#type rdf:type} as predicate, not {@code null}
-     * @param <M>        a subtype of {@link OntGraphModel} and {@link PersonalityModel}
-     * @return {@link ExtendedIterator} of {@link OntIndividual}s that are attached to the {@code model}
-     * @since 1.4.2
-     */
-    public static <M extends OntGraphModel & PersonalityModel> ExtendedIterator<OntIndividual> listIndividuals(M model,
-                                                                                                               Set<Node> system,
-                                                                                                               ExtendedIterator<Triple> assertions) {
-        Set<Triple> seen = new HashSet<>();
-        return assertions
-                .mapWith(t -> {
-                    // to speedup the process,
-                    // the investigation (that includes TTO, PS, HP, GALEN, FAMILY and PIZZA ontologies),
-                    // shows that the profit exists and it is significant sometimes:
-                    if (system.contains(t.getObject())) {
-                        return null;
-                    }
-
-                    // skip duplicates (an individual may have several class-assertions):
-                    if (seen.remove(t)) {
-                        return null;
-                    }
-                    // checking for the primary rule that determines a class assertion.
-                    // use cache - it couldn't hurt, classes are often used
-                    if (model.findNodeAs(t.getObject(), OntCE.class) == null) {
-                        return null;
-                    }
-                    return model.asStatement(t);
-                })
-                .filterKeep(s -> {
-                    if (s == null) return false;
-                    // an individual may have a factory with punnings restrictions,
-                    // so need to check its type also.
-                    // this time do not cache in model
-                    OntIndividual i = s.getSubject().getAs(OntIndividual.class);
-                    if (i == null) return false;
-
-                    // update the set with duplicates to ensure the stream is distinct
-                    ((OntIndividualImpl) i).listClasses()
-                            .forEachRemaining(x -> {
-                                if (s.getObject().equals(x)) {
-                                    // skip this statement, otherwise all individuals fall into memory
-                                    return;
-                                }
-                                seen.add(Triple.create(i.asNode(), RDF.Nodes.type, x.asNode()));
-                            });
-                    return true;
-                })
-                .mapWith(s -> s.getSubject(OntIndividual.class));
     }
 
     @Override
@@ -536,47 +593,6 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
     }
 
     /**
-     * Creates a {@code Stream} for a graph.
-     *
-     * @param graph    {@link Graph} to test
-     * @param it       {@code ExtendedIterator} obtained from the {@code graph}
-     * @param withSize if {@code true} attempts to include graph size as a estimated size of a future {@code Stream}
-     * @param <X>      type of iterator's items
-     * @return {@code Stream} of {@link X}s
-     * @since 1.4.2
-     */
-    private static <X> Stream<X> asStream(Graph graph,
-                                          ExtendedIterator<X> it,
-                                          boolean withSize) {
-        // a graph cannot return iterator with null-elements
-        int characteristics = Spliterator.NONNULL;
-        if (Graphs.isDistinct(graph)) {
-            characteristics = characteristics | Spliterator.DISTINCT;
-        }
-        long size = -1;
-        if (withSize && Graphs.isSized(graph)) {
-            size = Graphs.size(graph);
-            characteristics = characteristics | Spliterator.SIZED;
-        }
-        return Iter.asStream(it, size, characteristics);
-    }
-
-    /**
-     * Answers {@code true} iff the given {@code SPO} corresponds {@link Triple#ANY}
-     *
-     * @param s {@link Resource}, the subject
-     * @param p {@link Property}, the predicate
-     * @param o {@link RDFNode}, the object
-     * @return boolean
-     * @since 1.4.2
-     */
-    private static boolean isANY(Resource s, Property p, RDFNode o) {
-        if (s != null) return false;
-        if (p != null) return false;
-        return o == null;
-    }
-
-    /**
      * {@inheritDoc}
      *
      * @param s {@link Resource} the subject sought, can be {@code null}
@@ -636,18 +652,6 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
     }
 
     /**
-     * Answers an {@link OntStatementImpl} in this {@link OntGraphModelImpl model}
-     * which encodes the same {@link Triple} as in the specified {@link Statement}.
-     *
-     * @param s any {@link Statement}, not {@code null}
-     * @return {@link OntStatementImpl}
-     */
-    public OntStatementImpl asOntStatement(Statement s) {
-        if (s instanceof OntStatementImpl && s.getModel() == this) return (OntStatementImpl) s;
-        return asStatement(s.asTriple());
-    }
-
-    /**
      * Lists all (bulk) annotation anonymous resources for the given {@code rdf:type} and SPO.
      *
      * @param t {@link Resource} either {@link OWL#Axiom owl:Axiom} or {@link OWL#Annotation owl:Annotation}
@@ -657,14 +661,10 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
      * @return {@link ExtendedIterator} of annotation {@link Resource resource}s
      */
     public ExtendedIterator<Resource> listAnnotations(Resource t, Resource s, Property p, RDFNode o) {
-        return listStatements(null, OWL.annotatedSource, s)
-                .filterKeep(x -> { // ensure that a resource instance has correct structure:
-                    OntStatementImpl st = asOntStatement(x);
-                    if (OWL.Axiom == t ? st.belongsToOWLAxiom() : st.belongsToOWLAnnotation()) {
-                        return st.hasAnnotatedProperty(p) && st.hasAnnotatedTarget(o);
-                    }
-                    return false;
-                })
+        return getGraph().find(Node.ANY, OWL.annotatedSource.asNode(), s.asNode())
+                .mapWith(this::asStatement)
+                .filterKeep(x -> (OWL.Axiom == t ? x.belongsToOWLAxiom() : x.belongsToOWLAnnotation())
+                        && x.hasAnnotatedProperty(p) && x.hasAnnotatedTarget(o))
                 .mapWith(Statement::getSubject);
     }
 
@@ -726,8 +726,9 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
             return (Set<E>) getLocalSet.apply(this);
         }
         Set<E> res = new HashSet<>();
-        allModels(getOntPersonality())
-                .map(getLocalSet::apply).forEach(x -> res.addAll((Set<E>) x));
+        listAllModels(getOntPersonality())
+                .mapWith(getLocalSet::apply)
+                .forEachRemaining(x -> res.addAll((Set<E>) x));
         return Collections.unmodifiableSet(res);
     }
 

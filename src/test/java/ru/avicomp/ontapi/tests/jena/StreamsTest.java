@@ -15,15 +15,13 @@
 package ru.avicomp.ontapi.tests.jena;
 
 import org.apache.jena.mem.GraphMem;
+import org.apache.jena.vocabulary.RDFS;
 import org.junit.Assert;
 import org.junit.Test;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.UnionGraph;
-import ru.avicomp.ontapi.jena.model.OntClass;
-import ru.avicomp.ontapi.jena.model.OntGraphModel;
-import ru.avicomp.ontapi.jena.model.OntIndividual;
-import ru.avicomp.ontapi.jena.model.OntNDP;
+import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
@@ -107,10 +105,31 @@ public class StreamsTest {
         Supplier<Stream<?>> s9 = () -> p.superProperties(true);
         Supplier<Stream<?>> s10 = () -> p.subProperties(true);
 
-        Stream.of(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10).forEach(s -> {
+        Supplier<Stream<?>> s11 = p::content;
+
+        Stream.of(s1, s2, s3, s4, s5, s6, s7, s8, s9, s10, s11).forEach(s -> {
             assertTrueConstant(s.get(), Spliterator.NONNULL);
             assertTrueConstant(s.get(), Spliterator.DISTINCT);
             assertTrueConstant(s.get(), Spliterator.IMMUTABLE);
+        });
+    }
+
+    @Test
+    public void testObjectsMethods() {
+        OntGraphModel m = OntModelFactory.createModel();
+        OntObject o = m.getOWLThing();
+
+        Supplier<Stream<?>> s1 = () -> o.objects(RDFS.comment, OntNAP.class);
+        Supplier<Stream<?>> s2 = () -> o.objects(RDFS.comment);
+        Supplier<Stream<?>> s3 = o::spec;
+        Supplier<Stream<?>> s4 = o::annotations;
+        Supplier<Stream<?>> s5 = o::statements;
+        Supplier<Stream<?>> s6 = () -> o.statements(RDFS.seeAlso);
+
+        Stream.of(s1, s2, s3, s4, s5, s6).forEach(s -> {
+            assertTrueConstant(s.get(), Spliterator.NONNULL);
+            assertTrueConstant(s.get(), Spliterator.DISTINCT);
+            assertFalseConstant(s.get(), Spliterator.IMMUTABLE);
         });
     }
 
@@ -166,11 +185,15 @@ public class StreamsTest {
         assertFalseConstant(a.statements(null, RDF.type, OWL.Class), Spliterator.DISTINCT);
         assertTrueConstant(a.localStatements(null, RDF.type, OWL.Class), Spliterator.DISTINCT);
 
+        assertFalseConstant(a.ontObjects(OntClass.class), Spliterator.DISTINCT);
+
         Assert.assertEquals(2, a.classes().count());
+        Assert.assertEquals(2, a.ontObjects(OntClass.class).count());
         Assert.assertEquals(2, a.ontEntities().count());
         Assert.assertEquals(2, a.statements(null, RDF.type, OWL.Class).count());
 
         Assert.assertEquals(1, a.classes().distinct().count());
+        Assert.assertEquals(1, a.ontObjects(OntClass.class).distinct().count());
         Assert.assertEquals(1, a.ontEntities().distinct().count());
         Assert.assertEquals(1, a.statements(null, RDF.type, OWL.Class).distinct().count());
     }

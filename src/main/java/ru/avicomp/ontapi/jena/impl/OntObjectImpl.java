@@ -295,6 +295,10 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
         return new OntObjectImpl(node, model);
     }
 
+    protected int getCharacteristics() {
+        return OntGraphModelImpl.getSpliteratorCharacteristics(getModel().getGraph());
+    }
+
     /**
      * {@inheritDoc}
      *
@@ -322,7 +326,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      */
     @Override
     public Stream<OntStatement> spec() {
-        return Iter.asStream(listSpec());
+        return Iter.asStream(listSpec(), getCharacteristics());
     }
 
     /**
@@ -485,12 +489,12 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
 
     @Override
     public Stream<OntStatement> statements(Property property) {
-        return Iter.asStream(listStatements(property));
+        return Iter.asStream(listStatements(property), getCharacteristics());
     }
 
     @Override
     public Stream<OntStatement> statements() {
-        return Iter.asStream(listStatements());
+        return Iter.asStream(listStatements(), getCharacteristics());
     }
 
     /**
@@ -570,7 +574,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      */
     @Override
     public Stream<OntStatement> annotations() {
-        return Iter.asStream(listAnnotations());
+        return Iter.asStream(listAnnotations(), getCharacteristics());
     }
 
     /**
@@ -594,10 +598,10 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * Lists all annotation property assertions (so called plain annotations) attached to this object.
      *
      * @return Stream of {@link OntStatement}s
-     * @see #listAssertions()
+     * @see OntObjectImpl#listAssertions()
      */
     public Stream<OntStatement> assertions() {
-        return Iter.asStream(listAssertions());
+        return Iter.asStream(listAssertions(), getCharacteristics());
     }
 
     /**
@@ -727,8 +731,8 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @return Stream of {@link RDFNode node}s of the {@link O} type
      */
     @Override
-    public final <O extends RDFNode> Stream<O> objects(Property predicate, Class<O> type) {
-        return Iter.asStream(listObjects(predicate, type));
+    public <O extends RDFNode> Stream<O> objects(Property predicate, Class<O> type) {
+        return Iter.asStream(listObjects(predicate, type), predicate != null ? getCharacteristics() : Spliterator.NONNULL);
     }
 
     /**
@@ -773,8 +777,9 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @return Stream of {@link RDFNode}s
      * @see #listObjects(Property)
      */
+    @Override
     public Stream<RDFNode> objects(Property predicate) {
-        return Iter.asStream(listObjects(predicate));
+        return Iter.asStream(listObjects(predicate), predicate != null ? getCharacteristics() : Spliterator.NONNULL);
     }
 
     /**

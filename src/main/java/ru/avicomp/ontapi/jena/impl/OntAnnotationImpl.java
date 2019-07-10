@@ -133,7 +133,7 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
 
     @Override
     public Stream<OntAnnotation> descendants() {
-        return Iter.asStream(listDescendants());
+        return Iter.asStream(listDescendants(), getCharacteristics());
     }
 
     /**

@@ -105,6 +105,22 @@ public interface OntObject extends OntResource {
     OntObject remove(Property property, RDFNode object);
 
     /**
+     * Lists ont-statements by the predicate.
+     *
+     * @param property {@link Property}, predicate, can be {@code null}
+     * @return {@code Stream} of {@link OntStatement}s
+     */
+    Stream<OntStatement> statements(Property property);
+
+    /**
+     * Lists all top-level statements related to this object (i.e. with subject={@code this}).
+     *
+     * @return {@code Stream} of all statements
+     * @see #listProperties()
+     */
+    Stream<OntStatement> statements();
+
+    /**
      * Returns the <b>first</b> statement for the specified property and object.
      * What exactly is the first triple is defined at the level of graph; in general it is unpredictable.
      * Also note, that common jena implementation of in-memory graph does not allow duplicated triples,
@@ -127,20 +143,23 @@ public interface OntObject extends OntResource {
     Optional<OntStatement> statement(Property property);
 
     /**
-     * Lists ont-statements by the predicate.
+     * Lists all objects attached on the property to this object with the given type.
      *
-     * @param property {@link Property}, predicate, can be {@code null}
-     * @return {@code Stream} of {@link OntStatement}s
+     * @param predicate {@link Property} predicate, can be {@code null} for wildcard searching
+     * @param type      Interface to find and cast
+     * @param <O>       a class-type of rdf-node
+     * @return {@code Stream} of {@link RDFNode RDF Node}s of the type {@link O}
      */
-    Stream<OntStatement> statements(Property property);
+    <O extends RDFNode> Stream<O> objects(Property predicate, Class<O> type);
 
     /**
-     * Lists all top-level statements related to this object (i.e. with subject={@code this}).
+     * Lists all objects attached on the property to this object.
      *
-     * @return {@code Stream} of all statements
-     * @see #listProperties()
+     * @param predicate {@link Property} predicate, can be {@code null} for wildcard searching
+     * @return {@code Stream} of {@link RDFNode RDF Node}s
+     * @since 1.4.2
      */
-    Stream<OntStatement> statements();
+    Stream<RDFNode> objects(Property predicate);
 
     /**
      * Adds an annotation assertion with the given {@link OntNAP annotation property} as predicate
@@ -199,16 +218,6 @@ public interface OntObject extends OntResource {
      * @see OntStatement#clearAnnotations()
      */
     OntObject clearAnnotations();
-
-    /**
-     * Lists all objects attached on the property to this object with the given type.
-     *
-     * @param predicate {@link Property} predicate
-     * @param type      Interface to find and cast
-     * @param <O>       a class-type of rdf-node
-     * @return {@code Stream} of {@link RDFNode RDF Node}s
-     */
-    <O extends RDFNode> Stream<O> objects(Property predicate, Class<O> type);
 
     /**
      * Returns the <b>first</b> statement for the specified property.

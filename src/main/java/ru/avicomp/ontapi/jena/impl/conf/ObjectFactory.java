@@ -17,6 +17,7 @@ package ru.avicomp.ontapi.jena.impl.conf;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.enhanced.Implementation;
+import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import ru.avicomp.ontapi.jena.OntJenaException;
@@ -48,6 +49,10 @@ public interface ObjectFactory {
     /**
      * Returns an {@link ExtendedIterator Extended Iterator} over the {@link Node node}s found in the {@link EnhGraph}
      * in the form of {@link EnhNode} with the interface that this factory encapsulates.
+     *
+     * It is assumed, that the returned iterator is distinct (does not answer with duplicates).
+     * At least, it must be distinct if the {@code EnhGraph} encapsulates the distinct graph
+     * (see also {@link ru.avicomp.ontapi.jena.utils.Graphs#isDistinct(Graph)}).
      *
      * @param eg {@link EnhGraph}
      * @return {@link ExtendedIterator} of {@link EnhNode}s

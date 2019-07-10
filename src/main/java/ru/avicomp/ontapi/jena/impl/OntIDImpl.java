@@ -19,6 +19,7 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.util.iterator.ExtendedIterator;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.conf.ObjectFactory;
@@ -82,14 +83,13 @@ public class OntIDImpl extends OntObjectImpl implements OntID {
 
     @Override
     public Stream<String> imports() {
-        return importResources().map(Resource::getURI);
+        return Iter.asStream(listImportResources().mapWith(Resource::getURI), getCharacteristics());
     }
 
-    public Stream<Resource> importResources() {
-        return Iter.asStream(listProperties(OWL.imports)
-                .mapWith(Statement::getObject)
+    public ExtendedIterator<Resource> listImportResources() {
+        return listObjects(OWL.imports)
                 .filterKeep(RDFNode::isURIResource)
-                .mapWith(RDFNode::asResource));
+                .mapWith(RDFNode::asResource);
     }
 
     public void addImportResource(Resource uri) {
