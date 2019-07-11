@@ -17,6 +17,7 @@ package ru.avicomp.ontapi.jena.model;
 import org.apache.jena.datatypes.RDFDatatype;
 import org.apache.jena.datatypes.TypeMapper;
 import org.apache.jena.rdf.model.Literal;
+import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
@@ -123,6 +124,55 @@ public interface OntDT extends OntEntity, OntDR {
      */
     default Literal createLiteral(String lex) {
         return getModel().createTypedLiteral(Objects.requireNonNull(lex), toRDFDatatype());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    default OntDT addComment(String txt) {
+        return addComment(txt, null);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    default OntDT addComment(String txt, String lang) {
+        return annotate(getModel().getRDFSComment(), txt, lang);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    default OntDT addLabel(String txt) {
+        return addLabel(txt, null);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    default OntDT addLabel(String txt, String lang) {
+        return annotate(getModel().getRDFSLabel(), txt, lang);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    default OntDT annotate(OntNAP predicate, String txt, String lang) {
+        return annotate(predicate, getModel().createLiteral(txt, lang));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    default OntDT annotate(OntNAP predicate, RDFNode value) {
+        addAnnotation(predicate, value);
+        return this;
     }
 
     /**

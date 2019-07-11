@@ -291,13 +291,40 @@ public interface OntObject extends OntResource {
     }
 
     /**
+     * Annotates the object with the given {@code predicate} and {@code value}.
+     *
+     * @param predicate {@link OntNAP} - named annotation property, not {@code null}
+     * @param value     {@link RDFNode} - the value: uri-resource, literal or anonymous individual, not {@code null}
+     * @return this object to allow cascading calls
+     * @see OntObject#addAnnotation(OntNAP, RDFNode)
+     * @since 1.4.2
+     */
+    default OntObject annotate(OntNAP predicate, RDFNode value) {
+        addAnnotation(predicate, value);
+        return this;
+    }
+
+    /**
+     * Adds a language-tagged text for this object and the given {@code predicate}
+     *
+     * @param predicate {@link OntNAP} - named annotation property, not {@code null}
+     * @param txt       String, the literal lexical form, cannot be {@code null}
+     * @param lang      String, the language tag, can be {@code null}
+     * @return this object to allow cascading calls
+     * @since 1.4.2
+     */
+    default OntObject annotate(OntNAP predicate, String txt, String lang) {
+        return annotate(predicate, getModel().createLiteral(txt, lang));
+    }
+
+    /**
      * Creates {@code _:this rdfs:comment "txt"^^xsd:string} statement.
      *
      * @param txt String, not {@code null}
-     * @return {@link OntStatement} to allow the subsequent annotate
+     * @return this object to allow cascading calls
      * @see OntGraphModel#getRDFSComment()
      */
-    default OntStatement addComment(String txt) {
+    default OntObject addComment(String txt) {
         return addComment(txt, null);
     }
 
@@ -306,21 +333,22 @@ public interface OntObject extends OntResource {
      *
      * @param txt  String, the literal lexical form, not {@code null}
      * @param lang String, the language tag, nullable
-     * @return {@link OntStatement} to allow the subsequent annotate
+     * @return this object to allow cascading calls
      * @see OntGraphModel#getRDFSComment()
      */
-    default OntStatement addComment(String txt, String lang) {
-        return addAnnotation(getModel().getRDFSComment(), txt, lang);
+    default OntObject addComment(String txt, String lang) {
+        addAnnotation(getModel().getRDFSComment(), txt, lang);
+        return this;
     }
 
     /**
      * Creates {@code _:this rdfs:label "txt"^^xsd:string} statement.
      *
      * @param txt String, the literal lexical form, not {@code null}
-     * @return {@link OntStatement} to allow the subsequent annotate
+     * @return this object to allow cascading calls
      * @see OntGraphModel#getRDFSLabel()
      */
-    default OntStatement addLabel(String txt) {
+    default OntObject addLabel(String txt) {
         return addLabel(txt, null);
     }
 
@@ -329,11 +357,12 @@ public interface OntObject extends OntResource {
      *
      * @param txt  String, the literal lexical form, not {@code null}
      * @param lang String, the language tag, nullable
-     * @return {@link OntStatement} to allow the subsequent annotate
+     * @return this object to allow cascading calls
      * @see OntGraphModel#getRDFSLabel()
      */
-    default OntStatement addLabel(String txt, String lang) {
-        return addAnnotation(getModel().getRDFSLabel(), txt, lang);
+    default OntObject addLabel(String txt, String lang) {
+        addAnnotation(getModel().getRDFSLabel(), txt, lang);
+        return this;
     }
 
     /**
@@ -351,8 +380,9 @@ public interface OntObject extends OntResource {
      * Answers the comment string for this object.
      * If there is more than one such resource, an arbitrary selection is made.
      *
-     * @param lang String, the language attribute for the desired comment (EN, FR, etc) or {@code null} for don't care.
-     *             Will attempt to retrieve the most specific comment matching the given language
+     * @param lang String, the language attribute for the desired comment (EN, FR, etc) or {@code null} for don't care;
+     *             will attempt to retrieve the most specific comment matching the given language;
+     *             to get no-lang literal string an empty string can be used
      * @return a {@code rdfs:comment} string matching the given language,
      * or {@code null} if there is no matching comment
      * @see OntGraphModel#getRDFSComment()
@@ -378,8 +408,9 @@ public interface OntObject extends OntResource {
      * Answers the label string for this object.
      * If there is more than one such resource, an arbitrary selection is made.
      *
-     * @param lang String, the language attribute for the desired comment (EN, FR, etc) or {@code null} for don't care.
-     *             Will attempt to retrieve the most specific comment matching the given language
+     * @param lang String, the language attribute for the desired comment (EN, FR, etc) or {@code null} for don't care;
+     *             will attempt to retrieve the most specific comment matching the given language;
+     *             to get no-lang literal string an empty string can be used
      * @return a {@code rdfs:label} string matching the given language, or {@code null}  if there is no matching label
      * @see OntGraphModel#getRDFSLabel()
      */

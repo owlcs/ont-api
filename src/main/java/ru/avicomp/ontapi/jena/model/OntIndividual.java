@@ -410,6 +410,55 @@ public interface OntIndividual extends OntObject {
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    default OntIndividual addComment(String txt) {
+        return addComment(txt, null);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    default OntIndividual addComment(String txt, String lang) {
+        return annotate(getModel().getRDFSComment(), txt, lang);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    default OntIndividual addLabel(String txt) {
+        return addLabel(txt, null);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    default OntIndividual addLabel(String txt, String lang) {
+        return annotate(getModel().getRDFSLabel(), txt, lang);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    default OntIndividual annotate(OntNAP predicate, String txt, String lang) {
+        return annotate(predicate, getModel().createLiteral(txt, lang));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    default OntIndividual annotate(OntNAP predicate, RDFNode value) {
+        addAnnotation(predicate, value);
+        return this;
+    }
+
+    /**
      * An interface for <b>Named</b> Individual which is an {@link OWL Entity OntEntity}.
      * <p>
      * Created by szuev on 01.11.2016.
@@ -448,7 +497,7 @@ public interface OntIndividual extends OntObject {
 
         /**
          * {@inheritDoc}
-         * For an anonymous individual a primary class assertion is also a definition, so deleting it is prohibited.
+         * For an anonymous individual a primary class assertion is also a definition, so its deletion is prohibited.
          *
          * @param clazz {@link OntCE}, not {@code null}
          * @return <b>this</b> instance to allow cascading calls

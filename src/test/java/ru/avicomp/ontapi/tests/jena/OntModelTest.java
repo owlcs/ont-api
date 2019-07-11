@@ -375,7 +375,8 @@ public class OntModelTest {
     private <E extends OntEntity> void createEntityTest(OntGraphModel m, String uri, Class<E> type) {
         String pref = "Annotation[" + uri + "]:::";
         E e = m.createOntEntity(type, uri);
-        e.addComment(pref + "entity of type " + type.getSimpleName()).addAnnotation(m.getRDFSLabel(), pref + "label");
+        e.addAnnotation(m.getRDFSComment(), pref + "entity of type " + type.getSimpleName())
+                .addAnnotation(m.getRDFSLabel(), pref + "label");
         m.asStatement(e.getRoot().asTriple()).addAnnotation(m.getRDFSComment(), pref + "comment");
         Assert.assertEquals(2, e.annotations().count());
         Assert.assertEquals(2, e.statements().count());

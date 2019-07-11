@@ -15,15 +15,16 @@
 package ru.avicomp.ontapi.jena.model;
 
 import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.RDFNode;
 
 /**
  * Named Ontology property: {@link OntNAP}, {@link OntNDP} and {@link OntNOP}.
  * <p>
  * Created by @ssz on 20.01.2019.
- *
+ * @param <P> subtype of {@link OntProperty}
  * @since 1.4.0
  */
-public interface OntProperty extends OntEntity, Property {
+public interface OntProperty<P extends OntProperty> extends OntEntity, Property {
 
     /**
      * @see Property#isProperty()
@@ -33,4 +34,53 @@ public interface OntProperty extends OntEntity, Property {
         return true;
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    default P addComment(String txt) {
+        return addComment(txt, null);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    default P addComment(String txt, String lang) {
+        return annotate(getModel().getRDFSComment(), txt, lang);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    default P addLabel(String txt) {
+        return addLabel(txt, null);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    default P addLabel(String txt, String lang) {
+        return annotate(getModel().getRDFSLabel(), txt, lang);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    default P annotate(OntNAP predicate, String txt, String lang) {
+        return annotate(predicate, getModel().createLiteral(txt, lang));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    default P annotate(OntNAP predicate, RDFNode value) {
+        addAnnotation(predicate, value);
+        return (P) this;
+    }
 }

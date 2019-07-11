@@ -24,7 +24,7 @@ import org.apache.jena.rdf.model.Property;
  * <p>
  * Created by szuev on 01.11.2016.
  */
-public interface OntNOP extends OntOPE, OntProperty {
+public interface OntNOP extends OntOPE, OntProperty<OntNOP> {
 
     /**
      * Creates or finds an inverse of this property.

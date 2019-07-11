@@ -33,7 +33,7 @@ import java.util.stream.Stream;
  * <p>
  * Created by szuev on 01.11.2016.
  */
-public interface OntNDP extends OntDOP, OntProperty {
+public interface OntNDP extends OntDOP, OntProperty<OntNDP> {
 
     /**
      * Adds a negative data property assertion.

@@ -86,21 +86,22 @@ public class ModelUtilsTest {
     }
 
     @Test
-    public void testAddLabels() {
+    public void testListLangValues() {
         OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntID id = m.getID();
-        id.addLabel("lab1");
-        id.addLabel("lab1", "e1");
-        id.addLabel("lab2", "e2");
-        id.addLabel("lab3", "language3");
-        id.addLabel("lab4", "e2");
-        id.addLabel("lab5", "e2");
-        id.addLabel("lab5");
+        OntID id = m.getID()
+                .addVersionInfo("lab1")
+                .addVersionInfo("lab1", "e1")
+                .addVersionInfo("lab2", "e2")
+                .addVersionInfo("lab3", "language3")
+                .addVersionInfo("lab4", "e2")
+                .addVersionInfo("lab5", "e2")
+                .addVersionInfo("lab5");
         ReadWriteUtils.print(m);
-        Assert.assertEquals(2, Models.langValues(id, RDFS.label, null).count());
-        Assert.assertEquals(3, Models.langValues(id, RDFS.label, "e2").count());
-        Assert.assertEquals(1, Models.langValues(id, RDFS.label, "language3").count());
-        Assert.assertEquals(7, m.listObjectsOfProperty(id, RDFS.label).toSet().size());
+        Property p = OWL.versionInfo;
+        Assert.assertEquals(2, Models.langValues(id, p, null).count());
+        Assert.assertEquals(3, Models.langValues(id, p, "e2").count());
+        Assert.assertEquals(1, Models.langValues(id, p, "language3").count());
+        Assert.assertEquals(7, m.listObjectsOfProperty(id, p).toSet().size());
     }
 
     @Test

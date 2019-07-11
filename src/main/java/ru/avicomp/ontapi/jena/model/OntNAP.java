@@ -29,7 +29,7 @@ import java.util.stream.Stream;
  * <p>
  * Created by szuev on 01.11.2016.
  */
-public interface OntNAP extends OntPE, OntProperty {
+public interface OntNAP extends OntPE, OntProperty<OntNAP> {
 
     /**
      * {@inheritDoc}

@@ -252,4 +252,52 @@ public interface OntClass extends OntEntity, OntCE {
         return disjointUnions().flatMap(OntList::members).distinct();
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    default OntClass addComment(String txt) {
+        return addComment(txt, null);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    default OntClass addComment(String txt, String lang) {
+        return annotate(getModel().getRDFSComment(), txt, lang);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    default OntClass addLabel(String txt) {
+        return addLabel(txt, null);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    default OntClass addLabel(String txt, String lang) {
+        return annotate(getModel().getRDFSLabel(), txt, lang);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    default OntClass annotate(OntNAP predicate, String txt, String lang) {
+        return annotate(predicate, getModel().createLiteral(txt, lang));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    default OntClass annotate(OntNAP predicate, RDFNode value) {
+        addAnnotation(predicate, value);
+        return this;
+    }
 }

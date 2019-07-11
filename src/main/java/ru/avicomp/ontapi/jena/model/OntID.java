@@ -14,7 +14,9 @@
 
 package ru.avicomp.ontapi.jena.model;
 
+import org.apache.jena.rdf.model.RDFNode;
 import ru.avicomp.ontapi.OntApiException;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -47,7 +49,7 @@ public interface OntID extends OntObject {
      * A {@code null} argument means that current version IRI should be deleted.
      *
      * @param uri String, can be {@code null} to remove versionIRI
-     * @return this ID to allow cascading calls
+     * @return this ID-object to allow cascading calls
      * @throws OntApiException if input is wrong
      */
     OntID setVersionIRI(String uri) throws OntApiException;
@@ -55,8 +57,8 @@ public interface OntID extends OntObject {
     /**
      * Adds the triple {@code this owl:import uri} to this resource.
      *
-     * @param uri String, not null
-     * @return this id-object to allow cascading calls
+     * @param uri String, not {@code null}
+     * @return this ID-object to allow cascading calls
      * @throws OntApiException if input is wrong
      */
     OntID addImport(String uri) throws OntApiException;
@@ -65,14 +67,14 @@ public interface OntID extends OntObject {
      * Removes the triple {@code this owl:import uri} from this resource.
      *
      * @param uri String, not {@code null}
-     * @return this id-object to allow cascading calls
+     * @return this ID-object to allow cascading calls
      */
     OntID removeImport(String uri);
 
     /**
      * Lists all {@code owl:import}s.
      *
-     * @return Stream of Strings
+     * @return {@code Stream} of Strings (IRIs)
      */
     Stream<String> imports();
 
@@ -104,4 +106,88 @@ public interface OntID extends OntObject {
         return getURI();
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    default OntID addComment(String txt) {
+        return addComment(txt, null);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    default OntID addComment(String txt, String lang) {
+        return annotate(getModel().getRDFSComment(), txt, lang);
+    }
+
+    /**
+     * Adds a {@link OWL#versionInfo owl:versionInfo} description.
+     *
+     * @param txt String, the literal lexical form, not {@code null}
+     * @return this ID-object to allow cascading calls
+     * @since 1.4.2
+     */
+    default OntID addVersionInfo(String txt) {
+        return addVersionInfo(txt, null);
+    }
+
+    /**
+     * Annotates this object with {@link OWL#versionInfo owl:versionInfo} predicate
+     * and the specified language-tagged literal.
+     *
+     * @param txt  String, the literal lexical form, not {@code null}
+     * @param lang String, the language tag, nullable
+     * @return this ID-object to allow cascading calls
+     * @since 1.4.2
+     */
+    default OntID addVersionInfo(String txt, String lang) {
+        return annotate(getModel().getAnnotationProperty(OWL.versionInfo), txt, lang);
+    }
+
+    /**
+     * Answers the version info string for this ontology id.
+     * If there is more than one such resource, an arbitrary selection is made.
+     *
+     * @return a {@code owl:versionInfo} string or {@code null} if nothing is found
+     * @since 1.4.2
+     */
+    default String getVersionInfo() {
+        return getVersionInfo(null);
+    }
+
+    /**
+     * Answers the version info string for this ontology id.
+     * If there is more than one such resource, an arbitrary selection is made.
+     *
+     * @param lang String, the language attribute for the desired comment (EN, FR, etc) or {@code null} for don't care;
+     *             will attempt to retrieve the most specific comment matching the given language;
+     *             to get no-lang literal string an empty string can be used
+     * @return a {@code owl:versionInfo} string matching the given language,
+     * or {@code null} if there is no version info
+     * @since 1.4.2
+     */
+    default String getVersionInfo(String lang) {
+        try (Stream<String> res = annotationValues(getModel().getAnnotationProperty(OWL.versionInfo), lang)) {
+            return res.findFirst().orElse(null);
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    default OntID annotate(OntNAP predicate, String txt, String lang) {
+        return annotate(predicate, getModel().createLiteral(txt, lang));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    default OntID annotate(OntNAP predicate, RDFNode value) {
+        addAnnotation(predicate, value);
+        return this;
+    }
 }
