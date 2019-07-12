@@ -20,16 +20,23 @@ import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.utils.Iter;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
- * Enum, that encapsulates {@link AxiomType}s.
+ * Enum, that represents all public component-types of {@code OWLOntology}: ontology header and {@code 39} axiom types.
  * It has a natural {@link AxiomType}'s order to provide a little bit faster iterating:
  * the declarations and widely used axioms go first, which is good for the data-factory cache.
  */
-public enum AxiomKey {
+public enum ObjectMetaInfo {
+    HEADER(null) {
+        @Override
+        public boolean isAxiom() {
+            return false;
+        }
+    },
     DECLARATION(AxiomType.DECLARATION),
     EQUIVALENT_CLASSES(AxiomType.EQUIVALENT_CLASSES),
     SUBCLASS_OF(AxiomType.SUBCLASS_OF),
@@ -71,52 +78,96 @@ public enum AxiomKey {
     DATATYPE_DEFINITION(AxiomType.DATATYPE_DEFINITION),
     ;
 
-    public static final List<AxiomKey> LOGICAL = list().filter(x -> x.type.isLogical()).collect(Iter.toUnmodifiableList());
+    public static final List<ObjectMetaInfo> AXIOMS = all().skip(1).collect(Iter.toUnmodifiableList());
+    public static final List<ObjectMetaInfo> LOGICAL = AXIOMS.stream().filter(x -> x.type.isLogical()).collect(Iter.toUnmodifiableList());
 
     private AxiomType<? extends OWLAxiom> type;
 
-    AxiomKey(AxiomType<? extends OWLAxiom> type) {
+    ObjectMetaInfo(AxiomType<? extends OWLAxiom> type) {
         this.type = type;
     }
 
     /**
-     * Returns a {@link AxiomKey} by the {@link AxiomType}.
+     * Returns a {@link ObjectMetaInfo} by the {@link AxiomType}.
      *
      * @param type {@link AxiomType}, not {@code null}
-     * @return {@link AxiomKey}, not {@code null}
+     * @return {@link ObjectMetaInfo}, not {@code null}
      */
-    public static AxiomKey get(AxiomType<?> type) throws IndexOutOfBoundsException {
-        return values()[type.getIndex()];
+    public static ObjectMetaInfo get(AxiomType<?> type) throws IndexOutOfBoundsException {
+        return values()[type.getIndex() + 1];
     }
 
     /**
-     * Returns a {@link AxiomKey} by the {@link OWLAxiom}s {@code Class}-type.
+     * Returns a {@link ObjectMetaInfo} by the {@link OWLAxiom}s {@code Class}-type.
      *
      * @param type {@link OWLAxiom} actual class-type
-     * @return {@link AxiomKey}, not {@code null}
+     * @return {@link ObjectMetaInfo}, not {@code null}
      * @see AxiomType#getActualClass()
      */
-    public static AxiomKey get(Class<? extends OWLAxiom> type) {
-        for (AxiomKey t : values()) {
-            if (type == t.getAxiomClass()) return t;
+    public static ObjectMetaInfo get(Class<? extends OWLAxiom> type) {
+        ObjectMetaInfo[] array = values();
+        for (int i = 1; i < array.length; i++) {
+            ObjectMetaInfo res = array[i];
+            if (type == res.type.getActualClass()) return res;
         }
         throw new OntApiException.IllegalState();
     }
 
-    public AxiomType<? extends OWLAxiom> getAxiomType() {
-        return type;
-    }
-
-    @SuppressWarnings("unchecked")
-    Class<OWLAxiom> getAxiomClass() {
-        return (Class<OWLAxiom>) type.getActualClass();
-    }
-
-    public static Stream<AxiomKey> list() {
+    /**
+     * Lists all values as {@code Stream}.
+     *
+     * @return {@code Stream} of {@link ObjectMetaInfo}s
+     */
+    public static Stream<ObjectMetaInfo> all() {
         return Arrays.stream(values());
     }
 
-    public static Stream<AxiomKey> list(Iterable<AxiomType<?>> types) {
-        return StreamSupport.stream(types.spliterator(), false).map(AxiomKey::get);
+    /**
+     * Lists all {@link OWLAxiom}s {@link ObjectMetaInfo Meta-info}s.
+     *
+     * @return {@code Stream} of {@link ObjectMetaInfo}s
+     */
+    public static Stream<ObjectMetaInfo> axioms() {
+        return AXIOMS.stream();
     }
+
+    public static Stream<ObjectMetaInfo> logical() {
+        return LOGICAL.stream();
+    }
+
+    /**
+     * Lists all {@link OWLAxiom}s {@link ObjectMetaInfo Meta-info}s for the specified axioms {@code types}.
+     *
+     * @param types {@link Iterable}, not {@code null}
+     * @return {@code Stream} of {@link ObjectMetaInfo}s
+     */
+    public static Stream<ObjectMetaInfo> axioms(Iterable<AxiomType<?>> types) {
+        Stream<AxiomType<?>> res;
+        if (types instanceof Collection) {
+            res = ((Collection<AxiomType<?>>) types).stream();
+        } else {
+            res = StreamSupport.stream(types.spliterator(), false);
+        }
+        return res.map(ObjectMetaInfo::get);
+    }
+
+    /**
+     * Answers {@code true} iff it is meta-info for an axiom-type, not for {@link #HEADER header}.
+     *
+     * @return boolean
+     */
+    public boolean isAxiom() {
+        return true;
+    }
+
+    /**
+     * Answers a {@link AxiomType} for this enum or {@code null} if it is {@link #HEADER header}.
+     *
+     * @return {@link AxiomType} or {@code null}
+     */
+    @SuppressWarnings("unchecked")
+    public AxiomType<OWLAxiom> getAxiomType() {
+        return (AxiomType<OWLAxiom>) type;
+    }
+
 }

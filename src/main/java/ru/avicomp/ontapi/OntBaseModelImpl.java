@@ -26,7 +26,6 @@ import org.semanticweb.owlapi.model.parameters.OntologyCopy;
 import org.semanticweb.owlapi.search.Filters;
 import org.semanticweb.owlapi.util.OWLAxiomSearchFilter;
 import org.semanticweb.owlapi.util.OWLClassExpressionCollector;
-import ru.avicomp.ontapi.internal.AxiomKey;
 import ru.avicomp.ontapi.internal.InternalModel;
 import ru.avicomp.ontapi.internal.InternalModelHolder;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
@@ -746,7 +745,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHold
 
     @Override
     public Stream<OWLLogicalAxiom> logicalAxioms() {
-        return base.listOWLAxioms(AxiomKey.LOGICAL).map(OWLLogicalAxiom.class::cast);
+        return base.listOWLLogicalAxioms();
     }
 
     @Override

@@ -193,7 +193,7 @@ public interface InternalCache<K, V> {
         if (caffeine) {
             return new CaffeineWrapper<>(Caffeine.newBuilder().maximumSize(size).build());
         }
-        return new MapWrapper<>(new LinkedHashMap<K, V>((int) size, 0.75f, true) {
+        return fromMap(new LinkedHashMap<K, V>((int) size, 0.75f, true) {
             @Override
             protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
                 return size() > size;
@@ -218,7 +218,7 @@ public interface InternalCache<K, V> {
                                               long size) {
         InternalCache<K, V> res = caffeine ?
                 new CaffeineWrapper<>(Caffeine.newBuilder().maximumSize(size).build(loader::apply), loader) :
-                new MapWrapper<>(new LinkedHashMap<K, V>((int) size, 0.75f, true) {
+                fromMap(new LinkedHashMap<K, V>((int) size, 0.75f, true) {
                     @Override
                     protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
                         return size() > size;
@@ -261,6 +261,18 @@ public interface InternalCache<K, V> {
                 new CaffeineWrapper<>(Caffeine.newBuilder().softValues().build(loader::apply), loader) :
                 new SoftMapWrapper<>(new LinkedHashMap<>(128, 0.75f, true));
         return res.asLoading(loader);
+    }
+
+    /**
+     * Wraps a given {@code map} as a cache which is partially synchronized.
+     *
+     * @param map {@link Map}, cannot be {@code null}
+     * @param <K> the type of keys maintained by the return cache
+     * @param <V> the type of mapped values
+     * @return {@link InternalCache}
+     */
+    static <K, V> InternalCache<K, V> fromMap(Map<K, V> map) {
+        return new MapWrapper<>(map);
     }
 
     /**

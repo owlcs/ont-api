@@ -80,12 +80,12 @@ import java.util.stream.Stream;
  * To work with such large ontologies, it is recommended to use {@link AxiomTranslator Axiom Translator}s directly
  * (see {@link AxiomParserProvider#get(AxiomType)}).
  * <p>
- * TODO: Should it return {@link ONTObjectImpl}s, not just naked {@link OWLObject}s?
+ * TODO: Should it return {@link ONTObject}s, not just naked {@link OWLObject}s (see #87, #72)?
  * It seems it would be more convenient and could make this class useful not only as part of inner implementation.
  * <p>
  * Created by @szuev on 26.10.2016.
  */
-@SuppressWarnings({"WeakerAccess"})
+@SuppressWarnings({"WeakerAccess", "unchecked"})
 public class InternalModel extends OntGraphModelImpl implements OntGraphModel, HasOntologyID {
     private static final Logger LOGGER = LoggerFactory.getLogger(InternalModel.class);
     /**
@@ -110,11 +110,6 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      */
     protected final InternalCache.Loading<InternalModel, SearchModel> searchModelCache;
     /**
-     * OWL objects cache (to work with OWL-API 'signature' methods).
-     * Any change in the graph must also reset this cache.
-     */
-    protected final InternalCache.Loading<Class<? extends OWLObject>, Set<? extends OWLObject>> objects;
-    /**
      * Configuration settings to control behaviour.
      * This object can be modified externally.
      */
@@ -129,14 +124,19 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      */
     protected volatile OntologyID cachedID;
     /**
-     * The {@link OWLAxiom}'s cache
-     * as immutable {@code Map} with {@link AxiomType} as keys and {@link ObjectTriplesMap} as values.
+     * The main cache, which contains all axioms and ontology header.
+     * It contains {@code 40} key-value pairs ({@code 39} axiom-types + ontology header),
+     * and the only reason why it is cache, not map, is synchronization.
+     * @see ObjectMetaInfo
+     * @see ObjectTriplesMap
      */
-    protected volatile Map<AxiomKey, ObjectTriplesMap<OWLAxiom>> axioms;
+    protected final InternalCache.Loading<ObjectMetaInfo, ObjectTriplesMap<? extends OWLObject>> cache;
     /**
-     * Ontology header {@link OWLAnnotation}s cache.
+     * OWL objects cache (to work with OWL-API 'signature' methods).
+     * It is calculated from {@link #cache}.
+     * Any direct (manual) change in the graph must also reset this cache.
      */
-    protected volatile ObjectTriplesMap<OWLAnnotation> header;
+    protected final InternalCache.Loading<Class<? extends OWLObject>, Set<? extends OWLObject>> objects;
     /**
      * A collection of reserved uri-{@link Node}s, that cannot be OWL-entities.
      * Used to speedup iteration in some cases (e.g. for class assertions).
@@ -161,6 +161,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         this.config = Objects.requireNonNull(config);
         this.objectFactoryCache = InternalCache.createSoft(x -> factory.get(), config.parallel());
         this.searchModelCache = InternalCache.createSoft(x -> createSearchModel(), config.parallel());
+        this.cache = InternalCache.fromMap(new EnumMap<>(ObjectMetaInfo.class)).asLoading(this::createObjectTriplesMap);
         this.objects = InternalCache.createSoft(this::readOWLObjects, config.parallel());
         this.systemResources = InternalCache.createSoft(config.parallel());
         getGraph().getEventManager().register(new DirectListener());
@@ -264,24 +265,6 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         return new SearchModel(getGraph(), getOntPersonality(), getSnapshotConfig());
     }
 
-    /**
-     * Gets an axioms map store.
-     *
-     * @return {@code Map} with {@link AxiomKey}-keys and {@link ObjectTriplesMap}-values.
-     */
-    public Map<AxiomKey, ObjectTriplesMap<OWLAxiom>> getAxioms() {
-        return axioms == null ? axioms = createAxiomsCacheMap() : axioms;
-    }
-
-    /**
-     * Gets an ontology header store.
-     *
-     * @return {@link ObjectTriplesMap}
-     */
-    public ObjectTriplesMap<OWLAnnotation> getHeader() {
-        return header == null ? header = createHeaderTriplesMap() : header;
-    }
-
     @Override
     public <N extends RDFNode> N fetchNodeAs(Node node, Class<N> type) {
         try {
@@ -332,7 +315,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     /**
      * Lists all owl import-declarations.
      *
-     * @return Stream of {@link OWLImportsDeclaration}s
+     * @return {@code Stream} of {@link OWLImportsDeclaration}s
      */
     public Stream<OWLImportsDeclaration> listOWLImportDeclarations() {
         InternalObjectFactory df = getObjectFactory();
@@ -384,7 +367,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     /**
      * Lists all anonymous individuals in the form of OWL-API objects.
      *
-     * @return Stream of {@link OWLAnonymousIndividual}s
+     * @return {@code Stream} of {@link OWLAnonymousIndividual}s
      */
     public Stream<OWLAnonymousIndividual> listOWLAnonymousIndividuals() {
         return listOWLObjects(OWLAnonymousIndividual.class);
@@ -393,7 +376,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     /**
      * Lists all named individuals in the form of OWL-API objects.
      *
-     * @return Stream of {@link OWLNamedIndividual}s
+     * @return {@code Stream} of {@link OWLNamedIndividual}s
      */
     public Stream<OWLNamedIndividual> listOWLNamedIndividuals() {
         return listOWLObjects(OWLNamedIndividual.class);
@@ -402,7 +385,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     /**
      * Lists all OWL classes in the form of OWL-API objects.
      *
-     * @return Stream of {@link OWLClass}es.
+     * @return {@code Stream} of {@link OWLClass}es.
      */
     public Stream<OWLClass> listOWLClasses() {
         return listOWLObjects(OWLClass.class);
@@ -411,7 +394,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     /**
      * Lists all data properties in the form of OWL-API objects.
      *
-     * @return Stream of {@link OWLDataProperty}s
+     * @return {@code Stream} of {@link OWLDataProperty}s
      */
     public Stream<OWLDataProperty> listOWLDataProperties() {
         return listOWLObjects(OWLDataProperty.class);
@@ -420,7 +403,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     /**
      * Lists all object properties in the form of OWL-API objects.
      *
-     * @return Stream of {@link OWLObjectProperty}s
+     * @return {@code Stream} of {@link OWLObjectProperty}s
      */
     public Stream<OWLObjectProperty> listOWLObjectProperties() {
         return listOWLObjects(OWLObjectProperty.class);
@@ -429,7 +412,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     /**
      * Lists all annotation properties in the form of OWL-API objects.
      *
-     * @return Stream of {@link OWLAnnotationProperty}s
+     * @return {@code Stream} of {@link OWLAnnotationProperty}s
      */
     public Stream<OWLAnnotationProperty> listOWLAnnotationProperties() {
         return listOWLObjects(OWLAnnotationProperty.class);
@@ -438,7 +421,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     /**
      * Lists all named data-ranges (i.e. datatypes) in the form of OWL-API objects.
      *
-     * @return Stream of {@link OWLDatatype}s
+     * @return {@code Stream} of {@link OWLDatatype}s
      */
     public Stream<OWLDatatype> listOWLDatatypes() {
         return listOWLObjects(OWLDatatype.class);
@@ -449,7 +432,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      *
      * @param type Class type of owl-object.
      * @param <O>  type of owl-object
-     * @return Stream of {@link OWLObject}s
+     * @return {@code Stream} of {@link OWLObject}s
      */
     @SuppressWarnings("unchecked")
     protected <O extends OWLObject> Stream<O> listOWLObjects(Class<O> type) {
@@ -474,11 +457,11 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     /**
      * Gets all ontology header annotations.
      *
-     * @return Stream of {@link OWLAnnotation}
-     * @see #listOWLAxioms(Collection)
+     * @return {@code Stream} of {@link OWLAnnotation}
+     * @see InternalModel#listOWLAxioms()
      */
     public Stream<OWLAnnotation> listOWLAnnotations() {
-        return getHeader().objects();
+        return getHeaderCache().objects();
     }
 
     /**
@@ -486,7 +469,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * Note: method returns non-cached axioms.
      *
      * @param e {@link OWLEntity}, not {@code null}
-     * @return Stream of {@link OWLDeclarationAxiom}s
+     * @return {@code Stream} of {@link OWLDeclarationAxiom}s
      */
     public Stream<OWLDeclarationAxiom> listOWLDeclarationAxioms(OWLEntity e) {
         if (!getSnapshotConfig().isAllowReadDeclarations()) return Stream.empty();
@@ -516,7 +499,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * Note: method returns non-cached axioms.
      *
      * @param s {@link OWLAnnotationSubject}, not {@code null}
-     * @return Stream of {@link OWLAnnotationAssertionAxiom}s
+     * @return {@code Stream} of {@link OWLAnnotationAssertionAxiom}s
      */
     public Stream<OWLAnnotationAssertionAxiom> listOWLAnnotationAssertionAxioms(OWLAnnotationSubject s) {
         if (!getSnapshotConfig().isLoadAnnotationAxioms()) return Stream.empty();
@@ -536,7 +519,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * Note: method returns non-cached axioms.
      *
      * @param sub {@link OWLClass}, not {@code null}
-     * @return Stream of {@link OWLSubClassOfAxiom}s
+     * @return {@code Stream} of {@link OWLSubClassOfAxiom}s
      */
     public Stream<OWLSubClassOfAxiom> listOWLSubClassOfAxioms(OWLClass sub) {
         if (hasManuallyAddedAxioms()) {
@@ -555,7 +538,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * Note: method returns non-cached axioms.
      *
      * @param c {@link OWLClass}, not {@code null}
-     * @return Stream of {@link OWLEquivalentClassesAxiom}s
+     * @return {@code Stream} of {@link OWLEquivalentClassesAxiom}s
      * @see AbstractNaryTranslator#axioms(OntGraphModel)
      */
     public Stream<OWLEquivalentClassesAxiom> listOWLEquivalentClassesAxioms(OWLClass c) {
@@ -575,33 +558,31 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     /**
      * Lists all ontology axioms.
      *
-     * @return Stream of {@link OWLAxiom}s
+     * @return {@code Stream} of {@link OWLAxiom}s
      * @see #listOWLAnnotations()
      */
     public Stream<OWLAxiom> listOWLAxioms() {
-        return flatMap(getAxioms().values().stream(), ObjectTriplesMap::objects);
+        return flatMap(filteredAxiomsCaches(ObjectMetaInfo.axioms()), ObjectTriplesMap::objects);
     }
 
     /**
-     * Lists axioms for the specified types.
+     * Lists all logical axioms.
      *
-     * @param types Collection of {@link AxiomType}s
-     * @return Stream of {@link OWLAxiom}s
+     * @return {@code Stream} of {@link OWLAxiom}s
      */
-    public Stream<OWLAxiom> listOWLAxioms(Collection<AxiomKey> types) {
-        Map<AxiomKey, ObjectTriplesMap<OWLAxiom>> axioms = getAxioms();
-        return flatMap(types.stream(), t -> axioms.get(t).objects());
+    public Stream<OWLLogicalAxiom> listOWLLogicalAxioms() {
+        return flatMap(filteredAxiomsCaches(ObjectMetaInfo.logical()), ObjectTriplesMap::objects)
+                .map(x -> (OWLLogicalAxiom) x);
     }
 
     /**
      * Lists axioms for the specified types.
      *
      * @param filter a {@code Iterable} of {@link AxiomType}s
-     * @return Stream of {@link OWLAxiom}s
+     * @return {@code Stream} of {@link OWLAxiom}s
      */
     public Stream<OWLAxiom> listOWLAxioms(Iterable<AxiomType<?>> filter) {
-        Map<AxiomKey, ObjectTriplesMap<OWLAxiom>> axioms = getAxioms();
-        return flatMap(AxiomKey.list(filter), x -> axioms.get(x).objects());
+        return flatMap(filteredAxiomsCaches(ObjectMetaInfo.axioms(filter)), ObjectTriplesMap::objects);
     }
 
     /**
@@ -609,11 +590,11 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      *
      * @param view Class
      * @param <A>  type of axiom
-     * @return Stream of {@link OWLAxiom}s.
+     * @return {@code Stream} of {@link OWLAxiom}s
      */
     @SuppressWarnings("unchecked")
     public <A extends OWLAxiom> Stream<A> listOWLAxioms(Class<A> view) {
-        return (Stream<A>) getAxioms().get(AxiomKey.get(view)).objects();
+        return (Stream<A>) getAxiomsCache(ObjectMetaInfo.get(view)).objects();
     }
 
     /**
@@ -621,11 +602,11 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      *
      * @param type {@link AxiomType}
      * @param <A>  type of axiom
-     * @return Stream of {@link OWLAxiom}s.
+     * @return {@code Stream} of {@link OWLAxiom}s
      */
     @SuppressWarnings("unchecked")
     public <A extends OWLAxiom> Stream<A> listOWLAxioms(AxiomType<A> type) {
-        return (Stream<A>) getAxioms().get(AxiomKey.get(type)).objects();
+        return (Stream<A>) getAxiomsCache(ObjectMetaInfo.get(type)).objects();
     }
 
     /**
@@ -646,9 +627,9 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * It is due to the dangerous of livelocks or even deadlocks while interacting with loading-caches,
      * since all of them are based on the standard Java {@code ConcurrentHashMap}.
      *
-     * @param stream Stream of {@link R}s
+     * @param stream {@code Stream} of {@link R}s
      * @param <R>    anything
-     * @return Stream of {@link R}s
+     * @return {@code Stream} of {@link R}s
      * @see #flatMap(Stream, Function)
      */
     protected <R> Stream<R> reduce(Stream<R> stream) {
@@ -697,14 +678,13 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @return {@code true} if axiom is present within model
      */
     public boolean contains(OWLAxiom a) {
-        Map<AxiomKey, ObjectTriplesMap<OWLAxiom>> axioms = getAxioms();
-        ObjectTriplesMap<OWLAxiom> map = axioms.get(AxiomKey.get(a.getAxiomType()));
+        ObjectTriplesMap<OWLAxiom> map = getAxiomsCache(ObjectMetaInfo.get(a.getAxiomType()));
         // as a hack: make sure cache is initialized.
         // it is needed in case (e.g.) of ontology is originally empty and assembled manually
         // otherwise #contains(OWLAxiom) will force collecting axioms including declarations and,
         // for example, after adding SubClassOf there would be also class declarations, which may confuse.
         if (!map.isLoaded()) {
-            axioms.forEach((t, v) -> v.load());
+            ObjectMetaInfo.axioms().forEach(x -> getAxiomsCache(x).load());
         }
         return map.contains(a);
     }
@@ -716,7 +696,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @see #add(OWLAxiom)
      */
     public void add(OWLAnnotation annotation) {
-        add(annotation, getHeader(), a -> WriteHelper.addAnnotations(getID(), Stream.of(annotation)));
+        add(annotation, getHeaderCache(), a -> WriteHelper.addAnnotations(getID(), Stream.of(annotation)));
     }
 
     /**
@@ -726,7 +706,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @see #add(OWLAnnotation)
      */
     public void add(OWLAxiom axiom) {
-        add(axiom, getAxioms().get(AxiomKey.get(axiom.getAxiomType())),
+        add(axiom, getAxiomsCache(ObjectMetaInfo.get(axiom.getAxiomType())),
                 a -> AxiomParserProvider.getByType(a.getAxiomType()).write(a, InternalModel.this));
     }
 
@@ -740,7 +720,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      */
     protected <O extends OWLObject> void add(O object, ObjectTriplesMap<O> map, Consumer<O> writer) {
         GraphListener listener = map.addListener(object);
-        // todo: there is no need to invalidate *whole* objects cache
+        // todo: there is no need to invalidate the *whole* objects cache
         clearObjectsCaches();
         UnionGraph.OntEventManager evm = getGraph().getEventManager();
         try {
@@ -763,7 +743,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @see #remove(OWLAnnotation)
      */
     public void remove(OWLAxiom axiom) {
-        remove(axiom, getAxioms().get(AxiomKey.get(axiom.getAxiomType())));
+        remove(axiom, getAxiomsCache(ObjectMetaInfo.get(axiom.getAxiomType())));
+        // todo: change the following:
         Stream.of(OWLClass.class,
                 OWLDatatype.class,
                 OWLAnnotationProperty.class,
@@ -782,7 +763,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @see #remove(OWLAxiom)
      */
     public void remove(OWLAnnotation annotation) {
-        remove(annotation, getHeader());
+        remove(annotation, getHeaderCache());
         // todo: there is no need to invalidate *whole* objects cache
         clearObjectsCaches();
     }
@@ -803,7 +784,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     protected <O extends OWLObject> void remove(O component, ObjectTriplesMap<O> map) {
         Set<Triple> triples = map.getTripleSet(component);
         map.delete(component);
-        triples.stream().filter(t -> maps().noneMatch(m -> m.contains(t))).forEach(this::delete);
+        triples.stream().filter(t -> objectTripleMaps().noneMatch(m -> m.contains(t))).forEach(this::delete);
     }
 
     /**
@@ -813,7 +794,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @param triple {@link Triple}
      */
     protected void clearCacheOnDelete(Triple triple) {
-        maps().filter(ObjectTriplesMap::isLoaded)
+        objectTripleMaps().filter(ObjectTriplesMap::isLoaded)
                 .filter(x -> needInvalidate(x, triple))
                 .forEach(ObjectTriplesMap::clear);
         // todo: there is no need to invalidate *whole* objects cache
@@ -831,15 +812,6 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
                 return true;
             }
         });
-    }
-
-    /**
-     * Gets all cache buckets.
-     *
-     * @return {@code Stream} of {@link ObjectTriplesMap}s
-     */
-    private Stream<ObjectTriplesMap<? extends OWLObject>> maps() {
-        return Stream.concat(Stream.of(getHeader()), getAxioms().values().stream());
     }
 
     /**
@@ -881,6 +853,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * such as annotation assertions, declarations, data-range definitions, etc.
      */
     public void clearCacheIfNeeded() {
+        // todo: can we diagnose only those caches, which are really affected?
         if (hasManuallyAddedAxioms()) {
             clearCache();
         }
@@ -889,13 +862,13 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     /**
      * Answers whether there are manually added axioms in the cache.
      * For optimization: if the axiomatic model has not been changed after last reading,
-     * then the cache is in a state strictly definded by the internal mechanisms,
+     * then the cache is in a state strictly defined by the internal mechanisms,
      * and so there is no need to reset the cache.
      *
      * @return boolean
      */
     public boolean hasManuallyAddedAxioms() {
-        return getAxioms().values().stream().anyMatch(ObjectTriplesMap::hasNew);
+        return objectTripleMaps().anyMatch(ObjectTriplesMap::hasNew);
     }
 
     /**
@@ -903,8 +876,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      */
     public void clearCache() {
         cachedID = null;
-        axioms = null;
-        header = null;
+        cache.asCache().clear();
         snapshot = null;
         clearObjectsCaches();
     }
@@ -926,40 +898,61 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     }
 
     /**
-     * Creates a {@code Map} with {@link AxiomKey} as keys and {@link ObjectTriplesMap} as values,
-     * that contains all possible axiom-types.
+     * Gets all cache buckets (all axiom types + ontology header).
      *
-     * @return an unmodifiable {@code Map}
+     * @return {@code Stream} of {@link ObjectTriplesMap}s
      */
-    protected Map<AxiomKey, ObjectTriplesMap<OWLAxiom>> createAxiomsCacheMap() {
-        Map<AxiomKey, ObjectTriplesMap<OWLAxiom>> res = new EnumMap<>(AxiomKey.class);
-        for (AxiomKey t : AxiomKey.values()) {
-            res.put(t, createAxiomTriplesMap(t.getAxiomClass()));
+    private Stream<ObjectTriplesMap<? extends OWLObject>> objectTripleMaps() {
+        return ObjectMetaInfo.all().map(cache::get);
+    }
+
+    /**
+     * Maps the given {@code Stream} of {@link ObjectMetaInfo} to {@link ObjectTriplesMap}.
+     * The input must contain only those elements
+     * for which the {@link ObjectMetaInfo#isAxiom()} method returns {@code true}.
+     *
+     * @param keys {@code Stream} of {@link ObjectMetaInfo}
+     * @return {@code Stream} of {@link ObjectTriplesMap} containing {@link OWLAxiom}s
+     */
+    protected Stream<ObjectTriplesMap<OWLAxiom>> filteredAxiomsCaches(Stream<ObjectMetaInfo> keys) {
+        return keys.map(this::getAxiomsCache);
+    }
+
+    /**
+     * Gets the {@link ObjectTriplesMap} for the given {@link ObjectMetaInfo}.
+     * The {@link ObjectMetaInfo#isAxiom()} method for the input must return {@code true}.
+     *
+     * @param key {@link ObjectMetaInfo}, not {@code null}
+     * @return {@link ObjectTriplesMap}
+     */
+    @SuppressWarnings("unchecked")
+    protected ObjectTriplesMap<OWLAxiom> getAxiomsCache(ObjectMetaInfo key) {
+        return (ObjectTriplesMap<OWLAxiom>) cache.get(key);
+    }
+
+    /**
+     * Gets an ontology header cache-store.
+     *
+     * @return {@link ObjectTriplesMap}
+     */
+    protected ObjectTriplesMap<OWLAnnotation> getHeaderCache() {
+        return (ObjectTriplesMap<OWLAnnotation>) cache.get(ObjectMetaInfo.HEADER);
+    }
+
+    /**
+     * Creates a {@link ObjectTriplesMap} for the given {@link ObjectMetaInfo}.
+     * @param key {@link ObjectMetaInfo}
+     * @return  {@link ObjectTriplesMap}
+     */
+    protected ObjectTriplesMap<? extends OWLObject> createObjectTriplesMap(ObjectMetaInfo key) {
+        InternalObjectFactory df = getObjectFactory();
+        if (!key.isAxiom()) {
+            return createObjectTriplesMap(OWLAnnotation.class, () -> ReadHelper.listOWLAnnotations(getID(), df));
         }
-        return Collections.unmodifiableMap(res);
-    }
-
-    /**
-     * Creates a {@link ObjectTriplesMap}-container for the ontology axioms of the specified type.
-     *
-     * @param type {@code Class}-type of {@link OWLAxiom}
-     * @param <A>  {@link OWLAxiom} of the specified {@code type}
-     * @return {@link ObjectTriplesMap}
-     */
-    protected <A extends OWLAxiom> ObjectTriplesMap<A> createAxiomTriplesMap(Class<A> type) {
-        InternalObjectFactory df = getObjectFactory();
-        AxiomTranslator<A> t = AxiomParserProvider.get(type);
-        return createObjectTriplesMap(type, () -> t.listAxioms(InternalModel.this.getSearchModel(), df, getSnapshotConfig()));
-    }
-
-    /**
-     * Creates a {@link ObjectTriplesMap}-container for the ontology header annotations.
-     *
-     * @return {@link ObjectTriplesMap}
-     */
-    protected ObjectTriplesMap<OWLAnnotation> createHeaderTriplesMap() {
-        InternalObjectFactory df = getObjectFactory();
-        return createObjectTriplesMap(OWLAnnotation.class, () -> ReadHelper.listOWLAnnotations(getID(), df));
+        AxiomType<OWLAxiom> type = key.getAxiomType();
+        AxiomTranslator<OWLAxiom> atr = AxiomParserProvider.get(type);
+        return createObjectTriplesMap(type.getActualClass(),
+                () -> atr.listAxioms(InternalModel.this.getSearchModel(), df, getSnapshotConfig()));
     }
 
     /**
@@ -1024,7 +1017,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
          */
         @Override
         protected void addEvent(Triple t) {
-            // we don't know which axiom would own this triple, so we clear whole cache.
+            // we don't know which axiom would own this triple, so we clear the whole cache.
             invalidate();
         }
 
