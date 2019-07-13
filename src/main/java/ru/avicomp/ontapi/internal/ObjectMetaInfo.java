@@ -27,11 +27,11 @@ import java.util.stream.StreamSupport;
 
 /**
  * Enum, that represents all public component-types of {@code OWLOntology}: ontology header and {@code 39} axiom types.
- * It has a natural {@link AxiomType}'s order to provide a little bit faster iterating:
- * the declarations and widely used axioms go first, which is good for the data-factory cache.
+ * For axioms there is a natural {@link AxiomType}'s order to provide a little bit faster iterating:
+ * the declarations and widely used axioms go first, which is good for the data-factory caching.
  */
 public enum ObjectMetaInfo {
-    HEADER(null) {
+    HEADER(null, false) {
         @Override
         public boolean isAxiom() {
             return false;
@@ -40,18 +40,18 @@ public enum ObjectMetaInfo {
     DECLARATION(AxiomType.DECLARATION),
     EQUIVALENT_CLASSES(AxiomType.EQUIVALENT_CLASSES),
     SUBCLASS_OF(AxiomType.SUBCLASS_OF),
-    DISJOINT_CLASSES(AxiomType.DISJOINT_CLASSES),
-    DISJOINT_UNION(AxiomType.DISJOINT_UNION),
+    DISJOINT_CLASSES(AxiomType.DISJOINT_CLASSES, false),
+    DISJOINT_UNION(AxiomType.DISJOINT_UNION, false),
     CLASS_ASSERTION(AxiomType.CLASS_ASSERTION),
-    SAME_INDIVIDUAL(AxiomType.SAME_INDIVIDUAL),
-    DIFFERENT_INDIVIDUALS(AxiomType.DIFFERENT_INDIVIDUALS),
+    SAME_INDIVIDUAL(AxiomType.SAME_INDIVIDUAL, false),
+    DIFFERENT_INDIVIDUALS(AxiomType.DIFFERENT_INDIVIDUALS, false),
     OBJECT_PROPERTY_ASSERTION(AxiomType.OBJECT_PROPERTY_ASSERTION),
-    NEGATIVE_OBJECT_PROPERTY_ASSERTION(AxiomType.NEGATIVE_OBJECT_PROPERTY_ASSERTION),
+    NEGATIVE_OBJECT_PROPERTY_ASSERTION(AxiomType.NEGATIVE_OBJECT_PROPERTY_ASSERTION, false),
     DATA_PROPERTY_ASSERTION(AxiomType.DATA_PROPERTY_ASSERTION),
-    NEGATIVE_DATA_PROPERTY_ASSERTION(AxiomType.NEGATIVE_DATA_PROPERTY_ASSERTION),
-    EQUIVALENT_OBJECT_PROPERTIES(AxiomType.EQUIVALENT_OBJECT_PROPERTIES),
+    NEGATIVE_DATA_PROPERTY_ASSERTION(AxiomType.NEGATIVE_DATA_PROPERTY_ASSERTION, false),
+    EQUIVALENT_OBJECT_PROPERTIES(AxiomType.EQUIVALENT_OBJECT_PROPERTIES, false),
     SUB_OBJECT_PROPERTY(AxiomType.SUB_OBJECT_PROPERTY),
-    INVERSE_OBJECT_PROPERTIES(AxiomType.INVERSE_OBJECT_PROPERTIES),
+    INVERSE_OBJECT_PROPERTIES(AxiomType.INVERSE_OBJECT_PROPERTIES, false),
     FUNCTIONAL_OBJECT_PROPERTY(AxiomType.FUNCTIONAL_OBJECT_PROPERTY),
     INVERSE_FUNCTIONAL_OBJECT_PROPERTY(AxiomType.INVERSE_FUNCTIONAL_OBJECT_PROPERTY),
     SYMMETRIC_OBJECT_PROPERTY(AxiomType.SYMMETRIC_OBJECT_PROPERTY),
@@ -61,16 +61,16 @@ public enum ObjectMetaInfo {
     IRREFLEXIVE_OBJECT_PROPERTY(AxiomType.IRREFLEXIVE_OBJECT_PROPERTY),
     OBJECT_PROPERTY_DOMAIN(AxiomType.OBJECT_PROPERTY_DOMAIN),
     OBJECT_PROPERTY_RANGE(AxiomType.OBJECT_PROPERTY_RANGE),
-    DISJOINT_OBJECT_PROPERTIES(AxiomType.DISJOINT_OBJECT_PROPERTIES),
-    SUB_PROPERTY_CHAIN_OF(AxiomType.SUB_PROPERTY_CHAIN_OF),
-    EQUIVALENT_DATA_PROPERTIES(AxiomType.EQUIVALENT_DATA_PROPERTIES),
+    DISJOINT_OBJECT_PROPERTIES(AxiomType.DISJOINT_OBJECT_PROPERTIES, false),
+    SUB_PROPERTY_CHAIN_OF(AxiomType.SUB_PROPERTY_CHAIN_OF, false),
+    EQUIVALENT_DATA_PROPERTIES(AxiomType.EQUIVALENT_DATA_PROPERTIES, false),
     SUB_DATA_PROPERTY(AxiomType.SUB_DATA_PROPERTY),
     FUNCTIONAL_DATA_PROPERTY(AxiomType.FUNCTIONAL_DATA_PROPERTY),
     DATA_PROPERTY_DOMAIN(AxiomType.DATA_PROPERTY_DOMAIN),
     DATA_PROPERTY_RANGE(AxiomType.DATA_PROPERTY_RANGE),
-    DISJOINT_DATA_PROPERTIES(AxiomType.DISJOINT_DATA_PROPERTIES),
-    HAS_KEY(AxiomType.HAS_KEY),
-    SWRL_RULE(AxiomType.SWRL_RULE),
+    DISJOINT_DATA_PROPERTIES(AxiomType.DISJOINT_DATA_PROPERTIES, false),
+    HAS_KEY(AxiomType.HAS_KEY, false),
+    SWRL_RULE(AxiomType.SWRL_RULE, false),
     ANNOTATION_ASSERTION(AxiomType.ANNOTATION_ASSERTION),
     SUB_ANNOTATION_PROPERTY_OF(AxiomType.SUB_ANNOTATION_PROPERTY_OF),
     ANNOTATION_PROPERTY_RANGE(AxiomType.ANNOTATION_PROPERTY_RANGE),
@@ -81,10 +81,16 @@ public enum ObjectMetaInfo {
     public static final List<ObjectMetaInfo> AXIOMS = all().skip(1).collect(Iter.toUnmodifiableList());
     public static final List<ObjectMetaInfo> LOGICAL = AXIOMS.stream().filter(x -> x.type.isLogical()).collect(Iter.toUnmodifiableList());
 
-    private AxiomType<? extends OWLAxiom> type;
+    private final AxiomType<? extends OWLAxiom> type;
+    private final boolean distinct;
 
     ObjectMetaInfo(AxiomType<? extends OWLAxiom> type) {
+        this(type, true);
+    }
+
+    ObjectMetaInfo(AxiomType<? extends OWLAxiom> type, boolean distinct) {
         this.type = type;
+        this.distinct = distinct;
     }
 
     /**
@@ -158,6 +164,30 @@ public enum ObjectMetaInfo {
      */
     public boolean isAxiom() {
         return true;
+    }
+
+    /**
+     * Answers {@code true} if and only if
+     * there can be only one unique object of this enum-type,
+     * which means that there is only one statement in the graph, to which that object corresponds.
+     * Returns {@code false}, if an object of the enum-type can be derived from different RDF statements.
+     * <p>
+     * Several examples when the method returns {@code false}:
+     * <ul>
+     * <li>{@link #DIFFERENT_INDIVIDUALS}: the same axiom {@code DifferentIndividuals(<A> <B>)} can be derived
+     * form three statements: {@code a1 owl:differentFrom a2}, {@code a2 owl:differentFrom a1}
+     * and {@code _:x rdf:type owl:AllDifferent . _:x owl:members ( a1 a2 ). }</li>
+     * <li>{@link #DISJOINT_UNION}: it is possible to have different rdf-lists with the same content,
+     * therefore a graph may contain different but similar statements that result the same axiom:
+     * {@code C1 owl:disjointUnionOf ( C2 ) . C1 owl:disjointUnionOf ( C2 ) . }</li>
+     * <li>{@link #HEADER}: bulk annotation is a b-node, RDF graph can contain any number of b-nodes
+     * with the same content (annotation property and annotation value)</li>
+     * </ul>
+     *
+     * @return boolean
+     */
+    public boolean isDistinct() {
+        return distinct;
     }
 
     /**

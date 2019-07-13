@@ -947,11 +947,12 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     protected ObjectTriplesMap<? extends OWLObject> createObjectTriplesMap(ObjectMetaInfo key) {
         InternalObjectFactory df = getObjectFactory();
         if (!key.isAxiom()) {
-            return createObjectTriplesMap(OWLAnnotation.class, () -> ReadHelper.listOWLAnnotations(getID(), df));
+            return createObjectTriplesMap(OWLAnnotation.class, key.isDistinct(),
+                    () -> ReadHelper.listOWLAnnotations(getID(), df));
         }
         AxiomType<OWLAxiom> type = key.getAxiomType();
         AxiomTranslator<OWLAxiom> atr = AxiomParserProvider.get(type);
-        return createObjectTriplesMap(type.getActualClass(),
+        return createObjectTriplesMap(type.getActualClass(), key.isDistinct(),
                 () -> atr.listAxioms(InternalModel.this.getSearchModel(), df, getSnapshotConfig()));
     }
 
@@ -959,11 +960,13 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * Creates a fresh instance of the {@link ObjectTriplesMap} container.
      *
      * @param type   {@code Class}-type for the desired {@link OWLObject}
+     * @param distinct if {@code true} a simplified loading is performed, otherwise through merge operation
      * @param loader a {@link ONTObject}s provider as a {@code Supplier}, that returns {@code Iterator}
      * @param <O>    either {@link OWLAxiom} or {@link OWLAnnotation}
      * @return {@link ObjectTriplesMap}
      */
     protected <O extends OWLObject> ObjectTriplesMap<O> createObjectTriplesMap(Class<O> type,
+                                                                               boolean distinct,
                                                                                Supplier<Iterator<ONTObject<O>>> loader) {
         InternalConfig conf = getSnapshotConfig();
         if (!conf.isContentCacheEnabled())
@@ -971,11 +974,12 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         boolean parallel = conf.parallel();
         boolean fastIterator = conf.useIteratorContentCache();
         boolean tripleStore = conf.useTriplesContentCache();
+        boolean withMerge = !distinct;
         if (!LOGGER.isDebugEnabled()) {
-            return new CacheObjectTriplesMapImpl<>(loader, parallel, fastIterator, tripleStore);
+            return new CacheObjectTriplesMapImpl<>(loader, withMerge, parallel, fastIterator, tripleStore);
         }
         OntID id = getID();
-        return new CacheObjectTriplesMapImpl<O>(loader, parallel, fastIterator, tripleStore) {
+        return new CacheObjectTriplesMapImpl<O>(loader, withMerge, parallel, fastIterator, tripleStore) {
             @Override
             protected CachedMap loadMap() {
                 Instant start = Instant.now();

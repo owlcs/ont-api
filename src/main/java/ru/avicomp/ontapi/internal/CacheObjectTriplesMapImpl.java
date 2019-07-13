@@ -54,6 +54,11 @@ public class CacheObjectTriplesMapImpl<X extends OWLObject> implements ObjectTri
     // the dangerous of manual added axioms is that the same information can be represented in different ways.
     private volatile boolean hasNew;
 
+    // to control cache loading:
+    // if true, then checking for duplicates and merging is performed,
+    // otherwise possible duplicates will be overwritten
+    private final boolean withMerge;
+
     // to use either Caffeine (if true) or LHM based cache,
     // both are synchronized, but Caffeine works faster in multi-thread, and LHM in single-thread environment.
     private final boolean parallel;
@@ -63,24 +68,27 @@ public class CacheObjectTriplesMapImpl<X extends OWLObject> implements ObjectTri
     private final boolean tripleStore;
 
     @SuppressWarnings("unused")
-    public CacheObjectTriplesMapImpl(Supplier<Iterator<ONTObject<X>>> loader,
-                                     boolean parallel) {
-        this(loader, parallel, true, true);
+    public CacheObjectTriplesMapImpl(Supplier<Iterator<ONTObject<X>>> loader, boolean parallel) {
+        this(loader, true, parallel, true, true);
     }
 
     /**
      * Constructs a bucket instance.
      *
      * @param loader       a {@code Supplier} to load object-triples pairs, not {@code null}
+     * @param withMerge    if {@code true} merging is performed while loading cache,
+     *                     otherwise the source is assumed to be distinct
      * @param parallel     if {@code true} use caffeine cache, otherwise LHM based cache
      * @param fastIterator if {@code true} use Array-based cache to speedup iteration over {@link X}-keys
      * @param tripleStore  if {@code true} use {@code Map}-based cache to speedup mutations of this bucket
      */
     public CacheObjectTriplesMapImpl(Supplier<Iterator<ONTObject<X>>> loader,
+                                     boolean withMerge,
                                      boolean parallel,
                                      boolean fastIterator,
                                      boolean tripleStore) {
         this.loader = Objects.requireNonNull(loader);
+        this.withMerge = withMerge;
         this.parallel = parallel;
         this.fastIterator = fastIterator;
         this.tripleStore = tripleStore;
@@ -96,9 +104,16 @@ public class CacheObjectTriplesMapImpl<X extends OWLObject> implements ObjectTri
         this.hasNew = false;
         Iterator<ONTObject<X>> it = loader.get();
         Map<X, ONTObject<X>> res = createMap();
+        if (withMerge) {
+            while (it.hasNext()) {
+                ONTObject<X> v = it.next();
+                res.merge(v.getObject(), v, (a, b) -> ONTObjectImpl.asImpl(a).append(b));
+            }
+            return new CachedMap(res);
+        }
         while (it.hasNext()) {
             ONTObject<X> v = it.next();
-            res.merge(v.getObject(), v, (a, b) -> ONTObjectImpl.asImpl(a).append(b));
+            res.put(v.getObject(), v);
         }
         return new CachedMap(res);
     }
