@@ -167,7 +167,7 @@ public interface InternalCache<K, V> {
 
             @Override
             public boolean isEmpty() {
-                // contains everything:
+                // contains everything (todo: is it correct?):
                 return false;
             }
 

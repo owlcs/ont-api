@@ -15,67 +15,79 @@
 package ru.avicomp.ontapi.internal;
 
 import org.semanticweb.owlapi.model.AxiomType;
+import org.semanticweb.owlapi.model.HasAnnotations;
 import org.semanticweb.owlapi.model.OWLAxiom;
+import org.semanticweb.owlapi.model.OWLObject;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.utils.Iter;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
+import static ru.avicomp.ontapi.internal.OWLComponent.*;
+
 /**
- * Enum, that represents all public component-types of {@code OWLOntology}: ontology header and {@code 39} axiom types.
+ * Enum, that represents all public container meta-types of {@code OWLOntology}: one for the ontology header
+ * and {@code 39} for each type of axiom.
  * For axioms there is a natural {@link AxiomType}'s order to provide a little bit faster iterating:
- * the declarations and widely used axioms go first, which is good for the data-factory caching.
+ * the declarations and widely used axioms go first, which is good for the data-factory and other caching.
  */
 public enum ObjectMetaInfo {
-    HEADER(null, false) {
+    // a header annotation
+    ANNOTATION(null, false, ANNOTATION_PROPERTY, LITERAL, ANONYMOUS_INDIVIDUAL, IRI) {
         @Override
         public boolean isAxiom() {
             return false;
         }
+
+        @Override
+        boolean hasAnnotations(OWLObject container) { // not used
+            return ((HasAnnotations) container).annotations().findFirst().isPresent();
+        }
     },
-    DECLARATION(AxiomType.DECLARATION),
-    EQUIVALENT_CLASSES(AxiomType.EQUIVALENT_CLASSES),
-    SUBCLASS_OF(AxiomType.SUBCLASS_OF),
-    DISJOINT_CLASSES(AxiomType.DISJOINT_CLASSES, false),
-    DISJOINT_UNION(AxiomType.DISJOINT_UNION, false),
-    CLASS_ASSERTION(AxiomType.CLASS_ASSERTION),
-    SAME_INDIVIDUAL(AxiomType.SAME_INDIVIDUAL, false),
-    DIFFERENT_INDIVIDUALS(AxiomType.DIFFERENT_INDIVIDUALS, false),
-    OBJECT_PROPERTY_ASSERTION(AxiomType.OBJECT_PROPERTY_ASSERTION),
-    NEGATIVE_OBJECT_PROPERTY_ASSERTION(AxiomType.NEGATIVE_OBJECT_PROPERTY_ASSERTION, false),
-    DATA_PROPERTY_ASSERTION(AxiomType.DATA_PROPERTY_ASSERTION),
-    NEGATIVE_DATA_PROPERTY_ASSERTION(AxiomType.NEGATIVE_DATA_PROPERTY_ASSERTION, false),
-    EQUIVALENT_OBJECT_PROPERTIES(AxiomType.EQUIVALENT_OBJECT_PROPERTIES, false),
-    SUB_OBJECT_PROPERTY(AxiomType.SUB_OBJECT_PROPERTY),
-    INVERSE_OBJECT_PROPERTIES(AxiomType.INVERSE_OBJECT_PROPERTIES, false),
-    FUNCTIONAL_OBJECT_PROPERTY(AxiomType.FUNCTIONAL_OBJECT_PROPERTY),
-    INVERSE_FUNCTIONAL_OBJECT_PROPERTY(AxiomType.INVERSE_FUNCTIONAL_OBJECT_PROPERTY),
-    SYMMETRIC_OBJECT_PROPERTY(AxiomType.SYMMETRIC_OBJECT_PROPERTY),
-    ASYMMETRIC_OBJECT_PROPERTY(AxiomType.ASYMMETRIC_OBJECT_PROPERTY),
-    TRANSITIVE_OBJECT_PROPERTY(AxiomType.TRANSITIVE_OBJECT_PROPERTY),
-    REFLEXIVE_OBJECT_PROPERTY(AxiomType.REFLEXIVE_OBJECT_PROPERTY),
-    IRREFLEXIVE_OBJECT_PROPERTY(AxiomType.IRREFLEXIVE_OBJECT_PROPERTY),
-    OBJECT_PROPERTY_DOMAIN(AxiomType.OBJECT_PROPERTY_DOMAIN),
-    OBJECT_PROPERTY_RANGE(AxiomType.OBJECT_PROPERTY_RANGE),
-    DISJOINT_OBJECT_PROPERTIES(AxiomType.DISJOINT_OBJECT_PROPERTIES, false),
-    SUB_PROPERTY_CHAIN_OF(AxiomType.SUB_PROPERTY_CHAIN_OF, false),
-    EQUIVALENT_DATA_PROPERTIES(AxiomType.EQUIVALENT_DATA_PROPERTIES, false),
-    SUB_DATA_PROPERTY(AxiomType.SUB_DATA_PROPERTY),
-    FUNCTIONAL_DATA_PROPERTY(AxiomType.FUNCTIONAL_DATA_PROPERTY),
-    DATA_PROPERTY_DOMAIN(AxiomType.DATA_PROPERTY_DOMAIN),
-    DATA_PROPERTY_RANGE(AxiomType.DATA_PROPERTY_RANGE),
-    DISJOINT_DATA_PROPERTIES(AxiomType.DISJOINT_DATA_PROPERTIES, false),
-    HAS_KEY(AxiomType.HAS_KEY, false),
-    SWRL_RULE(AxiomType.SWRL_RULE, false),
-    ANNOTATION_ASSERTION(AxiomType.ANNOTATION_ASSERTION),
-    SUB_ANNOTATION_PROPERTY_OF(AxiomType.SUB_ANNOTATION_PROPERTY_OF),
-    ANNOTATION_PROPERTY_RANGE(AxiomType.ANNOTATION_PROPERTY_RANGE),
-    ANNOTATION_PROPERTY_DOMAIN(AxiomType.ANNOTATION_PROPERTY_DOMAIN),
-    DATATYPE_DEFINITION(AxiomType.DATATYPE_DEFINITION),
+    DECLARATION(AxiomType.DECLARATION, true, ENTITY),
+    EQUIVALENT_CLASSES(AxiomType.EQUIVALENT_CLASSES, true, CLASS_EXPRESSION),
+    SUBCLASS_OF(AxiomType.SUBCLASS_OF, true, CLASS_EXPRESSION),
+    DISJOINT_CLASSES(AxiomType.DISJOINT_CLASSES, false, CLASS_EXPRESSION),
+    DISJOINT_UNION(AxiomType.DISJOINT_UNION, false, CLASS, CLASS_EXPRESSION),
+    CLASS_ASSERTION(AxiomType.CLASS_ASSERTION, true, INDIVIDUAL, CLASS_EXPRESSION),
+    SAME_INDIVIDUAL(AxiomType.SAME_INDIVIDUAL, false, INDIVIDUAL),
+    DIFFERENT_INDIVIDUALS(AxiomType.DIFFERENT_INDIVIDUALS, false, INDIVIDUAL),
+    OBJECT_PROPERTY_ASSERTION(AxiomType.OBJECT_PROPERTY_ASSERTION, true, NAMED_OBJECT_PROPERTY, INDIVIDUAL),
+    NEGATIVE_OBJECT_PROPERTY_ASSERTION(AxiomType.NEGATIVE_OBJECT_PROPERTY_ASSERTION, false, OBJECT_PROPERTY_EXPRESSION, INDIVIDUAL),
+    DATA_PROPERTY_ASSERTION(AxiomType.DATA_PROPERTY_ASSERTION, true, DATATYPE_PROPERTY, LITERAL, INDIVIDUAL),
+    NEGATIVE_DATA_PROPERTY_ASSERTION(AxiomType.NEGATIVE_DATA_PROPERTY_ASSERTION, false, DATATYPE_PROPERTY, INDIVIDUAL, LITERAL),
+    EQUIVALENT_OBJECT_PROPERTIES(AxiomType.EQUIVALENT_OBJECT_PROPERTIES, false, OBJECT_PROPERTY_EXPRESSION),
+    SUB_OBJECT_PROPERTY(AxiomType.SUB_OBJECT_PROPERTY, true, OBJECT_PROPERTY_EXPRESSION),
+    INVERSE_OBJECT_PROPERTIES(AxiomType.INVERSE_OBJECT_PROPERTIES, false, OBJECT_PROPERTY_EXPRESSION),
+    FUNCTIONAL_OBJECT_PROPERTY(AxiomType.FUNCTIONAL_OBJECT_PROPERTY, true, OBJECT_PROPERTY_EXPRESSION),
+    INVERSE_FUNCTIONAL_OBJECT_PROPERTY(AxiomType.INVERSE_FUNCTIONAL_OBJECT_PROPERTY, true, OBJECT_PROPERTY_EXPRESSION),
+    SYMMETRIC_OBJECT_PROPERTY(AxiomType.SYMMETRIC_OBJECT_PROPERTY, true, OBJECT_PROPERTY_EXPRESSION),
+    ASYMMETRIC_OBJECT_PROPERTY(AxiomType.ASYMMETRIC_OBJECT_PROPERTY, true, OBJECT_PROPERTY_EXPRESSION),
+    TRANSITIVE_OBJECT_PROPERTY(AxiomType.TRANSITIVE_OBJECT_PROPERTY, true, OBJECT_PROPERTY_EXPRESSION),
+    REFLEXIVE_OBJECT_PROPERTY(AxiomType.REFLEXIVE_OBJECT_PROPERTY, true, OBJECT_PROPERTY_EXPRESSION),
+    IRREFLEXIVE_OBJECT_PROPERTY(AxiomType.IRREFLEXIVE_OBJECT_PROPERTY, true, OBJECT_PROPERTY_EXPRESSION),
+    OBJECT_PROPERTY_DOMAIN(AxiomType.OBJECT_PROPERTY_DOMAIN, true, OBJECT_PROPERTY_EXPRESSION, CLASS_EXPRESSION),
+    OBJECT_PROPERTY_RANGE(AxiomType.OBJECT_PROPERTY_RANGE, true, OBJECT_PROPERTY_EXPRESSION, CLASS_EXPRESSION),
+    DISJOINT_OBJECT_PROPERTIES(AxiomType.DISJOINT_OBJECT_PROPERTIES, false, OBJECT_PROPERTY_EXPRESSION),
+    SUB_PROPERTY_CHAIN_OF(AxiomType.SUB_PROPERTY_CHAIN_OF, false, OBJECT_PROPERTY_EXPRESSION),
+    EQUIVALENT_DATA_PROPERTIES(AxiomType.EQUIVALENT_DATA_PROPERTIES, false, DATATYPE_PROPERTY),
+    SUB_DATA_PROPERTY(AxiomType.SUB_DATA_PROPERTY, true, DATATYPE_PROPERTY),
+    FUNCTIONAL_DATA_PROPERTY(AxiomType.FUNCTIONAL_DATA_PROPERTY, true, DATATYPE_PROPERTY),
+    DATA_PROPERTY_DOMAIN(AxiomType.DATA_PROPERTY_DOMAIN, true, DATATYPE_PROPERTY, CLASS_EXPRESSION),
+    DATA_PROPERTY_RANGE(AxiomType.DATA_PROPERTY_RANGE, true, DATATYPE_PROPERTY, DATA_RANGE),
+    DISJOINT_DATA_PROPERTIES(AxiomType.DISJOINT_DATA_PROPERTIES, false, DATATYPE_PROPERTY),
+    HAS_KEY(AxiomType.HAS_KEY, false, CLASS_EXPRESSION, DATATYPE_PROPERTY, OBJECT_PROPERTY_EXPRESSION),
+    SWRL_RULE(AxiomType.SWRL_RULE, false, INDIVIDUAL, LITERAL, CLASS_EXPRESSION, DATA_RANGE, DATATYPE_PROPERTY, OBJECT_PROPERTY_EXPRESSION),
+    ANNOTATION_ASSERTION(AxiomType.ANNOTATION_ASSERTION, true, ANNOTATION_PROPERTY, LITERAL, ANONYMOUS_INDIVIDUAL, IRI),
+    SUB_ANNOTATION_PROPERTY_OF(AxiomType.SUB_ANNOTATION_PROPERTY_OF, true, ANNOTATION_PROPERTY),
+    ANNOTATION_PROPERTY_RANGE(AxiomType.ANNOTATION_PROPERTY_RANGE, true, ANNOTATION_PROPERTY, IRI),
+    ANNOTATION_PROPERTY_DOMAIN(AxiomType.ANNOTATION_PROPERTY_DOMAIN, true, ANNOTATION_PROPERTY, IRI),
+    DATATYPE_DEFINITION(AxiomType.DATATYPE_DEFINITION, true, DATATYPE, DATA_RANGE),
     ;
 
     public static final List<ObjectMetaInfo> AXIOMS = all().skip(1).collect(Iter.toUnmodifiableList());
@@ -83,14 +95,12 @@ public enum ObjectMetaInfo {
 
     private final AxiomType<? extends OWLAxiom> type;
     private final boolean distinct;
+    private final Set<OWLComponent> components;
 
-    ObjectMetaInfo(AxiomType<? extends OWLAxiom> type) {
-        this(type, true);
-    }
-
-    ObjectMetaInfo(AxiomType<? extends OWLAxiom> type, boolean distinct) {
+    ObjectMetaInfo(AxiomType<? extends OWLAxiom> type, boolean distinct, OWLComponent... types) {
         this.type = type;
         this.distinct = distinct;
+        this.components = OWLComponent.asSet(types);
     }
 
     /**
@@ -158,12 +168,24 @@ public enum ObjectMetaInfo {
     }
 
     /**
-     * Answers {@code true} iff it is meta-info for an axiom-type, not for {@link #HEADER header}.
+     * Answers {@code true} iff it is meta-info for an axiom-type, not for {@link #ANNOTATION header}.
      *
      * @return boolean
      */
     public boolean isAxiom() {
         return true;
+    }
+
+    /**
+     * Answers {@code true} if the given OWL object has annotations.
+     * The OWL object must be either {@link OWLAxiom}
+     * or ontology header {@link org.semanticweb.owlapi.model.OWLAnnotation}.
+     *
+     * @param container {@link OWLObject}, not {@code null}
+     * @return boolean
+     */
+    boolean hasAnnotations(OWLObject container) {
+        return ((OWLAxiom) container).isAnnotated();
     }
 
     /**
@@ -180,7 +202,7 @@ public enum ObjectMetaInfo {
      * <li>{@link #DISJOINT_UNION}: it is possible to have different rdf-lists with the same content,
      * therefore a graph may contain different but similar statements that result the same axiom:
      * {@code C1 owl:disjointUnionOf ( C2 ) . C1 owl:disjointUnionOf ( C2 ) . }</li>
-     * <li>{@link #HEADER}: bulk annotation is a b-node, RDF graph can contain any number of b-nodes
+     * <li>{@link #ANNOTATION}: bulk annotation is a b-node, RDF graph can contain any number of b-nodes
      * with the same content (annotation property and annotation value)</li>
      * </ul>
      *
@@ -191,7 +213,18 @@ public enum ObjectMetaInfo {
     }
 
     /**
-     * Answers a {@link AxiomType} for this enum or {@code null} if it is {@link #HEADER header}.
+     * Answers {@code true} if any {@code OWLObject}-container of this meta type
+     * may contain the {@code OWLObject}-component of the specified component-type.
+     *
+     * @param container {@link OWLComponent} - the type, not {@code null}
+     * @return boolean
+     */
+    public boolean hasComponent(OWLComponent container) {
+        return components.contains(container);
+    }
+
+    /**
+     * Answers a {@link AxiomType} for this enum or {@code null} if it is {@link #ANNOTATION header}.
      *
      * @return {@link AxiomType} or {@code null}
      */

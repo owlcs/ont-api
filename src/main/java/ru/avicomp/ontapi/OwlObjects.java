@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -17,7 +17,7 @@ package ru.avicomp.ontapi;
 import org.semanticweb.owlapi.model.*;
 
 import java.util.Collection;
-import java.util.function.Function;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 /**
@@ -29,35 +29,41 @@ import java.util.stream.Stream;
 @SuppressWarnings("WeakerAccess")
 public class OwlObjects {
 
-    public static <O extends OWLObject> Stream<O> parseComponents(Class<O> view, HasComponents structure) {
-        return structure.componentsWithoutAnnotations().map(o -> toStream(view, o)).flatMap(Function.identity());
+    public static <O extends OWLObject> Stream<O> parseComponents(Class<? extends O> type, HasComponents structure) {
+        return structure.componentsWithoutAnnotations().flatMap(o -> toStream(type, o));
     }
 
-    public static <O extends OWLObject> Stream<O> parseAnnotations(Class<O> view, HasAnnotations structure) {
-        return structure.annotations().map(o -> toStream(view, o)).flatMap(Function.identity());
+    public static <O extends OWLObject> Stream<O> parseAnnotations(Class<? extends O> type, HasAnnotations structure) {
+        return structure.annotations().flatMap(o -> toStream(type, o));
     }
 
-    public static <O extends OWLObject, A extends HasAnnotations & HasComponents> Stream<O> objects(Class<O> view, A container) {
-        return Stream.concat(parseComponents(view, container), parseAnnotations(view, container));
+    public static <O extends OWLObject, A extends HasComponents> Stream<O> objects(Class<? extends O> type, A container) {
+        Stream<O> res = parseComponents(type, container);
+        if (container instanceof HasAnnotations) {
+            res = Stream.concat(res, parseAnnotations(type, (HasAnnotations) container));
+        }
+        return res;
     }
 
-    public static <A extends HasAnnotations & HasComponents> Stream<IRI> iris(A container) {
+    public static <A extends HasComponents> Stream<IRI> iris(A container) {
         return Stream.concat(objects(IRI.class, container),
-                objects(OWLObject.class, container).filter(HasIRI.class::isInstance).map(HasIRI.class::cast).map(HasIRI::getIRI));
+                objects(OWLObject.class, container)
+                        .map(o -> o instanceof HasIRI ? ((HasIRI) o).getIRI() : null)
+                        .filter(Objects::nonNull));
     }
 
-    private static <O extends OWLObject> Stream<O> toStream(Class<O> view, Object o) {
-        if (view.isInstance(o)) {
-            return Stream.of(view.cast(o));
+    private static <O extends OWLObject> Stream<O> toStream(Class<? extends O> type, Object o) {
+        if (type.isInstance(o)) {
+            return Stream.of(type.cast(o));
         }
         if (o instanceof HasComponents) {
             if (o instanceof HasAnnotations) {
-                return objects(view, (HasComponents & HasAnnotations) o);
+                return objects(type, (HasComponents & HasAnnotations) o);
             }
-            return parseComponents(view, (HasComponents) o);
+            return parseComponents(type, (HasComponents) o);
         }
         if (o instanceof HasAnnotations) {
-            return parseAnnotations(view, (HasAnnotations) o);
+            return parseAnnotations(type, (HasAnnotations) o);
         }
         Stream<?> stream = null;
         if (o instanceof Stream) {
@@ -66,7 +72,7 @@ public class OwlObjects {
             stream = ((Collection<?>) o).stream();
         }
         if (stream != null) {
-            return stream.map(x -> toStream(view, x)).flatMap(Function.identity());
+            return stream.flatMap(x -> toStream(type, x));
         }
         return Stream.empty();
     }
