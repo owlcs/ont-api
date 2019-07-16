@@ -51,6 +51,7 @@ import java.time.Instant;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -409,7 +410,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      *
      * @return {@code Stream} of {@link OWLClass}es.
      */
-    public Stream<OWLClass> listOWLClasses() { // todo: contains?
+    public Stream<OWLClass> listOWLClasses() {
         return listOWLObjects(OWLComponent.CLASS);
     }
 
@@ -760,15 +761,17 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      */
     public Stream<OWLAxiom> listOWLAxioms(OWLPrimitive primitive) {
         OWLComponent filter = OWLComponent.getType(primitive);
-        Stream<ObjectMetaInfo> keys;
         if (ObjectMetaInfo.ANNOTATION.hasComponent(filter)) {
             // is type of annotation -> any axiom may contain the primitive
-            keys = ObjectMetaInfo.axioms();
-        } else {
-            // select only those container-types, that are capable to contain the primitive
-            keys = ObjectMetaInfo.axioms().filter(x -> x.hasComponent(filter));
+            return reduce(ObjectMetaInfo.axioms().flatMap(k -> {
+                ObjectTriplesMap<OWLAxiom> axioms = (ObjectTriplesMap<OWLAxiom>) containers.get(k);
+                Predicate<OWLAxiom> p = k.hasComponent(filter) ? a -> true : k::hasAnnotations;
+                return axioms.objects().filter(x -> p.test(x) && filter.select(x).anyMatch(primitive::equals));
+            }));
         }
-        return flatMap(filteredAxiomsCaches(keys), k -> k.objects().filter(x -> filter.select(x).anyMatch(primitive::equals)));
+        // select only those container-types, that are capable to contain the primitive
+        return flatMap(filteredAxiomsCaches(ObjectMetaInfo.axioms().filter(x -> x.hasComponent(filter))),
+                k -> k.objects().filter(x -> filter.select(x).anyMatch(primitive::equals)));
     }
 
     /**
@@ -787,7 +790,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * Selects all axioms for the given object-component.
      *
      * @param type   a class-type of {@link OWLAxiom}
-     * @param object {@link OWLObject}
+     * @param object {@link OWLObject}, that is present as a component in every container of the returned stream
      * @param <A>    any subtype of {@link OWLAxiom}
      * @return {@code Stream} of {@link OWLAxiom}s
      */
@@ -962,26 +965,26 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     }
 
     /**
-     * Removes the given {@code component} from the given {@link ObjectTriplesMap map} and the model.
-     * In case some component's triple is associated with other object it cannot be deleted from the graph.
+     * Removes the given {@code container} from the given {@link ObjectTriplesMap map} and the model.
+     * In case some container's triple is associated with other object it cannot be deleted from the graph.
      * Example of such intersection in triples is reusing b-nodes:
      * {@code <A> rdfs:subClassOf _:b0} and {@code <B> rdfs:subClassOf _:b0}.
      * Also, OWL-Entity declaration root-triples are shared between different axioms.
      * Note: need also to remove associated objects from the {@link #components} cache!
      *
-     * @param component either {@link OWLAxiom} or {@link OWLAnnotation}
+     * @param container either {@link OWLAxiom} or {@link OWLAnnotation}
      * @param map       {@link ObjectTriplesMap}
      * @param <O>       the type of OWLObject
      * @see #clearObjectsCaches()
      */
-    protected <O extends OWLObject> void remove(O component, ObjectTriplesMap<O> map) {
-        Set<Triple> triples = map.getTripleSet(component);
-        map.delete(component);
+    protected <O extends OWLObject> void remove(O container, ObjectTriplesMap<O> map) {
         // todo: it seems not very effective, need more smart way to determine if the triple can be really deleted
+        Set<Triple> triples = map.getTripleSet(container);
+        map.delete(container);
         triples.stream().filter(t -> objectTriplesMaps().noneMatch(m -> m.contains(t))).forEach(this::delete);
         // remove related components from objects cache
-        clearOWLObjects(component);
-        // force recollect if needed
+        clearOWLObjects(container);
+        // force recollect system-resources
         systemResources.clear();
         // just in case
         objectFactoryCache.asCache().clear();
@@ -1054,7 +1057,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * such as annotation assertions, declarations, data-range definitions, etc.
      */
     public void clearCacheIfNeeded() {
-        // todo: can we diagnose only those caches, which are really affected?
+        // todo: how can we diagnose only those caches, which are really affected?
         if (hasManuallyAddedAxioms()) {
             clearCache();
         }
