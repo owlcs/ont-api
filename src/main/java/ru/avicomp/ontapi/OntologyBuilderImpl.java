@@ -60,9 +60,20 @@ public class OntologyBuilderImpl implements OntologyFactory.Builder {
     public OntologyModelImpl createOntologyImpl(Graph graph,
                                                 OntologyManagerImpl manager,
                                                 OntLoaderConfiguration config) {
-        ModelConfig modelConfig = manager.createModelConfig();
-        modelConfig.setLoaderConf(config);
-        return new OntologyModelImpl(wrap(graph, config), modelConfig);
+        return new OntologyModelImpl(wrap(graph, config), createModelConfig(manager, config));
+    }
+
+    /**
+     * Makes a model config instance.
+     *
+     * @param manager {@link OntologyManagerImpl}, must not be {@code null}
+     * @param config  {@link OntLoaderConfiguration}, the loading configuration, must not be {@code null}
+     * @return {@link ModelConfig}
+     */
+    protected ModelConfig createModelConfig(OntologyManagerImpl manager, OntLoaderConfiguration config) {
+        ModelConfig res = manager.createModelConfig();
+        res.setLoaderConf(config);
+        return res;
     }
 
     /**

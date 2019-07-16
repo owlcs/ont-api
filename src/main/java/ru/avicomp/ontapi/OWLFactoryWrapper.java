@@ -82,7 +82,7 @@ public class OWLFactoryWrapper implements OntologyFactory.Loader {
             throw new OntologyFactoryImpl.BadRecursionException("Cycle loading for source " + doc);
         }
         sources.add(doc);
-        OntologyModel res = (OntologyModel) factory.loadOWLOntology(manager, source, (OWLOntologyFactory.OWLOntologyCreationHandler) manager, conf);
+        OntologyModel res = (OntologyModel) factory.loadOWLOntology(manager, source, getAdapter().asHandler(manager), conf);
         sources.clear();
         if (LOGGER.isDebugEnabled()) {
             OntFormat format = OntFormat.get(manager.getOntologyFormat(res));

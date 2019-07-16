@@ -26,6 +26,7 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.utils.Graphs;
 
 import javax.annotation.Nonnull;
+import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -51,7 +52,7 @@ import static org.semanticweb.owlapi.model.parameters.ChangeApplied.SUCCESSFULLY
 public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel, OWLMutableOntology {
 
     private static final long serialVersionUID = -2882895355499914294L;
-    protected transient ChangeProcessor changer;
+    protected final OWLOntologyChangeVisitorEx<ChangeApplied> changer;
 
     /**
      * To construct an ontology based on the given graph.
@@ -61,11 +62,12 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
      */
     protected OntologyModelImpl(Graph graph, ModelConfig config) {
         super(graph, config);
+        this.changer = createChangeProcessor();
     }
 
     @Override
     public ChangeApplied applyDirectChange(OWLOntologyChange change) {
-        return change.accept(getChangeProcessor());
+        return change.accept(changer);
     }
 
     @Override
@@ -73,8 +75,8 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
         return (OntologyManagerImpl) super.getOWLOntologyManager();
     }
 
-    protected ChangeProcessor getChangeProcessor() {
-        return changer == null ? changer = new ChangeProcessor() : changer;
+    protected OWLOntologyChangeVisitorEx<ChangeApplied> createChangeProcessor() {
+        return new ChangeProcessor();
     }
 
     @Override
@@ -94,10 +96,12 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
 
     @Override
     public void setLock(ReadWriteLock lock) {
-        throw new OntApiException.Unsupported("Please do not call this method: it is incompatible with ONT-API.");
+        throw new OntApiException.Unsupported("Model's lock cannot be changed in ONT-API");
     }
 
-    protected class ChangeProcessor implements OWLOntologyChangeVisitorEx<ChangeApplied> {
+    protected class ChangeProcessor implements OWLOntologyChangeVisitorEx<ChangeApplied>, Serializable {
+
+        private static final long serialVersionUID = 1150135725506037485L;
 
         @Override
         public ChangeApplied visit(@Nonnull AddAxiom change) {

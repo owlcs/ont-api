@@ -542,9 +542,10 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
      * @param defaultConfig {@link OntLoaderConfiguration}, the default loader config, nullable
      * @return {@link OntologyManager}, the target manager
      */
-    protected OntologyManagerImpl createLoadCopy(OntologyManager from, OntLoaderConfiguration defaultConfig) {
+    protected OntologyManagerImpl createLoadCopy(OntologyManager from,
+                                                 OntLoaderConfiguration defaultConfig) {
         OntologyManagerImpl delegate = getAdapter().asIMPL(from);
-        OntologyFactory factory = findFactory(delegate);
+        OntologyFactory factory = new OntologyFactoryImpl(builder, this);
         return new OntologyManagerImpl(delegate.getOWLDataFactory(), factory, null) {
 
             @Override
@@ -612,22 +613,6 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
                 return "CopyOf-" + delegate.toString();
             }
         };
-    }
-
-    /**
-     * Finds an ontology factory that corresponds this loader instance.
-     *
-     * @param m {@link OntologyManager} to search in
-     * @return {@link OntologyFactory}
-     * @throws IllegalStateException if no factory found
-     */
-    protected OntologyFactory findFactory(OntologyManager m) throws IllegalStateException {
-        return m.getOntologyFactories().stream()
-                .filter(OntologyFactoryImpl.class::isInstance)
-                .map(OntologyFactoryImpl.class::cast)
-                .filter(f -> Objects.equals(f.loader, OntologyLoaderImpl.this))
-                .findFirst()
-                .orElseThrow(IllegalStateException::new);
     }
 
     /**
