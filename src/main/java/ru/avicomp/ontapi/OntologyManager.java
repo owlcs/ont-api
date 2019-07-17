@@ -663,7 +663,7 @@ public interface OntologyManager extends OWLOntologyManager {
      * they will be processed also, i.e. in general case if process finishes without any error,
      * not only a single ontology may be loaded.
      * In case of dependent ontologies all mappings
-     * ({@link OWLOntologyIRIMapper IRI Mapping} and @link DocumentSourceMapping Document Source Mapping})
+     * ({@link OWLOntologyIRIMapper IRI Mapping} and {@link DocumentSourceMapping Document Source Mapping})
      * are included into consideration.
      *
      * @param iri {@link IRI} the ontology document IRI where the ontology will be loaded from

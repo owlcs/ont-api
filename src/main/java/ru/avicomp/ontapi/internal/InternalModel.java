@@ -135,6 +135,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * OWL objects cache (to work with OWL-API 'signature' methods).
      * Currently it is calculated from the {@link #containers}.
      * Any direct (manual) change in the graph must also reset this cache.
+     * @see OWLComponent
      */
     protected final InternalCache.Loading<OWLComponent, Set<OWLObject>> components;
     /**
@@ -142,6 +143,10 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * Used to speedup iteration in some cases (e.g. for class assertions).
      */
     protected final InternalCache<Class<? extends OntObject>, Set<Node>> systemResources;
+    /**
+     * The direct listener, it monitors changes that occur through the main (Jena) interface.
+     */
+    protected final DirectListener directListener;
 
     /**
      * Constructs an instance.
@@ -164,7 +169,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         this.containers = InternalCache.fromMap(new EnumMap<>(ObjectMetaInfo.class)).asLoading(this::createObjectTriplesMap);
         this.components = InternalCache.fromMap(new EnumMap<>(OWLComponent.class)).asLoading(this::readOWLObjects);
         this.systemResources = InternalCache.createSoft(config.parallel());
-        getGraph().getEventManager().register(new DirectListener());
+        this.directListener = createDirectListener();
+        enableDirectListening();
     }
 
     /**
@@ -191,17 +197,25 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      */
     public void setOntologyID(OWLOntologyID id) throws IllegalArgumentException {
         this.cachedID = null;
-        if (Objects.requireNonNull(id, "Null id").isAnonymous()) {
-            OntID res;
-            if (id instanceof OntologyID) {
-                res = getNodeAs(createOntologyID(this, ((OntologyID) id).asNode()).asNode(), OntID.class);
+        try {
+            disableDirectListening();
+            // these are controlled changes; do not reset the whole cache,
+            // just only annotations (associated triples map is changed):
+            getHeaderCache().clear();
+            if (Objects.requireNonNull(id, "Null id").isAnonymous()) {
+                OntID res;
+                if (id instanceof OntologyID) {
+                    res = getNodeAs(createOntologyID(this, ((OntologyID) id).asNode()).asNode(), OntID.class);
+                } else {
+                    res = setID(null);
+                }
+                res.setVersionIRI(null);
             } else {
-                res = setID(null);
+                setID(id.getOntologyIRI().map(IRI::getIRIString).orElseThrow(IllegalArgumentException::new))
+                        .setVersionIRI(id.getVersionIRI().map(IRI::getIRIString).orElse(null));
             }
-            res.setVersionIRI(null);
-        } else {
-            setID(id.getOntologyIRI().map(IRI::getIRIString).orElseThrow(IllegalArgumentException::new))
-                    .setVersionIRI(id.getVersionIRI().map(IRI::getIRIString).orElse(null));
+        } finally {
+            enableDirectListening();
         }
         if (id instanceof OntologyID) {
             this.cachedID = (OntologyID) id;
@@ -277,6 +291,34 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     @Override
     public Set<Node> getSystemResources(Class<? extends OntObject> type) {
         return systemResources.get(type, x -> super.getSystemResources(type));
+    }
+
+    /**
+     * Creates a direct listener.
+     *
+     * @return {@link DirectListener}
+     */
+    protected DirectListener createDirectListener() {
+        return new DirectListener();
+    }
+
+    /**
+     * Enables direct listening.
+     * Any change through RDF interface will be tracked out.
+     *
+     * @see #disableDirectListening()
+     */
+    protected void disableDirectListening() {
+        getGraph().getEventManager().unregister(directListener);
+    }
+
+    /**
+     * Disables direct listening.
+     *
+     * @see #enableDirectListening()
+     */
+    protected void enableDirectListening() {
+        getGraph().getEventManager().register(directListener);
     }
 
     /**
@@ -881,16 +923,34 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * It is equivalent to the expression {@code this.listOWLAxioms().anyMatch(a::equals)}.
      *
      * @param a {@link OWLAxiom}, not {@code null}
-     * @return {@code true} if axiom is present within model
+     * @return {@code true} if the axiom is present within the model
+     * @see #contains(OWLAnnotation)
      */
     public boolean contains(OWLAxiom a) {
         ObjectTriplesMap<OWLAxiom> map = getAxiomsCache(ObjectMetaInfo.get(a.getAxiomType()));
-        // as a hack: make sure cache is initialized.
-        // it is needed in case (e.g.) of ontology is originally empty and assembled manually
-        // otherwise #contains(OWLAxiom) will force collecting axioms including declarations and,
-        // for example, after adding SubClassOf there would be also class declarations, which may confuse.
+        // As a hack: make sure the whole cache is initialized.
+        // It is needed in case if the ontology is assembled manually.
+        // The cache must be in its original, strictly defined state before any operation,
+        // otherwise it may result an unexpected axioms set, that may confuse.
+        // todo: it looks like a buggy solution, need something better
         if (!map.isLoaded()) {
-            ObjectMetaInfo.axioms().forEach(x -> getAxiomsCache(x).load());
+            forceLoad();
+        }
+        return map.contains(a);
+    }
+
+    /**
+     * Answers {@code true} if the given annotation is present in ontology header.
+     *
+     * @param a {@link OWLAnnotation}, not {@code null}
+     * @return {@code true} if the annotation is present within the model
+     * @see #contains(OWLAxiom)
+     */
+    public boolean contains(OWLAnnotation a) {
+        ObjectTriplesMap<OWLAnnotation> map = getHeaderCache();
+        if (!map.isLoaded()) {
+            // see #contains(OWLAxiom)
+            forceLoad();
         }
         return map.contains(a);
     }
@@ -928,6 +988,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         GraphListener listener = map.addListener(object);
         UnionGraph.OntEventManager evm = getGraph().getEventManager();
         try {
+            disableDirectListening();
             evm.register(listener);
             writer.accept(object);
         } catch (OntApiException e) {
@@ -936,6 +997,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
             throw new OntApiException(String.format("OWLObject: %s, message: %s", object, e.getMessage()), e);
         } finally {
             evm.unregister(listener);
+            enableDirectListening();
         }
         // put new components into objects cache
         cacheOWLObjects(object);
@@ -978,17 +1040,22 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @see #clearObjectsCaches()
      */
     protected <O extends OWLObject> void remove(O container, ObjectTriplesMap<O> map) {
-        // todo: it seems not very effective, need more smart way to determine if the triple can be really deleted
-        Set<Triple> triples = map.getTripleSet(container);
-        map.delete(container);
-        triples.stream().filter(t -> objectTriplesMaps().noneMatch(m -> m.contains(t))).forEach(this::delete);
-        // remove related components from objects cache
-        clearOWLObjects(container);
-        // force recollect system-resources
-        systemResources.clear();
-        // just in case
-        objectFactoryCache.asCache().clear();
-        searchModelCache.asCache().clear();
+        try {
+            disableDirectListening();
+            // todo: it seems not very effective, need more smart way to determine if the triple can be really deleted
+            Set<Triple> triples = map.getTripleSet(container);
+            map.delete(container);
+            triples.stream().filter(t -> objectTriplesMaps().noneMatch(m -> m.contains(t))).forEach(this::delete);
+            // remove related components from objects cache
+            clearOWLObjects(container);
+            // force recollect system-resources
+            systemResources.clear();
+            // just in case
+            objectFactoryCache.asCache().clear();
+            searchModelCache.asCache().clear();
+        } finally {
+            enableDirectListening();
+        }
     }
 
     /**
@@ -1102,6 +1169,13 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     }
 
     /**
+     * Forcibly loads the whole containers cache.
+     */
+    public void forceLoad() {
+        objectTriplesMaps().forEach(ObjectTriplesMap::load);
+    }
+
+    /**
      * Gets all cache buckets (all axiom types + ontology header).
      *
      * @return {@code Stream} of {@link ObjectTriplesMap}s
@@ -1189,6 +1263,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
                 Instant start = Instant.now();
                 CachedMap res = super.loadMap();
                 Duration d = Duration.between(start, Instant.now());
+                if (res.size() == 0) return res;
                 // commons-lang3 is included in jena-arq (3.6.0)
                 LOGGER.debug("[{}]{}:::{}s{}", id,
                         StringUtils.rightPad("[" + type.getSimpleName() + "]", 42),
@@ -1207,13 +1282,13 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @see org.apache.jena.graph.GraphEventManager
      */
     public class DirectListener extends GraphListenerBase {
-        private boolean hasObjectListener() {
-            return getGraph().getEventManager().hasListeners(CacheObjectTriplesMapImpl.Listener.class);
+
+        protected void invalidate() {
+            clearCache();
         }
 
-        private void invalidate() {
-            if (hasObjectListener()) return;
-            clearCache();
+        protected void invalidate(Triple t) {
+            clearCacheOnDelete(t);
         }
 
         /**
@@ -1231,8 +1306,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
 
         @Override
         protected void deleteEvent(Triple t) {
-            if (hasObjectListener()) return;
-            clearCacheOnDelete(t);
+            invalidate(t);
         }
 
         @Override

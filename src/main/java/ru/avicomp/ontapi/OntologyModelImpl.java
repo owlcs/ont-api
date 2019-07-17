@@ -146,11 +146,11 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
         @Override
         public ChangeApplied visit(@Nonnull AddOntologyAnnotation change) {
             OWLAnnotation annotation = change.getAnnotation();
-            if (annotations().noneMatch(annotation::equals)) {
-                getBase().add(annotation);
-                return SUCCESSFULLY;
+            if (getBase().contains(annotation)) {
+                return NO_OPERATION;
             }
-            return NO_OPERATION;
+            getBase().add(annotation);
+            return SUCCESSFULLY;
         }
 
         @Override

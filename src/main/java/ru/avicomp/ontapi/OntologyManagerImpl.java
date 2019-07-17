@@ -539,11 +539,13 @@ public class OntologyManagerImpl implements OntologyManager,
     }
 
     /**
+     * Creates a fresh empty ontology with the given id.
      * @param ontologyID {@link OWLOntologyID}
      * @return {@link OntInfo} the container with ontology
      * @throws OWLOntologyCreationException        if creation is not possible either because the
      *                                             ontology already exists or because of fail while compute document-iri
      * @throws OWLOntologyFactoryNotFoundException if no suitable factory found,
+     * @see #load(OWLOntologyDocumentSource, OWLOntologyLoaderConfiguration)
      */
     protected OntInfo create(OWLOntologyID ontologyID) throws OWLOntologyCreationException, OWLOntologyFactoryNotFoundException {
         OntologyID id = getAdapter().asONT(ontologyID);
@@ -559,10 +561,12 @@ public class OntologyManagerImpl implements OntologyManager,
             throw new OWLOntologyDocumentAlreadyExistsException(doc);
         }
         for (OWLOntologyFactory factory : getOntologyFactories()) {
+            if (!(factory instanceof OntologyFactory))
+                throw new OntApiException.IllegalState("Unexpected factory instance: " + factory);
             if (!factory.canCreateFromDocumentIRI(doc)) {
                 continue;
             }
-            factory.createOWLOntology(this, id, doc, this);
+            ((OntologyFactory) factory).createOntology(this, id);
             return content.get(id).orElseThrow(() -> new UnknownOWLOntologyException(id)).addDocumentIRI(doc);
         }
         throw new OWLOntologyFactoryNotFoundException(doc);
@@ -1575,6 +1579,7 @@ public class OntologyManagerImpl implements OntologyManager,
      * @return {@link OntologyModel}
      * @throws OWLOntologyCreationException        can't load
      * @throws OWLOntologyFactoryNotFoundException no factory
+     * @see #create(OWLOntologyID)
      */
     protected OntologyModel load(OWLOntologyDocumentSource source, OWLOntologyLoaderConfiguration conf)
             throws OWLOntologyCreationException, OWLOntologyFactoryNotFoundException {
