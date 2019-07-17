@@ -144,4 +144,15 @@ public class OWLAdapter implements HasAdapter.Adapter {
             throw new OntApiException("Wrong Ontology Manager Impl", c);
         }
     }
+
+    /**
+     * Performs mapping {@code OntologyCreator -> Builder}.
+     *
+     * @param creator {@link OntologyCreator}, not {@code null}
+     * @return {@link OntologyFactory.Builder}
+     */
+    protected OntologyFactory.Builder asBuilder(OntologyCreator creator) {
+        return (OntologyFactory.Builder) creator;
+    }
+
 }

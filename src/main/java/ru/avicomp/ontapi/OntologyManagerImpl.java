@@ -107,7 +107,7 @@ public class OntologyManagerImpl implements OntologyManager,
      *                        not {@code null}
      * @param ontologyFactory {@link OntologyFactory} - a factory to create and load ontologies, not {@code null}
      * @param readWriteLock   {@link ReadWriteLock} - lock to synchronize multithreading behaviour,
-     *                        can be not {@code null} for a single-thread applications
+     *                        can be {@code null} for a single-thread applications
      */
     public OntologyManagerImpl(DataFactory dataFactory, OntologyFactory ontologyFactory, ReadWriteLock readWriteLock) {
         this(dataFactory, readWriteLock, PriorityCollectionSorting.ON_SET_INJECTION_ONLY);
@@ -125,7 +125,8 @@ public class OntologyManagerImpl implements OntologyManager,
      *                    Can't avoid using this parameter that is actually useless in ONT-API
      */
     public OntologyManagerImpl(DataFactory dataFactory,
-                               ReadWriteLock lock, PriorityCollectionSorting sorting) {
+                               ReadWriteLock lock,
+                               PriorityCollectionSorting sorting) {
         this.dataFactory = Objects.requireNonNull(dataFactory, "Null Data Factory");
         this.lock = lock == null ? NoOpReadWriteLock.NO_OP_RW_LOCK : lock;
         PriorityCollectionSorting _sorting = sorting == null ? PriorityCollectionSorting.NEVER : sorting;
@@ -135,7 +136,7 @@ public class OntologyManagerImpl implements OntologyManager,
             @Override
             protected void onAdd(OWLOntologyFactory f) {
                 if (f instanceof OntologyFactory) return;
-                throw new OntApiException("Wrong argument: " + f + ". " +
+                throw new OntApiException.IllegalArgument("Wrong argument: " + f + ". " +
                         "Only " + OntologyFactory.class.getSimpleName() + " can be accepted.");
             }
         };
@@ -1578,10 +1579,13 @@ public class OntologyManagerImpl implements OntologyManager,
     protected OntologyModel load(OWLOntologyDocumentSource source, OWLOntologyLoaderConfiguration conf)
             throws OWLOntologyCreationException, OWLOntologyFactoryNotFoundException {
         for (OWLOntologyFactory factory : getOntologyFactories()) {
+            if (!(factory instanceof OntologyFactory))
+                throw new OntApiException.IllegalState("Unexpected factory instance: " + factory);
             if (!factory.canAttemptLoading(source))
                 continue;
+            OntologyFactory f = (OntologyFactory) factory;
             try {
-                OntologyModel res = (OntologyModel) factory.loadOWLOntology(this, source, this, conf);
+                OntologyModel res = f.loadOntology(this, source, getAdapter().asONT(conf));
                 OWLOntologyID id = res.getOntologyID();
                 return content.get(id).orElseThrow(() -> new UnknownOWLOntologyException(id))
                         .addDocumentIRI(source.getDocumentIRI()).get();

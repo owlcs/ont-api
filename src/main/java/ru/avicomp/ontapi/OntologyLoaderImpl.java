@@ -44,34 +44,41 @@ import java.util.stream.Collectors;
  * In case of some problems while loading there is no need to clear manager to keep it synchronized
  * since models are assembled after obtaining the graphs collection.
  * If format is not suitable for Jena, or {@link OntLoaderConfiguration#isUseOWLParsersToLoad()} is specified,
- * or some I/O error has occurred, then an alternative OWL-API based {@link OntologyLoader loader} will be used (see {@link OWLFactoryWrapper}).
- * Notice that using that OWL-API Loader everywhere and always is dangerous:
- * 1) a graph may contain errors since OWL-API parsers are OWL-Axioms centric and may not contain very good code,
- * 2) they affect manager: in case of error the managers state may be broken.
+ * or some I/O error has occurred,
+ * then an alternative OWL-API based {@link OntologyLoader loader} will be used (see {@link OWLFactoryWrapper}).
+ * Notice that OWL-API {@code Loader} is not a substitute for this {@code Loader}
+ * and its direct usage is generally dangerous:
+ * <ul>
+ *     <li>a resulting graph may be corrupted: OWL-API parsers are OWL-centric
+ *     and they may misinterpret RDF constructions that have not formed by OWL-API itself</li>
+ *     <li>OWL-API factory affects manager: in case of error there is a dangerous of its broken state</li>
+ *     <li>see {@link ru.avicomp.ontapi.config.LoadSettings#isUseOWLParsersToLoad()}</li>
+ * </ul>
  *
  * @see OWLFactoryWrapper
+ * @see ru.avicomp.ontapi.config.LoadSettings#isUseOWLParsersToLoad()
  */
 @SuppressWarnings("WeakerAccess")
 public class OntologyLoaderImpl implements OntologyFactory.Loader {
     private static final Logger LOGGER = LoggerFactory.getLogger(OntologyLoaderImpl.class);
 
-    protected final OntologyFactory.Builder builder;
     // to use OWL-API parsers:
     protected final OntologyLoader alternative;
-    // state:
+    // state parameters:
     protected Map<String, GraphInfo> graphs = new LinkedHashMap<>();
     protected Map<IRI, Optional<IRI>> sourceMap = new HashMap<>();
     protected Map<IRI, GraphInfo> loaded = new HashMap<>();
 
     /**
-     * Constructs a Loader instance based on the given Builder, and (as option) another Loader,
-     * which will be used as alternative to handle in several boundary cases.
+     * Creates a default {@code Loader} instance.
+     * This is a Jena based loader,
+     * but the constructor may optionally accept another loader,
+     * which will be used as alternative if the primary way fails.
+     * Usually, the additional loader is used to handle documents in OWL-API native formats.
      *
-     * @param builder     {@link OntologyFactory.Builder}, not null
-     * @param alternative {@link OntologyLoader}, nullable
+     * @param alternative {@link OntologyLoader}, can be {@code null}
      */
-    public OntologyLoaderImpl(OntologyFactory.Builder builder, OntologyLoader alternative) {
-        this.builder = Objects.requireNonNull(builder, "Null builder");
+    public OntologyLoaderImpl(OntologyLoader alternative) {
         this.alternative = alternative;
     }
 
@@ -80,8 +87,19 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
         return OWLAdapter.get();
     }
 
+    /**
+     * Represents this loader as an ontology factory.
+     *
+     * @param builder {@link OntologyCreator}
+     * @return {@link OntologyFactory}
+     */
+    public OntologyFactory asOntologyFactory(OntologyCreator builder) {
+        return new OntologyFactoryImpl(getAdapter().asBuilder(builder), this);
+    }
+
     @Override
-    public OntologyModel loadOntology(OntologyManager manager,
+    public OntologyModel loadOntology(OntologyCreator builder,
+                                      OntologyManager manager,
                                       OWLOntologyDocumentSource source,
                                       OntLoaderConfiguration config) throws OWLOntologyCreationException {
         if (config.isUseOWLParsersToLoad()) {
@@ -89,29 +107,35 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
                 LOGGER.debug("Load ontology using OWL-API methods. Source [{}]{}",
                         source.getClass().getSimpleName(), source.getDocumentIRI());
             }
-            return OntApiException.notNull(alternative, "No OWL loader found.").loadOntology(manager, source, config);
+            return OntApiException.mustNotBeNull(alternative, "No OWL loader found.").loadOntology(builder, manager, source, config);
         }
         try {
-            GraphInfo primary = loadGraph(source, manager, config);
+            GraphInfo primary = loadGraph(source, builder, manager, config);
             // null key in case of anonymous ontology.
             // But: only one anonymous is allowed (as root of imports tree), if there is no mapping in manager.
             graphs.put(primary.getURI(), primary);
             // first expand graphs map by creating primary model:
-            OntologyModel res = OntApiException.notNull(createModel(primary, manager, config), "Should never happen");
+            OntologyModel res = OntApiException.notNull(createModel(primary, builder, manager, config), "Should never happen");
             // then process all the rest dependent models
             // (we have already all graphs compiled, now need populate them as models):
             List<GraphInfo> graphs = this.graphs.keySet().stream()
                     .filter(u -> !Objects.equals(u, primary.getURI()))
                     .map(k -> this.graphs.get(k)).collect(Collectors.toList());
             for (GraphInfo g : graphs) {
-                createModel(g, manager, config);
+                createModel(g, builder, manager, config);
             }
             return res;
-        } finally { // the possibility to reuse.
+        } finally {
+            // the possibility to reuse:
             clear();
         }
     }
 
+    /**
+     * Release the state parameters that can appear during the load.
+     *
+     * @see OWLFactoryWrapper#clear()
+     */
     public void clear() {
         graphs.clear();
         sourceMap.clear();
@@ -121,13 +145,15 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
     /**
      * Populates {@link Graph} as {@link OntologyModel} inside manager.
      *
-     * @param info    {@link GraphInfo} container with info about graph.
+     * @param info    {@link GraphInfo} container with info about the graph
+     * @param builder {@link OntologyCreator} to construct a fresh {@link OntologyModel} instance
      * @param manager {@link OntologyManager}
      * @param config  {@link OntLoaderConfiguration}
      * @return {@link OntologyModel}, it is ready to use.
      * @throws OWLOntologyCreationException if can't assemble model from ready graph.
      */
     protected OntologyModel createModel(GraphInfo info,
+                                        OntologyCreator builder,
                                         OntologyManager manager,
                                         OntLoaderConfiguration config) throws OWLOntologyCreationException {
         if (!info.isFresh()) {
@@ -140,7 +166,7 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Set up ontology model {}.", info.name());
             }
-            Graph graph = makeUnionGraph(info, manager, config);
+            Graph graph = makeUnionGraph(info, builder, manager, config);
             // create ontology instance
             OntologyModel res = builder.createOntology(graph, manager, config);
             if (manager.contains(res)) {
@@ -175,7 +201,8 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
     /**
      * Assembles the {@link UnionGraph}, performs transformations on it and populates {@link #graphs graphs collection}.
      *
-     * @param info    {@link GraphInfo} container with info about graph.
+     * @param info    {@link GraphInfo} container with info about graph
+     * @param builder {@link OntologyCreator} to construct a fresh {@link UnionGraph} instance
      * @param manager {@link OntologyManager}
      * @param config  {@link OntLoaderConfiguration}
      * @return {@link UnionGraph}
@@ -183,11 +210,12 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
      * @throws OntApiException                           if something goes wrong
      */
     protected UnionGraph makeUnionGraph(GraphInfo info,
+                                        OntologyCreator builder,
                                         OntologyManager manager,
                                         OntLoaderConfiguration config) throws OntologyFactoryImpl.OWLTransformException {
         boolean isPrimary = graphs.size() == 1;
         // #makeUnionGraph will change #graphs collection:
-        UnionGraph graph = makeUnionGraph(info, new HashSet<>(), manager, config);
+        UnionGraph graph = makeUnionGraph(info, new HashSet<>(), builder, manager, config);
 
         if (!isPrimary || info.noTransforms() || !config.isPerformTransformation()) {
             // no transformations needed
@@ -232,6 +260,7 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
      * @param node    {@link GraphInfo} the root graph
      * @param seen    a {@code Collection} of URIs to avoid recursion infinite loops in imports
      *                (ontology A imports ontology B, which in turn imports A)
+     * @param builder {@link OntologyCreator} to construct a fresh {@link UnionGraph} instance
      * @param manager {@link OntologyManager} the manager
      * @param config  {@link OntLoaderConfiguration} the config
      * @return {@link UnionGraph}
@@ -240,6 +269,7 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
      */
     protected UnionGraph makeUnionGraph(GraphInfo node,
                                         Collection<String> seen,
+                                        OntologyCreator builder,
                                         OntologyManager manager,
                                         OntLoaderConfiguration config) {
         Graph graph = node.getGraph();
@@ -254,8 +284,8 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
         }
         UnionGraph res = builder.createUnionGraph(graph, config);
         if (config.isProcessImports()) {
-            processImports(node, seen, manager, config)
-                    .forEach(ch -> res.addGraph(makeUnionGraph(ch, new HashSet<>(seen), manager, config)));
+            processImports(node, seen, builder, manager, config)
+                    .forEach(ch -> res.addGraph(makeUnionGraph(ch, new HashSet<>(seen), builder, manager, config)));
         }
         return res;
     }
@@ -267,6 +297,7 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
      * @param node    {@link GraphInfo} the root graph
      * @param seen    a {@code Collection} of URIs to avoid recursion infinite loops in imports
      *                (ontology A imports ontology B, which in turn imports A)
+     * @param builder {@link OntologyCreator} to create {@link UnionGraph} instances
      * @param manager {@link OntologyManager} the manager
      * @param config  {@link OntLoaderConfiguration} the config
      * @return a {@code Collection} of {@link GraphInfo}s
@@ -274,6 +305,7 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
      */
     protected Collection<GraphInfo> processImports(GraphInfo node,
                                                    Collection<String> seen,
+                                                   OntologyCreator builder,
                                                    OntologyManager manager,
                                                    OntLoaderConfiguration config) {
         Graph base = node.getGraph();
@@ -298,7 +330,7 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
             GraphInfo info = graphs.get(uri);
             try {
                 if (info == null)
-                    info = fetchGraph(uri, manager, config);
+                    info = fetchGraph(uri, builder, manager, config);
                 graphs.put(uri, info);
                 // Anonymous ontology or ontology without header (i.e. if no "_:x rdf:type owl:Ontology") could be loaded
                 // if there is some resource-mapping in the manager on the import declaration.
@@ -335,15 +367,17 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
      * Otherwise it tries to load graph directly by uri or using predefined document iri from
      * some manager's iri mapper (see {@link OWLOntologyIRIMapper}).
      *
-     * @param uri     String the ontology uri.
+     * @param uri     String, the ontology uri
+     * @param builder {@link OntologyCreator} to construct a fresh {@link UnionGraph} instance
      * @param manager {@link OntologyManager}
      * @param config  {@link OntLoaderConfiguration}
-     * @return {@link GraphInfo} container with {@link Graph} encapsulated.
+     * @return {@link GraphInfo} container with {@link Graph} encapsulated
      * @throws OntologyFactoryImpl.ConfigMismatchException a conflict with some settings from <code>config</code>
      * @throws OWLOntologyCreationException                some serious I/O problem while loading
      * @throws OntApiException                             some other unexpected problem occurred.
      */
     protected GraphInfo fetchGraph(String uri,
+                                   OntologyCreator builder,
                                    OntologyManager manager,
                                    OntLoaderConfiguration config) throws OWLOntologyCreationException {
         IRI ontologyIRI = IRI.create(uri);
@@ -364,7 +398,7 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
                 .filter(Objects::nonNull)
                 .findFirst()
                 .orElse(new IRIDocumentSource(documentIRI));
-        return loadGraph(source, manager, config);
+        return loadGraph(source, builder, manager, config);
     }
 
     /**
@@ -461,6 +495,7 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
      * In special case of {@link OntGraphDocumentSource} the loading is not performed and graph is passed as is.
      *
      * @param source  {@link OWLOntologyDocumentSource the document source}
+     * @param builder {@link OntologyCreator} to construct a fresh {@link Graph} instance
      * @param manager {@link OntologyManager the manager} to load
      * @param config  {@link OntLoaderConfiguration the load configuration} to manage process
      * @return {@link GraphInfo graph-info} a wrapper around jena {@link Graph}
@@ -468,6 +503,7 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
      * @see OntGraphDocumentSource
      */
     public GraphInfo loadGraph(OWLOntologyDocumentSource source,
+                               OntologyCreator builder,
                                OntologyManager manager,
                                OntLoaderConfiguration config) throws OWLOntologyCreationException {
         if (source instanceof OntGraphDocumentSource) {
@@ -514,11 +550,11 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
                 }
                 LOGGER.debug("Can't load using jena: {}. Try OWL-API mechanisms.", msg);
             }
-            OntologyManagerImpl copy = createLoadCopy(manager, config);
+            OntologyManagerImpl copy = createLoadCopy(builder, manager, config);
             try {
                 // WARNING: it is a recursive part:
                 // The OWL-API will call some manager load methods which, in turn, will call a factory methods.
-                OntologyModel ont = alternative.loadOntology(copy, src, config);
+                OntologyModel ont = alternative.loadOntology(builder, copy, src, config);
                 ont.imports().forEach(o -> copy.documentIRIByOntology(o)
                         .ifPresent(iri -> loaded.put(iri, toGraphInfo((OntologyModel) o, iri))));
                 GraphInfo res = toGraphInfo(ont, doc);
@@ -538,14 +574,16 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
      * Creates a copy of specified manager special for loading operations through OWL-API mechanisms.
      * All loaded content would be stored inside a copy, not the original manager.
      *
+     * @param builder to get {@link OntologyFactory} instance
      * @param from          {@link OntologyManager}, the source manager
      * @param defaultConfig {@link OntLoaderConfiguration}, the default loader config, nullable
      * @return {@link OntologyManager}, the target manager
      */
-    protected OntologyManagerImpl createLoadCopy(OntologyManager from,
+    protected OntologyManagerImpl createLoadCopy(OntologyCreator builder,
+                                                 OntologyManager from,
                                                  OntLoaderConfiguration defaultConfig) {
         OntologyManagerImpl delegate = getAdapter().asIMPL(from);
-        OntologyFactory factory = new OntologyFactoryImpl(builder, this);
+        OntologyFactory factory = asOntologyFactory(builder);
         return new OntologyManagerImpl(delegate.getOWLDataFactory(), factory, null) {
 
             @Override

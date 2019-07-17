@@ -14,9 +14,17 @@
 
 package ru.avicomp.ontapi;
 
+import org.apache.jena.graph.Factory;
+import org.apache.jena.graph.Graph;
+import ru.avicomp.ontapi.config.OntLoaderConfiguration;
+import ru.avicomp.ontapi.jena.UnionGraph;
+
+import java.util.Objects;
+
 /**
  * An interface to create {@link OntologyModel} instances.
  * Created by @ssz on 03.06.2019.
+ * @since 1.4.1
  */
 public interface OntologyCreator {
 
@@ -31,4 +39,53 @@ public interface OntologyCreator {
      * @return {@link OntologyModel} new instance reflecting manager settings
      */
     OntologyModel createOntology(OntologyManager manager, OntologyID id);
+
+    /**
+     * Creates a new detached ontology model based on the specified {@link #createGraph()} graph}.
+     * The method must not change the manager state,
+     * although the result ontology should a reference to it.
+     *
+     * @param graph   {@link Graph} the graph, not {@code null}
+     * @param manager {@link OntologyManager} manager, not {@code null}
+     * @param config  {@link OntLoaderConfiguration} the config, not {@code null}
+     * @return {@link OntologyModel} new instance reflecting manager settings
+     * @since 1.3.0
+     */
+    OntologyModel createOntology(Graph graph, OntologyManager manager, OntLoaderConfiguration config);
+
+    /**
+     * Creates a fresh empty {@link Graph RDF Graph} instance.
+     * Any ontology in ONT-API relies on a graph and just serves as a facade for it.
+     * A {@code Graph} is a primary thing and a holder for raw data.
+     * <p>
+     * By default the method offers a {@link org.apache.jena.mem.GraphMem},
+     * which demonstrates great performance for relatively small data.
+     *
+     * @return {@link Graph Jena Graph}
+     * @see OntologyCreator#createUnionGraph(Graph, OntLoaderConfiguration)
+     * @since 1.3.0
+     */
+    default Graph createGraph() {
+        return Factory.createGraphMem();
+    }
+
+    /**
+     * Wraps the specified {@code graph} as an {@link UnionGraph Union Graph},
+     * that maintains an ontology {@code owl:imports} hierarchical structure.
+     * <p>
+     * By default the second parameter {@code conf} is ignored.
+     * The purpose of this parameter is to provide a possibility of choosing different impls
+     * in accordance with a config settings.
+     *
+     * @param graph {@link Graph} to set as a base (root), not {@code null}
+     * @param conf  {@link OntLoaderConfiguration} the settings to control creation of the hierarchy container graph
+     * @return {@link UnionGraph}, a graph instance containing the {@code graph} as a base graph,
+     * which is responsible for a structure hierarchy;
+     * @see OntologyCreator#createGraph()
+     * @since 1.4.2
+     */
+    default UnionGraph createUnionGraph(Graph graph, OntLoaderConfiguration conf) {
+        return new UnionGraph(Objects.requireNonNull(graph));
+    }
+
 }

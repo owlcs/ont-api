@@ -177,9 +177,9 @@ public class OntManagers implements OWLOntologyManagerFactory {
     public interface Profile {
 
         /**
-         * Creates a new OWLOntologyManager instance.
+         * Creates a new {@code OWLOntologyManager} instance.
          *
-         * @param concurrent boolean, if true the result manager expected to be thread-safe
+         * @param concurrent boolean, if {@code true} the result manager expected to be thread-safe
          * @return {@link OWLOntologyManager}
          */
         OWLOntologyManager create(boolean concurrent);
@@ -211,23 +211,22 @@ public class OntManagers implements OWLOntologyManagerFactory {
         }
 
         /**
-         * Creates a ready to use fresh ONT-API-impl Ontology Manager.
+         * Creates a ready to use fresh ONT-API-impl Ontology Manager with thw given data and default ontology factories.
          *
-         * @param dataFactory {@link DataFactory} instance
-         * @param lock        {@link ReadWriteLock} r/w lock
+         * @param dataFactory {@link DataFactory} instance, not {@code null}
+         * @param lock        {@link ReadWriteLock} r/w lock, can be {@code null}
          * @return {@link OntologyManager}
          */
         public OntologyManager createManager(DataFactory dataFactory, ReadWriteLock lock) {
-            OntologyFactory factory = createOntologyFactory(createOntologyBuilder());
-            return createManager(dataFactory, factory, lock);
+            return createManager(dataFactory, createOntologyFactory(), lock);
         }
 
         /**
          * Creates {@link OntologyManager Ontology Manager}.
          *
-         * @param dataFactory {@link DataFactory}
-         * @param factory     {@link OntologyFactory}
-         * @param lock        {@link ReadWriteLock}
+         * @param dataFactory {@link DataFactory}, not {@code null}
+         * @param factory     {@link OntologyFactory}, not {@code null}
+         * @param lock        {@link ReadWriteLock} or {@code null} for non-concurrent instance
          * @return {@link OntologyManager}
          */
         public OntologyManager createManager(DataFactory dataFactory, OntologyFactory factory, ReadWriteLock lock) {
@@ -255,8 +254,17 @@ public class OntManagers implements OWLOntologyManagerFactory {
          * @return {@link OntologyFactory} instance
          */
         public OntologyFactory createOntologyFactory(OntologyFactory.Builder builder) {
-            OntologyFactory.Loader loader = new OntologyLoaderImpl(builder, new OWLFactoryWrapper(builder));
+            OntologyFactory.Loader loader = new OntologyLoaderImpl(new OWLFactoryWrapper());
             return createOntologyFactory(builder, loader);
+        }
+
+        /**
+         * Creates a default ontology factory instance.
+         *
+         * @return {@link OntologyFactory}
+         */
+        public OntologyFactory createOntologyFactory() {
+            return createOntologyFactory(createOntologyBuilder());
         }
 
         /**

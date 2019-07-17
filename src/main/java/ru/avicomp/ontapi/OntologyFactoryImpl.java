@@ -55,6 +55,11 @@ public class OntologyFactoryImpl implements OntologyFactory {
     }
 
     @Override
+    public OWLAdapter getAdapter() {
+        return OWLAdapter.get();
+    }
+
+    @Override
     public Loader getLoader() {
         return loader;
     }

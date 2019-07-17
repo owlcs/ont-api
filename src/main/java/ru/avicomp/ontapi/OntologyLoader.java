@@ -22,6 +22,7 @@ import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 /**
  * An interface intended to process OWL document sources
  * and produce {@link OntologyModel} instances inside a {@link OntologyManager} instance.
+ * @since 1.4.1
  */
 public interface OntologyLoader {
 
@@ -36,16 +37,21 @@ public interface OntologyLoader {
      * and {@link OntologyManager.DocumentSourceMapping Graph Mapper} are used.
      * In case of any error the manager state should not be change.
      *
-     * @param source  {@link OWLOntologyDocumentSource} the source (iri, file iri, stream,
-     *                graph or whatever else), not {@code null}
-     * @param manager {@link OntologyManager}, the manager, not {@code null}
-     * @param conf    {@link OntLoaderConfiguration}, the load settings, not {@code null}
-     * @return {@link OntologyModel} the result model inside the manager.
-     * @throws OWLOntologyCreationException if something wrong
+     * @param builder {@link OntologyCreator} to create {@link OntologyModel} instance with all its parts
+     *                                       ({@link ru.avicomp.ontapi.jena.UnionGraph},
+     *                                       {@link org.apache.jena.graph.Graph}), cannot be {@code null}
+     * @param source  {@link OWLOntologyDocumentSource} the source (iri, file iri, stream, graph or whatever else),
+     *                                                 cannot be {@code null}
+     * @param manager {@link OntologyManager}, the manager, cannot be {@code null}
+     * @param conf    {@link OntLoaderConfiguration}, the load settings configuration, cannot be {@code null}
+     * @return {@link OntologyModel} the resulting ontology model, which must be within the manager
+     * @throws OWLOntologyCreationException if something is wrong
+     * @throws OntApiException if something is very wrong
      * @see OWLOntologyIRIMapper
      * @see OntologyManager.DocumentSourceMapping
      */
-    OntologyModel loadOntology(OntologyManager manager,
+    OntologyModel loadOntology(OntologyCreator builder,
+                               OntologyManager manager,
                                OWLOntologyDocumentSource source,
                                OntLoaderConfiguration conf) throws OWLOntologyCreationException;
 

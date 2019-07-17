@@ -30,40 +30,36 @@ import java.util.stream.Collectors;
  * An implementation of {@link OntologyLoader} which is actually {@link OWLOntologyFactory} decorator.
  * Used to load {@link OntologyModel ontology} through pure OWL-API mechanisms (i.e. owl-api parsers).
  * Some formats (such as {@link org.semanticweb.owlapi.formats.ManchesterSyntaxDocumentFormat} or
- * {@link org.semanticweb.owlapi.formats.FunctionalSyntaxDocumentFormat}) are not supported by jena,
- * so it is the only way to handle them by ONT-API.
+ * {@link org.semanticweb.owlapi.formats.FunctionalSyntaxDocumentFormat}) are not supported by Jena,
+ * so this is the only way to handle them by ONT-API.
+ * @see OntologyLoaderImpl
+ * @see ru.avicomp.ontapi.config.LoadSettings#isUseOWLParsersToLoad()
  */
-@SuppressWarnings("WeakerAccess")
 public class OWLFactoryWrapper implements OntologyFactory.Loader {
     private static final Logger LOGGER = LoggerFactory.getLogger(OWLFactoryWrapper.class);
 
-    protected final OWLOntologyFactory factory;
 
     // a set to avoid recursion loop,
     // which may happen since OWL-API parsers may use the manager again, which uses factory with the same parsers
     protected Set<IRI> sources = new HashSet<>();
 
-    /**
-     * Constructs a fresh OWL-API based Loader using the given Builder.
-     *
-     * @param builder {@link OntologyFactory.Builder}, not null
-     */
-    public OWLFactoryWrapper(OntologyFactory.Builder builder) {
-        this(new FactoryImpl(Objects.requireNonNull(builder, "Null ONT Builder specified.")));
+    @Override
+    public OWLAdapter getAdapter() {
+        return OWLAdapter.get();
     }
 
     /**
-     * The main constructor.
-     *
-     * @param factory {@link OWLOntologyFactory}, not null
+     * Release the state parameters that can appear during the load.
+     * @see OntologyLoaderImpl#clear()
      */
-    protected OWLFactoryWrapper(OWLOntologyFactory factory) {
-        this.factory = OntApiException.notNull(factory, "Null OWL Ontology Factory impl.");
+    public void clear() {
+        sources.clear();
     }
 
     /**
      * {@inheritDoc}
      *
+     * @param creator {@link OntologyCreator} to construct a fresh {@link OntologyModel} instance
      * @param manager {@link OntologyManager}
      * @param source  {@link OWLOntologyDocumentSource}
      * @param conf    {@link OntLoaderConfiguration}
@@ -74,23 +70,30 @@ public class OWLFactoryWrapper implements OntologyFactory.Loader {
      * @throws OWLOntologyCreationException              if any other problem occurs
      */
     @Override
-    public OntologyModel loadOntology(OntologyManager manager,
+    public OntologyModel loadOntology(OntologyCreator creator,
+                                      OntologyManager manager,
                                       OWLOntologyDocumentSource source,
                                       OntLoaderConfiguration conf) throws OWLOntologyCreationException {
-        IRI doc = source.getDocumentIRI();
-        if (sources.contains(doc)) {
-            throw new OntologyFactoryImpl.BadRecursionException("Cycle loading for source " + doc);
+        OWLAdapter adapter = getAdapter();
+        OWLOntologyBuilder builder = adapter.asBuilder(Objects.requireNonNull(creator));
+        OWLOntologyFactory factory = new FactoryImpl(builder);
+        try {
+            IRI doc = source.getDocumentIRI();
+            if (sources.contains(doc)) {
+                throw new OntologyFactoryImpl.BadRecursionException("Cycle loading for source " + doc);
+            }
+            sources.add(doc);
+            OntologyModel res = (OntologyModel) factory.loadOWLOntology(manager, source, adapter.asHandler(manager), conf);
+            if (LOGGER.isDebugEnabled()) {
+                OntFormat format = OntFormat.get(manager.getOntologyFormat(res));
+                LOGGER.debug("The ontology <{}> is loaded. Format: {}[{}]", res.getOntologyID(), format, source.getClass().getSimpleName());
+            }
+            // clear the cache to be sure that list of axioms is always the same and corresponds to the graph.
+            res.clearCache();
+            return res;
+        } finally {
+            clear();
         }
-        sources.add(doc);
-        OntologyModel res = (OntologyModel) factory.loadOWLOntology(manager, source, getAdapter().asHandler(manager), conf);
-        sources.clear();
-        if (LOGGER.isDebugEnabled()) {
-            OntFormat format = OntFormat.get(manager.getOntologyFormat(res));
-            LOGGER.debug("The ontology <{}> is loaded. Format: {}[{}]", res.getOntologyID(), format, source.getClass().getSimpleName());
-        }
-        // clear cache to be sure that list of axioms is always the same and corresponds to the graph.
-        res.clearCache();
-        return res;
     }
 
     /**
@@ -252,6 +255,7 @@ public class OWLFactoryWrapper implements OntologyFactory.Loader {
      *
      * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/AcceptHeaderBuilder.java'>uk.ac.manchester.cs.AcceptHeaderBuilder</a>
      */
+    @SuppressWarnings("WeakerAccess")
     public static class AcceptHeaderBuilder {
 
         public static String headersFromParsers(Iterable<OWLParserFactory> parsers) {

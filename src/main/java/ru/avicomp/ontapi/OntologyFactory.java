@@ -14,17 +14,14 @@
 
 package ru.avicomp.ontapi;
 
-import org.apache.jena.graph.Factory;
 import org.apache.jena.graph.Graph;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
-import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.utils.Models;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.Serializable;
-import java.util.Objects;
 
 /**
  * The factory to create and load ontologies to the manager.
@@ -37,7 +34,7 @@ import java.util.Objects;
  * Created by @szuev
  */
 @ParametersAreNonnullByDefault
-public interface OntologyFactory extends OWLOntologyFactory, OntologyLoader, OntologyCreator, HasAdapter {
+public interface OntologyFactory extends OWLOntologyFactory, HasAdapter {
 
     /**
      * Provides a builder part of the factory.
@@ -55,9 +52,9 @@ public interface OntologyFactory extends OWLOntologyFactory, OntologyLoader, Ont
 
     /**
      * Creates a fresh {@link OntologyModel Ontology Model} with the given ID inside the manager,
-     * and associates it with a {@link OWLDocumentFormat Document Format} objects.
-     * Unlike the OWL-API default impl, which prefers RDF/XML,
-     * as a format <a href='https://www.w3.org/TR/turtle/'>Turtle</a> is chosen,
+     * and associates it with a {@link OWLDocumentFormat Document Format} object.
+     * Unlike the OWL-API default impl, which prefers {@code RDF/XML},
+     * a <a href='https://www.w3.org/TR/turtle/'>Turtle</a> is chosen as a default format,
      * since it is more readable and more widely used in Jena-world.
      *
      * @param manager {@link OntologyManager} the ontology manager to set, not {@code null}
@@ -94,7 +91,7 @@ public interface OntologyFactory extends OWLOntologyFactory, OntologyLoader, Ont
     default OntologyModel loadOntology(OntologyManager manager,
                                        OWLOntologyDocumentSource source,
                                        OntLoaderConfiguration config) throws OWLOntologyCreationException, OntApiException {
-        return getLoader().loadOntology(manager, source, config);
+        return getLoader().loadOntology(getBuilder(), manager, source, config);
     }
 
     /**
@@ -169,59 +166,11 @@ public interface OntologyFactory extends OWLOntologyFactory, OntologyLoader, Ont
     }
 
     /**
-     * A part of the factory, which is responsible for creating {@link Graph Graph}-based ontologies.
+     * A part of the factory, that is responsible for creating {@link Graph Graph}-based ontologies.
      * Notice that it produces standalone empty ontologies, which is not associated with any manager,
      * and therefore cannot be used until construction is finished.
      */
-    interface Builder extends OWLOntologyBuilder, OntologyCreator, HasAdapter {
-
-        /**
-         * Creates a new detached ontology model based on the specified {@link #createGraph()} graph}.
-         * The method must not change the manager state,
-         * although the result ontology should a reference to it.
-         *
-         * @param graph   {@link Graph} the graph, not {@code null}
-         * @param manager {@link OntologyManager} manager, not {@code null}
-         * @param config  {@link OntLoaderConfiguration} the config, not {@code null}
-         * @return {@link OntologyModel} new instance reflecting manager settings
-         * @since 1.3.0
-         */
-        OntologyModel createOntology(Graph graph, OntologyManager manager, OntLoaderConfiguration config);
-
-        /**
-         * Creates a fresh empty {@link Graph RDF Graph} instance.
-         * Any ontology in ONT-API relies on a graph and just serves as a facade for it.
-         * A {@code Graph} is a primary thing and a holder for raw data.
-         * <p>
-         * By default the method offers a {@link org.apache.jena.mem.GraphMem},
-         * which demonstrates great performance for relatively small data.
-         *
-         * @return {@link Graph Jena Graph}
-         * @see #createUnionGraph(Graph, OntLoaderConfiguration)
-         * @since 1.3.0
-         */
-        default Graph createGraph() {
-            return Factory.createGraphMem();
-        }
-
-        /**
-         * Wraps the specified {@code graph} as an {@link UnionGraph Union Graph},
-         * that maintains an ontology {@code owl:imports} hierarchical structure.
-         * <p>
-         * By default the second parameter {@code conf} is ignored.
-         * The purpose of this parameter is to provide a possibility of choosing different impls
-         * in accordance with a config settings.
-         *
-         * @param graph {@link Graph} to set as a base (root), not {@code null}
-         * @param conf  {@link OntLoaderConfiguration} the settings to control creation of the hierarchy container graph
-         * @return {@link UnionGraph}, a graph instance containing the {@code graph} as a base graph,
-         * which is responsible for a structure hierarchy;
-         * @see #createGraph()
-         * @since 1.4.2
-         */
-        default UnionGraph createUnionGraph(Graph graph, OntLoaderConfiguration conf) {
-            return new UnionGraph(Objects.requireNonNull(graph));
-        }
+    interface Builder extends OntologyCreator, HasAdapter, OWLOntologyBuilder {
 
         @Override
         default OntologyModel createOWLOntology(OWLOntologyManager manager, OWLOntologyID id) {
@@ -231,18 +180,9 @@ public interface OntologyFactory extends OWLOntologyFactory, OntologyLoader, Ont
     }
 
     /**
-     * A part of the factory, which is responsible for reading ontologies from different document sources.
-     * Notice that the single method requires three input parameters
-     * ({@link OWLOntologyDocumentSource}, @link OntologyManager}, {@link OWLOntologyLoaderConfiguration}),
-     * while the method {@link OWLOntologyFactory#loadOWLOntology} requires four.
-     * This is due to the fact that {@link OntologyManagerImpl} is an {@link OWLOntologyManager}
-     * as well as {@link OWLOntologyCreationHandler}.
-     * And this is also true for
-     * <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl</a>.
-     * Therefore, the {@link OWLOntologyCreationHandler} can be considered just as part of
-     * internal (OWL-API) implementation and, so, there is no need in this parameter in our circumstances.
+     * A part of the factory, that is responsible for reading ontologies from different document sources.
      */
-    interface Loader extends Serializable, OntologyLoader, HasAdapter {
+    interface Loader extends OntologyLoader, HasAdapter, Serializable {
     }
 
 }
