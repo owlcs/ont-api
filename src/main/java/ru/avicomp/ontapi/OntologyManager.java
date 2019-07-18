@@ -59,7 +59,8 @@ import java.util.stream.Stream;
 public interface OntologyManager extends OWLOntologyManager {
 
     /**
-     * Gets a data factory which can be used to create OWL API objects such as classes, properties, individuals, axioms etc.
+     * Gets a data factory which can be used to create OWL API objects
+     * such as classes, properties, individuals, axioms, etc.
      *
      * @return a {@link DataFactory data factory} for creating OWL API objects
      */
@@ -69,15 +70,18 @@ public interface OntologyManager extends OWLOntologyManager {
     /**
      * Returns the managers global config,
      * which is an extended {@link OntologyConfigurator OWL API Configurator} and
-     * also a factory to create the snapshot configs {@link OntLoaderConfiguration} and {@link  OntWriterConfiguration}).
-     * It contains settings for managing both loading and writing behaviour, including ONT-API specific settings.
+     * also a factory to create the snapshot configs {@link OntLoaderConfiguration} and {@link OntWriterConfiguration}.
+     * It contains settings to manage both reading and writing behaviour,
+     * including a wide range of ONT-API specific settings.
      * This configuration is modifiable, but any change in it affects existing ontologies only
      * if the methods {@link #setOntologyLoaderConfiguration(OWLOntologyLoaderConfiguration)} or
      * {@link #setOntologyWriterConfiguration(OWLOntologyWriterConfiguration)} have not been called.
-     * If none of these two methods were called, then both newly added and existing ontologies pick up the config changes.
-     * Otherwise it is almost useless. This is the OWL-API behaviour.
+     * If none of these two methods were called,
+     * then both newly added and existing ontologies pick up the config changes.
+     * Otherwise, the global config is almost useless. This behavior is the inherited from OWL-API.
      * Also, changes in this configuration do not affect on ontologies, loaded with the
-     * {@link #loadOntologyFromOntologyDocument(OWLOntologyDocumentSource, OWLOntologyLoaderConfiguration)} method.
+     * {@link #loadOntologyFromOntologyDocument(OWLOntologyDocumentSource, OWLOntologyLoaderConfiguration)} method
+     * - they already have their own overwritten configurations.
      * <p>
      * The initial state of the {@link OntConfig} is copied from {@code /ontapi.properties} file,
      * which should be placed in the classpath of the application.
@@ -105,7 +109,8 @@ public interface OntologyManager extends OWLOntologyManager {
     /**
      * Returns a loading config, that is an immutable extended version of the
      * {@link OWLOntologyLoaderConfiguration OWL-API Ontology Loader Configuration}.
-     * Be warned: it is a read only accessor, to change configuration create a new config instance (using any its setter)
+     * Be warned: it is a read only accessor,
+     * to change the configuration please create a new config instance (using any its setter)
      * and pass it back to the manager using
      * the {@link #setOntologyLoaderConfiguration(OWLOntologyLoaderConfiguration)} method.
      *
@@ -137,15 +142,17 @@ public interface OntologyManager extends OWLOntologyManager {
 
     /**
      * Sets {@link OntWriterConfiguration Ontology Writer Configuration}.
-     * For more information see notes in the description of the {@link #setOntologyLoaderConfiguration(OWLOntologyLoaderConfiguration)} method.
+     * For more information see notes in the description of
+     * the {@link #setOntologyLoaderConfiguration(OWLOntologyLoaderConfiguration)} method.
      *
      * @param conf {@link OWLOntologyWriterConfiguration} or {@code null} to reset defaults
      */
     void setOntologyWriterConfiguration(@Nullable OWLOntologyWriterConfiguration conf);
 
     /**
-     * Gets an {@link RWLockedCollection extended OWL-API PriorityCollection} of {@link OntologyFactory Ontology Factories}
-     * - an iterable object, which allows to iterate and modify an internal collection.
+     * Gets an {@link RWLockedCollection extended OWL-API PriorityCollection}
+     * of {@link OntologyFactory Ontology Factories} - an iterable object,
+     * which allows to iterate and modify an internal collection.
      * Warning: any attempt to add OWLOntologyFactory into that Priority Collection
      * will cause throwing an {@link OntApiException ONT-API runtime exception}
      * in case that factory does not extend {@code OntologyFactory} interface.
@@ -169,9 +176,10 @@ public interface OntologyManager extends OWLOntologyManager {
     RWLockedCollection<OWLOntologyIRIMapper> getIRIMappers();
 
     /**
-     * Gets an {@link RWLockedCollection extended OWL-API PriorityCollection} of {@link DocumentSourceMapping ONT Document Source Mapping}.
-     * A {@link DocumentSourceMapping} is more general mechanism to conduct ontology mapping than {@link OWLOntologyIRIMapper},
-     * it is widely used in dependent projects.
+     * Gets an {@link RWLockedCollection extended OWL-API PriorityCollection}
+     * of {@link DocumentSourceMapping ONT Document Source Mapping}s.
+     * A {@link DocumentSourceMapping} is more general mechanism to conduct ontology mapping
+     * than {@link OWLOntologyIRIMapper}, and it is widely used in API's depths and dependent projects.
      *
      * @return {@link RWLockedCollection} of {@link DocumentSourceMapping}s
      * @since 1.3.0
@@ -200,19 +208,17 @@ public interface OntologyManager extends OWLOntologyManager {
 
     /**
      * Gets the ontology by the given {@code iri}.
-     * Contrary to the OWL-API interface description,
-     * the method also works with version IRI if it fails with ontology IRI.
-     * In other words, the resulting ontology may have an ontology IRI that does not match
-     * the {@code iri} specified as the method parameter.
+     * The method also works with version IRI if it fails with ontology IRI.
+     * So, the resulting ontology may have an ontology IRI that does not match the {@code iri}
+     * specified as the method parameter.
      * This behaviour is caused by the {@link OWLOntologyID#match(IRI)} method,
-     * and present in all versions of the OWL-API v5 (checked for 5.0.4-5.1.7).
-     * If it is a bug it is too late to change method behaviour
-     * and it will be fixed only synchronously with OWL-API-impl.
+     * and present in all versions of the OWL-API v5.
      *
-     * @param iri {@link IRI} ontology IRI or version IRI as described above, cannot be {@code null}
+     * @param iri {@link IRI} which is an ontology IRI or a version IRI as described above, cannot be {@code null}
      * @return {@link OntologyModel} or {@code null}
      * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java#L392'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#getOntology(IRI)</a>
      * @see OWLOntologyID#match(IRI)
+     * @see OntologyManager#contains(IRI)
      */
     @Override
     OntologyModel getOntology(IRI iri);
@@ -224,7 +230,7 @@ public interface OntologyManager extends OWLOntologyManager {
      * @param id {@link OWLOntologyID} ID, cannot be {@code null}
      * @return {@link OntologyModel} or {@code null}
      * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java#L410'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#getOntology(OWLOntologyID)</a>
-     * @see #contains(OWLOntologyID)
+     * @see OntologyManager#contains(OWLOntologyID)
      * @see OWLOntologyID#matchOntology(IRI)
      */
     @Override
@@ -232,12 +238,14 @@ public interface OntologyManager extends OWLOntologyManager {
 
     /**
      * Answers {@code true} if the manager contains an ontology with the given ontology {@code iri}.
+     * If there is no ontology that has the input {@code iri} as ontology IRI, the IRI is matched against the version IRI.
      * See the description for {@link #getOntology(IRI)} method and be warned!
      *
      * @param iri {@link IRI} the ontology iri or version iri
      * @return true if ontology exists
      * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java#L328'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#contains(IRI)</a>
      * @see OWLOntologyID#match(IRI)
+     * @see OntologyManager#getOntology(IRI)
      */
     @Override
     boolean contains(IRI iri);
@@ -246,8 +254,9 @@ public interface OntologyManager extends OWLOntologyManager {
      * Answers {@code true} if the manager contains an ontology with the given ontology {@code id}.
      * Be warned: this method returns always {@code false} for any anonymous id.
      * For non-anonymous id it performs searching by ontology iri ignoring version iri.
-     * This is in order to make the behaviour the same as OWL-API method.
-     * To find an anonymous ontology use {@link #ontologies()} stream with filters.
+     * This is in order to make the behaviour the same as the original OWL-API method.
+     * To find an anonymous ontology use either the method {@link OntologyManager#getOntology(OWLOntologyID)}
+     * or the method {@link OntologyManager#ontologies()} stream with filters.
      *
      * @param id {@link OWLOntologyID ontology ID}, not {@code null}
      * @return true if {@code id} is not anonymous and there is an ontology with the same iri as in the specified {@code id}
@@ -271,9 +280,10 @@ public interface OntologyManager extends OWLOntologyManager {
 
     /**
      * Lists all ontologies contained within the manager.
-     * Each of the returned ontologies is an instance of {@link OntologyModel} interface and encapsulates a {@link Graph Jena Graph}.
+     * Each of the returned ontologies is an instance of {@link OntologyModel} interface
+     * and encapsulates a {@link Graph Jena RDF Graph}.
      *
-     * @return Stream of {@link OntologyModel}s
+     * @return {@code Stream} of {@link OntologyModel}s
      * @see #models()
      */
     @Override
@@ -282,28 +292,28 @@ public interface OntologyManager extends OWLOntologyManager {
     /**
      * Creates a fresh ontology with the specified {@code id}.
      * <p>
-     * Note: this method doesn't throw a checked exception {@link OWLOntologyCreationException} like OWL-API.
-     * Instead it there is an unchecked exception {@link OntApiException} which may wrap {@link OWLOntologyCreationException}.
-     * OWL-API and ONT-API work in different ways.
-     * So I see it is impossible to save the same places for exceptions.
-     * For example in OWL-API you could expect some kind of exception during saving ontology-graph,
-     * but in ONT-API there would be another kind of exception during adding axiom before any saving.
-     * I believe there is no reasons to save the same behaviour with exceptions everywhere.
-     * The return type is also changed from {@link org.semanticweb.owlapi.model.OWLOntology} to our class {@link OntologyModel}.
-     * Also, it is looks a bit strange when a method, which is not affected by any resources throws a checked exception.
+     * Note: this method doesn't throw a checked exception {@link OWLOntologyCreationException} as does OWL-API.
+     * Instead, there is an unchecked exception {@link OntApiException}
+     * that may wrap {@link OWLOntologyCreationException}.
+     * This is due to the fact that OWL-API and ONT-API physically work in different ways,
+     * and sometimes there is no possibility to retain the behaviour completely.
+     * Moreover, a method which do not work with resources
+     * and just create an object should not throw a checked exception.
      *
      * @param id {@link OWLOntologyID}
      * @return ontology {@link OntologyModel}
-     * @throws OntApiException in case something wrong.
+     * @throws OntApiException in case something is wrong
      */
     @Override
     OntologyModel createOntology(OWLOntologyID id);
 
     /**
-     * Creates an ontology model from the {@link Graph Jena Graph}, taking into account the given loading settings.
-     * If the graph is hierarchical with {@code owl:imports} as references between sub-graphs
-     * it will be re-assembled to a new hierarchy form using {@link ru.avicomp.ontapi.jena.UnionGraph}.
-     * Otherwise it is passed into the manager as is.
+     * Creates an ontology model from the given {@link Graph Jena Graph},
+     * taking into account the specified loading settings.
+     * If the graph is composite and hierarchical
+     * with {@code owl:imports} declarations as references between sub-graphs,
+     * it will be re-assembled retaining hierarchy, but in a new container - {@link ru.avicomp.ontapi.jena.UnionGraph}.
+     * Otherwise, if the graph is indivisible, it is passed into the manager as is.
      * This is a new (ONT-API) method.
      *
      * @param graph {@link Graph}
@@ -316,8 +326,8 @@ public interface OntologyManager extends OWLOntologyManager {
 
     /**
      * Copies an ontology from another manager to this one.
-     * The returned {@code OntologyModel} will return this manager instance,
-     * when {@link OntologyModel#getOWLOntologyManager()} is invoked.
+     * The returned {@code OntologyModel} will answer with this manager instance
+     * when the method {@link OntologyModel#getOWLOntologyManager()} is invoked.
      * <p>
      * Note: the axioms list, retrieved from the returned ontology, may differ with the source axioms
      * due to different config settings (see {@link ru.avicomp.ontapi.config.AxiomsSettings}).
@@ -396,7 +406,6 @@ public interface OntologyManager extends OWLOntologyManager {
     OntologyModel loadOntologyFromOntologyDocument(OWLOntologyDocumentSource source,
                                                    OWLOntologyLoaderConfiguration config) throws OWLOntologyCreationException;
 
-
     /**
      * Resolves the given IRI to the ontology if possible.
      * According to the specification,
@@ -419,8 +428,8 @@ public interface OntologyManager extends OWLOntologyManager {
 
     /**
      * Sets the collection of ontology factories.
-     * Warning: if the given collection ({@code factories}) contains an instance that does not implement {@link OntologyFactory}
-     * an exception is expected.
+     * Warning: if the given collection ({@code factories})
+     * contains an instance that does not implement {@link OntologyFactory}, then an exception is expected.
      * This method also takes into account {@link org.semanticweb.owlapi.annotations.HasPriority} annotation.
      * But I don't think anyone uses that ordering mechanism, at least with ONT-API.
      *
@@ -494,7 +503,7 @@ public interface OntologyManager extends OWLOntologyManager {
      * Returns document-source-mappings as stream.
      * New (ONT-API) method.
      *
-     * @return Stream of {@link DocumentSourceMapping}
+     * @return {@code Stream} of {@link DocumentSourceMapping}
      * @since 1.0.1
      * @deprecated use {@code getDocumentSourceMappers().stream()} instead
      */
@@ -762,7 +771,7 @@ public interface OntologyManager extends OWLOntologyManager {
     /**
      * Lists all {@link OntGraphModel Ontology Graph Model}s from the manager.
      *
-     * @return Stream of {@link OntGraphModel}
+     * @return {@code Stream} of {@link OntGraphModel}
      * @see #ontologies()
      */
     default Stream<OntGraphModel> models() {

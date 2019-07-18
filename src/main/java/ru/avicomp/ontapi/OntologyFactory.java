@@ -18,18 +18,18 @@ import org.apache.jena.graph.Graph;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
-import ru.avicomp.ontapi.jena.utils.Models;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.Serializable;
 
 /**
- * The factory to create and load ontologies to the manager.
+ * The factory to create and load ontologies into the manager.
  * It is the core of the system, an extended {@link OWLOntologyFactory}.
  * <p>
  * An implementation of this interface can be divided into two different parts:
- * {@link Builder Builder}, which is responsible for creating fresh ontologies,
- * and {@link OntologyLoader Loader}, which is responsible to load ontologies into a manager.
+ * {@link Builder Builder}, which is responsible for creating fresh empty ontologies,
+ * and {@link OntologyLoader Loader},
+ * which is responsible for loading ontologies to a manager from various document sources.
  * <p>
  * Created by @szuev
  */
@@ -51,11 +51,16 @@ public interface OntologyFactory extends OWLOntologyFactory, HasAdapter {
     Loader getLoader();
 
     /**
-     * Creates a fresh {@link OntologyModel Ontology Model} with the given ID inside the manager,
-     * and associates it with a {@link OWLDocumentFormat Document Format} object.
-     * Unlike the OWL-API default impl, which prefers {@code RDF/XML},
-     * a <a href='https://www.w3.org/TR/turtle/'>Turtle</a> is chosen as a default format,
-     * since it is more readable and more widely used in Jena-world.
+     * Adds the specified ontology into the manager and performs some final tuning actions.
+     * @param manager {@link OntologyManager} the ontology manager, which will hold the {@code model}, not {@code null}
+     * @param model {@link OntologyModel} that has been created by the {@link #getBuilder() Builder}, not {@code null}
+     * @since 1.4.2
+     */
+    void includeOntology(OntologyManager manager, OntologyModel model);
+
+    /**
+     * Creates a fresh {@link OntologyModel Ontology Model} inside the manager
+     * with the given ID and default configuration.
      *
      * @param manager {@link OntologyManager} the ontology manager to set, not {@code null}
      * @param id      {@link OntologyID} the ID of the ontology to create, not {@code null}
@@ -64,12 +69,8 @@ public interface OntologyFactory extends OWLOntologyFactory, HasAdapter {
      * @since 1.3.0
      */
     default OntologyModel createOntology(OntologyManager manager, OntologyID id) throws OntApiException {
-        OntologyModel res = getBuilder().createOntology(manager, id);
-        OWLOntologyFactory.OWLOntologyCreationHandler handler = getAdapter().asHandler(manager);
-        handler.ontologyCreated(res);
-        OWLDocumentFormat format = OntFormat.TURTLE.createOwlFormat();
-        Models.setNsPrefixes(res.asGraphModel(), format.asPrefixOWLDocumentFormat().getPrefixName2PrefixMap());
-        handler.setOntologyFormat(res, format);
+        OntologyModel res = getBuilder().createOntology(id, manager, manager.getOntologyLoaderConfiguration());
+        includeOntology(manager, res);
         return res;
     }
 
@@ -175,7 +176,8 @@ public interface OntologyFactory extends OWLOntologyFactory, HasAdapter {
         @Override
         default OntologyModel createOWLOntology(OWLOntologyManager manager, OWLOntologyID id) {
             Adapter adapter = getAdapter();
-            return createOntology(adapter.asONT(manager), adapter.asONT(id));
+            return createOntology(adapter.asONT(id), adapter.asONT(manager),
+                    adapter.asONT(manager.getOntologyLoaderConfiguration()));
         }
     }
 
@@ -183,6 +185,16 @@ public interface OntologyFactory extends OWLOntologyFactory, HasAdapter {
      * A part of the factory, that is responsible for reading ontologies from different document sources.
      */
     interface Loader extends OntologyLoader, HasAdapter, Serializable {
+
+        /**
+         * Represents this loader as an ontology factory with the given {@code builder}.
+         * Just for convenience.
+         *
+         * @param builder {@link OntologyCreator}, the facility to build ontology, not {@code null}
+         * @return {@link OntologyFactory}
+         * @since 1.4.2
+         */
+        OntologyFactory asOntologyFactory(OntologyCreator builder);
     }
 
 }

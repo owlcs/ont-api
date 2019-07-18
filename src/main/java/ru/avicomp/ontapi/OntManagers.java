@@ -211,7 +211,10 @@ public class OntManagers implements OWLOntologyManagerFactory {
         }
 
         /**
-         * Creates a ready to use fresh ONT-API-impl Ontology Manager with thw given data and default ontology factories.
+         * Creates a fresh ONT-API-impl {@link OWLOntologyManager Ontology Manager}
+         * with the given data factory and with the default ontology factory.
+         * The returned manager does not have any OWL-API storers and parsers,
+         * so it does not support reading and writing in formats that are not supported by Jena.
          *
          * @param dataFactory {@link DataFactory} instance, not {@code null}
          * @param lock        {@link ReadWriteLock} r/w lock, can be {@code null}
@@ -222,7 +225,10 @@ public class OntManagers implements OWLOntologyManagerFactory {
         }
 
         /**
-         * Creates {@link OntologyManager Ontology Manager}.
+         * Creates a fresh {@link OntologyManager Ontology Manager}
+         * with the given data and ontology factories.
+         * The returned manager does not have any OWL-API storers and parsers,
+         * so ir does not support reading and writing in formats that are not supported by Jena.
          *
          * @param dataFactory {@link DataFactory}, not {@code null}
          * @param factory     {@link OntologyFactory}, not {@code null}
@@ -239,7 +245,8 @@ public class OntManagers implements OWLOntologyManagerFactory {
         }
 
         /**
-         * Creates an {@link OntologyFactory.Builder Ontology Builder} - an interface to create standalone ontologies.
+         * Creates a default {@link OntologyFactory.Builder Ontology Builder} -
+         * an interface to create standalone ontologies.
          *
          * @return {@link OntologyFactory.Builder}
          */
@@ -248,14 +255,18 @@ public class OntManagers implements OWLOntologyManagerFactory {
         }
 
         /**
-         * Creates an {@link OntologyFactory Ontology Factory} based on the given Builder.
+         * Creates a default {@link OntologyFactory.Loader Ontology Load} -
+         * an interface to read ontology documents.
+         * The returned loader is capable to read a document using both Jena and OWL-API mechanisms.
+         * The priority is for Jena. The OWL-API native mechanisms are used as last attempt to read a document,
+         * and will work only if the corresponding {@link OWLParserFactory parsers}s are registered inside the manager.
          *
-         * @param builder {@link OntologyFactory.Builder Ontology Builder}
-         * @return {@link OntologyFactory} instance
+         * @return {@link OntologyFactory.Loader}
+         * @see OWLLangRegistry#storerFactories()
+         * @see OntologyManager#getOntologyStorers()
          */
-        public OntologyFactory createOntologyFactory(OntologyFactory.Builder builder) {
-            OntologyFactory.Loader loader = new OntologyLoaderImpl(new OWLFactoryWrapper());
-            return createOntologyFactory(builder, loader);
+        public OntologyFactory.Loader createOntologyLoader() {
+            return new OntologyLoaderImpl(new OWLFactoryWrapper());
         }
 
         /**
@@ -268,6 +279,16 @@ public class OntManagers implements OWLOntologyManagerFactory {
         }
 
         /**
+         * Creates an {@link OntologyFactory Ontology Factory} based on the given Builder.
+         *
+         * @param builder {@link OntologyFactory.Builder Ontology Builder}
+         * @return {@link OntologyFactory} instance
+         */
+        public OntologyFactory createOntologyFactory(OntologyFactory.Builder builder) {
+            return createOntologyFactory(builder, createOntologyLoader());
+        }
+
+        /**
          * Creates an {@link OntologyFactory Ontology Factory} based on the given Builder and Loader.
          *
          * @param builder {@link OntologyFactory.Builder Ontology Builder}
@@ -275,7 +296,7 @@ public class OntManagers implements OWLOntologyManagerFactory {
          * @return {@link OntologyFactory} instance
          */
         public OntologyFactory createOntologyFactory(OntologyFactory.Builder builder, OntologyFactory.Loader loader) {
-            return new OntologyFactoryImpl(builder, loader);
+            return loader.asOntologyFactory(builder);
         }
     }
 

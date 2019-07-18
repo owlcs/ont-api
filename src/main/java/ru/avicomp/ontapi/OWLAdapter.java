@@ -18,13 +18,17 @@ import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.config.OntConfig;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.config.OntWriterConfiguration;
+import ru.avicomp.ontapi.internal.InternalConfig;
+import ru.avicomp.ontapi.internal.InternalModelHolder;
 
 import java.util.Objects;
 
 /**
- * An 'adapter' to convert OWL-API things to ONT-API ones.
- * Currently it is a collection of sugar-methods:
- * anything produced by ONT-API should be also OWL-API since ONT-API is overridden OWL-API.
+ * An 'adapter' to convert OWL-API things to ONT-API ones and to gain access to internal objects.
+ * Mostly it is a collection of sugar-methods:
+ * anything produced by ONT-API is also OWL-API just because ONT-API is overridden OWL-API.
+ * It is for internal usage only, and, therefore,
+ * there is no guarantee that any its methods will work in case of external call.
  *
  * @since 1.3.0
  * Created by @szuev on 01.07.2018.
@@ -34,10 +38,19 @@ public class OWLAdapter implements HasAdapter.Adapter {
 
     private static OWLAdapter instance = new OWLAdapter();
 
+    /**
+     * Gets the default {@code Adapter}.
+     *
+     * @return {@link HasAdapter.Adapter}
+     */
     public static OWLAdapter get() {
         return instance;
     }
 
+    /**
+     * A backdoor to change behavior.
+     * @param adapter {@link OWLAdapter}, an overridden instance, not {@code null}
+     */
     public static void set(OWLAdapter adapter) {
         instance = Objects.requireNonNull(adapter, "Null adapter");
     }
@@ -54,7 +67,7 @@ public class OWLAdapter implements HasAdapter.Adapter {
         try {
             return (OntologyManager) OntApiException.notNull(manager);
         } catch (ClassCastException c) {
-            throw new OntApiException("Wrong Ontology Manager", c);
+            throw new OntApiException.IllegalState("Wrong Ontology Manager", c);
         }
     }
 
@@ -69,7 +82,7 @@ public class OWLAdapter implements HasAdapter.Adapter {
         try {
             return (DataFactory) OntApiException.notNull(factory);
         } catch (ClassCastException c) {
-            throw new OntApiException("Wrong Ontology Data Factory", c);
+            throw new OntApiException.IllegalState("Wrong Ontology Data Factory", c);
         }
     }
 
@@ -121,7 +134,6 @@ public class OWLAdapter implements HasAdapter.Adapter {
      * @param m {@link OWLOntologyManager} instance, not {@code null}
      * @return {@link OWLOntologyFactory.OWLOntologyCreationHandler}
      */
-    @Override
     public OWLOntologyFactory.OWLOntologyCreationHandler asHandler(OWLOntologyManager m) {
         return asIMPL(m);
     }
@@ -135,14 +147,24 @@ public class OWLAdapter implements HasAdapter.Adapter {
      *
      * @param manager {@link OWLOntologyManager manager}
      * @return {@link OntologyManagerImpl}
-     * @throws ClassCastException in case of wrong instance specified
+     * @throws OntApiException in case of wrong instance specified
      */
-    protected OntologyManagerImpl asIMPL(OWLOntologyManager manager) {
+    public OntologyManagerImpl asIMPL(OWLOntologyManager manager) {
         try {
             return (OntologyManagerImpl) OntApiException.notNull(manager);
         } catch (ClassCastException c) {
-            throw new OntApiException("Wrong Ontology Manager Impl", c);
+            throw new OntApiException.IllegalState("Wrong Ontology Manager Impl", c);
         }
+    }
+
+    /**
+     * Performs mapping {@code OWLOntology -> OntologyModel}.
+     *
+     * @param ont {@link OWLOntology}, not {@code null}
+     * @return {@link OntologyModel}
+     */
+    public OntologyModel asONT(OWLOntology ont) {
+        return (OntologyModel) ont;
     }
 
     /**
@@ -151,8 +173,42 @@ public class OWLAdapter implements HasAdapter.Adapter {
      * @param creator {@link OntologyCreator}, not {@code null}
      * @return {@link OntologyFactory.Builder}
      */
-    protected OntologyFactory.Builder asBuilder(OntologyCreator creator) {
+    public OntologyFactory.Builder asBuilder(OntologyCreator creator) {
         return (OntologyFactory.Builder) creator;
+    }
+
+    /**
+     * Performs mapping {@code OWLOntologyFactory -> OntologyFactory}.
+     *
+     * @param factory {@link OntologyFactory}, not {@code null}
+     * @return {@link OntologyFactory}
+     */
+    public OntologyFactory asONT(OWLOntologyFactory factory) {
+        try {
+            return (OntologyFactory) OntApiException.notNull(factory);
+        } catch (ClassCastException c) {
+            throw new OntApiException.IllegalState("Unexpected factory instance: " + factory, c);
+        }
+    }
+
+    /**
+     * Performs mapping {@code OntologyModel -> InternalModelHolder}.
+     *
+     * @param ont {@link OntologyModel}, not {@code null}
+     * @return {@link InternalModelHolder}
+     */
+    public InternalModelHolder asBaseHolder(OntologyModel ont) {
+        return (InternalModelHolder) ont;
+    }
+
+    /**
+     * Performs mapping {@code InternalConfig -> ModelConfig}.
+     *
+     * @param conf {@link InternalConfig}, not {@code null}
+     * @return {@link ModelConfig}
+     */
+    public ModelConfig asModelConfig(InternalConfig conf) {
+        return (ModelConfig) conf;
     }
 
 }

@@ -14,14 +14,13 @@
 
 package ru.avicomp.ontapi;
 
-import org.semanticweb.owlapi.model.OWLOntologyFactory;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 
 /**
- * A technical interface to provide an {@link Adapter} instance
+ * A technical interface to provide an {@link Adapter} instance.
  * Created by @ssz on 03.06.2019.
  */
 interface HasAdapter {
@@ -36,16 +35,32 @@ interface HasAdapter {
     }
 
     /**
-     * An adapter to represent or transform OWL-API views into ONT-API compatible form.
+     * An adapter to represent or transform OWL-API types into the ONT-API compatible form.
      */
     interface Adapter {
 
+        /**
+         * Performs mapping {@link OWLOntologyID} to {@link OntologyID}.
+         *
+         * @param id {@link OWLOntologyID}, not {@code null}
+         * @return {@link OntologyID}
+         */
         OntologyID asONT(OWLOntologyID id);
 
+        /**
+         * Performs mapping {@link OWLOntologyLoaderConfiguration} to {@link OntLoaderConfiguration}.
+         *
+         * @param conf {@link OWLOntologyLoaderConfiguration}, not {@code null}
+         * @return {@link OntLoaderConfiguration}
+         */
         OntLoaderConfiguration asONT(OWLOntologyLoaderConfiguration conf);
 
+        /**
+         * Performs mapping {@link OWLOntologyManager} to {@link OntologyManager}.
+         * @param manager {@link OWLOntologyManager}, not {@code null}
+         * @return {@link OntologyManager}
+         */
         OntologyManager asONT(OWLOntologyManager manager);
 
-        OWLOntologyFactory.OWLOntologyCreationHandler asHandler(OWLOntologyManager m);
     }
 }

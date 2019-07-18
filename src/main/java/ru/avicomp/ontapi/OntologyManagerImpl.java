@@ -561,12 +561,10 @@ public class OntologyManagerImpl implements OntologyManager,
             throw new OWLOntologyDocumentAlreadyExistsException(doc);
         }
         for (OWLOntologyFactory factory : getOntologyFactories()) {
-            if (!(factory instanceof OntologyFactory))
-                throw new OntApiException.IllegalState("Unexpected factory instance: " + factory);
             if (!factory.canCreateFromDocumentIRI(doc)) {
                 continue;
             }
-            ((OntologyFactory) factory).createOntology(this, id);
+            getAdapter().asONT(factory).createOntology(this, id);
             return content.get(id).orElseThrow(() -> new UnknownOWLOntologyException(id)).addDocumentIRI(doc);
         }
         throw new OWLOntologyFactoryNotFoundException(doc);
@@ -1043,7 +1041,7 @@ public class OntologyManagerImpl implements OntologyManager,
         // set of loaded ontologies.
         getLock().writeLock().lock();
         try {
-            content.add(new OntInfo((OntologyModel) ont));
+            content.add(new OntInfo(getAdapter().asONT(ont)));
         } finally {
             getLock().writeLock().unlock();
         }
@@ -1354,7 +1352,7 @@ public class OntologyManagerImpl implements OntologyManager,
             return;
         }
         OWLImportsDeclaration declaration = ((ImportChange) change).getImportDeclaration();
-        OntologyModel ontology = (OntologyModel) change.getOntology();
+        OntologyModel ontology = getAdapter().asONT(change.getOntology());
         OWLOntologyID id = ontology.getOntologyID();
         Optional<OntWriterConfiguration> conf = content.get(id).map(OntInfo::getModelConfig)
                 .map(ModelConfig::getWriterConfig);
@@ -1584,13 +1582,10 @@ public class OntologyManagerImpl implements OntologyManager,
     protected OntologyModel load(OWLOntologyDocumentSource source, OWLOntologyLoaderConfiguration conf)
             throws OWLOntologyCreationException, OWLOntologyFactoryNotFoundException {
         for (OWLOntologyFactory factory : getOntologyFactories()) {
-            if (!(factory instanceof OntologyFactory))
-                throw new OntApiException.IllegalState("Unexpected factory instance: " + factory);
             if (!factory.canAttemptLoading(source))
                 continue;
-            OntologyFactory f = (OntologyFactory) factory;
             try {
-                OntologyModel res = f.loadOntology(this, source, getAdapter().asONT(conf));
+                OntologyModel res = getAdapter().asONT(factory).loadOntology(this, source, getAdapter().asONT(conf));
                 OWLOntologyID id = res.getOntologyID();
                 return content.get(id).orElseThrow(() -> new UnknownOWLOntologyException(id))
                         .addDocumentIRI(source.getDocumentIRI()).get();
@@ -1739,7 +1734,7 @@ public class OntologyManagerImpl implements OntologyManager,
 
         OntologyModel ont = (OntologyModel) ontology;
         if (!format.isJena()) {
-            ((InternalModelHolder) ont).getBase().clearCacheIfNeeded();
+            getAdapter().asBaseHolder(ont).getBase().clearCacheIfNeeded();
             try {
                 for (OWLStorerFactory storer : getOntologyStorers()) {
                     OWLStorer writer = storer.createStorer();
@@ -1819,7 +1814,7 @@ public class OntologyManagerImpl implements OntologyManager,
         this.iris = createIRICache();
         this.content.values().forEach(info -> {
             ModelConfig conf = info.getModelConfig();
-            InternalModelHolder m = (InternalModelHolder) info.get();
+            InternalModelHolder m = getAdapter().asBaseHolder(info.get());
             UnionGraph baseGraph = m.getBase().getGraph();
             Stream<UnionGraph> imports = Graphs.getImports(baseGraph).stream()
                     .map(s -> this.content.values().map(OntInfo::get).map(InternalModelHolder.class::cast)
@@ -2126,8 +2121,9 @@ public class OntologyManagerImpl implements OntologyManager,
         protected OWLDocumentFormat format;
 
         public OntInfo(@Nonnull OntologyModel ont) throws ClassCastException {
-            this.ont = ont;
-            this.conf = (ModelConfig) ((InternalModelHolder) ont).getBase().getConfig();
+            this.ont = Objects.requireNonNull(ont);
+            OWLAdapter adapter = getAdapter();
+            this.conf = Objects.requireNonNull(adapter.asModelConfig(adapter.asBaseHolder(ont).getBase().getConfig()));
         }
 
         @Override

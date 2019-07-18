@@ -23,7 +23,7 @@ import org.semanticweb.owlapi.model.OWLRuntimeException;
  * <p>
  * Created by @szuev on 27.09.2016.
  */
-@SuppressWarnings("WeakerAccess")
+@SuppressWarnings({"WeakerAccess", "unused"})
 public class OntApiException extends OWLRuntimeException {
     public OntApiException(String message, Throwable cause) {
         super(message, cause);
@@ -89,7 +89,7 @@ public class OntApiException extends OWLRuntimeException {
     }
 
     /**
-     * Todo
+     * A {@code RuntimeException} to indicate wrong object state.
      */
     public static class IllegalState extends OntApiException {
         public IllegalState() {
@@ -98,6 +98,10 @@ public class OntApiException extends OWLRuntimeException {
 
         public IllegalState(String message) {
             super(message);
+        }
+
+        public IllegalState(String message, Throwable cause) {
+            super(message, cause);
         }
     }
 }

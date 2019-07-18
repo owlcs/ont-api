@@ -36,9 +36,9 @@ public class OntologyBuilderImpl implements OntologyFactory.Builder {
     }
 
     @Override
-    public OntologyModel createOntology(OntologyManager manager, OntologyID id) {
+    public OntologyModel createOntology(OntologyID id, OntologyManager manager, OntLoaderConfiguration config) {
         OntologyManagerImpl m = getAdapter().asIMPL(manager);
-        OntologyModelImpl res = createOntologyImpl(createGraph(), m, m.getOntologyLoaderConfiguration());
+        OntologyModelImpl res = createOntologyImpl(createGraph(), m, config);
         res.setOntologyID(id);
         return withLock(res, m.getLock());
     }
@@ -78,11 +78,12 @@ public class OntologyBuilderImpl implements OntologyFactory.Builder {
 
     /**
      * Wraps the given {@code ont} as a concurrent R/W locked view impl, if it is needed.
+     *
      * @param ont {@link OntologyModelImpl}, not {@code null}
      * @param lock {@link ReadWriteLock}, possible {@code null}
      * @return {@link OntologyModel} instance
      */
-    public OntologyModel withLock(OntologyModelImpl ont, ReadWriteLock lock) {
+    protected OntologyModel withLock(OntologyModelImpl ont, ReadWriteLock lock) {
         if (!NoOpReadWriteLock.isConcurrent(lock)) return ont;
         return new OntologyModelImpl.Concurrent(ont, lock);
     }
@@ -104,10 +105,10 @@ public class OntologyBuilderImpl implements OntologyFactory.Builder {
      * and in the last case it is already {@link UnionGraph} and the method returns the same instance as specified.
      *
      * @param g {@link Graph}, not {@code null}
-     * @param conf {@link OntLoaderConfiguration}
+     * @param config {@link OntLoaderConfiguration}
      * @return {@link UnionGraph}
      */
-    public UnionGraph wrap(Graph g, OntLoaderConfiguration conf) {
-        return g instanceof UnionGraph ? (UnionGraph) g : createUnionGraph(g, conf);
+    public UnionGraph wrap(Graph g, OntLoaderConfiguration config) {
+        return g instanceof UnionGraph ? (UnionGraph) g : createUnionGraph(g, config);
     }
 }

@@ -107,6 +107,13 @@ public class LoadFactoryManagerTest {
                 .findFirst().orElseThrow(() -> new AssertionError("No comment."));
     }
 
+    private static OntologyManager createManagerWithOWLAPIOntologyFactory() {
+        DataFactory df = OntManagers.DEFAULT_PROFILE.dataFactory();
+        OntologyCreator builder = OntManagers.DEFAULT_PROFILE.createOntologyBuilder();
+        OntologyFactory of = new OWLFactoryWrapper().asOntologyFactory(builder);
+        return OntManagers.DEFAULT_PROFILE.createManager(df, of, null);
+    }
+
     @Test
     public void testOntologyAlreadyExistsException() throws Exception {
         Path p = ReadWriteUtils.getResourcePath("ontapi", "pizza.ttl");
@@ -737,5 +744,51 @@ public class LoadFactoryManagerTest {
                 .peek(x -> Assert.assertTrue(x.getGraph() instanceof MyUnion)).count());
         Assert.assertEquals(1, OntModels.importsClosure(b.asGraphModel())
                 .peek(x -> Assert.assertTrue(x.getGraph() instanceof MyUnion)).count());
+    }
+
+    @Test
+    public void testLoadConfigurationWWithUseOWLParsersOption() throws OWLOntologyCreationException {
+        OWLOntologyDocumentSource src = ReadWriteUtils.getDocumentSource("/ontapi/test2.owl", OntFormat.OWL_XML);
+        OntologyManager m = OntManagers.createONT();
+        OntLoaderConfiguration conf = m.getOntologyLoaderConfiguration().setUseOWLParsersToLoad(true);
+        OntologyModel o = m.loadOntologyFromOntologyDocument(src, conf);
+        OWLAdapter adapter = OWLAdapter.get();
+        OntLoaderConfiguration conf2 = adapter.asModelConfig(adapter.asBaseHolder(o).getBase().getConfig()).getLoaderConfig();
+        Assert.assertSame(conf, conf2);
+    }
+
+    @Test
+    public void testLoadConfigurationWithOWLAPIFactory() throws OWLOntologyCreationException {
+        OWLOntologyDocumentSource src = ReadWriteUtils.getDocumentSource("/ontapi/test2.omn", OntFormat.MANCHESTER_SYNTAX);
+        OntologyManager m = createManagerWithOWLAPIOntologyFactory();
+        OWLParserFactory parser = OWLLangRegistry.getLang(OWLLangRegistry.LangKey.MANCHESTERSYNTAX.getKey())
+                .orElseThrow(AssertionError::new).getParserFactory();
+        m.getOntologyParsers().add(parser);
+        Assert.assertEquals(1, m.getOntologyFactories().size());
+        Assert.assertEquals(1, m.getOntologyParsers().size());
+        Assert.assertEquals(0, m.getOntologyStorers().size());
+        OntLoaderConfiguration conf = m.getOntologyLoaderConfiguration().setUseOWLParsersToLoad(true);
+        OntologyModel o = m.loadOntologyFromOntologyDocument(src, conf);
+        OWLAdapter adapter = OWLAdapter.get();
+        OntLoaderConfiguration conf2 = adapter.asModelConfig(adapter.asBaseHolder(o).getBase().getConfig()).getLoaderConfig();
+        Assert.assertSame(conf, conf2);
+    }
+
+    @Test
+    public void testErrorWhenNoParserFound() {
+        OWLOntologyDocumentSource src = ReadWriteUtils.getDocumentSource("/ontapi/test2.fss", OntFormat.FUNCTIONAL_SYNTAX);
+        OntologyManager m = createManagerWithOWLAPIOntologyFactory();
+        Assert.assertEquals(1, m.getOntologyFactories().size());
+        Assert.assertEquals(0, m.getOntologyParsers().size());
+        Assert.assertEquals(0, m.getOntologyStorers().size());
+
+        try {
+            m.loadOntologyFromOntologyDocument(src);
+            Assert.fail("Possible to load");
+        } catch (UnparsableOntologyException e) {
+            LOGGER.debug("Expected: '{}'", e.getMessage());
+        } catch (OWLOntologyCreationException e) {
+            throw new AssertionError(e);
+        }
     }
 }

@@ -14,7 +14,6 @@
 
 package ru.avicomp.ontapi;
 
-import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.io.*;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.PriorityCollection;
@@ -22,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
  * @see OntologyLoaderImpl
  * @see ru.avicomp.ontapi.config.LoadSettings#isUseOWLParsersToLoad()
  */
+@ParametersAreNonnullByDefault
 public class OWLFactoryWrapper implements OntologyFactory.Loader {
     private static final Logger LOGGER = LoggerFactory.getLogger(OWLFactoryWrapper.class);
 
@@ -49,6 +50,17 @@ public class OWLFactoryWrapper implements OntologyFactory.Loader {
     }
 
     /**
+     * Represents this loader as an ontology factory.
+     *
+     * @param builder {@link OntologyCreator}
+     * @return {@link OntologyFactory}
+     */
+    @Override
+    public OntologyFactory asOntologyFactory(OntologyCreator builder) {
+        return new OntologyFactoryImpl(getAdapter().asBuilder(builder), this);
+    }
+
+    /**
      * Release the state parameters that can appear during the load.
      * @see OntologyLoaderImpl#clear()
      */
@@ -59,7 +71,7 @@ public class OWLFactoryWrapper implements OntologyFactory.Loader {
     /**
      * {@inheritDoc}
      *
-     * @param creator {@link OntologyCreator} to construct a fresh {@link OntologyModel} instance
+     * @param builder {@link OntologyCreator} to construct a fresh {@link OntologyModel} instance
      * @param manager {@link OntologyManager}
      * @param source  {@link OWLOntologyDocumentSource}
      * @param conf    {@link OntLoaderConfiguration}
@@ -70,12 +82,11 @@ public class OWLFactoryWrapper implements OntologyFactory.Loader {
      * @throws OWLOntologyCreationException              if any other problem occurs
      */
     @Override
-    public OntologyModel loadOntology(OntologyCreator creator,
+    public OntologyModel loadOntology(OntologyCreator builder,
                                       OntologyManager manager,
                                       OWLOntologyDocumentSource source,
                                       OntLoaderConfiguration conf) throws OWLOntologyCreationException {
         OWLAdapter adapter = getAdapter();
-        OWLOntologyBuilder builder = adapter.asBuilder(Objects.requireNonNull(creator));
         OWLOntologyFactory factory = new FactoryImpl(builder);
         try {
             IRI doc = source.getDocumentIRI();
@@ -83,12 +94,12 @@ public class OWLFactoryWrapper implements OntologyFactory.Loader {
                 throw new OntologyFactoryImpl.BadRecursionException("Cycle loading for source " + doc);
             }
             sources.add(doc);
-            OntologyModel res = (OntologyModel) factory.loadOWLOntology(manager, source, adapter.asHandler(manager), conf);
+            OntologyModel res = getAdapter().asONT(factory.loadOWLOntology(manager, source, adapter.asHandler(manager), conf));
             if (LOGGER.isDebugEnabled()) {
                 OntFormat format = OntFormat.get(manager.getOntologyFormat(res));
                 LOGGER.debug("The ontology <{}> is loaded. Format: {}[{}]", res.getOntologyID(), format, source.getClass().getSimpleName());
             }
-            // clear the cache to be sure that list of axioms is always the same and corresponds to the graph.
+            // clear the cache to be sure that the list of axioms is always the same and corresponds to the graph.
             res.clearCache();
             return res;
         } finally {
@@ -99,115 +110,37 @@ public class OWLFactoryWrapper implements OntologyFactory.Loader {
     /**
      * This is a copy-paste the original OWL-API {@link OWLOntologyFactory} implementation,
      * which is used if syntax format of source can not be handle by Apache Jena.
+     *
      * Matthew Horridge Stanford Center for Biomedical Informatics Research 10/04/15
      *
      * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyFactoryImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl</a>
      */
-    @SuppressWarnings({"NullableProblems"})
-    public static class FactoryImpl implements OWLOntologyFactory {
+    @SuppressWarnings({"WeakerAccess"})
+    public static class FactoryImpl implements OWLOntologyFactory, HasAdapter {
 
-        private final OWLOntologyBuilder builder;
+        private final Builder builder;
 
         /**
-         * @param builder ontology builder
+         * Creates an OWL-API compatible factory.
+         * This version cannot be used with ONT-API if the builder does not produce {@link OntologyModel}.
+         * @param builder {@link OWLOntologyBuilder}, not {@code null}
          */
         public FactoryImpl(OWLOntologyBuilder builder) {
-            this.builder = Objects.requireNonNull(builder);
+            Objects.requireNonNull(builder);
+            this.builder = (i, m, c) -> builder.createOWLOntology(m, i);
         }
 
-        @Override
-        public boolean canCreateFromDocumentIRI(IRI documentIRI) {
-            return true;
-        }
-
-        @Override
-        public boolean canAttemptLoading(OWLOntologyDocumentSource source) {
-            return !source.hasAlredyFailedOnStreams() || !source.hasAlredyFailedOnIRIResolution();
-        }
-
-        @Override
-        public OWLOntology createOWLOntology(OWLOntologyManager manager,
-                                             OWLOntologyID ontologyID,
-                                             IRI documentIRI,
-                                             OWLOntologyCreationHandler handler) {
-            OWLOntology ont = builder.createOWLOntology(manager, ontologyID);
-            handler.ontologyCreated(ont);
-            handler.setOntologyFormat(ont, new RDFXMLDocumentFormat());
-            return ont;
-        }
-
-        @Override
-        public OWLOntology loadOWLOntology(OWLOntologyManager manager,
-                                           OWLOntologyDocumentSource source,
-                                           OWLOntologyCreationHandler handler,
-                                           OWLOntologyLoaderConfiguration config) throws OWLOntologyCreationException {
-            // Attempt to parse the ontology by looping through the parsers.
-            // If the ontology is parsed successfully then we break out and return the ontology.
-            // I think that this is more reliable than selecting a parser based on a file extension for example
-            // (perhaps the parser list could be ordered based on most likely parser,
-            // which could be determined by file extension).
-            Map<OWLParser, OWLParserException> exceptions = new LinkedHashMap<>();
-            // Call the super method to create the ontology - this is needed,
-            // because we throw an exception if someone tries to create an ontology directly
-            OWLOntology existingOntology = null;
-            IRI iri = source.getDocumentIRI();
-            if (manager.contains(iri)) {
-                existingOntology = manager.getOntology(iri);
-            }
-            OntologyID id = new OntologyID();
-            OWLOntology ont = createOWLOntology(manager, id, source.getDocumentIRI(), handler);
-            // Now parse the input into the empty ontology that we created select a parser
-            // if the input source has format information and MIME information
-            Set<String> bannedParsers = Arrays.stream(config.getBannedParsers().split(" ")).collect(Collectors.toSet());
-            Iterable<OWLParserFactory> parsers = select(source, manager.getOntologyParsers());
-            // use the selection of parsers to set the accept headers explicitly, including weights
-            if (source.getAcceptHeaders().isPresent()) {
-                source.setAcceptHeaders(AcceptHeaderBuilder.headersFromParsers(parsers));
-            }
-            for (OWLParserFactory parserFactory : parsers) {
-                if (bannedParsers.contains(parserFactory.getClass().getName())) {
-                    continue;
-                }
-                OWLParser parser = parserFactory.createParser();
-                try {
-                    if (existingOntology == null && !ont.isEmpty()) {
-                        // Junk from a previous parse. We should clear the ont
-                        manager.removeOntology(ont);
-                        ont = createOWLOntology(manager, id, source.getDocumentIRI(), handler);
-                    }
-                    OWLDocumentFormat format = parser.parse(source, ont, config);
-                    handler.setOntologyFormat(ont, format);
-                    return ont;
-                } catch (UnloadableImportException e) {
-                    // If an import cannot be located, all parsers will fail.
-                    // Again, terminate early
-                    // First clean up
-                    manager.removeOntology(ont);
-                    throw e;
-                } catch (OWLParserException e) {
-                    if (e.getCause() instanceof IOException || e.getCause() instanceof OWLOntologyInputSourceException) {
-                        // For input/output exceptions, we assume that it means
-                        // the source cannot be read regardless of the parsers,
-                        // so we stop early/
-                        // First clean up
-                        manager.removeOntology(ont);
-                        throw new OWLOntologyCreationIOException(e.getCause());
-                    }
-                    // Record this attempts and continue trying to parse.
-                    exceptions.put(parser, e);
-                } catch (RuntimeException e) {
-                    // Clean up and rethrow
-                    exceptions.put(parser, new OWLParserException(e));
-                    manager.removeOntology(ont);
-                    throw e;
-                }
-            }
-            if (existingOntology == null) {
-                manager.removeOntology(ont);
-            }
-            // We haven't found a parser that could parse the ontology properly.
-            // Throw an exception whose message contains the stack traces from all of the parsers that we have tried.
-            throw new UnparsableOntologyException(source.getDocumentIRI(), exceptions, config);
+        /**
+         * Creates an ONT-API compatible factory.
+         * Can be used both in ONT-API and OWL-API.
+         * This version is used to build an alternative loader.
+         *
+         * @param builder {@link OntologyCreator}, not {@code null}
+         */
+        public FactoryImpl(OntologyCreator builder) {
+            Objects.requireNonNull(builder);
+            Adapter adapter = getAdapter();
+            this.builder = (i, m, c) -> builder.createOntology(adapter.asONT(i), adapter.asONT(m), adapter.asONT(c));
         }
 
         /**
@@ -246,6 +179,118 @@ public class OWLFactoryWrapper implements OntologyFactory.Loader {
                 return parsers;
             }
             return res;
+        }
+
+        @Override
+        public OWLAdapter getAdapter() {
+            return OWLAdapter.get();
+        }
+
+        @Override
+        public boolean canCreateFromDocumentIRI(IRI documentIRI) {
+            return true;
+        }
+
+        @Override
+        public boolean canAttemptLoading(OWLOntologyDocumentSource source) {
+            return !source.hasAlredyFailedOnStreams() || !source.hasAlredyFailedOnIRIResolution();
+        }
+
+        @Deprecated
+        @Override
+        public OWLOntology createOWLOntology(OWLOntologyManager manager,
+                                             OWLOntologyID id,
+                                             IRI documentIRI,
+                                             OWLOntologyCreationHandler handler) {
+            OWLOntology res = createOWLOntology(id, manager, manager.getOntologyLoaderConfiguration());
+            handler.setOntologyFormat(res, OntFormat.RDF_XML.createOwlFormat());
+            return res;
+        }
+
+        public OWLOntology createOWLOntology(OWLOntologyID id,
+                                             OWLOntologyManager manager,
+                                             OWLOntologyLoaderConfiguration conf) {
+            OWLOntology res = builder.apply(id, manager, conf);
+            getAdapter().asHandler(manager).ontologyCreated(res);
+            return res;
+        }
+
+        @Override
+        public OWLOntology loadOWLOntology(OWLOntologyManager manager,
+                                           OWLOntologyDocumentSource source,
+                                           OWLOntologyCreationHandler handler,
+                                           OWLOntologyLoaderConfiguration config) throws OWLOntologyCreationException {
+            // Attempt to parse the ontology by looping through the parsers.
+            // If the ontology is parsed successfully then we break out and return the ontology.
+            // I think that this is more reliable than selecting a parser based on a file extension for example
+            // (perhaps the parser list could be ordered based on most likely parser,
+            // which could be determined by file extension).
+            Map<OWLParser, OWLParserException> exceptions = new LinkedHashMap<>();
+            // Call the super method to create the ontology - this is needed,
+            // because we throw an exception if someone tries to create an ontology directly
+            OWLOntology existingOntology = null;
+            IRI iri = source.getDocumentIRI();
+            if (manager.contains(iri)) {
+                existingOntology = manager.getOntology(iri);
+            }
+            OntologyID id = new OntologyID();
+            OWLOntology ont = createOWLOntology(id, manager, config);
+            // Now parse the input into the empty ontology that we created select a parser
+            // if the input source has format information and MIME information
+            Set<String> bannedParsers = Arrays.stream(config.getBannedParsers().split(" ")).collect(Collectors.toSet());
+            Iterable<OWLParserFactory> parsers = select(source, manager.getOntologyParsers());
+            // use the selection of parsers to set the accept headers explicitly, including weights
+            if (source.getAcceptHeaders().isPresent()) {
+                source.setAcceptHeaders(AcceptHeaderBuilder.headersFromParsers(parsers));
+            }
+            for (OWLParserFactory parserFactory : parsers) {
+                if (bannedParsers.contains(parserFactory.getClass().getName())) {
+                    continue;
+                }
+                OWLParser parser = parserFactory.createParser();
+                try {
+                    if (existingOntology == null && !ont.isEmpty()) {
+                        // Junk from a previous parse. We should clear the ont
+                        manager.removeOntology(ont);
+                        ont = createOWLOntology(id, manager, config);
+                    }
+                    OWLDocumentFormat format = parser.parse(source, ont, config);
+                    handler.setOntologyFormat(ont, format);
+                    return ont;
+                } catch (UnloadableImportException e) {
+                    // If an import cannot be located, all parsers will fail.
+                    // Again, terminate early
+                    // First clean up
+                    manager.removeOntology(ont);
+                    throw e;
+                } catch (OWLParserException e) {
+                    if (e.getCause() instanceof IOException || e.getCause() instanceof OWLOntologyInputSourceException) {
+                        // For input/output exceptions, we assume that it means
+                        // the source cannot be read regardless of the parsers,
+                        // so we stop early
+                        // First clean up
+                        manager.removeOntology(ont);
+                        throw new OWLOntologyCreationIOException(e.getCause());
+                    }
+                    // Record this attempts and continue trying to parse.
+                    exceptions.put(parser, e);
+                } catch (RuntimeException e) {
+                    // Clean up and rethrow
+                    exceptions.put(parser, new OWLParserException(e));
+                    manager.removeOntology(ont);
+                    throw e;
+                }
+            }
+            if (existingOntology == null) {
+                manager.removeOntology(ont);
+            }
+            // We haven't found a parser that could parse the ontology properly.
+            // Throw an exception whose message contains the stack traces from all of the parsers that we have tried.
+            throw new UnparsableOntologyException(source.getDocumentIRI(), exceptions, config);
+        }
+
+        public interface Builder {
+            OWLOntology apply(OWLOntologyID id, OWLOntologyManager manager, OWLOntologyLoaderConfiguration config);
         }
 
     }

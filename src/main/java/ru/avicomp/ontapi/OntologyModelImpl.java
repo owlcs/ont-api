@@ -99,7 +99,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
         throw new OntApiException.Unsupported("Model's lock cannot be changed in ONT-API");
     }
 
-    protected class ChangeProcessor implements OWLOntologyChangeVisitorEx<ChangeApplied>, Serializable {
+    protected class ChangeProcessor implements OWLOntologyChangeVisitorEx<ChangeApplied>, HasAdapter, Serializable {
 
         private static final long serialVersionUID = 1150135725506037485L;
 
@@ -181,7 +181,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
                 getBase().getID().addImport(declaration.getIRI().getIRIString());
                 return;
             }
-            getBase().addImport(((InternalModelHolder) ont).getBase());
+            getBase().addImport(getAdapter().asBaseHolder(ont).getBase());
         }
 
         protected void removeImport(OWLImportsDeclaration declaration) {
@@ -192,7 +192,12 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
             if (ont == null) {
                 return;
             }
-            getBase().removeImport(((InternalModelHolder) ont).getBase());
+            getBase().removeImport(getAdapter().asBaseHolder(ont).getBase());
+        }
+
+        @Override
+        public OWLAdapter getAdapter() {
+            return OWLAdapter.get();
         }
     }
 

@@ -33,6 +33,7 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.transforms.GraphTransformers;
 import ru.avicomp.ontapi.transforms.TransformException;
 
+import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -93,7 +94,8 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
      * @param builder {@link OntologyCreator}
      * @return {@link OntologyFactory}
      */
-    public OntologyFactory asOntologyFactory(OntologyCreator builder) {
+    @Override
+    public OntologyFactory asOntologyFactory(@Nonnull OntologyCreator builder) {
         return new OntologyFactoryImpl(getAdapter().asBuilder(builder), this);
     }
 
@@ -179,7 +181,7 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
                 // if org.semanticweb.owlapi.model.MissingImportHandlingStrategy#SILENT was specified.
                 OntModels.insert(manager::models, res.asGraphModel(), false);
             }
-            // put ontology inside manager:
+            // put ontology inside the manager:
             getAdapter().asHandler(manager).ontologyCreated(res);
             OntFormat format = OntApiException.notNull(info.getFormat(), "Null format while loading " + info.name());
             OWLDocumentFormat owl = format.newOWLFormat();
@@ -556,7 +558,7 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
                 // The OWL-API will call some manager load methods which, in turn, will call a factory methods.
                 OntologyModel ont = alternative.loadOntology(builder, copy, src, config);
                 ont.imports().forEach(o -> copy.documentIRIByOntology(o)
-                        .ifPresent(iri -> loaded.put(iri, toGraphInfo((OntologyModel) o, iri))));
+                        .ifPresent(iri -> loaded.put(iri, toGraphInfo(getAdapter().asONT(o), iri))));
                 GraphInfo res = toGraphInfo(ont, doc);
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Graph <{}> is loaded by owl-api. Source: {}[{}]. Format: {}",

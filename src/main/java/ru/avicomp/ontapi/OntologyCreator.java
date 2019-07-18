@@ -29,21 +29,23 @@ import java.util.Objects;
 public interface OntologyCreator {
 
     /**
-     * Creates a new detached ontology, that is related to the specified manager.
+     * Creates a new detached ontology with a given ID and configuration,
+     * which is associated to the specified manager.
      * Does not change the manager state,
      * although the returned ontology must have a reference to the given manager,
      * i.e. the method {@link OntologyModel#getOWLOntologyManager()} must return the passed manager instance.
      *
-     * @param manager {@link OntologyManager}, not {@code null}
      * @param id      {@link OntologyID}, not {@code null}
+     * @param manager {@link OntologyManager}, not {@code null}
+     * @param config  {@link OntLoaderConfiguration} the config, not {@code null}
      * @return {@link OntologyModel} new instance reflecting manager settings
      */
-    OntologyModel createOntology(OntologyManager manager, OntologyID id);
+    OntologyModel createOntology(OntologyID id, OntologyManager manager, OntLoaderConfiguration config);
 
     /**
-     * Creates a new detached ontology model based on the specified {@link #createGraph()} graph}.
+     * Creates a new detached ontology model which wraps the specified {@link Graph graph}.
      * The method must not change the manager state,
-     * although the result ontology should a reference to it.
+     * although the result ontology must have a reference to it.
      *
      * @param graph   {@link Graph} the graph, not {@code null}
      * @param manager {@link OntologyManager} manager, not {@code null}
@@ -73,18 +75,18 @@ public interface OntologyCreator {
      * Wraps the specified {@code graph} as an {@link UnionGraph Union Graph},
      * that maintains an ontology {@code owl:imports} hierarchical structure.
      * <p>
-     * By default the second parameter {@code conf} is ignored.
+     * By default, the second parameter {@code config} is ignored.
      * The purpose of this parameter is to provide a possibility of choosing different impls
      * in accordance with a config settings.
      *
      * @param graph {@link Graph} to set as a base (root), not {@code null}
-     * @param conf  {@link OntLoaderConfiguration} the settings to control creation of the hierarchy container graph
+     * @param config  {@link OntLoaderConfiguration} the settings to control creation of the hierarchy container graph
      * @return {@link UnionGraph}, a graph instance containing the {@code graph} as a base graph,
      * which is responsible for a structure hierarchy;
      * @see OntologyCreator#createGraph()
      * @since 1.4.2
      */
-    default UnionGraph createUnionGraph(Graph graph, OntLoaderConfiguration conf) {
+    default UnionGraph createUnionGraph(Graph graph, OntLoaderConfiguration config) {
         return new UnionGraph(Objects.requireNonNull(graph));
     }
 

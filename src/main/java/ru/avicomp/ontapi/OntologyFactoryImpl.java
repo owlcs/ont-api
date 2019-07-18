@@ -17,10 +17,13 @@ package ru.avicomp.ontapi;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.riot.system.ErrorHandlerFactory;
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyFactory;
+import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.transforms.TransformException;
 
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Objects;
 
 /**
@@ -35,6 +38,7 @@ import java.util.Objects;
  * @see OntologyLoaderImpl
  */
 @SuppressWarnings("WeakerAccess")
+@ParametersAreNonnullByDefault
 public class OntologyFactoryImpl implements OntologyFactory {
 
     static {
@@ -62,6 +66,25 @@ public class OntologyFactoryImpl implements OntologyFactory {
     @Override
     public Loader getLoader() {
         return loader;
+    }
+
+    /**
+     * {@inheritDoc}
+     * As a final action, the method associates the ontology with a {@link OWLDocumentFormat Document Format} object.
+     * Unlike the OWL-API default impl, which prefers {@code RDF/XML},
+     * a <a href='https://www.w3.org/TR/turtle/'>Turtle</a> is chosen as a default format,
+     * since it is more readable and more widely used in Jena-world.
+     */
+    @Override
+    public void includeOntology(OntologyManager manager, OntologyModel model) {
+        if (model.getOWLOntologyManager() != manager) {
+            throw new OntApiException.IllegalState("The specified ontology is attached to another manager: " + model);
+        }
+        OWLOntologyCreationHandler handler = getAdapter().asHandler(manager);
+        handler.ontologyCreated(model);
+        OWLDocumentFormat format = OntFormat.TURTLE.createOwlFormat();
+        Models.setNsPrefixes(model.asGraphModel(), format.asPrefixOWLDocumentFormat().getPrefixName2PrefixMap());
+        handler.setOntologyFormat(model, format);
     }
 
     public static class ConfigMismatchException extends OWLOntologyCreationException {
