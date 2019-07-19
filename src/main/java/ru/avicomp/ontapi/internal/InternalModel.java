@@ -19,6 +19,7 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphListener;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.mem.GraphMem;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
@@ -372,10 +373,15 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * and the method {@link #isEmpty()} may return {@code false} at the same time
      */
     public boolean isOntologyEmpty() {
+        Graph g = getBaseGraph();
+        if ((g instanceof GraphMem) && g.isEmpty()) {
+            // really empty
+            return true;
+        }
         if (!components.asCache().isEmpty()) {
             return false;
         }
-        return !listOWLAnnotations().findFirst().isPresent() && !listOWLAxioms().findFirst().isPresent();
+        return !Stream.concat(listOWLAnnotations(), listOWLAxioms()).findFirst().isPresent();
     }
 
     /**
@@ -927,16 +933,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @see #contains(OWLAnnotation)
      */
     public boolean contains(OWLAxiom a) {
-        ObjectTriplesMap<OWLAxiom> map = getAxiomsCache(ObjectMetaInfo.get(a.getAxiomType()));
-        // As a hack: make sure the whole cache is initialized.
-        // It is needed in case if the ontology is assembled manually.
-        // The cache must be in its original, strictly defined state before any operation,
-        // otherwise it may result an unexpected axioms set, that may confuse.
-        // todo: it looks like a buggy solution, need something better
-        if (!map.isLoaded()) {
-            forceLoad();
-        }
-        return map.contains(a);
+        return getAxiomsCache(ObjectMetaInfo.get(a.getAxiomType())).contains(a);
     }
 
     /**
@@ -947,12 +944,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @see #contains(OWLAxiom)
      */
     public boolean contains(OWLAnnotation a) {
-        ObjectTriplesMap<OWLAnnotation> map = getHeaderCache();
-        if (!map.isLoaded()) {
-            // see #contains(OWLAxiom)
-            forceLoad();
-        }
-        return map.contains(a);
+        return getHeaderCache().contains(a);
     }
 
     /**

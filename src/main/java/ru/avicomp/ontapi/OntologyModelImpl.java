@@ -99,12 +99,16 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
         throw new OntApiException.Unsupported("Model's lock cannot be changed in ONT-API");
     }
 
+    /**
+     * Auxiliary class, which controls any changes that occur to the ontology through the OWL-API interface.
+     */
     protected class ChangeProcessor implements OWLOntologyChangeVisitorEx<ChangeApplied>, HasAdapter, Serializable {
 
         private static final long serialVersionUID = 1150135725506037485L;
 
         @Override
         public ChangeApplied visit(@Nonnull AddAxiom change) {
+            beforeChange();
             OWLAxiom axiom = change.getAxiom();
             if (containsAxiom(axiom)) {
                 return NO_OPERATION;
@@ -115,6 +119,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
 
         @Override
         public ChangeApplied visit(@Nonnull RemoveAxiom change) {
+            beforeChange();
             OWLAxiom axiom = change.getAxiom();
             if (containsAxiom(axiom)) {
                 getBase().remove(axiom);
@@ -145,6 +150,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
 
         @Override
         public ChangeApplied visit(@Nonnull AddOntologyAnnotation change) {
+            beforeChange();
             OWLAnnotation annotation = change.getAnnotation();
             if (getBase().contains(annotation)) {
                 return NO_OPERATION;
@@ -155,6 +161,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
 
         @Override
         public ChangeApplied visit(@Nonnull RemoveOntologyAnnotation change) {
+            beforeChange();
             OWLAnnotation annotation = change.getAnnotation();
             if (annotations().anyMatch(annotation::equals)) {
                 getBase().remove(annotation);
@@ -173,6 +180,29 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
             return SUCCESSFULLY;
         }
 
+        /**
+         * Performs preliminary actions before change the ontological data.
+         * <p>
+         * Currently, such action is forced loading of the whole container cache.
+         * This is necessary in order to get exactly the same objects that have been added.
+         * Without force loading, a cache will be assembled automatically on demand,
+         * and will contain everything from the graph in a strictly defined form.
+         * This may confuse when manual editing.
+         * For example, adding {@code SubClassOf} will also add all class declaration triples,
+         * and the axioms count will increment by more than one.
+         * This will not happen if the cache is already loaded before the operation.
+         */
+        protected void beforeChange() {
+            getBase().forceLoad();
+        }
+
+        /**
+         * Adds the import declaration.
+         * If the declaration corresponds some graph found in manager,
+         * the reference to that graph will also be added into the {@link UnionGraph} hierarchy structure.
+         *
+         * @param declaration {@link OWLImportsDeclaration}, not {@code null}
+         */
         protected void addImport(OWLImportsDeclaration declaration) {
             // to match behaviour of OWL-API add to graph only single IRI -
             // either ontology IRI or specified declaration IRI.
@@ -184,6 +214,13 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
             getBase().addImport(getAdapter().asBaseHolder(ont).getBase());
         }
 
+        /**
+         * Removes the import declaration.
+         * If the declaration corresponds some sub-graph,
+         * the reference to that graph will be also removed from the {@link UnionGraph} hierarchy structure.
+         *
+         * @param declaration {@link OWLImportsDeclaration}, not {@code null}
+         */
         protected void removeImport(OWLImportsDeclaration declaration) {
             // to match behaviour of OWL-API removes both declaration IRI and ontology IRI
             // (could be different in case of renaming)

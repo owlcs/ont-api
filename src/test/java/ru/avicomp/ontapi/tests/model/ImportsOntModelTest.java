@@ -25,11 +25,13 @@ import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.Imports;
 import ru.avicomp.ontapi.*;
+import ru.avicomp.ontapi.internal.InternalModelHolder;
 import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.impl.UnionModel;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntID;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
+import ru.avicomp.ontapi.jena.utils.Graphs;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.utils.OntIRI;
@@ -268,6 +270,38 @@ public class ImportsOntModelTest extends OntModelTestBase {
         m.getGraphModel("x").addImport(y).addImport(z);
         Assert.assertEquals(2, x.imports().count());
         Assert.assertEquals(2, m.getGraphModel("x").imports().count());
+    }
+
+    private static void baseModelImportsTest(OntologyManager m) {
+        OWLAdapter ad = OWLAdapter.get();
+        IRI iri_a = IRI.create("A");
+        IRI iri_b = IRI.create("B");
+
+        OWLDataFactory d = m.getOWLDataFactory();
+        OntologyModel a = m.createOntology(iri_a);
+        OntologyModel b = m.createOntology(iri_b);
+
+        m.applyChange(new AddImport(a, d.getOWLImportsDeclaration(iri_b)));
+        Assert.assertTrue(a.isEmpty());
+        Assert.assertTrue(b.isEmpty());
+        Assert.assertEquals(1, a.imports().count());
+        Assert.assertEquals(0, b.imports().count());
+        Assert.assertEquals(1, Graphs.subGraphs(a.asGraphModel().getGraph()).count());
+        Assert.assertEquals(0, Graphs.subGraphs(b.asGraphModel().getGraph()).count());
+        Assert.assertEquals(1, Graphs.subGraphs(ad.asBaseHolder(a).getBase().getGraph()).count());
+        Assert.assertEquals(Stream.of(a, b)
+                        .map(ad::asBaseHolder)
+                        .map(InternalModelHolder::getBase)
+                        .map(UnionModel::getBaseGraph).collect(Collectors.toSet()),
+                Graphs.baseGraphs(ad.asBaseHolder(a).getBase().getGraph()).collect(Collectors.toSet()));
+
+        m.applyChange(new RemoveImport(a, d.getOWLImportsDeclaration(iri_b)));
+        Assert.assertEquals(0, a.imports().count());
+        Assert.assertEquals(0, b.imports().count());
+        Assert.assertEquals(0, Graphs.subGraphs(a.asGraphModel().getGraph()).count());
+        Assert.assertEquals(0, Graphs.subGraphs(b.asGraphModel().getGraph()).count());
+        Assert.assertEquals(0, Graphs.subGraphs(ad.asBaseHolder(a).getBase().getGraph()).count());
+
     }
 
     @Test
@@ -555,5 +589,15 @@ public class ImportsOntModelTest extends OntModelTestBase {
     @Test
     public void testConcurrentDifferentImportsStrategies() {
         oneMoreImportsTest(OntManagers.createConcurrentONT());
+    }
+
+    @Test
+    public void testBaseModelImportsCommon() {
+        baseModelImportsTest(OntManagers.createONT());
+    }
+
+    @Test
+    public void testBaseModelImportsConcurrent() {
+        baseModelImportsTest(OntManagers.createConcurrentONT());
     }
 }

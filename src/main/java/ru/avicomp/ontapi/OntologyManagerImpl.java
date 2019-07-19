@@ -1553,7 +1553,7 @@ public class OntologyManagerImpl implements OntologyManager,
         Exception ex = null;
         OWLOntologyID id = new OntologyID();
         try {
-            OntologyModel res = load(source, conf);
+            OntologyModel res = load(source, conf).get();
             id = res.getOntologyID();
             return res;
         } catch (UnloadableImportException | OWLOntologyCreationException e) {
@@ -1572,14 +1572,15 @@ public class OntologyManagerImpl implements OntologyManager,
     }
 
     /**
+     * Loads an ontology from the document source according to the config settings.
      * @param source {@link OWLOntologyDocumentSource}
      * @param conf   {@link OWLOntologyLoaderConfiguration}
-     * @return {@link OntologyModel}
+     * @return {@link OntInfo}
      * @throws OWLOntologyCreationException        can't load
      * @throws OWLOntologyFactoryNotFoundException no factory
      * @see #create(OWLOntologyID)
      */
-    protected OntologyModel load(OWLOntologyDocumentSource source, OWLOntologyLoaderConfiguration conf)
+    protected OntInfo load(OWLOntologyDocumentSource source, OWLOntologyLoaderConfiguration conf)
             throws OWLOntologyCreationException, OWLOntologyFactoryNotFoundException {
         for (OWLOntologyFactory factory : getOntologyFactories()) {
             if (!factory.canAttemptLoading(source))
@@ -1588,7 +1589,7 @@ public class OntologyManagerImpl implements OntologyManager,
                 OntologyModel res = getAdapter().asONT(factory).loadOntology(this, source, getAdapter().asONT(conf));
                 OWLOntologyID id = res.getOntologyID();
                 return content.get(id).orElseThrow(() -> new UnknownOWLOntologyException(id))
-                        .addDocumentIRI(source.getDocumentIRI()).get();
+                        .addDocumentIRI(source.getDocumentIRI());
             } catch (OWLOntologyRenameException e) {
                 // original comment: we loaded an ontology from a document and
                 // the ontology turned out to have an IRI the same as a previously loaded ontology
