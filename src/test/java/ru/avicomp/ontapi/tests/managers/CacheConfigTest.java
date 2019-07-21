@@ -80,7 +80,7 @@ public class CacheConfigTest {
         Assert.assertNotNull(m.getOntologyConfigurator().setLoadNodesCacheSize(-123));
         Assert.assertEquals(-123, m.getOntologyLoaderConfiguration().getLoadNodesCacheSize());
         // cache is disabled, try to load model
-        OntologyModel o = m.loadOntologyFromOntologyDocument(ReadWriteUtils.getDocumentSource("/ontapi/pizza.ttl",
+        OntologyModel o = m.loadOntologyFromOntologyDocument(ReadWriteUtils.getFileDocumentSource("/ontapi/pizza.ttl",
                 OntFormat.TURTLE));
         Assert.assertNotNull(o);
         Assert.assertEquals(945, o.axioms().count());
@@ -100,7 +100,7 @@ public class CacheConfigTest {
         OntLoaderConfiguration conf = new OntConfig().buildLoaderConfiguration().setLoadObjectsCacheSize(-1);
         Assert.assertEquals(-1, conf.getLoadObjectsCacheSize());
         m.setOntologyLoaderConfiguration(conf);
-        OntologyModel o = m.loadOntologyFromOntologyDocument(ReadWriteUtils.getDocumentSource("/ontapi/pizza.ttl",
+        OntologyModel o = m.loadOntologyFromOntologyDocument(ReadWriteUtils.getFileDocumentSource("/ontapi/pizza.ttl",
                 OntFormat.TURTLE));
         Assert.assertNotNull(o);
         Assert.assertEquals(945, o.axioms().count());
@@ -202,7 +202,7 @@ public class CacheConfigTest {
 
     @Test
     public void testNoCacheContentOptimization() throws OWLOntologyCreationException {
-        OWLOntologyDocumentSource s = ReadWriteUtils.getDocumentSource("/ontapi/pizza.ttl", OntFormat.TURTLE);
+        OWLOntologyDocumentSource s = ReadWriteUtils.getFileDocumentSource("/ontapi/pizza.ttl", OntFormat.TURTLE);
 
         long axioms = 945;
         OntologyManager m = OntManagers.createONT();

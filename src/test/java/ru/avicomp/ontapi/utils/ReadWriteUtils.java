@@ -297,7 +297,7 @@ public class ReadWriteUtils {
         return (OntologyModel) convertJenaToOWL(manager, model, OntFormat.TURTLE);
     }
 
-    public static OWLOntologyDocumentSource getDocumentSource(String file, OntFormat format) {
+    public static OWLOntologyDocumentSource getFileDocumentSource(String file, OntFormat format) {
         Path path;
         try {
             path = Paths.get(ReadWriteUtils.class.getResource(file).toURI()).toRealPath();
@@ -305,6 +305,10 @@ public class ReadWriteUtils {
             throw new AssertionError(e);
         }
         return new FileDocumentSource(path.toFile(), format.createOwlFormat());
+    }
+
+    public static OWLOntologyDocumentSource getStringDocumentSource(String txt, OntFormat format) {
+        return new StringInputStreamDocumentSource(txt, format);
     }
 
     private static class TemporaryResourcesHolder {

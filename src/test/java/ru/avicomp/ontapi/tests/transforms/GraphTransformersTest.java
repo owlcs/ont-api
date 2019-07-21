@@ -46,7 +46,10 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.jena.vocabulary.SWRL;
 import ru.avicomp.ontapi.transforms.*;
-import ru.avicomp.ontapi.utils.*;
+import ru.avicomp.ontapi.utils.ReadWriteUtils;
+import ru.avicomp.ontapi.utils.SP;
+import ru.avicomp.ontapi.utils.SpinModels;
+import ru.avicomp.ontapi.utils.SpinTransform;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -353,10 +356,10 @@ public class GraphTransformersTest {
         d.setID(iris.get(3)).addImport(c.getID().getURI());
         String d_txt = ReadWriteUtils.toString(d, OntFormat.TURTLE);
 
-        m.loadOntologyFromOntologyDocument(new StringInputStreamDocumentSource(c_txt, OntFormat.TURTLE));
+        m.loadOntologyFromOntologyDocument(ReadWriteUtils.getStringDocumentSource(c_txt, OntFormat.TURTLE));
         Assert.assertEquals(3, m.ontologies().count());
 
-        m.loadOntologyFromOntologyDocument(new StringInputStreamDocumentSource(d_txt, OntFormat.TURTLE));
+        m.loadOntologyFromOntologyDocument(ReadWriteUtils.getStringDocumentSource(d_txt, OntFormat.TURTLE));
         Assert.assertEquals(4, m.ontologies().count());
 
         iris.forEach(i -> Assert.assertNotNull(m.getGraphModel(i)));

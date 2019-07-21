@@ -23,7 +23,6 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
-import ru.avicomp.ontapi.utils.StringInputStreamDocumentSource;
 
 /**
  * For testing miscellaneous general model functionality.
@@ -33,12 +32,29 @@ import ru.avicomp.ontapi.utils.StringInputStreamDocumentSource;
 public class MiscOntModelTest extends OntModelTestBase {
 
     @Test
+    public void testLoadManchesterInCycle() throws OWLOntologyCreationException {
+        int iter = 10;
+        String input = "Prefix: o: <urn:test#>\n " +
+                "Ontology: <urn:test>\n " +
+                "AnnotationProperty: o:bob\n " +
+                "Annotations:\n rdfs:label \"bob-label\"@en";
+        OWLOntologyDocumentSource source = ReadWriteUtils.getStringDocumentSource(input, OntFormat.MANCHESTER_SYNTAX);
+        for (int i = 0; i < iter; i++) {
+            LOGGER.debug("Iter: #{}", (i + 1));
+            OntologyManager m = OntManagers.createONT();
+            OntologyModel o = m.loadOntologyFromOntologyDocument(source);
+            Assert.assertEquals(2, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
+        }
+    }
+
+    @Test
     public void testConcurrentLoadAndListInCycle() throws OWLOntologyCreationException {
-        OWLOntologyDocumentSource src = ReadWriteUtils.getDocumentSource("/ontapi/family.ttl", OntFormat.TURTLE);
-        for (int i = 0; i < 10; i++) {
-            LOGGER.debug("Iter: #{}", i);
+        int iter = 10;
+        OWLOntologyDocumentSource source = ReadWriteUtils.getFileDocumentSource("/ontapi/family.ttl", OntFormat.TURTLE);
+        for (int i = 0; i < iter; i++) {
+            LOGGER.debug("Iter: #{}", (i + 1));
             OWLOntologyManager m = OntManagers.createConcurrentONT();
-            OWLOntology o = m.loadOntologyFromOntologyDocument(src);
+            OWLOntology o = m.loadOntologyFromOntologyDocument(source);
             Assert.assertEquals(58, o.classesInSignature().peek(x -> LOGGER.debug("CL:{}", x)).count());
             Assert.assertEquals(2, o.datatypesInSignature().peek(x -> LOGGER.debug("DT:{}", x)).count());
             Assert.assertEquals(508, o.individualsInSignature().peek(x -> LOGGER.debug("NI:{}", x)).count());
@@ -89,7 +105,7 @@ public class MiscOntModelTest extends OntModelTestBase {
                 "        owl:disjointUnionOf  ( <c2> <c1> <c1> ) .\n" +
                 "<c3>    a       owl:Class .";
 
-        OWLOntology o = m.loadOntologyFromOntologyDocument(new StringInputStreamDocumentSource(s, OntFormat.TURTLE));
+        OWLOntology o = m.loadOntologyFromOntologyDocument(ReadWriteUtils.getStringDocumentSource(s, OntFormat.TURTLE));
         debug(o);
         Assert.assertEquals(2, o.axioms(AxiomType.DISJOINT_UNION).count());
         Assert.assertEquals(7, o.axioms().count());
@@ -112,7 +128,7 @@ public class MiscOntModelTest extends OntModelTestBase {
                 "<p1>    a       owl:ObjectProperty .\n" +
                 "<d1>    a       owl:DatatypeProperty .\n" +
                 "<p2>    a       owl:ObjectProperty .";
-        OWLOntology o = m.loadOntologyFromOntologyDocument(new StringInputStreamDocumentSource(s, OntFormat.TURTLE));
+        OWLOntology o = m.loadOntologyFromOntologyDocument(ReadWriteUtils.getStringDocumentSource(s, OntFormat.TURTLE));
         debug(o);
         Assert.assertEquals(2, o.axioms(AxiomType.HAS_KEY).count());
         Assert.assertEquals(8, o.axioms().count());
@@ -127,10 +143,12 @@ public class MiscOntModelTest extends OntModelTestBase {
         OWLObjectProperty p2 = df.getOWLObjectProperty(IRI.create("p2"));
         OWLObjectInverseOf inv = df.getOWLObjectInverseOf(p1);
         o.add(df.getOWLDeclarationAxiom(p1));
-        o.add(df.getOWLObjectPropertyAssertionAxiom(inv, df.getOWLNamedIndividual(IRI.create("I1")), df.getOWLNamedIndividual(IRI.create("I2"))));
+        o.add(df.getOWLObjectPropertyAssertionAxiom(inv, df.getOWLNamedIndividual(IRI.create("I1")),
+                df.getOWLNamedIndividual(IRI.create("I2"))));
         o.add(df.getOWLFunctionalObjectPropertyAxiom(inv));
         o.add(df.getOWLTransitiveObjectPropertyAxiom(inv));
-        o.add(df.getOWLObjectPropertyAssertionAxiom(p2, df.getOWLNamedIndividual(IRI.create("I1")), df.getOWLNamedIndividual(IRI.create("I2"))));
+        o.add(df.getOWLObjectPropertyAssertionAxiom(p2, df.getOWLNamedIndividual(IRI.create("I1")),
+                df.getOWLNamedIndividual(IRI.create("I2"))));
         o.add(df.getOWLInverseObjectPropertiesAxiom(p2, p1));
         debug(o);
 
@@ -154,7 +172,8 @@ public class MiscOntModelTest extends OntModelTestBase {
         ReadWriteUtils.print(m);
         LOGGER.debug("Put: {}, {}", ti1, ni1);
 
-        OWLAnonymousIndividual ti2 = o.classAssertionAxioms(df.getOWLThing()).findFirst().orElseThrow(AssertionError::new)
+        OWLAnonymousIndividual ti2 = o.classAssertionAxioms(df.getOWLThing())
+                .findFirst().orElseThrow(AssertionError::new)
                 .getIndividual().asOWLAnonymousIndividual();
         OntIndividual ni2 = m.getOWLNothing().individuals().findFirst().orElseThrow(AssertionError::new);
         LOGGER.debug("Get: {}, {}", ti2, ni2);

@@ -35,7 +35,7 @@ public class SWRLTransformTest {
 
     @Test
     public void testWrongSWRLOntologyWithoutTransform() throws Exception {
-        OWLOntologyDocumentSource src = ReadWriteUtils.getDocumentSource("/ontapi/anyURI-premise.rdf", OntFormat.RDF_XML);
+        OWLOntologyDocumentSource src = ReadWriteUtils.getFileDocumentSource("/ontapi/anyURI-premise.rdf", OntFormat.RDF_XML);
         LOGGER.debug("Source: {}", src);
         OntologyManager m = OntManagers.createONT();
         m.getOntologyConfigurator().setPerformTransformation(false);
@@ -52,7 +52,7 @@ public class SWRLTransformTest {
 
     @Test
     public void testWrongSWRLOntologyWithTransform() throws Exception {
-        OWLOntologyDocumentSource src = ReadWriteUtils.getDocumentSource("/ontapi/anyURI-premise.rdf", OntFormat.RDF_XML);
+        OWLOntologyDocumentSource src = ReadWriteUtils.getFileDocumentSource("/ontapi/anyURI-premise.rdf", OntFormat.RDF_XML);
         LOGGER.debug("Source: {}", src);
         OntologyManager m = OntManagers.createONT();
         OntologyModel o = m.loadOntologyFromOntologyDocument(src);

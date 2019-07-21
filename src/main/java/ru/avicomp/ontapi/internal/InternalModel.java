@@ -370,13 +370,19 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      *
      * @return {@code true}  if ontology does not contain any axioms and annotations;
      * but note, that the encapsulated graph still may contain some triples,
-     * and the method {@link #isEmpty()} may return {@code false} at the same time
+     * and the method {@link Model#isEmpty()} may return {@code false} at the same time
      */
     public boolean isOntologyEmpty() {
-        Graph g = getBaseGraph();
-        if ((g instanceof GraphMem) && g.isEmpty()) {
-            // really empty
-            return true;
+        Graph bg = getBaseGraph();
+        if ((bg instanceof GraphMem)) {
+            if (bg.isEmpty()) {
+                // really empty:
+                return true;
+            }
+            // has only id:
+            if (bg.size() == 1 && bg.contains(Node.ANY, RDF.type.asNode(), OWL.Ontology.asNode())) {
+                return true;
+            }
         }
         if (!components.asCache().isEmpty()) {
             return false;

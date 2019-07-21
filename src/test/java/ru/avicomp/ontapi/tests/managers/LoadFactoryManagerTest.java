@@ -219,7 +219,7 @@ public class LoadFactoryManagerTest {
 
         Assert.assertTrue(m.models().findFirst()
                 .orElseThrow(AssertionError::new).getBaseGraph() instanceof UnmodifiableGraph);
-        m.loadOntologyFromOntologyDocument(new StringInputStreamDocumentSource(str, OntFormat.TURTLE));
+        m.loadOntologyFromOntologyDocument(ReadWriteUtils.getStringDocumentSource(str, OntFormat.TURTLE));
         Assert.assertEquals(2, m.ontologies().count());
         Assert.assertNotNull(m.getGraphModel("http://b"));
         Assert.assertNotNull(m.getGraphModel("http://a"));
@@ -314,7 +314,7 @@ public class LoadFactoryManagerTest {
 
     @Test
     public void testNoTransformsForNativeOWLAPIFormats() throws Exception {
-        OWLOntologyDocumentSource src = ReadWriteUtils.getDocumentSource("/owlapi/primer.owlxml.xml", OntFormat.OWL_XML);
+        OWLOntologyDocumentSource src = ReadWriteUtils.getFileDocumentSource("/owlapi/primer.owlxml.xml", OntFormat.OWL_XML);
         OntologyManager m = OntManagers.createONT();
         m.getOntologyConfigurator().setGraphTransformers(new GraphTransformers.Store().add(g -> new Transform(g) {
             @Override
@@ -654,7 +654,7 @@ public class LoadFactoryManagerTest {
                 "@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .";
 
         String txt1 = String.format("%s[ a owl:Ontology; owl:imports  <%s>, <%s> ].", prefixes, uri_a, uri_b);
-        OWLOntologyDocumentSource src1 = new StringInputStreamDocumentSource(txt1, OntFormat.TURTLE);
+        OWLOntologyDocumentSource src1 = ReadWriteUtils.getStringDocumentSource(txt1, OntFormat.TURTLE);
         Assert.assertTrue(m.getOntologyConfigurator().isProcessImports());
         Assert.assertTrue(m.getOntologyLoaderConfiguration().isProcessImports());
         OntologyModel o1 = m.loadOntologyFromOntologyDocument(src1,
@@ -669,7 +669,7 @@ public class LoadFactoryManagerTest {
         Assert.assertEquals(0, o1.directImports().count());
 
         String txt2 = String.format("%s <%s> a owl:Ontology; owl:imports <%s> .", prefixes, uri_a, uri_b);
-        OWLOntologyDocumentSource src2 = new StringInputStreamDocumentSource(txt2, OntFormat.TURTLE);
+        OWLOntologyDocumentSource src2 = ReadWriteUtils.getStringDocumentSource(txt2, OntFormat.TURTLE);
         OntologyModel o2 = m.loadOntologyFromOntologyDocument(src2,
                 m.getOntologyLoaderConfiguration().setProcessImports(false));
         ReadWriteUtils.print(o2);
@@ -681,7 +681,7 @@ public class LoadFactoryManagerTest {
         Assert.assertEquals(0, o2.directImports().count());
 
         String txt3 = String.format("%s <%s> a owl:Ontology .", prefixes, uri_b);
-        OWLOntologyDocumentSource src3 = new StringInputStreamDocumentSource(txt3, OntFormat.TURTLE);
+        OWLOntologyDocumentSource src3 = ReadWriteUtils.getStringDocumentSource(txt3, OntFormat.TURTLE);
         OntologyModel o3 = m.loadOntologyFromOntologyDocument(src3,
                 m.getOntologyLoaderConfiguration().setProcessImports(false));
         ReadWriteUtils.print(o3);
@@ -725,8 +725,8 @@ public class LoadFactoryManagerTest {
         String txt_a = String.format("%s <%s> a owl:Ontology; owl:imports <%s> .", prefixes, uri_a, uri_b);
         String txt_b = String.format("%s <%s> a owl:Ontology .", prefixes, uri_b);
 
-        OWLOntologyDocumentSource src_a = new StringInputStreamDocumentSource(txt_a, OntFormat.TURTLE);
-        OWLOntologyDocumentSource src_b = new StringInputStreamDocumentSource(txt_b, OntFormat.TURTLE);
+        OWLOntologyDocumentSource src_a = ReadWriteUtils.getStringDocumentSource(txt_a, OntFormat.TURTLE);
+        OWLOntologyDocumentSource src_b = ReadWriteUtils.getStringDocumentSource(txt_b, OntFormat.TURTLE);
 
         OntologyModel b = m.loadOntologyFromOntologyDocument(src_b);
         OntologyModel a = m.loadOntologyFromOntologyDocument(src_a);
@@ -748,7 +748,7 @@ public class LoadFactoryManagerTest {
 
     @Test
     public void testLoadConfigurationWWithUseOWLParsersOption() throws OWLOntologyCreationException {
-        OWLOntologyDocumentSource src = ReadWriteUtils.getDocumentSource("/ontapi/test2.owl", OntFormat.OWL_XML);
+        OWLOntologyDocumentSource src = ReadWriteUtils.getFileDocumentSource("/ontapi/test2.owl", OntFormat.OWL_XML);
         OntologyManager m = OntManagers.createONT();
         OntLoaderConfiguration conf = m.getOntologyLoaderConfiguration().setUseOWLParsersToLoad(true);
         OntologyModel o = m.loadOntologyFromOntologyDocument(src, conf);
@@ -759,7 +759,7 @@ public class LoadFactoryManagerTest {
 
     @Test
     public void testLoadConfigurationWithOWLAPIFactory() throws OWLOntologyCreationException {
-        OWLOntologyDocumentSource src = ReadWriteUtils.getDocumentSource("/ontapi/test2.omn", OntFormat.MANCHESTER_SYNTAX);
+        OWLOntologyDocumentSource src = ReadWriteUtils.getFileDocumentSource("/ontapi/test2.omn", OntFormat.MANCHESTER_SYNTAX);
         OntologyManager m = createManagerWithOWLAPIOntologyFactory();
         OWLParserFactory parser = OWLLangRegistry.getLang(OWLLangRegistry.LangKey.MANCHESTERSYNTAX.getKey())
                 .orElseThrow(AssertionError::new).getParserFactory();
@@ -776,7 +776,7 @@ public class LoadFactoryManagerTest {
 
     @Test
     public void testErrorWhenNoParserFound() {
-        OWLOntologyDocumentSource src = ReadWriteUtils.getDocumentSource("/ontapi/test2.fss", OntFormat.FUNCTIONAL_SYNTAX);
+        OWLOntologyDocumentSource src = ReadWriteUtils.getFileDocumentSource("/ontapi/test2.fss", OntFormat.FUNCTIONAL_SYNTAX);
         OntologyManager m = createManagerWithOWLAPIOntologyFactory();
         Assert.assertEquals(1, m.getOntologyFactories().size());
         Assert.assertEquals(0, m.getOntologyParsers().size());

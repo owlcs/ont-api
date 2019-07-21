@@ -550,18 +550,20 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
                 if (jenaEx.getCause() != null) {
                     msg += " => " + jenaEx.getCause().getMessage();
                 }
-                LOGGER.debug("Can't load using jena: {}. Try OWL-API mechanisms.", msg);
+                LOGGER.debug("Can't load using Apache Jena: {}. Try OWL-API mechanisms.", msg);
             }
-            OntologyManagerImpl copy = createLoadCopy(builder, manager, config);
+            OntologyCreator _builder = createBuilderFrom(alternative, builder);
+            OntLoaderConfiguration _config = createConfigFrom(alternative, config);
+            OntologyManagerImpl _manager = createLoadCopy(_builder, manager, config);
             try {
                 // WARNING: it is a recursive part:
                 // The OWL-API will call some manager load methods which, in turn, will call a factory methods.
-                OntologyModel ont = alternative.loadOntology(builder, copy, src, config);
-                ont.imports().forEach(o -> copy.documentIRIByOntology(o)
+                OntologyModel ont = alternative.loadOntology(_builder, _manager, src, _config);
+                ont.imports().forEach(o -> _manager.documentIRIByOntology(o)
                         .ifPresent(iri -> loaded.put(iri, toGraphInfo(getAdapter().asONT(o), iri))));
                 GraphInfo res = toGraphInfo(ont, doc);
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Graph <{}> is loaded by owl-api. Source: {}[{}]. Format: {}",
+                    LOGGER.debug("Graph <{}> is loaded by OWL-API. Source: {}[{}]. Format: {}",
                             res.name(), source.getClass().getSimpleName(), res.getSource(), res.getFormat());
                 }
                 return res;
@@ -571,6 +573,31 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
             }
         }
     }
+
+    /**
+     * Optimizes the given builder for the given loader.
+     *
+     * @param loader {@link OntologyLoader}, not {@code null}
+     * @param from   {@link OntologyCreator}, not {@code null}
+     * @return {@link OntologyCreator}
+     * @since 1.4.2
+     */
+    protected OntologyCreator createBuilderFrom(OntologyLoader loader, OntologyCreator from) {
+        return loader instanceof OWLFactoryWrapper ? ((OWLFactoryWrapper) loader).optimize(from) : from;
+    }
+
+    /**
+     * Optimizes the given config for the given loader.
+     *
+     * @param loader {@link OntologyLoader}, not {@code null}
+     * @param from   {@link OntLoaderConfiguration}, not {@code null}
+     * @return {@link OntLoaderConfiguration}
+     * @since 1.4.2
+     */
+    protected OntLoaderConfiguration createConfigFrom(OntologyLoader loader, OntLoaderConfiguration from) {
+        return loader instanceof OWLFactoryWrapper ? ((OWLFactoryWrapper) loader).optimize(from) : from;
+    }
+
 
     /**
      * Creates a copy of specified manager special for loading operations through OWL-API mechanisms.

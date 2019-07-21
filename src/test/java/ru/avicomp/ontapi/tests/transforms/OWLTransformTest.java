@@ -43,7 +43,6 @@ import ru.avicomp.ontapi.transforms.Transform;
 import ru.avicomp.ontapi.transforms.TransformException;
 import ru.avicomp.ontapi.transforms.vocabulary.DEPRECATED;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
-import ru.avicomp.ontapi.utils.StringInputStreamDocumentSource;
 import ru.avicomp.ontapi.utils.TestUtils;
 
 import java.util.Arrays;
@@ -58,7 +57,7 @@ public class OWLTransformTest {
 
     @Test
     public void testNCBITAXONTransform() throws OWLOntologyCreationException {
-        OWLOntologyDocumentSource src = ReadWriteUtils.getDocumentSource("/ontapi/NCBITAXON-CUT.ttl", OntFormat.TURTLE);
+        OWLOntologyDocumentSource src = ReadWriteUtils.getFileDocumentSource("/ontapi/NCBITAXON-CUT.ttl", OntFormat.TURTLE);
         OWLOntologyManager m = OntManagers.createONT();
         OWLOntology o = m.loadOntologyFromOntologyDocument(src);
 
@@ -83,7 +82,7 @@ public class OWLTransformTest {
 
     @Test
     public void testOWL11OntologyWithTransform() throws Exception {
-        OWLOntologyDocumentSource src = ReadWriteUtils.getDocumentSource("/owlapi/owl11/family/family.owl",
+        OWLOntologyDocumentSource src = ReadWriteUtils.getFileDocumentSource("/owlapi/owl11/family/family.owl",
                 OntFormat.RDF_XML);
         LOGGER.debug("Source: {}", src);
         OWLOntologyManager m = OntManagers.createONT();
@@ -115,7 +114,7 @@ public class OWLTransformTest {
 
     @Test
     public void testOWL11OntologyWithoutTransform() throws Exception {
-        OWLOntologyDocumentSource src = ReadWriteUtils.getDocumentSource("/owlapi/owl11/family/family.owl",
+        OWLOntologyDocumentSource src = ReadWriteUtils.getFileDocumentSource("/owlapi/owl11/family/family.owl",
                 OntFormat.RDF_XML);
         LOGGER.debug("Source: {}", src);
         OntologyManager m = OntManagers.createONT();
@@ -197,7 +196,7 @@ public class OWLTransformTest {
         String txt = ReadWriteUtils.toString(m, OntFormat.TURTLE);
 
         OntologyManager manager = OntManagers.createONT();
-        OntologyModel o = manager.loadOntologyFromOntologyDocument(new StringInputStreamDocumentSource(txt, OntFormat.TURTLE));
+        OntologyModel o = manager.loadOntologyFromOntologyDocument(ReadWriteUtils.getStringDocumentSource(txt, OntFormat.TURTLE));
         OWLOntologyLoaderMetaData meta = manager.getNonnullOntologyFormat(o)
                 .getOntologyLoaderMetaData().orElseThrow(AssertionError::new);
         print(meta);
@@ -222,7 +221,7 @@ public class OWLTransformTest {
         LOGGER.debug("Original RDF:\n{}", txt);
 
         OntologyManager manager = OntManagers.createONT();
-        OntologyModel o = manager.loadOntologyFromOntologyDocument(new StringInputStreamDocumentSource(txt, OntFormat.TURTLE));
+        OntologyModel o = manager.loadOntologyFromOntologyDocument(ReadWriteUtils.getStringDocumentSource(txt, OntFormat.TURTLE));
         ReadWriteUtils.print(o);
         Assert.assertEquals(ontIRI, o.getOntologyID().getOntologyIRI().map(IRI::getIRIString).orElseThrow(AssertionError::new));
         Assert.assertEquals(verIRI, o.getOntologyID().getVersionIRI().map(IRI::getIRIString).orElseThrow(AssertionError::new));
@@ -266,7 +265,7 @@ public class OWLTransformTest {
                 .add(g -> new Empty(g, t1)).add(g -> new Empty(g, t2));
         manager.getOntologyConfigurator().setGraphTransformers(transformers);
 
-        OWLOntologyDocumentSource src = ReadWriteUtils.getDocumentSource("/ontapi/pizza.ttl", OntFormat.TURTLE);
+        OWLOntologyDocumentSource src = ReadWriteUtils.getFileDocumentSource("/ontapi/pizza.ttl", OntFormat.TURTLE);
         OntologyModel o = manager.loadOntologyFromOntologyDocument(src);
         ReadWriteUtils.print(o);
 

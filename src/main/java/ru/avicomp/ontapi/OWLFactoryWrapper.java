@@ -14,12 +14,15 @@
 
 package ru.avicomp.ontapi;
 
+import org.apache.jena.graph.Graph;
 import org.semanticweb.owlapi.io.*;
 import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.model.parameters.ChangeApplied;
 import org.semanticweb.owlapi.util.PriorityCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
+import ru.avicomp.ontapi.jena.UnionGraph;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.IOException;
@@ -35,10 +38,10 @@ import java.util.stream.Collectors;
  * @see OntologyLoaderImpl
  * @see ru.avicomp.ontapi.config.LoadSettings#isUseOWLParsersToLoad()
  */
+@SuppressWarnings("WeakerAccess")
 @ParametersAreNonnullByDefault
 public class OWLFactoryWrapper implements OntologyFactory.Loader {
     private static final Logger LOGGER = LoggerFactory.getLogger(OWLFactoryWrapper.class);
-
 
     // a set to avoid recursion loop,
     // which may happen since OWL-API parsers may use the manager again, which uses factory with the same parsers
@@ -67,6 +70,39 @@ public class OWLFactoryWrapper implements OntologyFactory.Loader {
     public void clear() {
         sources.clear();
     }
+
+    /**
+     * Optimizes the given builder to interact with native OWL-API parsers.
+     *
+     * @param builder {@link OntologyCreator}, not {@code null}
+     * @return {@link OntologyCreator}
+     * @since 1.4.2
+     */
+    public OntologyCreator optimize(OntologyCreator builder) {
+        return createLoadingBuilder(builder);
+    }
+
+    /**
+     * Optimizes the given configuration to interact with native OWL-API parsers.
+     * <p>
+     * Impl notes:
+     * Here, the nodes cache (i.e. {@link ru.avicomp.ontapi.internal.SearchModel}) is disabled,
+     * since:
+     * <ul>
+     * <li>1) read operations (list axioms, annotations) are not expected during assembly model</li>
+     * <li>2) if these operations do occur, they may lead to exception,
+     * if incomplete information has been cached
+     * (for example, cache entity when there is still no declaration axiom)</li>
+     * </ul>
+     *
+     * @param config {@link OntLoaderConfiguration}, not {@code null}
+     * @return {@link OntLoaderConfiguration}
+     * @since 1.4.2
+     */
+    public OntLoaderConfiguration optimize(OntLoaderConfiguration config) {
+        return config.setLoadNodesCacheSize(-1);
+    }
+
 
     /**
      * {@inheritDoc}
@@ -108,6 +144,75 @@ public class OWLFactoryWrapper implements OntologyFactory.Loader {
     }
 
     /**
+     * Creates a builder that is optimized for load operations occurring through native (OWL-API) parsers.
+     *
+     * @param base {@link OntologyCreator}, the builder to inherit behaviour, not {@code null}
+     * @return {@link OntologyBuilderImpl}
+     * @since 1.4.2
+     */
+    public static OntologyBuilderImpl createLoadingBuilder(OntologyCreator base) {
+        Objects.requireNonNull(base);
+        return new OntologyBuilderImpl() {
+
+            public OntologyModelImpl createOntologyImpl(Graph graph,
+                                                        OntologyManagerImpl manager,
+                                                        OntLoaderConfiguration config) {
+                return new OntologyModelImpl(wrap(graph, config), createModelConfig(manager, config)) {
+
+                    @Override
+                    protected OWLOntologyChangeVisitorEx<ChangeApplied> createChangeProcessor() {
+                        return new ChangeProcessor() {
+
+                            @Override
+                            public ChangeApplied visit(SetOntologyID change) {
+                                ChangeApplied res = super.visit(change);
+                                beforeChange();
+                                return res;
+                            }
+
+                            @Override
+                            public ChangeApplied visit(AddAxiom change) {
+                                getBase().add(change.getAxiom());
+                                return ChangeApplied.SUCCESSFULLY;
+                            }
+
+                            @Override
+                            public ChangeApplied visit(AddOntologyAnnotation change) {
+                                getBase().add(change.getAnnotation());
+                                return ChangeApplied.SUCCESSFULLY;
+                            }
+
+                            @Override
+                            public ChangeApplied visit(RemoveAxiom change) {
+                                LOGGER.warn("Suspicious: {}", change);
+                                getBase().remove(change.getAxiom());
+                                return ChangeApplied.SUCCESSFULLY;
+                            }
+
+                            @Override
+                            public ChangeApplied visit(RemoveOntologyAnnotation change) {
+                                LOGGER.warn("Suspicious: {}", change);
+                                getBase().remove(change.getAnnotation());
+                                return ChangeApplied.SUCCESSFULLY;
+                            }
+                        };
+                    }
+                };
+            }
+
+            @Override
+            public Graph createGraph() {
+                return base.createGraph();
+            }
+
+            @Override
+            public UnionGraph createUnionGraph(Graph g, OntLoaderConfiguration c) {
+                return base.createUnionGraph(g, c);
+            }
+        };
+    }
+
+    /**
      * This is a copy-paste the original OWL-API {@link OWLOntologyFactory} implementation,
      * which is used if syntax format of source can not be handle by Apache Jena.
      *
@@ -115,7 +220,6 @@ public class OWLFactoryWrapper implements OntologyFactory.Loader {
      *
      * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyFactoryImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl</a>
      */
-    @SuppressWarnings({"WeakerAccess"})
     public static class FactoryImpl implements OWLOntologyFactory, HasAdapter {
 
         private final Builder builder;
