@@ -100,7 +100,7 @@ public enum ObjectMetaInfo {
     ObjectMetaInfo(AxiomType<? extends OWLAxiom> type, boolean distinct, OWLComponent... types) {
         this.type = type;
         this.distinct = distinct;
-        this.components = OWLComponent.asSet(types);
+        this.components = OWLComponent.toSet(types);
     }
 
     /**
@@ -215,6 +215,8 @@ public enum ObjectMetaInfo {
     /**
      * Answers {@code true} if any {@code OWLObject}-container of this meta type
      * may contain the {@code OWLObject}-component of the specified component-type.
+     * Note: axioms annotations are not taking into consideration,
+     * in other words the real intersection by component possibility is more wide.
      *
      * @param container {@link OWLComponent} - the type, not {@code null}
      * @return boolean

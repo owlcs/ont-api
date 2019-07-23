@@ -42,7 +42,8 @@ public class ReadHelper {
     /**
      * Auxiliary method for simplification code.
      * Used in Annotation Translators.
-     * If the specified statement also belongs to the another type of axiom and it is prohibited in the config then returns false.
+     * If the specified statement also belongs to the another type of axiom
+     * and such situation is prohibited in the config then returns {@code false}.
      * This is for three kinds of statements:
      * <ul>
      * <li>{@code A1 rdfs:subPropertyOf A2}</li>
@@ -50,12 +51,16 @@ public class ReadHelper {
      * <li>{@code A rdfs:range U}</li>
      * </ul>
      * Each of them is wider than the analogous statement for object or data property,
-     * e.g. "P rdfs:range C" could be treated as "A rdfs:range U", but not vice versa.
+     * e.g. {@code P rdfs:range C} could be treated as {@code A rdfs:range U}, but not vice versa.
      *
      * @param statement {@link OntStatement} to test
      * @param conf      {@link InternalConfig}
-     * @param o         {@link AxiomType#SUB_OBJECT_PROPERTY} or {@link AxiomType#OBJECT_PROPERTY_DOMAIN} or {@link AxiomType#OBJECT_PROPERTY_RANGE}
-     * @param d         {@link AxiomType#SUB_DATA_PROPERTY} or {@link AxiomType#DATA_PROPERTY_DOMAIN} or {@link AxiomType#DATA_PROPERTY_RANGE}
+     * @param o         {@link AxiomType#SUB_OBJECT_PROPERTY}
+     *                                                       or {@link AxiomType#OBJECT_PROPERTY_DOMAIN}
+     *                                                       or {@link AxiomType#OBJECT_PROPERTY_RANGE}
+     * @param d         {@link AxiomType#SUB_DATA_PROPERTY}
+     *                                                     or {@link AxiomType#DATA_PROPERTY_DOMAIN}
+     *                                                     or {@link AxiomType#DATA_PROPERTY_RANGE}
      * @return {@code true} if the statement is good to be represented in the form of annotation axiom
      */
     public static boolean testAnnotationAxiomOverlaps(OntStatement statement,
@@ -140,7 +145,9 @@ public class ReadHelper {
      * @return {@link ONTObject} around {@link OWLAnnotation}
      */
     public static ONTObject<OWLAnnotation> getAnnotation(OntStatement ann, InternalObjectFactory of) {
-        return ann.hasAnnotations() ? getHierarchicalAnnotations(ann, of) : getPlainAnnotation(ann, of);
+        return ann.getSubject().getAs(OntAnnotation.class) != null ||
+                ann.hasAnnotations() ?
+                getHierarchicalAnnotations(ann, of) : getPlainAnnotation(ann, of);
     }
 
     private static ONTObject<OWLAnnotation> getPlainAnnotation(OntStatement ann, InternalObjectFactory of) {

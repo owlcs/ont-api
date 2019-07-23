@@ -155,12 +155,13 @@ public enum OWLComponent {
     }
 
     /**
-     * Represents the given array of components as a {@code Set}.
+     * Represents the given array of components as a full {@code Set},
+     * that includes all given components and all its dependent (sub-)components.
      *
      * @param values Array of {@link OWLComponent}s
      * @return a {@code Set} of {@code OWLComponent}s
      */
-    public static Set<OWLComponent> asSet(OWLComponent... values) {
+    public static Set<OWLComponent> toSet(OWLComponent... values) {
         Set<OWLComponent> res = EnumSet.noneOf(OWLComponent.class);
         Arrays.stream(values).forEach(v -> v.putInSet(res));
         return res;

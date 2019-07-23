@@ -89,6 +89,17 @@ import java.util.stream.Stream;
 @SuppressWarnings({"WeakerAccess", "unchecked"})
 public class InternalModel extends OntGraphModelImpl implements OntGraphModel, HasOntologyID {
     private static final Logger LOGGER = LoggerFactory.getLogger(InternalModel.class);
+
+    /**
+     * A {@code Set} of {@link OWLComponent}s that are used as keys in the {@link #components} cache.
+     */
+    protected static final Set<OWLComponent> COMPONENTS_KEYS = Collections.unmodifiableSet(EnumSet.of(OWLComponent.CLASS
+            , OWLComponent.DATATYPE
+            , OWLComponent.ANNOTATION_PROPERTY
+            , OWLComponent.DATATYPE_PROPERTY
+            , OWLComponent.NAMED_OBJECT_PROPERTY
+            , OWLComponent.NAMED_INDIVIDUAL
+            , OWLComponent.ANONYMOUS_INDIVIDUAL));
     /**
      * A factory to produce fresh instances of {@link InternalObjectFactory object factory},
      * that is responsible for mapping ONT Jena Objects to OWL-API objects.
@@ -128,6 +139,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * The main cache, which contains all axioms and ontology header.
      * It contains {@code 40} key-value pairs ({@code 39} axiom-types + ontology header).
      * The reason why it is designed as a cache, not map, is synchronization.
+     *
      * @see ObjectMetaInfo
      * @see ObjectTriplesMap
      */
@@ -136,7 +148,9 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * OWL objects cache (to work with OWL-API 'signature' methods).
      * Currently it is calculated from the {@link #containers}.
      * Any direct (manual) change in the graph must also reset this cache.
+     *
      * @see OWLComponent
+     * @see #COMPONENTS_KEYS
      */
     protected final InternalCache.Loading<OWLComponent, Set<OWLObject>> components;
     /**
@@ -368,13 +382,13 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     /**
      * Answers {@code true} if the ontology is ontologically empty (no header, no axioms).
      *
-     * @return {@code true}  if ontology does not contain any axioms and annotations;
-     * but note, that the encapsulated graph still may contain some triples,
+     * @return {@code true} if the ontology does not contain any axioms and annotations (locally);
+     * note, that the encapsulated graph still may contain some triples,
      * and the method {@link Model#isEmpty()} may return {@code false} at the same time
      */
     public boolean isOntologyEmpty() {
         Graph bg = getBaseGraph();
-        if ((bg instanceof GraphMem)) {
+        if (bg instanceof GraphMem) {
             if (bg.isEmpty()) {
                 // really empty:
                 return true;
@@ -630,20 +644,6 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     }
 
     /**
-     * Returns all {@link #components components} cache-keys.
-     * @return {@code Stream} of {@link OWLComponent}s
-     */
-    protected Stream<OWLComponent> componentsCacheTypes() {
-        return Stream.of(OWLComponent.CLASS,
-                OWLComponent.DATATYPE,
-                OWLComponent.ANNOTATION_PROPERTY,
-                OWLComponent.DATATYPE_PROPERTY,
-                OWLComponent.NAMED_OBJECT_PROPERTY,
-                OWLComponent.NAMED_INDIVIDUAL,
-                OWLComponent.ANONYMOUS_INDIVIDUAL);
-    }
-
-    /**
      * Invalidates the {@link #components cache} for all components parsed from the given {@code container}.
      * todo: need more smart mechanism to invalidate the related components.
      *
@@ -653,7 +653,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     protected void clearOWLObjects(OWLObject container) {
         InternalCache<OWLComponent, Set<OWLObject>> cache = components.asCache();
         if (cache.isEmpty()) return;
-        componentsCacheTypes().forEach(type -> {
+        COMPONENTS_KEYS.forEach(type -> {
             if (cache.get(type) == null) return;
             if (!type.isContainedIn(container)) return;
             cache.remove(type);
@@ -669,7 +669,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     protected void cacheOWLObjects(OWLObject container) {
         InternalCache<OWLComponent, Set<OWLObject>> cache = components.asCache();
         if (cache.isEmpty()) return;
-        componentsCacheTypes().forEach(type -> {
+        COMPONENTS_KEYS.forEach(type -> {
             Set<OWLObject> set = cache.get(type);
             if (set == null) return;
             type.select(container).forEach(set::add);
@@ -1040,7 +1040,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     protected <O extends OWLObject> void remove(O container, ObjectTriplesMap<O> map) {
         try {
             disableDirectListening();
-            // todo: it seems not very effective, need more smart way to determine if the triple can be really deleted
+            // todo: it is very ineffective, need more smart way to determine if the triple can be really deleted
+            //  the idea: create a tiny model for the given object only and find all intersection in its graph
             Set<Triple> triples = map.getTripleSet(container);
             map.delete(container);
             triples.stream().filter(t -> objectTriplesMaps().noneMatch(m -> m.contains(t))).forEach(this::delete);
@@ -1217,8 +1218,9 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
 
     /**
      * Creates a {@link ObjectTriplesMap} for the given {@link ObjectMetaInfo}.
+     *
      * @param key {@link ObjectMetaInfo}
-     * @return  {@link ObjectTriplesMap}
+     * @return {@link ObjectTriplesMap}
      */
     protected ObjectTriplesMap<? extends OWLObject> createObjectTriplesMap(ObjectMetaInfo key) {
         InternalObjectFactory df = getObjectFactory();
@@ -1235,10 +1237,10 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     /**
      * Creates a fresh instance of the {@link ObjectTriplesMap} container.
      *
-     * @param type   {@code Class}-type for the desired {@link OWLObject}
+     * @param type     {@code Class}-type for the desired {@link OWLObject}
      * @param distinct if {@code true} a simplified loading is performed, otherwise through merge operation
-     * @param loader a {@link ONTObject}s provider as a {@code Supplier}, that returns {@code Iterator}
-     * @param <O>    either {@link OWLAxiom} or {@link OWLAnnotation}
+     * @param loader   a {@link ONTObject}s provider as a {@code Supplier}, that returns {@code Iterator}
+     * @param <O>      either {@link OWLAxiom} or {@link OWLAnnotation}
      * @return {@link ObjectTriplesMap}
      */
     protected <O extends OWLObject> ObjectTriplesMap<O> createObjectTriplesMap(Class<O> type,

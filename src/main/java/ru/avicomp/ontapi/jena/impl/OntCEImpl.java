@@ -1297,6 +1297,12 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
                 }
             }
             if (g.contains(n, TYPE, CLASS)) {
+                // first check owl:complementOf, since it is more accurately defined
+                if (isObjectOfType(n, eg, COMPLEMENT_OF, OntCE.class)) {
+                    return Factory.COMPLEMENT_OF;
+                }
+                // simplified checks for []-lists
+                // todo: need more accurate check - also for content, to avoid intersections with data ranges
                 if (isList(n, eg, INTERSECTION_OF)) {
                     return Factory.INTERSECTION_OF;
                 }
@@ -1305,9 +1311,6 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
                 }
                 if (isList(n, eg, ONE_OF)) {
                     return Factory.ONE_OF;
-                }
-                if (isObjectOfType(n, eg, COMPLEMENT_OF, OntCE.class)) {
-                    return Factory.COMPLEMENT_OF;
                 }
             }
             return null;

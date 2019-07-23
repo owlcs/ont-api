@@ -275,9 +275,9 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
         private final ObjectFactory unionOf = of(UnionOf.class);
         private final ObjectFactory intersectionOf = of(IntersectionOf.class);
         private final ObjectFactory restriction = of(Restriction.class);
-        private final List<ObjectFactory> anonymous = Stream.of(oneOf
+        private final List<ObjectFactory> anonymous = Stream.of(complementOf
                 , restriction
-                , complementOf
+                , oneOf
                 , unionOf
                 , intersectionOf).collect(Collectors.toList());
 
