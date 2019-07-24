@@ -27,6 +27,8 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
+import java.util.Arrays;
+
 /**
  * To test {@link OWLOntology#addAxiom(OWLAxiom)} and {@link OWLOntology#removeAxiom(OWLAxiom)}.
  * <p>
@@ -34,6 +36,46 @@ import ru.avicomp.ontapi.utils.ReadWriteUtils;
  */
 public class ModifyAxiomsTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(ModifyAxiomsTest.class);
+
+    @Test
+    public void testAddRemoveSingleAxiom() {
+        OntologyManager m = OntManagers.createONT();
+        OWLDataFactory df = m.getOWLDataFactory();
+        OntologyModel o = m.createOntology(IRI.create("X"));
+
+        OWLAxiom a = df.getOWLSubClassOfAxiom(df.getOWLClass("A"),
+                df.getOWLObjectMaxCardinality(1, df.getOWLObjectProperty("P2"), df.getOWLClass("B")),
+                Arrays.asList(df.getOWLAnnotation(df.getRDFSComment(), df.getOWLLiteral("comm")),
+                        df.getOWLAnnotation(df.getOWLAnnotationProperty("P2"), df.getOWLLiteral(3))));
+
+        o.add(a);
+        ReadWriteUtils.print(o);
+        o.remove(a);
+        ReadWriteUtils.print(o);
+
+        Assert.assertTrue(o.isEmpty());
+        Assert.assertEquals(1, o.asGraphModel().size());
+    }
+
+    @Test
+    public void testAddRemoveSingleHeaderAnnotation() {
+        OntologyManager m = OntManagers.createONT();
+        OWLDataFactory df = m.getOWLDataFactory();
+        OntologyModel o = m.createOntology(IRI.create("X"));
+
+        OWLAnnotation a = df.getOWLAnnotation(df.getRDFSComment(), df.getOWLLiteral("comm"),
+                Arrays.asList(df.getOWLAnnotation(df.getOWLAnnotationProperty("P1"), df.getOWLLiteral(23.3)),
+                        df.getOWLAnnotation(df.getOWLAnnotationProperty("P2"), df.getOWLLiteral(3))));
+
+        m.applyChange(new AddOntologyAnnotation(o, a));
+        ReadWriteUtils.print(o);
+        m.applyChange(new RemoveOntologyAnnotation(o, a));
+        ReadWriteUtils.print(o);
+
+        Assert.assertTrue(o.isEmpty());
+        Assert.assertEquals(1, o.asGraphModel().size());
+
+    }
 
     @Test
     public void testRemoveAxiomWithBulkAnnotation() throws OWLOntologyCreationException {
