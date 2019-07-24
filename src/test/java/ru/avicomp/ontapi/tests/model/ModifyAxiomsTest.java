@@ -38,6 +38,51 @@ public class ModifyAxiomsTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(ModifyAxiomsTest.class);
 
     @Test
+    public void testAddRemoveSeveralAxioms() {
+        OntologyManager m = OntManagers.createONT();
+        OWLDataFactory df = m.getOWLDataFactory();
+        OntologyModel o = m.createOntology(IRI.create("X"));
+
+        OWLAxiom a = df.getOWLDeclarationAxiom(df.getOWLClass("x"));
+        OWLAxiom b = df.getOWLSubClassOfAxiom(df.getOWLClass("x"), df.getOWLThing());
+        o.add(b);
+        o.add(a);
+        o.remove(a);
+        o.remove(b);
+
+        ReadWriteUtils.print(o);
+        Assert.assertTrue(o.isEmpty());
+        Assert.assertEquals(1, o.asGraphModel().size());
+    }
+
+    @Test
+    public void testRemoveAxiomWithSharedComponent() {
+        OntologyManager man = OntManagers.createONT();
+        OWLDataFactory df = man.getOWLDataFactory();
+        OntologyModel o = man.createOntology(IRI.create("X"));
+
+        OntGraphModel m = o.asGraphModel();
+        OntCE ce = m.createUnionOf(m.createOntClass("y"), m.createOntClass("z"));
+        m.createOntClass("x").addSuperClass(ce);
+        m.createOntClass("y").addSuperClass(ce);
+        m.write(System.out, "ttl");
+
+        o.axioms().forEach(System.out::println);
+        OWLAxiom x = o.subClassAxiomsForSubClass(df.getOWLClass("x")).findFirst().orElseThrow(AssertionError::new);
+        o.remove(x);
+
+        m.write(System.out, "ttl");
+        Assert.assertEquals(4, o.axioms().peek(System.out::println).count());
+        Assert.assertEquals(11, m.size());
+
+        OWLAxiom y = o.subClassAxiomsForSubClass(df.getOWLClass("y")).findFirst().orElseThrow(AssertionError::new);
+        o.remove(y);
+
+        Assert.assertEquals(3, o.axioms().peek(System.out::println).count());
+        Assert.assertEquals(4, m.size());
+    }
+
+    @Test
     public void testAddRemoveSingleAxiom() {
         OntologyManager m = OntManagers.createONT();
         OWLDataFactory df = m.getOWLDataFactory();
