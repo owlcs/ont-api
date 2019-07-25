@@ -25,9 +25,14 @@ import ru.avicomp.ontapi.jena.impl.conf.OntModelConfig;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
+import ru.avicomp.ontapi.jena.vocabulary.SWRL;
+import ru.avicomp.ontapi.jena.vocabulary.XSD;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * To test {@link OWLOntology#addAxiom(OWLAxiom)} and {@link OWLOntology#removeAxiom(OWLAxiom)}.
@@ -56,7 +61,7 @@ public class ModifyAxiomsTest {
     }
 
     @Test
-    public void testRemoveAxiomWithDirectlySharedComponent() {
+    public void testRemoveAxiomWithDirectlySharedClassExpression() {
         OntologyManager man = OntManagers.createONT();
         OWLDataFactory df = man.getOWLDataFactory();
         OntologyModel o = man.createOntology(IRI.create("X"));
@@ -82,10 +87,14 @@ public class ModifyAxiomsTest {
         ReadWriteUtils.print(m);
         Assert.assertEquals(3, o.axioms().peek(a -> LOGGER.debug("3:{}", a)).count());
         Assert.assertEquals(4, m.size());
+
+        o.axioms(AxiomType.DECLARATION).collect(Collectors.toList()).forEach(o::remove);
+        Assert.assertTrue(o.isEmpty());
+        Assert.assertEquals(1, m.size());
     }
 
     @Test
-    public void testRemoveAxiomWithIndirectlySharedComponent() {
+    public void testRemoveAxiomWithIndirectlySharedClassExpression() {
         OntologyManager man = OntManagers.createONT();
         OWLDataFactory df = man.getOWLDataFactory();
         OntologyModel o = man.createOntology(IRI.create("X"));
@@ -112,10 +121,14 @@ public class ModifyAxiomsTest {
         ReadWriteUtils.print(m);
         Assert.assertEquals(3, o.axioms().peek(a -> LOGGER.debug("3:{}", a)).count());
         Assert.assertEquals(4, m.size());
+
+        o.axioms(AxiomType.DECLARATION).collect(Collectors.toList()).forEach(o::remove);
+        Assert.assertTrue(o.isEmpty());
+        Assert.assertEquals(1, m.size());
     }
 
     @Test
-    public void testRemoveAxiomWithSimilarComponent() {
+    public void testRemoveAxiomWithSimilarClassExpression() {
         OntologyManager man = OntManagers.createONT();
         OWLDataFactory df = man.getOWLDataFactory();
         OntologyModel o = man.createOntology(IRI.create("X"));
@@ -140,6 +153,99 @@ public class ModifyAxiomsTest {
         ReadWriteUtils.print(m);
         Assert.assertEquals(3, o.axioms().peek(a -> LOGGER.debug("3:{}", a)).count());
         Assert.assertEquals(4, m.size());
+
+        o.axioms(AxiomType.DECLARATION).collect(Collectors.toList()).forEach(o::remove);
+        Assert.assertTrue(o.isEmpty());
+        Assert.assertEquals(1, m.size());
+    }
+
+    @Test
+    public void testRemoveAxiomWithSharedSWRL() {
+        OntologyManager man = OntManagers.createONT();
+        OntologyModel o = man.createOntology(IRI.create("http://swrl-test"));
+
+        OntGraphModel m = o.asGraphModel().setNsPrefix("swrl", SWRL.NS);
+
+        OntSWRL.Variable v = m.createSWRLVariable("v");
+        OntSWRL.DArg id1 = v.as(OntSWRL.DArg.class);
+        OntSWRL.IArg ia1 = v.as(OntSWRL.IArg.class);
+        OntSWRL.IArg ia2 = m.createIndividual("I").as(OntSWRL.IArg.class);
+        OntSWRL.Atom a1 = m.createDataRangeSWRLAtom(m.getDatatype(XSD.xstring), id1);
+        OntSWRL.Atom a2 = m.createClassSWRLAtom(m.getOWLThing(), ia1);
+        OntSWRL.Atom a3 = m.createObjectPropertySWRLAtom(m.createObjectProperty("P1"), ia1, ia2);
+        OntSWRL.Atom a4 = m.createDataPropertySWRLAtom(m.createDataProperty("P2"), ia1, id1);
+
+        m.createSWRLImp(Collections.emptyList(), Arrays.asList(a1, a2, a3));
+        m.createSWRLImp(Arrays.asList(a2, a1, a4), Collections.emptyList());
+
+        ReadWriteUtils.print(m);
+        Assert.assertEquals(5, o.axioms().peek(x -> LOGGER.debug("1:{}", x)).count());
+        Assert.assertEquals(43, m.size());
+
+        List<OWLAxiom> axioms = o.axioms(AxiomType.SWRL_RULE).collect(Collectors.toList());
+        Assert.assertEquals(2, axioms.size());
+
+        o.remove(axioms.get(0));
+
+        ReadWriteUtils.print(m);
+        Assert.assertEquals(4, o.axioms().peek(x -> LOGGER.debug("2:{}", x)).count());
+        Assert.assertEquals(27, m.size());
+        Assert.assertTrue(o.containsAxiom(axioms.get(1)));
+
+        o.clearCache();
+        Assert.assertEquals(1, o.axioms(AxiomType.SWRL_RULE).peek(x -> LOGGER.debug("3:{}", x)).count());
+        Assert.assertTrue(o.containsAxiom(axioms.get(1)));
+
+        o.remove(axioms.get(1));
+
+        ReadWriteUtils.print(m);
+        Assert.assertEquals(3, o.axioms().peek(x -> LOGGER.debug("4:{}", x)).count());
+        Assert.assertEquals(4, m.size());
+
+        o.axioms(AxiomType.DECLARATION).collect(Collectors.toList()).forEach(o::remove);
+        Assert.assertTrue(o.isEmpty());
+        Assert.assertEquals(1, m.size());
+    }
+
+    @Test
+    public void testRemoveAxiomWithSharedDataRange() {
+        OntologyManager man = OntManagers.createONT();
+        OntologyModel o = man.createOntology(IRI.create("http://dr-test"));
+
+        OntGraphModel m = o.asGraphModel();
+        OntFR fr = m.createFacetRestriction(OntFR.TotalDigits.class, m.createTypedLiteral(2));
+        OntDR dr1 = m.createRestrictionDataRange(m.getDatatype(XSD.positiveInteger), fr);
+        OntDR dr2 = m.createRestrictionDataRange(m.getDatatype(XSD.integer),
+                fr, m.createFacetRestriction(OntFR.MaxInclusive.class, m.createTypedLiteral(23)));
+
+        m.createOntClass("C1").addDisjointClass(m.createDataSomeValuesFrom(m.createDataProperty("P1").addRange(dr1), dr2));
+        m.createOntClass("C2").addDisjointUnion(m.createDataAllValuesFrom(m.createDataProperty("P2"), dr2));
+
+        ReadWriteUtils.print(m);
+        Assert.assertEquals(7, o.axioms().peek(x -> LOGGER.debug("1:{}", x)).count());
+        Assert.assertEquals(30, m.size());
+
+        OWLAxiom a1 = o.axioms(AxiomType.DISJOINT_UNION).findFirst().orElseThrow(AssertionError::new);
+        o.remove(a1);
+        ReadWriteUtils.print(m);
+        Assert.assertEquals(6, o.axioms().peek(x -> LOGGER.debug("2:{}", x)).count());
+        Assert.assertEquals(24, m.size());
+
+        OWLAxiom a2 = o.axioms(AxiomType.DATA_PROPERTY_RANGE).findFirst().orElseThrow(AssertionError::new);
+        o.remove(a2);
+        ReadWriteUtils.print(m);
+        Assert.assertEquals(5, o.axioms().peek(x -> LOGGER.debug("3:{}", x)).count());
+        Assert.assertEquals(18, m.size());
+
+        OWLAxiom a3 = o.axioms(AxiomType.DISJOINT_CLASSES).findFirst().orElseThrow(AssertionError::new);
+        o.remove(a3);
+        ReadWriteUtils.print(m);
+        Assert.assertEquals(4, o.axioms().peek(x -> LOGGER.debug("4:{}", x)).count());
+        Assert.assertEquals(5, m.size());
+
+        o.axioms(AxiomType.DECLARATION).collect(Collectors.toList()).forEach(o::remove);
+        Assert.assertTrue(o.isEmpty());
+        Assert.assertEquals(1, m.size());
     }
 
     @Test
@@ -179,7 +285,6 @@ public class ModifyAxiomsTest {
 
         Assert.assertTrue(o.isEmpty());
         Assert.assertEquals(1, o.asGraphModel().size());
-
     }
 
     @Test

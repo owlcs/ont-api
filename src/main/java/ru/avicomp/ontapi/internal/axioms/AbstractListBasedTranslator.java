@@ -93,7 +93,9 @@ public abstract class AbstractListBasedTranslator<Axiom extends OWLLogicalAxiom,
         Collection<ONTObject<? extends OWL_MEMBER>> members = list.members().map(memberExtractor).collect(collector);
 
         Axiom res = axiomMaker.apply(subject, members);
-        return ONTObjectImpl.create(res, statement).append(() -> list.spec().map(FrontsTriple::asTriple));
+        return ONTObjectImpl.create(res, statement)
+                .append(() -> list.spec().map(FrontsTriple::asTriple))
+                .appendWildcards(members);
     }
 
 }
