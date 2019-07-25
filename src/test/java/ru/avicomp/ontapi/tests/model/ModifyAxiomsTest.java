@@ -56,7 +56,7 @@ public class ModifyAxiomsTest {
     }
 
     @Test
-    public void testRemoveAxiomWithSharedComponent() {
+    public void testRemoveAxiomWithDirectlySharedComponent() {
         OntologyManager man = OntManagers.createONT();
         OWLDataFactory df = man.getOWLDataFactory();
         OntologyModel o = man.createOntology(IRI.create("X"));
@@ -65,20 +65,80 @@ public class ModifyAxiomsTest {
         OntCE ce = m.createUnionOf(m.createOntClass("y"), m.createOntClass("z"));
         m.createOntClass("x").addSuperClass(ce);
         m.createOntClass("y").addSuperClass(ce);
-        m.write(System.out, "ttl");
+        ReadWriteUtils.print(m);
+        Assert.assertEquals(5, o.axioms().peek(a -> LOGGER.debug("1:{}", a)).count());
+        Assert.assertEquals(12, m.size());
 
-        o.axioms().forEach(System.out::println);
         OWLAxiom x = o.subClassAxiomsForSubClass(df.getOWLClass("x")).findFirst().orElseThrow(AssertionError::new);
         o.remove(x);
 
-        m.write(System.out, "ttl");
-        Assert.assertEquals(4, o.axioms().peek(System.out::println).count());
+        ReadWriteUtils.print(m);
+        Assert.assertEquals(4, o.axioms().peek(a -> LOGGER.debug("2:{}", a)).count());
         Assert.assertEquals(11, m.size());
 
         OWLAxiom y = o.subClassAxiomsForSubClass(df.getOWLClass("y")).findFirst().orElseThrow(AssertionError::new);
         o.remove(y);
 
-        Assert.assertEquals(3, o.axioms().peek(System.out::println).count());
+        ReadWriteUtils.print(m);
+        Assert.assertEquals(3, o.axioms().peek(a -> LOGGER.debug("3:{}", a)).count());
+        Assert.assertEquals(4, m.size());
+    }
+
+    @Test
+    public void testRemoveAxiomWithIndirectlySharedComponent() {
+        OntologyManager man = OntManagers.createONT();
+        OWLDataFactory df = man.getOWLDataFactory();
+        OntologyModel o = man.createOntology(IRI.create("X"));
+
+        OntGraphModel m = o.asGraphModel();
+        OntCE ce1 = m.createUnionOf(m.createOntClass("y"), m.createOntClass("z"));
+        OntCE ce2 = m.createObjectAllValuesFrom(m.getOWLTopObjectProperty(), m.createComplementOf(ce1));
+        m.createOntClass("x").addSuperClass(ce2);
+        m.createOntClass("y").addSuperClass(ce1);
+        ReadWriteUtils.print(m);
+        Assert.assertEquals(5, o.axioms().peek(a -> LOGGER.debug("1:{}", a)).count());
+        Assert.assertEquals(17, m.size());
+
+        OWLAxiom x = o.subClassAxiomsForSubClass(df.getOWLClass("x")).findFirst().orElseThrow(AssertionError::new);
+        o.remove(x);
+
+        ReadWriteUtils.print(m);
+        Assert.assertEquals(4, o.axioms().peek(a -> LOGGER.debug("2:{}", a)).count());
+        Assert.assertEquals(11, m.size());
+
+        OWLAxiom y = o.subClassAxiomsForSubClass(df.getOWLClass("y")).findFirst().orElseThrow(AssertionError::new);
+        o.remove(y);
+
+        ReadWriteUtils.print(m);
+        Assert.assertEquals(3, o.axioms().peek(a -> LOGGER.debug("3:{}", a)).count());
+        Assert.assertEquals(4, m.size());
+    }
+
+    @Test
+    public void testRemoveAxiomWithSimilarComponent() {
+        OntologyManager man = OntManagers.createONT();
+        OWLDataFactory df = man.getOWLDataFactory();
+        OntologyModel o = man.createOntology(IRI.create("X"));
+
+        OntGraphModel m = o.asGraphModel();
+        m.createOntClass("x").addSuperClass(m.createUnionOf(m.createOntClass("y"), m.createOntClass("z")));
+        m.createOntClass("y").addSuperClass(m.createUnionOf(m.createOntClass("y"), m.createOntClass("z")));
+        ReadWriteUtils.print(m);
+        Assert.assertEquals(5, o.axioms().peek(a -> LOGGER.debug("1:{}", a)).count());
+        Assert.assertEquals(18, m.size());
+
+        OWLAxiom x = o.subClassAxiomsForSubClass(df.getOWLClass("x")).findFirst().orElseThrow(AssertionError::new);
+        o.remove(x);
+
+        ReadWriteUtils.print(m);
+        Assert.assertEquals(4, o.axioms().peek(a -> LOGGER.debug("2:{}", a)).count());
+        Assert.assertEquals(11, m.size());
+
+        OWLAxiom y = o.subClassAxiomsForSubClass(df.getOWLClass("y")).findFirst().orElseThrow(AssertionError::new);
+        o.remove(y);
+
+        ReadWriteUtils.print(m);
+        Assert.assertEquals(3, o.axioms().peek(a -> LOGGER.debug("3:{}", a)).count());
         Assert.assertEquals(4, m.size());
     }
 
