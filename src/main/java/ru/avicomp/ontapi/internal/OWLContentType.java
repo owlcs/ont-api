@@ -37,7 +37,7 @@ import static ru.avicomp.ontapi.internal.OWLComponent.*;
  * For axioms there is a natural {@link AxiomType}'s order to provide a little bit faster iterating:
  * the declarations and widely used axioms go first, which is good for the data-factory and other caching.
  */
-public enum ObjectMetaInfo {
+public enum OWLContentType {
     // a header annotation
     ANNOTATION(null, false, ANNOTATION_PROPERTY, LITERAL, ANONYMOUS_INDIVIDUAL, IRI) {
         @Override
@@ -98,36 +98,36 @@ public enum ObjectMetaInfo {
     DATATYPE_DEFINITION(AxiomType.DATATYPE_DEFINITION, true, DATATYPE, DATA_RANGE),
     ;
 
-    public static final List<ObjectMetaInfo> AXIOMS = all().skip(1).collect(Iter.toUnmodifiableList());
-    public static final List<ObjectMetaInfo> LOGICAL = AXIOMS.stream().filter(x -> x.type.isLogical()).collect(Iter.toUnmodifiableList());
+    public static final List<OWLContentType> AXIOMS = all().skip(1).collect(Iter.toUnmodifiableList());
+    public static final List<OWLContentType> LOGICAL = AXIOMS.stream().filter(x -> x.type.isLogical()).collect(Iter.toUnmodifiableList());
 
     private final AxiomType<? extends OWLAxiom> type;
     private final boolean distinct;
     private final Set<OWLComponent> components;
 
-    ObjectMetaInfo(AxiomType<? extends OWLAxiom> type, boolean distinct, OWLComponent... types) {
+    OWLContentType(AxiomType<? extends OWLAxiom> type, boolean distinct, OWLComponent... types) {
         this.type = type;
         this.distinct = distinct;
         this.components = OWLComponent.toSet(types);
     }
 
     /**
-     * Returns a {@link ObjectMetaInfo} by the {@link AxiomType}.
+     * Returns a {@link OWLContentType} by the {@link AxiomType}.
      *
      * @param type {@link AxiomType}, not {@code null}
-     * @return {@link ObjectMetaInfo}, not {@code null}
+     * @return {@link OWLContentType}, not {@code null}
      */
-    public static ObjectMetaInfo get(AxiomType<?> type) throws IndexOutOfBoundsException {
+    public static OWLContentType get(AxiomType<?> type) throws IndexOutOfBoundsException {
         return values()[type.getIndex() + 1];
     }
 
     /**
-     * Returns a {@link ObjectMetaInfo} to which the specified object corresponds.
+     * Returns a {@link OWLContentType} to which the specified object corresponds.
      *
      * @param o {@link OWLObject}, a content-container, not {@code nul;}
-     * @return {@link ObjectMetaInfo}, not {@code null}
+     * @return {@link OWLContentType}, not {@code null}
      */
-    static ObjectMetaInfo get(OWLObject o) {
+    static OWLContentType get(OWLObject o) {
         if (o instanceof OWLAnnotation) {
             return ANNOTATION;
         }
@@ -138,16 +138,16 @@ public enum ObjectMetaInfo {
     }
 
     /**
-     * Returns a {@link ObjectMetaInfo} by the {@link OWLAxiom}s {@code Class}-type.
+     * Returns a {@link OWLContentType} by the {@link OWLAxiom}s {@code Class}-type.
      *
      * @param type {@link OWLAxiom} actual class-type
-     * @return {@link ObjectMetaInfo}, not {@code null}
+     * @return {@link OWLContentType}, not {@code null}
      * @see AxiomType#getActualClass()
      */
-    public static ObjectMetaInfo get(Class<? extends OWLAxiom> type) {
-        ObjectMetaInfo[] array = values();
+    public static OWLContentType get(Class<? extends OWLAxiom> type) {
+        OWLContentType[] array = values();
         for (int i = 1; i < array.length; i++) {
-            ObjectMetaInfo res = array[i];
+            OWLContentType res = array[i];
             if (type == res.type.getActualClass()) return res;
         }
         throw new OntApiException.IllegalState();
@@ -156,48 +156,48 @@ public enum ObjectMetaInfo {
     /**
      * Lists all values as {@code Stream}.
      *
-     * @return {@code Stream} of {@link ObjectMetaInfo}s
+     * @return {@code Stream} of {@link OWLContentType}s
      */
-    public static Stream<ObjectMetaInfo> all() {
+    public static Stream<OWLContentType> all() {
         return Arrays.stream(values());
     }
 
     /**
      * Answers an iterator over all {@code 40} content types.
      *
-     * @return {@link ExtendedIterator} of {@link ObjectMetaInfo}s
+     * @return {@link ExtendedIterator} of {@link OWLContentType}s
      */
-    static ExtendedIterator<ObjectMetaInfo> iterator() {
+    static ExtendedIterator<OWLContentType> iterator() {
         return Iter.of(values());
     }
 
     /**
-     * Lists all {@link OWLAxiom}s {@link ObjectMetaInfo Meta-info}s.
+     * Lists all {@link OWLAxiom}s {@link OWLContentType Meta-info}s.
      *
-     * @return {@code Stream} of {@link ObjectMetaInfo}s
+     * @return {@code Stream} of {@link OWLContentType}s
      */
-    public static Stream<ObjectMetaInfo> axioms() {
+    public static Stream<OWLContentType> axioms() {
         return AXIOMS.stream();
     }
 
-    public static Stream<ObjectMetaInfo> logical() {
+    public static Stream<OWLContentType> logical() {
         return LOGICAL.stream();
     }
 
     /**
-     * Lists all {@link OWLAxiom}s {@link ObjectMetaInfo Meta-info}s for the specified axioms {@code types}.
+     * Lists all {@link OWLAxiom}s {@link OWLContentType Meta-info}s for the specified axioms {@code types}.
      *
      * @param types {@link Iterable}, not {@code null}
-     * @return {@code Stream} of {@link ObjectMetaInfo}s
+     * @return {@code Stream} of {@link OWLContentType}s
      */
-    public static Stream<ObjectMetaInfo> axioms(Iterable<AxiomType<?>> types) {
+    public static Stream<OWLContentType> axioms(Iterable<AxiomType<?>> types) {
         Stream<AxiomType<?>> res;
         if (types instanceof Collection) {
             res = ((Collection<AxiomType<?>>) types).stream();
         } else {
             res = StreamSupport.stream(types.spliterator(), false);
         }
-        return res.map(ObjectMetaInfo::get);
+        return res.map(OWLContentType::get);
     }
 
     /**
