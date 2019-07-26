@@ -78,7 +78,19 @@ public class UnionGraph extends CompositionBase {
      * @param base {@link Graph}, not {@code null}
      */
     public UnionGraph(Graph base) {
-        this(base, null, null, true);
+        this(base, true);
+    }
+
+    /**
+     * Creates a graph for the given {@code base},
+     * which will be either distinct or non-distinct, depending on the second parameter.
+     * Other settings are default.
+     *
+     * @param base     {@link Graph}, not {@code null}
+     * @param distinct if {@code true} a distinct graph is created
+     */
+    public UnionGraph(Graph base, boolean distinct) {
+        this(base, null, null, distinct);
     }
 
     /**
