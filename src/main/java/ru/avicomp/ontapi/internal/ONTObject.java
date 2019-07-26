@@ -16,7 +16,7 @@ package ru.avicomp.ontapi.internal;
 
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.graph.impl.CollectionGraph;
+import org.apache.jena.mem.GraphMem;
 import org.semanticweb.owlapi.model.OWLObject;
 
 import java.util.Collection;
@@ -65,7 +65,9 @@ public interface ONTObject<O extends OWLObject> {
      */
     @SuppressWarnings("unused")
     default Graph toGraph() {
-        return new CollectionGraph(triples().collect(Collectors.toSet()));
+        GraphMem res = new GraphMem();
+        triples().forEach(res::performAdd);
+        return res;
     }
 
 }

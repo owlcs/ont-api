@@ -18,8 +18,6 @@ import org.apache.jena.graph.GraphListener;
 import org.apache.jena.graph.Triple;
 import org.semanticweb.owlapi.model.OWLObject;
 
-import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -71,7 +69,9 @@ public interface ObjectTriplesMap<O extends OWLObject> {
      * @return {@code Stream} of {@link Triple}s
      * @throws RuntimeException in case object's triple-structure is broken
      */
-    Stream<Triple> triples(O key) throws RuntimeException;
+    default Stream<Triple> triples(O key) throws RuntimeException {
+        return get(key).triples();
+    }
 
     /**
      * Creates a graph listener that handles adding {@link O OWLObject} while changing a {@code Graph}.
@@ -89,6 +89,14 @@ public interface ObjectTriplesMap<O extends OWLObject> {
     void delete(O key);
 
     /**
+     * Answers the {@link ONTObject} associated with the {@code key}.
+     *
+     * @param key {@link O} key-object, not {@code null}
+     * @return {@link ONTObject} or {@code null}
+     */
+    ONTObject<O> get(O key);
+
+    /**
      * Clears the whole map-cache.
      */
     void clear();
@@ -104,16 +112,6 @@ public interface ObjectTriplesMap<O extends OWLObject> {
     }
 
     /**
-     * Answers {@code true} if the given {@link Triple} is present into the map.
-     *
-     * @param triple {@link Triple}, not {@code null}
-     * @return boolean
-     */
-    default boolean contains(Triple triple) {
-        return objects().anyMatch(o -> contains(o, triple));
-    }
-
-    /**
      * Answers {@code true} if the given object-triple pair is present into the map.
      *
      * @param key    {@link O} key-object, not {@code null}
@@ -122,16 +120,6 @@ public interface ObjectTriplesMap<O extends OWLObject> {
      */
     default boolean contains(O key, Triple triple) {
         return triples(key).anyMatch(triple::equals);
-    }
-
-    /**
-     * Answers a {@code Set} of {@code Triple}s associated with the specified object.
-     *
-     * @param key {@link O} key-object, not {@code null}
-     * @return {@code Set} of {@link Triple}s
-     */
-    default Set<Triple> getTripleSet(O key) {
-        return triples(key).collect(Collectors.toSet());
     }
 
 }

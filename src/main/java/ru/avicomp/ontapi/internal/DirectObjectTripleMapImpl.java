@@ -24,6 +24,7 @@ import ru.avicomp.ontapi.jena.utils.Iter;
 
 import java.util.Iterator;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -64,14 +65,18 @@ public class DirectObjectTripleMapImpl<X extends OWLObject> implements ObjectTri
     }
 
     @Override
-    public boolean contains(X o) {
-        return Iter.anyMatch(listONTObjects(), x -> Objects.equals(o, x.getObject()));
+    public boolean contains(X key) {
+        return object(key).isPresent();
     }
 
     @Override
     public Stream<Triple> triples(X key) throws RuntimeException {
-        return Iter.findFirst(listONTObjects().filterKeep(x -> key.equals(x.getObject()))
-                .mapWith(ONTObject::triples)).orElse(Stream.empty());
+        return object(key).map(ONTObject::triples).orElse(Stream.empty());
+    }
+
+    public Optional<ONTObject<X>> object(X key) {
+        // todo: need a straight way, this one is extremely inefficient
+        return Iter.findFirst(listONTObjects().filterKeep(x -> key.equals(x.getObject())));
     }
 
     @Override
@@ -82,6 +87,11 @@ public class DirectObjectTripleMapImpl<X extends OWLObject> implements ObjectTri
     @Override
     public void delete(X key) {
         throw new ModificationDeniedException("Read only model. Can't delete " + key + ".");
+    }
+
+    @Override
+    public ONTObject<X> get(X key) {
+        return object(key).orElse(null);
     }
 
     @Override

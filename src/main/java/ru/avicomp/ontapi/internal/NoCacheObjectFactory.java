@@ -145,7 +145,7 @@ public class NoCacheObjectFactory implements InternalObjectFactory {
     }
 
     @Override
-    public ONTObject<? extends OWLAnnotationValue> get(RDFNode value) {
+    public ONTObject<? extends OWLAnnotationValue> getValue(RDFNode value) {
         if (OntApiException.notNull(value, "Null node").isLiteral()) {
             return get(value.asLiteral());
         }
@@ -159,7 +159,7 @@ public class NoCacheObjectFactory implements InternalObjectFactory {
     }
 
     @Override
-    public ONTObject<? extends OWLAnnotationSubject> get(OntObject subject) {
+    public ONTObject<? extends OWLAnnotationSubject> getSubject(OntObject subject) {
         if (OntApiException.notNull(subject, "Null resource").isURIResource()) {
             return asIRI(subject);
         }

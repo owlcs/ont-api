@@ -152,7 +152,7 @@ public class ReadHelper {
 
     private static ONTObject<OWLAnnotation> getPlainAnnotation(OntStatement ann, InternalObjectFactory of) {
         ONTObject<OWLAnnotationProperty> p = of.get(ann.getPredicate().as(OntNAP.class));
-        ONTObject<? extends OWLAnnotationValue> v = of.get(ann.getObject());
+        ONTObject<? extends OWLAnnotationValue> v = of.getValue(ann.getObject());
         OWLAnnotation res = of.getOWLDataFactory().getOWLAnnotation(p.getObject(), v.getObject(), Stream.empty());
         return ONTObjectImpl.create(res, ann).append(p).append(v);
     }
@@ -160,7 +160,7 @@ public class ReadHelper {
     private static ONTObject<OWLAnnotation> getHierarchicalAnnotations(OntStatement root, InternalObjectFactory of) {
         OntObject subject = root.getSubject();
         ONTObject<OWLAnnotationProperty> p = of.get(root.getPredicate().as(OntNAP.class));
-        ONTObject<? extends OWLAnnotationValue> v = of.get(root.getObject());
+        ONTObject<? extends OWLAnnotationValue> v = of.getValue(root.getObject());
         Set<? extends ONTObject<OWLAnnotation>> children = OntModels.listAnnotations(root)
                 .mapWith(a -> getHierarchicalAnnotations(a, of)).toSet();
         OWLAnnotation object = of.getOWLDataFactory()

@@ -14,8 +14,10 @@
 
 package ru.avicomp.ontapi.internal;
 
+import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphListener;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.graph.impl.CollectionGraph;
 import org.apache.jena.shared.JenaException;
 import org.apache.jena.sparql.util.graph.GraphListenerBase;
 import org.semanticweb.owlapi.model.OWLAnnotation;
@@ -26,7 +28,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -171,12 +172,6 @@ public class CacheObjectTriplesMapImpl<X extends OWLObject> implements ObjectTri
         return getONTObject(o).triples();
     }
 
-    @Override
-    public Set<Triple> getTripleSet(X key) {
-        ONTObject<X> res = getONTObject(key);
-        return key instanceof TripleSet ? ((TripleSet<X>) res).triples : res.triples().collect(Collectors.toSet());
-    }
-
     private ONTObject<X> getONTObject(X key) {
         return getMap().getObjectsMap().get(key);
     }
@@ -209,23 +204,6 @@ public class CacheObjectTriplesMapImpl<X extends OWLObject> implements ObjectTri
             return res != null && res.contains(o);
         }
         return triples(o).anyMatch(t::equals);
-    }
-
-    /**
-     * {@inheritDoc}
-     * It is used while deleting OWLObject through OWL-API interfaces.
-     *
-     * @param triple {@link Triple}, not {@code null}
-     * @return boolean
-     */
-    @Override
-    public boolean contains(Triple triple) {
-        if (tripleStore) {
-            // load all triples to memory:
-            return getMap().getTriplesMap().containsKey(triple);
-        }
-        // long-time searching:
-        return objects().anyMatch(x -> contains(x, triple));
     }
 
     @Override
@@ -350,6 +328,11 @@ public class CacheObjectTriplesMapImpl<X extends OWLObject> implements ObjectTri
     }
 
     @Override
+    public ONTObject<X> get(X key) {
+        return getONTObject(key);
+    }
+
+    @Override
     public void clear() {
         map.asCache().clear();
     }
@@ -447,6 +430,11 @@ public class CacheObjectTriplesMapImpl<X extends OWLObject> implements ObjectTri
         @Override
         public Stream<Triple> triples() {
             return triples.stream();
+        }
+
+        @Override
+        public Graph toGraph() {
+            return new CollectionGraph(triples);
         }
 
         @Override

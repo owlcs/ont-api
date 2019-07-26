@@ -14,11 +14,10 @@
 
 package ru.avicomp.ontapi.internal;
 
-import org.semanticweb.owlapi.model.AxiomType;
-import org.semanticweb.owlapi.model.HasAnnotations;
-import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLObject;
+import org.apache.jena.util.iterator.ExtendedIterator;
+import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.OntApiException;
+import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.utils.Iter;
 
 import java.util.Arrays;
@@ -31,8 +30,10 @@ import java.util.stream.StreamSupport;
 import static ru.avicomp.ontapi.internal.OWLComponent.*;
 
 /**
- * Enum, that represents all public container meta-types of {@code OWLOntology}: one for the ontology header
- * and {@code 39} for each type of axiom.
+ * Enum, that represents all public content meta-types of {@code OWLOntology}:
+ * one for the ontology header ({@link #ANNOTATION}) and {@code 39} for each type of axiom.
+ * The {@code OWLObject} corresponding to any of these constant is a container,
+ * and may consist of {@code OWLObject}s described by the {@link OWLComponent} class.
  * For axioms there is a natural {@link AxiomType}'s order to provide a little bit faster iterating:
  * the declarations and widely used axioms go first, which is good for the data-factory and other caching.
  */
@@ -47,6 +48,13 @@ public enum ObjectMetaInfo {
         @Override
         boolean hasAnnotations(OWLObject container) { // not used
             return ((HasAnnotations) container).annotations().findFirst().isPresent();
+        }
+
+        @Override
+        ExtendedIterator<? extends ONTObject<? extends OWLObject>> read(OntGraphModel m,
+                                                                        InternalObjectFactory f,
+                                                                        InternalConfig c) {
+            return ReadHelper.listOWLAnnotations(m.getID(), f);
         }
     },
     DECLARATION(AxiomType.DECLARATION, true, ENTITY),
@@ -82,7 +90,7 @@ public enum ObjectMetaInfo {
     DATA_PROPERTY_RANGE(AxiomType.DATA_PROPERTY_RANGE, true, DATATYPE_PROPERTY, DATA_RANGE),
     DISJOINT_DATA_PROPERTIES(AxiomType.DISJOINT_DATA_PROPERTIES, false, DATATYPE_PROPERTY),
     HAS_KEY(AxiomType.HAS_KEY, false, CLASS_EXPRESSION, DATATYPE_PROPERTY, OBJECT_PROPERTY_EXPRESSION),
-    SWRL_RULE(AxiomType.SWRL_RULE, false, INDIVIDUAL, LITERAL, CLASS_EXPRESSION, DATA_RANGE, DATATYPE_PROPERTY, OBJECT_PROPERTY_EXPRESSION),
+    SWRL_RULE(AxiomType.SWRL_RULE, false, SWRL_ATOM),
     ANNOTATION_ASSERTION(AxiomType.ANNOTATION_ASSERTION, true, ANNOTATION_PROPERTY, LITERAL, ANONYMOUS_INDIVIDUAL, IRI),
     SUB_ANNOTATION_PROPERTY_OF(AxiomType.SUB_ANNOTATION_PROPERTY_OF, true, ANNOTATION_PROPERTY),
     ANNOTATION_PROPERTY_RANGE(AxiomType.ANNOTATION_PROPERTY_RANGE, true, ANNOTATION_PROPERTY, IRI),
@@ -114,6 +122,22 @@ public enum ObjectMetaInfo {
     }
 
     /**
+     * Returns a {@link ObjectMetaInfo} to which the specified object corresponds.
+     *
+     * @param o {@link OWLObject}, a content-container, not {@code nul;}
+     * @return {@link ObjectMetaInfo}, not {@code null}
+     */
+    static ObjectMetaInfo get(OWLObject o) {
+        if (o instanceof OWLAnnotation) {
+            return ANNOTATION;
+        }
+        if (o instanceof OWLAxiom) {
+            return get(((OWLAxiom) o).getAxiomType());
+        }
+        throw new OntApiException.IllegalArgument();
+    }
+
+    /**
      * Returns a {@link ObjectMetaInfo} by the {@link OWLAxiom}s {@code Class}-type.
      *
      * @param type {@link OWLAxiom} actual class-type
@@ -136,6 +160,15 @@ public enum ObjectMetaInfo {
      */
     public static Stream<ObjectMetaInfo> all() {
         return Arrays.stream(values());
+    }
+
+    /**
+     * Answers an iterator over all {@code 40} content types.
+     *
+     * @return {@link ExtendedIterator} of {@link ObjectMetaInfo}s
+     */
+    static ExtendedIterator<ObjectMetaInfo> iterator() {
+        return Iter.of(values());
     }
 
     /**
@@ -190,7 +223,7 @@ public enum ObjectMetaInfo {
 
     /**
      * Answers {@code true} if and only if
-     * there can be only one unique object of this enum-type,
+     * there can be only one unique content object of this enum-type,
      * which means that there is only one statement in the graph, to which that object corresponds.
      * Returns {@code false}, if an object of the enum-type can be derived from different RDF statements.
      * <p>
@@ -233,6 +266,29 @@ public enum ObjectMetaInfo {
     @SuppressWarnings("unchecked")
     public AxiomType<OWLAxiom> getAxiomType() {
         return (AxiomType<OWLAxiom>) type;
+    }
+
+    /**
+     * Reads content-objects from a graph.
+     *
+     * @param m {@link OntGraphModel ONT-API Jena Model}, to search over
+     * @param f {@link InternalObjectFactory} to construct OWL-API Objects (wrapped as {@link ONTObject})
+     * @param c {@link InternalConfig} to control process
+     * @return {@link ExtendedIterator} over all content objects, found in modelr for this type
+     */
+    ExtendedIterator<? extends ONTObject<? extends OWLObject>> read(OntGraphModel m,
+                                                                    InternalObjectFactory f,
+                                                                    InternalConfig c) {
+        return getTranslator().listAxioms(m, f, c);
+    }
+
+    /**
+     * Provides a translator - the facility to read/write {@link OWLAxiom} in/from a graph.
+     *
+     * @return {@link AxiomTranslator}
+     */
+    AxiomTranslator<? extends OWLObject> getTranslator() {
+        return AxiomParserProvider.get(type);
     }
 
 }

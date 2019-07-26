@@ -66,9 +66,9 @@ public interface InternalObjectFactory {
 
     ONTObject<OWLLiteral> get(Literal literal);
 
-    ONTObject<? extends OWLAnnotationValue> get(RDFNode value);
+    ONTObject<? extends OWLAnnotationValue> getValue(RDFNode value);
 
-    ONTObject<? extends OWLAnnotationSubject> get(OntObject subject);
+    ONTObject<? extends OWLAnnotationSubject> getSubject(OntObject subject);
 
     ONTObject<? extends SWRLAtom> get(OntSWRL.Atom atom);
 

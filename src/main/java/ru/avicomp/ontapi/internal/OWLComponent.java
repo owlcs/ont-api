@@ -14,19 +14,28 @@
 
 package ru.avicomp.ontapi.internal;
 
+import org.apache.jena.rdf.model.Literal;
+import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.OwlObjects;
+import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.utils.Iter;
+import ru.avicomp.ontapi.jena.utils.OntModels;
 
 import java.util.*;
 import java.util.stream.Stream;
 
 /**
- * Enum of mostly used OWL-API object types, to be used in filter operations.
+ * Enum of mostly used OWL-API object types, that are not {@link OWLAxiom} or {@link OWLAnnotation},
+ * to be used in various filter operations.
+ * Includes both ONT-API and OWL-API ways.
  * Created by @ssz on 13.07.2019.
  */
 public enum OWLComponent {
-    IRI(org.semanticweb.owlapi.model.IRI.class, true) {
+    IRI(org.semanticweb.owlapi.model.IRI.class, Resource.class, true) {
         @Override
         List<OWLComponent> includes() {
             return Collections.emptyList();
@@ -37,44 +46,97 @@ public enum OWLComponent {
             // this differs from the OWL-API behaviour (see https://github.com/owlcs/owlapi/issues/865)
             return OwlObjects.iris(o);
         }
+
+        @Override
+        ONTObject<? extends OWLObject> wrap(InternalObjectFactory df, RDFNode n) {
+            return df.asIRI(n.as(OntObject.class));
+        }
+
+        @Override
+        ExtendedIterator<Resource> listObjects(OntGraphModel model) {
+            return Iter.create(() -> {
+                Set<Resource> res = new HashSet<>();
+                model.getBaseModel().listStatements().forEachRemaining(s -> {
+                    res.add(s.getPredicate().inModel(model));
+                    if (s.getSubject().isURIResource()) {
+                        res.add(s.getSubject().inModel(model));
+                    }
+                    if (s.getObject().isURIResource()) {
+                        res.add(s.getResource().inModel(model));
+                    }
+                });
+                return res.iterator();
+            });
+        }
+
     },
-    ANNOTATION_PROPERTY(OWLAnnotationProperty.class, true) {
+    ANNOTATION_PROPERTY(OWLAnnotationProperty.class, OntNAP.class, true) {
         @Override
         Stream<OWLAnnotationProperty> components(OWLObject o) {
             return o.annotationPropertiesInSignature();
         }
+
+        @Override
+        ONTObject<? extends OWLObject> wrap(InternalObjectFactory df, RDFNode n) {
+            return df.get(n.as(OntNAP.class));
+        }
     },
-    DATATYPE_PROPERTY(OWLDataProperty.class, true) {
+    DATATYPE_PROPERTY(OWLDataProperty.class, OntNDP.class, true) {
         @Override
         Stream<OWLDataProperty> components(OWLObject o) {
             return o.dataPropertiesInSignature();
         }
+
+        @Override
+        ONTObject<? extends OWLObject> wrap(InternalObjectFactory df, RDFNode n) {
+            return df.get(n.as(OntNDP.class));
+        }
     },
-    NAMED_OBJECT_PROPERTY(OWLObjectProperty.class, true) {
+    NAMED_OBJECT_PROPERTY(OWLObjectProperty.class, OntNOP.class, true) {
         @Override
         Stream<OWLObjectProperty> components(OWLObject o) {
             return o.objectPropertiesInSignature();
         }
+
+        @Override
+        ONTObject<? extends OWLObject> wrap(InternalObjectFactory df, RDFNode n) {
+            return df.get(n.as(OntNOP.class));
+        }
     },
-    NAMED_INDIVIDUAL(OWLNamedIndividual.class, true) {
+    NAMED_INDIVIDUAL(OWLNamedIndividual.class, OntIndividual.Named.class, true) {
         @Override
         Stream<OWLNamedIndividual> components(OWLObject o) {
             return o.individualsInSignature();
         }
+
+        @Override
+        ONTObject<? extends OWLObject> wrap(InternalObjectFactory df, RDFNode n) {
+            return df.get(n.as(OntIndividual.Named.class));
+        }
     },
-    CLASS(OWLClass.class, true) {
+    CLASS(OWLClass.class, OntClass.class, true) {
         @Override
         Stream<OWLClass> components(OWLObject o) {
             return o.classesInSignature();
         }
+
+        @Override
+        ONTObject<? extends OWLObject> wrap(InternalObjectFactory df, RDFNode n) {
+            return df.get(n.as(OntClass.class));
+        }
     },
-    DATATYPE(OWLDatatype.class, true) {
+    DATATYPE(OWLDatatype.class, OntDT.class, true) {
         @Override
         Stream<OWLDatatype> components(OWLObject o) {
             return o.datatypesInSignature();
         }
+
+        @Override
+        ONTObject<? extends OWLObject> wrap(InternalObjectFactory df, RDFNode n) {
+            return df.get(n.as(OntDT.class));
+        }
     },
-    ENTITY(OWLEntity.class, false) {
+    ENTITY(OWLEntity.class, OntEntity.class, false) {
         @Override
         List<OWLComponent> includes() {
             return Arrays.asList(ANNOTATION_PROPERTY, DATATYPE_PROPERTY, NAMED_OBJECT_PROPERTY,
@@ -82,17 +144,39 @@ public enum OWLComponent {
         }
 
         @Override
+        ONTObject<? extends OWLObject> wrap(InternalObjectFactory df, RDFNode n) {
+            return df.get(n.as(OntEntity.class));
+        }
+
+        @Override
         Stream<OWLEntity> components(OWLObject o) {
             return o.signature();
         }
     },
-    LITERAL(OWLLiteral.class, true) {
+    LITERAL(OWLLiteral.class, Literal.class, true) {
         @Override
         List<OWLComponent> includes() {
             return Collections.singletonList(DATATYPE);
         }
+
+        @Override
+        ExtendedIterator<? extends RDFNode> listObjects(OntGraphModel model) {
+            return model.getBaseModel().listObjects()
+                    .filterKeep(RDFNode::isLiteral)
+                    .mapWith(x -> x.asLiteral().inModel(model));
+        }
+
+        @Override
+        public Stream<OWLObject> select(OWLObject container) {
+            return OwlObjects.objects(owl, container);
+        }
+
+        @Override
+        ONTObject<? extends OWLObject> wrap(InternalObjectFactory df, RDFNode n) {
+            return df.get(n.asLiteral());
+        }
     },
-    INDIVIDUAL(OWLIndividual.class, false) {
+    INDIVIDUAL(OWLIndividual.class, OntIndividual.class, false) {
         @Override
         List<OWLComponent> includes() {
             return Arrays.asList(NAMED_INDIVIDUAL, ANONYMOUS_INDIVIDUAL);
@@ -102,19 +186,67 @@ public enum OWLComponent {
         Stream<OWLIndividual> components(OWLObject o) {
             return Stream.concat(o.anonymousIndividuals(), o.individualsInSignature());
         }
+
+        @Override
+        ONTObject<? extends OWLObject> wrap(InternalObjectFactory df, RDFNode n) {
+            return df.get(n.as(OntIndividual.class));
+        }
     },
-    ANONYMOUS_INDIVIDUAL(OWLAnonymousIndividual.class, true),
-    DATA_RANGE(OWLDataRange.class, false) {
+    ANONYMOUS_INDIVIDUAL(OWLAnonymousIndividual.class, OntIndividual.Anonymous.class, true) {
+        @Override
+        Stream<OWLAnonymousIndividual> components(OWLObject o) {
+            return o.anonymousIndividuals();
+        }
+
+        @Override
+        ONTObject<? extends OWLObject> wrap(InternalObjectFactory df, RDFNode n) {
+            return df.get(n.as(OntIndividual.Anonymous.class));
+        }
+    },
+    ANONYMOUS_DATA_RANGE(OWLDataRange.class, OntDR.class, false) {
         /**
          * {@inheritDoc}
          * + literals ({@code DataOneOf}, {@code DatatypeRestriction})
          */
         @Override
         List<OWLComponent> includes() {
-            return Arrays.asList(DATATYPE, LITERAL);
+            return Arrays.asList(DATA_RANGE, LITERAL, FACET_RESTRICTION);
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        Stream<OWLDataRange> components(OWLObject o) {
+            //see https://github.com/owlcs/owlapi/issues/867
+            return (Stream<OWLDataRange>) super.components(o).filter(x -> !(x instanceof OWLDatatype));
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        ExtendedIterator<OntDR> listObjects(OntGraphModel model) {
+            return (ExtendedIterator<OntDR>) super.listObjects(model).filterKeep(RDFNode::isAnon);
+        }
+
+        @Override
+        ONTObject<? extends OWLObject> wrap(InternalObjectFactory df, RDFNode n) {
+            return df.get(n.as(OntDR.class));
         }
     },
-    CLASS_EXPRESSION(OWLClassExpression.class, false) {
+    DATA_RANGE(OWLDataRange.class, OntDR.class, false) {
+        /**
+         * {@inheritDoc}
+         * + literals ({@code DataOneOf}, {@code DatatypeRestriction})
+         */
+        @Override
+        List<OWLComponent> includes() {
+            return Arrays.asList(DATATYPE, ANONYMOUS_DATA_RANGE);
+        }
+
+        @Override
+        ONTObject<? extends OWLObject> wrap(InternalObjectFactory df, RDFNode n) {
+            return df.get(n.as(OntDR.class));
+        }
+    },
+    ANONYMOUS_CLASS_EXPRESSION(OWLAnonymousClassExpression.class, OntCE.class, false) {
         /**
          * {@inheritDoc}
          * This component may contain:
@@ -130,27 +262,102 @@ public enum OWLComponent {
          */
         @Override
         List<OWLComponent> includes() {
-            return Arrays.asList(CLASS, INDIVIDUAL, OBJECT_PROPERTY_EXPRESSION, DATATYPE_PROPERTY, DATA_RANGE);
+            return Arrays.asList(CLASS_EXPRESSION, INDIVIDUAL, OBJECT_PROPERTY_EXPRESSION, DATATYPE_PROPERTY, DATA_RANGE);
+        }
+
+        @Override
+        Stream<OWLClassExpression> components(OWLObject o) {
+            return o.nestedClassExpressions().filter(IsAnonymous::isAnonymous);
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        ExtendedIterator<OntCE> listObjects(OntGraphModel model) {
+            return (ExtendedIterator<OntCE>) super.listObjects(model).filterKeep(RDFNode::isAnon);
+        }
+
+        @Override
+        ONTObject<? extends OWLObject> wrap(InternalObjectFactory df, RDFNode n) {
+            return df.get(n.as(OntCE.class));
+        }
+    },
+    CLASS_EXPRESSION(OWLClassExpression.class, OntCE.class, false) {
+        @Override
+        List<OWLComponent> includes() {
+            return Arrays.asList(CLASS, ANONYMOUS_CLASS_EXPRESSION);
         }
 
         @Override
         Stream<OWLClassExpression> components(OWLObject o) {
             return o.nestedClassExpressions();
         }
+
+        @Override
+        ONTObject<? extends OWLObject> wrap(InternalObjectFactory df, RDFNode n) {
+            return df.get(n.as(OntCE.class));
+        }
     },
-    OBJECT_PROPERTY_EXPRESSION(OWLObjectPropertyExpression.class, false) {
+    INVERSE_OBJECT_PROPERTY(OWLObjectInverseOf.class, OntOPE.Inverse.class, false) {
         @Override
         List<OWLComponent> includes() {
             return Collections.singletonList(NAMED_OBJECT_PROPERTY);
         }
+
+        @Override
+        ONTObject<? extends OWLObject> wrap(InternalObjectFactory df, RDFNode n) {
+            return df.get(n.as(OntOPE.Inverse.class));
+        }
     },
+    OBJECT_PROPERTY_EXPRESSION(OWLObjectPropertyExpression.class, OntOPE.class, false) {
+        @Override
+        List<OWLComponent> includes() {
+            return Arrays.asList(NAMED_OBJECT_PROPERTY, INVERSE_OBJECT_PROPERTY);
+        }
+
+        @Override
+        ONTObject<? extends OWLObject> wrap(InternalObjectFactory df, RDFNode n) {
+            return df.get(n.as(OntOPE.class));
+        }
+    },
+    FACET_RESTRICTION(OWLFacetRestriction.class, OntFR.class, false) {
+        @Override
+        List<OWLComponent> includes() {
+            return Collections.singletonList(LITERAL);
+        }
+
+        @Override
+        ONTObject<? extends OWLObject> wrap(InternalObjectFactory df, RDFNode n) {
+            return ReadHelper.getFacetRestriction(n.as(OntFR.class), df);
+        }
+
+    },
+    SWRL_VARIABLE(SWRLVariable.class, OntSWRL.Variable.class, true) {
+        @Override
+        ONTObject<? extends OWLObject> wrap(InternalObjectFactory df, RDFNode n) {
+            return ReadHelper.getSWRLVariable(n.as(OntSWRL.Variable.class), df);
+        }
+    },
+    SWRL_ATOM(SWRLAtom.class, OntSWRL.Atom.class, false) {
+        @Override
+        List<OWLComponent> includes() {
+            return Arrays.asList(INDIVIDUAL, LITERAL, SWRL_VARIABLE,
+                    CLASS_EXPRESSION, DATA_RANGE, DATATYPE_PROPERTY, OBJECT_PROPERTY_EXPRESSION);
+        }
+
+        @Override
+        ONTObject<? extends OWLObject> wrap(InternalObjectFactory df, RDFNode n) {
+            return df.get(n.as(OntSWRL.Atom.class));
+        }
+    }
     ;
 
-    private final Class<? extends OWLObject> type;
+    final Class<? extends OWLObject> owl;
+    final Class<? extends RDFNode> jena;
     private final boolean primitive;
 
-    OWLComponent(Class<? extends OWLObject> type, boolean primitive) {
-        this.type = type;
+    OWLComponent(Class<? extends OWLObject> owl, Class<? extends RDFNode> rdf, boolean primitive) {
+        this.owl = owl;
+        this.jena = rdf;
         this.primitive = primitive;
     }
 
@@ -176,12 +383,27 @@ public enum OWLComponent {
      */
     public static OWLComponent getType(OWLObject o) {
         Optional<OWLComponent> res = Arrays.stream(values()).filter(OWLComponent::isPrimitive)
-                .filter(x -> x.type.isInstance(o))
+                .filter(x -> x.owl.isInstance(o))
                 .findFirst();
         return res.orElseGet(() -> Arrays.stream(values()).filter(t -> !t.isPrimitive())
-                .filter(x -> x.type.isInstance(o))
+                .filter(x -> x.owl.isInstance(o))
                 .findFirst()
                 .orElseThrow(() -> new OntApiException.Unsupported("Unsupported object type: " + o)));
+    }
+
+    /**
+     * Returns a {@code Set} of components that can be shared,
+     * but at the same time are not {@link OWLEntity OWL entities}.
+     *
+     * @return {@code Set}
+     */
+    static Set<OWLComponent> getSharedComponents() {
+        return EnumSet.of(ANONYMOUS_CLASS_EXPRESSION
+                , ANONYMOUS_DATA_RANGE
+                , FACET_RESTRICTION
+                , INVERSE_OBJECT_PROPERTY
+                , SWRL_ATOM
+                , SWRL_VARIABLE);
     }
 
     /**
@@ -201,8 +423,22 @@ public enum OWLComponent {
     }
 
     Stream<? extends OWLObject> components(OWLObject container) {
-        return OwlObjects.objects(type, container);
+        return OwlObjects.parseComponents(owl, container);
     }
+
+    @SuppressWarnings("unchecked")
+    ExtendedIterator<? extends RDFNode> listObjects(OntGraphModel model) {
+        return OntModels.listLocalObjects(model, (Class<? extends OntObject>) jena);
+    }
+
+    /**
+     * Wraps the given node as {@link ONTObject}.
+     *
+     * @param df {@link InternalObjectFactory}
+     * @param n  {@link RDFNode}
+     * @return {@link ONTObject}
+     */
+    abstract ONTObject<? extends OWLObject> wrap(InternalObjectFactory df, RDFNode n);
 
     /**
      * Returns all components of this type from the specified {@link OWLObject}-container.
@@ -216,13 +452,15 @@ public enum OWLComponent {
     }
 
     /**
-     * Answers {@code true} if the given object contains any component of this type.
+     * Returns all components of this type from the specified {@link OntGraphModel model}-container.
      *
-     * @param container {@link OWLObject}, not {@code null}
-     * @return boolean
+     * @param model {@link OntGraphModel}, not {@code null}
+     * @param df {@link InternalObjectFactory}, not {@code null}
+     * @return {@link Stream} of {@link ONTObject}s of this type
      */
-    public boolean isContainedIn(OWLObject container) {
-        return components(container).findFirst().isPresent();
+    @SuppressWarnings("unchecked")
+    public Stream<ONTObject<OWLObject>> select(OntGraphModel model, InternalObjectFactory df) {
+        return Iter.asStream(listObjects(model).mapWith(x -> (ONTObject<OWLObject>) wrap(df, x)));
     }
 
     /**
