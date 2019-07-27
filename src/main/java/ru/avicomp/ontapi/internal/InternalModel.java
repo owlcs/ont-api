@@ -23,7 +23,6 @@ import org.apache.jena.mem.GraphMem;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.shared.JenaException;
 import org.apache.jena.shared.Lock;
 import org.apache.jena.sparql.util.graph.GraphListenerBase;
 import org.apache.jena.util.iterator.ExtendedIterator;
@@ -618,7 +617,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @return {@code Optional} around the container object
      */
     protected Optional<? extends OWLObject> findUsedContentContainer(OWLObject entity, OWLObject... excludes) {
-        OWLComponent type = OWLComponent.getType(entity);
+        OWLComponent type = OWLComponent.get(entity);
         Stream<? extends OWLObject> res = selectContentObjects(type);
         if (excludes.length != 0) {
             Set<OWLObject> ignore = new HashSet<>(Arrays.asList(excludes));
@@ -680,7 +679,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * todo: need more smart mechanism to invalidate the related components?
      *
      * @param container {@link OWLObject}, not {@code null}
-     * @see #clearObjectsCaches()
+     * @see #clearComponentsCaches()
      */
     protected void clearOWLObjects(OWLObject container) {
         InternalCache<OWLComponent, Set<OWLObject>> cache = components.asCache();
@@ -696,7 +695,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * Puts all components of the given {@code container} into the {@link #components} cache.
      *
      * @param container {@link OWLObject}, not {@code null}
-     * @see #clearObjectsCaches()
+     * @see #clearComponentsCaches()
      */
     protected void cacheOWLObjects(OWLObject container) {
         InternalCache<OWLComponent, Set<OWLObject>> cache = components.asCache();
@@ -846,7 +845,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @return {@code Stream} of {@link OWLAxiom}s
      */
     public Stream<OWLAxiom> listOWLAxioms(OWLPrimitive primitive) {
-        OWLComponent filter = OWLComponent.getType(primitive);
+        OWLComponent filter = OWLComponent.get(primitive);
         if (OWLContentType.ANNOTATION.hasComponent(filter)) {
             // is type of annotation -> any axiom may contain the primitive
             return reduce(OWLContentType.axioms().flatMap(k -> {
@@ -882,7 +881,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      */
     public <A extends OWLAxiom> Stream<A> listOWLAxioms(Class<A> type, OWLObject object) {
         OWLContentType key = OWLContentType.get(type);
-        OWLComponent filter = OWLComponent.getType(object);
+        OWLComponent filter = OWLComponent.get(object);
         if (!OWLContentType.ANNOTATION.hasComponent(filter) && !key.hasComponent(filter)) {
             return Stream.empty();
         }
@@ -1066,7 +1065,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @param key       {@link OWLContentType}, not {@code null}
      * @param container either {@link OWLAxiom} or {@link OWLAnnotation},
      *                  that corresponds to the {@code key}, not {@code null}
-     * @see #clearObjectsCaches()
+     * @see #clearComponentsCaches()
      */
     protected void remove(OWLContentType key, OWLObject container) {
         try {
@@ -1084,10 +1083,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
             // remove related components from the objects cache
             clearOWLObjects(container);
             // force recollect system-resources
-            systemResources.clear();
-            // just in case
-            objectFactoryCache.asCache().clear();
-            searchModelCache.asCache().clear();
+            clearOtherCaches();
         } finally {
             enableDirectListening();
         }
@@ -1203,34 +1199,6 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     }
 
     /**
-     * Clears the cache for the specified triple.
-     * This method is called if work directly through jena model interface.
-     *
-     * @param triple {@link Triple}
-     */
-    protected void clearCacheOnDelete(Triple triple) {
-        // todo: change this not to use triple-store cache
-        objectTriplesMaps().filter(ObjectTriplesMap::isLoaded)
-                .filter(x -> needInvalidate(x, triple))
-                .forEach(ObjectTriplesMap::clear);
-        // todo: there is no need to invalidate *whole* objects cache
-        clearObjectsCaches();
-    }
-
-    private static <O extends OWLObject> boolean needInvalidate(ObjectTriplesMap<O> map, Triple t) {
-        return map.objects().anyMatch(o -> {
-            try {
-                return map.contains(o, t);
-            } catch (JenaException j) {
-                // may occur in case a previous operation
-                // (ObjectTriplesMap#unregister() or direct working through jena interface)
-                // breaks the object structure
-                return true;
-            }
-        });
-    }
-
-    /**
      * Deletes a triple from the base graph and clears the standard jena model cache for it.
      *
      * @param triple {@link Triple}
@@ -1294,15 +1262,19 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         cachedID = null;
         content.asCache().clear();
         snapshot = null;
-        clearObjectsCaches();
+        clearComponentsCaches();
     }
 
     /**
      * Invalidates {@link #components}, {@link #objectFactoryCache} and {@link #searchModelCache} caches.
      * Auxiliary method.
      */
-    protected void clearObjectsCaches() {
+    protected void clearComponentsCaches() {
         components.asCache().clear();
+        clearOtherCaches();
+    }
+
+    protected void clearOtherCaches() {
         objectFactoryCache.asCache().clear();
         searchModelCache.asCache().clear();
         systemResources.clear();
@@ -1423,10 +1395,6 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
             clearCache();
         }
 
-        protected void invalidate(Triple t) {
-            clearCacheOnDelete(t);
-        }
-
         /**
          * If at the moment there is an {@link CacheObjectTriplesMapImpl.Listener}
          * then it's called from {@link InternalModel#add(OWLAxiom)} =&gt; don't clear cache;
@@ -1442,7 +1410,11 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
 
         @Override
         protected void deleteEvent(Triple t) {
-            invalidate(t);
+            // Although it is possible to detect only those cache elements,
+            // that are really affected by deleting the triple,
+            // but such a calculation would be rather too complicated and time-consuming and (therefore) possibly buggy.
+            // So it seems to be better just release all caches.
+            invalidate();
         }
 
         @Override

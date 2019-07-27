@@ -167,7 +167,6 @@ public class CacheObjectTriplesMapImpl<X extends OWLObject> implements ObjectTri
         return getMap().getObjectsMap().keySet().stream();
     }
 
-    @Override
     public Stream<Triple> triples(X o) throws JenaException {
         return getONTObject(o).triples();
     }
@@ -186,24 +185,6 @@ public class CacheObjectTriplesMapImpl<X extends OWLObject> implements ObjectTri
     @Override
     public boolean contains(X o) {
         return getMap().getObjectsMap().containsKey(o);
-    }
-
-    /**
-     * {@inheritDoc}
-     * It is used while deleting Triple through Jena interfaces.
-     *
-     * @param o {@link X} key-object, not {@code null}
-     * @param t {@link Triple}, not {@code null}
-     * @return boolean
-     */
-    @Override
-    public boolean contains(X o, Triple t) {
-        CachedMap m;
-        if (isLoaded() && (m = getMap()).hasTriplesMap()) {
-            Set<X> res = m.getTriplesMap().get(t);
-            return res != null && res.contains(o);
-        }
-        return triples(o).anyMatch(t::equals);
     }
 
     @Override

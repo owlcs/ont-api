@@ -18,6 +18,7 @@ import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
+import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.utils.Iter;
 
 import java.util.Arrays;
@@ -198,6 +199,15 @@ public enum OWLContentType {
             res = StreamSupport.stream(types.spliterator(), false);
         }
         return res.map(OWLContentType::get);
+    }
+
+    /**
+     * @param s
+     * @param c
+     * @return
+     */
+    static Stream<OWLContentType> findAxioms(OntStatement s, InternalConfig c) {
+        return axioms().filter(x -> x.getTranslator().testStatement(s, c));
     }
 
     /**

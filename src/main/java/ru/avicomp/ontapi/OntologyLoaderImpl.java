@@ -639,8 +639,8 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
             }
 
             @Override
-            public boolean has(OWLOntology ontology) {
-                return delegate.has(ontology) || super.has(ontology);
+            public boolean hasOntology(OWLOntology ontology) {
+                return delegate.hasOntology(ontology) || super.hasOntology(ontology);
             }
 
             @Override

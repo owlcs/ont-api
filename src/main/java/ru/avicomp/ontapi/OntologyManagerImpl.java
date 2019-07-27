@@ -57,6 +57,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -829,7 +830,7 @@ public class OntologyManagerImpl implements OntologyManager,
     public boolean contains(@Nonnull OWLOntology ontology) {
         getLock().readLock().lock();
         try {
-            return has(ontology);
+            return hasOntology(ontology);
         } finally {
             getLock().readLock().unlock();
         }
@@ -841,8 +842,8 @@ public class OntologyManagerImpl implements OntologyManager,
      * @param ontology {@link OWLOntology} to test
      * @return true if the manager has the ontology
      */
-    protected boolean has(OWLOntology ontology) {
-        return content.values().map(OntInfo::get).anyMatch(o -> Objects.equals(o, ontology));
+    protected boolean hasOntology(OWLOntology ontology) {
+        return content.values().map(OntInfo::get).anyMatch(o -> o.equals(ontology));
     }
 
     /**
@@ -956,7 +957,7 @@ public class OntologyManagerImpl implements OntologyManager,
     public IRI getOntologyDocumentIRI(@Nonnull OWLOntology ontology) {
         getLock().readLock().lock();
         try {
-            if (!has(ontology)) throw new UnknownOWLOntologyException(ontology.getOntologyID());
+            if (!hasOntology(ontology)) throw new UnknownOWLOntologyException(ontology.getOntologyID());
             return documentIRIByOntology(ontology)
                     .orElseThrow(() -> new OntApiException("Null document iri, ontology id=" + ontology.getOntologyID()));
         } finally {
@@ -1286,97 +1287,94 @@ public class OntologyManagerImpl implements OntologyManager,
                 continue;
             }
             // rollback could not complete, throw an exception
-            throw new OWLRuntimeException("Rollback of changes unsuccessful: " +
-                    "Change " + c + " could not be rolled back");
+            throw new OntApiException("Rollback of changes unsuccessful: Change " + c + " could not be rolled back");
         }
     }
 
     /**
-     * @param change {@link OWLOntologyChange}
+     * Controls the change.
+     *
+     * @param change {@link OWLOntologyChange}, not {@code null}
      * @return {@link ChangeApplied}
      */
     protected ChangeApplied enactChangeApplication(OWLOntologyChange change) {
+        OWLOntology owl = change.getOntology();
+        if (!(owl instanceof OntologyModel)) {
+            throw new OntApiException.IllegalArgument("Not an OntologyModel instance: " + owl);
+        }
+        OntologyModel ont = (OntologyModel) owl;
+        if (!hasOntology(ont)) {
+            throw new UnknownOWLOntologyException(ont.getOntologyID());
+        }
         if (!isChangeApplicable(change)) {
             return ChangeApplied.UNSUCCESSFULLY;
         }
-        OWLOntology ont = change.getOntology();
         if (!(ont instanceof OWLMutableOntology)) {
-            throw new ImmutableOWLOntologyChangeException(change.getChangeData(), ont.toString());
+            throw new ImmutableOWLOntologyChangeException(change.getChangeData(), owl.toString());
         }
-        checkForOntologyIDChange(change);
-        ChangeApplied appliedChange = ont.applyDirectChange(change);
-        checkForImportsChange(change);
-        return appliedChange;
+
+        if (change instanceof SetOntologyID) {
+            OWLOntologyID newId = ((SetOntologyID) change).getNewOntologyID();
+            Optional<OntologyModel> existing = content.get(newId).map(OntInfo::get);
+            if (existing.isPresent() && !ont.equals(existing.get())) {
+                throw new OWLOntologyRenameException(change.getChangeData(), newId);
+            }
+        }
+        Collection<OWLOntologyChange> relatedChanges = collectRelatedChanges(change);
+        ChangeApplied res = ont.applyDirectChange(change);
+        relatedChanges.forEach(ont::applyDirectChange);
+        return res;
     }
 
     /**
-     * @param change {@link OWLOntologyChange}
+     * Collects the related changes according to the settings.
+     *
+     * @param change {@link OWLOntologyChange}, not {@code null}
+     * @return a {@code Collection} of {@link OWLOntologyChange}s
+     */
+    protected Collection<OWLOntologyChange> collectRelatedChanges(OWLOntologyChange change) {
+        if (!change.isImportChange()) {
+            return Collections.emptyList();
+        }
+        OntologyModel ont = (OntologyModel) change.getOntology();
+        OWLOntologyID id = ont.getOntologyID();
+        OntWriterConfiguration conf = content.get(id).map(OntInfo::getModelConfig)
+                .map(ModelConfig::getWriterConfig)
+                .orElseThrow(OntApiException.IllegalState::new);
+        if (!conf.isControlImports()) {
+            return Collections.emptyList();
+        }
+        OWLImportsDeclaration declaration = ((ImportChange) change).getImportDeclaration();
+        OntologyModel importedOntology = getImportedOntology(declaration);
+        if (importedOntology == null) {
+            return Collections.emptyList();
+        }
+        Function<OWLAxiom, OWLAxiomChange> func;
+        if (change instanceof AddImport) {
+            func = x -> new RemoveAxiom(ont, x);
+        } else if (change instanceof RemoveImport) {
+            func = x -> new AddAxiom(ont, x);
+        } else {
+            throw new OntApiException.IllegalState();
+        }
+        DataFactory df = getOWLDataFactory();
+        return importedOntology.signature(Imports.INCLUDED)
+                .filter(ont::containsReference)
+                .map(df::getOWLDeclarationAxiom)
+                .collect(Collectors.toSet())
+                .stream().map(func).collect(Collectors.toList());
+    }
+
+    /**
+     * Checks if the change can be applied.
+     *
+     * @param change {@link OWLOntologyChange}, not {@code null}
      * @return boolean
      */
     protected boolean isChangeApplicable(OWLOntologyChange change) {
         OWLOntologyID id = change.getOntology().getOntologyID();
-        Optional<ModelConfig> conf = content.get(id)
-                .map(OntInfo::getModelConfig);
-        return !(conf.isPresent()
-                && !conf.get().isLoadAnnotationAxioms()
-                && change.isAddAxiom()
-                && change.getAxiom() instanceof OWLAnnotationAxiom);
-    }
-
-    /**
-     * @param change {@link OWLOntologyChange}
-     */
-    protected void checkForOntologyIDChange(OWLOntologyChange change) {
-        if (!(change instanceof SetOntologyID)) {
-            return;
-        }
-        SetOntologyID setID = (SetOntologyID) change;
-        Optional<OntologyModel> existing = content.get(setID.getNewOntologyID()).map(OntInfo::get);
-        OWLOntology o = setID.getOntology();
-        if (existing.isPresent() && !o.equals(existing.get()) && !o.equalAxioms(existing.get())) {
-            LOGGER.warn("uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#checkForOntologyIDChange:: " +
-                    "existing:{}, new:{}", existing, o);
-            throw new OWLOntologyRenameException(setID.getChangeData(), setID.getNewOntologyID());
-        }
-    }
-
-    /**
-     * This method has the same signature as the original but totally different meaning.
-     * In ONT-API it is for making some related changes with the ontology from {@link ImportChange},
-     * not for keeping correct state of manager.
-     *
-     * @param change {@link OWLOntologyChange}
-     */
-    protected void checkForImportsChange(OWLOntologyChange change) {
-        if (!change.isImportChange()) {
-            return;
-        }
-        OWLImportsDeclaration declaration = ((ImportChange) change).getImportDeclaration();
-        OntologyModel ontology = getAdapter().asONT(change.getOntology());
-        OWLOntologyID id = ontology.getOntologyID();
-        Optional<OntWriterConfiguration> conf = content.get(id).map(OntInfo::getModelConfig)
-                .map(ModelConfig::getWriterConfig);
-        if (!conf.isPresent() || !conf.get().isControlImports()) {
-            return;
-        }
-        OntologyModel importedOntology = getImportedOntology(declaration);
-        if (importedOntology == null) {
-            return;
-        }
-        List<OWLOntologyChange> relatedChanges;
-        if (change instanceof AddImport) {
-            // remove duplicated declarations if they are present in the imported ontology
-            relatedChanges = importedOntology.axioms(AxiomType.DECLARATION, Imports.INCLUDED)
-                    .filter(ontology::containsAxiom)
-                    .map(a -> new RemoveAxiom(ontology, a)).collect(Collectors.toList());
-        } else {
-            // return back declarations which are still in use:
-            relatedChanges = importedOntology.signature(Imports.INCLUDED)
-                    .filter(ontology::containsReference)
-                    .map(e -> getOWLDataFactory().getOWLDeclarationAxiom(e))
-                    .map(a -> new AddAxiom(ontology, a)).collect(Collectors.toList());
-        }
-        relatedChanges.forEach(ontology::applyDirectChange);
+        ModelConfig conf = content.get(id).map(OntInfo::getModelConfig).orElseThrow(OntApiException.IllegalState::new);
+        return conf.isLoadAnnotationAxioms() || !change.isAddAxiom() || !(change.getAxiom() instanceof OWLAnnotationAxiom);
     }
 
     /**

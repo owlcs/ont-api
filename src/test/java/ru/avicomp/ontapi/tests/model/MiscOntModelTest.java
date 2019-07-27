@@ -19,8 +19,10 @@ import org.junit.Test;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.*;
+import ru.avicomp.ontapi.jena.model.OntCE;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
+import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
@@ -180,5 +182,28 @@ public class MiscOntModelTest extends OntModelTestBase {
 
         Assert.assertEquals("_:" + ti1.getId().getLabelString(), ti2.toStringID());
         Assert.assertEquals(ni1.toStringID(), "_:" + ni2.getId().getLabelString());
+    }
+
+    @Test
+    public void testRemoveStatement() {
+        OntologyManager man = OntManagers.createONT();
+        OntologyModel o = man.createOntology(IRI.create("X"));
+
+        OntGraphModel m = o.asGraphModel();
+        OntCE ce = m.createUnionOf(m.createOntClass("y"), m.createOntClass("z"));
+        ce.createIndividual("i").attachClass(m.createOntClass("w"));
+        m.createOntClass("z").addSuperClass(ce)
+                .addEquivalentClass(m.createObjectAllValuesFrom(m.createObjectProperty("p"), ce));
+
+        ReadWriteUtils.print(m);
+        Assert.assertEquals(9, o.axioms().peek(x -> LOGGER.debug("1:{}", x)).count());
+        Assert.assertEquals(19, m.size());
+
+        OntStatement s = m.statements(null, OWL.unionOf, null).findFirst().orElseThrow(AssertionError::new);
+        m.remove(s);
+
+        ReadWriteUtils.print(m);
+        Assert.assertEquals(6, o.axioms().peek(x -> LOGGER.debug("2:{}", x)).count());
+        Assert.assertEquals(18, m.size());
     }
 }

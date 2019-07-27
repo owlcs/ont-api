@@ -63,17 +63,6 @@ public interface ObjectTriplesMap<O extends OWLObject> {
     Stream<O> objects();
 
     /**
-     * Lists all {@code Triple}s associated with the object-key.
-     *
-     * @param key {@link O} key-object, not {@code null}
-     * @return {@code Stream} of {@link Triple}s
-     * @throws RuntimeException in case object's triple-structure is broken
-     */
-    default Stream<Triple> triples(O key) throws RuntimeException {
-        return get(key).triples();
-    }
-
-    /**
      * Creates a graph listener that handles adding {@link O OWLObject} while changing a {@code Graph}.
      *
      * @param key {@link O} key-object, not {@code null}
@@ -109,17 +98,6 @@ public interface ObjectTriplesMap<O extends OWLObject> {
      */
     default boolean contains(O key) {
         return objects().anyMatch(key::equals);
-    }
-
-    /**
-     * Answers {@code true} if the given object-triple pair is present into the map.
-     *
-     * @param key    {@link O} key-object, not {@code null}
-     * @param triple {@link Triple}, not {@code null}
-     * @return boolean
-     */
-    default boolean contains(O key, Triple triple) {
-        return triples(key).anyMatch(triple::equals);
     }
 
 }

@@ -15,7 +15,6 @@
 package ru.avicomp.ontapi.internal;
 
 import org.apache.jena.graph.GraphListener;
-import org.apache.jena.graph.Triple;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.util.iterator.WrappedIterator;
 import org.semanticweb.owlapi.model.OWLObject;
@@ -67,11 +66,6 @@ public class DirectObjectTripleMapImpl<X extends OWLObject> implements ObjectTri
     @Override
     public boolean contains(X key) {
         return object(key).isPresent();
-    }
-
-    @Override
-    public Stream<Triple> triples(X key) throws RuntimeException {
-        return object(key).map(ONTObject::triples).orElse(Stream.empty());
     }
 
     public Optional<ONTObject<X>> object(X key) {

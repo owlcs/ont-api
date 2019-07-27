@@ -381,7 +381,7 @@ public enum OWLComponent {
      * @param o {@link OWLObject}, not {@code null}
      * @return {@link OWLComponent}
      */
-    public static OWLComponent getType(OWLObject o) {
+    public static OWLComponent get(OWLObject o) {
         Optional<OWLComponent> res = Arrays.stream(values()).filter(OWLComponent::isPrimitive)
                 .filter(x -> x.owl.isInstance(o))
                 .findFirst();
