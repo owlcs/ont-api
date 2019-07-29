@@ -157,7 +157,7 @@ public class CacheConfigTest {
         try {
             o2.add(df.getOWLSubClassOfAxiom(df.getOWLClass("C"), df.getOWLClass("D")));
             Assert.fail("Possible to add axiom");
-        } catch (DirectObjectTripleMapImpl.ModificationDeniedException e) {
+        } catch (OntologyModelImpl.ModificationDeniedException e) {
             LOGGER.debug("Expected: '{}'", e.getMessage());
         }
         Assert.assertEquals(size, g.size());
@@ -165,7 +165,7 @@ public class CacheConfigTest {
         try {
             o2.remove(axiom);
             Assert.fail("Possible to delete axiom");
-        } catch (DirectObjectTripleMapImpl.ModificationDeniedException e) {
+        } catch (OntologyModelImpl.ModificationDeniedException e) {
             LOGGER.debug("Expected: '{}'", e.getMessage());
         }
         Assert.assertEquals(size, g.size());

@@ -14,11 +14,9 @@
 
 package ru.avicomp.ontapi.internal;
 
-import org.apache.jena.graph.GraphListener;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.util.iterator.WrappedIterator;
 import org.semanticweb.owlapi.model.OWLObject;
-import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.utils.Iter;
 
 import java.util.Iterator;
@@ -39,6 +37,35 @@ public class DirectObjectTripleMapImpl<X extends OWLObject> implements ObjectTri
         this.loader = Objects.requireNonNull(loader);
     }
 
+    public ExtendedIterator<ONTObject<X>> listONTObjects() {
+        return WrappedIterator.create(loader.get());
+    }
+
+    public Optional<ONTObject<X>> findONTObject(X key) {
+        // todo: need a straight way, this one is extremely inefficient
+        return Iter.findFirst(listONTObjects().filterKeep(x -> key.equals(x.getObject())));
+    }
+
+    @Override
+    public Stream<X> keys() {
+        return Iter.asStream(listONTObjects().mapWith(ONTObject::getObject));
+    }
+
+    @Override
+    public Stream<ONTObject<X>> values() {
+        return Iter.asStream(listONTObjects());
+    }
+
+    @Override
+    public boolean contains(X key) {
+        return findONTObject(key).isPresent();
+    }
+
+    @Override
+    public ONTObject<X> get(X key) {
+        return findONTObject(key).orElse(null);
+    }
+
     @Override
     public boolean hasNew() {
         return false;
@@ -54,48 +81,19 @@ public class DirectObjectTripleMapImpl<X extends OWLObject> implements ObjectTri
         // nothing
     }
 
-    public ExtendedIterator<ONTObject<X>> listONTObjects() {
-        return WrappedIterator.create(loader.get());
-    }
-
-    @Override
-    public Stream<X> objects() {
-        return Iter.asStream(listONTObjects().mapWith(ONTObject::getObject));
-    }
-
-    @Override
-    public boolean contains(X key) {
-        return object(key).isPresent();
-    }
-
-    public Optional<ONTObject<X>> object(X key) {
-        // todo: need a straight way, this one is extremely inefficient
-        return Iter.findFirst(listONTObjects().filterKeep(x -> key.equals(x.getObject())));
-    }
-
-    @Override
-    public GraphListener addListener(X key) {
-        throw new ModificationDeniedException("Read only model. Can't add " + key + ".");
-    }
-
-    @Override
-    public void delete(X key) {
-        throw new ModificationDeniedException("Read only model. Can't delete " + key + ".");
-    }
-
-    @Override
-    public ONTObject<X> get(X key) {
-        return object(key).orElse(null);
-    }
-
     @Override
     public void clear() {
         // nothing
     }
 
-    public static class ModificationDeniedException extends OntApiException.Unsupported {
-        public ModificationDeniedException(String message) {
-            super(message);
-        }
+    @Override
+    public void remove(X key) {
+        // nothing
     }
+
+    @Override
+    public void add(ONTObject<X> value) {
+        // nothing
+    }
+
 }

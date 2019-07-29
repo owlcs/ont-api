@@ -14,27 +14,25 @@
 
 package ru.avicomp.ontapi.internal;
 
-import org.apache.jena.graph.GraphListener;
-import org.apache.jena.graph.Triple;
 import org.semanticweb.owlapi.model.OWLObject;
 
 import java.util.stream.Stream;
 
 /**
- * An object that maps {@link OWLObject}s, considered as keys, to {@link Triple}s collection.
- * A map cannot contain duplicate or {@code null} keys.
- * It is a loading map: it may contain both manually added pairs or loaded by an internal process,
+ * The generic interface, similar to {@code java.util.Map}, that provides access to a collection of {@link ONTObject}.
+ * It cannot contain {@code null} keys.
+ * It is a loading map: it may contain both manually added {@code ONTObject}s or loaded by an internal process,
  * which relies on a {@link org.apache.jena.graph.Graph}.
  * <p>
  * Created by @ssz on 07.03.2019.
  *
- * @param <O> any {@link OWLObject}
+ * @param <X> any {@link OWLObject}
  */
-public interface ObjectTriplesMap<O extends OWLObject> {
+public interface ObjectTriplesMap<X extends OWLObject> {
 
     /**
-     * Answers {@code true} if any of the encapsulated object-triples pair
-     * has been added manually through the method {@link #addListener(OWLObject)},
+     * Answers {@code true} if any of the encapsulated {@code ONTObject}s
+     * has been added manually through the method {@link #add(ONTObject)},
      * not just loaded by the internal loader.
      * This flag is for optimization.
      *
@@ -43,7 +41,8 @@ public interface ObjectTriplesMap<O extends OWLObject> {
     boolean hasNew();
 
     /**
-     * Answers {@code true} if this map is loaded, i.e. contains all object-triple pairs in memory.
+     * Answers {@code true} if this map is loaded,
+     * i.e. already contains all {@code ONTObject}s in memory.
      *
      * @return boolean
      */
@@ -56,34 +55,39 @@ public interface ObjectTriplesMap<O extends OWLObject> {
     void load();
 
     /**
-     * Lists all {@code OWLObjects}s encapsulated by this map.
+     * Answers the {@link ONTObject} associated with the given {@code key}.
      *
-     * @return {@code Stream} of {@link O}s
-     */
-    Stream<O> objects();
-
-    /**
-     * Creates a graph listener that handles adding {@link O OWLObject} while changing a {@code Graph}.
-     *
-     * @param key {@link O} key-object, not {@code null}
-     * @return {@link GraphListener}
-     */
-    GraphListener addListener(O key);
-
-    /**
-     * Deletes the given object and all its associated triples.
-     *
-     * @param key {@link O} key-object, not {@code null}
-     */
-    void delete(O key);
-
-    /**
-     * Answers the {@link ONTObject} associated with the {@code key}.
-     *
-     * @param key {@link O} key-object, not {@code null}
+     * @param key {@link X} key-object, not {@code null}
      * @return {@link ONTObject} or {@code null}
      */
-    ONTObject<O> get(O key);
+    ONTObject<X> get(X key);
+
+    /**
+     * Lists all {@code OWLObjects}s encapsulated by this map.
+     *
+     * @return {@code Stream} of {@link X}s
+     */
+    Stream<X> keys();
+
+    /**
+     * Lists all {@code ONTObject}s encapsulated by this map.
+     * @return {@code Stream} of {@link ONTObject} that wrap {@link X}s
+     */
+    Stream<ONTObject<X>> values();
+
+    /**
+     * Adds the given object with all its associated triples to internal map, if is is supported.
+     *
+     * @param value {@link ONTObject} of {@link X}, not {@code null}
+     */
+    void add(ONTObject<X> value);
+
+    /**
+     * Removes the given object and all its associated triples from internal map, if is is supported.
+     *
+     * @param key {@link X} key-object, not {@code null}
+     */
+    void remove(X key);
 
     /**
      * Clears the whole map-cache.
@@ -93,11 +97,11 @@ public interface ObjectTriplesMap<O extends OWLObject> {
     /**
      * Answers {@code true} is the map contains the object.
      *
-     * @param key {@link O} key-object, not {@code null}
+     * @param key {@link X} key-object, not {@code null}
      * @return boolean
      */
-    default boolean contains(O key) {
-        return objects().anyMatch(key::equals);
+    default boolean contains(X key) {
+        return get(key) != null;
     }
 
 }

@@ -89,19 +89,40 @@ public interface CacheSettings {
 
     /**
      * Answers whether an internal model content cache is enabled, that is {@code true} by default.
+     * <p>
+     * Disabling internal content cache may be useful in case the ontology is too large to fit in memory.
+     * In the normal case, it is better not to turn off this cache.
+     * <p>
      * An internal model content cache speedups axiom listing and controls add/remove components behaviour.
-     * In case it is turned off,
+     * If it is turned off,
      * then the direct graph traversal is used for retrieving axioms and ontology header (annotations).
      * Warning: in that case the adding and removing axioms is disabled in the model level.
-     * But this concerns only the top-level {@link ru.avicomp.ontapi.OntologyModel OWL Model} interface.
-     * A graph is editable, if it is not restricted in some other place.
+     * For this there are two reasons:
+     * <ul>
+     * <li>OWL-API allows some uncertainty in axiom's definition,
+     * the same data amount can be represented as an axiom in various ways
+     * (more about this see in the description of
+     * the method {@link ru.avicomp.ontapi.OntologyModel#clearCache()}).
+     * It follows from this that the newly added axiom may not be found in the same form as it was,
+     * which may confuse</li>
+     * <li>Currently,
+     * the {@link org.semanticweb.owlapi.model.OWLOntology#removeAxiom(org.semanticweb.owlapi.model.OWLAxiom)}
+     * operation requires some analytics to decide which part of an axiom can be really deleted from the graph,
+     * which is also a consequence of OWL-API ambiguity.
+     * This implies some calculations that may take a long time if there is no cache</li>
+     * </ul>
+     * But non-modifiability concerns only the top-level {@link ru.avicomp.ontapi.OntologyModel OWL Model} interface.
+     * If it is not restricted in some other place, a graph is editable.
      * So it is possible to modify model using {@link ru.avicomp.ontapi.jena.model.OntGraphModel} interface
      * (see the method {@link ru.avicomp.ontapi.OntologyModel#asGraphModel()}).
      * Also, to add axiom a {@link ru.avicomp.ontapi.internal.AxiomTranslator} mechanism can be used,
      * e.g. to add the axiom {@code A} into the RDF Model {@code m},
      * the expression {@code AxiomParserProvider.get(A).writeAxiom(A, m)} can be used.
-     * Disabling internal content cache may be useful in case the ontology is too large to fit in memory.
-     * In the normal case, it is better not to turn off this cache.
+     * <p>
+     * Also please note: the cache ensures no duplicates in any {@code Stream}, returned by axioms-listing methods.
+     * When cache is disabled, this restriction is removed.
+     * For example, the couple of triples {@code x owl:differentFrom y . y owl:differentFrom x}
+     * will produce two identical (by {@code equals(Object)} and {@code hashCode()}) axioms.
      *
      * @return boolean
      * @see CacheControl#setUseContentCache(boolean)

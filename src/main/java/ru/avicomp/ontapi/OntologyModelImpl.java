@@ -191,8 +191,15 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
          * For example, adding {@code SubClassOf} will also add all class declaration triples,
          * and the axioms count will increment by more than one.
          * This will not happen if the cache is already loaded before the operation.
+         * <p>
+         * Also, an exception is thrown in case the content cache is disabled.
+         * For more details about this,
+         * see the method {@link ru.avicomp.ontapi.config.CacheSettings#isContentCacheEnabled()} description.
          */
         protected void beforeChange() {
+            if (!getConfig().isContentCacheEnabled()) {
+                throw new ModificationDeniedException("Mutations through OWL-API interface are not allowed");
+            }
             getBase().forceLoad();
         }
 
@@ -426,6 +433,15 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
                 return withBase(((U) from).from, base);
             }
             return new U(base, from);
+        }
+    }
+
+    /**
+     * A runtime exception to indicate that modification through OWL-API interface is not allowed.
+     */
+    public static class ModificationDeniedException extends OntApiException.Unsupported {
+        public ModificationDeniedException(String message) {
+            super(message);
         }
     }
 }

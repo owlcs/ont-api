@@ -18,7 +18,6 @@ import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
-import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.utils.Iter;
 
 import java.util.Arrays;
@@ -56,6 +55,11 @@ public enum OWLContentType {
                                                                         InternalObjectFactory f,
                                                                         InternalConfig c) {
             return ReadHelper.listOWLAnnotations(m.getID(), f);
+        }
+
+        @Override
+        void write(OntGraphModel m, OWLObject v) {
+            WriteHelper.addAnnotations(m.getID(), Stream.of((OWLAnnotation) v));
         }
     },
     DECLARATION(AxiomType.DECLARATION, true, ENTITY),
@@ -102,12 +106,13 @@ public enum OWLContentType {
     public static final List<OWLContentType> AXIOMS = all().skip(1).collect(Iter.toUnmodifiableList());
     public static final List<OWLContentType> LOGICAL = AXIOMS.stream().filter(x -> x.type.isLogical()).collect(Iter.toUnmodifiableList());
 
-    private final AxiomType<? extends OWLAxiom> type;
+    private final AxiomType<OWLAxiom> type;
     private final boolean distinct;
     private final Set<OWLComponent> components;
 
+    @SuppressWarnings("unchecked")
     OWLContentType(AxiomType<? extends OWLAxiom> type, boolean distinct, OWLComponent... types) {
-        this.type = type;
+        this.type = (AxiomType<OWLAxiom>) type;
         this.distinct = distinct;
         this.components = OWLComponent.toSet(types);
     }
@@ -202,15 +207,6 @@ public enum OWLContentType {
     }
 
     /**
-     * @param s
-     * @param c
-     * @return
-     */
-    static Stream<OWLContentType> findAxioms(OntStatement s, InternalConfig c) {
-        return axioms().filter(x -> x.getTranslator().testStatement(s, c));
-    }
-
-    /**
      * Answers {@code true} iff it is meta-info for an axiom-type, not for {@link #ANNOTATION header}.
      *
      * @return boolean
@@ -273,13 +269,12 @@ public enum OWLContentType {
      *
      * @return {@link AxiomType} or {@code null}
      */
-    @SuppressWarnings("unchecked")
     public AxiomType<OWLAxiom> getAxiomType() {
-        return (AxiomType<OWLAxiom>) type;
+        return type;
     }
 
     /**
-     * Reads content-objects from a graph.
+     * Reads content-objects from the graph.
      *
      * @param m {@link OntGraphModel ONT-API Jena Model}, to search over
      * @param f {@link InternalObjectFactory} to construct OWL-API Objects (wrapped as {@link ONTObject})
@@ -293,11 +288,22 @@ public enum OWLContentType {
     }
 
     /**
+     * Writes the content-object into the graph.
+     *
+     * @param m     {@link OntGraphModel ONT-API Jena Model}, to modify
+     * @param value {@link OWLObject} - either {@link OWLAxiom} or {@link OWLAnnotation}
+     */
+    @SuppressWarnings("unchecked")
+    void write(OntGraphModel m, OWLObject value) {
+        ((AxiomTranslator<OWLAxiom>) getTranslator()).write((OWLAxiom) value, m);
+    }
+
+    /**
      * Provides a translator - the facility to read/write {@link OWLAxiom} in/from a graph.
      *
      * @return {@link AxiomTranslator}
      */
-    AxiomTranslator<? extends OWLObject> getTranslator() {
+    AxiomTranslator<? extends OWLAxiom> getTranslator() {
         return AxiomParserProvider.get(type);
     }
 

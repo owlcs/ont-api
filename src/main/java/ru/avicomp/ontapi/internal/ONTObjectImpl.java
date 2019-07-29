@@ -84,7 +84,8 @@ public abstract class ONTObjectImpl<O extends OWLObject> implements ONTObject<O>
         };
     }
 
-    public static <X extends OWLObject> ONTObjectImpl<X> asImpl(ONTObject<X> obj) {
+    @SuppressWarnings("WeakerAccess")
+    protected static <X extends OWLObject> ONTObjectImpl<X> asImpl(ONTObject<X> obj) {
         return obj instanceof ONTObjectImpl ? (ONTObjectImpl<X>) obj : create(obj);
     }
 
@@ -160,20 +161,6 @@ public abstract class ONTObjectImpl<O extends OWLObject> implements ONTObject<O>
 
     private Stream<Triple> concat(Stream<Triple> other) {
         return isDefinitelyEmpty() ? other : Stream.concat(this.triples(), other);
-    }
-
-    public ONTObjectImpl<O> add(Triple triple) {
-        return append(() -> Stream.of(triple));
-    }
-
-    public ONTObjectImpl<O> delete(Triple triple) {
-        if (isDefinitelyEmpty()) return this;
-        return new ONTObjectImpl<O>(object) {
-            @Override
-            public Stream<Triple> triples() {
-                return ONTObjectImpl.this.triples().filter(t -> !triple.equals(t));
-            }
-        };
     }
 
 }
