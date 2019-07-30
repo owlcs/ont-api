@@ -20,7 +20,6 @@ import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.impl.ModelCom;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import org.apache.jena.util.iterator.WrappedIterator;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.*;
@@ -162,7 +161,7 @@ public class OntModels {
             return ((OntGraphModelImpl) model).listLocalOntObjects(type);
         }
         Stream<O> res = model.ontObjects(type);
-        return WrappedIterator.create(res.iterator()).filterKeep(OntObject::isLocal);
+        return Iter.create(res.iterator()).filterKeep(OntObject::isLocal);
     }
 
     /**
@@ -177,7 +176,7 @@ public class OntModels {
         if (model instanceof OntGraphModelImpl) {
             return ((OntGraphModelImpl) model).listLocalOntEntities();
         }
-        return WrappedIterator.create(model.ontEntities().iterator()).filterKeep(OntObject::isLocal);
+        return Iter.create(model.ontEntities().iterator()).filterKeep(OntObject::isLocal);
     }
 
     /**
@@ -191,7 +190,7 @@ public class OntModels {
         if (list instanceof OntListImpl) {
             return ((OntListImpl<R>) list).listMembers();
         }
-        return WrappedIterator.create(list.members().iterator());
+        return Iter.create(list.members().iterator());
     }
 
     /**
@@ -232,7 +231,7 @@ public class OntModels {
         if (s instanceof OntStatementImpl) {
             return ((OntStatementImpl) s).listAnnotations();
         }
-        return WrappedIterator.create(s.annotations().iterator());
+        return Iter.create(s.annotations().iterator());
     }
 
     /**
@@ -245,7 +244,7 @@ public class OntModels {
         if (o instanceof OntObjectImpl) {
             return ((OntObjectImpl) o).listAnnotations();
         }
-        return WrappedIterator.create(o.annotations().iterator());
+        return Iter.create(o.annotations().iterator());
     }
 
     /**

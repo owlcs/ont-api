@@ -26,7 +26,6 @@ import org.apache.jena.reasoner.Reasoner;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.util.iterator.NullIterator;
-import org.apache.jena.util.iterator.WrappedIterator;
 import org.apache.jena.vocabulary.RDFS;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.UnionGraph;
@@ -621,7 +620,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
      * @since 1.3.0
      */
     public ExtendedIterator<OntStatement> listOntStatements(Resource s, Property p, RDFNode o) {
-        return WrappedIterator.create(getGraph().find(asNode(s), asNode(p), asNode(o)).mapWith(this::asStatement));
+        return Iter.create(getGraph().find(asNode(s), asNode(p), asNode(o)).mapWith(this::asStatement));
     }
 
     /**
@@ -638,7 +637,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
      * @since 1.3.0
      */
     public ExtendedIterator<OntStatement> listLocalStatements(Resource s, Property p, RDFNode o) {
-        return WrappedIterator.create(getBaseGraph().find(asNode(s), asNode(p), asNode(o)).mapWith(this::asStatement));
+        return Iter.create(getBaseGraph().find(asNode(s), asNode(p), asNode(o)).mapWith(this::asStatement));
     }
 
     @Override

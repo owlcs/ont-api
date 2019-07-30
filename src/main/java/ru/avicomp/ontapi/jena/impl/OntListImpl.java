@@ -25,7 +25,6 @@ import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.shared.PropertyNotFoundException;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.util.iterator.NullIterator;
-import org.apache.jena.util.iterator.WrappedIterator;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntList;
@@ -89,7 +88,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
                                                             Property predicate,
                                                             Class<N> elementType,
                                                             Iterator<N> elements) {
-        return create(model, subject, predicate, null, elementType, WrappedIterator.create(elements));
+        return create(model, subject, predicate, null, elementType, Iter.create(elements));
     }
 
     /**
@@ -435,7 +434,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
         Iterator<List<Triple>> it = createRDFListIterator();
         if (it == null) return NullIterator.instance();
         OntGraphModelImpl m = getModel();
-        return WrappedIterator.create(it)
+        return Iter.create(it)
                 .mapWith(x -> createRDFFirst(m, x).getObject())
                 .filterKeep(this::isValid)
                 .mapWith(this::cast);
@@ -475,12 +474,11 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
     }
 
     protected ExtendedIterator<List<Triple>> createSafeRDFListIterator(Node list) {
-        return WrappedIterator.create(new SafeRDFListIterator(getModel().getGraph(), list))
-                .filterKeep(Objects::nonNull);
+        return Iter.create(new SafeRDFListIterator(getModel().getGraph(), list)).filterKeep(Objects::nonNull);
     }
 
     protected ExtendedIterator<List<Triple>> createRDFListIterator(Node list) {
-        return WrappedIterator.create(new RDFListIterator(getModel().getGraph(), list));
+        return Iter.create(new RDFListIterator(getModel().getGraph(), list));
     }
 
     protected ExtendedIterator<OntStatement> toListStatements(List<Triple> triples) {

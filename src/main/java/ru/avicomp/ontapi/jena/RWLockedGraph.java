@@ -380,7 +380,7 @@ public class RWLockedGraph implements Graph {
             res.add(base.next());
         }
         res.trimToSize();
-        it.setBase(WrappedIterator.create(res.iterator()));
+        it.setBase(Iter.create(res.iterator()));
         removeIterator(it);
     }
 

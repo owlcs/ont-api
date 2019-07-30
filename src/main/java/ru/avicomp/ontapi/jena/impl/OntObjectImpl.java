@@ -23,7 +23,6 @@ import org.apache.jena.shared.JenaException;
 import org.apache.jena.shared.PropertyNotFoundException;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.util.iterator.NullIterator;
-import org.apache.jena.util.iterator.WrappedIterator;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.conf.ObjectFactory;
 import ru.avicomp.ontapi.jena.impl.conf.OntFilter;
@@ -545,7 +544,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @since 1.3.0
      */
     public ExtendedIterator<OntStatement> listStatements(Property p) {
-        return WrappedIterator.create(getModel().getGraph().find(asNode(), OntGraphModelImpl.asNode(p), Node.ANY)
+        return Iter.create(getModel().getGraph().find(asNode(), OntGraphModelImpl.asNode(p), Node.ANY)
                 .mapWith(t -> createOntStatement(p, t)));
     }
 

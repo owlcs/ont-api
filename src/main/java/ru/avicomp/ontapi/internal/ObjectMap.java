@@ -19,7 +19,7 @@ import org.semanticweb.owlapi.model.OWLObject;
 import java.util.stream.Stream;
 
 /**
- * The generic interface, similar to {@code java.util.Map}, that provides access to a collection of {@link ONTObject}.
+ * The generic interface, similar to {@code java.util.Map}, that provides access to a collection of {@link ONTObject}s.
  * It cannot contain {@code null} keys.
  * It is a loading map: it may contain both manually added {@code ONTObject}s or loaded by an internal process,
  * which relies on a {@link org.apache.jena.graph.Graph}.
@@ -28,7 +28,7 @@ import java.util.stream.Stream;
  *
  * @param <X> any {@link OWLObject}
  */
-public interface ObjectTriplesMap<X extends OWLObject> {
+public interface ObjectMap<X extends OWLObject> {
 
     /**
      * Answers {@code true} if any of the encapsulated {@code ONTObject}s

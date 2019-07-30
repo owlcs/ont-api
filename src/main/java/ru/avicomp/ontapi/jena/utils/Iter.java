@@ -458,8 +458,23 @@ public class Iter {
      * @param <X>     the element type of the new iterator
      * @return a fresh {@link ExtendedIterator} instance
      */
-    public static <X> ExtendedIterator<X> create(Collection<X> members) {
-        return members.isEmpty() ? NullIterator.instance() : WrappedIterator.create(members.iterator());
+    public static <X> ExtendedIterator<X> create(Collection<? extends X> members) {
+        return members.isEmpty() ? NullIterator.instance() : create(members.iterator());
+    }
+
+    /**
+     * Answers an {@code ExtendedIterator} returning the elements of the specified {@code iterator}.
+     * If the given {@code iterator} is itself an {@code ExtendedIterator}, return that;
+     * otherwise wrap {@code iterator}.
+     *
+     * @param iterator {@link Iterator}, not {@code null}
+     * @param <X>      the element type of the iterator
+     * @return {@link ExtendedIterator} instance
+     * @since 1.4.2
+     */
+    @SuppressWarnings("unchecked")
+    public static <X> ExtendedIterator<X> create(Iterator<? extends X> iterator) {
+        return (ExtendedIterator<X>) WrappedIterator.create(iterator);
     }
 
     /**

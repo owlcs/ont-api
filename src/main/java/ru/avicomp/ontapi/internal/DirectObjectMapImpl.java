@@ -15,35 +15,52 @@
 package ru.avicomp.ontapi.internal;
 
 import org.apache.jena.util.iterator.ExtendedIterator;
-import org.apache.jena.util.iterator.WrappedIterator;
 import org.semanticweb.owlapi.model.OWLObject;
 import ru.avicomp.ontapi.jena.utils.Iter;
 
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
- * No cache.
+ * The implementation of {@link ObjectMap} that redirects calls directly to a graph, without any caching.
  * Created by @ssz on 16.03.2019.
  */
 @SuppressWarnings("WeakerAccess")
-public class DirectObjectTripleMapImpl<X extends OWLObject> implements ObjectTriplesMap<X> {
+public class DirectObjectMapImpl<X extends OWLObject> implements ObjectMap<X> {
     private final Supplier<Iterator<ONTObject<X>>> loader;
+    private final Function<X, Optional<ONTObject<X>>> finder;
 
-    public DirectObjectTripleMapImpl(Supplier<Iterator<ONTObject<X>>> loader) {
+    /**
+     * Creates a direct {@link ObjectMap} instance with default finder.
+     *
+     * @param loader {@code Supplier}, that provides a {@code Stream} of {@link ONTObject}s, not {@code null}
+     */
+    public DirectObjectMapImpl(Supplier<Iterator<ONTObject<X>>> loader) {
+        this(Objects.requireNonNull(loader),
+                k -> Iter.findFirst(Iter.create(loader.get()).filterKeep(x -> x.getObject().equals(k))));
+    }
+
+    /**
+     * Creates a direct {@link ObjectMap} instance.
+     *
+     * @param loader {@code Supplier}, that provides a {@code Stream} of {@link ONTObject}s, not {@code null}
+     * @param finder {@code Function}, that maps a {@link OWLObject}-key to {@link ONTObject}-value, not {@code null}
+     */
+    public DirectObjectMapImpl(Supplier<Iterator<ONTObject<X>>> loader, Function<X, Optional<ONTObject<X>>> finder) {
         this.loader = Objects.requireNonNull(loader);
+        this.finder = Objects.requireNonNull(finder);
     }
 
     public ExtendedIterator<ONTObject<X>> listONTObjects() {
-        return WrappedIterator.create(loader.get());
+        return Iter.create(loader.get());
     }
 
     public Optional<ONTObject<X>> findONTObject(X key) {
-        // todo: need a straight way, this one is extremely inefficient
-        return Iter.findFirst(listONTObjects().filterKeep(x -> key.equals(x.getObject())));
+        return finder.apply(key);
     }
 
     @Override

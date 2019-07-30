@@ -40,12 +40,12 @@ import java.util.stream.Stream;
  * @param <X> any subtype of {@link OWLObject} (in the system it is either {@link OWLAxiom} or {@link OWLAnnotation})
  */
 @SuppressWarnings("WeakerAccess")
-public class CacheObjectTriplesMapImpl<X extends OWLObject> implements ObjectTriplesMap<X> {
+public class CacheObjectMapImpl<X extends OWLObject> implements ObjectMap<X> {
 
     // objects provider:
     private final Supplier<Iterator<ONTObject<X>>> loader;
     // soft reference:
-    private final InternalCache.Loading<CacheObjectTriplesMapImpl<X>, CachedMap<X, ONTObject<X>>> map;
+    private final InternalCache.Loading<CacheObjectMapImpl<X>, CachedMap<X, ONTObject<X>>> map;
 
     // a state flag that responds whether some axioms have been manually added to this map
     // the dangerous of manual added axioms is that the same information can be represented in different ways.
@@ -63,7 +63,7 @@ public class CacheObjectTriplesMapImpl<X extends OWLObject> implements ObjectTri
     private final boolean fastIterator;
 
     @SuppressWarnings("unused")
-    public CacheObjectTriplesMapImpl(Supplier<Iterator<ONTObject<X>>> loader, boolean parallel) {
+    public CacheObjectMapImpl(Supplier<Iterator<ONTObject<X>>> loader, boolean parallel) {
         this(loader, true, parallel, true);
     }
 
@@ -76,15 +76,15 @@ public class CacheObjectTriplesMapImpl<X extends OWLObject> implements ObjectTri
      * @param parallel     if {@code true} use caffeine cache, otherwise LHM based cache
      * @param fastIterator if {@code true} use Array-based cache to speedup iteration over {@link X}-keys
      */
-    public CacheObjectTriplesMapImpl(Supplier<Iterator<ONTObject<X>>> loader,
-                                     boolean withMerge,
-                                     boolean parallel,
-                                     boolean fastIterator) {
+    public CacheObjectMapImpl(Supplier<Iterator<ONTObject<X>>> loader,
+                              boolean withMerge,
+                              boolean parallel,
+                              boolean fastIterator) {
         this.loader = Objects.requireNonNull(loader);
         this.withMerge = withMerge;
         this.parallel = parallel;
         this.fastIterator = fastIterator;
-        this.map = InternalCache.createSoft(CacheObjectTriplesMapImpl::loadMap, parallel);
+        this.map = InternalCache.createSoft(CacheObjectMapImpl::loadMap, parallel);
     }
 
     /**

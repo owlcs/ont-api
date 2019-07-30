@@ -137,9 +137,9 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * The reason why it is designed as a cache, not map, is synchronization.
      *
      * @see OWLContentType
-     * @see ObjectTriplesMap
+     * @see ObjectMap
      */
-    protected final InternalCache.Loading<OWLContentType, ObjectTriplesMap<? extends OWLObject>> content;
+    protected final InternalCache.Loading<OWLContentType, ObjectMap<? extends OWLObject>> content;
     /**
      * OWL objects cache (to work with OWL-API 'signature' methods).
      * Currently it is calculated from the {@link #content}.
@@ -177,7 +177,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         this.config = Objects.requireNonNull(config);
         this.objectFactoryCache = InternalCache.createSoft(x -> factory.get(), config.parallel());
         this.searchModelCache = InternalCache.createSoft(x -> createSearchModel(), config.parallel());
-        this.content = InternalCache.fromMap(new EnumMap<>(OWLContentType.class)).asLoading(this::createObjectTriplesMap);
+        this.content = InternalCache.fromMap(new EnumMap<>(OWLContentType.class)).asLoading(this::createContentObjectMap);
         this.components = InternalCache.fromMap(new EnumMap<>(OWLComponent.class)).asLoading(this::readOWLObjects);
         this.systemResources = InternalCache.createSoft(config.parallel());
         this.directListener = createDirectListener();
@@ -832,7 +832,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @see #listOWLAnnotations()
      */
     public Stream<OWLAxiom> listOWLAxioms() {
-        return flatMap(filteredAxiomsCaches(OWLContentType.axioms()), ObjectTriplesMap::keys);
+        return flatMap(filteredAxiomsCaches(OWLContentType.axioms()), ObjectMap::keys);
     }
 
     /**
@@ -841,7 +841,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @return {@code Stream} of {@link OWLAxiom}s
      */
     public Stream<OWLLogicalAxiom> listOWLLogicalAxioms() {
-        return flatMap(filteredAxiomsCaches(OWLContentType.logical()), ObjectTriplesMap::keys)
+        return flatMap(filteredAxiomsCaches(OWLContentType.logical()), ObjectMap::keys)
                 .map(x -> (OWLLogicalAxiom) x);
     }
 
@@ -852,7 +852,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @return {@code Stream} of {@link OWLAxiom}s
      */
     public Stream<OWLAxiom> listOWLAxioms(Iterable<AxiomType<?>> filter) {
-        return flatMap(filteredAxiomsCaches(OWLContentType.axioms(filter)), ObjectTriplesMap::keys);
+        return flatMap(filteredAxiomsCaches(OWLContentType.axioms(filter)), ObjectMap::keys);
     }
 
     /**
@@ -866,7 +866,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         if (OWLContentType.ANNOTATION.hasComponent(filter)) {
             // is type of annotation -> any axiom may contain the primitive
             return reduce(OWLContentType.axioms().flatMap(k -> {
-                ObjectTriplesMap<OWLAxiom> axioms = (ObjectTriplesMap<OWLAxiom>) content.get(k);
+                ObjectMap<OWLAxiom> axioms = (ObjectMap<OWLAxiom>) content.get(k);
                 Predicate<OWLAxiom> p = k.hasComponent(filter) ? a -> true : k::hasAnnotations;
                 return axioms.keys().filter(x -> p.test(x) && filter.select(x).anyMatch(primitive::equals));
             }));
@@ -1077,7 +1077,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     }
 
     /**
-     * Removes the given {@code container} from the corresponding {@link ObjectTriplesMap cache} and the model.
+     * Removes the given {@code container} from the corresponding {@link ObjectMap cache} and the model.
      * In case some container's triple is associated with other object, it cannot be deleted from the graph.
      * Example of such intersection in triples is reusing b-nodes:
      * {@code <A> rdfs:subClassOf _:b0} and {@code <B> rdfs:subClassOf _:b0}.
@@ -1091,7 +1091,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     protected void remove(OWLContentType key, OWLObject container) {
         try {
             disableDirectListening();
-            ObjectTriplesMap<OWLObject> map = getContentCache(key);
+            ObjectMap<OWLObject> map = getContentCache(key);
             ONTObject<OWLObject> value = map.get(container);
             map.remove(container);
             container = value.getObject();
@@ -1144,7 +1144,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @return boolean
      */
     private boolean isUsed(OWLContentType type, OWLObject object) {
-        ObjectTriplesMap<OWLObject> cache = getContentCache(type);
+        ObjectMap<OWLObject> cache = getContentCache(type);
         if (cache.contains(object)) {
             return true;
         }
@@ -1273,7 +1273,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @return boolean
      */
     public boolean hasManuallyAddedAxioms() {
-        return objectTriplesMaps().anyMatch(ObjectTriplesMap::hasNew);
+        return objectTriplesMaps().anyMatch(ObjectMap::hasNew);
     }
 
     /**
@@ -1310,82 +1310,85 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * Forcibly loads the whole content cache.
      */
     public void forceLoad() {
-        objectTriplesMaps().forEach(ObjectTriplesMap::load);
+        objectTriplesMaps().forEach(ObjectMap::load);
     }
 
     /**
      * Gets all cache buckets (all axiom types + ontology header).
      *
-     * @return {@code Stream} of {@link ObjectTriplesMap}s
+     * @return {@code Stream} of {@link ObjectMap}s
      */
-    private Stream<ObjectTriplesMap<? extends OWLObject>> objectTriplesMaps() {
+    private Stream<ObjectMap<? extends OWLObject>> objectTriplesMaps() {
         return OWLContentType.all().map(content::get);
     }
 
     /**
-     * Maps the given {@code Stream} of {@link OWLContentType} to {@link ObjectTriplesMap}.
+     * Maps the given {@code Stream} of {@link OWLContentType} to {@link ObjectMap}.
      * The input must contain only those elements
      * for which the {@link OWLContentType#isAxiom()} method returns {@code true}.
      *
      * @param keys {@code Stream} of {@link OWLContentType}
-     * @return {@code Stream} of {@link ObjectTriplesMap} containing {@link OWLAxiom}s
+     * @return {@code Stream} of {@link ObjectMap} containing {@link OWLAxiom}s
      */
-    protected Stream<ObjectTriplesMap<OWLAxiom>> filteredAxiomsCaches(Stream<OWLContentType> keys) {
+    protected Stream<ObjectMap<OWLAxiom>> filteredAxiomsCaches(Stream<OWLContentType> keys) {
         return keys.map(this::getAxiomsCache);
     }
 
     /**
-     * Gets the {@link ObjectTriplesMap} for the given {@link OWLContentType}.
+     * Gets the {@link ObjectMap} for the given {@link OWLContentType}.
      * The {@link OWLContentType#isAxiom()} method for the input must return {@code true}.
      *
      * @param key {@link OWLContentType}, not {@code null}
-     * @return {@link ObjectTriplesMap}
+     * @return {@link ObjectMap}
      */
     @SuppressWarnings("unchecked")
-    protected ObjectTriplesMap<OWLAxiom> getAxiomsCache(OWLContentType key) {
-        return (ObjectTriplesMap<OWLAxiom>) content.get(key);
+    protected ObjectMap<OWLAxiom> getAxiomsCache(OWLContentType key) {
+        return (ObjectMap<OWLAxiom>) content.get(key);
     }
 
     /**
      * Gets an ontology header content cache-store.
      *
-     * @return {@link ObjectTriplesMap}
+     * @return {@link ObjectMap}
      */
-    protected ObjectTriplesMap<OWLAnnotation> getHeaderCache() {
-        return (ObjectTriplesMap<OWLAnnotation>) content.get(OWLContentType.ANNOTATION);
+    protected ObjectMap<OWLAnnotation> getHeaderCache() {
+        return (ObjectMap<OWLAnnotation>) content.get(OWLContentType.ANNOTATION);
     }
 
     /**
      * Gets an ontology content cache-store.
      *
      * @param key {@link OWLContentType}, not {@code null}
-     * @return {@link ObjectTriplesMap}
+     * @return {@link ObjectMap}
      */
-    protected ObjectTriplesMap<OWLObject> getContentCache(OWLContentType key) {
-        return (ObjectTriplesMap<OWLObject>) content.get(key);
+    protected ObjectMap<OWLObject> getContentCache(OWLContentType key) {
+        return (ObjectMap<OWLObject>) content.get(key);
     }
 
     /**
-     * Creates a {@link ObjectTriplesMap} container for the given {@link OWLContentType}.
+     * Creates a {@link ObjectMap} container for the given {@link OWLContentType}.
      * @param key {@link OWLContentType}
-     * @return {@link ObjectTriplesMap}
+     * @return {@link ObjectMap}
      */
-    protected ObjectTriplesMap<OWLObject> createObjectTriplesMap(OWLContentType key) {
+    protected ObjectMap<OWLObject> createContentObjectMap(OWLContentType key) {
         InternalObjectFactory df = getObjectFactory();
         OntGraphModel m = InternalModel.this.getSearchModel();
         Supplier<Iterator<ONTObject<OWLObject>>> loader =
                 () -> (Iterator<ONTObject<OWLObject>>) key.read(m, df, getSnapshotConfig());
         InternalConfig conf = getSnapshotConfig();
-        if (!conf.useContentCache())
-            return new DirectObjectTripleMapImpl<>(loader);
+        if (!conf.useContentCache()) {
+            // todo: need a straight way to find ONTObject by OWLObject,
+            //  the default one is extremely inefficient
+            return new DirectObjectMapImpl<>(loader);
+        }
         boolean parallel = conf.parallel();
         boolean fastIterator = conf.useIteratorCache();
         boolean withMerge = !key.isDistinct();
         if (!LOGGER.isDebugEnabled()) {
-            return new CacheObjectTriplesMapImpl<>(loader, withMerge, parallel, fastIterator);
+            return new CacheObjectMapImpl<>(loader, withMerge, parallel, fastIterator);
         }
         OntID id = getID();
-        return new CacheObjectTriplesMapImpl<OWLObject>(loader, withMerge, parallel, fastIterator) {
+        return new CacheObjectMapImpl<OWLObject>(loader, withMerge, parallel, fastIterator) {
             @Override
             protected CachedMap loadMap() {
                 Instant start = Instant.now();
