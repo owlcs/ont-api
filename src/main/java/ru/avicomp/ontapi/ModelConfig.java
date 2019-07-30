@@ -216,7 +216,9 @@ public class ModelConfig implements InternalConfig, Serializable {
                 , OntLoaderConfiguration::isIgnoreAxiomsReadErrors
                 , OntLoaderConfiguration::getLoadNodesCacheSize
                 , OntLoaderConfiguration::getLoadObjectsCacheSize
-                , OntLoaderConfiguration::isContentCacheEnabled
+                , OntLoaderConfiguration::useIteratorCache
+                , OntLoaderConfiguration::useContentCache
+                , OntLoaderConfiguration::useComponentCache
         );
         return fields.anyMatch(c -> c.apply(left) != c.apply(right));
     }

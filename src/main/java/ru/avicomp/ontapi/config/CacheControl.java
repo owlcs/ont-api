@@ -62,10 +62,10 @@ interface CacheControl<R> extends CacheSettings {
      *
      * @param b boolean
      * @return {@link R}
-     * @see CacheSettings#isContentCacheEnabled()
+     * @see CacheSettings#useContentCache()
      */
     default R setUseContentCache(boolean b) {
-        return setContentCacheLevel(b ? CONTENT_CACHE_LEVEL_ALL : 0);
+        return setContentCacheLevel(b ? CACHE_ALL : 0);
     }
 
 }

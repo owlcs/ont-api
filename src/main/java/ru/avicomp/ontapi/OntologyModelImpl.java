@@ -194,10 +194,10 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
          * <p>
          * Also, an exception is thrown in case the content cache is disabled.
          * For more details about this,
-         * see the method {@link ru.avicomp.ontapi.config.CacheSettings#isContentCacheEnabled()} description.
+         * see the method {@link ru.avicomp.ontapi.config.CacheSettings#useContentCache()} description.
          */
         protected void beforeChange() {
-            if (!getConfig().isContentCacheEnabled()) {
+            if (!getConfig().useContentCache()) {
                 throw new ModificationDeniedException("Mutations through OWL-API interface are not allowed");
             }
             getBase().forceLoad();

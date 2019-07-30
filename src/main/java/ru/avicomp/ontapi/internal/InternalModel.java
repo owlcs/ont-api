@@ -943,7 +943,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     protected <R> Stream<R> reduce(Stream<R> stream) {
         InternalConfig conf = getSnapshotConfig();
         // model is non-modifiable if cache is disabled
-        if (!conf.parallel() || !conf.isContentCacheEnabled()) {
+        if (!conf.parallel() || !conf.useContentCache()) {
             return stream;
         }
         // use ArrayList since it is faster while iterating,
@@ -970,7 +970,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      */
     protected <R, X> Stream<R> flatMap(Stream<X> stream, Function<X, Stream<R>> map) {
         InternalConfig conf = getSnapshotConfig();
-        if (!conf.parallel() || !conf.isContentCacheEnabled()) {
+        if (!conf.parallel() || !conf.useContentCache()) {
             return stream.flatMap(map);
         }
         // force put everything into cache (memory) and get data snapshot
@@ -1376,10 +1376,10 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         Supplier<Iterator<ONTObject<OWLObject>>> loader =
                 () -> (Iterator<ONTObject<OWLObject>>) key.read(m, df, getSnapshotConfig());
         InternalConfig conf = getSnapshotConfig();
-        if (!conf.isContentCacheEnabled())
+        if (!conf.useContentCache())
             return new DirectObjectTripleMapImpl<>(loader);
         boolean parallel = conf.parallel();
-        boolean fastIterator = conf.useIteratorContentCache();
+        boolean fastIterator = conf.useIteratorCache();
         boolean withMerge = !key.isDistinct();
         if (!LOGGER.isDebugEnabled()) {
             return new CacheObjectTriplesMapImpl<>(loader, withMerge, parallel, fastIterator);

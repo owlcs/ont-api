@@ -121,8 +121,8 @@ public class CacheConfigTest {
         long axioms1 = 945;
         OntologyManager m1 = OntManagers.createONT();
         DataFactory df = m1.getOWLDataFactory();
-        Assert.assertEquals(CacheSettings.CONTENT_CACHE_LEVEL_ALL, Prop.CONTENT_CACHE_LEVEL.getInt());
-        Assert.assertTrue(m1.getOntologyConfigurator().isContentCacheEnabled());
+        Assert.assertEquals(CacheSettings.CACHE_ALL, Prop.CONTENT_CACHE_LEVEL.getInt());
+        Assert.assertTrue(m1.getOntologyConfigurator().useContentCache());
         LogFindGraph g1 = new LogFindGraph(g);
         OntologyModel o1 = m1.addOntology(g1);
         Assert.assertEquals(axioms1, o1.axioms().count());
@@ -138,7 +138,7 @@ public class CacheConfigTest {
         long axioms2 = 948;
         OntologyManager m2 = OntManagers.createONT();
         OntLoaderConfiguration conf = m2.getOntologyLoaderConfiguration().setUseContentCache(false);
-        Assert.assertFalse(conf.isContentCacheEnabled());
+        Assert.assertFalse(conf.useContentCache());
         m2.setOntologyLoaderConfiguration(conf);
         LogFindGraph g2 = new LogFindGraph(g);
         OntologyModel o2 = m2.addOntology(g2);
@@ -174,40 +174,41 @@ public class CacheConfigTest {
     @Test
     public void testContentCacheLevels() {
         OntConfig c = new OntConfig();
-        c.setContentCacheLevel(CacheSettings.CONTENT_CACHE_LEVEL_FAST_ITERATOR);
-        Assert.assertFalse(c.useTriplesContentCache());
-        Assert.assertTrue(c.useIteratorContentCache());
-        Assert.assertTrue(c.isContentCacheEnabled());
+        c.setContentCacheLevel(CacheSettings.CACHE_ITERATOR);
+        Assert.assertFalse(c.useComponentCache());
+        Assert.assertTrue(c.useIteratorCache());
+        Assert.assertFalse(c.useContentCache());
 
-        c.setContentCacheLevel(CacheSettings.CONTENT_CACHE_LEVEL_TRIPLE_STORE);
-        Assert.assertTrue(c.useTriplesContentCache());
-        Assert.assertFalse(c.useIteratorContentCache());
-        Assert.assertTrue(c.isContentCacheEnabled());
+        c.setContentCacheLevel(CacheSettings.CACHE_COMPONENT);
+        Assert.assertTrue(c.useComponentCache());
+        Assert.assertFalse(c.useIteratorCache());
+        Assert.assertFalse(c.useContentCache());
 
-        c.setContentCacheLevel(1);
-        Assert.assertFalse(c.useTriplesContentCache());
-        Assert.assertFalse(c.useIteratorContentCache());
-        Assert.assertTrue(c.isContentCacheEnabled());
+
+        c.setContentCacheLevel(CacheSettings.CACHE_CONTENT);
+        Assert.assertFalse(c.useComponentCache());
+        Assert.assertFalse(c.useIteratorCache());
+        Assert.assertTrue(c.useContentCache());
 
         c.setUseContentCache(false);
-        Assert.assertFalse(c.useTriplesContentCache());
-        Assert.assertFalse(c.useIteratorContentCache());
-        Assert.assertFalse(c.isContentCacheEnabled());
+        Assert.assertFalse(c.useComponentCache());
+        Assert.assertFalse(c.useIteratorCache());
+        Assert.assertFalse(c.useContentCache());
 
         c.setUseContentCache(true);
-        Assert.assertTrue(c.useTriplesContentCache());
-        Assert.assertTrue(c.useIteratorContentCache());
-        Assert.assertTrue(c.isContentCacheEnabled());
+        Assert.assertTrue(c.useComponentCache());
+        Assert.assertTrue(c.useIteratorCache());
+        Assert.assertTrue(c.useContentCache());
     }
 
     @Test
-    public void testNoCacheContentOptimization() throws OWLOntologyCreationException {
+    public void testNoIteratorAndComponentCache() throws OWLOntologyCreationException {
         OWLOntologyDocumentSource s = ReadWriteUtils.getFileDocumentSource("/ontapi/pizza.ttl", OntFormat.TURTLE);
 
         long axioms = 945;
         OntologyManager m = OntManagers.createONT();
         DataFactory df = m.getOWLDataFactory();
-        m.getOntologyConfigurator().setContentCacheLevel(1);
+        m.getOntologyConfigurator().setContentCacheLevel(CacheSettings.CACHE_CONTENT);
 
         OntologyModel o = m.loadOntologyFromOntologyDocument(s);
         Assert.assertEquals(axioms, o.getAxiomCount());

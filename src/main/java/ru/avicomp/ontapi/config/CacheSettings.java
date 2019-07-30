@@ -23,9 +23,31 @@ package ru.avicomp.ontapi.config;
  */
 public interface CacheSettings {
 
-    int CONTENT_CACHE_LEVEL_FAST_ITERATOR = 2;
-    int CONTENT_CACHE_LEVEL_TRIPLE_STORE = 4;
-    int CONTENT_CACHE_LEVEL_ALL = CONTENT_CACHE_LEVEL_FAST_ITERATOR | CONTENT_CACHE_LEVEL_TRIPLE_STORE;
+    /**
+     * A constant value signifying that iterator cache is enabled.
+     * This cache helps to get axioms (and header annotations) faster using an in-memory array.
+     */
+    int CACHE_ITERATOR = 2;
+    /**
+     * A constant value signifying that component cache is enabled.
+     * A component cache contains OWL-entities and OWL anonymous individuals.
+     *
+     * @see org.semanticweb.owlapi.model.OWLEntity
+     * @see org.semanticweb.owlapi.model.OWLAnonymousIndividual
+     */
+    int CACHE_COMPONENT = 4;
+    /**
+     * A constant value signifying that content cache is enabled.
+     * A content cache contains OWL-axioms and ontology header annotations.
+     *
+     * @see org.semanticweb.owlapi.model.OWLAxiom
+     * @see org.semanticweb.owlapi.model.OWLAnnotation
+     */
+    int CACHE_CONTENT = 16;
+    /**
+     * A constant value signifying that all caches are enabled.
+     */
+    int CACHE_ALL = CACHE_ITERATOR | CACHE_CONTENT | CACHE_COMPONENT;
 
     /**
      * Returns the maximum size of nodes cache,
@@ -72,16 +94,15 @@ public interface CacheSettings {
      * Returns the content cache level.
      * Currently there are following possible levels:
      * <ul>
-     * <li>{@code 1} - use content cache but without any optimizations</li>
-     * <li>{@link #CONTENT_CACHE_LEVEL_FAST_ITERATOR}
-     * - use cache-optimization to speed up iteration over components (axioms) found in a graph</li>
-     * <li>{@link #CONTENT_CACHE_LEVEL_TRIPLE_STORE}
-     * - use cache-optimization to optimize modification of components found in a graph</li>
-     * <li>{@link #CONTENT_CACHE_LEVEL_ALL} - all possible cache-optimizations</li>
+     * <li>{@link #CACHE_ITERATOR} - use cache-optimization to speed up iteration over
+     * the content (axioms/ontology annotations) and components (entities/anonymous individuals) found in a graph</li>
+     * <li>{@link #CACHE_COMPONENT} - use cache-optimization to optimize iteration over components found in a graph</li>
+     * <li>{@link #CACHE_CONTENT} - use cache-optimization to optimize iteration over content and its modification</li>
+     * <li>{@link #CACHE_ALL} - all possible cache-optimizations</li>
      * </ul>
      * Note: the list above may be changed in the ONT-API evolution.
      *
-     * @return int, the current level (positive) or a non-positive in case of no content cache should be used
+     * @return int, the current level (positive) or a non-positive in case of no cache should be used
      * @see OntSettings#ONT_API_LOAD_CONF_CACHE_CONTENT
      * @see CacheControl#setContentCacheLevel(int)
      */
@@ -126,27 +147,33 @@ public interface CacheSettings {
      *
      * @return boolean
      * @see CacheControl#setUseContentCache(boolean)
+     * @see CacheControl#setContentCacheLevel(int)
      */
-    default boolean isContentCacheEnabled() {
-        return getContentCacheLevel() > 0;
+    default boolean useContentCache() {
+        return (getContentCacheLevel() & CACHE_CONTENT) == CACHE_CONTENT;
     }
 
     /**
-     * Answers {@code true} iff cache content optimization is enabled.
+     * Answers whether an internal model component cache is enabled, that is {@code true} by default.
+     * This cache consists of {@link org.semanticweb.owlapi.model.OWLEntity OWL entities}
+     * and {@link org.semanticweb.owlapi.model.OWLAnonymousIndividual anonymous individuals}
+     * and used when any ontology signature method is called.
      *
      * @return boolean
+     * @see CacheControl#setContentCacheLevel(int)
      */
-    default boolean useIteratorContentCache() {
-        return (getContentCacheLevel() & CONTENT_CACHE_LEVEL_FAST_ITERATOR) == CONTENT_CACHE_LEVEL_FAST_ITERATOR;
+    default boolean useComponentCache() {
+        return (getContentCacheLevel() & CACHE_COMPONENT) == CACHE_COMPONENT;
     }
 
     /**
-     * Answers {@code true} iff components modification content optimization is enabled.
+     * Answers {@code true} iff cache iterator optimization is enabled.
      *
      * @return boolean
+     * @see CacheControl#setContentCacheLevel(int)
      */
-    default boolean useTriplesContentCache() {
-        return (getContentCacheLevel() & CONTENT_CACHE_LEVEL_TRIPLE_STORE) == CONTENT_CACHE_LEVEL_TRIPLE_STORE;
+    default boolean useIteratorCache() {
+        return (getContentCacheLevel() & CACHE_ITERATOR) == CACHE_ITERATOR;
     }
 
     /**
@@ -165,6 +192,39 @@ public interface CacheSettings {
      */
     default boolean useLoadObjectsCache() {
         return getLoadObjectsCacheSize() > 0;
+    }
+
+    /**
+     * Answers {@code true} iff the content caching is enabled.
+     *
+     * @return boolean
+     * @deprecated since 1.4.2: use {@link #useContentCache()} instead
+     */
+    @Deprecated
+    default boolean isContentCacheEnabled() {
+        return useContentCache();
+    }
+
+    /**
+     * Answers {@code true} iff iterator caching is enabled.
+     *
+     * @return boolean
+     * @deprecated since 1.4.2: use {@link #useIteratorCache()} instead
+     */
+    @Deprecated
+    default boolean useIteratorContentCache() {
+        return useIteratorCache();
+    }
+
+    /**
+     * Not supported anymore.
+     *
+     * @return boolean
+     * @deprecated since 1.4.2 - no such cache anymore
+     */
+    @Deprecated
+    default boolean useTriplesContentCache() {
+        throw new UnsupportedOperationException();
     }
 
 }

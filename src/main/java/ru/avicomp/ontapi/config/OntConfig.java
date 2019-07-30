@@ -41,7 +41,8 @@ import java.util.stream.Stream;
  * <li>{@link #getManagerIRIsCacheSize()} (<b>since 1.4.0</b>)</li>
  * <li>{@link #getLoadNodesCacheSize()} and {@link #setLoadNodesCacheSize(int)} (<b>since 1.4.0</b>)</li>
  * <li>{@link #getLoadObjectsCacheSize()} and {@link #setLoadObjectsCacheSize(int)} (<b>since 1.4.0</b>)</li>
- * <li>{@link #isContentCacheEnabled()} and {@link #setUseContentCache(boolean)} (<b>since 1.4.0</b>)</li>
+ * <li>{@link #setUseContentCache(boolean)}, {@link #setContentCacheLevel(int)} (<b>since 1.4.0</b>)</li>
+ * <li>{@link #useContentCache()}, {@link #useComponentCache()}, {@link #useIteratorCache()} (<b>since 1.4.2</b>)</li>
  * <li>{@link #getPersonality()} and {@link #setPersonality(OntPersonality)}</li>
  * <li>{@link #getGraphTransformers()} amd {@link #setGraphTransformers(GraphTransformers.Store)}</li>
  * <li>{@link #isPerformTransformation()} and {@link #setPerformTransformation(boolean)}</li>
@@ -339,6 +340,10 @@ public class OntConfig extends OntologyConfigurator implements
      *
      * @param level int
      * @return this instance
+     * @see CacheSettings#CACHE_COMPONENT
+     * @see CacheSettings#CACHE_CONTENT
+     * @see CacheSettings#CACHE_ITERATOR
+     * @see CacheSettings#CACHE_ALL
      */
     @Override
     public OntConfig setContentCacheLevel(int level) {
