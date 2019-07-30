@@ -27,15 +27,15 @@ import java.util.Set;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
-import static ru.avicomp.ontapi.internal.OWLComponent.*;
+import static ru.avicomp.ontapi.internal.OWLComponentType.*;
 
 /**
  * Enum, that represents all public content meta-types of {@code OWLOntology}:
  * one for the ontology header ({@link #ANNOTATION}) and {@code 39} for each type of axiom.
  * The {@code OWLObject} corresponding to any of these constant is a container,
- * and may consist of {@code OWLObject}s described by the {@link OWLComponent} class.
+ * and may consist of {@code OWLObject}s described by the {@link OWLComponentType} enum-class.
  * For axioms there is a natural {@link AxiomType}'s order to provide a little bit faster iterating:
- * the declarations and widely used axioms go first, which is good for the data-factory and other caching.
+ * the declarations and widely used axioms go first, which is good for the data-factory and other caching mechanisms.
  */
 public enum OWLContentType {
     // a header annotation
@@ -62,6 +62,7 @@ public enum OWLContentType {
             WriteHelper.addAnnotations(m.getID(), Stream.of((OWLAnnotation) v));
         }
     },
+    // axioms:
     DECLARATION(AxiomType.DECLARATION, true, ENTITY),
     EQUIVALENT_CLASSES(AxiomType.EQUIVALENT_CLASSES, true, CLASS_EXPRESSION),
     SUBCLASS_OF(AxiomType.SUBCLASS_OF, true, CLASS_EXPRESSION),
@@ -108,13 +109,13 @@ public enum OWLContentType {
 
     private final AxiomType<OWLAxiom> type;
     private final boolean distinct;
-    private final Set<OWLComponent> components;
+    private final Set<OWLComponentType> components;
 
     @SuppressWarnings("unchecked")
-    OWLContentType(AxiomType<? extends OWLAxiom> type, boolean distinct, OWLComponent... types) {
+    OWLContentType(AxiomType<? extends OWLAxiom> type, boolean distinct, OWLComponentType... types) {
         this.type = (AxiomType<OWLAxiom>) type;
         this.distinct = distinct;
-        this.components = OWLComponent.toSet(types);
+        this.components = OWLComponentType.toSet(types);
     }
 
     /**
@@ -125,22 +126,6 @@ public enum OWLContentType {
      */
     public static OWLContentType get(AxiomType<?> type) throws IndexOutOfBoundsException {
         return values()[type.getIndex() + 1];
-    }
-
-    /**
-     * Returns a {@link OWLContentType} to which the specified object corresponds.
-     *
-     * @param o {@link OWLObject}, a content-container, not {@code nul;}
-     * @return {@link OWLContentType}, not {@code null}
-     */
-    static OWLContentType get(OWLObject o) {
-        if (o instanceof OWLAnnotation) {
-            return ANNOTATION;
-        }
-        if (o instanceof OWLAxiom) {
-            return get(((OWLAxiom) o).getAxiomType());
-        }
-        throw new OntApiException.IllegalArgument();
     }
 
     /**
@@ -186,6 +171,11 @@ public enum OWLContentType {
         return AXIOMS.stream();
     }
 
+    /**
+     * List all logical axiom types.
+     *
+     * @return {@code Stream} of {@link OWLContentType}s
+     */
     public static Stream<OWLContentType> logical() {
         return LOGICAL.stream();
     }
@@ -257,10 +247,10 @@ public enum OWLContentType {
      * Note: axioms annotations are not taking into consideration,
      * in other words the real intersection by component possibility is more wide.
      *
-     * @param container {@link OWLComponent} - the type, not {@code null}
+     * @param container {@link OWLComponentType} - the type, not {@code null}
      * @return boolean
      */
-    public boolean hasComponent(OWLComponent container) {
+    public boolean hasComponent(OWLComponentType container) {
         return components.contains(container);
     }
 
@@ -291,7 +281,7 @@ public enum OWLContentType {
      * Writes the content-object into the graph.
      *
      * @param m     {@link OntGraphModel ONT-API Jena Model}, to modify
-     * @param value {@link OWLObject} - either {@link OWLAxiom} or {@link OWLAnnotation}
+     * @param value {@link OWLObject} - either {@link OWLAxiom} or {@link OWLAnnotation}, to write
      */
     @SuppressWarnings("unchecked")
     void write(OntGraphModel m, OWLObject value) {

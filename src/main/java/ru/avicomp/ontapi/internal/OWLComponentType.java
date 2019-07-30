@@ -34,10 +34,10 @@ import java.util.stream.Stream;
  * Includes both ONT-API and OWL-API ways.
  * Created by @ssz on 13.07.2019.
  */
-public enum OWLComponent {
+public enum OWLComponentType {
     IRI(org.semanticweb.owlapi.model.IRI.class, Resource.class, true) {
         @Override
-        List<OWLComponent> includes() {
+        List<OWLComponentType> includes() {
             return Collections.emptyList();
         }
 
@@ -138,7 +138,7 @@ public enum OWLComponent {
     },
     ENTITY(OWLEntity.class, OntEntity.class, false) {
         @Override
-        List<OWLComponent> includes() {
+        List<OWLComponentType> includes() {
             return Arrays.asList(ANNOTATION_PROPERTY, DATATYPE_PROPERTY, NAMED_OBJECT_PROPERTY,
                     NAMED_INDIVIDUAL, CLASS, DATATYPE);
         }
@@ -155,7 +155,7 @@ public enum OWLComponent {
     },
     LITERAL(OWLLiteral.class, Literal.class, true) {
         @Override
-        List<OWLComponent> includes() {
+        List<OWLComponentType> includes() {
             return Collections.singletonList(DATATYPE);
         }
 
@@ -178,7 +178,7 @@ public enum OWLComponent {
     },
     INDIVIDUAL(OWLIndividual.class, OntIndividual.class, false) {
         @Override
-        List<OWLComponent> includes() {
+        List<OWLComponentType> includes() {
             return Arrays.asList(NAMED_INDIVIDUAL, ANONYMOUS_INDIVIDUAL);
         }
 
@@ -209,7 +209,7 @@ public enum OWLComponent {
          * + literals ({@code DataOneOf}, {@code DatatypeRestriction})
          */
         @Override
-        List<OWLComponent> includes() {
+        List<OWLComponentType> includes() {
             return Arrays.asList(DATA_RANGE, LITERAL, FACET_RESTRICTION);
         }
 
@@ -237,7 +237,7 @@ public enum OWLComponent {
          * + literals ({@code DataOneOf}, {@code DatatypeRestriction})
          */
         @Override
-        List<OWLComponent> includes() {
+        List<OWLComponentType> includes() {
             return Arrays.asList(DATATYPE, ANONYMOUS_DATA_RANGE);
         }
 
@@ -261,7 +261,7 @@ public enum OWLComponent {
          * but it comes indirectly from the data-range...
          */
         @Override
-        List<OWLComponent> includes() {
+        List<OWLComponentType> includes() {
             return Arrays.asList(CLASS_EXPRESSION, INDIVIDUAL, OBJECT_PROPERTY_EXPRESSION, DATATYPE_PROPERTY, DATA_RANGE);
         }
 
@@ -283,7 +283,7 @@ public enum OWLComponent {
     },
     CLASS_EXPRESSION(OWLClassExpression.class, OntCE.class, false) {
         @Override
-        List<OWLComponent> includes() {
+        List<OWLComponentType> includes() {
             return Arrays.asList(CLASS, ANONYMOUS_CLASS_EXPRESSION);
         }
 
@@ -299,7 +299,7 @@ public enum OWLComponent {
     },
     INVERSE_OBJECT_PROPERTY(OWLObjectInverseOf.class, OntOPE.Inverse.class, false) {
         @Override
-        List<OWLComponent> includes() {
+        List<OWLComponentType> includes() {
             return Collections.singletonList(NAMED_OBJECT_PROPERTY);
         }
 
@@ -310,7 +310,7 @@ public enum OWLComponent {
     },
     OBJECT_PROPERTY_EXPRESSION(OWLObjectPropertyExpression.class, OntOPE.class, false) {
         @Override
-        List<OWLComponent> includes() {
+        List<OWLComponentType> includes() {
             return Arrays.asList(NAMED_OBJECT_PROPERTY, INVERSE_OBJECT_PROPERTY);
         }
 
@@ -321,7 +321,7 @@ public enum OWLComponent {
     },
     FACET_RESTRICTION(OWLFacetRestriction.class, OntFR.class, false) {
         @Override
-        List<OWLComponent> includes() {
+        List<OWLComponentType> includes() {
             return Collections.singletonList(LITERAL);
         }
 
@@ -339,7 +339,7 @@ public enum OWLComponent {
     },
     SWRL_ATOM(SWRLAtom.class, OntSWRL.Atom.class, false) {
         @Override
-        List<OWLComponent> includes() {
+        List<OWLComponentType> includes() {
             return Arrays.asList(INDIVIDUAL, LITERAL, SWRL_VARIABLE,
                     CLASS_EXPRESSION, DATA_RANGE, DATATYPE_PROPERTY, OBJECT_PROPERTY_EXPRESSION);
         }
@@ -355,7 +355,7 @@ public enum OWLComponent {
     final Class<? extends RDFNode> jena;
     private final boolean primitive;
 
-    OWLComponent(Class<? extends OWLObject> owl, Class<? extends RDFNode> rdf, boolean primitive) {
+    OWLComponentType(Class<? extends OWLObject> owl, Class<? extends RDFNode> rdf, boolean primitive) {
         this.owl = owl;
         this.jena = rdf;
         this.primitive = primitive;
@@ -365,11 +365,11 @@ public enum OWLComponent {
      * Represents the given array of components as a full {@code Set},
      * that includes all given components and all its dependent (sub-)components.
      *
-     * @param values Array of {@link OWLComponent}s
+     * @param values Array of {@link OWLComponentType}s
      * @return a {@code Set} of {@code OWLComponent}s
      */
-    public static Set<OWLComponent> toSet(OWLComponent... values) {
-        Set<OWLComponent> res = EnumSet.noneOf(OWLComponent.class);
+    public static Set<OWLComponentType> toSet(OWLComponentType... values) {
+        Set<OWLComponentType> res = EnumSet.noneOf(OWLComponentType.class);
         Arrays.stream(values).forEach(v -> v.putInSet(res));
         return res;
     }
@@ -379,10 +379,10 @@ public enum OWLComponent {
      * The primitive types go first, then the composite.
      *
      * @param o {@link OWLObject}, not {@code null}
-     * @return {@link OWLComponent}
+     * @return {@link OWLComponentType}
      */
-    public static OWLComponent get(OWLObject o) {
-        Optional<OWLComponent> res = Arrays.stream(values()).filter(OWLComponent::isPrimitive)
+    public static OWLComponentType get(OWLObject o) {
+        Optional<OWLComponentType> res = Arrays.stream(values()).filter(OWLComponentType::isPrimitive)
                 .filter(x -> x.owl.isInstance(o))
                 .findFirst();
         return res.orElseGet(() -> Arrays.stream(values()).filter(t -> !t.isPrimitive())
@@ -397,7 +397,7 @@ public enum OWLComponent {
      *
      * @return {@code Set}
      */
-    static Set<OWLComponent> getSharedComponents() {
+    static Set<OWLComponentType> getSharedComponents() {
         return EnumSet.of(ANONYMOUS_CLASS_EXPRESSION
                 , ANONYMOUS_DATA_RANGE
                 , FACET_RESTRICTION
@@ -409,13 +409,13 @@ public enum OWLComponent {
     /**
      * Lists all types, that make up or define this type.
      *
-     * @return a {@code List} of {@link OWLComponent}s
+     * @return a {@code List} of {@link OWLComponentType}s
      */
-    List<OWLComponent> includes() {
+    List<OWLComponentType> includes() {
         return Collections.singletonList(IRI);
     }
 
-    private void putInSet(Set<OWLComponent> set) {
+    private void putInSet(Set<OWLComponentType> set) {
         if (!set.add(this)) {
             return;
         }
