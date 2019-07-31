@@ -73,6 +73,10 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
         return set(k, OntConfig.requirePositive(v, k));
     }
 
+    private OntLoaderConfiguration setNonNegative(OntSettings k, int v) {
+        return set(k, OntConfig.requireNonNegative(v, k));
+    }
+
     protected OntLoaderConfiguration set(OntSettings key, Object v) {
         Objects.requireNonNull(v);
         if (Objects.equals(get(key), v)) return this;
@@ -246,8 +250,8 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
      * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes is made
      */
     @Override
-    public OntLoaderConfiguration setContentCacheLevel(int level) {
-        return set(OntSettings.ONT_API_LOAD_CONF_CACHE_CONTENT, level);
+    public OntLoaderConfiguration setModelCacheLevel(int level) {
+        return setNonNegative(OntSettings.ONT_API_LOAD_CONF_CACHE_MODEL, level);
     }
 
     /**
@@ -255,8 +259,8 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
      * {@inheritDoc}
      */
     @Override
-    public int getContentCacheLevel() {
-        return get(OntSettings.ONT_API_LOAD_CONF_CACHE_CONTENT);
+    public int getModelCacheLevel() {
+        return get(OntSettings.ONT_API_LOAD_CONF_CACHE_MODEL);
     }
 
     /**

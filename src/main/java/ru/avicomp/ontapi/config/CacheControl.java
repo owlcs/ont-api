@@ -47,25 +47,67 @@ interface CacheControl<R> extends CacheSettings {
     R setLoadObjectsCacheSize(int size);
 
     /**
-     * Sets the content cache level to the specified integer value.
-     * A non-positive number means disabling the whole content caching.
+     * Sets the model content cache level to the specified integer value.
+     * The number {@code 0} means disabling all model's caches.
+     * <p>
+     * The content cache consists of several levels:
+     * <ul>
+     *     <li>{@link CacheSettings#CACHE_ITERATOR}</li>
+     *     <li>{@link CacheSettings#CACHE_COMPONENT}</li>
+     *     <li>{@link CacheSettings#CACHE_CONTENT}</li>
+     *     <li>{@link CacheSettings#CACHE_ALL}</li>
+     * </ul>
      *
-     * @param level int
+     * @param level int, a non-negative number, preferably power of {@code 2}
      * @return {@link R}
-     * @see CacheSettings#getContentCacheLevel()
-     * @see OntSettings#ONT_API_LOAD_CONF_CACHE_CONTENT
+     * @throws IllegalArgumentException in case the input is a negative number
+     * @see CacheSettings#getModelCacheLevel()
+     * @see OntSettings#ONT_API_LOAD_CONF_CACHE_MODEL
      */
-    R setContentCacheLevel(int level);
+    R setModelCacheLevel(int level);
 
     /**
      * Turns on/off the content cache use.
+     * Other cache settings are untouched,
+     * which means if there is a component cache enabled, it will remain enabled,
+     * if its constant do not equal to the given.
+     *
+     * @param constant a non-negative int number
+     * @param b        {@code true} to turn on, {@code false} to turn off
+     * @return {@link R}
+     * @see CacheSettings#CACHE_CONTENT
+     * @see CacheSettings#CACHE_COMPONENT
+     * @see CacheSettings#CACHE_ITERATOR
+     * @see CacheSettings#CACHE_ALL
+     */
+    default R setModelCacheLevel(int constant, boolean b) {
+        int current = getModelCacheLevel();
+        return setModelCacheLevel(b ? current | constant : current & ~constant);
+    }
+
+    /**
+     * Sets the model content cache level to the specified integer value.
+     *
+     * @param level non-negative integer
+     * @return {@link R}
+     * @deprecated since 1.4.2: use {@link #setModelCacheLevel(int)}
+     */
+    @Deprecated
+    default R setContentCacheLevel(int level) {
+        return setModelCacheLevel(level);
+    }
+
+    /**
+     * Turns on/off the content cache.
      *
      * @param b boolean
      * @return {@link R}
      * @see CacheSettings#useContentCache()
+     * @deprecated since 1.4.2: bad naming, use {@link #setModelCacheLevel(int, boolean)}
      */
+    @Deprecated
     default R setUseContentCache(boolean b) {
-        return setContentCacheLevel(b ? CACHE_ALL : 0);
+        return setModelCacheLevel(CACHE_ALL, b);
     }
 
 }

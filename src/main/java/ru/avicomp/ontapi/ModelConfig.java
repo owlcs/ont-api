@@ -124,11 +124,12 @@ public class ModelConfig implements InternalConfig, Serializable {
         if (!useLoadObjectsCache()) {
             return new NoCacheObjectFactory(manager.dataFactory);
         }
-        return new CacheObjectFactory(manager.dataFactory, this::createCache, manager.iris);
+        long size = getLoadObjectsCacheSize();
+        return new CacheObjectFactory(manager.dataFactory, () -> createCache(size), manager.iris);
     }
 
-    protected <K, V> InternalCache<K, V> createCache() {
-        return InternalCache.createBounded(manager.isConcurrent(), CacheObjectFactory.CACHE_SIZE);
+    protected <K, V> InternalCache<K, V> createCache(long size) {
+        return InternalCache.createBounded(manager.isConcurrent(), size);
     }
 
     public OntPersonality getPersonality() {
@@ -176,8 +177,8 @@ public class ModelConfig implements InternalConfig, Serializable {
     }
 
     @Override
-    public int getContentCacheLevel() {
-        return getLoaderConfig().getContentCacheLevel();
+    public int getModelCacheLevel() {
+        return getLoaderConfig().getModelCacheLevel();
     }
 
     @Override
@@ -216,7 +217,7 @@ public class ModelConfig implements InternalConfig, Serializable {
                 , OntLoaderConfiguration::isIgnoreAxiomsReadErrors
                 , OntLoaderConfiguration::getLoadNodesCacheSize
                 , OntLoaderConfiguration::getLoadObjectsCacheSize
-                , OntLoaderConfiguration::getContentCacheLevel
+                , OntLoaderConfiguration::getModelCacheLevel
         );
         return fields.anyMatch(c -> c.apply(left) != c.apply(right));
     }

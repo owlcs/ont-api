@@ -198,7 +198,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
          */
         protected void beforeChange() {
             if (!getConfig().useContentCache()) {
-                throw new ModificationDeniedException("Mutations through OWL-API interface are not allowed");
+                throw new ModificationDeniedException("Direct mutations through OWL-API interface are not allowed");
             }
             getBase().forceLoad();
         }

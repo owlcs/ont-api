@@ -88,6 +88,14 @@ public interface InternalCache<K, V> {
     boolean isEmpty();
 
     /**
+     * Returns the approximate number of entries in this cache.
+     * The value returned is an estimate.
+     *
+     * @return long
+     */
+    long size();
+
+    /**
      * Returns the value associated with the {@code key} in this cache,
      * obtaining that value from the {@code mappingFunction} if necessary.
      * This method provides a simple substitute for the conventional
@@ -167,8 +175,13 @@ public interface InternalCache<K, V> {
 
             @Override
             public boolean isEmpty() {
-                // contains everything (todo: is it correct?):
+                // suppose it contains everything
                 return false;
+            }
+
+            @Override
+            public long size() {
+                return 0;
             }
 
             @Override
@@ -358,6 +371,11 @@ public interface InternalCache<K, V> {
         }
 
         @Override
+        public long size() {
+            return map.size();
+        }
+
+        @Override
         public V get(K key, Function<? super K, ? extends V> mappingFunction) {
             Objects.requireNonNull(mappingFunction);
             V res;
@@ -423,6 +441,11 @@ public interface InternalCache<K, V> {
         }
 
         @Override
+        public long size() {
+            return map.size();
+        }
+
+        @Override
         public V get(K key, Function<? super K, ? extends V> mappingFunction) {
             Objects.requireNonNull(mappingFunction);
             V res;
@@ -485,6 +508,11 @@ public interface InternalCache<K, V> {
         @Override
         public boolean isEmpty() {
             return cache.asMap().isEmpty();
+        }
+
+        @Override
+        public long size() {
+            return cache.estimatedSize();
         }
 
         @Override

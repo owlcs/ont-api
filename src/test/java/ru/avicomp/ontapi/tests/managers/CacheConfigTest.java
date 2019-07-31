@@ -34,8 +34,10 @@ import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.config.OntSettings;
 import ru.avicomp.ontapi.internal.*;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
+import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -67,6 +69,23 @@ public class CacheConfigTest {
         Assert.assertEquals(1, m.getOntologyConfigurator().getManagerIRIsCacheSize());
     }
 
+    private static InternalCache getCacheFromObjectFactory(CacheObjectFactory of,
+                                                           Class<? extends OntEntity> type) throws Exception {
+        Field res = null;
+        for (Field f : of.getClass().getDeclaredFields()) {
+            String name = f.getGenericType().getTypeName();
+            if (!name.contains(InternalCache.class.getName()))
+                continue;
+            if (name.contains(type.getName())) {
+                res = f;
+                break;
+            }
+        }
+        Assert.assertNotNull(res);
+        res.setAccessible(true);
+        return (InternalCache) res.get(of);
+    }
+
     @Test
     public void testConfigureManagerIRICacheSize() {
         testConfigureIRICacheSize(OntManagers.createONT());
@@ -95,6 +114,7 @@ public class CacheConfigTest {
 
     @Test
     public void testObjectsCacheSize() throws Exception {
+        long axioms = 945;
         OntologyManager m = OntManagers.createONT();
         Assert.assertEquals(Prop.OBJECTS_CACHE_SIZE.getInt(), m.getOntologyConfigurator().getLoadObjectsCacheSize());
         OntLoaderConfiguration conf = new OntConfig().buildLoaderConfiguration().setLoadObjectsCacheSize(-1);
@@ -103,15 +123,38 @@ public class CacheConfigTest {
         OntologyModel o = m.loadOntologyFromOntologyDocument(ReadWriteUtils.getFileDocumentSource("/ontapi/pizza.ttl",
                 OntFormat.TURTLE));
         Assert.assertNotNull(o);
-        Assert.assertEquals(945, o.axioms().count());
+        Assert.assertEquals(axioms, o.axioms().count());
         InternalObjectFactory of1 = ((InternalModelHolder) o).getBase().getObjectFactory();
         Assert.assertTrue(of1 instanceof NoCacheObjectFactory);
         Assert.assertFalse(of1 instanceof CacheObjectFactory);
 
-        m.setOntologyLoaderConfiguration(conf.setLoadObjectsCacheSize(10_000));
-        Assert.assertEquals(945, o.axioms().count());
+        int size1 = 52;
+        m.setOntologyLoaderConfiguration(conf.setLoadObjectsCacheSize(size1));
+        Assert.assertEquals(axioms, o.axioms().count());
         InternalObjectFactory of2 = ((InternalModelHolder) o).getBase().getObjectFactory();
         Assert.assertTrue(of2 instanceof CacheObjectFactory);
+        CacheObjectFactory cof1 = (CacheObjectFactory) of2;
+
+        Assert.assertEquals(size1, getCacheFromObjectFactory(cof1, OntClass.class).size());
+        Assert.assertEquals(0, getCacheFromObjectFactory(cof1, OntDT.class).size());
+        Assert.assertEquals(5, getCacheFromObjectFactory(cof1, OntIndividual.Named.class).size());
+        Assert.assertEquals(2, getCacheFromObjectFactory(cof1, OntNAP.class).size());
+        Assert.assertEquals(0, getCacheFromObjectFactory(cof1, OntNDP.class).size());
+        Assert.assertEquals(8, getCacheFromObjectFactory(cof1, OntNOP.class).size());
+
+        int size2 = 2;
+        m.setOntologyLoaderConfiguration(conf.setLoadObjectsCacheSize(size2));
+        Assert.assertEquals(axioms, o.axioms().count());
+        InternalObjectFactory of3 = ((InternalModelHolder) o).getBase().getObjectFactory();
+        Assert.assertTrue(of3 instanceof CacheObjectFactory);
+        CacheObjectFactory cof2 = (CacheObjectFactory) of3;
+
+        Assert.assertEquals(size2, getCacheFromObjectFactory(cof2, OntClass.class).size());
+        Assert.assertEquals(0, getCacheFromObjectFactory(cof2, OntDT.class).size());
+        Assert.assertEquals(size2, getCacheFromObjectFactory(cof2, OntIndividual.Named.class).size());
+        Assert.assertEquals(size2, getCacheFromObjectFactory(cof2, OntNAP.class).size());
+        Assert.assertEquals(0, getCacheFromObjectFactory(cof2, OntNDP.class).size());
+        Assert.assertEquals(size2, getCacheFromObjectFactory(cof2, OntNOP.class).size());
     }
 
     @Test
@@ -137,7 +180,8 @@ public class CacheConfigTest {
         // no cache model:
         long axioms2 = 948;
         OntologyManager m2 = OntManagers.createONT();
-        OntLoaderConfiguration conf = m2.getOntologyLoaderConfiguration().setUseContentCache(false);
+        OntLoaderConfiguration conf = m2.getOntologyLoaderConfiguration()
+                .setModelCacheLevel(CacheSettings.CACHE_ALL, false);
         Assert.assertFalse(conf.useContentCache());
         m2.setOntologyLoaderConfiguration(conf);
         LogFindGraph g2 = new LogFindGraph(g);
@@ -174,28 +218,27 @@ public class CacheConfigTest {
     @Test
     public void testContentCacheLevels() {
         OntConfig c = new OntConfig();
-        c.setContentCacheLevel(CacheSettings.CACHE_ITERATOR);
+        c.setModelCacheLevel(CacheSettings.CACHE_ITERATOR);
         Assert.assertFalse(c.useComponentCache());
         Assert.assertTrue(c.useIteratorCache());
         Assert.assertFalse(c.useContentCache());
 
-        c.setContentCacheLevel(CacheSettings.CACHE_COMPONENT);
+        c.setModelCacheLevel(CacheSettings.CACHE_COMPONENT);
         Assert.assertTrue(c.useComponentCache());
         Assert.assertFalse(c.useIteratorCache());
         Assert.assertFalse(c.useContentCache());
 
-
-        c.setContentCacheLevel(CacheSettings.CACHE_CONTENT);
+        c.setModelCacheLevel(CacheSettings.CACHE_CONTENT);
         Assert.assertFalse(c.useComponentCache());
         Assert.assertFalse(c.useIteratorCache());
         Assert.assertTrue(c.useContentCache());
 
-        c.setUseContentCache(false);
+        c.setModelCacheLevel(CacheSettings.CACHE_ALL, false);
         Assert.assertFalse(c.useComponentCache());
         Assert.assertFalse(c.useIteratorCache());
         Assert.assertFalse(c.useContentCache());
 
-        c.setUseContentCache(true);
+        c.setModelCacheLevel(CacheSettings.CACHE_ALL, true);
         Assert.assertTrue(c.useComponentCache());
         Assert.assertTrue(c.useIteratorCache());
         Assert.assertTrue(c.useContentCache());
@@ -208,7 +251,7 @@ public class CacheConfigTest {
         long axioms = 945;
         OntologyManager m = OntManagers.createONT();
         DataFactory df = m.getOWLDataFactory();
-        m.getOntologyConfigurator().setContentCacheLevel(CacheSettings.CACHE_CONTENT);
+        m.getOntologyConfigurator().setModelCacheLevel(CacheSettings.CACHE_CONTENT);
 
         OntologyModel o = m.loadOntologyFromOntologyDocument(s);
         Assert.assertEquals(axioms, o.getAxiomCount());
@@ -225,12 +268,11 @@ public class CacheConfigTest {
         Assert.assertEquals(axioms, o.getAxiomCount());
     }
 
-
     enum Prop {
         IRI_CACHE_SIZE(OntSettings.ONT_API_MANAGER_CACHE_IRIS.key() + ".integer"),
         NODES_CACHE_SIZE(OntSettings.ONT_API_LOAD_CONF_CACHE_NODES.key() + ".integer"),
         OBJECTS_CACHE_SIZE(OntSettings.ONT_API_LOAD_CONF_CACHE_OBJECTS.key() + ".integer"),
-        CONTENT_CACHE_LEVEL(OntSettings.ONT_API_LOAD_CONF_CACHE_CONTENT.key() + ".integer");
+        CONTENT_CACHE_LEVEL(OntSettings.ONT_API_LOAD_CONF_CACHE_MODEL.key() + ".integer");
         private final String key;
 
         Prop(String key) {
@@ -269,6 +311,5 @@ public class CacheConfigTest {
         List<Triple> getFindPatterns() {
             return track;
         }
-
     }
 }

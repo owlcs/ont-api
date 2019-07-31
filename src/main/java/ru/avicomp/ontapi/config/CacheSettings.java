@@ -16,6 +16,15 @@ package ru.avicomp.ontapi.config;
 
 /**
  * A common interface to access cache settings.
+ * Currently there are several caches:
+ * <ul>
+ * <li>nodes cache, that is used in {@link ru.avicomp.ontapi.internal.SearchModel} as a read optimization</li>
+ * <li>objects cache, that is encapsulated in {@link ru.avicomp.ontapi.internal.CacheObjectFactory},
+ * and is used to reduce memory memory footprint when constructing OWL content</li>
+ * <li>model cache, that has several levels:
+ * {@link #CACHE_ALL}, {@link #CACHE_CONTENT}, {@link #CACHE_COMPONENT}, {@link #CACHE_ITERATOR}</li>
+ * </ul>
+ * Note: since ONT-API is an evolving system, all these settings may be changed in the future releases.
  * <p>
  * Created by @ssz on 15.03.2019.
  *
@@ -30,7 +39,7 @@ public interface CacheSettings {
     int CACHE_ITERATOR = 2;
     /**
      * A constant value signifying that component cache is enabled.
-     * A component cache contains OWL-entities and OWL anonymous individuals.
+     * A component cache contains OWL-entities and OWL anonymous individuals, which are parts of OWL-content.
      *
      * @see org.semanticweb.owlapi.model.OWLEntity
      * @see org.semanticweb.owlapi.model.OWLAnonymousIndividual
@@ -45,7 +54,9 @@ public interface CacheSettings {
      */
     int CACHE_CONTENT = 16;
     /**
-     * A constant value signifying that all caches are enabled.
+     * A constant value signifying that all model's caches are enabled.
+     * It is default value.
+     * Note that all these constants do not relate to nodes and objects caches.
      */
     int CACHE_ALL = CACHE_ITERATOR | CACHE_CONTENT | CACHE_COMPONENT;
 
@@ -78,7 +89,7 @@ public interface CacheSettings {
     int getLoadNodesCacheSize();
 
     /**
-     * Returns the maximum size of objects cache,
+     * Returns the maximum size of objects factory cache,
      * which is used as optimization while reading OWLObjects from a graph
      * (see {@link ru.avicomp.ontapi.internal.CacheObjectFactory}).
      * The system default size is {@code 2048}.
@@ -91,7 +102,7 @@ public interface CacheSettings {
     int getLoadObjectsCacheSize();
 
     /**
-     * Returns the content cache level.
+     * Returns the model content cache level.
      * Currently there are following possible levels:
      * <ul>
      * <li>{@link #CACHE_ITERATOR} - use cache-optimization to speed up iteration over
@@ -102,11 +113,11 @@ public interface CacheSettings {
      * </ul>
      * Note: the list above may be changed in the ONT-API evolution.
      *
-     * @return int, the current level (positive) or a non-positive in case of no cache should be used
-     * @see OntSettings#ONT_API_LOAD_CONF_CACHE_CONTENT
-     * @see CacheControl#setContentCacheLevel(int)
+     * @return int, the current level (positive) or {@code 0} in case of no cache should be used
+     * @see OntSettings#ONT_API_LOAD_CONF_CACHE_MODEL
+     * @see CacheControl#setModelCacheLevel(int)
      */
-    int getContentCacheLevel();
+    int getModelCacheLevel();
 
     /**
      * Answers whether an internal model content cache is enabled, that is {@code true} by default.
@@ -146,11 +157,11 @@ public interface CacheSettings {
      * will produce two identical (by {@code equals(Object)} and {@code hashCode()}) axioms.
      *
      * @return boolean
-     * @see CacheControl#setUseContentCache(boolean)
-     * @see CacheControl#setContentCacheLevel(int)
+     * @see CacheControl#setModelCacheLevel(int, boolean)
+     * @see CacheControl#setModelCacheLevel(int)
      */
     default boolean useContentCache() {
-        return (getContentCacheLevel() & CACHE_CONTENT) == CACHE_CONTENT;
+        return (getModelCacheLevel() & CACHE_CONTENT) == CACHE_CONTENT;
     }
 
     /**
@@ -160,20 +171,20 @@ public interface CacheSettings {
      * and used when any ontology signature method is called.
      *
      * @return boolean
-     * @see CacheControl#setContentCacheLevel(int)
+     * @see CacheControl#setModelCacheLevel(int)
      */
     default boolean useComponentCache() {
-        return (getContentCacheLevel() & CACHE_COMPONENT) == CACHE_COMPONENT;
+        return (getModelCacheLevel() & CACHE_COMPONENT) == CACHE_COMPONENT;
     }
 
     /**
      * Answers {@code true} iff cache iterator optimization is enabled.
      *
      * @return boolean
-     * @see CacheControl#setContentCacheLevel(int)
+     * @see CacheControl#setModelCacheLevel(int)
      */
     default boolean useIteratorCache() {
-        return (getContentCacheLevel() & CACHE_ITERATOR) == CACHE_ITERATOR;
+        return (getModelCacheLevel() & CACHE_ITERATOR) == CACHE_ITERATOR;
     }
 
     /**
@@ -227,4 +238,15 @@ public interface CacheSettings {
         throw new UnsupportedOperationException();
     }
 
+
+    /**
+     * Gets the model content cache level.
+     *
+     * @return int
+     * @deprecated since 1.4.2 (bad naming): use {@link #getModelCacheLevel()}
+     */
+    @Deprecated
+    default int getContentCacheLevel() {
+        return getModelCacheLevel();
+    }
 }

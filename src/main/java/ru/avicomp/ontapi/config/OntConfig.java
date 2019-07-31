@@ -41,7 +41,7 @@ import java.util.stream.Stream;
  * <li>{@link #getManagerIRIsCacheSize()} (<b>since 1.4.0</b>)</li>
  * <li>{@link #getLoadNodesCacheSize()} and {@link #setLoadNodesCacheSize(int)} (<b>since 1.4.0</b>)</li>
  * <li>{@link #getLoadObjectsCacheSize()} and {@link #setLoadObjectsCacheSize(int)} (<b>since 1.4.0</b>)</li>
- * <li>{@link #setUseContentCache(boolean)}, {@link #setContentCacheLevel(int)} (<b>since 1.4.0</b>)</li>
+ * <li>{@link #setModelCacheLevel(int, boolean)} (<b>since 1.4.2</b>), {@link #setModelCacheLevel(int)} (<b>since 1.4.0</b>)</li>
  * <li>{@link #useContentCache()}, {@link #useComponentCache()}, {@link #useIteratorCache()} (<b>since 1.4.2</b>)</li>
  * <li>{@link #getPersonality()} and {@link #setPersonality(OntPersonality)}</li>
  * <li>{@link #getGraphTransformers()} amd {@link #setGraphTransformers(GraphTransformers.Store)}</li>
@@ -140,6 +140,11 @@ public class OntConfig extends OntologyConfigurator implements
         throw new IllegalArgumentException(message + " must be positive: " + n);
     }
 
+    static <N extends Integer> N requireNonNegative(N n, Object message) {
+        if (n.intValue() >= 0) return n;
+        throw new IllegalArgumentException(message + " must be non-negative: " + n);
+    }
+
     static Map<OntSettings, Object> loadMap(Map<OntSettings, Object> map, OntSettings... keys) {
         if (map.size() != keys.length) {
             // load all values
@@ -212,6 +217,10 @@ public class OntConfig extends OntologyConfigurator implements
 
     private OntConfig putPositive(OntSettings k, int v) {
         return put(k, requirePositive(v, k));
+    }
+
+    private OntConfig putNonNegative(OntSettings k, int v) {
+        return put(k, requireNonNegative(v, k));
     }
 
     /**
@@ -346,8 +355,8 @@ public class OntConfig extends OntologyConfigurator implements
      * @see CacheSettings#CACHE_ALL
      */
     @Override
-    public OntConfig setContentCacheLevel(int level) {
-        return put(OntSettings.ONT_API_LOAD_CONF_CACHE_CONTENT, level);
+    public OntConfig setModelCacheLevel(int level) {
+        return putNonNegative(OntSettings.ONT_API_LOAD_CONF_CACHE_MODEL, level);
     }
 
     /**
@@ -357,8 +366,8 @@ public class OntConfig extends OntologyConfigurator implements
      * @return boolean
      */
     @Override
-    public int getContentCacheLevel() {
-        return get(OntSettings.ONT_API_LOAD_CONF_CACHE_CONTENT);
+    public int getModelCacheLevel() {
+        return get(OntSettings.ONT_API_LOAD_CONF_CACHE_MODEL);
     }
 
     /**
