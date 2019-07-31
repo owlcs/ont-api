@@ -86,6 +86,18 @@ public class CacheConfigTest {
         return (InternalCache) res.get(of);
     }
 
+    private static void testLoadManchesterString(OntologyManager m) throws OWLOntologyCreationException {
+        String input = "Prefix: o: <urn:test#>\n" +
+                "Ontology: <urn:test>\n" +
+                "AnnotationProperty: o:bob\n" +
+                "Annotations:\n" +
+                "rdfs:label \"bob-label\"@en";
+        OWLOntologyDocumentSource source = ReadWriteUtils.getStringDocumentSource(input, OntFormat.MANCHESTER_SYNTAX);
+        OntologyModel o = m.loadOntologyFromOntologyDocument(source);
+        Assert.assertNotNull(o);
+        Assert.assertEquals(2, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
+    }
+
     @Test
     public void testConfigureManagerIRICacheSize() {
         testConfigureIRICacheSize(OntManagers.createONT());
@@ -266,6 +278,59 @@ public class CacheConfigTest {
         Assert.assertEquals(axioms + 1, o.axioms().count());
         o.remove(df.getOWLDeclarationAxiom(c));
         Assert.assertEquals(axioms, o.getAxiomCount());
+    }
+
+    @Test
+    public void testLoadNativeOWLFormatWhenContentCacheIsDisabled() throws OWLOntologyCreationException {
+        OntologyManager m = OntManagers.createONT();
+        m.getOntologyConfigurator().setModelCacheLevel(CacheSettings.CACHE_CONTENT, false);
+        testLoadManchesterString(m);
+    }
+
+    @Test
+    public void testLoadNativeOWLFormatWhenAllCachesAreDisabled() throws OWLOntologyCreationException {
+        OntologyManager m = OntManagers.createONT();
+        m.getOntologyConfigurator().setModelCacheLevel(0);
+        testLoadManchesterString(m);
+    }
+
+    @Test
+    public void testLoadBrokenTurtleUsingOWLAPIWithNoCache() throws OWLOntologyCreationException {
+        // The following TTL is wrong: it has unexpected dot at [line: 18, col: 15]
+        // Since Jena fails as expected, ONT-API uses the native OWL-API Turtle Parser as alternative,
+        // which is more tolerant.
+        // It calls remove axiom operations, to test which this test-case is intended.
+        String wrong = "@prefix : <urn:fm2#> .\n"
+                + "@prefix owl: <http://www.w3.org/2002/07/owl#> .\n"
+                + "@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n"
+                + "@prefix xml: <http://www.w3.org/XML/1998/namespace> .\n"
+                + "@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n"
+                + "@prefix prov: <urn:prov#> .\n"
+                + "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n"
+                + "@base <urn:fm2> .\n"
+                + "<http://www.ida.org/fm2.owl> rdf:type owl:Ontology.\n"
+                + ":prov rdf:type owl:AnnotationProperty .\n"
+                + ":Manage rdf:type owl:Class ; rdfs:subClassOf :ManagementType .\n"
+                + "[ rdf:type owl:Axiom ;\n"
+                + "  owl:annotatedSource :Manage ;\n"
+                + "  owl:annotatedTarget :ManagementType ;\n"
+                + "  owl:annotatedProperty rdfs:subClassOf ;\n"
+                + "  :prov [\n"
+                + " prov:gen :FMDomain ;\n"
+                + " prov:att :DM .\n "
+                + "]\n ] "
+                + ".\n"
+                + ":ManagementType rdf:type owl:Class .\n"
+                + ":DM rdf:type owl:NamedIndividual , prov:Person .\n"
+                + ":FMDomain rdf:type owl:NamedIndividual , prov:Activity ; prov:ass :DM .";
+
+        OntologyManager m = OntManagers.createONT();
+        m.getOntologyConfigurator().setModelCacheLevel(0);
+
+        OWLOntologyDocumentSource source = ReadWriteUtils.getStringDocumentSource(wrong, OntFormat.TURTLE);
+        OntologyModel o = m.loadOntologyFromOntologyDocument(source);
+        ReadWriteUtils.print(o);
+        Assert.assertEquals(16, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
     }
 
     enum Prop {

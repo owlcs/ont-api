@@ -35,9 +35,6 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-import static org.semanticweb.owlapi.model.parameters.ChangeApplied.NO_OPERATION;
-import static org.semanticweb.owlapi.model.parameters.ChangeApplied.SUCCESSFULLY;
-
 /**
  * The main ontology model implementation. Not concurrent. Editable.
  * Provides access to {@link OntGraphModel}.
@@ -111,10 +108,10 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
             beforeChange();
             OWLAxiom axiom = change.getAxiom();
             if (containsAxiom(axiom)) {
-                return NO_OPERATION;
+                return ChangeApplied.NO_OPERATION;
             }
             getBase().add(axiom);
-            return SUCCESSFULLY;
+            return ChangeApplied.SUCCESSFULLY;
         }
 
         @Override
@@ -123,9 +120,9 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
             OWLAxiom axiom = change.getAxiom();
             if (containsAxiom(axiom)) {
                 getBase().remove(axiom);
-                return SUCCESSFULLY;
+                return ChangeApplied.SUCCESSFULLY;
             }
-            return NO_OPERATION;
+            return ChangeApplied.NO_OPERATION;
         }
 
         @Override
@@ -133,9 +130,9 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
             OWLImportsDeclaration importDeclaration = change.getImportDeclaration();
             if (importsDeclarations().noneMatch(importDeclaration::equals)) {
                 addImport(importDeclaration);
-                return SUCCESSFULLY;
+                return ChangeApplied.SUCCESSFULLY;
             }
-            return NO_OPERATION;
+            return ChangeApplied.NO_OPERATION;
         }
 
         @Override
@@ -143,9 +140,9 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
             OWLImportsDeclaration importDeclaration = change.getImportDeclaration();
             if (importsDeclarations().anyMatch(importDeclaration::equals)) {
                 removeImport(importDeclaration);
-                return SUCCESSFULLY;
+                return ChangeApplied.SUCCESSFULLY;
             }
-            return NO_OPERATION;
+            return ChangeApplied.NO_OPERATION;
         }
 
         @Override
@@ -153,10 +150,10 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
             beforeChange();
             OWLAnnotation annotation = change.getAnnotation();
             if (getBase().contains(annotation)) {
-                return NO_OPERATION;
+                return ChangeApplied.NO_OPERATION;
             }
             getBase().add(annotation);
-            return SUCCESSFULLY;
+            return ChangeApplied.SUCCESSFULLY;
         }
 
         @Override
@@ -165,19 +162,19 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
             OWLAnnotation annotation = change.getAnnotation();
             if (annotations().anyMatch(annotation::equals)) {
                 getBase().remove(annotation);
-                return SUCCESSFULLY;
+                return ChangeApplied.SUCCESSFULLY;
             }
-            return NO_OPERATION;
+            return ChangeApplied.NO_OPERATION;
         }
 
         @Override
         public ChangeApplied visit(@Nonnull SetOntologyID change) {
             OWLOntologyID id = change.getNewOntologyID();
             if (getOntologyID().equals(id)) {
-                return NO_OPERATION;
+                return ChangeApplied.NO_OPERATION;
             }
             setOntologyID(id);
-            return SUCCESSFULLY;
+            return ChangeApplied.SUCCESSFULLY;
         }
 
         /**

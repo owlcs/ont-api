@@ -1002,23 +1002,25 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     }
 
     /**
-     * Adds the given annotation to the ontology header of the model.
-     *
-     * @param annotation {@link OWLAnnotation}
-     * @see #add(OWLAxiom)
-     */
-    public void add(OWLAnnotation annotation) {
-        add(OWLContentType.ANNOTATION, annotation);
-    }
-
-    /**
      * Adds the specified axiom to the model.
      *
      * @param axiom {@link OWLAxiom}
+     * @return {@code true} if the {@code axiom} has been added to the graph
      * @see #add(OWLAnnotation)
      */
-    public void add(OWLAxiom axiom) {
-        add(OWLContentType.get(axiom.getAxiomType()), axiom);
+    public boolean add(OWLAxiom axiom) {
+        return add(OWLContentType.get(axiom.getAxiomType()), axiom);
+    }
+
+    /**
+     * Adds the given annotation to the ontology header of the model.
+     *
+     * @param annotation {@link OWLAnnotation}
+     * @return {@code true} if the {@code annotation} has been added to the graph
+     * @see #add(OWLAxiom)
+     */
+    public boolean add(OWLAnnotation annotation) {
+        return add(OWLContentType.ANNOTATION, annotation);
     }
 
     /**
@@ -1026,20 +1028,22 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * Also, clears the cache for the entity type, if the entity has been belonged to the removed axiom.
      *
      * @param axiom {@link OWLAxiom}
+     * @return {@code true} if the {@code axiom} has been removed from the graph
      * @see #remove(OWLAnnotation)
      */
-    public void remove(OWLAxiom axiom) {
-        remove(OWLContentType.get(axiom.getAxiomType()), axiom);
+    public boolean remove(OWLAxiom axiom) {
+        return remove(OWLContentType.get(axiom.getAxiomType()), axiom);
     }
 
     /**
      * Removes the given ontology header annotation from the model.
      *
      * @param annotation {@link OWLAnnotation}
+     * @return {@code true} if the {@code annotation} has been removed from the graph
      * @see #remove(OWLAxiom)
      */
-    public void remove(OWLAnnotation annotation) {
-        remove(OWLContentType.ANNOTATION, annotation);
+    public boolean remove(OWLAnnotation annotation) {
+        return remove(OWLContentType.ANNOTATION, annotation);
     }
 
     /**
@@ -1048,8 +1052,9 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @param key       {@link OWLContentType}, not {@code null}
      * @param container either {@link OWLAxiom} or {@link OWLAnnotation},
      *                  that corresponds to the {@code key}, not {@code null}
+     * @return {@code true} if the the graph has been changed
      */
-    protected void add(OWLContentType key, OWLObject container) {
+    protected boolean add(OWLContentType key, OWLObject container) {
         OWLTriples.Listener listener = OWLTriples.createListener();
         GraphEventManager evm = getGraph().getEventManager();
         try {
@@ -1067,13 +1072,14 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         OWLTriples<OWLObject> value = listener.toObject(container);
         if (value.isDefinitelyEmpty()) {
             LOGGER.warn("Attempt to add empty OWL object: {}", container);
-            return;
+            return false;
         }
         getContentCache(key).add(value);
         // put new components into objects cache
         cacheOWLObjects(container);
         // force recollect if needed
         systemResources.clear();
+        return true;
     }
 
     /**
@@ -1086,13 +1092,19 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @param key       {@link OWLContentType}, not {@code null}
      * @param container either {@link OWLAxiom} or {@link OWLAnnotation},
      *                  that corresponds to the {@code key}, not {@code null}
+     * @return {@code true} if the the graph has been changed
      * @see #clearComponentsCaches()
      */
-    protected void remove(OWLContentType key, OWLObject container) {
+    protected boolean remove(OWLContentType key, OWLObject container) {
         try {
             disableDirectListening();
             ObjectMap<OWLObject> map = getContentCache(key);
             ONTObject<OWLObject> value = map.get(container);
+            if (value == null) {
+                // this may happen in case the method is called by some native OWL-parsers:
+                // they, sometimes, do not be aware what they do
+                return false;
+            }
             map.remove(container);
             container = value.getObject();
             OntGraphModel m = toModel(value);
@@ -1100,11 +1112,19 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
             Set<Triple> used = new HashSet<>();
             used.addAll(getUsedAxiomTriples(m, container));
             used.addAll(getUsedComponentTriples(m, container));
-            m.getBaseGraph().find().filterDrop(used::contains).forEachRemaining(this::delete);
+            Graph g = m.getBaseGraph();
+            long size = g.size();
+            g.find().filterDrop(used::contains).forEachRemaining(this::delete);
+            boolean res = true;
+            if (size == g.size()) {
+                res = false;
+            }
             // remove related components from the objects cache
+            // (even there is no graph changes)
             clearOWLObjects(container);
             // force recollect system-resources
             clearOtherCaches();
+            return res;
         } finally {
             enableDirectListening();
         }

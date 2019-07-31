@@ -21,6 +21,7 @@ import org.semanticweb.owlapi.model.parameters.ChangeApplied;
 import org.semanticweb.owlapi.util.PriorityCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.avicomp.ontapi.config.CacheSettings;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.jena.UnionGraph;
 
@@ -94,15 +95,15 @@ public class OWLFactoryWrapper implements OntologyFactory.Loader {
      * if incomplete information has been cached
      * (for example, cache entity when there is still no declaration axiom)</li>
      * </ul>
+     * Iterator cache is also disabled (just in case): no repeating axioms listing operations are expected.
      *
      * @param config {@link OntLoaderConfiguration}, not {@code null}
      * @return {@link OntLoaderConfiguration}
      * @since 1.4.2
      */
     public OntLoaderConfiguration optimize(OntLoaderConfiguration config) {
-        return config.setLoadNodesCacheSize(-1);
+        return config.setLoadNodesCacheSize(-1).setModelCacheLevel(CacheSettings.CACHE_ITERATOR, false);
     }
-
 
     /**
      * {@inheritDoc}
@@ -166,34 +167,37 @@ public class OWLFactoryWrapper implements OntologyFactory.Loader {
                             @Override
                             public ChangeApplied visit(SetOntologyID change) {
                                 ChangeApplied res = super.visit(change);
-                                beforeChange();
+                                getBase().forceLoad();
                                 return res;
                             }
 
                             @Override
                             public ChangeApplied visit(AddAxiom change) {
-                                getBase().add(change.getAxiom());
-                                return ChangeApplied.SUCCESSFULLY;
+                                return of(getBase().add(change.getAxiom()));
                             }
 
                             @Override
                             public ChangeApplied visit(AddOntologyAnnotation change) {
-                                getBase().add(change.getAnnotation());
-                                return ChangeApplied.SUCCESSFULLY;
+                                return of(getBase().add(change.getAnnotation()));
                             }
 
                             @Override
                             public ChangeApplied visit(RemoveAxiom change) {
+                                // any remove operation is suspicious when it comes from a parser.
+                                // I observe this situation only when there are grammatical mistakes in the document,
+                                // so it cannot be loaded by Jena.
                                 LOGGER.warn("Suspicious: {}", change);
-                                getBase().remove(change.getAxiom());
-                                return ChangeApplied.SUCCESSFULLY;
+                                return of(getBase().remove(change.getAxiom()));
                             }
 
                             @Override
                             public ChangeApplied visit(RemoveOntologyAnnotation change) {
                                 LOGGER.warn("Suspicious: {}", change);
-                                getBase().remove(change.getAnnotation());
-                                return ChangeApplied.SUCCESSFULLY;
+                                return of(getBase().remove(change.getAnnotation()));
+                            }
+
+                            private ChangeApplied of(boolean res) {
+                                return res ? ChangeApplied.SUCCESSFULLY : ChangeApplied.NO_OPERATION;
                             }
                         };
                     }
