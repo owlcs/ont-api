@@ -22,7 +22,7 @@ import ru.avicomp.ontapi.jena.utils.Iter;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
+import java.util.EnumSet;
 import java.util.Set;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -104,8 +104,23 @@ public enum OWLContentType {
     DATATYPE_DEFINITION(AxiomType.DATATYPE_DEFINITION, true, DATATYPE, DATA_RANGE),
     ;
 
-    public static final List<OWLContentType> AXIOMS = all().skip(1).collect(Iter.toUnmodifiableList());
-    public static final List<OWLContentType> LOGICAL = AXIOMS.stream().filter(x -> x.type.isLogical()).collect(Iter.toUnmodifiableList());
+    private static final Set<OWLContentType> AXIOMS;
+    private static final Set<OWLContentType> LOGICAL;
+
+    static {
+        Set<OWLContentType> axioms = EnumSet.noneOf(OWLContentType.class);
+        Set<OWLContentType> logical = EnumSet.noneOf(OWLContentType.class);
+        OWLContentType[] array = values();
+        for (int i = 1; i < array.length; i++) {
+            OWLContentType x = array[i];
+            axioms.add(x);
+            if (x.type.isLogical()) {
+                logical.add(x);
+            }
+        }
+        AXIOMS = axioms;
+        LOGICAL = logical;
+    }
 
     private final AxiomType<OWLAxiom> type;
     private final boolean distinct;
@@ -158,7 +173,7 @@ public enum OWLContentType {
      *
      * @return {@link ExtendedIterator} of {@link OWLContentType}s
      */
-    static ExtendedIterator<OWLContentType> iterator() {
+    static ExtendedIterator<OWLContentType> listAll() {
         return Iter.of(values());
     }
 

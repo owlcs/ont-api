@@ -87,16 +87,6 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     private static final Logger LOGGER = LoggerFactory.getLogger(InternalModel.class);
 
     /**
-     * A {@code Set} of {@link OWLComponentType}s that are used as keys in the {@link #components} cache.
-     */
-    protected static final Set<OWLComponentType> COMPONENTS_KEYS = Collections.unmodifiableSet(EnumSet.of(OWLComponentType.CLASS
-            , OWLComponentType.DATATYPE
-            , OWLComponentType.ANNOTATION_PROPERTY
-            , OWLComponentType.DATATYPE_PROPERTY
-            , OWLComponentType.NAMED_OBJECT_PROPERTY
-            , OWLComponentType.NAMED_INDIVIDUAL
-            , OWLComponentType.ANONYMOUS_INDIVIDUAL));
-    /**
      * A factory to produce fresh instances of {@link InternalObjectFactory object factory},
      * that is responsible for mapping ONT Jena Objects to OWL-API objects.
      * The object factory may be cache objects, it depends on {@link InternalConfig} settings.
@@ -145,8 +135,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * Currently it is calculated from the {@link #content}.
      * Any direct (manual) change in the graph must also reset this cache.
      *
-     * @see OWLComponentType
-     * @see #COMPONENTS_KEYS
+     * @see OWLComponentType#keys()
      */
     protected final InternalCache.Loading<OWLComponentType, Set<OWLObject>> components;
     /**
@@ -701,7 +690,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     protected void clearOWLObjects(OWLObject container) {
         InternalCache<OWLComponentType, Set<OWLObject>> cache = components.asCache();
         if (cache.isEmpty()) return;
-        COMPONENTS_KEYS.forEach(type -> {
+        OWLComponentType.keys().forEach(type -> {
             if (cache.get(type) == null) return;
             if (!type.components(container).findFirst().isPresent()) return;
             cache.remove(type);
@@ -717,7 +706,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     protected void cacheOWLObjects(OWLObject container) {
         InternalCache<OWLComponentType, Set<OWLObject>> cache = components.asCache();
         if (cache.isEmpty()) return;
-        COMPONENTS_KEYS.forEach(type -> {
+        OWLComponentType.keys().forEach(type -> {
             Set<OWLObject> set = cache.get(type);
             if (set == null) return;
             type.select(container).forEach(set::add);
@@ -841,8 +830,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @return {@code Stream} of {@link OWLAxiom}s
      */
     public Stream<OWLLogicalAxiom> listOWLLogicalAxioms() {
-        return flatMap(filteredAxiomsCaches(OWLContentType.logical()), ObjectMap::keys)
-                .map(x -> (OWLLogicalAxiom) x);
+        return flatMap(filteredAxiomsCaches(OWLContentType.logical()), m -> (Stream<OWLLogicalAxiom>) m.keys());
     }
 
     /**
@@ -968,7 +956,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @return {@code Stream} of {@link R}
      * @see #reduce(Stream)
      */
-    protected <R, X> Stream<R> flatMap(Stream<X> stream, Function<X, Stream<R>> map) {
+    protected <R, X> Stream<R> flatMap(Stream<X> stream, Function<X, Stream<? extends R>> map) {
         InternalConfig conf = getSnapshotConfig();
         if (!conf.parallel() || !conf.useContentCache()) {
             return stream.flatMap(map);
@@ -1052,7 +1040,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @param key       {@link OWLContentType}, not {@code null}
      * @param container either {@link OWLAxiom} or {@link OWLAnnotation},
      *                  that corresponds to the {@code key}, not {@code null}
-     * @return {@code true} if the the graph has been changed
+     * @return {@code true} if the graph has been changed
      */
     protected boolean add(OWLContentType key, OWLObject container) {
         OWLTriples.Listener listener = OWLTriples.createListener();
@@ -1092,7 +1080,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @param key       {@link OWLContentType}, not {@code null}
      * @param container either {@link OWLAxiom} or {@link OWLAnnotation},
      *                  that corresponds to the {@code key}, not {@code null}
-     * @return {@code true} if the the graph has been changed
+     * @return {@code true} if the graph has been changed
      * @see #clearComponentsCaches()
      */
     protected boolean remove(OWLContentType key, OWLObject container) {
@@ -1115,10 +1103,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
             Graph g = m.getBaseGraph();
             long size = g.size();
             g.find().filterDrop(used::contains).forEachRemaining(this::delete);
-            boolean res = true;
-            if (size == g.size()) {
-                res = false;
-            }
+            boolean res = size != g.size();
             // remove related components from the objects cache
             // (even there is no graph changes)
             clearOWLObjects(container);
@@ -1148,7 +1133,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         InternalObjectFactory df = getObjectFactory();
         InternalConfig c = getSnapshotConfig();
         Set<Triple> res = new HashSet<>();
-        Iter.flatMap(OWLContentType.iterator(), k -> k.read(m, df, c)
+        Iter.flatMap(OWLContentType.listAll(), k -> k.read(m, df, c)
                 .filterKeep(x -> !object.equals(x.getObject()) && isUsed(k, x.getObject())))
                 .forEachRemaining(x -> x.triples().forEach(res::add));
         return res;
@@ -1350,7 +1335,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @param keys {@code Stream} of {@link OWLContentType}
      * @return {@code Stream} of {@link ObjectMap} containing {@link OWLAxiom}s
      */
-    protected Stream<ObjectMap<OWLAxiom>> filteredAxiomsCaches(Stream<OWLContentType> keys) {
+    protected Stream<ObjectMap<? extends OWLAxiom>> filteredAxiomsCaches(Stream<OWLContentType> keys) {
         return keys.map(this::getAxiomsCache);
     }
 

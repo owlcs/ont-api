@@ -351,6 +351,14 @@ public enum OWLComponentType {
     }
     ;
 
+    private static final Set<OWLComponentType> COMPONENTS_KEYS = Collections.unmodifiableSet(EnumSet.of(CLASS
+            , DATATYPE
+            , ANNOTATION_PROPERTY
+            , DATATYPE_PROPERTY
+            , NAMED_OBJECT_PROPERTY
+            , NAMED_INDIVIDUAL
+            , ANONYMOUS_INDIVIDUAL));
+
     final Class<? extends OWLObject> owl;
     final Class<? extends RDFNode> jena;
     private final boolean primitive;
@@ -404,6 +412,17 @@ public enum OWLComponentType {
                 , INVERSE_OBJECT_PROPERTY
                 , SWRL_ATOM
                 , SWRL_VARIABLE);
+    }
+
+    /**
+     * Selects and lists those {@link OWLComponentType},
+     * that are used as keys in {@link InternalModel internal model} components cache.
+     *
+     * @return {@code Stream} of {@link OWLContentType}s
+     * @see InternalModel#components
+     */
+    static Stream<OWLComponentType> keys() {
+        return COMPONENTS_KEYS.stream();
     }
 
     /**
