@@ -41,7 +41,7 @@ public interface ObjectMap<X extends OWLObject> {
     boolean hasNew();
 
     /**
-     * Answers {@code true} if this map is loaded,
+     * Answers {@code true} if this {@code ObjectMap} is loaded,
      * i.e. already contains all {@code ONTObject}s in memory.
      *
      * @return boolean

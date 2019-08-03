@@ -57,6 +57,9 @@ public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHold
     private static final long serialVersionUID = 7605836729147058594L;
 
     protected transient InternalModel base;
+    // todo: now, this manager reference is not needed
+    //  (the moving is not possible anymore -- see https://github.com/avicomp/ont-api/issues/74);
+    //  remove it
     protected transient OntologyManagerImpl managerBackCopy;
 
     protected int hashCode;

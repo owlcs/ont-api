@@ -268,12 +268,101 @@ public interface InternalCache<K, V> {
      * @param <V>      the type of mapped values
      * @return {@link Loading}
      */
+    @SuppressWarnings("unused")
     static <K, V> Loading<K, V> createSoft(Function<? super K, ? extends V> loader,
                                            boolean caffeine) {
         InternalCache<K, V> res = caffeine ?
                 new CaffeineWrapper<>(Caffeine.newBuilder().softValues().build(loader::apply), loader) :
                 new SoftMapWrapper<>(new LinkedHashMap<>(128, 0.75f, true));
         return res.asLoading(loader);
+    }
+
+    /**
+     * Creates a {@link Loading Loading cache} that contains only one value, derived by the specified {@code loader}.
+     * Can be used as a value-wrapper with configurable state.
+     * The value is stored as a strong reference.
+     * Note: the returned {@link Loading} instance is not backed by the {@link InternalCache}.
+     *
+     * @param loader a {@link Function}-loaded to derive the value
+     * @param <K>    the type of {@code loader} parameter
+     * @param <V>    the type of the value wrapped by the returned cache
+     * @return {@link Loading}
+     * @since 1.4.2
+     */
+    static <K, V> Loading<K, V> createSingleton(Function<? super K, ? extends V> loader) {
+        Objects.requireNonNull(loader);
+        return new Loading<K, V>() {
+            private volatile V value;
+
+            @Override
+            public V get(K key) {
+                if (value != null) return value;
+                synchronized (this) {
+                    if (value != null) return value;
+                    return value = loader.apply(key);
+                }
+            }
+
+            @Override
+            public InternalCache<K, V> asCache() {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public void clear() {
+                value = null;
+            }
+
+            @Override
+            public boolean isEmpty() {
+                return value == null;
+            }
+        };
+    }
+
+    /**
+     * Creates a {@link Loading Loading cache} that contains only one value, derived by the specified {@code loader}.
+     * Can be used as a value-wrapper with configurable state.
+     * The value is stored as a {@link SoftReference soft reference}.
+     * Note: the returned {@link Loading} instance is not backed by the {@link InternalCache}.
+     *
+     * @param loader a {@link Function}-loaded to derive the value
+     * @param <K>    the type of {@code loader} parameter
+     * @param <V>    the type of the value wrapped by the returned cache
+     * @return {@link Loading}
+     * @since 1.4.2
+     */
+    static <K, V> Loading<K, V> createSoftSingleton(Function<? super K, ? extends V> loader) {
+        Objects.requireNonNull(loader);
+        return new Loading<K, V>() {
+            private volatile SoftReference<V> value;
+
+            @Override
+            public V get(K key) {
+                V res;
+                if (value != null && (res = value.get()) != null) return res;
+                synchronized (this) {
+                    if (value != null && (res = value.get()) != null) return res;
+                    value = new SoftReference<>(res = loader.apply(key));
+                    return res;
+                }
+            }
+
+            @Override
+            public InternalCache<K, V> asCache() {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public void clear() {
+                value = null;
+            }
+
+            @Override
+            public boolean isEmpty() {
+                return value == null || value.get() == null;
+            }
+        };
     }
 
     /**
@@ -314,6 +403,22 @@ public interface InternalCache<K, V> {
          * @return {@link InternalCache}
          */
         InternalCache<K, V> asCache();
+
+        /**
+         * Discards all entries in the cache.
+         */
+        default void clear() {
+            asCache().clear();
+        }
+
+        /**
+         * Answers {@code true} if the cache is empty.
+         *
+         * @return boolean
+         */
+        default boolean isEmpty() {
+            return asCache().isEmpty();
+        }
     }
 
     /**

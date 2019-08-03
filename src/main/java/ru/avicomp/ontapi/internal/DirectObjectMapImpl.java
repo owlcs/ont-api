@@ -55,10 +55,21 @@ public class DirectObjectMapImpl<X extends OWLObject> implements ObjectMap<X> {
         this.finder = Objects.requireNonNull(finder);
     }
 
+    /**
+     * Lists all {@link ONTObject} using {@code loader}.
+     *
+     * @return {@code ExtendedIterator} over all {@link ONTObject}s
+     */
     public ExtendedIterator<ONTObject<X>> listONTObjects() {
         return Iter.create(loader.get());
     }
 
+    /**
+     * Finds the {@link ONTObject} using encapsulated {@code finder}.
+     *
+     * @param key {@link X}
+     * @return {@code Optional} of {@link ONTObject}
+     */
     public Optional<ONTObject<X>> findONTObject(X key) {
         return finder.apply(key);
     }
@@ -88,9 +99,15 @@ public class DirectObjectMapImpl<X extends OWLObject> implements ObjectMap<X> {
         return false;
     }
 
+    /**
+     * {@inheritDoc}
+     * This {@code ObjectMap} does not contain any caches, so the method always answers {@code false}.
+     *
+     * @return {@code false}
+     */
     @Override
     public boolean isLoaded() {
-        return true;
+        return false;
     }
 
     @Override

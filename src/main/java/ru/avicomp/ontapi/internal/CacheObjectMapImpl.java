@@ -84,7 +84,7 @@ public class CacheObjectMapImpl<X extends OWLObject> implements ObjectMap<X> {
         this.withMerge = withMerge;
         this.parallel = parallel;
         this.fastIterator = fastIterator;
-        this.map = InternalCache.createSoft(CacheObjectMapImpl::loadMap, parallel);
+        this.map = InternalCache.createSoftSingleton(CacheObjectMapImpl::loadMap);
     }
 
     /**
@@ -136,7 +136,7 @@ public class CacheObjectMapImpl<X extends OWLObject> implements ObjectMap<X> {
 
     @Override
     public boolean isLoaded() {
-        return !map.asCache().isEmpty();
+        return !map.isEmpty();
     }
 
     @Override
@@ -200,7 +200,7 @@ public class CacheObjectMapImpl<X extends OWLObject> implements ObjectMap<X> {
 
     @Override
     public void clear() {
-        map.asCache().clear();
+        map.clear();
     }
 
     /**
@@ -236,7 +236,7 @@ public class CacheObjectMapImpl<X extends OWLObject> implements ObjectMap<X> {
         public static <K, V> CachedMap<K, V> create(Map<K, V> map,
                                                     BiFunction<V, V, V> merger,
                                                     boolean parallel) {
-            InternalCache.Loading<CachedMap, List<K>> keys = InternalCache.createSoft(m -> {
+            InternalCache.Loading<CachedMap, List<K>> keys = InternalCache.createSoftSingleton(m -> {
                 if (!parallel) {
                     return new ArrayList<>(map.keySet());
                 }
@@ -244,7 +244,7 @@ public class CacheObjectMapImpl<X extends OWLObject> implements ObjectMap<X> {
                 // since iterator go beyond a locked-block where it has been initialized,
                 // but (I believe), R/W locking reduces the List's mutation costs
                 return new CopyOnWriteArrayList<>(map.keySet());
-            }, parallel);
+            });
             return new CachedMap<>(map, keys, merger);
         }
 
@@ -286,7 +286,7 @@ public class CacheObjectMapImpl<X extends OWLObject> implements ObjectMap<X> {
             if (map.remove(key) == null) {
                 return;
             }
-            if (keys.asCache().isEmpty()) {
+            if (keys.isEmpty()) {
                 return;
             }
             List<K> list = keys.get(this);
@@ -311,10 +311,14 @@ public class CacheObjectMapImpl<X extends OWLObject> implements ObjectMap<X> {
             } else {
                 map.put(key, value);
             }
-            if (keys.asCache().isEmpty()) {
+            if (keys.isEmpty()) {
                 return;
             }
-            keys.get(this).add(key);
+            List<K> list = keys.get(this);
+            if (map.size() - 1 != list.size()) {
+                return;
+            }
+            list.add(key);
         }
 
         /**
