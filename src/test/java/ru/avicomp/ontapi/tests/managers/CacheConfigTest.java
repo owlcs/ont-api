@@ -38,10 +38,7 @@ import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
 import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Created by @ssz on 04.03.2019.
@@ -69,21 +66,33 @@ public class CacheConfigTest {
         Assert.assertEquals(1, m.getOntologyConfigurator().getManagerIRIsCacheSize());
     }
 
-    private static InternalCache getCacheFromObjectFactory(CacheObjectFactory of,
-                                                           Class<? extends OntEntity> type) throws Exception {
+    private static InternalCache getInternalCache(CacheObjectFactory of,
+                                                  Class<? extends OntEntity> type) throws Exception {
+        return getPrivateField(of, InternalCache.class, type);
+    }
+
+    private static InternalCache.Loading getInternalCache(InternalModel m,
+                                                          Class<? extends Enum> type) throws Exception {
+        return getPrivateField(m, InternalCache.Loading.class, type);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <X> X getPrivateField(Object container,
+                                         Class<X> type,
+                                         Class<?>... genericTypes) throws Exception {
         Field res = null;
-        for (Field f : of.getClass().getDeclaredFields()) {
+        for (Field f : container.getClass().getDeclaredFields()) {
             String name = f.getGenericType().getTypeName();
-            if (!name.contains(InternalCache.class.getName()))
+            if (!name.contains(type.getName()))
                 continue;
-            if (name.contains(type.getName())) {
+            if (Arrays.stream(genericTypes).map(Class::getName).allMatch(name::contains)) {
                 res = f;
                 break;
             }
         }
         Assert.assertNotNull(res);
         res.setAccessible(true);
-        return (InternalCache) res.get(of);
+        return (X) res.get(container);
     }
 
     private static void testLoadManchesterString(OntologyManager m) throws OWLOntologyCreationException {
@@ -147,12 +156,12 @@ public class CacheConfigTest {
         Assert.assertTrue(of2 instanceof CacheObjectFactory);
         CacheObjectFactory cof1 = (CacheObjectFactory) of2;
 
-        Assert.assertEquals(size1, getCacheFromObjectFactory(cof1, OntClass.class).size());
-        Assert.assertEquals(0, getCacheFromObjectFactory(cof1, OntDT.class).size());
-        Assert.assertEquals(5, getCacheFromObjectFactory(cof1, OntIndividual.Named.class).size());
-        Assert.assertEquals(2, getCacheFromObjectFactory(cof1, OntNAP.class).size());
-        Assert.assertEquals(0, getCacheFromObjectFactory(cof1, OntNDP.class).size());
-        Assert.assertEquals(8, getCacheFromObjectFactory(cof1, OntNOP.class).size());
+        Assert.assertEquals(size1, getInternalCache(cof1, OntClass.class).size());
+        Assert.assertEquals(0, getInternalCache(cof1, OntDT.class).size());
+        Assert.assertEquals(5, getInternalCache(cof1, OntIndividual.Named.class).size());
+        Assert.assertEquals(2, getInternalCache(cof1, OntNAP.class).size());
+        Assert.assertEquals(0, getInternalCache(cof1, OntNDP.class).size());
+        Assert.assertEquals(8, getInternalCache(cof1, OntNOP.class).size());
 
         int size2 = 2;
         m.setOntologyLoaderConfiguration(conf.setLoadObjectsCacheSize(size2));
@@ -161,12 +170,12 @@ public class CacheConfigTest {
         Assert.assertTrue(of3 instanceof CacheObjectFactory);
         CacheObjectFactory cof2 = (CacheObjectFactory) of3;
 
-        Assert.assertEquals(size2, getCacheFromObjectFactory(cof2, OntClass.class).size());
-        Assert.assertEquals(0, getCacheFromObjectFactory(cof2, OntDT.class).size());
-        Assert.assertEquals(size2, getCacheFromObjectFactory(cof2, OntIndividual.Named.class).size());
-        Assert.assertEquals(size2, getCacheFromObjectFactory(cof2, OntNAP.class).size());
-        Assert.assertEquals(0, getCacheFromObjectFactory(cof2, OntNDP.class).size());
-        Assert.assertEquals(size2, getCacheFromObjectFactory(cof2, OntNOP.class).size());
+        Assert.assertEquals(size2, getInternalCache(cof2, OntClass.class).size());
+        Assert.assertEquals(0, getInternalCache(cof2, OntDT.class).size());
+        Assert.assertEquals(size2, getInternalCache(cof2, OntIndividual.Named.class).size());
+        Assert.assertEquals(size2, getInternalCache(cof2, OntNAP.class).size());
+        Assert.assertEquals(0, getInternalCache(cof2, OntNDP.class).size());
+        Assert.assertEquals(size2, getInternalCache(cof2, OntNOP.class).size());
     }
 
     @Test
@@ -225,6 +234,153 @@ public class CacheConfigTest {
             LOGGER.debug("Expected: '{}'", e.getMessage());
         }
         Assert.assertEquals(size, g.size());
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testContentCacheInternal() throws Exception {
+        int axioms = 945;
+        OWLAdapter adapter = OWLAdapter.get();
+        OWLOntologyDocumentSource src = ReadWriteUtils.getFileDocumentSource("/ontapi/pizza.ttl", OntFormat.TURTLE);
+
+        OntologyManager m1 = OntManagers.createONT();
+        OntologyModel o1 = m1.loadOntologyFromOntologyDocument(src,
+                m1.getOntologyLoaderConfiguration().setModelCacheLevel(CacheSettings.CACHE_CONTENT, true));
+        InternalModel im1 = adapter.asBaseModel(o1).getBase();
+        InternalCache.Loading c1 = getInternalCache(im1, OWLContentType.class);
+        Assert.assertNotNull(c1);
+        Map map1 = (Map) c1.get(im1);
+        Assert.assertNotNull(map1);
+        OWLContentType.all().forEach(k -> {
+            ObjectMap v = (ObjectMap) map1.get(k);
+            Assert.assertNotNull(v);
+            Assert.assertFalse("Loaded: " + k, v.isLoaded());
+        });
+        // load axioms:
+        Assert.assertEquals(axioms, o1.getAxiomCount());
+        OWLContentType.all().forEach(k -> {
+            ObjectMap v = (ObjectMap) map1.get(k);
+            Assert.assertNotNull(v);
+            if (OWLContentType.ANNOTATION.equals(k)) {
+                Assert.assertFalse("Loaded: " + k, v.isLoaded());
+            } else {
+                Assert.assertTrue("Not loaded: " + k, v.isLoaded());
+            }
+        });
+
+        OntologyManager m2 = OntManagers.createONT();
+        OntologyModel o2 = m2.loadOntologyFromOntologyDocument(src,
+                m2.getOntologyLoaderConfiguration().setModelCacheLevel(CacheSettings.CACHE_CONTENT, false));
+        InternalModel im2 = adapter.asBaseModel(o2).getBase();
+        InternalCache.Loading c2 = getInternalCache(im2, OWLContentType.class);
+        Assert.assertNotNull(c2);
+        Map map2 = (Map) c2.get(im2);
+        Assert.assertNotNull(map2);
+        // load axioms:
+        Assert.assertEquals(axioms, o2.getAxiomCount());
+        OWLContentType.all().forEach(k -> {
+            ObjectMap v = (ObjectMap) map2.get(k);
+            Assert.assertNotNull(v);
+            Assert.assertFalse("Loaded: " + k, v.isLoaded());
+        });
+    }
+
+    @Test
+    public void testComponentCacheOption() {
+        Graph g = ReadWriteUtils.loadResourceTTLFile("/ontapi/pizza.ttl").getGraph();
+
+        long signature1 = 118;
+        OntologyManager m1 = OntManagers.createONT();
+        DataFactory df = m1.getOWLDataFactory();
+        Assert.assertEquals(CacheSettings.CACHE_ALL, Prop.CONTENT_CACHE_LEVEL.getInt());
+        Assert.assertTrue(m1.getOntologyConfigurator().useComponentCache());
+
+        LogFindGraph g1 = new LogFindGraph(g);
+        OntologyModel o1 = m1.addOntology(g1);
+        Assert.assertEquals(signature1, o1.signature().count());
+        int count1 = g1.getFindPatterns().size();
+        LOGGER.debug("1) Find invocation count: {}", count1);
+        // cached:
+        Assert.assertEquals(signature1, o1.signature().count());
+        Assert.assertEquals(count1, g1.getFindPatterns().size());
+        OWLAxiom axiom = df.getOWLSubClassOfAxiom(df.getOWLClass("A"), df.getOWLClass("B"));
+        o1.add(axiom);
+        Assert.assertEquals(signature1 + 2, o1.signature().count());
+
+        // no cache model:
+        long signature2 = signature1 + 2;
+        OntologyManager m2 = OntManagers.createONT();
+        OntLoaderConfiguration conf = m2.getOntologyLoaderConfiguration()
+                .setModelCacheLevel(CacheSettings.CACHE_COMPONENT, false);
+        Assert.assertFalse(conf.useComponentCache());
+        Assert.assertTrue(conf.useContentCache());
+        LogFindGraph g2 = new LogFindGraph(g);
+        OntologyModel o2 = m2.addOntology(g2, conf);
+        Assert.assertEquals(signature2, o2.signature().distinct().count());
+        int count2_1 = g2.getFindPatterns().size();
+        LOGGER.debug("2) Find invocation count: {}", count2_1);
+
+        Assert.assertEquals(signature2, o2.signature().distinct().count());
+        int count2_2 = g2.getFindPatterns().size();
+        LOGGER.debug("3) Find invocation count: {}", count2_2);
+        // currently components cache uses content cache in any case -> no read operations, count is same
+        Assert.assertEquals(count2_2, count2_1);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testComponentCacheInternal() throws Exception {
+        long signature = 118;
+        OWLAdapter adapter = OWLAdapter.get();
+        List<OWLComponentType> keys = Arrays.asList(OWLComponentType.CLASS
+                , OWLComponentType.DATATYPE
+                , OWLComponentType.ANNOTATION_PROPERTY
+                , OWLComponentType.DATATYPE_PROPERTY
+                , OWLComponentType.NAMED_OBJECT_PROPERTY
+                , OWLComponentType.NAMED_INDIVIDUAL
+                , OWLComponentType.ANONYMOUS_INDIVIDUAL);
+        OWLOntologyDocumentSource src = ReadWriteUtils.getFileDocumentSource("/ontapi/pizza.ttl", OntFormat.TURTLE);
+
+        OntologyManager m1 = OntManagers.createONT();
+        OntologyModel o1 = m1.loadOntologyFromOntologyDocument(src,
+                m1.getOntologyLoaderConfiguration().setModelCacheLevel(CacheSettings.CACHE_COMPONENT, true));
+        InternalModel im1 = adapter.asBaseModel(o1).getBase();
+        InternalCache.Loading c1 = getInternalCache(im1, OWLComponentType.class);
+        Assert.assertNotNull(c1);
+        Map map1 = (Map) c1.get(im1);
+        Assert.assertNotNull(map1);
+        keys.forEach(k -> {
+            ObjectMap v = (ObjectMap) map1.get(k);
+            Assert.assertNotNull(v);
+            Assert.assertFalse("Loaded " + k, v.isLoaded());
+        });
+        // load signature:
+        Assert.assertEquals(signature, o1.signature().count());
+        keys.forEach(k -> {
+            ObjectMap v = (ObjectMap) map1.get(k);
+            Assert.assertNotNull(v);
+            if (OWLComponentType.ANONYMOUS_INDIVIDUAL.equals(k)) {
+                Assert.assertFalse("Loaded " + k, v.isLoaded());
+            } else {
+                Assert.assertTrue("Not loaded: " + k, v.isLoaded());
+            }
+        });
+
+        OntologyManager m2 = OntManagers.createONT();
+        OntologyModel o2 = m2.loadOntologyFromOntologyDocument(src,
+                m2.getOntologyLoaderConfiguration().setModelCacheLevel(CacheSettings.CACHE_COMPONENT, false));
+        InternalModel im2 = adapter.asBaseModel(o2).getBase();
+        InternalCache.Loading c2 = getInternalCache(im2, OWLComponentType.class);
+        Assert.assertNotNull(c2);
+        Map map2 = (Map) c2.get(im2);
+        Assert.assertNotNull(map2);
+        // load signature:
+        Assert.assertEquals(signature, o2.signature().distinct().count());
+        keys.forEach(k -> {
+            ObjectMap v = (ObjectMap) map2.get(k);
+            Assert.assertNotNull(v);
+            Assert.assertFalse("Loaded " + k, v.isLoaded());
+        });
     }
 
     @Test
