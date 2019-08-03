@@ -18,7 +18,6 @@ import org.apache.jena.graph.Graph;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.ChangeApplied;
 import ru.avicomp.ontapi.internal.InternalModel;
-import ru.avicomp.ontapi.internal.InternalModelHolder;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
@@ -215,7 +214,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
                 getBase().getID().addImport(declaration.getIRI().getIRIString());
                 return;
             }
-            getBase().addImport(getAdapter().asBaseHolder(ont).getBase());
+            getBase().addImport(getAdapter().asBaseModel(ont).getBase());
         }
 
         /**
@@ -233,7 +232,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
             if (ont == null) {
                 return;
             }
-            getBase().removeImport(getAdapter().asBaseHolder(ont).getBase());
+            getBase().removeImport(getAdapter().asBaseModel(ont).getBase());
         }
 
         @Override
@@ -248,7 +247,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
      * Created by szuev on 22.12.2016.
      */
     @SuppressWarnings("WeakerAccess")
-    public static class Concurrent extends OWLOntologyWrapper implements OntologyModel, InternalModelHolder {
+    public static class Concurrent extends OWLOntologyWrapper implements OntologyModel, BaseModel {
 
         private static final long serialVersionUID = 5823394836022970162L;
 

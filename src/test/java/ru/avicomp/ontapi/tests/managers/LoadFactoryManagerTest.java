@@ -753,7 +753,7 @@ public class LoadFactoryManagerTest {
         OntLoaderConfiguration conf = m.getOntologyLoaderConfiguration().setUseOWLParsersToLoad(true);
         OntologyModel o = m.loadOntologyFromOntologyDocument(src, conf);
         OWLAdapter adapter = OWLAdapter.get();
-        OntLoaderConfiguration conf2 = adapter.asModelConfig(adapter.asBaseHolder(o).getConfig()).getLoaderConfig();
+        OntLoaderConfiguration conf2 = adapter.asModelConfig(adapter.asBaseModel(o).getConfig()).getLoaderConfig();
         Assert.assertSame(conf, conf2);
     }
 
@@ -770,7 +770,7 @@ public class LoadFactoryManagerTest {
         OntLoaderConfiguration conf = m.getOntologyLoaderConfiguration().setUseOWLParsersToLoad(true);
         OntologyModel o = m.loadOntologyFromOntologyDocument(src, conf);
         OWLAdapter adapter = OWLAdapter.get();
-        OntLoaderConfiguration conf2 = adapter.asModelConfig(adapter.asBaseHolder(o).getConfig()).getLoaderConfig();
+        OntLoaderConfiguration conf2 = adapter.asModelConfig(adapter.asBaseModel(o).getConfig()).getLoaderConfig();
         Assert.assertSame(conf, conf2);
     }
 

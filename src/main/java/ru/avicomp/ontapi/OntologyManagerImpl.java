@@ -34,7 +34,6 @@ import ru.avicomp.ontapi.config.OntWriterConfiguration;
 import ru.avicomp.ontapi.internal.InternalCache;
 import ru.avicomp.ontapi.internal.InternalConfig;
 import ru.avicomp.ontapi.internal.InternalModel;
-import ru.avicomp.ontapi.internal.InternalModelHolder;
 import ru.avicomp.ontapi.jena.UnionGraph;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
@@ -1733,7 +1732,7 @@ public class OntologyManagerImpl implements OntologyManager,
 
         OntologyModel ont = (OntologyModel) ontology;
         if (!format.isJena()) {
-            getAdapter().asBaseHolder(ont).getBase().clearCacheIfNeeded();
+            getAdapter().asBaseModel(ont).getBase().clearCacheIfNeeded();
             try {
                 for (OWLStorerFactory storer : getOntologyStorers()) {
                     OWLStorer writer = storer.createStorer();
@@ -1813,12 +1812,12 @@ public class OntologyManagerImpl implements OntologyManager,
         this.iris = createIRICache();
         this.content.values().forEach(info -> {
             ModelConfig conf = info.getModelConfig();
-            InternalModelHolder m = getAdapter().asBaseHolder(info.get());
+            BaseModel m = getAdapter().asBaseModel(info.get());
             m.setConfig(conf);
             UnionGraph baseGraph = m.getBase().getGraph();
             Stream<UnionGraph> imports = Graphs.getImports(baseGraph).stream()
-                    .map(s -> this.content.values().map(OntInfo::get).map(InternalModelHolder.class::cast)
-                            .map(InternalModelHolder::getBase).map(OntGraphModelImpl::getGraph)
+                    .map(s -> this.content.values().map(OntInfo::get).map(BaseModel.class::cast)
+                            .map(BaseModel::getBase).map(OntGraphModelImpl::getGraph)
                             .filter(g -> Objects.equals(s, Graphs.getURI(g))).findFirst().orElse(null))
                     .filter(Objects::nonNull);
             imports.forEach(baseGraph::addGraph);
@@ -2117,7 +2116,7 @@ public class OntologyManagerImpl implements OntologyManager,
         public OntInfo(@Nonnull OntologyModel ont) throws ClassCastException {
             this.ont = Objects.requireNonNull(ont);
             OWLAdapter adapter = getAdapter();
-            this.conf = Objects.requireNonNull(adapter.asModelConfig(adapter.asBaseHolder(ont).getConfig()));
+            this.conf = Objects.requireNonNull(adapter.asModelConfig(adapter.asBaseModel(ont).getConfig()));
         }
 
         @Override

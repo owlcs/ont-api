@@ -19,7 +19,6 @@ import ru.avicomp.ontapi.config.OntConfig;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.config.OntWriterConfiguration;
 import ru.avicomp.ontapi.internal.InternalConfig;
-import ru.avicomp.ontapi.internal.InternalModelHolder;
 
 import java.util.Objects;
 
@@ -195,10 +194,10 @@ public class OWLAdapter implements HasAdapter.Adapter {
      * Performs mapping {@code OntologyModel -> InternalModelHolder}.
      *
      * @param ont {@link OntologyModel}, not {@code null}
-     * @return {@link InternalModelHolder}
+     * @return {@link BaseModel}
      */
-    public InternalModelHolder asBaseHolder(OntologyModel ont) {
-        return (InternalModelHolder) ont;
+    public BaseModel asBaseModel(OntologyModel ont) {
+        return (BaseModel) ont;
     }
 
     /**

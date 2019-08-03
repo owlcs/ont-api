@@ -366,14 +366,14 @@ public class ModifyAxiomsTest {
         OWLDataFactory df = man.getOWLDataFactory();
 
         OntologyModel o = man.createOntology(IRI.create("http://test2"));
-        int system = ad.asBaseHolder(o).getBase().getSystemResources(OntClass.class).size();
+        int system = ad.asBaseModel(o).getBase().getSystemResources(OntClass.class).size();
         OntGraphModel m = o.asGraphModel();
         m.createOntClass(OWL.NegativePropertyAssertion.getURI());
         m.createDataProperty(OWL.targetValue.getURI());
         m.createIndividual("I").addNegativeAssertion(m.createDataProperty("P"), m.createLiteral("x"));
 
         ReadWriteUtils.print(o);
-        Assert.assertEquals(system - 1, ad.asBaseHolder(o).getBase().getSystemResources(OntClass.class).size());
+        Assert.assertEquals(system - 1, ad.asBaseModel(o).getBase().getSystemResources(OntClass.class).size());
         Assert.assertEquals(7, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
         Assert.assertEquals(9, m.size());
 
@@ -394,7 +394,7 @@ public class ModifyAxiomsTest {
         o.remove(df.getOWLDeclarationAxiom(df.getOWLClass(OWL.NegativePropertyAssertion.getURI())));
         o.remove(df.getOWLDeclarationAxiom(df.getOWLDataProperty(OWL.targetValue.getURI())));
         ReadWriteUtils.print(o);
-        Assert.assertEquals(system, ad.asBaseHolder(o).getBase().getSystemResources(OntClass.class).size());
+        Assert.assertEquals(system, ad.asBaseModel(o).getBase().getSystemResources(OntClass.class).size());
         Assert.assertEquals(2, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
         Assert.assertEquals(3, m.size());
 

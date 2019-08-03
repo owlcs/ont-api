@@ -12,11 +12,12 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 
-package ru.avicomp.ontapi.internal;
+package ru.avicomp.ontapi;
 
 import org.apache.jena.graph.Graph;
-import ru.avicomp.ontapi.ModelConfig;
-import ru.avicomp.ontapi.OntApiException;
+import ru.avicomp.ontapi.internal.InternalConfig;
+import ru.avicomp.ontapi.internal.InternalModel;
+import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.jena.impl.conf.OntModelConfig;
 import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
 
@@ -32,7 +33,7 @@ import java.util.function.Supplier;
  * <p>
  * Created by @szuev on 07.04.2017.
  */
-public interface InternalModelHolder {
+public interface BaseModel {
 
     /**
      * Returns an encapsulated {@link InternalModel} instance -

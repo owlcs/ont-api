@@ -25,7 +25,6 @@ import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.Imports;
 import ru.avicomp.ontapi.*;
-import ru.avicomp.ontapi.internal.InternalModelHolder;
 import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.impl.UnionModel;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
@@ -288,19 +287,19 @@ public class ImportsOntModelTest extends OntModelTestBase {
         Assert.assertEquals(0, b.imports().count());
         Assert.assertEquals(1, Graphs.subGraphs(a.asGraphModel().getGraph()).count());
         Assert.assertEquals(0, Graphs.subGraphs(b.asGraphModel().getGraph()).count());
-        Assert.assertEquals(1, Graphs.subGraphs(ad.asBaseHolder(a).getBase().getGraph()).count());
+        Assert.assertEquals(1, Graphs.subGraphs(ad.asBaseModel(a).getBase().getGraph()).count());
         Assert.assertEquals(Stream.of(a, b)
-                        .map(ad::asBaseHolder)
-                        .map(InternalModelHolder::getBase)
+                        .map(ad::asBaseModel)
+                        .map(BaseModel::getBase)
                         .map(UnionModel::getBaseGraph).collect(Collectors.toSet()),
-                Graphs.baseGraphs(ad.asBaseHolder(a).getBase().getGraph()).collect(Collectors.toSet()));
+                Graphs.baseGraphs(ad.asBaseModel(a).getBase().getGraph()).collect(Collectors.toSet()));
 
         m.applyChange(new RemoveImport(a, d.getOWLImportsDeclaration(iri_b)));
         Assert.assertEquals(0, a.imports().count());
         Assert.assertEquals(0, b.imports().count());
         Assert.assertEquals(0, Graphs.subGraphs(a.asGraphModel().getGraph()).count());
         Assert.assertEquals(0, Graphs.subGraphs(b.asGraphModel().getGraph()).count());
-        Assert.assertEquals(0, Graphs.subGraphs(ad.asBaseHolder(a).getBase().getGraph()).count());
+        Assert.assertEquals(0, Graphs.subGraphs(ad.asBaseModel(a).getBase().getGraph()).count());
 
     }
 

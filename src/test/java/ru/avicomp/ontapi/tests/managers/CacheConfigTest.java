@@ -116,11 +116,11 @@ public class CacheConfigTest {
         Assert.assertNotNull(o);
         Assert.assertEquals(945, o.axioms().count());
 
-        OntGraphModelImpl m1 = ((InternalModelHolder) o).getBase().getSearchModel();
+        OntGraphModelImpl m1 = ((BaseModel) o).getBase().getSearchModel();
         Assert.assertTrue(m1 instanceof InternalModel);
 
         m.setOntologyLoaderConfiguration(m.getOntologyLoaderConfiguration().setLoadNodesCacheSize(10_000));
-        OntGraphModelImpl m2 = ((InternalModelHolder) o).getBase().getSearchModel();
+        OntGraphModelImpl m2 = ((BaseModel) o).getBase().getSearchModel();
         Assert.assertTrue(m2 instanceof SearchModel);
     }
 
@@ -136,14 +136,14 @@ public class CacheConfigTest {
                 OntFormat.TURTLE));
         Assert.assertNotNull(o);
         Assert.assertEquals(axioms, o.axioms().count());
-        InternalObjectFactory of1 = ((InternalModelHolder) o).getBase().getObjectFactory();
+        InternalObjectFactory of1 = ((BaseModel) o).getBase().getObjectFactory();
         Assert.assertTrue(of1 instanceof NoCacheObjectFactory);
         Assert.assertFalse(of1 instanceof CacheObjectFactory);
 
         int size1 = 52;
         m.setOntologyLoaderConfiguration(conf.setLoadObjectsCacheSize(size1));
         Assert.assertEquals(axioms, o.axioms().count());
-        InternalObjectFactory of2 = ((InternalModelHolder) o).getBase().getObjectFactory();
+        InternalObjectFactory of2 = ((BaseModel) o).getBase().getObjectFactory();
         Assert.assertTrue(of2 instanceof CacheObjectFactory);
         CacheObjectFactory cof1 = (CacheObjectFactory) of2;
 
@@ -157,7 +157,7 @@ public class CacheConfigTest {
         int size2 = 2;
         m.setOntologyLoaderConfiguration(conf.setLoadObjectsCacheSize(size2));
         Assert.assertEquals(axioms, o.axioms().count());
-        InternalObjectFactory of3 = ((InternalModelHolder) o).getBase().getObjectFactory();
+        InternalObjectFactory of3 = ((BaseModel) o).getBase().getObjectFactory();
         Assert.assertTrue(of3 instanceof CacheObjectFactory);
         CacheObjectFactory cof2 = (CacheObjectFactory) of3;
 

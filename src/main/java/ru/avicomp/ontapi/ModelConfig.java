@@ -54,7 +54,7 @@ public class ModelConfig implements InternalConfig, Serializable {
      * @return {@link InternalModel}
      */
     public InternalModel createInternalModel(Graph graph) {
-        return InternalModelHolder.createInternalModel(graph, getPersonality(), this::createObjectFactory, this);
+        return BaseModel.createInternalModel(graph, getPersonality(), this::createObjectFactory, this);
     }
 
     /**

@@ -26,7 +26,6 @@ import org.semanticweb.owlapi.search.Filters;
 import org.semanticweb.owlapi.util.OWLAxiomSearchFilter;
 import org.semanticweb.owlapi.util.OWLClassExpressionCollector;
 import ru.avicomp.ontapi.internal.InternalModel;
-import ru.avicomp.ontapi.internal.InternalModelHolder;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.owlapi.OWLObjectImpl;
 
@@ -50,7 +49,7 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("WeakerAccess")
 @ParametersAreNonnullByDefault
-public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHolder {
+public abstract class OntBaseModelImpl implements OWLOntology, BaseModel {
     // binary format to provide serialization:
     public static final OntFormat DEFAULT_SERIALIZATION_FORMAT = OntFormat.RDF_THRIFT;
     private static final long serialVersionUID = 7605836729147058594L;
@@ -1056,7 +1055,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHold
         Graph base = new GraphMem();
         RDFDataMgr.read(base, in, DEFAULT_SERIALIZATION_FORMAT.getLang());
         // set temporary model with default personality, it will be reset inside manager while its #readObject
-        setBase(InternalModelHolder.createInternalModel(base));
+        setBase(BaseModel.createInternalModel(base));
     }
 
     /**
