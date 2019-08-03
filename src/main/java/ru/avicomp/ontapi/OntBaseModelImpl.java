@@ -714,7 +714,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, BaseModel {
 
     @Override
     public int getAxiomCount() {
-        return (int) axioms().count();
+        return (int) base.getOWLAxiomCount();
     }
 
     @Override

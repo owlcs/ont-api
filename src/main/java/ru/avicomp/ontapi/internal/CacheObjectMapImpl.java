@@ -164,6 +164,11 @@ public class CacheObjectMapImpl<X extends OWLObject> implements ObjectMap<X> {
         return getMap().asMap().values().stream();
     }
 
+    @Override
+    public long count() {
+        return getMap().asMap().size();
+    }
+
     /**
      * {@inheritDoc}
      * It is used directly by OWL-API interfaces.

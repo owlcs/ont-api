@@ -728,6 +728,17 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     }
 
     /**
+     * Returns the number of axioms in this ontology
+     *
+     * @return long
+     */
+    public long getOWLAxiomCount() {
+        return getContentStore().entrySet().stream()
+                .filter(x -> x.getKey().isAxiom())
+                .mapToLong(x -> x.getValue().count()).sum();
+    }
+
+    /**
      * Performs a final operation over the specified {@code stream} before releasing it out.
      * <p>
      * It is for ensuring safety in case of multithreading environment,

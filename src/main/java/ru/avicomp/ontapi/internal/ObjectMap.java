@@ -104,4 +104,13 @@ public interface ObjectMap<X extends OWLObject> {
         return get(key) != null;
     }
 
+    /**
+     * Returns the count of objects in this map.
+     *
+     * @return long
+     */
+    default long count() {
+        return values().count();
+    }
+
 }
