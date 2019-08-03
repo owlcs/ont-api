@@ -22,7 +22,6 @@ import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.AxiomAnnotations;
 import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.model.parameters.Navigation;
-import org.semanticweb.owlapi.model.parameters.OntologyCopy;
 import org.semanticweb.owlapi.search.Filters;
 import org.semanticweb.owlapi.util.OWLAxiomSearchFilter;
 import org.semanticweb.owlapi.util.OWLClassExpressionCollector;
@@ -57,15 +56,13 @@ public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHold
     private static final long serialVersionUID = 7605836729147058594L;
 
     protected transient InternalModel base;
-    // todo: now, this manager reference is not needed
-    //  (the moving is not possible anymore -- see https://github.com/avicomp/ont-api/issues/74);
-    //  remove it
-    protected transient OntologyManagerImpl managerBackCopy;
+    protected transient ModelConfig config;
 
     protected int hashCode;
 
     protected OntBaseModelImpl(Graph graph, ModelConfig conf) {
-        this.base = conf.createInternalModel(graph);
+        this.config = Objects.requireNonNull(conf);
+        this.base = conf.createInternalModel(Objects.requireNonNull(graph));
     }
 
     @Override
@@ -75,11 +72,17 @@ public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHold
 
     @Override
     public void setBase(InternalModel m) {
-        base = Objects.requireNonNull(m);
+        this.base = Objects.requireNonNull(m);
     }
 
+    @Override
     public ModelConfig getConfig() {
-        return (ModelConfig) base.getConfig();
+        return config;
+    }
+
+    @Override
+    public void setConfig(ModelConfig conf) {
+        this.config = Objects.requireNonNull(conf);
     }
 
     @Override
@@ -96,32 +99,9 @@ public abstract class OntBaseModelImpl implements OWLOntology, InternalModelHold
         return getOWLOntologyManager().getOWLDataFactory();
     }
 
-    /**
-     * Sets the manager.
-     * The parameter could be null (e.g. during {@link OWLOntologyManager#clearOntologies}).
-     * Used also during {@link OWLOntologyManager#copyOntology(OWLOntology, OntologyCopy)}.
-     * For internal usage only: the outer interface must be "immutable".
-     *
-     * @param manager {@link OntologyManager}, nullable
-     * @throws OntApiException in case wrong manager specified
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#copyOntology(OWLOntology, OntologyCopy)</a>
-     */
     @Override
     public void setOWLOntologyManager(@Nullable OWLOntologyManager manager) {
-        if (Objects.equals(getOWLOntologyManager(), manager)) return;
-        OntologyManagerImpl m;
-        try {
-            m = (OntologyManagerImpl) manager;
-        } catch (ClassCastException ce) {
-            if (this.managerBackCopy != null) {
-                // rollback changes made while coping (inside OWL-API 5.0.5)
-                this.managerBackCopy.rollBackMoving(this, manager);
-                getConfig().setManager(this.managerBackCopy);
-                this.managerBackCopy = null;
-            }
-            throw new OntApiException("Trying to move? Don't do it!", ce);
-        }
-        this.managerBackCopy = getConfig().setManager(m);
+        throw new OntApiException.Unsupported("Misuse: attempt to set new manager: " + manager);
     }
 
     /**

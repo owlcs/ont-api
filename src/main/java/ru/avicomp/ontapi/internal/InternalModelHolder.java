@@ -34,12 +34,41 @@ import java.util.function.Supplier;
  */
 public interface InternalModelHolder {
 
+    /**
+     * Returns an encapsulated {@link InternalModel} instance -
+     * the facility to work both with Jena and OWL-API objects simultaneously.
+     *
+     * @return {@link InternalModel}
+     */
     InternalModel getBase();
 
+    /**
+     * Sets new internals.
+     * Not for public use: only Java Serialization mechanisms can explicitly call this method.
+     *
+     * @param m {@link InternalModel}, not {@code null}
+     */
     void setBase(InternalModel m);
 
     /**
+     * Returns a model config instance, that is a collection of settings and, also,
+     * a facility which binds together the ontology and manager.
+     *
+     * @return {@link ModelConfig}
+     */
+    ModelConfig getConfig();
+
+    /**
+     * Sets new model config.
+     * Not for public use: only Java Serialization mechanisms can explicitly call this method.
+     *
+     * @param conf {@link ModelConfig}, not {@code null}
+     */
+    void setConfig(ModelConfig conf);
+
+    /**
      * A factory method to create {@link InternalModel} instance with default settings.
+     * Can be used to provide a dummy instance for testing or debugging.
      *
      * @param graph {@link Graph}, not {@code null}
      * @return {@link InternalModel}

@@ -39,7 +39,10 @@ import ru.avicomp.ontapi.jena.model.OntSWRL;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * Model with optimizations including nodes cache.
@@ -62,6 +65,11 @@ public class SearchModel extends OntGraphModelImpl {
     // optimization flags for annotations:
     private Boolean hasAnnotations;
     private Boolean hasSubAnnotations;
+    /**
+     * A collection of reserved uri-{@link Node}s, that cannot be OWL-entities.
+     * Used to speedup iteration in some cases (e.g. for class assertions).
+     */
+    protected final Map<Class<? extends OntObject>, Set<Node>> systemResources = new HashMap<>();
 
     public SearchModel(Graph graph, OntPersonality personality, InternalConfig conf) {
         this(graph, personality, conf, true);
@@ -124,6 +132,11 @@ public class SearchModel extends OntGraphModelImpl {
         // A shared cache for this case will lead to wrong result,
         // and a separated cache will not give a performance gain
         return new SearchModel(getBaseGraph(), personality, conf, false);
+    }
+
+    @Override
+    public Set<Node> getSystemResources(Class<? extends OntObject> type) {
+        return systemResources.computeIfAbsent(type, x -> super.getSystemResources(type));
     }
 
     /**

@@ -188,7 +188,11 @@ public interface CacheSettings {
     }
 
     /**
-     * Answers {@code true} if nodes cache is enabled.
+     * Answers {@code true} if the nodes cache is enabled.
+     * This cache is located in the search model, that is used as optimization while read operations.
+     * The search model contains several other minor optimizations, so
+     * if the method returns {@code true} all of them are enabled, and opposite:
+     * if the method returns {@code false}, all optimizations, not only the nodes cache, are disabled
      *
      * @return boolean
      */

@@ -308,6 +308,16 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
             delegate().setBase(m);
         }
 
+        @Override
+        public ModelConfig getConfig() {
+            return delegate().getConfig();
+        }
+
+        @Override
+        public void setConfig(ModelConfig conf) {
+            delegate().setConfig(conf);
+        }
+
         /**
          * Assembles a concurrent version of the {@link OntGraphModel Ontology RDF Model}.
          * Safety of RDF read/write operations is ensured

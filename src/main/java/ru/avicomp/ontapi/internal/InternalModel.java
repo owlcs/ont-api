@@ -87,45 +87,40 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     private static final Logger LOGGER = LoggerFactory.getLogger(InternalModel.class);
 
     /**
-     * A factory to produce fresh instances of {@link InternalObjectFactory object factory},
-     * that is responsible for mapping ONT Jena Objects to OWL-API objects.
-     * The object factory may be cache objects, it depends on {@link InternalConfig} settings.
-     * So it is need to obtain new object factory instance if the settings have been changed.
+     * Ontology ID cache.
      */
-    protected final Supplier<InternalObjectFactory> factory;
+    protected volatile OntologyID cachedID;
     /**
-     * An object factory cache that is used while collecting axioms, may be reset to release memory.
+     * The configuration settings to control behaviour.
+     * As a container that contains an immutable snapshot, which should be reset on {@link #clearCache()}.
+     * @see InternalConfig#snapshot()
+     */
+    private final InternalCache.Loading<InternalModel, InternalConfig> config;
+    /**
+     * An internal object factory,
+     * that is responsible for mapping {@link OntObject ONT Jena Object}s to {@link OWLObject OWL-API object}s.
+     * It is used while collecting axioms, may be reset to release memory.
      * Any change in the base graph must reset this cache.
      * Designed as a {@link java.lang.ref.SoftReference}
      * since it is mostly need only to optimize reading operations and may contain huge amount of objects.
+     * @see InternalConfig#useLoadObjectsCache()
+     * @see CacheObjectFactory
      */
-    protected final InternalCache.Loading<InternalModel, InternalObjectFactory> objectFactoryCache;
+    protected final InternalCache.Loading<InternalModel, InternalObjectFactory> objectFactory;
     /**
      * A model for axiom/object's search optimizations, containing {@link Node node}s cache.
      * Any change in the base graph must also reset this cache.
      * Designed as a {@link java.lang.ref.SoftReference}
      * since it is mostly need only to optimize reading operations and may contain huge amount of objects.
+     * @see InternalConfig#useLoadNodesCache()
+     * @see SearchModel
      */
-    protected final InternalCache.Loading<InternalModel, SearchModel> searchModelCache;
-    /**
-     * Configuration settings to control behaviour.
-     * This object can be modified externally.
-     */
-    private final InternalConfig config;
-    /**
-     * A {@link InternalConfig} snapshot-config, that should be used while any R/W operations through OWL-API interface.
-     * It should be reset on {@link #clearCache()}.
-     */
-    protected volatile InternalConfig.Snapshot snapshot;
-    /**
-     * Ontology ID cache.
-     */
-    protected volatile OntologyID cachedID;
+    protected final InternalCache.Loading<InternalModel, OntGraphModelImpl> searchModel;
     /**
      * The main cache, which contains all axioms and the ontology header.
      * It contains {@code 40} key-value pairs, {@code 39} for kinds of axioms and one for the ontology header.
      *
-     * @see OWLContentType
+     * @see OWLContentType#all()
      * @see ObjectMap
      */
     protected final InternalCache.Loading<InternalModel, Map<OWLContentType, ObjectMap<? extends OWLObject>>> content;
@@ -135,14 +130,9 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * Any direct (manual) change in the graph must also reset this cache.
      *
      * @see OWLComponentType#keys()
+     * @see ObjectMap
      */
     protected final InternalCache.Loading<InternalModel, Map<OWLComponentType, ObjectMap<OWLObject>>> components;
-    /**
-     * A collection of reserved uri-{@link Node}s, that cannot be OWL-entities.
-     * Used to speedup iteration in some cases (e.g. for class assertions).
-     * todo: move to search-model cache ?
-     */
-    protected final InternalCache<Class<? extends OntObject>, Set<Node>> systemResources;
     /**
      * The direct listener, it monitors changes that occur through the main (Jena) interface.
      */
@@ -162,13 +152,13 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
                          Supplier<InternalObjectFactory> factory,
                          InternalConfig config) {
         super(base, personality);
-        this.factory = Objects.requireNonNull(factory);
-        this.config = Objects.requireNonNull(config);
-        this.objectFactoryCache = InternalCache.createSingleton(x -> factory.get());
-        this.searchModelCache = InternalCache.createSingleton(x -> createSearchModel());
+        Objects.requireNonNull(factory);
+        Objects.requireNonNull(config);
+        this.config = InternalCache.createSingleton(x -> config.snapshot());
+        this.objectFactory = InternalCache.createSoftSingleton(x -> factory.get());
+        this.searchModel = InternalCache.createSoftSingleton(x -> createSearchModel());
         this.content = InternalCache.createSingleton(x -> createContentStore());
         this.components = InternalCache.createSingleton(x -> createComponentStore());
-        this.systemResources = InternalCache.createSoft(config.parallel());
         this.directListener = createDirectListener();
         enableDirectListening();
     }
@@ -223,22 +213,12 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     }
 
     /**
-     * Returns the model's {@link InternalConfig config}.
-     *
-     * @return {@link InternalConfig}
-     */
-    public InternalConfig getConfig() {
-        return config;
-    }
-
-    /**
-     * Returns the model;s {@link InternalConfig} snapshot instance,
-     * which is immutable object.
+     * Returns the model's {@link InternalConfig} snapshot instance, which is immutable object.
      *
      * @return {@link InternalConfig.Snapshot}
      */
-    protected InternalConfig getSnapshotConfig() {
-        return snapshot == null ? snapshot = config.snapshot() : snapshot;
+    protected InternalConfig getConfig() {
+        return config.get(this);
     }
 
     /**
@@ -247,10 +227,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @return {@link InternalObjectFactory}
      */
     public InternalObjectFactory getObjectFactory() {
-        if (getSnapshotConfig().useLoadObjectsCache()) {
-            return objectFactoryCache.get(this);
-        }
-        return factory.get();
+        return objectFactory.get(this);
     }
 
     /**
@@ -263,20 +240,20 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @return {@link OntGraphModelImpl} with search optimizations
      */
     public OntGraphModelImpl getSearchModel() {
-        if (getSnapshotConfig().useLoadNodesCache()) {
-            return searchModelCache.get(this);
-        }
-        return this;
+        return searchModel.get(this);
     }
 
     /**
      * Creates a {@link SearchModel}, which is used as optimization while reading OWL-API objects.
      * It contains nodes cache inside, and may take up a lot of memory.
      *
-     * @return {@link SearchModel}
+     * @return {@link OntGraphModel}
      */
-    protected SearchModel createSearchModel() {
-        return new SearchModel(getGraph(), getOntPersonality(), getSnapshotConfig());
+    protected OntGraphModelImpl createSearchModel() {
+        if (getConfig().useLoadNodesCache()) {
+            return new SearchModel(getGraph(), getOntPersonality(), getConfig());
+        }
+        return this;
     }
 
     @Override
@@ -284,13 +261,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         try {
             return super.fetchNodeAs(node, type);
         } catch (OntJenaException e) {
-            return SearchModel.handleFetchNodeAsException(e, node, type, this, getSnapshotConfig());
+            return SearchModel.handleFetchNodeAsException(e, node, type, this, getConfig());
         }
-    }
-
-    @Override
-    public Set<Node> getSystemResources(Class<? extends OntObject> type) {
-        return systemResources.get(type, x -> super.getSystemResources(type));
     }
 
     /**
@@ -581,7 +553,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @return {@code Stream} of {@link OWLDeclarationAxiom}s
      */
     public Stream<OWLDeclarationAxiom> listOWLDeclarationAxioms(OWLEntity e) {
-        if (!getSnapshotConfig().isAllowReadDeclarations()) return Stream.empty();
+        if (!getConfig().isAllowReadDeclarations()) return Stream.empty();
         // Even there are no changes in OWLDeclarationAxioms,
         // they can be affected by some other user-defined axiom.
         // A direct graph reading returns uniformed axioms,
@@ -599,7 +571,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         if (res == null) return Stream.empty();
         InternalObjectFactory df = getObjectFactory();
         OntStatement s = res.getRoot();
-        return s == null ? Stream.empty() : Stream.of(t.toAxiom(s, df, getSnapshotConfig()).getObject());
+        return s == null ? Stream.empty() : Stream.of(t.toAxiom(s, df, getConfig()).getObject());
     }
 
     /**
@@ -611,7 +583,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @return {@code Stream} of {@link OWLAnnotationAssertionAxiom}s
      */
     public Stream<OWLAnnotationAssertionAxiom> listOWLAnnotationAssertionAxioms(OWLAnnotationSubject s) {
-        if (!getSnapshotConfig().isLoadAnnotationAxioms()) return Stream.empty();
+        if (!getConfig().isLoadAnnotationAxioms()) return Stream.empty();
         if (hasManuallyAddedAxioms()) {
             return listOWLAxioms(OWLAnnotationAssertionAxiom.class).filter(a -> s.equals(a.getSubject()));
         }
@@ -619,8 +591,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         InternalObjectFactory df = getObjectFactory();
         AnnotationAssertionTranslator t = (AnnotationAssertionTranslator) OWLContentType.ANNOTATION_ASSERTION.getTranslator();
         ExtendedIterator<OntStatement> res = m.listLocalStatements(WriteHelper.toResource(s), null, null)
-                .filterKeep(x -> t.testStatement(x, getSnapshotConfig()));
-        return reduce(Iter.asStream(t.translate(res, df, getSnapshotConfig()).mapWith(ONTObject::getObject)));
+                .filterKeep(x -> t.testStatement(x, getConfig()));
+        return reduce(Iter.asStream(t.translate(res, df, getConfig()).mapWith(ONTObject::getObject)));
     }
 
     /**
@@ -639,7 +611,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         SubClassOfTranslator t = (SubClassOfTranslator) OWLContentType.SUBCLASS_OF.getTranslator();
         ExtendedIterator<OntStatement> res = m.listLocalStatements(WriteHelper.toResource(sub), RDFS.subClassOf, null)
                 .filterKeep(t::filter);
-        return reduce(Iter.asStream(t.translate(res, df, getSnapshotConfig()).mapWith(ONTObject::getObject)));
+        return reduce(Iter.asStream(t.translate(res, df, getConfig()).mapWith(ONTObject::getObject)));
     }
 
     /**
@@ -660,8 +632,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         Resource r = WriteHelper.toResource(c);
         ExtendedIterator<OntStatement> res = m.listLocalStatements(r, OWL.equivalentClass, null)
                 .andThen(m.listLocalStatements(null, OWL.equivalentClass, r))
-                .filterKeep(s -> t.testStatement(s, getSnapshotConfig()));
-        return reduce(Iter.asStream(t.translate(res, df, getSnapshotConfig()).mapWith(ONTObject::getObject)));
+                .filterKeep(s -> t.testStatement(s, getConfig()));
+        return reduce(Iter.asStream(t.translate(res, df, getConfig()).mapWith(ONTObject::getObject)));
     }
 
     /**
@@ -779,7 +751,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @see #flatMap(Stream, Function)
      */
     protected <R> Stream<R> reduce(Stream<R> stream) {
-        InternalConfig conf = getSnapshotConfig();
+        InternalConfig conf = getConfig();
         // model is non-modifiable if cache is disabled
         if (!conf.parallel() || !conf.useContentCache()) {
             return stream;
@@ -807,7 +779,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @see #reduce(Stream)
      */
     protected <R, X> Stream<R> flatMap(Stream<X> stream, Function<X, Stream<? extends R>> map) {
-        InternalConfig conf = getSnapshotConfig();
+        InternalConfig conf = getConfig();
         if (!conf.parallel() || !conf.useContentCache()) {
             return stream.flatMap(map);
         }
@@ -915,8 +887,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         getContentCache(key).add(value);
         // put new components into objects cache
         cacheComponents(container);
-        // force recollect if needed
-        systemResources.clear();
+        // clear search model and object factory
+        clearOtherCaches();
         return true;
     }
 
@@ -957,7 +929,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
             // remove related components from the objects cache
             // (even there is no graph changes)
             clearComponents(container);
-            // force recollect system-resources
+            // clear search model and object factory
             clearOtherCaches();
             return res;
         } finally {
@@ -981,7 +953,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      */
     private Set<Triple> getUsedAxiomTriples(OntGraphModel m, OWLObject object) {
         InternalObjectFactory df = getObjectFactory();
-        InternalConfig c = getSnapshotConfig();
+        InternalConfig c = getConfig();
         Set<Triple> res = new HashSet<>();
         Iter.flatMap(OWLContentType.listAll(), k -> k.read(m, df, c)
                 .filterKeep(x -> !object.equals(x.getObject()) && isUsed(k, x.getObject())))
@@ -1137,12 +1109,12 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     public void clearCache() {
         cachedID = null;
         content.clear();
-        snapshot = null;
+        config.clear();
         clearComponentsCaches();
     }
 
     /**
-     * Invalidates {@link #components}, {@link #objectFactoryCache} and {@link #searchModelCache} caches.
+     * Invalidates {@link #components}, {@link #objectFactory} and {@link #searchModel} caches.
      * Auxiliary method.
      */
     protected void clearComponentsCaches() {
@@ -1151,12 +1123,12 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     }
 
     /**
-     * Invalidates search model, object factory and system resources caches.
+     * Invalidates search model and object factory caches.
+     * Auxiliary method.
      */
     protected void clearOtherCaches() {
-        objectFactoryCache.clear();
-        searchModelCache.clear();
-        systemResources.clear();
+        objectFactory.clear();
+        searchModel.clear();
     }
 
     @Override
@@ -1249,7 +1221,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         OntGraphModel m = getSearchModel();
         Supplier<Iterator<ONTObject<OWLObject>>> loader = () -> selectContentObjects(key)
                 .flatMap(x -> key.select(x, m, df)).iterator();
-        InternalConfig conf = getSnapshotConfig();
+        InternalConfig conf = getConfig();
         if (!conf.useComponentCache()) {
             // todo: need a straight way to find ONTObject that present in the graph,
             //  the default one is extremely inefficient
@@ -1444,8 +1416,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         InternalObjectFactory df = getObjectFactory();
         OntGraphModel m = getSearchModel();
         Supplier<Iterator<ONTObject<OWLObject>>> loader =
-                () -> (Iterator<ONTObject<OWLObject>>) key.read(m, df, getSnapshotConfig());
-        InternalConfig conf = getSnapshotConfig();
+                () -> (Iterator<ONTObject<OWLObject>>) key.read(m, df, getConfig());
+        InternalConfig conf = getConfig();
         if (!conf.useContentCache()) {
             // todo: need a straight way to find ONTObject by OWLObject,
             //  the default one is extremely inefficient

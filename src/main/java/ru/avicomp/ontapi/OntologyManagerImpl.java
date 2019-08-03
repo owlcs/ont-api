@@ -880,7 +880,7 @@ public class OntologyManagerImpl implements OntologyManager,
     public void removeOntology(@Nonnull OWLOntologyID id) {
         getLock().writeLock().lock();
         try {
-            content.remove(id).map(OntInfo::get).ifPresent(m -> m.setOWLOntologyManager(null));
+            content.remove(id).map(OntInfo::getModelConfig).ifPresent(x -> x.setManager(null));
         } finally {
             getLock().writeLock().unlock();
         }
@@ -894,7 +894,7 @@ public class OntologyManagerImpl implements OntologyManager,
         getLock().writeLock().lock();
         try {
             listeners.clear();
-            content.values().map(OntInfo::get).forEach(o -> o.setOWLOntologyManager(null));
+            content.values().map(OntInfo::getModelConfig).forEach(x -> x.setManager(null));
             content.clear();
         } finally {
             getLock().writeLock().unlock();
@@ -1814,6 +1814,7 @@ public class OntologyManagerImpl implements OntologyManager,
         this.content.values().forEach(info -> {
             ModelConfig conf = info.getModelConfig();
             InternalModelHolder m = getAdapter().asBaseHolder(info.get());
+            m.setConfig(conf);
             UnionGraph baseGraph = m.getBase().getGraph();
             Stream<UnionGraph> imports = Graphs.getImports(baseGraph).stream()
                     .map(s -> this.content.values().map(OntInfo::get).map(InternalModelHolder.class::cast)
@@ -1979,9 +1980,6 @@ public class OntologyManagerImpl implements OntologyManager,
             fireFinishedLoadingEvent(id, doc, loadCount.get() > 0, ex);
         }
 
-        /**
-         * @param size int
-         */
         protected void fireBeginChanges(int size) {
             if (!broadcastChanges.get()) {
                 return;
@@ -1996,9 +1994,6 @@ public class OntologyManagerImpl implements OntologyManager,
             }
         }
 
-        /**
-         *
-         */
         protected void fireEndChanges() {
             if (!broadcastChanges.get()) {
                 return;
@@ -2122,7 +2117,7 @@ public class OntologyManagerImpl implements OntologyManager,
         public OntInfo(@Nonnull OntologyModel ont) throws ClassCastException {
             this.ont = Objects.requireNonNull(ont);
             OWLAdapter adapter = getAdapter();
-            this.conf = Objects.requireNonNull(adapter.asModelConfig(adapter.asBaseHolder(ont).getBase().getConfig()));
+            this.conf = Objects.requireNonNull(adapter.asModelConfig(adapter.asBaseHolder(ont).getConfig()));
         }
 
         @Override

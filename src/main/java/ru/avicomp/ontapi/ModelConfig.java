@@ -62,7 +62,7 @@ public class ModelConfig implements InternalConfig, Serializable {
      *
      * @return {@link OntologyManagerImpl}
      */
-    public OntologyManagerImpl getManager() {
+    public OntologyManager getManager() {
         return manager;
     }
 
@@ -72,6 +72,7 @@ public class ModelConfig implements InternalConfig, Serializable {
      * @param other {@link OntologyManagerImpl}, new manager
      * @return {@link OntologyManagerImpl}, previous manager
      */
+    @SuppressWarnings("UnusedReturnValue")
     public OntologyManagerImpl setManager(OntologyManagerImpl other) {
         OntologyManagerImpl res = this.manager;
         this.manager = other;
@@ -121,15 +122,16 @@ public class ModelConfig implements InternalConfig, Serializable {
      * @return {@link InternalObjectFactory}
      */
     public InternalObjectFactory createObjectFactory() {
+        DataFactory df = manager.getOWLDataFactory();
         if (!useLoadObjectsCache()) {
-            return new NoCacheObjectFactory(manager.dataFactory);
+            return new NoCacheObjectFactory(df);
         }
         long size = getLoadObjectsCacheSize();
-        return new CacheObjectFactory(manager.dataFactory, () -> createCache(size), manager.iris);
+        return new CacheObjectFactory(df, () -> createCache(size), manager.iris);
     }
 
     protected <K, V> InternalCache<K, V> createCache(long size) {
-        return InternalCache.createBounded(manager.isConcurrent(), size);
+        return InternalCache.createBounded(parallel(), size);
     }
 
     public OntPersonality getPersonality() {
@@ -192,6 +194,7 @@ public class ModelConfig implements InternalConfig, Serializable {
      * @param other {@link OntLoaderConfiguration} to test
      * @return boolean
      */
+    @SuppressWarnings("unused")
     public boolean hasChanges(OntLoaderConfiguration other) {
         return hasChanges(getLoaderConfig(), other);
     }
