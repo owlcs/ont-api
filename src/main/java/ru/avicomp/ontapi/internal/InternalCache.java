@@ -250,6 +250,7 @@ public interface InternalCache<K, V> {
      * @param <V>      the type of mapped values
      * @return {@link InternalCache}
      */
+    @SuppressWarnings("unused")
     static <K, V> InternalCache<K, V> createSoft(boolean caffeine) {
         if (caffeine) {
             return new CaffeineWrapper<>(Caffeine.newBuilder().softValues().build());

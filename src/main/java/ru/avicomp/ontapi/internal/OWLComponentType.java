@@ -326,15 +326,15 @@ public enum OWLComponentType {
         }
 
         @Override
-        ONTObject<? extends OWLObject> wrap(RDFNode n, InternalObjectFactory df) {
-            return ReadHelper.getFacetRestriction(n.as(OntFR.class), df);
+        ONTObject<OWLFacetRestriction> wrap(RDFNode n, InternalObjectFactory df) {
+            return df.get(n.as(OntFR.class));
         }
 
     },
     SWRL_VARIABLE(SWRLVariable.class, OntSWRL.Variable.class, true) {
         @Override
-        ONTObject<? extends OWLObject> wrap(RDFNode n, InternalObjectFactory df) {
-            return ReadHelper.getSWRLVariable(n.as(OntSWRL.Variable.class), df);
+        ONTObject<SWRLVariable> wrap(RDFNode n, InternalObjectFactory df) {
+            return df.get(n.as(OntSWRL.Variable.class));
         }
     },
     SWRL_ATOM(SWRLAtom.class, OntSWRL.Atom.class, false) {
@@ -351,13 +351,20 @@ public enum OWLComponentType {
     }
     ;
 
-    private static final Set<OWLComponentType> COMPONENTS_KEYS = Collections.unmodifiableSet(EnumSet.of(CLASS
+    private static final Set<OWLComponentType> CACHE_KEYS = EnumSet.of(CLASS
             , DATATYPE
             , ANNOTATION_PROPERTY
             , DATATYPE_PROPERTY
             , NAMED_OBJECT_PROPERTY
             , NAMED_INDIVIDUAL
-            , ANONYMOUS_INDIVIDUAL));
+            , ANONYMOUS_INDIVIDUAL);
+
+    private static final Set<OWLComponentType> SHARED_COMPONENTS = EnumSet.of(ANONYMOUS_CLASS_EXPRESSION
+            , ANONYMOUS_DATA_RANGE
+            , FACET_RESTRICTION
+            , INVERSE_OBJECT_PROPERTY
+            , SWRL_ATOM
+            , SWRL_VARIABLE);
 
     final Class<? extends OWLObject> owl;
     final Class<? extends RDFNode> jena;
@@ -400,29 +407,24 @@ public enum OWLComponentType {
     }
 
     /**
-     * Returns a {@code Set} of components that can be shared,
+     * Lists components that can be shared,
      * but at the same time are not {@link OWLEntity OWL entities}.
      *
-     * @return {@code Set}
+     * @return {@code Stream} of {@link OWLContentType}s
+     * @see InternalModel#getUsedComponentTriples(OntGraphModel, OWLObject)
      */
-    static Set<OWLComponentType> getSharedComponents() {
-        return EnumSet.of(ANONYMOUS_CLASS_EXPRESSION
-                , ANONYMOUS_DATA_RANGE
-                , FACET_RESTRICTION
-                , INVERSE_OBJECT_PROPERTY
-                , SWRL_ATOM
-                , SWRL_VARIABLE);
+    static Stream<OWLComponentType> sharedComponents() {
+        return SHARED_COMPONENTS.stream();
     }
 
     /**
-     * Selects and lists those {@link OWLComponentType},
-     * that are used as keys in {@link InternalModel internal model} components cache.
+     * Lists {@link OWLComponentType} that are used as keys in the {@link InternalModel internal model} components cache.
      *
      * @return {@code Stream} of {@link OWLContentType}s
      * @see InternalModel#components
      */
     static Stream<OWLComponentType> keys() {
-        return COMPONENTS_KEYS.stream();
+        return CACHE_KEYS.stream();
     }
 
     /**

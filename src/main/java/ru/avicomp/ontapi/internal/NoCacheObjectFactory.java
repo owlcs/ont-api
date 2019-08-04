@@ -61,6 +61,11 @@ public class NoCacheObjectFactory implements InternalObjectFactory {
     }
 
     @Override
+    public ONTObject<OWLFacetRestriction> get(OntFR fr) {
+        return ReadHelper.getFacetRestriction(fr, this);
+    }
+
+    @Override
     public ONTObject<OWLClass> get(OntClass ce) {
         IRI iri = toIRI(OntApiException.notNull(ce, "Null class."));
         return ONTObjectImpl.create(getOWLDataFactory().getOWLClass(iri), ce);
@@ -172,6 +177,11 @@ public class NoCacheObjectFactory implements InternalObjectFactory {
     @SuppressWarnings("unchecked")
     public ONTObject<OWLAnonymousIndividual> getAnonymous(OntIndividual.Anonymous individual) {
         return (ONTObject<OWLAnonymousIndividual>) get(individual);
+    }
+
+    @Override
+    public ONTObject<SWRLVariable> get(OntSWRL.Variable var) {
+        return ReadHelper.getSWRLVariable(var, this);
     }
 
     @Override

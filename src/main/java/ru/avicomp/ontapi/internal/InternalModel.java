@@ -885,7 +885,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         } catch (OntApiException e) {
             throw e;
         } catch (Exception e) {
-            throw new OntApiException(String.format("OWLObject: %s, message: %s", container, e.getMessage()), e);
+            throw new OntApiException(String.format("OWLObject: %s, message: '%s'", container, e.getMessage()), e);
         } finally {
             evm.unregister(listener);
             enableDirectListening();
@@ -962,7 +962,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @param object {@link OWLObject} for which this operation is performed
      * @return {@code Set} of {@code Triple}s
      */
-    private Set<Triple> getUsedAxiomTriples(OntGraphModel m, OWLObject object) {
+    protected Set<Triple> getUsedAxiomTriples(OntGraphModel m, OWLObject object) {
         InternalObjectFactory df = getObjectFactory();
         InternalConfig c = getConfig();
         Set<Triple> res = new HashSet<>();
@@ -981,7 +981,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @param object {@link OWLObject} - the content container, axiom or annotation
      * @return boolean
      */
-    private boolean isUsed(OWLContentType type, OWLObject object) {
+    protected boolean isUsed(OWLContentType type, OWLObject object) {
         ObjectMap<OWLObject> cache = getContentCache(type);
         if (cache.contains(object)) {
             return true;
@@ -1004,10 +1004,10 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @param object {@link OWLObject} for which this operation is performed
      * @return {@code Set} of {@code Triple}s
      */
-    private Set<Triple> getUsedComponentTriples(OntGraphModel m, OWLObject object) {
+    protected Set<Triple> getUsedComponentTriples(OntGraphModel m, OWLObject object) {
         InternalObjectFactory df = getObjectFactory();
         Set<Triple> res = new HashSet<>();
-        OWLComponentType.getSharedComponents().forEach(type -> {
+        OWLComponentType.sharedComponents().forEach(type -> {
             Set<OWLObject> objects = new HashSet<>();
             Set<Triple> triples = new HashSet<>();
             type.select(m, df).forEach(x -> {
@@ -1227,7 +1227,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @see OWLComponentType
      */
     protected ObjectMap<OWLObject> createComponentObjectMap(OWLComponentType key) {
-        // todo: replace parsing the containers cache with the direct graph reading
+        // todo: replace parsing the content cache with the direct graph reading
         InternalObjectFactory df = getObjectFactory();
         OntGraphModel m = getSearchModel();
         Supplier<Iterator<ONTObject<OWLObject>>> loader = () -> selectContentObjects(key)

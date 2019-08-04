@@ -240,7 +240,7 @@ public class ReadHelper {
             OntDR.Restriction _dr = (OntDR.Restriction) dr;
             ONTObject<OWLDatatype> d = of.get(_dr.getValue());
             Set<ONTObject<OWLFacetRestriction>> restrictions = OntModels.listMembers(_dr.getList())
-                    .mapWith(f -> getFacetRestriction(f, of)).toSet();
+                    .mapWith(of::get).toSet();
             OWLDataRange res = df.getOWLDatatypeRestriction(d.getObject(),
                     restrictions.stream().map(ONTObject::getObject).collect(Collectors.toList()));
             return ONTObjectImpl.create(res, dr).append(restrictions);
@@ -420,7 +420,7 @@ public class ReadHelper {
                     .getSWRLLiteralArgument(of.get(arg.asLiteral()).getObject()), arg);
         }
         if (arg.canAs(OntSWRL.Variable.class)) {
-            return getSWRLVariable(arg.as(OntSWRL.Variable.class), of);
+            return of.get(arg.as(OntSWRL.Variable.class));
         }
         throw new OntApiException("Unsupported SWRL-D arg " + arg);
     }
@@ -436,7 +436,7 @@ public class ReadHelper {
                     .getSWRLIndividualArgument(of.get(arg.as(OntIndividual.class)).getObject()), arg);
         }
         if (arg.canAs(OntSWRL.Variable.class)) {
-            return getSWRLVariable(arg.as(OntSWRL.Variable.class), of);
+            return of.get(arg.as(OntSWRL.Variable.class));
         }
         throw new OntApiException("Unsupported SWRL-I arg " + arg);
     }

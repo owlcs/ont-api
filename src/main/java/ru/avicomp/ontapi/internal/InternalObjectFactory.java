@@ -54,6 +54,12 @@ public interface InternalObjectFactory {
 
     ONTObject<OWLNamedIndividual> get(OntIndividual.Named i);
 
+    ONTObject<OWLFacetRestriction> get(OntFR fr);
+
+    ONTObject<SWRLVariable> get(OntSWRL.Variable var);
+
+    ONTObject<OWLLiteral> get(Literal literal);
+
     ONTObject<? extends OWLClassExpression> get(OntCE ce);
 
     ONTObject<? extends OWLDataRange> get(OntDR dr);
@@ -63,8 +69,6 @@ public interface InternalObjectFactory {
     ONTObject<? extends OWLPropertyExpression> get(OntDOP property);
 
     ONTObject<? extends OWLIndividual> get(OntIndividual i);
-
-    ONTObject<OWLLiteral> get(Literal literal);
 
     ONTObject<? extends OWLAnnotationValue> getValue(RDFNode value);
 
