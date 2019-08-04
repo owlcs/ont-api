@@ -19,12 +19,12 @@ import org.junit.Test;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.*;
-import ru.avicomp.ontapi.jena.model.OntCE;
-import ru.avicomp.ontapi.jena.model.OntGraphModel;
-import ru.avicomp.ontapi.jena.model.OntIndividual;
-import ru.avicomp.ontapi.jena.model.OntStatement;
+import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
+import ru.avicomp.ontapi.jena.vocabulary.XSD;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
+
+import java.util.Collections;
 
 /**
  * For testing miscellaneous general model functionality.
@@ -32,6 +32,29 @@ import ru.avicomp.ontapi.utils.ReadWriteUtils;
  * Created by @szuev on 20.07.2018.
  */
 public class MiscOntModelTest extends OntModelTestBase {
+
+    @Test
+    public void testNaryRestrictions() {
+        OntologyManager man = OntManagers.createONT();
+        OntologyModel o = man.createOntology();
+
+        OntGraphModel m = o.asGraphModel();
+        OntNDP p = m.createDataProperty("p");
+        OntDT d = m.getDatatype(XSD.xstring);
+        OntCE.NaryDataAllValuesFrom ce1 = m.createDataAllValuesFrom(Collections.singletonList(p), d);
+        OntCE.NaryDataSomeValuesFrom ce2 = m.createDataSomeValuesFrom(Collections.singletonList(p), d);
+        m.createOntClass("x").addSuperClass(ce1);
+        m.createOntClass("y").addEquivalentClass(ce2);
+        ReadWriteUtils.print(m);
+
+        Assert.assertEquals(5, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
+
+        DataFactory df = man.getOWLDataFactory();
+        Assert.assertTrue(o.containsAxiom(df.getOWLSubClassOfAxiom(df.getOWLClass("x"),
+                df.getOWLDataAllValuesFrom(df.getOWLDataProperty("p"), df.getStringOWLDatatype()))));
+        Assert.assertTrue(o.containsAxiom(df.getOWLEquivalentClassesAxiom(df.getOWLClass("y"),
+                df.getOWLDataSomeValuesFrom(df.getOWLDataProperty("p"), df.getStringOWLDatatype()))));
+    }
 
     @Test
     public void testLoadManchesterInCycle() throws OWLOntologyCreationException {

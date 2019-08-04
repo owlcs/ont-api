@@ -288,10 +288,9 @@ public class ReadHelper {
         if (OntApiException.notNull(ce, "Null class expression").isURIResource()) {
             return of.get(ce.as(OntClass.class));
         }
-        if (seen.contains(ce)) {
+        if (!seen.add(ce)) {
             throw new OntApiException("Recursive loop on class expression " + ce);
         }
-        seen.add(ce);
         DataFactory df = of.getOWLDataFactory();
         Class<? extends OntObject> type = OntModels.getOntType(ce);
         if (OntCE.ObjectSomeValuesFrom.class.equals(type) || OntCE.ObjectAllValuesFrom.class.equals(type)) {
@@ -393,6 +392,19 @@ public class ReadHelper {
             OntCE.ComplementOf _ce = (OntCE.ComplementOf) ce;
             ONTObject<? extends OWLClassExpression> c = calcClassExpression(_ce.getValue(), of, seen);
             return ONTObjectImpl.create(df.getOWLObjectComplementOf(c.getObject()), _ce).append(c);
+        }
+        if (ce instanceof OntCE.NaryRestrictionCE) {
+            OntCE.NaryRestrictionCE<OntDR, OntNDP> _ce = (OntCE.NaryRestrictionCE<OntDR, OntNDP>) ce;
+            ONTObject<OWLDataProperty> p = of.get(_ce.getProperty());
+            ONTObject<? extends OWLDataRange> d = of.get(_ce.getValue());
+            OWLClassExpression owl;
+            if (OntCE.NaryDataSomeValuesFrom.class.equals(type)) {
+                owl = df.getOWLDataSomeValuesFrom(p.getObject(), d.getObject());
+            } else {
+                owl = df.getOWLDataAllValuesFrom(p.getObject(), d.getObject());
+            }
+            return ONTObjectImpl.create(owl, _ce).append(p).append(d);
+
         }
         throw new OntApiException("Unsupported class expression " + ce);
     }
