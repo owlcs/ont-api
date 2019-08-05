@@ -874,17 +874,19 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @param container either {@link OWLAxiom} or {@link OWLAnnotation},
      *                  that corresponds to the {@code key}, not {@code null}
      * @return {@code true} if the graph has been changed
+     * @throws OntApiException in case the object cannot be added into model
      */
-    protected boolean add(OWLContentType key, OWLObject container) {
+    protected boolean add(OWLContentType key, OWLObject container) throws OntApiException {
         OWLTriples.Listener listener = OWLTriples.createListener();
         GraphEventManager evm = getGraph().getEventManager();
         try {
             disableDirectListening();
             evm.register(listener);
             key.write(this, container);
-        } catch (OntApiException e) {
-            throw e;
         } catch (Exception e) {
+            listener.getTriples().forEach(this::delete);
+            if (e instanceof OntApiException)
+                throw e;
             throw new OntApiException(String.format("OWLObject: %s, message: '%s'", container, e.getMessage()), e);
         } finally {
             evm.unregister(listener);

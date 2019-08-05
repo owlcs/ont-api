@@ -22,6 +22,7 @@ import org.semanticweb.owlapi.model.OWLObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -86,6 +87,15 @@ public class OWLTriples<V extends OWLObject> extends ONTObjectImpl<V> {
         }
 
         /**
+         * Returns all added triples.
+         *
+         * @return a {@code Set} of {@link Triple}s
+         */
+        public Set<Triple> getTriples() {
+            return Collections.unmodifiableSet(triples);
+        }
+
+        /**
          * Makes a {@link OWLTriples}-container, that contains the specified object and all collected triples.
          *
          * @param key {@link X} the {@link OWLObject}, not {@code null}
@@ -93,7 +103,7 @@ public class OWLTriples<V extends OWLObject> extends ONTObjectImpl<V> {
          * @return {@link OWLTriples}
          */
         public <X extends OWLObject> OWLTriples<X> toObject(X key) {
-            return new OWLTriples<X>(key, triples);
+            return new OWLTriples<>(key, triples);
         }
     }
 }

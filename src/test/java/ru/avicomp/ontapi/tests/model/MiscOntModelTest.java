@@ -34,6 +34,24 @@ import java.util.Collections;
 public class MiscOntModelTest extends OntModelTestBase {
 
     @Test
+    public void testGraphIsUnchangedInCaseOfError() {
+        OntologyManager m = OntManagers.createONT();
+        DataFactory df = m.getOWLDataFactory();
+        OntologyModel o = m.createOntology();
+
+        o.add(df.getOWLDeclarationAxiom(df.getOWLObjectProperty("P")));
+        try {
+            o.add(df.getOWLDeclarationAxiom(df.getOWLDataProperty("P")));
+            Assert.fail("Possible to add punning");
+        } catch (OntApiException e) {
+            LOGGER.debug("Expected: '{}'", e.getMessage());
+        }
+        ReadWriteUtils.print(o);
+        Assert.assertEquals(2, o.asGraphModel().size());
+        Assert.assertEquals(1, o.axioms().count());
+    }
+
+    @Test
     public void testNaryRestrictions() {
         OntologyManager man = OntManagers.createONT();
         OntologyModel o = man.createOntology();
