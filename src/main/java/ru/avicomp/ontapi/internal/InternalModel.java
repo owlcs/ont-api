@@ -83,7 +83,7 @@ import java.util.stream.Stream;
  * Created by @szuev on 26.10.2016.
  */
 @SuppressWarnings({"WeakerAccess", "unchecked"})
-public class InternalModel extends OntGraphModelImpl implements OntGraphModel, HasOntologyID {
+public class InternalModel extends OntGraphModelImpl implements OntGraphModel, HasOntologyID, HasObjectFactory, HasConfig {
     private static final Logger LOGGER = LoggerFactory.getLogger(InternalModel.class);
 
     /**
@@ -217,7 +217,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      *
      * @return {@link InternalConfig.Snapshot}
      */
-    protected InternalConfig getConfig() {
+    @Override
+    public InternalConfig getConfig() {
         return config.get(this);
     }
 
@@ -226,6 +227,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      *
      * @return {@link InternalObjectFactory}
      */
+    @Override
     public InternalObjectFactory getObjectFactory() {
         return objectFactory.get(this);
     }

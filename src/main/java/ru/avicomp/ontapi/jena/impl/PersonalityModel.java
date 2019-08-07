@@ -20,6 +20,7 @@ import org.apache.jena.rdf.model.RDFNode;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.conf.ObjectFactory;
 import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
+import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntObject;
 
 import java.util.Set;
@@ -102,7 +103,7 @@ public interface PersonalityModel {
      * Represents the given {@code EnhGraph} as a {@link PersonalityModel}.
      *
      * @param graph {@link EnhGraph enhanced graph},
-     *              that is assumed to be {@link ru.avicomp.ontapi.jena.model.OntGraphModel}, not {@code null}
+     *              that is also assumed to be {@link OntGraphModel}, not {@code null}
      * @return {@link PersonalityModel}
      * @throws OntJenaException in case the conversion is not possible
      * @see OntPersonality#asJenaPersonality(OntPersonality)
@@ -112,6 +113,22 @@ public interface PersonalityModel {
             return (PersonalityModel) graph;
         }
         throw new OntJenaException.IllegalArgument("The given EnhGraph is not a PersonalityModel: " + graph);
+    }
+
+    /**
+     * Represents the given {@code OntGraphModel} as a {@link PersonalityModel}.
+     *
+     * @param graph {@link OntGraphModel OWL graph model},
+     *              that is also assumed to be {@link EnhGraph}, not {@code null}
+     * @return {@link PersonalityModel}
+     * @throws OntJenaException in case the conversion is not possible
+     * @see OntPersonality#asJenaPersonality(OntPersonality)
+     */
+    static PersonalityModel asPersonalityModel(OntGraphModel graph) throws OntJenaException {
+        if (graph instanceof PersonalityModel) {
+            return (PersonalityModel) graph;
+        }
+        throw new OntJenaException.IllegalArgument("The given OntGraphModel is not a PersonalityModel: " + graph);
     }
 
     /**

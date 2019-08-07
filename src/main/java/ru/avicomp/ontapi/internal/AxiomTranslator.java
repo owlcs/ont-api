@@ -171,7 +171,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * @return {@link InternalConfig}
      */
     public static InternalConfig getConfig(OntGraphModel model) {
-        return model instanceof InternalModel ? ((InternalModel) model).getConfig() : InternalConfig.DEFAULT;
+        return HasConfig.getConfig(model);
     }
 
     /**
@@ -181,7 +181,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * @return {@link InternalObjectFactory}
      */
     public static InternalObjectFactory getObjectFactory(OntGraphModel model) {
-        return model instanceof InternalModel ? ((InternalModel) model).getObjectFactory() : InternalObjectFactory.DEFAULT;
+        return HasObjectFactory.getObjectFactory(model);
     }
 
     /**

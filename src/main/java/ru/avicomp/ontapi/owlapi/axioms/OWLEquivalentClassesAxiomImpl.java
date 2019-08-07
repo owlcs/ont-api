@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,7 +14,6 @@
 package ru.avicomp.ontapi.owlapi.axioms;
 
 import org.semanticweb.owlapi.model.*;
-import org.semanticweb.owlapi.util.CollectionFactory;
 
 import javax.annotation.Nonnull;
 import java.util.Arrays;
@@ -31,7 +30,8 @@ public class OWLEquivalentClassesAxiomImpl extends OWLNaryClassAxiomImpl impleme
      * @param classExpressions equivalent classes
      * @param annotations      annotations
      */
-    public OWLEquivalentClassesAxiomImpl(Collection<? extends OWLClassExpression> classExpressions, Collection<OWLAnnotation> annotations) {
+    public OWLEquivalentClassesAxiomImpl(Collection<? extends OWLClassExpression> classExpressions,
+                                         Collection<OWLAnnotation> annotations) {
         super(classExpressions, annotations);
     }
 
@@ -57,7 +57,7 @@ public class OWLEquivalentClassesAxiomImpl extends OWLNaryClassAxiomImpl impleme
     @Override
     public Collection<OWLEquivalentClassesAxiom> asPairwiseAxioms() {
         if (classExpressions.size() == 2) {
-            return CollectionFactory.createSet(this);
+            return createSet(this);
         }
         return walkPairwise((a, b) -> new OWLEquivalentClassesAxiomImpl(Arrays.asList(a, b), NO_ANNOTATIONS));
     }
@@ -65,7 +65,7 @@ public class OWLEquivalentClassesAxiomImpl extends OWLNaryClassAxiomImpl impleme
     @Override
     public Collection<OWLEquivalentClassesAxiom> splitToAnnotatedPairs() {
         if (classExpressions.size() == 2) {
-            return CollectionFactory.createSet(this);
+            return createSet(this);
         }
         return walkPairwise((a, b) -> new OWLEquivalentClassesAxiomImpl(Arrays.asList(a, b), annotations));
     }

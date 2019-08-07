@@ -43,58 +43,122 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
 
     protected int hashCode = 0;
 
+    /**
+     * Check iterator contents for equality (sensitive to order).
+     * Note: moved from {@link org.semanticweb.owlapi.util.OWLAPIStreamUtils} to control behaviour.
+     *
+     * @param set1 iterator to compare
+     * @param set2 iterator to compare
+     * @return true if the iterators have the same content, false otherwise.
+     * @see org.semanticweb.owlapi.util.OWLAPIStreamUtils#equalIterators(Iterator, Iterator)
+     */
+    protected static boolean equalIterators(Iterator set1, Iterator set2) {
+        while (set1.hasNext() && set2.hasNext()) {
+            Object o1 = set1.next();
+            Object o2 = set2.next();
+            if (o1 instanceof Stream && o2 instanceof Stream) {
+                if (!equalIterators(((Stream) o1).iterator(), ((Stream) o2).iterator())) {
+                    return false;
+                }
+            } else {
+                if (!o1.equals(o2)) {
+                    return false;
+                }
+            }
+        }
+        return set1.hasNext() == set2.hasNext();
+    }
+
+    /**
+     * Compare iterators element by element (sensitive to order).
+     * Note: moved from {@link org.semanticweb.owlapi.util.OWLAPIStreamUtils} to control behaviour.
+     *
+     * @param set1 iterator to compare
+     * @param set2 iterator to compare
+     * @return int, negative value if {@code set1} comes before {@code set2},
+     * positive value if {@code set2} comes before {@code set1},
+     * {@code 0} if the two sets are equal or incomparable
+     * @see org.semanticweb.owlapi.util.OWLAPIStreamUtils#compareIterators(Iterator, Iterator)
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    protected static int compareIterators(Iterator<?> set1, Iterator<?> set2) {
+        while (set1.hasNext() && set2.hasNext()) {
+            Object o1 = set1.next();
+            Object o2 = set2.next();
+            int res;
+            if (o1 instanceof Stream && o2 instanceof Stream) {
+                res = compareIterators(((Stream<?>) o1).iterator(), ((Stream<?>) o2).iterator());
+            } else if (o1 instanceof Collection && o2 instanceof Collection) {
+                res = compareIterators(((Collection<?>) o1).iterator(), ((Collection<?>) o2).iterator());
+            } else if (o1 instanceof Comparable && o2 instanceof Comparable) {
+                res = ((Comparable) o1).compareTo(o2);
+            } else {
+                throw new IllegalArgumentException(String.format("Incomparable types: " +
+                                "'%s' with class %s, '%s' with class %s found while comparing iterators",
+                        o1, o1.getClass(), o2, o2.getClass()));
+            }
+            if (res != 0) {
+                return res;
+            }
+        }
+        return Boolean.compare(set1.hasNext(), set2.hasNext());
+    }
+
+    /**
+     * Creates a {@code Set}.
+     *
+     * @param values Array of {@link X}
+     * @param <X>    anything
+     * @return a {@code Set} of {@link X}
+     */
+    @SafeVarargs
+    protected static <X> Set<X> createSet(X... values) {
+        return new HashSet<>(Arrays.asList(values));
+    }
+
     @Override
     public Stream<OWLAnonymousIndividual> anonymousIndividuals() {
         return addAnonymousIndividualsToSet(new TreeSet<>()).stream();
-        //return anonCaches.get(this).stream();
     }
 
     @Override
     public Stream<OWLEntity> signature() {
         return addSignatureEntitiesToSet(new TreeSet<>()).stream();
-        //return signatures.get(this).stream();
     }
 
     @Override
     public boolean containsEntityInSignature(OWLEntity owlEntity) {
         return signature().anyMatch(o -> Objects.equals(o, owlEntity));
-        //return signatures.get(this).contains(owlEntity);
     }
 
     @Override
     public Stream<OWLClass> classesInSignature() {
         return signature().filter(OWLEntity::isOWLClass).map(OWLEntity::asOWLClass);
-        //return streamFromSorted(classesSignatures.get(this));
     }
 
     @Override
     public Stream<OWLDataProperty> dataPropertiesInSignature() {
         return signature().filter(OWLEntity::isOWLDataProperty).map(OWLEntity::asOWLDataProperty);
-        //return streamFromSorted(dataPropertySignatures.get(this));
     }
 
     @Override
     public Stream<OWLObjectProperty> objectPropertiesInSignature() {
         return signature().filter(OWLEntity::isOWLObjectProperty).map(OWLEntity::asOWLObjectProperty);
-        //return streamFromSorted(objectPropertySignatures.get(this));
     }
 
     @Override
     public Stream<OWLNamedIndividual> individualsInSignature() {
         return signature().filter(OWLEntity::isOWLNamedIndividual).map(OWLEntity::asOWLNamedIndividual);
-        //return streamFromSorted(individualSignatures.get(this));
     }
 
     @Override
     public Stream<OWLDatatype> datatypesInSignature() {
         return signature().filter(OWLEntity::isOWLDatatype).map(OWLEntity::asOWLDatatype);
-        //return streamFromSorted(datatypeSignatures.get(this));
     }
 
     @Override
     public Stream<OWLAnnotationProperty> annotationPropertiesInSignature() {
         return signature().filter(OWLEntity::isOWLAnnotationProperty).map(OWLEntity::asOWLAnnotationProperty);
-        //return streamFromSorted(annotationPropertiesSignatures.get(this));
     }
 
     @Override
@@ -164,65 +228,6 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
     protected Set<OWLAnonymousIndividual> addAnonymousIndividualsToSet(Set<OWLAnonymousIndividual> anons) {
         accept(new AnonymousIndividualCollector(anons));
         return anons;
-    }
-
-    /**
-     * Check iterator contents for equality (sensitive to order).
-     * Note: moved from {@link org.semanticweb.owlapi.util.OWLAPIStreamUtils} to control behaviour.
-     *
-     * @param set1 iterator to compare
-     * @param set2 iterator to compare
-     * @return true if the iterators have the same content, false otherwise.
-     * @see org.semanticweb.owlapi.util.OWLAPIStreamUtils#equalIterators(Iterator, Iterator)
-     */
-    protected static boolean equalIterators(Iterator set1, Iterator set2) {
-        while (set1.hasNext() && set2.hasNext()) {
-            Object o1 = set1.next();
-            Object o2 = set2.next();
-            if (o1 instanceof Stream && o2 instanceof Stream) {
-                if (!equalIterators(((Stream) o1).iterator(), ((Stream) o2).iterator())) {
-                    return false;
-                }
-            } else {
-                if (!o1.equals(o2)) {
-                    return false;
-                }
-            }
-        }
-        return set1.hasNext() == set2.hasNext();
-    }
-
-    /**
-     * Compare iterators element by element (sensitive to order).
-     * Note: moved from {@link org.semanticweb.owlapi.util.OWLAPIStreamUtils} to control behaviour.
-     *
-     * @param set1 iterator to compare
-     * @param set2 iterator to compare
-     * @return negative value if set1 comes before set2, positive value if set2 comes before set1, 0 if the two sets are equal or incomparable.
-     * @see org.semanticweb.owlapi.util.OWLAPIStreamUtils#compareIterators(Iterator, Iterator)
-     */
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    protected static int compareIterators(Iterator<?> set1, Iterator<?> set2) {
-        while (set1.hasNext() && set2.hasNext()) {
-            Object o1 = set1.next();
-            Object o2 = set2.next();
-            int diff;
-            if (o1 instanceof Stream && o2 instanceof Stream) {
-                diff = compareIterators(((Stream<?>) o1).iterator(), ((Stream<?>) o2).iterator());
-            } else if (o1 instanceof Collection && o2 instanceof Collection) {
-                diff = compareIterators(((Collection<?>) o1).iterator(),
-                        ((Collection<?>) o2).iterator());
-            } else if (o1 instanceof Comparable && o2 instanceof Comparable) {
-                diff = ((Comparable) o1).compareTo(o2);
-            } else {
-                throw new IllegalArgumentException(String.format("Incomparable types: '%s' with class %s, '%s' with class %s found while comparing iterators",
-                        o1, o1.getClass(), o2, o2.getClass()));
-            }
-            if (diff != 0) {
-                return diff;
-            }
-        }
-        return Boolean.compare(set1.hasNext(), set2.hasNext());
     }
 
     /**
