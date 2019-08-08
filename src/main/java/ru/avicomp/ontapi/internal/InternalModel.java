@@ -686,12 +686,12 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
             return reduce(OWLContentType.axioms().flatMap(k -> {
                 ObjectMap<OWLAxiom> axioms = getContentCache(k);
                 Predicate<OWLAxiom> p = k.hasComponent(filter) ? a -> true : k::hasAnnotations;
-                return axioms.keys().filter(x -> p.test(x) && filter.select(x).anyMatch(primitive::equals));
+                return axioms.keys().filter(x -> p.test(x) && filter.contains(x, primitive));
             }));
         }
         // select only those container-types, that are capable to contain the primitive
         return flatMap(filteredAxiomsCaches(OWLContentType.axioms().filter(x -> x.hasComponent(filter))),
-                k -> k.keys().filter(x -> filter.select(x).anyMatch(primitive::equals)));
+                k -> k.keys().filter(x -> filter.contains(x, primitive)));
     }
 
     /**
@@ -720,7 +720,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         if (!OWLContentType.ANNOTATION.hasComponent(filter) && !key.hasComponent(filter)) {
             return Stream.empty();
         }
-        return (Stream<A>) getAxiomsCache(key).keys().filter(x -> filter.select(x).anyMatch(object::equals));
+        return (Stream<A>) getAxiomsCache(key).keys().filter(x -> filter.contains(x, object));
     }
 
     /**
@@ -1225,7 +1225,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
             Set<OWLObject> ignore = new HashSet<>(Arrays.asList(excludes));
             res = res.filter(x -> !ignore.contains(x));
         }
-        return res.filter(x -> type.select(x).anyMatch(entity::equals)).findFirst();
+        return res.filter(x -> type.contains(x, entity)).findFirst();
     }
 
     /**

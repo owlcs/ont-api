@@ -348,8 +348,7 @@ public enum OWLComponentType {
         ONTObject<? extends OWLObject> wrap(RDFNode n, InternalObjectFactory df) {
             return df.get(n.as(OntSWRL.Atom.class));
         }
-    }
-    ;
+    };
 
     private static final Set<OWLComponentType> CACHE_KEYS = EnumSet.of(CLASS
             , DATATYPE
@@ -472,6 +471,9 @@ public enum OWLComponentType {
      */
     @SuppressWarnings("unchecked")
     ONTObject<OWLObject> wrap(OWLObject object, OntGraphModel model, InternalObjectFactory df) {
+        if (object instanceof ONTObject) {
+            return (ONTObject<OWLObject>) object;
+        }
         // if it is anonymous object then fail
         return (ONTObject<OWLObject>) wrap(WriteHelper.toRDFNode(object).inModel(model), df);
     }
@@ -486,6 +488,20 @@ public enum OWLComponentType {
     @SuppressWarnings("unchecked")
     public Stream<OWLObject> select(OWLObject container) {
         return (Stream<OWLObject>) components(container);
+    }
+
+    /**
+     * Answers {@code true} if the given {@code container} contains the given {@code component} somewhere in its depths.
+     *
+     * @param container {@link OWLObject} to search in, not {@code null}
+     * @param component {@link OWLObject} to search for, not {@code null}
+     * @return boolean
+     */
+    public boolean contains(OWLObject container, OWLObject component) {
+        if (component instanceof OWLEntity) {
+            return container.containsEntityInSignature((OWLEntity) component);
+        }
+        return components(container).anyMatch(component::equals);
     }
 
     /**
@@ -505,7 +521,7 @@ public enum OWLComponentType {
      * in the form of {@code Stream} of {@link ONTObject}s.
      *
      * @param model {@link OntGraphModel}, not {@code null}
-     * @param df {@link InternalObjectFactory}, not {@code null}
+     * @param df    {@link InternalObjectFactory}, not {@code null}
      * @return {@link Stream} of {@link ONTObject}s of this type
      */
     @SuppressWarnings("unchecked")

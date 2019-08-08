@@ -54,7 +54,7 @@ import java.util.Set;
  * @since 1.4.0
  */
 @SuppressWarnings("WeakerAccess")
-public abstract class SearchModel extends OntGraphModelImpl implements HasObjectFactory {
+public abstract class SearchModel extends OntGraphModelImpl implements HasObjectFactory, HasConfig {
     private static final Logger LOGGER = LoggerFactory.getLogger(SearchModel.class);
 
     // to control searching process
@@ -118,6 +118,11 @@ public abstract class SearchModel extends OntGraphModelImpl implements HasObject
                 .filter(x -> x != OntSWRL.DArg.class && x != OntSWRL.Arg.class)
                 .forEach(x -> CachedFactory.cache(res, from, x, size));
         return res.build();
+    }
+
+    @Override
+    public InternalConfig getConfig() {
+        return conf;
     }
 
     @Override
