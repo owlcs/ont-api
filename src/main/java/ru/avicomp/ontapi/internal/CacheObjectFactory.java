@@ -28,13 +28,15 @@ import java.util.function.Supplier;
  * Created by @ssz on 09.09.2018.
  */
 @SuppressWarnings("WeakerAccess")
-public class CacheObjectFactory extends NoCacheObjectFactory {
+public class CacheObjectFactory extends ModelObjectFactory {
     /**
      * This magic '2048' is taken from OWL-API DataFactory impl:
      *
      * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLDataFactoryInternalsImpl.java#L63'>uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryInternalsImpl#builder(CacheLoader)</a>
+     * @see ru.avicomp.ontapi.config.OntConfig#getManagerIRIsCacheSize()
      */
     public static final int CACHE_SIZE = 2048;
+
     protected final InternalCache<OntClass, ONTObject<OWLClass>> classes;
     protected final InternalCache<OntDT, ONTObject<OWLDatatype>> datatypes;
     protected final InternalCache<OntNAP, ONTObject<OWLAnnotationProperty>> annotationProperties;
@@ -43,12 +45,13 @@ public class CacheObjectFactory extends NoCacheObjectFactory {
     protected final InternalCache<OntIndividual.Named, ONTObject<OWLNamedIndividual>> individuals;
     protected final InternalCache.Loading<String, IRI> iris;
 
+    @SuppressWarnings("unused")
     public CacheObjectFactory(DataFactory factory) {
         this(factory, InternalCache.createBounded(true, CACHE_SIZE).asLoading(IRI::create), CACHE_SIZE);
     }
 
     /**
-     * Makes an instance based on 7 {@link InternalCache.Loading Loading Cache}s, for all OWL entities and IRIs.
+     * Makes an instance based on {@code 7} {@link InternalCache.Loading Loading Cache}s, for all OWL entities and IRIs.
      *
      * @param factory {@link DataFactory}
      * @param iris    {@link InternalCache.Loading} for {@link IRI}s

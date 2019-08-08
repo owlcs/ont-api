@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -19,13 +19,14 @@ import org.apache.jena.datatypes.RDFDatatype;
 import org.apache.jena.datatypes.TypeMapper;
 import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.datatypes.xsd.impl.RDFLangString;
+import org.apache.jena.graph.FrontsNode;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.impl.LiteralLabel;
 import org.apache.jena.graph.impl.LiteralLabelFactory;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLDatatype;
-import org.semanticweb.owlapi.model.OWLLiteral;
-import org.semanticweb.owlapi.model.OWLObject;
+import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
+import ru.avicomp.ontapi.jena.vocabulary.XSD;
 import ru.avicomp.ontapi.owlapi.InternalizedEntities;
 import ru.avicomp.ontapi.owlapi.OWLObjectImpl;
 import ru.avicomp.ontapi.owlapi.objects.entity.OWLDatatypeImpl;
@@ -33,17 +34,16 @@ import ru.avicomp.ontapi.owlapi.objects.entity.OWLDatatypeImpl;
 import javax.annotation.Nullable;
 import java.lang.ref.SoftReference;
 import java.util.*;
+import java.util.stream.Stream;
 
 /**
- * An ON-API implementation of {@link OWLLiteral},
- * encapsulated {@link LiteralLabel Jena Literal Label}.
+ * An ONT-API implementation of {@link OWLLiteral}, encapsulated {@link LiteralLabel Jena Literal Label}.
  * <p>
  * Created by @szz on 06.09.2018.
  */
 @SuppressWarnings("WeakerAccess")
-public class OWLLiteralImpl extends OWLObjectImpl implements OWLLiteral {
+public class OWLLiteralImpl extends OWLObjectImpl implements OWLLiteral, FrontsNode {
 
-    protected static TypeMapper typeMapper = TypeMapper.getInstance();
     public static final Map<String, OWLDatatype> BUILTIN_OWL_DATATYPES = Collections.unmodifiableMap(new HashMap<String, OWLDatatype>() {
         {
             put(InternalizedEntities.RDFS_LITERAL);
@@ -60,7 +60,7 @@ public class OWLLiteralImpl extends OWLObjectImpl implements OWLLiteral {
             put(d.getIRI().getIRIString(), d);
         }
     });
-
+    protected static TypeMapper typeMapper = TypeMapper.getInstance();
     protected final LiteralLabel label;
     private transient SoftReference<OWLDatatype> owlDatatypeRef;
 
@@ -292,6 +292,89 @@ public class OWLLiteralImpl extends OWLObjectImpl implements OWLLiteral {
     }
 
     /**
+     * Calculates a hash-code for lexical form.
+     * The original (OWL-API) logic is preserved.
+     *
+     * @param label {@link LiteralLabel}, not {@code null}
+     * @return int
+     */
+    protected static int calcLiteralLabelHashCode(LiteralLabel label) {
+        if (label.isWellFormedRaw()) {
+            Object value = label.getValue();
+            if (value instanceof Number) {
+                return ((Number) value).intValue();
+            }
+            if (value instanceof Boolean) {
+                return (Boolean) value ? 1 : 0;
+            }
+        }
+        return label.getLexicalForm().hashCode();
+    }
+
+    /**
+     * Calculates a hash-code for {@link OWLLiteralImpl} given as its components.
+     *
+     * @param index    int, constant, {@link HasHashIndex#hashIndex()}
+     * @param label    {@link LiteralLabel}, not {@code null}
+     * @param datatype {@link OWLDatatype}, not {@code null}
+     * @param lang     String, not {@code null}
+     * @return int
+     */
+    protected static int calcHashCode(int index, LiteralLabel label, OWLDatatype datatype, String lang) {
+        index = OWLObject.hashIteration(index, datatype.hashCode());
+        index = OWLObject.hashIteration(index, calcLiteralLabelHashCode(label) * 65536);
+        return OWLObject.hashIteration(index, lang.hashCode());
+    }
+
+    /**
+     * Answers {@code true} if the argument-literals are equal to each other and {@code false} otherwise.
+     *
+     * @param left  {@link LiteralLabel}, can be {@code null}
+     * @param right {@link LiteralLabel}, can be {@code null}
+     * @return boolean
+     */
+    public static boolean equals(LiteralLabel left, LiteralLabel right) {
+        if (left == right) {
+            return true;
+        }
+        if (left == null || right == null) {
+            return false;
+        }
+        if (!Objects.equals(left.getLexicalForm(), right.getLexicalForm()))
+            return false;
+        if (!Objects.equals(left.language(), right.language()))
+            return false;
+        if (Objects.equals(left.getDatatype(), right.getDatatype())) {
+            return true;
+        }
+        return Objects.equals(getDatatypeURI(left), getDatatypeURI(right));
+    }
+
+    /**
+     * Gets the valid (in OWL-API sense) datatype URI from the given {@code label}.
+     *
+     * @param label {@link LiteralLabel}, not {@code null}
+     * @return String
+     */
+    public static String getDatatypeURI(LiteralLabel label) {
+        String uri = label.getDatatypeURI();
+        String lang = label.language();
+        if (uri != null) {
+            if (RDF.PlainLiteral.getURI().equals(uri) && lang.isEmpty()) {
+                // a special case of ".."^^rdf:PlainLiteral:
+                return XSD.xstring.getURI();
+            }
+            return uri;
+        }
+        return lang.isEmpty() ? XSD.xstring.getURI() : RDF.langString.getURI();
+    }
+
+    @Override
+    public Node asNode() {
+        return NodeFactory.createLiteral(label);
+    }
+
+    /**
      * Returns a {@link LiteralLabel Jena Literal Label}, that is encapsulated by this object.
      *
      * @return {@link LiteralLabel}
@@ -330,19 +413,12 @@ public class OWLLiteralImpl extends OWLObjectImpl implements OWLLiteral {
      * @return {@link OWLDatatype}
      */
     public OWLDatatype calcOWLDatatype() {
-        String uri = label.getDatatypeURI();
-        if (uri != null) {
-            if (RDF.PlainLiteral.getURI().equals(uri) && label.language().isEmpty()) {
-                // a special case of ".."^^rdf:PlainLiteral:
-                return InternalizedEntities.XSD_STRING;
-            }
-            OWLDatatype owl = BUILTIN_OWL_DATATYPES.get(uri);
-            if (owl != null) {
-                return owl;
-            }
-            return new OWLDatatypeImpl(IRI.create(uri));
+        String uri = getDatatypeURI(label);
+        OWLDatatype owl = BUILTIN_OWL_DATATYPES.get(uri);
+        if (owl != null) {
+            return owl;
         }
-        return label.language().isEmpty() ? InternalizedEntities.XSD_STRING : InternalizedEntities.RDF_LANG_STRING;
+        return new OWLDatatypeImpl(IRI.create(uri));
     }
 
     /**
@@ -422,31 +498,59 @@ public class OWLLiteralImpl extends OWLObjectImpl implements OWLLiteral {
         return Float.parseFloat(res);
     }
 
-    /**
-     * Calculates a hash-code for lexical form.
-     * The original (OWL-API) logic is preserved.
-     *
-     * @return int
-     */
-    protected int getLiteralHashCode() {
-        if (label.isWellFormedRaw()) {
-            Object value = label.getValue();
-            if (value instanceof Number) {
-                return ((Number) value).intValue();
-            }
-            if (value instanceof Boolean) {
-                return (Boolean) value ? 1 : 0;
-            }
-        }
-        return label.getLexicalForm().hashCode();
+    @Override
+    public Stream<OWLEntity> signature() {
+        return Stream.of(getDatatype());
+    }
+
+    @Override
+    public Stream<OWLDatatype> datatypesInSignature() {
+        return Stream.of(getDatatype());
+    }
+
+    @Override
+    public boolean containsEntityInSignature(OWLEntity entity) {
+        return getDatatype().equals(entity);
+    }
+
+    @Override
+    public Stream<OWLClass> classesInSignature() {
+        return Stream.empty();
+    }
+
+    @Override
+    public Stream<OWLNamedIndividual> individualsInSignature() {
+        return Stream.empty();
+    }
+
+    @Override
+    public Stream<OWLDataProperty> dataPropertiesInSignature() {
+        return Stream.empty();
+    }
+
+    @Override
+    public Stream<OWLObjectProperty> objectPropertiesInSignature() {
+        return Stream.empty();
+    }
+
+    @Override
+    public Stream<OWLAnnotationProperty> annotationPropertiesInSignature() {
+        return Stream.empty();
+    }
+
+    @Override
+    public Stream<OWLClassExpression> nestedClassExpressions() {
+        return Stream.empty();
+    }
+
+    @Override
+    public Stream<OWLAnonymousIndividual> anonymousIndividuals() {
+        return Stream.empty();
     }
 
     @Override
     public int initHashCode() {
-        int hash = hashIndex();
-        hash = OWLObject.hashIteration(hash, getDatatype().hashCode());
-        hash = OWLObject.hashIteration(hash, getLiteralHashCode() * 65536);
-        return OWLObject.hashIteration(hash, getLang().hashCode());
+        return calcHashCode(hashIndex(), label, getDatatype(), getLang());
     }
 
     /**
@@ -460,12 +564,30 @@ public class OWLLiteralImpl extends OWLObjectImpl implements OWLLiteral {
      * Also note: the language tag is a {@code String}, and therefore the comparison is case sensitive, e.g.
      * the tags "SU-su" and "su-su" are not equal.
      *
-     * @param o {@link Object} anything
-     * @return {@code true} if this object is the same as the obj argument; {@code false} otherwise.
+     * @param obj {@link Object} anything
+     * @return {@code true} if this object is the same as the obj argument; {@code false} otherwise
      */
     @Override
-    public boolean equals(Object o) {
-        return super.equals(o);
+    public boolean equals(@Nullable Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (!(obj instanceof OWLLiteral)) {
+            return false;
+        }
+        if (obj instanceof OWLLiteralImpl) {
+            OWLLiteralImpl other = (OWLLiteralImpl) obj;
+            if (notSame(other)) {
+                return false;
+            }
+            return equals(label, other.getLiteralLabel());
+        }
+        if (obj instanceof FrontsNode) {
+            return asNode().equals(((FrontsNode) obj).asNode());
+        }
+        return super.equals(obj);
     }
-
 }

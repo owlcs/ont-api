@@ -29,7 +29,7 @@ import java.util.HashSet;
 import java.util.Objects;
 
 /**
- * An Internal Data Factory impl without cache.
+ * An Internal Object Factory impl which maps {@link OntObject} to {@link OWLObject} directly having no cache.
  * <p>
  * Created by @szuev on 15.03.2018.
  */
@@ -102,6 +102,11 @@ public class NoCacheObjectFactory implements InternalObjectFactory {
     }
 
     @Override
+    public ONTObject<OWLAnonymousIndividual> get(OntIndividual.Anonymous i) {
+        return ONTObjectImpl.create(getOWLDataFactory().getOWLAnonymousIndividual(i.asNode().getBlankNodeId()), i);
+    }
+
+    @Override
     public ONTObject<? extends OWLObjectPropertyExpression> get(OntOPE ope) {
         OntApiException.notNull(ope, "Null object property.");
         if (ope.isAnon()) {
@@ -129,7 +134,7 @@ public class NoCacheObjectFactory implements InternalObjectFactory {
         if (OntApiException.notNull(individual, "Null individual").isURIResource()) {
             return get(individual.as(OntIndividual.Named.class));
         }
-        return ONTObjectImpl.create(df.getOWLAnonymousIndividual(individual.asNode().getBlankNodeId()), individual);
+        return get(individual.as(OntIndividual.Anonymous.class));
     }
 
     @Override
@@ -176,7 +181,7 @@ public class NoCacheObjectFactory implements InternalObjectFactory {
 
     @SuppressWarnings("unchecked")
     public ONTObject<OWLAnonymousIndividual> getAnonymous(OntIndividual.Anonymous individual) {
-        return (ONTObject<OWLAnonymousIndividual>) get(individual);
+        return get(individual);
     }
 
     @Override

@@ -252,10 +252,16 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @return {@link OntGraphModel}
      */
     protected OntGraphModelImpl createSearchModel() {
-        if (getConfig().useLoadNodesCache()) {
-            return new SearchModel(getGraph(), getOntPersonality(), getConfig());
+        if (!getConfig().useLoadNodesCache()) {
+            return this;
         }
-        return this;
+        return new SearchModel(getGraph(), getOntPersonality(), getConfig()) {
+
+            @Override
+            public InternalObjectFactory getObjectFactory() {
+                return InternalModel.this.getObjectFactory();
+            }
+        };
     }
 
     @Override
@@ -1292,6 +1298,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     protected <R> Stream<R> selectContent(OWLComponentType type,
                                           Function<OWLContentType, Stream<R>> toStream,
                                           BiPredicate<OWLContentType, R> withAnnotations) {
+        // todo: consider the case when there is no bulk annotations at all ?
         if (!OWLContentType.ANNOTATION.hasComponent(type)) {
             // select only those axiom types which are allowed to contain the component type
             return OWLContentType.all().filter(k -> k.hasComponent(type)).flatMap(toStream);

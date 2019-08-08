@@ -157,7 +157,7 @@ public class CacheConfigTest {
         CacheObjectFactory cof1 = (CacheObjectFactory) of2;
 
         Assert.assertEquals(size1, getInternalCache(cof1, OntClass.class).size());
-        Assert.assertEquals(0, getInternalCache(cof1, OntDT.class).size());
+        Assert.assertEquals(2, getInternalCache(cof1, OntDT.class).size());
         Assert.assertEquals(5, getInternalCache(cof1, OntIndividual.Named.class).size());
         Assert.assertEquals(2, getInternalCache(cof1, OntNAP.class).size());
         Assert.assertEquals(0, getInternalCache(cof1, OntNDP.class).size());
@@ -171,7 +171,7 @@ public class CacheConfigTest {
         CacheObjectFactory cof2 = (CacheObjectFactory) of3;
 
         Assert.assertEquals(size2, getInternalCache(cof2, OntClass.class).size());
-        Assert.assertEquals(0, getInternalCache(cof2, OntDT.class).size());
+        Assert.assertEquals(2, getInternalCache(cof2, OntDT.class).size());
         Assert.assertEquals(size2, getInternalCache(cof2, OntIndividual.Named.class).size());
         Assert.assertEquals(size2, getInternalCache(cof2, OntNAP.class).size());
         Assert.assertEquals(0, getInternalCache(cof2, OntNDP.class).size());

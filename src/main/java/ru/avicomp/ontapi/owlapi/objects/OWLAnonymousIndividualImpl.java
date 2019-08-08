@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,12 +14,16 @@
 package ru.avicomp.ontapi.owlapi.objects;
 
 import org.apache.jena.graph.BlankNodeId;
-import org.semanticweb.owlapi.model.NodeID;
-import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
+import org.apache.jena.graph.FrontsNode;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
+import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.owlapi.OWLObjectImpl;
 
+import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 /**
  * An ON-API implementation of {@link OWLAnonymousIndividual},
@@ -28,9 +32,9 @@ import java.util.Optional;
  * @author Matthew Horridge, The University of Manchester, Information Management Group
  * @since 1.2.0
  */
-public class OWLAnonymousIndividualImpl extends OWLObjectImpl implements OWLAnonymousIndividual {
+public class OWLAnonymousIndividualImpl extends OWLObjectImpl implements OWLAnonymousIndividual, FrontsNode {
 
-    private final BlankNodeId id;
+    protected final BlankNodeId id;
 
     /**
      * @param nodeID node id
@@ -39,8 +43,33 @@ public class OWLAnonymousIndividualImpl extends OWLObjectImpl implements OWLAnon
         this.id = Objects.requireNonNull(nodeID, "nodeID cannot be null");
     }
 
+    /**
+     * Converts any instance of {@link OWLAnonymousIndividual} to the
+     * {@link OWLAnonymousIndividualImpl ONT-API Anonymous Individual implementation}.
+     *
+     * @param individual {@link OWLAnonymousIndividual}
+     * @return {@link OWLAnonymousIndividualImpl}
+     */
+    public static OWLAnonymousIndividualImpl asONT(OWLAnonymousIndividual individual) {
+        if (individual instanceof OWLAnonymousIndividualImpl) {
+            return (OWLAnonymousIndividualImpl) individual;
+        }
+        BlankNodeId id;
+        if (individual instanceof FrontsNode) {
+            id = ((FrontsNode) individual).asNode().getBlankNodeId();
+        } else {
+            id = BlankNodeId.create(individual.toStringID());
+        }
+        return new OWLAnonymousIndividualImpl(id);
+    }
+
     public BlankNodeId getBlankNodeId() {
         return id;
+    }
+
+    @Override
+    public Node asNode() {
+        return NodeFactory.createBlankNode(id);
     }
 
     @Override
@@ -63,17 +92,77 @@ public class OWLAnonymousIndividualImpl extends OWLObjectImpl implements OWLAnon
         return Optional.of(this);
     }
 
-    /**
-     * Converts any instance of {@link OWLAnonymousIndividual} to the
-     * {@link OWLAnonymousIndividualImpl ONT-API Anonymous Individual implementation}.
-     *
-     * @param individual {@link OWLAnonymousIndividual}
-     * @return {@link OWLAnonymousIndividualImpl}
-     */
-    public static OWLAnonymousIndividualImpl asONT(OWLAnonymousIndividual individual) {
-        if (individual instanceof OWLAnonymousIndividualImpl) {
-            return (OWLAnonymousIndividualImpl) individual;
+    @Override
+    public Stream<OWLAnonymousIndividual> anonymousIndividuals() {
+        return Stream.of(this);
+    }
+
+    @Override
+    public boolean containsEntityInSignature(OWLEntity entity) {
+        return false;
+    }
+
+    @Override
+    public Stream<OWLEntity> signature() {
+        return Stream.empty();
+    }
+
+    @Override
+    public Stream<OWLClass> classesInSignature() {
+        return Stream.empty();
+    }
+
+    @Override
+    public Stream<OWLDatatype> datatypesInSignature() {
+        return Stream.empty();
+    }
+
+    @Override
+    public Stream<OWLNamedIndividual> individualsInSignature() {
+        return Stream.empty();
+    }
+
+    @Override
+    public Stream<OWLDataProperty> dataPropertiesInSignature() {
+        return Stream.empty();
+    }
+
+    @Override
+    public Stream<OWLObjectProperty> objectPropertiesInSignature() {
+        return Stream.empty();
+    }
+
+    @Override
+    public Stream<OWLAnnotationProperty> annotationPropertiesInSignature() {
+        return Stream.empty();
+    }
+
+    @Override
+    public Stream<OWLClassExpression> nestedClassExpressions() {
+        return Stream.empty();
+    }
+
+    @Override
+    public boolean equals(@Nullable Object obj) {
+        if (obj == this) {
+            return true;
         }
-        return new OWLAnonymousIndividualImpl(BlankNodeId.create(individual.toStringID()));
+        if (obj == null) {
+            return false;
+        }
+        if (!(obj instanceof OWLAnonymousIndividual)) {
+            return false;
+        }
+        if (obj instanceof OWLAnonymousIndividualImpl) {
+            OWLAnonymousIndividualImpl other = (OWLAnonymousIndividualImpl) obj;
+            if (notSame(other)) {
+                return false;
+            }
+            return id.equals(other.getBlankNodeId());
+        }
+        if (obj instanceof FrontsNode) {
+            return asNode().equals(((FrontsNode) obj).asNode());
+        }
+        return super.equals(obj);
     }
 }

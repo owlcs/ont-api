@@ -54,6 +54,8 @@ public interface InternalObjectFactory {
 
     ONTObject<OWLNamedIndividual> get(OntIndividual.Named i);
 
+    ONTObject<OWLAnonymousIndividual> get(OntIndividual.Anonymous i);
+
     ONTObject<OWLFacetRestriction> get(OntFR fr);
 
     ONTObject<SWRLVariable> get(OntSWRL.Variable var);

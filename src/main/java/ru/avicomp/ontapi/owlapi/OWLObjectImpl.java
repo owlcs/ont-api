@@ -183,6 +183,18 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
                 && equalIterators(components().iterator(), other.components().iterator());
     }
 
+    /**
+     * Answers {@code true} if and only if this object and the specified one are definitely not equal.
+     * Note that the method returns {@code false} in any other case, so the objects might still be equal.
+     * This operation is cheap: the method {@link OWLObject#initHashCode()} is not called.
+     *
+     * @param other {@link OWLObjectImpl}, not {@code null}
+     * @return boolean - {@code true} if objects have different pre-calculated hash-codes, {@code false} otherwise
+     */
+    protected boolean notSame(OWLObjectImpl other) {
+        return hashCode != 0 && other.hashCode != 0 && hashCode != other.hashCode;
+    }
+
     @Override
     public int hashCode() {
         return hashCode == 0 ? hashCode = initHashCode() : hashCode;

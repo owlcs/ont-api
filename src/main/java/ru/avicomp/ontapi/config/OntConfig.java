@@ -274,10 +274,11 @@ public class OntConfig extends OntologyConfigurator implements
      * An ONT-API manager's load config getter.
      * Returns the IRI cache size, that is used inside a manager to share IRIs between ontologies.
      * The default size is {@code 2048}, it is a magic number which is taken from OWL-API impl
-     * (see uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryInternalsImpl, v5)
+     * (see {@code uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryInternalsImpl}, v5)
      * A negative or zero number means that IRIs cache is disabled.
      *
-     * @return int, possible non-positive to disable IRIs caching
+     * @return int, possible non-positive number to disable whole {@code IRI}s caching
+     * @see OntSettings#ONT_API_MANAGER_CACHE_IRIS
      * @since 1.4.0
      */
     public int getManagerIRIsCacheSize() {

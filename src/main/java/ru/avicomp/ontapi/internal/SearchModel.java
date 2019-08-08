@@ -54,7 +54,7 @@ import java.util.Set;
  * @since 1.4.0
  */
 @SuppressWarnings("WeakerAccess")
-public class SearchModel extends OntGraphModelImpl {
+public abstract class SearchModel extends OntGraphModelImpl implements HasObjectFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(SearchModel.class);
 
     // to control searching process
@@ -131,7 +131,13 @@ public class SearchModel extends OntGraphModelImpl {
         // while in the local graph there is '<a> a rdfs:Datatype' - i.e. a punning for the same entity <a>).
         // A shared cache for this case will lead to wrong result,
         // and a separated cache will not give a performance gain
-        return new SearchModel(getBaseGraph(), personality, conf, false);
+        return new SearchModel(getBaseGraph(), personality, conf, false) {
+
+            @Override
+            public InternalObjectFactory getObjectFactory() {
+                return SearchModel.this.getObjectFactory();
+            }
+        };
     }
 
     @Override
