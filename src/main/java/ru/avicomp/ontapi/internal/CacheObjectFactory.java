@@ -37,12 +37,12 @@ public class CacheObjectFactory extends ModelObjectFactory {
      */
     public static final int CACHE_SIZE = 2048;
 
-    protected final InternalCache<OntClass, ONTObject<OWLClass>> classes;
-    protected final InternalCache<OntDT, ONTObject<OWLDatatype>> datatypes;
-    protected final InternalCache<OntNAP, ONTObject<OWLAnnotationProperty>> annotationProperties;
-    protected final InternalCache<OntNDP, ONTObject<OWLDataProperty>> datatypeProperties;
-    protected final InternalCache<OntNOP, ONTObject<OWLObjectProperty>> objectProperties;
-    protected final InternalCache<OntIndividual.Named, ONTObject<OWLNamedIndividual>> individuals;
+    protected final InternalCache<String, ONTObject<OWLClass>> classes;
+    protected final InternalCache<String, ONTObject<OWLDatatype>> datatypes;
+    protected final InternalCache<String, ONTObject<OWLAnnotationProperty>> annotationProperties;
+    protected final InternalCache<String, ONTObject<OWLDataProperty>> datatypeProperties;
+    protected final InternalCache<String, ONTObject<OWLObjectProperty>> objectProperties;
+    protected final InternalCache<String, ONTObject<OWLNamedIndividual>> individuals;
     protected final InternalCache.Loading<String, IRI> iris;
 
     @SuppressWarnings("unused")
@@ -74,12 +74,12 @@ public class CacheObjectFactory extends ModelObjectFactory {
                               InternalCache.Loading<String, IRI> iris) {
         super(dataFactory);
         this.iris = Objects.requireNonNull(iris);
-        this.classes = (InternalCache<OntClass, ONTObject<OWLClass>>) cacheFactory.get();
-        this.datatypes = (InternalCache<OntDT, ONTObject<OWLDatatype>>) cacheFactory.get();
-        this.annotationProperties = (InternalCache<OntNAP, ONTObject<OWLAnnotationProperty>>) cacheFactory.get();
-        this.datatypeProperties = (InternalCache<OntNDP, ONTObject<OWLDataProperty>>) cacheFactory.get();
-        this.objectProperties = (InternalCache<OntNOP, ONTObject<OWLObjectProperty>>) cacheFactory.get();
-        this.individuals = (InternalCache<OntIndividual.Named, ONTObject<OWLNamedIndividual>>) cacheFactory.get();
+        this.classes = (InternalCache<String, ONTObject<OWLClass>>) cacheFactory.get();
+        this.datatypes = (InternalCache<String, ONTObject<OWLDatatype>>) cacheFactory.get();
+        this.annotationProperties = (InternalCache<String, ONTObject<OWLAnnotationProperty>>) cacheFactory.get();
+        this.datatypeProperties = (InternalCache<String, ONTObject<OWLDataProperty>>) cacheFactory.get();
+        this.objectProperties = (InternalCache<String, ONTObject<OWLObjectProperty>>) cacheFactory.get();
+        this.individuals = (InternalCache<String, ONTObject<OWLNamedIndividual>>) cacheFactory.get();
     }
 
     @Override
@@ -94,32 +94,32 @@ public class CacheObjectFactory extends ModelObjectFactory {
 
     @Override
     public ONTObject<OWLClass> get(OntClass ce) {
-        return classes.get(ce, super::get);
+        return classes.get(ce.getURI(), s -> super.get(ce));
     }
 
     @Override
     public ONTObject<OWLDatatype> get(OntDT dr) {
-        return datatypes.get(dr, super::get);
+        return datatypes.get(dr.getURI(), s -> super.get(dr));
     }
 
     @Override
     public ONTObject<OWLAnnotationProperty> get(OntNAP nap) {
-        return annotationProperties.get(nap, super::get);
+        return annotationProperties.get(nap.getURI(), s -> super.get(nap));
     }
 
     @Override
     public ONTObject<OWLDataProperty> get(OntNDP ndp) {
-        return datatypeProperties.get(ndp, super::get);
+        return datatypeProperties.get(ndp.getURI(), s -> super.get(ndp));
     }
 
     @Override
     public ONTObject<OWLObjectProperty> get(OntNOP nop) {
-        return objectProperties.get(nop, super::get);
+        return objectProperties.get(nop.getURI(), s -> super.get(nop));
     }
 
     @Override
     public ONTObject<OWLNamedIndividual> get(OntIndividual.Named i) {
-        return individuals.get(i, super::get);
+        return individuals.get(i.getURI(), s -> super.get(i));
     }
 
     @Override

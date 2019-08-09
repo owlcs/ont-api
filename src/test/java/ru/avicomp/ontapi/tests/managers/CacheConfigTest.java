@@ -22,9 +22,7 @@ import org.apache.jena.util.iterator.ExtendedIterator;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
-import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.*;
@@ -34,7 +32,6 @@ import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.config.OntSettings;
 import ru.avicomp.ontapi.internal.*;
 import ru.avicomp.ontapi.jena.impl.OntGraphModelImpl;
-import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
 import java.lang.reflect.Field;
@@ -67,7 +64,7 @@ public class CacheConfigTest {
     }
 
     private static InternalCache getInternalCache(CacheObjectFactory of,
-                                                  Class<? extends OntEntity> type) throws Exception {
+                                                  Class<? extends OWLEntity> type) throws Exception {
         return getPrivateField(of, InternalCache.class, type);
     }
 
@@ -156,12 +153,12 @@ public class CacheConfigTest {
         Assert.assertTrue(of2 instanceof CacheObjectFactory);
         CacheObjectFactory cof1 = (CacheObjectFactory) of2;
 
-        Assert.assertEquals(size1, getInternalCache(cof1, OntClass.class).size());
-        Assert.assertEquals(2, getInternalCache(cof1, OntDT.class).size());
-        Assert.assertEquals(5, getInternalCache(cof1, OntIndividual.Named.class).size());
-        Assert.assertEquals(2, getInternalCache(cof1, OntNAP.class).size());
-        Assert.assertEquals(0, getInternalCache(cof1, OntNDP.class).size());
-        Assert.assertEquals(8, getInternalCache(cof1, OntNOP.class).size());
+        Assert.assertEquals(size1, getInternalCache(cof1, OWLClass.class).size());
+        Assert.assertEquals(2, getInternalCache(cof1, OWLDatatype.class).size());
+        Assert.assertEquals(5, getInternalCache(cof1, OWLNamedIndividual.class).size());
+        Assert.assertEquals(2, getInternalCache(cof1, OWLAnnotationProperty.class).size());
+        Assert.assertEquals(0, getInternalCache(cof1, OWLDataProperty.class).size());
+        Assert.assertEquals(8, getInternalCache(cof1, OWLObjectProperty.class).size());
 
         int size2 = 2;
         m.setOntologyLoaderConfiguration(conf.setLoadObjectsCacheSize(size2));
@@ -170,12 +167,12 @@ public class CacheConfigTest {
         Assert.assertTrue(of3 instanceof CacheObjectFactory);
         CacheObjectFactory cof2 = (CacheObjectFactory) of3;
 
-        Assert.assertEquals(size2, getInternalCache(cof2, OntClass.class).size());
-        Assert.assertEquals(2, getInternalCache(cof2, OntDT.class).size());
-        Assert.assertEquals(size2, getInternalCache(cof2, OntIndividual.Named.class).size());
-        Assert.assertEquals(size2, getInternalCache(cof2, OntNAP.class).size());
-        Assert.assertEquals(0, getInternalCache(cof2, OntNDP.class).size());
-        Assert.assertEquals(size2, getInternalCache(cof2, OntNOP.class).size());
+        Assert.assertEquals(size2, getInternalCache(cof2, OWLClass.class).size());
+        Assert.assertEquals(2, getInternalCache(cof2, OWLDatatype.class).size());
+        Assert.assertEquals(size2, getInternalCache(cof2, OWLNamedIndividual.class).size());
+        Assert.assertEquals(size2, getInternalCache(cof2, OWLAnnotationProperty.class).size());
+        Assert.assertEquals(0, getInternalCache(cof2, OWLDataProperty.class).size());
+        Assert.assertEquals(size2, getInternalCache(cof2, OWLObjectProperty.class).size());
     }
 
     @Test
