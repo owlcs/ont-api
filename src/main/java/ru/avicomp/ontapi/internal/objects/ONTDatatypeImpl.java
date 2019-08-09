@@ -14,99 +14,98 @@
 
 package ru.avicomp.ontapi.internal.objects;
 
-import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.apache.jena.vocabulary.RDFS;
+import org.semanticweb.owlapi.model.OWLDatatype;
+import org.semanticweb.owlapi.vocab.OWL2Datatype;
+import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.internal.ONTObject;
-import ru.avicomp.ontapi.jena.model.OntClass;
+import ru.avicomp.ontapi.jena.model.OntDT;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
-import ru.avicomp.ontapi.jena.vocabulary.OWL;
+import ru.avicomp.ontapi.jena.vocabulary.RDF;
+import ru.avicomp.ontapi.jena.vocabulary.XSD;
 
-import javax.annotation.Nonnull;
-import java.util.Set;
 import java.util.stream.Stream;
 
 /**
- * An {@link OWLClass} implementation that is also an instance of {@link ONTObject}.
- * Created by @ssz on 07.08.2019.
+ * An {@link OWLDatatype} implementation that is also {@link ONTObject}.
+ * Created by @ssz on 09.08.2019.
  *
- * @see ru.avicomp.ontapi.owlapi.objects.entity.OWLClassImpl
+ * @see ru.avicomp.ontapi.owlapi.objects.entity.OWLDatatypeImpl
  * @since 1.4.3
  */
-public class ONTClassImpl extends ONTEntityImpl implements OWLClass, ONTObject<OWLClass> {
-    private static final long serialVersionUID = -6261854656265706321L;
+public class ONTDatatypeImpl extends ONTEntityImpl implements OWLDatatype, ONTObject<OWLDatatype> {
+    private static final long serialVersionUID = 2080133740943333721L;
 
-    public ONTClassImpl(String uri, OntGraphModel m) {
+    public ONTDatatypeImpl(String uri, OntGraphModel m) {
         super(uri, m);
     }
 
     @Override
-    public OntClass asResource() {
-        return as(OntClass.class);
+    public OntDT asResource() {
+        return as(OntDT.class);
     }
 
     @Override
-    public OWLClass getObject() {
+    public OWLDatatype getObject() {
         return this;
     }
 
     @Override
-    public boolean isOWLThing() {
-        return equals(OWL.Thing);
-    }
-
-    @Override
-    public boolean isOWLNothing() {
-        return equals(OWL.Nothing);
-    }
-
-    @Override
-    public Stream<OWLClass> classesInSignature() {
+    public Stream<OWLDatatype> datatypesInSignature() {
         return Stream.of(this);
     }
 
     @Override
-    public Stream<OWLClassExpression> nestedClassExpressions() {
-        return Stream.of(this);
+    public OWL2Datatype getBuiltInDatatype() {
+        if (!isBuiltIn()) {
+            throw new OntApiException(getIRI() + " is not a built in datatype.");
+        }
+        return OWL2Datatype.getDatatype(getIRI());
     }
 
     @Override
-    public OWLClassExpression getNNF() {
-        return this;
+    public boolean isString() {
+        return equals(XSD.xstring);
     }
 
     @Override
-    public OWLClassExpression getComplementNNF() {
-        return getObjectComplementOf();
+    public boolean isInteger() {
+        return equals(XSD.integer);
     }
 
     @Override
-    public OWLClassExpression getObjectComplementOf() {
-        return getObjectFactory().getOWLDataFactory().getOWLObjectComplementOf(this);
+    public boolean isFloat() {
+        return equals(XSD.xfloat);
     }
 
     @Override
-    public Set<OWLClassExpression> asConjunctSet() {
-        return createSet(this);
+    public boolean isDouble() {
+        return equals(XSD.xdouble);
     }
 
     @Override
-    public Stream<OWLClassExpression> conjunctSet() {
-        return Stream.of(this);
+    public boolean isBoolean() {
+        return equals(XSD.xboolean);
     }
 
     @Override
-    public boolean containsConjunct(@Nonnull OWLClassExpression ce) {
-        return equals(ce);
+    public boolean isRDFPlainLiteral() {
+        return equals(RDF.PlainLiteral);
     }
 
     @Override
-    public Set<OWLClassExpression> asDisjunctSet() {
-        return createSet(this);
+    public boolean isTopEntity() {
+        return isTopDatatype();
     }
 
     @Override
-    public Stream<OWLClassExpression> disjunctSet() {
-        return Stream.of(this);
+    public boolean isTopDatatype() {
+        return equals(RDFS.Literal);
+    }
+
+    @Override
+    public boolean isOWLDatatype() {
+        return true;
     }
 
 }

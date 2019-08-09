@@ -16,6 +16,7 @@ package ru.avicomp.ontapi.internal.objects;
 
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.rdf.model.Resource;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLEntity;
 import ru.avicomp.ontapi.jena.model.OntEntity;
@@ -74,6 +75,10 @@ public abstract class ONTEntityImpl extends ONTResourceImpl implements OWLEntity
     @Override
     public boolean containsEntityInSignature(OWLEntity entity) {
         return equals(entity);
+    }
+
+    protected boolean equals(Resource uri) {
+        return uri.getURI().equals(node);
     }
 
     @Override

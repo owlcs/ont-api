@@ -15,16 +15,10 @@
 package ru.avicomp.ontapi.internal;
 
 import org.apache.jena.rdf.model.Literal;
-import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
-import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLLiteral;
+import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.DataFactory;
-import ru.avicomp.ontapi.internal.objects.ONTAnonymousIndividualImpl;
-import ru.avicomp.ontapi.internal.objects.ONTClassImpl;
-import ru.avicomp.ontapi.internal.objects.ONTLiteralImpl;
-import ru.avicomp.ontapi.jena.model.OntClass;
-import ru.avicomp.ontapi.jena.model.OntGraphModel;
-import ru.avicomp.ontapi.jena.model.OntIndividual;
+import ru.avicomp.ontapi.internal.objects.*;
+import ru.avicomp.ontapi.jena.model.*;
 
 /**
  * An Extended Internal Object Factory impl which maps {@link ru.avicomp.ontapi.jena.model.OntObject}
@@ -50,6 +44,31 @@ public class ModelObjectFactory extends NoCacheObjectFactory {
     @Override
     public ONTObject<OWLAnonymousIndividual> get(OntIndividual.Anonymous i) {
         return new ONTAnonymousIndividualImpl(i.asNode().getBlankNodeId(), i.getModel());
+    }
+
+    @Override
+    public ONTObject<OWLNamedIndividual> get(OntIndividual.Named i) {
+        return new ONTNamedIndividualImpl(i.getURI(), i.getModel());
+    }
+
+    @Override
+    public ONTObject<OWLDatatype> get(OntDT dt) {
+        return new ONTDatatypeImpl(dt.getURI(), dt.getModel());
+    }
+
+    @Override
+    public ONTObject<OWLAnnotationProperty> get(OntNAP p) {
+        return new ONTAnnotationPropertyImpl(p.getURI(), p.getModel());
+    }
+
+    @Override
+    public ONTObject<OWLObjectProperty> get(OntNOP p) {
+        return new ONTObjectPropertyImpl(p.getURI(), p.getModel());
+    }
+
+    @Override
+    public ONTObject<OWLDataProperty> get(OntNDP p) {
+        return new ONTDataPropertyImpl(p.getURI(), p.getModel());
     }
 
     @Override

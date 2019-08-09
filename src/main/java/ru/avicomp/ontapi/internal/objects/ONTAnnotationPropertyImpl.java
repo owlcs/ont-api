@@ -14,99 +14,56 @@
 
 package ru.avicomp.ontapi.internal.objects;
 
-import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.apache.jena.vocabulary.RDFS;
+import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import ru.avicomp.ontapi.internal.ONTObject;
-import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
+import ru.avicomp.ontapi.jena.model.OntNAP;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
-import javax.annotation.Nonnull;
-import java.util.Set;
 import java.util.stream.Stream;
 
 /**
- * An {@link OWLClass} implementation that is also an instance of {@link ONTObject}.
- * Created by @ssz on 07.08.2019.
+ * An {@link OWLAnnotationProperty} implementation that is also {@link ONTObject}.
+ * Created by @ssz on 09.08.2019.
  *
- * @see ru.avicomp.ontapi.owlapi.objects.entity.OWLClassImpl
+ * @see ru.avicomp.ontapi.owlapi.objects.entity.OWLAnnotationPropertyImpl
  * @since 1.4.3
  */
-public class ONTClassImpl extends ONTEntityImpl implements OWLClass, ONTObject<OWLClass> {
-    private static final long serialVersionUID = -6261854656265706321L;
+public class ONTAnnotationPropertyImpl extends ONTEntityImpl implements OWLAnnotationProperty, ONTObject<OWLAnnotationProperty> {
+    private static final long serialVersionUID = -1244023968526261013L;
 
-    public ONTClassImpl(String uri, OntGraphModel m) {
+    public ONTAnnotationPropertyImpl(String uri, OntGraphModel m) {
         super(uri, m);
     }
 
     @Override
-    public OntClass asResource() {
-        return as(OntClass.class);
+    public OntNAP asResource() {
+        return as(OntNAP.class);
     }
 
     @Override
-    public OWLClass getObject() {
+    public OWLAnnotationProperty getObject() {
         return this;
     }
 
     @Override
-    public boolean isOWLThing() {
-        return equals(OWL.Thing);
-    }
-
-    @Override
-    public boolean isOWLNothing() {
-        return equals(OWL.Nothing);
-    }
-
-    @Override
-    public Stream<OWLClass> classesInSignature() {
+    public Stream<OWLAnnotationProperty> annotationPropertiesInSignature() {
         return Stream.of(this);
     }
 
     @Override
-    public Stream<OWLClassExpression> nestedClassExpressions() {
-        return Stream.of(this);
+    public boolean isComment() {
+        return equals(RDFS.comment);
     }
 
     @Override
-    public OWLClassExpression getNNF() {
-        return this;
+    public boolean isLabel() {
+        return equals(RDFS.label);
     }
 
     @Override
-    public OWLClassExpression getComplementNNF() {
-        return getObjectComplementOf();
+    public boolean isDeprecated() {
+        return equals(OWL.deprecated);
     }
-
-    @Override
-    public OWLClassExpression getObjectComplementOf() {
-        return getObjectFactory().getOWLDataFactory().getOWLObjectComplementOf(this);
-    }
-
-    @Override
-    public Set<OWLClassExpression> asConjunctSet() {
-        return createSet(this);
-    }
-
-    @Override
-    public Stream<OWLClassExpression> conjunctSet() {
-        return Stream.of(this);
-    }
-
-    @Override
-    public boolean containsConjunct(@Nonnull OWLClassExpression ce) {
-        return equals(ce);
-    }
-
-    @Override
-    public Set<OWLClassExpression> asDisjunctSet() {
-        return createSet(this);
-    }
-
-    @Override
-    public Stream<OWLClassExpression> disjunctSet() {
-        return Stream.of(this);
-    }
-
 }
