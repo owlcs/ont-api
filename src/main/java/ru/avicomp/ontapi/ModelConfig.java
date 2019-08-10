@@ -15,14 +15,21 @@
 package ru.avicomp.ontapi;
 
 import org.apache.jena.graph.Graph;
+import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
 import org.semanticweb.owlapi.model.OWLOntologyWriterConfiguration;
+import org.semanticweb.owlapi.model.OWLPrimitive;
 import ru.avicomp.ontapi.config.OntLoaderConfiguration;
 import ru.avicomp.ontapi.config.OntWriterConfiguration;
-import ru.avicomp.ontapi.internal.*;
+import ru.avicomp.ontapi.internal.InternalCache;
+import ru.avicomp.ontapi.internal.InternalConfig;
+import ru.avicomp.ontapi.internal.InternalModel;
 import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
 
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Stream;
@@ -54,7 +61,7 @@ public class ModelConfig implements InternalConfig, Serializable {
      * @return {@link InternalModel}
      */
     public InternalModel createInternalModel(Graph graph) {
-        return BaseModel.createInternalModel(graph, getPersonality(), this::createObjectFactory, this);
+        return BaseModel.createInternalModel(graph, getPersonality(), this, manager.getOWLDataFactory(), getManagerCaches());
     }
 
     /**
@@ -116,22 +123,13 @@ public class ModelConfig implements InternalConfig, Serializable {
     }
 
     /**
-     * Creates a fresh {@link InternalObjectFactory} instance,
-     * that can be cached and contain some caches from manager side.
-     *
-     * @return {@link InternalObjectFactory}
+     * Extracts the manager caches to share between different ontology instances.
+     * @return a {@code Map} with {@link OWLPrimitive} class-types as keys and {@link InternalCache}s as values
      */
-    public InternalObjectFactory createObjectFactory() {
-        DataFactory df = manager.getOWLDataFactory();
-        if (!useLoadObjectsCache()) {
-            return new NoCacheObjectFactory(df);
-        }
-        long size = getLoadObjectsCacheSize();
-        return new CacheObjectFactory(df, () -> createCache(size), manager.iris);
-    }
-
-    protected <K, V> InternalCache<K, V> createCache(long size) {
-        return InternalCache.createBounded(parallel(), size);
+    public Map<Class<? extends OWLPrimitive>, InternalCache> getManagerCaches() {
+        Map<Class<? extends OWLPrimitive>, InternalCache<String, ? extends OWLPrimitive>> res = new HashMap<>();
+        res.put(IRI.class, manager.iris.asCache());
+        return Collections.unmodifiableMap(res);
     }
 
     public OntPersonality getPersonality() {

@@ -18,7 +18,10 @@ import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.DataFactory;
 import ru.avicomp.ontapi.jena.model.*;
 
-import java.util.Objects;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Supplier;
 
 /**
@@ -43,53 +46,69 @@ public class CacheObjectFactory extends ModelObjectFactory {
     protected final InternalCache<String, ONTObject<OWLDataProperty>> datatypeProperties;
     protected final InternalCache<String, ONTObject<OWLObjectProperty>> objectProperties;
     protected final InternalCache<String, ONTObject<OWLNamedIndividual>> individuals;
-    protected final InternalCache.Loading<String, IRI> iris;
+    protected final InternalCache<String, IRI> iris;
+    protected final Set<InternalCache> caches;
 
+    /**
+     * Creates a default instance.
+     * For testing and debugging.
+     *
+     * @param factory {@link DataFactory}, not {@code null}
+     */
     @SuppressWarnings("unused")
     public CacheObjectFactory(DataFactory factory) {
-        this(factory, InternalCache.createBounded(true, CACHE_SIZE).asLoading(IRI::create), CACHE_SIZE);
+        this(factory, CACHE_SIZE);
     }
 
     /**
-     * Makes an instance based on {@code 7} {@link InternalCache.Loading Loading Cache}s, for all OWL entities and IRIs.
+     * Provides an instance with {@code 7} inner {@link InternalCache Loading Cache}s, for all OWL entities and IRIs.
+     * Each of them will be bounded with {@code size} limit
      *
-     * @param factory {@link DataFactory}
-     * @param iris    {@link InternalCache.Loading} for {@link IRI}s
-     * @param size    int, caches size, negative for unlimited
+     * @param factory {@link DataFactory}, not {@code null}
+     * @param size    int, caches size, a negative for unlimited
      */
-    public CacheObjectFactory(DataFactory factory, InternalCache.Loading<String, IRI> iris, int size) {
-        this(factory, () -> InternalCache.createBounded(true, size), iris);
+    public CacheObjectFactory(DataFactory factory, int size) {
+        this(factory, Collections.emptyMap(), () -> InternalCache.createBounded(true, size));
     }
 
     /**
      * The primary constructor.
+     * Provides an instance, that contain both shared (outer) and fresh (inner) caches.
      *
-     * @param dataFactory  {@link DataFactory}
-     * @param cacheFactory {@link Supplier} that produces {@link InternalCache}
-     * @param iris         {@link InternalCache.Loading} for {@link IRI}s
+     * @param dataFactory {@link DataFactory}, not {@code null}
+     * @param external a {@code Map} containing existing outer caches, not {@code null}
+     * @param cacheFactory a facility ({@code Supplier}) to produce new cache instances, not {@code null}
      */
-    @SuppressWarnings("unchecked")
-    public CacheObjectFactory(DataFactory dataFactory,
-                              Supplier<InternalCache<?, ?>> cacheFactory,
-                              InternalCache.Loading<String, IRI> iris) {
+    protected CacheObjectFactory(DataFactory dataFactory,
+                                 Map<Class<? extends OWLPrimitive>, InternalCache> external,
+                                 Supplier<InternalCache> cacheFactory) {
         super(dataFactory);
-        this.iris = Objects.requireNonNull(iris);
-        this.classes = (InternalCache<String, ONTObject<OWLClass>>) cacheFactory.get();
-        this.datatypes = (InternalCache<String, ONTObject<OWLDatatype>>) cacheFactory.get();
-        this.annotationProperties = (InternalCache<String, ONTObject<OWLAnnotationProperty>>) cacheFactory.get();
-        this.datatypeProperties = (InternalCache<String, ONTObject<OWLDataProperty>>) cacheFactory.get();
-        this.objectProperties = (InternalCache<String, ONTObject<OWLObjectProperty>>) cacheFactory.get();
-        this.individuals = (InternalCache<String, ONTObject<OWLNamedIndividual>>) cacheFactory.get();
+        this.caches = new HashSet<>();
+        this.iris = fetchCache(external, caches, cacheFactory, IRI.class);
+        this.classes = fetchCache(external, caches, cacheFactory, OWLClass.class);
+        this.datatypes = fetchCache(external, caches, cacheFactory, OWLDatatype.class);
+        this.annotationProperties = fetchCache(external, caches, cacheFactory, OWLAnnotationProperty.class);
+        this.datatypeProperties = fetchCache(external, caches, cacheFactory, OWLDataProperty.class);
+        this.objectProperties = fetchCache(external, caches, cacheFactory, OWLObjectProperty.class);
+        this.individuals = fetchCache(external, caches, cacheFactory, OWLNamedIndividual.class);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <R> InternalCache<String, R> fetchCache(Map<Class<? extends OWLPrimitive>, InternalCache> system,
+                                                           Set<InternalCache> caches,
+                                                           Supplier<InternalCache> factory,
+                                                           Class<? extends OWLPrimitive> key) {
+        InternalCache res = system.get(key);
+        if (res == null) {
+            res = factory.get();
+            caches.add(res);
+        }
+        return (InternalCache<String, R>) res;
     }
 
     @Override
     public void clear() {
-        classes.clear();
-        datatypes.clear();
-        annotationProperties.clear();
-        datatypeProperties.clear();
-        objectProperties.clear();
-        individuals.clear();
+        caches.forEach(InternalCache::clear);
     }
 
     @Override
@@ -124,7 +143,7 @@ public class CacheObjectFactory extends ModelObjectFactory {
 
     @Override
     public IRI toIRI(String str) {
-        return iris.get(str);
+        return iris.get(str, IRI::create);
     }
 
 }

@@ -30,6 +30,7 @@ import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import ru.avicomp.ontapi.DataFactory;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.OntologyID;
 import ru.avicomp.ontapi.internal.axioms.*;
@@ -139,23 +140,27 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     protected final DirectListener directListener;
 
     /**
-     * Constructs an instance.
+     * Constructs a model instance.
      * For internal usage only.
      *
-     * @param base        {@link Graph}, not {@code null}
-     * @param personality {@link OntPersonality}, not {@code null}
-     * @param factory     {@link Supplier} to create {@link InternalObjectFactory} instances, not {@code null}
-     * @param config      {@link InternalConfig}, not {@code null}
+     * @param base        {@link Graph}, not {@code null}, a primary and single data-storage
+     * @param personality {@link OntPersonality}, not {@code null},
+     *                                          a facility to conduct {@link Node} to {@link OntObject} mappings
+     * @param config      {@link InternalConfig}, not {@code null}, to control caches and ontological views
+     * @param dataFactory {@link DataFactory}, not {@code null}, to produce standard {@link OWLObject}s
+     * @param fromManager {@code Map} or {@code null},
+     *                               a possibility to share cache-data between different model instances
      */
     public InternalModel(Graph base,
                          OntPersonality personality,
-                         Supplier<InternalObjectFactory> factory,
-                         InternalConfig config) {
+                         InternalConfig config,
+                         DataFactory dataFactory,
+                         Map<Class<? extends OWLPrimitive>, InternalCache> fromManager) {
         super(base, personality);
-        Objects.requireNonNull(factory);
+        Objects.requireNonNull(dataFactory);
         Objects.requireNonNull(config);
         this.config = InternalCache.createSingleton(x -> config.snapshot());
-        this.objectFactory = InternalCache.createSoftSingleton(x -> factory.get());
+        this.objectFactory = InternalCache.createSoftSingleton(x -> createObjectFactory(dataFactory, fromManager));
         this.searchModel = InternalCache.createSoftSingleton(x -> createSearchModel());
         this.content = InternalCache.createSingleton(x -> createContentStore());
         this.components = InternalCache.createSingleton(x -> createComponentStore());
@@ -233,6 +238,31 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     }
 
     /**
+     * Creates a fresh {@link InternalObjectFactory Object Factory} instance,
+     * which is responsible for mapping {@link Node} (and {@link OntObject}) to {@link OWLObject}.
+     * If the load objects cache is enabled,
+     * the method returns a {@link CacheObjectFactory} instance,
+     * that caches {@link OWLObject}s and, therefore, may take up a lot of memory.
+     * Otherwise, in case the load cache is disabled, the {@link ModelObjectFactory} will be returned.
+     *
+     * @param df       {@link DataFactory}, not {@code null}
+     * @param external a {@code Map} with shared outer caches, not {@code null}
+     * @return {@link InternalObjectFactory}
+     * @see ru.avicomp.ontapi.config.CacheSettings#getLoadObjectsCacheSize()
+     */
+    protected InternalObjectFactory createObjectFactory(DataFactory df,
+                                                        Map<Class<? extends OWLPrimitive>, InternalCache> external) {
+        InternalConfig conf = getConfig();
+        if (!conf.useLoadObjectsCache()) {
+            return new ModelObjectFactory(df);
+        }
+        long size = conf.getLoadObjectsCacheSize();
+        boolean parallel = conf.parallel();
+        Map<Class<? extends OWLPrimitive>, InternalCache> map = external == null ? Collections.emptyMap() : external;
+        return new CacheObjectFactory(df, map, () -> InternalCache.createBounded(parallel, size));
+    }
+
+    /**
      * Returns an {@link OntGraphModelImpl} version with search optimizations.
      * The return model must be used only to collect OWL-API stuff:
      * {@link OWLAxiom OWL Axiom}s and {@link OWLObject OWL Objects}.
@@ -246,10 +276,14 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     }
 
     /**
-     * Creates a {@link SearchModel}, which is used as optimization while reading OWL-API objects.
-     * It contains nodes cache inside, and may take up a lot of memory.
+     * Derives a model to be used in read operations.
+     * If the load nodes cache is enabled
+     * the method returns a {@link SearchModel} - a facility to optimize read operations,
+     * otherwise this same {@link InternalModel} instance with no optimizations will be returned.
+     * A {@code SearchModel} contains a {@link Node}s cache inside and, therefore, may take up a lot of memory.
      *
      * @return {@link OntGraphModel}
+     * @see ru.avicomp.ontapi.config.CacheSettings#getLoadNodesCacheSize()
      */
     protected OntGraphModelImpl createSearchModel() {
         if (!getConfig().useLoadNodesCache()) {

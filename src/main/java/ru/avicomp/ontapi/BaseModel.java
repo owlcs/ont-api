@@ -15,13 +15,14 @@
 package ru.avicomp.ontapi;
 
 import org.apache.jena.graph.Graph;
+import org.semanticweb.owlapi.model.OWLPrimitive;
+import ru.avicomp.ontapi.internal.InternalCache;
 import ru.avicomp.ontapi.internal.InternalConfig;
 import ru.avicomp.ontapi.internal.InternalModel;
-import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.jena.impl.conf.OntModelConfig;
 import ru.avicomp.ontapi.jena.impl.conf.OntPersonality;
 
-import java.util.function.Supplier;
+import java.util.Map;
 
 /**
  * A technical interface-helper that serves as a bridge between {@link ru.avicomp.ontapi.jena.model.OntGraphModel Jena RDF model} and
@@ -77,27 +78,33 @@ public interface BaseModel {
     static InternalModel createInternalModel(Graph graph) {
         return createInternalModel(graph,
                 OntModelConfig.getPersonality(),
-                () -> InternalObjectFactory.DEFAULT,
-                InternalConfig.DEFAULT);
+                InternalConfig.DEFAULT,
+                OntManagers.getDataFactory(),
+                null);
     }
 
     /**
      * A primary factory method to create fresh {@link InternalModel}.
      *
-     * @param graph       {@link Graph}, not {@code null}
-     * @param personality {@link OntPersonality}, not {@code null}
-     * @param factory     a {@code Supplier} to produce new {@link InternalObjectFactory}, not {@code null}
-     * @param config      {@link InternalConfig}, not {@code null}
+     * @param graph       {@link Graph}, not {@code null}, a base data-store
+     * @param personality {@link OntPersonality}, not {@code null}, to manage {@code OntObject}s
+     * @param config      {@link InternalConfig}, not {@code null}, to control behavior
+     * @param dataFactory {@link DataFactory}, not {@code null}, to produces {@code OWLObject}s
+     * @param caches a {@code Map} with {@link OWLPrimitive} class-types as keys
+     *               and manager-wide {@link InternalCache}s as values
+     *               to enable data sharing between different ontologies
      * @return {@link InternalModel}
      */
     static InternalModel createInternalModel(Graph graph,
                                              OntPersonality personality,
-                                             Supplier<InternalObjectFactory> factory,
-                                             InternalConfig config) {
+                                             InternalConfig config,
+                                             DataFactory dataFactory,
+                                             Map<Class<? extends OWLPrimitive>, InternalCache> caches) {
         return new InternalModel(OntApiException.notNull(graph, "Null graph."),
                 OntApiException.notNull(personality, "Null personality."),
-                OntApiException.notNull(factory, "Null data-factory"),
-                OntApiException.notNull(config, "Null config."));
+                OntApiException.notNull(config, "Null config."),
+                OntApiException.notNull(dataFactory, "Null data-factory"),
+                caches);
     }
 
 }
