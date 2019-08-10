@@ -23,6 +23,7 @@ import ru.avicomp.ontapi.jena.model.OntEntity;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 
 import javax.annotation.Nullable;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
@@ -35,7 +36,7 @@ import java.util.stream.Stream;
 public abstract class ONTEntityImpl extends ONTResourceImpl implements OWLEntity {
     private static final long serialVersionUID = -4341538961681314285L;
 
-    protected ONTEntityImpl(String uri, OntGraphModel m) {
+    protected ONTEntityImpl(String uri, Supplier<OntGraphModel> m) {
         super(uri, m);
     }
 

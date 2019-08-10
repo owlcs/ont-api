@@ -20,6 +20,7 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntNDP;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
@@ -32,7 +33,7 @@ import java.util.stream.Stream;
 public class ONTDataPropertyImpl extends ONTEntityImpl implements OWLDataProperty, ONTObject<OWLDataProperty> {
     private static final long serialVersionUID = -6784593419262928324L;
 
-    public ONTDataPropertyImpl(String uri, OntGraphModel m) {
+    public ONTDataPropertyImpl(String uri, Supplier<OntGraphModel> m) {
         super(uri, m);
     }
 

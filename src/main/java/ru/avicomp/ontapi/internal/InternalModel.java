@@ -253,13 +253,14 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
     protected InternalObjectFactory createObjectFactory(DataFactory df,
                                                         Map<Class<? extends OWLPrimitive>, InternalCache> external) {
         InternalConfig conf = getConfig();
+        Supplier<OntGraphModel> model = this::getSearchModel;
         if (!conf.useLoadObjectsCache()) {
-            return new ModelObjectFactory(df);
+            return new ModelObjectFactory(df, model);
         }
         long size = conf.getLoadObjectsCacheSize();
         boolean parallel = conf.parallel();
         Map<Class<? extends OWLPrimitive>, InternalCache> map = external == null ? Collections.emptyMap() : external;
-        return new CacheObjectFactory(df, map, () -> InternalCache.createBounded(parallel, size));
+        return new CacheObjectFactory(df, model, map, () -> InternalCache.createBounded(parallel, size));
     }
 
     /**

@@ -24,6 +24,7 @@ import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.owlapi.OWLObjectImpl;
 
 import java.util.Objects;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
@@ -37,15 +38,15 @@ public abstract class ONTResourceImpl extends OWLObjectImpl implements OWLObject
     private static final long serialVersionUID = 1142247905809986910L;
 
     protected final Object node;
-    protected final OntGraphModel model;
+    protected final Supplier<OntGraphModel> model;
 
     /**
      * Constructs the base object.
      *
      * @param n - either {@code String} (URI) or {@link BlankNodeId}, not {@code null}
-     * @param m - {@link OntGraphModel}, not {@code null}
+     * @param m - a facility (as {@link Supplier}) to provide nonnull {@link OntGraphModel}, not {@code null}
      */
-    protected ONTResourceImpl(Object n, OntGraphModel m) {
+    protected ONTResourceImpl(Object n, Supplier<OntGraphModel> m) {
         this.node = Objects.requireNonNull(n);
         this.model = Objects.requireNonNull(m);
     }
@@ -60,11 +61,11 @@ public abstract class ONTResourceImpl extends OWLObjectImpl implements OWLObject
 
     @Override
     public InternalObjectFactory getObjectFactory() {
-        return HasObjectFactory.getObjectFactory(model);
+        return HasObjectFactory.getObjectFactory(model.get());
     }
 
     protected PersonalityModel getPersonalityModel() {
-        return PersonalityModel.asPersonalityModel(model);
+        return PersonalityModel.asPersonalityModel(model.get());
     }
 
     @Override

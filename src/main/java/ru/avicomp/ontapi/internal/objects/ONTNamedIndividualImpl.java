@@ -19,6 +19,7 @@ import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
 
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
@@ -31,7 +32,7 @@ import java.util.stream.Stream;
 public class ONTNamedIndividualImpl extends ONTEntityImpl implements OWLNamedIndividual, ONTObject<OWLNamedIndividual> {
     private static final long serialVersionUID = 5834600154698509725L;
 
-    public ONTNamedIndividualImpl(String uri, OntGraphModel m) {
+    public ONTNamedIndividualImpl(String uri, Supplier<OntGraphModel> m) {
         super(uri, m);
     }
 

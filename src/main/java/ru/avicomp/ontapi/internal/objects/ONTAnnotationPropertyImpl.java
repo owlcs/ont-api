@@ -21,6 +21,7 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntNAP;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
@@ -33,7 +34,7 @@ import java.util.stream.Stream;
 public class ONTAnnotationPropertyImpl extends ONTEntityImpl implements OWLAnnotationProperty, ONTObject<OWLAnnotationProperty> {
     private static final long serialVersionUID = -1244023968526261013L;
 
-    public ONTAnnotationPropertyImpl(String uri, OntGraphModel m) {
+    public ONTAnnotationPropertyImpl(String uri, Supplier<OntGraphModel> m) {
         super(uri, m);
     }
 

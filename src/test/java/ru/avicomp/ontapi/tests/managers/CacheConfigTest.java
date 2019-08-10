@@ -65,7 +65,7 @@ public class CacheConfigTest {
 
     private static InternalCache getInternalCache(CacheObjectFactory of,
                                                   Class<? extends OWLEntity> type) throws Exception {
-        return getPrivateField(of, InternalCache.class, type);
+        return getPrivateField(of, InternalCache.Loading.class, type).asCache();
     }
 
     private static InternalCache.Loading getInternalCache(InternalModel m,
@@ -73,7 +73,7 @@ public class CacheConfigTest {
         return getPrivateField(m, InternalCache.Loading.class, type);
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "SameParameterValue"})
     private static <X> X getPrivateField(Object container,
                                          Class<X> type,
                                          Class<?>... genericTypes) throws Exception {

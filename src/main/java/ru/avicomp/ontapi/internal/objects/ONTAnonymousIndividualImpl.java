@@ -26,6 +26,7 @@ import ru.avicomp.ontapi.jena.model.OntIndividual;
 import ru.avicomp.ontapi.owlapi.objects.OWLAnonymousIndividualImpl;
 
 import java.util.Objects;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
@@ -39,20 +40,20 @@ public class ONTAnonymousIndividualImpl extends OWLAnonymousIndividualImpl
         implements OWLAnonymousIndividual, HasObjectFactory, ONTObject<OWLAnonymousIndividual> {
     private static final long serialVersionUID = -6257602148537405550L;
 
-    protected final OntGraphModel model;
+    protected final Supplier<OntGraphModel> model;
 
-    public ONTAnonymousIndividualImpl(BlankNodeId n, OntGraphModel m) {
+    public ONTAnonymousIndividualImpl(BlankNodeId n, Supplier<OntGraphModel> m) {
         super(n);
         this.model = Objects.requireNonNull(m);
     }
 
     @Override
     public InternalObjectFactory getObjectFactory() {
-        return HasObjectFactory.getObjectFactory(model);
+        return HasObjectFactory.getObjectFactory(model.get());
     }
 
     public OntIndividual.Anonymous asResource() {
-        return PersonalityModel.asPersonalityModel(model).getNodeAs(asNode(), OntIndividual.Anonymous.class);
+        return PersonalityModel.asPersonalityModel(model.get()).getNodeAs(asNode(), OntIndividual.Anonymous.class);
     }
 
     @Override

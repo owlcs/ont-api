@@ -23,6 +23,7 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 import javax.annotation.Nonnull;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
@@ -35,7 +36,7 @@ import java.util.stream.Stream;
 public class ONTClassImpl extends ONTEntityImpl implements OWLClass, ONTObject<OWLClass> {
     private static final long serialVersionUID = -6261854656265706321L;
 
-    public ONTClassImpl(String uri, OntGraphModel m) {
+    public ONTClassImpl(String uri, Supplier<OntGraphModel> m) {
         super(uri, m);
     }
 

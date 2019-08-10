@@ -30,6 +30,7 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.owlapi.objects.OWLLiteralImpl;
 
 import java.util.Objects;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
@@ -43,16 +44,16 @@ import java.util.stream.Stream;
 public class ONTLiteralImpl extends OWLLiteralImpl implements OWLLiteral, ONTObject<OWLLiteral>, HasObjectFactory {
     private static final long serialVersionUID = 3145008815239693328L;
 
-    protected final OntGraphModel model;
+    protected final Supplier<OntGraphModel> model;
 
-    public ONTLiteralImpl(LiteralLabel n, OntGraphModel m) {
+    public ONTLiteralImpl(LiteralLabel n, Supplier<OntGraphModel> m) {
         super(n);
         this.model = Objects.requireNonNull(m);
     }
 
     @Override
     public InternalObjectFactory getObjectFactory() {
-        return HasObjectFactory.getObjectFactory(model);
+        return HasObjectFactory.getObjectFactory(model.get());
     }
 
     /**
@@ -63,7 +64,7 @@ public class ONTLiteralImpl extends OWLLiteralImpl implements OWLLiteral, ONTObj
      * @see OntGraphModel#getDatatype(Literal)
      */
     public OntDT getDatatypeResource() {
-        return PersonalityModel.asPersonalityModel(model)
+        return PersonalityModel.asPersonalityModel(model.get())
                 .getNodeAs(NodeFactory.createURI(getDatatypeURI(label)), OntDT.class);
     }
 

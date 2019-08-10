@@ -24,6 +24,7 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.jena.vocabulary.XSD;
 
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
@@ -36,7 +37,7 @@ import java.util.stream.Stream;
 public class ONTDatatypeImpl extends ONTEntityImpl implements OWLDatatype, ONTObject<OWLDatatype> {
     private static final long serialVersionUID = 2080133740943333721L;
 
-    public ONTDatatypeImpl(String uri, OntGraphModel m) {
+    public ONTDatatypeImpl(String uri, Supplier<OntGraphModel> m) {
         super(uri, m);
     }
 

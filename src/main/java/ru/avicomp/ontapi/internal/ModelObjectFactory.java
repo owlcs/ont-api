@@ -14,11 +14,16 @@
 
 package ru.avicomp.ontapi.internal;
 
+import org.apache.jena.graph.BlankNodeId;
+import org.apache.jena.graph.impl.LiteralLabel;
 import org.apache.jena.rdf.model.Literal;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.DataFactory;
 import ru.avicomp.ontapi.internal.objects.*;
 import ru.avicomp.ontapi.jena.model.*;
+
+import java.util.Objects;
+import java.util.function.Supplier;
 
 /**
  * An Extended Internal Object Factory impl which maps {@link ru.avicomp.ontapi.jena.model.OntObject}
@@ -31,48 +36,83 @@ import ru.avicomp.ontapi.jena.model.*;
  */
 @SuppressWarnings("WeakerAccess")
 public class ModelObjectFactory extends NoCacheObjectFactory {
+    protected final Supplier<OntGraphModel> model;
 
-    public ModelObjectFactory(DataFactory factory) {
+    public ModelObjectFactory(DataFactory factory, Supplier<OntGraphModel> model) {
         super(factory);
+        this.model = Objects.requireNonNull(model);
     }
 
     @Override
     public ONTObject<OWLClass> get(OntClass ce) {
-        return new ONTClassImpl(ce.getURI(), ce.getModel());
+        return getClass(ce.getURI());
     }
 
     @Override
     public ONTObject<OWLAnonymousIndividual> get(OntIndividual.Anonymous i) {
-        return new ONTAnonymousIndividualImpl(i.asNode().getBlankNodeId(), i.getModel());
+        return getAnonymousIndividual(i.asNode().getBlankNodeId());
     }
 
     @Override
     public ONTObject<OWLNamedIndividual> get(OntIndividual.Named i) {
-        return new ONTNamedIndividualImpl(i.getURI(), i.getModel());
+        return getNamedIndividual(i.getURI());
     }
 
     @Override
     public ONTObject<OWLDatatype> get(OntDT dt) {
-        return new ONTDatatypeImpl(dt.getURI(), dt.getModel());
+        return getDatatype(dt.getURI());
     }
 
     @Override
     public ONTObject<OWLAnnotationProperty> get(OntNAP p) {
-        return new ONTAnnotationPropertyImpl(p.getURI(), p.getModel());
+        return getAnnotationProperty(p.getURI());
     }
 
     @Override
     public ONTObject<OWLObjectProperty> get(OntNOP p) {
-        return new ONTObjectPropertyImpl(p.getURI(), p.getModel());
+        return getObjectProperty(p.getURI());
     }
 
     @Override
     public ONTObject<OWLDataProperty> get(OntNDP p) {
-        return new ONTDataPropertyImpl(p.getURI(), p.getModel());
+        return getDataProperty(p.getURI());
     }
 
     @Override
     public ONTObject<OWLLiteral> get(Literal literal) {
-        return new ONTLiteralImpl(literal.asNode().getLiteral(), (OntGraphModel) literal.getModel());
+        return getLLiteral(literal.asNode().getLiteral());
     }
+
+    public ONTObject<OWLClass> getClass(String uri) {
+        return new ONTClassImpl(uri, model);
+    }
+
+    public ONTObject<OWLAnonymousIndividual> getAnonymousIndividual(BlankNodeId id) {
+        return new ONTAnonymousIndividualImpl(id, model);
+    }
+
+    public ONTObject<OWLNamedIndividual> getNamedIndividual(String uri) {
+        return new ONTNamedIndividualImpl(uri, model);
+    }
+
+    public ONTObject<OWLDatatype> getDatatype(String uri) {
+        return new ONTDatatypeImpl(uri, model);
+    }
+
+    public ONTObject<OWLAnnotationProperty> getAnnotationProperty(String uri) {
+        return new ONTAnnotationPropertyImpl(uri, model);
+    }
+
+    public ONTObject<OWLObjectProperty> getObjectProperty(String uri) {
+        return new ONTObjectPropertyImpl(uri, model);
+    }
+
+    public ONTObject<OWLDataProperty> getDataProperty(String uri) {
+        return new ONTDataPropertyImpl(uri, model);
+    }
+
+    public ONTObject<OWLLiteral> getLLiteral(LiteralLabel label) {
+        return new ONTLiteralImpl(label, model);
+    }
+
 }
