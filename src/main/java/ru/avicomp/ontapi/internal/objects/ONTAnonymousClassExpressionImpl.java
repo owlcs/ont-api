@@ -23,8 +23,7 @@ import ru.avicomp.ontapi.DataFactory;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
-import ru.avicomp.ontapi.jena.model.OntCE;
-import ru.avicomp.ontapi.jena.model.OntGraphModel;
+import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.OntModels;
 
 import javax.annotation.Nonnull;
@@ -77,13 +76,25 @@ public abstract class ONTAnonymousClassExpressionImpl<X extends OWLAnonymousClas
             return new DHV(id, model);
         }
         if (OntCE.HasSelf.class == type) {
-            return new HS(id, model);
+            return new OHS(id, model);
         }
         if (OntCE.ObjectCardinality.class == type) {
             return new OEC(id, model);
         }
         if (OntCE.DataCardinality.class == type) {
             return new DEC(id, model);
+        }
+        if (OntCE.ObjectMinCardinality.class == type) {
+            return new OMIC(id, model);
+        }
+        if (OntCE.DataMinCardinality.class == type) {
+            return new DMIC(id, model);
+        }
+        if (OntCE.ObjectMaxCardinality.class == type) {
+            return new OMAC(id, model);
+        }
+        if (OntCE.DataMaxCardinality.class == type) {
+            return new DMAC(id, model);
         }
 
         // TODO:
@@ -215,7 +226,7 @@ public abstract class ONTAnonymousClassExpressionImpl<X extends OWLAnonymousClas
      * @see OntCE.ObjectSomeValuesFrom
      */
     public static class OSVF
-            extends ONTAnonymousClassExpressionImpl<OWLObjectSomeValuesFrom>
+            extends WithClassAndObjectProperty<OntCE.ObjectSomeValuesFrom, OWLObjectSomeValuesFrom>
             implements OWLObjectSomeValuesFrom {
         private static final long serialVersionUID = -7271347077920525051L;
 
@@ -227,16 +238,6 @@ public abstract class ONTAnonymousClassExpressionImpl<X extends OWLAnonymousClas
         public OntCE.ObjectSomeValuesFrom asResource() {
             return as(OntCE.ObjectSomeValuesFrom.class);
         }
-
-        @Override
-        public OWLObjectPropertyExpression getProperty() {
-            return getObjectFactory().get(asResource().getProperty()).getObject();
-        }
-
-        @Override
-        public OWLClassExpression getFiller() {
-            return getObjectFactory().get(asResource().getValue()).getObject();
-        }
     }
 
     /**
@@ -244,7 +245,7 @@ public abstract class ONTAnonymousClassExpressionImpl<X extends OWLAnonymousClas
      * @see OntCE.ObjectAllValuesFrom
      */
     public static class OAVF
-            extends ONTAnonymousClassExpressionImpl<OWLObjectAllValuesFrom>
+            extends WithClassAndObjectProperty<OntCE.ObjectAllValuesFrom, OWLObjectAllValuesFrom>
             implements OWLObjectAllValuesFrom {
         private static final long serialVersionUID = 7344292630429705478L;
 
@@ -256,16 +257,6 @@ public abstract class ONTAnonymousClassExpressionImpl<X extends OWLAnonymousClas
         public OntCE.ObjectAllValuesFrom asResource() {
             return as(OntCE.ObjectAllValuesFrom.class);
         }
-
-        @Override
-        public OWLObjectPropertyExpression getProperty() {
-            return getObjectFactory().get(asResource().getProperty()).getObject();
-        }
-
-        @Override
-        public OWLClassExpression getFiller() {
-            return getObjectFactory().get(asResource().getValue()).getObject();
-        }
     }
 
     /**
@@ -273,7 +264,7 @@ public abstract class ONTAnonymousClassExpressionImpl<X extends OWLAnonymousClas
      * @see OntCE.DataSomeValuesFrom
      */
     public static class DSVF
-            extends ONTAnonymousClassExpressionImpl<OWLDataSomeValuesFrom>
+            extends WithDataRangeAndDataProperty<OntCE.DataSomeValuesFrom, OWLDataSomeValuesFrom>
             implements OWLDataSomeValuesFrom {
         private static final long serialVersionUID = -8615372515358861729L;
 
@@ -285,16 +276,6 @@ public abstract class ONTAnonymousClassExpressionImpl<X extends OWLAnonymousClas
         public OntCE.DataSomeValuesFrom asResource() {
             return as(OntCE.DataSomeValuesFrom.class);
         }
-
-        @Override
-        public OWLDataProperty getProperty() {
-            return getObjectFactory().get(asResource().getProperty()).getObject();
-        }
-
-        @Override
-        public OWLDataRange getFiller() {
-            return getObjectFactory().get(asResource().getValue()).getObject();
-        }
     }
 
     /**
@@ -302,7 +283,7 @@ public abstract class ONTAnonymousClassExpressionImpl<X extends OWLAnonymousClas
      * @see OntCE.DataAllValuesFrom
      */
     public static class DAVF
-            extends ONTAnonymousClassExpressionImpl<OWLDataAllValuesFrom>
+            extends WithDataRangeAndDataProperty<OntCE.DataAllValuesFrom, OWLDataAllValuesFrom>
             implements OWLDataAllValuesFrom {
         private static final long serialVersionUID = -2318746695264624081L;
 
@@ -314,16 +295,6 @@ public abstract class ONTAnonymousClassExpressionImpl<X extends OWLAnonymousClas
         public OntCE.DataAllValuesFrom asResource() {
             return as(OntCE.DataAllValuesFrom.class);
         }
-
-        @Override
-        public OWLDataProperty getProperty() {
-            return getObjectFactory().get(asResource().getProperty()).getObject();
-        }
-
-        @Override
-        public OWLDataRange getFiller() {
-            return getObjectFactory().get(asResource().getValue()).getObject();
-        }
     }
 
     /**
@@ -331,7 +302,7 @@ public abstract class ONTAnonymousClassExpressionImpl<X extends OWLAnonymousClas
      * @see OntCE.NaryDataSomeValuesFrom
      */
     public static class NDSVF
-            extends ONTAnonymousClassExpressionImpl<OWLDataSomeValuesFrom>
+            extends WithDataProperty<OntCE.NaryDataSomeValuesFrom, OWLDataSomeValuesFrom>
             implements OWLDataSomeValuesFrom {
 
         private static final long serialVersionUID = -5138385410045585956L;
@@ -346,11 +317,6 @@ public abstract class ONTAnonymousClassExpressionImpl<X extends OWLAnonymousClas
         }
 
         @Override
-        public OWLDataProperty getProperty() {
-            return getObjectFactory().get(asResource().getProperty()).getObject();
-        }
-
-        @Override
         public OWLDataRange getFiller() {
             return getObjectFactory().get(asResource().getValue()).getObject();
         }
@@ -361,7 +327,7 @@ public abstract class ONTAnonymousClassExpressionImpl<X extends OWLAnonymousClas
      * @see OntCE.NaryDataAllValuesFrom
      */
     public static class NDAVF
-            extends ONTAnonymousClassExpressionImpl<OWLDataAllValuesFrom>
+            extends WithDataProperty<OntCE.NaryDataAllValuesFrom, OWLDataAllValuesFrom>
             implements OWLDataAllValuesFrom {
 
         private static final long serialVersionUID = -8590945215118716553L;
@@ -376,11 +342,6 @@ public abstract class ONTAnonymousClassExpressionImpl<X extends OWLAnonymousClas
         }
 
         @Override
-        public OWLDataProperty getProperty() {
-            return getObjectFactory().get(asResource().getProperty()).getObject();
-        }
-
-        @Override
         public OWLDataRange getFiller() {
             return getObjectFactory().get(asResource().getValue()).getObject();
         }
@@ -391,7 +352,7 @@ public abstract class ONTAnonymousClassExpressionImpl<X extends OWLAnonymousClas
      * @see OntCE.ObjectHasValue
      */
     public static class OHV
-            extends ONTAnonymousClassExpressionImpl<OWLObjectHasValue>
+            extends WithObjectProperty<OntCE.ObjectHasValue, OWLObjectHasValue>
             implements OWLObjectHasValue {
         private static final long serialVersionUID = -5124100732332466223L;
 
@@ -414,11 +375,6 @@ public abstract class ONTAnonymousClassExpressionImpl<X extends OWLAnonymousClas
         public OWLIndividual getFiller() {
             return getObjectFactory().get(asResource().getValue()).getObject();
         }
-
-        @Override
-        public OWLObjectPropertyExpression getProperty() {
-            return getObjectFactory().get(asResource().getProperty()).getObject();
-        }
     }
 
     /**
@@ -426,7 +382,7 @@ public abstract class ONTAnonymousClassExpressionImpl<X extends OWLAnonymousClas
      * @see OntCE.DataHasValue
      */
     public static class DHV
-            extends ONTAnonymousClassExpressionImpl<OWLDataHasValue>
+            extends WithDataProperty<OntCE.DataHasValue, OWLDataHasValue>
             implements OWLDataHasValue {
 
         private static final long serialVersionUID = 3348946819425114289L;
@@ -451,33 +407,24 @@ public abstract class ONTAnonymousClassExpressionImpl<X extends OWLAnonymousClas
             return getObjectFactory().get(asResource().getValue()).getObject();
         }
 
-        @Override
-        public OWLDataProperty getProperty() {
-            return getObjectFactory().get(asResource().getProperty()).getObject();
-        }
     }
 
     /**
      * @see ru.avicomp.ontapi.owlapi.objects.ce.OWLObjectHasSelfImpl
      * @see OntCE.HasSelf
      */
-    public static class HS
-            extends ONTAnonymousClassExpressionImpl<OWLObjectHasSelf>
+    public static class OHS
+            extends WithObjectProperty<OntCE.HasSelf, OWLObjectHasSelf>
             implements OWLObjectHasSelf {
         private static final long serialVersionUID = 469627800250482327L;
 
-        protected HS(BlankNodeId n, Supplier<OntGraphModel> m) {
+        protected OHS(BlankNodeId n, Supplier<OntGraphModel> m) {
             super(n, m);
         }
 
         @Override
         public OntCE.HasSelf asResource() {
             return as(OntCE.HasSelf.class);
-        }
-
-        @Override
-        public OWLObjectPropertyExpression getProperty() {
-            return getObjectFactory().get(asResource().getProperty()).getObject();
         }
     }
 
@@ -486,7 +433,7 @@ public abstract class ONTAnonymousClassExpressionImpl<X extends OWLAnonymousClas
      * @see OntCE.ObjectCardinality
      */
     public static class OEC
-            extends ONTAnonymousClassExpressionImpl<OWLObjectExactCardinality>
+            extends WithClassAndObjectProperty<OntCE.ObjectCardinality, OWLObjectExactCardinality>
             implements OWLObjectExactCardinality {
         private static final long serialVersionUID = 3113352123576486865L;
 
@@ -513,16 +460,6 @@ public abstract class ONTAnonymousClassExpressionImpl<X extends OWLAnonymousClas
         public int getCardinality() {
             return asResource().getCardinality();
         }
-
-        @Override
-        public OWLClassExpression getFiller() {
-            return getObjectFactory().get(asResource().getValue()).getObject();
-        }
-
-        @Override
-        public OWLObjectPropertyExpression getProperty() {
-            return getObjectFactory().get(asResource().getProperty()).getObject();
-        }
     }
 
     /**
@@ -530,7 +467,7 @@ public abstract class ONTAnonymousClassExpressionImpl<X extends OWLAnonymousClas
      * @see OntCE.DataCardinality
      */
     public static class DEC
-            extends ONTAnonymousClassExpressionImpl<OWLDataExactCardinality>
+            extends WithDataRangeAndDataProperty<OntCE.DataCardinality, OWLDataExactCardinality>
             implements OWLDataExactCardinality {
         private static final long serialVersionUID = 4196959890521876624L;
 
@@ -557,14 +494,158 @@ public abstract class ONTAnonymousClassExpressionImpl<X extends OWLAnonymousClas
         public int getCardinality() {
             return asResource().getCardinality();
         }
+    }
 
-        @Override
-        public OWLDataRange getFiller() {
-            return getObjectFactory().get(asResource().getValue()).getObject();
+    /**
+     * @see ru.avicomp.ontapi.owlapi.objects.ce.OWLObjectMinCardinalityImpl
+     * @see OntCE.ObjectMinCardinality
+     */
+    public static class OMIC
+            extends WithClassAndObjectProperty<OntCE.ObjectMinCardinality, OWLObjectMinCardinality>
+            implements OWLObjectMinCardinality {
+        private static final long serialVersionUID = 4366473554681185794L;
+
+        public OMIC(BlankNodeId n, Supplier<OntGraphModel> m) {
+            super(n, m);
         }
 
         @Override
+        public OntCE.ObjectMinCardinality asResource() {
+            return as(OntCE.ObjectMinCardinality.class);
+        }
+
+        @Override
+        public int getCardinality() {
+            return asResource().getCardinality();
+        }
+    }
+
+    /**
+     * @see ru.avicomp.ontapi.owlapi.objects.ce.OWLDataMinCardinalityImpl
+     * @see OntCE.DataMinCardinality
+     */
+    public static class DMIC
+            extends WithDataRangeAndDataProperty<OntCE.DataMinCardinality, OWLDataMinCardinality>
+            implements OWLDataMinCardinality {
+        private static final long serialVersionUID = -1413253019570306925L;
+
+        public DMIC(BlankNodeId n, Supplier<OntGraphModel> m) {
+            super(n, m);
+        }
+
+        @Override
+        public OntCE.DataMinCardinality asResource() {
+            return as(OntCE.DataMinCardinality.class);
+        }
+
+        @Override
+        public int getCardinality() {
+            return asResource().getCardinality();
+        }
+    }
+
+    /**
+     * @see ru.avicomp.ontapi.owlapi.objects.ce.OWLObjectMaxCardinalityImpl
+     * @see OntCE.ObjectMaxCardinality
+     */
+    public static class OMAC
+            extends WithClassAndObjectProperty<OntCE.ObjectMaxCardinality, OWLObjectMaxCardinality>
+            implements OWLObjectMaxCardinality {
+        private static final long serialVersionUID = 7983745394870530697L;
+
+        public OMAC(BlankNodeId n, Supplier<OntGraphModel> m) {
+            super(n, m);
+        }
+
+        @Override
+        public OntCE.ObjectMaxCardinality asResource() {
+            return as(OntCE.ObjectMaxCardinality.class);
+        }
+
+        @Override
+        public int getCardinality() {
+            return asResource().getCardinality();
+        }
+    }
+
+    /**
+     * @see ru.avicomp.ontapi.owlapi.objects.ce.OWLDataMaxCardinalityImpl
+     * @see OntCE.DataMaxCardinality
+     */
+    public static class DMAC
+            extends WithDataRangeAndDataProperty<OntCE.DataMaxCardinality, OWLDataMaxCardinality>
+            implements OWLDataMaxCardinality {
+        private static final long serialVersionUID = -6797724616783449900L;
+
+        public DMAC(BlankNodeId n, Supplier<OntGraphModel> m) {
+            super(n, m);
+        }
+
+        @Override
+        public OntCE.DataMaxCardinality asResource() {
+            return as(OntCE.DataMaxCardinality.class);
+        }
+
+        @Override
+        public int getCardinality() {
+            return asResource().getCardinality();
+        }
+    }
+
+    protected abstract static class WithDataRangeAndDataProperty<ONT_C extends OntCE.ComponentRestrictionCE<OntDR, OntNDP>,
+            OWL_C extends OWLRestriction>
+            extends WithDataProperty<ONT_C, OWL_C> {
+
+        protected WithDataRangeAndDataProperty(BlankNodeId n, Supplier<OntGraphModel> m) {
+            super(n, m);
+        }
+
+        public OWLDataRange getFiller() {
+            return getObjectFactory().get(asResource().getValue()).getObject();
+        }
+    }
+
+    protected abstract static class WithDataProperty<ONT_C extends OntCE.RestrictionCE<OntNDP>,
+            OWL_C extends OWLRestriction>
+            extends ONTAnonymousClassExpressionImpl<OWL_C> {
+
+        protected WithDataProperty(BlankNodeId n, Supplier<OntGraphModel> m) {
+            super(n, m);
+        }
+
+        @Override
+        public abstract ONT_C asResource();
+
         public OWLDataProperty getProperty() {
+            return getObjectFactory().get(asResource().getProperty()).getObject();
+        }
+    }
+
+    protected abstract static class WithClassAndObjectProperty<ONT_C extends OntCE.ComponentRestrictionCE<OntCE, OntOPE>,
+            OWL_C extends OWLRestriction>
+            extends WithObjectProperty<ONT_C, OWL_C> {
+
+        protected WithClassAndObjectProperty(BlankNodeId n, Supplier<OntGraphModel> m) {
+            super(n, m);
+        }
+
+        public OWLClassExpression getFiller() {
+            return getObjectFactory().get(asResource().getValue()).getObject();
+        }
+    }
+
+    protected abstract static class WithObjectProperty<ONT_C extends OntCE.RestrictionCE<OntOPE>,
+            OWL_C extends OWLRestriction>
+            extends ONTAnonymousClassExpressionImpl<OWL_C> {
+
+        protected WithObjectProperty(BlankNodeId n, Supplier<OntGraphModel> m) {
+            super(n, m);
+        }
+
+        @Override
+        public abstract ONT_C asResource();
+
+        public OWLObjectPropertyExpression getProperty() {
             return getObjectFactory().get(asResource().getProperty()).getObject();
         }
     }
