@@ -83,7 +83,7 @@ public class ONTClassImpl extends ONTEntityImpl implements OWLClass, ONTObject<O
 
     @Override
     public OWLObjectComplementOf getObjectComplementOf() {
-        return getObjectFactory().getOWLDataFactory().getOWLObjectComplementOf(this);
+        return getDataFactory().getOWLObjectComplementOf(this);
     }
 
     @Override

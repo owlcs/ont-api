@@ -55,7 +55,7 @@ public class ONTObjectPropertyImpl extends ONTEntityImpl implements OWLObjectPro
 
     @Override
     public OWLObjectInverseOf getInverseProperty() {
-        return getObjectFactory().getOWLDataFactory().getOWLObjectInverseOf(this);
+        return getDataFactory().getOWLObjectInverseOf(this);
     }
 
     @Override

@@ -16,6 +16,7 @@ package ru.avicomp.ontapi.internal.objects;
 
 import org.apache.jena.graph.*;
 import org.semanticweb.owlapi.model.OWLObject;
+import ru.avicomp.ontapi.DataFactory;
 import ru.avicomp.ontapi.internal.HasObjectFactory;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.jena.impl.PersonalityModel;
@@ -62,6 +63,10 @@ public abstract class ONTResourceImpl extends OWLObjectImpl implements OWLObject
     @Override
     public InternalObjectFactory getObjectFactory() {
         return HasObjectFactory.getObjectFactory(model.get());
+    }
+
+    protected DataFactory getDataFactory() {
+        return getObjectFactory().getOWLDataFactory();
     }
 
     protected PersonalityModel getPersonalityModel() {

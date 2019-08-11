@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,6 +14,8 @@
 
 package ru.avicomp.ontapi.tests;
 
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.vocabulary.RDFS;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,6 +25,7 @@ import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.semanticweb.owlapi.vocab.OWLFacet;
 import ru.avicomp.ontapi.DataFactory;
 import ru.avicomp.ontapi.OntManagers;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.owlapi.OWL2DatatypeImpl;
 import ru.avicomp.ontapi.owlapi.OWLObjectImpl;
 
@@ -49,6 +52,10 @@ public class DataFactoryTest {
         this.data = data;
     }
 
+    private static boolean isSameIRI(Resource e, OWLObject a) {
+        return e.getURI().equals(((OWLEntity) a).toStringID());
+    }
+
     @Test
     public void testDataFactoryMethod() {
         Class<? extends OWLObject> implType = data.getSuperImplClassType();
@@ -56,13 +63,83 @@ public class DataFactoryTest {
         Assert.assertFalse(implType.isInstance(owl));
         OWLObject ont1 = data.create(ONT_DATA_FACTORY);
         Assert.assertTrue(implType.isInstance(ont1));
-        data.testAssert(owl, ont1);
+        data.testCompare(owl, ont1);
         OWLObject ont2 = data.create(ONT_DATA_FACTORY);
         if (data.shouldBeSame()) {
             Assert.assertSame(ont1, ont2);
             return;
         }
-        data.testAssert(ont1, ont2);
+        data.testCompare(ont1, ont2);
+    }
+
+    @Test
+    public void testBooleanProperties() {
+        OWLObject object = data.create(ONT_DATA_FACTORY);
+        final boolean expectedAnonymousExpression = object instanceof OWLAnonymousClassExpression
+                || (object instanceof OWLDataRange && !(object instanceof OWLDatatype));
+        final boolean expectedNamed;
+        final boolean expectedAnonymous;
+        final boolean expectedBottomEntity;
+        final boolean expectedTopEntity;
+        if (object instanceof OWLEntity) {
+            expectedNamed = true;
+            expectedAnonymous = false;
+            if (object instanceof OWLClass) {
+                expectedBottomEntity = isSameIRI(OWL.Nothing, object);
+                expectedTopEntity = isSameIRI(OWL.Thing, object);
+            } else if (object instanceof OWLDataProperty) {
+                expectedBottomEntity = isSameIRI(OWL.bottomDataProperty, object);
+                expectedTopEntity = isSameIRI(OWL.topDataProperty, object);
+            } else if (object instanceof OWLObjectProperty) {
+                expectedBottomEntity = isSameIRI(OWL.bottomObjectProperty, object);
+                expectedTopEntity = isSameIRI(OWL.topObjectProperty, object);
+            } else if (object instanceof OWLDatatype) {
+                expectedTopEntity = isSameIRI(RDFS.Literal, object);
+                expectedBottomEntity = false;
+            } else {
+                expectedBottomEntity = false;
+                expectedTopEntity = false;
+            }
+        } else {
+            expectedBottomEntity = false;
+            expectedTopEntity = false;
+            expectedNamed = false;
+            expectedAnonymous = !(object instanceof OWLLiteral);
+        }
+        final boolean expectedAxiom;
+        if (object instanceof OWLAxiom) {
+            expectedAxiom = true;
+            Assert.assertFalse(object instanceof OWLEntity);
+            Assert.assertFalse(object instanceof OWLIndividual);
+            Assert.assertFalse(object instanceof OWLDataRange);
+            Assert.assertFalse(object instanceof OWLClassExpression);
+        } else {
+            expectedAxiom = false;
+        }
+
+        final boolean expectedIndividual = object instanceof OWLIndividual;
+        if (object instanceof OWLLiteral) {
+            Assert.assertFalse(object instanceof OWLEntity);
+            Assert.assertFalse(object instanceof OWLAxiom);
+            Assert.assertFalse(object instanceof OWLIndividual);
+            Assert.assertFalse(object instanceof OWLDataRange);
+            Assert.assertFalse(object instanceof OWLClassExpression);
+        }
+
+        Assert.assertEquals("'" + object + "' must be anonymous", expectedAnonymous, object.isAnonymous());
+        Assert.assertEquals("'" + object + "' must be named", expectedNamed, object.isNamed());
+
+        Assert.assertEquals("'" + object + "' must be individual", expectedIndividual, object.isIndividual());
+        Assert.assertEquals("'" + object + "' must be axiom", expectedAxiom, object.isAxiom());
+
+        Assert.assertEquals("'" + object + "' must be anonymous expression", expectedAnonymousExpression,
+                object.isAnonymousExpression());
+
+        Assert.assertFalse("'" + object + "' must be IRI", object.isIRI());
+        Assert.assertFalse("'" + object + "' must be Ontology", object.isOntology());
+
+        Assert.assertEquals("'" + object + "' must be bottom entity", expectedBottomEntity, object.isBottomEntity());
+        Assert.assertEquals("'" + object + "' must be top entity", expectedTopEntity, object.isTopEntity());
     }
 
     interface Data {
@@ -83,7 +160,7 @@ public class DataFactoryTest {
             Assert.assertEquals(expected.toString(), actual.toString());
         }
 
-        default void testAssert(OWLObject expected, OWLObject actual) {
+        default void testCompare(OWLObject expected, OWLObject actual) {
             assertCheckDifferentObjects(expected, actual);
         }
     }
@@ -93,7 +170,7 @@ public class DataFactoryTest {
         OWLLiteral create(OWLDataFactory df);
 
         @Override
-        default void testAssert(OWLObject expected, OWLObject actual) {
+        default void testCompare(OWLObject expected, OWLObject actual) {
             assertCheckDifferentObjects(expected, actual);
             OWLLiteral left = (OWLLiteral) expected;
             OWLLiteral right = (OWLLiteral) actual;
