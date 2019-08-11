@@ -23,7 +23,7 @@ import ru.avicomp.ontapi.owlapi.OWLObjectImpl;
 import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Stream;
+import java.util.Set;
 
 /**
  * An ON-API implementation of {@link OWLAnonymousIndividual},
@@ -93,8 +93,8 @@ public class OWLAnonymousIndividualImpl extends OWLObjectImpl implements OWLAnon
     }
 
     @Override
-    public Stream<OWLAnonymousIndividual> anonymousIndividuals() {
-        return Stream.of(this);
+    protected Set<OWLAnonymousIndividual> getAnonymousIndividualSet() {
+        return createSet();
     }
 
     @Override
@@ -103,43 +103,43 @@ public class OWLAnonymousIndividualImpl extends OWLObjectImpl implements OWLAnon
     }
 
     @Override
-    public Stream<OWLEntity> signature() {
-        return Stream.empty();
+    protected Set<OWLEntity> getSignatureSet() {
+        return createSet();
     }
 
     @Override
-    public Stream<OWLClass> classesInSignature() {
-        return Stream.empty();
+    protected Set<OWLClass> getNamedClassSet() {
+        return createSet();
     }
 
     @Override
-    public Stream<OWLDatatype> datatypesInSignature() {
-        return Stream.empty();
+    protected Set<OWLDatatype> getDatatypeSet() {
+        return createSet();
     }
 
     @Override
-    public Stream<OWLNamedIndividual> individualsInSignature() {
-        return Stream.empty();
+    protected Set<OWLNamedIndividual> getNamedIndividualSet() {
+        return createSet();
     }
 
     @Override
-    public Stream<OWLDataProperty> dataPropertiesInSignature() {
-        return Stream.empty();
+    protected Set<OWLDataProperty> getDataPropertySet() {
+        return createSet();
     }
 
     @Override
-    public Stream<OWLObjectProperty> objectPropertiesInSignature() {
-        return Stream.empty();
+    protected Set<OWLObjectProperty> getObjectPropertySet() {
+        return createSet();
     }
 
     @Override
-    public Stream<OWLAnnotationProperty> annotationPropertiesInSignature() {
-        return Stream.empty();
+    protected Set<OWLAnnotationProperty> getAnnotationPropertySet() {
+        return createSet();
     }
 
     @Override
-    public Stream<OWLClassExpression> nestedClassExpressions() {
-        return Stream.empty();
+    protected Set<OWLClassExpression> getClassExpressionSet() {
+        return createSet();
     }
 
     @Override

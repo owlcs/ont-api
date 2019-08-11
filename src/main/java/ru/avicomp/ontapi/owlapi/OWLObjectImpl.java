@@ -19,6 +19,7 @@ import org.semanticweb.owlapi.util.OWLClassExpressionCollector;
 import org.semanticweb.owlapi.util.OWLEntityCollector;
 import org.semanticweb.owlapi.util.SimpleRenderer;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.*;
@@ -107,63 +108,240 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
     /**
      * Creates a {@code Set}.
      *
-     * @param values Array of {@link X}
+     * @param values Array of {@link X}s without {@code null}s
      * @param <X>    anything
-     * @return a {@code Set} of {@link X}
+     * @return a {@code Set} of {@link X}s
      */
     @SafeVarargs
     protected static <X> Set<X> createSet(X... values) {
         return new HashSet<>(Arrays.asList(values));
     }
 
-    @Override
-    public Stream<OWLAnonymousIndividual> anonymousIndividuals() {
-        return addAnonymousIndividualsToSet(new TreeSet<>()).stream();
+    /**
+     * Creates a singleton {@code Set}.
+     *
+     * @param value {@link X}, not {@code null}
+     * @param <X>   anything
+     * @return a {@code Set} with {@link X}-value
+     */
+    protected static <X> Set<X> createSet(X value) {
+        return Collections.singleton(value);
+    }
+
+    /**
+     * Creates an empty {@code Set}.
+     *
+     * @param <X> anything
+     * @return a {@code Set} of {@link X}
+     */
+    protected static <X> Set<X> createSet() {
+        return Collections.emptySet();
+    }
+
+    /**
+     * Creates a sorted empty {@code Set}.
+     *
+     * @param <X> subtype of {@link Comparable}
+     * @return a {@code Set}
+     */
+    private <X extends Comparable> Set<X> createSortedSet() {
+        return new TreeSet<>();
     }
 
     @Override
-    public Stream<OWLEntity> signature() {
-        return addSignatureEntitiesToSet(new TreeSet<>()).stream();
+    public boolean containsEntityInSignature(OWLEntity entity) {
+        return getSignatureSet().contains(entity);
     }
 
     @Override
-    public boolean containsEntityInSignature(OWLEntity owlEntity) {
-        return signature().anyMatch(o -> Objects.equals(o, owlEntity));
+    public final Stream<OWLEntity> signature() {
+        return getSignatureSet().stream();
     }
 
     @Override
-    public Stream<OWLClass> classesInSignature() {
-        return signature().filter(OWLEntity::isOWLClass).map(OWLEntity::asOWLClass);
+    public final Stream<OWLClass> classesInSignature() {
+        return getNamedClassSet().stream();
     }
 
     @Override
-    public Stream<OWLDataProperty> dataPropertiesInSignature() {
-        return signature().filter(OWLEntity::isOWLDataProperty).map(OWLEntity::asOWLDataProperty);
+    public final Stream<OWLClassExpression> nestedClassExpressions() {
+        return getClassExpressionSet().stream();
     }
 
     @Override
-    public Stream<OWLObjectProperty> objectPropertiesInSignature() {
-        return signature().filter(OWLEntity::isOWLObjectProperty).map(OWLEntity::asOWLObjectProperty);
+    public final Stream<OWLNamedIndividual> individualsInSignature() {
+        return getNamedIndividualSet().stream();
     }
 
     @Override
-    public Stream<OWLNamedIndividual> individualsInSignature() {
-        return signature().filter(OWLEntity::isOWLNamedIndividual).map(OWLEntity::asOWLNamedIndividual);
+    public final Stream<OWLAnonymousIndividual> anonymousIndividuals() {
+        return getAnonymousIndividualSet().stream();
     }
 
     @Override
-    public Stream<OWLDatatype> datatypesInSignature() {
-        return signature().filter(OWLEntity::isOWLDatatype).map(OWLEntity::asOWLDatatype);
+    public final Stream<OWLDatatype> datatypesInSignature() {
+        return getDatatypeSet().stream();
     }
 
     @Override
-    public Stream<OWLAnnotationProperty> annotationPropertiesInSignature() {
-        return signature().filter(OWLEntity::isOWLAnnotationProperty).map(OWLEntity::asOWLAnnotationProperty);
+    public final Stream<OWLDataProperty> dataPropertiesInSignature() {
+        return getDataPropertySet().stream();
     }
 
     @Override
-    public Stream<OWLClassExpression> nestedClassExpressions() {
-        return accept(new OWLClassExpressionCollector()).stream();
+    public final Stream<OWLObjectProperty> objectPropertiesInSignature() {
+        return getObjectPropertySet().stream();
+    }
+
+    @Override
+    public final Stream<OWLAnnotationProperty> annotationPropertiesInSignature() {
+        return getAnnotationPropertySet().stream();
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public final Set<OWLClass> getClassesInSignature() {
+        return getNamedClassSet();
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public final Set<OWLNamedIndividual> getIndividualsInSignature() {
+        return getNamedIndividualSet();
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public final Set<OWLAnonymousIndividual> getAnonymousIndividuals() {
+        return getAnonymousIndividualSet();
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public final Set<OWLDatatype> getDatatypesInSignature() {
+        return getDatatypeSet();
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public final Set<OWLObjectProperty> getObjectPropertiesInSignature() {
+        return getObjectPropertySet();
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public final Set<OWLDataProperty> getDataPropertiesInSignature() {
+        return getDataPropertySet();
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public final Set<OWLAnnotationProperty> getAnnotationPropertiesInSignature() {
+        return getAnnotationPropertySet();
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public final Set<OWLEntity> getSignature() {
+        return getSignatureSet();
+    }
+
+    @SuppressWarnings("deprecation")
+    @Override
+    public final Set<OWLClassExpression> getNestedClassExpressions() {
+        return getClassExpressionSet();
+    }
+
+    protected Set<OWLEntity> getSignatureSet() {
+        return (Set<OWLEntity>) accept(new OWLEntityCollector(createSortedSet()));
+    }
+
+    protected Set<OWLClass> getNamedClassSet() {
+        Set<OWLClass> res = createSortedSet();
+        accept(new AbstractCollectorEx<OWLClass>(res) {
+            @Override
+            public Collection<OWLClass> visit(@Nonnull OWLClass clazz) {
+                objects.add(clazz);
+                return objects;
+            }
+        });
+        return res;
+    }
+
+    protected Set<OWLClassExpression> getClassExpressionSet() {
+        return (Set<OWLClassExpression>) accept(new OWLClassExpressionCollector());
+    }
+
+    protected Set<OWLNamedIndividual> getNamedIndividualSet() {
+        Set<OWLNamedIndividual> res = createSortedSet();
+        accept(new AbstractCollectorEx<OWLNamedIndividual>(res) {
+            @Override
+            public Collection<OWLNamedIndividual> visit(@Nonnull OWLNamedIndividual individual) {
+                objects.add(individual);
+                return objects;
+            }
+        });
+        return res;
+    }
+
+    protected Set<OWLAnonymousIndividual> getAnonymousIndividualSet() {
+        Set<OWLAnonymousIndividual> res = createSortedSet();
+        accept(new AbstractCollectorEx<OWLAnonymousIndividual>(res) {
+            @Override
+            public Collection<OWLAnonymousIndividual> visit(@Nonnull OWLAnonymousIndividual individual) {
+                objects.add(individual);
+                return objects;
+            }
+        });
+        return res;
+    }
+
+    protected Set<OWLDatatype> getDatatypeSet() {
+        Set<OWLDatatype> res = createSortedSet();
+        accept(new AbstractCollectorEx<OWLDatatype>(res) {
+            @Override
+            public Collection<OWLDatatype> visit(@Nonnull OWLDatatype datatype) {
+                objects.add(datatype);
+                return objects;
+            }
+        });
+        return res;
+    }
+
+    protected Set<OWLObjectProperty> getObjectPropertySet() {
+        Set<OWLObjectProperty> res = createSortedSet();
+        accept(new AbstractCollectorEx<OWLObjectProperty>(res) {
+            @Override
+            public Collection<OWLObjectProperty> visit(@Nonnull OWLObjectProperty property) {
+                objects.add(property);
+                return objects;
+            }
+        });
+        return res;
+    }
+
+    protected Set<OWLDataProperty> getDataPropertySet() {
+        Set<OWLDataProperty> res = createSortedSet();
+        accept(new AbstractCollectorEx<OWLDataProperty>(res) {
+            @Override
+            public Collection<OWLDataProperty> visit(@Nonnull OWLDataProperty property) {
+                objects.add(property);
+                return objects;
+            }
+        });
+        return res;
+    }
+
+    protected Set<OWLAnnotationProperty> getAnnotationPropertySet() {
+        Set<OWLAnnotationProperty> res = createSortedSet();
+        accept(new AbstractCollectorEx<OWLAnnotationProperty>(res) {
+            @Override
+            public Collection<OWLAnnotationProperty> visit(@Nonnull OWLAnnotationProperty property) {
+                objects.add(property);
+                return objects;
+            }
+        });
+        return res;
     }
 
     @Override
@@ -218,52 +396,4 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
         return new SimpleRenderer().render(this);
     }
 
-    /**
-     * Moved from uk.ac.manchester.cs.owl.owlapi.HasIncrementalSignatureGenerationSupport.
-     *
-     * @param entities entity set where entities will be added
-     * @return the modified input entities
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/HasIncrementalSignatureGenerationSupport.java'>uk.ac.manchester.cs.owl.owlapi.HasIncrementalSignatureGenerationSupport</a>
-     */
-    protected Set<OWLEntity> addSignatureEntitiesToSet(Set<OWLEntity> entities) {
-        accept(new OWLEntityCollector(entities));
-        return entities;
-    }
-
-    /**
-     * Moved from uk.ac.manchester.cs.owl.owlapi.HasIncrementalSignatureGenerationSupport.
-     *
-     * @param anons anonymous individuals set where individuals will be added
-     * @return the modified input individuals
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/HasIncrementalSignatureGenerationSupport.java'>uk.ac.manchester.cs.owl.owlapi.HasIncrementalSignatureGenerationSupport</a>
-     */
-    protected Set<OWLAnonymousIndividual> addAnonymousIndividualsToSet(Set<OWLAnonymousIndividual> anons) {
-        accept(new AnonymousIndividualCollector(anons));
-        return anons;
-    }
-
-    /**
-     * A utility class that visits axioms, class expressions etc. and accumulates
-     * the anonymous individuals referred.
-     *
-     * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
-     * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/AnonymousIndividualCollector.java'>uk.ac.manchester.cs.owl.owlapi.AnonymousIndividualCollector</a>
-     * @since 1.2.0
-     */
-    protected static class AnonymousIndividualCollector extends AbstractCollectorEx<OWLAnonymousIndividual> {
-
-        /**
-         * @param anonsToReturn the set that will contain the anon individuals
-         */
-        public AnonymousIndividualCollector(Collection<OWLAnonymousIndividual> anonsToReturn) {
-            super(anonsToReturn);
-        }
-
-        @SuppressWarnings("NullableProblems")
-        @Override
-        public Collection<OWLAnonymousIndividual> visit(OWLAnonymousIndividual individual) {
-            objects.add(individual);
-            return objects;
-        }
-    }
 }

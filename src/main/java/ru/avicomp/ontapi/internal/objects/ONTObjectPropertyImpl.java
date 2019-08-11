@@ -21,8 +21,8 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntNOP;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
+import java.util.Set;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 /**
  * An {@link OWLObjectProperty} implementation that is also {@link ONTObject}.
@@ -49,8 +49,8 @@ public class ONTObjectPropertyImpl extends ONTEntityImpl implements OWLObjectPro
     }
 
     @Override
-    public Stream<OWLObjectProperty> objectPropertiesInSignature() {
-        return Stream.of(this);
+    protected Set<OWLObjectProperty> getObjectPropertySet() {
+        return createSet(this);
     }
 
     @Override

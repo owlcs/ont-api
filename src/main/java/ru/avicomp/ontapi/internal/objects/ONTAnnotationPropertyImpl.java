@@ -21,8 +21,8 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntNAP;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
+import java.util.Set;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 /**
  * An {@link OWLAnnotationProperty} implementation that is also {@link ONTObject}.
@@ -49,8 +49,8 @@ public class ONTAnnotationPropertyImpl extends ONTEntityImpl implements OWLAnnot
     }
 
     @Override
-    public Stream<OWLAnnotationProperty> annotationPropertiesInSignature() {
-        return Stream.of(this);
+    protected Set<OWLAnnotationProperty> getAnnotationPropertySet() {
+        return createSet(this);
     }
 
     @Override

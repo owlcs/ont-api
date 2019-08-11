@@ -16,6 +16,7 @@ package ru.avicomp.ontapi.internal.objects;
 
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLObjectComplementOf;
 import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
@@ -61,13 +62,13 @@ public class ONTClassImpl extends ONTEntityImpl implements OWLClass, ONTObject<O
     }
 
     @Override
-    public Stream<OWLClass> classesInSignature() {
-        return Stream.of(this);
+    protected Set<OWLClass> getNamedClassSet() {
+        return createSet(this);
     }
 
     @Override
-    public Stream<OWLClassExpression> nestedClassExpressions() {
-        return Stream.of(this);
+    protected Set<OWLClassExpression> getClassExpressionSet() {
+        return createSet();
     }
 
     @Override
@@ -81,7 +82,7 @@ public class ONTClassImpl extends ONTEntityImpl implements OWLClass, ONTObject<O
     }
 
     @Override
-    public OWLClassExpression getObjectComplementOf() {
+    public OWLObjectComplementOf getObjectComplementOf() {
         return getObjectFactory().getOWLDataFactory().getOWLObjectComplementOf(this);
     }
 

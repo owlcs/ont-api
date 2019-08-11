@@ -15,7 +15,7 @@
 package ru.avicomp.ontapi.internal.objects;
 
 import org.apache.jena.graph.*;
-import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.model.OWLObject;
 import ru.avicomp.ontapi.internal.HasObjectFactory;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.jena.impl.PersonalityModel;
@@ -88,53 +88,4 @@ public abstract class ONTResourceImpl extends OWLObjectImpl implements OWLObject
         return node.equals(other.node);
     }
 
-    @Override
-    public boolean containsEntityInSignature(OWLEntity entity) {
-        return false;
-    }
-
-    @Override
-    public Stream<OWLEntity> signature() {
-        return Stream.empty();
-    }
-
-    @Override
-    public Stream<OWLClass> classesInSignature() {
-        return Stream.empty();
-    }
-
-    @Override
-    public Stream<OWLDatatype> datatypesInSignature() {
-        return Stream.empty();
-    }
-
-    @Override
-    public Stream<OWLNamedIndividual> individualsInSignature() {
-        return Stream.empty();
-    }
-
-    @Override
-    public Stream<OWLDataProperty> dataPropertiesInSignature() {
-        return Stream.empty();
-    }
-
-    @Override
-    public Stream<OWLObjectProperty> objectPropertiesInSignature() {
-        return Stream.empty();
-    }
-
-    @Override
-    public Stream<OWLAnnotationProperty> annotationPropertiesInSignature() {
-        return Stream.empty();
-    }
-
-    @Override
-    public Stream<OWLClassExpression> nestedClassExpressions() {
-        return Stream.empty();
-    }
-
-    @Override
-    public Stream<OWLAnonymousIndividual> anonymousIndividuals() {
-        return Stream.empty();
-    }
 }

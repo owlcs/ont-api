@@ -24,8 +24,8 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.jena.vocabulary.XSD;
 
+import java.util.Set;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 /**
  * An {@link OWLDatatype} implementation that is also {@link ONTObject}.
@@ -52,8 +52,8 @@ public class ONTDatatypeImpl extends ONTEntityImpl implements OWLDatatype, ONTOb
     }
 
     @Override
-    public Stream<OWLDatatype> datatypesInSignature() {
-        return Stream.of(this);
+    protected Set<OWLDatatype> getDatatypeSet() {
+        return createSet(this);
     }
 
     @Override

@@ -19,8 +19,8 @@ import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
 
+import java.util.Set;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 /**
  * An {@link OWLNamedIndividual} implementation that is also {@link ONTObject}.
@@ -47,8 +47,8 @@ public class ONTNamedIndividualImpl extends ONTEntityImpl implements OWLNamedInd
     }
 
     @Override
-    public Stream<OWLNamedIndividual> individualsInSignature() {
-        return Stream.of(this);
+    protected Set<OWLNamedIndividual> getNamedIndividualSet() {
+        return createSet(this);
     }
 
 }

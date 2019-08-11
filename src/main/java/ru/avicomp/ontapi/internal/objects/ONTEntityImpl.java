@@ -17,14 +17,13 @@ package ru.avicomp.ontapi.internal.objects;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.rdf.model.Resource;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLEntity;
+import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.jena.model.OntEntity;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 
 import javax.annotation.Nullable;
+import java.util.Set;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 /**
  * A base {@link OWLEntity} implementation which has a reference to a model.
@@ -69,13 +68,53 @@ public abstract class ONTEntityImpl extends ONTResourceImpl implements OWLEntity
     }
 
     @Override
-    public Stream<OWLEntity> signature() {
-        return Stream.of(this);
+    public Set<OWLEntity> getSignatureSet() {
+        return createSet(this);
     }
 
     @Override
     public boolean containsEntityInSignature(OWLEntity entity) {
         return equals(entity);
+    }
+
+    @Override
+    protected Set<OWLClass> getNamedClassSet() {
+        return createSet();
+    }
+
+    @Override
+    protected Set<OWLDatatype> getDatatypeSet() {
+        return createSet();
+    }
+
+    @Override
+    protected Set<OWLNamedIndividual> getNamedIndividualSet() {
+        return createSet();
+    }
+
+    @Override
+    protected Set<OWLDataProperty> getDataPropertySet() {
+        return createSet();
+    }
+
+    @Override
+    protected Set<OWLObjectProperty> getObjectPropertySet() {
+        return createSet();
+    }
+
+    @Override
+    protected Set<OWLAnnotationProperty> getAnnotationPropertySet() {
+        return createSet();
+    }
+
+    @Override
+    protected Set<OWLClassExpression> getClassExpressionSet() {
+        return createSet();
+    }
+
+    @Override
+    protected Set<OWLAnonymousIndividual> getAnonymousIndividualSet() {
+        return createSet();
     }
 
     protected boolean equals(Resource uri) {
