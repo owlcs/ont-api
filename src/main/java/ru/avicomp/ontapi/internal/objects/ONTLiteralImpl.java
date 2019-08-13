@@ -29,6 +29,10 @@ import ru.avicomp.ontapi.jena.model.OntDT;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.owlapi.objects.OWLLiteralImpl;
 
+import java.io.IOException;
+import java.io.NotSerializableException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -81,5 +85,13 @@ public class ONTLiteralImpl extends OWLLiteralImpl implements OWLLiteral, ONTObj
     public Stream<Triple> triples() {
         OntDT res = getDatatypeResource();
         return res.isBuiltIn() ? Stream.empty() : res.spec().map(FrontsTriple::asTriple);
+    }
+
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        throw new NotSerializableException("Suspicious method call. Serialization is unsupported for ONTLiteral.");
+    }
+
+    private void readObject(ObjectInputStream in) throws Exception {
+        throw new NotSerializableException("Suspicious method call. Deserialization is unsupported for ONTLiteral.");
     }
 }

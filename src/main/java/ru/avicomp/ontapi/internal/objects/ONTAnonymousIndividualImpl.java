@@ -25,6 +25,10 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
 import ru.avicomp.ontapi.owlapi.objects.OWLAnonymousIndividualImpl;
 
+import java.io.IOException;
+import java.io.NotSerializableException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -64,4 +68,15 @@ public class ONTAnonymousIndividualImpl extends OWLAnonymousIndividualImpl
     public Stream<Triple> triples() {
         return Stream.empty();
     }
+
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        throw new NotSerializableException("Suspicious method call. " +
+                "Serialization is unsupported for ONTAnonymousIndividual.");
+    }
+
+    private void readObject(ObjectInputStream in) throws Exception {
+        throw new NotSerializableException("Suspicious method call. " +
+                "Deserialization is unsupported for ONTAnonymousIndividual.");
+    }
+
 }

@@ -29,6 +29,10 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.owlapi.OWL2DatatypeImpl;
 import ru.avicomp.ontapi.owlapi.OWLObjectImpl;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -75,15 +79,15 @@ public class DataFactoryTest {
     @Test
     public void testBooleanProperties() {
         OWLObject object = data.create(ONT_DATA_FACTORY);
-        final boolean expectedAnonymousExpression = object instanceof OWLAnonymousClassExpression
-                || (object instanceof OWLDataRange && !(object instanceof OWLDatatype));
-        final boolean expectedNamed;
-        final boolean expectedAnonymous;
+        final boolean expectedAnonymousExpression = data.isAnonymousClassExpression() || data.isAnonymousDataRange();
+        Assert.assertEquals(data.isAnonymousDataRange(), object instanceof OWLDataRange && !(object instanceof OWLDatatype));
+        Assert.assertEquals(data.isAnonymousClassExpression(), object instanceof OWLAnonymousClassExpression);
+        final boolean expectedAnonymous = data.isAxiom() || data.isAnonymousIndividual() || expectedAnonymousExpression;
+        final boolean expectedNamed = data.isEntity();
         final boolean expectedBottomEntity;
         final boolean expectedTopEntity;
-        if (object instanceof OWLEntity) {
-            expectedNamed = true;
-            expectedAnonymous = false;
+        if (data.isEntity()) {
+            Assert.assertTrue(object instanceof OWLEntity);
             if (object instanceof OWLClass) {
                 expectedBottomEntity = isSameIRI(OWL.Nothing, object);
                 expectedTopEntity = isSameIRI(OWL.Thing, object);
@@ -101,20 +105,19 @@ public class DataFactoryTest {
                 expectedTopEntity = false;
             }
         } else {
+            Assert.assertFalse(object instanceof OWLEntity);
             expectedBottomEntity = false;
             expectedTopEntity = false;
-            expectedNamed = false;
-            expectedAnonymous = !(object instanceof OWLLiteral);
         }
-        final boolean expectedAxiom;
-        if (object instanceof OWLAxiom) {
-            expectedAxiom = true;
+        final boolean expectedAxiom = data.isAxiom();
+        if (data.isAxiom()) {
+            Assert.assertTrue(object instanceof OWLAxiom);
             Assert.assertFalse(object instanceof OWLEntity);
             Assert.assertFalse(object instanceof OWLIndividual);
             Assert.assertFalse(object instanceof OWLDataRange);
             Assert.assertFalse(object instanceof OWLClassExpression);
         } else {
-            expectedAxiom = false;
+            Assert.assertFalse(object instanceof OWLAxiom);
         }
 
         final boolean expectedIndividual = object instanceof OWLIndividual;
@@ -142,7 +145,21 @@ public class DataFactoryTest {
         Assert.assertEquals("'" + object + "' must be top entity", expectedTopEntity, object.isTopEntity());
     }
 
-    interface Data {
+    @Test
+    public void testSerialization() throws Exception {
+        OWLObject object = data.create(ONT_DATA_FACTORY);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        ObjectOutputStream stream = new ObjectOutputStream(out);
+        stream.writeObject(object);
+        stream.flush();
+
+        ByteArrayInputStream in = new ByteArrayInputStream(out.toByteArray());
+        ObjectInputStream inStream = new ObjectInputStream(in);
+        OWLObject copy = (OWLObject) inStream.readObject();
+        data.testCompare(object, copy);
+    }
+
+    public interface Data {
         OWLObject create(OWLDataFactory df);
 
         default Class<? extends OWLObject> getSuperImplClassType() {
@@ -155,17 +172,76 @@ public class DataFactoryTest {
 
         default void assertCheckDifferentObjects(OWLObject expected, OWLObject actual) {
             Assert.assertNotSame(expected, actual);
-            Assert.assertEquals(expected.hashCode(), actual.hashCode());
-            Assert.assertEquals(expected, actual);
-            Assert.assertEquals(expected.toString(), actual.toString());
+            Assert.assertEquals("'" + expected + "': wrong hashcode", expected.hashCode(), actual.hashCode());
+            Assert.assertEquals("'" + expected + "': not equal", expected, actual);
+            Assert.assertEquals("'" + expected + "': wrong toString", expected.toString(), actual.toString());
         }
 
         default void testCompare(OWLObject expected, OWLObject actual) {
             assertCheckDifferentObjects(expected, actual);
         }
+
+        default boolean isLiteral() {
+            return false;
+        }
+
+        default boolean isAxiom() {
+            return false;
+        }
+
+        default boolean isEntity() {
+            return false;
+        }
+
+        default boolean isAnonymousClassExpression() {
+            return false;
+        }
+
+        default boolean isAnonymousDataRange() {
+            return false;
+        }
+
+        default boolean isAnonymousIndividual() {
+            return false;
+        }
     }
 
-    interface LiteralData extends Data {
+    public interface AxiomData extends Data {
+        @Override
+        default boolean isAxiom() {
+            return true;
+        }
+    }
+
+    public interface EntityData extends Data {
+        @Override
+        default boolean isEntity() {
+            return true;
+        }
+    }
+
+    public interface AnonymousIndividual extends Data {
+        @Override
+        default boolean isAnonymousIndividual() {
+            return true;
+        }
+    }
+
+    public interface AnonymousClass extends Data {
+        @Override
+        default boolean isAnonymousClassExpression() {
+            return true;
+        }
+    }
+
+    public interface AnonymousRange extends Data {
+        @Override
+        default boolean isAnonymousDataRange() {
+            return true;
+        }
+    }
+
+    public interface LiteralData extends Data {
         @Override
         OWLLiteral create(OWLDataFactory df);
 
@@ -184,12 +260,17 @@ public class DataFactoryTest {
             Assert.assertEquals(left.isInteger(), right.isInteger());
             Assert.assertEquals(left.isLiteral(), right.isLiteral());
         }
+
+        @Override
+        default boolean isLiteral() {
+            return true;
+        }
     }
 
     @Parameterized.Parameters(name = "{0}")
     public static List<Data> getData() {
         return Arrays.asList(
-                new Data() {
+                new EntityData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLClass(IRI.create("C"));
@@ -200,7 +281,7 @@ public class DataFactoryTest {
                         return "df.getOWLClass(IRI.create(\"C\"));";
                     }
                 }
-                , new Data() {
+                , new EntityData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLDatatype(IRI.create("D"));
@@ -211,7 +292,7 @@ public class DataFactoryTest {
                         return "df.getOWLDatatype(IRI.create(\"D\"));";
                     }
                 }
-                , new Data() {
+                , new EntityData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLObjectProperty(IRI.create("O"));
@@ -222,7 +303,7 @@ public class DataFactoryTest {
                         return "df.getOWLObjectProperty(IRI.create(\"O\"));";
                     }
                 }
-                , new Data() {
+                , new EntityData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLDataProperty(IRI.create("D"));
@@ -233,7 +314,7 @@ public class DataFactoryTest {
                         return "df.getOWLDataProperty(IRI.create(\"D\"));";
                     }
                 }
-                , new Data() {
+                , new EntityData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLAnnotationProperty(IRI.create("A"));
@@ -244,7 +325,7 @@ public class DataFactoryTest {
                         return "df.getOWLAnnotationProperty(IRI.create(\"A\"));";
                     }
                 }
-                , new Data() {
+                , new EntityData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLNamedIndividual(IRI.create("I"));
@@ -255,7 +336,7 @@ public class DataFactoryTest {
                         return "df.getOWLNamedIndividual(IRI.create(\"I\"));";
                     }
                 }
-                , new Data() {
+                , new AnonymousIndividual() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLAnonymousIndividual("_:b0");
@@ -266,7 +347,7 @@ public class DataFactoryTest {
                         return "df.getOWLAnonymousIndividual(\"_:b0\");";
                     }
                 }
-                , new Data() {
+                , new AxiomData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLAsymmetricObjectPropertyAxiom(df.getOWLObjectProperty("P"));
@@ -277,7 +358,7 @@ public class DataFactoryTest {
                         return "df.getOWLAsymmetricObjectPropertyAxiom(df.getOWLObjectProperty(\"P\"));";
                     }
                 }
-                , new Data() {
+                , new AxiomData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLClassAssertionAxiom(df.getOWLClass("C"), df.getOWLNamedIndividual("I"));
@@ -288,7 +369,7 @@ public class DataFactoryTest {
                         return "df.getOWLClassAssertionAxiom(df.getOWLClass(\"C\"), df.getOWLNamedIndividual(\"I\"));";
                     }
                 }
-                , new Data() {
+                , new AnonymousClass() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLDataAllValuesFrom(df.getOWLDataProperty("P"), df.getOWLDatatype("D"));
@@ -299,7 +380,7 @@ public class DataFactoryTest {
                         return "df.getOWLDataAllValuesFrom(df.getOWLDataProperty(\"P\"), df.getOWLDatatype(\"D\"));";
                     }
                 }
-                , new Data() {
+                , new AnonymousRange() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLDataComplementOf(df.getOWLDatatype("D"));
@@ -310,7 +391,7 @@ public class DataFactoryTest {
                         return "df.getOWLDataComplementOf(df.getOWLDatatype(\"D\"));";
                     }
                 }
-                , new Data() {
+                , new AnonymousClass() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLDataExactCardinality(4, df.getOWLDataProperty("P"), df.getOWLDatatype("D"));
@@ -321,7 +402,7 @@ public class DataFactoryTest {
                         return "df.getOWLDataExactCardinality(4, df.getOWLDataProperty(\"P\"), df.getOWLDatatype(\"D\"));";
                     }
                 }
-                , new Data() {
+                , new AnonymousClass() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLDataExactCardinality(3, df.getOWLDataProperty("P"), df.getTopDatatype());
@@ -332,7 +413,7 @@ public class DataFactoryTest {
                         return "df.getOWLDataExactCardinality(3, df.getOWLDataProperty(\"P\"), df.getTopDatatype());";
                     }
                 }
-                , new Data() {
+                , new AnonymousClass() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLDataHasValue(df.getOWLDataProperty("P"), df.getOWLLiteral(1));
@@ -343,7 +424,7 @@ public class DataFactoryTest {
                         return "df.getOWLDataHasValue(df.getOWLDataProperty(\"P\"), df.getOWLLiteral(1));";
                     }
                 }
-                , new Data() {
+                , new AnonymousClass() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLDataMaxCardinality(23, df.getOWLDataProperty("P"), df.getOWLDatatype("D"));
@@ -354,7 +435,7 @@ public class DataFactoryTest {
                         return "df.getOWLDataMaxCardinality(23, df.getOWLDataProperty(\"P\"), df.getOWLDatatype(\"D\"));";
                     }
                 }
-                , new Data() {
+                , new AnonymousClass() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLDataMaxCardinality(12, df.getOWLDataProperty("P"), df.getTopDatatype());
@@ -365,7 +446,7 @@ public class DataFactoryTest {
                         return "df.getOWLDataMaxCardinality(12, df.getOWLDataProperty(\"P\"), df.getTopDatatype());";
                     }
                 }
-                , new Data() {
+                , new AnonymousClass() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLDataMinCardinality(5454, df.getOWLDataProperty("P"), df.getOWLDatatype("D"));
@@ -376,7 +457,7 @@ public class DataFactoryTest {
                         return "df.getOWLDataMinCardinality(5454, df.getOWLDataProperty(\"P\"), df.getOWLDatatype(\"D\"));";
                     }
                 }
-                , new Data() {
+                , new AnonymousClass() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLDataMinCardinality(2, df.getOWLDataProperty("P"), df.getTopDatatype());
@@ -387,7 +468,7 @@ public class DataFactoryTest {
                         return "df.getOWLDataMinCardinality(2, df.getOWLDataProperty(\"P\"), df.getTopDatatype());";
                     }
                 }
-                , new Data() {
+                , new AnonymousRange() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLDataOneOf(df.getOWLLiteral(1), df.getOWLLiteral(1.0), df.getOWLLiteral(1.0F));
@@ -398,7 +479,7 @@ public class DataFactoryTest {
                         return "df.getOWLDataOneOf(df.getOWLLiteral(1), df.getOWLLiteral(1.0), df.getOWLLiteral(1.0F));";
                     }
                 }
-                , new Data() {
+                , new AxiomData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLDataPropertyAssertionAxiom(df.getOWLDataProperty("P"), df.getOWLNamedIndividual("I"), df.getOWLLiteral(2));
@@ -409,7 +490,7 @@ public class DataFactoryTest {
                         return "df.getOWLDataPropertyAssertionAxiom(df.getOWLDataProperty(\"P\"), df.getOWLNamedIndividual(\"I\"), df.getOWLLiteral(2));";
                     }
                 }
-                , new Data() {
+                , new AxiomData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLDataPropertyDomainAxiom(df.getOWLDataProperty("P"), df.getOWLClass("C"));
@@ -420,7 +501,7 @@ public class DataFactoryTest {
                         return "df.getOWLDataPropertyDomainAxiom(df.getOWLDataProperty(\"P\"), df.getOWLClass(\"C\"));";
                     }
                 }
-                , new Data() {
+                , new AxiomData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLDataPropertyRangeAxiom(df.getOWLDataProperty("P"), df.getOWLDatatype("D"));
@@ -431,7 +512,7 @@ public class DataFactoryTest {
                         return "df.getOWLDataPropertyRangeAxiom(df.getOWLDataProperty(\"P\"), df.getOWLDatatype(\"D\"));";
                     }
                 }
-                , new Data() {
+                , new AnonymousClass() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLDataSomeValuesFrom(df.getOWLDataProperty("P"), df.getOWLDatatype("D"));
@@ -442,7 +523,7 @@ public class DataFactoryTest {
                         return "df.getOWLDataSomeValuesFrom(df.getOWLDataProperty(\"P\"), df.getOWLDatatype(\"D\"));";
                     }
                 }
-                , new Data() {
+                , new AnonymousRange() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLDatatypeRestriction(df.getOWLDatatype("D1"),
@@ -456,7 +537,7 @@ public class DataFactoryTest {
                                 "df.getOWLLiteral(\"3\", df.getOWLDatatype(\"D2\"))));";
                     }
                 }
-                , new Data() {
+                , new AxiomData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLDifferentIndividualsAxiom(df.getOWLNamedIndividual("A1"),
@@ -469,7 +550,7 @@ public class DataFactoryTest {
                                 "df.getOWLAnonymousIndividual(\"_:b0\"), df.getOWLNamedIndividual(\"C1\"));";
                     }
                 }
-                , new Data() {
+                , new AxiomData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLDisjointClassesAxiom(df.getOWLClass("A"), df.getOWLClass("B"), df.getOWLClass("C"));
@@ -481,7 +562,7 @@ public class DataFactoryTest {
                                 "df.getOWLClass(\"B\"), df.getOWLClass(\"C\"));";
                     }
                 }
-                , new Data() {
+                , new AxiomData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLDisjointDataPropertiesAxiom(df.getOWLDataProperty("A4"),
@@ -494,7 +575,7 @@ public class DataFactoryTest {
                                 "df.getOWLDataProperty(\"B4\"), df.getOWLDataProperty(\"C4\"));";
                     }
                 }
-                , new Data() {
+                , new AxiomData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLDisjointObjectPropertiesAxiom(df.getOWLObjectProperty("A3"),
@@ -507,7 +588,7 @@ public class DataFactoryTest {
                                 "df.getOWLObjectProperty(\"B3\"), df.getOWLObjectProperty(\"C3\"));";
                     }
                 }
-                , new Data() {
+                , new AxiomData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLEquivalentClassesAxiom(df.getOWLClass("A"),
@@ -520,7 +601,7 @@ public class DataFactoryTest {
                                 "df.getOWLClass(\"B\"), df.getOWLClass(\"C\"));";
                     }
                 }
-                , new Data() {
+                , new AxiomData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLEquivalentClassesAxiom(new OWLClassExpression[]{df.getOWLClass("A"),
@@ -533,7 +614,7 @@ public class DataFactoryTest {
                                 "df.getOWLClass(\"B\")});";
                     }
                 }
-                , new Data() {
+                , new AxiomData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLEquivalentDataPropertiesAxiom(df.getOWLDataProperty("A4"),
@@ -546,7 +627,7 @@ public class DataFactoryTest {
                                 "df.getOWLDataProperty(\"B4\"), df.getOWLDataProperty(\"C4\"));";
                     }
                 }
-                , new Data() {
+                , new AxiomData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLEquivalentDataPropertiesAxiom(new OWLDataPropertyExpression[]{
@@ -559,7 +640,7 @@ public class DataFactoryTest {
                                 "df.getOWLDataProperty(\"P1\"), df.getOWLDataProperty(\"P2\")});";
                     }
                 }
-                , new Data() {
+                , new AxiomData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLEquivalentObjectPropertiesAxiom(df.getOWLObjectProperty("A3"),
@@ -572,7 +653,7 @@ public class DataFactoryTest {
                                 "df.getOWLObjectProperty(\"B3\"), df.getOWLObjectProperty(\"C3\"));";
                     }
                 }
-                , new Data() {
+                , new AxiomData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLFunctionalDataPropertyAxiom(df.getOWLDataProperty("P"));
@@ -583,7 +664,7 @@ public class DataFactoryTest {
                         return "df.getOWLFunctionalDataPropertyAxiom(df.getOWLDataProperty(\"P\"));";
                     }
                 }
-                , new Data() {
+                , new AxiomData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLFunctionalObjectPropertyAxiom(df.getOWLObjectProperty("P"));
@@ -594,7 +675,7 @@ public class DataFactoryTest {
                         return "df.getOWLFunctionalObjectPropertyAxiom(df.getOWLObjectProperty(\"P\"));";
                     }
                 }
-                , new Data() {
+                , new AxiomData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLInverseFunctionalObjectPropertyAxiom(df.getOWLObjectProperty("P"));
@@ -605,7 +686,7 @@ public class DataFactoryTest {
                         return "df.getOWLInverseFunctionalObjectPropertyAxiom(df.getOWLObjectProperty(\"P\"));";
                     }
                 }
-                , new Data() {
+                , new AxiomData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLIrreflexiveObjectPropertyAxiom(df.getOWLObjectProperty("P"));
@@ -616,7 +697,7 @@ public class DataFactoryTest {
                         return "df.getOWLIrreflexiveObjectPropertyAxiom(df.getOWLObjectProperty(\"P\"));";
                     }
                 }
-                , new Data() {
+                , new AxiomData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLNegativeDataPropertyAssertionAxiom(df.getOWLDataProperty("P"),
@@ -629,7 +710,7 @@ public class DataFactoryTest {
                                 "df.getOWLAnonymousIndividual(\"_:b0\"), df.getOWLLiteral(2));";
                     }
                 }
-                , new Data() {
+                , new AxiomData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLNegativeObjectPropertyAssertionAxiom(df.getOWLObjectProperty("P"),
@@ -642,7 +723,7 @@ public class DataFactoryTest {
                                 "df.getOWLAnonymousIndividual(\"_:b0\"), df.getOWLNamedIndividual(\"I\"));";
                     }
                 }
-                , new Data() {
+                , new AnonymousClass() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLObjectAllValuesFrom(df.getOWLObjectProperty("P"), df.getOWLClass("C"));
@@ -653,7 +734,7 @@ public class DataFactoryTest {
                         return "df.getOWLObjectAllValuesFrom(df.getOWLObjectProperty(\"P\"), df.getOWLClass(\"C\"));";
                     }
                 }
-                , new Data() {
+                , new AnonymousClass() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLObjectComplementOf(df.getOWLClass("C"));
@@ -664,7 +745,7 @@ public class DataFactoryTest {
                         return "df.getOWLObjectComplementOf(df.getOWLClass(\"C\"));";
                     }
                 }
-                , new Data() {
+                , new AnonymousClass() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLObjectExactCardinality(3, df.getOWLObjectProperty("P"), df.getOWLClass("C"));
@@ -676,7 +757,7 @@ public class DataFactoryTest {
                                 "df.getOWLObjectProperty(\"P\"), df.getOWLClass(\"C\"));";
                     }
                 }
-                , new Data() {
+                , new AnonymousClass() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLObjectExactCardinality(3, df.getOWLObjectProperty("P"), df.getOWLThing());
@@ -687,7 +768,7 @@ public class DataFactoryTest {
                         return "df.getOWLObjectExactCardinality(3, df.getOWLObjectProperty(\"P\"), df.getOWLThing());";
                     }
                 }
-                , new Data() {
+                , new AnonymousClass() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLObjectHasSelf(df.getOWLObjectProperty("P"));
@@ -698,7 +779,7 @@ public class DataFactoryTest {
                         return "df.getOWLObjectHasSelf(df.getOWLObjectProperty(\"P\"));";
                     }
                 }
-                , new Data() {
+                , new AnonymousClass() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLObjectHasValue(df.getOWLObjectProperty("P"), df.getOWLNamedIndividual("I"));
@@ -710,7 +791,7 @@ public class DataFactoryTest {
                                 "df.getOWLNamedIndividual(\"I\"));";
                     }
                 }
-                , new Data() {
+                , new AnonymousClass() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLObjectIntersectionOf(df.getOWLClass("A"), df.getOWLClass("B"), df.getOWLClass("C"));
@@ -722,7 +803,7 @@ public class DataFactoryTest {
                                 "df.getOWLClass(\"B\"), df.getOWLClass(\"C\"));";
                     }
                 }
-                , new Data() {
+                , new AnonymousClass() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLObjectMaxCardinality(3, df.getOWLObjectProperty("P"), df.getOWLClass("A"));
@@ -734,7 +815,7 @@ public class DataFactoryTest {
                                 "df.getOWLObjectProperty(\"P\"), df.getOWLClass(\"A\"));";
                     }
                 }
-                , new Data() {
+                , new AnonymousClass() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLObjectMaxCardinality(3, df.getOWLObjectProperty("P"), df.getOWLThing());
@@ -745,7 +826,7 @@ public class DataFactoryTest {
                         return "df.getOWLObjectMaxCardinality(3, df.getOWLObjectProperty(\"P\"), df.getOWLThing());";
                     }
                 }
-                , new Data() {
+                , new AnonymousClass() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLObjectMinCardinality(3, df.getOWLObjectProperty("P"), df.getOWLClass("A"));
@@ -757,7 +838,7 @@ public class DataFactoryTest {
                                 "df.getOWLObjectProperty(\"P\"), df.getOWLClass(\"A\"));";
                     }
                 }
-                , new Data() {
+                , new AnonymousClass() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLObjectMinCardinality(3, df.getOWLObjectProperty("P"), df.getOWLThing());
@@ -768,7 +849,7 @@ public class DataFactoryTest {
                         return "df.getOWLObjectMinCardinality(3, df.getOWLObjectProperty(\"P\"), df.getOWLThing());";
                     }
                 }
-                , new Data() {
+                , new AnonymousClass() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLObjectOneOf(df.getOWLNamedIndividual("A1"),
@@ -781,7 +862,7 @@ public class DataFactoryTest {
                                 "df.getOWLAnonymousIndividual(\"_:b0\"), df.getOWLNamedIndividual(\"C1\"));";
                     }
                 }
-                , new Data() {
+                , new AxiomData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLObjectPropertyAssertionAxiom(df.getOWLObjectProperty("P"),
@@ -794,7 +875,7 @@ public class DataFactoryTest {
                                 "df.getOWLAnonymousIndividual(\"_:b0\"), df.getOWLNamedIndividual(\"I\"));";
                     }
                 }
-                , new Data() {
+                , new AxiomData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLObjectPropertyDomainAxiom(df.getOWLObjectProperty("P"), df.getOWLClass("C"));
@@ -806,7 +887,7 @@ public class DataFactoryTest {
                                 "df.getOWLClass(\"C\"));";
                     }
                 }
-                , new Data() {
+                , new AxiomData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLObjectPropertyRangeAxiom(df.getOWLObjectProperty("P"), df.getOWLClass("P"));
@@ -818,7 +899,7 @@ public class DataFactoryTest {
                                 "df.getOWLClass(\"P\"));";
                     }
                 }
-                , new Data() {
+                , new AnonymousClass() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLObjectSomeValuesFrom(df.getOWLObjectProperty("P"), df.getOWLClass("C"));
@@ -829,7 +910,7 @@ public class DataFactoryTest {
                         return "df.getOWLObjectSomeValuesFrom(df.getOWLObjectProperty(\"P\"), df.getOWLClass(\"C\"));";
                     }
                 }
-                , new Data() {
+                , new AnonymousClass() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLObjectUnionOf(df.getOWLClass("A"), df.getOWLClass("B"), df.getOWLThing());
@@ -841,7 +922,7 @@ public class DataFactoryTest {
                                 "df.getOWLThing());";
                     }
                 }
-                , new Data() {
+                , new AxiomData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLReflexiveObjectPropertyAxiom(df.getOWLObjectProperty("P"));
@@ -852,7 +933,7 @@ public class DataFactoryTest {
                         return "df.getOWLReflexiveObjectPropertyAxiom(df.getOWLObjectProperty(\"P\"));";
                     }
                 }
-                , new Data() {
+                , new AxiomData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLSameIndividualAxiom(df.getOWLNamedIndividual("A1"),
@@ -865,7 +946,7 @@ public class DataFactoryTest {
                                 "df.getOWLAnonymousIndividual(\"_:b0\"), df.getOWLNamedIndividual(\"C1\"));";
                     }
                 }
-                , new Data() {
+                , new AxiomData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLSubDataPropertyOfAxiom(df.getOWLDataProperty("P"), df.getOWLDataProperty("P"));
@@ -877,7 +958,7 @@ public class DataFactoryTest {
                                 "df.getOWLDataProperty(\"P\"));";
                     }
                 }
-                , new Data() {
+                , new AxiomData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLSubObjectPropertyOfAxiom(df.getOWLObjectProperty("P"),
@@ -890,7 +971,7 @@ public class DataFactoryTest {
                                 "df.getOWLObjectProperty(\"P\"));";
                     }
                 }
-                , new Data() {
+                , new AxiomData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLSymmetricObjectPropertyAxiom(df.getOWLObjectProperty("P"));
@@ -901,7 +982,7 @@ public class DataFactoryTest {
                         return "df.getOWLSymmetricObjectPropertyAxiom(df.getOWLObjectProperty(\"P\"));";
                     }
                 }
-                , new Data() {
+                , new AxiomData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLTransitiveObjectPropertyAxiom(df.getOWLObjectProperty("P"));
@@ -912,7 +993,7 @@ public class DataFactoryTest {
                         return "df.getOWLTransitiveObjectPropertyAxiom(df.getOWLObjectProperty(\"P\"));";
                     }
                 }
-                , new Data() {
+                , new AxiomData() {
                     @Override
                     public String toString() {
                         return "SWRLRule Test";
@@ -930,7 +1011,7 @@ public class DataFactoryTest {
                         return df.getSWRLRule(body, head);
                     }
                 }
-                , new Data() {
+                , new AxiomData() {
                     @Override
                     public String toString() {
                         return "SWRLRule with Annotations Test";
@@ -951,7 +1032,7 @@ public class DataFactoryTest {
                         return df.getSWRLRule(body, head, annotations);
                     }
                 }
-                , new Data() {
+                , new EntityData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getBooleanOWLDatatype();
@@ -972,7 +1053,7 @@ public class DataFactoryTest {
                         return true;
                     }
                 }
-                , new Data() {
+                , new EntityData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getDoubleOWLDatatype();
@@ -993,7 +1074,7 @@ public class DataFactoryTest {
                         return true;
                     }
                 }
-                , new Data() {
+                , new EntityData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getFloatOWLDatatype();
@@ -1014,7 +1095,7 @@ public class DataFactoryTest {
                         return true;
                     }
                 }
-                , new Data() {
+                , new EntityData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLBackwardCompatibleWith();
@@ -1030,7 +1111,7 @@ public class DataFactoryTest {
                         return true;
                     }
                 }
-                , new Data() {
+                , new EntityData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLBottomDataProperty();
@@ -1046,7 +1127,7 @@ public class DataFactoryTest {
                         return true;
                     }
                 }
-                , new Data() {
+                , new EntityData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLBottomObjectProperty();
@@ -1062,7 +1143,7 @@ public class DataFactoryTest {
                         return true;
                     }
                 }
-                , new Data() {
+                , new EntityData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLDeprecated();
@@ -1078,7 +1159,7 @@ public class DataFactoryTest {
                         return true;
                     }
                 }
-                , new Data() {
+                , new EntityData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLIncompatibleWith();
@@ -1094,7 +1175,7 @@ public class DataFactoryTest {
                         return true;
                     }
                 }
-                , new Data() {
+                , new EntityData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLNothing();
@@ -1110,7 +1191,7 @@ public class DataFactoryTest {
                         return true;
                     }
                 }
-                , new Data() {
+                , new EntityData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLThing();
@@ -1126,7 +1207,7 @@ public class DataFactoryTest {
                         return true;
                     }
                 }
-                , new Data() {
+                , new EntityData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLTopDataProperty();
@@ -1142,7 +1223,7 @@ public class DataFactoryTest {
                         return true;
                     }
                 }
-                , new Data() {
+                , new EntityData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLTopObjectProperty();
@@ -1158,7 +1239,7 @@ public class DataFactoryTest {
                         return true;
                     }
                 }
-                , new Data() {
+                , new EntityData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLVersionInfo();
@@ -1174,7 +1255,7 @@ public class DataFactoryTest {
                         return true;
                     }
                 }
-                , new Data() {
+                , new EntityData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getRDFPlainLiteral();
@@ -1195,7 +1276,7 @@ public class DataFactoryTest {
                         return true;
                     }
                 }
-                , new Data() {
+                , new EntityData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getRDFSIsDefinedBy();
@@ -1211,7 +1292,7 @@ public class DataFactoryTest {
                         return true;
                     }
                 }
-                , new Data() {
+                , new EntityData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getRDFSLabel();
@@ -1227,7 +1308,7 @@ public class DataFactoryTest {
                         return true;
                     }
                 }
-                , new Data() {
+                , new EntityData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getRDFSSeeAlso();
@@ -1243,7 +1324,7 @@ public class DataFactoryTest {
                         return true;
                     }
                 }
-                , new Data() {
+                , new EntityData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getTopDatatype();

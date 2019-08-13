@@ -21,6 +21,10 @@ import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.owlapi.OWLObjectImpl;
 
 import javax.annotation.Nullable;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.lang.reflect.Field;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -34,7 +38,7 @@ import java.util.Set;
  */
 public class OWLAnonymousIndividualImpl extends OWLObjectImpl implements OWLAnonymousIndividual, FrontsNode {
 
-    protected final BlankNodeId id;
+    protected transient final BlankNodeId id;
 
     /**
      * @param nodeID node id
@@ -164,5 +168,19 @@ public class OWLAnonymousIndividualImpl extends OWLObjectImpl implements OWLAnon
             return asNode().equals(((FrontsNode) obj).asNode());
         }
         return super.equals(obj);
+    }
+
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
+        out.writeObject(id.getLabelString());
+    }
+
+    private void readObject(ObjectInputStream in) throws Exception {
+        in.defaultReadObject();
+        BlankNodeId id = BlankNodeId.create((String) in.readObject());
+        Field field = getClass().getDeclaredField("id");
+        field.setAccessible(true);
+        field.set(this, id);
+        field.setAccessible(false);
     }
 }

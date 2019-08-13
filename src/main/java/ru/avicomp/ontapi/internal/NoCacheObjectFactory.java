@@ -130,7 +130,6 @@ public class NoCacheObjectFactory implements InternalObjectFactory {
 
     @Override
     public ONTObject<? extends OWLIndividual> get(OntIndividual individual) {
-        DataFactory df = getOWLDataFactory();
         if (OntApiException.notNull(individual, "Null individual").isURIResource()) {
             return get(individual.as(OntIndividual.Named.class));
         }
@@ -179,7 +178,6 @@ public class NoCacheObjectFactory implements InternalObjectFactory {
         throw new OntApiException("Not an AnnotationSubject " + subject);
     }
 
-    @SuppressWarnings("unchecked")
     public ONTObject<OWLAnonymousIndividual> getAnonymous(OntIndividual.Anonymous individual) {
         return get(individual);
     }

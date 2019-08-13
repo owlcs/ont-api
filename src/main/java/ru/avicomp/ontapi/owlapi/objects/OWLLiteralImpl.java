@@ -32,7 +32,11 @@ import ru.avicomp.ontapi.owlapi.OWLObjectImpl;
 import ru.avicomp.ontapi.owlapi.objects.entity.OWLDatatypeImpl;
 
 import javax.annotation.Nullable;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.lang.ref.SoftReference;
+import java.lang.reflect.Field;
 import java.util.*;
 
 /**
@@ -60,7 +64,8 @@ public class OWLLiteralImpl extends OWLObjectImpl implements OWLLiteral, FrontsN
         }
     });
     protected static TypeMapper typeMapper = TypeMapper.getInstance();
-    protected final LiteralLabel label;
+
+    protected transient final LiteralLabel label;
     private transient SoftReference<OWLDatatype> owlDatatypeRef;
 
     protected OWLLiteralImpl(LiteralLabel label) {
@@ -260,12 +265,21 @@ public class OWLLiteralImpl extends OWLObjectImpl implements OWLLiteral, FrontsN
      * @return {@link OWLLiteralImpl}
      */
     public static OWLLiteralImpl newLiteral(String txt, String lang, OWLDatatype owl) {
-        String uri = owl.getIRI().getIRIString();
-        RDFDatatype dt = typeMapper.getTypeByName(uri);
-        if (dt == null) { // do not litter the global manager:
-            dt = new BaseDatatype(uri);
+        return newLiteral(txt, lang, getRDFDatatype(owl.getIRI().getIRIString())).putOWLDatatype(owl);
+    }
+
+    /**
+     * Gets the {@link RDFDatatype} for the given {@code uri}.
+     *
+     * @param uri String, not {@code null}
+     * @return {@link RDFDatatype}
+     */
+    public static RDFDatatype getRDFDatatype(String uri) {
+        RDFDatatype res = typeMapper.getTypeByName(uri);
+        if (res == null) { // do not litter the global manager:
+            res = new BaseDatatype(uri);
         }
-        return newLiteral(txt, lang, dt).putOWLDatatype(owl);
+        return res;
     }
 
     /**
@@ -598,5 +612,24 @@ public class OWLLiteralImpl extends OWLObjectImpl implements OWLLiteral, FrontsN
             return asNode().equals(((FrontsNode) obj).asNode());
         }
         return super.equals(obj);
+    }
+
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        out.defaultWriteObject();
+        out.writeObject(label.getDatatypeURI());
+        out.writeObject(label.language());
+        out.writeObject(label.getLexicalForm());
+    }
+
+    private void readObject(ObjectInputStream in) throws Exception {
+        in.defaultReadObject();
+        String uri = (String) in.readObject();
+        String lang = (String) in.readObject();
+        String value = (String) in.readObject();
+        LiteralLabel label = LiteralLabelFactory.createByValue(value, lang, getRDFDatatype(uri));
+        Field field = getClass().getDeclaredField("label");
+        field.setAccessible(true);
+        field.set(this, label);
+        field.setAccessible(false);
     }
 }
