@@ -43,6 +43,7 @@ import java.util.stream.Stream;
  * @param <ONT> any subtype of {@link OntCE}
  * @param <OWL> any subtype of {@link OWLAnonymousClassExpression}
  * @see ru.avicomp.ontapi.owlapi.objects.ce.OWLAnonymousClassExpressionImpl
+ * @see ONTClassImpl
  * @see ru.avicomp.ontapi.internal.ReadHelper#calcClassExpression(OntCE, InternalObjectFactory, Set)
  * @see OntCE
  * @see OntClass

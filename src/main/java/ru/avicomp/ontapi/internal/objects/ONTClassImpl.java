@@ -22,7 +22,7 @@ import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -32,6 +32,7 @@ import java.util.stream.Stream;
  * Created by @ssz on 07.08.2019.
  *
  * @see ru.avicomp.ontapi.owlapi.objects.entity.OWLClassImpl
+ * @see ONTAnonymousClassExpressionImpl
  * @since 1.4.3
  */
 public class ONTClassImpl extends ONTEntityImpl implements OWLClass, ONTObject<OWLClass> {
@@ -67,7 +68,7 @@ public class ONTClassImpl extends ONTEntityImpl implements OWLClass, ONTObject<O
 
     @Override
     protected Set<OWLClassExpression> getClassExpressionSet() {
-        return createSet();
+        return createSet(this);
     }
 
     @Override
@@ -96,7 +97,7 @@ public class ONTClassImpl extends ONTEntityImpl implements OWLClass, ONTObject<O
     }
 
     @Override
-    public boolean containsConjunct(@Nonnull OWLClassExpression ce) {
+    public boolean containsConjunct(@Nullable OWLClassExpression ce) {
         return equals(ce);
     }
 

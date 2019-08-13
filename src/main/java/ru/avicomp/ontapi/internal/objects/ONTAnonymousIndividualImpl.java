@@ -30,6 +30,7 @@ import java.io.NotSerializableException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -67,6 +68,11 @@ public class ONTAnonymousIndividualImpl extends OWLAnonymousIndividualImpl
     @Override
     public Stream<Triple> triples() {
         return Stream.empty();
+    }
+
+    @Override
+    protected Set<OWLAnonymousIndividual> getAnonymousIndividualSet() {
+        return createSet(this);
     }
 
     private void writeObject(ObjectOutputStream out) throws IOException {

@@ -110,7 +110,7 @@ public class DataFactoryTest {
             expectedTopEntity = false;
         }
         final boolean expectedAxiom = data.isAxiom();
-        if (data.isAxiom()) {
+        if (expectedAxiom) {
             Assert.assertTrue(object instanceof OWLAxiom);
             Assert.assertFalse(object instanceof OWLEntity);
             Assert.assertFalse(object instanceof OWLIndividual);
@@ -120,7 +120,14 @@ public class DataFactoryTest {
             Assert.assertFalse(object instanceof OWLAxiom);
         }
 
-        final boolean expectedIndividual = object instanceof OWLIndividual;
+        final boolean expectedIndividual = data.isIndividual();
+        if (expectedIndividual) {
+            Assert.assertTrue(object instanceof OWLIndividual);
+            Assert.assertFalse(object instanceof OWLDataRange);
+            Assert.assertFalse(object instanceof OWLClassExpression);
+        } else {
+            Assert.assertFalse(object instanceof OWLIndividual);
+        }
         if (object instanceof OWLLiteral) {
             Assert.assertFalse(object instanceof OWLEntity);
             Assert.assertFalse(object instanceof OWLAxiom);
@@ -171,10 +178,26 @@ public class DataFactoryTest {
         }
 
         default void assertCheckDifferentObjects(OWLObject expected, OWLObject actual) {
+            assertCheckNotSame(expected, actual);
+            assertCheckHashCode(expected, actual);
+            assertCheckEquals(expected, actual);
+            assertCheckToString(expected, actual);
+        }
+
+        default void assertCheckNotSame(OWLObject expected, OWLObject actual) {
             Assert.assertNotSame(expected, actual);
-            Assert.assertEquals("'" + expected + "': wrong hashcode", expected.hashCode(), actual.hashCode());
+        }
+
+        default void assertCheckEquals(OWLObject expected, OWLObject actual) {
             Assert.assertEquals("'" + expected + "': not equal", expected, actual);
+        }
+
+        default void assertCheckToString(OWLObject expected, OWLObject actual) {
             Assert.assertEquals("'" + expected + "': wrong toString", expected.toString(), actual.toString());
+        }
+
+        default void assertCheckHashCode(OWLObject expected, OWLObject actual) {
+            Assert.assertEquals("'" + expected + "': wrong hashcode", expected.hashCode(), actual.hashCode());
         }
 
         default void testCompare(OWLObject expected, OWLObject actual) {
@@ -204,6 +227,10 @@ public class DataFactoryTest {
         default boolean isAnonymousIndividual() {
             return false;
         }
+
+        default boolean isIndividual() {
+            return false;
+        }
     }
 
     public interface AxiomData extends Data {
@@ -220,9 +247,21 @@ public class DataFactoryTest {
         }
     }
 
+    public interface NamedIndividual extends EntityData {
+        @Override
+        default boolean isIndividual() {
+            return true;
+        }
+    }
+
     public interface AnonymousIndividual extends Data {
         @Override
         default boolean isAnonymousIndividual() {
+            return true;
+        }
+
+        @Override
+        default boolean isIndividual() {
             return true;
         }
     }
@@ -325,7 +364,7 @@ public class DataFactoryTest {
                         return "df.getOWLAnnotationProperty(IRI.create(\"A\"));";
                     }
                 }
-                , new EntityData() {
+                , new NamedIndividual() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLNamedIndividual(IRI.create("I"));
