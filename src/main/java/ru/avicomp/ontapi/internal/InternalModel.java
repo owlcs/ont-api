@@ -293,6 +293,11 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         return new SearchModel(getGraph(), getOntPersonality(), getConfig()) {
 
             @Override
+            public String toString() {
+                return String.format("[SearchModel]%s", getID());
+            }
+
+            @Override
             public InternalObjectFactory getObjectFactory() {
                 return InternalModel.this.getObjectFactory();
             }

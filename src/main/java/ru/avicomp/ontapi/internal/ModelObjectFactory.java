@@ -43,6 +43,14 @@ public class ModelObjectFactory extends NoCacheObjectFactory {
         this.model = Objects.requireNonNull(model);
     }
 
+    @SuppressWarnings("unchecked")
+    @Override
+    public ONTObject<? extends OWLClassExpression> get(OntCE ce) {
+        if (ce.isURIResource())
+            return get((OntClass) ce);
+        return (ONTObject<? extends OWLClassExpression>) ONTAnonymousClassExpressionImpl.create(ce, model);
+    }
+
     @Override
     public ONTObject<OWLClass> get(OntClass ce) {
         return getClass(ce.getURI());

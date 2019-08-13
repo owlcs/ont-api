@@ -67,10 +67,16 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
      * @param model a provider of non-null {@link OntGraphModel}, not {@code null}
      * @return {@link ONTAnonymousClassExpressionImpl} instance
      */
+    @SuppressWarnings("unchecked")
     public static ONTAnonymousClassExpressionImpl create(OntCE ce, Supplier<OntGraphModel> model) {
         Class<? extends OntCE> type = OntModels.getOntType(ce);
         BlankNodeId id = ce.asNode().getBlankNodeId();
-        return create(id, type, model);
+        ONTAnonymousClassExpressionImpl res = create(id, type, model);
+        // since we have already type information
+        // we can forcibly load the cache to reduce graph traversal operations
+        // (otherwise this type information will be collected again on demand, which means double-work):
+        res.cache.put(res, res.collectContent(ce, res.getObjectFactory()));
+        return res;
     }
 
     /**

@@ -300,7 +300,9 @@ public interface InternalCache<K, V> {
                 if (value != null) return value;
                 synchronized (this) {
                     if (value != null) return value;
-                    return value = loader.apply(key);
+                    V res;
+                    put(key, res = loader.apply(key));
+                    return res;
                 }
             }
 
@@ -312,6 +314,11 @@ public interface InternalCache<K, V> {
             @Override
             public void clear() {
                 value = null;
+            }
+
+            @Override
+            public void put(K key, V value) {
+                this.value = Objects.requireNonNull(value);
             }
 
             @Override
@@ -344,7 +351,7 @@ public interface InternalCache<K, V> {
                 if (value != null && (res = value.get()) != null) return res;
                 synchronized (this) {
                     if (value != null && (res = value.get()) != null) return res;
-                    value = new SoftReference<>(res = loader.apply(key));
+                    put(key, res = loader.apply(key));
                     return res;
                 }
             }
@@ -357,6 +364,11 @@ public interface InternalCache<K, V> {
             @Override
             public void clear() {
                 value = null;
+            }
+
+            @Override
+            public void put(K key, V value) {
+                this.value = new SoftReference<>(Objects.requireNonNull(value));
             }
 
             @Override
@@ -413,6 +425,17 @@ public interface InternalCache<K, V> {
         }
 
         /**
+         * Puts the {@code key}-{@code value} pair into the cache.
+         * The previously associated pair will be discarded.
+         *
+         * @param key   {@link K}, not {@code null}
+         * @param value {@link V}, not {@code null}
+         */
+        default void put(K key, V value) {
+            asCache().put(key, value);
+        }
+
+        /**
          * Answers {@code true} if the cache is empty.
          *
          * @return boolean
@@ -420,6 +443,7 @@ public interface InternalCache<K, V> {
         default boolean isEmpty() {
             return asCache().isEmpty();
         }
+
     }
 
     /**
