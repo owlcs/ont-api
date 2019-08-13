@@ -978,13 +978,15 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
             Set<Triple> used = new HashSet<>();
             used.addAll(getUsedAxiomTriples(m, container));
             used.addAll(getUsedComponentTriples(m, container));
+            // remove related components from the objects cache
+            // (even there is no graph changes);
+            // do it before graph modification since ONTObject's may rely on graph
+            clearComponents(container);
+            // physically delete triples:
             Graph g = m.getBaseGraph();
             long size = g.size();
             g.find().filterDrop(used::contains).forEachRemaining(this::delete);
             boolean res = size != g.size();
-            // remove related components from the objects cache
-            // (even there is no graph changes)
-            clearComponents(container);
             // clear search model and object factory
             clearOtherCaches();
             return res;

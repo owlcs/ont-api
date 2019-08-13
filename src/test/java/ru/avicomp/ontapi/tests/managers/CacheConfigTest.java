@@ -321,7 +321,7 @@ public class CacheConfigTest {
         int count2_2 = g2.getFindPatterns().size();
         LOGGER.debug("3) Find invocation count: {}", count2_2);
         // currently components cache uses content cache in any case -> no read operations, count is same
-        Assert.assertEquals(count2_2, count2_1);
+        Assert.assertEquals(count2_1, count2_2);
     }
 
     @SuppressWarnings("unchecked")

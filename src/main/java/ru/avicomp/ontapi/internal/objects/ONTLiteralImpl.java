@@ -42,7 +42,6 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("WeakerAccess")
 public class ONTLiteralImpl extends OWLLiteralImpl implements OWLLiteral, ONTObject<OWLLiteral>, HasObjectFactory {
-    private static final long serialVersionUID = 3145008815239693328L;
 
     protected final Supplier<OntGraphModel> model;
 

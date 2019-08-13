@@ -135,8 +135,8 @@ public class DataFactoryTest {
         Assert.assertEquals("'" + object + "' must be anonymous expression", expectedAnonymousExpression,
                 object.isAnonymousExpression());
 
-        Assert.assertFalse("'" + object + "' must be IRI", object.isIRI());
-        Assert.assertFalse("'" + object + "' must be Ontology", object.isOntology());
+        Assert.assertFalse("'" + object + "' must not be IRI", object.isIRI());
+        Assert.assertFalse("'" + object + "' must not be Ontology", object.isOntology());
 
         Assert.assertEquals("'" + object + "' must be bottom entity", expectedBottomEntity, object.isBottomEntity());
         Assert.assertEquals("'" + object + "' must be top entity", expectedTopEntity, object.isTopEntity());

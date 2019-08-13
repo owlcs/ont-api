@@ -36,7 +36,6 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("WeakerAccess")
 public abstract class ONTResourceImpl extends OWLObjectImpl implements OWLObject, HasObjectFactory, FrontsNode {
-    private static final long serialVersionUID = 1142247905809986910L;
 
     protected final Object node;
     protected final Supplier<OntGraphModel> model;

@@ -31,7 +31,6 @@ import java.util.function.Supplier;
  * @since 1.4.3
  */
 public class ONTDataPropertyImpl extends ONTEntityImpl implements OWLDataProperty, ONTObject<OWLDataProperty> {
-    private static final long serialVersionUID = -6784593419262928324L;
 
     public ONTDataPropertyImpl(String uri, Supplier<OntGraphModel> m) {
         super(uri, m);

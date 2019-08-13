@@ -33,7 +33,6 @@ import java.util.function.Supplier;
  */
 @SuppressWarnings("WeakerAccess")
 public abstract class ONTEntityImpl extends ONTResourceImpl implements OWLEntity {
-    private static final long serialVersionUID = -4341538961681314285L;
 
     protected ONTEntityImpl(String uri, Supplier<OntGraphModel> m) {
         super(uri, m);

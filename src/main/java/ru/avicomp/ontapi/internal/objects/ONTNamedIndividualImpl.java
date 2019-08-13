@@ -30,7 +30,6 @@ import java.util.function.Supplier;
  * @since 1.4.3
  */
 public class ONTNamedIndividualImpl extends ONTEntityImpl implements OWLNamedIndividual, ONTObject<OWLNamedIndividual> {
-    private static final long serialVersionUID = 5834600154698509725L;
 
     public ONTNamedIndividualImpl(String uri, Supplier<OntGraphModel> m) {
         super(uri, m);

@@ -38,7 +38,6 @@ import java.util.stream.Stream;
  */
 public class ONTAnonymousIndividualImpl extends OWLAnonymousIndividualImpl
         implements OWLAnonymousIndividual, HasObjectFactory, ONTObject<OWLAnonymousIndividual> {
-    private static final long serialVersionUID = -6257602148537405550L;
 
     protected final Supplier<OntGraphModel> model;
 

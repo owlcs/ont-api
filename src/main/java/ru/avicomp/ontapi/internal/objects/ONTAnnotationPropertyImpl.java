@@ -32,7 +32,6 @@ import java.util.function.Supplier;
  * @since 1.4.3
  */
 public class ONTAnnotationPropertyImpl extends ONTEntityImpl implements OWLAnnotationProperty, ONTObject<OWLAnnotationProperty> {
-    private static final long serialVersionUID = -1244023968526261013L;
 
     public ONTAnnotationPropertyImpl(String uri, Supplier<OntGraphModel> m) {
         super(uri, m);

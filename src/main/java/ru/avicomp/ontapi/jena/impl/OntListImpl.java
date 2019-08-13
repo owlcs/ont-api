@@ -421,7 +421,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
 
     @Override
     public Stream<E> members() {
-        return Iter.asStream(listMembers());
+        return Iter.asStream(listMembers(), Spliterator.NONNULL | Spliterator.ORDERED);
     }
 
     /**

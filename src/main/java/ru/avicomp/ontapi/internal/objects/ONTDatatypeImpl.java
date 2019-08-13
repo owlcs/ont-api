@@ -35,7 +35,6 @@ import java.util.function.Supplier;
  * @since 1.4.3
  */
 public class ONTDatatypeImpl extends ONTEntityImpl implements OWLDatatype, ONTObject<OWLDatatype> {
-    private static final long serialVersionUID = 2080133740943333721L;
 
     public ONTDatatypeImpl(String uri, Supplier<OntGraphModel> m) {
         super(uri, m);

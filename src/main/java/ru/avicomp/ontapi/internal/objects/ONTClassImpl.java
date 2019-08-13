@@ -35,7 +35,6 @@ import java.util.stream.Stream;
  * @since 1.4.3
  */
 public class ONTClassImpl extends ONTEntityImpl implements OWLClass, ONTObject<OWLClass> {
-    private static final long serialVersionUID = -6261854656265706321L;
 
     public ONTClassImpl(String uri, Supplier<OntGraphModel> m) {
         super(uri, m);

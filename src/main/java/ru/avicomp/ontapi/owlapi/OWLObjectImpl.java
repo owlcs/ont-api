@@ -19,8 +19,8 @@ import org.semanticweb.owlapi.util.OWLClassExpressionCollector;
 import org.semanticweb.owlapi.util.OWLEntityCollector;
 import org.semanticweb.owlapi.util.SimpleRenderer;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Stream;
@@ -31,6 +31,7 @@ import java.util.stream.Stream;
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
  * @since 1.2.0
  */
+@ParametersAreNonnullByDefault
 @SuppressWarnings("WeakerAccess")
 public abstract class OWLObjectImpl implements OWLObject, Serializable {
 
@@ -42,7 +43,7 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
      */
     protected static final Set<OWLAnnotation> NO_ANNOTATIONS = Collections.emptySet();
 
-    protected int hashCode = 0;
+    protected int hashCode;
 
     /**
      * Check iterator contents for equality (sensitive to order).
@@ -139,17 +140,28 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
     }
 
     /**
-     * Creates a sorted empty {@code Set}.
+     * Creates an empty sorted {@code Set}.
      *
      * @param <X> subtype of {@link Comparable}
      * @return a {@code Set}
      */
-    private <X extends Comparable> Set<X> createSortedSet() {
+    protected <X extends Comparable> Set<X> createSortedSet() {
         return new TreeSet<>();
     }
 
+    /**
+     * Creates an empty sorted {@code Set} with the given {@code comparator}.
+     *
+     * @param comparator {@link Comparator} for {@link X}
+     * @param <X>        anything
+     * @return a {@code Set}
+     */
+    protected <X> Set<X> createSortedSet(Comparator<X> comparator) {
+        return new TreeSet<>(comparator);
+    }
+
     @Override
-    public boolean containsEntityInSignature(OWLEntity entity) {
+    public boolean containsEntityInSignature(@Nullable OWLEntity entity) {
         return getSignatureSet().contains(entity);
     }
 
@@ -260,7 +272,7 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
         Set<OWLClass> res = createSortedSet();
         accept(new AbstractCollectorEx<OWLClass>(res) {
             @Override
-            public Collection<OWLClass> visit(@Nonnull OWLClass clazz) {
+            public Collection<OWLClass> visit(OWLClass clazz) {
                 objects.add(clazz);
                 return objects;
             }
@@ -276,7 +288,7 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
         Set<OWLNamedIndividual> res = createSortedSet();
         accept(new AbstractCollectorEx<OWLNamedIndividual>(res) {
             @Override
-            public Collection<OWLNamedIndividual> visit(@Nonnull OWLNamedIndividual individual) {
+            public Collection<OWLNamedIndividual> visit(OWLNamedIndividual individual) {
                 objects.add(individual);
                 return objects;
             }
@@ -288,7 +300,7 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
         Set<OWLAnonymousIndividual> res = createSortedSet();
         accept(new AbstractCollectorEx<OWLAnonymousIndividual>(res) {
             @Override
-            public Collection<OWLAnonymousIndividual> visit(@Nonnull OWLAnonymousIndividual individual) {
+            public Collection<OWLAnonymousIndividual> visit(OWLAnonymousIndividual individual) {
                 objects.add(individual);
                 return objects;
             }
@@ -300,7 +312,7 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
         Set<OWLDatatype> res = createSortedSet();
         accept(new AbstractCollectorEx<OWLDatatype>(res) {
             @Override
-            public Collection<OWLDatatype> visit(@Nonnull OWLDatatype datatype) {
+            public Collection<OWLDatatype> visit(OWLDatatype datatype) {
                 objects.add(datatype);
                 return objects;
             }
@@ -312,7 +324,7 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
         Set<OWLObjectProperty> res = createSortedSet();
         accept(new AbstractCollectorEx<OWLObjectProperty>(res) {
             @Override
-            public Collection<OWLObjectProperty> visit(@Nonnull OWLObjectProperty property) {
+            public Collection<OWLObjectProperty> visit(OWLObjectProperty property) {
                 objects.add(property);
                 return objects;
             }
@@ -324,7 +336,7 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
         Set<OWLDataProperty> res = createSortedSet();
         accept(new AbstractCollectorEx<OWLDataProperty>(res) {
             @Override
-            public Collection<OWLDataProperty> visit(@Nonnull OWLDataProperty property) {
+            public Collection<OWLDataProperty> visit(OWLDataProperty property) {
                 objects.add(property);
                 return objects;
             }
@@ -336,7 +348,7 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
         Set<OWLAnnotationProperty> res = createSortedSet();
         accept(new AbstractCollectorEx<OWLAnnotationProperty>(res) {
             @Override
-            public Collection<OWLAnnotationProperty> visit(@Nonnull OWLAnnotationProperty property) {
+            public Collection<OWLAnnotationProperty> visit(OWLAnnotationProperty property) {
                 objects.add(property);
                 return objects;
             }
