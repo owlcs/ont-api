@@ -212,6 +212,15 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
      */
     protected abstract Object[] collectContent(ONT ce, InternalObjectFactory of);
 
+    /**
+     * Gets the content from cache.
+     *
+     * @return {@code Array} of {@code Object}s
+     */
+    protected Object[] getContent() {
+        return cache.get(this);
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     public OWL getObject() {
@@ -298,14 +307,15 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         if (typeIndex() != clazz.typeIndex()) {
             return false;
         }
-        if (clazz instanceof ONTResourceImpl) {
-            ONTResourceImpl other = (ONTResourceImpl) clazz;
+        if (clazz instanceof ONTAnonymousClassExpressionImpl) {
+            ONTAnonymousClassExpressionImpl other = (ONTAnonymousClassExpressionImpl) clazz;
             if (notSame(other)) {
                 return false;
             }
             if (node.equals(other.node)) {
                 return true;
             }
+            return Arrays.equals(getContent(), other.getContent());
         }
         if (hashCode() != clazz.hashCode()) {
             return false;
@@ -410,7 +420,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         @SuppressWarnings("unchecked")
         public ONTObject<? extends OWLDataRange> getONTDataRange() {
             // [property, filler]
-            return (ONTObject<? extends OWLDataRange>) cache.get(this)[1];
+            return (ONTObject<? extends OWLDataRange>) getContent()[1];
         }
 
         @Override
@@ -445,7 +455,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         @SuppressWarnings("unchecked")
         public ONTObject<? extends OWLDataRange> getONTClassExpression() {
             // [property, filler]
-            return (ONTObject<? extends OWLDataRange>) cache.get(this)[1];
+            return (ONTObject<? extends OWLDataRange>) getContent()[1];
         }
 
         @Override
@@ -491,7 +501,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         @SuppressWarnings("unchecked")
         public ONTObject<? extends OWLIndividual> getONTIndividual() {
             // [property, filler]
-            return (ONTObject<? extends OWLIndividual>) cache.get(this)[1];
+            return (ONTObject<? extends OWLIndividual>) getContent()[1];
         }
 
         @Override
@@ -537,7 +547,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         @SuppressWarnings("unchecked")
         public ONTObject<OWLLiteral> getONTLiteral() {
             // [property, filler]
-            return (ONTObject<OWLLiteral>) cache.get(this)[1];
+            return (ONTObject<OWLLiteral>) getContent()[1];
         }
 
         @Override
@@ -821,7 +831,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
 
         @SuppressWarnings("unchecked")
         protected ONTObject<? extends OWLClassExpression> getONTClassExpression() {
-            return (ONTObject<? extends OWLClassExpression>) cache.get(this)[0];
+            return (ONTObject<? extends OWLClassExpression>) getContent()[0];
         }
 
         @Override
@@ -881,7 +891,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
 
         @SuppressWarnings("unchecked")
         public List<ONTObject<? extends OWL_M>> getOWLMembers() {
-            List res = Arrays.asList(cache.get(this));
+            List res = Arrays.asList(getContent());
             return (List<ONTObject<? extends OWL_M>>) res;
         }
 
@@ -914,7 +924,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
 
         public int getCardinality() {
             // [property, cardinality, filler]
-            return (int) cache.get(this)[1];
+            return (int) getContent()[1];
         }
 
         @Override
@@ -939,7 +949,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         @SuppressWarnings("unchecked")
         public ONTObject<? extends OWLDataRange> getONTDataRange() {
             // [property, cardinality, filler] or [property, filler]
-            Object[] array = cache.get(this);
+            Object[] array = getContent();
             return (ONTObject<? extends OWLDataRange>) array[array.length - 1];
         }
 
@@ -970,7 +980,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         @SuppressWarnings("unchecked")
         public ONTObject<OWLDataProperty> getONTDataProperty() {
             // [property, cardinality, filler] or [property, filler] or [property]
-            return (ONTObject<OWLDataProperty>) cache.get(this)[0];
+            return (ONTObject<OWLDataProperty>) getContent()[0];
         }
 
         @Override
@@ -994,7 +1004,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
 
         public int getCardinality() {
             // [property, cardinality, filler]
-            return (int) cache.get(this)[1];
+            return (int) getContent()[1];
         }
 
         @Override
@@ -1019,7 +1029,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         @SuppressWarnings("unchecked")
         public ONTObject<? extends OWLClassExpression> getONTClassExpression() {
             // [property, cardinality, filler] or [property, filler]
-            Object[] array = cache.get(this);
+            Object[] array = getContent();
             return (ONTObject<? extends OWLClassExpression>) array[array.length - 1];
         }
 
@@ -1054,7 +1064,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         @SuppressWarnings("unchecked")
         public ONTObject<? extends OWLObjectPropertyExpression> getONTObjectPropertyExpression() {
             // [property, cardinality, filler] or [property, filler] or [property]
-            return (ONTObject<? extends OWLObjectPropertyExpression>) cache.get(this)[0];
+            return (ONTObject<? extends OWLObjectPropertyExpression>) getContent()[0];
         }
 
         @Override

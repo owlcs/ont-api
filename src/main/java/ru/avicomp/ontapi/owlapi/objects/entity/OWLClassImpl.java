@@ -13,6 +13,7 @@
  */
 package ru.avicomp.ontapi.owlapi.objects.entity;
 
+import org.apache.jena.rdf.model.Resource;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
@@ -42,6 +43,17 @@ public class OWLClassImpl extends OWLObjectImpl implements OWLClass, Serializabl
         this.iri = Objects.requireNonNull(iri, "iri cannot be null");
         isThing = getIRI().isThing();
         isNothing = getIRI().isNothing();
+    }
+
+    /**
+     * Creates an {@link OWLClass} instance using the {@link Resource} reference.
+     *
+     * @param r {@link Resource}, not {@code null}
+     * @return {@link OWLClass}
+     * @throws NullPointerException if incorrect input
+     */
+    public static OWLClass fromResource(Resource r) {
+        return new OWLClassImpl(IRI.create(Objects.requireNonNull(r.getURI(), "Not URI: " + r)));
     }
 
     @Override

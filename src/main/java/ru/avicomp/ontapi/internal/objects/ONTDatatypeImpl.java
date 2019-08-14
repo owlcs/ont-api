@@ -32,6 +32,7 @@ import java.util.function.Supplier;
  * Created by @ssz on 09.08.2019.
  *
  * @see ru.avicomp.ontapi.owlapi.objects.entity.OWLDatatypeImpl
+ * @see ru.avicomp.ontapi.owlapi.objects.entity.OWLBuiltinDatatypeImpl
  * @since 1.4.3
  */
 public class ONTDatatypeImpl extends ONTEntityImpl implements OWLDatatype, ONTObject<OWLDatatype> {
@@ -58,7 +59,7 @@ public class ONTDatatypeImpl extends ONTEntityImpl implements OWLDatatype, ONTOb
     @Override
     public OWL2Datatype getBuiltInDatatype() {
         if (!isBuiltIn()) {
-            throw new OntApiException(getIRI() + " is not a built in datatype.");
+            throw new OntApiException(this + " is not a built in datatype.");
         }
         return OWL2Datatype.getDatatype(getIRI());
     }

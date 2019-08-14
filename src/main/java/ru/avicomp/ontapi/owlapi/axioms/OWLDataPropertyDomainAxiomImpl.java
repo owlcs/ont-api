@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,14 +14,12 @@
 package ru.avicomp.ontapi.owlapi.axioms;
 
 import org.semanticweb.owlapi.model.*;
-import ru.avicomp.ontapi.owlapi.OWL2DatatypeImpl;
+import ru.avicomp.ontapi.owlapi.InternalizedEntities;
 import ru.avicomp.ontapi.owlapi.objects.ce.OWLDataSomeValuesFromImpl;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.stream.Stream;
-
-import static org.semanticweb.owlapi.vocab.OWL2Datatype.RDFS_LITERAL;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
@@ -57,7 +55,7 @@ public class OWLDataPropertyDomainAxiomImpl extends OWLPropertyDomainAxiomImpl<O
 
     @Override
     public OWLSubClassOfAxiom asOWLSubClassOfAxiom() {
-        OWLClassExpression sub = new OWLDataSomeValuesFromImpl(getProperty(), new OWL2DatatypeImpl(RDFS_LITERAL));
+        OWLClassExpression sub = new OWLDataSomeValuesFromImpl(getProperty(), InternalizedEntities.RDFS_LITERAL);
         return new OWLSubClassOfAxiomImpl(sub, getDomain(), NO_ANNOTATIONS);
     }
 }

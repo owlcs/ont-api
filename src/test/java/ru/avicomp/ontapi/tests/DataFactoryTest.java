@@ -26,8 +26,8 @@ import org.semanticweb.owlapi.vocab.OWLFacet;
 import ru.avicomp.ontapi.DataFactory;
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
-import ru.avicomp.ontapi.owlapi.OWL2DatatypeImpl;
 import ru.avicomp.ontapi.owlapi.OWLObjectImpl;
+import ru.avicomp.ontapi.owlapi.objects.entity.OWLBuiltinDatatypeImpl;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -61,7 +61,7 @@ public class DataFactoryTest {
     }
 
     @Test
-    public void testDataFactoryMethod() {
+    public void testCreateAndValidate() {
         Class<? extends OWLObject> implType = data.getSuperImplClassType();
         OWLObject owl = data.create(OWL_DATA_FACTORY);
         Assert.assertFalse(implType.isInstance(owl));
@@ -88,16 +88,42 @@ public class DataFactoryTest {
         final boolean expectedTopEntity;
         if (data.isEntity()) {
             Assert.assertTrue(object instanceof OWLEntity);
-            if (object instanceof OWLClass) {
+            Assert.assertEquals(data.shouldBeSame(), ((OWLEntity) object).isBuiltIn());
+            if (data.isClass()) {
+                Assert.assertTrue(object instanceof OWLClass);
+            } else {
+                Assert.assertFalse(object instanceof OWLClass);
+            }
+            if (data.isDatatype()) {
+                Assert.assertTrue(object instanceof OWLDatatype);
+            } else {
+                Assert.assertFalse(object instanceof OWLDatatype);
+            }
+            if (data.isAnnotationProperty()) {
+                Assert.assertTrue(object instanceof OWLAnnotationProperty);
+            } else {
+                Assert.assertFalse(object instanceof OWLAnnotationProperty);
+            }
+            if (data.isObjectProperty()) {
+                Assert.assertTrue(object instanceof OWLObjectProperty);
+            } else {
+                Assert.assertFalse(object instanceof OWLObjectProperty);
+            }
+            if (data.isDatatypeProperty()) {
+                Assert.assertTrue(object instanceof OWLDataProperty);
+            } else {
+                Assert.assertFalse(object instanceof OWLDataProperty);
+            }
+            if (data.isClass()) {
                 expectedBottomEntity = isSameIRI(OWL.Nothing, object);
                 expectedTopEntity = isSameIRI(OWL.Thing, object);
-            } else if (object instanceof OWLDataProperty) {
+            } else if (data.isDatatypeProperty()) {
                 expectedBottomEntity = isSameIRI(OWL.bottomDataProperty, object);
                 expectedTopEntity = isSameIRI(OWL.topDataProperty, object);
-            } else if (object instanceof OWLObjectProperty) {
+            } else if (data.isObjectProperty()) {
                 expectedBottomEntity = isSameIRI(OWL.bottomObjectProperty, object);
                 expectedTopEntity = isSameIRI(OWL.topObjectProperty, object);
-            } else if (object instanceof OWLDatatype) {
+            } else if (data.isDatatype()) {
                 expectedTopEntity = isSameIRI(RDFS.Literal, object);
                 expectedBottomEntity = false;
             } else {
@@ -173,17 +199,6 @@ public class DataFactoryTest {
             return OWLObjectImpl.class;
         }
 
-        default boolean shouldBeSame() {
-            return false;
-        }
-
-        default void assertCheckDifferentObjects(OWLObject expected, OWLObject actual) {
-            assertCheckNotSame(expected, actual);
-            assertCheckHashCode(expected, actual);
-            assertCheckEquals(expected, actual);
-            assertCheckToString(expected, actual);
-        }
-
         default void assertCheckNotSame(OWLObject expected, OWLObject actual) {
             Assert.assertNotSame(expected, actual);
         }
@@ -200,8 +215,19 @@ public class DataFactoryTest {
             Assert.assertEquals("'" + expected + "': wrong hashcode", expected.hashCode(), actual.hashCode());
         }
 
+        default void assertCheckProperties(OWLObject expected, OWLObject actual) {
+        }
+
         default void testCompare(OWLObject expected, OWLObject actual) {
-            assertCheckDifferentObjects(expected, actual);
+            assertCheckNotSame(expected, actual);
+            assertCheckHashCode(expected, actual);
+            assertCheckEquals(expected, actual);
+            assertCheckToString(expected, actual);
+            assertCheckProperties(expected, actual);
+        }
+
+        default boolean shouldBeSame() {
+            return false;
         }
 
         default boolean isLiteral() {
@@ -213,6 +239,14 @@ public class DataFactoryTest {
         }
 
         default boolean isEntity() {
+            return false;
+        }
+
+        default boolean isDatatype() {
+            return false;
+        }
+
+        default boolean isClass() {
             return false;
         }
 
@@ -231,6 +265,18 @@ public class DataFactoryTest {
         default boolean isIndividual() {
             return false;
         }
+
+        default boolean isAnnotationProperty() {
+            return false;
+        }
+
+        default boolean isDatatypeProperty() {
+            return false;
+        }
+
+        default boolean isObjectProperty() {
+            return false;
+        }
     }
 
     public interface AxiomData extends Data {
@@ -243,6 +289,22 @@ public class DataFactoryTest {
     public interface EntityData extends Data {
         @Override
         default boolean isEntity() {
+            return true;
+        }
+    }
+
+    public interface NamedRange extends EntityData {
+
+        @Override
+        default boolean isDatatype() {
+            return true;
+        }
+    }
+
+    public interface NamedClass extends EntityData {
+
+        @Override
+        default boolean isClass() {
             return true;
         }
     }
@@ -280,13 +342,36 @@ public class DataFactoryTest {
         }
     }
 
+    public interface AnnotationProperty extends EntityData {
+
+        @Override
+        default boolean isAnnotationProperty() {
+            return true;
+        }
+    }
+
+    public interface DataProperty extends EntityData {
+
+        @Override
+        default boolean isDatatypeProperty() {
+            return true;
+        }
+    }
+
+    public interface ObjectProperty extends EntityData {
+
+        @Override
+        default boolean isObjectProperty() {
+            return true;
+        }
+    }
+
     public interface LiteralData extends Data {
         @Override
         OWLLiteral create(OWLDataFactory df);
 
         @Override
-        default void testCompare(OWLObject expected, OWLObject actual) {
-            assertCheckDifferentObjects(expected, actual);
+        default void assertCheckProperties(OWLObject expected, OWLObject actual) {
             OWLLiteral left = (OWLLiteral) expected;
             OWLLiteral right = (OWLLiteral) actual;
             Assert.assertEquals(left.getLiteral(), right.getLiteral());
@@ -309,7 +394,7 @@ public class DataFactoryTest {
     @Parameterized.Parameters(name = "{0}")
     public static List<Data> getData() {
         return Arrays.asList(
-                new EntityData() {
+                new NamedClass() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLClass(IRI.create("C"));
@@ -320,7 +405,7 @@ public class DataFactoryTest {
                         return "df.getOWLClass(IRI.create(\"C\"));";
                     }
                 }
-                , new EntityData() {
+                , new NamedRange() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLDatatype(IRI.create("D"));
@@ -331,7 +416,7 @@ public class DataFactoryTest {
                         return "df.getOWLDatatype(IRI.create(\"D\"));";
                     }
                 }
-                , new EntityData() {
+                , new ObjectProperty() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLObjectProperty(IRI.create("O"));
@@ -342,7 +427,7 @@ public class DataFactoryTest {
                         return "df.getOWLObjectProperty(IRI.create(\"O\"));";
                     }
                 }
-                , new EntityData() {
+                , new DataProperty() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLDataProperty(IRI.create("D"));
@@ -353,7 +438,7 @@ public class DataFactoryTest {
                         return "df.getOWLDataProperty(IRI.create(\"D\"));";
                     }
                 }
-                , new EntityData() {
+                , new AnnotationProperty() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLAnnotationProperty(IRI.create("A"));
@@ -1071,7 +1156,7 @@ public class DataFactoryTest {
                         return df.getSWRLRule(body, head, annotations);
                     }
                 }
-                , new EntityData() {
+                , new NamedRange() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getBooleanOWLDatatype();
@@ -1079,7 +1164,7 @@ public class DataFactoryTest {
 
                     @Override
                     public Class<? extends OWLObject> getSuperImplClassType() {
-                        return OWL2DatatypeImpl.class;
+                        return OWLBuiltinDatatypeImpl.class;
                     }
 
                     @Override
@@ -1092,7 +1177,7 @@ public class DataFactoryTest {
                         return true;
                     }
                 }
-                , new EntityData() {
+                , new NamedRange() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getDoubleOWLDatatype();
@@ -1100,7 +1185,7 @@ public class DataFactoryTest {
 
                     @Override
                     public Class<? extends OWLObject> getSuperImplClassType() {
-                        return OWL2DatatypeImpl.class;
+                        return OWLBuiltinDatatypeImpl.class;
                     }
 
                     @Override
@@ -1113,7 +1198,7 @@ public class DataFactoryTest {
                         return true;
                     }
                 }
-                , new EntityData() {
+                , new NamedRange() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getFloatOWLDatatype();
@@ -1121,7 +1206,7 @@ public class DataFactoryTest {
 
                     @Override
                     public Class<? extends OWLObject> getSuperImplClassType() {
-                        return OWL2DatatypeImpl.class;
+                        return OWLBuiltinDatatypeImpl.class;
                     }
 
                     @Override
@@ -1134,7 +1219,7 @@ public class DataFactoryTest {
                         return true;
                     }
                 }
-                , new EntityData() {
+                , new AnnotationProperty() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLBackwardCompatibleWith();
@@ -1150,7 +1235,7 @@ public class DataFactoryTest {
                         return true;
                     }
                 }
-                , new EntityData() {
+                , new DataProperty() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLBottomDataProperty();
@@ -1166,7 +1251,7 @@ public class DataFactoryTest {
                         return true;
                     }
                 }
-                , new EntityData() {
+                , new ObjectProperty() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLBottomObjectProperty();
@@ -1182,7 +1267,7 @@ public class DataFactoryTest {
                         return true;
                     }
                 }
-                , new EntityData() {
+                , new AnnotationProperty() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLDeprecated();
@@ -1198,7 +1283,7 @@ public class DataFactoryTest {
                         return true;
                     }
                 }
-                , new EntityData() {
+                , new AnnotationProperty() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLIncompatibleWith();
@@ -1214,7 +1299,7 @@ public class DataFactoryTest {
                         return true;
                     }
                 }
-                , new EntityData() {
+                , new NamedClass() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLNothing();
@@ -1230,7 +1315,7 @@ public class DataFactoryTest {
                         return true;
                     }
                 }
-                , new EntityData() {
+                , new NamedClass() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLThing();
@@ -1246,7 +1331,7 @@ public class DataFactoryTest {
                         return true;
                     }
                 }
-                , new EntityData() {
+                , new DataProperty() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLTopDataProperty();
@@ -1262,7 +1347,7 @@ public class DataFactoryTest {
                         return true;
                     }
                 }
-                , new EntityData() {
+                , new ObjectProperty() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLTopObjectProperty();
@@ -1278,7 +1363,7 @@ public class DataFactoryTest {
                         return true;
                     }
                 }
-                , new EntityData() {
+                , new AnnotationProperty() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLVersionInfo();
@@ -1294,7 +1379,7 @@ public class DataFactoryTest {
                         return true;
                     }
                 }
-                , new EntityData() {
+                , new NamedRange() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getRDFPlainLiteral();
@@ -1302,7 +1387,7 @@ public class DataFactoryTest {
 
                     @Override
                     public Class<? extends OWLObject> getSuperImplClassType() {
-                        return OWL2DatatypeImpl.class;
+                        return OWLBuiltinDatatypeImpl.class;
                     }
 
                     @Override
@@ -1315,7 +1400,7 @@ public class DataFactoryTest {
                         return true;
                     }
                 }
-                , new EntityData() {
+                , new AnnotationProperty() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getRDFSIsDefinedBy();
@@ -1331,7 +1416,7 @@ public class DataFactoryTest {
                         return true;
                     }
                 }
-                , new EntityData() {
+                , new AnnotationProperty() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getRDFSLabel();
@@ -1347,7 +1432,7 @@ public class DataFactoryTest {
                         return true;
                     }
                 }
-                , new EntityData() {
+                , new AnnotationProperty() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getRDFSSeeAlso();
@@ -1363,7 +1448,7 @@ public class DataFactoryTest {
                         return true;
                     }
                 }
-                , new EntityData() {
+                , new NamedRange() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getTopDatatype();
@@ -1371,7 +1456,7 @@ public class DataFactoryTest {
 
                     @Override
                     public Class<? extends OWLObject> getSuperImplClassType() {
-                        return OWL2DatatypeImpl.class;
+                        return OWLBuiltinDatatypeImpl.class;
                     }
 
                     @Override
@@ -1382,17 +1467,6 @@ public class DataFactoryTest {
                     @Override
                     public boolean shouldBeSame() {
                         return true;
-                    }
-                }
-                , new LiteralData() {
-                    @Override
-                    public OWLLiteral create(OWLDataFactory df) {
-                        return df.getOWLLiteral("literal", "x");
-                    }
-
-                    @Override
-                    public String toString() {
-                        return "df.getOWLLiteral(\"literal\", \"x\")";
                     }
                 }
                 , new LiteralData() {

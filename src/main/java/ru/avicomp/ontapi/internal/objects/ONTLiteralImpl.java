@@ -63,7 +63,7 @@ public class ONTLiteralImpl extends OWLLiteralImpl implements OWLLiteral, ONTObj
      * Returns a {@link OntDT} instance that corresponds datatype.
      *
      * @return {@link OntDT}
-     * @see OWLLiteralImpl#calcOWLDatatype()
+     * @see OWLLiteralImpl#getDatatype()
      * @see OntGraphModel#getDatatype(Literal)
      */
     public OntDT getDatatypeResource() {

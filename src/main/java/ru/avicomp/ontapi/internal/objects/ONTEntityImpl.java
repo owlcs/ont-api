@@ -22,6 +22,7 @@ import ru.avicomp.ontapi.jena.model.OntEntity;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 
 import javax.annotation.Nullable;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -143,4 +144,11 @@ public abstract class ONTEntityImpl extends ONTResourceImpl implements OWLEntity
         }
         return getIRI().equals(entity.getIRI());
     }
+
+    @Override
+    public int compareTo(@Nullable OWLObject other) {
+        int res = Integer.compare(typeIndex(), Objects.requireNonNull(other, "Null object").typeIndex());
+        return res != 0 ? res : other instanceof HasIRI ? getIRI().compareTo(((HasIRI) other).getIRI()) : 0;
+    }
+
 }

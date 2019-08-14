@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -13,6 +13,7 @@
  */
 package ru.avicomp.ontapi.owlapi.objects.entity;
 
+import org.apache.jena.rdf.model.Resource;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLObjectInverseOf;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
@@ -38,6 +39,17 @@ public class OWLObjectPropertyImpl extends OWLObjectImpl implements OWLObjectPro
         this.iri = Objects.requireNonNull(iri, "iri cannot be null");
         builtin = iri.equals(OWLRDFVocabulary.OWL_TOP_OBJECT_PROPERTY.getIRI()) || iri.equals(
                 OWLRDFVocabulary.OWL_BOTTOM_OBJECT_PROPERTY.getIRI());
+    }
+
+    /**
+     * Creates an {@link OWLObjectProperty} instance using the {@link Resource} reference.
+     *
+     * @param r {@link Resource}, not {@code null}
+     * @return {@link OWLObjectProperty}
+     * @throws NullPointerException if incorrect input
+     */
+    public static OWLObjectProperty fromResource(Resource r) {
+        return new OWLObjectPropertyImpl(IRI.create(Objects.requireNonNull(r.getURI(), "Not URI: " + r)));
     }
 
     @Override

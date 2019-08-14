@@ -22,7 +22,6 @@ import ru.avicomp.ontapi.DataFactory;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.OntModels;
-import ru.avicomp.ontapi.owlapi.objects.OWLLiteralImpl;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -144,11 +143,7 @@ public class NoCacheObjectFactory implements InternalObjectFactory {
         OntGraphModel m = (OntGraphModel) literal.getModel();
         OntDT jdt = m.getDatatype(literal);
         if (!jdt.isBuiltIn()) {
-            ONTObject<OWLDatatype> odt = get(jdt);
-            if (owl instanceof OWLLiteralImpl) { // force cache dt:
-                ((OWLLiteralImpl) owl).putOWLDatatype(odt.getObject());
-            }
-            return res.append(odt);
+            return res.append(get(jdt));
         }
         return res;
     }

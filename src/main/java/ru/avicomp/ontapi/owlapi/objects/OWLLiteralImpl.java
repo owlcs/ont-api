@@ -29,15 +29,17 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.jena.vocabulary.XSD;
 import ru.avicomp.ontapi.owlapi.InternalizedEntities;
 import ru.avicomp.ontapi.owlapi.OWLObjectImpl;
+import ru.avicomp.ontapi.owlapi.objects.entity.OWLBuiltinDatatypeImpl;
 import ru.avicomp.ontapi.owlapi.objects.entity.OWLDatatypeImpl;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.lang.ref.SoftReference;
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.Locale;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * An ONT-API implementation of {@link OWLLiteral}, encapsulated {@link LiteralLabel Jena Literal Label}.
@@ -47,26 +49,9 @@ import java.util.*;
 @SuppressWarnings("WeakerAccess")
 public class OWLLiteralImpl extends OWLObjectImpl implements OWLLiteral, FrontsNode {
 
-    public static final Map<String, OWLDatatype> BUILTIN_OWL_DATATYPES = Collections.unmodifiableMap(new HashMap<String, OWLDatatype>() {
-        {
-            put(InternalizedEntities.RDFS_LITERAL);
-            put(InternalizedEntities.RDF_LANG_STRING);
-            put(InternalizedEntities.RDF_PLAIN_LITERAL);
-            put(InternalizedEntities.XSD_STRING);
-            put(InternalizedEntities.XSD_BOOLEAN);
-            put(InternalizedEntities.XSD_DOUBLE);
-            put(InternalizedEntities.XSD_FLOAT);
-            put(InternalizedEntities.XSD_INTEGER);
-        }
-
-        private void put(OWLDatatype d) {
-            put(d.getIRI().getIRIString(), d);
-        }
-    });
     protected static TypeMapper typeMapper = TypeMapper.getInstance();
 
     protected transient final LiteralLabel label;
-    private transient SoftReference<OWLDatatype> owlDatatypeRef;
 
     protected OWLLiteralImpl(LiteralLabel label) {
         this.label = Objects.requireNonNull(label);
@@ -265,7 +250,7 @@ public class OWLLiteralImpl extends OWLObjectImpl implements OWLLiteral, FrontsN
      * @return {@link OWLLiteralImpl}
      */
     public static OWLLiteralImpl newLiteral(String txt, String lang, OWLDatatype owl) {
-        return newLiteral(txt, lang, getRDFDatatype(owl.getIRI().getIRIString())).putOWLDatatype(owl);
+        return newLiteral(txt, lang, getRDFDatatype(owl.getIRI().getIRIString()));
     }
 
     /**
@@ -416,44 +401,18 @@ public class OWLLiteralImpl extends OWLObjectImpl implements OWLLiteral, FrontsN
         return label.language();
     }
 
-    @Override
-    public OWLDatatype getDatatype() {
-        // Although, OWLDatatype is a lightweight object, but ontology usually has a lot of literals
-        // and usually this object is not really needed. Besides, it is really cheap to make it cached:
-        OWLDatatype res;
-        if (owlDatatypeRef != null && (res = owlDatatypeRef.get()) != null)
-            return res;
-        owlDatatypeRef = new SoftReference<>(res = calcOWLDatatype());
-        return res;
-    }
-
     /**
-     * Calculates the {@link OWLDatatype} from the encapsulated {@link LiteralLabel}.
+     * Returns the {@link OWLDatatype OWL-API datatype} parsed from the encapsulated {@link LiteralLabel}.
      * Please note: in the special case of no-lang PlainLiteral (e.g. {@code '...'^^rdf:PlainLiteral})
      * the method returns {@link InternalizedEntities#XSD_STRING},
      * although the encapsulated label may contain {@link RDF#PlainLiteral} type.
-     *
      * @return {@link OWLDatatype}
      */
-    public OWLDatatype calcOWLDatatype() {
+    @Override
+    public OWLDatatype getDatatype() {
         String uri = getDatatypeURI(label);
-        OWLDatatype owl = BUILTIN_OWL_DATATYPES.get(uri);
-        if (owl != null) {
-            return owl;
-        }
-        return new OWLDatatypeImpl(IRI.create(uri));
-    }
-
-    /**
-     * Assigns the given {@link OWLDatatype OWL Datatype} to this literal.
-     * For internal usage only!
-     *
-     * @param owl {@link OWLDatatype}
-     * @return {@link OWLLiteralImpl} this instance
-     */
-    public OWLLiteralImpl putOWLDatatype(OWLDatatype owl) {
-        this.owlDatatypeRef = new SoftReference<>(owl);
-        return this;
+        OWLDatatype res = OWLBuiltinDatatypeImpl.BUILTIN_OWL_DATATYPES.get(uri);
+        return res != null ? res : new OWLDatatypeImpl(IRI.create(uri));
     }
 
     @Override
