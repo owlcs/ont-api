@@ -24,9 +24,12 @@ import ru.avicomp.ontapi.DataFactory;
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
+import ru.avicomp.ontapi.internal.InternalCache;
 import ru.avicomp.ontapi.internal.ONTObject;
+import ru.avicomp.ontapi.internal.objects.ONTExpressionImpl;
 import ru.avicomp.ontapi.tests.DataFactoryTest;
 
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -61,6 +64,29 @@ public class ClassExpressionTest extends ObjectFactoryTest {
                 .filter(IsAnonymous::isAnonymous).findFirst().orElseThrow(AssertionError::new);
         Assert.assertTrue(res instanceof ONTObject);
         return res;
+    }
+
+    @Override
+    void testInternalReset(OWLObject expected, OWLObject test) {
+        Assert.assertTrue(test instanceof ONTExpressionImpl);
+        InternalCache.Loading cache = getCache((ONTExpressionImpl) test);
+        Assert.assertFalse(cache.isEmpty());
+        cache.clear();
+        Assert.assertTrue(cache.isEmpty());
+        compare(expected, test);
+        Assert.assertFalse(cache.isEmpty());
+        validate(expected, test);
+    }
+
+    private static InternalCache.Loading getCache(ONTExpressionImpl expr) {
+
+        try {
+            Field f = ONTExpressionImpl.class.getDeclaredField("cache");
+            f.setAccessible(true);
+            return (InternalCache.Loading) f.get(expr);
+        } catch (Exception e) {
+            throw new AssertionError(e);
+        }
     }
 
 

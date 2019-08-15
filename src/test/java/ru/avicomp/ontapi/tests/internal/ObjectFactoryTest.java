@@ -54,6 +54,11 @@ abstract class ObjectFactoryTest {
         compare(owl, test);
         compare(ont, test);
         validate(owl, test);
+
+        testInternalReset(owl, test);
+    }
+
+    void testInternalReset(OWLObject expected, OWLObject test) {
     }
 
     void compare(OWLObject expected, OWLObject actual) {
