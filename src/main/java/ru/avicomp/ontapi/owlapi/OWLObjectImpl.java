@@ -386,7 +386,7 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
     }
 
     @Override
-    public int hashCode() {
+    public final int hashCode() {
         return hashCode == 0 ? hashCode = initHashCode() : hashCode;
     }
 

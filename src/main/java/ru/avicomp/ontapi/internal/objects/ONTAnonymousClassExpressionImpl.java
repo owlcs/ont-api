@@ -15,15 +15,11 @@
 package ru.avicomp.ontapi.internal.objects;
 
 import org.apache.jena.graph.BlankNodeId;
-import org.apache.jena.graph.Node;
-import org.apache.jena.graph.NodeFactory;
-import org.apache.jena.graph.Triple;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.NNF;
 import ru.avicomp.ontapi.DataFactory;
 import ru.avicomp.ontapi.OntApiException;
-import ru.avicomp.ontapi.internal.InternalCache;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.jena.model.*;
@@ -38,8 +34,9 @@ import java.util.stream.Stream;
 /**
  * An abstraction for any anonymous class expressions
  * (i.e. for all class expressions with except of {@code OWLClass}es).
- *
+ * <p>
  * Created by @ssz on 10.08.2019.
+ *
  * @param <ONT> any subtype of {@link OntCE}
  * @param <OWL> any subtype of {@link OWLAnonymousClassExpression}
  * @see ru.avicomp.ontapi.owlapi.objects.ce.OWLAnonymousClassExpressionImpl
@@ -51,14 +48,11 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("WeakerAccess")
 public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL extends OWLAnonymousClassExpression>
-        extends ONTResourceImpl
+        extends ONTExpressionImpl<ONT>
         implements OWLAnonymousClassExpression, ONTObject<OWL> {
-
-    protected final InternalCache.Loading<ONTAnonymousClassExpressionImpl, Object[]> cache;
 
     protected ONTAnonymousClassExpressionImpl(BlankNodeId n, Supplier<OntGraphModel> m) {
         super(n, m);
-        this.cache = InternalCache.createSoftSingleton(x -> collectContent());
     }
 
     /**
@@ -152,75 +146,6 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         throw new OntApiException.IllegalState();
     }
 
-    @Override
-    protected BlankNodeId getBlankNodeId() {
-        return (BlankNodeId) node;
-    }
-
-    @Override
-    public Node asNode() {
-        return NodeFactory.createBlankNode(getBlankNodeId());
-    }
-
-    @Override
-    public abstract ONT asResource();
-
-    @Override
-    public Stream<Triple> triples() {
-        return Stream.concat(super.triples(), objects().flatMap(ONTObject::triples));
-    }
-
-    /**
-     * Lists all components in the form of {@code Stream}.
-     * Neither this object or component objects are not included in result: it content only top-level direct components.
-     *
-     * @return {@code Stream} of {@link ONTObject}s
-     * @see ONTAnonymousClassExpressionImpl#listComponents()
-     */
-    public final Stream<ONTObject<? extends OWLObject>> objects() {
-        return Iter.asStream(listComponents(), Spliterator.NONNULL | Spliterator.ORDERED);
-    }
-
-    /**
-     * Lists all components in the form of {@code Iterator}.
-     * Neither this object or component objects are not included in result: it content only top-level direct components.
-     * Note that {@link #components()} contains also non-{@link OWLObject} things:
-     * integers (e.g. cardinality), {@code List}s (e.g. {@code ObjectOneOf}).
-     *
-     * @return {@link ExtendedIterator} of {@link ONTObject}s
-     * @see HasComponents#components()
-     * @see HasOperands#operands()
-     */
-    public abstract ExtendedIterator<ONTObject<? extends OWLObject>> listComponents();
-
-    /**
-     * Collects the cache.
-     *
-     * @return {@code Array} of {@code Object}s
-     */
-    protected final Object[] collectContent() {
-        return collectContent(asResource(), getObjectFactory());
-    }
-
-    /**
-     * Collects the cache Array.
-     * The array was chosen as the best option in sense of memory consumption and access speed.
-     *
-     * @param ce {@link ONT}, not {@code null}
-     * @param of {@link InternalObjectFactory}, not {@code null}
-     * @return {@code Array} of {@code Object}s
-     */
-    protected abstract Object[] collectContent(ONT ce, InternalObjectFactory of);
-
-    /**
-     * Gets the content from cache.
-     *
-     * @return {@code Array} of {@code Object}s
-     */
-    protected Object[] getContent() {
-        return cache.get(this);
-    }
-
     @SuppressWarnings("unchecked")
     @Override
     public OWL getObject() {
@@ -290,37 +215,6 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
     public boolean containsEntityInSignature(OWLEntity entity) {
         if (entity.isOWLAnnotationProperty()) return false;
         return super.containsEntityInSignature(entity);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (!(obj instanceof OWLAnonymousClassExpression)) {
-            return false;
-        }
-        OWLAnonymousClassExpression clazz = (OWLAnonymousClassExpression) obj;
-        if (typeIndex() != clazz.typeIndex()) {
-            return false;
-        }
-        if (clazz instanceof ONTAnonymousClassExpressionImpl) {
-            ONTAnonymousClassExpressionImpl other = (ONTAnonymousClassExpressionImpl) clazz;
-            if (notSame(other)) {
-                return false;
-            }
-            if (node.equals(other.node)) {
-                return true;
-            }
-            return Arrays.equals(getContent(), other.getContent());
-        }
-        if (hashCode() != clazz.hashCode()) {
-            return false;
-        }
-        return equalIterators(components().iterator(), clazz.components().iterator());
     }
 
     /**
