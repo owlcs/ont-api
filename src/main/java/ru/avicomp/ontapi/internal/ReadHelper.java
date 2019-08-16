@@ -108,7 +108,7 @@ public class ReadHelper {
     /**
      * Returns the container with set of {@link OWLAnnotation} associated with the specified statement.
      *
-     * @param statement {@link OntStatement}
+     * @param statement {@link OntStatement}, axiom root statement, not {@code null}
      * @param conf      {@link InternalConfig}
      * @param of        {@link InternalObjectFactory}
      * @return a set of wraps {@link ONTObject} around {@link OWLAnnotation}
@@ -122,7 +122,7 @@ public class ReadHelper {
             // they would go separately as annotation-assertions.
             res = res.filterDrop(s -> isAnnotationAssertionStatement(s, conf));
         }
-        return res.mapWith(a -> getAnnotation(a, of)).toSet();
+        return res.mapWith(of::get).toSet();
     }
 
     /**
@@ -134,7 +134,7 @@ public class ReadHelper {
      */
     public static ExtendedIterator<ONTObject<OWLAnnotation>> listOWLAnnotations(OntObject obj,
                                                                                 InternalObjectFactory of) {
-        return OntModels.listAnnotations(obj).mapWith(a -> getAnnotation(a, of));
+        return OntModels.listAnnotations(obj).mapWith(of::get);
     }
 
     /**

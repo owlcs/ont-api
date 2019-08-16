@@ -15,15 +15,12 @@
 package ru.avicomp.ontapi.internal;
 
 import org.apache.jena.rdf.model.Literal;
-import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.DataFactory;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.model.*;
-import ru.avicomp.ontapi.jena.utils.OntModels;
 
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
 
@@ -106,25 +103,9 @@ public class NoCacheObjectFactory implements InternalObjectFactory {
     }
 
     @Override
-    public ONTObject<? extends OWLObjectPropertyExpression> get(OntOPE ope) {
-        OntApiException.notNull(ope, "Null object property.");
-        if (ope.isAnon()) {
-            OWLObjectProperty op = getOWLDataFactory().getOWLObjectProperty(toIRI(ope.as(OntOPE.Inverse.class).getDirect()));
-            return ONTObjectImpl.create(op.getInverseProperty(), ope);
-        }
-        return get(ope.as(OntNOP.class));
-    }
-
-    @Override
-    public ONTObject<? extends OWLPropertyExpression> get(OntDOP property) {
-        // process Object Properties first to match OWL-API-impl behaviour
-        if (property.canAs(OntOPE.class)) {
-            return get(property.as(OntOPE.class));
-        }
-        if (property.canAs(OntNDP.class)) {
-            return get(property.as(OntNDP.class));
-        }
-        throw new OntApiException("Unsupported property " + property);
+    public ONTObject<? extends OWLObjectPropertyExpression> get(OntOPE.Inverse iop) {
+        OWLObjectProperty op = getOWLDataFactory().getOWLObjectProperty(toIRI(iop.getDirect()));
+        return ONTObjectImpl.create(op.getInverseProperty(), iop);
     }
 
     @Override
@@ -149,32 +130,8 @@ public class NoCacheObjectFactory implements InternalObjectFactory {
     }
 
     @Override
-    public ONTObject<? extends OWLAnnotationValue> getValue(RDFNode value) {
-        if (OntApiException.notNull(value, "Null node").isLiteral()) {
-            return get(value.asLiteral());
-        }
-        if (value.isURIResource()) {
-            return asIRI(value.as(OntObject.class));
-        }
-        if (value.isAnon()) {
-            return getAnonymous(OntModels.asAnonymousIndividual(value));
-        }
-        throw new OntApiException("Not an AnnotationValue " + value);
-    }
-
-    @Override
-    public ONTObject<? extends OWLAnnotationSubject> getSubject(OntObject subject) {
-        if (OntApiException.notNull(subject, "Null resource").isURIResource()) {
-            return asIRI(subject);
-        }
-        if (subject.isAnon()) {
-            return getAnonymous(OntModels.asAnonymousIndividual(subject));
-        }
-        throw new OntApiException("Not an AnnotationSubject " + subject);
-    }
-
-    public ONTObject<OWLAnonymousIndividual> getAnonymous(OntIndividual.Anonymous individual) {
-        return get(individual);
+    public ONTObject<OWLAnnotation> get(OntStatement s) {
+        return ReadHelper.getAnnotation(s, this);
     }
 
     @Override
@@ -188,13 +145,15 @@ public class NoCacheObjectFactory implements InternalObjectFactory {
     }
 
     @Override
-    public ONTObject<IRI> asIRI(OntObject object) {
-        return ONTObjectImpl.create(toIRI(object), object.canAs(OntEntity.class) ? object.as(OntEntity.class) : object);
-    }
-
-    @Override
-    public Collection<ONTObject<OWLAnnotation>> get(OntStatement statement, InternalConfig config) {
-        return ReadHelper.getAnnotations(statement, config, this);
+    public ONTObject<IRI> getIRI(OntObject resource) {
+        if (!resource.isURIResource()) {
+            throw new OntApiException.IllegalArgument("Not URI: " + resource);
+        }
+        IRI res = toIRI(resource);
+        if (resource.canAs(OntEntity.class)) {
+            return ONTObjectImpl.create(res, resource.as(OntEntity.class));
+        }
+        return ONTObjectImpl.create(res);
     }
 
     @Override
