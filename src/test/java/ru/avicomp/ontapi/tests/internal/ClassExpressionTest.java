@@ -17,7 +17,7 @@ package ru.avicomp.ontapi.tests.internal;
 import org.junit.Assert;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.semanticweb.owlapi.model.IsAnonymous;
+import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLObject;
 import ru.avicomp.ontapi.DataFactory;
@@ -60,8 +60,8 @@ public class ClassExpressionTest extends ObjectFactoryTest {
         OntologyModel o = m.createOntology();
         o.add(df.getOWLSubClassOfAxiom(df.getOWLClass("C"), ont));
         o.clearCache();
-        OWLClassExpression res = o.nestedClassExpressions()
-                .filter(IsAnonymous::isAnonymous).findFirst().orElseThrow(AssertionError::new);
+        OWLClassExpression res = o.axioms(AxiomType.SUBCLASS_OF).findFirst().orElseThrow(AssertionError::new)
+                .getSuperClass();
         Assert.assertTrue(res instanceof ONTObject);
         return res;
     }
@@ -88,6 +88,5 @@ public class ClassExpressionTest extends ObjectFactoryTest {
             throw new AssertionError(e);
         }
     }
-
 
 }

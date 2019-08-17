@@ -35,7 +35,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Test for {@link DataFactory ONT-API Data Factory} functionality.
@@ -83,7 +85,7 @@ public class DataFactoryTest {
         Assert.assertEquals(data.isAnonymousDataRange(), object instanceof OWLDataRange && !(object instanceof OWLDatatype));
         Assert.assertEquals(data.isAnonymousClassExpression(), object instanceof OWLAnonymousClassExpression);
         final boolean expectedAnonymous = data.isAxiom() || data.isAnonymousIndividual() || expectedAnonymousExpression;
-        final boolean expectedNamed = data.isEntity();
+        final boolean expectedNamed = data.isEntity() || data.isOWLAnnotation();
         final boolean expectedBottomEntity;
         final boolean expectedTopEntity;
         if (data.isEntity()) {
@@ -142,6 +144,7 @@ public class DataFactoryTest {
             Assert.assertFalse(object instanceof OWLIndividual);
             Assert.assertFalse(object instanceof OWLDataRange);
             Assert.assertFalse(object instanceof OWLClassExpression);
+            Assert.assertFalse(object instanceof OWLAnnotation);
         } else {
             Assert.assertFalse(object instanceof OWLAxiom);
         }
@@ -154,12 +157,25 @@ public class DataFactoryTest {
         } else {
             Assert.assertFalse(object instanceof OWLIndividual);
         }
-        if (object instanceof OWLLiteral) {
+        if (data.isLiteral()) {
+            Assert.assertTrue(object instanceof OWLLiteral);
             Assert.assertFalse(object instanceof OWLEntity);
             Assert.assertFalse(object instanceof OWLAxiom);
             Assert.assertFalse(object instanceof OWLIndividual);
             Assert.assertFalse(object instanceof OWLDataRange);
             Assert.assertFalse(object instanceof OWLClassExpression);
+            Assert.assertFalse(object instanceof OWLAnnotation);
+        } else {
+            Assert.assertFalse(object instanceof OWLLiteral);
+        }
+        if (data.isOWLAnnotation()) {
+            Assert.assertTrue(object instanceof OWLAnnotation);
+            Assert.assertFalse(object instanceof OWLEntity);
+            Assert.assertFalse(object instanceof OWLIndividual);
+            Assert.assertFalse(object instanceof OWLDataRange);
+            Assert.assertFalse(object instanceof OWLClassExpression);
+        } else {
+            Assert.assertFalse(object instanceof OWLAnnotation);
         }
 
         Assert.assertEquals("'" + object + "' must be anonymous", expectedAnonymous, object.isAnonymous());
@@ -277,11 +293,22 @@ public class DataFactoryTest {
         default boolean isObjectProperty() {
             return false;
         }
+
+        default boolean isOWLAnnotation() {
+            return false;
+        }
     }
 
     public interface AxiomData extends Data {
         @Override
         default boolean isAxiom() {
+            return true;
+        }
+    }
+
+    public interface AnnotationData extends Data {
+        @Override
+        default boolean isOWLAnnotation() {
             return true;
         }
     }
@@ -294,7 +321,6 @@ public class DataFactoryTest {
     }
 
     public interface NamedRange extends EntityData {
-
         @Override
         default boolean isDatatype() {
             return true;
@@ -302,7 +328,6 @@ public class DataFactoryTest {
     }
 
     public interface NamedClass extends EntityData {
-
         @Override
         default boolean isClass() {
             return true;
@@ -343,7 +368,6 @@ public class DataFactoryTest {
     }
 
     public interface AnnotationProperty extends EntityData {
-
         @Override
         default boolean isAnnotationProperty() {
             return true;
@@ -351,7 +375,6 @@ public class DataFactoryTest {
     }
 
     public interface DataProperty extends EntityData {
-
         @Override
         default boolean isDatatypeProperty() {
             return true;
@@ -359,7 +382,6 @@ public class DataFactoryTest {
     }
 
     public interface ObjectProperty extends EntityData {
-
         @Override
         default boolean isObjectProperty() {
             return true;
@@ -1638,7 +1660,103 @@ public class DataFactoryTest {
                     public String toString() {
                         return "df.getOWLLiteral(\"\\n\", df.getOWLDatatype(IRI.create(\"X\")))";
                     }
-                });
+                }
+                , new AnonymousClass() {
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLObjectUnionOf(
+                                df.getOWLObjectComplementOf(df.getOWLObjectHasValue(df.getOWLObjectProperty("P1"),
+                                        df.getOWLNamedIndividual("I"))),
+                                df.getOWLObjectIntersectionOf(df.getOWLThing(),
+                                        df.getOWLObjectSomeValuesFrom(
+                                                df.getOWLObjectInverseOf(df.getOWLObjectProperty("P2")),
+                                                df.getOWLClass("C")),
+                                        df.getOWLDataMaxCardinality(12, df.getOWLDataProperty("P3"),
+                                                df.getOWLDataOneOf(df.getOWLLiteral(1),
+                                                        df.getOWLLiteral(2),
+                                                        df.getOWLLiteral("3")))),
+                                df.getOWLDataAllValuesFrom(df.getOWLDataProperty("P3"),
+                                        df.getOWLDatatypeRestriction(df.getOWLDatatype("D"),
+                                                df.getOWLFacetRestriction(OWLFacet.MIN_EXCLUSIVE, df.getOWLLiteral(3.3)),
+                                                df.getOWLFacetRestriction(OWLFacet.FRACTION_DIGITS, df.getOWLLiteral("x")))));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "ComplexClassExpressionWithDifferentNestedExpressions";
+                    }
+                }
+                , new AnnotationData() {
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLAnnotation(df.getOWLDeprecated(), df.getOWLLiteral(true));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLAnnotation(df.getOWLDeprecated(), df.getOWLLiteral(true))";
+                    }
+                }
+                , new AnnotationData() {
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLAnnotation(df.getOWLAnnotationProperty("P"), df.getOWLLiteral("L", "lu"));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLAnnotation(df.getOWLAnnotationProperty(\"P\"), df.getOWLLiteral(\"L\", \"lu\"))";
+                    }
+                }
+                , new AnnotationData() {
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLAnnotation(df.getOWLAnnotationProperty("P"), IRI.create("P"));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLAnnotation(df.getOWLAnnotationProperty(\"P\"), IRI.create(\"P\"))";
+                    }
+                }
+                , new AnnotationData() {
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLAnnotation(df.getOWLAnnotationProperty("P"), df.getOWLAnonymousIndividual("_:b0"));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLAnnotation(df.getOWLAnnotationProperty(\"P\"), df.getOWLAnonymousIndividual(\"_:b0\"))";
+                    }
+                }
+                , new AnnotationData() {
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLAnnotation(df.getRDFSComment(), df.getOWLLiteral("comm"),
+                                Arrays.asList(
+                                        df.getOWLAnnotation(df.getRDFSLabel(), df.getOWLLiteral("lab1")),
+                                        df.getOWLAnnotation(
+                                                df.getOWLAnnotationProperty("P1"),
+                                                df.getOWLAnonymousIndividual("_:b0"),
+                                                Collections.singletonList(df.getRDFSLabel("x"))),
+                                        df.getOWLAnnotation(
+                                                df.getOWLAnnotationProperty("P2"),
+                                                IRI.create("X"),
+                                                Arrays.asList(
+                                                        df.getRDFSComment("X"),
+                                                        df.getRDFSLabel("x"),
+                                                        df.getRDFSComment(df.getOWLAnonymousIndividual("_:b1"),
+                                                                Stream.of(df.getOWLAnnotation(df.getOWLAnnotationProperty("P2"), IRI.create("I2"))))
+                                                ))));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "ComplexAnnotationWithDifferentNestedSubAnnotations";
+                    }
+                }
+        );
 
     }
 }
