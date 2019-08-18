@@ -43,6 +43,11 @@ public class ModelObjectFactory extends NoCacheObjectFactory {
         this.model = Objects.requireNonNull(model);
     }
 
+    @Override
+    public ONTObject<OWLAnnotation> get(OntStatement s) {
+        return ONTAnnotationImpl.create(s, model);
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     public ONTObject<? extends OWLClassExpression> get(OntCE ce) {
@@ -88,7 +93,7 @@ public class ModelObjectFactory extends NoCacheObjectFactory {
 
     @Override
     public ONTObject<OWLLiteral> get(Literal literal) {
-        return getLLiteral(literal.asNode().getLiteral());
+        return getLiteral(literal.asNode().getLiteral());
     }
 
     public ONTObject<OWLClass> getClass(String uri) {
@@ -119,7 +124,7 @@ public class ModelObjectFactory extends NoCacheObjectFactory {
         return new ONTDataPropertyImpl(uri, model);
     }
 
-    public ONTObject<OWLLiteral> getLLiteral(LiteralLabel label) {
+    public ONTObject<OWLLiteral> getLiteral(LiteralLabel label) {
         return new ONTLiteralImpl(label, model);
     }
 

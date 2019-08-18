@@ -49,7 +49,7 @@ public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResource
      * Since this is essentially duplication of the graph information, this store is designed as a soft cache.
      * Note that any graph change will break this object.
      */
-    protected final InternalCache.Loading<ONTExpressionImpl, Object[]> cache;
+    protected final InternalCache.Loading<ONTExpressionImpl, Object[]> content;
 
     /**
      * Constructs an expression.
@@ -60,7 +60,7 @@ public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResource
      */
     protected ONTExpressionImpl(BlankNodeId n, Supplier<OntGraphModel> m) {
         super(n, m);
-        this.cache = InternalCache.createSoftSingleton(x -> collectContent());
+        this.content = InternalCache.createSoftSingleton(x -> collectContent());
     }
 
     /**
@@ -103,7 +103,7 @@ public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResource
      * Neither this object or component objects are not included in result: it content only top-level direct components.
      *
      * @return {@code Stream} of {@link ONTObject}s
-     * @see ONTAnonymousClassExpressionImpl#listComponents()
+     * @see ONTExpressionImpl#listComponents()
      */
     public final Stream<ONTObject<? extends OWLObject>> objects() {
         return Iter.asStream(listComponents(), Spliterator.NONNULL | Spliterator.ORDERED);
@@ -117,7 +117,7 @@ public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResource
     /**
      * Collects the cache.
      *
-     * @return {@code Array} of {@code Object}
+     * @return {@code Array} of {@code Object}s
      * @see #collectContent(OntObject, InternalObjectFactory)
      */
     protected final Object[] collectContent() {
@@ -130,7 +130,7 @@ public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResource
      * @return {@code Array} of {@code Object}s
      */
     protected Object[] getContent() {
-        return cache.get(this);
+        return content.get(this);
     }
 
     @Override

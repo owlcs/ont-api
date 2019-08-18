@@ -70,7 +70,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         // since we have already type information
         // we can forcibly load the cache to reduce graph traversal operations
         // (otherwise this type information will be collected again on demand, which means double-work):
-        res.cache.put(res, res.collectContent(ce, res.getObjectFactory()));
+        res.content.put(res, res.collectContent(ce, res.getObjectFactory()));
         return res;
     }
 

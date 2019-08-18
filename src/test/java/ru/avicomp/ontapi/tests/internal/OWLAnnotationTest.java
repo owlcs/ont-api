@@ -17,15 +17,12 @@ package ru.avicomp.ontapi.tests.internal;
 import org.junit.Assert;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.semanticweb.owlapi.model.AxiomType;
-import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.AddOntologyAnnotation;
+import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLObject;
-import ru.avicomp.ontapi.DataFactory;
-import ru.avicomp.ontapi.OntManagers;
-import ru.avicomp.ontapi.OntologyManager;
-import ru.avicomp.ontapi.OntologyModel;
+import ru.avicomp.ontapi.*;
 import ru.avicomp.ontapi.internal.ONTObject;
-import ru.avicomp.ontapi.internal.objects.ONTExpressionImpl;
+import ru.avicomp.ontapi.internal.objects.ONTAnnotationImpl;
 import ru.avicomp.ontapi.owlapi.OWLObjectImpl;
 import ru.avicomp.ontapi.tests.DataFactoryTest;
 
@@ -33,19 +30,19 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Created by @ssz on 13.08.2019.
+ * Created by @ssz on 18.08.2019.
  */
 @RunWith(Parameterized.class)
-public class ClassExpressionTest extends ObjectFactoryTest {
+public class OWLAnnotationTest extends ObjectFactoryTest {
 
-    public ClassExpressionTest(DataFactoryTest.Data data) {
+    public OWLAnnotationTest(DataFactoryTest.Data data) {
         super(data);
     }
 
     @Parameterized.Parameters(name = "{0}")
     public static List<DataFactoryTest.Data> getData() {
         return DataFactoryTest.getData().stream()
-                .filter(DataFactoryTest.Data::isAnonymousClassExpression)
+                .filter(DataFactoryTest.Data::isOWLAnnotation)
                 .collect(Collectors.toList());
     }
 
@@ -54,20 +51,20 @@ public class ClassExpressionTest extends ObjectFactoryTest {
         OntologyManager m = OntManagers.createONT();
         DataFactory df = m.getOWLDataFactory();
 
-        OWLClassExpression ont = (OWLClassExpression) data.create(df);
+        OWLAnnotation ont = (OWLAnnotation) data.create(df);
 
-        OntologyModel o = m.createOntology();
-        o.add(df.getOWLSubClassOfAxiom(df.getOWLClass("C"), ont));
+        OntologyID id = OntologyID.create("u", "v");
+        OntologyModel o = m.createOntology(id);
+
+        m.applyChange(new AddOntologyAnnotation(o, ont));
         o.clearCache();
-        OWLClassExpression res = o.axioms(AxiomType.SUBCLASS_OF).findFirst().orElseThrow(AssertionError::new)
-                .getSuperClass();
+        OWLAnnotation res = o.annotations().findFirst().orElseThrow(AssertionError::new);
         Assert.assertTrue(res instanceof ONTObject);
         return res;
     }
 
     @Override
     Class<? extends OWLObjectImpl> getCacheFrameType() {
-        return ONTExpressionImpl.class;
+        return ONTAnnotationImpl.class;
     }
-
 }

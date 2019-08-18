@@ -18,9 +18,12 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.OntManagers;
+import ru.avicomp.ontapi.internal.InternalCache;
 import ru.avicomp.ontapi.internal.ONTObject;
+import ru.avicomp.ontapi.owlapi.OWLObjectImpl;
 import ru.avicomp.ontapi.tests.DataFactoryTest;
 
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -55,10 +58,35 @@ abstract class ObjectFactoryTest {
         compare(ont, test);
         validate(owl, test);
 
-        testInternalReset(owl, test);
+        Class<? extends OWLObjectImpl> frame = getCacheFrameType();
+        if (frame != null)
+            testInternalReset(frame, owl, test);
     }
 
-    void testInternalReset(OWLObject expected, OWLObject test) {
+    Class<? extends OWLObjectImpl> getCacheFrameType() {
+        return null;
+    }
+
+    void testInternalReset(Class<? extends OWLObjectImpl> frame, OWLObject expected, OWLObject test) {
+        Assert.assertTrue(frame.isInstance(test));
+        InternalCache.Loading cache = getContentCache(frame, test);
+        Assert.assertFalse(cache.isEmpty());
+        cache.clear();
+        Assert.assertTrue(cache.isEmpty());
+        compare(expected, test);
+        Assert.assertFalse(cache.isEmpty());
+        validate(expected, test);
+    }
+
+    private static InternalCache.Loading getContentCache(Class<? extends OWLObjectImpl> type, OWLObject inst) {
+
+        try {
+            Field f = type.getDeclaredField("content");
+            f.setAccessible(true);
+            return (InternalCache.Loading) f.get(inst);
+        } catch (Exception e) {
+            throw new AssertionError(e);
+        }
     }
 
     void compare(OWLObject expected, OWLObject actual) {

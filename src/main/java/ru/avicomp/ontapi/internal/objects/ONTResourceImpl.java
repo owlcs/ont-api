@@ -36,6 +36,7 @@ import java.util.stream.Stream;
  * A base-resource component.
  * Created by @ssz on 07.08.2019.
  *
+ * @see ONTStatementImpl
  * @since 1.4.3
  */
 @SuppressWarnings("WeakerAccess")
