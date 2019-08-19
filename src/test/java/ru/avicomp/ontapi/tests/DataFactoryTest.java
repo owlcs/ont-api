@@ -81,7 +81,8 @@ public class DataFactoryTest {
     @Test
     public void testBooleanProperties() {
         OWLObject object = data.create(ONT_DATA_FACTORY);
-        final boolean expectedAnonymousExpression = data.isAnonymousClassExpression() || data.isAnonymousDataRange();
+        final boolean expectedAnonymousExpression = data.isAnonymousClassExpression()
+                || data.isAnonymousDataRange() || data.isAnonymousProperty();
         Assert.assertEquals(data.isAnonymousDataRange(), object instanceof OWLDataRange && !(object instanceof OWLDatatype));
         Assert.assertEquals(data.isAnonymousClassExpression(), object instanceof OWLAnonymousClassExpression);
         final boolean expectedAnonymous = data.isAxiom() || data.isAnonymousIndividual() || expectedAnonymousExpression;
@@ -278,6 +279,10 @@ public class DataFactoryTest {
             return false;
         }
 
+        default boolean isAnonymousProperty() {
+            return false;
+        }
+
         default boolean isIndividual() {
             return false;
         }
@@ -384,6 +389,13 @@ public class DataFactoryTest {
     public interface ObjectProperty extends EntityData {
         @Override
         default boolean isObjectProperty() {
+            return true;
+        }
+    }
+
+    public interface InverseObjectProperty extends Data {
+        @Override
+        default boolean isAnonymousProperty() {
             return true;
         }
     }
@@ -1754,6 +1766,17 @@ public class DataFactoryTest {
                     @Override
                     public String toString() {
                         return "ComplexAnnotationWithDifferentNestedSubAnnotations";
+                    }
+                }
+                , new InverseObjectProperty() {
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLObjectInverseOf(df.getOWLObjectProperty("X"));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLObjectInverseOf(df.getOWLObjectProperty(\"X\"))";
                     }
                 }
         );
