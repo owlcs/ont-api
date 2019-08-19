@@ -119,7 +119,7 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
     }
 
     /**
-     * Creates a singleton {@code Set}.
+     * Creates an immutable singleton {@code Set}.
      *
      * @param value {@link X}, not {@code null}
      * @param <X>   anything
@@ -130,7 +130,7 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
     }
 
     /**
-     * Creates an empty {@code Set}.
+     * Creates an empty immutable {@code Set}.
      *
      * @param <X> anything
      * @return a {@code Set} of {@link X}

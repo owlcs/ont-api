@@ -212,8 +212,8 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
     }
 
     @Override
-    public boolean containsEntityInSignature(OWLEntity entity) {
-        if (entity.isOWLAnnotationProperty()) return false;
+    public boolean containsEntityInSignature(@Nullable OWLEntity entity) {
+        if (entity == null || entity.isOWLAnnotationProperty()) return false;
         return super.containsEntityInSignature(entity);
     }
 

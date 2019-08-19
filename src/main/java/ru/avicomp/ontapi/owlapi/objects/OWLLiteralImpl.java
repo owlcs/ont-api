@@ -491,7 +491,8 @@ public class OWLLiteralImpl extends OWLObjectImpl implements OWLLiteral, FrontsN
     }
 
     @Override
-    public boolean containsEntityInSignature(OWLEntity entity) {
+    public boolean containsEntityInSignature(@Nullable OWLEntity entity) {
+        if (entity == null || !EntityType.DATATYPE.equals(entity.getEntityType())) return false;
         return getDatatype().equals(entity);
     }
 

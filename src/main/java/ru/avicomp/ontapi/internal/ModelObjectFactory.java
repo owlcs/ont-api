@@ -57,6 +57,11 @@ public class ModelObjectFactory extends NoCacheObjectFactory {
     }
 
     @Override
+    public ONTObject<OWLObjectInverseOf> get(OntOPE.Inverse iop) {
+        return getInverseObjectProperty(iop.getId().getBlankNodeId());
+    }
+
+    @Override
     public ONTObject<OWLClass> get(OntClass ce) {
         return getClass(ce.getURI());
     }
@@ -128,4 +133,7 @@ public class ModelObjectFactory extends NoCacheObjectFactory {
         return new ONTLiteralImpl(label, model);
     }
 
+    public ONTObject<OWLObjectInverseOf> getInverseObjectProperty(BlankNodeId id) {
+        return new ONTObjectInverseOfImpl(id, model);
+    }
 }
