@@ -56,7 +56,7 @@ public class InverseFunctionalObjectPropertyTranslator
         ONTObject<? extends OWLObjectPropertyExpression> p = reader.get(getSubject(statement));
         Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLInverseFunctionalObjectPropertyAxiom res = reader.getOWLDataFactory()
-                .getOWLInverseFunctionalObjectPropertyAxiom(p.getObject(), ONTObject.extract(annotations));
+                .getOWLInverseFunctionalObjectPropertyAxiom(p.getOWLObject(), ONTObject.extract(annotations));
         return ONTObjectImpl.create(res, statement).append(annotations).append(p);
     }
 

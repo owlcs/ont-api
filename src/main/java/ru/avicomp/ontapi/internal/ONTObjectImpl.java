@@ -76,7 +76,7 @@ public abstract class ONTObjectImpl<O extends OWLObject> implements ONTObject<O>
     }
 
     protected static <X extends OWLObject> ONTObjectImpl<X> create(ONTObject<X> other) {
-        return new ONTObjectImpl<X>(other.getObject()) {
+        return new ONTObjectImpl<X>(other.getOWLObject()) {
             @Override
             public Stream<Triple> triples() {
                 return other.triples();
@@ -95,7 +95,7 @@ public abstract class ONTObjectImpl<O extends OWLObject> implements ONTObject<O>
      * @return OWL object
      */
     @Override
-    public O getObject() {
+    public O getOWLObject() {
         return object;
     }
 
@@ -121,7 +121,7 @@ public abstract class ONTObjectImpl<O extends OWLObject> implements ONTObject<O>
         if (this == o) return true;
         if (!(o instanceof ONTObject)) return false;
         ONTObject<?> that = (ONTObjectImpl<?>) o;
-        return object.equals(that.getObject());
+        return object.equals(that.getOWLObject());
     }
 
     @Override

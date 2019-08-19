@@ -128,7 +128,7 @@ public class RWLockedGraphTest {
     private static Stream<OWLAxiom> listAxioms(Collection<AxiomType<? extends OWLAxiom>> types, OntGraphModel m) {
         return types.stream()
                 .map(AxiomParserProvider::get)
-                .flatMap(x -> x.axioms(m)).map(ONTObject::getObject);
+                .flatMap(x -> x.axioms(m)).map(ONTObject::getOWLObject);
     }
 
     private static Graph loadPizza() {

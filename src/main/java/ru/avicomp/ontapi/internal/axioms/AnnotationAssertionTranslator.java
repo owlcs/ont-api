@@ -82,7 +82,7 @@ public class AnnotationAssertionTranslator
         ONTObject<? extends OWLAnnotationValue> v = reader.getValue(statement.getObject());
         Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLAnnotationAssertionAxiom res = reader.getOWLDataFactory()
-                .getOWLAnnotationAssertionAxiom(p.getObject(), s.getObject(), v.getObject(),
+                .getOWLAnnotationAssertionAxiom(p.getOWLObject(), s.getOWLObject(), v.getOWLObject(),
                         ONTObject.extract(annotations));
         return ONTObjectImpl.create(res, statement).append(annotations).append(s).append(p).append(v);
     }

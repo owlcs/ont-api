@@ -47,7 +47,7 @@ public class ONTDatatypeImpl extends ONTEntityImpl implements OWLDatatype, ONTOb
     }
 
     @Override
-    public OWLDatatype getObject() {
+    public OWLDatatype getOWLObject() {
         return this;
     }
 

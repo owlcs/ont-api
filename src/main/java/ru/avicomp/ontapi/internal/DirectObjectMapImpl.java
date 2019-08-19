@@ -41,7 +41,7 @@ public class DirectObjectMapImpl<X extends OWLObject> implements ObjectMap<X> {
      */
     public DirectObjectMapImpl(Supplier<Iterator<ONTObject<X>>> loader) {
         this(Objects.requireNonNull(loader),
-                k -> Iter.findFirst(Iter.create(loader.get()).filterKeep(x -> x.getObject().equals(k))));
+                k -> Iter.findFirst(Iter.create(loader.get()).filterKeep(x -> x.getOWLObject().equals(k))));
     }
 
     /**
@@ -76,7 +76,7 @@ public class DirectObjectMapImpl<X extends OWLObject> implements ObjectMap<X> {
 
     @Override
     public Stream<X> keys() {
-        return Iter.asStream(listONTObjects().mapWith(ONTObject::getObject));
+        return Iter.asStream(listONTObjects().mapWith(ONTObject::getOWLObject));
     }
 
     @Override

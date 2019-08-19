@@ -73,11 +73,11 @@ public class ONTLiteralImpl extends OWLLiteralImpl implements OWLLiteral, ONTObj
 
     @Override
     public OWLDatatype getDatatype() {
-        return getObjectFactory().get(getDatatypeResource()).getObject();
+        return getObjectFactory().get(getDatatypeResource()).getOWLObject();
     }
 
     @Override
-    public OWLLiteral getObject() {
+    public OWLLiteral getOWLObject() {
         return this;
     }
 

@@ -37,11 +37,11 @@ public interface ONTObject<O extends OWLObject> {
     }
 
     static <X extends OWLObject> Set<X> extractWildcards(Collection<? extends ONTObject<? extends X>> wraps) {
-        return wraps.stream().map(ONTObject::getObject).collect(Collectors.toSet());
+        return wraps.stream().map(ONTObject::getOWLObject).collect(Collectors.toSet());
     }
 
     static <X extends OWLObject> Stream<X> objects(Collection<? extends ONTObject<X>> objects) {
-        return objects.stream().map(ONTObject::getObject);
+        return objects.stream().map(ONTObject::getOWLObject);
     }
 
     /**
@@ -49,7 +49,7 @@ public interface ONTObject<O extends OWLObject> {
      *
      * @return {@code OWLObject}
      */
-    O getObject();
+    O getOWLObject();
 
     /**
      * Lists all associated {@link Triple triple}s.

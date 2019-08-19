@@ -61,7 +61,7 @@ public class ONTAnonymousIndividualImpl extends OWLAnonymousIndividualImpl
     }
 
     @Override
-    public OWLAnonymousIndividual getObject() {
+    public OWLAnonymousIndividual getOWLObject() {
         return this;
     }
 

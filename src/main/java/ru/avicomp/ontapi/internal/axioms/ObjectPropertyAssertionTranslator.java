@@ -81,7 +81,7 @@ public class ObjectPropertyAssertionTranslator
         ONTObject<? extends OWLIndividual> object = reader.get(statement.getObject().as(OntIndividual.class));
         Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLObjectPropertyAssertionAxiom res = reader.getOWLDataFactory()
-                .getOWLObjectPropertyAssertionAxiom(property.getObject(), subject.getObject(), object.getObject(),
+                .getOWLObjectPropertyAssertionAxiom(property.getOWLObject(), subject.getOWLObject(), object.getOWLObject(),
                         ONTObject.extract(annotations));
         return ONTObjectImpl.create(res, statement).append(annotations).append(subject).append(property).append(object);
     }

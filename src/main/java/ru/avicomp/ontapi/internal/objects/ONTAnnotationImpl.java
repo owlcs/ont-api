@@ -84,7 +84,7 @@ public class ONTAnnotationImpl extends ONTStatementImpl implements OWLAnnotation
      */
     protected Object[] collectContent(OntStatement root, InternalObjectFactory of) {
         // OWL-API requires distinct and sorted Stream's and _List's_
-        Set<ONTObject<OWLAnnotation>> res = createSortedSet(Comparator.comparing(ONTObject::getObject));
+        Set<ONTObject<OWLAnnotation>> res = createSortedSet(Comparator.comparing(ONTObject::getOWLObject));
         OntModels.listAnnotations(root).mapWith(of::get).forEachRemaining(res::add);
         return res.toArray();
     }
@@ -111,7 +111,7 @@ public class ONTAnnotationImpl extends ONTStatementImpl implements OWLAnnotation
     }
 
     @Override
-    public OWLAnnotation getObject() {
+    public OWLAnnotation getOWLObject() {
         return this;
     }
 
@@ -220,12 +220,12 @@ public class ONTAnnotationImpl extends ONTStatementImpl implements OWLAnnotation
 
     @Override
     public OWLAnnotationProperty getProperty() {
-        return getONTAnnotationProperty().getObject();
+        return getONTAnnotationProperty().getOWLObject();
     }
 
     @Override
     public OWLAnnotationValue getValue() {
-        return getONTAnnotationValue().getObject();
+        return getONTAnnotationValue().getOWLObject();
     }
 
     /**
@@ -247,8 +247,8 @@ public class ONTAnnotationImpl extends ONTStatementImpl implements OWLAnnotation
     @Override
     public OWLAnnotation getAnnotatedAnnotation(@Nonnull Collection<OWLAnnotation> annotations) {
         InternalObjectFactory f = getObjectFactory();
-        return f.getOWLDataFactory().getOWLAnnotation(getONTAnnotationProperty(f).getObject(),
-                getONTAnnotationValue(f).getObject(), annotations);
+        return f.getOWLDataFactory().getOWLAnnotation(getONTAnnotationProperty(f).getOWLObject(),
+                getONTAnnotationValue(f).getOWLObject(), annotations);
     }
 
     @Override

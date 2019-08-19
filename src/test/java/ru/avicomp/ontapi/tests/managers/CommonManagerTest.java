@@ -163,7 +163,7 @@ public class CommonManagerTest {
         InternalObjectFactory df = AxiomTranslator.getObjectFactory(o2);
         List<OWLClass> newOWLClasses = newClasses.stream()
                 .map(df::get)
-                .map(ONTObject::getObject)
+                .map(ONTObject::getOWLObject)
                 .map(AsOWLClass::asOWLClass).collect(Collectors.toList());
         LOGGER.debug("OWL-Classes: {}", newOWLClasses);
         newOWLClasses.forEach(c ->

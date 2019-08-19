@@ -53,7 +53,7 @@ public class ObjectPropertyRangeTranslator extends AbstractPropertyRangeTranslat
         ONTObject<? extends OWLClassExpression> ce = reader.get(statement.getObject().as(OntCE.class));
         Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLObjectPropertyRangeAxiom res = reader.getOWLDataFactory()
-                .getOWLObjectPropertyRangeAxiom(p.getObject(), ce.getObject(), ONTObject.extract(annotations));
+                .getOWLObjectPropertyRangeAxiom(p.getOWLObject(), ce.getOWLObject(), ONTObject.extract(annotations));
         return ONTObjectImpl.create(res, statement).append(annotations).append(p).append(ce);
     }
 

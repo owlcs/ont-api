@@ -53,7 +53,7 @@ public class AsymmetricObjectPropertyTranslator
         ONTObject<? extends OWLObjectPropertyExpression> p = reader.get(getSubject(statement));
         Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLAsymmetricObjectPropertyAxiom res = reader.getOWLDataFactory()
-                .getOWLAsymmetricObjectPropertyAxiom(p.getObject(), ONTObject.extract(annotations));
+                .getOWLAsymmetricObjectPropertyAxiom(p.getOWLObject(), ONTObject.extract(annotations));
         return ONTObjectImpl.create(res, statement).append(annotations).append(p);
     }
 

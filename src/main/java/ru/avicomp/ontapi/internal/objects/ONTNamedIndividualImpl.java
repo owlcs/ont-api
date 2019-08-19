@@ -41,7 +41,7 @@ public class ONTNamedIndividualImpl extends ONTEntityImpl implements OWLNamedInd
     }
 
     @Override
-    public OWLNamedIndividual getObject() {
+    public OWLNamedIndividual getOWLObject() {
         return this;
     }
 

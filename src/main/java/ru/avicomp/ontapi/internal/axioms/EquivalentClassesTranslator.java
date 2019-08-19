@@ -60,7 +60,7 @@ public class EquivalentClassesTranslator extends AbstractNaryTranslator<OWLEquiv
         ONTObject<? extends OWLClassExpression> b = reader.get(statement.getObject().as(getView()));
         Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLEquivalentClassesAxiom res = reader.getOWLDataFactory()
-                .getOWLEquivalentClassesAxiom(a.getObject(), b.getObject(), ONTObject.extract(annotations));
+                .getOWLEquivalentClassesAxiom(a.getOWLObject(), b.getOWLObject(), ONTObject.extract(annotations));
         return ONTObjectImpl.create(res, statement).append(annotations).append(a).append(b);
     }
 

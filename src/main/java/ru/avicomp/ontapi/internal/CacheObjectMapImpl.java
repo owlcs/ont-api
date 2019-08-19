@@ -100,13 +100,13 @@ public class CacheObjectMapImpl<X extends OWLObject> implements ObjectMap<X> {
         if (withMerge) {
             while (it.hasNext()) {
                 ONTObject<X> v = it.next();
-                res.merge(v.getObject(), v, merger);
+                res.merge(v.getOWLObject(), v, merger);
             }
             return CachedMap.create(res, merger, parallel);
         }
         while (it.hasNext()) {
             ONTObject<X> v = it.next();
-            res.put(v.getObject(), v);
+            res.put(v.getOWLObject(), v);
         }
         return CachedMap.create(res, null, parallel);
     }
@@ -194,7 +194,7 @@ public class CacheObjectMapImpl<X extends OWLObject> implements ObjectMap<X> {
 
     @Override
     public void add(ONTObject<X> value) {
-        getMap().put(value.getObject(), value);
+        getMap().put(value.getOWLObject(), value);
         hasNew = true;
     }
 

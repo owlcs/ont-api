@@ -441,7 +441,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         if (e.canAs(OntIndividual.Named.class)) {
             res.add(df.get(e.as(OntIndividual.Named.class)));
         }
-        return res.stream().map(ONTObject::getObject);
+        return res.stream().map(ONTObject::getOWLObject);
     }
 
     /**
@@ -619,7 +619,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         if (res == null) return Stream.empty();
         InternalObjectFactory df = getObjectFactory();
         OntStatement s = res.getRoot();
-        return s == null ? Stream.empty() : Stream.of(t.toAxiom(s, df, getConfig()).getObject());
+        return s == null ? Stream.empty() : Stream.of(t.toAxiom(s, df, getConfig()).getOWLObject());
     }
 
     /**
@@ -640,7 +640,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         AnnotationAssertionTranslator t = (AnnotationAssertionTranslator) OWLContentType.ANNOTATION_ASSERTION.getTranslator();
         ExtendedIterator<OntStatement> res = m.listLocalStatements(WriteHelper.toResource(s), null, null)
                 .filterKeep(x -> t.testStatement(x, getConfig()));
-        return reduce(Iter.asStream(t.translate(res, df, getConfig()).mapWith(ONTObject::getObject)));
+        return reduce(Iter.asStream(t.translate(res, df, getConfig()).mapWith(ONTObject::getOWLObject)));
     }
 
     /**
@@ -659,7 +659,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         SubClassOfTranslator t = (SubClassOfTranslator) OWLContentType.SUBCLASS_OF.getTranslator();
         ExtendedIterator<OntStatement> res = m.listLocalStatements(WriteHelper.toResource(sub), RDFS.subClassOf, null)
                 .filterKeep(t::filter);
-        return reduce(Iter.asStream(t.translate(res, df, getConfig()).mapWith(ONTObject::getObject)));
+        return reduce(Iter.asStream(t.translate(res, df, getConfig()).mapWith(ONTObject::getOWLObject)));
     }
 
     /**
@@ -681,7 +681,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         ExtendedIterator<OntStatement> res = m.listLocalStatements(r, OWL.equivalentClass, null)
                 .andThen(m.listLocalStatements(null, OWL.equivalentClass, r))
                 .filterKeep(s -> t.testStatement(s, getConfig()));
-        return reduce(Iter.asStream(t.translate(res, df, getConfig()).mapWith(ONTObject::getObject)));
+        return reduce(Iter.asStream(t.translate(res, df, getConfig()).mapWith(ONTObject::getOWLObject)));
     }
 
     /**
@@ -977,7 +977,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
                 return false;
             }
             map.remove(container);
-            container = value.getObject();
+            container = value.getOWLObject();
             OntGraphModel m = toModel(value);
             // triples that are used by other content objects:
             Set<Triple> used = new HashSet<>();
@@ -1019,7 +1019,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         InternalConfig c = getConfig();
         Set<Triple> res = new HashSet<>();
         Iter.flatMap(OWLContentType.listAll(), k -> k.read(m, df, c)
-                .filterKeep(x -> !object.equals(x.getObject()) && isUsed(k, x.getObject())))
+                .filterKeep(x -> !object.equals(x.getOWLObject()) && isUsed(k, x.getOWLObject())))
                 .forEachRemaining(x -> x.triples().forEach(res::add));
         return res;
     }
@@ -1063,7 +1063,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
             Set<OWLObject> objects = new HashSet<>();
             Set<Triple> triples = new HashSet<>();
             type.select(m, df).forEach(x -> {
-                objects.add(x.getObject());
+                objects.add(x.getOWLObject());
                 x.triples().forEach(triples::add);
             });
             if (objects.isEmpty()) {
@@ -1071,10 +1071,10 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
             }
             selectContentContainers(type)
                     .forEach(x -> {
-                        if (object.equals(x.getObject())) {
+                        if (object.equals(x.getOWLObject())) {
                             return;
                         }
-                        if (type.components(x.getObject()).noneMatch(objects::contains)) {
+                        if (type.components(x.getOWLObject()).noneMatch(objects::contains)) {
                             return;
                         }
                         x.triples().filter(triples::contains).forEach(res::add);
@@ -1104,7 +1104,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
 
             @Override
             public String toString() {
-                return String.format("ModelFor{%s}", o.getObject());
+                return String.format("ModelFor{%s}", o.getOWLObject());
             }
         };
     }
@@ -1313,7 +1313,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @return {@code Stream} of {@link ONTObject} - containers from the {@link #content} cache
      */
     protected Stream<ONTObject<OWLObject>> selectContentContainers(OWLComponentType type) {
-        return selectContent(type, k -> getContentCache(k).values(), (k, x) -> k.hasAnnotations(x.getObject()));
+        return selectContent(type, k -> getContentCache(k).values(), (k, x) -> k.hasAnnotations(x.getOWLObject()));
     }
 
     /**

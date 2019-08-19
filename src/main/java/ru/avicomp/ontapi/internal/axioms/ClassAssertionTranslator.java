@@ -87,7 +87,7 @@ public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionA
 
         Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLClassAssertionAxiom res = reader.getOWLDataFactory()
-                .getOWLClassAssertionAxiom(ce.getObject(), i.getObject(), ONTObject.extract(annotations));
+                .getOWLClassAssertionAxiom(ce.getOWLObject(), i.getOWLObject(), ONTObject.extract(annotations));
         return ONTObjectImpl.create(res, statement).append(annotations).append(i).append(ce);
     }
 

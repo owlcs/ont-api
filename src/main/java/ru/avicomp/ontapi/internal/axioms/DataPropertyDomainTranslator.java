@@ -52,8 +52,8 @@ public class DataPropertyDomainTranslator extends AbstractPropertyDomainTranslat
         ONTObject<OWLDataProperty> p = reader.get(statement.getSubject(getView()));
         ONTObject<? extends OWLClassExpression> ce = reader.get(statement.getObject().as(OntCE.class));
         Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
-        OWLDataPropertyDomainAxiom res = reader.getOWLDataFactory().getOWLDataPropertyDomainAxiom(p.getObject(),
-                ce.getObject(), ONTObject.extract(annotations));
+        OWLDataPropertyDomainAxiom res = reader.getOWLDataFactory().getOWLDataPropertyDomainAxiom(p.getOWLObject(),
+                ce.getOWLObject(), ONTObject.extract(annotations));
         return ONTObjectImpl.create(res, statement).append(annotations).append(p).append(ce);
     }
 

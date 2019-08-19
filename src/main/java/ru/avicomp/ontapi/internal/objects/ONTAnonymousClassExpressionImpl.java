@@ -148,7 +148,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
 
     @SuppressWarnings("unchecked")
     @Override
-    public OWL getObject() {
+    public OWL getOWLObject() {
         return (OWL) this;
     }
 
@@ -308,7 +308,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
 
         @Override
         public OWLDataRange getFiller() {
-            return getONTDataRange().getObject();
+            return getONTDataRange().getOWLObject();
         }
 
         @SuppressWarnings("unchecked")
@@ -343,7 +343,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
 
         @Override
         public OWLDataRange getFiller() {
-            return getONTClassExpression().getObject();
+            return getONTClassExpression().getOWLObject();
         }
 
         @SuppressWarnings("unchecked")
@@ -384,7 +384,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
 
         @Override
         public OWLIndividual getFiller() {
-            return getONTIndividual().getObject();
+            return getONTIndividual().getOWLObject();
         }
 
         @Override
@@ -430,7 +430,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
 
         @Override
         public OWLLiteral getFiller() {
-            return getONTLiteral().getObject();
+            return getONTLiteral().getOWLObject();
         }
 
         @Override
@@ -618,7 +618,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         @Override
         public Set<OWLClassExpression> asDisjunctSet() {
             Set<OWLClassExpression> res = createSortedSet();
-            getOWLMembers().forEach(x -> res.addAll(x.getObject().asDisjunctSet()));
+            getOWLMembers().forEach(x -> res.addAll(x.getOWLObject().asDisjunctSet()));
             return res;
         }
 
@@ -648,7 +648,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         @Override
         public Set<OWLClassExpression> asConjunctSet() {
             Set<OWLClassExpression> res = createSortedSet();
-            getOWLMembers().forEach(x -> res.addAll(x.getObject().asConjunctSet()));
+            getOWLMembers().forEach(x -> res.addAll(x.getOWLObject().asConjunctSet()));
             return res;
         }
 
@@ -697,7 +697,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
                 return this;
             }
             DataFactory df = getDataFactory();
-            return df.getOWLObjectUnionOf(values.stream().map(x -> df.getOWLObjectOneOf(x.getObject())));
+            return df.getOWLObjectUnionOf(values.stream().map(x -> df.getOWLObjectOneOf(x.getOWLObject())));
         }
     }
 
@@ -720,7 +720,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
 
         @Override
         public OWLClassExpression getOperand() {
-            return getONTClassExpression().getObject();
+            return getONTClassExpression().getOWLObject();
         }
 
         @SuppressWarnings("unchecked")
@@ -792,7 +792,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         @Override
         protected Object[] collectContent(ONT_C ce, InternalObjectFactory of) {
             // OWL-API requires distinct and sorted Stream's and _List's_
-            Set<ONTObject<? extends OWL_M>> res = createSortedSet(Comparator.comparing(ONTObject::getObject));
+            Set<ONTObject<? extends OWL_M>> res = createSortedSet(Comparator.comparing(ONTObject::getOWLObject));
             listONTMembers(ce).forEachRemaining(e -> res.add(map(e, of)));
             return res.toArray();
         }
@@ -837,7 +837,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         public OWLDataRange getFiller() {
-            return getONTDataRange().getObject();
+            return getONTDataRange().getOWLObject();
         }
 
         @SuppressWarnings("unchecked")
@@ -868,7 +868,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         public OWLDataProperty getProperty() {
-            return getONTDataProperty().getObject();
+            return getONTDataProperty().getOWLObject();
         }
 
         @SuppressWarnings("unchecked")
@@ -917,7 +917,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         public OWLClassExpression getFiller() {
-            return getONTClassExpression().getObject();
+            return getONTClassExpression().getOWLObject();
         }
 
         @SuppressWarnings("unchecked")
@@ -952,7 +952,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         public OWLObjectPropertyExpression getProperty() {
-            return getONTObjectPropertyExpression().getObject();
+            return getONTObjectPropertyExpression().getOWLObject();
         }
 
         @SuppressWarnings("unchecked")

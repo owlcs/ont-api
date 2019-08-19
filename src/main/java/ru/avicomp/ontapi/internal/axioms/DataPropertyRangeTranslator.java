@@ -52,7 +52,7 @@ public class DataPropertyRangeTranslator extends AbstractPropertyRangeTranslator
         ONTObject<? extends OWLDataRange> d = reader.get(statement.getObject().as(OntDR.class));
         Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLDataPropertyRangeAxiom res = reader.getOWLDataFactory()
-                .getOWLDataPropertyRangeAxiom(p.getObject(), d.getObject(), ONTObject.extract(annotations));
+                .getOWLDataPropertyRangeAxiom(p.getOWLObject(), d.getOWLObject(), ONTObject.extract(annotations));
         return ONTObjectImpl.create(res, statement).append(annotations).append(p).append(d);
     }
 

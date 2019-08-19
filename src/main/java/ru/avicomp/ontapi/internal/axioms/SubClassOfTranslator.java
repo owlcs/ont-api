@@ -66,7 +66,7 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
         ONTObject<? extends OWLClassExpression> sup = reader.get(statement.getObject().as(OntCE.class));
         Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLSubClassOfAxiom res = reader.getOWLDataFactory()
-                .getOWLSubClassOfAxiom(sub.getObject(), sup.getObject(), ONTObject.extract(annotations));
+                .getOWLSubClassOfAxiom(sub.getOWLObject(), sup.getOWLObject(), ONTObject.extract(annotations));
         return ONTObjectImpl.create(res, statement).append(annotations).append(sub).append(sup);
     }
 

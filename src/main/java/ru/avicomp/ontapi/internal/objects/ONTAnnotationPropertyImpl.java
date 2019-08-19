@@ -43,7 +43,7 @@ public class ONTAnnotationPropertyImpl extends ONTEntityImpl implements OWLAnnot
     }
 
     @Override
-    public OWLAnnotationProperty getObject() {
+    public OWLAnnotationProperty getOWLObject() {
         return this;
     }
 

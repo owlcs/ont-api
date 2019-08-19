@@ -43,7 +43,7 @@ public class ONTObjectPropertyImpl extends ONTEntityImpl implements OWLObjectPro
     }
 
     @Override
-    public OWLObjectProperty getObject() {
+    public OWLObjectProperty getOWLObject() {
         return this;
     }
 

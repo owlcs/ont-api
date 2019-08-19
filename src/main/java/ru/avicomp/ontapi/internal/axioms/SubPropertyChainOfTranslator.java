@@ -64,8 +64,8 @@ public class SubPropertyChainOfTranslator extends AbstractListBasedTranslator<OW
     public ONTObject<OWLSubPropertyChainOfAxiom> toAxiom(OntStatement statement, InternalObjectFactory reader, InternalConfig config) {
         return makeAxiom(statement, reader::get, OntOPE::findPropertyChain, reader::get, Collectors.toList(),
                 (s, m) -> reader.getOWLDataFactory().getOWLSubPropertyChainOfAxiom(
-                        m.stream().map(ONTObject::getObject).collect(Collectors.toList()),
-                        s.getObject(),
+                        m.stream().map(ONTObject::getOWLObject).collect(Collectors.toList()),
+                        s.getOWLObject(),
                         ONTObject.extract(reader.get(statement, config))));
     }
 

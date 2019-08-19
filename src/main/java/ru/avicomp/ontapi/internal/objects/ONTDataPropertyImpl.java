@@ -42,7 +42,7 @@ public class ONTDataPropertyImpl extends ONTEntityImpl implements OWLDataPropert
     }
 
     @Override
-    public OWLDataProperty getObject() {
+    public OWLDataProperty getOWLObject() {
         return this;
     }
 

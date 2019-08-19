@@ -47,7 +47,7 @@ public class ONTClassImpl extends ONTEntityImpl implements OWLClass, ONTObject<O
     }
 
     @Override
-    public OWLClass getObject() {
+    public OWLClass getOWLObject() {
         return this;
     }
 

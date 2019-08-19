@@ -69,7 +69,7 @@ public class InternalModelTest {
 
         Map<OWLAxiom, Set<Triple>> axioms = types.stream()
                 .flatMap(view -> AxiomParserProvider.get(view).axioms(model))
-                .collect(Collectors.toMap(ONTObject::getObject, i -> i.triples().collect(Collectors.toSet())));
+                .collect(Collectors.toMap(ONTObject::getOWLObject, i -> i.triples().collect(Collectors.toSet())));
 
         LOGGER.debug("Recreate model");
         Model m2 = ModelFactory.createDefaultModel();
@@ -182,7 +182,7 @@ public class InternalModelTest {
         LOGGER.debug("=========================");
         LOGGER.debug("{}:", view.getSimpleName());
         AxiomParserProvider.get(view).axioms(model).forEach(e -> {
-            Axiom axiom = e.getObject();
+            Axiom axiom = e.getOWLObject();
             Set<Triple> triples = e.triples().collect(Collectors.toSet());
             Assert.assertNotNull("Null axiom", axiom);
             Assert.assertFalse("No associated triples", triples.isEmpty());

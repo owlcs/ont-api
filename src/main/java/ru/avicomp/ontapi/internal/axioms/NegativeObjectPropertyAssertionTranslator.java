@@ -57,8 +57,8 @@ public class NegativeObjectPropertyAssertionTranslator
         ONTObject<? extends OWLIndividual> o = reader.get(npa.getTarget());
         Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLNegativeObjectPropertyAssertionAxiom res = reader.getOWLDataFactory()
-                .getOWLNegativeObjectPropertyAssertionAxiom(p.getObject(),
-                        s.getObject(), o.getObject(), ONTObject.extract(annotations));
+                .getOWLNegativeObjectPropertyAssertionAxiom(p.getOWLObject(),
+                        s.getOWLObject(), o.getOWLObject(), ONTObject.extract(annotations));
         return ONTObjectImpl.create(res, npa).append(annotations).append(s).append(p).append(o);
     }
 
