@@ -1822,6 +1822,43 @@ public class DataFactoryTest {
                     public String toString() {
                         return "df.getOWLFacetRestriction(OWLFacet.LANG_RANGE, df.getOWLLiteral(\"r-RR\"))";
                     }
+                }, new AnonymousRange() {
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLDataUnionOf(df.getStringOWLDatatype(), df.getOWLDatatype("X"), df.getDoubleOWLDatatype());
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLDataUnionOf(df.getStringOWLDatatype(), df.getOWLDatatype(\"X\"), df.getDoubleOWLDatatype())";
+                    }
+                }, new AnonymousRange() {
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLDataUnionOf(df.getOWLDatatype("X"), df.getBooleanOWLDatatype(), df.getOWLDatatype("Y"));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLDataUnionOf( df.getOWLDatatype(\"X\"), df.getBooleanOWLDatatype(),  df.getOWLDatatype(\"Y\"))";
+                    }
+                }, new AnonymousRange() {
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLDataUnionOf(df.getOWLDataComplementOf(df.getOWLDatatype("X")),
+                                df.getOWLDataOneOf(df.getOWLLiteral(1), df.getOWLLiteral(2), df.getOWLLiteral(3)),
+                                df.getOWLDatatypeRestriction(df.getFloatOWLDatatype(),
+                                        df.getOWLFacetRestriction(OWLFacet.TOTAL_DIGITS, df.getOWLLiteral(2)),
+                                        df.getOWLFacetRestriction(OWLFacet.MIN_INCLUSIVE, df.getOWLLiteral(-2.1)),
+                                        df.getOWLFacetRestriction(OWLFacet.LENGTH, df.getOWLLiteral(24)),
+                                        df.getOWLFacetRestriction(OWLFacet.PATTERN, df.getOWLLiteral("#.##"))
+                                ));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "ComplexDataRangeWithDifferentNestedDataRangeExpressions";
+                    }
                 }
         );
 

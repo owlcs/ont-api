@@ -109,14 +109,6 @@ public class NoCacheObjectFactory implements InternalObjectFactory {
     }
 
     @Override
-    public ONTObject<? extends OWLIndividual> get(OntIndividual individual) {
-        if (OntApiException.notNull(individual, "Null individual").isURIResource()) {
-            return get(individual.as(OntIndividual.Named.class));
-        }
-        return get(individual.as(OntIndividual.Anonymous.class));
-    }
-
-    @Override
     public ONTObject<OWLLiteral> get(Literal literal) {
         DataFactory df = getOWLDataFactory();
         OWLLiteral owl = df.getOWLLiteral(literal.asNode().getLiteral());

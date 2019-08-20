@@ -618,7 +618,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         @Override
         public Set<OWLClassExpression> asDisjunctSet() {
             Set<OWLClassExpression> res = createSortedSet();
-            getOWLMembers().forEach(x -> res.addAll(x.getOWLObject().asDisjunctSet()));
+            getONTMembers().forEach(x -> res.addAll(x.getOWLObject().asDisjunctSet()));
             return res;
         }
 
@@ -648,7 +648,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         @Override
         public Set<OWLClassExpression> asConjunctSet() {
             Set<OWLClassExpression> res = createSortedSet();
-            getOWLMembers().forEach(x -> res.addAll(x.getOWLObject().asConjunctSet()));
+            getONTMembers().forEach(x -> res.addAll(x.getOWLObject().asConjunctSet()));
             return res;
         }
 
@@ -692,7 +692,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
 
         @Override
         public OWLClassExpression asObjectUnionOf() {
-            Collection<ONTObject<? extends OWLIndividual>> values = getOWLMembers();
+            Collection<ONTObject<? extends OWLIndividual>> values = getONTMembers();
             if (values.size() == 1) {
                 return this;
             }
@@ -779,12 +779,12 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         @SuppressWarnings("unchecked")
         @Override
         public List<OWL_M> getOperandsAsList() {
-            List res = getOWLMembers();
+            List res = getONTMembers();
             return (List<OWL_M>) res;
         }
 
         @SuppressWarnings("unchecked")
-        public List<ONTObject<? extends OWL_M>> getOWLMembers() {
+        public List<ONTObject<? extends OWL_M>> getONTMembers() {
             List res = Arrays.asList(getContent());
             return (List<ONTObject<? extends OWL_M>>) res;
         }
@@ -799,7 +799,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
 
         @SuppressWarnings("unchecked")
         public ExtendedIterator<ONTObject<? extends OWLObject>> listComponents() {
-            ExtendedIterator res = Iter.create(getOWLMembers().iterator());
+            ExtendedIterator res = Iter.create(getONTMembers().iterator());
             return (ExtendedIterator<ONTObject<? extends OWLObject>>) res;
         }
 

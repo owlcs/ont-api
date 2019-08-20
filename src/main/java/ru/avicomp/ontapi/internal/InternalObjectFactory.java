@@ -71,8 +71,6 @@ public interface InternalObjectFactory {
 
     ONTObject<? extends OWLDataRange> get(OntDR dr);
 
-    ONTObject<? extends OWLIndividual> get(OntIndividual i);
-
     ONTObject<? extends SWRLAtom> get(OntSWRL.Atom atom);
 
     /**
@@ -137,6 +135,19 @@ public interface InternalObjectFactory {
             return get(OntModels.asAnonymousIndividual(value));
         }
         throw new OntApiException.IllegalArgument("Not an AnnotationValue " + value);
+    }
+
+    /**
+     * Gets an {@link OWLIndividual} wrapped in {@link ONTObject} for the given {@link OntIndividual}.
+     *
+     * @param individual {@link OntIndividual}, not {@code null}
+     * @return {@link ONTObject} of {@link OWLIndividual}
+     */
+    default ONTObject<? extends OWLIndividual> get(OntIndividual individual) {
+        if (OntApiException.notNull(individual, "Null individual").isURIResource()) {
+            return get(individual.as(OntIndividual.Named.class));
+        }
+        return get(individual.as(OntIndividual.Anonymous.class));
     }
 
     /**

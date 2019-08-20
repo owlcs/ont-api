@@ -55,6 +55,14 @@ public class ModelObjectFactory extends NoCacheObjectFactory {
         return (ONTObject<? extends OWLClassExpression>) ONTAnonymousClassExpressionImpl.create(ce, model);
     }
 
+    @SuppressWarnings("unchecked")
+    @Override
+    public ONTObject<? extends OWLDataRange> get(OntDR dr) {
+        if (dr.isURIResource())
+            return get((OntDT) dr);
+        return (ONTObject<? extends OWLDataRange>) ONTAnonymousDataRangeImpl.create(dr, model);
+    }
+
     @Override
     public ONTObject<OWLObjectInverseOf> get(OntOPE.Inverse iop) {
         return ONTObjectInverseOfImpl.create(iop, model);

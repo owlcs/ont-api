@@ -66,7 +66,7 @@ public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResource
     /**
      * Lists all components in the form of {@code Iterator}.
      * Neither this object or component objects are not included in result: it content only top-level direct components.
-     * Note that {@link #components()} contains also non-{@link OWLObject} things:
+     * Note that {@link #components()} may also contain non-{@link OWLObject} things:
      * integers (e.g. cardinality), {@code List}s (e.g. {@code ObjectOneOf}).
      *
      * @return {@link ExtendedIterator} of {@link ONTObject}s
@@ -79,11 +79,11 @@ public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResource
      * Collects the cache Array.
      * The array was chosen as the best option in sense of memory consumption and access speed.
      *
-     * @param ce {@link R}, not {@code null}
+     * @param obj {@link R}, not {@code null}
      * @param of {@link InternalObjectFactory}, not {@code null}
      * @return {@code Array} of {@code Object}s
      */
-    protected abstract Object[] collectContent(R ce, InternalObjectFactory of);
+    protected abstract Object[] collectContent(R obj, InternalObjectFactory of);
 
     @Override
     protected BlankNodeId getBlankNodeId() {
