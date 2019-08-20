@@ -61,6 +61,11 @@ public class ModelObjectFactory extends NoCacheObjectFactory {
     }
 
     @Override
+    public ONTObject<OWLFacetRestriction> get(OntFR fr) {
+        return ONTFacetRestrictionImpl.create(fr, model);
+    }
+
+    @Override
     public ONTObject<OWLClass> get(OntClass ce) {
         return getClass(ce.getURI());
     }
