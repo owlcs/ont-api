@@ -21,7 +21,6 @@ import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.OWLFacet;
 import ru.avicomp.ontapi.DataFactory;
 import ru.avicomp.ontapi.OntApiException;
-import ru.avicomp.ontapi.jena.impl.OntObjectImpl;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.utils.OntModels;
@@ -176,8 +175,8 @@ public class ReadHelper {
     /**
      * Maps {@link OntFR} =&gt; {@link OWLFacetRestriction}.
      *
-     * @param fr {@link OntFR}
-     * @param of {@link InternalObjectFactory}
+     * @param fr {@link OntFR}, not {@code null}
+     * @param of {@link InternalObjectFactory}, not {@code null}
      * @return {@link ONTObject} around {@link OWLFacetRestriction}
      */
     public static ONTObject<OWLFacetRestriction> getFacetRestriction(OntFR fr, InternalObjectFactory of) {
@@ -185,33 +184,49 @@ public class ReadHelper {
         return ONTObjectImpl.create(res, fr);
     }
 
+    /**
+     * Creates an {@link OWLFacetRestriction} instance.
+     *
+     * @param fr {@link OntFR}, not {@code null}
+     * @param of {@link InternalObjectFactory}, not {@code null}
+     * @return {@link OWLFacetRestriction}
+     */
     public static OWLFacetRestriction calcOWLFacetRestriction(OntFR fr, InternalObjectFactory of) {
         OWLLiteral literal = of.get(OntApiException.notNull(fr, "Null facet restriction.").getValue()).getOWLObject();
-        Class<? extends OntObject> view = OntApiException.notNull(((OntObjectImpl) fr).getActualClass(),
-                "Can't determine view of facet restriction " + fr);
-        if (OntFR.Length.class.equals(view))
-            return of.getOWLDataFactory().getOWLFacetRestriction(OWLFacet.LENGTH, literal);
-        if (OntFR.MinLength.class.equals(view))
-            return of.getOWLDataFactory().getOWLFacetRestriction(OWLFacet.MIN_LENGTH, literal);
-        if (OntFR.MaxLength.class.equals(view))
-            return of.getOWLDataFactory().getOWLFacetRestriction(OWLFacet.MAX_LENGTH, literal);
-        if (OntFR.MinInclusive.class.equals(view))
-            return of.getOWLDataFactory().getOWLFacetRestriction(OWLFacet.MIN_INCLUSIVE, literal);
-        if (OntFR.MaxInclusive.class.equals(view))
-            return of.getOWLDataFactory().getOWLFacetRestriction(OWLFacet.MAX_INCLUSIVE, literal);
-        if (OntFR.MinExclusive.class.equals(view))
-            return of.getOWLDataFactory().getOWLFacetRestriction(OWLFacet.MIN_EXCLUSIVE, literal);
-        if (OntFR.MaxExclusive.class.equals(view))
-            return of.getOWLDataFactory().getOWLFacetRestriction(OWLFacet.MAX_EXCLUSIVE, literal);
-        if (OntFR.Pattern.class.equals(view))
-            return of.getOWLDataFactory().getOWLFacetRestriction(OWLFacet.PATTERN, literal);
-        if (OntFR.FractionDigits.class.equals(view))
-            return of.getOWLDataFactory().getOWLFacetRestriction(OWLFacet.FRACTION_DIGITS, literal);
-        if (OntFR.TotalDigits.class.equals(view))
-            return of.getOWLDataFactory().getOWLFacetRestriction(OWLFacet.TOTAL_DIGITS, literal);
-        if (OntFR.LangRange.class.equals(view))
-            return of.getOWLDataFactory().getOWLFacetRestriction(OWLFacet.LANG_RANGE, literal);
-        throw new OntApiException("Unsupported facet restriction " + fr);
+        Class<? extends OntFR> type = OntModels.getOntType(fr);
+        return of.getOWLDataFactory().getOWLFacetRestriction(getFacet(type), literal);
+    }
+
+    /**
+     * Gets the facet by ONT-API type.
+     *
+     * @param type {@code Class}-type of {@link OntFR}
+     * @return {@link OWLFacet}
+     */
+    public static OWLFacet getFacet(Class<? extends OntFR> type) {
+        if (OntFR.Length.class == type)
+            return OWLFacet.LENGTH;
+        if (OntFR.MinLength.class == type)
+            return OWLFacet.MIN_LENGTH;
+        if (OntFR.MaxLength.class == type)
+            return OWLFacet.MAX_LENGTH;
+        if (OntFR.MinInclusive.class == type)
+            return OWLFacet.MIN_INCLUSIVE;
+        if (OntFR.MaxInclusive.class == type)
+            return OWLFacet.MAX_INCLUSIVE;
+        if (OntFR.MinExclusive.class == type)
+            return OWLFacet.MIN_EXCLUSIVE;
+        if (OntFR.MaxExclusive.class == type)
+            return OWLFacet.MAX_EXCLUSIVE;
+        if (OntFR.Pattern.class == type)
+            return OWLFacet.PATTERN;
+        if (OntFR.FractionDigits.class == type)
+            return OWLFacet.FRACTION_DIGITS;
+        if (OntFR.TotalDigits.class == type)
+            return OWLFacet.TOTAL_DIGITS;
+        if (OntFR.LangRange.class == type)
+            return OWLFacet.LANG_RANGE;
+        throw new OntApiException.IllegalArgument("Unsupported facet restriction " + type);
     }
 
     /**

@@ -86,7 +86,8 @@ public class DataFactoryTest {
         Assert.assertEquals(data.isAnonymousDataRange(), object instanceof OWLDataRange && !(object instanceof OWLDatatype));
         Assert.assertEquals(data.isAnonymousClassExpression(), object instanceof OWLAnonymousClassExpression);
         final boolean expectedAnonymous = data.isAxiom() || data.isAnonymousIndividual() || expectedAnonymousExpression;
-        final boolean expectedNamed = data.isEntity() || data.isOWLAnnotation();
+        // todo: the following is wrong, but it is what OWL-API does. see https://github.com/owlcs/owlapi/issues/867
+        final boolean expectedNamed = !expectedAnonymous; //data.isEntity() || data.isOWLAnnotation();
         final boolean expectedBottomEntity;
         final boolean expectedTopEntity;
         if (data.isEntity()) {
@@ -177,6 +178,17 @@ public class DataFactoryTest {
             Assert.assertFalse(object instanceof OWLClassExpression);
         } else {
             Assert.assertFalse(object instanceof OWLAnnotation);
+        }
+
+        if (data.isFacetRestriction()) {
+            Assert.assertTrue(object instanceof OWLFacetRestriction);
+            Assert.assertFalse(object instanceof OWLAnnotation);
+            Assert.assertFalse(object instanceof OWLEntity);
+            Assert.assertFalse(object instanceof OWLIndividual);
+            Assert.assertFalse(object instanceof OWLDataRange);
+            Assert.assertFalse(object instanceof OWLClassExpression);
+        } else {
+            Assert.assertFalse(object instanceof OWLFacetRestriction);
         }
 
         Assert.assertEquals("'" + object + "' must be anonymous", expectedAnonymous, object.isAnonymous());
@@ -302,6 +314,10 @@ public class DataFactoryTest {
         default boolean isOWLAnnotation() {
             return false;
         }
+
+        default boolean isFacetRestriction() {
+            return false;
+        }
     }
 
     public interface AxiomData extends Data {
@@ -396,6 +412,13 @@ public class DataFactoryTest {
     public interface InverseObjectProperty extends Data {
         @Override
         default boolean isAnonymousProperty() {
+            return true;
+        }
+    }
+
+    public interface FRData extends Data {
+        @Override
+        default boolean isFacetRestriction() {
             return true;
         }
     }
@@ -685,7 +708,8 @@ public class DataFactoryTest {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLDatatypeRestriction(df.getOWLDatatype("D1"),
-                                df.getOWLFacetRestriction(OWLFacet.MAX_EXCLUSIVE, df.getOWLLiteral("3", df.getOWLDatatype("D2"))));
+                                df.getOWLFacetRestriction(OWLFacet.MAX_EXCLUSIVE,
+                                        df.getOWLLiteral("3", df.getOWLDatatype("D2"))));
                     }
 
                     @Override
@@ -1777,6 +1801,26 @@ public class DataFactoryTest {
                     @Override
                     public String toString() {
                         return "df.getOWLObjectInverseOf(df.getOWLObjectProperty(\"X\"))";
+                    }
+                }, new FRData() {
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLFacetRestriction(OWLFacet.FRACTION_DIGITS, df.getOWLLiteral(5));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLFacetRestriction(OWLFacet.FRACTION_DIGITS, df.getOWLLiteral(5))";
+                    }
+                }, new FRData() {
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLFacetRestriction(OWLFacet.LANG_RANGE, df.getOWLLiteral("r-RR"));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLFacetRestriction(OWLFacet.LANG_RANGE, df.getOWLLiteral(\"r-RR\"))";
                     }
                 }
         );

@@ -368,16 +368,6 @@ public class OWLLiteralImpl extends OWLObjectImpl implements OWLLiteral, FrontsN
     }
 
     @Override
-    public boolean isNamed() {
-        return false;
-    }
-
-    @Override
-    public boolean isAnonymous() {
-        return false;
-    }
-
-    @Override
     public Node asNode() {
         return NodeFactory.createLiteral(label);
     }
