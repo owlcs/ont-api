@@ -259,9 +259,7 @@ public class ONTAnnotationImpl extends ONTStatementImpl implements OWLAnnotation
     @Override
     public boolean containsEntityInSignature(@Nullable OWLEntity entity) {
         if (entity == null) return false;
-        return (EntityType.ANNOTATION_PROPERTY.equals(entity.getEntityType())
-                || EntityType.DATATYPE.equals(entity.getEntityType()))
-                && super.containsEntityInSignature(entity);
+        return (entity.isOWLAnnotationProperty() || entity.isOWLDatatype()) && super.containsEntityInSignature(entity);
     }
 
     @Override

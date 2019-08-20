@@ -23,6 +23,7 @@ import org.semanticweb.owlapi.model.OWLDatatype;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import ru.avicomp.ontapi.internal.HasObjectFactory;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
+import ru.avicomp.ontapi.internal.ModelObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.jena.impl.PersonalityModel;
 import ru.avicomp.ontapi.jena.model.OntDT;
@@ -68,12 +69,20 @@ public class ONTLiteralImpl extends OWLLiteralImpl implements OWLLiteral, ONTObj
      */
     public OntDT getDatatypeResource() {
         return PersonalityModel.asPersonalityModel(model.get())
-                .getNodeAs(NodeFactory.createURI(getDatatypeURI(label)), OntDT.class);
+                .getNodeAs(NodeFactory.createURI(getDatatypeURI()), OntDT.class);
     }
 
     @Override
     public OWLDatatype getDatatype() {
-        return getObjectFactory().get(getDatatypeResource()).getOWLObject();
+        return getONTDatatype().getOWLObject();
+    }
+
+    public ONTObject<? extends OWLDatatype> getONTDatatype() {
+        InternalObjectFactory of = getObjectFactory();
+        if (of instanceof ModelObjectFactory) {
+            return ((ModelObjectFactory) of).getDatatype(getDatatypeURI());
+        }
+        return of.get(getDatatypeResource());
     }
 
     @Override

@@ -16,7 +16,7 @@ package ru.avicomp.ontapi.internal;
 
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.DataFactory;
-import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.model.OntGraphModel;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -120,33 +120,33 @@ public class CacheObjectFactory extends ModelObjectFactory {
     }
 
     @Override
-    public ONTObject<OWLClass> get(OntClass ce) {
-        return classes.get(ce.getURI());
+    public ONTObject<OWLClass> getClass(String uri) {
+        return classes.get(uri);
     }
 
     @Override
-    public ONTObject<OWLDatatype> get(OntDT dr) {
-        return datatypes.get(dr.getURI());
+    public ONTObject<OWLDatatype> getDatatype(String uri) {
+        return datatypes.get(uri);
     }
 
     @Override
-    public ONTObject<OWLAnnotationProperty> get(OntNAP nap) {
-        return annotationProperties.get(nap.getURI());
+    public ONTObject<OWLAnnotationProperty> getAnnotationProperty(String uri) {
+        return annotationProperties.get(uri);
     }
 
     @Override
-    public ONTObject<OWLDataProperty> get(OntNDP ndp) {
-        return datatypeProperties.get(ndp.getURI());
+    public ONTObject<OWLDataProperty> getDataProperty(String uri) {
+        return datatypeProperties.get(uri);
     }
 
     @Override
-    public ONTObject<OWLObjectProperty> get(OntNOP nop) {
-        return objectProperties.get(nop.getURI());
+    public ONTObject<OWLObjectProperty> getObjectProperty(String uri) {
+        return objectProperties.get(uri);
     }
 
     @Override
-    public ONTObject<OWLNamedIndividual> get(OntIndividual.Named i) {
-        return individuals.get(i.getURI());
+    public ONTObject<OWLNamedIndividual> getNamedIndividual(String uri) {
+        return individuals.get(uri);
     }
 
     @Override

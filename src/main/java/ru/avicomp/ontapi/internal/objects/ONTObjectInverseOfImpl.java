@@ -43,6 +43,19 @@ public class ONTObjectInverseOfImpl
         super(n, m);
     }
 
+    /**
+     * Wraps the given {@link OntOPE.Inverse} as {@link OWLObjectInverseOf} and {@link ONTObject}.
+     *
+     * @param iop   {@link OntOPE.Inverse}, not {@code null}
+     * @param model a provider of non-null {@link OntGraphModel}, cannot be {@code null}
+     * @return {@link ONTObjectInverseOfImpl}
+     */
+    public static ONTObjectInverseOfImpl create(OntOPE.Inverse iop, Supplier<OntGraphModel> model) {
+        ONTObjectInverseOfImpl res = new ONTObjectInverseOfImpl(iop.asNode().getBlankNodeId(), model);
+        res.content.put(res, res.collectContent(iop, res.getObjectFactory()));
+        return res;
+    }
+
     @Override
     public OntOPE.Inverse asResource() {
         return as(OntOPE.Inverse.class);
@@ -85,7 +98,7 @@ public class ONTObjectInverseOfImpl
 
     @Override
     public boolean containsEntityInSignature(@Nullable OWLEntity entity) {
-        if (entity == null || !EntityType.OBJECT_PROPERTY.equals(entity.getEntityType())) return false;
+        if (entity == null || !entity.isOWLObjectProperty()) return false;
         return getNamedProperty().equals(entity);
     }
 

@@ -34,7 +34,6 @@ import java.util.function.Supplier;
  *
  * @since 1.4.3
  */
-@SuppressWarnings("WeakerAccess")
 public class ModelObjectFactory extends NoCacheObjectFactory {
     protected final Supplier<OntGraphModel> model;
 
@@ -58,7 +57,7 @@ public class ModelObjectFactory extends NoCacheObjectFactory {
 
     @Override
     public ONTObject<OWLObjectInverseOf> get(OntOPE.Inverse iop) {
-        return getInverseObjectProperty(iop.getId().getBlankNodeId());
+        return ONTObjectInverseOfImpl.create(iop, model);
     }
 
     @Override
@@ -131,9 +130,5 @@ public class ModelObjectFactory extends NoCacheObjectFactory {
 
     public ONTObject<OWLLiteral> getLiteral(LiteralLabel label) {
         return new ONTLiteralImpl(label, model);
-    }
-
-    public ONTObject<OWLObjectInverseOf> getInverseObjectProperty(BlankNodeId id) {
-        return new ONTObjectInverseOfImpl(id, model);
     }
 }

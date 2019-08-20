@@ -392,6 +392,17 @@ public class OWLLiteralImpl extends OWLObjectImpl implements OWLLiteral, FrontsN
     }
 
     /**
+     * Returns the datatype URI.
+     * For a lang-literal the datatype URI is {@link RDF#langString rdf:langString}.
+     * For a plain-literal the datatype URI is {@link XSD#xstring xsd:string}.
+     *
+     * @return String, cannot be {@code null}
+     */
+    public String getDatatypeURI() {
+        return getDatatypeURI(label);
+    }
+
+    /**
      * Returns the {@link OWLDatatype OWL-API datatype} parsed from the encapsulated {@link LiteralLabel}.
      * Please note: in the special case of no-lang PlainLiteral (e.g. {@code '...'^^rdf:PlainLiteral})
      * the method returns {@link InternalizedEntities#XSD_STRING},
@@ -400,7 +411,7 @@ public class OWLLiteralImpl extends OWLObjectImpl implements OWLLiteral, FrontsN
      */
     @Override
     public OWLDatatype getDatatype() {
-        String uri = getDatatypeURI(label);
+        String uri = getDatatypeURI();
         OWLDatatype res = OWLBuiltinDatatypeImpl.BUILTIN_OWL_DATATYPES.get(uri);
         return res != null ? res : new OWLDatatypeImpl(IRI.create(uri));
     }
@@ -482,7 +493,7 @@ public class OWLLiteralImpl extends OWLObjectImpl implements OWLLiteral, FrontsN
 
     @Override
     public boolean containsEntityInSignature(@Nullable OWLEntity entity) {
-        if (entity == null || !EntityType.DATATYPE.equals(entity.getEntityType())) return false;
+        if (entity == null || !entity.isOWLDatatype()) return false;
         return getDatatype().equals(entity);
     }
 
