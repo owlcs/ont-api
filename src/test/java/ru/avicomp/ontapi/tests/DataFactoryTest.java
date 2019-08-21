@@ -190,6 +190,11 @@ public class DataFactoryTest {
         } else {
             Assert.assertFalse(object instanceof OWLFacetRestriction);
         }
+        if (data.isSWRLVariable()) {
+            Assert.assertTrue(object instanceof SWRLVariable);
+        } else {
+            Assert.assertFalse(object instanceof SWRLVariable);
+        }
 
         Assert.assertEquals("'" + object + "' must be anonymous", expectedAnonymous, object.isAnonymous());
         Assert.assertEquals("'" + object + "' must be named", expectedNamed, object.isNamed());
@@ -315,6 +320,10 @@ public class DataFactoryTest {
             return false;
         }
 
+        default boolean isSWRLVariable() {
+            return false;
+        }
+
         default boolean isFacetRestriction() {
             return false;
         }
@@ -419,6 +428,13 @@ public class DataFactoryTest {
     public interface FRData extends Data {
         @Override
         default boolean isFacetRestriction() {
+            return true;
+        }
+    }
+
+    public interface SWRLVar extends Data {
+        @Override
+        default boolean isSWRLVariable() {
             return true;
         }
     }
@@ -1802,7 +1818,8 @@ public class DataFactoryTest {
                     public String toString() {
                         return "df.getOWLObjectInverseOf(df.getOWLObjectProperty(\"X\"))";
                     }
-                }, new FRData() {
+                }
+                , new FRData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLFacetRestriction(OWLFacet.FRACTION_DIGITS, df.getOWLLiteral(5));
@@ -1812,7 +1829,8 @@ public class DataFactoryTest {
                     public String toString() {
                         return "df.getOWLFacetRestriction(OWLFacet.FRACTION_DIGITS, df.getOWLLiteral(5))";
                     }
-                }, new FRData() {
+                }
+                , new FRData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLFacetRestriction(OWLFacet.LANG_RANGE, df.getOWLLiteral("r-RR"));
@@ -1822,7 +1840,8 @@ public class DataFactoryTest {
                     public String toString() {
                         return "df.getOWLFacetRestriction(OWLFacet.LANG_RANGE, df.getOWLLiteral(\"r-RR\"))";
                     }
-                }, new AnonymousRange() {
+                }
+                , new AnonymousRange() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLDataUnionOf(df.getStringOWLDatatype(), df.getOWLDatatype("X"), df.getDoubleOWLDatatype());
@@ -1832,7 +1851,8 @@ public class DataFactoryTest {
                     public String toString() {
                         return "df.getOWLDataUnionOf(df.getStringOWLDatatype(), df.getOWLDatatype(\"X\"), df.getDoubleOWLDatatype())";
                     }
-                }, new AnonymousRange() {
+                }
+                , new AnonymousRange() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLDataUnionOf(df.getOWLDatatype("X"), df.getBooleanOWLDatatype(), df.getOWLDatatype("Y"));
@@ -1842,7 +1862,8 @@ public class DataFactoryTest {
                     public String toString() {
                         return "df.getOWLDataUnionOf( df.getOWLDatatype(\"X\"), df.getBooleanOWLDatatype(),  df.getOWLDatatype(\"Y\"))";
                     }
-                }, new AnonymousRange() {
+                }
+                , new AnonymousRange() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLDataUnionOf(df.getOWLDataComplementOf(df.getOWLDatatype("X")),
@@ -1858,6 +1879,17 @@ public class DataFactoryTest {
                     @Override
                     public String toString() {
                         return "ComplexDataRangeWithDifferentNestedDataRangeExpressions";
+                    }
+                }
+                , new SWRLVar() {
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getSWRLVariable("x", "y");
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getSWRLVariable(\"x\", \"y\")";
                     }
                 }
         );

@@ -109,6 +109,11 @@ public class ModelObjectFactory extends NoCacheObjectFactory {
     }
 
     @Override
+    public ONTObject<SWRLVariable> get(OntSWRL.Variable v) {
+        return getSWRLVariable(v.getURI());
+    }
+
+    @Override
     public ONTObject<OWLLiteral> get(Literal literal) {
         return getLiteral(literal.asNode().getLiteral());
     }
@@ -143,5 +148,9 @@ public class ModelObjectFactory extends NoCacheObjectFactory {
 
     public ONTObject<OWLLiteral> getLiteral(LiteralLabel label) {
         return new ONTLiteralImpl(label, model);
+    }
+
+    public ONTObject<SWRLVariable> getSWRLVariable(String uri) {
+        return new ONTSWRLVariable(uri, model);
     }
 }
