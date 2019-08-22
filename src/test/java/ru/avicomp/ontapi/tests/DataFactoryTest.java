@@ -195,6 +195,11 @@ public class DataFactoryTest {
         } else {
             Assert.assertFalse(object instanceof SWRLVariable);
         }
+        if (data.isSWRLAtom()) {
+            Assert.assertTrue(object instanceof SWRLAtom);
+        } else {
+            Assert.assertFalse(object instanceof SWRLAtom);
+        }
 
         Assert.assertEquals("'" + object + "' must be anonymous", expectedAnonymous, object.isAnonymous());
         Assert.assertEquals("'" + object + "' must be named", expectedNamed, object.isNamed());
@@ -320,11 +325,15 @@ public class DataFactoryTest {
             return false;
         }
 
+        default boolean isFacetRestriction() {
+            return false;
+        }
+
         default boolean isSWRLVariable() {
             return false;
         }
 
-        default boolean isFacetRestriction() {
+        default boolean isSWRLAtom() {
             return false;
         }
     }
@@ -435,6 +444,14 @@ public class DataFactoryTest {
     public interface SWRLVar extends Data {
         @Override
         default boolean isSWRLVariable() {
+            return true;
+        }
+    }
+
+    public interface SWRLAtomData extends Data {
+
+        @Override
+        default boolean isSWRLAtom() {
             return true;
         }
     }
@@ -1890,6 +1907,104 @@ public class DataFactoryTest {
                     @Override
                     public String toString() {
                         return "df.getSWRLVariable(\"x\", \"y\")";
+                    }
+                }
+                , new SWRLAtomData() {
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getSWRLClassAtom(df.getOWLClass("C"),
+                                df.getSWRLIndividualArgument(df.getOWLNamedIndividual("I")));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getSWRLClassAtom(df.getOWLClass(\"C\"), " +
+                                "df.getSWRLIndividualArgument(df.getOWLNamedIndividual(\"I\")))";
+                    }
+                }
+                , new SWRLAtomData() {
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getSWRLDataRangeAtom(df.getOWLDatatype("D"),
+                                df.getSWRLLiteralArgument(df.getOWLLiteral("L")));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getSWRLDataRangeAtom(df.getOWLDatatype(\"D\"), " +
+                                "df.getSWRLLiteralArgument(df.getOWLLiteral(\"L\")))";
+                    }
+                }
+                , new SWRLAtomData() {
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getSWRLDataPropertyAtom(df.getOWLBottomDataProperty(),
+                                df.getSWRLVariable(IRI.create("V")), df.getSWRLLiteralArgument(df.getOWLLiteral("V")));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getSWRLDataPropertyAtom(df.getOWLBottomDataProperty(), " +
+                                "df.getSWRLVariable(IRI.create(\"V\")), " +
+                                "df.getSWRLLiteralArgument(df.getOWLLiteral(\"V\")))";
+                    }
+                }
+                , new SWRLAtomData() {
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getSWRLObjectPropertyAtom(df.getOWLObjectProperty("P"),
+                                df.getSWRLIndividualArgument(df.getOWLNamedIndividual("I")),
+                                df.getSWRLVariable("V"));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getSWRLObjectPropertyAtom(df.getOWLObjectProperty(\"P\"), " +
+                                "df.getSWRLIndividualArgument(df.getOWLNamedIndividual(\"I\")), " +
+                                "df.getSWRLVariable(\"V\"))";
+                    }
+                }
+                , new SWRLAtomData() {
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getSWRLSameIndividualAtom(df.getSWRLVariable("V"),
+                                df.getSWRLIndividualArgument(df.getOWLAnonymousIndividual("_:b0")));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getSWRLSameIndividualAtom(df.getSWRLVariable(\"V\"), " +
+                                "df.getSWRLIndividualArgument(df.getOWLAnonymousIndividual(\"_:b0\")))";
+                    }
+                }
+                , new SWRLAtomData() {
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getSWRLDifferentIndividualsAtom(
+                                df.getSWRLIndividualArgument(df.getOWLAnonymousIndividual("_:b1")),
+                                df.getSWRLVariable("V"));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getSWRLDifferentIndividualsAtom(" +
+                                "df.getSWRLIndividualArgument(df.getOWLAnonymousIndividual(\"_:b1\")), " +
+                                "df.getSWRLVariable(\"V\"))";
+                    }
+                }
+                , new SWRLAtomData() {
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getSWRLBuiltInAtom(IRI.create("I"),
+                                Arrays.asList(df.getSWRLVariable("V"),
+                                        df.getSWRLLiteralArgument(df.getOWLLiteral("V"))));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getSWRLBuiltInAtom(IRI.create(\"I\"), " +
+                                "Arrays.asList(df.getSWRLVariable(\"V\"), " +
+                                "df.getSWRLLiteralArgument(df.getOWLLiteral(\"V\"))))";
                     }
                 }
         );
