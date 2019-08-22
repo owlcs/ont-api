@@ -25,7 +25,6 @@ import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.internal.ONTObject;
-import ru.avicomp.ontapi.tests.DataFactoryTest;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,14 +35,14 @@ import java.util.stream.Collectors;
 @RunWith(Parameterized.class)
 public class EntityTest extends ObjectFactoryTest {
 
-    public EntityTest(DataFactoryTest.Data data) {
+    public EntityTest(Data data) {
         super(data);
     }
 
     @Parameterized.Parameters(name = "{0}")
-    public static List<DataFactoryTest.Data> getData() {
-        return DataFactoryTest.getData().stream()
-                .filter(DataFactoryTest.Data::isEntity)
+    public static List<Data> getData() {
+        return getObjects().stream()
+                .filter(Data::isEntity)
                 .collect(Collectors.toList());
     }
 

@@ -27,7 +27,6 @@ import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.internal.objects.ONTExpressionImpl;
 import ru.avicomp.ontapi.owlapi.OWLObjectImpl;
-import ru.avicomp.ontapi.tests.DataFactoryTest;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -38,14 +37,14 @@ import java.util.stream.Collectors;
 @RunWith(Parameterized.class)
 public class ClassExpressionTest extends ObjectFactoryTest {
 
-    public ClassExpressionTest(DataFactoryTest.Data data) {
+    public ClassExpressionTest(Data data) {
         super(data);
     }
 
     @Parameterized.Parameters(name = "{0}")
-    public static List<DataFactoryTest.Data> getData() {
-        return DataFactoryTest.getData().stream()
-                .filter(DataFactoryTest.Data::isAnonymousClassExpression)
+    public static List<Data> getData() {
+        return getObjects().stream()
+                .filter(Data::isAnonymousClassExpression)
                 .collect(Collectors.toList());
     }
 

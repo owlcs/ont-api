@@ -26,7 +26,6 @@ import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.internal.ONTObject;
-import ru.avicomp.ontapi.tests.DataFactoryTest;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
 import java.util.List;
@@ -38,14 +37,14 @@ import java.util.stream.Collectors;
 @RunWith(Parameterized.class)
 public class AnonIndividualTest extends ObjectFactoryTest {
 
-    public AnonIndividualTest(DataFactoryTest.Data data) {
+    public AnonIndividualTest(Data data) {
         super(data);
     }
 
     @Parameterized.Parameters(name = "{0}")
-    public static List<DataFactoryTest.Data> getData() {
-        return DataFactoryTest.getData().stream()
-                .filter(DataFactoryTest.Data::isAnonymousIndividual)
+    public static List<Data> getData() {
+        return getObjects().stream()
+                .filter(Data::isAnonymousIndividual)
                 .collect(Collectors.toList());
     }
 

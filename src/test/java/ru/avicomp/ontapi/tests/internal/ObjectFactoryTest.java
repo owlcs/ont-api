@@ -21,7 +21,7 @@ import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.internal.InternalCache;
 import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.owlapi.OWLObjectImpl;
-import ru.avicomp.ontapi.tests.DataFactoryTest;
+import ru.avicomp.ontapi.tests.TestFactory;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -33,13 +33,13 @@ import java.util.stream.Stream;
  * Created by @ssz on 13.08.2019.
  */
 @SuppressWarnings("WeakerAccess")
-abstract class ObjectFactoryTest {
+abstract class ObjectFactoryTest extends TestFactory {
     private static final OWLDataFactory ONT_DATA_FACTORY = OntManagers.getDataFactory();
     private static final OWLDataFactory OWL_DATA_FACTORY = OntManagers.createOWLProfile().dataFactory();
 
-    protected final DataFactoryTest.Data data;
+    protected final Data data;
 
-    ObjectFactoryTest(DataFactoryTest.Data data) {
+    ObjectFactoryTest(Data data) {
         this.data = data;
     }
 

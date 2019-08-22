@@ -24,7 +24,6 @@ import ru.avicomp.ontapi.*;
 import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.internal.objects.ONTAnnotationImpl;
 import ru.avicomp.ontapi.owlapi.OWLObjectImpl;
-import ru.avicomp.ontapi.tests.DataFactoryTest;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,14 +34,14 @@ import java.util.stream.Collectors;
 @RunWith(Parameterized.class)
 public class OWLAnnotationTest extends ObjectFactoryTest {
 
-    public OWLAnnotationTest(DataFactoryTest.Data data) {
+    public OWLAnnotationTest(Data data) {
         super(data);
     }
 
     @Parameterized.Parameters(name = "{0}")
-    public static List<DataFactoryTest.Data> getData() {
-        return DataFactoryTest.getData().stream()
-                .filter(DataFactoryTest.Data::isOWLAnnotation)
+    public static List<Data> getData() {
+        return getObjects().stream()
+                .filter(Data::isOWLAnnotation)
                 .collect(Collectors.toList());
     }
 

@@ -24,7 +24,6 @@ import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.jena.vocabulary.SWRLB;
-import ru.avicomp.ontapi.tests.DataFactoryTest;
 
 import java.util.Collections;
 import java.util.List;
@@ -36,14 +35,14 @@ import java.util.stream.Collectors;
 @RunWith(Parameterized.class)
 public class SWRLVarTest extends ObjectFactoryTest {
 
-    public SWRLVarTest(DataFactoryTest.Data data) {
+    public SWRLVarTest(Data data) {
         super(data);
     }
 
     @Parameterized.Parameters(name = "{0}")
-    public static List<DataFactoryTest.Data> getData() {
-        return DataFactoryTest.getData().stream()
-                .filter(DataFactoryTest.Data::isSWRLVariable)
+    public static List<Data> getData() {
+        return getObjects().stream()
+                .filter(Data::isSWRLVariable)
                 .collect(Collectors.toList());
     }
 
