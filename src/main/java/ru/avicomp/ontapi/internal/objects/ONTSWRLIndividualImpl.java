@@ -17,8 +17,7 @@ package ru.avicomp.ontapi.internal.objects;
 import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
-import org.semanticweb.owlapi.model.OWLIndividual;
-import org.semanticweb.owlapi.model.SWRLIndividualArgument;
+import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ModelObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
@@ -26,6 +25,8 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
 import ru.avicomp.ontapi.jena.model.OntSWRL;
 
+import javax.annotation.Nullable;
+import java.util.Set;
 import java.util.function.Supplier;
 
 /**
@@ -71,14 +72,12 @@ public class ONTSWRLIndividualImpl extends ONTResourceImpl
 
     @Override
     protected BlankNodeId getBlankNodeId() {
-        if (node instanceof BlankNodeId) return (BlankNodeId) node;
-        throw new IllegalStateException();
+        return node instanceof BlankNodeId ? (BlankNodeId) node : wrongState();
     }
 
     @Override
     protected String getURI() {
-        if (node instanceof String) return (String) node;
-        throw new IllegalStateException();
+        return node instanceof String ? (String) node : wrongState();
     }
 
     @Override
@@ -118,6 +117,61 @@ public class ONTSWRLIndividualImpl extends ONTResourceImpl
             return wrongState();
         }
         return of.get(asIndividual());
+    }
+
+    @Override
+    public boolean containsEntityInSignature(@Nullable OWLEntity entity) {
+        if (entity == null || !entity.isIndividual())
+            return false;
+        return getIndividual().equals(entity);
+    }
+
+    @Override
+    protected Set<OWLEntity> getSignatureSet() {
+        OWLIndividual i = getIndividual();
+        return i.isNamed() ? createSet(i.asOWLNamedIndividual()) : createSet();
+    }
+
+    @Override
+    protected Set<OWLNamedIndividual> getNamedIndividualSet() {
+        OWLIndividual i = getIndividual();
+        return i.isNamed() ? createSet(i.asOWLNamedIndividual()) : createSet();
+    }
+
+    @Override
+    protected Set<OWLAnonymousIndividual> getAnonymousIndividualSet() {
+        OWLIndividual i = getIndividual();
+        return i.isNamed() ? createSet() : createSet(i.asOWLAnonymousIndividual());
+    }
+
+    @Override
+    protected Set<OWLDatatype> getDatatypeSet() {
+        return createSet();
+    }
+
+    @Override
+    protected Set<OWLClass> getNamedClassSet() {
+        return createSet();
+    }
+
+    @Override
+    protected Set<OWLDataProperty> getDataPropertySet() {
+        return createSet();
+    }
+
+    @Override
+    protected Set<OWLObjectProperty> getObjectPropertySet() {
+        return createSet();
+    }
+
+    @Override
+    protected Set<OWLAnnotationProperty> getAnnotationPropertySet() {
+        return createSet();
+    }
+
+    @Override
+    protected Set<OWLClassExpression> getClassExpressionSet() {
+        return createSet();
     }
 
 }

@@ -17,14 +17,15 @@ package ru.avicomp.ontapi.internal.objects;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.impl.LiteralLabel;
-import org.semanticweb.owlapi.model.OWLLiteral;
-import org.semanticweb.owlapi.model.SWRLLiteralArgument;
+import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ModelObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntSWRL;
 
+import javax.annotation.Nullable;
+import java.util.Set;
 import java.util.function.Supplier;
 
 /**
@@ -77,4 +78,58 @@ public class ONTSWRLLiteralImpl extends ONTResourceImpl
         return of.get(model.get().asRDFNode(asNode()).asLiteral());
     }
 
+    private OWLDatatype getDatatype() {
+        return getLiteral().getDatatype();
+    }
+
+    @Override
+    public boolean containsEntityInSignature(@Nullable OWLEntity entity) {
+        if (entity == null || !entity.isOWLDatatype()) return false;
+        return getDatatype().equals(entity);
+    }
+
+    @Override
+    protected Set<OWLEntity> getSignatureSet() {
+        return createSet(getDatatype());
+    }
+
+    @Override
+    protected Set<OWLDatatype> getDatatypeSet() {
+        return createSet(getDatatype());
+    }
+
+    @Override
+    protected Set<OWLClass> getNamedClassSet() {
+        return createSet();
+    }
+
+    @Override
+    protected Set<OWLNamedIndividual> getNamedIndividualSet() {
+        return createSet();
+    }
+
+    @Override
+    protected Set<OWLDataProperty> getDataPropertySet() {
+        return createSet();
+    }
+
+    @Override
+    protected Set<OWLObjectProperty> getObjectPropertySet() {
+        return createSet();
+    }
+
+    @Override
+    protected Set<OWLAnnotationProperty> getAnnotationPropertySet() {
+        return createSet();
+    }
+
+    @Override
+    protected Set<OWLClassExpression> getClassExpressionSet() {
+        return createSet();
+    }
+
+    @Override
+    protected Set<OWLAnonymousIndividual> getAnonymousIndividualSet() {
+        return createSet();
+    }
 }
