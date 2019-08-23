@@ -23,7 +23,7 @@ import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.internal.ONTObject;
-import ru.avicomp.ontapi.jena.vocabulary.SWRLB;
+import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -33,16 +33,16 @@ import java.util.stream.Collectors;
  * Created by @ssz on 21.08.2019.
  */
 @RunWith(Parameterized.class)
-public class SWRLVarTest extends ObjectFactoryTest {
+public class SWRLArgTest extends ObjectFactoryTest {
 
-    public SWRLVarTest(Data data) {
+    public SWRLArgTest(Data data) {
         super(data);
     }
 
     @Parameterized.Parameters(name = "{0}")
     public static List<Data> getData() {
         return getObjects().stream()
-                .filter(Data::isSWRLVariable)
+                .filter(x -> x.isSWRLVariable() || x.isSWRLIndividual() || x.isSWRLLiteral())
                 .collect(Collectors.toList());
     }
 
@@ -51,16 +51,20 @@ public class SWRLVarTest extends ObjectFactoryTest {
         OntologyManager m = OntManagers.createONT();
         DataFactory df = m.getOWLDataFactory();
 
-        SWRLVariable ont = (SWRLVariable) data.create(df);
+        SWRLArgument ont = (SWRLArgument) data.create(df);
 
         OntologyModel o = m.createOntology();
-        o.add(df.getSWRLRule(Collections.singletonList(df.getSWRLBuiltInAtom(IRI.create(SWRLB.equal.getURI()),
-                Collections.singletonList(ont))),
-                Collections.emptyList()));
+        SWRLVariable var = df.getSWRLVariable("X");
+        SWRLIArgument arg1 = ont instanceof SWRLIArgument ? (SWRLIArgument) ont : var;
+        SWRLDArgument arg2 = ont instanceof SWRLDArgument ? (SWRLDArgument) ont : var;
+        SWRLAtom a = df.getSWRLDataPropertyAtom(df.getOWLTopDataProperty(), arg1, arg2);
+        o.add(df.getSWRLRule(Collections.singletonList(a), Collections.emptyList()));
         o.clearCache();
+        ReadWriteUtils.print(o);
         OWLObject res = o.axioms(AxiomType.SWRL_RULE)
                 .flatMap(SWRLRule::body)
                 .flatMap(SWRLAtom::allArguments)
+                .filter(x -> !var.equals(x))
                 .findFirst()
                 .orElseThrow(AssertionError::new);
         Assert.assertTrue(res instanceof ONTObject);

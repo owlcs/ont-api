@@ -29,7 +29,6 @@ import java.util.Objects;
  * <p>
  * Created by @szuev on 15.03.2018.
  */
-@SuppressWarnings("WeakerAccess")
 public class NoCacheObjectFactory implements InternalObjectFactory {
     protected final DataFactory factory;
 
@@ -134,6 +133,16 @@ public class NoCacheObjectFactory implements InternalObjectFactory {
     @Override
     public ONTObject<? extends SWRLAtom> get(OntSWRL.Atom atom) {
         return ReadHelper.calcSWRLAtom(atom, this);
+    }
+
+    @Override
+    public ONTObject<? extends SWRLIArgument> get(OntSWRL.IArg arg) {
+        return ReadHelper.getSWRLIndividualArg(arg, this);
+    }
+
+    @Override
+    public ONTObject<? extends SWRLDArgument> get(OntSWRL.DArg arg) {
+        return ReadHelper.getSWRLLiteralArg(arg, this);
     }
 
     @Override

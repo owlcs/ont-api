@@ -73,6 +73,10 @@ public interface InternalObjectFactory {
 
     ONTObject<? extends SWRLAtom> get(OntSWRL.Atom atom);
 
+    ONTObject<? extends SWRLIArgument> get(OntSWRL.IArg arg);
+
+    ONTObject<? extends SWRLDArgument> get(OntSWRL.DArg arg);
+
     /**
      * Gets an IRI as {@code ONTObject}.
      *

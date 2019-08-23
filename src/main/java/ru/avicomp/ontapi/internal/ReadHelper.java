@@ -477,7 +477,7 @@ public class ReadHelper {
         if (atom instanceof OntSWRL.Atom.BuiltIn) {
             OntSWRL.Atom.BuiltIn _atom = (OntSWRL.Atom.BuiltIn) atom;
             IRI iri = of.toIRI(_atom.getPredicate().getURI());
-            List<ONTObject<? extends SWRLDArgument>> arguments = _atom.arguments().map(a -> getSWRLLiteralArg(a, of))
+            List<ONTObject<? extends SWRLDArgument>> arguments = _atom.arguments().map(of::get)
                     .collect(Collectors.toList());
             SWRLAtom res = of.getOWLDataFactory().getSWRLBuiltInAtom(iri, arguments.stream().map(ONTObject::getOWLObject)
                     .collect(Collectors.toList()));
@@ -486,15 +486,15 @@ public class ReadHelper {
         if (atom instanceof OntSWRL.Atom.OntClass) {
             OntSWRL.Atom.OntClass _atom = (OntSWRL.Atom.OntClass) atom;
             ONTObject<? extends OWLClassExpression> c = of.get(_atom.getPredicate());
-            ONTObject<? extends SWRLIArgument> a = getSWRLIndividualArg(_atom.getArg(), of);
+            ONTObject<? extends SWRLIArgument> a = of.get(_atom.getArg());
             return ONTObjectImpl.create(of.getOWLDataFactory().getSWRLClassAtom(c.getOWLObject(), a.getOWLObject()), _atom)
                     .append(c).append(a);
         }
         if (atom instanceof OntSWRL.Atom.DataProperty) {
             OntSWRL.Atom.DataProperty _atom = (OntSWRL.Atom.DataProperty) atom;
             ONTObject<OWLDataProperty> p = of.get(_atom.getPredicate());
-            ONTObject<? extends SWRLIArgument> f = getSWRLIndividualArg(_atom.getFirstArg(), of);
-            ONTObject<? extends SWRLDArgument> s = getSWRLLiteralArg(_atom.getSecondArg(), of);
+            ONTObject<? extends SWRLIArgument> f = of.get(_atom.getFirstArg());
+            ONTObject<? extends SWRLDArgument> s = of.get(_atom.getSecondArg());
             return ONTObjectImpl.create(of.getOWLDataFactory()
                     .getSWRLDataPropertyAtom(p.getOWLObject(), f.getOWLObject(), s.getOWLObject()), _atom)
                     .append(p).append(f).append(s);
@@ -502,8 +502,8 @@ public class ReadHelper {
         if (atom instanceof OntSWRL.Atom.ObjectProperty) {
             OntSWRL.Atom.ObjectProperty _atom = (OntSWRL.Atom.ObjectProperty) atom;
             ONTObject<? extends OWLObjectPropertyExpression> p = of.get(_atom.getPredicate());
-            ONTObject<? extends SWRLIArgument> f = getSWRLIndividualArg(_atom.getFirstArg(), of);
-            ONTObject<? extends SWRLIArgument> s = getSWRLIndividualArg(_atom.getSecondArg(), of);
+            ONTObject<? extends SWRLIArgument> f = of.get(_atom.getFirstArg());
+            ONTObject<? extends SWRLIArgument> s = of.get(_atom.getSecondArg());
             return ONTObjectImpl.create(of.getOWLDataFactory()
                     .getSWRLObjectPropertyAtom(p.getOWLObject(), f.getOWLObject(), s.getOWLObject()), _atom)
                     .append(p).append(f).append(s);
@@ -511,21 +511,21 @@ public class ReadHelper {
         if (atom instanceof OntSWRL.Atom.DataRange) {
             OntSWRL.Atom.DataRange _atom = (OntSWRL.Atom.DataRange) atom;
             ONTObject<? extends OWLDataRange> d = of.get(_atom.getPredicate());
-            ONTObject<? extends SWRLDArgument> a = getSWRLLiteralArg(_atom.getArg(), of);
+            ONTObject<? extends SWRLDArgument> a = of.get(_atom.getArg());
             return ONTObjectImpl.create(of.getOWLDataFactory()
                     .getSWRLDataRangeAtom(d.getOWLObject(), a.getOWLObject()), _atom).append(d).append(a);
         }
         if (atom instanceof OntSWRL.Atom.DifferentIndividuals) {
             OntSWRL.Atom.DifferentIndividuals _atom = (OntSWRL.Atom.DifferentIndividuals) atom;
-            ONTObject<? extends SWRLIArgument> f = getSWRLIndividualArg(_atom.getFirstArg(), of);
-            ONTObject<? extends SWRLIArgument> s = getSWRLIndividualArg(_atom.getSecondArg(), of);
+            ONTObject<? extends SWRLIArgument> f = of.get(_atom.getFirstArg());
+            ONTObject<? extends SWRLIArgument> s = of.get(_atom.getSecondArg());
             return ONTObjectImpl.create(of.getOWLDataFactory()
                     .getSWRLDifferentIndividualsAtom(f.getOWLObject(), s.getOWLObject()), _atom).append(f).append(s);
         }
         if (atom instanceof OntSWRL.Atom.SameIndividuals) {
             OntSWRL.Atom.SameIndividuals _atom = (OntSWRL.Atom.SameIndividuals) atom;
-            ONTObject<? extends SWRLIArgument> f = getSWRLIndividualArg(_atom.getFirstArg(), of);
-            ONTObject<? extends SWRLIArgument> s = getSWRLIndividualArg(_atom.getSecondArg(), of);
+            ONTObject<? extends SWRLIArgument> f = of.get(_atom.getFirstArg());
+            ONTObject<? extends SWRLIArgument> s = of.get(_atom.getSecondArg());
             return ONTObjectImpl.create(of.getOWLDataFactory()
                     .getSWRLSameIndividualAtom(f.getOWLObject(), s.getOWLObject()), _atom).append(f).append(s);
         }

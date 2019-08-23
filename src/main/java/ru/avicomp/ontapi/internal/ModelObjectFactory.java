@@ -21,6 +21,7 @@ import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.DataFactory;
 import ru.avicomp.ontapi.internal.objects.*;
 import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.utils.OntModels;
 
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -111,6 +112,27 @@ public class ModelObjectFactory extends NoCacheObjectFactory {
     @Override
     public ONTObject<SWRLVariable> get(OntSWRL.Variable v) {
         return getSWRLVariable(v.getURI());
+    }
+
+    @Override
+    public ONTObject<? extends SWRLIArgument> get(OntSWRL.IArg arg) {
+        OntIndividual i;
+        if (arg.isAnon()) {
+            // treat any b-node as anonymous individual (whatever)
+            i = OntModels.asAnonymousIndividual(arg);
+        } else {
+            i = arg.getAs(OntIndividual.class);
+        }
+        return i != null ?
+                ONTSWRLIndividualImpl.create(i, model) :
+                get(arg.as(OntSWRL.Variable.class));
+    }
+
+    @Override
+    public ONTObject<? extends SWRLDArgument> get(OntSWRL.DArg arg) {
+        return arg.isLiteral() ?
+                new ONTSWRLLiteralImpl(arg.asNode().getLiteral(), model) :
+                get(arg.as(OntSWRL.Variable.class));
     }
 
     @Override

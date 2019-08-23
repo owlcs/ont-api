@@ -182,11 +182,9 @@ public class DataFactoryTest extends TestFactory {
         } else {
             Assert.assertFalse(object instanceof OWLFacetRestriction);
         }
-        if (data.isSWRLVariable()) {
-            Assert.assertTrue(object instanceof SWRLVariable);
-        } else {
-            Assert.assertFalse(object instanceof SWRLVariable);
-        }
+        Assert.assertEquals(data.isSWRLVariable(), object instanceof SWRLVariable);
+        Assert.assertEquals(data.isSWRLIndividual(), object instanceof SWRLIndividualArgument);
+        Assert.assertEquals(data.isSWRLLiteral(), object instanceof SWRLLiteralArgument);
         if (data.isSWRLAtom()) {
             Assert.assertTrue(object instanceof SWRLAtom);
         } else {

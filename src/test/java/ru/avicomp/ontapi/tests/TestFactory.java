@@ -1460,6 +1460,50 @@ public class TestFactory {
                         return "df.getSWRLVariable(\"x\", \"y\")";
                     }
                 }
+                , new SWRLIndividual() {
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getSWRLIndividualArgument(df.getOWLAnonymousIndividual("_:b0"));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getSWRLIndividualArgument(df.getOWLAnonymousIndividual(\"_:b0\"))";
+                    }
+                }
+                , new SWRLIndividual() {
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getSWRLIndividualArgument(df.getOWLNamedIndividual("I"));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getSWRLIndividualArgument(df.getOWLNamedIndividual(\"I\"))";
+                    }
+                }
+                , new SWRLLiteral() {
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getSWRLLiteralArgument(df.getOWLLiteral("L"));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getSWRLLiteralArgument(df.getOWLLiteral(\"L\"))";
+                    }
+                }
+                , new SWRLLiteral() {
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getSWRLLiteralArgument(df.getOWLLiteral(true));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getSWRLLiteralArgument(df.getOWLLiteral(true))";
+                    }
+                }
                 , new SWRLAtomData() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {
@@ -1664,6 +1708,14 @@ public class TestFactory {
             return false;
         }
 
+        default boolean isSWRLLiteral() {
+            return false;
+        }
+
+        default boolean isSWRLIndividual() {
+            return false;
+        }
+
         default boolean isSWRLAtom() {
             return false;
         }
@@ -1775,6 +1827,22 @@ public class TestFactory {
     public interface SWRLVar extends Data {
         @Override
         default boolean isSWRLVariable() {
+            return true;
+        }
+    }
+
+    public interface SWRLIndividual extends Data {
+
+        @Override
+        default boolean isSWRLIndividual() {
+            return true;
+        }
+    }
+
+    public interface SWRLLiteral extends Data {
+
+        @Override
+        default boolean isSWRLLiteral() {
             return true;
         }
     }
