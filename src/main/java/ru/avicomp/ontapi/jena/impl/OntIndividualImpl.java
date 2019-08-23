@@ -30,6 +30,7 @@ import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
+import ru.avicomp.ontapi.jena.vocabulary.SWRL;
 
 import java.util.HashSet;
 import java.util.Optional;
@@ -48,6 +49,12 @@ public abstract class OntIndividualImpl extends OntObjectImpl implements OntIndi
 
     private static final String FORBIDDEN_SUBJECTS = OntIndividual.Anonymous.class.getName() + ".InSubject";
     private static final String FORBIDDEN_OBJECTS = OntIndividual.Anonymous.class.getName() + ".InObject";
+
+    private static final Set<Node> FOR_SUBJECT = Stream.of(OWL.sameAs, OWL.differentFrom)
+            .map(FrontsNode::asNode).collect(Iter.toUnmodifiableSet());
+    private static final Set<Node> FOR_OBJECT = Stream.of(OWL.sameAs, OWL.differentFrom,
+            OWL.sourceIndividual, OWL.hasValue, RDF.first, SWRL.argument1, SWRL.argument2)
+            .map(FrontsNode::asNode).collect(Iter.toUnmodifiableSet());
 
     public static OntFinder FINDER = OntFinder.ANY_SUBJECT_AND_OBJECT;
     public static ObjectFactory anonymousIndividualFactory = Factories.createCommon(AnonymousImpl.class, FINDER,
@@ -146,7 +153,7 @@ public abstract class OntIndividualImpl extends OntObjectImpl implements OntIndi
         } finally {
             types.close();
         }
-        // any other typed statement:
+        // any other typed statement (builtin, such as owl:AllDifferent):
         if (hasType) {
             return false;
         }
@@ -154,11 +161,13 @@ public abstract class OntIndividualImpl extends OntObjectImpl implements OntIndi
         OntPersonality.Builtins builtins = personality.getBuiltins();
         OntPersonality.Reserved reserved = personality.getReserved();
 
+        // all known predicates whose subject definitely cannot be an individual
         Set<Node> forbiddenSubjects = reserved.get(FORBIDDEN_SUBJECTS, () -> {
-            Set<Node> allowed = Stream.concat(builtins.getProperties().stream(),
-                    Stream.of(OWL.sameAs.asNode(), OWL.differentFrom.asNode()))
-                    .collect(Collectors.toSet());
-            return reserved.getProperties().stream().filter(n -> !allowed.contains(n)).collect(Iter.toUnmodifiableSet());
+            Set<Node> bSet = builtins.getProperties();
+            return reserved.getProperties().stream()
+                    .filter(n -> !bSet.contains(n))
+                    .filter(n -> !FOR_SUBJECT.contains(n))
+                    .collect(Iter.toUnmodifiableSet());
         });
         // _:x @built-in-predicate @any:
         ExtendedIterator<Node> bySubject = eg.asGraph().find(node, Node.ANY, Node.ANY).mapWith(Triple::getPredicate);
@@ -170,11 +179,13 @@ public abstract class OntIndividualImpl extends OntObjectImpl implements OntIndi
         } finally {
             bySubject.close();
         }
+        // all known predicates whose object definitely cannot be an individual
         Set<Node> forbiddenObjects = reserved.get(FORBIDDEN_OBJECTS, () -> {
-            Set<Node> allowed = Stream.concat(builtins.getProperties().stream(),
-                    Stream.of(OWL.sameAs, OWL.differentFrom, OWL.sourceIndividual, OWL.hasValue, RDF.first)
-                            .map(FrontsNode::asNode)).collect(Collectors.toSet());
-            return reserved.getProperties().stream().filter(n -> !allowed.contains(n)).collect(Iter.toUnmodifiableSet());
+            Set<Node> bSet = builtins.getProperties();
+            return reserved.getProperties().stream()
+                    .filter(n -> !bSet.contains(n))
+                    .filter(n -> !FOR_OBJECT.contains(n))
+                    .collect(Iter.toUnmodifiableSet());
         });
         // @any @built-in-predicate _:x
         ExtendedIterator<Node> byObject = eg.asGraph().find(Node.ANY, Node.ANY, node).mapWith(Triple::getPredicate);

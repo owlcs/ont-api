@@ -15,7 +15,10 @@
 package ru.avicomp.ontapi.tests.jena;
 
 import org.apache.jena.graph.Graph;
+import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.RDFList;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.XSD;
 import org.junit.Assert;
 import org.junit.Test;
@@ -171,7 +174,6 @@ public class SWRLModelTest {
         Assert.assertEquals(10, m.ontObjects(OntSWRL.class).count());
     }
 
-
     @Test
     public void testCoreSWRLBuiltins() {
         String uri = "http://test.com/swrl-2";
@@ -205,5 +207,60 @@ public class SWRLModelTest {
         Assert.assertEquals(0, a.getPredicate().spec().count());
         Assert.assertEquals(0, b.getPredicate().spec().count());
         Assert.assertEquals(1, c.getPredicate().spec().count());
+    }
+
+    @Test
+    public void testAssembleSWRLAtomsWithAnonymousIndividuals() {
+        OntGraphModel m = OntModelFactory.createModel()
+                .setNsPrefix("swrl", SWRL.NS)
+                .setNsPrefixes(OntModelFactory.STANDARD);
+
+        OntClass c = m.createOntClass("C");
+        OntNOP p1 = m.createObjectProperty("P1");
+        OntNDP p2 = m.createDataProperty("P2");
+        Resource i1 = m.createResource();
+        Resource i2 = m.createResource();
+        Resource i3 = m.createResource();
+        Literal v = m.createLiteral("v");
+
+        OntSWRL.Atom.OntClass a1 = m.createResource(SWRL.ClassAtom)
+                .addProperty(SWRL.argument1, i1)
+                .addProperty(SWRL.classPredicate, c)
+                .as(OntSWRL.Atom.OntClass.class);
+
+        Assert.assertEquals(c, a1.getPredicate());
+        Assert.assertEquals(i1, a1.getArg());
+
+        OntSWRL.Atom.SameIndividuals a2 = m.createResource(SWRL.SameIndividualAtom)
+                .addProperty(SWRL.argument1, i1)
+                .addProperty(SWRL.argument2, i2)
+                .as(OntSWRL.Atom.SameIndividuals.class);
+        Assert.assertEquals(i1, a2.getFirstArg());
+        Assert.assertEquals(i2, a2.getSecondArg());
+        Assert.assertEquals(OWL.sameAs, a2.getPredicate());
+
+        OntSWRL.Atom.ObjectProperty a3 = m.createResource(SWRL.IndividualPropertyAtom)
+                .addProperty(SWRL.argument1, i1)
+                .addProperty(SWRL.argument2, i3)
+                .addProperty(SWRL.propertyPredicate, p1)
+                .as(OntSWRL.Atom.ObjectProperty.class);
+        Assert.assertEquals(i1, a3.getFirstArg());
+        Assert.assertEquals(i3, a3.getSecondArg());
+        Assert.assertEquals(p1, a3.getPredicate());
+
+        OntSWRL.Atom.DataProperty a4 = m.createResource(SWRL.DatavaluedPropertyAtom)
+                .addProperty(SWRL.argument1, i1)
+                .addProperty(SWRL.argument2, v)
+                .addProperty(SWRL.propertyPredicate, p2)
+                .as(OntSWRL.Atom.DataProperty.class);
+        Assert.assertEquals(i1, a4.getFirstArg());
+        //noinspection AssertEqualsBetweenInconvertibleTypes
+        Assert.assertEquals(v, a4.getSecondArg());
+        Assert.assertEquals(p2, a4.getPredicate());
+
+        ReadWriteUtils.print(m);
+        Assert.assertEquals(3, m.ontObjects(OntSWRL.IArg.class).count());
+        Assert.assertEquals(1, m.ontObjects(OntSWRL.DArg.class).count());
+        Assert.assertEquals(4, m.ontObjects(OntSWRL.Atom.class).count());
     }
 }

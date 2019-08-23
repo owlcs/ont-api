@@ -335,9 +335,6 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * - we use {@code RDFNode} (not {@code Resource}) as generic supertype due to the fact
      * that an {@code OntObject} can be also a {@code Literal}
      * (but in only single case when it is {@link ru.avicomp.ontapi.jena.model.OntSWRL.DArg}).
-     *
-     * @return boolean
-     * @since 1.4.2
      */
     @Override
     public <X extends RDFNode> X getAs(Class<X> type) {

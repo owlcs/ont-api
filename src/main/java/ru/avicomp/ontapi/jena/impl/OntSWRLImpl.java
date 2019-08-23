@@ -70,7 +70,7 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
             OntFinder.ANY_SUBJECT_AND_OBJECT, VARIABLE_FILTER.or(LiteralImpl.factory::canWrap));
 
     public static ObjectFactory iArgSWRLFactory = Factories.createCommon(IArgImpl.class,
-            OntFinder.ANY_SUBJECT, VARIABLE_FILTER.or((n, g) -> PersonalityModel.canAs(OntIndividual.class, n, g)));
+            OntFinder.ANY_SUBJECT_AND_OBJECT, VARIABLE_FILTER.or((n, g) -> PersonalityModel.canAs(OntIndividual.class, n, g)));
 
     public static ObjectFactory abstractArgSWRLFactory = Factories.createFrom(OntFinder.ANY_SUBJECT_AND_OBJECT
             , DArg.class
@@ -285,6 +285,11 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         @Override
         public Literal asLiteral() throws UnsupportedPolymorphismException {
             return as(Literal.class);
+        }
+
+        @Override
+        public ExtendedIterator<OntStatement> listSpec() {
+            return node.isLiteral() ? NullIterator.instance() : ((VariableImpl) as(Variable.class)).listSpec();
         }
     }
 
