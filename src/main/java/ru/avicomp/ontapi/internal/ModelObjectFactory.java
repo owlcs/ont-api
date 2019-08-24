@@ -135,6 +135,12 @@ public class ModelObjectFactory extends NoCacheObjectFactory {
                 get(arg.as(OntSWRL.Variable.class));
     }
 
+    @SuppressWarnings("unchecked")
+    @Override
+    public ONTObject<? extends SWRLAtom> get(OntSWRL.Atom atom) {
+        return (ONTObject<? extends SWRLAtom>) ONTSWRLAtomIml.create(atom, model);
+    }
+
     @Override
     public ONTObject<OWLLiteral> get(Literal literal) {
         return getLiteral(literal.asNode().getLiteral());
