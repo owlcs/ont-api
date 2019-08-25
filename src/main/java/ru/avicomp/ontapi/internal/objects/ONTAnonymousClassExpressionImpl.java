@@ -403,6 +403,68 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             // [property, filler]
             return new Object[]{of.get(ce.getProperty()), of.get(ce.getValue())};
         }
+
+        @Override
+        public boolean containsEntityInSignature(OWLEntity entity) {
+            if (entity == null) return false;
+            if (entity.isOWLObjectProperty())
+                return getNamedProperty().equals(entity);
+            OWLIndividual i;
+            if (entity.isIndividual() && (i = getFiller()).isOWLNamedIndividual()) {
+                return entity.equals(i);
+            }
+            return false;
+        }
+
+        @Override
+        public Set<OWLEntity> getSignatureSet() {
+            Set<OWLEntity> res = createSortedSet();
+            res.add(getNamedProperty());
+            OWLIndividual i = getFiller();
+            if (i.isOWLNamedIndividual()) res.add(i.asOWLNamedIndividual());
+            return res;
+        }
+
+        @Override
+        protected Set<OWLObjectProperty> getObjectPropertySet() {
+            return createSet(getNamedProperty());
+        }
+
+        protected OWLObjectProperty getNamedProperty() {
+            return getProperty().getNamedProperty();
+        }
+
+        @Override
+        protected Set<OWLNamedIndividual> getNamedIndividualSet() {
+            OWLIndividual i = getFiller();
+            return i.isOWLNamedIndividual() ? createSet(i.asOWLNamedIndividual()) : createSet();
+        }
+
+        @Override
+        protected Set<OWLAnonymousIndividual> getAnonymousIndividualSet() {
+            OWLIndividual i = getFiller();
+            return i.isOWLNamedIndividual() ? createSet() : createSet(i.asOWLAnonymousIndividual());
+        }
+
+        @Override
+        protected Set<OWLClassExpression> getClassExpressionSet() {
+            return createSet(this);
+        }
+
+        @Override
+        protected Set<OWLDataProperty> getDataPropertySet() {
+            return createSet();
+        }
+
+        @Override
+        protected Set<OWLClass> getNamedClassSet() {
+            return createSet();
+        }
+
+        @Override
+        protected Set<OWLDatatype> getDatatypeSet() {
+            return createSet();
+        }
     }
 
     /**
@@ -449,10 +511,12 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             // [property, filler]
             return new Object[]{of.get(ce.getProperty()), of.get(ce.getValue())};
         }
-
     }
 
     /**
+     * An {@code ObjectHasSelf} implementation.
+     * It does not contain boolean datatype in signature -
+     * see <a href='https://github.com/owlcs/owlapi/issues/783'>owlcs/owlapi##783</a>.
      * @see ru.avicomp.ontapi.owlapi.objects.ce.OWLObjectHasSelfImpl
      * @see OntCE.HasSelf
      */
@@ -467,6 +531,56 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         @Override
         public OntCE.HasSelf asResource() {
             return as(OntCE.HasSelf.class);
+        }
+
+        @Override
+        public boolean containsEntityInSignature(OWLEntity entity) {
+            if (entity == null || !entity.isOWLObjectProperty()) return false;
+            return getNamedProperty().equals(entity);
+        }
+
+        @Override
+        public Set<OWLEntity> getSignatureSet() {
+            return createSet(getNamedProperty());
+        }
+
+        @Override
+        protected Set<OWLObjectProperty> getObjectPropertySet() {
+            return createSet(getNamedProperty());
+        }
+
+        protected OWLObjectProperty getNamedProperty() {
+            return getProperty().getNamedProperty();
+        }
+
+        @Override
+        protected Set<OWLNamedIndividual> getNamedIndividualSet() {
+            return createSet();
+        }
+
+        @Override
+        protected Set<OWLAnonymousIndividual> getAnonymousIndividualSet() {
+            return createSet();
+        }
+
+        @Override
+        protected Set<OWLClassExpression> getClassExpressionSet() {
+            return createSet(this);
+        }
+
+        @Override
+        protected Set<OWLDataProperty> getDataPropertySet() {
+            return createSet();
+        }
+
+        @Override
+        protected Set<OWLClass> getNamedClassSet() {
+            return createSet();
+        }
+
+        @Override
+        protected Set<OWLDatatype> getDatatypeSet() {
+            return createSet();
         }
     }
 
@@ -699,6 +813,73 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             DataFactory df = getDataFactory();
             return df.getOWLObjectUnionOf(values.stream().map(x -> df.getOWLObjectOneOf(x.getOWLObject())));
         }
+
+        @Override
+        public boolean containsEntityInSignature(OWLEntity entity) {
+            if (entity == null || !entity.isIndividual()) return false;
+            return Iter.anyMatch(listNamedIndividuals(), entity::equals);
+        }
+
+        @Override
+        public Set<OWLEntity> getSignatureSet() {
+            return Iter.addAll(listNamedIndividuals(), createSortedSet());
+        }
+
+        @Override
+        protected Set<OWLNamedIndividual> getNamedIndividualSet() {
+            return Iter.addAll(listNamedIndividuals(), createSortedSet());
+        }
+
+        @Override
+        protected Set<OWLAnonymousIndividual> getAnonymousIndividualSet() {
+            return Iter.addAll(listAnonymousIndividuals(), createSortedSet());
+        }
+
+        protected ExtendedIterator<OWLAnonymousIndividual> listAnonymousIndividuals() {
+            return listONTIndividuals()
+                    .mapWith(x -> x.getOWLObject().isOWLNamedIndividual() ? null :
+                            x.getOWLObject().asOWLAnonymousIndividual())
+                    .filterDrop(Objects::isNull);
+        }
+
+        protected ExtendedIterator<OWLNamedIndividual> listNamedIndividuals() {
+            return listONTIndividuals()
+                    .mapWith(x -> x.getOWLObject().isOWLNamedIndividual() ?
+                            x.getOWLObject().asOWLNamedIndividual() : null)
+                    .filterDrop(Objects::isNull);
+        }
+
+        @SuppressWarnings("unchecked")
+        protected ExtendedIterator<ONTObject<? extends OWLIndividual>> listONTIndividuals() {
+            List res = Arrays.asList(getContent());
+            return (ExtendedIterator<ONTObject<? extends OWLIndividual>>) Iter.create(res.iterator());
+        }
+
+        @Override
+        protected Set<OWLClassExpression> getClassExpressionSet() {
+            return createSet(this);
+        }
+
+        @Override
+        protected Set<OWLDataProperty> getDataPropertySet() {
+            return createSet();
+        }
+
+        @Override
+        protected Set<OWLObjectProperty> getObjectPropertySet() {
+            return createSet();
+        }
+
+        @Override
+        protected Set<OWLClass> getNamedClassSet() {
+            return createSet();
+        }
+
+        @Override
+        protected Set<OWLDatatype> getDatatypeSet() {
+            return createSet();
+        }
+
     }
 
     /**
@@ -859,6 +1040,15 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
     }
 
+    /**
+     * An abstraction for simplification code,
+     * that describes {@code owl:Restriction} containing datatype property.
+     * Its signature also contains {@link OWLDatatype datatype} (explicitly or implicitly).
+     * It cannot contain nested class expressions.
+     *
+     * @param <ONT> - subtype of {@link OntCE.RestrictionCE}
+     * @param <OWL> - subtype of {@link OWLRestriction}
+     */
     protected abstract static class WithDataProperty<ONT extends OntCE.RestrictionCE<OntNDP>,
             OWL extends OWLRestriction>
             extends ONTAnonymousClassExpressionImpl<ONT, OWL> {
@@ -886,6 +1076,37 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         protected Object[] collectContent(ONT ce, InternalObjectFactory of) {
             // [property, cardinality, filler] or [property, filler] or [property]
             return new Object[]{of.get(ce.getProperty())};
+        }
+
+        @Override
+        public boolean containsEntityInSignature(OWLEntity entity) {
+            if (entity == null || !entity.isOWLDatatype() && !entity.isOWLDataProperty()) return false;
+            return super.containsEntityInSignature(entity);
+        }
+
+        @Override
+        protected Set<OWLClass> getNamedClassSet() {
+            return createSet();
+        }
+
+        @Override
+        protected Set<OWLNamedIndividual> getNamedIndividualSet() {
+            return createSet();
+        }
+
+        @Override
+        protected Set<OWLObjectProperty> getObjectPropertySet() {
+            return createSet();
+        }
+
+        @Override
+        protected Set<OWLClassExpression> getClassExpressionSet() {
+            return createSet(this);
+        }
+
+        @Override
+        protected Set<OWLAnonymousIndividual> getAnonymousIndividualSet() {
+            return createSet();
         }
     }
 

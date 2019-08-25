@@ -291,9 +291,9 @@ public class Iter {
      * Returns whether any elements of the given iterator match the provided predicate.
      * A functional equivalent of {@link Stream#anyMatch(Predicate)}, but for {@link Iterator}s.
      *
-     * @param iterator  {@link ExtendedIterator} with elements of type {@link X}
+     * @param iterator  {@link Iterator} with elements of type {@link X}
      * @param predicate {@link Predicate} to apply to elements of the iterator
-     * @param <X>       the element type of the input and output iterators
+     * @param <X>       the element type of the iterator
      * @return {@code true} if any elements of the stream match the provided predicate, otherwise {@code false}
      * @see Iter#allMatch(Iterator, Predicate)
      * @see Iter#noneMatch(Iterator, Predicate)
@@ -316,7 +316,7 @@ public class Iter {
      *
      * @param iterator  {@link Iterator} with elements of type {@link X}
      * @param predicate {@link Predicate} to apply to elements of the iterator
-     * @param <X>       the element type of the input and output iterators
+     * @param <X>       the element type of the iterator
      * @return {@code true} if either all elements of the iterator match the provided predicate
      * or the iterator is empty, otherwise {@code false}
      * @see Iter#anyMatch(Iterator, Predicate)
@@ -341,7 +341,7 @@ public class Iter {
      *
      * @param iterator  {@link Iterator} with elements of type {@link X}
      * @param predicate {@link Predicate} to apply to elements of the iterator
-     * @param <X>       the element type of the input and output iterators
+     * @param <X>       the element type of the iterator
      * @return {@code true} if either no elements of the iterator match the provided predicate
      * or the iterator is empty, otherwise {@code false}
      * @see Iter#anyMatch(Iterator, Predicate)
@@ -388,6 +388,23 @@ public class Iter {
             res++;
         }
         return res;
+    }
+
+    /**
+     * Puts all of the remaining items of the given iterator into the {@code collection},
+     * and returns this collection itself.
+     * This is a terminal operation.
+     *
+     * @param <X>        the element type of the iterator, not {@code null}
+     * @param <C>        the {@code Collection} type, not {@code null}
+     * @param iterator   the {@code Iterator} with elements of type {@link X}
+     * @param collection the collection of type {@link C}
+     * @return {@link C}, the same instance as specified
+     * @since 1.4.3
+     */
+    public static <X, C extends Collection<X>> C addAll(Iterator<? extends X> iterator, C collection) {
+        iterator.forEachRemaining(collection::add);
+        return collection;
     }
 
     /**
