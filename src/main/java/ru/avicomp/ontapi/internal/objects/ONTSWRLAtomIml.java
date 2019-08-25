@@ -26,9 +26,8 @@ import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.utils.OntModels;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.List;
+import javax.annotation.Nullable;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -107,6 +106,30 @@ public abstract class ONTSWRLAtomIml<ONT extends OntSWRL.Atom, OWL extends SWRLA
         return (OWL) this;
     }
 
+    @Override
+    protected Set<OWLAnnotationProperty> getAnnotationPropertySet() {
+        return createSet();
+    }
+
+    @Override
+    public boolean containsEntityInSignature(@Nullable OWLEntity entity) {
+        if (entity == null || entity.isOWLAnnotationProperty()) return false;
+        return super.containsEntityInSignature(entity);
+    }
+
+    ExtendedIterator<OWLDatatype> listDatatypes() {
+        return listComponents().mapWith(x -> {
+            OWLObject a = x.getOWLObject();
+            if (a instanceof OWLDatatype) {
+                return (OWLDatatype) a;
+            }
+            if (a instanceof SWRLLiteralArgument) {
+                return ((SWRLLiteralArgument) a).getLiteral().getDatatype();
+            }
+            return null;
+        }).filterDrop(Objects::isNull);
+    }
+
     /**
      * @see ru.avicomp.ontapi.owlapi.objects.swrl.SWRLBuiltInAtomImpl
      * @see OntSWRL.Atom.BuiltIn
@@ -158,6 +181,52 @@ public abstract class ONTSWRLAtomIml<ONT extends OntSWRL.Atom, OWL extends SWRLA
             res.add(0, predicate);
             return res.toArray();
         }
+
+        @Override
+        public Set<OWLEntity> getSignatureSet() {
+            return Iter.addAll(listDatatypes(), createSortedSet());
+        }
+
+        @Override
+        public boolean containsEntityInSignature(OWLEntity entity) {
+            if (entity == null || !entity.isOWLDatatype()) return false;
+            return Iter.anyMatch(listDatatypes(), entity::equals);
+        }
+
+        @Override
+        protected Set<OWLClass> getNamedClassSet() {
+            return createSet();
+        }
+
+        @Override
+        protected Set<OWLDatatype> getDatatypeSet() {
+            return Iter.addAll(listDatatypes(), createSortedSet());
+        }
+
+        @Override
+        protected Set<OWLNamedIndividual> getNamedIndividualSet() {
+            return createSet();
+        }
+
+        @Override
+        protected Set<OWLDataProperty> getDataPropertySet() {
+            return createSet();
+        }
+
+        @Override
+        protected Set<OWLObjectProperty> getObjectPropertySet() {
+            return createSet();
+        }
+
+        @Override
+        protected Set<OWLClassExpression> getClassExpressionSet() {
+            return createSet();
+        }
+
+        @Override
+        protected Set<OWLAnonymousIndividual> getAnonymousIndividualSet() {
+            return createSet();
+        }
     }
 
     /**
@@ -204,20 +273,60 @@ public abstract class ONTSWRLAtomIml<ONT extends OntSWRL.Atom, OWL extends SWRLA
         protected Object[] collectContent(OntSWRL.Atom.DataRange obj, InternalObjectFactory of) {
             return new Object[]{of.get(obj.getPredicate()), of.get(obj.getArg())};
         }
+
+        @Override
+        public Set<OWLEntity> getSignatureSet() {
+            return Iter.addAll(listDatatypes(), createSortedSet());
+        }
+
+        @Override
+        public boolean containsEntityInSignature(OWLEntity entity) {
+            if (entity == null || !entity.isOWLDatatype()) return false;
+            return Iter.anyMatch(listDatatypes(), entity::equals);
+        }
+
+        @Override
+        protected Set<OWLClass> getNamedClassSet() {
+            return createSet();
+        }
+
+        @Override
+        protected Set<OWLDatatype> getDatatypeSet() {
+            return Iter.addAll(listDatatypes(), createSortedSet());
+        }
+
+        @Override
+        protected Set<OWLNamedIndividual> getNamedIndividualSet() {
+            return createSet();
+        }
+
+        @Override
+        protected Set<OWLDataProperty> getDataPropertySet() {
+            return createSet();
+        }
+
+        @Override
+        protected Set<OWLObjectProperty> getObjectPropertySet() {
+            return createSet();
+        }
+
+        @Override
+        protected Set<OWLClassExpression> getClassExpressionSet() {
+            return createSet();
+        }
+
+        @Override
+        protected Set<OWLAnonymousIndividual> getAnonymousIndividualSet() {
+            return createSet();
+        }
     }
 
     /**
      * @see ru.avicomp.ontapi.owlapi.objects.swrl.SWRLSameIndividualAtomImpl
      * @see OntSWRL.Atom.SameIndividuals
      */
-    public static class SI extends Bi<OntNOP,
-            OntSWRL.IArg,
-            OntSWRL.IArg,
-            OntSWRL.Atom.SameIndividuals,
-            OWLObjectProperty,
-            SWRLIArgument,
-            SWRLIArgument,
-            SWRLSameIndividualAtom>
+    public static class SI
+            extends OBi<OntNOP, OWLObjectProperty, OntSWRL.Atom.SameIndividuals, SWRLSameIndividualAtom>
             implements SWRLSameIndividualAtom, ONTObject<SWRLSameIndividualAtom> {
 
         protected SI(BlankNodeId n, Supplier<OntGraphModel> m) {
@@ -239,14 +348,8 @@ public abstract class ONTSWRLAtomIml<ONT extends OntSWRL.Atom, OWL extends SWRLA
      * @see ru.avicomp.ontapi.owlapi.objects.swrl.SWRLDifferentIndividualsAtomImpl
      * @see OntSWRL.Atom.DifferentIndividuals
      */
-    public static class DI extends Bi<OntNOP,
-            OntSWRL.IArg,
-            OntSWRL.IArg,
-            OntSWRL.Atom.DifferentIndividuals,
-            OWLObjectProperty,
-            SWRLIArgument,
-            SWRLIArgument,
-            SWRLDifferentIndividualsAtom>
+    public static class DI
+            extends OBi<OntNOP, OWLObjectProperty, OntSWRL.Atom.DifferentIndividuals, SWRLDifferentIndividualsAtom>
             implements SWRLDifferentIndividualsAtom, ONTObject<SWRLDifferentIndividualsAtom> {
 
         protected DI(BlankNodeId n, Supplier<OntGraphModel> m) {
@@ -291,20 +394,39 @@ public abstract class ONTSWRLAtomIml<ONT extends OntSWRL.Atom, OWL extends SWRLA
         protected Object[] collectContent(OntSWRL.Atom.DataProperty obj, InternalObjectFactory of) {
             return new Object[]{of.get(obj.getPredicate()), of.get(obj.getFirstArg()), of.get(obj.getSecondArg())};
         }
+
+        @Override
+        public boolean containsEntityInSignature(OWLEntity entity) {
+            if (entity == null) return false;
+            if (entity.isOWLObjectProperty() || entity.isOWLClass()) {
+                return false;
+            }
+            return super.containsEntityInSignature(entity);
+        }
+
+        @Override
+        protected Set<OWLClass> getNamedClassSet() {
+            return createSet();
+        }
+
+        @Override
+        protected Set<OWLObjectProperty> getObjectPropertySet() {
+            return createSet();
+        }
+
+        @Override
+        protected Set<OWLClassExpression> getClassExpressionSet() {
+            return createSet();
+        }
+
     }
 
     /**
      * @see ru.avicomp.ontapi.owlapi.objects.swrl.SWRLObjectPropertyAtomImpl
      * @see OntSWRL.Atom.ObjectProperty
      */
-    public static class OP extends Bi<OntOPE,
-            OntSWRL.IArg,
-            OntSWRL.IArg,
-            OntSWRL.Atom.ObjectProperty,
-            OWLObjectPropertyExpression,
-            SWRLIArgument,
-            SWRLIArgument,
-            SWRLObjectPropertyAtom>
+    public static class OP
+            extends OBi<OntOPE, OWLObjectPropertyExpression, OntSWRL.Atom.ObjectProperty, SWRLObjectPropertyAtom>
             implements SWRLObjectPropertyAtom, ONTObject<SWRLObjectPropertyAtom> {
 
         protected OP(BlankNodeId n, Supplier<OntGraphModel> m) {
@@ -333,6 +455,81 @@ public abstract class ONTSWRLAtomIml<ONT extends OntSWRL.Atom, OWL extends SWRLA
         @Override
         protected Object[] collectContent(OntSWRL.Atom.ObjectProperty obj, InternalObjectFactory of) {
             return new Object[]{of.get(obj.getPredicate()), of.get(obj.getFirstArg()), of.get(obj.getSecondArg())};
+        }
+    }
+
+    protected abstract static class OBi<ONT_P extends OntOPE,
+            OWL_P extends OWLObjectPropertyExpression,
+            ONT_R extends OntSWRL.Atom.Binary<ONT_P, OntSWRL.IArg, OntSWRL.IArg>,
+            OWL_R extends SWRLBinaryAtom<SWRLIArgument, SWRLIArgument>>
+            extends Bi<ONT_P, OntSWRL.IArg, OntSWRL.IArg, ONT_R, OWL_P, SWRLIArgument, SWRLIArgument, OWL_R> {
+
+        protected OBi(BlankNodeId n, Supplier<OntGraphModel> m) {
+            super(n, m);
+        }
+
+        ExtendedIterator<OWLIndividual> listIndividuals() {
+            return Iter.of(getFirstArgument(), getSecondArgument())
+                    .filterKeep(x -> x instanceof SWRLIndividualArgument)
+                    .mapWith(x -> ((SWRLIndividualArgument) x).getIndividual());
+        }
+
+        @Override
+        public Set<OWLEntity> getSignatureSet() {
+            Set<OWLEntity> res = createSortedSet();
+            res.add(getPredicate().getNamedProperty());
+            return Iter.addAll(listIndividuals()
+                    .mapWith(i -> i.isOWLNamedIndividual() ? i.asOWLNamedIndividual() : null)
+                    .filterDrop(Objects::isNull), res);
+        }
+
+        @Override
+        public boolean containsEntityInSignature(OWLEntity entity) {
+            if (entity == null) return false;
+            if (entity.isOWLObjectProperty()) {
+                return getPredicate().getNamedProperty().equals(entity);
+            }
+            return Iter.anyMatch(listIndividuals()
+                    .filterKeep(AsOWLNamedIndividual::isOWLNamedIndividual), entity::equals);
+        }
+
+        @Override
+        protected Set<OWLObjectProperty> getObjectPropertySet() {
+            return createSet(getPredicate().getNamedProperty());
+        }
+
+        @Override
+        protected Set<OWLNamedIndividual> getNamedIndividualSet() {
+            return Iter.addAll(listIndividuals()
+                    .mapWith(i -> i.isOWLNamedIndividual() ? i.asOWLNamedIndividual() : null)
+                    .filterDrop(Objects::isNull), createSortedSet());
+        }
+
+        @Override
+        protected Set<OWLAnonymousIndividual> getAnonymousIndividualSet() {
+            return Iter.addAll(listIndividuals()
+                    .mapWith(i -> i.isOWLNamedIndividual() ? null : i.asOWLAnonymousIndividual())
+                    .filterDrop(Objects::isNull), createSortedSet());
+        }
+
+        @Override
+        protected Set<OWLClass> getNamedClassSet() {
+            return createSet();
+        }
+
+        @Override
+        protected Set<OWLDatatype> getDatatypeSet() {
+            return createSet();
+        }
+
+        @Override
+        protected Set<OWLDataProperty> getDataPropertySet() {
+            return createSet();
+        }
+
+        @Override
+        protected Set<OWLClassExpression> getClassExpressionSet() {
+            return createSet();
         }
     }
 
