@@ -66,8 +66,8 @@ public class DisjointDataPropertiesTranslator extends AbstractTwoWayNaryTranslat
 
     @Override
     public ONTObject<OWLDisjointDataPropertiesAxiom> toAxiom(OntStatement statement, InternalObjectFactory reader, InternalConfig config) {
-        return makeAxiom(statement, reader.get(statement, config),
-                reader::get,
+        return makeAxiom(statement, reader.getAnnotations(statement, config),
+                reader::getProperty,
                 (members, annotations) -> reader.getOWLDataFactory()
                         .getOWLDisjointDataPropertiesAxiom(ONTObject.extractWildcards(members), ONTObject.extract(annotations)));
     }

@@ -198,7 +198,7 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
 
         @Override
         protected ONTObject<? extends OWLLiteral> map(Literal literal, InternalObjectFactory of) {
-            return of.get(literal);
+            return of.getLiteral(literal);
         }
 
         @Override
@@ -227,9 +227,9 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
         @Override
         protected Object[] collectContent(OntDR.Restriction dr, InternalObjectFactory of) {
             Set<ONTObject<OWLFacetRestriction>> members = createSortedSet(Comparator.comparing(ONTObject::getOWLObject));
-            OntModels.listMembers(dr.getList()).mapWith(of::get).forEachRemaining(members::add);
+            OntModels.listMembers(dr.getList()).mapWith(of::getFacetRestriction).forEachRemaining(members::add);
             List<ONTObject<?>> res = new ArrayList<>(members.size() + 1);
-            res.add(of.get(dr.getValue()));
+            res.add(of.getDatatype(dr.getValue()));
             res.addAll(members);
             return res.toArray();
         }
@@ -298,7 +298,7 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
 
         @Override
         protected Object[] collectContent(OntDR.ComplementOf dr, InternalObjectFactory of) {
-            return new Object[]{of.get(dr.getValue())};
+            return new Object[]{of.getDatatype(dr.getValue())};
         }
     }
 
@@ -311,7 +311,7 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
 
         @Override
         protected ONTObject<? extends OWLDataRange> map(OntDR dr, InternalObjectFactory of) {
-            return of.get(dr);
+            return of.getDatatype(dr);
         }
     }
 

@@ -57,9 +57,9 @@ public class EquivalentDataPropertiesTranslator
     public ONTObject<OWLEquivalentDataPropertiesAxiom> toAxiom(OntStatement statement,
                                                                InternalObjectFactory reader,
                                                                InternalConfig config) {
-        ONTObject<OWLDataProperty> a = reader.get(statement.getSubject(getView()));
-        ONTObject<OWLDataProperty> b = reader.get(statement.getObject().as(getView()));
-        Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
+        ONTObject<OWLDataProperty> a = reader.getProperty(statement.getSubject(getView()));
+        ONTObject<OWLDataProperty> b = reader.getProperty(statement.getObject().as(getView()));
+        Collection<ONTObject<OWLAnnotation>> annotations = reader.getAnnotations(statement, config);
         OWLEquivalentDataPropertiesAxiom res = reader.getOWLDataFactory()
                 .getOWLEquivalentDataPropertiesAxiom(a.getOWLObject(), b.getOWLObject(), ONTObject.extract(annotations));
         return ONTObjectImpl.create(res, statement).append(annotations).append(a).append(b);

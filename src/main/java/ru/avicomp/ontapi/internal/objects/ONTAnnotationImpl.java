@@ -86,7 +86,7 @@ public class ONTAnnotationImpl extends ONTStatementImpl implements OWLAnnotation
     protected Object[] collectContent(OntStatement root, InternalObjectFactory of) {
         // OWL-API requires distinct and sorted Stream's and _List's_
         Set<ONTObject<OWLAnnotation>> res = createSortedSet(Comparator.comparing(ONTObject::getOWLObject));
-        OntModels.listAnnotations(root).mapWith(of::get).forEachRemaining(res::add);
+        OntModels.listAnnotations(root).mapWith(of::getAnnotation).forEachRemaining(res::add);
         return res.toArray();
     }
 
@@ -199,7 +199,7 @@ public class ONTAnnotationImpl extends ONTStatementImpl implements OWLAnnotation
         if (of instanceof ModelObjectFactory) {
             return ((ModelObjectFactory) of).getAnnotationProperty(predicate);
         }
-        return getObjectFactory().get(model.get().getAnnotationProperty(predicate));
+        return getObjectFactory().getProperty(model.get().getAnnotationProperty(predicate));
     }
 
     protected ONTObject<? extends OWLAnnotationValue> getONTAnnotationValue(InternalObjectFactory of) {

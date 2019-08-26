@@ -75,7 +75,7 @@ public class ONTSWRLLiteralImpl extends ONTResourceImpl
         if (of instanceof ModelObjectFactory) {
             return ((ModelObjectFactory) of).getLiteral(getLiteralLabel());
         }
-        return of.get(model.get().asRDFNode(asNode()).asLiteral());
+        return of.getLiteral(model.get().asRDFNode(asNode()).asLiteral());
     }
 
     private OWLDatatype getDatatype() {

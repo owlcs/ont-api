@@ -50,8 +50,8 @@ public class AsymmetricObjectPropertyTranslator
     public ONTObject<OWLAsymmetricObjectPropertyAxiom> toAxiom(OntStatement statement,
                                                                InternalObjectFactory reader,
                                                                InternalConfig config) {
-        ONTObject<? extends OWLObjectPropertyExpression> p = reader.get(getSubject(statement));
-        Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
+        ONTObject<? extends OWLObjectPropertyExpression> p = reader.getProperty(getSubject(statement));
+        Collection<ONTObject<OWLAnnotation>> annotations = reader.getAnnotations(statement, config);
         OWLAsymmetricObjectPropertyAxiom res = reader.getOWLDataFactory()
                 .getOWLAsymmetricObjectPropertyAxiom(p.getOWLObject(), ONTObject.extract(annotations));
         return ONTObjectImpl.create(res, statement).append(annotations).append(p);

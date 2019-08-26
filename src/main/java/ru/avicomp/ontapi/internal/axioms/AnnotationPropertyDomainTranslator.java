@@ -67,9 +67,9 @@ public class AnnotationPropertyDomainTranslator
     public ONTObject<OWLAnnotationPropertyDomainAxiom> toAxiom(OntStatement statement,
                                                                InternalObjectFactory reader,
                                                                InternalConfig config) {
-        ONTObject<OWLAnnotationProperty> p = reader.get(statement.getSubject(getView()));
+        ONTObject<OWLAnnotationProperty> p = reader.getProperty(statement.getSubject(getView()));
         ONTObject<IRI> d = reader.getIRI(statement.getResource().getURI());
-        Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
+        Collection<ONTObject<OWLAnnotation>> annotations = reader.getAnnotations(statement, config);
         OWLAnnotationPropertyDomainAxiom res = reader.getOWLDataFactory()
                 .getOWLAnnotationPropertyDomainAxiom(p.getOWLObject(), d.getOWLObject(), ONTObject.extract(annotations));
         return ONTObjectImpl.create(res, statement).append(annotations).append(p).append(d);

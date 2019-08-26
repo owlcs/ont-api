@@ -41,102 +41,102 @@ public class NoCacheObjectFactory implements InternalObjectFactory {
     }
 
     @Override
-    public ONTObject<? extends OWLClassExpression> get(OntCE ce) {
+    public ONTObject<? extends OWLClassExpression> getClass(OntCE ce) {
         return ReadHelper.calcClassExpression(ce, this, new HashSet<>());
     }
 
     @Override
-    public ONTObject<? extends OWLDataRange> get(OntDR dr) {
+    public ONTObject<? extends OWLDataRange> getDatatype(OntDR dr) {
         return ReadHelper.calcDataRange(dr, this, new HashSet<>());
     }
 
     @Override
-    public ONTObject<OWLFacetRestriction> get(OntFR fr) {
+    public ONTObject<OWLFacetRestriction> getFacetRestriction(OntFR fr) {
         return ReadHelper.getFacetRestriction(fr, this);
     }
 
     @Override
-    public ONTObject<OWLClass> get(OntClass ce) {
+    public ONTObject<OWLClass> getClass(OntClass ce) {
         IRI iri = toIRI(OntApiException.notNull(ce, "Null class."));
         return ONTObjectImpl.create(getOWLDataFactory().getOWLClass(iri), ce);
     }
 
     @Override
-    public ONTObject<OWLDatatype> get(OntDT dr) {
+    public ONTObject<OWLDatatype> getDatatype(OntDT dr) {
         IRI iri = toIRI(OntApiException.notNull(dr, "Null datatype."));
         return ONTObjectImpl.create(getOWLDataFactory().getOWLDatatype(iri), dr);
     }
 
     @Override
-    public ONTObject<OWLObjectProperty> get(OntNOP nop) {
+    public ONTObject<OWLObjectProperty> getProperty(OntNOP nop) {
         IRI iri = toIRI(OntApiException.notNull(nop, "Null object property."));
         return ONTObjectImpl.create(getOWLDataFactory().getOWLObjectProperty(iri), nop);
     }
 
     @Override
-    public ONTObject<OWLAnnotationProperty> get(OntNAP nap) {
+    public ONTObject<OWLAnnotationProperty> getProperty(OntNAP nap) {
         IRI iri = toIRI(OntApiException.notNull(nap, "Null annotation property."));
         return ONTObjectImpl.create(getOWLDataFactory().getOWLAnnotationProperty(iri), nap);
     }
 
     @Override
-    public ONTObject<OWLDataProperty> get(OntNDP ndp) {
+    public ONTObject<OWLDataProperty> getProperty(OntNDP ndp) {
         IRI iri = toIRI(OntApiException.notNull(ndp, "Null data property."));
         return ONTObjectImpl.create(getOWLDataFactory().getOWLDataProperty(iri), ndp);
     }
 
     @Override
-    public ONTObject<OWLNamedIndividual> get(OntIndividual.Named i) {
+    public ONTObject<OWLNamedIndividual> getIndividual(OntIndividual.Named i) {
         IRI iri = toIRI(OntApiException.notNull(i, "Null individual."));
         return ONTObjectImpl.create(getOWLDataFactory().getOWLNamedIndividual(iri), i);
     }
 
     @Override
-    public ONTObject<OWLAnonymousIndividual> get(OntIndividual.Anonymous i) {
+    public ONTObject<OWLAnonymousIndividual> getIndividual(OntIndividual.Anonymous i) {
         return ONTObjectImpl.create(getOWLDataFactory().getOWLAnonymousIndividual(i.asNode().getBlankNodeId()), i);
     }
 
     @Override
-    public ONTObject<? extends OWLObjectPropertyExpression> get(OntOPE.Inverse iop) {
+    public ONTObject<? extends OWLObjectPropertyExpression> getProperty(OntOPE.Inverse iop) {
         OWLObjectProperty op = getOWLDataFactory().getOWLObjectProperty(toIRI(iop.getDirect()));
         return ONTObjectImpl.create(op.getInverseProperty(), iop);
     }
 
     @Override
-    public ONTObject<OWLLiteral> get(Literal literal) {
+    public ONTObject<OWLLiteral> getLiteral(Literal literal) {
         DataFactory df = getOWLDataFactory();
         OWLLiteral owl = df.getOWLLiteral(literal.asNode().getLiteral());
         ONTObjectImpl<OWLLiteral> res = ONTObjectImpl.create(owl);
         OntGraphModel m = (OntGraphModel) literal.getModel();
         OntDT jdt = m.getDatatype(literal);
         if (!jdt.isBuiltIn()) {
-            return res.append(get(jdt));
+            return res.append(getDatatype(jdt));
         }
         return res;
     }
 
     @Override
-    public ONTObject<OWLAnnotation> get(OntStatement s) {
+    public ONTObject<OWLAnnotation> getAnnotation(OntStatement s) {
         return ReadHelper.getAnnotation(s, this);
     }
 
     @Override
-    public ONTObject<SWRLVariable> get(OntSWRL.Variable var) {
+    public ONTObject<SWRLVariable> getSWRLVariable(OntSWRL.Variable var) {
         return ReadHelper.getSWRLVariable(var, this);
     }
 
     @Override
-    public ONTObject<? extends SWRLAtom> get(OntSWRL.Atom atom) {
+    public ONTObject<? extends SWRLAtom> getSWRLAtom(OntSWRL.Atom atom) {
         return ReadHelper.calcSWRLAtom(atom, this);
     }
 
     @Override
-    public ONTObject<? extends SWRLIArgument> get(OntSWRL.IArg arg) {
+    public ONTObject<? extends SWRLIArgument> getSWRLArgument(OntSWRL.IArg arg) {
         return ReadHelper.getSWRLIndividualArg(arg, this);
     }
 
     @Override
-    public ONTObject<? extends SWRLDArgument> get(OntSWRL.DArg arg) {
+    public ONTObject<? extends SWRLDArgument> getSWRLArgument(OntSWRL.DArg arg) {
         return ReadHelper.getSWRLLiteralArg(arg, this);
     }
 

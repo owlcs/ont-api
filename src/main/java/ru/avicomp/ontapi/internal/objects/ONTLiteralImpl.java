@@ -82,7 +82,7 @@ public class ONTLiteralImpl extends OWLLiteralImpl implements OWLLiteral, ONTObj
         if (of instanceof ModelObjectFactory) {
             return ((ModelObjectFactory) of).getDatatype(getDatatypeURI());
         }
-        return of.get(getDatatypeResource());
+        return of.getDatatype(getDatatypeResource());
     }
 
     @Override

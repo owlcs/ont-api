@@ -78,8 +78,8 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
                 .map(Entities::getActualType)
                 .map(t -> statement.getModel().getOntEntity(t, statement.getSubject()))
                 .orElseThrow(() -> new OntJenaException.IllegalArgument("Can't find entity by the statement " + statement));
-        ONTObject<? extends OWLEntity> entity = reader.get(e);
-        Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
+        ONTObject<? extends OWLEntity> entity = reader.getEntity(e);
+        Collection<ONTObject<OWLAnnotation>> annotations = reader.getAnnotations(statement, config);
         OWLDeclarationAxiom res = reader.getOWLDataFactory().getOWLDeclarationAxiom(entity.getOWLObject(), ONTObject.extract(annotations));
         return ONTObjectImpl.create(res, statement).append(annotations);
     }

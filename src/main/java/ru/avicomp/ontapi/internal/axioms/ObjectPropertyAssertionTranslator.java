@@ -76,10 +76,10 @@ public class ObjectPropertyAssertionTranslator
     public ONTObject<OWLObjectPropertyAssertionAxiom> toAxiom(OntStatement statement,
                                                               InternalObjectFactory reader,
                                                               InternalConfig config) {
-        ONTObject<? extends OWLIndividual> subject = reader.get(statement.getSubject(OntIndividual.class));
-        ONTObject<? extends OWLObjectPropertyExpression> property = reader.get(statement.getPredicate().as(OntOPE.class));
-        ONTObject<? extends OWLIndividual> object = reader.get(statement.getObject().as(OntIndividual.class));
-        Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
+        ONTObject<? extends OWLIndividual> subject = reader.getIndividual(statement.getSubject(OntIndividual.class));
+        ONTObject<? extends OWLObjectPropertyExpression> property = reader.getProperty(statement.getPredicate().as(OntOPE.class));
+        ONTObject<? extends OWLIndividual> object = reader.getIndividual(statement.getObject().as(OntIndividual.class));
+        Collection<ONTObject<OWLAnnotation>> annotations = reader.getAnnotations(statement, config);
         OWLObjectPropertyAssertionAxiom res = reader.getOWLDataFactory()
                 .getOWLObjectPropertyAssertionAxiom(property.getOWLObject(), subject.getOWLObject(), object.getOWLObject(),
                         ONTObject.extract(annotations));

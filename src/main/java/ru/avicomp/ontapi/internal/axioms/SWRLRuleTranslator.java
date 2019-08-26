@@ -59,10 +59,10 @@ public class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
     public ONTObject<SWRLRule> toAxiom(OntStatement statement, InternalObjectFactory reader, InternalConfig config) {
         OntSWRL.Imp imp = statement.getSubject(OntSWRL.Imp.class);
 
-        Collection<ONTObject<? extends SWRLAtom>> head = imp.head().map(reader::get).collect(Collectors.toList());
-        Collection<ONTObject<? extends SWRLAtom>> body = imp.body().map(reader::get).collect(Collectors.toList());
+        Collection<ONTObject<? extends SWRLAtom>> head = imp.head().map(reader::getSWRLAtom).collect(Collectors.toList());
+        Collection<ONTObject<? extends SWRLAtom>> body = imp.body().map(reader::getSWRLAtom).collect(Collectors.toList());
 
-        Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
+        Collection<ONTObject<OWLAnnotation>> annotations = reader.getAnnotations(statement, config);
         SWRLRule res = reader.getOWLDataFactory()
                 .getSWRLRule(body.stream().map(ONTObject::getOWLObject).collect(Collectors.toList()),
                         head.stream().map(ONTObject::getOWLObject).collect(Collectors.toList()), ONTObject.extract(annotations));

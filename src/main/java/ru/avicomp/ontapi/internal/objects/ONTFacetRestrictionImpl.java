@@ -72,7 +72,7 @@ public class ONTFacetRestrictionImpl
     @Override
     protected Object[] collectContent(OntFR fr, InternalObjectFactory of) {
         Class<? extends OntFR> type = OntModels.getOntType(fr);
-        return new Object[]{ReadHelper.getFacet(type), of.get(fr.getValue())};
+        return new Object[]{ReadHelper.getFacet(type), of.getLiteral(fr.getValue())};
     }
 
     @Override

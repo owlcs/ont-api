@@ -424,22 +424,22 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         List<ONTObject<? extends OWLEntity>> res = new ArrayList<>();
         InternalObjectFactory df = getObjectFactory();
         if (e.canAs(OntClass.class)) {
-            res.add(df.get(e.as(OntClass.class)));
+            res.add(df.getClass(e.as(OntClass.class)));
         }
         if (e.canAs(OntDT.class)) {
-            res.add(df.get(e.as(OntDT.class)));
+            res.add(df.getDatatype(e.as(OntDT.class)));
         }
         if (e.canAs(OntNAP.class)) {
-            res.add(df.get(e.as(OntNAP.class)));
+            res.add(df.getProperty(e.as(OntNAP.class)));
         }
         if (e.canAs(OntNDP.class)) {
-            res.add(df.get(e.as(OntNDP.class)));
+            res.add(df.getProperty(e.as(OntNDP.class)));
         }
         if (e.canAs(OntNOP.class)) {
-            res.add(df.get(e.as(OntNOP.class)));
+            res.add(df.getProperty(e.as(OntNOP.class)));
         }
         if (e.canAs(OntIndividual.Named.class)) {
-            res.add(df.get(e.as(OntIndividual.Named.class)));
+            res.add(df.getIndividual(e.as(OntIndividual.Named.class)));
         }
         return res.stream().map(ONTObject::getOWLObject);
     }

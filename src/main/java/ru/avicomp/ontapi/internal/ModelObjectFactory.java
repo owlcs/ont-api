@@ -50,78 +50,78 @@ public class ModelObjectFactory implements InternalObjectFactory {
     }
 
     @Override
-    public ONTObject<OWLAnnotation> get(OntStatement s) {
+    public ONTObject<OWLAnnotation> getAnnotation(OntStatement s) {
         return ONTAnnotationImpl.create(s, model);
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public ONTObject<? extends OWLClassExpression> get(OntCE ce) {
+    public ONTObject<? extends OWLClassExpression> getClass(OntCE ce) {
         if (ce.isURIResource())
-            return get((OntClass) ce);
+            return getClass((OntClass) ce);
         return (ONTObject<? extends OWLClassExpression>) ONTAnonymousClassExpressionImpl.create(ce, model);
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public ONTObject<? extends OWLDataRange> get(OntDR dr) {
+    public ONTObject<? extends OWLDataRange> getDatatype(OntDR dr) {
         if (dr.isURIResource())
-            return get((OntDT) dr);
+            return getDatatype((OntDT) dr);
         return (ONTObject<? extends OWLDataRange>) ONTAnonymousDataRangeImpl.create(dr, model);
     }
 
     @Override
-    public ONTObject<OWLObjectInverseOf> get(OntOPE.Inverse iop) {
+    public ONTObject<OWLObjectInverseOf> getProperty(OntOPE.Inverse iop) {
         return ONTObjectInverseOfImpl.create(iop, model);
     }
 
     @Override
-    public ONTObject<OWLFacetRestriction> get(OntFR fr) {
+    public ONTObject<OWLFacetRestriction> getFacetRestriction(OntFR fr) {
         return ONTFacetRestrictionImpl.create(fr, model);
     }
 
     @Override
-    public ONTObject<OWLClass> get(OntClass ce) {
+    public ONTObject<OWLClass> getClass(OntClass ce) {
         return getClass(ce.getURI());
     }
 
     @Override
-    public ONTObject<OWLAnonymousIndividual> get(OntIndividual.Anonymous i) {
+    public ONTObject<OWLAnonymousIndividual> getIndividual(OntIndividual.Anonymous i) {
         return getAnonymousIndividual(i.asNode().getBlankNodeId());
     }
 
     @Override
-    public ONTObject<OWLNamedIndividual> get(OntIndividual.Named i) {
+    public ONTObject<OWLNamedIndividual> getIndividual(OntIndividual.Named i) {
         return getNamedIndividual(i.getURI());
     }
 
     @Override
-    public ONTObject<OWLDatatype> get(OntDT dt) {
+    public ONTObject<OWLDatatype> getDatatype(OntDT dt) {
         return getDatatype(dt.getURI());
     }
 
     @Override
-    public ONTObject<OWLAnnotationProperty> get(OntNAP p) {
+    public ONTObject<OWLAnnotationProperty> getProperty(OntNAP p) {
         return getAnnotationProperty(p.getURI());
     }
 
     @Override
-    public ONTObject<OWLObjectProperty> get(OntNOP p) {
+    public ONTObject<OWLObjectProperty> getProperty(OntNOP p) {
         return getObjectProperty(p.getURI());
     }
 
     @Override
-    public ONTObject<OWLDataProperty> get(OntNDP p) {
+    public ONTObject<OWLDataProperty> getProperty(OntNDP p) {
         return getDataProperty(p.getURI());
     }
 
     @Override
-    public ONTObject<SWRLVariable> get(OntSWRL.Variable v) {
+    public ONTObject<SWRLVariable> getSWRLVariable(OntSWRL.Variable v) {
         return getSWRLVariable(v.getURI());
     }
 
     @Override
-    public ONTObject<? extends SWRLIArgument> get(OntSWRL.IArg arg) {
+    public ONTObject<? extends SWRLIArgument> getSWRLArgument(OntSWRL.IArg arg) {
         OntIndividual i;
         if (arg.isAnon()) {
             // treat any b-node as anonymous individual (whatever)
@@ -131,24 +131,24 @@ public class ModelObjectFactory implements InternalObjectFactory {
         }
         return i != null ?
                 ONTSWRLIndividualImpl.create(i, model) :
-                get(arg.as(OntSWRL.Variable.class));
+                getSWRLVariable(arg.as(OntSWRL.Variable.class));
     }
 
     @Override
-    public ONTObject<? extends SWRLDArgument> get(OntSWRL.DArg arg) {
+    public ONTObject<? extends SWRLDArgument> getSWRLArgument(OntSWRL.DArg arg) {
         return arg.isLiteral() ?
                 new ONTSWRLLiteralImpl(arg.asNode().getLiteral(), model) :
-                get(arg.as(OntSWRL.Variable.class));
+                getSWRLVariable(arg.as(OntSWRL.Variable.class));
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public ONTObject<? extends SWRLAtom> get(OntSWRL.Atom atom) {
+    public ONTObject<? extends SWRLAtom> getSWRLAtom(OntSWRL.Atom atom) {
         return (ONTObject<? extends SWRLAtom>) ONTSWRLAtomIml.create(atom, model);
     }
 
     @Override
-    public ONTObject<OWLLiteral> get(Literal literal) {
+    public ONTObject<OWLLiteral> getLiteral(Literal literal) {
         return getLiteral(literal.asNode().getLiteral());
     }
 

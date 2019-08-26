@@ -68,7 +68,7 @@ public class ONTObjectInverseOfImpl
 
     @Override
     protected Object[] collectContent(OntOPE.Inverse pe, InternalObjectFactory of) {
-        return new Object[]{of.get(pe.getDirect())};
+        return new Object[]{of.getProperty(pe.getDirect())};
     }
 
     @Override

@@ -117,7 +117,7 @@ public class ONTSWRLIndividualImpl extends ONTResourceImpl
                 return ((ModelObjectFactory) of).getAnonymousIndividual((BlankNodeId) node);
             return wrongState();
         }
-        return of.get(asIndividual());
+        return of.getIndividual(asIndividual());
     }
 
     @Override

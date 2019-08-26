@@ -177,7 +177,7 @@ public abstract class ONTSWRLAtomIml<ONT extends OntSWRL.Atom, OWL extends SWRLA
         @Override
         protected Object[] collectContent(OntSWRL.Atom.BuiltIn atom, InternalObjectFactory of) {
             IRI predicate = of.toIRI(atom.getPredicate().getURI());
-            List res = OntModels.listMembers(atom.getArgList()).mapWith(of::get).toList();
+            List res = OntModels.listMembers(atom.getArgList()).mapWith(of::getSWRLArgument).toList();
             res.add(0, predicate);
             return res.toArray();
         }
@@ -248,7 +248,7 @@ public abstract class ONTSWRLAtomIml<ONT extends OntSWRL.Atom, OWL extends SWRLA
 
         @Override
         protected Object[] collectContent(OntSWRL.Atom.OntClass obj, InternalObjectFactory of) {
-            return new Object[]{of.get(obj.getPredicate()), of.get(obj.getArg())};
+            return new Object[]{of.getClass(obj.getPredicate()), of.getSWRLArgument(obj.getArg())};
         }
     }
 
@@ -271,7 +271,7 @@ public abstract class ONTSWRLAtomIml<ONT extends OntSWRL.Atom, OWL extends SWRLA
 
         @Override
         protected Object[] collectContent(OntSWRL.Atom.DataRange obj, InternalObjectFactory of) {
-            return new Object[]{of.get(obj.getPredicate()), of.get(obj.getArg())};
+            return new Object[]{of.getDatatype(obj.getPredicate()), of.getSWRLArgument(obj.getArg())};
         }
 
         @Override
@@ -340,7 +340,7 @@ public abstract class ONTSWRLAtomIml<ONT extends OntSWRL.Atom, OWL extends SWRLA
 
         @Override
         protected Object[] collectContent(OntSWRL.Atom.SameIndividuals obj, InternalObjectFactory of) {
-            return new Object[]{of.get(obj.getPredicate()), of.get(obj.getFirstArg()), of.get(obj.getSecondArg())};
+            return new Object[]{of.getProperty(obj.getPredicate()), of.getSWRLArgument(obj.getFirstArg()), of.getSWRLArgument(obj.getSecondArg())};
         }
     }
 
@@ -363,7 +363,7 @@ public abstract class ONTSWRLAtomIml<ONT extends OntSWRL.Atom, OWL extends SWRLA
 
         @Override
         protected Object[] collectContent(OntSWRL.Atom.DifferentIndividuals obj, InternalObjectFactory of) {
-            return new Object[]{of.get(obj.getPredicate()), of.get(obj.getFirstArg()), of.get(obj.getSecondArg())};
+            return new Object[]{of.getProperty(obj.getPredicate()), of.getSWRLArgument(obj.getFirstArg()), of.getSWRLArgument(obj.getSecondArg())};
         }
     }
 
@@ -392,7 +392,7 @@ public abstract class ONTSWRLAtomIml<ONT extends OntSWRL.Atom, OWL extends SWRLA
 
         @Override
         protected Object[] collectContent(OntSWRL.Atom.DataProperty obj, InternalObjectFactory of) {
-            return new Object[]{of.get(obj.getPredicate()), of.get(obj.getFirstArg()), of.get(obj.getSecondArg())};
+            return new Object[]{of.getProperty(obj.getPredicate()), of.getSWRLArgument(obj.getFirstArg()), of.getSWRLArgument(obj.getSecondArg())};
         }
 
         @Override
@@ -454,7 +454,7 @@ public abstract class ONTSWRLAtomIml<ONT extends OntSWRL.Atom, OWL extends SWRLA
 
         @Override
         protected Object[] collectContent(OntSWRL.Atom.ObjectProperty obj, InternalObjectFactory of) {
-            return new Object[]{of.get(obj.getPredicate()), of.get(obj.getFirstArg()), of.get(obj.getSecondArg())};
+            return new Object[]{of.getProperty(obj.getPredicate()), of.getSWRLArgument(obj.getFirstArg()), of.getSWRLArgument(obj.getSecondArg())};
         }
     }
 

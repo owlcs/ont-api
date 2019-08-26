@@ -49,9 +49,9 @@ public class ObjectPropertyDomainTranslator extends AbstractPropertyDomainTransl
     public ONTObject<OWLObjectPropertyDomainAxiom> toAxiom(OntStatement statement,
                                                            InternalObjectFactory reader,
                                                            InternalConfig config) {
-        ONTObject<? extends OWLObjectPropertyExpression> p = reader.get(statement.getSubject(getView()));
-        ONTObject<? extends OWLClassExpression> ce = reader.get(statement.getObject().as(OntCE.class));
-        Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
+        ONTObject<? extends OWLObjectPropertyExpression> p = reader.getProperty(statement.getSubject(getView()));
+        ONTObject<? extends OWLClassExpression> ce = reader.getClass(statement.getObject().as(OntCE.class));
+        Collection<ONTObject<OWLAnnotation>> annotations = reader.getAnnotations(statement, config);
         OWLObjectPropertyDomainAxiom res = reader.getOWLDataFactory()
                 .getOWLObjectPropertyDomainAxiom(p.getOWLObject(), ce.getOWLObject(), ONTObject.extract(annotations));
         return ONTObjectImpl.create(res, statement).append(annotations).append(p).append(ce);

@@ -162,7 +162,7 @@ public class CommonManagerTest {
         Assert.assertNotNull(ont);
         InternalObjectFactory df = AxiomTranslator.getObjectFactory(o2);
         List<OWLClass> newOWLClasses = newClasses.stream()
-                .map(df::get)
+                .map(df::getClass)
                 .map(ONTObject::getOWLObject)
                 .map(AsOWLClass::asOWLClass).collect(Collectors.toList());
         LOGGER.debug("OWL-Classes: {}", newOWLClasses);

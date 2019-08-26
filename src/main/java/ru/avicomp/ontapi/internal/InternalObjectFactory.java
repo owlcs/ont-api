@@ -41,39 +41,39 @@ public interface InternalObjectFactory {
 
     DataFactory getOWLDataFactory();
 
-    ONTObject<OWLClass> get(OntClass ce);
+    ONTObject<OWLClass> getClass(OntClass ce);
 
-    ONTObject<OWLDatatype> get(OntDT dr);
+    ONTObject<? extends OWLClassExpression> getClass(OntCE ce);
 
-    ONTObject<OWLObjectProperty> get(OntNOP nop);
+    ONTObject<OWLDatatype> getDatatype(OntDT dr);
 
-    ONTObject<OWLAnnotationProperty> get(OntNAP nap);
+    ONTObject<? extends OWLDataRange> getDatatype(OntDR dr);
 
-    ONTObject<OWLDataProperty> get(OntNDP ndp);
+    ONTObject<OWLObjectProperty> getProperty(OntNOP nop);
 
-    ONTObject<OWLNamedIndividual> get(OntIndividual.Named i);
+    ONTObject<OWLAnnotationProperty> getProperty(OntNAP nap);
 
-    ONTObject<OWLAnonymousIndividual> get(OntIndividual.Anonymous i);
+    ONTObject<OWLDataProperty> getProperty(OntNDP ndp);
 
-    ONTObject<OWLFacetRestriction> get(OntFR fr);
+    ONTObject<? extends OWLObjectPropertyExpression> getProperty(OntOPE.Inverse iop);
 
-    ONTObject<SWRLVariable> get(OntSWRL.Variable var);
+    ONTObject<OWLNamedIndividual> getIndividual(OntIndividual.Named i);
 
-    ONTObject<OWLLiteral> get(Literal literal);
+    ONTObject<OWLAnonymousIndividual> getIndividual(OntIndividual.Anonymous i);
 
-    ONTObject<OWLAnnotation> get(OntStatement s);
+    ONTObject<OWLFacetRestriction> getFacetRestriction(OntFR fr);
 
-    ONTObject<? extends OWLObjectPropertyExpression> get(OntOPE.Inverse iop);
+    ONTObject<OWLLiteral> getLiteral(Literal literal);
 
-    ONTObject<? extends OWLClassExpression> get(OntCE ce);
+    ONTObject<OWLAnnotation> getAnnotation(OntStatement s);
 
-    ONTObject<? extends OWLDataRange> get(OntDR dr);
+    ONTObject<SWRLVariable> getSWRLVariable(OntSWRL.Variable var);
 
-    ONTObject<? extends SWRLAtom> get(OntSWRL.Atom atom);
+    ONTObject<? extends SWRLIArgument> getSWRLArgument(OntSWRL.IArg arg);
 
-    ONTObject<? extends SWRLIArgument> get(OntSWRL.IArg arg);
+    ONTObject<? extends SWRLDArgument> getSWRLArgument(OntSWRL.DArg arg);
 
-    ONTObject<? extends SWRLDArgument> get(OntSWRL.DArg arg);
+    ONTObject<? extends SWRLAtom> getSWRLAtom(OntSWRL.Atom atom);
 
     /**
      * Gets an {@link IRI} that is wrapped as {@code ONTObject} from the specified {@code String}.
@@ -102,7 +102,7 @@ public interface InternalObjectFactory {
      * @param config {@link InternalConfig} the configuration, to
      * @return a {@code Collection} of {@link OWLAnnotation}s as {@link ONTObject}s
      */
-    default Collection<ONTObject<OWLAnnotation>> get(OntStatement axiom, InternalConfig config) {
+    default Collection<ONTObject<OWLAnnotation>> getAnnotations(OntStatement axiom, InternalConfig config) {
         return ReadHelper.getAnnotations(axiom, config, this);
     }
 
@@ -117,7 +117,7 @@ public interface InternalObjectFactory {
             return getIRI(subject.getURI());
         }
         if (subject.isAnon()) {
-            return get(OntModels.asAnonymousIndividual(subject));
+            return getIndividual(OntModels.asAnonymousIndividual(subject));
         }
         throw new OntApiException.IllegalArgument("Not an AnnotationSubject " + subject);
     }
@@ -130,13 +130,13 @@ public interface InternalObjectFactory {
      */
     default ONTObject<? extends OWLAnnotationValue> getValue(RDFNode value) {
         if (OntApiException.notNull(value, "Null node").isLiteral()) {
-            return get(value.asLiteral());
+            return getLiteral(value.asLiteral());
         }
         if (value.isURIResource()) {
             return getIRI(value.asResource().getURI());
         }
         if (value.isAnon()) {
-            return get(OntModels.asAnonymousIndividual(value));
+            return getIndividual(OntModels.asAnonymousIndividual(value));
         }
         throw new OntApiException.IllegalArgument("Not an AnnotationValue " + value);
     }
@@ -147,11 +147,11 @@ public interface InternalObjectFactory {
      * @param individual {@link OntIndividual}, not {@code null}
      * @return {@link ONTObject} of {@link OWLIndividual}
      */
-    default ONTObject<? extends OWLIndividual> get(OntIndividual individual) {
+    default ONTObject<? extends OWLIndividual> getIndividual(OntIndividual individual) {
         if (OntApiException.notNull(individual, "Null individual").isURIResource()) {
-            return get(individual.as(OntIndividual.Named.class));
+            return getIndividual(individual.as(OntIndividual.Named.class));
         }
-        return get(individual.as(OntIndividual.Anonymous.class));
+        return getIndividual(individual.as(OntIndividual.Anonymous.class));
     }
 
     /**
@@ -160,24 +160,24 @@ public interface InternalObjectFactory {
      * @param entity {@link OntEntity}, not {@code null}
      * @return {@link ONTObject} of {@link OWLEntity}
      */
-    default ONTObject<? extends OWLEntity> get(OntEntity entity) {
+    default ONTObject<? extends OWLEntity> getEntity(OntEntity entity) {
         if (entity instanceof OntClass) {
-            return get((OntClass) entity);
+            return getClass((OntClass) entity);
         }
         if (entity instanceof OntDT) {
-            return get((OntDT) entity);
+            return getDatatype((OntDT) entity);
         }
         if (entity instanceof OntIndividual.Named) {
-            return get((OntIndividual.Named) entity);
+            return getIndividual((OntIndividual.Named) entity);
         }
         if (entity instanceof OntNAP) {
-            return get((OntNAP) entity);
+            return getProperty((OntNAP) entity);
         }
         if (entity instanceof OntNDP) {
-            return get((OntNDP) entity);
+            return getProperty((OntNDP) entity);
         }
         if (entity instanceof OntNOP) {
-            return get((OntNOP) entity);
+            return getProperty((OntNOP) entity);
         }
         throw new OntApiException.IllegalArgument("Unsupported " + entity);
     }
@@ -187,11 +187,11 @@ public interface InternalObjectFactory {
      * @param property {@link OntPE}, not {@code null}
      * @return {@link ONTObject} of {@link OWLPropertyExpression}
      */
-    default ONTObject<? extends OWLPropertyExpression> get(OntPE property) {
+    default ONTObject<? extends OWLPropertyExpression> getProperty(OntPE property) {
         if (OntApiException.notNull(property, "Null property expression.").canAs(OntNAP.class)) {
-            return get(property.as(OntNAP.class));
+            return getProperty(property.as(OntNAP.class));
         }
-        return get((OntDOP) property);
+        return getProperty((OntDOP) property);
     }
 
     /**
@@ -200,13 +200,13 @@ public interface InternalObjectFactory {
      * @param property {@link OntDOP}, not {@code null}
      * @return {@link ONTObject} of {@link OWLPropertyExpression}
      */
-    default ONTObject<? extends OWLPropertyExpression> get(OntDOP property) {
+    default ONTObject<? extends OWLPropertyExpression> getProperty(OntDOP property) {
         // process Object Properties first to match OWL-API-impl behaviour
         if (OntApiException.notNull(property, "Null Data/Object property").canAs(OntOPE.class)) {
-            return get(property.as(OntOPE.class));
+            return getProperty(property.as(OntOPE.class));
         }
         if (property.canAs(OntNDP.class)) {
-            return get(property.as(OntNDP.class));
+            return getProperty(property.as(OntNDP.class));
         }
         throw new OntApiException("Unsupported property " + property);
     }
@@ -214,14 +214,14 @@ public interface InternalObjectFactory {
     /**
      * Gets an {@link OWLObjectPropertyExpression} as {@link ONTObject} from the {@link OntOPE}.
      *
-     * @param objectProperty {@link OntOPE}, not {@code null}
+     * @param property {@link OntOPE}, not {@code null}
      * @return {@link ONTObject} of {@link OWLObjectPropertyExpression}
      */
-    default ONTObject<? extends OWLObjectPropertyExpression> get(OntOPE objectProperty) {
-        if (OntApiException.notNull(objectProperty, "Null object property.").isAnon()) {
-            return get(objectProperty.as(OntOPE.Inverse.class));
+    default ONTObject<? extends OWLObjectPropertyExpression> getProperty(OntOPE property) {
+        if (OntApiException.notNull(property, "Null object property.").isAnon()) {
+            return getProperty(property.as(OntOPE.Inverse.class));
         }
-        return get(objectProperty.as(OntNOP.class));
+        return getProperty(property.as(OntNOP.class));
     }
 
 }

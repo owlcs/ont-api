@@ -69,8 +69,8 @@ public class DifferentIndividualsTranslator extends AbstractTwoWayNaryTranslator
     public ONTObject<OWLDifferentIndividualsAxiom> toAxiom(OntStatement statement,
                                                            InternalObjectFactory reader,
                                                            InternalConfig config) {
-        return makeAxiom(statement, reader.get(statement, config),
-                reader::get,
+        return makeAxiom(statement, reader.getAnnotations(statement, config),
+                reader::getIndividual,
                 (members, annotations) -> reader.getOWLDataFactory()
                         .getOWLDifferentIndividualsAxiom(ONTObject.extractWildcards(members), ONTObject.extract(annotations)));
     }

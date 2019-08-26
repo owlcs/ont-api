@@ -320,7 +320,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         @Override
         protected Object[] collectContent(OntCE.NaryDataSomeValuesFrom ce, InternalObjectFactory of) {
             // [property, filler]
-            return new Object[]{of.get(ce.getProperty()), of.get(ce.getValue())};
+            return new Object[]{of.getProperty(ce.getProperty()), of.getDatatype(ce.getValue())};
         }
     }
 
@@ -355,7 +355,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         @Override
         protected Object[] collectContent(OntCE.NaryDataAllValuesFrom ce, InternalObjectFactory of) {
             // [property, filler]
-            return new Object[]{of.get(ce.getProperty()), of.get(ce.getValue())};
+            return new Object[]{of.getProperty(ce.getProperty()), of.getDatatype(ce.getValue())};
         }
     }
 
@@ -401,7 +401,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         @Override
         protected Object[] collectContent(OntCE.ObjectHasValue ce, InternalObjectFactory of) {
             // [property, filler]
-            return new Object[]{of.get(ce.getProperty()), of.get(ce.getValue())};
+            return new Object[]{of.getProperty(ce.getProperty()), of.getIndividual(ce.getValue())};
         }
 
         @Override
@@ -509,7 +509,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         @Override
         protected Object[] collectContent(OntCE.DataHasValue ce, InternalObjectFactory of) {
             // [property, filler]
-            return new Object[]{of.get(ce.getProperty()), of.get(ce.getValue())};
+            return new Object[]{of.getProperty(ce.getProperty()), of.getLiteral(ce.getValue())};
         }
     }
 
@@ -791,7 +791,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
 
         @Override
         protected ONTObject<? extends OWLIndividual> map(OntIndividual i, InternalObjectFactory of) {
-            return of.get(i);
+            return of.getIndividual(i);
         }
 
         @Override
@@ -916,7 +916,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
 
         @Override
         protected Object[] collectContent(OntCE.ComplementOf ce, InternalObjectFactory of) {
-            return new Object[]{of.get(ce.getValue())};
+            return new Object[]{of.getClass(ce.getValue())};
         }
 
         @Override
@@ -935,7 +935,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
 
         @Override
         protected ONTObject<? extends OWLClassExpression> map(OntCE i, InternalObjectFactory of) {
-            return of.get(i);
+            return of.getClass(i);
         }
     }
 
@@ -1005,7 +1005,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         @Override
         protected Object[] collectContent(ONT ce, InternalObjectFactory of) {
             // [property, cardinality, filler]
-            return new Object[]{of.get(ce.getProperty()), ce.getCardinality(), of.get(ce.getValue())};
+            return new Object[]{of.getProperty(ce.getProperty()), ce.getCardinality(), of.getDatatype(ce.getValue())};
         }
     }
 
@@ -1036,7 +1036,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         @Override
         protected Object[] collectContent(ONT ce, InternalObjectFactory of) {
             // [property, cardinality, filler] or [property, filler]
-            return new Object[]{of.get(ce.getProperty()), of.get(ce.getValue())};
+            return new Object[]{of.getProperty(ce.getProperty()), of.getDatatype(ce.getValue())};
         }
     }
 
@@ -1075,7 +1075,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         @Override
         protected Object[] collectContent(ONT ce, InternalObjectFactory of) {
             // [property, cardinality, filler] or [property, filler] or [property]
-            return new Object[]{of.get(ce.getProperty())};
+            return new Object[]{of.getProperty(ce.getProperty())};
         }
 
         @Override
@@ -1125,7 +1125,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         @Override
         protected Object[] collectContent(ONT ce, InternalObjectFactory of) {
             // [property, cardinality, filler]
-            return new Object[]{of.get(ce.getProperty()), ce.getCardinality(), of.get(ce.getValue())};
+            return new Object[]{of.getProperty(ce.getProperty()), ce.getCardinality(), of.getClass(ce.getValue())};
         }
     }
 
@@ -1155,7 +1155,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
 
         @Override
         protected Object[] collectContent(ONT ce, InternalObjectFactory of) {
-            return new Object[]{of.get(ce.getProperty()), of.get(ce.getValue())};
+            return new Object[]{of.getProperty(ce.getProperty()), of.getClass(ce.getValue())};
         }
     }
 
@@ -1185,7 +1185,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         @Override
         protected Object[] collectContent(ONT ce, InternalObjectFactory of) {
             // [property, cardinality, filler] or [property, filler] or [property]
-            return new Object[]{of.get(ce.getProperty())};
+            return new Object[]{of.getProperty(ce.getProperty())};
         }
     }
 }

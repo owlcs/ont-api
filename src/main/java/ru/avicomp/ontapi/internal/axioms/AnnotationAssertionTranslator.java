@@ -78,9 +78,9 @@ public class AnnotationAssertionTranslator
                                                           InternalObjectFactory reader,
                                                           InternalConfig config) {
         ONTObject<? extends OWLAnnotationSubject> s = reader.getSubject(statement.getSubject(OntObject.class));
-        ONTObject<OWLAnnotationProperty> p = reader.get(statement.getPredicate().as(OntNAP.class));
+        ONTObject<OWLAnnotationProperty> p = reader.getProperty(statement.getPredicate().as(OntNAP.class));
         ONTObject<? extends OWLAnnotationValue> v = reader.getValue(statement.getObject());
-        Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
+        Collection<ONTObject<OWLAnnotation>> annotations = reader.getAnnotations(statement, config);
         OWLAnnotationAssertionAxiom res = reader.getOWLDataFactory()
                 .getOWLAnnotationAssertionAxiom(p.getOWLObject(), s.getOWLObject(), v.getOWLObject(),
                         ONTObject.extract(annotations));
