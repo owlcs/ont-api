@@ -25,14 +25,16 @@ import java.util.HashSet;
 import java.util.Objects;
 
 /**
- * An Internal Object Factory impl which maps {@link OntObject} to {@link OWLObject} directly having no cache.
+ * An Object Factory impl which maps {@link OntObject} to {@link OWLObject} directly having no cache.
  * <p>
  * Created by @szuev on 15.03.2018.
+ * @see ONTObjectImpl
  */
-public class NoCacheObjectFactory implements InternalObjectFactory {
+@SuppressWarnings("WeakerAccess")
+public class SimpleObjectFactory implements InternalObjectFactory {
     protected final DataFactory factory;
 
-    public NoCacheObjectFactory(DataFactory factory) {
+    public SimpleObjectFactory(DataFactory factory) {
         this.factory = Objects.requireNonNull(factory);
     }
 

@@ -37,7 +37,7 @@ import java.util.Collection;
  */
 public interface InternalObjectFactory {
 
-    InternalObjectFactory DEFAULT = new NoCacheObjectFactory(OntManagers.getDataFactory());
+    InternalObjectFactory DEFAULT = new SimpleObjectFactory(OntManagers.getDataFactory());
 
     DataFactory getOWLDataFactory();
 

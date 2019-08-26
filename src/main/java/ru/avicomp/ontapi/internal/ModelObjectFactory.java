@@ -27,9 +27,10 @@ import java.util.Objects;
 import java.util.function.Supplier;
 
 /**
- * An Extended Object Factory impl which maps {@link ru.avicomp.ontapi.jena.model.OntObject OntObject}s
+ * An extended Object Factory impl which maps {@link ru.avicomp.ontapi.jena.model.OntObject OntObject}s
  * to {@link org.semanticweb.owlapi.model.OWLObject OWLObject}s directly having no cache.
- * Unlike {@link NoCacheObjectFactory} factory methods, here each returned instance is associated with a concrete model.
+ * Unlike {@link SimpleObjectFactory},
+ * every object created by this factory is {@link ONTObject} with a reference to a concrete model inside.
  * <p>
  * Created by @ssz on 07.08.2019.
  *
