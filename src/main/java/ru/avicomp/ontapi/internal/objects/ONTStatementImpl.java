@@ -89,7 +89,7 @@ public abstract class ONTStatementImpl extends OWLObjectImpl implements OWLObjec
             return node.getBlankNodeId();
         if (node.isLiteral())
             return node.getLiteral();
-        throw new IllegalArgumentException("Wrong node: " + node);
+        throw new OntApiException.IllegalState("Wrong node: " + node);
     }
 
     /**
@@ -139,7 +139,7 @@ public abstract class ONTStatementImpl extends OWLObjectImpl implements OWLObjec
         if (subject instanceof BlankNodeId) {
             return NodeFactory.createBlankNode((BlankNodeId) subject);
         }
-        throw new IllegalStateException();
+        throw new OntApiException.IllegalState();
     }
 
     /**
@@ -157,7 +157,7 @@ public abstract class ONTStatementImpl extends OWLObjectImpl implements OWLObjec
         if (object instanceof LiteralLabel) {
             return NodeFactory.createLiteral((LiteralLabel) object);
         }
-        throw new IllegalStateException();
+        throw new OntApiException.IllegalState();
     }
 
     /**

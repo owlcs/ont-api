@@ -114,7 +114,9 @@ public class CacheObjectFactory extends ModelObjectFactory {
         return (InternalCache<String, R>) res;
     }
 
-    @Override
+    /**
+     * Clears all caches.
+     */
     public void clear() {
         caches.forEach(InternalCache::clear);
     }

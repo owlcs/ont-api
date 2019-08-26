@@ -36,11 +36,6 @@ public class NoCacheObjectFactory implements InternalObjectFactory {
         this.factory = Objects.requireNonNull(factory);
     }
 
-    @Override
-    public void clear() {
-        // nothing
-    }
-
     protected IRI toIRI(Resource r) {
         return toIRI(r.getURI());
     }
@@ -146,15 +141,8 @@ public class NoCacheObjectFactory implements InternalObjectFactory {
     }
 
     @Override
-    public ONTObject<IRI> getIRI(OntObject resource) {
-        if (!resource.isURIResource()) {
-            throw new OntApiException.IllegalArgument("Not URI: " + resource);
-        }
-        IRI res = toIRI(resource);
-        if (resource.canAs(OntEntity.class)) {
-            return ONTObjectImpl.create(res, resource.as(OntEntity.class));
-        }
-        return ONTObjectImpl.create(res);
+    public ONTObject<IRI> getIRI(String uri) {
+        return ONTObjectImpl.create(toIRI(uri));
     }
 
     @Override

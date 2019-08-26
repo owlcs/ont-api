@@ -39,8 +39,6 @@ public interface InternalObjectFactory {
 
     InternalObjectFactory DEFAULT = new NoCacheObjectFactory(OntManagers.getDataFactory());
 
-    void clear();
-
     DataFactory getOWLDataFactory();
 
     ONTObject<OWLClass> get(OntClass ce);
@@ -78,18 +76,20 @@ public interface InternalObjectFactory {
     ONTObject<? extends SWRLDArgument> get(OntSWRL.DArg arg);
 
     /**
-     * Gets an IRI as {@code ONTObject}.
+     * Gets an {@link IRI} that is wrapped as {@code ONTObject} from the specified {@code String}.
      *
-     * @param resource {@link OntObject}, must be URI, not {@code null}
+     * @param uri {@code String}, not {@code null}
      * @return {@link ONTObject} that wraps {@link IRI}
+     * @see #toIRI(String)
      */
-    ONTObject<IRI> getIRI(OntObject resource);
+    ONTObject<IRI> getIRI(String uri);
 
     /**
-     * Fetches an {@link IRI} from String.
+     * Gets an {@link IRI} from the {@code String}.
      *
      * @param str URI, not {@code null}
      * @return {@link IRI}
+     * @see #getIRI(String)
      */
     default IRI toIRI(String str) {
         return IRI.create(OntApiException.notNull(str, "Null IRI."));
@@ -114,7 +114,7 @@ public interface InternalObjectFactory {
      */
     default ONTObject<? extends OWLAnnotationSubject> getSubject(OntObject subject) {
         if (OntApiException.notNull(subject, "Null resource").isURIResource()) {
-            return getIRI(subject);
+            return getIRI(subject.getURI());
         }
         if (subject.isAnon()) {
             return get(OntModels.asAnonymousIndividual(subject));
@@ -133,7 +133,7 @@ public interface InternalObjectFactory {
             return get(value.asLiteral());
         }
         if (value.isURIResource()) {
-            return getIRI(value.as(OntObject.class));
+            return getIRI(value.asResource().getURI());
         }
         if (value.isAnon()) {
             return get(OntModels.asAnonymousIndividual(value));

@@ -18,6 +18,7 @@ import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.semanticweb.owlapi.model.*;
+import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ModelObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
@@ -90,7 +91,7 @@ public class ONTSWRLIndividualImpl extends ONTResourceImpl
     }
 
     private <X> X wrongState() {
-        throw new IllegalStateException("Must be URI or b-node: " + node);
+        throw new OntApiException.IllegalState("Must be URI or b-node: " + node);
     }
 
     @Override

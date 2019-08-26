@@ -20,6 +20,7 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.graph.impl.LiteralLabel;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.*;
+import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.internal.*;
 import ru.avicomp.ontapi.jena.model.OntAnnotation;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
@@ -212,10 +213,9 @@ public class ONTAnnotationImpl extends ONTStatementImpl implements OWLAnnotation
             return f.getLiteral((LiteralLabel) object);
         }
         if (object instanceof String) {
-            IRI res = f.toIRI((String) object);
-            return ONTObjectImpl.create(res);
+            return f.getIRI((String) object);
         }
-        throw new IllegalStateException("Wrong object: " + object);
+        throw new OntApiException.IllegalState("Wrong object: " + object);
     }
 
     @Override

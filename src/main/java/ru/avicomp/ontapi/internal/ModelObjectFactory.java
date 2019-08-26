@@ -27,20 +27,26 @@ import java.util.Objects;
 import java.util.function.Supplier;
 
 /**
- * An Extended Internal Object Factory impl which maps {@link ru.avicomp.ontapi.jena.model.OntObject}
- * to {@link org.semanticweb.owlapi.model.OWLObject} directly having no cache.
- * Unlike the base class, each returned instance is associated with a concrete model.
+ * An Extended Object Factory impl which maps {@link ru.avicomp.ontapi.jena.model.OntObject OntObject}s
+ * to {@link org.semanticweb.owlapi.model.OWLObject OWLObject}s directly having no cache.
+ * Unlike {@link NoCacheObjectFactory} factory methods, here each returned instance is associated with a concrete model.
  * <p>
  * Created by @ssz on 07.08.2019.
  *
  * @since 1.4.3
  */
-public class ModelObjectFactory extends NoCacheObjectFactory {
+public class ModelObjectFactory implements InternalObjectFactory {
     protected final Supplier<OntGraphModel> model;
+    protected final DataFactory factory;
 
     public ModelObjectFactory(DataFactory factory, Supplier<OntGraphModel> model) {
-        super(factory);
+        this.factory = Objects.requireNonNull(factory);
         this.model = Objects.requireNonNull(model);
+    }
+
+    @Override
+    public DataFactory getOWLDataFactory() {
+        return factory;
     }
 
     @Override
@@ -146,6 +152,11 @@ public class ModelObjectFactory extends NoCacheObjectFactory {
         return getLiteral(literal.asNode().getLiteral());
     }
 
+    @Override
+    public ONTObject<IRI> getIRI(String uri) {
+        return ONTObjectImpl.create(toIRI(uri));
+    }
+
     public ONTObject<OWLClass> getClass(String uri) {
         return new ONTClassImpl(uri, model);
     }
@@ -181,4 +192,5 @@ public class ModelObjectFactory extends NoCacheObjectFactory {
     public ONTObject<SWRLVariable> getSWRLVariable(String uri) {
         return new ONTSWRLVariable(uri, model);
     }
+
 }

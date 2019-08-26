@@ -17,6 +17,7 @@ package ru.avicomp.ontapi.internal.objects;
 import org.apache.jena.graph.*;
 import org.semanticweb.owlapi.model.OWLObject;
 import ru.avicomp.ontapi.DataFactory;
+import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.internal.HasObjectFactory;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.jena.impl.PersonalityModel;
@@ -57,11 +58,11 @@ public abstract class ONTResourceImpl extends OWLObjectImpl implements OWLObject
     }
 
     protected BlankNodeId getBlankNodeId() {
-        throw new IllegalStateException();
+        throw new OntApiException.IllegalState();
     }
 
     protected String getURI() {
-        throw new IllegalStateException();
+        throw new OntApiException.IllegalState();
     }
 
     @Override

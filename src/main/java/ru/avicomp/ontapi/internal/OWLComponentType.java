@@ -49,7 +49,7 @@ public enum OWLComponentType {
 
         @Override
         ONTObject<? extends OWLObject> wrap(RDFNode n, InternalObjectFactory df) {
-            return df.getIRI(n.as(OntObject.class));
+            return df.getIRI(n.asResource().getURI());
         }
 
         @Override

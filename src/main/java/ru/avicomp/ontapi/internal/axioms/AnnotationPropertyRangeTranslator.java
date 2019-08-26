@@ -20,7 +20,6 @@ import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.internal.*;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntNAP;
-import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 
 import java.util.Collection;
@@ -70,7 +69,7 @@ public class AnnotationPropertyRangeTranslator
                                                               InternalObjectFactory reader,
                                                               InternalConfig config) {
         ONTObject<OWLAnnotationProperty> p = reader.get(statement.getSubject(getView()));
-        ONTObject<IRI> d = reader.getIRI(statement.getObject().as(OntObject.class));
+        ONTObject<IRI> d = reader.getIRI(statement.getResource().getURI());
         Collection<ONTObject<OWLAnnotation>> annotations = reader.get(statement, config);
         OWLAnnotationPropertyRangeAxiom res = reader.getOWLDataFactory()
                 .getOWLAnnotationPropertyRangeAxiom(p.getOWLObject(), d.getOWLObject(), ONTObject.extract(annotations));
