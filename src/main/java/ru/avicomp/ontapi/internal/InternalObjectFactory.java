@@ -103,7 +103,7 @@ public interface InternalObjectFactory {
      * @return a {@code Collection} of {@link OWLAnnotation}s as {@link ONTObject}s
      */
     default Collection<ONTObject<OWLAnnotation>> getAnnotations(OntStatement axiom, InternalConfig config) {
-        return ReadHelper.getAnnotations(axiom, config, this);
+        return ReadHelper.listAnnotations(axiom, config, this).toSet();
     }
 
     /**

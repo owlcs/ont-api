@@ -45,7 +45,7 @@ import java.util.stream.Stream;
  * since an {@link OntObject}s is allowed to be literal (in the single case of SWRL-Data-argument).
  * Created by @ssz on 07.08.2019.
  *
- * @see ONTStatementImpl
+ * @see ONTBaseTripleImpl
  * @see OntObject
  * @since 1.4.3
  */

@@ -14,211 +14,118 @@
 
 package ru.avicomp.ontapi.internal.objects;
 
-import org.apache.jena.graph.*;
-import org.apache.jena.graph.impl.LiteralLabel;
-import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.graph.FrontsTriple;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.util.iterator.ExtendedIterator;
+import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLObject;
-import ru.avicomp.ontapi.DataFactory;
-import ru.avicomp.ontapi.OntApiException;
-import ru.avicomp.ontapi.internal.HasObjectFactory;
-import ru.avicomp.ontapi.internal.InternalObjectFactory;
+import ru.avicomp.ontapi.internal.InternalCache;
+import ru.avicomp.ontapi.internal.ONTObject;
+import ru.avicomp.ontapi.jena.model.OntAnnotation;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.utils.Iter;
-import ru.avicomp.ontapi.owlapi.OWLObjectImpl;
 
-import javax.annotation.Nullable;
-import java.io.IOException;
-import java.io.NotSerializableException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.util.Objects;
+import java.util.List;
+import java.util.Spliterator;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
- * A base triple component.
- * Created by @ssz on 17.08.2019.
+ * A base triple component that can be annotated.
+ * Contains cache for object's components.
+ * Created by @szz on 27.08.2019.
  *
- * @see ONTResourceImpl
- * @see OntStatement
+ * @see ONTExpressionImpl
  * @since 1.4.3
  */
-@SuppressWarnings("WeakerAccess")
-public abstract class ONTStatementImpl extends OWLObjectImpl implements OWLObject, HasObjectFactory, FrontsTriple {
+public abstract class ONTStatementImpl extends ONTBaseTripleImpl {
 
-    protected final Object subject; // b-node-id or string
-    protected final String predicate;
-    protected final Object object; // b-node-id or string or literal-label
-    protected final Supplier<OntGraphModel> model;
+    protected final InternalCache.Loading<ONTStatementImpl, Object[]> content;
 
-    /**
-     * Constructs the base object.
-     *
-     * @param subject   - must be either {@link BlankNodeId} or {@code String}, not {@code null}
-     * @param predicate - {@code String} (URI), not {@code null}
-     * @param object    - must be either {@link BlankNodeId}, {@link LiteralLabel} or {@code String}, not {@code null}
-     * @param m         - a facility (as {@link Supplier}) to provide nonnull {@link OntGraphModel}, not {@code null}
-     */
     protected ONTStatementImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
-        this.subject = Objects.requireNonNull(subject);
-        this.predicate = Objects.requireNonNull(predicate);
-        this.object = Objects.requireNonNull(object);
-        this.model = Objects.requireNonNull(m);
+        super(subject, predicate, object, m);
+        this.content = InternalCache.createSoftSingleton(x -> collectContent());
     }
 
     /**
-     * Extracts a primitive base part from the given {@link RDFNode}.
+     * Lists all components in the form of {@code Iterator}.
+     * Neither this object or component objects are not included in result: it content only top-level direct components.
      *
-     * @param r {@link RDFNode}, not {@code null}
-     * @return {@link BlankNodeId} or {@link LiteralLabel} or {@code String}
+     * @return {@link ExtendedIterator} of {@link ONTObject}s
+     * @see org.semanticweb.owlapi.model.HasComponents#components()
+     * @see org.semanticweb.owlapi.model.HasOperands#operands()
+     * @see ONTExpressionImpl#listComponents()
      */
-    protected static Object fromNode(RDFNode r) {
-        return strip(r.asNode());
-    }
+    public abstract ExtendedIterator<ONTObject<? extends OWLObject>> listComponents();
 
     /**
-     * Extracts a primitive base part from the given {@link Node}.
+     * Answers a sorted {@code List} of {@link OWLAnnotation}s on this object.
      *
-     * @param node {@link Node}, not {@code null}
-     * @return {@link BlankNodeId} or {@link LiteralLabel} or {@code String}
+     * @return a {@code List} of {@link OWLAnnotation}s
+     * @see org.semanticweb.owlapi.model.HasAnnotations#annotationsAsList()
      */
-    protected static Object strip(Node node) {
-        if (node.isURI())
-            return node.getURI();
-        if (node.isBlank())
-            return node.getBlankNodeId();
-        if (node.isLiteral())
-            return node.getLiteral();
-        throw new OntApiException.IllegalState("Wrong node: " + node);
-    }
+    public abstract List<OWLAnnotation> annotationsAsList();
 
     /**
-     * Answers the root triple of this statement.
+     * Collects the cache.
      *
-     * @return {@link Triple}
+     * @return {@code Array} of {@code Object}s
+     * @see ONTExpressionImpl#collectContent()
      */
-    @Override
-    public Triple asTriple() {
-        return Triple.create(getSubjectNode(), getPredicateNode(), getObjectNode());
-    }
+    protected abstract Object[] collectContent();
 
     /**
-     * Answers the root statement of this object.
+     * Answers {@code true} if this annotation has sub-annotations.
      *
-     * @return {@link OntStatement}
-     */
-    public OntStatement asStatement() {
-        OntGraphModel m = model.get();
-        Triple t = asTriple();
-        return m.asStatement(Iter.findFirst(m.getGraph().find(t))
-                .orElseThrow(() -> new OntApiException.IllegalState("Can't find triple " + t)));
-    }
-
-    public Stream<Triple> triples() {
-        return Stream.of(asTriple());
-    }
-
-    @Override
-    public InternalObjectFactory getObjectFactory() {
-        return HasObjectFactory.getObjectFactory(model.get());
-    }
-
-    protected DataFactory getDataFactory() {
-        return getObjectFactory().getOWLDataFactory();
-    }
-
-    /**
-     * Answers a subject of this triple-object.
-     *
-     * @return {@link Node}
-     */
-    protected Node getSubjectNode() {
-        if (subject instanceof String) {
-            return NodeFactory.createURI((String) subject);
-        }
-        if (subject instanceof BlankNodeId) {
-            return NodeFactory.createBlankNode((BlankNodeId) subject);
-        }
-        throw new OntApiException.IllegalState();
-    }
-
-    /**
-     * Answers an object of this triple-object.
-     *
-     * @return {@link Node}
-     */
-    protected Node getObjectNode() {
-        if (object instanceof String) {
-            return NodeFactory.createURI((String) object);
-        }
-        if (object instanceof BlankNodeId) {
-            return NodeFactory.createBlankNode((BlankNodeId) object);
-        }
-        if (object instanceof LiteralLabel) {
-            return NodeFactory.createLiteral((LiteralLabel) object);
-        }
-        throw new OntApiException.IllegalState();
-    }
-
-    /**
-     * Answers a predicate of this triple-object.
-     *
-     * @return {@link Node}
-     */
-    protected Node getPredicateNode() {
-        return NodeFactory.createURI(predicate);
-    }
-
-    /**
-     * Answers {@code true} if this triple and the given have some SPO.
-     *
-     * @param other {@link ONTStatementImpl}, not {@code null}
      * @return boolean
+     * @see org.semanticweb.owlapi.model.OWLAxiom#isAnnotated()
      */
-    public boolean sameAs(ONTStatementImpl other) {
-        return subject.equals(other.subject) && predicate.equals(other.predicate) && object.equals(other.object);
+    public boolean isAnnotated() {
+        return !annotationsAsList().isEmpty();
+    }
+
+    /**
+     * Lists all {@link OWLAnnotation}s on this object.
+     * The stream is {@link Spliterator#ORDERED}, {@link Spliterator#NONNULL} and {@link Spliterator#SORTED}.
+     *
+     * @return a {@code Stream} of {@link OWLAnnotation}s
+     */
+    public Stream<OWLAnnotation> annotations() {
+        return annotationsAsList().stream();
+    }
+
+    /**
+     * Gets the content from cache.
+     *
+     * @return {@code Array} of {@code Object}s
+     * @see ONTExpressionImpl#getContent()
+     */
+    protected Object[] getContent() {
+        return content.get(this);
     }
 
     @Override
-    public boolean equals(@Nullable Object obj) {
-        if (obj == this) {
-            return true;
+    public Stream<Triple> triples() {
+        OntStatement root = asStatement();
+        Stream<Triple> res = Stream.concat(Stream.of(root.asTriple()), objects().flatMap(ONTObject::triples));
+        OntAnnotation a = root.getSubject().getAs(OntAnnotation.class);
+        if (a != null) {
+            res = Stream.concat(res, a.spec().map(FrontsTriple::asTriple));
         }
-        if (obj == null) {
-            return false;
-        }
-        if (!(obj instanceof OWLObject)) {
-            return false;
-        }
-        OWLObject other = (OWLObject) obj;
-        if (typeIndex() != other.typeIndex()) {
-            return false;
-        }
-        if (other instanceof ONTStatementImpl) {
-            ONTStatementImpl t = (ONTStatementImpl) other;
-            if (notSame(t)) {
-                return false;
-            }
-            if (sameAs(t)) {
-                return true;
-            }
-        }
-        // then either OWL-API instance is given or triple from different ontologies
-        if (hashCode() != other.hashCode()) {
-            return false;
-        }
-        return equalIterators(components().iterator(), other.components().iterator());
+        return res;
     }
 
-    private void writeObject(ObjectOutputStream out) throws IOException {
-        throw new NotSerializableException("Suspicious method call. " +
-                "Serialization is unsupported for " + getClass().getSimpleName() + ".");
+    /**
+     * Lists all components in the form of {@code Stream}.
+     * Neither this object or component (sub-)objects are not included in result:
+     * it content only top-level direct components.
+     *
+     * @return {@code Stream} of {@link ONTObject}s
+     * @see ONTAnnotationImpl#listComponents()
+     * @see ONTExpressionImpl#objects()
+     */
+    public final Stream<ONTObject<? extends OWLObject>> objects() {
+        return Iter.asStream(listComponents(), Spliterator.NONNULL | Spliterator.DISTINCT | Spliterator.ORDERED);
     }
-
-    private void readObject(ObjectInputStream in) throws Exception {
-        throw new NotSerializableException("Suspicious method call. " +
-                "Deserialization is unsupported for " + getClass().getSimpleName() + ".");
-    }
-
 }

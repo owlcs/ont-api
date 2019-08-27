@@ -15,13 +15,14 @@
 package ru.avicomp.ontapi.internal.objects;
 
 import org.apache.jena.graph.BlankNodeId;
-import org.apache.jena.graph.FrontsTriple;
-import org.apache.jena.graph.Triple;
 import org.apache.jena.graph.impl.LiteralLabel;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.OntApiException;
-import ru.avicomp.ontapi.internal.*;
+import ru.avicomp.ontapi.internal.InternalObjectFactory;
+import ru.avicomp.ontapi.internal.ModelObjectFactory;
+import ru.avicomp.ontapi.internal.ONTObject;
+import ru.avicomp.ontapi.internal.ReadHelper;
 import ru.avicomp.ontapi.jena.model.OntAnnotation;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
@@ -43,18 +44,14 @@ import java.util.stream.Stream;
  *
  * @see ReadHelper#getAnnotation(OntStatement, InternalObjectFactory)
  * @see ru.avicomp.ontapi.owlapi.objects.OWLAnnotationImpl
- * @see ONTExpressionImpl
  * @since 1.4.3
  */
 @SuppressWarnings("WeakerAccess")
 public class ONTAnnotationImpl extends ONTStatementImpl implements OWLAnnotation, ONTObject<OWLAnnotation> {
-    private static final ONTAnnotationImpl[] NO_SUB_ANNOTATIONS = new ONTAnnotationImpl[]{};
-
-    protected final InternalCache.Loading<ONTAnnotationImpl, Object[]> content;
+    protected static final ONTAnnotationImpl[] NO_SUB_ANNOTATIONS = new ONTAnnotationImpl[]{};
 
     protected ONTAnnotationImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
         super(subject, predicate, object, m);
-        this.content = InternalCache.createSoftSingleton(x -> collectContent());
     }
 
     /**
@@ -76,6 +73,30 @@ public class ONTAnnotationImpl extends ONTStatementImpl implements OWLAnnotation
         return res;
     }
 
+    @Override
+    public OWLAnnotation getOWLObject() {
+        return this;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public List<OWLAnnotation> annotationsAsList() {
+        List res = Arrays.asList(getContent());
+        return (List<OWLAnnotation>) res;
+    }
+
+    @Override
+    public ExtendedIterator<ONTObject<? extends OWLObject>> listComponents() {
+        InternalObjectFactory f = getObjectFactory();
+        return Iter.concat(Iter.of(getONTAnnotationProperty(f),
+                getONTAnnotationValue(f)), Iter.create(() -> getONTAnnotations().iterator()));
+    }
+
+    @Override
+    protected final Object[] collectContent() {
+        return collectContent(asStatement(), getObjectFactory());
+    }
+
     /**
      * Collects the cache.
      *
@@ -88,82 +109,6 @@ public class ONTAnnotationImpl extends ONTStatementImpl implements OWLAnnotation
         Set<ONTObject<OWLAnnotation>> res = createSortedSet(Comparator.comparing(ONTObject::getOWLObject));
         OntModels.listAnnotations(root).mapWith(of::getAnnotation).forEachRemaining(res::add);
         return res.toArray();
-    }
-
-    /**
-     * Collects the cache.
-     *
-     * @return {@code Array} of {@code Object}s
-     * @see #collectContent(OntStatement, InternalObjectFactory)
-     * @see ONTExpressionImpl#collectContent()
-     */
-    protected final Object[] collectContent() {
-        return collectContent(asStatement(), getObjectFactory());
-    }
-
-    /**
-     * Gets the content from cache.
-     *
-     * @return {@code Array} of {@code Object}s
-     * @see ONTExpressionImpl#getContent()
-     */
-    protected Object[] getContent() {
-        return content.get(this);
-    }
-
-    @Override
-    public OWLAnnotation getOWLObject() {
-        return this;
-    }
-
-    @Override
-    public Stream<Triple> triples() {
-        OntStatement root = asStatement();
-        Stream<Triple> res = Stream.concat(Stream.of(root.asTriple()), objects().flatMap(ONTObject::triples));
-        OntAnnotation a = root.getSubject().getAs(OntAnnotation.class);
-        if (a != null) {
-            res = Stream.concat(res, a.spec().map(FrontsTriple::asTriple));
-        }
-        return res;
-    }
-
-    @Override
-    public Stream<OWLAnnotation> annotations() {
-        return annotationsAsList().stream();
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public List<OWLAnnotation> annotationsAsList() {
-        List res = Arrays.asList(getContent());
-        return (List<OWLAnnotation>) res;
-    }
-
-    /**
-     * Lists all components in the form of {@code Stream}.
-     * Neither this object or component objects are not included in result: it content only top-level direct components.
-     *
-     * @return {@code Stream} of {@link ONTObject}s
-     * @see ONTAnnotationImpl#listComponents()
-     * @see ONTExpressionImpl#objects()
-     */
-    public final Stream<ONTObject<? extends OWLObject>> objects() {
-        return Iter.asStream(listComponents(), Spliterator.NONNULL | Spliterator.DISTINCT | Spliterator.ORDERED);
-    }
-
-    /**
-     * Lists all components in the form of {@code Iterator}.
-     * Neither this object or component objects are not included in result: it content only top-level direct components.
-     *
-     * @return {@link ExtendedIterator} of {@link ONTObject}s
-     * @see HasComponents#components()
-     * @see HasOperands#operands()
-     * @see ONTExpressionImpl#listComponents()
-     */
-    public ExtendedIterator<ONTObject<? extends OWLObject>> listComponents() {
-        InternalObjectFactory f = getObjectFactory();
-        return Iter.concat(Iter.of(getONTAnnotationProperty(f),
-                getONTAnnotationValue(f)), Iter.create(() -> getONTAnnotations().iterator()));
     }
 
     /**
@@ -207,8 +152,9 @@ public class ONTAnnotationImpl extends ONTStatementImpl implements OWLAnnotation
             return getObjectFactory().getValue(model.get().asRDFNode(getObjectNode()));
         }
         ModelObjectFactory f = (ModelObjectFactory) of;
-        if (object instanceof BlankNodeId)
+        if (object instanceof BlankNodeId) {
             return f.getAnonymousIndividual((BlankNodeId) object);
+        }
         if (object instanceof LiteralLabel) {
             return f.getLiteral((LiteralLabel) object);
         }
@@ -234,8 +180,8 @@ public class ONTAnnotationImpl extends ONTStatementImpl implements OWLAnnotation
      * @return boolean
      * @see OWLAxiom#isAnnotated()
      */
-    @SuppressWarnings("unused")
-    public boolean hasAnnotations() {
+    @Override
+    public boolean isAnnotated() {
         return NO_SUB_ANNOTATIONS != getContent();
     }
 

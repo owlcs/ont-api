@@ -22,7 +22,7 @@ import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLObject;
 import ru.avicomp.ontapi.*;
 import ru.avicomp.ontapi.internal.ONTObject;
-import ru.avicomp.ontapi.internal.objects.ONTAnnotationImpl;
+import ru.avicomp.ontapi.internal.objects.ONTStatementImpl;
 import ru.avicomp.ontapi.owlapi.OWLObjectImpl;
 
 import java.util.List;
@@ -64,6 +64,6 @@ public class OWLAnnotationTest extends ObjectFactoryTest {
 
     @Override
     Class<? extends OWLObjectImpl> getCacheFrameType() {
-        return ONTAnnotationImpl.class;
+        return ONTStatementImpl.class;
     }
 }
