@@ -37,7 +37,7 @@ public class ONTDataPropertyImpl extends ONTEntityImpl implements OWLDataPropert
     }
 
     @Override
-    public OntNDP asResource() {
+    public OntNDP asRDFNode() {
         return as(OntNDP.class);
     }
 

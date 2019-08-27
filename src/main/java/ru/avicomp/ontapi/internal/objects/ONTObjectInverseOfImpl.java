@@ -57,7 +57,7 @@ public class ONTObjectInverseOfImpl
     }
 
     @Override
-    public OntOPE.Inverse asResource() {
+    public OntOPE.Inverse asRDFNode() {
         return as(OntOPE.Inverse.class);
     }
 

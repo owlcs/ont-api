@@ -21,10 +21,7 @@ import org.apache.jena.graph.impl.LiteralLabel;
 import org.apache.jena.rdf.model.Literal;
 import org.semanticweb.owlapi.model.OWLDatatype;
 import org.semanticweb.owlapi.model.OWLLiteral;
-import ru.avicomp.ontapi.internal.HasObjectFactory;
-import ru.avicomp.ontapi.internal.InternalObjectFactory;
-import ru.avicomp.ontapi.internal.ModelObjectFactory;
-import ru.avicomp.ontapi.internal.ONTObject;
+import ru.avicomp.ontapi.internal.*;
 import ru.avicomp.ontapi.jena.impl.PersonalityModel;
 import ru.avicomp.ontapi.jena.model.OntDT;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
@@ -46,13 +43,19 @@ import java.util.stream.Stream;
  * @since 1.4.3
  */
 @SuppressWarnings("WeakerAccess")
-public class ONTLiteralImpl extends OWLLiteralImpl implements OWLLiteral, ONTObject<OWLLiteral>, HasObjectFactory {
+public class ONTLiteralImpl extends OWLLiteralImpl
+        implements OWLLiteral, HasObjectFactory, ONTObject<OWLLiteral>, AsRDFNode {
 
     protected final Supplier<OntGraphModel> model;
 
     public ONTLiteralImpl(LiteralLabel n, Supplier<OntGraphModel> m) {
         super(n);
         this.model = Objects.requireNonNull(m);
+    }
+
+    @Override
+    public Literal asRDFNode() {
+        return model.get().asRDFNode(asNode()).asLiteral();
     }
 
     @Override
@@ -103,4 +106,5 @@ public class ONTLiteralImpl extends OWLLiteralImpl implements OWLLiteral, ONTObj
     private void readObject(ObjectInputStream in) throws Exception {
         throw new NotSerializableException("Suspicious method call. Deserialization is unsupported for ONTLiteral.");
     }
+
 }

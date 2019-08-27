@@ -12,42 +12,24 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 
-package ru.avicomp.ontapi.internal.objects;
+package ru.avicomp.ontapi.internal;
 
-import org.semanticweb.owlapi.model.OWLNamedIndividual;
-import ru.avicomp.ontapi.internal.ONTObject;
-import ru.avicomp.ontapi.jena.model.OntGraphModel;
-import ru.avicomp.ontapi.jena.model.OntIndividual;
-
-import java.util.Set;
-import java.util.function.Supplier;
+import org.apache.jena.rdf.model.RDFNode;
+import ru.avicomp.ontapi.AsNode;
 
 /**
- * An {@link OWLNamedIndividual} implementation that is also {@link ONTObject}.
- * Created by @ssz on 09.08.2019.
+ * An interface for objects that front a {@code RDFNode} in a model context.
+ * Created by @szz on 27.08.2019.
  *
- * @see ru.avicomp.ontapi.owlapi.objects.entity.OWLNamedIndividualImpl
+ * @see AsNode
  * @since 1.4.3
  */
-public class ONTNamedIndividualImpl extends ONTEntityImpl implements OWLNamedIndividual, ONTObject<OWLNamedIndividual> {
+public interface AsRDFNode {
 
-    public ONTNamedIndividualImpl(String uri, Supplier<OntGraphModel> m) {
-        super(uri, m);
-    }
-
-    @Override
-    public OntIndividual.Named asRDFNode() {
-        return as(OntIndividual.Named.class);
-    }
-
-    @Override
-    public OWLNamedIndividual getOWLObject() {
-        return this;
-    }
-
-    @Override
-    protected Set<OWLNamedIndividual> getNamedIndividualSet() {
-        return createSet(this);
-    }
-
+    /**
+     * Answers the {@code RDFNode} associated with this object.
+     *
+     * @return {@link RDFNode RDF Model Node}, cannot be {@code null}
+     */
+    RDFNode asRDFNode();
 }

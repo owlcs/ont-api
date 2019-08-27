@@ -60,7 +60,7 @@ public class ONTSWRLVariable extends ONTResourceImpl implements SWRLVariable, ON
     }
 
     @Override
-    public OntSWRL.Variable asResource() {
+    public OntSWRL.Variable asRDFNode() {
         return as(OntSWRL.Variable.class);
     }
 

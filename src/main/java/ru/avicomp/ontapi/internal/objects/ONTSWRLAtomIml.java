@@ -141,7 +141,7 @@ public abstract class ONTSWRLAtomIml<ONT extends OntSWRL.Atom, OWL extends SWRLA
         }
 
         @Override
-        public OntSWRL.Atom.BuiltIn asResource() {
+        public OntSWRL.Atom.BuiltIn asRDFNode() {
             return as(OntSWRL.Atom.BuiltIn.class);
         }
 
@@ -242,7 +242,7 @@ public abstract class ONTSWRLAtomIml<ONT extends OntSWRL.Atom, OWL extends SWRLA
         }
 
         @Override
-        public OntSWRL.Atom.OntClass asResource() {
+        public OntSWRL.Atom.OntClass asRDFNode() {
             return as(OntSWRL.Atom.OntClass.class);
         }
 
@@ -265,7 +265,7 @@ public abstract class ONTSWRLAtomIml<ONT extends OntSWRL.Atom, OWL extends SWRLA
         }
 
         @Override
-        public OntSWRL.Atom.DataRange asResource() {
+        public OntSWRL.Atom.DataRange asRDFNode() {
             return as(OntSWRL.Atom.DataRange.class);
         }
 
@@ -334,7 +334,7 @@ public abstract class ONTSWRLAtomIml<ONT extends OntSWRL.Atom, OWL extends SWRLA
         }
 
         @Override
-        public OntSWRL.Atom.SameIndividuals asResource() {
+        public OntSWRL.Atom.SameIndividuals asRDFNode() {
             return as(OntSWRL.Atom.SameIndividuals.class);
         }
 
@@ -357,7 +357,7 @@ public abstract class ONTSWRLAtomIml<ONT extends OntSWRL.Atom, OWL extends SWRLA
         }
 
         @Override
-        public OntSWRL.Atom.DifferentIndividuals asResource() {
+        public OntSWRL.Atom.DifferentIndividuals asRDFNode() {
             return as(OntSWRL.Atom.DifferentIndividuals.class);
         }
 
@@ -386,7 +386,7 @@ public abstract class ONTSWRLAtomIml<ONT extends OntSWRL.Atom, OWL extends SWRLA
         }
 
         @Override
-        public OntSWRL.Atom.DataProperty asResource() {
+        public OntSWRL.Atom.DataProperty asRDFNode() {
             return as(OntSWRL.Atom.DataProperty.class);
         }
 
@@ -434,7 +434,7 @@ public abstract class ONTSWRLAtomIml<ONT extends OntSWRL.Atom, OWL extends SWRLA
         }
 
         @Override
-        public OntSWRL.Atom.ObjectProperty asResource() {
+        public OntSWRL.Atom.ObjectProperty asRDFNode() {
             return as(OntSWRL.Atom.ObjectProperty.class);
         }
 

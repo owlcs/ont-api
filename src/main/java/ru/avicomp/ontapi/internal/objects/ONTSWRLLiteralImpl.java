@@ -57,11 +57,12 @@ public class ONTSWRLLiteralImpl extends ONTResourceImpl
     }
 
     @Override
-    public OntSWRL.DArg asResource() {
+    public OntSWRL.DArg asRDFNode() {
         return as(OntSWRL.DArg.class);
     }
 
-    public LiteralLabel getLiteralLabel() {
+    @Override
+    protected LiteralLabel getLiteralLabel() {
         return (LiteralLabel) node;
     }
 

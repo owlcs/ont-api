@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -34,9 +34,9 @@ import java.util.Optional;
  * @see OntID
  * @see <a href='https://www.w3.org/TR/owl-syntax/#Ontology_IRI_and_Version_IRI'>3.1 Ontology IRI and Version IRI</a>
  */
-public class OntologyID extends OWLOntologyID {
+public class OntologyID extends OWLOntologyID implements AsNode {
 
-    private final Node node;
+    protected final Node node;
 
     /**
      * Constructs an ID instance by the given iri and without any version iri.
@@ -130,6 +130,7 @@ public class OntologyID extends OWLOntologyID {
      *
      * @return {@link Node}, not {@code null}
      */
+    @Override
     public Node asNode() {
         return node;
     }

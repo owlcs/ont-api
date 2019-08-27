@@ -19,12 +19,12 @@ import org.apache.jena.datatypes.RDFDatatype;
 import org.apache.jena.datatypes.TypeMapper;
 import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.datatypes.xsd.impl.RDFLangString;
-import org.apache.jena.graph.FrontsNode;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.impl.LiteralLabel;
 import org.apache.jena.graph.impl.LiteralLabelFactory;
 import org.semanticweb.owlapi.model.*;
+import ru.avicomp.ontapi.AsNode;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 import ru.avicomp.ontapi.jena.vocabulary.XSD;
 import ru.avicomp.ontapi.owlapi.InternalizedEntities;
@@ -47,7 +47,7 @@ import java.util.Set;
  * Created by @szz on 06.09.2018.
  */
 @SuppressWarnings("WeakerAccess")
-public class OWLLiteralImpl extends OWLObjectImpl implements OWLLiteral, FrontsNode {
+public class OWLLiteralImpl extends OWLObjectImpl implements OWLLiteral, AsNode {
 
     protected static TypeMapper typeMapper = TypeMapper.getInstance();
 
@@ -407,6 +407,7 @@ public class OWLLiteralImpl extends OWLObjectImpl implements OWLLiteral, FrontsN
      * Please note: in the special case of no-lang PlainLiteral (e.g. {@code '...'^^rdf:PlainLiteral})
      * the method returns {@link InternalizedEntities#XSD_STRING},
      * although the encapsulated label may contain {@link RDF#PlainLiteral} type.
+     *
      * @return {@link OWLDatatype}
      */
     @Override
@@ -569,8 +570,8 @@ public class OWLLiteralImpl extends OWLObjectImpl implements OWLLiteral, FrontsN
             }
             return equals(label, other.getLiteralLabel());
         }
-        if (obj instanceof FrontsNode) {
-            return asNode().equals(((FrontsNode) obj).asNode());
+        if (obj instanceof AsNode) {
+            return asNode().equals(((AsNode) obj).asNode());
         }
         return super.equals(obj);
     }

@@ -41,14 +41,15 @@ import java.util.stream.Stream;
  * Created by @ssz on 17.08.2019.
  *
  * @see ONTResourceImpl
+ * @see OntStatement
  * @since 1.4.3
  */
 @SuppressWarnings("WeakerAccess")
-public abstract class ONTStatementImpl extends OWLObjectImpl implements OWLObject, FrontsTriple, HasObjectFactory {
+public abstract class ONTStatementImpl extends OWLObjectImpl implements OWLObject, HasObjectFactory, FrontsTriple {
 
-    protected final Object subject; // bnode or string
+    protected final Object subject; // b-node-id or string
     protected final String predicate;
-    protected final Object object; // bnode or string or label
+    protected final Object object; // b-node-id or string or literal-label
     protected final Supplier<OntGraphModel> model;
 
     /**

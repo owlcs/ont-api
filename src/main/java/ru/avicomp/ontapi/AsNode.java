@@ -12,42 +12,27 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 
-package ru.avicomp.ontapi.internal.objects;
+package ru.avicomp.ontapi;
 
-import org.semanticweb.owlapi.model.OWLNamedIndividual;
-import ru.avicomp.ontapi.internal.ONTObject;
-import ru.avicomp.ontapi.jena.model.OntGraphModel;
-import ru.avicomp.ontapi.jena.model.OntIndividual;
-
-import java.util.Set;
-import java.util.function.Supplier;
+import org.apache.jena.graph.Node;
 
 /**
- * An {@link OWLNamedIndividual} implementation that is also {@link ONTObject}.
- * Created by @ssz on 09.08.2019.
+ * An interface for objects that front a {@code Node} in some context.
+ * Unlike the {@link org.apache.jena.graph.FrontsNode Jena FrontsNode}
+ * this interface does not require classes implementing it
+ * promise that their {@code .equals()} is based only on the underlying {@code Node}.
+ * <p>
+ * Created by @szz on 27.08.2019.
  *
- * @see ru.avicomp.ontapi.owlapi.objects.entity.OWLNamedIndividualImpl
+ * @see org.apache.jena.graph.FrontsNode
  * @since 1.4.3
  */
-public class ONTNamedIndividualImpl extends ONTEntityImpl implements OWLNamedIndividual, ONTObject<OWLNamedIndividual> {
+public interface AsNode {
 
-    public ONTNamedIndividualImpl(String uri, Supplier<OntGraphModel> m) {
-        super(uri, m);
-    }
-
-    @Override
-    public OntIndividual.Named asRDFNode() {
-        return as(OntIndividual.Named.class);
-    }
-
-    @Override
-    public OWLNamedIndividual getOWLObject() {
-        return this;
-    }
-
-    @Override
-    protected Set<OWLNamedIndividual> getNamedIndividualSet() {
-        return createSet(this);
-    }
-
+    /**
+     * Answers the {@code Node} associated with this object.
+     *
+     * @return {@link Node RDF Graph Node}, cannot be {@code null}
+     */
+    Node asNode();
 }

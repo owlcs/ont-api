@@ -42,7 +42,7 @@ public class ONTDatatypeImpl extends ONTEntityImpl implements OWLDatatype, ONTOb
     }
 
     @Override
-    public OntDT asResource() {
+    public OntDT asRDFNode() {
         return as(OntDT.class);
     }
 

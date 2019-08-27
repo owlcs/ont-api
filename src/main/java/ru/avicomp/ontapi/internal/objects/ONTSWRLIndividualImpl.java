@@ -44,11 +44,11 @@ import java.util.function.Supplier;
 public class ONTSWRLIndividualImpl extends ONTResourceImpl
         implements SWRLIndividualArgument, ONTObject<SWRLIndividualArgument> {
 
-    protected ONTSWRLIndividualImpl(String uri, Supplier<OntGraphModel> m) {
+    public ONTSWRLIndividualImpl(String uri, Supplier<OntGraphModel> m) {
         super(uri, m);
     }
 
-    protected ONTSWRLIndividualImpl(BlankNodeId id, Supplier<OntGraphModel> m) {
+    public ONTSWRLIndividualImpl(BlankNodeId id, Supplier<OntGraphModel> m) {
         super(id, m);
     }
 
@@ -95,7 +95,7 @@ public class ONTSWRLIndividualImpl extends ONTResourceImpl
     }
 
     @Override
-    public OntSWRL.IArg asResource() {
+    public OntSWRL.IArg asRDFNode() {
         return as(OntSWRL.IArg.class);
     }
 

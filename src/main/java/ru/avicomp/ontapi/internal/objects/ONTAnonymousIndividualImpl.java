@@ -17,6 +17,7 @@ package ru.avicomp.ontapi.internal.objects;
 import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.graph.Triple;
 import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
+import ru.avicomp.ontapi.internal.AsRDFNode;
 import ru.avicomp.ontapi.internal.HasObjectFactory;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
@@ -42,7 +43,7 @@ import java.util.stream.Stream;
  * @since 1.4.3
  */
 public class ONTAnonymousIndividualImpl extends OWLAnonymousIndividualImpl
-        implements OWLAnonymousIndividual, HasObjectFactory, ONTObject<OWLAnonymousIndividual> {
+        implements OWLAnonymousIndividual, HasObjectFactory, ONTObject<OWLAnonymousIndividual>, AsRDFNode {
 
     protected final Supplier<OntGraphModel> model;
 
@@ -56,7 +57,8 @@ public class ONTAnonymousIndividualImpl extends OWLAnonymousIndividualImpl
         return HasObjectFactory.getObjectFactory(model.get());
     }
 
-    public OntIndividual.Anonymous asResource() {
+    @Override
+    public OntIndividual.Anonymous asRDFNode() {
         return PersonalityModel.asPersonalityModel(model.get()).getNodeAs(asNode(), OntIndividual.Anonymous.class);
     }
 

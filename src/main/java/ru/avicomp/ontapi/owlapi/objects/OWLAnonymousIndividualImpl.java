@@ -14,10 +14,10 @@
 package ru.avicomp.ontapi.owlapi.objects;
 
 import org.apache.jena.graph.BlankNodeId;
-import org.apache.jena.graph.FrontsNode;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.semanticweb.owlapi.model.*;
+import ru.avicomp.ontapi.AsNode;
 import ru.avicomp.ontapi.owlapi.OWLObjectImpl;
 
 import javax.annotation.Nullable;
@@ -36,15 +36,15 @@ import java.util.Set;
  * @author Matthew Horridge, The University of Manchester, Information Management Group
  * @since 1.2.0
  */
-public class OWLAnonymousIndividualImpl extends OWLObjectImpl implements OWLAnonymousIndividual, FrontsNode {
+public class OWLAnonymousIndividualImpl extends OWLObjectImpl implements OWLAnonymousIndividual, AsNode {
 
     protected transient final BlankNodeId id;
 
     /**
-     * @param nodeID node id
+     * @param id node id, not {@code null}
      */
-    public OWLAnonymousIndividualImpl(BlankNodeId nodeID) {
-        this.id = Objects.requireNonNull(nodeID, "nodeID cannot be null");
+    public OWLAnonymousIndividualImpl(BlankNodeId id) {
+        this.id = Objects.requireNonNull(id, "nodeID cannot be null");
     }
 
     /**
@@ -59,8 +59,8 @@ public class OWLAnonymousIndividualImpl extends OWLObjectImpl implements OWLAnon
             return (OWLAnonymousIndividualImpl) individual;
         }
         BlankNodeId id;
-        if (individual instanceof FrontsNode) {
-            id = ((FrontsNode) individual).asNode().getBlankNodeId();
+        if (individual instanceof AsNode) {
+            id = ((AsNode) individual).asNode().getBlankNodeId();
         } else {
             id = BlankNodeId.create(individual.toStringID());
         }
@@ -164,8 +164,8 @@ public class OWLAnonymousIndividualImpl extends OWLObjectImpl implements OWLAnon
             }
             return id.equals(other.getBlankNodeId());
         }
-        if (obj instanceof FrontsNode) {
-            return asNode().equals(((FrontsNode) obj).asNode());
+        if (obj instanceof AsNode) {
+            return asNode().equals(((AsNode) obj).asNode());
         }
         return super.equals(obj);
     }

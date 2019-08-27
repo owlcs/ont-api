@@ -38,7 +38,7 @@ public class ONTObjectPropertyImpl extends ONTEntityImpl implements OWLObjectPro
     }
 
     @Override
-    public OntNOP asResource() {
+    public OntNOP asRDFNode() {
         return as(OntNOP.class);
     }
 

@@ -14,10 +14,16 @@
 
 package ru.avicomp.ontapi.internal.objects;
 
-import org.apache.jena.graph.*;
+import org.apache.jena.graph.BlankNodeId;
+import org.apache.jena.graph.FrontsTriple;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.graph.impl.LiteralLabel;
 import org.semanticweb.owlapi.model.OWLObject;
+import ru.avicomp.ontapi.AsNode;
 import ru.avicomp.ontapi.DataFactory;
 import ru.avicomp.ontapi.OntApiException;
+import ru.avicomp.ontapi.internal.AsRDFNode;
 import ru.avicomp.ontapi.internal.HasObjectFactory;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.jena.impl.PersonalityModel;
@@ -34,14 +40,18 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
- * A base-resource component.
+ * A base RDF-object component, which encapsulates both node and model references.
+ * Unlike the {@link org.apache.jena.rdf.model.Resource Jena Resource} it can wrap a literal value,
+ * since an {@link OntObject}s is allowed to be literal (in the single case of SWRL-Data-argument).
  * Created by @ssz on 07.08.2019.
  *
  * @see ONTStatementImpl
+ * @see OntObject
  * @since 1.4.3
  */
 @SuppressWarnings("WeakerAccess")
-public abstract class ONTResourceImpl extends OWLObjectImpl implements OWLObject, HasObjectFactory, FrontsNode {
+public abstract class ONTResourceImpl extends OWLObjectImpl
+        implements OWLObject, HasObjectFactory, AsNode, AsRDFNode {
 
     protected final Object node;
     protected final Supplier<OntGraphModel> model;
@@ -49,7 +59,7 @@ public abstract class ONTResourceImpl extends OWLObjectImpl implements OWLObject
     /**
      * Constructs the base object.
      *
-     * @param n - either {@code String} (URI) or {@link BlankNodeId}, not {@code null}
+     * @param n - either {@code String} (URI) or {@link BlankNodeId} or {@link LiteralLabel}, not {@code null}
      * @param m - a facility (as {@link Supplier}) to provide nonnull {@link OntGraphModel}, not {@code null}
      */
     protected ONTResourceImpl(Object n, Supplier<OntGraphModel> m) {
@@ -62,6 +72,10 @@ public abstract class ONTResourceImpl extends OWLObjectImpl implements OWLObject
     }
 
     protected String getURI() {
+        throw new OntApiException.IllegalState();
+    }
+
+    protected LiteralLabel getLiteralLabel() {
         throw new OntApiException.IllegalState();
     }
 
@@ -81,14 +95,15 @@ public abstract class ONTResourceImpl extends OWLObjectImpl implements OWLObject
     @Override
     public abstract Node asNode();
 
-    public abstract OntObject asResource();
+    @Override
+    public abstract OntObject asRDFNode();
 
     protected <X extends OntObject> X as(Class<X> type) {
         return getPersonalityModel().getNodeAs(asNode(), type);
     }
 
     public Stream<Triple> triples() {
-        return asResource().spec().map(FrontsTriple::asTriple);
+        return asRDFNode().spec().map(FrontsTriple::asTriple);
     }
 
     protected boolean sameAs(ONTResourceImpl other) {

@@ -60,7 +60,7 @@ public class ONTFacetRestrictionImpl
     }
 
     @Override
-    public OntFR asResource() {
+    public OntFR asRDFNode() {
         return as(OntFR.class);
     }
 

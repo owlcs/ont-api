@@ -50,7 +50,7 @@ public abstract class ONTEntityImpl extends ONTResourceImpl implements OWLEntity
     }
 
     @Override
-    public abstract OntEntity asResource();
+    public abstract OntEntity asRDFNode();
 
     @Override
     public IRI getIRI() {
@@ -64,7 +64,7 @@ public abstract class ONTEntityImpl extends ONTResourceImpl implements OWLEntity
 
     @Override
     public boolean isBuiltIn() {
-        return asResource().isBuiltIn();
+        return asRDFNode().isBuiltIn();
     }
 
     @Override

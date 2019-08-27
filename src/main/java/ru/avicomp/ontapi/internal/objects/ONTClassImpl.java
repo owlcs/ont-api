@@ -42,7 +42,7 @@ public class ONTClassImpl extends ONTEntityImpl implements OWLClass, ONTObject<O
     }
 
     @Override
-    public OntClass asResource() {
+    public OntClass asRDFNode() {
         return as(OntClass.class);
     }
 

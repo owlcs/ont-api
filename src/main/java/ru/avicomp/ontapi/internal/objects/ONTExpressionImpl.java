@@ -96,7 +96,7 @@ public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResource
     }
 
     @Override
-    public abstract R asResource();
+    public abstract R asRDFNode();
 
     /**
      * Lists all components in the form of {@code Stream}.
@@ -121,7 +121,7 @@ public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResource
      * @see #collectContent(OntObject, InternalObjectFactory)
      */
     protected final Object[] collectContent() {
-        return collectContent(asResource(), getObjectFactory());
+        return collectContent(asRDFNode(), getObjectFactory());
     }
 
     /**

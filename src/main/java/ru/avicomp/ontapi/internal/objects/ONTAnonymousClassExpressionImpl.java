@@ -230,7 +230,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        public OntCE.ObjectSomeValuesFrom asResource() {
+        public OntCE.ObjectSomeValuesFrom asRDFNode() {
             return as(OntCE.ObjectSomeValuesFrom.class);
         }
     }
@@ -248,7 +248,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        public OntCE.ObjectAllValuesFrom asResource() {
+        public OntCE.ObjectAllValuesFrom asRDFNode() {
             return as(OntCE.ObjectAllValuesFrom.class);
         }
     }
@@ -266,7 +266,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        public OntCE.DataSomeValuesFrom asResource() {
+        public OntCE.DataSomeValuesFrom asRDFNode() {
             return as(OntCE.DataSomeValuesFrom.class);
         }
     }
@@ -284,7 +284,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        public OntCE.DataAllValuesFrom asResource() {
+        public OntCE.DataAllValuesFrom asRDFNode() {
             return as(OntCE.DataAllValuesFrom.class);
         }
     }
@@ -302,7 +302,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        public OntCE.NaryDataSomeValuesFrom asResource() {
+        public OntCE.NaryDataSomeValuesFrom asRDFNode() {
             return as(OntCE.NaryDataSomeValuesFrom.class);
         }
 
@@ -337,7 +337,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        public OntCE.NaryDataAllValuesFrom asResource() {
+        public OntCE.NaryDataAllValuesFrom asRDFNode() {
             return as(OntCE.NaryDataAllValuesFrom.class);
         }
 
@@ -372,7 +372,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        public OntCE.ObjectHasValue asResource() {
+        public OntCE.ObjectHasValue asRDFNode() {
             return as(OntCE.ObjectHasValue.class);
         }
 
@@ -480,7 +480,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        public OntCE.DataHasValue asResource() {
+        public OntCE.DataHasValue asRDFNode() {
             return as(OntCE.DataHasValue.class);
         }
 
@@ -529,7 +529,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        public OntCE.HasSelf asResource() {
+        public OntCE.HasSelf asRDFNode() {
             return as(OntCE.HasSelf.class);
         }
 
@@ -597,7 +597,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        public OntCE.ObjectCardinality asResource() {
+        public OntCE.ObjectCardinality asRDFNode() {
             return as(OntCE.ObjectCardinality.class);
         }
 
@@ -625,7 +625,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        public OntCE.DataCardinality asResource() {
+        public OntCE.DataCardinality asRDFNode() {
             return as(OntCE.DataCardinality.class);
         }
 
@@ -653,7 +653,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        public OntCE.ObjectMinCardinality asResource() {
+        public OntCE.ObjectMinCardinality asRDFNode() {
             return as(OntCE.ObjectMinCardinality.class);
         }
     }
@@ -671,7 +671,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        public OntCE.DataMinCardinality asResource() {
+        public OntCE.DataMinCardinality asRDFNode() {
             return as(OntCE.DataMinCardinality.class);
         }
     }
@@ -689,7 +689,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        public OntCE.ObjectMaxCardinality asResource() {
+        public OntCE.ObjectMaxCardinality asRDFNode() {
             return as(OntCE.ObjectMaxCardinality.class);
         }
     }
@@ -707,7 +707,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        public OntCE.DataMaxCardinality asResource() {
+        public OntCE.DataMaxCardinality asRDFNode() {
             return as(OntCE.DataMaxCardinality.class);
         }
     }
@@ -725,7 +725,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        public OntCE.UnionOf asResource() {
+        public OntCE.UnionOf asRDFNode() {
             return as(OntCE.UnionOf.class);
         }
 
@@ -755,7 +755,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        public OntCE.IntersectionOf asResource() {
+        public OntCE.IntersectionOf asRDFNode() {
             return as(OntCE.IntersectionOf.class);
         }
 
@@ -795,7 +795,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        public OntCE.OneOf asResource() {
+        public OntCE.OneOf asRDFNode() {
             return as(OntCE.OneOf.class);
         }
 
@@ -895,7 +895,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        public OntCE.ComplementOf asResource() {
+        public OntCE.ComplementOf asRDFNode() {
             return as(OntCE.ComplementOf.class);
         }
 
@@ -921,7 +921,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
 
         @Override
         public boolean isClassExpressionLiteral() {
-            return asResource().getValue().isURIResource();
+            return asRDFNode().getValue().isURIResource();
         }
     }
 

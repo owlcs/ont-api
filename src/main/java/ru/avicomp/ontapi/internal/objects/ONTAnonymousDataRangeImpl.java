@@ -157,7 +157,7 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
         }
 
         @Override
-        public OntDR.UnionOf asResource() {
+        public OntDR.UnionOf asRDFNode() {
             return as(OntDR.UnionOf.class);
         }
     }
@@ -175,7 +175,7 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
         }
 
         @Override
-        public OntDR.IntersectionOf asResource() {
+        public OntDR.IntersectionOf asRDFNode() {
             return as(OntDR.IntersectionOf.class);
         }
     }
@@ -192,7 +192,7 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
         }
 
         @Override
-        public OntDR.OneOf asResource() {
+        public OntDR.OneOf asRDFNode() {
             return as(OntDR.OneOf.class);
         }
 
@@ -220,7 +220,7 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
         }
 
         @Override
-        public OntDR.Restriction asResource() {
+        public OntDR.Restriction asRDFNode() {
             return as(OntDR.Restriction.class);
         }
 
@@ -277,7 +277,7 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
         }
 
         @Override
-        public OntDR.ComplementOf asResource() {
+        public OntDR.ComplementOf asRDFNode() {
             return as(OntDR.ComplementOf.class);
         }
 
