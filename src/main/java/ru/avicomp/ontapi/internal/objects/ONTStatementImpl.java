@@ -39,6 +39,7 @@ import java.util.stream.Stream;
  * @see ONTExpressionImpl
  * @since 1.4.3
  */
+@SuppressWarnings("WeakerAccess")
 public abstract class ONTStatementImpl extends ONTBaseTripleImpl {
 
     protected final InternalCache.Loading<ONTStatementImpl, Object[]> content;
@@ -126,6 +127,16 @@ public abstract class ONTStatementImpl extends ONTBaseTripleImpl {
      * @see ONTExpressionImpl#objects()
      */
     public final Stream<ONTObject<? extends OWLObject>> objects() {
-        return Iter.asStream(listComponents(), Spliterator.NONNULL | Spliterator.DISTINCT | Spliterator.ORDERED);
+        return Iter.asStream(listComponents(), getComponentsCharacteristics());
+    }
+
+    /**
+     * Answers the {@link #objects()} Stream-characteristics.
+     *
+     * @return int
+     * @see ONTExpressionImpl#getComponentsCharacteristics()
+     */
+    protected int getComponentsCharacteristics() {
+        return Spliterator.NONNULL | Spliterator.ORDERED;
     }
 }

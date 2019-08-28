@@ -40,11 +40,11 @@ import java.util.stream.Stream;
  * @since 1.4.3
  */
 @SuppressWarnings("WeakerAccess")
-public abstract class ONTSWRLAtomIml<ONT extends OntSWRL.Atom, OWL extends SWRLAtom>
+public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRLAtom>
         extends ONTExpressionImpl<ONT>
         implements SWRLAtom, ONTObject<OWL> {
 
-    protected ONTSWRLAtomIml(BlankNodeId n, Supplier<OntGraphModel> m) {
+    protected ONTSWRLAtomImpl(BlankNodeId n, Supplier<OntGraphModel> m) {
         super(n, m);
     }
 
@@ -54,13 +54,13 @@ public abstract class ONTSWRLAtomIml<ONT extends OntSWRL.Atom, OWL extends SWRLA
      *
      * @param atom  {@link OntSWRL.Atom}, not {@code null}, must be anonymous
      * @param model a provider of non-null {@link OntGraphModel}, not {@code null}
-     * @return {@link ONTSWRLAtomIml} instance
+     * @return {@link ONTSWRLAtomImpl} instance
      */
     @SuppressWarnings("unchecked")
-    public static ONTSWRLAtomIml create(OntSWRL.Atom atom, Supplier<OntGraphModel> model) {
+    public static ONTSWRLAtomImpl create(OntSWRL.Atom atom, Supplier<OntGraphModel> model) {
         Class<? extends OntSWRL.Atom> type = OntModels.getOntType(atom);
         BlankNodeId id = atom.asNode().getBlankNodeId();
-        ONTSWRLAtomIml res = create(id, type, model);
+        ONTSWRLAtomImpl res = create(id, type, model);
         res.content.put(res, res.collectContent(atom, res.getObjectFactory()));
         return res;
     }
@@ -71,11 +71,11 @@ public abstract class ONTSWRLAtomIml<ONT extends OntSWRL.Atom, OWL extends SWRLA
      * @param id    {@link BlankNodeId}, not {@code null}
      * @param type  {@code Class}-type of {@link OntSWRL.Atom}, not {@code null}
      * @param model {@link OntGraphModel}-provider, not {@code null}
-     * @return {@link ONTSWRLAtomIml}
+     * @return {@link ONTSWRLAtomImpl}
      */
-    public static ONTSWRLAtomIml create(BlankNodeId id,
-                                        Class<? extends OntSWRL.Atom> type,
-                                        Supplier<OntGraphModel> model) {
+    public static ONTSWRLAtomImpl create(BlankNodeId id,
+                                         Class<? extends OntSWRL.Atom> type,
+                                         Supplier<OntGraphModel> model) {
         if (type == OntSWRL.Atom.BuiltIn.class) {
             return new B(id, model);
         }
@@ -134,7 +134,7 @@ public abstract class ONTSWRLAtomIml<ONT extends OntSWRL.Atom, OWL extends SWRLA
      * @see ru.avicomp.ontapi.owlapi.objects.swrl.SWRLBuiltInAtomImpl
      * @see OntSWRL.Atom.BuiltIn
      */
-    public static class B extends ONTSWRLAtomIml<OntSWRL.Atom.BuiltIn, SWRLBuiltInAtom> implements SWRLBuiltInAtom {
+    public static class B extends ONTSWRLAtomImpl<OntSWRL.Atom.BuiltIn, SWRLBuiltInAtom> implements SWRLBuiltInAtom {
 
         protected B(BlankNodeId n, Supplier<OntGraphModel> m) {
             super(n, m);
@@ -340,7 +340,8 @@ public abstract class ONTSWRLAtomIml<ONT extends OntSWRL.Atom, OWL extends SWRLA
 
         @Override
         protected Object[] collectContent(OntSWRL.Atom.SameIndividuals obj, InternalObjectFactory of) {
-            return new Object[]{of.getProperty(obj.getPredicate()), of.getSWRLArgument(obj.getFirstArg()), of.getSWRLArgument(obj.getSecondArg())};
+            return new Object[]{of.getProperty(obj.getPredicate()),
+                    of.getSWRLArgument(obj.getFirstArg()), of.getSWRLArgument(obj.getSecondArg())};
         }
     }
 
@@ -363,7 +364,8 @@ public abstract class ONTSWRLAtomIml<ONT extends OntSWRL.Atom, OWL extends SWRLA
 
         @Override
         protected Object[] collectContent(OntSWRL.Atom.DifferentIndividuals obj, InternalObjectFactory of) {
-            return new Object[]{of.getProperty(obj.getPredicate()), of.getSWRLArgument(obj.getFirstArg()), of.getSWRLArgument(obj.getSecondArg())};
+            return new Object[]{of.getProperty(obj.getPredicate()),
+                    of.getSWRLArgument(obj.getFirstArg()), of.getSWRLArgument(obj.getSecondArg())};
         }
     }
 
@@ -392,7 +394,8 @@ public abstract class ONTSWRLAtomIml<ONT extends OntSWRL.Atom, OWL extends SWRLA
 
         @Override
         protected Object[] collectContent(OntSWRL.Atom.DataProperty obj, InternalObjectFactory of) {
-            return new Object[]{of.getProperty(obj.getPredicate()), of.getSWRLArgument(obj.getFirstArg()), of.getSWRLArgument(obj.getSecondArg())};
+            return new Object[]{of.getProperty(obj.getPredicate()),
+                    of.getSWRLArgument(obj.getFirstArg()), of.getSWRLArgument(obj.getSecondArg())};
         }
 
         @Override
@@ -454,7 +457,8 @@ public abstract class ONTSWRLAtomIml<ONT extends OntSWRL.Atom, OWL extends SWRLA
 
         @Override
         protected Object[] collectContent(OntSWRL.Atom.ObjectProperty obj, InternalObjectFactory of) {
-            return new Object[]{of.getProperty(obj.getPredicate()), of.getSWRLArgument(obj.getFirstArg()), of.getSWRLArgument(obj.getSecondArg())};
+            return new Object[]{of.getProperty(obj.getPredicate()),
+                    of.getSWRLArgument(obj.getFirstArg()), of.getSWRLArgument(obj.getSecondArg())};
         }
     }
 
@@ -541,7 +545,7 @@ public abstract class ONTSWRLAtomIml<ONT extends OntSWRL.Atom, OWL extends SWRLA
             OWL_F extends SWRLArgument,
             OWL_S extends SWRLArgument,
             OWL_R extends SWRLBinaryAtom<OWL_F, OWL_S>>
-            extends ONTSWRLAtomIml<ONT_R, OWL_R> {
+            extends ONTSWRLAtomImpl<ONT_R, OWL_R> {
 
         protected Bi(BlankNodeId n, Supplier<OntGraphModel> m) {
             super(n, m);
@@ -592,7 +596,7 @@ public abstract class ONTSWRLAtomIml<ONT extends OntSWRL.Atom, OWL extends SWRLA
             ONT_A extends OntSWRL.Arg,
             ONT_R extends OntSWRL.Atom.Unary<ONT_P, ONT_A>,
             OWL_P extends OWLObject & SWRLPredicate,
-            OWL_A extends SWRLArgument> extends ONTSWRLAtomIml<ONT_R, SWRLUnaryAtom<OWL_A>> {
+            OWL_A extends SWRLArgument> extends ONTSWRLAtomImpl<ONT_R, SWRLUnaryAtom<OWL_A>> {
 
         protected U(BlankNodeId n, Supplier<OntGraphModel> m) {
             super(n, m);

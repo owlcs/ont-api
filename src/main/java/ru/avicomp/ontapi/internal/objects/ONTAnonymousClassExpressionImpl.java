@@ -217,6 +217,11 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         return super.containsEntityInSignature(entity);
     }
 
+    @Override
+    protected int getComponentsCharacteristics() {
+        return super.getComponentsCharacteristics() | Spliterator.DISTINCT;
+    }
+
     /**
      * @see ru.avicomp.ontapi.owlapi.objects.ce.OWLObjectSomeValuesFromImpl
      * @see OntCE.ObjectSomeValuesFrom

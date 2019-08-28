@@ -145,7 +145,7 @@ public class ModelObjectFactory implements InternalObjectFactory {
     @SuppressWarnings("unchecked")
     @Override
     public ONTObject<? extends SWRLAtom> getSWRLAtom(OntSWRL.Atom atom) {
-        return (ONTObject<? extends SWRLAtom>) ONTSWRLAtomIml.create(atom, model);
+        return (ONTObject<? extends SWRLAtom>) ONTSWRLAtomImpl.create(atom, model);
     }
 
     @Override

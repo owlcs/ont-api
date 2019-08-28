@@ -106,7 +106,19 @@ public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResource
      * @see ONTExpressionImpl#listComponents()
      */
     public final Stream<ONTObject<? extends OWLObject>> objects() {
-        return Iter.asStream(listComponents(), Spliterator.NONNULL | Spliterator.ORDERED);
+        return Iter.asStream(listComponents(), getComponentsCharacteristics());
+    }
+
+    /**
+     * Answers the {@link #objects()} Stream-characteristics.
+     * In all cases the {@code Stream} is {@link Spliterator#NONNULL non-null} and {@link Spliterator#ORDERED}.
+     * Usually it is also {@link Spliterator#DISTINCT distinct} and {@link Spliterator#SORTED sorted}.
+     *
+     * @return int
+     * @see ONTStatementImpl#getComponentsCharacteristics()
+     */
+    protected int getComponentsCharacteristics() {
+        return Spliterator.NONNULL | Spliterator.ORDERED;
     }
 
     @Override

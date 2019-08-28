@@ -108,7 +108,12 @@ public class ONTAnnotationImpl extends ONTStatementImpl implements OWLAnnotation
         // OWL-API requires distinct and sorted Stream's and _List's_
         Set<ONTObject<OWLAnnotation>> res = createSortedSet(Comparator.comparing(ONTObject::getOWLObject));
         OntModels.listAnnotations(root).mapWith(of::getAnnotation).forEachRemaining(res::add);
-        return res.toArray();
+        return res.isEmpty() ? NO_SUB_ANNOTATIONS : res.toArray();
+    }
+
+    @Override
+    protected int getComponentsCharacteristics() {
+        return super.getComponentsCharacteristics() | Spliterator.DISTINCT;
     }
 
     /**

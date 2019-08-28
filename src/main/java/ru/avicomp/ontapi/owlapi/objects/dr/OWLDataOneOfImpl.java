@@ -35,12 +35,14 @@ public class OWLDataOneOfImpl extends OWLAnonymousDataRangeImpl implements OWLDa
      * @param values literals
      */
     public OWLDataOneOfImpl(Stream<? extends OWLLiteral> values) {
-        this.values = Objects.requireNonNull(values, "values cannot be null").filter(Objects::nonNull).distinct().sorted().collect(Iter.toUnmodifiableList());
+        this.values = Objects.requireNonNull(values, "values cannot be null")
+                .filter(Objects::nonNull).distinct().sorted().collect(Iter.toUnmodifiableList());
     }
 
     /**
      * @param values literals
      */
+    @SuppressWarnings("unused")
     public OWLDataOneOfImpl(Collection<? extends OWLLiteral> values) {
         this(Objects.requireNonNull(values, "values cannot be null").stream());
     }
