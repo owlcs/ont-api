@@ -33,8 +33,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <version.jena>3.12.0</version.jena>
         <version.owlapi>5.1.11</version.owlapi>
-        <version.slf4j>1.7.26</version.slf4j>
-        <version.caffeine>2.7.0</version.caffeine>
+        <version.slf4j>1.7.28</version.slf4j>
+        <version.caffeine>2.8.0</version.caffeine>
     </properties>
 
     <licenses>
@@ -235,7 +235,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.1.0</version>
+                <version>3.1.1</version>
                 <executions>
                     <execution>
                         <id>attach-javadocs</id>
