@@ -41,7 +41,7 @@ import java.util.stream.Stream;
  * @since 1.4.3
  */
 @SuppressWarnings("WeakerAccess")
-public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResourceImpl {
+public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResourceImpl implements ContainsComponents {
 
     /**
      * All the {@code OWLObject}'s components are store here.
@@ -62,16 +62,7 @@ public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResource
         this.content = InternalCache.createSoftSingleton(x -> collectContent());
     }
 
-    /**
-     * Lists all components in the form of {@code Iterator}.
-     * Neither this object or component objects are not included in result: it content only top-level direct components.
-     * Note that {@link #components()} may also contain non-{@link OWLObject} things:
-     * integers (e.g. cardinality), {@code List}s (e.g. {@code ObjectOneOf}).
-     *
-     * @return {@link ExtendedIterator} of {@link ONTObject}s
-     * @see HasComponents#components()
-     * @see HasOperands#operands()
-     */
+    @Override
     public abstract ExtendedIterator<ONTObject<? extends OWLObject>> listComponents();
 
     /**
@@ -144,123 +135,43 @@ public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResource
         return content.get(this);
     }
 
-    /**
-     * Answers {@code true} if this object-container is allowed to contain nested class-expressions.
-     *
-     * @return boolean
-     * @see #getClassExpressionSet()
-     */
-    public boolean canContainClassExpressions() {
-        return true;
-    }
-
     @Override
-    protected Set<OWLClassExpression> getClassExpressionSet() {
+    public Set<OWLClassExpression> getClassExpressionSet() {
         return canContainClassExpressions() ? super.getClassExpressionSet() : createSet();
     }
 
-    /**
-     * Answers {@code true} if this object-container is allowed to contain anonymous individuals.
-     *
-     * @return boolean
-     * @see #getAnonymousIndividualSet()
-     */
-    public boolean canContainAnonymousIndividuals() {
-        return true;
-    }
-
     @Override
-    protected Set<OWLAnonymousIndividual> getAnonymousIndividualSet() {
+    public Set<OWLAnonymousIndividual> getAnonymousIndividualSet() {
         return canContainAnonymousIndividuals() ? super.getAnonymousIndividualSet() : createSet();
     }
 
-    /**
-     * Answers {@code true} if this object-container is allowed to contain (named) OWL classes.
-     *
-     * @return boolean
-     * @see #getNamedClassSet()
-     */
-    public boolean canContainNamedClasses() {
-        return true;
-    }
-
     @Override
-    protected Set<OWLClass> getNamedClassSet() {
+    public Set<OWLClass> getNamedClassSet() {
         return canContainNamedClasses() ? super.getNamedClassSet() : createSet();
     }
 
-    /**
-     * Answers {@code true} if this object-container is allowed to contain named individuals.
-     *
-     * @return boolean
-     * @see #getNamedIndividualSet()
-     */
-    public boolean canContainNamedIndividuals() {
-        return true;
-    }
-
     @Override
-    protected Set<OWLNamedIndividual> getNamedIndividualSet() {
+    public Set<OWLNamedIndividual> getNamedIndividualSet() {
         return canContainNamedIndividuals() ? super.getNamedIndividualSet() : createSet();
     }
 
-    /**
-     * Answers {@code true} if this object-container may contain datatypes.
-     *
-     * @return boolean
-     * @see #getDatatypeSet()
-     */
-    public boolean canContainDatatypes() {
-        return true;
-    }
-
     @Override
-    protected Set<OWLDatatype> getDatatypeSet() {
+    public Set<OWLDatatype> getDatatypeSet() {
         return canContainDatatypes() ? super.getDatatypeSet() : createSet();
     }
 
-    /**
-     * Answers {@code true} if this object-container may contain named object properties.
-     *
-     * @return boolean
-     * @see #getObjectPropertySet()
-     */
-    public boolean canContainObjectProperties() {
-        return true;
-    }
-
     @Override
-    protected Set<OWLObjectProperty> getObjectPropertySet() {
+    public Set<OWLObjectProperty> getObjectPropertySet() {
         return canContainObjectProperties() ? super.getObjectPropertySet() : createSet();
     }
 
-    /**
-     * Answers {@code true} if this object-container may contain data properties.
-     *
-     * @return boolean
-     * @see #getDataPropertySet()
-     */
-    public boolean canContainDataProperties() {
-        return true;
-    }
-
     @Override
-    protected Set<OWLDataProperty> getDataPropertySet() {
+    public Set<OWLDataProperty> getDataPropertySet() {
         return canContainDataProperties() ? super.getDataPropertySet() : createSet();
     }
 
-    /**
-     * Answers {@code true} if this object-container may contain annotation properties.
-     *
-     * @return boolean
-     * @see #getAnnotationPropertySet()
-     */
-    public boolean canContainAnnotationProperties() {
-        return true;
-    }
-
     @Override
-    protected Set<OWLAnnotationProperty> getAnnotationPropertySet() {
+    public Set<OWLAnnotationProperty> getAnnotationPropertySet() {
         return canContainAnnotationProperties() ? super.getAnnotationPropertySet() : createSet();
     }
 

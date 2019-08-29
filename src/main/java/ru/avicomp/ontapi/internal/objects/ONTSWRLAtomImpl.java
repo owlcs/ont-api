@@ -199,7 +199,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
         }
 
         @Override
-        protected Set<OWLDatatype> getDatatypeSet() {
+        public Set<OWLDatatype> getDatatypeSet() {
             return Iter.addAll(listDatatypes(), createSortedSet());
         }
 
@@ -291,7 +291,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
         }
 
         @Override
-        protected Set<OWLDatatype> getDatatypeSet() {
+        public Set<OWLDatatype> getDatatypeSet() {
             return Iter.addAll(listDatatypes(), createSortedSet());
         }
 
@@ -497,19 +497,19 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
         }
 
         @Override
-        protected Set<OWLObjectProperty> getObjectPropertySet() {
+        public Set<OWLObjectProperty> getObjectPropertySet() {
             return createSet(getPredicate().getNamedProperty());
         }
 
         @Override
-        protected Set<OWLNamedIndividual> getNamedIndividualSet() {
+        public Set<OWLNamedIndividual> getNamedIndividualSet() {
             return Iter.addAll(listIndividuals()
                     .mapWith(i -> i.isOWLNamedIndividual() ? i.asOWLNamedIndividual() : null)
                     .filterDrop(Objects::isNull), createSortedSet());
         }
 
         @Override
-        protected Set<OWLAnonymousIndividual> getAnonymousIndividualSet() {
+        public Set<OWLAnonymousIndividual> getAnonymousIndividualSet() {
             return Iter.addAll(listIndividuals()
                     .mapWith(i -> i.isOWLNamedIndividual() ? null : i.asOWLAnonymousIndividual())
                     .filterDrop(Objects::isNull), createSortedSet());

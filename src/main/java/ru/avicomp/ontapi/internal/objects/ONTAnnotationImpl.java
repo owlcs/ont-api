@@ -214,27 +214,27 @@ public class ONTAnnotationImpl extends ONTStatementImpl implements OWLAnnotation
     }
 
     @Override
-    protected Set<OWLClass> getNamedClassSet() {
-        return createSet();
+    public boolean canContainNamedClasses() {
+        return false;
     }
 
     @Override
-    protected Set<OWLNamedIndividual> getNamedIndividualSet() {
-        return createSet();
+    public boolean canContainNamedIndividuals() {
+        return false;
     }
 
     @Override
-    protected Set<OWLDataProperty> getDataPropertySet() {
-        return createSet();
+    public boolean canContainDataProperties() {
+        return false;
     }
 
     @Override
-    protected Set<OWLObjectProperty> getObjectPropertySet() {
-        return createSet();
+    public boolean canContainObjectProperties() {
+        return false;
     }
 
     @Override
-    protected Set<OWLClassExpression> getClassExpressionSet() {
-        return createSet();
+    public boolean canContainClassExpressions() {
+        return false;
     }
 }

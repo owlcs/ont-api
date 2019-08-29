@@ -49,7 +49,7 @@ public class ONTAnnotationPropertyImpl extends ONTEntityImpl
     }
 
     @Override
-    protected Set<OWLAnnotationProperty> getAnnotationPropertySet() {
+    public Set<OWLAnnotationProperty> getAnnotationPropertySet() {
         return createSet(this);
     }
 

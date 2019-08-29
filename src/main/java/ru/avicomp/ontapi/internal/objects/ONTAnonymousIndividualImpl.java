@@ -73,7 +73,7 @@ public class ONTAnonymousIndividualImpl extends OWLAnonymousIndividualImpl
     }
 
     @Override
-    protected Set<OWLAnonymousIndividual> getAnonymousIndividualSet() {
+    public Set<OWLAnonymousIndividual> getAnonymousIndividualSet() {
         return createSet(this);
     }
 

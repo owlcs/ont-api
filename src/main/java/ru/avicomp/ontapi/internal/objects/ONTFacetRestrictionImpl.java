@@ -116,7 +116,7 @@ public class ONTFacetRestrictionImpl
     }
 
     @Override
-    protected Set<OWLDatatype> getDatatypeSet() {
+    public Set<OWLDatatype> getDatatypeSet() {
         return createSet(getDatatype());
     }
 

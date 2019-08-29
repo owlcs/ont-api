@@ -48,7 +48,7 @@ public class ONTObjectPropertyImpl extends ONTEntityImpl implements OWLObjectPro
     }
 
     @Override
-    protected Set<OWLObjectProperty> getObjectPropertySet() {
+    public Set<OWLObjectProperty> getObjectPropertySet() {
         return createSet(this);
     }
 

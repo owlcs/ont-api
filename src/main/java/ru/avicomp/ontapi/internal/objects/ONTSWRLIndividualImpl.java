@@ -134,44 +134,44 @@ public class ONTSWRLIndividualImpl extends ONTResourceImpl
     }
 
     @Override
-    protected Set<OWLNamedIndividual> getNamedIndividualSet() {
+    public Set<OWLNamedIndividual> getNamedIndividualSet() {
         OWLIndividual i = getIndividual();
         return i.isNamed() ? createSet(i.asOWLNamedIndividual()) : createSet();
     }
 
     @Override
-    protected Set<OWLAnonymousIndividual> getAnonymousIndividualSet() {
+    public Set<OWLAnonymousIndividual> getAnonymousIndividualSet() {
         OWLIndividual i = getIndividual();
         return i.isNamed() ? createSet() : createSet(i.asOWLAnonymousIndividual());
     }
 
     @Override
-    protected Set<OWLDatatype> getDatatypeSet() {
+    public Set<OWLDatatype> getDatatypeSet() {
         return createSet();
     }
 
     @Override
-    protected Set<OWLClass> getNamedClassSet() {
+    public Set<OWLClass> getNamedClassSet() {
         return createSet();
     }
 
     @Override
-    protected Set<OWLDataProperty> getDataPropertySet() {
+    public Set<OWLDataProperty> getDataPropertySet() {
         return createSet();
     }
 
     @Override
-    protected Set<OWLObjectProperty> getObjectPropertySet() {
+    public Set<OWLObjectProperty> getObjectPropertySet() {
         return createSet();
     }
 
     @Override
-    protected Set<OWLAnnotationProperty> getAnnotationPropertySet() {
+    public Set<OWLAnnotationProperty> getAnnotationPropertySet() {
         return createSet();
     }
 
     @Override
-    protected Set<OWLClassExpression> getClassExpressionSet() {
+    public Set<OWLClassExpression> getClassExpressionSet() {
         return createSet();
     }
 

@@ -62,12 +62,12 @@ public class ONTClassImpl extends ONTEntityImpl implements OWLClass, ONTObject<O
     }
 
     @Override
-    protected Set<OWLClass> getNamedClassSet() {
+    public Set<OWLClass> getNamedClassSet() {
         return createSet(this);
     }
 
     @Override
-    protected Set<OWLClassExpression> getClassExpressionSet() {
+    public Set<OWLClassExpression> getClassExpressionSet() {
         return createSet(this);
     }
 

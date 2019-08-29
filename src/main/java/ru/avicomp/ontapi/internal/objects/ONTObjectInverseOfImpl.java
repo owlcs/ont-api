@@ -126,7 +126,7 @@ public class ONTObjectInverseOfImpl
     }
 
     @Override
-    protected Set<OWLObjectProperty> getObjectPropertySet() {
+    public Set<OWLObjectProperty> getObjectPropertySet() {
         return createSet(getNamedProperty());
     }
 

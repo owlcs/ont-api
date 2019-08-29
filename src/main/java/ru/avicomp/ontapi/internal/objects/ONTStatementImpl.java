@@ -17,8 +17,7 @@ package ru.avicomp.ontapi.internal.objects;
 import org.apache.jena.graph.FrontsTriple;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLObject;
+import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.internal.InternalCache;
 import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.jena.model.OntAnnotation;
@@ -27,6 +26,7 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.utils.Iter;
 
 import java.util.List;
+import java.util.Set;
 import java.util.Spliterator;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -40,7 +40,7 @@ import java.util.stream.Stream;
  * @since 1.4.3
  */
 @SuppressWarnings("WeakerAccess")
-public abstract class ONTStatementImpl extends ONTBaseTripleImpl {
+public abstract class ONTStatementImpl extends ONTBaseTripleImpl implements ContainsComponents {
 
     protected final InternalCache.Loading<ONTStatementImpl, Object[]> content;
 
@@ -49,15 +49,7 @@ public abstract class ONTStatementImpl extends ONTBaseTripleImpl {
         this.content = InternalCache.createSoftSingleton(x -> collectContent());
     }
 
-    /**
-     * Lists all components in the form of {@code Iterator}.
-     * Neither this object or component objects are not included in result: it content only top-level direct components.
-     *
-     * @return {@link ExtendedIterator} of {@link ONTObject}s
-     * @see org.semanticweb.owlapi.model.HasComponents#components()
-     * @see org.semanticweb.owlapi.model.HasOperands#operands()
-     * @see ONTExpressionImpl#listComponents()
-     */
+    @Override
     public abstract ExtendedIterator<ONTObject<? extends OWLObject>> listComponents();
 
     /**
@@ -138,5 +130,45 @@ public abstract class ONTStatementImpl extends ONTBaseTripleImpl {
      */
     protected int getComponentsCharacteristics() {
         return Spliterator.NONNULL | Spliterator.ORDERED;
+    }
+
+    @Override
+    public Set<OWLClassExpression> getClassExpressionSet() {
+        return canContainClassExpressions() ? super.getClassExpressionSet() : createSet();
+    }
+
+    @Override
+    public Set<OWLAnonymousIndividual> getAnonymousIndividualSet() {
+        return canContainAnonymousIndividuals() ? super.getAnonymousIndividualSet() : createSet();
+    }
+
+    @Override
+    public Set<OWLClass> getNamedClassSet() {
+        return canContainNamedClasses() ? super.getNamedClassSet() : createSet();
+    }
+
+    @Override
+    public Set<OWLNamedIndividual> getNamedIndividualSet() {
+        return canContainNamedIndividuals() ? super.getNamedIndividualSet() : createSet();
+    }
+
+    @Override
+    public Set<OWLDatatype> getDatatypeSet() {
+        return canContainDatatypes() ? super.getDatatypeSet() : createSet();
+    }
+
+    @Override
+    public Set<OWLObjectProperty> getObjectPropertySet() {
+        return canContainObjectProperties() ? super.getObjectPropertySet() : createSet();
+    }
+
+    @Override
+    public Set<OWLDataProperty> getDataPropertySet() {
+        return canContainDataProperties() ? super.getDataPropertySet() : createSet();
+    }
+
+    @Override
+    public Set<OWLAnnotationProperty> getAnnotationPropertySet() {
+        return canContainAnnotationProperties() ? super.getAnnotationPropertySet() : createSet();
     }
 }

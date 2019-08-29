@@ -52,7 +52,7 @@ public class ONTDatatypeImpl extends ONTEntityImpl implements OWLDatatype, ONTOb
     }
 
     @Override
-    protected Set<OWLDatatype> getDatatypeSet() {
+    public Set<OWLDatatype> getDatatypeSet() {
         return createSet(this);
     }
 

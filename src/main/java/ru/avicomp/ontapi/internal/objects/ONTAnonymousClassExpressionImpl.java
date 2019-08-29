@@ -431,7 +431,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        protected Set<OWLObjectProperty> getObjectPropertySet() {
+        public Set<OWLObjectProperty> getObjectPropertySet() {
             return createSet(getNamedProperty());
         }
 
@@ -440,19 +440,19 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        protected Set<OWLNamedIndividual> getNamedIndividualSet() {
+        public Set<OWLNamedIndividual> getNamedIndividualSet() {
             OWLIndividual i = getFiller();
             return i.isOWLNamedIndividual() ? createSet(i.asOWLNamedIndividual()) : createSet();
         }
 
         @Override
-        protected Set<OWLAnonymousIndividual> getAnonymousIndividualSet() {
+        public Set<OWLAnonymousIndividual> getAnonymousIndividualSet() {
             OWLIndividual i = getFiller();
             return i.isOWLNamedIndividual() ? createSet() : createSet(i.asOWLAnonymousIndividual());
         }
 
         @Override
-        protected Set<OWLClassExpression> getClassExpressionSet() {
+        public Set<OWLClassExpression> getClassExpressionSet() {
             return createSet(this);
         }
 
@@ -550,7 +550,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        protected Set<OWLObjectProperty> getObjectPropertySet() {
+        public Set<OWLObjectProperty> getObjectPropertySet() {
             return createSet(getNamedProperty());
         }
 
@@ -569,7 +569,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        protected Set<OWLClassExpression> getClassExpressionSet() {
+        public Set<OWLClassExpression> getClassExpressionSet() {
             return createSet(this);
         }
 
@@ -831,12 +831,12 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        protected Set<OWLNamedIndividual> getNamedIndividualSet() {
+        public Set<OWLNamedIndividual> getNamedIndividualSet() {
             return Iter.addAll(listNamedIndividuals(), createSortedSet());
         }
 
         @Override
-        protected Set<OWLAnonymousIndividual> getAnonymousIndividualSet() {
+        public Set<OWLAnonymousIndividual> getAnonymousIndividualSet() {
             return Iter.addAll(listAnonymousIndividuals(), createSortedSet());
         }
 
@@ -861,7 +861,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        protected Set<OWLClassExpression> getClassExpressionSet() {
+        public Set<OWLClassExpression> getClassExpressionSet() {
             return createSet(this);
         }
 
@@ -1104,7 +1104,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        protected Set<OWLClassExpression> getClassExpressionSet() {
+        public Set<OWLClassExpression> getClassExpressionSet() {
             return createSet(this);
         }
 

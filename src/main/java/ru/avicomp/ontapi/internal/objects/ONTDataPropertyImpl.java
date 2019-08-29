@@ -47,7 +47,7 @@ public class ONTDataPropertyImpl extends ONTEntityImpl implements OWLDataPropert
     }
 
     @Override
-    protected Set<OWLDataProperty> getDataPropertySet() {
+    public Set<OWLDataProperty> getDataPropertySet() {
         return createSet(this);
     }
 

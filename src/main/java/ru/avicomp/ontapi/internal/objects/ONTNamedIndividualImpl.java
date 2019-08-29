@@ -46,7 +46,7 @@ public class ONTNamedIndividualImpl extends ONTEntityImpl implements OWLNamedInd
     }
 
     @Override
-    protected Set<OWLNamedIndividual> getNamedIndividualSet() {
+    public Set<OWLNamedIndividual> getNamedIndividualSet() {
         return createSet(this);
     }
 
