@@ -207,8 +207,8 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
     }
 
     @Override
-    protected Set<OWLAnnotationProperty> getAnnotationPropertySet() {
-        return createSet();
+    public boolean canContainAnnotationProperties() {
+        return false;
     }
 
     @Override
@@ -457,18 +457,18 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        protected Set<OWLDataProperty> getDataPropertySet() {
-            return createSet();
+        public boolean canContainDataProperties() {
+            return false;
         }
 
         @Override
-        protected Set<OWLClass> getNamedClassSet() {
-            return createSet();
+        public boolean canContainNamedClasses() {
+            return false;
         }
 
         @Override
-        protected Set<OWLDatatype> getDatatypeSet() {
-            return createSet();
+        public boolean canContainDatatypes() {
+            return false;
         }
     }
 
@@ -559,13 +559,13 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        protected Set<OWLNamedIndividual> getNamedIndividualSet() {
-            return createSet();
+        public boolean canContainNamedIndividuals() {
+            return false;
         }
 
         @Override
-        protected Set<OWLAnonymousIndividual> getAnonymousIndividualSet() {
-            return createSet();
+        public boolean canContainAnonymousIndividuals() {
+            return false;
         }
 
         @Override
@@ -574,18 +574,18 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        protected Set<OWLDataProperty> getDataPropertySet() {
-            return createSet();
+        public boolean canContainDataProperties() {
+            return false;
         }
 
         @Override
-        protected Set<OWLClass> getNamedClassSet() {
-            return createSet();
+        public boolean canContainNamedClasses() {
+            return false;
         }
 
         @Override
-        protected Set<OWLDatatype> getDatatypeSet() {
-            return createSet();
+        public boolean canContainDatatypes() {
+            return false;
         }
     }
 
@@ -866,25 +866,24 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        protected Set<OWLDataProperty> getDataPropertySet() {
-            return createSet();
+        public boolean canContainDataProperties() {
+            return false;
         }
 
         @Override
-        protected Set<OWLObjectProperty> getObjectPropertySet() {
-            return createSet();
+        public boolean canContainObjectProperties() {
+            return false;
         }
 
         @Override
-        protected Set<OWLClass> getNamedClassSet() {
-            return createSet();
+        public boolean canContainNamedClasses() {
+            return false;
         }
 
         @Override
-        protected Set<OWLDatatype> getDatatypeSet() {
-            return createSet();
+        public boolean canContainDatatypes() {
+            return false;
         }
-
     }
 
     /**
@@ -1090,18 +1089,18 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        protected Set<OWLClass> getNamedClassSet() {
-            return createSet();
+        public boolean canContainNamedClasses() {
+            return false;
         }
 
         @Override
-        protected Set<OWLNamedIndividual> getNamedIndividualSet() {
-            return createSet();
+        public boolean canContainNamedIndividuals() {
+            return false;
         }
 
         @Override
-        protected Set<OWLObjectProperty> getObjectPropertySet() {
-            return createSet();
+        public boolean canContainObjectProperties() {
+            return false;
         }
 
         @Override
@@ -1110,8 +1109,8 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        protected Set<OWLAnonymousIndividual> getAnonymousIndividualSet() {
-            return createSet();
+        public boolean canContainAnonymousIndividuals() {
+            return false;
         }
     }
 

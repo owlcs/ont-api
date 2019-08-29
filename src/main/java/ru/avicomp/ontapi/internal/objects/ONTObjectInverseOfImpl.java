@@ -16,7 +16,10 @@ package ru.avicomp.ontapi.internal.objects;
 
 import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.model.OWLEntity;
+import org.semanticweb.owlapi.model.OWLObject;
+import org.semanticweb.owlapi.model.OWLObjectInverseOf;
+import org.semanticweb.owlapi.model.OWLObjectProperty;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
@@ -103,23 +106,23 @@ public class ONTObjectInverseOfImpl
     }
 
     @Override
-    protected Set<OWLClass> getNamedClassSet() {
-        return createSet();
+    public boolean canContainNamedClasses() {
+        return false;
     }
 
     @Override
-    protected Set<OWLDatatype> getDatatypeSet() {
-        return createSet();
+    public boolean canContainDatatypes() {
+        return false;
     }
 
     @Override
-    protected Set<OWLNamedIndividual> getNamedIndividualSet() {
-        return createSet();
+    public boolean canContainNamedIndividuals() {
+        return false;
     }
 
     @Override
-    protected Set<OWLDataProperty> getDataPropertySet() {
-        return createSet();
+    public boolean canContainDataProperties() {
+        return false;
     }
 
     @Override
@@ -128,18 +131,18 @@ public class ONTObjectInverseOfImpl
     }
 
     @Override
-    protected Set<OWLAnnotationProperty> getAnnotationPropertySet() {
-        return createSet();
+    public boolean canContainAnnotationProperties() {
+        return false;
     }
 
     @Override
-    protected Set<OWLClassExpression> getClassExpressionSet() {
-        return createSet();
+    public boolean canContainClassExpressions() {
+        return false;
     }
 
     @Override
-    protected Set<OWLAnonymousIndividual> getAnonymousIndividualSet() {
-        return createSet();
+    public boolean canContainAnonymousIndividuals() {
+        return false;
     }
 
 }

@@ -19,9 +19,7 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import org.semanticweb.owlapi.model.HasComponents;
-import org.semanticweb.owlapi.model.HasOperands;
-import org.semanticweb.owlapi.model.OWLObject;
+import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.internal.InternalCache;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
@@ -30,6 +28,7 @@ import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.utils.Iter;
 
 import java.util.Arrays;
+import java.util.Set;
 import java.util.Spliterator;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -80,7 +79,7 @@ public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResource
      * The array was chosen as the best option in sense of memory consumption and access speed.
      *
      * @param obj {@link R}, not {@code null}
-     * @param of {@link InternalObjectFactory}, not {@code null}
+     * @param of  {@link InternalObjectFactory}, not {@code null}
      * @return {@code Array} of {@code Object}s
      */
     protected abstract Object[] collectContent(R obj, InternalObjectFactory of);
@@ -143,6 +142,126 @@ public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResource
      */
     protected Object[] getContent() {
         return content.get(this);
+    }
+
+    /**
+     * Answers {@code true} if this object-container is allowed to contain nested class-expressions.
+     *
+     * @return boolean
+     * @see #getClassExpressionSet()
+     */
+    public boolean canContainClassExpressions() {
+        return true;
+    }
+
+    @Override
+    protected Set<OWLClassExpression> getClassExpressionSet() {
+        return canContainClassExpressions() ? super.getClassExpressionSet() : createSet();
+    }
+
+    /**
+     * Answers {@code true} if this object-container is allowed to contain anonymous individuals.
+     *
+     * @return boolean
+     * @see #getAnonymousIndividualSet()
+     */
+    public boolean canContainAnonymousIndividuals() {
+        return true;
+    }
+
+    @Override
+    protected Set<OWLAnonymousIndividual> getAnonymousIndividualSet() {
+        return canContainAnonymousIndividuals() ? super.getAnonymousIndividualSet() : createSet();
+    }
+
+    /**
+     * Answers {@code true} if this object-container is allowed to contain (named) OWL classes.
+     *
+     * @return boolean
+     * @see #getNamedClassSet()
+     */
+    public boolean canContainNamedClasses() {
+        return true;
+    }
+
+    @Override
+    protected Set<OWLClass> getNamedClassSet() {
+        return canContainNamedClasses() ? super.getNamedClassSet() : createSet();
+    }
+
+    /**
+     * Answers {@code true} if this object-container is allowed to contain named individuals.
+     *
+     * @return boolean
+     * @see #getNamedIndividualSet()
+     */
+    public boolean canContainNamedIndividuals() {
+        return true;
+    }
+
+    @Override
+    protected Set<OWLNamedIndividual> getNamedIndividualSet() {
+        return canContainNamedIndividuals() ? super.getNamedIndividualSet() : createSet();
+    }
+
+    /**
+     * Answers {@code true} if this object-container may contain datatypes.
+     *
+     * @return boolean
+     * @see #getDatatypeSet()
+     */
+    public boolean canContainDatatypes() {
+        return true;
+    }
+
+    @Override
+    protected Set<OWLDatatype> getDatatypeSet() {
+        return canContainDatatypes() ? super.getDatatypeSet() : createSet();
+    }
+
+    /**
+     * Answers {@code true} if this object-container may contain named object properties.
+     *
+     * @return boolean
+     * @see #getObjectPropertySet()
+     */
+    public boolean canContainObjectProperties() {
+        return true;
+    }
+
+    @Override
+    protected Set<OWLObjectProperty> getObjectPropertySet() {
+        return canContainObjectProperties() ? super.getObjectPropertySet() : createSet();
+    }
+
+    /**
+     * Answers {@code true} if this object-container may contain data properties.
+     *
+     * @return boolean
+     * @see #getDataPropertySet()
+     */
+    public boolean canContainDataProperties() {
+        return true;
+    }
+
+    @Override
+    protected Set<OWLDataProperty> getDataPropertySet() {
+        return canContainDataProperties() ? super.getDataPropertySet() : createSet();
+    }
+
+    /**
+     * Answers {@code true} if this object-container may contain annotation properties.
+     *
+     * @return boolean
+     * @see #getAnnotationPropertySet()
+     */
+    public boolean canContainAnnotationProperties() {
+        return true;
+    }
+
+    @Override
+    protected Set<OWLAnnotationProperty> getAnnotationPropertySet() {
+        return canContainAnnotationProperties() ? super.getAnnotationPropertySet() : createSet();
     }
 
     @Override

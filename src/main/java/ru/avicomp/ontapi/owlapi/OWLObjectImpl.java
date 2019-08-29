@@ -264,10 +264,24 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
         return getClassExpressionSet();
     }
 
+    /**
+     * Gets the signature of this object.
+     * The set is a copy, changes are not reflected back.
+     *
+     * @return a modifiable sorted {@code Set} of entities that represents the signature of this object
+     */
     protected Set<OWLEntity> getSignatureSet() {
         return (Set<OWLEntity>) accept(new OWLEntityCollector(createSortedSet()));
     }
 
+    /**
+     * Gets the classes in the signature of this object.
+     * The returned set is a subset of the signature, and is not backed by the signature;
+     * it is a modifiable collection and changes are not reflected by the signature.
+     *
+     * @return a modifiable sorted {@code Set} containing the classes
+     * that are in the signature of this object
+     */
     protected Set<OWLClass> getNamedClassSet() {
         Set<OWLClass> res = createSortedSet();
         accept(new AbstractCollectorEx<OWLClass>(res) {
@@ -280,10 +294,23 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
         return res;
     }
 
+    /**
+     * Gets all of the nested (includes top level) class expressions that are used in this object.
+     * The set is a copy, changes are not reflected back.
+     *
+     * @return a modifiable unordered {@code Set} of {@link OWLClassExpression}s
+     * that represent the nested class expressions used in this object
+     */
     protected Set<OWLClassExpression> getClassExpressionSet() {
         return (Set<OWLClassExpression>) accept(new OWLClassExpressionCollector());
     }
 
+    /**
+     * Gets all of the individuals that are in the signature of this object.
+     * The set is a copy, changes are not reflected back.
+     *
+     * @return a modifiable sorted {@code Set} containing the individuals that are in the signature of this object
+     */
     protected Set<OWLNamedIndividual> getNamedIndividualSet() {
         Set<OWLNamedIndividual> res = createSortedSet();
         accept(new AbstractCollectorEx<OWLNamedIndividual>(res) {
@@ -296,6 +323,12 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
         return res;
     }
 
+    /**
+     * Gets the anonymous individuals occurring in this object.
+     * The set is a copy, changes are not reflected back.
+     *
+     * @return a modifiable sorted {@code Set} of the anonymous individuals
+     */
     protected Set<OWLAnonymousIndividual> getAnonymousIndividualSet() {
         Set<OWLAnonymousIndividual> res = createSortedSet();
         accept(new AbstractCollectorEx<OWLAnonymousIndividual>(res) {
@@ -308,6 +341,12 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
         return res;
     }
 
+    /**
+     * Gets the datatypes that are in the signature of this object.
+     * The set is a copy, changes are not reflected back.
+     *
+     * @return a modifiable sorted {@code Set} of the datatypes that are in the signature of this object
+     */
     protected Set<OWLDatatype> getDatatypeSet() {
         Set<OWLDatatype> res = createSortedSet();
         accept(new AbstractCollectorEx<OWLDatatype>(res) {
@@ -320,6 +359,12 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
         return res;
     }
 
+    /**
+     * Obtains the (named) object properties that are in the signature of this object.
+     * The set is a copy, changes are not reflected back.
+     *
+     * @return a modifiable sorted {@code Set} of the object properties that are in the signature of this object
+     */
     protected Set<OWLObjectProperty> getObjectPropertySet() {
         Set<OWLObjectProperty> res = createSortedSet();
         accept(new AbstractCollectorEx<OWLObjectProperty>(res) {
@@ -332,6 +377,12 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
         return res;
     }
 
+    /**
+     * Obtains the data properties that are in the signature of this object.
+     * The set is a copy, changes are not reflected back.
+     *
+     * @return a modifiable sorted {@code Set} of the data properties that are in the signature of this object
+     */
     protected Set<OWLDataProperty> getDataPropertySet() {
         Set<OWLDataProperty> res = createSortedSet();
         accept(new AbstractCollectorEx<OWLDataProperty>(res) {
@@ -344,6 +395,12 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
         return res;
     }
 
+    /**
+     * Obtains the annotation properties that are in the signature of this object.
+     * The set is a copy, changes are not reflected back.
+     *
+     * @return a modifiable sorted {@code Set} of the annotation properties that are in the signature of this object
+     */
     protected Set<OWLAnnotationProperty> getAnnotationPropertySet() {
         Set<OWLAnnotationProperty> res = createSortedSet();
         accept(new AbstractCollectorEx<OWLAnnotationProperty>(res) {

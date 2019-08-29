@@ -111,8 +111,8 @@ public class ONTFacetRestrictionImpl
     }
 
     @Override
-    protected Set<OWLClass> getNamedClassSet() {
-        return createSet();
+    public boolean canContainNamedClasses() {
+        return false;
     }
 
     @Override
@@ -121,32 +121,32 @@ public class ONTFacetRestrictionImpl
     }
 
     @Override
-    protected Set<OWLNamedIndividual> getNamedIndividualSet() {
-        return createSet();
+    public boolean canContainNamedIndividuals() {
+        return false;
     }
 
     @Override
-    protected Set<OWLDataProperty> getDataPropertySet() {
-        return createSet();
+    public boolean canContainDataProperties() {
+        return false;
     }
 
     @Override
-    protected Set<OWLObjectProperty> getObjectPropertySet() {
-        return createSet();
+    public boolean canContainObjectProperties() {
+        return false;
     }
 
     @Override
-    protected Set<OWLAnnotationProperty> getAnnotationPropertySet() {
-        return createSet();
+    public boolean canContainAnnotationProperties() {
+        return false;
     }
 
     @Override
-    protected Set<OWLClassExpression> getClassExpressionSet() {
-        return createSet();
+    public boolean canContainClassExpressions() {
+        return false;
     }
 
     @Override
-    protected Set<OWLAnonymousIndividual> getAnonymousIndividualSet() {
-        return createSet();
+    public boolean canContainAnonymousIndividuals() {
+        return false;
     }
 }
