@@ -23,7 +23,6 @@ import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.jena.model.OntAnnotation;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import ru.avicomp.ontapi.jena.utils.Iter;
 
 import java.util.List;
 import java.util.Set;
@@ -40,7 +39,7 @@ import java.util.stream.Stream;
  * @since 1.4.3
  */
 @SuppressWarnings("WeakerAccess")
-public abstract class ONTStatementImpl extends ONTBaseTripleImpl implements ContainsComponents {
+public abstract class ONTStatementImpl extends ONTBaseTripleImpl implements WithComponents {
 
     protected final InternalCache.Loading<ONTStatementImpl, Object[]> content;
 
@@ -110,25 +109,12 @@ public abstract class ONTStatementImpl extends ONTBaseTripleImpl implements Cont
     }
 
     /**
-     * Lists all components in the form of {@code Stream}.
-     * Neither this object or component (sub-)objects are not included in result:
-     * it content only top-level direct components.
-     *
-     * @return {@code Stream} of {@link ONTObject}s
-     * @see ONTAnnotationImpl#listComponents()
-     * @see ONTExpressionImpl#objects()
-     */
-    public final Stream<ONTObject<? extends OWLObject>> objects() {
-        return Iter.asStream(listComponents(), getComponentsCharacteristics());
-    }
-
-    /**
      * Answers the {@link #objects()} Stream-characteristics.
      *
      * @return int
      * @see ONTExpressionImpl#getComponentsCharacteristics()
      */
-    protected int getComponentsCharacteristics() {
+    public int getComponentsCharacteristics() {
         return Spliterator.NONNULL | Spliterator.ORDERED;
     }
 

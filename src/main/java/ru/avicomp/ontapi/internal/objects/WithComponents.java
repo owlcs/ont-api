@@ -16,17 +16,20 @@ package ru.avicomp.ontapi.internal.objects;
 
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.internal.ONTObject;
+import ru.avicomp.ontapi.jena.utils.Iter;
 
 import java.util.Iterator;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
+ * A generic interface describing an {@link ONTObject} that has components and signature.
  * Created by @szz on 29.08.2019.
  *
  * @see ru.avicomp.ontapi.owlapi.OWLObjectImpl
  * @since 1.4.3
  */
-public interface ContainsComponents {
+public interface WithComponents {
 
     /**
      * Lists all components in the form of {@code Iterator}.
@@ -35,10 +38,22 @@ public interface ContainsComponents {
      * integers (e.g. cardinality), {@code List}s (e.g. {@code ObjectOneOf}).
      *
      * @return {@link Iterator} of {@link ONTObject}s
+     * @see WithComponents#objects()
      * @see HasComponents#components()
      * @see HasOperands#operands()
      */
     Iterator<ONTObject<? extends OWLObject>> listComponents();
+
+    /**
+     * Answers the {@link WithComponents#objects()} Stream-characteristics.
+     * In all cases the {@code Stream} is {@link java.util.Spliterator#NONNULL non-null}
+     * and {@link java.util.Spliterator#ORDERED ordered}.
+     * Usually it is also {@link java.util.Spliterator#DISTINCT distinct}
+     * and {@link java.util.Spliterator#SORTED sorted}.
+     *
+     * @return int
+     */
+    int getComponentsCharacteristics();
 
     /**
      * Gets all of the nested (includes top level) class expressions that are used in this object.
@@ -115,6 +130,18 @@ public interface ContainsComponents {
      */
     default boolean canContainClassExpressions() {
         return true;
+    }
+
+    /**
+     * Lists all components in the form of {@code Stream}.
+     * Neither this object or component objects are not included in result:
+     * it content only top-level direct components.
+     *
+     * @return {@code Stream} of {@link ONTObject}s
+     * @see WithComponents#listComponents()
+     */
+    default Stream<ONTObject<? extends OWLObject>> objects() {
+        return Iter.asStream(listComponents(), getComponentsCharacteristics());
     }
 
     /**

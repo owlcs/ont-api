@@ -112,7 +112,7 @@ public class ONTAnnotationImpl extends ONTStatementImpl implements OWLAnnotation
     }
 
     @Override
-    protected int getComponentsCharacteristics() {
+    public int getComponentsCharacteristics() {
         return super.getComponentsCharacteristics() | Spliterator.DISTINCT;
     }
 

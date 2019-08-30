@@ -25,7 +25,6 @@ import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntObject;
-import ru.avicomp.ontapi.jena.utils.Iter;
 
 import java.util.Arrays;
 import java.util.Set;
@@ -41,7 +40,7 @@ import java.util.stream.Stream;
  * @since 1.4.3
  */
 @SuppressWarnings("WeakerAccess")
-public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResourceImpl implements ContainsComponents {
+public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResourceImpl implements WithComponents {
 
     /**
      * All the {@code OWLObject}'s components are store here.
@@ -88,26 +87,8 @@ public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResource
     @Override
     public abstract R asRDFNode();
 
-    /**
-     * Lists all components in the form of {@code Stream}.
-     * Neither this object or component objects are not included in result: it content only top-level direct components.
-     *
-     * @return {@code Stream} of {@link ONTObject}s
-     * @see ONTExpressionImpl#listComponents()
-     */
-    public final Stream<ONTObject<? extends OWLObject>> objects() {
-        return Iter.asStream(listComponents(), getComponentsCharacteristics());
-    }
-
-    /**
-     * Answers the {@link #objects()} Stream-characteristics.
-     * In all cases the {@code Stream} is {@link Spliterator#NONNULL non-null} and {@link Spliterator#ORDERED}.
-     * Usually it is also {@link Spliterator#DISTINCT distinct} and {@link Spliterator#SORTED sorted}.
-     *
-     * @return int
-     * @see ONTStatementImpl#getComponentsCharacteristics()
-     */
-    protected int getComponentsCharacteristics() {
+    @Override
+    public int getComponentsCharacteristics() {
         return Spliterator.NONNULL | Spliterator.ORDERED;
     }
 

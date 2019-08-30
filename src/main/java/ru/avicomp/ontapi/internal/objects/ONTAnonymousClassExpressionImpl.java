@@ -218,7 +218,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
     }
 
     @Override
-    protected int getComponentsCharacteristics() {
+    public int getComponentsCharacteristics() {
         return super.getComponentsCharacteristics() | Spliterator.DISTINCT;
     }
 
