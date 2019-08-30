@@ -15,7 +15,6 @@
 package ru.avicomp.ontapi.internal.objects;
 
 import org.apache.jena.graph.BlankNodeId;
-import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.OWLFacet;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
@@ -23,12 +22,12 @@ import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.internal.ReadHelper;
 import ru.avicomp.ontapi.jena.model.OntFR;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
-import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.utils.OntModels;
 
 import javax.annotation.Nullable;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 /**
  * An {@link OWLFacetRestriction} implementation that is also {@link ONTObject}.
@@ -95,8 +94,8 @@ public class ONTFacetRestrictionImpl
     }
 
     @Override
-    public ExtendedIterator<ONTObject<? extends OWLObject>> listComponents() {
-        return Iter.of(getONTLiteral());
+    public Stream<ONTObject<? extends OWLObject>> objects() {
+        return Stream.of(getONTLiteral());
     }
 
     @Override

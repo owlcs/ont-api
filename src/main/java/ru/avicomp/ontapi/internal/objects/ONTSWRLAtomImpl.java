@@ -15,7 +15,6 @@
 package ru.avicomp.ontapi.internal.objects;
 
 import org.apache.jena.graph.BlankNodeId;
-import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.SWRLBuiltInsVocabulary;
 import ru.avicomp.ontapi.DataFactory;
@@ -23,12 +22,15 @@ import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.jena.model.*;
-import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.utils.OntModels;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -117,8 +119,8 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
         return super.containsEntityInSignature(entity);
     }
 
-    ExtendedIterator<OWLDatatype> listDatatypes() {
-        return listComponents().mapWith(x -> {
+    protected Stream<OWLDatatype> datatypes() {
+        return objects().map(x -> {
             OWLObject a = x.getOWLObject();
             if (a instanceof OWLDatatype) {
                 return (OWLDatatype) a;
@@ -127,7 +129,14 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
                 return ((SWRLLiteralArgument) a).getLiteral().getDatatype();
             }
             return null;
-        }).filterDrop(Objects::isNull);
+        }).filter(Objects::nonNull);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Stream<ONTObject<? extends OWLObject>> objects() {
+        List res = Arrays.asList(getContent());
+        return (Stream<ONTObject<? extends OWLObject>>) res.stream();
     }
 
     /**
@@ -165,12 +174,10 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
             return objects().map(x -> (SWRLDArgument) x.getOWLObject());
         }
 
-        @SuppressWarnings("unchecked")
         @Override
-        public ExtendedIterator<ONTObject<? extends OWLObject>> listComponents() {
-            Iterator res = Arrays.asList(getContent()).iterator();
-            res.next(); // skip predicate (builtin) -- its spec is already included
-            return (ExtendedIterator<ONTObject<? extends OWLObject>>) Iter.create(res);
+        public Stream<ONTObject<? extends OWLObject>> objects() {
+            // skip predicate (builtin) -- its spec is already included
+            return super.objects().skip(1);
         }
 
         @SuppressWarnings("unchecked")
@@ -184,13 +191,13 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
 
         @Override
         public Set<OWLEntity> getSignatureSet() {
-            return Iter.addAll(listDatatypes(), createSortedSet());
+            return datatypes().collect(Collectors.toCollection(this::createSortedSet));
         }
 
         @Override
         public boolean containsEntityInSignature(OWLEntity entity) {
             if (entity == null || !entity.isOWLDatatype()) return false;
-            return Iter.anyMatch(listDatatypes(), entity::equals);
+            return datatypes().anyMatch(entity::equals);
         }
 
         @Override
@@ -200,7 +207,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
 
         @Override
         public Set<OWLDatatype> getDatatypeSet() {
-            return Iter.addAll(listDatatypes(), createSortedSet());
+            return datatypes().collect(Collectors.toCollection(this::createSortedSet));
         }
 
         @Override
@@ -276,13 +283,13 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
 
         @Override
         public Set<OWLEntity> getSignatureSet() {
-            return Iter.addAll(listDatatypes(), createSortedSet());
+            return datatypes().collect(Collectors.toCollection(this::createSortedSet));
         }
 
         @Override
         public boolean containsEntityInSignature(OWLEntity entity) {
             if (entity == null || !entity.isOWLDatatype()) return false;
-            return Iter.anyMatch(listDatatypes(), entity::equals);
+            return datatypes().anyMatch(entity::equals);
         }
 
         @Override
@@ -292,7 +299,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
 
         @Override
         public Set<OWLDatatype> getDatatypeSet() {
-            return Iter.addAll(listDatatypes(), createSortedSet());
+            return datatypes().collect(Collectors.toCollection(this::createSortedSet));
         }
 
         @Override
@@ -471,19 +478,19 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
             super(n, m);
         }
 
-        ExtendedIterator<OWLIndividual> listIndividuals() {
-            return Iter.of(getFirstArgument(), getSecondArgument())
-                    .filterKeep(x -> x instanceof SWRLIndividualArgument)
-                    .mapWith(x -> ((SWRLIndividualArgument) x).getIndividual());
+        protected Stream<OWLIndividual> individuals() {
+            return Stream.of(getFirstArgument(), getSecondArgument())
+                    .filter(x -> x instanceof SWRLIndividualArgument)
+                    .map(x -> ((SWRLIndividualArgument) x).getIndividual());
         }
 
         @Override
         public Set<OWLEntity> getSignatureSet() {
             Set<OWLEntity> res = createSortedSet();
             res.add(getPredicate().getNamedProperty());
-            return Iter.addAll(listIndividuals()
-                    .mapWith(i -> i.isOWLNamedIndividual() ? i.asOWLNamedIndividual() : null)
-                    .filterDrop(Objects::isNull), res);
+            individuals().filter(AsOWLNamedIndividual::isOWLNamedIndividual)
+                    .forEach(x -> res.add(x.asOWLNamedIndividual()));
+            return res;
         }
 
         @Override
@@ -492,8 +499,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
             if (entity.isOWLObjectProperty()) {
                 return getPredicate().getNamedProperty().equals(entity);
             }
-            return Iter.anyMatch(listIndividuals()
-                    .filterKeep(AsOWLNamedIndividual::isOWLNamedIndividual), entity::equals);
+            return individuals().filter(AsOWLNamedIndividual::isOWLNamedIndividual).anyMatch(entity::equals);
         }
 
         @Override
@@ -503,16 +509,16 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
 
         @Override
         public Set<OWLNamedIndividual> getNamedIndividualSet() {
-            return Iter.addAll(listIndividuals()
-                    .mapWith(i -> i.isOWLNamedIndividual() ? i.asOWLNamedIndividual() : null)
-                    .filterDrop(Objects::isNull), createSortedSet());
+            return individuals().filter(AsOWLNamedIndividual::isOWLNamedIndividual)
+                    .map(AsOWLNamedIndividual::asOWLNamedIndividual)
+                    .collect(Collectors.toCollection(this::createSortedSet));
         }
 
         @Override
         public Set<OWLAnonymousIndividual> getAnonymousIndividualSet() {
-            return Iter.addAll(listIndividuals()
-                    .mapWith(i -> i.isOWLNamedIndividual() ? null : i.asOWLAnonymousIndividual())
-                    .filterDrop(Objects::isNull), createSortedSet());
+            return individuals().filter(x -> !x.isOWLNamedIndividual())
+                    .map(OWLIndividual::asOWLAnonymousIndividual)
+                    .collect(Collectors.toCollection(this::createSortedSet));
         }
 
         @Override
@@ -582,13 +588,6 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
         public ONTObject<? extends OWL_S> getSecondONTArgument() {
             return (ONTObject<? extends OWL_S>) getContent()[2];
         }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        public ExtendedIterator<ONTObject<? extends OWLObject>> listComponents() {
-            List res = Arrays.asList(getContent());
-            return (ExtendedIterator<ONTObject<? extends OWLObject>>) Iter.create(res.iterator());
-        }
     }
 
     protected abstract static class U<ONT_P extends OntObject,
@@ -625,12 +624,6 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
             return (ONTObject<? extends OWL_P>) getContent()[0];
         }
 
-        @SuppressWarnings("unchecked")
-        @Override
-        public ExtendedIterator<ONTObject<? extends OWLObject>> listComponents() {
-            List res = Arrays.asList(getContent());
-            return (ExtendedIterator<ONTObject<? extends OWLObject>>) Iter.create(res.iterator());
-        }
     }
 
 }

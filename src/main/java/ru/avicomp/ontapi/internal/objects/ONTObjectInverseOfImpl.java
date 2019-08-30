@@ -15,7 +15,6 @@
 package ru.avicomp.ontapi.internal.objects;
 
 import org.apache.jena.graph.BlankNodeId;
-import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectInverseOf;
@@ -24,11 +23,11 @@ import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntOPE;
-import ru.avicomp.ontapi.jena.utils.Iter;
 
 import javax.annotation.Nullable;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 /**
  * An {@link OWLObjectInverseOf} implementation that is also {@link ONTObject}.
@@ -75,8 +74,8 @@ public class ONTObjectInverseOfImpl
     }
 
     @Override
-    public ExtendedIterator<ONTObject<? extends OWLObject>> listComponents() {
-        return Iter.of(getONTObjectProperty());
+    public Stream<ONTObject<? extends OWLObject>> objects() {
+        return Stream.of(getONTObjectProperty());
     }
 
     @SuppressWarnings("unchecked")

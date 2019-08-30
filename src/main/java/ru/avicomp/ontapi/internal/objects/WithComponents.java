@@ -16,9 +16,7 @@ package ru.avicomp.ontapi.internal.objects;
 
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.internal.ONTObject;
-import ru.avicomp.ontapi.jena.utils.Iter;
 
-import java.util.Iterator;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -32,28 +30,19 @@ import java.util.stream.Stream;
 public interface WithComponents {
 
     /**
-     * Lists all components in the form of {@code Iterator}.
-     * Neither this object or component objects are not included in result: it content only top-level direct components.
+     * Lists all components in the form of {@code Stream}.
+     * Neither this object or parts of its components are not included in the result:
+     * it content only top-level direct components.
      * Note that {@link HasComponents#components()} may also contain non-{@link OWLObject} things:
-     * integers (e.g. cardinality), {@code List}s (e.g. {@code ObjectOneOf}).
+     * integers (e.g. cardinality), {@code List}s (e.g. {@code ObjectOneOf}), etc,
+     * while this method is only for {@link OWLObject}s which are represented as {@link ONTObject}s.
      *
-     * @return {@link Iterator} of {@link ONTObject}s
+     * @return {@link Stream} of {@link ONTObject}s
      * @see WithComponents#objects()
      * @see HasComponents#components()
      * @see HasOperands#operands()
      */
-    Iterator<ONTObject<? extends OWLObject>> listComponents();
-
-    /**
-     * Answers the {@link WithComponents#objects()} Stream-characteristics.
-     * In all cases the {@code Stream} is {@link java.util.Spliterator#NONNULL non-null}
-     * and {@link java.util.Spliterator#ORDERED ordered}.
-     * Usually it is also {@link java.util.Spliterator#DISTINCT distinct}
-     * and {@link java.util.Spliterator#SORTED sorted}.
-     *
-     * @return int
-     */
-    int getComponentsCharacteristics();
+    Stream<ONTObject<? extends OWLObject>> objects();
 
     /**
      * Gets all of the nested (includes top level) class expressions that are used in this object.
@@ -130,18 +119,6 @@ public interface WithComponents {
      */
     default boolean canContainClassExpressions() {
         return true;
-    }
-
-    /**
-     * Lists all components in the form of {@code Stream}.
-     * Neither this object or component objects are not included in result:
-     * it content only top-level direct components.
-     *
-     * @return {@code Stream} of {@link ONTObject}s
-     * @see WithComponents#listComponents()
-     */
-    default Stream<ONTObject<? extends OWLObject>> objects() {
-        return Iter.asStream(listComponents(), getComponentsCharacteristics());
     }
 
     /**

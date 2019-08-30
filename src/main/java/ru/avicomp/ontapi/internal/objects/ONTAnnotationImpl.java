@@ -16,7 +16,6 @@ package ru.avicomp.ontapi.internal.objects;
 
 import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.graph.impl.LiteralLabel;
-import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
@@ -26,7 +25,6 @@ import ru.avicomp.ontapi.internal.ReadHelper;
 import ru.avicomp.ontapi.jena.model.OntAnnotation;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.utils.Models;
 import ru.avicomp.ontapi.jena.utils.OntModels;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
@@ -86,10 +84,10 @@ public class ONTAnnotationImpl extends ONTStatementImpl implements OWLAnnotation
     }
 
     @Override
-    public ExtendedIterator<ONTObject<? extends OWLObject>> listComponents() {
+    public Stream<ONTObject<? extends OWLObject>> objects() {
         InternalObjectFactory f = getObjectFactory();
-        return Iter.concat(Iter.of(getONTAnnotationProperty(f),
-                getONTAnnotationValue(f)), Iter.create(() -> getONTAnnotations().iterator()));
+        Stream<ONTObject<? extends OWLObject>> res = Stream.of(getONTAnnotationProperty(f), getONTAnnotationValue(f));
+        return Stream.concat(res, getONTAnnotations().stream());
     }
 
     @Override
@@ -109,11 +107,6 @@ public class ONTAnnotationImpl extends ONTStatementImpl implements OWLAnnotation
         Set<ONTObject<OWLAnnotation>> res = createSortedSet(Comparator.comparing(ONTObject::getOWLObject));
         OntModels.listAnnotations(root).mapWith(of::getAnnotation).forEachRemaining(res::add);
         return res.isEmpty() ? NO_SUB_ANNOTATIONS : res.toArray();
-    }
-
-    @Override
-    public int getComponentsCharacteristics() {
-        return super.getComponentsCharacteristics() | Spliterator.DISTINCT;
     }
 
     /**

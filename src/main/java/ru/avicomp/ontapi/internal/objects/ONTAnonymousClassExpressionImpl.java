@@ -15,7 +15,6 @@
 package ru.avicomp.ontapi.internal.objects;
 
 import org.apache.jena.graph.BlankNodeId;
-import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.NNF;
 import ru.avicomp.ontapi.DataFactory;
@@ -23,12 +22,12 @@ import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.jena.model.*;
-import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.utils.OntModels;
 
 import javax.annotation.Nullable;
 import java.util.*;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -217,9 +216,11 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         return super.containsEntityInSignature(entity);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public int getComponentsCharacteristics() {
-        return super.getComponentsCharacteristics() | Spliterator.DISTINCT;
+    public Stream<ONTObject<? extends OWLObject>> objects() {
+        List res = Arrays.asList(getContent());
+        return (Stream<ONTObject<? extends OWLObject>>) res.stream();
     }
 
     /**
@@ -392,11 +393,6 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             return getONTIndividual().getOWLObject();
         }
 
-        @Override
-        public ExtendedIterator<ONTObject<? extends OWLObject>> listComponents() {
-            return Iter.of(getONTObjectPropertyExpression(), getONTIndividual());
-        }
-
         @SuppressWarnings("unchecked")
         public ONTObject<? extends OWLIndividual> getONTIndividual() {
             // [property, filler]
@@ -498,11 +494,6 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         @Override
         public OWLLiteral getFiller() {
             return getONTLiteral().getOWLObject();
-        }
-
-        @Override
-        public ExtendedIterator<ONTObject<? extends OWLObject>> listComponents() {
-            return Iter.of(getONTDataProperty(), getONTLiteral());
         }
 
         @SuppressWarnings("unchecked")
@@ -822,42 +813,39 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         @Override
         public boolean containsEntityInSignature(OWLEntity entity) {
             if (entity == null || !entity.isIndividual()) return false;
-            return Iter.anyMatch(listNamedIndividuals(), entity::equals);
+            return namedIndividuals().anyMatch(entity::equals);
         }
 
         @Override
         public Set<OWLEntity> getSignatureSet() {
-            return Iter.addAll(listNamedIndividuals(), createSortedSet());
+            return namedIndividuals().collect(Collectors.toCollection(this::createSortedSet));
         }
 
         @Override
         public Set<OWLNamedIndividual> getNamedIndividualSet() {
-            return Iter.addAll(listNamedIndividuals(), createSortedSet());
+            return namedIndividuals().collect(Collectors.toCollection(this::createSortedSet));
         }
 
         @Override
         public Set<OWLAnonymousIndividual> getAnonymousIndividualSet() {
-            return Iter.addAll(listAnonymousIndividuals(), createSortedSet());
-        }
-
-        protected ExtendedIterator<OWLAnonymousIndividual> listAnonymousIndividuals() {
-            return listONTIndividuals()
-                    .mapWith(x -> x.getOWLObject().isOWLNamedIndividual() ? null :
+            return objectIndividuals()
+                    .map(x -> x.getOWLObject().isOWLNamedIndividual() ? null :
                             x.getOWLObject().asOWLAnonymousIndividual())
-                    .filterDrop(Objects::isNull);
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toCollection(this::createSortedSet));
         }
 
-        protected ExtendedIterator<OWLNamedIndividual> listNamedIndividuals() {
-            return listONTIndividuals()
-                    .mapWith(x -> x.getOWLObject().isOWLNamedIndividual() ?
+        protected Stream<OWLNamedIndividual> namedIndividuals() {
+            return objectIndividuals()
+                    .map(x -> x.getOWLObject().isOWLNamedIndividual() ?
                             x.getOWLObject().asOWLNamedIndividual() : null)
-                    .filterDrop(Objects::isNull);
+                    .filter(Objects::nonNull);
         }
 
         @SuppressWarnings("unchecked")
-        protected ExtendedIterator<ONTObject<? extends OWLIndividual>> listONTIndividuals() {
+        protected Stream<ONTObject<? extends OWLIndividual>> objectIndividuals() {
             List res = Arrays.asList(getContent());
-            return (ExtendedIterator<ONTObject<? extends OWLIndividual>>) Iter.create(res.iterator());
+            return (Stream<ONTObject<? extends OWLIndividual>>) res.stream();
         }
 
         @Override
@@ -911,11 +899,6 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         @SuppressWarnings("unchecked")
         protected ONTObject<? extends OWLClassExpression> getONTClassExpression() {
             return (ONTObject<? extends OWLClassExpression>) getContent()[0];
-        }
-
-        @Override
-        public ExtendedIterator<ONTObject<? extends OWLObject>> listComponents() {
-            return Iter.of(getONTClassExpression());
         }
 
         @Override
@@ -982,13 +965,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             return res.toArray();
         }
 
-        @SuppressWarnings("unchecked")
-        public ExtendedIterator<ONTObject<? extends OWLObject>> listComponents() {
-            ExtendedIterator res = Iter.create(getONTMembers().iterator());
-            return (ExtendedIterator<ONTObject<? extends OWLObject>>) res;
-        }
-
-        protected ExtendedIterator<ONT_M> listONTMembers(ONT_C ce) {
+        protected Iterator<ONT_M> listONTMembers(ONT_C ce) {
             return OntModels.listMembers(ce.getList());
         }
     }
@@ -1004,6 +981,11 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         public int getCardinality() {
             // [property, cardinality, filler]
             return (int) getContent()[1];
+        }
+
+        @Override
+        public Stream<ONTObject<? extends OWLObject>> objects() {
+            return Stream.of(getONTDataProperty(), getONTDataRange());
         }
 
         @Override
@@ -1030,11 +1012,6 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             // [property, cardinality, filler] or [property, filler]
             Object[] array = getContent();
             return (ONTObject<? extends OWLDataRange>) array[array.length - 1];
-        }
-
-        @Override
-        public ExtendedIterator<ONTObject<? extends OWLObject>> listComponents() {
-            return Iter.of(getONTDataProperty(), getONTDataRange());
         }
 
         @Override
@@ -1069,11 +1046,6 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         public ONTObject<OWLDataProperty> getONTDataProperty() {
             // [property, cardinality, filler] or [property, filler] or [property]
             return (ONTObject<OWLDataProperty>) getContent()[0];
-        }
-
-        @Override
-        public ExtendedIterator<ONTObject<? extends OWLObject>> listComponents() {
-            return Iter.of(getONTDataProperty());
         }
 
         @Override
@@ -1127,6 +1099,11 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
+        public Stream<ONTObject<? extends OWLObject>> objects() {
+            return Stream.of(getONTObjectPropertyExpression(), getONTClassExpression());
+        }
+
+        @Override
         protected Object[] collectContent(ONT ce, InternalObjectFactory of) {
             // [property, cardinality, filler]
             return new Object[]{of.getProperty(ce.getProperty()), ce.getCardinality(), of.getClass(ce.getValue())};
@@ -1153,11 +1130,6 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        public ExtendedIterator<ONTObject<? extends OWLObject>> listComponents() {
-            return Iter.of(getONTObjectPropertyExpression(), getONTClassExpression());
-        }
-
-        @Override
         protected Object[] collectContent(ONT ce, InternalObjectFactory of) {
             return new Object[]{of.getProperty(ce.getProperty()), of.getClass(ce.getValue())};
         }
@@ -1169,11 +1141,6 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
 
         protected WithObjectProperty(BlankNodeId n, Supplier<OntGraphModel> m) {
             super(n, m);
-        }
-
-        @Override
-        public ExtendedIterator<ONTObject<? extends OWLObject>> listComponents() {
-            return Iter.of(getONTObjectPropertyExpression());
         }
 
         public OWLObjectPropertyExpression getProperty() {

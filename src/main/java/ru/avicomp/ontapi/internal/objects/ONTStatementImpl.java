@@ -16,7 +16,6 @@ package ru.avicomp.ontapi.internal.objects;
 
 import org.apache.jena.graph.FrontsTriple;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.internal.InternalCache;
 import ru.avicomp.ontapi.internal.ONTObject;
@@ -47,9 +46,6 @@ public abstract class ONTStatementImpl extends ONTBaseTripleImpl implements With
         super(subject, predicate, object, m);
         this.content = InternalCache.createSoftSingleton(x -> collectContent());
     }
-
-    @Override
-    public abstract ExtendedIterator<ONTObject<? extends OWLObject>> listComponents();
 
     /**
      * Answers a sorted {@code List} of {@link OWLAnnotation}s on this object.
@@ -106,16 +102,6 @@ public abstract class ONTStatementImpl extends ONTBaseTripleImpl implements With
             res = Stream.concat(res, a.spec().map(FrontsTriple::asTriple));
         }
         return res;
-    }
-
-    /**
-     * Answers the {@link #objects()} Stream-characteristics.
-     *
-     * @return int
-     * @see ONTExpressionImpl#getComponentsCharacteristics()
-     */
-    public int getComponentsCharacteristics() {
-        return Spliterator.NONNULL | Spliterator.ORDERED;
     }
 
     @Override

@@ -17,7 +17,6 @@ package ru.avicomp.ontapi.internal.objects;
 import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
@@ -145,6 +144,13 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
         return false;
     }
 
+    @SuppressWarnings("unchecked")
+    @Override
+    public Stream<ONTObject<? extends OWLObject>> objects() {
+        List res = Arrays.asList(getContent());
+        return (Stream<ONTObject<? extends OWLObject>>) res.stream();
+    }
+
     /**
      * @see ru.avicomp.ontapi.owlapi.objects.dr.OWLDataUnionOfImpl
      * @see OntDR.UnionOf
@@ -235,13 +241,6 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
         }
 
         @SuppressWarnings("unchecked")
-        @Override
-        public ExtendedIterator<ONTObject<? extends OWLObject>> listComponents() {
-            List res = Arrays.asList(getContent());
-            return (ExtendedIterator<ONTObject<? extends OWLObject>>) Iter.create(res.iterator());
-        }
-
-        @SuppressWarnings("unchecked")
         public Iterator<OWLFacetRestriction> listOWLFacetRestrictions() {
             Iterator it = Arrays.asList(getContent()).iterator();
             it.next();
@@ -292,11 +291,6 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
         }
 
         @Override
-        public ExtendedIterator<ONTObject<? extends OWLObject>> listComponents() {
-            return Iter.of(getONTDataRange());
-        }
-
-        @Override
         protected Object[] collectContent(OntDR.ComplementOf dr, InternalObjectFactory of) {
             return new Object[]{of.getDatatype(dr.getValue())};
         }
@@ -340,7 +334,7 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
             return (List<OWL_M>) res;
         }
 
-        protected ExtendedIterator<ONT_M> listONTMembers(ONT_D dr) {
+        protected Iterator<ONT_M> listONTMembers(ONT_D dr) {
             return OntModels.listMembers(dr.getList());
         }
 
@@ -350,12 +344,6 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
             Set<ONTObject<? extends OWL_M>> res = createSortedSet(Comparator.comparing(ONTObject::getOWLObject));
             listONTMembers(dr).forEachRemaining(e -> res.add(map(e, of)));
             return res.toArray();
-        }
-
-        @SuppressWarnings("unchecked")
-        public ExtendedIterator<ONTObject<? extends OWLObject>> listComponents() {
-            ExtendedIterator res = Iter.create(getONTMembers().iterator());
-            return (ExtendedIterator<ONTObject<? extends OWLObject>>) res;
         }
 
         @SuppressWarnings("unchecked")

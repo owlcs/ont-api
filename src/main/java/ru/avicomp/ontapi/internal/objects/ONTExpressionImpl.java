@@ -18,7 +18,6 @@ import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.internal.InternalCache;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
@@ -28,7 +27,6 @@ import ru.avicomp.ontapi.jena.model.OntObject;
 
 import java.util.Arrays;
 import java.util.Set;
-import java.util.Spliterator;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -61,9 +59,6 @@ public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResource
         this.content = InternalCache.createSoftSingleton(x -> collectContent());
     }
 
-    @Override
-    public abstract ExtendedIterator<ONTObject<? extends OWLObject>> listComponents();
-
     /**
      * Collects the cache Array.
      * The array was chosen as the best option in sense of memory consumption and access speed.
@@ -86,11 +81,6 @@ public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResource
 
     @Override
     public abstract R asRDFNode();
-
-    @Override
-    public int getComponentsCharacteristics() {
-        return Spliterator.NONNULL | Spliterator.ORDERED;
-    }
 
     @Override
     public Stream<Triple> triples() {
