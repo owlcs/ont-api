@@ -25,6 +25,7 @@ import ru.avicomp.ontapi.tests.TestFactory;
 
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -36,6 +37,8 @@ import java.util.stream.Stream;
 abstract class ObjectFactoryTest extends TestFactory {
     private static final OWLDataFactory ONT_DATA_FACTORY = OntManagers.getDataFactory();
     private static final OWLDataFactory OWL_DATA_FACTORY = OntManagers.createOWLProfile().dataFactory();
+
+    private static final String TEST_NS = "http://" + UUID.randomUUID() + "#";
 
     protected final Data data;
 
@@ -57,6 +60,7 @@ abstract class ObjectFactoryTest extends TestFactory {
         compare(owl, test);
         compare(ont, test);
         validate(owl, test);
+        testContains(owl, test);
 
         Class<? extends OWLObjectImpl> frame = getCacheFrameType();
         if (frame != null)
@@ -113,6 +117,16 @@ abstract class ObjectFactoryTest extends TestFactory {
         List<? extends OWLObject> expectedList = get.apply(expected).collect(Collectors.toList());
         List<? extends OWLObject> actualList = get.apply(actual).collect(Collectors.toList());
         Assert.assertEquals("Wrong " + msg + ":", expectedList, actualList);
+    }
+
+    void testContains(OWLObject expected, OWLObject actual) {
+        expected.signature().forEach(x -> Assert.assertTrue(actual.containsEntityInSignature(x)));
+        Assert.assertFalse(actual.containsEntityInSignature(OWL_DATA_FACTORY.getOWLClass(TEST_NS, "C")));
+        Assert.assertFalse(actual.containsEntityInSignature(OWL_DATA_FACTORY.getOWLDatatype(TEST_NS, "D")));
+        Assert.assertFalse(actual.containsEntityInSignature(OWL_DATA_FACTORY.getOWLNamedIndividual(TEST_NS, "I")));
+        Assert.assertFalse(actual.containsEntityInSignature(OWL_DATA_FACTORY.getOWLObjectProperty(TEST_NS, "P")));
+        Assert.assertFalse(actual.containsEntityInSignature(OWL_DATA_FACTORY.getOWLDataProperty(TEST_NS, "P")));
+        Assert.assertFalse(actual.containsEntityInSignature(OWL_DATA_FACTORY.getOWLAnnotationProperty(TEST_NS, "P")));
     }
 
 }
