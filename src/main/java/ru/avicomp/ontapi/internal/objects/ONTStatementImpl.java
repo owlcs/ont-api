@@ -16,7 +16,7 @@ package ru.avicomp.ontapi.internal.objects;
 
 import org.apache.jena.graph.FrontsTriple;
 import org.apache.jena.graph.Triple;
-import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.model.OWLAnnotation;
 import ru.avicomp.ontapi.internal.InternalCache;
 import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.jena.model.OntAnnotation;
@@ -24,7 +24,6 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 
 import java.util.List;
-import java.util.Set;
 import java.util.Spliterator;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -38,7 +37,7 @@ import java.util.stream.Stream;
  * @since 1.4.3
  */
 @SuppressWarnings("WeakerAccess")
-public abstract class ONTStatementImpl extends ONTBaseTripleImpl implements WithComponents {
+public abstract class ONTStatementImpl extends ONTBaseTripleImpl implements ONTComposite {
 
     protected final InternalCache.Loading<ONTStatementImpl, Object[]> content;
 
@@ -102,45 +101,5 @@ public abstract class ONTStatementImpl extends ONTBaseTripleImpl implements With
             res = Stream.concat(res, a.spec().map(FrontsTriple::asTriple));
         }
         return res;
-    }
-
-    @Override
-    public Set<OWLClassExpression> getClassExpressionSet() {
-        return canContainClassExpressions() ? super.getClassExpressionSet() : createSet();
-    }
-
-    @Override
-    public Set<OWLAnonymousIndividual> getAnonymousIndividualSet() {
-        return canContainAnonymousIndividuals() ? super.getAnonymousIndividualSet() : createSet();
-    }
-
-    @Override
-    public Set<OWLClass> getNamedClassSet() {
-        return canContainNamedClasses() ? super.getNamedClassSet() : createSet();
-    }
-
-    @Override
-    public Set<OWLNamedIndividual> getNamedIndividualSet() {
-        return canContainNamedIndividuals() ? super.getNamedIndividualSet() : createSet();
-    }
-
-    @Override
-    public Set<OWLDatatype> getDatatypeSet() {
-        return canContainDatatypes() ? super.getDatatypeSet() : createSet();
-    }
-
-    @Override
-    public Set<OWLObjectProperty> getObjectPropertySet() {
-        return canContainObjectProperties() ? super.getObjectPropertySet() : createSet();
-    }
-
-    @Override
-    public Set<OWLDataProperty> getDataPropertySet() {
-        return canContainDataProperties() ? super.getDataPropertySet() : createSet();
-    }
-
-    @Override
-    public Set<OWLAnnotationProperty> getAnnotationPropertySet() {
-        return canContainAnnotationProperties() ? super.getAnnotationPropertySet() : createSet();
     }
 }

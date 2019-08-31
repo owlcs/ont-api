@@ -14,44 +14,61 @@
 
 package ru.avicomp.ontapi.internal.objects;
 
-import org.semanticweb.owlapi.model.OWLNamedIndividual;
+import org.semanticweb.owlapi.model.OWLObject;
 import ru.avicomp.ontapi.internal.ONTObject;
-import ru.avicomp.ontapi.jena.model.OntGraphModel;
-import ru.avicomp.ontapi.jena.model.OntIndividual;
 
-import java.util.Set;
-import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 /**
- * An {@link OWLNamedIndividual} implementation that is also {@link ONTObject}.
- * Created by @ssz on 09.08.2019.
+ * A composite object that does not contain any structure.
+ * Created by @ssz on 31.08.2019.
  *
- * @see ru.avicomp.ontapi.owlapi.objects.entity.OWLNamedIndividualImpl
  * @since 1.4.3
  */
-public class ONTNamedIndividualImpl extends ONTEntityImpl implements OWLNamedIndividual, ONTObject<OWLNamedIndividual> {
+interface ONTSimple extends ONTComposite {
 
-    public ONTNamedIndividualImpl(String uri, Supplier<OntGraphModel> m) {
-        super(uri, m);
+    @Override
+    default Stream<ONTObject<? extends OWLObject>> objects() {
+        return Stream.empty();
     }
 
     @Override
-    public OntIndividual.Named asRDFNode() {
-        return as(OntIndividual.Named.class);
+    default boolean canContainClassExpressions() {
+        return false;
     }
 
     @Override
-    public OWLNamedIndividual getOWLObject() {
-        return this;
+    default boolean canContainAnonymousIndividuals() {
+        return false;
     }
 
     @Override
-    public Set<OWLNamedIndividual> getNamedIndividualSet() {
-        return createSet(this);
+    default boolean canContainNamedClasses() {
+        return false;
     }
 
     @Override
-    public boolean isNamedIndividual() {
-        return true;
+    default boolean canContainNamedIndividuals() {
+        return false;
+    }
+
+    @Override
+    default boolean canContainDatatypes() {
+        return false;
+    }
+
+    @Override
+    default boolean canContainObjectProperties() {
+        return false;
+    }
+
+    @Override
+    default boolean canContainDataProperties() {
+        return false;
+    }
+
+    @Override
+    default boolean canContainAnnotationProperties() {
+        return false;
     }
 }

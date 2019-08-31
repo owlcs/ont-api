@@ -25,8 +25,8 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntSWRL;
 
 import javax.annotation.Nullable;
-import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 /**
  * A {@link SWRLLiteralArgument} implementation that is also {@link ONTObject}.
@@ -90,47 +90,42 @@ public class ONTSWRLLiteralImpl extends ONTResourceImpl
     }
 
     @Override
-    protected Set<OWLEntity> getSignatureSet() {
-        return createSet(getDatatype());
+    public Stream<ONTObject<? extends OWLObject>> objects() {
+        return Stream.of(getONTLiteral());
     }
 
     @Override
-    public Set<OWLDatatype> getDatatypeSet() {
-        return createSet(getDatatype());
+    public boolean canContainClassExpressions() {
+        return false;
     }
 
     @Override
-    public Set<OWLClass> getNamedClassSet() {
-        return createSet();
+    public boolean canContainAnonymousIndividuals() {
+        return false;
     }
 
     @Override
-    public Set<OWLNamedIndividual> getNamedIndividualSet() {
-        return createSet();
+    public boolean canContainNamedClasses() {
+        return false;
     }
 
     @Override
-    public Set<OWLDataProperty> getDataPropertySet() {
-        return createSet();
+    public boolean canContainNamedIndividuals() {
+        return false;
     }
 
     @Override
-    public Set<OWLObjectProperty> getObjectPropertySet() {
-        return createSet();
+    public boolean canContainObjectProperties() {
+        return false;
     }
 
     @Override
-    public Set<OWLAnnotationProperty> getAnnotationPropertySet() {
-        return createSet();
+    public boolean canContainDataProperties() {
+        return false;
     }
 
     @Override
-    public Set<OWLClassExpression> getClassExpressionSet() {
-        return createSet();
-    }
-
-    @Override
-    public Set<OWLAnonymousIndividual> getAnonymousIndividualSet() {
-        return createSet();
+    public boolean canContainAnnotationProperties() {
+        return false;
     }
 }

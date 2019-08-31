@@ -60,4 +60,9 @@ public class ONTDataPropertyImpl extends ONTEntityImpl implements OWLDataPropert
     public boolean isOWLBottomObjectProperty() {
         return equals(OWL.bottomDataProperty);
     }
+
+    @Override
+    public boolean isDataProperty() {
+        return true;
+    }
 }

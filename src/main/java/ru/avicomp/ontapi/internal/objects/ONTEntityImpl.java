@@ -33,7 +33,7 @@ import java.util.function.Supplier;
  * @since 1.4.3
  */
 @SuppressWarnings("WeakerAccess")
-public abstract class ONTEntityImpl extends ONTResourceImpl implements OWLEntity {
+public abstract class ONTEntityImpl extends ONTResourceImpl implements OWLEntity, ONTSimple {
 
     protected ONTEntityImpl(String uri, Supplier<OntGraphModel> m) {
         super(uri, m);

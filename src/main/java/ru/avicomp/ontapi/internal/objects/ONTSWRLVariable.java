@@ -33,7 +33,8 @@ import java.util.function.Supplier;
  * @see OntSWRL.Variable
  * @since 1.4.3
  */
-public class ONTSWRLVariable extends ONTResourceImpl implements SWRLVariable, ONTObject<SWRLVariable> {
+public class ONTSWRLVariable extends ONTResourceImpl
+        implements SWRLVariable, ONTSimple, ONTObject<SWRLVariable> {
 
     public ONTSWRLVariable(String uri, Supplier<OntGraphModel> m) {
         super(uri, m);

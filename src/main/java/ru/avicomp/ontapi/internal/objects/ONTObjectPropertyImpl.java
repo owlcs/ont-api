@@ -67,4 +67,8 @@ public class ONTObjectPropertyImpl extends ONTEntityImpl implements OWLObjectPro
         return equals(OWL.bottomObjectProperty);
     }
 
+    @Override
+    public boolean isObjectProperty() {
+        return true;
+    }
 }

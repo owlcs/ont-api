@@ -14,44 +14,64 @@
 
 package ru.avicomp.ontapi.internal.objects;
 
-import org.semanticweb.owlapi.model.OWLNamedIndividual;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.graph.Triple;
+import org.semanticweb.owlapi.model.IRI;
+import ru.avicomp.ontapi.AsNode;
 import ru.avicomp.ontapi.internal.ONTObject;
-import ru.avicomp.ontapi.jena.model.OntGraphModel;
-import ru.avicomp.ontapi.jena.model.OntIndividual;
 
-import java.util.Set;
-import java.util.function.Supplier;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 /**
- * An {@link OWLNamedIndividual} implementation that is also {@link ONTObject}.
- * Created by @ssz on 09.08.2019.
+ * An {@link IRI} implementation that is also {@link ONTObject}.
+ * Created by @ssz on 31.08.2019.
  *
- * @see ru.avicomp.ontapi.owlapi.objects.entity.OWLNamedIndividualImpl
  * @since 1.4.3
  */
-public class ONTNamedIndividualImpl extends ONTEntityImpl implements OWLNamedIndividual, ONTObject<OWLNamedIndividual> {
+@SuppressWarnings("WeakerAccess")
+public class ONTIRI extends IRI
+        implements ONTSimple, AsNode, ONTObject<IRI> {
+    private static final long serialVersionUID = -6990484009590466514L;
 
-    public ONTNamedIndividualImpl(String uri, Supplier<OntGraphModel> m) {
-        super(uri, m);
+    protected ONTIRI(String uri) {
+        super(uri);
     }
 
     @Override
-    public OntIndividual.Named asRDFNode() {
-        return as(OntIndividual.Named.class);
-    }
-
-    @Override
-    public OWLNamedIndividual getOWLObject() {
+    public IRI getOWLObject() {
         return this;
     }
 
     @Override
-    public Set<OWLNamedIndividual> getNamedIndividualSet() {
-        return createSet(this);
+    public Stream<Triple> triples() {
+        return Stream.empty();
     }
 
     @Override
-    public boolean isNamedIndividual() {
-        return true;
+    public Node asNode() {
+        return NodeFactory.createURI(getIRIString());
+    }
+
+    /**
+     * Represents the given {@link IRI OWL-API IRI} as {@link ONTIRI ONT-API IRI}.
+     *
+     * @param iri {@link IRI}, not {@code null}
+     * @return {@link ONTIRI}
+     */
+    public static ONTIRI asONT(IRI iri) {
+        if (iri instanceof ONTIRI) return (ONTIRI) iri;
+        return create(iri.getIRIString());
+    }
+
+    /**
+     * Creates an {@link ONTIRI ONT-API IRI} for the given {@code String}.
+     *
+     * @param uri {@code String}, not {@code null}
+     * @return {@link ONTIRI}
+     */
+    public static ONTIRI create(String uri) {
+        return new ONTIRI(Objects.requireNonNull(uri, "Null URI."));
     }
 }

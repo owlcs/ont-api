@@ -29,6 +29,7 @@ import ru.avicomp.ontapi.jena.model.OntSWRL;
 import javax.annotation.Nullable;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 /**
  * A {@link SWRLIndividualArgument} implementation that is also {@link ONTObject}.
@@ -128,7 +129,7 @@ public class ONTSWRLIndividualImpl extends ONTResourceImpl
     }
 
     @Override
-    protected Set<OWLEntity> getSignatureSet() {
+    public Set<OWLEntity> getSignatureSet() {
         OWLIndividual i = getIndividual();
         return i.isNamed() ? createSet(i.asOWLNamedIndividual()) : createSet();
     }
@@ -175,4 +176,38 @@ public class ONTSWRLIndividualImpl extends ONTResourceImpl
         return createSet();
     }
 
+    @Override
+    public Stream<ONTObject<? extends OWLObject>> objects() {
+        return Stream.of(getONTIndividual());
+    }
+
+    @Override
+    public boolean canContainClassExpressions() {
+        return false;
+    }
+
+    @Override
+    public boolean canContainNamedClasses() {
+        return false;
+    }
+
+    @Override
+    public boolean canContainDatatypes() {
+        return false;
+    }
+
+    @Override
+    public boolean canContainObjectProperties() {
+        return false;
+    }
+
+    @Override
+    public boolean canContainDataProperties() {
+        return false;
+    }
+
+    @Override
+    public boolean canContainAnnotationProperties() {
+        return false;
+    }
 }

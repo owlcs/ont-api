@@ -21,6 +21,7 @@ import org.apache.jena.graph.impl.LiteralLabel;
 import org.apache.jena.rdf.model.Literal;
 import org.semanticweb.owlapi.model.OWLDatatype;
 import org.semanticweb.owlapi.model.OWLLiteral;
+import org.semanticweb.owlapi.model.OWLObject;
 import ru.avicomp.ontapi.internal.*;
 import ru.avicomp.ontapi.jena.impl.PersonalityModel;
 import ru.avicomp.ontapi.jena.model.OntDT;
@@ -44,7 +45,7 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("WeakerAccess")
 public class ONTLiteralImpl extends OWLLiteralImpl
-        implements OWLLiteral, HasObjectFactory, ONTObject<OWLLiteral>, AsRDFNode {
+        implements OWLLiteral, HasObjectFactory, ONTComposite, ONTObject<OWLLiteral>, AsRDFNode {
 
     protected final Supplier<OntGraphModel> model;
 
@@ -107,4 +108,43 @@ public class ONTLiteralImpl extends OWLLiteralImpl
         throw new NotSerializableException("Suspicious method call. Deserialization is unsupported for ONTLiteral.");
     }
 
+    @Override
+    public Stream<ONTObject<? extends OWLObject>> objects() {
+        return Stream.of(getONTDatatype());
+    }
+
+    @Override
+    public boolean canContainClassExpressions() {
+        return false;
+    }
+
+    @Override
+    public boolean canContainAnonymousIndividuals() {
+        return false;
+    }
+
+    @Override
+    public boolean canContainNamedClasses() {
+        return false;
+    }
+
+    @Override
+    public boolean canContainNamedIndividuals() {
+        return false;
+    }
+
+    @Override
+    public boolean canContainObjectProperties() {
+        return false;
+    }
+
+    @Override
+    public boolean canContainDataProperties() {
+        return false;
+    }
+
+    @Override
+    public boolean canContainAnnotationProperties() {
+        return false;
+    }
 }

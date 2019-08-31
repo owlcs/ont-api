@@ -29,12 +29,7 @@ import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.jena.impl.PersonalityModel;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntObject;
-import ru.avicomp.ontapi.owlapi.OWLObjectImpl;
 
-import java.io.IOException;
-import java.io.NotSerializableException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -50,7 +45,7 @@ import java.util.stream.Stream;
  * @since 1.4.3
  */
 @SuppressWarnings("WeakerAccess")
-public abstract class ONTResourceImpl extends OWLObjectImpl
+public abstract class ONTResourceImpl extends ONTObjectImpl
         implements OWLObject, HasObjectFactory, AsNode, AsRDFNode {
 
     protected final Object node;
@@ -111,15 +106,5 @@ public abstract class ONTResourceImpl extends OWLObjectImpl
             return false;
         }
         return node.equals(other.node);
-    }
-
-    private void writeObject(ObjectOutputStream out) throws IOException {
-        throw new NotSerializableException("Suspicious method call. " +
-                "Serialization is unsupported for " + getClass().getSimpleName() + ".");
-    }
-
-    private void readObject(ObjectInputStream in) throws Exception {
-        throw new NotSerializableException("Suspicious method call. " +
-                "Deserialization is unsupported for " + getClass().getSimpleName() + ".");
     }
 }

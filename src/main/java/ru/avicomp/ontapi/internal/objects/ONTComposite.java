@@ -14,20 +14,20 @@
 
 package ru.avicomp.ontapi.internal.objects;
 
-import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.model.HasComponents;
+import org.semanticweb.owlapi.model.HasOperands;
+import org.semanticweb.owlapi.model.OWLObject;
 import ru.avicomp.ontapi.internal.ONTObject;
 
-import java.util.Set;
 import java.util.stream.Stream;
 
 /**
  * A generic interface describing an {@link ONTObject} that has components and signature.
- * Created by @szz on 29.08.2019.
  *
- * @see ru.avicomp.ontapi.owlapi.OWLObjectImpl
+ * Created by @szz on 29.08.2019.
  * @since 1.4.3
  */
-public interface WithComponents {
+public interface ONTComposite extends ONTComponent {
 
     /**
      * Lists all components in the form of {@code Stream}.
@@ -38,84 +38,16 @@ public interface WithComponents {
      * while this method is only for {@link OWLObject}s which are represented as {@link ONTObject}s.
      *
      * @return {@link Stream} of {@link ONTObject}s
-     * @see WithComponents#objects()
+     * @see ONTComposite#objects()
      * @see HasComponents#components()
      * @see HasOperands#operands()
      */
     Stream<ONTObject<? extends OWLObject>> objects();
 
     /**
-     * Gets all of the nested (includes top level) class expressions that are used in this object.
-     * The set is a copy, changes are not reflected back.
-     *
-     * @return a modifiable unordered {@code Set} of {@link OWLClassExpression}s
-     * that represent the nested class expressions used in this object
-     */
-    Set<OWLClassExpression> getClassExpressionSet();
-
-    /**
-     * Gets the anonymous individuals occurring in this object.
-     * The set is a copy, changes are not reflected back.
-     *
-     * @return a modifiable sorted {@code Set} of the anonymous individuals
-     */
-    Set<OWLAnonymousIndividual> getAnonymousIndividualSet();
-
-    /**
-     * Gets the classes in the signature of this object.
-     * The returned set is a subset of the signature, and is not backed by the signature;
-     * it is a modifiable collection and changes are not reflected by the signature.
-     *
-     * @return a modifiable sorted {@code Set} containing the classes
-     * that are in the signature of this object
-     */
-    Set<OWLClass> getNamedClassSet();
-
-    /**
-     * Gets all of the individuals that are in the signature of this object.
-     * The set is a copy, changes are not reflected back.
-     *
-     * @return a modifiable sorted {@code Set} containing the individuals that are in the signature of this object
-     */
-    Set<OWLNamedIndividual> getNamedIndividualSet();
-
-    /**
-     * Gets the datatypes that are in the signature of this object.
-     * The set is a copy, changes are not reflected back.
-     *
-     * @return a modifiable sorted {@code Set} of the datatypes that are in the signature of this object
-     */
-    Set<OWLDatatype> getDatatypeSet();
-
-    /**
-     * Obtains the (named) object properties that are in the signature of this object.
-     * The set is a copy, changes are not reflected back.
-     *
-     * @return a modifiable sorted {@code Set} of the object properties that are in the signature of this object
-     */
-    Set<OWLObjectProperty> getObjectPropertySet();
-
-    /**
-     * Obtains the data properties that are in the signature of this object.
-     * The set is a copy, changes are not reflected back.
-     *
-     * @return a modifiable sorted {@code Set} of the data properties that are in the signature of this object
-     */
-    Set<OWLDataProperty> getDataPropertySet();
-
-    /**
-     * Obtains the annotation properties that are in the signature of this object.
-     * The set is a copy, changes are not reflected back.
-     *
-     * @return a modifiable sorted {@code Set} of the annotation properties that are in the signature of this object
-     */
-    Set<OWLAnnotationProperty> getAnnotationPropertySet();
-
-    /**
      * Answers {@code true} if this object-container is allowed to contain nested class-expressions.
      *
      * @return boolean
-     * @see #getClassExpressionSet()
      */
     default boolean canContainClassExpressions() {
         return true;
@@ -125,7 +57,6 @@ public interface WithComponents {
      * Answers {@code true} if this object-container is allowed to contain anonymous individuals.
      *
      * @return boolean
-     * @see #getAnonymousIndividualSet()
      */
     default boolean canContainAnonymousIndividuals() {
         return true;
@@ -135,7 +66,6 @@ public interface WithComponents {
      * Answers {@code true} if this object-container is allowed to contain (named) OWL classes.
      *
      * @return boolean
-     * @see #getNamedClassSet()
      */
     default boolean canContainNamedClasses() {
         return true;
@@ -145,7 +75,6 @@ public interface WithComponents {
      * Answers {@code true} if this object-container is allowed to contain named individuals.
      *
      * @return boolean
-     * @see #getNamedIndividualSet()
      */
     default boolean canContainNamedIndividuals() {
         return true;
@@ -155,7 +84,6 @@ public interface WithComponents {
      * Answers {@code true} if this object-container may contain datatypes.
      *
      * @return boolean
-     * @see #getDatatypeSet()
      */
     default boolean canContainDatatypes() {
         return true;
@@ -165,7 +93,6 @@ public interface WithComponents {
      * Answers {@code true} if this object-container may contain named object properties.
      *
      * @return boolean
-     * @see #getObjectPropertySet()
      */
     default boolean canContainObjectProperties() {
         return true;
@@ -175,7 +102,6 @@ public interface WithComponents {
      * Answers {@code true} if this object-container may contain data properties.
      *
      * @return boolean
-     * @see #getDataPropertySet()
      */
     default boolean canContainDataProperties() {
         return true;
@@ -185,7 +111,6 @@ public interface WithComponents {
      * Answers {@code true} if this object-container may contain annotation properties.
      *
      * @return boolean
-     * @see #getAnnotationPropertySet()
      */
     default boolean canContainAnnotationProperties() {
         return true;

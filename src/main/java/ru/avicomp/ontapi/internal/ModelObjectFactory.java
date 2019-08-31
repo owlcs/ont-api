@@ -155,7 +155,12 @@ public class ModelObjectFactory implements InternalObjectFactory {
 
     @Override
     public ONTObject<IRI> getIRI(String uri) {
-        return ONTObjectImpl.create(toIRI(uri));
+        return ONTIRI.create(uri);
+    }
+
+    @Override
+    public IRI toIRI(String uri) {
+        return ONTIRI.create(uri);
     }
 
     public ONTObject<OWLClass> getClass(String uri) {

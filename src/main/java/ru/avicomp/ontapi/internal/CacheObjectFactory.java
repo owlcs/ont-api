@@ -16,6 +16,7 @@ package ru.avicomp.ontapi.internal;
 
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.DataFactory;
+import ru.avicomp.ontapi.internal.objects.ONTIRI;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 
 import java.util.Collections;
@@ -88,7 +89,7 @@ public class CacheObjectFactory extends ModelObjectFactory {
                                  Supplier<InternalCache> cacheFactory) {
         super(dataFactory, model);
         this.caches = new HashSet<>();
-        this.iris = fetchCache(external, caches, cacheFactory, IRI.class).asLoading(IRI::create);
+        this.iris = fetchCache(external, caches, cacheFactory, org.semanticweb.owlapi.model.IRI.class).asLoading(super::toIRI);
         this.classes = fetchCache(external, caches, cacheFactory, OWLClass.class).asLoading(super::getClass);
         this.datatypes = fetchCache(external, caches, cacheFactory, OWLDatatype.class).asLoading(super::getDatatype);
         this.annotationProperties = fetchCache(external, caches, cacheFactory, OWLAnnotationProperty.class)
@@ -149,6 +150,11 @@ public class CacheObjectFactory extends ModelObjectFactory {
     @Override
     public ONTObject<OWLNamedIndividual> getNamedIndividual(String uri) {
         return individuals.get(uri);
+    }
+
+    @Override
+    public ONTObject<IRI> getIRI(String uri) {
+        return ONTIRI.asONT(toIRI(uri));
     }
 
     @Override

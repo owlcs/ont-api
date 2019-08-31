@@ -14,82 +14,69 @@
 
 package ru.avicomp.ontapi.internal.objects;
 
-import org.apache.jena.graph.BlankNodeId;
-import org.apache.jena.graph.Triple;
-import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
-import ru.avicomp.ontapi.internal.AsRDFNode;
-import ru.avicomp.ontapi.internal.HasObjectFactory;
-import ru.avicomp.ontapi.internal.InternalObjectFactory;
-import ru.avicomp.ontapi.internal.ONTObject;
-import ru.avicomp.ontapi.jena.impl.PersonalityModel;
-import ru.avicomp.ontapi.jena.model.OntGraphModel;
-import ru.avicomp.ontapi.jena.model.OntIndividual;
-import ru.avicomp.ontapi.owlapi.objects.OWLAnonymousIndividualImpl;
+import org.semanticweb.owlapi.model.*;
+import ru.avicomp.ontapi.owlapi.OWLObjectImpl;
 
 import java.io.IOException;
 import java.io.NotSerializableException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.Objects;
 import java.util.Set;
-import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 /**
- * An {@link OWLAnonymousIndividual} implementation that is also an instance of {@link ONTObject}.
- * Created by @ssz on 07.08.2019.
+ * Created by @ssz on 31.08.2019.
  *
- * @see OWLAnonymousIndividualImpl
  * @since 1.4.3
  */
-public class ONTAnonymousIndividualImpl extends OWLAnonymousIndividualImpl
-        implements OWLAnonymousIndividual, HasObjectFactory, ONTSimple, ONTObject<OWLAnonymousIndividual>, AsRDFNode {
-
-    protected final Supplier<OntGraphModel> model;
-
-    public ONTAnonymousIndividualImpl(BlankNodeId n, Supplier<OntGraphModel> m) {
-        super(n);
-        this.model = Objects.requireNonNull(m);
-    }
+abstract class ONTObjectImpl extends OWLObjectImpl implements ONTComposite {
 
     @Override
-    public InternalObjectFactory getObjectFactory() {
-        return HasObjectFactory.getObjectFactory(model.get());
-    }
-
-    @Override
-    public OntIndividual.Anonymous asRDFNode() {
-        return PersonalityModel.asPersonalityModel(model.get()).getNodeAs(asNode(), OntIndividual.Anonymous.class);
-    }
-
-    @Override
-    public OWLAnonymousIndividual getOWLObject() {
-        return this;
-    }
-
-    @Override
-    public Stream<Triple> triples() {
-        return Stream.empty();
-    }
-
-    @Override
-    public boolean isAnonymousIndividual() {
-        return true;
+    public Set<OWLClassExpression> getClassExpressionSet() {
+        return canContainClassExpressions() ? super.getClassExpressionSet() : createSet();
     }
 
     @Override
     public Set<OWLAnonymousIndividual> getAnonymousIndividualSet() {
-        return createSet(this);
+        return canContainAnonymousIndividuals() ? super.getAnonymousIndividualSet() : createSet();
+    }
+
+    @Override
+    public Set<OWLClass> getNamedClassSet() {
+        return canContainNamedClasses() ? super.getNamedClassSet() : createSet();
+    }
+
+    @Override
+    public Set<OWLNamedIndividual> getNamedIndividualSet() {
+        return canContainNamedIndividuals() ? super.getNamedIndividualSet() : createSet();
+    }
+
+    @Override
+    public Set<OWLDatatype> getDatatypeSet() {
+        return canContainDatatypes() ? super.getDatatypeSet() : createSet();
+    }
+
+    @Override
+    public Set<OWLObjectProperty> getObjectPropertySet() {
+        return canContainObjectProperties() ? super.getObjectPropertySet() : createSet();
+    }
+
+    @Override
+    public Set<OWLDataProperty> getDataPropertySet() {
+        return canContainDataProperties() ? super.getDataPropertySet() : createSet();
+    }
+
+    @Override
+    public Set<OWLAnnotationProperty> getAnnotationPropertySet() {
+        return canContainAnnotationProperties() ? super.getAnnotationPropertySet() : createSet();
     }
 
     private void writeObject(ObjectOutputStream out) throws IOException {
         throw new NotSerializableException("Suspicious method call. " +
-                "Serialization is unsupported for ONTAnonymousIndividual.");
+                "Serialization is unsupported for " + getClass().getSimpleName() + ".");
     }
 
     private void readObject(ObjectInputStream in) throws Exception {
         throw new NotSerializableException("Suspicious method call. " +
-                "Deserialization is unsupported for ONTAnonymousIndividual.");
+                "Deserialization is unsupported for " + getClass().getSimpleName() + ".");
     }
-
 }

@@ -109,4 +109,8 @@ public class ONTDatatypeImpl extends ONTEntityImpl implements OWLDatatype, ONTOb
         return true;
     }
 
+    @Override
+    public boolean isDatatype() {
+        return true;
+    }
 }

@@ -162,6 +162,11 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
     }
 
     @Override
+    public boolean isClassExpression() {
+        return true;
+    }
+
+    @Override
     public OWLClassExpression getNNF() {
         return accept(getNNFClassVisitor());
     }

@@ -67,4 +67,9 @@ public class ONTAnnotationPropertyImpl extends ONTEntityImpl
     public boolean isDeprecated() {
         return equals(OWL.deprecated);
     }
+
+    @Override
+    public boolean isAnnotationProperty() {
+        return true;
+    }
 }

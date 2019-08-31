@@ -132,6 +132,19 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
         }).filter(Objects::nonNull);
     }
 
+    protected Stream<OWLIndividual> individuals() {
+        return objects().map(x -> {
+            OWLObject a = x.getOWLObject();
+            if (a instanceof OWLIndividual) {
+                return (OWLIndividual) a;
+            }
+            if (a instanceof SWRLIndividualArgument) {
+                return ((SWRLIndividualArgument) a).getIndividual();
+            }
+            return null;
+        }).filter(Objects::nonNull);
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     public Stream<ONTObject<? extends OWLObject>> objects() {
@@ -183,7 +196,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
         @SuppressWarnings("unchecked")
         @Override
         protected Object[] collectContent(OntSWRL.Atom.BuiltIn atom, InternalObjectFactory of) {
-            IRI predicate = of.toIRI(atom.getPredicate().getURI());
+            org.semanticweb.owlapi.model.IRI predicate = of.toIRI(atom.getPredicate().getURI());
             List res = OntModels.listMembers(atom.getArgList()).mapWith(of::getSWRLArgument).toList();
             res.add(0, predicate);
             return res.toArray();
@@ -478,6 +491,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
             super(n, m);
         }
 
+        @Override
         protected Stream<OWLIndividual> individuals() {
             return Stream.of(getFirstArgument(), getSecondArgument())
                     .filter(x -> x instanceof SWRLIndividualArgument)
