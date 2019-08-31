@@ -105,7 +105,7 @@ public class ONTFacetRestrictionImpl
     }
 
     @Override
-    protected Set<OWLEntity> getSignatureSet() {
+    public Set<OWLEntity> getSignatureSet() {
         return createSet(getDatatype());
     }
 

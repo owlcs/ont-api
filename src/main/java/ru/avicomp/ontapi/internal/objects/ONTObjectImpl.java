@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.NotSerializableException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -31,43 +32,52 @@ import java.util.Set;
 abstract class ONTObjectImpl extends OWLObjectImpl implements ONTComposite {
 
     @Override
+    public Set<OWLEntity> getSignatureSet() {
+        return accept(ONTCollectors.forEntities(createSortedSet()));
+    }
+
+    @Override
     public Set<OWLClassExpression> getClassExpressionSet() {
-        return canContainClassExpressions() ? super.getClassExpressionSet() : createSet();
+        return canContainClassExpressions() ? accept(ONTCollectors.forClassExpressions(new HashSet<>())) : createSet();
     }
 
     @Override
     public Set<OWLAnonymousIndividual> getAnonymousIndividualSet() {
-        return canContainAnonymousIndividuals() ? super.getAnonymousIndividualSet() : createSet();
+        return canContainAnonymousIndividuals() ?
+                accept(ONTCollectors.forAnonymousIndividuals(createSortedSet())) : createSet();
     }
 
     @Override
     public Set<OWLClass> getNamedClassSet() {
-        return canContainNamedClasses() ? super.getNamedClassSet() : createSet();
+        return canContainNamedClasses() ? accept(ONTCollectors.forClasses(createSortedSet())) : createSet();
     }
 
     @Override
     public Set<OWLNamedIndividual> getNamedIndividualSet() {
-        return canContainNamedIndividuals() ? super.getNamedIndividualSet() : createSet();
+        return canContainNamedIndividuals() ?
+                accept(ONTCollectors.forNamedIndividuals(createSortedSet())) : createSet();
     }
 
     @Override
     public Set<OWLDatatype> getDatatypeSet() {
-        return canContainDatatypes() ? super.getDatatypeSet() : createSet();
+        return canContainDatatypes() ? accept(ONTCollectors.forDatatypes(createSortedSet())) : createSet();
     }
 
     @Override
     public Set<OWLObjectProperty> getObjectPropertySet() {
-        return canContainObjectProperties() ? super.getObjectPropertySet() : createSet();
+        return canContainObjectProperties() ?
+                accept(ONTCollectors.forObjectProperties(createSortedSet())) : createSet();
     }
 
     @Override
     public Set<OWLDataProperty> getDataPropertySet() {
-        return canContainDataProperties() ? super.getDataPropertySet() : createSet();
+        return canContainDataProperties() ? accept(ONTCollectors.forDataProperties(createSortedSet())) : createSet();
     }
 
     @Override
     public Set<OWLAnnotationProperty> getAnnotationPropertySet() {
-        return canContainAnnotationProperties() ? super.getAnnotationPropertySet() : createSet();
+        return canContainAnnotationProperties() ?
+                accept(ONTCollectors.forAnnotationProperties(createSortedSet())) : createSet();
     }
 
     private void writeObject(ObjectOutputStream out) throws IOException {

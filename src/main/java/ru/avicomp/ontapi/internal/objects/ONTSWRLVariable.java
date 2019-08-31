@@ -71,7 +71,7 @@ public class ONTSWRLVariable extends ONTResourceImpl
     }
 
     @Override
-    protected Set<OWLEntity> getSignatureSet() {
+    public Set<OWLEntity> getSignatureSet() {
         return createSet();
     }
 
