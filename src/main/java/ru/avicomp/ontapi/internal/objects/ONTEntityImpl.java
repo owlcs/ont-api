@@ -73,7 +73,7 @@ public abstract class ONTEntityImpl extends ONTResourceImpl implements OWLEntity
     }
 
     @Override
-    public boolean containsEntityInSignature(OWLEntity entity) {
+    public boolean containsEntity(OWLEntity entity) {
         return equals(entity);
     }
 

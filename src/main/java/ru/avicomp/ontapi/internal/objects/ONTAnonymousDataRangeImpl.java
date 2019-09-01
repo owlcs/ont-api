@@ -26,7 +26,6 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.utils.OntModels;
 
-import javax.annotation.Nullable;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -101,12 +100,6 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
     @Override
     public OWL getOWLObject() {
         return (OWL) this;
-    }
-
-    @Override
-    public boolean containsEntityInSignature(@Nullable OWLEntity entity) {
-        if (entity == null || !entity.isOWLDatatype()) return false;
-        return super.containsEntityInSignature(entity);
     }
 
     @Override

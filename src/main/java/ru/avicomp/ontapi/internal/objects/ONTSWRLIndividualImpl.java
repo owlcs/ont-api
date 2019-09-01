@@ -26,7 +26,6 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
 import ru.avicomp.ontapi.jena.model.OntSWRL;
 
-import javax.annotation.Nullable;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -122,10 +121,9 @@ public class ONTSWRLIndividualImpl extends ONTResourceImpl
     }
 
     @Override
-    public boolean containsEntityInSignature(@Nullable OWLEntity entity) {
-        if (entity == null || !entity.isIndividual())
-            return false;
-        return getIndividual().equals(entity);
+    public boolean containsNamedIndividual(OWLNamedIndividual individual) {
+        OWLIndividual i = getIndividual();
+        return i.isOWLNamedIndividual() && i.equals(individual);
     }
 
     @Override

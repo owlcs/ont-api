@@ -24,7 +24,6 @@ import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.OntModels;
 
-import javax.annotation.Nullable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -111,12 +110,6 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
     @Override
     public boolean canContainAnnotationProperties() {
         return false;
-    }
-
-    @Override
-    public boolean containsEntityInSignature(@Nullable OWLEntity entity) {
-        if (entity == null || entity.isOWLAnnotationProperty()) return false;
-        return super.containsEntityInSignature(entity);
     }
 
     protected Stream<OWLDatatype> datatypes() {
@@ -208,9 +201,8 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
         }
 
         @Override
-        public boolean containsEntityInSignature(OWLEntity entity) {
-            if (entity == null || !entity.isOWLDatatype()) return false;
-            return datatypes().anyMatch(entity::equals);
+        public boolean containsDatatype(OWLDatatype datatype) {
+            return datatypes().anyMatch(datatype::equals);
         }
 
         @Override
@@ -300,9 +292,8 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
         }
 
         @Override
-        public boolean containsEntityInSignature(OWLEntity entity) {
-            if (entity == null || !entity.isOWLDatatype()) return false;
-            return datatypes().anyMatch(entity::equals);
+        public boolean containsDatatype(OWLDatatype datatype) {
+            return datatypes().anyMatch(datatype::equals);
         }
 
         @Override
@@ -419,15 +410,6 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
         }
 
         @Override
-        public boolean containsEntityInSignature(OWLEntity entity) {
-            if (entity == null) return false;
-            if (entity.isOWLObjectProperty() || entity.isOWLClass()) {
-                return false;
-            }
-            return super.containsEntityInSignature(entity);
-        }
-
-        @Override
         public boolean canContainNamedClasses() {
             return false;
         }
@@ -508,12 +490,13 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
         }
 
         @Override
-        public boolean containsEntityInSignature(OWLEntity entity) {
-            if (entity == null) return false;
-            if (entity.isOWLObjectProperty()) {
-                return getPredicate().getNamedProperty().equals(entity);
-            }
-            return individuals().filter(AsOWLNamedIndividual::isOWLNamedIndividual).anyMatch(entity::equals);
+        public boolean containsObjectProperty(OWLObjectProperty property) {
+            return getPredicate().getNamedProperty().equals(property);
+        }
+
+        @Override
+        public boolean containsNamedIndividual(OWLNamedIndividual individual) {
+            return individuals().filter(AsOWLNamedIndividual::isOWLNamedIndividual).anyMatch(individual::equals);
         }
 
         @Override

@@ -30,7 +30,6 @@ import ru.avicomp.ontapi.jena.utils.OntModels;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -198,12 +197,6 @@ public class ONTAnnotationImpl extends ONTStatementImpl implements OWLAnnotation
     @Override
     public OWLAnnotation getAnnotatedAnnotation(@Nonnull Stream<OWLAnnotation> annotations) {
         return getAnnotatedAnnotation(annotations.collect(Collectors.toList()));
-    }
-
-    @Override
-    public boolean containsEntityInSignature(@Nullable OWLEntity entity) {
-        if (entity == null) return false;
-        return (entity.isOWLAnnotationProperty() || entity.isOWLDatatype()) && super.containsEntityInSignature(entity);
     }
 
     @Override

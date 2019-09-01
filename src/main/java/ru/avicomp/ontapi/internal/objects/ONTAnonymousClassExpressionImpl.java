@@ -215,12 +215,6 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         return false;
     }
 
-    @Override
-    public boolean containsEntityInSignature(@Nullable OWLEntity entity) {
-        if (entity == null || entity.isOWLAnnotationProperty()) return false;
-        return super.containsEntityInSignature(entity);
-    }
-
     @SuppressWarnings("unchecked")
     @Override
     public Stream<ONTObject<? extends OWLObject>> objects() {
@@ -411,15 +405,14 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        public boolean containsEntityInSignature(OWLEntity entity) {
-            if (entity == null) return false;
-            if (entity.isOWLObjectProperty())
-                return getNamedProperty().equals(entity);
-            OWLIndividual i;
-            if (entity.isIndividual() && (i = getFiller()).isOWLNamedIndividual()) {
-                return entity.equals(i);
-            }
-            return false;
+        public boolean containsObjectProperty(OWLObjectProperty property) {
+            return getNamedProperty().equals(property);
+        }
+
+        @Override
+        public boolean containsNamedIndividual(OWLNamedIndividual individual) {
+            OWLIndividual i = getFiller();
+            return i.isOWLNamedIndividual() && individual.equals(i);
         }
 
         @Override
@@ -535,9 +528,8 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        public boolean containsEntityInSignature(OWLEntity entity) {
-            if (entity == null || !entity.isOWLObjectProperty()) return false;
-            return getNamedProperty().equals(entity);
+        public boolean containsObjectProperty(OWLObjectProperty property) {
+            return getNamedProperty().equals(property);
         }
 
         @Override
@@ -816,9 +808,8 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        public boolean containsEntityInSignature(OWLEntity entity) {
-            if (entity == null || !entity.isIndividual()) return false;
-            return namedIndividuals().anyMatch(entity::equals);
+        public boolean containsNamedIndividual(OWLNamedIndividual individual) {
+            return namedIndividuals().anyMatch(individual::equals);
         }
 
         @Override
@@ -1057,12 +1048,6 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         protected Object[] collectContent(ONT ce, InternalObjectFactory of) {
             // [property, cardinality, filler] or [property, filler] or [property]
             return new Object[]{of.getProperty(ce.getProperty())};
-        }
-
-        @Override
-        public boolean containsEntityInSignature(OWLEntity entity) {
-            if (entity == null || !entity.isOWLDatatype() && !entity.isOWLDataProperty()) return false;
-            return super.containsEntityInSignature(entity);
         }
 
         @Override

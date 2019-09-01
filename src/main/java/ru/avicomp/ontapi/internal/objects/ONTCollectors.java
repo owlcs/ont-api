@@ -15,10 +15,12 @@
 package ru.avicomp.ontapi.internal.objects;
 
 import org.semanticweb.owlapi.model.*;
+import ru.avicomp.ontapi.internal.ONTObject;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * A collection of {@link OWLObjectVisitorEx OWL-API Object Visitor}s used internally.
@@ -47,6 +49,27 @@ public abstract class ONTCollectors {
             public Set<OWLClass> visit(OWLClass x) {
                 res.add(x);
                 return res;
+            }
+        };
+    }
+
+    /**
+     * Creates a visitor that answers {@code true} if the given class is contained in the signature
+     * of the object for which this visitor is invoked and {@code false} otherwise.
+     *
+     * @param clazz {@link OWLClass}, not {@code null}
+     * @return {@link OWLObjectVisitorEx}
+     */
+    public static OWLObjectVisitorEx<Boolean> forClass(OWLClass clazz) {
+        return new ContainsCollector() {
+            @Override
+            protected boolean testComponent(ONTComposite x) {
+                return x.canContainNamedClasses() || x.isNamedClass();
+            }
+
+            @Override
+            public Boolean visit(OWLClass x) {
+                return clazz.equals(x) ? (res = true) : res;
             }
         };
     }
@@ -94,6 +117,27 @@ public abstract class ONTCollectors {
     }
 
     /**
+     * Creates a visitor that answers {@code true} if the given named individual
+     * is contained in the signature of the object for which this visitor is invoked and {@code false} otherwise.
+     *
+     * @param individual {@link OWLNamedIndividual}, not {@code null}
+     * @return {@link OWLObjectVisitorEx}
+     */
+    public static OWLObjectVisitorEx<Boolean> forNamedIndividual(OWLNamedIndividual individual) {
+        return new ContainsCollector() {
+            @Override
+            protected boolean testComponent(ONTComposite x) {
+                return x.canContainNamedIndividuals() || x.isNamedIndividual();
+            }
+
+            @Override
+            public Boolean visit(OWLNamedIndividual x) {
+                return individual.equals(x) ? (res = true) : res;
+            }
+        };
+    }
+
+    /**
      * Creates a visitor that collects {@code OWLDatatype}s into the specified {@code Set}.
      *
      * @param res {@code Set} of {@link OWLDatatype}s
@@ -110,6 +154,27 @@ public abstract class ONTCollectors {
             public Set<OWLDatatype> visit(OWLDatatype x) {
                 res.add(x);
                 return res;
+            }
+        };
+    }
+
+    /**
+     * Creates a visitor that answers {@code true} if the given named data range (datatype)
+     * is contained in the signature of the object for which this visitor is invoked and {@code false} otherwise.
+     *
+     * @param datatype {@link OWLDatatype}, not {@code null}
+     * @return {@link OWLObjectVisitorEx}
+     */
+    public static OWLObjectVisitorEx<Boolean> forDatatype(OWLDatatype datatype) {
+        return new ContainsCollector() {
+            @Override
+            protected boolean testComponent(ONTComposite x) {
+                return x.canContainDatatypes() || x.isDatatype();
+            }
+
+            @Override
+            public Boolean visit(OWLDatatype x) {
+                return datatype.equals(x) ? (res = true) : res;
             }
         };
     }
@@ -136,6 +201,28 @@ public abstract class ONTCollectors {
     }
 
     /**
+     * Creates a visitor that answers {@code true} if
+     * the given named object property expression (object property in short) is contained in the signature
+     * of the object for which this visitor is invoked and {@code false} otherwise.
+     *
+     * @param property {@link OWLObjectProperty}, not {@code null}
+     * @return {@link OWLObjectVisitorEx}
+     */
+    public static OWLObjectVisitorEx<Boolean> forObjectProperty(OWLObjectProperty property) {
+        return new ContainsCollector() {
+            @Override
+            protected boolean testComponent(ONTComposite x) {
+                return x.canContainObjectProperties() || x.isObjectProperty();
+            }
+
+            @Override
+            public Boolean visit(OWLObjectProperty x) {
+                return property.equals(x) ? (res = true) : res;
+            }
+        };
+    }
+
+    /**
      * Creates a visitor that collects Data Properties into the specified {@code Set}.
      *
      * @param res {@code Set} of {@link OWLDataProperty}es
@@ -157,6 +244,27 @@ public abstract class ONTCollectors {
     }
 
     /**
+     * Creates a visitor that answers {@code true} if the given data property is contained in the signature
+     * of the object for which this visitor is invoked and {@code false} otherwise.
+     *
+     * @param property {@link OWLDataProperty}, not {@code null}
+     * @return {@link OWLObjectVisitorEx}
+     */
+    public static OWLObjectVisitorEx<Boolean> forDataProperty(OWLDataProperty property) {
+        return new ContainsCollector() {
+            @Override
+            protected boolean testComponent(ONTComposite x) {
+                return x.canContainDataProperties() || x.isDataProperty();
+            }
+
+            @Override
+            public Boolean visit(OWLDataProperty x) {
+                return property.equals(x) ? (res = true) : res;
+            }
+        };
+    }
+
+    /**
      * Creates a visitor that collects Annotation Properties into the specified {@code Set}.
      *
      * @param res {@code Set} of {@link OWLAnnotationProperty}es
@@ -173,6 +281,27 @@ public abstract class ONTCollectors {
             public Set<OWLAnnotationProperty> visit(OWLAnnotationProperty x) {
                 res.add(x);
                 return res;
+            }
+        };
+    }
+
+    /**
+     * Creates a visitor that answers {@code true} if the given annotation property is contained in the signature
+     * of the object for which this visitor is invoked and {@code false} otherwise.
+     *
+     * @param property {@link OWLAnnotationProperty}, not {@code null}
+     * @return {@link OWLObjectVisitorEx}
+     */
+    public static OWLObjectVisitorEx<Boolean> forAnnotationProperty(OWLAnnotationProperty property) {
+        return new ContainsCollector() {
+            @Override
+            protected boolean testComponent(ONTComposite x) {
+                return x.canContainAnnotationProperties() || x.isAnnotationProperty();
+            }
+
+            @Override
+            public Boolean visit(OWLAnnotationProperty x) {
+                return property.equals(x) ? (res = true) : res;
             }
         };
     }
@@ -202,7 +331,7 @@ public abstract class ONTCollectors {
      *
      * @param <X> - subtype {@link OWLObject}, that must be also {@link ONTComposite}
      */
-    public static abstract class SetCollector<X extends OWLObject> implements OWLObjectVisitorEx<Set<X>> {
+    public static abstract class SetCollector<X extends OWLObject> extends ONTCollector<Set<X>> {
         protected final Set<X> res;
 
         public SetCollector(Set<X> res) {
@@ -211,14 +340,36 @@ public abstract class ONTCollectors {
 
         @Override
         public Set<X> doDefault(Object object) {
-            ((ONTComposite) object).objects().forEach(x -> {
+            components(object).forEach(x -> {
                 if (testComponent((ONTComposite) x)) {
                     x.getOWLObject().accept(SetCollector.this);
                 }
             });
             return res;
         }
+    }
 
+    public static abstract class ContainsCollector extends ONTCollector<Boolean> {
+        protected boolean res;
+
+        @Override
+        public Boolean doDefault(Object object) {
+            if (res) return res;
+            components(object).forEach(x -> {
+                if (testComponent((ONTComposite) x)) {
+                    res = x.getOWLObject().accept(ContainsCollector.this);
+                }
+            });
+            return res;
+        }
+    }
+
+    /**
+     * Base collector.
+     *
+     * @param <X> anything
+     */
+    public static abstract class ONTCollector<X> implements OWLObjectVisitorEx<X> {
         /**
          * Tests that the component is acceptable to pass down.
          *
@@ -227,6 +378,16 @@ public abstract class ONTCollectors {
          */
         protected boolean testComponent(ONTComposite x) {
             return true;
+        }
+
+        /**
+         * Lists all components of the given object
+         *
+         * @param o expected to be {@link ONTComposite}, not {@code null}
+         * @return a {@code Stream} of {@link ONTObject}s
+         */
+        protected Stream<ONTObject<? extends OWLObject>> components(Object o) {
+            return ((ONTComposite) o).objects();
         }
     }
 
@@ -243,8 +404,20 @@ public abstract class ONTCollectors {
         }
 
         @Override
-        public Set<OWLEntity> visit(OWLClass ce) {
-            res.add(ce);
+        public Set<OWLEntity> visit(OWLClass clazz) {
+            res.add(clazz);
+            return res;
+        }
+
+        @Override
+        public Set<OWLEntity> visit(OWLNamedIndividual individual) {
+            res.add(individual);
+            return res;
+        }
+
+        @Override
+        public Set<OWLEntity> visit(OWLDatatype datatype) {
+            res.add(datatype);
             return res;
         }
 
@@ -257,18 +430,6 @@ public abstract class ONTCollectors {
         @Override
         public Set<OWLEntity> visit(OWLDataProperty property) {
             res.add(property);
-            return res;
-        }
-
-        @Override
-        public Set<OWLEntity> visit(OWLNamedIndividual individual) {
-            res.add(individual);
-            return res;
-        }
-
-        @Override
-        public Set<OWLEntity> visit(OWLDatatype node) {
-            res.add(node);
             return res;
         }
 

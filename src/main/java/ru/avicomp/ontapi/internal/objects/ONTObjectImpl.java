@@ -17,6 +17,7 @@ package ru.avicomp.ontapi.internal.objects;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.owlapi.OWLObjectImpl;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.NotSerializableException;
 import java.io.ObjectInputStream;
@@ -25,11 +26,108 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
+ * A base for {@link ONTResourceImpl ONT Resource} (a {@link org.apache.jena.graph.Node node} based object)
+ * and for {@link ONTBaseTripleImpl ONT Triple} (a {@link org.apache.jena.graph.Triple triple} based object).
  * Created by @ssz on 31.08.2019.
  *
  * @since 1.4.3
  */
+@SuppressWarnings("WeakerAccess")
 abstract class ONTObjectImpl extends OWLObjectImpl implements ONTComposite {
+
+    @Override
+    public final boolean containsEntityInSignature(@Nullable OWLEntity entity) {
+        return entity != null && containsEntity(entity);
+    }
+
+    /**
+     * Answers {@code true} iff the given entity is present in the object's signature.
+     *
+     * @param entity {@link OWLEntity}, not {@code null}
+     * @return boolean
+     */
+    public boolean containsEntity(OWLEntity entity) {
+        if (entity.isOWLClass()) {
+            return containsNamedClass(entity.asOWLClass());
+        }
+        if (entity.isOWLNamedIndividual()) {
+            return containsNamedIndividual(entity.asOWLNamedIndividual());
+        }
+        if (entity.isOWLDatatype()) {
+            return containsDatatype(entity.asOWLDatatype());
+        }
+        if (entity.isOWLObjectProperty()) {
+            return containsObjectProperty(entity.asOWLObjectProperty());
+        }
+        if (entity.isOWLDataProperty()) {
+            return containsDataProperty(entity.asOWLDataProperty());
+        }
+        if (entity.isOWLAnnotationProperty()) {
+            return containsAnnotationProperty(entity.asOWLAnnotationProperty());
+        }
+        return false;
+    }
+
+    /**
+     * Answers {@code true} iff the given OWL class is present in the object's signature.
+     *
+     * @param clazz {@link OWLClass}, not {@code null}
+     * @return boolean
+     */
+    public boolean containsNamedClass(OWLClass clazz) {
+        return canContainClassExpressions() ? accept(ONTCollectors.forClass(clazz)) : false;
+    }
+
+    /**
+     * Answers {@code true} iff the given OWL named individual is present in the object's signature.
+     *
+     * @param individual {@link OWLNamedIndividual}, not {@code null}
+     * @return boolean
+     */
+    public boolean containsNamedIndividual(OWLNamedIndividual individual) {
+        return canContainNamedIndividuals() ? accept(ONTCollectors.forNamedIndividual(individual)) : false;
+    }
+
+    /**
+     * Answers {@code true} iff the given OWL named data range (datatype) is present in the object's signature.
+     *
+     * @param datatype {@link OWLDatatype}, not {@code null}
+     * @return boolean
+     */
+    public boolean containsDatatype(OWLDatatype datatype) {
+        return canContainDatatypes() ? accept(ONTCollectors.forDatatype(datatype)) : false;
+    }
+
+    /**
+     * Answers {@code true} iff the given OWL named object property expression ({@code OWLObjectProperty})
+     * is present in the object's signature.
+     *
+     * @param property {@link OWLObjectProperty}, not {@code null}
+     * @return boolean
+     */
+    public boolean containsObjectProperty(OWLObjectProperty property) {
+        return canContainObjectProperties() ? accept(ONTCollectors.forObjectProperty(property)) : false;
+    }
+
+    /**
+     * Answers {@code true} iff the given OWL data property is present in the object's signature.
+     *
+     * @param property {@link OWLDataProperty}, not {@code null}
+     * @return boolean
+     */
+    public boolean containsDataProperty(OWLDataProperty property) {
+        return canContainDataProperties() ? accept(ONTCollectors.forDataProperty(property)) : false;
+    }
+
+    /**
+     * Answers {@code true} iff the given OWL annotation property is present in the object's signature.
+     *
+     * @param property {@link OWLAnnotationProperty}, not {@code null}
+     * @return boolean
+     */
+    public boolean containsAnnotationProperty(OWLAnnotationProperty property) {
+        return canContainAnnotationProperties() ? accept(ONTCollectors.forAnnotationProperty(property)) : false;
+    }
 
     @Override
     public Set<OWLEntity> getSignatureSet() {

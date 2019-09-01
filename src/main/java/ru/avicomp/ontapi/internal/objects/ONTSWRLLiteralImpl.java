@@ -17,14 +17,16 @@ package ru.avicomp.ontapi.internal.objects;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.impl.LiteralLabel;
-import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.model.OWLDatatype;
+import org.semanticweb.owlapi.model.OWLLiteral;
+import org.semanticweb.owlapi.model.OWLObject;
+import org.semanticweb.owlapi.model.SWRLLiteralArgument;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ModelObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntSWRL;
 
-import javax.annotation.Nullable;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -84,9 +86,8 @@ public class ONTSWRLLiteralImpl extends ONTResourceImpl
     }
 
     @Override
-    public boolean containsEntityInSignature(@Nullable OWLEntity entity) {
-        if (entity == null || !entity.isOWLDatatype()) return false;
-        return getDatatype().equals(entity);
+    public boolean containsDatatype(OWLDatatype datatype) {
+        return getDatatype().equals(datatype);
     }
 
     @Override

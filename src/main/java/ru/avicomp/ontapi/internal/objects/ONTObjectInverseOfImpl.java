@@ -24,7 +24,6 @@ import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntOPE;
 
-import javax.annotation.Nullable;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -99,9 +98,8 @@ public class ONTObjectInverseOfImpl
     }
 
     @Override
-    public boolean containsEntityInSignature(@Nullable OWLEntity entity) {
-        if (entity == null || !entity.isOWLObjectProperty()) return false;
-        return getNamedProperty().equals(entity);
+    public boolean containsObjectProperty(OWLObjectProperty property) {
+        return getNamedProperty().equals(property);
     }
 
     @Override
