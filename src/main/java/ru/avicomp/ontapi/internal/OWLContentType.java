@@ -24,6 +24,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -51,10 +52,10 @@ public enum OWLContentType {
         }
 
         @Override
-        ExtendedIterator<? extends ONTObject<? extends OWLObject>> read(OntGraphModel m,
+        ExtendedIterator<? extends ONTObject<? extends OWLObject>> read(Supplier<OntGraphModel> m,
                                                                         InternalObjectFactory f,
                                                                         InternalConfig c) {
-            return ReadHelper.listOWLAnnotations(m.getID(), f);
+            return ReadHelper.listOWLAnnotations(m.get().getID(), f);
         }
 
         @Override
@@ -286,7 +287,7 @@ public enum OWLContentType {
      * @param c {@link InternalConfig} to control process
      * @return {@link ExtendedIterator} over all content objects, found in modelr for this type
      */
-    ExtendedIterator<? extends ONTObject<? extends OWLObject>> read(OntGraphModel m,
+    ExtendedIterator<? extends ONTObject<? extends OWLObject>> read(Supplier<OntGraphModel> m,
                                                                     InternalObjectFactory f,
                                                                     InternalConfig c) {
         return getTranslator().listAxioms(m, f, c);

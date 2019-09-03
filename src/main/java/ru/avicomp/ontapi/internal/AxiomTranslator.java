@@ -27,7 +27,9 @@ import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.utils.OntModels;
 
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Set;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
@@ -58,55 +60,59 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
     /**
      * Reads all model axioms in the form of stream.
      *
-     * @param model {@link OntGraphModel ONT-API Jena Model}
-     * @return Stream of {@link ONTObject}s that wrap {@link Axiom}s
+     * @param model {@link OntGraphModel ONT-API Jena Model}, not {@code null}
+     * @return {@code Stream} of {@link ONTObject}s that wrap {@link Axiom}s
      * @throws JenaException unable to read axioms of this type
      */
     public final Stream<ONTObject<Axiom>> axioms(OntGraphModel model) throws JenaException {
+        Objects.requireNonNull(model, "Null model.");
         InternalConfig conf = getConfig(model).snapshot();
         InternalObjectFactory factory = getObjectFactory(model);
-        return Iter.asStream(listAxioms(model, factory, conf));
+        return Iter.asStream(listAxioms(() -> model, factory, conf));
     }
 
     /**
      * Returns an {@link ExtendedIterator Extended Iterator} of all model {@link Axiom}s.
      *
-     * @param model   {@link OntGraphModel ONT-API Jena Model}
+     * @param model   a facility (as {@link Supplier}) to provide nonnull {@link OntGraphModel}
      * @param factory {@link InternalObjectFactory} to produce OWL-API Objects
      * @param config  {@link InternalConfig} to control process
      * @return {@link ExtendedIterator} of {@link ONTObject}s that wrap {@link Axiom}s
      * @throws JenaException unable to read axioms of this type
      */
-    public ExtendedIterator<ONTObject<Axiom>> listAxioms(OntGraphModel model,
+    public ExtendedIterator<ONTObject<Axiom>> listAxioms(Supplier<OntGraphModel> model,
                                                          InternalObjectFactory factory,
                                                          InternalConfig config) throws JenaException {
-        return translate(listStatements(model, config), factory, config);
+        return translate(model, listStatements(model.get(), config), factory, config);
     }
 
     /**
      * Maps each {@link OntStatement Ontology Statement} from the given iterator to the {@link Axiom} instance
      * and returns a new iterator containing {@link OWLAxiom}s.
      *
+     * @param model a facility (as {@link Supplier}) to provide nonnull {@link OntGraphModel}
      * @param statements {@link ExtendedIterator} of {@link OntStatement}s
      * @param factory    {@link InternalObjectFactory} to produce OWL-API Objects
      * @param config     {@link InternalConfig} to control process
      * @return {@link ExtendedIterator} of {@link ONTObject}s that wrap {@link Axiom}s
      * @throws JenaException unable to read axioms of this type
      */
-    protected ExtendedIterator<ONTObject<Axiom>> translate(ExtendedIterator<OntStatement> statements,
+    protected ExtendedIterator<ONTObject<Axiom>> translate(Supplier<OntGraphModel> model,
+                                                           ExtendedIterator<OntStatement> statements,
                                                            InternalObjectFactory factory,
                                                            InternalConfig config) {
         if (!config.isSplitAxiomAnnotations()) {
-            return statements.mapWith(s -> toAxiom(s, factory, config));
+            return statements.mapWith(s -> toAxiom(s, model, factory, config));
         }
-        return Iter.flatMap(statements, OntModels::listSplitStatements).mapWith(s -> toAxiom(s, factory, config));
+        return Iter.flatMap(statements, OntModels::listSplitStatements)
+                .mapWith(s -> toAxiom(s, model, factory, config));
     }
 
     /**
      * Returns a stream of statements defining the axiom in the base graph of the specified model.
      *
      * @param model {@link OntGraphModel ONT-API Jena Model}
-     * @return Stream of {@link OntStatement}, always local (not from imports)
+     * @return {@code Stream} of {@link OntStatement}, always local (not from imports)
      */
     public final Stream<OntStatement> statements(OntGraphModel model) {
         return Iter.asStream(listStatements(model, getConfig(model).snapshot()));
@@ -130,7 +136,8 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * @throws JenaException if no possible to translate statement to axiom
      */
     public final ONTObject<Axiom> toAxiom(OntStatement statement) throws JenaException {
-        return toAxiom(statement, getObjectFactory(statement.getModel()), getConfig(statement.getModel()).snapshot());
+        return toAxiom(statement, statement::getModel,
+                getObjectFactory(statement.getModel()), getConfig(statement.getModel()).snapshot());
     }
 
     /**
@@ -153,6 +160,8 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
 
     /**
      * Creates an OWL Axiom from a statement.
+     * TODO: will be replaced with {@link #toAxiom(OntStatement, Supplier, InternalObjectFactory, InternalConfig)},
+     *  see <a href='https://github.com/avicomp/ont-api/issues/87'>#87</a>
      *
      * @param statement {@link OntStatement} the statement which determines the axiom
      * @param factory   {@link InternalObjectFactory} the data factory to create OWL-API objects
@@ -163,6 +172,23 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
     public abstract ONTObject<Axiom> toAxiom(OntStatement statement,
                                              InternalObjectFactory factory,
                                              InternalConfig config) throws JenaException;
+
+    /**
+     * Creates an OWL Axiom from a statement.
+     *
+     * @param statement {@link OntStatement} the statement which determines the axiom
+     * @param model     a facility (as {@link Supplier}) to provide nonnull {@link OntGraphModel}
+     * @param factory   {@link InternalObjectFactory} the data factory to create OWL-API objects
+     * @param config    {@link InternalConfig} to control process
+     * @return {@link ONTObject} around {@link OWLAxiom}
+     * @throws JenaException if no possible to get axiom from the statement
+     */
+    public ONTObject<Axiom> toAxiom(OntStatement statement,
+                                    Supplier<OntGraphModel> model,
+                                    InternalObjectFactory factory,
+                                    InternalConfig config) throws JenaException {
+        return toAxiom(statement, factory, config);
+    }
 
     /**
      * Gets the config from model's settings or dummy if it is naked Jena model.

@@ -612,14 +612,14 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         if (hasManuallyAddedAxioms()) {
             return listOWLAxioms(OWLDeclarationAxiom.class).filter(a -> e.equals(a.getEntity()));
         }
-        OntGraphModelImpl m = getSearchModel();
         // in the case of a large ontology, the direct traverse over the graph works significantly faster:
         DeclarationTranslator t = (DeclarationTranslator) OWLContentType.DECLARATION.getTranslator();
-        OntEntity res = m.findNodeAs(WriteHelper.toResource(e).asNode(), WriteHelper.getEntityType(e));
+        OntEntity res = getSearchModel().findNodeAs(WriteHelper.toResource(e).asNode(), WriteHelper.getEntityType(e));
         if (res == null) return Stream.empty();
         InternalObjectFactory df = getObjectFactory();
         OntStatement s = res.getRoot();
-        return s == null ? Stream.empty() : Stream.of(t.toAxiom(s, df, getConfig()).getOWLObject());
+        return s == null ? Stream.empty() : Stream.of(t.toAxiom(s, this::getSearchModel, df, getConfig())
+                .getOWLObject());
     }
 
     /**
@@ -635,12 +635,13 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         if (hasManuallyAddedAxioms()) {
             return listOWLAxioms(OWLAnnotationAssertionAxiom.class).filter(a -> s.equals(a.getSubject()));
         }
-        OntGraphModelImpl m = getSearchModel();
         InternalObjectFactory df = getObjectFactory();
         AnnotationAssertionTranslator t = (AnnotationAssertionTranslator) OWLContentType.ANNOTATION_ASSERTION.getTranslator();
-        ExtendedIterator<OntStatement> res = m.listLocalStatements(WriteHelper.toResource(s), null, null)
+        ExtendedIterator<OntStatement> res = getSearchModel()
+                .listLocalStatements(WriteHelper.toResource(s), null, null)
                 .filterKeep(x -> t.testStatement(x, getConfig()));
-        return reduce(Iter.asStream(t.translate(res, df, getConfig()).mapWith(ONTObject::getOWLObject)));
+        return reduce(Iter.asStream(t.translate(this::getSearchModel, res, df, getConfig())
+                .mapWith(ONTObject::getOWLObject)));
     }
 
     /**
@@ -654,12 +655,13 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         if (hasManuallyAddedAxioms()) {
             return listOWLAxioms(OWLSubClassOfAxiom.class).filter(a -> Objects.equals(a.getSubClass(), sub));
         }
-        OntGraphModelImpl m = getSearchModel();
         InternalObjectFactory df = getObjectFactory();
         SubClassOfTranslator t = (SubClassOfTranslator) OWLContentType.SUBCLASS_OF.getTranslator();
-        ExtendedIterator<OntStatement> res = m.listLocalStatements(WriteHelper.toResource(sub), RDFS.subClassOf, null)
+        ExtendedIterator<OntStatement> res = getSearchModel()
+                .listLocalStatements(WriteHelper.toResource(sub), RDFS.subClassOf, null)
                 .filterKeep(t::filter);
-        return reduce(Iter.asStream(t.translate(res, df, getConfig()).mapWith(ONTObject::getOWLObject)));
+        return reduce(Iter.asStream(t.translate(this::getSearchModel, res, df, getConfig())
+                .mapWith(ONTObject::getOWLObject)));
     }
 
     /**
@@ -681,7 +683,8 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         ExtendedIterator<OntStatement> res = m.listLocalStatements(r, OWL.equivalentClass, null)
                 .andThen(m.listLocalStatements(null, OWL.equivalentClass, r))
                 .filterKeep(s -> t.testStatement(s, getConfig()));
-        return reduce(Iter.asStream(t.translate(res, df, getConfig()).mapWith(ONTObject::getOWLObject)));
+        return reduce(Iter.asStream(t.translate(this::getSearchModel, res, df, getConfig())
+                .mapWith(ONTObject::getOWLObject)));
     }
 
     /**
@@ -1018,7 +1021,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         InternalObjectFactory df = getObjectFactory();
         InternalConfig c = getConfig();
         Set<Triple> res = new HashSet<>();
-        Iter.flatMap(OWLContentType.listAll(), k -> k.read(m, df, c)
+        Iter.flatMap(OWLContentType.listAll(), k -> k.read(() -> m, df, c)
                 .filterKeep(x -> !object.equals(x.getOWLObject()) && isUsed(k, x.getOWLObject())))
                 .forEachRemaining(x -> x.triples().forEach(res::add));
         return res;
@@ -1478,7 +1481,7 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      */
     protected ObjectMap<OWLObject> createContentObjectMap(OWLContentType key) {
         InternalObjectFactory df = getObjectFactory();
-        OntGraphModel m = getSearchModel();
+        Supplier<OntGraphModel> m = this::getSearchModel;
         Supplier<Iterator<ONTObject<OWLObject>>> loader =
                 () -> (Iterator<ONTObject<OWLObject>>) key.read(m, df, getConfig());
         InternalConfig conf = getConfig();

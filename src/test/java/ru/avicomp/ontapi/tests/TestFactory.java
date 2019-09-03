@@ -1602,6 +1602,20 @@ public class TestFactory {
                                 "df.getSWRLLiteralArgument(df.getOWLLiteral(\"V\"))))";
                     }
                 }
+                , new AxiomData() {
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLSubClassOfAxiom(df.getOWLClass("Sub"),
+                                df.getOWLObjectAllValuesFrom(df.getOWLObjectProperty("P"), df.getOWLClass("Sup")));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLSubClassOfAxiom(df.getOWLClass(\"Sub\"), " +
+                                "df.getOWLObjectAllValuesFrom(df.getOWLObjectProperty(\"P\"), " +
+                                "df.getOWLClass(\"Sup\")))";
+                    }
+                }
         );
 
     }
