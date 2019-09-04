@@ -36,7 +36,6 @@ import java.util.stream.Stream;
  * @param <R> equivalent subtype of {@link OntObject} (that must be ab anonymous resource)
  * @since 1.4.3
  */
-@SuppressWarnings("WeakerAccess")
 public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResourceImpl implements ONTComposite {
 
     /**

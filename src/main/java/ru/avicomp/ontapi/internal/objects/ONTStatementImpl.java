@@ -17,15 +17,19 @@ package ru.avicomp.ontapi.internal.objects;
 import org.apache.jena.graph.FrontsTriple;
 import org.apache.jena.graph.Triple;
 import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.OWLObject;
 import ru.avicomp.ontapi.internal.InternalCache;
 import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.jena.model.OntAnnotation;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 
+import javax.annotation.Nullable;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Spliterator;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -47,12 +51,12 @@ public abstract class ONTStatementImpl extends ONTBaseTripleImpl implements ONTC
     }
 
     /**
-     * Answers a sorted {@code List} of {@link OWLAnnotation}s on this object.
+     * Lists all {@link OWLAnnotation}s on this object.
+     * The stream is {@link Spliterator#ORDERED}, {@link Spliterator#NONNULL} and {@link Spliterator#SORTED}.
      *
-     * @return a {@code List} of {@link OWLAnnotation}s
-     * @see org.semanticweb.owlapi.model.HasAnnotations#annotationsAsList()
+     * @return a {@code Stream} of {@link OWLAnnotation}s
      */
-    public abstract List<OWLAnnotation> annotationsAsList();
+    public abstract Stream<OWLAnnotation> annotations();
 
     /**
      * Collects the cache.
@@ -69,17 +73,17 @@ public abstract class ONTStatementImpl extends ONTBaseTripleImpl implements ONTC
      * @see org.semanticweb.owlapi.model.OWLAxiom#isAnnotated()
      */
     public boolean isAnnotated() {
-        return !annotationsAsList().isEmpty();
+        return annotations().findFirst().isPresent();
     }
 
     /**
-     * Lists all {@link OWLAnnotation}s on this object.
-     * The stream is {@link Spliterator#ORDERED}, {@link Spliterator#NONNULL} and {@link Spliterator#SORTED}.
+     * Answers a sorted {@code List} of {@link OWLAnnotation}s on this object.
      *
-     * @return a {@code Stream} of {@link OWLAnnotation}s
+     * @return a {@code List} of {@link OWLAnnotation}s
+     * @see org.semanticweb.owlapi.model.HasAnnotations#annotationsAsList()
      */
-    public Stream<OWLAnnotation> annotations() {
-        return annotationsAsList().stream();
+    public List<OWLAnnotation> annotationsAsList() {
+        return annotations().collect(Collectors.toList());
     }
 
     /**
@@ -101,5 +105,38 @@ public abstract class ONTStatementImpl extends ONTBaseTripleImpl implements ONTC
             res = Stream.concat(res, a.spec().map(FrontsTriple::asTriple));
         }
         return res;
+    }
+
+    @Override
+    public boolean equals(@Nullable Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (!(obj instanceof OWLObject)) {
+            return false;
+        }
+        OWLObject other = (OWLObject) obj;
+        if (typeIndex() != other.typeIndex()) {
+            return false;
+        }
+        if (other instanceof ONTStatementImpl) {
+            ONTStatementImpl t = (ONTStatementImpl) other;
+            if (notSame(t)) {
+                return false;
+            }
+            if (sameAs(t)) {
+                return true;
+            }
+            // assuming all the rest info is keeping in the content only:
+            return Arrays.equals(getContent(), t.getContent());
+        }
+        // then OWL-API instance is given
+        if (hashCode() != other.hashCode()) {
+            return false;
+        }
+        return equalIterators(components().iterator(), other.components().iterator());
     }
 }

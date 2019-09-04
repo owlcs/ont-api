@@ -18,11 +18,16 @@ import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.util.iterator.NullIterator;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.internal.*;
+import ru.avicomp.ontapi.internal.objects.ONTAnnotationImpl;
+import ru.avicomp.ontapi.internal.objects.ONTSimpleAxiomImpl;
 import ru.avicomp.ontapi.jena.model.*;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.function.Supplier;
 
 /**
+ * A translator that provides {@link OWLAnnotationAssertionAxiom} implementations.
  * Examples:
  * <pre>{@code
  *  foaf:LabelProperty vs:term_status "unstable" .
@@ -32,12 +37,14 @@ import java.util.Collection;
  * <p>
  * Created by @szuev on 28.09.2016.
  */
+@SuppressWarnings("WeakerAccess")
 public class AnnotationAssertionTranslator
         extends AbstractPropertyAssertionTranslator<OWLAnnotationProperty, OWLAnnotationAssertionAxiom> {
 
     @Override
     public void write(OWLAnnotationAssertionAxiom axiom, OntGraphModel model) {
-        WriteHelper.writeAssertionTriple(model, axiom.getSubject(), axiom.getProperty(), axiom.getValue(), axiom.annotations());
+        WriteHelper.writeAssertionTriple(model, axiom.getSubject(),
+                axiom.getProperty(), axiom.getValue(), axiom.annotations());
     }
 
     /**
@@ -75,16 +82,131 @@ public class AnnotationAssertionTranslator
 
     @Override
     public ONTObject<OWLAnnotationAssertionAxiom> toAxiom(OntStatement statement,
-                                                          InternalObjectFactory reader,
+                                                          Supplier<OntGraphModel> model,
+                                                          InternalObjectFactory factory,
                                                           InternalConfig config) {
-        ONTObject<? extends OWLAnnotationSubject> s = reader.getSubject(statement.getSubject(OntObject.class));
-        ONTObject<OWLAnnotationProperty> p = reader.getProperty(statement.getPredicate().as(OntNAP.class));
-        ONTObject<? extends OWLAnnotationValue> v = reader.getValue(statement.getObject());
-        Collection<ONTObject<OWLAnnotation>> annotations = reader.getAnnotations(statement, config);
-        OWLAnnotationAssertionAxiom res = reader.getOWLDataFactory()
+        return AxiomImpl.create(statement, model, factory, config);
+    }
+
+    @Override
+    public ONTObject<OWLAnnotationAssertionAxiom> toAxiom(OntStatement statement,
+                                                          InternalObjectFactory factory,
+                                                          InternalConfig config) {
+        ONTObject<? extends OWLAnnotationSubject> s = factory.getSubject(statement.getSubject(OntObject.class));
+        ONTObject<OWLAnnotationProperty> p = factory.getProperty(statement.getPredicate().as(OntNAP.class));
+        ONTObject<? extends OWLAnnotationValue> v = factory.getValue(statement.getObject());
+        Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);
+        OWLAnnotationAssertionAxiom res = factory.getOWLDataFactory()
                 .getOWLAnnotationAssertionAxiom(p.getOWLObject(), s.getOWLObject(), v.getOWLObject(),
                         ONTObject.extract(annotations));
         return ONTObjectImpl.create(res, statement).append(annotations).append(s).append(p).append(v);
+    }
+
+    /**
+     * @see ru.avicomp.ontapi.owlapi.axioms.OWLAnnotationAssertionAxiomImpl
+     */
+    public static class AxiomImpl extends ONTSimpleAxiomImpl<OWLAnnotationAssertionAxiom>
+            implements ONTObject<OWLAnnotationAssertionAxiom>, OWLAnnotationAssertionAxiom {
+
+        protected AxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+            super(subject, predicate, object, m);
+        }
+
+        public static AxiomImpl create(OntStatement s,
+                                       Supplier<OntGraphModel> m,
+                                       InternalObjectFactory of,
+                                       InternalConfig c) {
+            return collect(new AxiomImpl(fromNode(s.getSubject()),
+                    s.getPredicate().getURI(), fromNode(s.getObject()), m), s, of, c);
+        }
+
+        @Override
+        public OWLAnnotationAssertionAxiom getOWLObject() {
+            return this;
+        }
+
+        @Override
+        public OWLAnnotationSubject getSubject() {
+            return getONTSubject().getOWLObject();
+        }
+
+        @Override
+        public OWLAnnotationProperty getProperty() {
+            return getONTProperty().getOWLObject();
+        }
+
+        @Override
+        public OWLAnnotationValue getValue() {
+            return getONTValue().getOWLObject();
+        }
+
+        @SuppressWarnings("unchecked")
+        public ONTObject<? extends OWLAnnotationSubject> getONTSubject() {
+            return (ONTObject<? extends OWLAnnotationSubject>) getContent()[0];
+        }
+
+        @SuppressWarnings("unchecked")
+        public ONTObject<OWLAnnotationProperty> getONTProperty() {
+            return (ONTObject<OWLAnnotationProperty>) getContent()[1];
+        }
+
+        @SuppressWarnings("unchecked")
+        public ONTObject<? extends OWLAnnotationValue> getONTValue() {
+            return (ONTObject<? extends OWLAnnotationValue>) getContent()[2];
+        }
+
+        @Override
+        public OWLAnnotation getAnnotation() {
+            return getDataFactory().getOWLAnnotation(getProperty(), getValue());
+        }
+
+        @Override
+        public boolean isDeprecatedIRIAssertion() {
+            return ONTAnnotationImpl.isDeprecated(predicate, object);
+        }
+
+        @Override
+        protected OWLAnnotationAssertionAxiom createAnnotatedAxiom(Collection<OWLAnnotation> annotations) {
+            return getDataFactory().getOWLAnnotationAssertionAxiom(getProperty(), getSubject(), getValue(), annotations);
+        }
+
+        @Override
+        protected int getOperandsNum() {
+            return 3;
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        protected void collectOperands(List cache, OntStatement s, InternalObjectFactory f) {
+            cache.add(f.getSubject(s.getSubject(OntObject.class)));
+            cache.add(f.getProperty(s.getPredicate().as(OntNAP.class)));
+            cache.add(f.getValue(s.getObject()));
+        }
+
+        @Override
+        public boolean canContainNamedClasses() {
+            return false;
+        }
+
+        @Override
+        public boolean canContainNamedIndividuals() {
+            return false;
+        }
+
+        @Override
+        public boolean canContainDataProperties() {
+            return false;
+        }
+
+        @Override
+        public boolean canContainObjectProperties() {
+            return false;
+        }
+
+        @Override
+        public boolean canContainClassExpressions() {
+            return false;
+        }
     }
 
 }

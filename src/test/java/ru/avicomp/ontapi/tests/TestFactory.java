@@ -1616,6 +1616,43 @@ public class TestFactory {
                                 "df.getOWLClass(\"Sup\")))";
                     }
                 }
+                , new AxiomData() {
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLSubClassOfAxiom(df.getOWLObjectComplementOf(df.getOWLClass("C2")),
+                                df.getOWLClass("C"), Collections.singletonList(df.getRDFSComment("comm")));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLSubClassOfAxiom(df.getOWLObjectComplementOf(df.getOWLClass(\"C2\")), " +
+                                "df.getOWLClass(\"C\"), Collections.singletonList(df.getRDFSComment(\"comm\")))";
+                    }
+                }
+                , new AxiomData() {
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLAnnotationAssertionAxiom(df.getOWLAnonymousIndividual("_:b0"),
+                                df.getRDFSLabel("label"));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLAnnotationAssertionAxiom(df.getOWLAnonymousIndividual(\"_:b0\"), " +
+                                "df.getRDFSLabel(\"label\"))";
+                    }
+                }
+                , new AxiomData() {
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLAnnotationAssertionAxiom(IRI.create("I"), df.getRDFSComment("comm"));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLAnnotationAssertionAxiom(IRI.create(\"I\"), df.getRDFSComment(\"comm\"))";
+                    }
+                }
         );
 
     }

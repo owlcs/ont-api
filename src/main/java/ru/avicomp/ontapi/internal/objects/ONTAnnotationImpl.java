@@ -45,7 +45,6 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("WeakerAccess")
 public class ONTAnnotationImpl extends ONTStatementImpl implements OWLAnnotation, ONTObject<OWLAnnotation> {
-    protected static final ONTAnnotationImpl[] NO_SUB_ANNOTATIONS = new ONTAnnotationImpl[]{};
 
     protected ONTAnnotationImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
         super(subject, predicate, object, m);
@@ -62,11 +61,7 @@ public class ONTAnnotationImpl extends ONTStatementImpl implements OWLAnnotation
     public static ONTAnnotationImpl create(OntStatement annotation, Supplier<OntGraphModel> model) {
         ONTAnnotationImpl res = new ONTAnnotationImpl(fromNode(annotation.getSubject()),
                 annotation.getPredicate().getURI(), fromNode(annotation.getObject()), model);
-        if (annotation.getSubject().getAs(OntAnnotation.class) != null || annotation.hasAnnotations()) {
-            res.content.put(res, res.collectContent(annotation, res.getObjectFactory()));
-        } else {
-            res.content.put(res, NO_SUB_ANNOTATIONS);
-        }
+        res.content.put(res, res.collectContent(annotation, res.getObjectFactory()));
         return res;
     }
 
@@ -77,88 +72,26 @@ public class ONTAnnotationImpl extends ONTStatementImpl implements OWLAnnotation
 
     @SuppressWarnings("unchecked")
     @Override
-    public List<OWLAnnotation> annotationsAsList() {
+    public Stream<OWLAnnotation> annotations() {
         List res = Arrays.asList(getContent());
-        return (List<OWLAnnotation>) res;
+        return (Stream<OWLAnnotation>) res.stream().skip(2);
     }
 
     @Override
+    public List<OWLAnnotation> annotationsAsList() {
+        return annotations().collect(Collectors.toList());
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
     public Stream<ONTObject<? extends OWLObject>> objects() {
-        InternalObjectFactory f = getObjectFactory();
-        Stream<ONTObject<? extends OWLObject>> res = Stream.of(getONTAnnotationProperty(f), getONTAnnotationValue(f));
-        return Stream.concat(res, getONTAnnotations().stream());
+        List res = Arrays.asList(getContent());
+        return (Stream<ONTObject<? extends OWLObject>>) res.stream();
     }
 
     @Override
     protected final Object[] collectContent() {
         return collectContent(asStatement(), getObjectFactory());
-    }
-
-    /**
-     * Collects the cache.
-     *
-     * @param root {@link OntStatement}, not {@code null}
-     * @param of   {@link InternalObjectFactory}, not {@code null}
-     * @return {@code Array} of {@code Object}s
-     */
-    protected Object[] collectContent(OntStatement root, InternalObjectFactory of) {
-        // OWL-API requires distinct and sorted Stream's and _List's_
-        Set<ONTObject<OWLAnnotation>> res = createSortedSet(Comparator.comparing(ONTObject::getOWLObject));
-        OntModels.listAnnotations(root).mapWith(of::getAnnotation).forEachRemaining(res::add);
-        return res.isEmpty() ? NO_SUB_ANNOTATIONS : res.toArray();
-    }
-
-    /**
-     * Answers a sorted distinct {@code List} of sub-annotations.
-     *
-     * @return a {@code List} of {@link ONTAnnotationImpl}
-     */
-    @SuppressWarnings("unchecked")
-    public List<ONTAnnotationImpl> getONTAnnotations() {
-        List res = Arrays.asList(getContent());
-        return (List<ONTAnnotationImpl>) res;
-    }
-
-    /**
-     * Gets the property that this annotation acts along.
-     *
-     * @return {@link ONTObject} of {@link OWLAnnotationProperty}
-     */
-    public ONTObject<OWLAnnotationProperty> getONTAnnotationProperty() {
-        return getONTAnnotationProperty(getObjectFactory());
-    }
-
-    /**
-     * Gets the annotation value, that can be either {@link OWLAnonymousIndividual}, {@link IRI} or {@link OWLLiteral}.
-     *
-     * @return {@link ONTObject} of {@link OWLAnnotationValue}
-     */
-    public ONTObject<? extends OWLAnnotationValue> getONTAnnotationValue() {
-        return getONTAnnotationValue(getObjectFactory());
-    }
-
-    protected ONTObject<OWLAnnotationProperty> getONTAnnotationProperty(InternalObjectFactory of) {
-        if (of instanceof ModelObjectFactory) {
-            return ((ModelObjectFactory) of).getAnnotationProperty(predicate);
-        }
-        return getObjectFactory().getProperty(model.get().getAnnotationProperty(predicate));
-    }
-
-    protected ONTObject<? extends OWLAnnotationValue> getONTAnnotationValue(InternalObjectFactory of) {
-        if (!(of instanceof ModelObjectFactory)) {
-            return getObjectFactory().getValue(model.get().asRDFNode(getObjectNode()));
-        }
-        ModelObjectFactory f = (ModelObjectFactory) of;
-        if (object instanceof BlankNodeId) {
-            return f.getAnonymousIndividual((BlankNodeId) object);
-        }
-        if (object instanceof LiteralLabel) {
-            return f.getLiteral((LiteralLabel) object);
-        }
-        if (object instanceof String) {
-            return f.getIRI((String) object);
-        }
-        throw new OntApiException.IllegalState("Wrong object: " + object);
     }
 
     @Override
@@ -179,24 +112,94 @@ public class ONTAnnotationImpl extends ONTStatementImpl implements OWLAnnotation
      */
     @Override
     public boolean isAnnotated() {
-        return NO_SUB_ANNOTATIONS != getContent();
+        return getContent().length > 2;
     }
 
     @Override
     public boolean isDeprecatedIRIAnnotation() {
-        return OWL.deprecated.getURI().equals(predicate) && Models.TRUE.asNode().getLiteral().equals(object);
+        return isDeprecated(predicate, object);
     }
 
-    @Override
-    public OWLAnnotation getAnnotatedAnnotation(@Nonnull Collection<OWLAnnotation> annotations) {
-        InternalObjectFactory f = getObjectFactory();
-        return f.getOWLDataFactory().getOWLAnnotation(getONTAnnotationProperty(f).getOWLObject(),
-                getONTAnnotationValue(f).getOWLObject(), annotations);
+    public static boolean isDeprecated(String predicate, Object value) {
+        return OWL.deprecated.getURI().equals(predicate) && Models.TRUE.asNode().getLiteral().equals(value);
     }
 
     @Override
     public OWLAnnotation getAnnotatedAnnotation(@Nonnull Stream<OWLAnnotation> annotations) {
         return getAnnotatedAnnotation(annotations.collect(Collectors.toList()));
+    }
+
+    @Override
+    public OWLAnnotation getAnnotatedAnnotation(@Nonnull Collection<OWLAnnotation> annotations) {
+        return getDataFactory().getOWLAnnotation(getProperty(), getValue(), annotations);
+    }
+
+    /**
+     * Gets the property that this annotation acts along.
+     *
+     * @return {@link ONTObject} of {@link OWLAnnotationProperty}
+     */
+    @SuppressWarnings("unchecked")
+    public ONTObject<OWLAnnotationProperty> getONTAnnotationProperty() {
+        return (ONTObject<OWLAnnotationProperty>) getContent()[0];
+    }
+
+    /**
+     * Gets the annotation value, that can be either {@link OWLAnonymousIndividual}, {@link IRI} or {@link OWLLiteral}.
+     *
+     * @return {@link ONTObject} of {@link OWLAnnotationValue}
+     */
+    @SuppressWarnings("unchecked")
+    public ONTObject<? extends OWLAnnotationValue> getONTAnnotationValue() {
+        return (ONTObject<? extends OWLAnnotationValue>) getContent()[1];
+    }
+
+    /**
+     * Collects the cache.
+     *
+     * @param root {@link OntStatement}, not {@code null}
+     * @param of   {@link InternalObjectFactory}, not {@code null}
+     * @return {@code Array} of {@code Object}s
+     */
+    @SuppressWarnings("unchecked")
+    protected Object[] collectContent(OntStatement root, InternalObjectFactory of) {
+        Set<ONTObject<OWLAnnotation>> sub = null;
+        if (root.getSubject().getAs(OntAnnotation.class) != null || root.hasAnnotations()) {
+            // OWL-API requires distinct and sorted Stream's and _List's_
+            sub = createSortedSet(Comparator.comparing(ONTObject::getOWLObject));
+            OntModels.listAnnotations(root).mapWith(of::getAnnotation).forEachRemaining(sub::add);
+        }
+        List res = new ArrayList(sub == null ? 2 : sub.size() + 2);
+        res.add(collectONTAnnotationProperty(of));
+        res.add(collectONTAnnotationValue(of));
+        if (sub != null) {
+            res.addAll(sub);
+        }
+        return res.toArray();
+    }
+
+    private ONTObject<OWLAnnotationProperty> collectONTAnnotationProperty(InternalObjectFactory of) {
+        if (of instanceof ModelObjectFactory) {
+            return ((ModelObjectFactory) of).getAnnotationProperty(predicate);
+        }
+        return getObjectFactory().getProperty(model.get().getAnnotationProperty(predicate));
+    }
+
+    private ONTObject<? extends OWLAnnotationValue> collectONTAnnotationValue(InternalObjectFactory of) {
+        if (!(of instanceof ModelObjectFactory)) {
+            return getObjectFactory().getValue(model.get().asRDFNode(getObjectNode()));
+        }
+        ModelObjectFactory f = (ModelObjectFactory) of;
+        if (object instanceof BlankNodeId) {
+            return f.getAnonymousIndividual((BlankNodeId) object);
+        }
+        if (object instanceof LiteralLabel) {
+            return f.getLiteral((LiteralLabel) object);
+        }
+        if (object instanceof String) {
+            return f.getIRI((String) object);
+        }
+        throw new OntApiException.IllegalState("Wrong object: " + object);
     }
 
     @Override

@@ -17,19 +17,19 @@ package ru.avicomp.ontapi.internal.axioms;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDFS;
-import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import ru.avicomp.ontapi.internal.*;
-import ru.avicomp.ontapi.internal.objects.ONTAxiomImpl;
+import ru.avicomp.ontapi.internal.objects.ONTSimpleAxiomImpl;
 import ru.avicomp.ontapi.jena.model.OntCE;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.utils.OntModels;
 
-import javax.annotation.Nonnull;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * A translator that provides {@link OWLSubClassOfAxiom} implementations.
@@ -44,6 +44,7 @@ import java.util.stream.Stream;
  * }</pre>
  * <p>
  * Created by @szuev on 28.09.2016.
+ *
  * @see <a href='https://www.w3.org/TR/owl-syntax/#Subclass_Axioms'>9.1.1 Subclass Axioms</a>
  */
 @SuppressWarnings("WeakerAccess")
@@ -69,10 +70,11 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
     }
 
     @Override
-    public ONTObject<OWLSubClassOfAxiom> toAxiom(OntStatement statement, Supplier<OntGraphModel> m,
+    public ONTObject<OWLSubClassOfAxiom> toAxiom(OntStatement statement,
+                                                 Supplier<OntGraphModel> model,
                                                  InternalObjectFactory factory,
                                                  InternalConfig config) {
-        return AxiomImpl.create(statement, m, factory, config);
+        return AxiomImpl.create(statement, model, factory, config);
     }
 
     @Override
@@ -90,8 +92,8 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
     /**
      * @see ru.avicomp.ontapi.owlapi.axioms.OWLSubClassOfAxiomImpl
      */
-    public static class AxiomImpl extends ONTAxiomImpl
-            implements ONTObject<OWLSubClassOfAxiom>, OWLSubClassOfAxiom, HasConfig {
+    public static class AxiomImpl extends ONTSimpleAxiomImpl<OWLSubClassOfAxiom>
+            implements ONTObject<OWLSubClassOfAxiom>, OWLSubClassOfAxiom {
 
         protected AxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
             super(subject, predicate, object, m);
@@ -110,25 +112,12 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
                                        Supplier<OntGraphModel> m,
                                        InternalObjectFactory of,
                                        InternalConfig c) {
-            AxiomImpl res = new AxiomImpl(fromNode(s.getSubject()),
-                    s.getPredicate().getURI(), fromNode(s.getObject()), m);
-            res.content.put(res, res.collectContent(s, c, of));
-            return res;
+            return collect(new AxiomImpl(fromNode(s.getSubject()), s.getPredicate().getURI(),
+                    fromNode(s.getObject()), m), s, of, c);
         }
 
-        @SuppressWarnings("unchecked")
         @Override
-        public OWLSubClassOfAxiom getAxiomWithoutAnnotations() {
-            return createAnnotatedAxiom(Collections.emptySet());
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        public <T extends OWLAxiom> T getAnnotatedAxiom(@Nonnull Stream<OWLAnnotation> annotations) {
-            return (T) createAnnotatedAxiom(appendAnnotations(annotations));
-        }
-
-        private OWLSubClassOfAxiom createAnnotatedAxiom(Collection<OWLAnnotation> annotations) {
+        protected OWLSubClassOfAxiom createAnnotatedAxiom(Collection<OWLAnnotation> annotations) {
             return getDataFactory().getOWLSubClassOfAxiom(getSubClass(), getSuperClass(), annotations);
         }
 
@@ -163,44 +152,20 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
         }
 
         @Override
-        public boolean isAnnotated() {
-            return getContent().length != 2;
-        }
-
-        @Override
         public OWLSubClassOfAxiom getOWLObject() {
             return this;
         }
 
-        @SuppressWarnings("unchecked")
         @Override
-        public Stream<ONTObject<? extends OWLObject>> objects() {
-            List res = Arrays.asList(getContent());
-            return (Stream<ONTObject<? extends OWLObject>>) res.stream();
+        protected int getOperandsNum() {
+            return 2;
         }
 
         @SuppressWarnings("unchecked")
         @Override
-        protected Object[] collectContent(OntStatement s, InternalConfig c, InternalObjectFactory f) {
-            Set<ONTObject<OWLAnnotation>> annotations = collectAnnotations(s, c, f);
-            List res = new ArrayList(annotations.isEmpty() ? 2 : (2 + annotations.size()));
-            res.add(f.getClass(s.getSubject(OntCE.class)));
-            res.add(f.getClass(s.getObject(OntCE.class)));
-            if (!annotations.isEmpty()) {
-                res.addAll(annotations);
-            }
-            return res.toArray();
-        }
-
-        @SuppressWarnings("unchecked")
-        public Stream<OWLAnnotation> annotations() {
-            List it = Arrays.asList(getContent());
-            return (Stream<OWLAnnotation>) it.stream().skip(2);
-        }
-
-        @Override
-        public List<OWLAnnotation> annotationsAsList() {
-            return annotations().collect(Collectors.toList());
+        protected void collectOperands(List cache, OntStatement s, InternalObjectFactory f) {
+            cache.add(f.getClass(s.getSubject(OntCE.class)));
+            cache.add(f.getClass(s.getObject(OntCE.class)));
         }
     }
 

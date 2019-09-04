@@ -44,7 +44,7 @@ public class AxiomsTest extends ObjectFactoryTest {
     public static List<Data> getData() {
         return getObjects().stream().filter(Data::isAxiom)
                 // TODO: it is temporary, see https://github.com/avicomp/ont-api/issues/87
-                .filter(x -> isOneOf(x, "df.getOWLSubClass"))
+                .filter(x -> isOneOf(x, "df.getOWLSubClass", "df.getOWLAnnotationAssertion"))
                 .collect(Collectors.toList());
     }
 

@@ -26,7 +26,6 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.utils.Iter;
 
-import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -180,34 +179,4 @@ public abstract class ONTBaseTripleImpl extends ONTObjectImpl implements OWLObje
         return subject.equals(other.subject) && predicate.equals(other.predicate) && object.equals(other.object);
     }
 
-    @Override
-    public boolean equals(@Nullable Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (!(obj instanceof OWLObject)) {
-            return false;
-        }
-        OWLObject other = (OWLObject) obj;
-        if (typeIndex() != other.typeIndex()) {
-            return false;
-        }
-        if (other instanceof ONTBaseTripleImpl) {
-            ONTBaseTripleImpl t = (ONTBaseTripleImpl) other;
-            if (notSame(t)) {
-                return false;
-            }
-            if (sameAs(t)) {
-                return true;
-            }
-        }
-        // then either OWL-API instance is given or triple from different ontologies
-        if (hashCode() != other.hashCode()) {
-            return false;
-        }
-        return equalIterators(components().iterator(), other.components().iterator());
-    }
 }
