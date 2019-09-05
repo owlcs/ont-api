@@ -955,8 +955,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
 
         @Override
         protected Object[] collectContent(ONT_C ce, InternalObjectFactory of) {
-            // OWL-API requires distinct and sorted Stream's and _List's_
-            Set<ONTObject<? extends OWL_M>> res = createSortedSet(Comparator.comparing(ONTObject::getOWLObject));
+            Set<ONTObject<? extends OWL_M>> res = createObjectSet();
             listONTMembers(ce).forEachRemaining(e -> res.add(map(e, of)));
             return res.toArray();
         }

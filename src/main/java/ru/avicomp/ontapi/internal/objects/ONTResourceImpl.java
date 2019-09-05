@@ -21,12 +21,8 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.graph.impl.LiteralLabel;
 import org.semanticweb.owlapi.model.OWLObject;
 import ru.avicomp.ontapi.AsNode;
-import ru.avicomp.ontapi.DataFactory;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.internal.AsRDFNode;
-import ru.avicomp.ontapi.internal.HasObjectFactory;
-import ru.avicomp.ontapi.internal.InternalObjectFactory;
-import ru.avicomp.ontapi.jena.impl.PersonalityModel;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntObject;
 
@@ -45,11 +41,9 @@ import java.util.stream.Stream;
  * @since 1.4.3
  */
 @SuppressWarnings("WeakerAccess")
-public abstract class ONTResourceImpl extends ONTObjectImpl
-        implements OWLObject, HasObjectFactory, AsNode, AsRDFNode {
-
+public abstract class ONTResourceImpl extends ONTObjectImpl implements OWLObject, AsNode, AsRDFNode {
+    // URI (String), BlankNodeId, or LiteralLabel
     protected final Object node;
-    protected final Supplier<OntGraphModel> model;
 
     /**
      * Constructs the base object.
@@ -58,8 +52,8 @@ public abstract class ONTResourceImpl extends ONTObjectImpl
      * @param m - a facility (as {@link Supplier}) to provide nonnull {@link OntGraphModel}, not {@code null}
      */
     protected ONTResourceImpl(Object n, Supplier<OntGraphModel> m) {
+        super(m);
         this.node = Objects.requireNonNull(n);
-        this.model = Objects.requireNonNull(m);
     }
 
     protected BlankNodeId getBlankNodeId() {
@@ -72,19 +66,6 @@ public abstract class ONTResourceImpl extends ONTObjectImpl
 
     protected LiteralLabel getLiteralLabel() {
         throw new OntApiException.IllegalState();
-    }
-
-    @Override
-    public InternalObjectFactory getObjectFactory() {
-        return HasObjectFactory.getObjectFactory(model.get());
-    }
-
-    protected DataFactory getDataFactory() {
-        return getObjectFactory().getOWLDataFactory();
-    }
-
-    protected PersonalityModel getPersonalityModel() {
-        return PersonalityModel.asPersonalityModel(model.get());
     }
 
     @Override

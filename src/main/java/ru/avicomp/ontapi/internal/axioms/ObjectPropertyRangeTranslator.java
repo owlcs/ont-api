@@ -21,7 +21,7 @@ import org.semanticweb.owlapi.model.OWLObjectPropertyRangeAxiom;
 import ru.avicomp.ontapi.internal.InternalConfig;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
-import ru.avicomp.ontapi.internal.ONTObjectImpl;
+import ru.avicomp.ontapi.internal.ONTWrapperImpl;
 import ru.avicomp.ontapi.jena.model.OntCE;
 import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
@@ -54,7 +54,7 @@ public class ObjectPropertyRangeTranslator extends AbstractPropertyRangeTranslat
         Collection<ONTObject<OWLAnnotation>> annotations = reader.getAnnotations(statement, config);
         OWLObjectPropertyRangeAxiom res = reader.getOWLDataFactory()
                 .getOWLObjectPropertyRangeAxiom(p.getOWLObject(), ce.getOWLObject(), ONTObject.extract(annotations));
-        return ONTObjectImpl.create(res, statement).append(annotations).append(p).append(ce);
+        return ONTWrapperImpl.create(res, statement).append(annotations).append(p).append(ce);
     }
 
 }

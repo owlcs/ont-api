@@ -14,6 +14,7 @@
 
 package ru.avicomp.ontapi.internal;
 
+import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 
 /**
@@ -32,12 +33,16 @@ public interface HasConfig {
     InternalConfig getConfig();
 
     /**
-     * Gets the ONT-API Config from the model's internals.
+     * Gets the ONT-API Config from the model's internals if possible, otherwise throws an exception.
      *
      * @param model {@link OntGraphModel}, not {@code null}
      * @return {@link InternalConfig}
+     * @throws OntApiException.IllegalArgument in case the model does not provide the config
      */
     static InternalConfig getConfig(OntGraphModel model) {
-        return model instanceof HasConfig ? ((HasConfig) model).getConfig() : InternalConfig.DEFAULT;
+        if (model instanceof HasConfig) {
+            return ((HasConfig) model).getConfig();
+        }
+        throw new OntApiException.IllegalArgument("The given model has no config");
     }
 }

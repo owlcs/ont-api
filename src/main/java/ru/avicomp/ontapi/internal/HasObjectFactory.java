@@ -14,6 +14,7 @@
 
 package ru.avicomp.ontapi.internal;
 
+import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 
 /**
@@ -32,14 +33,16 @@ public interface HasObjectFactory {
     InternalObjectFactory getObjectFactory();
 
     /**
-     * Gets the ONT-API Object Factory from the model's internals.
+     * Gets the ONT-API Object Factory from the model's internals if possible, otherwise throws an exception.
      *
      * @param model {@link OntGraphModel}, not {@code null}
      * @return {@link InternalObjectFactory}
+     * @throws OntApiException.IllegalArgument in case the model does not provide the object factory
      */
     static InternalObjectFactory getObjectFactory(OntGraphModel model) {
-        return model instanceof HasObjectFactory ?
-                ((HasObjectFactory) model).getObjectFactory() :
-                InternalObjectFactory.DEFAULT;
+        if (model instanceof HasObjectFactory) {
+            return ((HasObjectFactory) model).getObjectFactory();
+        }
+        throw new OntApiException.IllegalArgument("The given model has no object factory");
     }
 }

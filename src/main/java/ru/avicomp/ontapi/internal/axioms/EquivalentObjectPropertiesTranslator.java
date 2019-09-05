@@ -21,7 +21,7 @@ import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import ru.avicomp.ontapi.internal.InternalConfig;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
-import ru.avicomp.ontapi.internal.ONTObjectImpl;
+import ru.avicomp.ontapi.internal.ONTWrapperImpl;
 import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
@@ -61,7 +61,7 @@ public class EquivalentObjectPropertiesTranslator
         Collection<ONTObject<OWLAnnotation>> annotations = reader.getAnnotations(statement, config);
         OWLEquivalentObjectPropertiesAxiom res = reader.getOWLDataFactory()
                 .getOWLEquivalentObjectPropertiesAxiom(a.getOWLObject(), b.getOWLObject(), ONTObject.extract(annotations));
-        return ONTObjectImpl.create(res, statement).append(annotations).append(a).append(b);
+        return ONTWrapperImpl.create(res, statement).append(annotations).append(a).append(b);
     }
 
 }

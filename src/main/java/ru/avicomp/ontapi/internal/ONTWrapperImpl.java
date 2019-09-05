@@ -32,19 +32,19 @@ import java.util.stream.Stream;
  *
  * @param <O> any subtype of {@link OWLObject}
  */
-public abstract class ONTObjectImpl<O extends OWLObject> implements ONTObject<O> {
+public abstract class ONTWrapperImpl<O extends OWLObject> implements ONTObject<O> {
     private final O object;
 
-    protected ONTObjectImpl(O object) {
+    protected ONTWrapperImpl(O object) {
         this.object = Objects.requireNonNull(object, "Null OWLObject.");
     }
 
-    public static <X extends OWLObject> ONTObjectImpl<X> create(X o, OntStatement root) {
+    public static <X extends OWLObject> ONTWrapperImpl<X> create(X o, OntStatement root) {
         return create(o, root.asTriple());
     }
 
-    public static <X extends OWLObject> ONTObjectImpl<X> create(X o, OntObject root) {
-        return new ONTObjectImpl<X>(o) {
+    public static <X extends OWLObject> ONTWrapperImpl<X> create(X o, OntObject root) {
+        return new ONTWrapperImpl<X>(o) {
             @Override
             public Stream<Triple> triples() {
                 return root.spec().map(FrontsTriple::asTriple);
@@ -52,8 +52,8 @@ public abstract class ONTObjectImpl<O extends OWLObject> implements ONTObject<O>
         };
     }
 
-    public static <X extends OWLObject> ONTObjectImpl<X> create(X o) {
-        return new ONTObjectImpl<X>(o) {
+    public static <X extends OWLObject> ONTWrapperImpl<X> create(X o) {
+        return new ONTWrapperImpl<X>(o) {
             @Override
             public Stream<Triple> triples() {
                 return Stream.empty();
@@ -66,8 +66,8 @@ public abstract class ONTObjectImpl<O extends OWLObject> implements ONTObject<O>
         };
     }
 
-    protected static <X extends OWLObject> ONTObjectImpl<X> create(X o, Triple root) {
-        return new ONTObjectImpl<X>(o) {
+    protected static <X extends OWLObject> ONTWrapperImpl<X> create(X o, Triple root) {
+        return new ONTWrapperImpl<X>(o) {
             @Override
             public Stream<Triple> triples() {
                 return Stream.of(root);
@@ -75,8 +75,8 @@ public abstract class ONTObjectImpl<O extends OWLObject> implements ONTObject<O>
         };
     }
 
-    protected static <X extends OWLObject> ONTObjectImpl<X> create(ONTObject<X> other) {
-        return new ONTObjectImpl<X>(other.getOWLObject()) {
+    protected static <X extends OWLObject> ONTWrapperImpl<X> create(ONTObject<X> other) {
+        return new ONTWrapperImpl<X>(other.getOWLObject()) {
             @Override
             public Stream<Triple> triples() {
                 return other.triples();
@@ -85,8 +85,8 @@ public abstract class ONTObjectImpl<O extends OWLObject> implements ONTObject<O>
     }
 
     @SuppressWarnings("WeakerAccess")
-    protected static <X extends OWLObject> ONTObjectImpl<X> asImpl(ONTObject<X> obj) {
-        return obj instanceof ONTObjectImpl ? (ONTObjectImpl<X>) obj : create(obj);
+    protected static <X extends OWLObject> ONTWrapperImpl<X> asImpl(ONTObject<X> obj) {
+        return obj instanceof ONTWrapperImpl ? (ONTWrapperImpl<X>) obj : create(obj);
     }
 
     /**
@@ -120,7 +120,7 @@ public abstract class ONTObjectImpl<O extends OWLObject> implements ONTObject<O>
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof ONTObject)) return false;
-        ONTObject<?> that = (ONTObjectImpl<?>) o;
+        ONTObject<?> that = (ONTWrapperImpl<?>) o;
         return object.equals(that.getOWLObject());
     }
 
@@ -134,24 +134,24 @@ public abstract class ONTObjectImpl<O extends OWLObject> implements ONTObject<O>
         return String.valueOf(object);
     }
 
-    public ONTObjectImpl<O> append(OntObject other) {
+    public ONTWrapperImpl<O> append(OntObject other) {
         return append(() -> other.spec().map(FrontsTriple::asTriple));
     }
 
-    public ONTObjectImpl<O> append(ONTObject<? extends OWLObject> other) {
+    public ONTWrapperImpl<O> append(ONTObject<? extends OWLObject> other) {
         return append(other::triples);
     }
 
-    public <B extends OWLObject> ONTObjectImpl<O> append(Collection<? extends ONTObject<B>> others) {
+    public <B extends OWLObject> ONTWrapperImpl<O> append(Collection<? extends ONTObject<B>> others) {
         return append(() -> others.stream().flatMap(ONTObject::triples));
     }
 
-    public <B extends OWLObject> ONTObjectImpl<O> appendWildcards(Collection<? extends ONTObject<? extends B>> others) {
+    public <B extends OWLObject> ONTWrapperImpl<O> appendWildcards(Collection<? extends ONTObject<? extends B>> others) {
         return append(() -> others.stream().flatMap(ONTObject::triples));
     }
 
-    public ONTObjectImpl<O> append(Supplier<Stream<Triple>> triples) {
-        return new ONTObjectImpl<O>(object) {
+    public ONTWrapperImpl<O> append(Supplier<Stream<Triple>> triples) {
+        return new ONTWrapperImpl<O>(object) {
             @Override
             public Stream<Triple> triples() {
                 return concat(triples.get());

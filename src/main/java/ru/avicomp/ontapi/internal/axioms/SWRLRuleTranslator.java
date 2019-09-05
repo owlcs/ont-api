@@ -66,7 +66,7 @@ public class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
         SWRLRule res = reader.getOWLDataFactory()
                 .getSWRLRule(body.stream().map(ONTObject::getOWLObject).collect(Collectors.toList()),
                         head.stream().map(ONTObject::getOWLObject).collect(Collectors.toList()), ONTObject.extract(annotations));
-        return ONTObjectImpl.create(res, imp).append(annotations).appendWildcards(body).appendWildcards(head);
+        return ONTWrapperImpl.create(res, imp).append(annotations).appendWildcards(body).appendWildcards(head);
     }
 
 }

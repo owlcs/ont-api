@@ -161,22 +161,23 @@ public interface InternalObjectFactory {
      * @return {@link ONTObject} of {@link OWLEntity}
      */
     default ONTObject<? extends OWLEntity> getEntity(OntEntity entity) {
-        if (entity instanceof OntClass) {
+        Class<? extends OntEntity> type = OntModels.getOntType(OntApiException.notNull(entity, "Null entity"));
+        if (type == OntClass.class) {
             return getClass((OntClass) entity);
         }
-        if (entity instanceof OntDT) {
+        if (type == OntDT.class) {
             return getDatatype((OntDT) entity);
         }
-        if (entity instanceof OntIndividual.Named) {
+        if (type == OntIndividual.Named.class) {
             return getIndividual((OntIndividual.Named) entity);
         }
-        if (entity instanceof OntNAP) {
+        if (type == OntNAP.class) {
             return getProperty((OntNAP) entity);
         }
-        if (entity instanceof OntNDP) {
+        if (type == OntNDP.class) {
             return getProperty((OntNDP) entity);
         }
-        if (entity instanceof OntNOP) {
+        if (type == OntNOP.class) {
             return getProperty((OntNOP) entity);
         }
         throw new OntApiException.IllegalArgument("Unsupported " + entity);

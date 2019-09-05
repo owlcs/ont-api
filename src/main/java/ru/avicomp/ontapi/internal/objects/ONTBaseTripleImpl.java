@@ -18,10 +18,7 @@ import org.apache.jena.graph.*;
 import org.apache.jena.graph.impl.LiteralLabel;
 import org.apache.jena.rdf.model.RDFNode;
 import org.semanticweb.owlapi.model.OWLObject;
-import ru.avicomp.ontapi.DataFactory;
 import ru.avicomp.ontapi.OntApiException;
-import ru.avicomp.ontapi.internal.HasObjectFactory;
-import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.utils.Iter;
@@ -39,12 +36,11 @@ import java.util.stream.Stream;
  * @since 1.4.3
  */
 @SuppressWarnings("WeakerAccess")
-public abstract class ONTBaseTripleImpl extends ONTObjectImpl implements OWLObject, HasObjectFactory, FrontsTriple {
+public abstract class ONTBaseTripleImpl extends ONTObjectImpl implements OWLObject, FrontsTriple {
 
     protected final Object subject; // b-node-id or string
     protected final String predicate;
     protected final Object object; // b-node-id or string or literal-label
-    protected final Supplier<OntGraphModel> model;
 
     /**
      * Constructs the base object.
@@ -55,10 +51,10 @@ public abstract class ONTBaseTripleImpl extends ONTObjectImpl implements OWLObje
      * @param m         - a facility (as {@link Supplier}) to provide nonnull {@link OntGraphModel}, not {@code null}
      */
     protected ONTBaseTripleImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+        super(m);
         this.subject = Objects.requireNonNull(subject);
         this.predicate = Objects.requireNonNull(predicate);
         this.object = Objects.requireNonNull(object);
-        this.model = Objects.requireNonNull(m);
     }
 
     /**
@@ -116,15 +112,6 @@ public abstract class ONTBaseTripleImpl extends ONTObjectImpl implements OWLObje
      */
     public Stream<Triple> triples() {
         return Stream.of(asTriple());
-    }
-
-    @Override
-    public InternalObjectFactory getObjectFactory() {
-        return HasObjectFactory.getObjectFactory(model.get());
-    }
-
-    protected DataFactory getDataFactory() {
-        return getObjectFactory().getOWLDataFactory();
     }
 
     /**

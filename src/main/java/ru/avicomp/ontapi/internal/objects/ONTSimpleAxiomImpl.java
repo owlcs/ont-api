@@ -83,13 +83,16 @@ public abstract class ONTSimpleAxiomImpl<X extends OWLAxiom> extends ONTAxiomImp
      * @param s     {@link OntStatement}, the source
      * @param f     {@link InternalObjectFactory}, to produce instances
      */
-    protected abstract void collectOperands(List cache, OntStatement s, InternalObjectFactory f);
+    protected abstract void collectOperands(List<ONTObject<? extends OWLObject>> cache,
+                                            OntStatement s,
+                                            InternalObjectFactory f);
 
     @SuppressWarnings("unchecked")
     @Override
     protected final Object[] collectContent(OntStatement s, InternalConfig c, InternalObjectFactory f) {
         Set<ONTObject<OWLAnnotation>> annotations = collectAnnotations(s, c, f);
-        List res = new ArrayList(annotations.isEmpty() ? getOperandsNum() : (getOperandsNum() + annotations.size()));
+        List<ONTObject<? extends OWLObject>> res
+                = new ArrayList(annotations.isEmpty() ? getOperandsNum() : (getOperandsNum() + annotations.size()));
         collectOperands(res, s, f);
         if (!annotations.isEmpty()) {
             res.addAll(annotations);

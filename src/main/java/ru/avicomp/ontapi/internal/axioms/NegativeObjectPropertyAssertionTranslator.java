@@ -59,7 +59,7 @@ public class NegativeObjectPropertyAssertionTranslator
         OWLNegativeObjectPropertyAssertionAxiom res = reader.getOWLDataFactory()
                 .getOWLNegativeObjectPropertyAssertionAxiom(p.getOWLObject(),
                         s.getOWLObject(), o.getOWLObject(), ONTObject.extract(annotations));
-        return ONTObjectImpl.create(res, npa).append(annotations).append(s).append(p).append(o);
+        return ONTWrapperImpl.create(res, npa).append(annotations).append(s).append(p).append(o);
     }
 
 }

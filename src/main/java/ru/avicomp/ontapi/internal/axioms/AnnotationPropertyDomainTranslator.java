@@ -72,7 +72,7 @@ public class AnnotationPropertyDomainTranslator
         Collection<ONTObject<OWLAnnotation>> annotations = reader.getAnnotations(statement, config);
         OWLAnnotationPropertyDomainAxiom res = reader.getOWLDataFactory()
                 .getOWLAnnotationPropertyDomainAxiom(p.getOWLObject(), d.getOWLObject(), ONTObject.extract(annotations));
-        return ONTObjectImpl.create(res, statement).append(annotations).append(p).append(d);
+        return ONTWrapperImpl.create(res, statement).append(annotations).append(p).append(d);
     }
 
 }

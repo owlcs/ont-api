@@ -21,7 +21,7 @@ import org.semanticweb.owlapi.model.OWLDataPropertyDomainAxiom;
 import ru.avicomp.ontapi.internal.InternalConfig;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
-import ru.avicomp.ontapi.internal.ONTObjectImpl;
+import ru.avicomp.ontapi.internal.ONTWrapperImpl;
 import ru.avicomp.ontapi.jena.model.OntCE;
 import ru.avicomp.ontapi.jena.model.OntNDP;
 import ru.avicomp.ontapi.jena.model.OntStatement;
@@ -54,7 +54,7 @@ public class DataPropertyDomainTranslator extends AbstractPropertyDomainTranslat
         Collection<ONTObject<OWLAnnotation>> annotations = reader.getAnnotations(statement, config);
         OWLDataPropertyDomainAxiom res = reader.getOWLDataFactory().getOWLDataPropertyDomainAxiom(p.getOWLObject(),
                 ce.getOWLObject(), ONTObject.extract(annotations));
-        return ONTObjectImpl.create(res, statement).append(annotations).append(p).append(ce);
+        return ONTWrapperImpl.create(res, statement).append(annotations).append(p).append(ce);
     }
 
 }

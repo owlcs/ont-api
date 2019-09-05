@@ -225,7 +225,7 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
 
         @Override
         protected Object[] collectContent(OntDR.Restriction dr, InternalObjectFactory of) {
-            Set<ONTObject<OWLFacetRestriction>> members = createSortedSet(Comparator.comparing(ONTObject::getOWLObject));
+            Set<ONTObject<OWLFacetRestriction>> members = createObjectSet();
             OntModels.listMembers(dr.getList()).mapWith(of::getFacetRestriction).forEachRemaining(members::add);
             List<ONTObject<?>> res = new ArrayList<>(members.size() + 1);
             res.add(of.getDatatype(dr.getValue()));
@@ -333,8 +333,7 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
 
         @Override
         protected Object[] collectContent(ONT_D dr, InternalObjectFactory of) {
-            // OWL-API requires distinct and sorted Stream's and _List's_
-            Set<ONTObject<? extends OWL_M>> res = createSortedSet(Comparator.comparing(ONTObject::getOWLObject));
+            Set<ONTObject<? extends OWL_M>> res = createObjectSet();
             listONTMembers(dr).forEachRemaining(e -> res.add(map(e, of)));
             return res.toArray();
         }

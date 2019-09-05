@@ -23,7 +23,6 @@ import org.semanticweb.owlapi.model.OWLRuntimeException;
  * <p>
  * Created by @szuev on 27.09.2016.
  */
-@SuppressWarnings({"WeakerAccess", "unused"})
 public class OntApiException extends OWLRuntimeException {
     public OntApiException(String message, Throwable cause) {
         super(message, cause);

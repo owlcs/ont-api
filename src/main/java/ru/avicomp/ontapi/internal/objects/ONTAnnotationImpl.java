@@ -165,8 +165,7 @@ public class ONTAnnotationImpl extends ONTStatementImpl implements OWLAnnotation
     protected Object[] collectContent(OntStatement root, InternalObjectFactory of) {
         Set<ONTObject<OWLAnnotation>> sub = null;
         if (root.getSubject().getAs(OntAnnotation.class) != null || root.hasAnnotations()) {
-            // OWL-API requires distinct and sorted Stream's and _List's_
-            sub = createSortedSet(Comparator.comparing(ONTObject::getOWLObject));
+            sub = createObjectSet();
             OntModels.listAnnotations(root).mapWith(of::getAnnotation).forEachRemaining(sub::add);
         }
         List res = new ArrayList(sub == null ? 2 : sub.size() + 2);

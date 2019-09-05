@@ -19,6 +19,7 @@ import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import ru.avicomp.ontapi.internal.*;
 import ru.avicomp.ontapi.internal.objects.ONTSimpleAxiomImpl;
@@ -86,7 +87,7 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
         Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);
         OWLSubClassOfAxiom res = factory.getOWLDataFactory()
                 .getOWLSubClassOfAxiom(sub.getOWLObject(), sup.getOWLObject(), ONTObject.extract(annotations));
-        return ONTObjectImpl.create(res, statement).append(annotations).append(sub).append(sup);
+        return ONTWrapperImpl.create(res, statement).append(annotations).append(sub).append(sup);
     }
 
     /**
@@ -161,9 +162,10 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
             return 2;
         }
 
-        @SuppressWarnings("unchecked")
         @Override
-        protected void collectOperands(List cache, OntStatement s, InternalObjectFactory f) {
+        protected void collectOperands(List<ONTObject<? extends OWLObject>> cache,
+                                       OntStatement s,
+                                       InternalObjectFactory f) {
             cache.add(f.getClass(s.getSubject(OntCE.class)));
             cache.add(f.getClass(s.getObject(OntCE.class)));
         }

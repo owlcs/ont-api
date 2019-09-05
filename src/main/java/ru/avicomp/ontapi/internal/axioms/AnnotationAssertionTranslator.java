@@ -99,7 +99,7 @@ public class AnnotationAssertionTranslator
         OWLAnnotationAssertionAxiom res = factory.getOWLDataFactory()
                 .getOWLAnnotationAssertionAxiom(p.getOWLObject(), s.getOWLObject(), v.getOWLObject(),
                         ONTObject.extract(annotations));
-        return ONTObjectImpl.create(res, statement).append(annotations).append(s).append(p).append(v);
+        return ONTWrapperImpl.create(res, statement).append(annotations).append(s).append(p).append(v);
     }
 
     /**
@@ -175,9 +175,10 @@ public class AnnotationAssertionTranslator
             return 3;
         }
 
-        @SuppressWarnings("unchecked")
         @Override
-        protected void collectOperands(List cache, OntStatement s, InternalObjectFactory f) {
+        protected void collectOperands(List<ONTObject<? extends OWLObject>> cache,
+                                       OntStatement s,
+                                       InternalObjectFactory f) {
             cache.add(f.getSubject(s.getSubject(OntObject.class)));
             cache.add(f.getProperty(s.getPredicate().as(OntNAP.class)));
             cache.add(f.getValue(s.getObject()));

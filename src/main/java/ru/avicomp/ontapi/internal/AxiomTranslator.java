@@ -80,9 +80,9 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * @return {@link ExtendedIterator} of {@link ONTObject}s that wrap {@link Axiom}s
      * @throws JenaException unable to read axioms of this type
      */
-    public ExtendedIterator<ONTObject<Axiom>> listAxioms(Supplier<OntGraphModel> model,
-                                                         InternalObjectFactory factory,
-                                                         InternalConfig config) throws JenaException {
+    protected ExtendedIterator<ONTObject<Axiom>> listAxioms(Supplier<OntGraphModel> model,
+                                                            InternalObjectFactory factory,
+                                                            InternalConfig config) throws JenaException {
         return translate(model, listStatements(model.get(), config), factory, config);
     }
 
@@ -169,9 +169,9 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * @return {@link ONTObject} around {@link OWLAxiom}
      * @throws JenaException if no possible to get axiom from the statement
      */
-    public abstract ONTObject<Axiom> toAxiom(OntStatement statement,
-                                             InternalObjectFactory factory,
-                                             InternalConfig config) throws JenaException;
+    protected abstract ONTObject<Axiom> toAxiom(OntStatement statement,
+                                                InternalObjectFactory factory,
+                                                InternalConfig config) throws JenaException;
 
     /**
      * Creates an OWL Axiom from a statement.
@@ -183,31 +183,34 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * @return {@link ONTObject} around {@link OWLAxiom}
      * @throws JenaException if no possible to get axiom from the statement
      */
-    public ONTObject<Axiom> toAxiom(OntStatement statement,
-                                    Supplier<OntGraphModel> model,
-                                    InternalObjectFactory factory,
-                                    InternalConfig config) throws JenaException {
+    protected ONTObject<Axiom> toAxiom(OntStatement statement,
+                                       Supplier<OntGraphModel> model,
+                                       InternalObjectFactory factory,
+                                       InternalConfig config) throws JenaException {
         return toAxiom(statement, factory, config);
     }
 
     /**
-     * Gets the config from model's settings or dummy if it is naked Jena model.
+     * If possible, gets the {@code model}'s {@link InternalConfig Config},
+     * otherwise returns the default one.
      *
      * @param model {@link OntGraphModel}
      * @return {@link InternalConfig}
      */
     public static InternalConfig getConfig(OntGraphModel model) {
-        return HasConfig.getConfig(model);
+        return model instanceof HasConfig ? ((HasConfig) model).getConfig() : InternalConfig.DEFAULT;
     }
 
     /**
-     * Gets the ONT-API Data-Factory from model's settings.
+     * If possible, gets the {@code model}'s {@link InternalObjectFactory Object Factory},
+     * otherwise returns the default one.
      *
      * @param model {@link OntGraphModel}
      * @return {@link InternalObjectFactory}
      */
     public static InternalObjectFactory getObjectFactory(OntGraphModel model) {
-        return HasObjectFactory.getObjectFactory(model);
+        return model instanceof HasObjectFactory ?
+                ((HasObjectFactory) model).getObjectFactory() : InternalObjectFactory.DEFAULT;
     }
 
     /**

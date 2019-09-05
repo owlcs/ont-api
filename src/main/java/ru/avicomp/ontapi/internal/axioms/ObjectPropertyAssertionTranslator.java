@@ -83,7 +83,7 @@ public class ObjectPropertyAssertionTranslator
         OWLObjectPropertyAssertionAxiom res = reader.getOWLDataFactory()
                 .getOWLObjectPropertyAssertionAxiom(property.getOWLObject(), subject.getOWLObject(), object.getOWLObject(),
                         ONTObject.extract(annotations));
-        return ONTObjectImpl.create(res, statement).append(annotations).append(subject).append(property).append(object);
+        return ONTWrapperImpl.create(res, statement).append(annotations).append(subject).append(property).append(object);
     }
 
 }

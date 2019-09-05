@@ -21,7 +21,7 @@ import org.semanticweb.owlapi.model.OWLSameIndividualAxiom;
 import ru.avicomp.ontapi.internal.InternalConfig;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
-import ru.avicomp.ontapi.internal.ONTObjectImpl;
+import ru.avicomp.ontapi.internal.ONTWrapperImpl;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
@@ -60,7 +60,7 @@ public class SameIndividualTranslator extends AbstractNaryTranslator<OWLSameIndi
         Collection<ONTObject<OWLAnnotation>> annotations = reader.getAnnotations(statement, config);
         OWLSameIndividualAxiom res = reader.getOWLDataFactory()
                 .getOWLSameIndividualAxiom(a.getOWLObject(), b.getOWLObject(), ONTObject.extract(annotations));
-        return ONTObjectImpl.create(res, statement).append(annotations).append(a).append(b);
+        return ONTWrapperImpl.create(res, statement).append(annotations).append(a).append(b);
     }
 
 }

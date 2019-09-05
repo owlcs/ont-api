@@ -21,7 +21,7 @@ import org.semanticweb.owlapi.model.OWLSubDataPropertyOfAxiom;
 import ru.avicomp.ontapi.internal.InternalConfig;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
-import ru.avicomp.ontapi.internal.ONTObjectImpl;
+import ru.avicomp.ontapi.internal.ONTWrapperImpl;
 import ru.avicomp.ontapi.jena.model.OntNDP;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 
@@ -58,7 +58,7 @@ public class SubDataPropertyOfTranslator extends AbstractSubPropertyTranslator<O
         Collection<ONTObject<OWLAnnotation>> annotations = reader.getAnnotations(statement, config);
         OWLSubDataPropertyOfAxiom res = reader.getOWLDataFactory()
                 .getOWLSubDataPropertyOfAxiom(sub.getOWLObject(), sup.getOWLObject(), ONTObject.extract(annotations));
-        return ONTObjectImpl.create(res, statement).append(annotations).append(sub).append(sup);
+        return ONTWrapperImpl.create(res, statement).append(annotations).append(sub).append(sup);
     }
 
 }

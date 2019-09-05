@@ -84,7 +84,8 @@ import java.util.stream.Stream;
  * Created by @szuev on 26.10.2016.
  */
 @SuppressWarnings({"WeakerAccess", "unchecked"})
-public class InternalModel extends OntGraphModelImpl implements OntGraphModel, HasOntologyID, HasObjectFactory, HasConfig {
+public class InternalModel extends OntGraphModelImpl
+        implements OntGraphModel, HasOntologyID, HasObjectFactory, HasConfig {
     private static final Logger LOGGER = LoggerFactory.getLogger(InternalModel.class);
 
     /**
@@ -1018,10 +1019,10 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @return {@code Set} of {@code Triple}s
      */
     protected Set<Triple> getUsedAxiomTriples(OntGraphModel m, OWLObject object) {
-        InternalObjectFactory df = getObjectFactory();
-        InternalConfig c = getConfig();
+        InternalObjectFactory f = HasObjectFactory.getObjectFactory(m);
+        InternalConfig c = HasConfig.getConfig(m);
         Set<Triple> res = new HashSet<>();
-        Iter.flatMap(OWLContentType.listAll(), k -> k.read(() -> m, df, c)
+        Iter.flatMap(OWLContentType.listAll(), k -> k.read(() -> m, f, c)
                 .filterKeep(x -> !object.equals(x.getOWLObject()) && isUsed(k, x.getOWLObject())))
                 .forEachRemaining(x -> x.triples().forEach(res::add));
         return res;
@@ -1060,12 +1061,12 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
      * @return {@code Set} of {@code Triple}s
      */
     protected Set<Triple> getUsedComponentTriples(OntGraphModel m, OWLObject object) {
-        InternalObjectFactory df = getObjectFactory();
+        InternalObjectFactory of = getObjectFactory();
         Set<Triple> res = new HashSet<>();
         OWLComponentType.sharedComponents().forEach(type -> {
             Set<OWLObject> objects = new HashSet<>();
             Set<Triple> triples = new HashSet<>();
-            type.select(m, df).forEach(x -> {
+            type.select(m, of).forEach(x -> {
                 objects.add(x.getOWLObject());
                 x.triples().forEach(triples::add);
             });
@@ -1099,7 +1100,10 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
         }
         UnionGraph u = new UnionGraph(g, false);
         u.addGraph(getGraph());
-        return new OntGraphModelImpl(u, InternalModel.this.getOntPersonality()) {
+        class ObjectModel extends OntGraphModelImpl implements HasConfig, HasObjectFactory {
+            public ObjectModel(Graph g) {
+                super(g, InternalModel.this.getOntPersonality());
+            }
             @Override
             public OntID getID() {
                 return InternalModel.this.getID().inModel(this).as(OntID.class);
@@ -1109,7 +1113,18 @@ public class InternalModel extends OntGraphModelImpl implements OntGraphModel, H
             public String toString() {
                 return String.format("ModelFor{%s}", o.getOWLObject());
             }
-        };
+
+            @Override
+            public InternalConfig getConfig() {
+                return InternalModel.this.getConfig();
+            }
+
+            @Override
+            public InternalObjectFactory getObjectFactory() {
+                return new ModelObjectFactory(InternalModel.this.getObjectFactory().getOWLDataFactory(), () -> this);
+            }
+        }
+        return new ObjectModel(u);
     }
 
     /**

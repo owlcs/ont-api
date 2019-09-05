@@ -20,7 +20,7 @@ import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.internal.InternalConfig;
 import ru.avicomp.ontapi.internal.ONTObject;
-import ru.avicomp.ontapi.internal.ONTObjectImpl;
+import ru.avicomp.ontapi.internal.ONTWrapperImpl;
 import ru.avicomp.ontapi.internal.WriteHelper;
 import ru.avicomp.ontapi.jena.model.OntDisjoint;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
@@ -107,7 +107,7 @@ public abstract class AbstractTwoWayNaryTranslator<Axiom extends OWLAxiom & OWLN
                     .map(membersExtractor).collect(Collectors.toSet());
         }
         Axiom axiom = creator.apply(members, annotations);
-        return (disjoint != null ? ONTObjectImpl.create(axiom, disjoint) : ONTObjectImpl.create(axiom, statement))
+        return (disjoint != null ? ONTWrapperImpl.create(axiom, disjoint) : ONTWrapperImpl.create(axiom, statement))
                 .append(annotations).appendWildcards(members);
     }
 

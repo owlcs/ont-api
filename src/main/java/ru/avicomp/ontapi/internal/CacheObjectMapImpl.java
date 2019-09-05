@@ -96,7 +96,7 @@ public class CacheObjectMapImpl<X extends OWLObject> implements ObjectMap<X> {
         this.hasNew = false;
         Iterator<ONTObject<X>> it = loader.get();
         Map<X, ONTObject<X>> res = createMap();
-        BiFunction<ONTObject<X>, ONTObject<X>, ONTObject<X>> merger = (a, b) -> ONTObjectImpl.asImpl(a).append(b);
+        BiFunction<ONTObject<X>, ONTObject<X>, ONTObject<X>> merger = (a, b) -> ONTWrapperImpl.asImpl(a).append(b);
         if (withMerge) {
             while (it.hasNext()) {
                 ONTObject<X> v = it.next();

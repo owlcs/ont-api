@@ -23,7 +23,6 @@ import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -35,6 +34,7 @@ import java.util.stream.Stream;
  * @see ru.avicomp.ontapi.owlapi.axioms.OWLAxiomImpl
  * @since 1.4.3
  */
+@SuppressWarnings("WeakerAccess")
 public abstract class ONTAxiomImpl extends ONTStatementImpl implements OWLAxiom, HasConfig {
 
     protected ONTAxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
@@ -70,7 +70,7 @@ public abstract class ONTAxiomImpl extends ONTStatementImpl implements OWLAxiom,
     protected Set<ONTObject<OWLAnnotation>> collectAnnotations(OntStatement s,
                                                                InternalConfig c,
                                                                InternalObjectFactory f) {
-        Set<ONTObject<OWLAnnotation>> res = createSortedSet(Comparator.comparing(ONTObject::getOWLObject));
+        Set<ONTObject<OWLAnnotation>> res = createObjectSet();
         ReadHelper.listAnnotations(s, c, f).forEachRemaining(res::add);
         return res;
     }

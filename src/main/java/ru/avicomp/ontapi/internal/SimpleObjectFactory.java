@@ -28,7 +28,7 @@ import java.util.Objects;
  * An Object Factory impl which maps {@link OntObject} to {@link OWLObject} directly having no cache.
  * <p>
  * Created by @szuev on 15.03.2018.
- * @see ONTObjectImpl
+ * @see ONTWrapperImpl
  */
 @SuppressWarnings("WeakerAccess")
 public class SimpleObjectFactory implements InternalObjectFactory {
@@ -60,55 +60,55 @@ public class SimpleObjectFactory implements InternalObjectFactory {
     @Override
     public ONTObject<OWLClass> getClass(OntClass ce) {
         IRI iri = toIRI(OntApiException.notNull(ce, "Null class."));
-        return ONTObjectImpl.create(getOWLDataFactory().getOWLClass(iri), ce);
+        return ONTWrapperImpl.create(getOWLDataFactory().getOWLClass(iri), ce);
     }
 
     @Override
     public ONTObject<OWLDatatype> getDatatype(OntDT dr) {
         IRI iri = toIRI(OntApiException.notNull(dr, "Null datatype."));
-        return ONTObjectImpl.create(getOWLDataFactory().getOWLDatatype(iri), dr);
+        return ONTWrapperImpl.create(getOWLDataFactory().getOWLDatatype(iri), dr);
     }
 
     @Override
     public ONTObject<OWLObjectProperty> getProperty(OntNOP nop) {
         IRI iri = toIRI(OntApiException.notNull(nop, "Null object property."));
-        return ONTObjectImpl.create(getOWLDataFactory().getOWLObjectProperty(iri), nop);
+        return ONTWrapperImpl.create(getOWLDataFactory().getOWLObjectProperty(iri), nop);
     }
 
     @Override
     public ONTObject<OWLAnnotationProperty> getProperty(OntNAP nap) {
         IRI iri = toIRI(OntApiException.notNull(nap, "Null annotation property."));
-        return ONTObjectImpl.create(getOWLDataFactory().getOWLAnnotationProperty(iri), nap);
+        return ONTWrapperImpl.create(getOWLDataFactory().getOWLAnnotationProperty(iri), nap);
     }
 
     @Override
     public ONTObject<OWLDataProperty> getProperty(OntNDP ndp) {
         IRI iri = toIRI(OntApiException.notNull(ndp, "Null data property."));
-        return ONTObjectImpl.create(getOWLDataFactory().getOWLDataProperty(iri), ndp);
+        return ONTWrapperImpl.create(getOWLDataFactory().getOWLDataProperty(iri), ndp);
     }
 
     @Override
     public ONTObject<OWLNamedIndividual> getIndividual(OntIndividual.Named i) {
         IRI iri = toIRI(OntApiException.notNull(i, "Null individual."));
-        return ONTObjectImpl.create(getOWLDataFactory().getOWLNamedIndividual(iri), i);
+        return ONTWrapperImpl.create(getOWLDataFactory().getOWLNamedIndividual(iri), i);
     }
 
     @Override
     public ONTObject<OWLAnonymousIndividual> getIndividual(OntIndividual.Anonymous i) {
-        return ONTObjectImpl.create(getOWLDataFactory().getOWLAnonymousIndividual(i.asNode().getBlankNodeId()), i);
+        return ONTWrapperImpl.create(getOWLDataFactory().getOWLAnonymousIndividual(i.asNode().getBlankNodeId()), i);
     }
 
     @Override
     public ONTObject<? extends OWLObjectPropertyExpression> getProperty(OntOPE.Inverse iop) {
         OWLObjectProperty op = getOWLDataFactory().getOWLObjectProperty(toIRI(iop.getDirect()));
-        return ONTObjectImpl.create(op.getInverseProperty(), iop);
+        return ONTWrapperImpl.create(op.getInverseProperty(), iop);
     }
 
     @Override
     public ONTObject<OWLLiteral> getLiteral(Literal literal) {
         DataFactory df = getOWLDataFactory();
         OWLLiteral owl = df.getOWLLiteral(literal.asNode().getLiteral());
-        ONTObjectImpl<OWLLiteral> res = ONTObjectImpl.create(owl);
+        ONTWrapperImpl<OWLLiteral> res = ONTWrapperImpl.create(owl);
         OntGraphModel m = (OntGraphModel) literal.getModel();
         OntDT jdt = m.getDatatype(literal);
         if (!jdt.isBuiltIn()) {
@@ -144,7 +144,7 @@ public class SimpleObjectFactory implements InternalObjectFactory {
 
     @Override
     public ONTObject<IRI> getIRI(String uri) {
-        return ONTObjectImpl.create(toIRI(uri));
+        return ONTWrapperImpl.create(toIRI(uri));
     }
 
     @Override

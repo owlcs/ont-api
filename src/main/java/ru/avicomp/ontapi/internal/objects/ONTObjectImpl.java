@@ -15,6 +15,12 @@
 package ru.avicomp.ontapi.internal.objects;
 
 import org.semanticweb.owlapi.model.*;
+import ru.avicomp.ontapi.DataFactory;
+import ru.avicomp.ontapi.internal.HasObjectFactory;
+import ru.avicomp.ontapi.internal.InternalObjectFactory;
+import ru.avicomp.ontapi.internal.ONTObject;
+import ru.avicomp.ontapi.jena.impl.PersonalityModel;
+import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.owlapi.OWLObjectImpl;
 
 import javax.annotation.Nullable;
@@ -22,18 +28,68 @@ import java.io.IOException;
 import java.io.NotSerializableException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.Comparator;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
+import java.util.function.Supplier;
 
 /**
  * A base for {@link ONTResourceImpl ONT Resource} (a {@link org.apache.jena.graph.Node node} based object)
  * and for {@link ONTBaseTripleImpl ONT Triple} (a {@link org.apache.jena.graph.Triple triple} based object).
+ * Has a reference to a {@link OntGraphModel} inside.
+ *
  * Created by @ssz on 31.08.2019.
  *
  * @since 1.4.3
  */
 @SuppressWarnings("WeakerAccess")
-abstract class ONTObjectImpl extends OWLObjectImpl implements ONTComposite {
+abstract class ONTObjectImpl extends OWLObjectImpl implements ONTComposite, HasObjectFactory {
+    // reference to a model
+    protected final Supplier<OntGraphModel> model;
+
+    /**
+     * Constructs the base object.
+     *
+     * @param model - a facility (as {@link Supplier}) to provide nonnull {@link OntGraphModel}, not {@code null}
+     */
+    protected ONTObjectImpl(Supplier<OntGraphModel> model) {
+        this.model = Objects.requireNonNull(model, "Null model.");
+    }
+
+    @Override
+    public InternalObjectFactory getObjectFactory() {
+        return HasObjectFactory.getObjectFactory(model.get());
+    }
+
+    /**
+     * Returns a {@link DataFactory} - the facility to provide static (model free) {@link OWLObject}s.
+     *
+     * @return {@link DataFactory}
+     */
+    protected DataFactory getDataFactory() {
+        return getObjectFactory().getOWLDataFactory();
+    }
+
+    /**
+     * Returns a {@link PersonalityModel personality model}.
+     *
+     * @return {@link PersonalityModel}
+     */
+    protected PersonalityModel getPersonalityModel() {
+        return PersonalityModel.asPersonalityModel(model.get());
+    }
+
+    /**
+     * Creates a sorted {@code Set} for {@link ONTObject}s, to store content cache.
+     * OWL-API requires distinct and sorted {@code Stream}s and {@code List}s.
+     *
+     * @param <X> subtype of {@link ONTObject}
+     * @return an empty sorted {@code Set} that may contain {@code ONTObject}s.
+     */
+    protected <X extends ONTObject> Set<X> createObjectSet() {
+        return createSortedSet(Comparator.comparing(ONTObject::getOWLObject));
+    }
 
     @Override
     public final boolean containsEntityInSignature(@Nullable OWLEntity entity) {

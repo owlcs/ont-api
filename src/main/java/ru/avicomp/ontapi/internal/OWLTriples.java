@@ -35,7 +35,7 @@ import java.util.stream.Stream;
  * @param <V> any subtype of {@link OWLObject}
  */
 @SuppressWarnings("WeakerAccess")
-public class OWLTriples<V extends OWLObject> extends ONTObjectImpl<V> {
+public class OWLTriples<V extends OWLObject> extends ONTWrapperImpl<V> {
     protected final Set<Triple> triples;
 
     protected OWLTriples(V object, Set<Triple> triples) {
