@@ -1653,6 +1653,32 @@ public class TestFactory {
                         return "df.getOWLAnnotationAssertionAxiom(IRI.create(\"I\"), df.getRDFSComment(\"comm\"))";
                     }
                 }
+                , new AxiomData() {
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLDeclarationAxiom(df.getOWLDatatype("D"),
+                                Collections.singletonList(df.getOWLAnnotation(df.getRDFSLabel(),
+                                        df.getOWLAnonymousIndividual("_:b0"),
+                                        Arrays.asList(df.getRDFSComment("C"), df.getRDFSLabel("L")))));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLDeclarationAxiom(df.getOWLDatatype(\"D\"), " +
+                                "...Annotation With A Sub Annotation...)";
+                    }
+                }
+                , new AxiomData() {
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLDeclarationAxiom(df.getOWLNamedIndividual("I"));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLDeclarationAxiom(df.getOWLNamedIndividual(\"I\"))";
+                    }
+                }
         );
 
     }

@@ -191,7 +191,13 @@ public enum Entities {
         return find(type.asNode());
     }
 
-    static Optional<Entities> find(Node type) {
+    /**
+     * Finds the entity by the node-type.
+     *
+     * @param type {@link Node}, not {@code null}
+     * @return {@link Optional} of {@link Entities}
+     */
+    public static Optional<Entities> find(Node type) {
         for (Entities e : values()) {
             if (Objects.equals(e.getResourceType().asNode(), type)) return Optional.of(e);
         }

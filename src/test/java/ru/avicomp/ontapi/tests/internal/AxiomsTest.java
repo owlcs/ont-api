@@ -17,6 +17,7 @@ package ru.avicomp.ontapi.tests.internal;
 import org.junit.Assert;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
+import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
 import ru.avicomp.ontapi.DataFactory;
@@ -44,7 +45,10 @@ public class AxiomsTest extends ObjectFactoryTest {
     public static List<Data> getData() {
         return getObjects().stream().filter(Data::isAxiom)
                 // TODO: it is temporary, see https://github.com/avicomp/ont-api/issues/87
-                .filter(x -> isOneOf(x, "df.getOWLSubClass", "df.getOWLAnnotationAssertion"))
+                .filter(x -> isOneOf(x
+                        , "df.getOWLSubClass"
+                        , "df.getOWLAnnotationAssertion"
+                        , "df.getOWLDeclaration"))
                 .collect(Collectors.toList());
     }
 
@@ -62,12 +66,20 @@ public class AxiomsTest extends ObjectFactoryTest {
         DataFactory df = m.getOWLDataFactory();
 
         OWLAxiom ont = (OWLAxiom) data.create(df);
+        configure(ont, m);
+
         OntologyModel o = m.createOntology();
         o.add(ont);
         o.clearCache();
         OWLAxiom res = o.axioms().filter(ont::equals).findFirst().orElseThrow(AssertionError::new);
         Assert.assertTrue(res instanceof ONTObject);
         return res;
+    }
+
+    private void configure(OWLAxiom a, OntologyManager m) {
+        if (AxiomType.DECLARATION.equals(a.getAxiomType())) { // to allow annotations for declaration:
+            m.getOntologyConfigurator().setLoadAnnotationAxioms(false);
+        }
     }
 
     @Override
