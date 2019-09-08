@@ -20,7 +20,6 @@ import org.apache.jena.util.iterator.NullIterator;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
-import org.semanticweb.owlapi.model.OWLObject;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.internal.*;
 import ru.avicomp.ontapi.internal.objects.ONTSimpleAxiomImpl;
@@ -34,7 +33,6 @@ import ru.avicomp.ontapi.jena.utils.OntModels;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
 
@@ -87,7 +85,8 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
                 .orElseThrow(() -> new OntJenaException.IllegalArgument("Can't find entity by the statement " + statement));
         ONTObject<? extends OWLEntity> entity = reader.getEntity(e);
         Collection<ONTObject<OWLAnnotation>> annotations = reader.getAnnotations(statement, config);
-        OWLDeclarationAxiom res = reader.getOWLDataFactory().getOWLDeclarationAxiom(entity.getOWLObject(), ONTObject.extract(annotations));
+        OWLDeclarationAxiom res = reader.getOWLDataFactory().getOWLDeclarationAxiom(entity.getOWLObject(),
+                ONTObject.extract(annotations));
         return ONTWrapperImpl.create(res, statement).append(annotations);
     }
 
@@ -110,18 +109,6 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
             super(subject, predicate, object, m);
         }
 
-        @Override
-        public OntStatement asStatement() {
-            Node s = getSubjectNode();
-            Node o = getObjectNode();
-            Class<? extends OntEntity> t = Entities.find(o)
-                    .orElseThrow(() -> new OntApiException.IllegalState("Can't find type for " + toMessage(s, o)))
-                    .getActualType();
-            OntEntity e = OntApiException.mustNotBeNull(getPersonalityModel()
-                    .findNodeAs(s, t), "Can't find " + toMessage(s, o));
-            return OntApiException.mustNotBeNull(e.getRoot());
-        }
-
         private static String toMessage(Node s, Node o) {
             return String.format("entity = %s, type = %s", s, o);
         }
@@ -139,8 +126,20 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
                                        Supplier<OntGraphModel> m,
                                        InternalObjectFactory of,
                                        InternalConfig c) {
-            return collect(new AxiomImpl(fromNode(s.getSubject()), s.getPredicate().getURI(),
-                    fromNode(s.getObject()), m), s, of, c);
+            return init(new AxiomImpl(fromNode(s.getSubject()),
+                    s.getPredicate().getURI(), fromNode(s.getObject()), m), s, of, c);
+        }
+
+        @Override
+        public OntStatement asStatement() {
+            Node s = getSubjectNode();
+            Node o = getObjectNode();
+            Class<? extends OntEntity> t = Entities.find(o)
+                    .orElseThrow(() -> new OntApiException.IllegalState("Can't find type for " + toMessage(s, o)))
+                    .getActualType();
+            OntEntity e = OntApiException.mustNotBeNull(getPersonalityModel()
+                    .findNodeAs(s, t), "Can't find " + toMessage(s, o));
+            return OntApiException.mustNotBeNull(e.getRoot());
         }
 
         @Override
@@ -169,13 +168,14 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
         }
 
         @Override
-        protected void collectOperands(List<ONTObject<? extends OWLObject>> cache,
-                                       OntStatement s,
-                                       InternalObjectFactory f) {
-            OntEntity res = Entities.find(s.getResource())
-                    .map(e -> s.getModel().getOntEntity(e.getActualType(), s.getSubject()))
-                    .orElseThrow(() -> new OntJenaException.IllegalArgument("Can't find entity by the statement " + s));
-            cache.add(f.getEntity(res));
+        protected void collectOperands(Object[] cache,
+                                       OntStatement statement,
+                                       InternalObjectFactory factory) {
+            OntEntity res = Entities.find(statement.getResource())
+                    .map(e -> statement.getModel().getOntEntity(e.getActualType(), statement.getSubject()))
+                    .orElseThrow(() -> new OntJenaException.IllegalArgument("Can't find entity by the statement "
+                            + statement));
+            cache[0] = factory.getEntity(res);
         }
     }
 

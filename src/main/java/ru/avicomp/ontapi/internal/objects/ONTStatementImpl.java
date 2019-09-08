@@ -18,18 +18,17 @@ import org.apache.jena.graph.FrontsTriple;
 import org.apache.jena.graph.Triple;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLObject;
+import ru.avicomp.ontapi.internal.HasConfig;
 import ru.avicomp.ontapi.internal.InternalCache;
+import ru.avicomp.ontapi.internal.InternalConfig;
 import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.jena.model.OntAnnotation;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Spliterator;
+import java.util.*;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -38,25 +37,35 @@ import java.util.stream.Stream;
  * Created by @szz on 27.08.2019.
  *
  * @see ONTExpressionImpl
+ * @see OntStatement
  * @since 1.4.3
  */
 @SuppressWarnings("WeakerAccess")
-public abstract class ONTStatementImpl extends ONTBaseTripleImpl implements ONTComposite {
-
+public abstract class ONTStatementImpl extends ONTBaseTripleImpl implements ONTComposite, HasConfig {
+    /**
+     * A cache, an {@code Array} of content, the last element is reserved for annotations,
+     * which are also presented as {@code Object[]}.
+     */
     protected final InternalCache.Loading<ONTStatementImpl, Object[]> content;
 
     protected ONTStatementImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
         super(subject, predicate, object, m);
-        this.content = InternalCache.createSoftSingleton(x -> collectContent());
+        this.content = createContent();
     }
 
     /**
-     * Lists all {@link OWLAnnotation}s on this object.
-     * The stream is {@link Spliterator#ORDERED}, {@link Spliterator#NONNULL} and {@link Spliterator#SORTED}.
+     * Creates a content-container, which is used as a cache for different {@code ONTObject} parts.
      *
-     * @return a {@code Stream} of {@link OWLAnnotation}s
+     * @return {@link InternalCache.Loading}
      */
-    public abstract Stream<OWLAnnotation> annotations();
+    protected InternalCache.Loading<ONTStatementImpl, Object[]> createContent() {
+        return InternalCache.createSoftSingleton(x -> collectContent());
+    }
+
+    @Override
+    public InternalConfig getConfig() {
+        return HasConfig.getConfig(model.get());
+    }
 
     /**
      * Collects the cache.
@@ -67,33 +76,103 @@ public abstract class ONTStatementImpl extends ONTBaseTripleImpl implements ONTC
     protected abstract Object[] collectContent();
 
     /**
-     * Answers {@code true} if this annotation has sub-annotations.
+     * Gets the number of semantic operands.
+     * For axioms that generate main triple usually it equal {@code 2}.
+     * For n-ary axioms with unknown predefined number of operands the result is {@code -1}.
      *
-     * @return boolean
-     * @see org.semanticweb.owlapi.model.OWLAxiom#isAnnotated()
+     * @return a positive int or {@code -1}
      */
-    public boolean isAnnotated() {
-        return annotations().findFirst().isPresent();
+    protected abstract int getOperandsNum();
+
+    @Override
+    public final int initHashCode() {
+        return collectHashCode(getContent());
     }
 
     /**
-     * Answers a sorted {@code List} of {@link OWLAnnotation}s on this object.
+     * Calculates the {@code hashCode}.
+     * Note: must be overridden for n-ary axioms.
      *
-     * @return a {@code List} of {@link OWLAnnotation}s
-     * @see org.semanticweb.owlapi.model.HasAnnotations#annotationsAsList()
+     * @param content an {@code Array} with the content
+     * @return hash code for this axiom
      */
-    public List<OWLAnnotation> annotationsAsList() {
-        return annotations().collect(Collectors.toList());
+    protected int collectHashCode(Object[] content) {
+        int res = hashIndex();
+        int n = getOperandsNum();
+        for (int i = 0; i < n; i++) {
+            res = OWLObject.hashIteration(res, content[i].hashCode());
+        }
+        return OWLObject.hashIteration(res, n == content.length ? 1 : Arrays.hashCode((Object[]) content[n]));
     }
 
     /**
-     * Gets the content from cache.
+     * Gets the content from the cache.
      *
      * @return {@code Array} of {@code Object}s
      * @see ONTExpressionImpl#getContent()
      */
     protected Object[] getContent() {
         return content.get(this);
+    }
+
+    /**
+     * Answers {@code true} if this statement (axiom or annotation) has sub-annotations.
+     *
+     * @return boolean
+     * @see org.semanticweb.owlapi.model.OWLAxiom#isAnnotated()
+     */
+    public boolean isAnnotated() {
+        return getContent().length > getOperandsNum();
+    }
+
+    /**
+     * Lists all {@link OWLAnnotation}s on this object.
+     * The stream is {@link Spliterator#ORDERED ordered}, {@link Spliterator#NONNULL nonull},
+     * {@link Spliterator#DISTINCT distinct} and {@link Spliterator#SORTED sorted}.
+     *
+     * @return a {@code Stream} of {@link OWLAnnotation}s
+     * @see org.semanticweb.owlapi.model.HasAnnotations#annotations()
+     */
+    @SuppressWarnings("unchecked")
+    public Stream<OWLAnnotation> annotations() {
+        Object[] content = getContent();
+        int n = getOperandsNum();
+        if (content.length == n) {
+            return Stream.empty();
+        }
+        List res = Arrays.asList((Object[]) content[n]);
+        return (Stream<OWLAnnotation>) res.stream();
+    }
+
+    /**
+     * Answers a sorted and distinct {@code List} of {@link OWLAnnotation}s on this object.
+     * The returned {@code List} is unmodifiable.
+     *
+     * @return a unmodifiable {@code List} of {@link OWLAnnotation}s
+     * @see org.semanticweb.owlapi.model.HasAnnotations#annotationsAsList()
+     */
+    @SuppressWarnings("unchecked")
+    public List<OWLAnnotation> annotationsAsList() {
+        Object[] content = getContent();
+        int n = getOperandsNum();
+        if (content.length == n) {
+            return Collections.emptyList();
+        }
+        List res = Arrays.asList((Object[]) content[n]);
+        return (List<OWLAnnotation>) Collections.unmodifiableList(res);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public Stream<ONTObject<? extends OWLObject>> objects() {
+        Object[] content = getContent();
+        Stream res = Arrays.stream(content);
+        int n = getOperandsNum();
+        if (content.length == n) {
+            return (Stream<ONTObject<? extends OWLObject>>) res;
+        }
+        return (Stream<ONTObject<? extends OWLObject>>) Stream.concat(res.limit(n),
+                Arrays.stream(((Object[]) content[n])));
     }
 
     @Override
@@ -104,6 +183,19 @@ public abstract class ONTStatementImpl extends ONTBaseTripleImpl implements ONTC
         if (a != null) {
             res = Stream.concat(res, a.spec().map(FrontsTriple::asTriple));
         }
+        return res;
+    }
+
+    /**
+     * Creates a new collection containing the annotations of this object and the given.
+     *
+     * @param other {@link Iterator} of {@link OWLAnnotation}s
+     * @return a {@code Collection} with annotations both from this object and specified
+     */
+    protected Collection<OWLAnnotation> appendAnnotations(Iterator<OWLAnnotation> other) {
+        Set<OWLAnnotation> res = createSortedSet();
+        other.forEachRemaining(res::add);
+        annotations().forEach(res::add);
         return res;
     }
 

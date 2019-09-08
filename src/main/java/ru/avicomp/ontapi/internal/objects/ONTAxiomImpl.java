@@ -17,12 +17,17 @@ package ru.avicomp.ontapi.internal.objects;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.util.NNF;
-import ru.avicomp.ontapi.internal.*;
+import ru.avicomp.ontapi.internal.InternalConfig;
+import ru.avicomp.ontapi.internal.InternalObjectFactory;
+import ru.avicomp.ontapi.internal.ONTObject;
+import ru.avicomp.ontapi.internal.ReadHelper;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 
+import javax.annotation.Nonnull;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -31,24 +36,42 @@ import java.util.stream.Stream;
  * A base axiom.
  * Created by @ssz on 01.09.2019.
  *
+ * @param <X> - the {@link OWLAxiom} subtype, must be the same that this class implements
  * @see ru.avicomp.ontapi.owlapi.axioms.OWLAxiomImpl
  * @since 1.4.3
  */
 @SuppressWarnings("WeakerAccess")
-public abstract class ONTAxiomImpl extends ONTStatementImpl implements OWLAxiom, HasConfig {
+public abstract class ONTAxiomImpl<X extends OWLAxiom> extends ONTStatementImpl implements OWLAxiom {
 
     protected ONTAxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
         super(subject, predicate, object, m);
     }
 
-    @Override
-    protected Object[] collectContent() {
-        return collectContent(asStatement(), getConfig(), getObjectFactory());
+    /**
+     * Collects the cache for the given {@code axiom}, and returns the same object.
+     * This method is an optimization hack:
+     * we know the statement, so we can get all info from it, before leave it forgotten and available for GC.
+     *
+     * @param axiom     {@link X}
+     * @param statement {@link OntStatement}
+     * @param factory   {@link InternalObjectFactory}
+     * @param config    {@link InternalConfig}
+     * @param <X>       subtype of {@link ONTAxiomImpl}
+     * @return the same {@code axiom}
+     */
+    protected static <X extends ONTAxiomImpl> X init(X axiom,
+                                                     OntStatement statement,
+                                                     InternalObjectFactory factory,
+                                                     InternalConfig config) {
+        Object[] content = axiom.collectContent(statement, config, factory);
+        axiom.content.put(axiom, content);
+        axiom.hashCode = axiom.collectHashCode(content);
+        return axiom;
     }
 
     @Override
-    public InternalConfig getConfig() {
-        return HasConfig.getConfig(model.get());
+    protected final Object[] collectContent() {
+        return collectContent(asStatement(), getConfig(), getObjectFactory());
     }
 
     /**
@@ -59,26 +82,49 @@ public abstract class ONTAxiomImpl extends ONTStatementImpl implements OWLAxiom,
      * @param f {@link InternalObjectFactory}, the factory, not {@code null}
      * @return Array of {@code Object}s
      * @see ONTExpressionImpl#collectContent(OntObject, InternalObjectFactory)
+     * @see ONTAnnotationImpl#collectContent(OntStatement, InternalObjectFactory)
      */
     protected abstract Object[] collectContent(OntStatement s, InternalConfig c, InternalObjectFactory f);
+
+    /**
+     * Collects all annotations as Array.
+     *
+     * @param statement {@link OntStatement}, not {@code null}
+     * @param config    {@link InternalConfig}, not {@code null}
+     * @param factory   {@link InternalObjectFactory}, not {@code null}
+     * @return an {@code Array} with all annotations
+     */
+    protected Object[] collectAnnotations(OntStatement statement,
+                                          InternalConfig config,
+                                          InternalObjectFactory factory) {
+        Set<ONTObject<OWLAnnotation>> res = createObjectSet();
+        ReadHelper.listAnnotations(statement, config, factory).forEachRemaining(res::add);
+        return res.toArray();
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public final X getAxiomWithoutAnnotations() {
+        return createAnnotatedAxiom(Collections.emptySet());
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public final <T extends OWLAxiom> T getAnnotatedAxiom(@Nonnull Stream<OWLAnnotation> annotations) {
+        return (T) createAnnotatedAxiom(appendAnnotations(annotations.iterator()));
+    }
+
+    /**
+     * Creates a fresh {@link X axiom}, that may not be from ONT-API model cache, but be rather system-wide.
+     *
+     * @param annotations a {@code Collection} of {@link OWLAnnotation}s to append to the axiom
+     * @return {@link X}
+     */
+    protected abstract X createAnnotatedAxiom(Collection<OWLAnnotation> annotations);
 
     @Override
     public OWLAxiom getNNF() {
         return accept(new NNF(getDataFactory()));
     }
 
-    protected Set<ONTObject<OWLAnnotation>> collectAnnotations(OntStatement s,
-                                                               InternalConfig c,
-                                                               InternalObjectFactory f) {
-        Set<ONTObject<OWLAnnotation>> res = createObjectSet();
-        ReadHelper.listAnnotations(s, c, f).forEachRemaining(res::add);
-        return res;
-    }
-
-    protected Collection<OWLAnnotation> appendAnnotations(Stream<OWLAnnotation> annotations) {
-        Set<OWLAnnotation> res = createSortedSet();
-        annotations.forEach(res::add);
-        annotations().forEach(res::add);
-        return res;
-    }
 }

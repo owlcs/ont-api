@@ -23,7 +23,6 @@ import ru.avicomp.ontapi.internal.objects.ONTSimpleAxiomImpl;
 import ru.avicomp.ontapi.jena.model.*;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.function.Supplier;
 
 /**
@@ -116,7 +115,7 @@ public class AnnotationAssertionTranslator
                                        Supplier<OntGraphModel> m,
                                        InternalObjectFactory of,
                                        InternalConfig c) {
-            return collect(new AxiomImpl(fromNode(s.getSubject()),
+            return init(new AxiomImpl(fromNode(s.getSubject()),
                     s.getPredicate().getURI(), fromNode(s.getObject()), m), s, of, c);
         }
 
@@ -176,12 +175,12 @@ public class AnnotationAssertionTranslator
         }
 
         @Override
-        protected void collectOperands(List<ONTObject<? extends OWLObject>> cache,
-                                       OntStatement s,
-                                       InternalObjectFactory f) {
-            cache.add(f.getSubject(s.getSubject(OntObject.class)));
-            cache.add(f.getProperty(s.getPredicate().as(OntNAP.class)));
-            cache.add(f.getValue(s.getObject()));
+        protected void collectOperands(Object[] cache,
+                                       OntStatement statement,
+                                       InternalObjectFactory factory) {
+            cache[0] = factory.getSubject(statement.getSubject(OntObject.class));
+            cache[1] = factory.getProperty(statement.getPredicate().as(OntNAP.class));
+            cache[2] = factory.getValue(statement.getObject());
         }
 
         @Override

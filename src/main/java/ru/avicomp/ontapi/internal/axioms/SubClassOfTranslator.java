@@ -19,7 +19,6 @@ import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLClassExpression;
-import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 import ru.avicomp.ontapi.internal.*;
 import ru.avicomp.ontapi.internal.objects.ONTSimpleAxiomImpl;
@@ -29,7 +28,6 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.utils.OntModels;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.function.Supplier;
 
 /**
@@ -113,8 +111,8 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
                                        Supplier<OntGraphModel> m,
                                        InternalObjectFactory of,
                                        InternalConfig c) {
-            return collect(new AxiomImpl(fromNode(s.getSubject()), s.getPredicate().getURI(),
-                    fromNode(s.getObject()), m), s, of, c);
+            return init(new AxiomImpl(fromNode(s.getSubject()),
+                    s.getPredicate().getURI(), fromNode(s.getObject()), m), s, of, c);
         }
 
         @Override
@@ -163,11 +161,11 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
         }
 
         @Override
-        protected void collectOperands(List<ONTObject<? extends OWLObject>> cache,
-                                       OntStatement s,
-                                       InternalObjectFactory f) {
-            cache.add(f.getClass(s.getSubject(OntCE.class)));
-            cache.add(f.getClass(s.getObject(OntCE.class)));
+        protected void collectOperands(Object[] cache,
+                                       OntStatement statement,
+                                       InternalObjectFactory factory) {
+            cache[0] = factory.getClass(statement.getSubject(OntCE.class));
+            cache[1] = factory.getClass(statement.getObject(OntCE.class));
         }
     }
 

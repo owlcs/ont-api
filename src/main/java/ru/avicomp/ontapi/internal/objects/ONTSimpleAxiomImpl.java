@@ -21,117 +21,80 @@ import ru.avicomp.ontapi.internal.InternalConfig;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
+import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 
-import javax.annotation.Nonnull;
-import java.util.*;
+import java.util.List;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
  * The base for simple axioms (usually for axioms that generate main triple).
+ * It has fixed number of operands.
  * Created by @szz on 04.09.2019.
  *
  * @param <X> - {@link OWLAxiom} subtype
  * @since 1.4.3
  */
-public abstract class ONTSimpleAxiomImpl<X extends OWLAxiom> extends ONTAxiomImpl {
+public abstract class ONTSimpleAxiomImpl<X extends OWLAxiom> extends ONTAxiomImpl<X> {
 
     protected ONTSimpleAxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
         super(subject, predicate, object, m);
     }
 
     /**
-     * Collects the cache for the given {@code axiom}, and returns the same object.
-     *
-     * @param axiom     {@link X}
-     * @param statement {@link OntStatement}
-     * @param factory   {@link InternalObjectFactory}
-     * @param config    {@link InternalConfig}
-     * @param <X>       subtype of {@link ONTSimpleAxiomImpl}
-     * @return the same {@code axiom}
-     */
-    protected static <X extends ONTSimpleAxiomImpl> X collect(X axiom,
-                                                              OntStatement statement,
-                                                              InternalObjectFactory factory,
-                                                              InternalConfig config) {
-        axiom.content.put(axiom, axiom.collectContent(statement, config, factory));
-        return axiom;
-    }
-
-    /**
-     * Gets the number of semantic operands.
-     * For axioms that generate main triple usually it equal {@code 2}.
-     *
-     * @return int
-     */
-    protected abstract int getOperandsNum();
-
-    /**
-     * Creates a fresh {@link X axiom}, that may not be from ONT-API model cache, but be rather system-wide.
-     *
-     * @param annotations a {@code Collection} of {@link OWLAnnotation}s to append to the axiom
-     * @return {@link X}
-     */
-    protected abstract X createAnnotatedAxiom(Collection<OWLAnnotation> annotations);
-
-    /**
      * Puts all the axiom's operands into the specified {@code List}.
      *
-     * @param cache {@code List} to modify (add)
-     * @param s     {@link OntStatement}, the source
-     * @param f     {@link InternalObjectFactory}, to produce instances
+     * @param cache     {@code Array} to modify
+     * @param statement {@link OntStatement}, the source
+     * @param factory   {@link InternalObjectFactory}, to produce instances
      */
-    protected abstract void collectOperands(List<ONTObject<? extends OWLObject>> cache,
-                                            OntStatement s,
-                                            InternalObjectFactory f);
+    protected abstract void collectOperands(Object[] cache,
+                                            OntStatement statement,
+                                            InternalObjectFactory factory);
 
-    @SuppressWarnings("unchecked")
-    @Override
+    /**
+     * Collects the cache.
+     *
+     * @param s {@link OntStatement}, the statement, not {@code null}
+     * @param c {@link InternalConfig}, the config, not {@code null}
+     * @param f {@link InternalObjectFactory}, the factory, not {@code null}
+     * @return Array of {@code Object}s
+     * @see ONTExpressionImpl#collectContent(OntObject, InternalObjectFactory)
+     * @see ONTAnnotationImpl#collectContent(OntStatement, InternalObjectFactory)
+     */
     protected final Object[] collectContent(OntStatement s, InternalConfig c, InternalObjectFactory f) {
-        Set<ONTObject<OWLAnnotation>> annotations = collectAnnotations(s, c, f);
-        List<ONTObject<? extends OWLObject>> res
-                = new ArrayList(annotations.isEmpty() ? getOperandsNum() : (getOperandsNum() + annotations.size()));
-        collectOperands(res, s, f);
-        if (!annotations.isEmpty()) {
-            res.addAll(annotations);
+
+        Object[] res;
+        Object[] annotations = collectAnnotations(s, c, f);
+        int n = getOperandsNum();
+        if (annotations.length > 0) {
+            res = new Object[n + 1];
+            res[n] = annotations;
+        } else {
+            res = new Object[n];
         }
-        return res.toArray();
+        collectOperands(res, s, f);
+        return res;
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public final X getAxiomWithoutAnnotations() {
-        return createAnnotatedAxiom(Collections.emptySet());
+    protected final int collectHashCode(Object[] content) {
+        return super.collectHashCode(content);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public final <T extends OWLAxiom> T getAnnotatedAxiom(@Nonnull Stream<OWLAnnotation> annotations) {
-        return (T) createAnnotatedAxiom(appendAnnotations(annotations));
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public final Stream<ONTObject<? extends OWLObject>> objects() {
-        List res = Arrays.asList(getContent());
-        return (Stream<ONTObject<? extends OWLObject>>) res.stream();
-    }
-
-    @SuppressWarnings("unchecked")
     public final Stream<OWLAnnotation> annotations() {
-        List it = Arrays.asList(getContent());
-        return (Stream<OWLAnnotation>) it.stream().skip(getOperandsNum());
+        return super.annotations();
     }
 
     @Override
     public final List<OWLAnnotation> annotationsAsList() {
-        return annotations().collect(Collectors.toList());
+        return super.annotationsAsList();
     }
 
     @Override
-    public final boolean isAnnotated() {
-        return getContent().length > getOperandsNum();
+    public final Stream<ONTObject<? extends OWLObject>> objects() {
+        return super.objects();
     }
 }
