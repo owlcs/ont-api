@@ -641,7 +641,7 @@ public class InternalModel extends OntGraphModelImpl
         ExtendedIterator<OntStatement> res = getSearchModel()
                 .listLocalStatements(WriteHelper.toResource(s), null, null)
                 .filterKeep(x -> t.testStatement(x, getConfig()));
-        return reduce(Iter.asStream(t.translate(this::getSearchModel, res, df, getConfig())
+        return reduce(Iter.asStream(t.translate(res, this::getSearchModel, df, getConfig())
                 .mapWith(ONTObject::getOWLObject)));
     }
 
@@ -661,7 +661,7 @@ public class InternalModel extends OntGraphModelImpl
         ExtendedIterator<OntStatement> res = getSearchModel()
                 .listLocalStatements(WriteHelper.toResource(sub), RDFS.subClassOf, null)
                 .filterKeep(t::filter);
-        return reduce(Iter.asStream(t.translate(this::getSearchModel, res, df, getConfig())
+        return reduce(Iter.asStream(t.translate(res, this::getSearchModel, df, getConfig())
                 .mapWith(ONTObject::getOWLObject)));
     }
 
@@ -684,7 +684,7 @@ public class InternalModel extends OntGraphModelImpl
         ExtendedIterator<OntStatement> res = m.listLocalStatements(r, OWL.equivalentClass, null)
                 .andThen(m.listLocalStatements(null, OWL.equivalentClass, r))
                 .filterKeep(s -> t.testStatement(s, getConfig()));
-        return reduce(Iter.asStream(t.translate(this::getSearchModel, res, df, getConfig())
+        return reduce(Iter.asStream(t.translate(res, this::getSearchModel, df, getConfig())
                 .mapWith(ONTObject::getOWLObject)));
     }
 
