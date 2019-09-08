@@ -17,9 +17,7 @@ package ru.avicomp.ontapi.internal.axioms;
 import org.apache.jena.graph.Node;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.util.iterator.NullIterator;
-import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
-import org.semanticweb.owlapi.model.OWLEntity;
+import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.internal.*;
 import ru.avicomp.ontapi.internal.objects.ONTSimpleAxiomImpl;
@@ -34,6 +32,7 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.Collection;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.Supplier;
 
 /**
@@ -177,6 +176,67 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
                             + statement));
             cache[0] = factory.getEntity(res);
         }
+
+        @Override
+        public boolean containsEntity(OWLEntity entity) {
+            if (isAnnotated() && (entity.isOWLAnnotationProperty() || entity.isOWLDatatype())) {
+                return super.containsEntity(entity);
+            }
+            return getEntity().equals(entity);
+        }
+
+        @Override
+        public Set<OWLClass> getNamedClassSet() {
+            OWLEntity res = getEntity();
+            return res.isOWLClass() ? createSet(res.asOWLClass()) : createSet();
+        }
+
+        @Override
+        public Set<OWLClassExpression> getClassExpressionSet() {
+            OWLEntity res = getEntity();
+            return res.isOWLClass() ? createSet(res.asOWLClass()) : createSet();
+        }
+
+        @Override
+        public Set<OWLNamedIndividual> getNamedIndividualSet() {
+            OWLEntity res = getEntity();
+            return res.isOWLNamedIndividual() ? createSet(res.asOWLNamedIndividual()) : createSet();
+        }
+
+        @Override
+        public Set<OWLDataProperty> getDataPropertySet() {
+            OWLEntity res = getEntity();
+            return res.isOWLDataProperty() ? createSet(res.asOWLDataProperty()) : createSet();
+        }
+
+        @Override
+        public Set<OWLObjectProperty> getObjectPropertySet() {
+            OWLEntity res = getEntity();
+            return res.isOWLObjectProperty() ? createSet(res.asOWLObjectProperty()) : createSet();
+        }
+
+        @Override
+        public Set<OWLDatatype> getDatatypeSet() {
+            if (isAnnotated())
+                return super.getDatatypeSet();
+            OWLEntity res = getEntity();
+            return res.isOWLDatatype() ? createSet(res.asOWLDatatype()) : createSet();
+        }
+
+        @Override
+        public Set<OWLAnnotationProperty> getAnnotationPropertySet() {
+            if (isAnnotated())
+                return super.getAnnotationPropertySet();
+            OWLEntity res = getEntity();
+            return res.isOWLAnnotationProperty() ? createSet(res.asOWLAnnotationProperty()) : createSet();
+        }
+
+        @Override
+        public Set<OWLAnonymousIndividual> getAnonymousIndividualSet() {
+            return isAnnotated() ? super.getAnonymousIndividualSet() : createSet();
+        }
+
+
     }
 
 }
