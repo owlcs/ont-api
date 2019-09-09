@@ -117,8 +117,14 @@ public abstract class ONTEntityImpl extends ONTResourceImpl implements OWLEntity
         return createSet();
     }
 
+    /**
+     * Answers {@code true} if the given {@code uri} is equal to the IRI of this object.
+     *
+     * @param uri {@link Resource}, not {@code null}
+     * @return boolean
+     */
     protected boolean equals(Resource uri) {
-        return uri.getURI().equals(node);
+        return node.equals(uri.getURI());
     }
 
     @Override

@@ -166,11 +166,13 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         return true;
     }
 
+    @FactoryAccessor
     @Override
     public OWLClassExpression getNNF() {
         return accept(getNNFClassVisitor());
     }
 
+    @FactoryAccessor
     @Override
     public OWLClassExpression getComplementNNF() {
         return getObjectComplementOf().accept(getNNFClassVisitor());
@@ -180,6 +182,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         return new NNF(getDataFactory()).getClassVisitor();
     }
 
+    @FactoryAccessor
     @Override
     public OWLObjectComplementOf getObjectComplementOf() {
         return getDataFactory().getOWLObjectComplementOf(this);
@@ -381,6 +384,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             return as(OntCE.ObjectHasValue.class);
         }
 
+        @FactoryAccessor
         @Override
         public OWLObjectSomeValuesFrom asSomeValuesFrom() {
             DataFactory df = getDataFactory();
@@ -483,6 +487,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             return as(OntCE.DataHasValue.class);
         }
 
+        @FactoryAccessor
         @Override
         public OWLDataSomeValuesFrom asSomeValuesFrom() {
             DataFactory df = getDataFactory();
@@ -542,6 +547,11 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             return createSet(getNamedProperty());
         }
 
+        /**
+         * Returns a named object property.
+         *
+         * @return {@link OWLObjectProperty}
+         */
         protected OWLObjectProperty getNamedProperty() {
             return getProperty().getNamedProperty();
         }
@@ -594,6 +604,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             return as(OntCE.ObjectCardinality.class);
         }
 
+        @FactoryAccessor
         @Override
         public OWLObjectIntersectionOf asIntersectionOfMinMax() {
             DataFactory df = getDataFactory();
@@ -622,6 +633,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             return as(OntCE.DataCardinality.class);
         }
 
+        @FactoryAccessor
         @Override
         public OWLObjectIntersectionOf asIntersectionOfMinMax() {
             DataFactory df = getDataFactory();
@@ -797,6 +809,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             return operands();
         }
 
+        @FactoryAccessor
         @Override
         public OWLClassExpression asObjectUnionOf() {
             Collection<ONTObject<? extends OWLIndividual>> values = getONTMembers();

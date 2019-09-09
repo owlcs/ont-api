@@ -108,16 +108,19 @@ public class ONTAnnotationImpl extends ONTStatementImpl implements OWLAnnotation
         return OWL.deprecated.getURI().equals(predicate) && Models.TRUE.asNode().getLiteral().equals(value);
     }
 
+    @FactoryAccessor
     @Override
     public OWLAnnotation getAnnotatedAnnotation(@Nonnull Stream<OWLAnnotation> annotations) {
         return createAnnotation(appendAnnotations(annotations.iterator()));
     }
 
+    @FactoryAccessor
     @Override
     public OWLAnnotation getAnnotatedAnnotation(@Nonnull Collection<OWLAnnotation> annotations) {
         return createAnnotation(appendAnnotations(annotations.iterator()));
     }
 
+    @FactoryAccessor
     protected OWLAnnotation createAnnotation(Collection<OWLAnnotation> annotations) {
         return getDataFactory().getOWLAnnotation(getProperty(), getValue(), annotations);
     }

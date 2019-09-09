@@ -442,6 +442,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
             return as(OntSWRL.Atom.ObjectProperty.class);
         }
 
+        @FactoryAccessor
         @Override
         public SWRLObjectPropertyAtom getSimplified() {
             OWLObjectPropertyExpression prop = getPredicate().getSimplified();

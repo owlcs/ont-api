@@ -81,16 +81,19 @@ public class ONTClassImpl extends ONTEntityImpl implements OWLClass, ONTObject<O
         return createSet(this);
     }
 
+    @FactoryAccessor
     @Override
     public OWLClassExpression getNNF() {
         return this;
     }
 
+    @FactoryAccessor
     @Override
     public OWLClassExpression getComplementNNF() {
         return getObjectComplementOf();
     }
 
+    @FactoryAccessor
     @Override
     public OWLObjectComplementOf getObjectComplementOf() {
         return getDataFactory().getOWLObjectComplementOf(this);

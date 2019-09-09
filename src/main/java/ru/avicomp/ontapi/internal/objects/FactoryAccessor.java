@@ -14,62 +14,25 @@
 
 package ru.avicomp.ontapi.internal.objects;
 
-import org.semanticweb.owlapi.model.OWLObjectInverseOf;
-import org.semanticweb.owlapi.model.OWLObjectProperty;
-import ru.avicomp.ontapi.internal.ONTObject;
-import ru.avicomp.ontapi.jena.model.OntGraphModel;
-import ru.avicomp.ontapi.jena.model.OntNOP;
-import ru.avicomp.ontapi.jena.vocabulary.OWL;
-
-import java.util.Set;
-import java.util.function.Supplier;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * An {@link OWLObjectProperty} implementation that is also {@link ONTObject}.
- * Created by @ssz on 09.08.2019.
+ * A technical annotation-marker.
+ * Indicates that a method of a class {@link ru.avicomp.ontapi.internal.ONTObject}-implementation
+ * produces an {@link org.semanticweb.owlapi.model.OWLObject} instance,
+ * that does not actually belong to an ontology graph.
+ * Such {@link org.semanticweb.owlapi.model.OWLObject}s should not contain a reference to a model,
+ * and, therefore, corresponding methods behave just like any of
+ * the {@link ru.avicomp.ontapi.DataFactory DataFactory} getters.
+ * <p>
+ * Created by @ssz on 09.09.2019.
  *
- * @see ru.avicomp.ontapi.owlapi.objects.entity.OWLObjectPropertyImpl
  * @since 1.4.3
  */
-public class ONTObjectPropertyImpl extends ONTEntityImpl implements OWLObjectProperty, ONTObject<OWLObjectProperty> {
-
-    public ONTObjectPropertyImpl(String uri, Supplier<OntGraphModel> m) {
-        super(uri, m);
-    }
-
-    @Override
-    public OntNOP asRDFNode() {
-        return as(OntNOP.class);
-    }
-
-    @Override
-    public OWLObjectProperty getOWLObject() {
-        return this;
-    }
-
-    @Override
-    public Set<OWLObjectProperty> getObjectPropertySet() {
-        return createSet(this);
-    }
-
-    @FactoryAccessor
-    @Override
-    public OWLObjectInverseOf getInverseProperty() {
-        return getDataFactory().getOWLObjectInverseOf(this);
-    }
-
-    @Override
-    public boolean isOWLTopObjectProperty() {
-        return equals(OWL.topObjectProperty);
-    }
-
-    @Override
-    public boolean isOWLBottomObjectProperty() {
-        return equals(OWL.bottomObjectProperty);
-    }
-
-    @Override
-    public boolean isObjectProperty() {
-        return true;
-    }
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.SOURCE)
+@interface FactoryAccessor {
 }

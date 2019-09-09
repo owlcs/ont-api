@@ -103,23 +103,26 @@ public abstract class ONTAxiomImpl<X extends OWLAxiom> extends ONTStatementImpl 
     }
 
     @SuppressWarnings("unchecked")
+    @FactoryAccessor
     @Override
     public final X getAxiomWithoutAnnotations() {
         return createAnnotatedAxiom(Collections.emptySet());
     }
 
     @SuppressWarnings("unchecked")
+    @FactoryAccessor
     @Override
     public final <T extends OWLAxiom> T getAnnotatedAxiom(@Nonnull Stream<OWLAnnotation> annotations) {
         return (T) createAnnotatedAxiom(appendAnnotations(annotations.iterator()));
     }
 
     /**
-     * Creates a fresh {@link X axiom}, that may not be from ONT-API model cache, but be rather system-wide.
+     * Creates a fresh system-wide {@link X axiom}.
      *
      * @param annotations a {@code Collection} of {@link OWLAnnotation}s to append to the axiom
      * @return {@link X}
      */
+    @FactoryAccessor
     protected abstract X createAnnotatedAxiom(Collection<OWLAnnotation> annotations);
 
     @Override
