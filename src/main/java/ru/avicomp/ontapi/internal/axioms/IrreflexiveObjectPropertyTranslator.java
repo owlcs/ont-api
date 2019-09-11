@@ -58,7 +58,7 @@ public class IrreflexiveObjectPropertyTranslator
         ONTObject<? extends OWLObjectPropertyExpression> p = reader.getProperty(getSubject(statement));
         Collection<ONTObject<OWLAnnotation>> annotations = reader.getAnnotations(statement, config);
         OWLIrreflexiveObjectPropertyAxiom res = reader.getOWLDataFactory()
-                .getOWLIrreflexiveObjectPropertyAxiom(p.getOWLObject(), ONTObject.extract(annotations));
+                .getOWLIrreflexiveObjectPropertyAxiom(p.getOWLObject(), ONTObject.toSet(annotations));
         return ONTWrapperImpl.create(res, statement).append(annotations).append(p);
     }
 

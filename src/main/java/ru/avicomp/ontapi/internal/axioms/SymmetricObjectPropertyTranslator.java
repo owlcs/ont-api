@@ -55,7 +55,7 @@ public class SymmetricObjectPropertyTranslator extends AbstractPropertyTypeTrans
         ONTObject<? extends OWLObjectPropertyExpression> p = reader.getProperty(getSubject(statement));
         Collection<ONTObject<OWLAnnotation>> annotations = reader.getAnnotations(statement, config);
         OWLSymmetricObjectPropertyAxiom res = reader.getOWLDataFactory()
-                .getOWLSymmetricObjectPropertyAxiom(p.getOWLObject(), ONTObject.extract(annotations));
+                .getOWLSymmetricObjectPropertyAxiom(p.getOWLObject(), ONTObject.toSet(annotations));
         return ONTWrapperImpl.create(res, statement).append(annotations).append(p);
     }
 

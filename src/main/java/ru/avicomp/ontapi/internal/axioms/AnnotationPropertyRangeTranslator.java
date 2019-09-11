@@ -72,7 +72,7 @@ public class AnnotationPropertyRangeTranslator
         ONTObject<IRI> d = reader.getIRI(statement.getResource().getURI());
         Collection<ONTObject<OWLAnnotation>> annotations = reader.getAnnotations(statement, config);
         OWLAnnotationPropertyRangeAxiom res = reader.getOWLDataFactory()
-                .getOWLAnnotationPropertyRangeAxiom(p.getOWLObject(), d.getOWLObject(), ONTObject.extract(annotations));
+                .getOWLAnnotationPropertyRangeAxiom(p.getOWLObject(), d.getOWLObject(), ONTObject.toSet(annotations));
         return ONTWrapperImpl.create(res, statement).append(annotations).append(p).append(d);
     }
 

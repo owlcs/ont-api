@@ -55,7 +55,7 @@ public class FunctionalObjectPropertyTranslator extends AbstractPropertyTypeTran
         ONTObject<? extends OWLObjectPropertyExpression> p = reader.getProperty(getSubject(statement));
         Collection<ONTObject<OWLAnnotation>> annotations = reader.getAnnotations(statement, config);
         OWLFunctionalObjectPropertyAxiom res = reader.getOWLDataFactory()
-                .getOWLFunctionalObjectPropertyAxiom(p.getOWLObject(), ONTObject.extract(annotations));
+                .getOWLFunctionalObjectPropertyAxiom(p.getOWLObject(), ONTObject.toSet(annotations));
         return ONTWrapperImpl.create(res, statement).append(annotations).append(p);
     }
 

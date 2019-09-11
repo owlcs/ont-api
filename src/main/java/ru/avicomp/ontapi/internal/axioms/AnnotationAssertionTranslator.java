@@ -97,7 +97,7 @@ public class AnnotationAssertionTranslator
         Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);
         OWLAnnotationAssertionAxiom res = factory.getOWLDataFactory()
                 .getOWLAnnotationAssertionAxiom(p.getOWLObject(), s.getOWLObject(), v.getOWLObject(),
-                        ONTObject.extract(annotations));
+                        ONTObject.toSet(annotations));
         return ONTWrapperImpl.create(res, statement).append(annotations).append(s).append(p).append(v);
     }
 

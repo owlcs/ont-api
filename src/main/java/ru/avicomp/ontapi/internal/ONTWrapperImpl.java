@@ -120,7 +120,7 @@ public abstract class ONTWrapperImpl<O extends OWLObject> implements ONTObject<O
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof ONTObject)) return false;
-        ONTObject<?> that = (ONTWrapperImpl<?>) o;
+        ONTObject<?> that = (ONTObject<?>) o;
         return object.equals(that.getOWLObject());
     }
 

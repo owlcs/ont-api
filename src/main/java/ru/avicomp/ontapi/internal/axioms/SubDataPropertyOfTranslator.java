@@ -57,7 +57,7 @@ public class SubDataPropertyOfTranslator extends AbstractSubPropertyTranslator<O
         ONTObject<OWLDataProperty> sup = reader.getProperty(statement.getObject().as(OntNDP.class));
         Collection<ONTObject<OWLAnnotation>> annotations = reader.getAnnotations(statement, config);
         OWLSubDataPropertyOfAxiom res = reader.getOWLDataFactory()
-                .getOWLSubDataPropertyOfAxiom(sub.getOWLObject(), sup.getOWLObject(), ONTObject.extract(annotations));
+                .getOWLSubDataPropertyOfAxiom(sub.getOWLObject(), sup.getOWLObject(), ONTObject.toSet(annotations));
         return ONTWrapperImpl.create(res, statement).append(annotations).append(sub).append(sup);
     }
 

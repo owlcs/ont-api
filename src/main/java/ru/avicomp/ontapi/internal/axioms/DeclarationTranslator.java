@@ -85,7 +85,7 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
         ONTObject<? extends OWLEntity> entity = reader.getEntity(e);
         Collection<ONTObject<OWLAnnotation>> annotations = reader.getAnnotations(statement, config);
         OWLDeclarationAxiom res = reader.getOWLDataFactory().getOWLDeclarationAxiom(entity.getOWLObject(),
-                ONTObject.extract(annotations));
+                ONTObject.toSet(annotations));
         return ONTWrapperImpl.create(res, statement).append(annotations);
     }
 

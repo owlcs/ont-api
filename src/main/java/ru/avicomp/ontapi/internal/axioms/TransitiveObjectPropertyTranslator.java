@@ -55,7 +55,7 @@ public class TransitiveObjectPropertyTranslator extends AbstractPropertyTypeTran
         ONTObject<? extends OWLObjectPropertyExpression> p = reader.getProperty(getSubject(statement));
         Collection<ONTObject<OWLAnnotation>> annotations = reader.getAnnotations(statement, config);
         OWLTransitiveObjectPropertyAxiom res = reader.getOWLDataFactory()
-                .getOWLTransitiveObjectPropertyAxiom(p.getOWLObject(), ONTObject.extract(annotations));
+                .getOWLTransitiveObjectPropertyAxiom(p.getOWLObject(), ONTObject.toSet(annotations));
         return ONTWrapperImpl.create(res, statement).append(annotations).append(p);
     }
 

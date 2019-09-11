@@ -61,7 +61,7 @@ public class EquivalentDataPropertiesTranslator
         ONTObject<OWLDataProperty> b = reader.getProperty(statement.getObject().as(getView()));
         Collection<ONTObject<OWLAnnotation>> annotations = reader.getAnnotations(statement, config);
         OWLEquivalentDataPropertiesAxiom res = reader.getOWLDataFactory()
-                .getOWLEquivalentDataPropertiesAxiom(a.getOWLObject(), b.getOWLObject(), ONTObject.extract(annotations));
+                .getOWLEquivalentDataPropertiesAxiom(a.getOWLObject(), b.getOWLObject(), ONTObject.toSet(annotations));
         return ONTWrapperImpl.create(res, statement).append(annotations).append(a).append(b);
     }
 

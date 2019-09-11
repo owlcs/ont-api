@@ -69,7 +69,7 @@ public class DataPropertyAssertionTranslator
         Collection<ONTObject<OWLAnnotation>> annotations = reader.getAnnotations(statement, config);
         OWLDataPropertyAssertionAxiom res = reader.getOWLDataFactory()
                 .getOWLDataPropertyAssertionAxiom(p.getOWLObject(), i.getOWLObject(), literal.getOWLObject(),
-                        ONTObject.extract(annotations));
+                        ONTObject.toSet(annotations));
         return ONTWrapperImpl.create(res, statement).append(annotations).append(i).append(p).append(literal);
     }
 

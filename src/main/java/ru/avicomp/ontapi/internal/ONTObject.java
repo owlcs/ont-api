@@ -32,18 +32,6 @@ import java.util.stream.Stream;
  */
 public interface ONTObject<O extends OWLObject> {
 
-    static <X extends OWLObject> Set<X> extract(Collection<? extends ONTObject<X>> wraps) {
-        return objects(wraps).collect(Collectors.toSet());
-    }
-
-    static <X extends OWLObject> Set<X> extractWildcards(Collection<? extends ONTObject<? extends X>> wraps) {
-        return wraps.stream().map(ONTObject::getOWLObject).collect(Collectors.toSet());
-    }
-
-    static <X extends OWLObject> Stream<X> objects(Collection<? extends ONTObject<X>> objects) {
-        return objects.stream().map(ONTObject::getOWLObject);
-    }
-
     /**
      * Gets the associated {@link O}.
      *
@@ -70,4 +58,25 @@ public interface ONTObject<O extends OWLObject> {
         return res;
     }
 
+    /**
+     * Accumulates the input {@link OWLObject}s extracted from {@link ONTObject}-containers into a {@code Set}.
+     *
+     * @param objects a {@code Collection} of {@link ONTObject}s, not {@code null}
+     * @param <X>     a type of {@link OWLObject}
+     * @return a {@code Set} of {@link X}s
+     */
+    static <X extends OWLObject> Set<X> toSet(Collection<? extends ONTObject<? extends X>> objects) {
+        return objects(objects).collect(Collectors.toSet());
+    }
+
+    /**
+     * Lists all {@link OWLObject}s from the collection of {@link ONTObject}s
+     *
+     * @param objects a {@code Collection} of {@link ONTObject}s, not {@code null}
+     * @param <X>     a type of {@link OWLObject}
+     * @return a {@code Stream} of {@link X}s
+     */
+    static <X extends OWLObject> Stream<X> objects(Collection<? extends ONTObject<? extends X>> objects) {
+        return objects.stream().map(ONTObject::getOWLObject);
+    }
 }

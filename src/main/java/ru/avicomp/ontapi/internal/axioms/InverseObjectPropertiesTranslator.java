@@ -71,7 +71,7 @@ public class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInvers
         ONTObject<? extends OWLObjectPropertyExpression> s = reader.getProperty(statement.getObject().as(OntOPE.class));
         Collection<ONTObject<OWLAnnotation>> annotations = reader.getAnnotations(statement, config);
         OWLInverseObjectPropertiesAxiom res = reader.getOWLDataFactory()
-                .getOWLInverseObjectPropertiesAxiom(f.getOWLObject(), s.getOWLObject(), ONTObject.extract(annotations));
+                .getOWLInverseObjectPropertiesAxiom(f.getOWLObject(), s.getOWLObject(), ONTObject.toSet(annotations));
         return ONTWrapperImpl.create(res, statement).append(annotations).append(f).append(s);
     }
 
