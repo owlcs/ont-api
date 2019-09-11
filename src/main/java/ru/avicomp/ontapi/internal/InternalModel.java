@@ -931,6 +931,8 @@ public class InternalModel extends OntGraphModelImpl
     protected boolean add(OWLContentType key, OWLObject container) throws OntApiException {
         OWLTriples.Listener listener = OWLTriples.createListener();
         GraphEventManager evm = getGraph().getEventManager();
+        ObjectMap<OWLObject> map = getContentCache(key);
+        map.load(); // before graph modification
         try {
             disableDirectListening();
             evm.register(listener);
@@ -949,7 +951,7 @@ public class InternalModel extends OntGraphModelImpl
             LOGGER.warn("Attempt to add empty OWL object: {}", container);
             return false;
         }
-        getContentCache(key).add(value);
+        map.add(value);
         // put new components into objects cache
         cacheComponents(container);
         // clear search model and object factory
