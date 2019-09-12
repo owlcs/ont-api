@@ -103,6 +103,7 @@ public interface InternalObjectFactory {
      * @return a {@code Collection} of {@link OWLAnnotation}s as {@link ONTObject}s
      */
     default Collection<ONTObject<OWLAnnotation>> getAnnotations(OntStatement axiom, InternalConfig config) {
+        // todo: merge ? see https://github.com/avicomp/ont-api/issues/105
         return ReadHelper.listAnnotations(axiom, config, this).toSet();
     }
 

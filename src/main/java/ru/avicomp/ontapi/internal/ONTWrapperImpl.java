@@ -32,7 +32,7 @@ import java.util.stream.Stream;
  *
  * @param <O> any subtype of {@link OWLObject}
  */
-public abstract class ONTWrapperImpl<O extends OWLObject> implements ONTObject<O> {
+public abstract class ONTWrapperImpl<O extends OWLObject> implements ONTObject<O>, WithMerge<ONTObject<O>> {
     private final O object;
 
     protected ONTWrapperImpl(O object) {
@@ -84,9 +84,9 @@ public abstract class ONTWrapperImpl<O extends OWLObject> implements ONTObject<O
         };
     }
 
-    @SuppressWarnings("WeakerAccess")
-    protected static <X extends OWLObject> ONTWrapperImpl<X> asImpl(ONTObject<X> obj) {
-        return obj instanceof ONTWrapperImpl ? (ONTWrapperImpl<X>) obj : create(obj);
+    @Override
+    public ONTWrapperImpl<O> merge(ONTObject<O> other) {
+        return append(other);
     }
 
     /**

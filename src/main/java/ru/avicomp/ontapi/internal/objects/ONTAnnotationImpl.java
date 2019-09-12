@@ -15,13 +15,11 @@
 package ru.avicomp.ontapi.internal.objects;
 
 import org.apache.jena.graph.BlankNodeId;
+import org.apache.jena.graph.Triple;
 import org.apache.jena.graph.impl.LiteralLabel;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.OntApiException;
-import ru.avicomp.ontapi.internal.InternalObjectFactory;
-import ru.avicomp.ontapi.internal.ModelObjectFactory;
-import ru.avicomp.ontapi.internal.ONTObject;
-import ru.avicomp.ontapi.internal.ReadHelper;
+import ru.avicomp.ontapi.internal.*;
 import ru.avicomp.ontapi.jena.model.OntAnnotation;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
@@ -44,7 +42,8 @@ import java.util.stream.Stream;
  * @since 1.4.3
  */
 @SuppressWarnings("WeakerAccess")
-public class ONTAnnotationImpl extends ONTStatementImpl implements OWLAnnotation, ONTObject<OWLAnnotation> {
+public class ONTAnnotationImpl extends ONTStatementImpl
+        implements OWLAnnotation, ONTObject<OWLAnnotation>, WithMerge<ONTObject<OWLAnnotation>> {
 
     protected ONTAnnotationImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
         super(subject, predicate, object, m);
@@ -218,5 +217,27 @@ public class ONTAnnotationImpl extends ONTStatementImpl implements OWLAnnotation
     @Override
     public boolean canContainClassExpressions() {
         return false;
+    }
+
+    @Override
+    public ONTAnnotationImpl merge(ONTObject<OWLAnnotation> other) {
+        if (this == other) {
+            return this;
+        }
+        if (other instanceof ONTAnnotationImpl && sameAs((ONTAnnotationImpl) other)) {
+            return this;
+        }
+        ONTAnnotationImpl res = new ONTAnnotationImpl(subject, predicate, object, model) {
+
+            @Override
+            public Stream<Triple> triples() {
+                return Stream.concat(super.triples(), other.triples());
+            }
+        };
+        res.hashCode = hashCode;
+        if (!content.isEmpty()) {
+            res.content.put(res, getContent());
+        }
+        return res;
     }
 }

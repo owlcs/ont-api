@@ -98,6 +98,7 @@ public abstract class ONTAxiomImpl<X extends OWLAxiom> extends ONTStatementImpl 
                                           InternalConfig config,
                                           InternalObjectFactory factory) {
         Set<ONTObject<OWLAnnotation>> res = createObjectSet();
+        // todo: merge ? see https://github.com/avicomp/ont-api/issues/105
         ReadHelper.listAnnotations(statement, config, factory).forEachRemaining(res::add);
         return res.toArray();
     }
