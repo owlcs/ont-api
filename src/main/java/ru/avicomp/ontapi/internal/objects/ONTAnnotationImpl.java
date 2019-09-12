@@ -155,10 +155,14 @@ public class ONTAnnotationImpl extends ONTStatementImpl implements OWLAnnotation
     protected Object[] collectContent(OntStatement root, InternalObjectFactory of) {
         Object[] res;
         if (root.getSubject().getAs(OntAnnotation.class) != null || root.hasAnnotations()) {
-            res = new Object[3];
             Set<ONTObject<OWLAnnotation>> sub = createObjectSet();
             OntModels.listAnnotations(root).mapWith(of::getAnnotation).forEachRemaining(sub::add);
-            res[2] = sub.toArray();
+            if (sub.isEmpty()) {
+                res = new Object[2];
+            } else {
+                res = new Object[3];
+                res[2] = sub.toArray();
+            }
         } else {
             res = new Object[2];
         }
