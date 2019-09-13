@@ -17,10 +17,7 @@ package ru.avicomp.ontapi.internal.objects;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.util.NNF;
-import ru.avicomp.ontapi.internal.InternalConfig;
-import ru.avicomp.ontapi.internal.InternalObjectFactory;
-import ru.avicomp.ontapi.internal.ONTObject;
-import ru.avicomp.ontapi.internal.ReadHelper;
+import ru.avicomp.ontapi.internal.*;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntStatement;
@@ -28,7 +25,8 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
 import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Set;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -97,10 +95,9 @@ public abstract class ONTAxiomImpl<X extends OWLAxiom> extends ONTStatementImpl 
     protected Object[] collectAnnotations(OntStatement statement,
                                           InternalConfig config,
                                           InternalObjectFactory factory) {
-        Set<ONTObject<OWLAnnotation>> res = createObjectSet();
-        // todo: merge ? see https://github.com/avicomp/ont-api/issues/105
-        ReadHelper.listAnnotations(statement, config, factory).forEachRemaining(res::add);
-        return res.toArray();
+        Map<OWLAnnotation, ONTObject<OWLAnnotation>> res = new TreeMap<>();
+        ReadHelper.listAnnotations(statement, config, factory).forEachRemaining(x -> WithMerge.add(res, x));
+        return res.values().toArray();
     }
 
     @SuppressWarnings("unchecked")

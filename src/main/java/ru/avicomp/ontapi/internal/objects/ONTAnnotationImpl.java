@@ -29,7 +29,8 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
-import java.util.Set;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -154,13 +155,13 @@ public class ONTAnnotationImpl extends ONTStatementImpl
     protected Object[] collectContent(OntStatement root, InternalObjectFactory of) {
         Object[] res;
         if (root.getSubject().getAs(OntAnnotation.class) != null || root.hasAnnotations()) {
-            Set<ONTObject<OWLAnnotation>> sub = createObjectSet();
-            OntModels.listAnnotations(root).mapWith(of::getAnnotation).forEachRemaining(sub::add);
+            Map<OWLAnnotation, ONTObject<OWLAnnotation>> sub = new TreeMap<>();
+            OntModels.listAnnotations(root).mapWith(of::getAnnotation).forEachRemaining(x -> WithMerge.add(sub, x));
             if (sub.isEmpty()) {
                 res = new Object[2];
             } else {
                 res = new Object[3];
-                res[2] = sub.toArray();
+                res[2] = sub.values().toArray();
             }
         } else {
             res = new Object[2];

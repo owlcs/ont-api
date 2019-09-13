@@ -24,6 +24,8 @@ import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.OntModels;
 
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Internal Object Factory to map {@link OntObject} =&gt; {@link OWLObject}.
@@ -103,8 +105,9 @@ public interface InternalObjectFactory {
      * @return a {@code Collection} of {@link OWLAnnotation}s as {@link ONTObject}s
      */
     default Collection<ONTObject<OWLAnnotation>> getAnnotations(OntStatement axiom, InternalConfig config) {
-        // todo: merge ? see https://github.com/avicomp/ont-api/issues/105
-        return ReadHelper.listAnnotations(axiom, config, this).toSet();
+        Map<OWLAnnotation, ONTObject<OWLAnnotation>> res = new HashMap<>();
+        ReadHelper.listAnnotations(axiom, config, this).forEachRemaining(x -> WithMerge.add(res, x));
+        return res.values();
     }
 
     /**

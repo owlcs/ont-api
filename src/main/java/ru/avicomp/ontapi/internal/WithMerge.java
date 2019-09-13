@@ -16,6 +16,9 @@ package ru.avicomp.ontapi.internal;
 
 import org.semanticweb.owlapi.model.OWLObject;
 
+import java.util.Map;
+import java.util.function.BiFunction;
+
 /**
  * A technical interface that describes a merge operation.
  * An object that implements this interface can be merged with another one.
@@ -35,19 +38,36 @@ public interface WithMerge<X extends ONTObject> {
     X merge(X other);
 
     /**
-     * Merges two objects to a new one.
+     * A {@link BiFunction} that accepts two {@link ONTObject}s and returns a fresh {@link ONTObject}.
+     * For internal usage only.
+     * @see #getMerger()
+     */
+    @SuppressWarnings("unchecked")
+    BiFunction ONT_OBJECT_MERGER = (left, right) -> ((WithMerge<ONTObject>) left).merge((ONTObject) right);
+
+    /**
+     * Returns a merge that maps two objects to a new one.
      * These two objects must be equal (see {@link Object#equals(Object)})
      * and both must implement {@link WithMerge} interface.
      * For internal usage only.
      *
-     * @param left  {@link ONTObject}, not {@code null}
-     * @param right {@link ONTObject}, not {@code null}
-     * @param <X>   subtype of {@link ONTObject} and {@link WithMerge}
-     * @return a new {@link X} which equal to {@code left}
-     * @throws ClassCastException if the given objects do not implement {@link WithMerge}
+     * @param <X> a subtype of {@link OWLObject}
+     * @return a merger as a {@code BiFunction}
      */
     @SuppressWarnings("unchecked")
-    static <X extends OWLObject> ONTObject<X> merge(ONTObject<X> left, ONTObject<X> right) throws ClassCastException {
-        return ((WithMerge<ONTObject<X>>) left).merge(right);
+    static <X extends OWLObject> BiFunction<ONTObject<X>, ONTObject<X>, ONTObject<X>> getMerger() {
+        return (BiFunction<ONTObject<X>, ONTObject<X>, ONTObject<X>>) ONT_OBJECT_MERGER;
+    }
+
+    /**
+     * Adds the given {@code value}, that is an {@code ONTObject},
+     * into the specified {@code map} of {@link OWLObject}s.
+     *
+     * @param map   {@code Map} to add new value, not {@code null}
+     * @param value {@link ONTObject}, the value, not {@code null}
+     * @param <X>   a subtype of {@link OWLObject}
+     */
+    static <X extends OWLObject> void add(Map<X, ONTObject<X>> map, ONTObject<X> value) {
+        map.merge(value.getOWLObject(), value, getMerger());
     }
 }

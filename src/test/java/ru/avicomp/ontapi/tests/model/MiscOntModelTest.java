@@ -14,6 +14,7 @@
 
 package ru.avicomp.ontapi.tests.model;
 
+import org.apache.jena.vocabulary.RDFS;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
@@ -32,6 +33,29 @@ import java.util.Collections;
  * Created by @szuev on 20.07.2018.
  */
 public class MiscOntModelTest extends OntModelTestBase {
+
+    @Test
+    public void testRemoveAxiomWithDuplicatedAnnotations() {
+        OntologyModel o = OntManagers.createONT().createOntology();
+        OntGraphModel g = o.asGraphModel();
+        OntStatement s = g.createOntClass("X").addSubClassOfStatement(g.createOntClass("Y"));
+        int duplicates = 2;
+        for (int i = 0; i < duplicates; i++) {
+            g.createResource(OWL.Axiom)
+                    .addProperty(RDFS.comment, "XY")
+                    .addProperty(OWL.annotatedProperty, s.getPredicate())
+                    .addProperty(OWL.annotatedSource, s.getSubject())
+                    .addProperty(OWL.annotatedTarget, s.getObject());
+        }
+        ReadWriteUtils.print(g);
+        Assert.assertEquals(3, o.getAxiomCount());
+
+        OWLSubClassOfAxiom owl = o.axioms(AxiomType.SUBCLASS_OF)
+                .findFirst().orElseThrow(AssertionError::new);
+        o.remove(owl);
+        ReadWriteUtils.print(g);
+        Assert.assertEquals(3, g.size());
+    }
 
     @Test
     public void testGraphIsUnchangedInCaseOfError() {

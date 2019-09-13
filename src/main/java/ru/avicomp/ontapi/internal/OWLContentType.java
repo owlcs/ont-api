@@ -252,6 +252,7 @@ public enum OWLContentType {
      * </ul>
      *
      * @return boolean
+     * @see WithMerge
      */
     public boolean isDistinct() {
         return distinct;
