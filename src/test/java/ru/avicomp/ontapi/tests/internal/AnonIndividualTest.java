@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
  * Created by @ssz on 13.08.2019.
  */
 @RunWith(Parameterized.class)
-public class AnonIndividualTest extends ObjectFactoryTest {
+public class AnonIndividualTest extends ObjectFactoryTestBase {
 
     public AnonIndividualTest(Data data) {
         super(data);

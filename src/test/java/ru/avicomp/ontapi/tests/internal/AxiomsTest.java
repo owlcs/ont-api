@@ -25,8 +25,6 @@ import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.internal.ONTObject;
-import ru.avicomp.ontapi.internal.objects.ONTStatementImpl;
-import ru.avicomp.ontapi.owlapi.OWLObjectImpl;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,7 +33,7 @@ import java.util.stream.Collectors;
  * Created by @ssz on 03.09.2019.
  */
 @RunWith(Parameterized.class)
-public class AxiomsTest extends ObjectFactoryTest {
+public class AxiomsTest extends StatementTestBase {
 
     public AxiomsTest(Data data) {
         super(data);
@@ -80,10 +78,5 @@ public class AxiomsTest extends ObjectFactoryTest {
         if (AxiomType.DECLARATION.equals(a.getAxiomType())) { // to allow annotations for declaration:
             m.getOntologyConfigurator().setLoadAnnotationAxioms(false);
         }
-    }
-
-    @Override
-    Class<? extends OWLObjectImpl> getCacheFrameType() {
-        return ONTStatementImpl.class;
     }
 }

@@ -54,15 +54,18 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
      * Wraps the given {@link OntDR} as {@link OWLDataRange} and {@link ONTObject}.
      *
      * @param dr    {@link OntDR}, not {@code null}, must be anonymous
+     * @param factory {@link InternalObjectFactory}, not {@code null}
      * @param model a provider of non-null {@link OntGraphModel}, not {@code null}
      * @return {@link ONTAnonymousDataRangeImpl} instance
      */
     @SuppressWarnings("unchecked")
-    public static ONTAnonymousDataRangeImpl create(OntDR dr, Supplier<OntGraphModel> model) {
+    public static ONTAnonymousDataRangeImpl create(OntDR dr,
+                                                   InternalObjectFactory factory,
+                                                   Supplier<OntGraphModel> model) {
         Class<? extends OntDR> type = OntModels.getOntType(dr);
         BlankNodeId id = dr.asNode().getBlankNodeId();
         ONTAnonymousDataRangeImpl res = create(id, type, model);
-        res.content.put(res, res.collectContent(dr, res.getObjectFactory()));
+        res.putContent(res.collectContent(dr, factory));
         return res;
     }
 

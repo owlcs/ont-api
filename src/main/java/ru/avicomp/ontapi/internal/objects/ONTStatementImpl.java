@@ -26,8 +26,9 @@ import ru.avicomp.ontapi.jena.model.OntAnnotation;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 
-import javax.annotation.Nullable;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -41,7 +42,8 @@ import java.util.stream.Stream;
  * @since 1.4.3
  */
 @SuppressWarnings("WeakerAccess")
-public abstract class ONTStatementImpl extends ONTBaseTripleImpl implements ONTComposite, HasConfig {
+public abstract class ONTStatementImpl extends ONTBaseTripleImpl
+        implements ONTComposite, HasConfig, WithContent<ONTStatementImpl> {
     /**
      * A cache, an {@code Array} of content, the last element is reserved for annotations,
      * which are also presented as {@code Object[]}.
@@ -53,27 +55,13 @@ public abstract class ONTStatementImpl extends ONTBaseTripleImpl implements ONTC
         this.content = createContent();
     }
 
-    /**
-     * Creates a content-container, which is used as a cache for different {@code ONTObject} parts.
-     *
-     * @return {@link InternalCache.Loading}
-     */
-    protected InternalCache.Loading<ONTStatementImpl, Object[]> createContent() {
-        return InternalCache.createSoftSingleton(x -> collectContent());
-    }
-
     @Override
     public InternalConfig getConfig() {
         return HasConfig.getConfig(model.get());
     }
 
-    /**
-     * Collects the cache.
-     *
-     * @return {@code Array} of {@code Object}s
-     * @see ONTExpressionImpl#collectContent()
-     */
-    protected abstract Object[] collectContent();
+    @Override
+    public abstract Object[] collectContent();
 
     /**
      * Gets the number of semantic operands.
@@ -105,34 +93,31 @@ public abstract class ONTStatementImpl extends ONTBaseTripleImpl implements ONTC
         return OWLObject.hashIteration(res, n == content.length ? 1 : Arrays.hashCode((Object[]) content[n]));
     }
 
-    /**
-     * Gets the content from the cache.
-     *
-     * @return {@code Array} of {@code Object}s
-     * @see ONTExpressionImpl#getContent()
-     */
-    protected Object[] getContent() {
+    @Override
+    public Object[] getContent() {
         return content.get(this);
     }
 
-    /**
-     * Answers {@code true} if this statement (axiom or annotation) has sub-annotations.
-     *
-     * @return boolean
-     * @see org.semanticweb.owlapi.model.OWLAxiom#isAnnotated()
-     */
+    @Override
+    public void putContent(Object[] content) {
+        this.content.put(this, content);
+    }
+
+    @Override
+    public boolean hasContent() {
+        return content.isEmpty();
+    }
+
+    @Override
+    public void clearContent() {
+        content.clear();
+    }
+
+    @Override
     public boolean isAnnotated() {
         return getContent().length > getOperandsNum();
     }
 
-    /**
-     * Lists all {@link OWLAnnotation}s on this object.
-     * The stream is {@link Spliterator#ORDERED ordered}, {@link Spliterator#NONNULL nonull},
-     * {@link Spliterator#DISTINCT distinct} and {@link Spliterator#SORTED sorted}.
-     *
-     * @return a {@code Stream} of {@link OWLAnnotation}s
-     * @see org.semanticweb.owlapi.model.HasAnnotations#annotations()
-     */
     @SuppressWarnings("unchecked")
     public Stream<OWLAnnotation> annotations() {
         Object[] content = getContent();
@@ -144,13 +129,6 @@ public abstract class ONTStatementImpl extends ONTBaseTripleImpl implements ONTC
         return (Stream<OWLAnnotation>) res.stream();
     }
 
-    /**
-     * Answers a sorted and distinct {@code List} of {@link OWLAnnotation}s on this object.
-     * The returned {@code List} is unmodifiable.
-     *
-     * @return a unmodifiable {@code List} of {@link OWLAnnotation}s
-     * @see org.semanticweb.owlapi.model.HasAnnotations#annotationsAsList()
-     */
     @SuppressWarnings("unchecked")
     public List<OWLAnnotation> annotationsAsList() {
         Object[] content = getContent();
@@ -186,49 +164,10 @@ public abstract class ONTStatementImpl extends ONTBaseTripleImpl implements ONTC
         return res;
     }
 
-    /**
-     * Creates a new collection containing the annotations of this object and the given.
-     *
-     * @param other {@link Iterator} of {@link OWLAnnotation}s
-     * @return a {@code Collection} with annotations both from this object and specified
-     */
-    protected Collection<OWLAnnotation> appendAnnotations(Iterator<OWLAnnotation> other) {
-        Set<OWLAnnotation> res = createSortedSet();
-        other.forEachRemaining(res::add);
-        annotations().forEach(res::add);
-        return res;
+    @Override
+    protected boolean sameContent(ONTBaseTripleImpl other) {
+        // assuming all the rest info is keeping in the content only:
+        return other instanceof ONTStatementImpl && Arrays.equals(getContent(), ((ONTStatementImpl) other).getContent());
     }
 
-    @Override
-    public boolean equals(@Nullable Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (obj == null) {
-            return false;
-        }
-        if (!(obj instanceof OWLObject)) {
-            return false;
-        }
-        OWLObject other = (OWLObject) obj;
-        if (typeIndex() != other.typeIndex()) {
-            return false;
-        }
-        if (other instanceof ONTStatementImpl) {
-            ONTStatementImpl t = (ONTStatementImpl) other;
-            if (notSame(t)) {
-                return false;
-            }
-            if (sameAs(t)) {
-                return true;
-            }
-            // assuming all the rest info is keeping in the content only:
-            return Arrays.equals(getContent(), t.getContent());
-        }
-        // then OWL-API instance is given
-        if (hashCode() != other.hashCode()) {
-            return false;
-        }
-        return equalIterators(components().iterator(), other.components().iterator());
-    }
 }

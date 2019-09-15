@@ -54,15 +54,18 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
      * which is an {@link ONTObject} at the same time.
      *
      * @param atom  {@link OntSWRL.Atom}, not {@code null}, must be anonymous
+     * @param factory {@link InternalObjectFactory}, not {@code null}
      * @param model a provider of non-null {@link OntGraphModel}, not {@code null}
      * @return {@link ONTSWRLAtomImpl} instance
      */
     @SuppressWarnings("unchecked")
-    public static ONTSWRLAtomImpl create(OntSWRL.Atom atom, Supplier<OntGraphModel> model) {
+    public static ONTSWRLAtomImpl create(OntSWRL.Atom atom,
+                                         InternalObjectFactory factory,
+                                         Supplier<OntGraphModel> model) {
         Class<? extends OntSWRL.Atom> type = OntModels.getOntType(atom);
         BlankNodeId id = atom.asNode().getBlankNodeId();
         ONTSWRLAtomImpl res = create(id, type, model);
-        res.content.put(res, res.collectContent(atom, res.getObjectFactory()));
+        res.putContent(res.collectContent(atom, factory));
         return res;
     }
 

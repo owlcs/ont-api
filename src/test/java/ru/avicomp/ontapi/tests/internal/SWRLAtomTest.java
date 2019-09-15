@@ -26,8 +26,6 @@ import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.internal.ONTObject;
-import ru.avicomp.ontapi.internal.objects.ONTExpressionImpl;
-import ru.avicomp.ontapi.owlapi.OWLObjectImpl;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
 import java.util.Collections;
@@ -38,7 +36,7 @@ import java.util.stream.Collectors;
  * Created by @ssz on 24.08.2019.
  */
 @RunWith(Parameterized.class)
-public class SWRLAtomTest extends ObjectFactoryTest {
+public class SWRLAtomTest extends ContentTestBase {
 
     public SWRLAtomTest(Data data) {
         super(data);
@@ -71,10 +69,6 @@ public class SWRLAtomTest extends ObjectFactoryTest {
     }
 
 
-    @Override
-    Class<? extends OWLObjectImpl> getCacheFrameType() {
-        return ONTExpressionImpl.class;
-    }
 }
 
 

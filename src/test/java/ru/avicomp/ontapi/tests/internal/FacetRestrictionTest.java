@@ -26,8 +26,6 @@ import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.internal.ONTObject;
-import ru.avicomp.ontapi.internal.objects.ONTExpressionImpl;
-import ru.avicomp.ontapi.owlapi.OWLObjectImpl;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,7 +34,7 @@ import java.util.stream.Collectors;
  * Created by @ssz on 20.08.2019.
  */
 @RunWith(Parameterized.class)
-public class FacetRestrictionTest extends ObjectFactoryTest {
+public class FacetRestrictionTest extends ContentTestBase {
 
     public FacetRestrictionTest(Data data) {
         super(data);
@@ -68,9 +66,5 @@ public class FacetRestrictionTest extends ObjectFactoryTest {
         return res;
     }
 
-    @Override
-    Class<? extends OWLObjectImpl> getCacheFrameType() {
-        return ONTExpressionImpl.class;
-    }
 }
 

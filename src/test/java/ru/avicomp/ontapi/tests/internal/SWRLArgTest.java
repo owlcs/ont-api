@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
  * Created by @ssz on 21.08.2019.
  */
 @RunWith(Parameterized.class)
-public class SWRLArgTest extends ObjectFactoryTest {
+public class SWRLArgTest extends ObjectFactoryTestBase {
 
     public SWRLArgTest(Data data) {
         super(data);

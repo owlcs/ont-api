@@ -15,6 +15,7 @@
 package ru.avicomp.ontapi.internal.objects;
 
 import org.apache.jena.graph.BlankNodeId;
+import org.apache.jena.graph.FrontsTriple;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.graph.impl.LiteralLabel;
 import org.semanticweb.owlapi.model.*;
@@ -28,14 +29,13 @@ import ru.avicomp.ontapi.jena.utils.OntModels;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 import javax.annotation.Nonnull;
-import java.util.Collection;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
  * An {@link OWLAnnotation} implementation that is also an instance of {@link ONTObject}.
+ *
  * Created by @ssz on 17.08.2019.
  *
  * @see ReadHelper#getAnnotation(OntStatement, InternalObjectFactory)
@@ -43,8 +43,11 @@ import java.util.stream.Stream;
  * @since 1.4.3
  */
 @SuppressWarnings("WeakerAccess")
-public class ONTAnnotationImpl extends ONTStatementImpl
+public abstract class ONTAnnotationImpl extends ONTBaseTripleImpl
         implements OWLAnnotation, ONTObject<OWLAnnotation>, WithMerge<ONTObject<OWLAnnotation>> {
+
+    // a marker for the case when there is no annotations
+    protected static final Object[] EMPTY = new Object[0];
 
     protected ONTAnnotationImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
         super(subject, predicate, object, m);
@@ -53,18 +56,75 @@ public class ONTAnnotationImpl extends ONTStatementImpl
     /**
      * Wraps the given annotation ({@link OntStatement}) as {@link OWLAnnotation} and {@link ONTObject}.
      *
+     * Impl notes:
+     * If the annotation does not contain sub-annotations,
+     * then a simplified instance of {@link Simple} is returned.
+     * Otherwise the instance is {@link WithAnnotations} with a cache inside.
+     *
      * @param annotation {@link OntStatement}, must be annotation (i.e. {@link OntStatement#isAnnotation()}
      *                   must be {@code true}), not {@code null}
+     * @param factory {@link InternalObjectFactory}, not {@code null}
      * @param model      a provider of non-null {@link OntGraphModel}, not {@code null}
      * @return {@link ONTAnnotationImpl}
      */
-    public static ONTAnnotationImpl create(OntStatement annotation, Supplier<OntGraphModel> model) {
-        ONTAnnotationImpl res = new ONTAnnotationImpl(fromNode(annotation.getSubject()),
-                annotation.getPredicate().getURI(), fromNode(annotation.getObject()), model);
-        Object[] content = res.collectContent(annotation, res.getObjectFactory());
-        res.content.put(res, content);
-        res.hashCode = res.collectHashCode(content);
+    public static ONTAnnotationImpl create(OntStatement annotation,
+                                           InternalObjectFactory factory,
+                                           Supplier<OntGraphModel> model) {
+        Object[] annotations = collectAnnotations(annotation, factory);
+        ONTAnnotationImpl res;
+        if (annotations == EMPTY) {
+            res = new Simple(annotation.asTriple(), model);
+        } else {
+            res = WithContent.addContent(new WithAnnotations(annotation.asTriple(), model), annotations);
+        }
+        res.hashCode = collectHashCode(res, factory, annotations);
         return res;
+    }
+
+    /**
+     * Collects the has-code of {@code res} according to OWL-API specification.
+     *
+     * @param res     {@link ONTAnnotationImpl}, not {@code null}
+     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @param content an {@code Array} of sub-annotations
+     * @return int
+     */
+    private static int collectHashCode(ONTAnnotationImpl res,
+                                       InternalObjectFactory factory,
+                                       Object[] content) {
+        int hash = res.hashIndex();
+        hash = OWLObject.hashIteration(hash, res.findONTAnnotationProperty(factory).hashCode());
+        hash = OWLObject.hashIteration(hash, res.findONTAnnotationValue(factory).hashCode());
+        return OWLObject.hashIteration(hash, content == EMPTY ? 1 : Arrays.hashCode(content));
+    }
+
+    /**
+     * Collects all annotations for the given root {@link OntStatement} in the form of {@code Array}.
+     *
+     * @param root    {@link OntStatement}, not {@code null}
+     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @return an {@code Array} (can be {@link #EMPTY} if no annotations)
+     */
+    protected static Object[] collectAnnotations(OntStatement root,
+                                                 InternalObjectFactory factory) {
+        if (root.getSubject().getAs(OntAnnotation.class) == null && !root.hasAnnotations()) {
+            return EMPTY;
+        }
+        Map<OWLAnnotation, ONTObject<OWLAnnotation>> sub = new TreeMap<>();
+        OntModels.listAnnotations(root).mapWith(factory::getAnnotation).forEachRemaining(x -> WithMerge.add(sub, x));
+        Object[] res = sub.values().toArray();
+        return res.length == 0 ? EMPTY : res;
+    }
+
+    /**
+     * Answers {@code true} if the given pair is a part of the triple {@code x owl:deprecated "true"^^xsd:boolean}.
+     *
+     * @param predicate predicate from SPO, not {@code null}
+     * @param value     object from SPO, not {@code null}
+     * @return boolean
+     */
+    public static boolean isDeprecated(String predicate, Object value) {
+        return OWL.deprecated.getURI().equals(predicate) && Models.TRUE.asNode().getLiteral().equals(value);
     }
 
     @Override
@@ -73,13 +133,24 @@ public class ONTAnnotationImpl extends ONTStatementImpl
     }
 
     @Override
-    protected final Object[] collectContent() {
-        return collectContent(asStatement(), getObjectFactory());
+    public Stream<Triple> triples() {
+        OntStatement root = asStatement();
+        Stream<Triple> res = Stream.concat(Stream.of(root.asTriple()), objects().flatMap(ONTObject::triples));
+        OntAnnotation a = root.getSubject().getAs(OntAnnotation.class);
+        if (a != null) {
+            res = Stream.concat(res, a.spec().map(FrontsTriple::asTriple));
+        }
+        return res;
     }
 
     @Override
-    protected int getOperandsNum() {
-        return 2;
+    public Stream<ONTObject<? extends OWLObject>> objects() {
+        return Stream.of(getONTAnnotationProperty(), getONTAnnotationValue());
+    }
+
+    @Override
+    public boolean isDeprecatedIRIAnnotation() {
+        return isDeprecated(predicate, object);
     }
 
     @Override
@@ -90,22 +161,6 @@ public class ONTAnnotationImpl extends ONTStatementImpl
     @Override
     public OWLAnnotationValue getValue() {
         return getONTAnnotationValue().getOWLObject();
-    }
-
-    @Override
-    public boolean isDeprecatedIRIAnnotation() {
-        return isDeprecated(predicate, object);
-    }
-
-    /**
-     * Answers {@code true} if this annotation is a part of the triple {@code x owl:deprecated "true"^^xsd:boolean}.
-     *
-     * @param predicate predicate from SPO, not {@code null}
-     * @param value     object from SPO, not {@code null}
-     * @return boolean
-     */
-    public static boolean isDeprecated(String predicate, Object value) {
-        return OWL.deprecated.getURI().equals(predicate) && Models.TRUE.asNode().getLiteral().equals(value);
     }
 
     @FactoryAccessor
@@ -130,9 +185,8 @@ public class ONTAnnotationImpl extends ONTStatementImpl
      *
      * @return {@link ONTObject} of {@link OWLAnnotationProperty}
      */
-    @SuppressWarnings("unchecked")
     public ONTObject<OWLAnnotationProperty> getONTAnnotationProperty() {
-        return (ONTObject<OWLAnnotationProperty>) getContent()[0];
+        return findONTAnnotationProperty(getObjectFactory());
     }
 
     /**
@@ -140,49 +194,22 @@ public class ONTAnnotationImpl extends ONTStatementImpl
      *
      * @return {@link ONTObject} of {@link OWLAnnotationValue}
      */
-    @SuppressWarnings("unchecked")
     public ONTObject<? extends OWLAnnotationValue> getONTAnnotationValue() {
-        return (ONTObject<? extends OWLAnnotationValue>) getContent()[1];
+        return findONTAnnotationValue(getObjectFactory());
     }
 
-    /**
-     * Collects the cache.
-     *
-     * @param root {@link OntStatement}, not {@code null}
-     * @param of   {@link InternalObjectFactory}, not {@code null}
-     * @return {@code Array} of {@code Object}s
-     */
-    protected Object[] collectContent(OntStatement root, InternalObjectFactory of) {
-        Object[] res;
-        if (root.getSubject().getAs(OntAnnotation.class) != null || root.hasAnnotations()) {
-            Map<OWLAnnotation, ONTObject<OWLAnnotation>> sub = new TreeMap<>();
-            OntModels.listAnnotations(root).mapWith(of::getAnnotation).forEachRemaining(x -> WithMerge.add(sub, x));
-            if (sub.isEmpty()) {
-                res = new Object[2];
-            } else {
-                res = new Object[3];
-                res[2] = sub.values().toArray();
-            }
-        } else {
-            res = new Object[2];
-        }
-        res[0] = findONTAnnotationProperty(of);
-        res[1] = findONTAnnotationValue(of);
-        return res;
-    }
-
-    private ONTObject<OWLAnnotationProperty> findONTAnnotationProperty(InternalObjectFactory of) {
-        if (of instanceof ModelObjectFactory) {
-            return ((ModelObjectFactory) of).getAnnotationProperty(predicate);
+    private ONTObject<OWLAnnotationProperty> findONTAnnotationProperty(InternalObjectFactory factory) {
+        if (factory instanceof ModelObjectFactory) {
+            return ((ModelObjectFactory) factory).getAnnotationProperty(predicate);
         }
         return getObjectFactory().getProperty(model.get().getAnnotationProperty(predicate));
     }
 
-    private ONTObject<? extends OWLAnnotationValue> findONTAnnotationValue(InternalObjectFactory of) {
-        if (!(of instanceof ModelObjectFactory)) {
+    private ONTObject<? extends OWLAnnotationValue> findONTAnnotationValue(InternalObjectFactory factory) {
+        if (!(factory instanceof ModelObjectFactory)) {
             return getObjectFactory().getValue(model.get().asRDFNode(getObjectNode()));
         }
-        ModelObjectFactory f = (ModelObjectFactory) of;
+        ModelObjectFactory f = (ModelObjectFactory) factory;
         if (object instanceof BlankNodeId) {
             return f.getAnonymousIndividual((BlankNodeId) object);
         }
@@ -225,20 +252,193 @@ public class ONTAnnotationImpl extends ONTStatementImpl
         if (this == other) {
             return this;
         }
-        if (other instanceof ONTAnnotationImpl && sameAs((ONTAnnotationImpl) other)) {
+        if (other instanceof ONTAnnotationImpl && sameTriple((ONTAnnotationImpl) other)) {
             return this;
         }
-        ONTAnnotationImpl res = new ONTAnnotationImpl(subject, predicate, object, model) {
-
-            @Override
-            public Stream<Triple> triples() {
-                return Stream.concat(super.triples(), other.triples());
-            }
-        };
+        ONTAnnotationImpl res = makeCopyWith(other);
         res.hashCode = hashCode;
-        if (!content.isEmpty()) {
-            res.content.put(res, getContent());
-        }
         return res;
+    }
+
+    /**
+     * Creates an instance of {@link ONTAnnotationImpl}
+     * with additional triples getting from the specified {@code other} object.
+     * The returned instance must be equivalent to this one.
+     *
+     * @param other {@link ONTObject} with {@link OWLAnnotation}, not {@code null}
+     * @return {@link ONTAnnotationImpl}
+     */
+    protected abstract ONTAnnotationImpl makeCopyWith(ONTObject<OWLAnnotation> other);
+
+    /**
+     * An {@link OWLAnnotation} that has no sub-annotations.
+     */
+    public static class Simple extends ONTAnnotationImpl {
+
+        protected Simple(Triple t, Supplier<OntGraphModel> m) {
+            this(strip(t.getSubject()), t.getPredicate().getURI(), strip(t.getObject()), m);
+        }
+
+        protected Simple(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+            super(subject, predicate, object, m);
+        }
+
+        @Override
+        protected boolean sameContent(ONTBaseTripleImpl other) {
+            return !other.isAnnotated() && predicate.equals(other.predicate) && object.equals(other.object);
+        }
+
+        @Override
+        protected boolean sameAs(ONTBaseTripleImpl other) {
+            if (notSame(other)) {
+                return false;
+            }
+            return sameContent(other);
+        }
+
+        @Override
+        protected Simple makeCopyWith(ONTObject<OWLAnnotation> other) {
+            return new Simple(subject, predicate, object, model) {
+
+                @Override
+                public Stream<Triple> triples() {
+                    return Stream.concat(super.triples(), other.triples());
+                }
+            };
+        }
+
+        @Override
+        public boolean containsDatatype(OWLDatatype datatype) {
+            return object instanceof LiteralLabel
+                    && getONTAnnotationValue().getOWLObject().containsEntityInSignature(datatype);
+        }
+
+        @Override
+        public boolean containsAnnotationProperty(OWLAnnotationProperty property) {
+            return getONTAnnotationProperty().getOWLObject().equals(property);
+        }
+
+        @Override
+        public Set<OWLAnonymousIndividual> getAnonymousIndividualSet() {
+            return object instanceof BlankNodeId ? createSet(retrieveAnonymousIndividual()) : createSet();
+        }
+
+        @Override
+        public Set<OWLAnnotationProperty> getAnnotationPropertySet() {
+            return createSet(getProperty());
+        }
+
+        @Override
+        public Set<OWLDatatype> getDatatypeSet() {
+            return object instanceof LiteralLabel ? createSet(retrieveDatatype()) : createSet();
+        }
+
+        private OWLDatatype retrieveDatatype() {
+            return getValue().asLiteral().orElseThrow(OntApiException.IllegalState::new).getDatatype();
+        }
+
+        private OWLAnonymousIndividual retrieveAnonymousIndividual() {
+            return getValue().asAnonymousIndividual().orElseThrow(OntApiException.IllegalState::new);
+        }
+
+        @Override
+        public Set<OWLEntity> getSignatureSet() {
+            Set<OWLEntity> res = createSortedSet();
+            res.add(getProperty());
+            if (object instanceof LiteralLabel) {
+                res.add(retrieveDatatype());
+            }
+            return res;
+        }
+    }
+
+    /**
+     * An {@link OWLAnnotation} that has sub-annotations.
+     * It has a public constructor since it is more generic then {@link Simple}.
+     */
+    public static class WithAnnotations extends ONTAnnotationImpl implements WithContent<WithAnnotations> {
+        protected final InternalCache.Loading<WithAnnotations, Object[]> content;
+
+        public WithAnnotations(Triple t, Supplier<OntGraphModel> m) {
+            this(strip(t.getSubject()), t.getPredicate().getURI(), strip(t.getObject()), m);
+        }
+
+        protected WithAnnotations(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+            super(subject, predicate, object, m);
+            this.content = createContent();
+        }
+
+        @Override
+        protected boolean sameContent(ONTBaseTripleImpl other) {
+            return other instanceof WithAnnotations
+                    && predicate.equals(other.predicate) && object.equals(other.object)
+                    && Arrays.equals(getContent(), ((WithAnnotations) other).getContent());
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public Stream<ONTObject<? extends OWLObject>> objects() {
+            Stream res = Stream.concat(super.objects(), annotations());
+            return (Stream<ONTObject<? extends OWLObject>>) res;
+        }
+
+        @Override
+        public Object[] collectContent() {
+            return collectAnnotations(asStatement(), getObjectFactory());
+        }
+
+        @Override
+        public void putContent(Object[] content) {
+            this.content.put(this, content);
+        }
+
+        @Override
+        public boolean hasContent() {
+            return content.isEmpty();
+        }
+
+        @Override
+        public void clearContent() {
+            content.clear();
+        }
+
+        @Override
+        public Object[] getContent() {
+            return content.get(this);
+        }
+
+        @Override
+        public boolean isAnnotated() {
+            return true;
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public Stream<OWLAnnotation> annotations() {
+            Stream res = Arrays.stream(getContent());
+            return (Stream<OWLAnnotation>) res;
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public List<OWLAnnotation> annotationsAsList() {
+            List res = Arrays.asList(getContent());
+            return (List<OWLAnnotation>) Collections.unmodifiableList(res);
+        }
+
+        @Override
+        protected WithAnnotations makeCopyWith(ONTObject<OWLAnnotation> other) {
+            WithAnnotations res = new WithAnnotations(subject, predicate, object, model) {
+
+                @Override
+                public Stream<Triple> triples() {
+                    return Stream.concat(super.triples(), other.triples());
+                }
+            };
+            if (!hasContent()) {
+                putContent(getContent());
+            }
+            return res;
+        }
     }
 }

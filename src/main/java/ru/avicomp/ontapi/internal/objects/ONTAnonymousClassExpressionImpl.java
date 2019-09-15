@@ -58,18 +58,21 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
      * Wraps the given {@link OntCE} as {@link OWLAnonymousClassExpression} and {@link ONTObject}.
      *
      * @param ce    {@link OntCE}, not {@code null}, must be anonymous
+     * @param factory {@link InternalObjectFactory}, not {@code null}
      * @param model a provider of non-null {@link OntGraphModel}, not {@code null}
      * @return {@link ONTAnonymousClassExpressionImpl} instance
      */
     @SuppressWarnings("unchecked")
-    public static ONTAnonymousClassExpressionImpl create(OntCE ce, Supplier<OntGraphModel> model) {
+    public static ONTAnonymousClassExpressionImpl create(OntCE ce,
+                                                         InternalObjectFactory factory,
+                                                         Supplier<OntGraphModel> model) {
         Class<? extends OntCE> type = OntModels.getOntType(ce);
         BlankNodeId id = ce.asNode().getBlankNodeId();
         ONTAnonymousClassExpressionImpl res = create(id, type, model);
         // since we have already type information
         // we can forcibly load the cache to reduce graph traversal operations
         // (otherwise this type information will be collected again on demand, which means double-work):
-        res.content.put(res, res.collectContent(ce, res.getObjectFactory()));
+        res.putContent(res.collectContent(ce, factory));
         return res;
     }
 

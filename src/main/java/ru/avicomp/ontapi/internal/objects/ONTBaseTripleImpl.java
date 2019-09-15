@@ -17,18 +17,22 @@ package ru.avicomp.ontapi.internal.objects;
 import org.apache.jena.graph.*;
 import org.apache.jena.graph.impl.LiteralLabel;
 import org.apache.jena.rdf.model.RDFNode;
+import org.semanticweb.owlapi.model.HasAnnotations;
+import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLObject;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.utils.Iter;
 
-import java.util.Objects;
+import javax.annotation.Nullable;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
  * A base triple object-component that is attached to a model.
+ * TODO: need to remove {@link ONTStatementImpl} and rename this class to same name (ONTStatementImpl)
  * Created by @ssz on 17.08.2019.
  *
  * @see ONTResourceImpl
@@ -36,14 +40,30 @@ import java.util.stream.Stream;
  * @since 1.4.3
  */
 @SuppressWarnings("WeakerAccess")
-public abstract class ONTBaseTripleImpl extends ONTObjectImpl implements OWLObject, FrontsTriple {
+public abstract class ONTBaseTripleImpl extends ONTObjectImpl implements OWLObject, HasAnnotations, FrontsTriple {
 
     protected final Object subject; // b-node-id or string
     protected final String predicate;
     protected final Object object; // b-node-id or string or literal-label
 
     /**
-     * Constructs the base object.
+     * Constructs the base triple object.
+     *
+     * This class do not use {@link Triple Jena Triple} as reference,
+     * instead it contains three separated triple parts: {@link #subject}, {@link #predicate} and {@link #object}.
+     * This is because a {@link Graph} does not guarantee that it will return the same triplets for the same requests,
+     * although {@link org.apache.jena.mem.GraphMem} behaves like that:
+     * it returns the same instances each time for the same SPO patterns.
+     *
+     * @param t {@link Triple}, not {@code null}
+     * @param m - a facility (as {@link Supplier}) to provide nonnull {@link OntGraphModel}, not {@code null}
+     */
+    protected ONTBaseTripleImpl(Triple t, Supplier<OntGraphModel> m) {
+        this(strip(t.getSubject()), t.getPredicate().getURI(), strip(t.getObject()), m);
+    }
+
+    /**
+     * Constructs the base triple object.
      *
      * @param subject   - must be either {@link BlankNodeId} or {@code String}, not {@code null}
      * @param predicate - {@code String} (URI), not {@code null}
@@ -157,13 +177,115 @@ public abstract class ONTBaseTripleImpl extends ONTObjectImpl implements OWLObje
     }
 
     /**
-     * Answers {@code true} if this triple and the given have some SPO.
+     * Answers {@code true} if this statement (axiom or annotation) has sub-annotations.
+     *
+     * @return boolean
+     * @see org.semanticweb.owlapi.model.OWLAxiom#isAnnotated()
+     */
+    public boolean isAnnotated() {
+        return false;
+    }
+
+    /**
+     * Lists all {@link OWLAnnotation}s on this object.
+     * The stream must be {@link java.util.Spliterator#ORDERED ordered}, {@link java.util.Spliterator#NONNULL nonull},
+     * {@link java.util.Spliterator#DISTINCT distinct} and {@link java.util.Spliterator#SORTED sorted}.
+     *
+     * @return a {@code Stream} of {@link OWLAnnotation}s
+     * @see org.semanticweb.owlapi.model.HasAnnotations#annotations()
+     */
+    @Override
+    public Stream<OWLAnnotation> annotations() {
+        return Stream.empty();
+    }
+
+    /**
+     * Answers a sorted and distinct {@code List} of {@link OWLAnnotation}s on this object.
+     * The returned {@code List} is unmodifiable.
+     *
+     * @return a unmodifiable {@code List} of {@link OWLAnnotation}s
+     * @see org.semanticweb.owlapi.model.HasAnnotations#annotationsAsList()
+     */
+    @Override
+    public List<OWLAnnotation> annotationsAsList() {
+        return Collections.emptyList();
+    }
+
+    /**
+     * Creates a new collection containing the annotations of this object and the given.
+     *
+     * @param other {@link Iterator} of {@link OWLAnnotation}s
+     * @return a {@code Collection} with annotations both from this object and specified
+     */
+    @FactoryAccessor
+    protected Collection<OWLAnnotation> appendAnnotations(Iterator<OWLAnnotation> other) {
+        Set<OWLAnnotation> res = createSortedSet();
+        other.forEachRemaining(res::add);
+        annotations().forEach(res::add);
+        return res;
+    }
+
+    /**
+     * Answers {@code true} if this triple-object and the given have the same SPO (base triple).
      *
      * @param other {@link ONTBaseTripleImpl}, not {@code null}
      * @return boolean
      */
-    public boolean sameAs(ONTBaseTripleImpl other) {
+    public boolean sameTriple(ONTBaseTripleImpl other) {
         return subject.equals(other.subject) && predicate.equals(other.predicate) && object.equals(other.object);
+    }
+
+    /**
+     * Answers {@code true} if this object and the given have the same content.
+     * Two {@link OWLObject}s may have same content,
+     * but different base triples (see {@link #sameTriple(ONTBaseTripleImpl)}).
+     *
+     * @param other {@link ONTBaseTripleImpl}, not {@code null}
+     * @return boolean
+     */
+    protected abstract boolean sameContent(ONTBaseTripleImpl other);
+
+    /**
+     * Answers {@code true} if this object and the given are equal as {@link OWLObject} (i.e. in OWL-API terms).
+     *
+     * @param other {@link ONTBaseTripleImpl}, not {@code null}
+     * @return boolean
+     */
+    protected boolean sameAs(ONTBaseTripleImpl other) {
+        if (notSame(other)) {
+            // definitely not equal
+            return false;
+        }
+        if (sameTriple(other)) {
+            // definitely equal
+            return true;
+        }
+        return sameContent(other);
+    }
+
+    @Override
+    public final boolean equals(@Nullable Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (!(obj instanceof OWLObject)) {
+            return false;
+        }
+        OWLObject other = (OWLObject) obj;
+        if (typeIndex() != other.typeIndex()) {
+            return false;
+        }
+        if (other instanceof ONTBaseTripleImpl) {
+            return sameAs((ONTBaseTripleImpl) other);
+        }
+        // then OWL-API instance is given
+        if (hashCode() != other.hashCode()) {
+            return false;
+        }
+        return equalIterators(components().iterator(), other.components().iterator());
     }
 
 }

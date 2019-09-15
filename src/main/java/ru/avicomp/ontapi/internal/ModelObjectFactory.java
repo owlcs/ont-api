@@ -52,7 +52,7 @@ public class ModelObjectFactory implements InternalObjectFactory {
 
     @Override
     public ONTObject<OWLAnnotation> getAnnotation(OntStatement s) {
-        return ONTAnnotationImpl.create(s, model);
+        return ONTAnnotationImpl.create(s, this, model);
     }
 
     @SuppressWarnings("unchecked")
@@ -60,7 +60,7 @@ public class ModelObjectFactory implements InternalObjectFactory {
     public ONTObject<? extends OWLClassExpression> getClass(OntCE ce) {
         if (ce.isURIResource())
             return getClass((OntClass) ce);
-        return (ONTObject<? extends OWLClassExpression>) ONTAnonymousClassExpressionImpl.create(ce, model);
+        return (ONTObject<? extends OWLClassExpression>) ONTAnonymousClassExpressionImpl.create(ce, this, model);
     }
 
     @SuppressWarnings("unchecked")
@@ -68,17 +68,17 @@ public class ModelObjectFactory implements InternalObjectFactory {
     public ONTObject<? extends OWLDataRange> getDatatype(OntDR dr) {
         if (dr.isURIResource())
             return getDatatype((OntDT) dr);
-        return (ONTObject<? extends OWLDataRange>) ONTAnonymousDataRangeImpl.create(dr, model);
+        return (ONTObject<? extends OWLDataRange>) ONTAnonymousDataRangeImpl.create(dr, this, model);
     }
 
     @Override
     public ONTObject<OWLObjectInverseOf> getProperty(OntOPE.Inverse iop) {
-        return ONTObjectInverseOfImpl.create(iop, model);
+        return ONTObjectInverseOfImpl.create(iop, this, model);
     }
 
     @Override
     public ONTObject<OWLFacetRestriction> getFacetRestriction(OntFR fr) {
-        return ONTFacetRestrictionImpl.create(fr, model);
+        return ONTFacetRestrictionImpl.create(fr, this, model);
     }
 
     @Override
@@ -145,7 +145,7 @@ public class ModelObjectFactory implements InternalObjectFactory {
     @SuppressWarnings("unchecked")
     @Override
     public ONTObject<? extends SWRLAtom> getSWRLAtom(OntSWRL.Atom atom) {
-        return (ONTObject<? extends SWRLAtom>) ONTSWRLAtomImpl.create(atom, model);
+        return (ONTObject<? extends SWRLAtom>) ONTSWRLAtomImpl.create(atom, this, model);
     }
 
     @Override

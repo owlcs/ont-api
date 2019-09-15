@@ -62,13 +62,13 @@ public abstract class ONTAxiomImpl<X extends OWLAxiom> extends ONTStatementImpl 
                                                      InternalObjectFactory factory,
                                                      InternalConfig config) {
         Object[] content = axiom.collectContent(statement, config, factory);
-        axiom.content.put(axiom, content);
+        axiom.putContent(content);
         axiom.hashCode = axiom.collectHashCode(content);
         return axiom;
     }
 
     @Override
-    protected final Object[] collectContent() {
+    public final Object[] collectContent() {
         return collectContent(asStatement(), getConfig(), getObjectFactory());
     }
 
@@ -80,7 +80,7 @@ public abstract class ONTAxiomImpl<X extends OWLAxiom> extends ONTStatementImpl 
      * @param f {@link InternalObjectFactory}, the factory, not {@code null}
      * @return Array of {@code Object}s
      * @see ONTExpressionImpl#collectContent(OntObject, InternalObjectFactory)
-     * @see ONTAnnotationImpl#collectContent(OntStatement, InternalObjectFactory)
+     * @see ONTAnnotationImpl#collectAnnotations(OntStatement, InternalObjectFactory)
      */
     protected abstract Object[] collectContent(OntStatement s, InternalConfig c, InternalObjectFactory f);
 

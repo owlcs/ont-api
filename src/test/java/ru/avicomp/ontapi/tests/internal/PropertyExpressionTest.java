@@ -26,8 +26,6 @@ import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.internal.ONTObject;
-import ru.avicomp.ontapi.internal.objects.ONTExpressionImpl;
-import ru.avicomp.ontapi.owlapi.OWLObjectImpl;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,7 +34,7 @@ import java.util.stream.Collectors;
  * Created by @ssz on 19.08.2019.
  */
 @RunWith(Parameterized.class)
-public class PropertyExpressionTest extends ObjectFactoryTest {
+public class PropertyExpressionTest extends ContentTestBase {
 
     public PropertyExpressionTest(Data data) {
         super(data);
@@ -66,8 +64,4 @@ public class PropertyExpressionTest extends ObjectFactoryTest {
         return res;
     }
 
-    @Override
-    Class<? extends OWLObjectImpl> getCacheFrameType() {
-        return ONTExpressionImpl.class;
-    }
 }

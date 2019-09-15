@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
  * Created by @ssz on 13.08.2019.
  */
 @RunWith(Parameterized.class)
-public class LiteralTest extends ObjectFactoryTest {
+public class LiteralTest extends ObjectFactoryTestBase {
 
     public LiteralTest(Data data) {
         super(data);

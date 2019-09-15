@@ -17,13 +17,12 @@ package ru.avicomp.ontapi.tests.internal;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.OntManagers;
-import ru.avicomp.ontapi.internal.InternalCache;
 import ru.avicomp.ontapi.internal.ONTObject;
-import ru.avicomp.ontapi.owlapi.OWLObjectImpl;
 import ru.avicomp.ontapi.tests.TestFactory;
 
-import java.lang.reflect.Field;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Function;
@@ -34,7 +33,9 @@ import java.util.stream.Stream;
  * Created by @ssz on 13.08.2019.
  */
 @SuppressWarnings("WeakerAccess")
-abstract class ObjectFactoryTest extends TestFactory {
+abstract class ObjectFactoryTestBase extends TestFactory {
+    static final Logger LOGGER = LoggerFactory.getLogger(ObjectFactoryTestBase.class);
+
     private static final OWLDataFactory ONT_DATA_FACTORY = OntManagers.getDataFactory();
     private static final OWLDataFactory OWL_DATA_FACTORY = OntManagers.createOWLProfile().dataFactory();
 
@@ -42,7 +43,7 @@ abstract class ObjectFactoryTest extends TestFactory {
 
     protected final Data data;
 
-    ObjectFactoryTest(Data data) {
+    ObjectFactoryTestBase(Data data) {
         this.data = data;
     }
 
@@ -57,47 +58,24 @@ abstract class ObjectFactoryTest extends TestFactory {
         Assert.assertTrue(ont.getClass().getName().startsWith("ru.avicomp.ontapi.owlapi"));
         Assert.assertTrue(owl.getClass().getName().startsWith("uk.ac.manchester.cs.owl.owlapi"));
 
-        compare(owl, test);
-        compare(ont, test);
-        validate(owl, test);
-        testContains(owl, test);
+        testCompare(owl, test);
+        testCompare(ont, test);
 
-        Class<? extends OWLObjectImpl> frame = getCacheFrameType();
-        if (frame != null)
-            testInternalReset(frame, owl, test);
+        testSignatures(owl, test);
+        testEntityContains(owl, test);
+        testContent(owl, test);
     }
 
-    Class<? extends OWLObjectImpl> getCacheFrameType() {
-        return null;
+    void testContent(OWLObject sample, OWLObject test) {
     }
 
-    void testInternalReset(Class<? extends OWLObjectImpl> frame, OWLObject expected, OWLObject test) {
-        Assert.assertTrue(frame.isInstance(test));
-        InternalCache.Loading cache = getContentCache(frame, test);
-        Assert.assertFalse(cache.isEmpty());
-        cache.clear();
-        Assert.assertTrue(cache.isEmpty());
-        compare(expected, test);
-        Assert.assertFalse(cache.isEmpty());
-        validate(expected, test);
-    }
-
-    private static InternalCache.Loading getContentCache(Class<? extends OWLObjectImpl> type, OWLObject inst) {
-
-        try {
-            Field f = type.getDeclaredField("content");
-            f.setAccessible(true);
-            return (InternalCache.Loading) f.get(inst);
-        } catch (Exception e) {
-            throw new AssertionError(e);
-        }
-    }
-
-    void compare(OWLObject expected, OWLObject actual) {
+    void testCompare(OWLObject expected, OWLObject actual) {
+        LOGGER.debug("Test compare {}", data);
         data.testCompare(expected, actual);
     }
 
-    void validate(OWLObject expected, OWLObject actual) {
+    void testSignatures(OWLObject expected, OWLObject actual) {
+        LOGGER.debug("Test signature {}", data);
         validate(expected, actual, "signature", HasSignature::signature);
         validate(expected, actual, "classes", HasClassesInSignature::classesInSignature);
         validate(expected, actual, "datatypes", HasDatatypesInSignature::datatypesInSignature);
@@ -119,7 +97,8 @@ abstract class ObjectFactoryTest extends TestFactory {
         Assert.assertEquals("Wrong " + msg + ":", expectedList, actualList);
     }
 
-    void testContains(OWLObject expected, OWLObject actual) {
+    void testEntityContains(OWLObject expected, OWLObject actual) {
+        LOGGER.debug("Test contains {}", data);
         expected.signature().forEach(x -> Assert.assertTrue(actual.containsEntityInSignature(x)));
         Assert.assertFalse(actual.containsEntityInSignature(OWL_DATA_FACTORY.getOWLClass(TEST_NS, "C")));
         Assert.assertFalse(actual.containsEntityInSignature(OWL_DATA_FACTORY.getOWLDatatype(TEST_NS, "D")));

@@ -36,7 +36,9 @@ import java.util.stream.Stream;
  * @param <R> equivalent subtype of {@link OntObject} (that must be ab anonymous resource)
  * @since 1.4.3
  */
-public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResourceImpl implements ONTComposite {
+@SuppressWarnings("WeakerAccess")
+public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResourceImpl
+        implements ONTComposite, WithContent<ONTExpressionImpl> {
 
     /**
      * All the {@code OWLObject}'s components are store here.
@@ -54,7 +56,7 @@ public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResource
      */
     protected ONTExpressionImpl(BlankNodeId n, Supplier<OntGraphModel> m) {
         super(n, m);
-        this.content = InternalCache.createSoftSingleton(x -> collectContent());
+        this.content = createContent();
     }
 
     /**
@@ -85,23 +87,29 @@ public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResource
         return Stream.concat(super.triples(), objects().flatMap(ONTObject::triples));
     }
 
-    /**
-     * Collects the cache.
-     *
-     * @return {@code Array} of {@code Object}s
-     * @see #collectContent(OntObject, InternalObjectFactory)
-     */
-    protected final Object[] collectContent() {
+    @Override
+    public final Object[] collectContent() {
         return collectContent(asRDFNode(), getObjectFactory());
     }
 
-    /**
-     * Gets the content from cache.
-     *
-     * @return {@code Array} of {@code Object}s
-     */
-    protected Object[] getContent() {
+    @Override
+    public Object[] getContent() {
         return content.get(this);
+    }
+
+    @Override
+    public void putContent(Object[] content) {
+        this.content.put(this, content);
+    }
+
+    @Override
+    public boolean hasContent() {
+        return content.isEmpty();
+    }
+
+    @Override
+    public void clearContent() {
+        content.clear();
     }
 
     @Override

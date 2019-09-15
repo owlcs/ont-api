@@ -48,12 +48,15 @@ public class ONTFacetRestrictionImpl
      * Wraps the given {@link OntFR} as {@link OWLFacetRestriction} and {@link ONTObject}.
      *
      * @param fr    {@link OntFR}, not {@code null}
+     * @param factory {@link InternalObjectFactory}, not {@code null}
      * @param model a provider of non-null {@link OntGraphModel}, cannot be {@code null}
      * @return {@link ONTFacetRestrictionImpl}
      */
-    public static ONTFacetRestrictionImpl create(OntFR fr, Supplier<OntGraphModel> model) {
+    public static ONTFacetRestrictionImpl create(OntFR fr,
+                                                 InternalObjectFactory factory,
+                                                 Supplier<OntGraphModel> model) {
         ONTFacetRestrictionImpl res = new ONTFacetRestrictionImpl(fr.asNode().getBlankNodeId(), model);
-        res.content.put(res, res.collectContent(fr, res.getObjectFactory()));
+        res.putContent(res.collectContent(fr, factory));
         return res;
     }
 

@@ -15,51 +15,28 @@
 package ru.avicomp.ontapi.tests.internal;
 
 import org.junit.Assert;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.semanticweb.owlapi.model.AxiomType;
-import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLObject;
-import ru.avicomp.ontapi.DataFactory;
-import ru.avicomp.ontapi.OntManagers;
-import ru.avicomp.ontapi.OntologyManager;
-import ru.avicomp.ontapi.OntologyModel;
-import ru.avicomp.ontapi.internal.ONTObject;
-
-import java.util.List;
-import java.util.stream.Collectors;
+import ru.avicomp.ontapi.internal.objects.ONTBaseTripleImpl;
+import ru.avicomp.ontapi.internal.objects.WithContent;
 
 /**
- * Created by @ssz on 13.08.2019.
+ * Created by @ssz on 14.09.2019.
+ *
+ * @see ONTBaseTripleImpl
  */
-@RunWith(Parameterized.class)
-public class ClassExpressionTest extends ContentTestBase {
+abstract class StatementTestBase extends ContentTestBase {
 
-    public ClassExpressionTest(Data data) {
+    StatementTestBase(Data data) {
         super(data);
     }
 
-    @Parameterized.Parameters(name = "{0}")
-    public static List<Data> getData() {
-        return getObjects().stream()
-                .filter(Data::isAnonymousClassExpression)
-                .collect(Collectors.toList());
-    }
-
     @Override
-    OWLObject fromModel() {
-        OntologyManager m = OntManagers.createONT();
-        DataFactory df = m.getOWLDataFactory();
-
-        OWLClassExpression ont = (OWLClassExpression) data.create(df);
-
-        OntologyModel o = m.createOntology();
-        o.add(df.getOWLSubClassOfAxiom(df.getOWLClass("C"), ont));
-        o.clearCache();
-        OWLClassExpression res = o.axioms(AxiomType.SUBCLASS_OF).findFirst().orElseThrow(AssertionError::new)
-                .getSuperClass();
-        Assert.assertTrue(res instanceof ONTObject);
-        return res;
+    void testContent(OWLObject sample, OWLObject test) {
+        if (test instanceof WithContent) {
+            super.testContent(sample, test);
+        } else {
+            Assert.assertFalse(((ONTBaseTripleImpl) test).isAnnotated());
+        }
     }
 
 }

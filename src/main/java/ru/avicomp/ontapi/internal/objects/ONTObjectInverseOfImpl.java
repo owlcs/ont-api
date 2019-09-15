@@ -48,12 +48,15 @@ public class ONTObjectInverseOfImpl
      * Wraps the given {@link OntOPE.Inverse} as {@link OWLObjectInverseOf} and {@link ONTObject}.
      *
      * @param iop   {@link OntOPE.Inverse}, not {@code null}
+     * @param factory {@link InternalObjectFactory}, not {@code null}
      * @param model a provider of non-null {@link OntGraphModel}, cannot be {@code null}
      * @return {@link ONTObjectInverseOfImpl}
      */
-    public static ONTObjectInverseOfImpl create(OntOPE.Inverse iop, Supplier<OntGraphModel> model) {
+    public static ONTObjectInverseOfImpl create(OntOPE.Inverse iop,
+                                                InternalObjectFactory factory,
+                                                Supplier<OntGraphModel> model) {
         ONTObjectInverseOfImpl res = new ONTObjectInverseOfImpl(iop.asNode().getBlankNodeId(), model);
-        res.content.put(res, res.collectContent(iop, res.getObjectFactory()));
+        res.putContent(res.collectContent(iop, factory));
         return res;
     }
 

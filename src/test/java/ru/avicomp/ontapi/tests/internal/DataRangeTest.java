@@ -25,8 +25,6 @@ import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.internal.ONTObject;
-import ru.avicomp.ontapi.internal.objects.ONTExpressionImpl;
-import ru.avicomp.ontapi.owlapi.OWLObjectImpl;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,7 +33,7 @@ import java.util.stream.Collectors;
  * Created by @ssz on 20.08.2019.
  */
 @RunWith(Parameterized.class)
-public class DataRangeTest extends ObjectFactoryTest {
+public class DataRangeTest extends ContentTestBase {
 
     public DataRangeTest(Data data) {
         super(data);
@@ -63,11 +61,6 @@ public class DataRangeTest extends ObjectFactoryTest {
                 .getDataRange();
         Assert.assertTrue(res instanceof ONTObject);
         return res;
-    }
-
-    @Override
-    Class<? extends OWLObjectImpl> getCacheFrameType() {
-        return ONTExpressionImpl.class;
     }
 
 }
