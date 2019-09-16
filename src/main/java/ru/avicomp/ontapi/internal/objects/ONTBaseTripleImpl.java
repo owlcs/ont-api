@@ -42,6 +42,9 @@ import java.util.stream.Stream;
 @SuppressWarnings("WeakerAccess")
 public abstract class ONTBaseTripleImpl extends ONTObjectImpl implements OWLObject, HasAnnotations, FrontsTriple {
 
+    // a marker for the case when there is no content cache
+    protected static final Object[] EMPTY = new Object[0];
+
     protected final Object subject; // b-node-id or string
     protected final String predicate;
     protected final Object object; // b-node-id or string or literal-label
@@ -51,19 +54,9 @@ public abstract class ONTBaseTripleImpl extends ONTObjectImpl implements OWLObje
      *
      * This class do not use {@link Triple Jena Triple} as reference,
      * instead it contains three separated triple parts: {@link #subject}, {@link #predicate} and {@link #object}.
-     * This is because a {@link Graph} does not guarantee that it will return the same triplets for the same requests,
-     * although {@link org.apache.jena.mem.GraphMem} behaves like that:
-     * it returns the same instances each time for the same SPO patterns.
-     *
-     * @param t {@link Triple}, not {@code null}
-     * @param m - a facility (as {@link Supplier}) to provide nonnull {@link OntGraphModel}, not {@code null}
-     */
-    protected ONTBaseTripleImpl(Triple t, Supplier<OntGraphModel> m) {
-        this(strip(t.getSubject()), t.getPredicate().getURI(), strip(t.getObject()), m);
-    }
-
-    /**
-     * Constructs the base triple object.
+     * This is because a {@link Graph} generally does not guarantee that it will return
+     * the same triplets (that are equal in sense of the operation {@code ==}) for the same SPO patterns,
+     * although this is true for {@link org.apache.jena.mem.GraphMem}.
      *
      * @param subject   - must be either {@link BlankNodeId} or {@code String}, not {@code null}
      * @param predicate - {@code String} (URI), not {@code null}
@@ -101,6 +94,24 @@ public abstract class ONTBaseTripleImpl extends ONTObjectImpl implements OWLObje
         if (node.isLiteral())
             return node.getLiteral();
         throw new OntApiException.IllegalState("Wrong node: " + node);
+    }
+
+    /**
+     * Calculates the hash code for the given {@code array} starting with the specified position.
+     *
+     * @param array      not {@code null}
+     * @param startIndex int, non-negative
+     * @return int
+     * @see java.util.Arrays#hashCode(Object[])
+     */
+    protected static int collectHashCode(Object[] array, int startIndex) {
+        if (array == EMPTY)
+            return 1;
+        int res = 1;
+        for (int i = startIndex; i < array.length; i++) {
+            res = 31 * res + array[i].hashCode();
+        }
+        return res;
     }
 
     /**
@@ -231,8 +242,56 @@ public abstract class ONTBaseTripleImpl extends ONTObjectImpl implements OWLObje
      * @param other {@link ONTBaseTripleImpl}, not {@code null}
      * @return boolean
      */
-    public boolean sameTriple(ONTBaseTripleImpl other) {
-        return subject.equals(other.subject) && predicate.equals(other.predicate) && object.equals(other.object);
+    public final boolean sameTriple(ONTBaseTripleImpl other) {
+        return sameSubject(other) && samePredicate(other) && sameObject(other);
+    }
+
+    /**
+     * Answers {@code true} iff the subjects of this and the specified object are equal.
+     *
+     * @param other {@link ONTBaseTripleImpl}, not {@code null}
+     * @return boolean
+     */
+    protected final boolean sameSubject(ONTBaseTripleImpl other) {
+        return subject.equals(other.subject);
+    }
+
+    /**
+     * Answers {@code true} iff the predicates of this and the specified object are equal.
+     *
+     * @param other {@link ONTBaseTripleImpl}, not {@code null}
+     * @return boolean
+     */
+    protected final boolean samePredicate(ONTBaseTripleImpl other) {
+        return predicate.equals(other.predicate);
+    }
+
+    /**
+     * Answers {@code true} iff the objects of this and the specified object are equal.
+     *
+     * @param other {@link ONTBaseTripleImpl}, not {@code null}
+     * @return boolean
+     */
+    protected final boolean sameObject(ONTBaseTripleImpl other) {
+        return object.equals(other.object);
+    }
+
+    /**
+     * Answers {@code true} iff this triple (SPO) has an URI subject.
+     *
+     * @return boolean
+     */
+    public final boolean hasURISubject() {
+        return subject instanceof String;
+    }
+
+    /**
+     * Answers {@code true} iff this triple (SPO) has an URI object.
+     *
+     * @return boolean
+     */
+    public final boolean hasURIObject() {
+        return object instanceof String;
     }
 
     /**
@@ -256,7 +315,7 @@ public abstract class ONTBaseTripleImpl extends ONTObjectImpl implements OWLObje
             // definitely not equal
             return false;
         }
-        if (sameTriple(other)) {
+        if (sameTriple(other)) { // todo: is it correct ?
             // definitely equal
             return true;
         }

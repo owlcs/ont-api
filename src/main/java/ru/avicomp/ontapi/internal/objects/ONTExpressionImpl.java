@@ -104,7 +104,7 @@ public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResource
 
     @Override
     public boolean hasContent() {
-        return content.isEmpty();
+        return !content.isEmpty();
     }
 
     @Override

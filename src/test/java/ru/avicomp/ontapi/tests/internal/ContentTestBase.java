@@ -45,12 +45,12 @@ abstract class ContentTestBase extends ObjectFactoryTestBase {
         WithContent wc = (WithContent) instance;
         InternalCache.Loading cache = getContentCache(instance);
         Assert.assertFalse(cache.isEmpty());
-        Assert.assertFalse(wc.hasContent());
+        Assert.assertTrue(wc.hasContent());
         wc.clearContent();
         Assert.assertTrue(cache.isEmpty());
-        Assert.assertTrue(wc.hasContent());
-        testCompare(sample, instance);
         Assert.assertFalse(wc.hasContent());
+        testCompare(sample, instance);
+        Assert.assertTrue(wc.hasContent());
         testSignatures(sample, instance);
     }
 

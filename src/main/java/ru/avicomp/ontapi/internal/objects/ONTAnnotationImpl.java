@@ -46,9 +46,6 @@ import java.util.stream.Stream;
 public abstract class ONTAnnotationImpl extends ONTBaseTripleImpl
         implements OWLAnnotation, ONTObject<OWLAnnotation>, WithMerge<ONTObject<OWLAnnotation>> {
 
-    // a marker for the case when there is no annotations
-    protected static final Object[] EMPTY = new Object[0];
-
     protected ONTAnnotationImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
         super(subject, predicate, object, m);
     }
@@ -61,23 +58,23 @@ public abstract class ONTAnnotationImpl extends ONTBaseTripleImpl
      * then a simplified instance of {@link Simple} is returned.
      * Otherwise the instance is {@link WithAnnotations} with a cache inside.
      *
-     * @param annotation {@link OntStatement}, must be annotation (i.e. {@link OntStatement#isAnnotation()}
+     * @param statement {@link OntStatement}, must be annotation (i.e. {@link OntStatement#isAnnotation()}
      *                   must be {@code true}), not {@code null}
      * @param factory {@link InternalObjectFactory}, not {@code null}
      * @param model      a provider of non-null {@link OntGraphModel}, not {@code null}
      * @return {@link ONTAnnotationImpl}
      */
-    public static ONTAnnotationImpl create(OntStatement annotation,
+    public static ONTAnnotationImpl create(OntStatement statement,
                                            InternalObjectFactory factory,
                                            Supplier<OntGraphModel> model) {
-        Object[] annotations = collectAnnotations(annotation, factory);
+        Object[] content = WithAnnotations.collectContent(statement, factory);
         ONTAnnotationImpl res;
-        if (annotations == EMPTY) {
-            res = new Simple(annotation.asTriple(), model);
+        if (content == EMPTY) {
+            res = new Simple(statement.asTriple(), model);
         } else {
-            res = WithContent.addContent(new WithAnnotations(annotation.asTriple(), model), annotations);
+            res = WithContent.addContent(new WithAnnotations(statement.asTriple(), model), content);
         }
-        res.hashCode = collectHashCode(res, factory, annotations);
+        res.hashCode = collectHashCode(res, factory, content);
         return res;
     }
 
@@ -95,25 +92,24 @@ public abstract class ONTAnnotationImpl extends ONTBaseTripleImpl
         int hash = res.hashIndex();
         hash = OWLObject.hashIteration(hash, res.findONTAnnotationProperty(factory).hashCode());
         hash = OWLObject.hashIteration(hash, res.findONTAnnotationValue(factory).hashCode());
-        return OWLObject.hashIteration(hash, content == EMPTY ? 1 : Arrays.hashCode(content));
+        return OWLObject.hashIteration(hash, collectHashCode(content, 0));
     }
 
     /**
-     * Collects all annotations for the given root {@link OntStatement} in the form of {@code Array}.
+     * Collects all annotations for the given root {@link OntStatement},
+     * that expected to be an annotation assertion (i.e. {@link OntStatement#isAnnotation()} must return {@code true}).
      *
-     * @param root    {@link OntStatement}, not {@code null}
-     * @param factory {@link InternalObjectFactory}, not {@code null}
-     * @return an {@code Array} (can be {@link #EMPTY} if no annotations)
+     * @param root    {@link OntStatement} the root annotation statement or plain annotation assertion, not {@code null}
+     * @param factory {@link InternalObjectFactory} to retrieve {@link ONTObject}s, not {@code null}
+     * @return a sorted nonnull distinct {@code Collection} {@code Collection}
+     * of {@link ONTObject}s with {@link OWLAnnotation}s (can be empty if no annotations)
+     * @see ONTBaseAxiomImpl#collectAnnotations(OntStatement, InternalObjectFactory, InternalConfig)
      */
-    protected static Object[] collectAnnotations(OntStatement root,
-                                                 InternalObjectFactory factory) {
-        if (root.getSubject().getAs(OntAnnotation.class) == null && !root.hasAnnotations()) {
-            return EMPTY;
-        }
-        Map<OWLAnnotation, ONTObject<OWLAnnotation>> sub = new TreeMap<>();
-        OntModels.listAnnotations(root).mapWith(factory::getAnnotation).forEachRemaining(x -> WithMerge.add(sub, x));
-        Object[] res = sub.values().toArray();
-        return res.length == 0 ? EMPTY : res;
+    protected static Collection<ONTObject<OWLAnnotation>> collectAnnotations(OntStatement root,
+                                                                             InternalObjectFactory factory) {
+        Map<OWLAnnotation, ONTObject<OWLAnnotation>> res = new TreeMap<>();
+        OntModels.listAnnotations(root).mapWith(factory::getAnnotation).forEachRemaining(x -> WithMerge.add(res, x));
+        return res.values();
     }
 
     /**
@@ -202,12 +198,12 @@ public abstract class ONTAnnotationImpl extends ONTBaseTripleImpl
         if (factory instanceof ModelObjectFactory) {
             return ((ModelObjectFactory) factory).getAnnotationProperty(predicate);
         }
-        return getObjectFactory().getProperty(model.get().getAnnotationProperty(predicate));
+        return factory.getProperty(model.get().getAnnotationProperty(predicate));
     }
 
     private ONTObject<? extends OWLAnnotationValue> findONTAnnotationValue(InternalObjectFactory factory) {
         if (!(factory instanceof ModelObjectFactory)) {
-            return getObjectFactory().getValue(model.get().asRDFNode(getObjectNode()));
+            return factory.getValue(model.get().asRDFNode(getObjectNode()));
         }
         ModelObjectFactory f = (ModelObjectFactory) factory;
         if (object instanceof BlankNodeId) {
@@ -368,6 +364,17 @@ public abstract class ONTAnnotationImpl extends ONTBaseTripleImpl
             this.content = createContent();
         }
 
+        protected static Object[] collectContent(OntStatement statement, InternalObjectFactory factory) {
+            Collection annotations = collectAnnotations(statement, factory);
+            if (annotations.isEmpty()) return EMPTY;
+            Object[] res = new Object[annotations.size()];
+            int index = 0;
+            for (Object a : annotations) {
+                res[index++] = a;
+            }
+            return res;
+        }
+
         @Override
         protected boolean sameContent(ONTBaseTripleImpl other) {
             return other instanceof WithAnnotations
@@ -384,7 +391,7 @@ public abstract class ONTAnnotationImpl extends ONTBaseTripleImpl
 
         @Override
         public Object[] collectContent() {
-            return collectAnnotations(asStatement(), getObjectFactory());
+            return collectContent(asStatement(), getObjectFactory());
         }
 
         @Override
@@ -394,7 +401,7 @@ public abstract class ONTAnnotationImpl extends ONTBaseTripleImpl
 
         @Override
         public boolean hasContent() {
-            return content.isEmpty();
+            return !content.isEmpty();
         }
 
         @Override

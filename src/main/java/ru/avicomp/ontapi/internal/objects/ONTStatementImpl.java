@@ -105,7 +105,7 @@ public abstract class ONTStatementImpl extends ONTBaseTripleImpl
 
     @Override
     public boolean hasContent() {
-        return content.isEmpty();
+        return !content.isEmpty();
     }
 
     @Override

@@ -21,7 +21,6 @@ import ru.avicomp.ontapi.internal.InternalConfig;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
-import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 
 import java.util.List;
@@ -60,8 +59,6 @@ public abstract class ONTSimpleAxiomImpl<X extends OWLAxiom> extends ONTAxiomImp
      * @param c {@link InternalConfig}, the config, not {@code null}
      * @param f {@link InternalObjectFactory}, the factory, not {@code null}
      * @return Array of {@code Object}s
-     * @see ONTExpressionImpl#collectContent(OntObject, InternalObjectFactory)
-     * @see ONTAnnotationImpl#collectAnnotations(OntStatement, InternalObjectFactory)
      */
     protected final Object[] collectContent(OntStatement s, InternalConfig c, InternalObjectFactory f) {
 

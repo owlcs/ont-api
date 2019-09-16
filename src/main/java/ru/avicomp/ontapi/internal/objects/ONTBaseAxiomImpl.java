@@ -14,6 +14,7 @@
 
 package ru.avicomp.ontapi.internal.objects;
 
+import org.apache.jena.graph.Triple;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.util.NNF;
@@ -23,7 +24,6 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.function.Supplier;
@@ -31,77 +31,63 @@ import java.util.stream.Stream;
 
 /**
  * A base axiom.
- * Created by @ssz on 01.09.2019.
+ * TODO: need to remove {@link ONTAxiomImpl} and rename this class to same name (ONTAxiomImpl)
+ * Created by @ssz on 15.09.2019.
  *
  * @param <X> - the {@link OWLAxiom} subtype, must be the same that this class implements
  * @see ru.avicomp.ontapi.owlapi.axioms.OWLAxiomImpl
  * @since 1.4.3
  */
-@SuppressWarnings("WeakerAccess")
-public abstract class ONTAxiomImpl<X extends OWLAxiom> extends ONTStatementImpl implements OWLAxiom {
+public abstract class ONTBaseAxiomImpl<X extends OWLAxiom>
+        extends ONTBaseTripleImpl implements OWLAxiom, HasConfig {
 
-    protected ONTAxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+    protected ONTBaseAxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
         super(subject, predicate, object, m);
     }
 
     /**
-     * Collects the cache for the given {@code axiom}, and returns the same object.
-     * This method is an optimization hack:
-     * we know the statement, so we can get all info from it, before leave it forgotten and available for GC.
+     * Collects all annotations for the given axiom's main {@link OntStatement}.
      *
-     * @param axiom     {@link X}
-     * @param statement {@link OntStatement}
-     * @param factory   {@link InternalObjectFactory}
-     * @param config    {@link InternalConfig}
-     * @param <X>       subtype of {@link ONTAxiomImpl}
-     * @return the same {@code axiom}
+     * @param axiom   {@link OntStatement} the root axiom's statement, not {@code null}
+     * @param factory {@link InternalObjectFactory} to retrieve {@link ONTObject}s, not {@code null}
+     * @param config  {@link InternalConfig} to control reading, not {@code null}
+     * @return a sorted nonnull distinct {@code Collection}
+     * of {@link ONTObject}s with {@link OWLAnnotation}s (can be empty if no annotations)
+     * @see ONTAnnotationImpl#collectAnnotations(OntStatement, InternalObjectFactory)
      */
-    protected static <X extends ONTAxiomImpl> X init(X axiom,
-                                                     OntStatement statement,
-                                                     InternalObjectFactory factory,
-                                                     InternalConfig config) {
-        Object[] content = axiom.collectContent(statement, config, factory);
-        axiom.putContent(content);
-        axiom.hashCode = axiom.collectHashCode(content);
-        return axiom;
+    protected static Collection<ONTObject<OWLAnnotation>> collectAnnotations(OntStatement axiom,
+                                                                             InternalObjectFactory factory,
+                                                                             InternalConfig config) {
+        Map<OWLAnnotation, ONTObject<OWLAnnotation>> res = new TreeMap<>();
+        ReadHelper.listAnnotations(axiom, config, factory).forEachRemaining(x -> WithMerge.add(res, x));
+        return res.values();
+    }
+
+    /**
+     * Answers {@code true} if the given array contains {@link OWLAnnotation} at the end position.
+     *
+     * @param content an {@code Array}, not {@code null}
+     * @return boolean
+     */
+    protected static boolean hasAnnotations(Object[] content) {
+        return content[content.length - 1] instanceof OWLAnnotation;
     }
 
     @Override
-    public final Object[] collectContent() {
-        return collectContent(asStatement(), getConfig(), getObjectFactory());
+    public InternalConfig getConfig() {
+        return HasConfig.getConfig(model.get());
     }
 
-    /**
-     * Collects the cache.
-     *
-     * @param s {@link OntStatement}, the statement, not {@code null}
-     * @param c {@link InternalConfig}, the config, not {@code null}
-     * @param f {@link InternalObjectFactory}, the factory, not {@code null}
-     * @return Array of {@code Object}s
-     */
-    protected abstract Object[] collectContent(OntStatement s, InternalConfig c, InternalObjectFactory f);
-
-    /**
-     * Collects all annotations as Array.
-     *
-     * @param statement {@link OntStatement}, not {@code null}
-     * @param config    {@link InternalConfig}, not {@code null}
-     * @param factory   {@link InternalObjectFactory}, not {@code null}
-     * @return an {@code Array} with all annotations
-     */
-    protected Object[] collectAnnotations(OntStatement statement,
-                                          InternalConfig config,
-                                          InternalObjectFactory factory) {
-        Map<OWLAnnotation, ONTObject<OWLAnnotation>> res = new TreeMap<>();
-        ReadHelper.listAnnotations(statement, config, factory).forEachRemaining(x -> WithMerge.add(res, x));
-        return res.values().toArray();
+    @Override
+    public Stream<Triple> triples() {
+        return Stream.concat(super.triples(), objects().flatMap(ONTObject::triples));
     }
 
     @SuppressWarnings("unchecked")
     @FactoryAccessor
     @Override
     public final X getAxiomWithoutAnnotations() {
-        return createAnnotatedAxiom(Collections.emptySet());
+        return createAnnotatedAxiom(createSet());
     }
 
     @SuppressWarnings("unchecked")
@@ -120,9 +106,9 @@ public abstract class ONTAxiomImpl<X extends OWLAxiom> extends ONTStatementImpl 
     @FactoryAccessor
     protected abstract X createAnnotatedAxiom(Collection<OWLAnnotation> annotations);
 
+    @FactoryAccessor
     @Override
     public OWLAxiom getNNF() {
         return accept(new NNF(getDataFactory()));
     }
-
 }
