@@ -19,7 +19,9 @@ import org.apache.jena.graph.impl.LiteralLabel;
 import org.apache.jena.rdf.model.Literal;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.DataFactory;
+import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.internal.objects.*;
+import ru.avicomp.ontapi.jena.impl.Entities;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.OntModels;
 
@@ -197,6 +199,32 @@ public class ModelObjectFactory implements InternalObjectFactory {
 
     public ONTObject<SWRLVariable> getSWRLVariable(String uri) {
         return new ONTSWRLVariable(uri, model);
+    }
+
+    /**
+     * Gets an {@link OWLEntity} as {@link ONTObject} from the {@link OntEntity}.
+     *
+     * @param uri  String, not {@code null}
+     * @param type {@link Entities}, not {@code null}
+     * @return {@link ONTObject} with {@link OntEntity}
+     * @see InternalObjectFactory#getEntity(OntEntity)
+     */
+    public ONTObject<? extends OWLEntity> getEntity(String uri, Entities type) {
+        switch (type) {
+            case CLASS:
+                return getClass(uri);
+            case DATATYPE:
+                return getDatatype(uri);
+            case INDIVIDUAL:
+                return getNamedIndividual(uri);
+            case OBJECT_PROPERTY:
+                return getObjectProperty(uri);
+            case DATA_PROPERTY:
+                return getDataProperty(uri);
+            case ANNOTATION_PROPERTY:
+                return getAnnotationProperty(uri);
+        }
+        throw new OntApiException.IllegalArgument("Unsupported type " + type);
     }
 
 }

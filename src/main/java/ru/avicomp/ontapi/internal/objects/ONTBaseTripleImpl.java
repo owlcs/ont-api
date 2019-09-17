@@ -76,6 +76,7 @@ public abstract class ONTBaseTripleImpl extends ONTObjectImpl implements OWLObje
      * @param r {@link RDFNode}, not {@code null}
      * @return {@link BlankNodeId} or {@link LiteralLabel} or {@code String}
      */
+    @SuppressWarnings("unused")
     public static Object fromNode(RDFNode r) {
         return strip(r.asNode());
     }
@@ -104,12 +105,31 @@ public abstract class ONTBaseTripleImpl extends ONTObjectImpl implements OWLObje
      * @return int
      * @see java.util.Arrays#hashCode(Object[])
      */
-    protected static int collectHashCode(Object[] array, int startIndex) {
+    protected static int hashCode(Object[] array, int startIndex) {
         if (array == EMPTY)
             return 1;
         int res = 1;
         for (int i = startIndex; i < array.length; i++) {
             res = 31 * res + array[i].hashCode();
+        }
+        return res;
+    }
+
+    /**
+     * Returns an array containing all of the elements
+     * in the specified collection in the same sequence (from first to last element).
+     * This method is slightly simpler and faster than the standard java method.
+     *
+     * @param collection a {@code Collection}, not {@code null}
+     * @return an {@code Array}
+     * @see AbstractCollection#toArray()
+     */
+    protected static Object[] toArray(Collection collection) {
+        if (collection.isEmpty()) return EMPTY;
+        Object[] res = new Object[collection.size()];
+        int index = 0;
+        for (Object a : collection) {
+            res[index++] = a;
         }
         return res;
     }
@@ -315,7 +335,12 @@ public abstract class ONTBaseTripleImpl extends ONTObjectImpl implements OWLObje
             // definitely not equal
             return false;
         }
-        if (sameTriple(other)) { // todo: is it correct ?
+        // with a fixed configuration (InternalConfig),
+        // it is impossible to have two different axioms with the same main triple:
+        // all annotations are strictly defined by the config,
+        // so two axioms read from the model must be equal
+        // if they have identical root triple with uris as subject and object:
+        if (sameTriple(other)) {
             // definitely equal
             return true;
         }

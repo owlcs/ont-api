@@ -21,6 +21,7 @@ import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.internal.*;
+import ru.avicomp.ontapi.internal.objects.FactoryAccessor;
 import ru.avicomp.ontapi.internal.objects.ONTBaseAxiomImpl;
 import ru.avicomp.ontapi.internal.objects.ONTBaseTripleImpl;
 import ru.avicomp.ontapi.internal.objects.WithContent;
@@ -140,7 +141,7 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
             res = OWLObject.hashIteration(res, (axiom.hasURIObject()
                     ? axiom.findONTSuperClass(factory)
                     : content[index++]).hashCode());
-            return OWLObject.hashIteration(res, collectHashCode(content, index));
+            return OWLObject.hashIteration(res, hashCode(content, index));
         }
 
         @Override
@@ -154,6 +155,7 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
             return Stream.of(findONTSubClass(factory), findONTSuperClass(factory));
         }
 
+        @FactoryAccessor
         @Override
         protected OWLSubClassOfAxiom createAnnotatedAxiom(Collection<OWLAnnotation> annotations) {
             return getDataFactory().getOWLSubClassOfAxiom(getSubClass(), getSuperClass(), annotations);
@@ -449,6 +451,7 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
                 if (notSame(other)) {
                     return false;
                 }
+                // no #sameTriple(), since it can contain b-nodes
                 return sameContent(other);
             }
 

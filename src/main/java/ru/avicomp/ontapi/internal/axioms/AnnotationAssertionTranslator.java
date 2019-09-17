@@ -14,16 +14,20 @@
 
 package ru.avicomp.ontapi.internal.axioms;
 
+import org.apache.jena.graph.BlankNodeId;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.graph.impl.LiteralLabel;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.util.iterator.NullIterator;
 import org.semanticweb.owlapi.model.*;
+import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.internal.*;
-import ru.avicomp.ontapi.internal.objects.ONTAnnotationImpl;
-import ru.avicomp.ontapi.internal.objects.ONTSimpleAxiomImpl;
+import ru.avicomp.ontapi.internal.objects.*;
 import ru.avicomp.ontapi.jena.model.*;
 
-import java.util.Collection;
+import java.util.*;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 /**
  * A translator that provides {@link OWLAnnotationAssertionAxiom} implementations.
@@ -103,25 +107,61 @@ public class AnnotationAssertionTranslator
 
     /**
      * @see ru.avicomp.ontapi.owlapi.axioms.OWLAnnotationAssertionAxiomImpl
+     * @see ONTAnnotationImpl
      */
-    public static class AxiomImpl extends ONTSimpleAxiomImpl<OWLAnnotationAssertionAxiom>
+    public static abstract class AxiomImpl extends ONTBaseAxiomImpl<OWLAnnotationAssertionAxiom>
             implements ONTObject<OWLAnnotationAssertionAxiom>, OWLAnnotationAssertionAxiom {
 
         protected AxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
             super(subject, predicate, object, m);
         }
 
-        public static AxiomImpl create(OntStatement s,
-                                       Supplier<OntGraphModel> m,
-                                       InternalObjectFactory of,
-                                       InternalConfig c) {
-            return init(new AxiomImpl(fromNode(s.getSubject()),
-                    s.getPredicate().getURI(), fromNode(s.getObject()), m), s, of, c);
+        /**
+         * Creates an {@link OWLAnnotationAssertionAxiom} that is also {@link ONTObject}.
+         * <p>
+         * Impl notes: if there is no annotations associated with the given {@link OntStatement},
+         * then a {@link Simple} instance is returned.
+         * Otherwise the method returns a {@link WithAnnotations} instance with a cache inside.
+         *
+         * @param statement {@link OntStatement}, the source
+         * @param model     {@link OntGraphModel}-provider
+         * @param factory   {@link InternalObjectFactory}
+         * @param config    {@link InternalConfig}
+         * @return {@link AxiomImpl}
+         */
+        public static AxiomImpl create(OntStatement statement,
+                                       Supplier<OntGraphModel> model,
+                                       InternalObjectFactory factory,
+                                       InternalConfig config) {
+            Object[] content = WithAnnotations.collectContent(statement, factory, config);
+            AxiomImpl res;
+            if (content == EMPTY) {
+                res = new Simple(statement.asTriple(), model);
+            } else {
+                res = WithContent.addContent(new WithAnnotations(statement.asTriple(), model), content);
+            }
+            res.hashCode = collectHashCode(res, factory, content);
+            return res;
+        }
+
+        private static int collectHashCode(AxiomImpl res,
+                                           InternalObjectFactory factory,
+                                           Object[] content) {
+            int hash = res.hashIndex();
+            hash = OWLObject.hashIteration(hash, res.findONTSubject(factory).hashCode());
+            hash = OWLObject.hashIteration(hash, res.findONTProperty(factory).hashCode());
+            hash = OWLObject.hashIteration(hash, res.findONTValue(factory).hashCode());
+            return OWLObject.hashIteration(hash, hashCode(content, 0));
         }
 
         @Override
         public OWLAnnotationAssertionAxiom getOWLObject() {
             return this;
+        }
+
+        @Override
+        public Stream<ONTObject<? extends OWLObject>> objects() {
+            return Stream.of(getONTSubject(), getONTProperty(), getONTValue());
         }
 
         @Override
@@ -139,21 +179,61 @@ public class AnnotationAssertionTranslator
             return getONTValue().getOWLObject();
         }
 
-        @SuppressWarnings("unchecked")
         public ONTObject<? extends OWLAnnotationSubject> getONTSubject() {
-            return (ONTObject<? extends OWLAnnotationSubject>) getContent()[0];
+            return findONTSubject(getObjectFactory());
         }
 
-        @SuppressWarnings("unchecked")
         public ONTObject<OWLAnnotationProperty> getONTProperty() {
-            return (ONTObject<OWLAnnotationProperty>) getContent()[1];
+            return findONTProperty(getObjectFactory());
         }
 
-        @SuppressWarnings("unchecked")
         public ONTObject<? extends OWLAnnotationValue> getONTValue() {
-            return (ONTObject<? extends OWLAnnotationValue>) getContent()[2];
+            return findONTValue(getObjectFactory());
         }
 
+        protected ONTObject<? extends OWLAnnotationSubject> findONTSubject(InternalObjectFactory factory) {
+            if (!(factory instanceof ModelObjectFactory)) {
+                return factory.getSubject(asStatement().getSubject(OntObject.class));
+            }
+            if (hasURISubject()) {
+                return factory.getIRI((String) subject);
+            }
+            if (subject instanceof BlankNodeId) {
+                return ((ModelObjectFactory) factory).getAnonymousIndividual((BlankNodeId) subject);
+            }
+            throw new OntApiException.IllegalState("Wrong subject: " + subject);
+        }
+
+        protected ONTObject<? extends OWLAnnotationValue> findONTValue(InternalObjectFactory factory) {
+            if (!(factory instanceof ModelObjectFactory)) {
+                return factory.getValue(asStatement().getObject(OntObject.class));
+            }
+            ModelObjectFactory f = (ModelObjectFactory) factory;
+            if (object instanceof BlankNodeId) {
+                return f.getAnonymousIndividual((BlankNodeId) object);
+            }
+            if (object instanceof LiteralLabel) {
+                return f.getLiteral((LiteralLabel) object);
+            }
+            if (object instanceof String) {
+                return f.getIRI((String) object);
+            }
+            throw new OntApiException.IllegalState("Wrong object: " + object);
+        }
+
+        protected ONTObject<OWLAnnotationProperty> findONTProperty(InternalObjectFactory factory) {
+            if (factory instanceof ModelObjectFactory) {
+                return ((ModelObjectFactory) factory).getAnnotationProperty(predicate);
+            }
+            return factory.getProperty(asStatement().getPredicate().as(OntNAP.class));
+        }
+
+        @Override
+        protected boolean sameContent(ONTBaseTripleImpl other) {
+            return false;
+        }
+
+        @FactoryAccessor
         @Override
         public OWLAnnotation getAnnotation() {
             return getDataFactory().getOWLAnnotation(getProperty(), getValue());
@@ -164,23 +244,10 @@ public class AnnotationAssertionTranslator
             return ONTAnnotationImpl.isDeprecated(predicate, object);
         }
 
+        @FactoryAccessor
         @Override
         protected OWLAnnotationAssertionAxiom createAnnotatedAxiom(Collection<OWLAnnotation> annotations) {
             return getDataFactory().getOWLAnnotationAssertionAxiom(getProperty(), getSubject(), getValue(), annotations);
-        }
-
-        @Override
-        protected int getOperandsNum() {
-            return 3;
-        }
-
-        @Override
-        protected void collectOperands(Object[] cache,
-                                       OntStatement statement,
-                                       InternalObjectFactory factory) {
-            cache[0] = factory.getSubject(statement.getSubject(OntObject.class));
-            cache[1] = factory.getProperty(statement.getPredicate().as(OntNAP.class));
-            cache[2] = factory.getValue(statement.getObject());
         }
 
         @Override
@@ -207,6 +274,150 @@ public class AnnotationAssertionTranslator
         public boolean canContainClassExpressions() {
             return false;
         }
+
+        /**
+         * An {@link OWLAnnotationAssertionAxiom} that has no sub-annotations.
+         */
+        public static class Simple extends AxiomImpl {
+
+            protected Simple(Triple t, Supplier<OntGraphModel> m) {
+                this(strip(t.getSubject()), t.getPredicate().getURI(), strip(t.getObject()), m);
+            }
+
+            protected Simple(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+                super(subject, predicate, object, m);
+            }
+
+            @Override
+            public boolean containsDatatype(OWLDatatype datatype) {
+                return object instanceof LiteralLabel
+                        && getONTValue().getOWLObject().containsEntityInSignature(datatype);
+            }
+
+            @Override
+            public boolean containsAnnotationProperty(OWLAnnotationProperty property) {
+                return getONTProperty().getOWLObject().equals(property);
+            }
+
+            @Override
+            public Set<OWLAnonymousIndividual> getAnonymousIndividualSet() {
+                Set<OWLAnonymousIndividual> res = createSortedSet();
+                InternalObjectFactory factory = null;
+                if (subject instanceof BlankNodeId) {
+                    res.add(findAnonymousIndividual(findONTSubject(factory = getObjectFactory())));
+                }
+                if (object instanceof BlankNodeId) {
+                    res.add(findAnonymousIndividual(findONTValue(factory == null ? getObjectFactory() : factory)));
+                }
+                return res;
+            }
+
+            @Override
+            public Set<OWLAnnotationProperty> getAnnotationPropertySet() {
+                return createSet(getProperty());
+            }
+
+            @Override
+            public Set<OWLDatatype> getDatatypeSet() {
+                return object instanceof LiteralLabel ? createSet(findDatatype()) : createSet();
+            }
+
+            @Override
+            public Set<OWLEntity> getSignatureSet() {
+                Set<OWLEntity> res = createSortedSet();
+                res.add(getProperty());
+                if (object instanceof LiteralLabel) {
+                    res.add(findDatatype());
+                }
+                return res;
+            }
+
+            protected OWLDatatype findDatatype() {
+                return getValue().asLiteral().orElseThrow(OntApiException.IllegalState::new).getDatatype();
+            }
+
+            protected OWLAnonymousIndividual findAnonymousIndividual(ONTObject<? extends OWLAnnotationObject> value) {
+                return value.getOWLObject().asAnonymousIndividual().orElseThrow(OntApiException.IllegalState::new);
+            }
+        }
+
+        /**
+         * An {@link OWLAnnotationAssertionAxiom} that has sub-annotations.
+         * This class has a public constructor since it is more generic then {@link Simple}.
+         * TODO: Can't avoid copy-paste...
+         *
+         * @see ONTAnnotationImpl.WithAnnotations
+         */
+        public static class WithAnnotations extends AxiomImpl implements WithContent<WithAnnotations> {
+            protected final InternalCache.Loading<WithAnnotations, Object[]> content;
+
+            public WithAnnotations(Triple t, Supplier<OntGraphModel> m) {
+                this(strip(t.getSubject()), t.getPredicate().getURI(), strip(t.getObject()), m);
+            }
+
+            protected WithAnnotations(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+                super(subject, predicate, object, m);
+                this.content = createContent();
+            }
+
+            protected static Object[] collectContent(OntStatement statement,
+                                                     InternalObjectFactory factory,
+                                                     InternalConfig config) {
+                return toArray(collectAnnotations(statement, factory, config));
+            }
+
+            @Override
+            public Object[] collectContent() {
+                return collectContent(asStatement(), getObjectFactory(), getConfig());
+            }
+
+            @Override
+            public boolean isAnnotated() {
+                return true;
+            }
+
+            @SuppressWarnings("unchecked")
+            @Override
+            public Stream<OWLAnnotation> annotations() {
+                Stream res = Arrays.stream(getContent());
+                return (Stream<OWLAnnotation>) res;
+            }
+
+            @SuppressWarnings("unchecked")
+            @Override
+            public List<OWLAnnotation> annotationsAsList() {
+                List res = Arrays.asList(getContent());
+                return (List<OWLAnnotation>) Collections.unmodifiableList(res);
+            }
+
+            @SuppressWarnings("unchecked")
+            @Override
+            public Stream<ONTObject<? extends OWLObject>> objects() {
+                Stream res = Stream.concat(super.objects(), annotations());
+                return (Stream<ONTObject<? extends OWLObject>>) res;
+            }
+
+            @Override
+            public Object[] getContent() {
+                return content.get(this);
+            }
+
+            @Override
+            public void putContent(Object[] content) {
+                this.content.put(this, content);
+            }
+
+            @Override
+            public boolean hasContent() {
+                return !content.isEmpty();
+            }
+
+            @Override
+            public void clearContent() {
+                content.clear();
+            }
+        }
+
     }
 
 }

@@ -15,12 +15,13 @@
 package ru.avicomp.ontapi.internal.axioms;
 
 import org.apache.jena.graph.Node;
+import org.apache.jena.graph.Triple;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.util.iterator.NullIterator;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.internal.*;
-import ru.avicomp.ontapi.internal.objects.ONTSimpleAxiomImpl;
+import ru.avicomp.ontapi.internal.objects.*;
 import ru.avicomp.ontapi.jena.OntJenaException;
 import ru.avicomp.ontapi.jena.impl.Entities;
 import ru.avicomp.ontapi.jena.model.OntEntity;
@@ -30,13 +31,12 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.utils.OntModels;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
-import java.util.Collection;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 /**
- * It is a translator for axioms of the {@link org.semanticweb.owlapi.model.AxiomType#DECLARATION} type.
+ * It is a translator for axioms of the {@link AxiomType#DECLARATION} type.
  * Each non-builtin {@link OWLEntity entity} must have a declaration.
  * The entity declaration is a simple triplet with {@code rdf:type} predicate,
  * in OWL2 the subject and object of that triple are IRIs.
@@ -76,6 +76,14 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
 
     @Override
     public ONTObject<OWLDeclarationAxiom> toAxiom(OntStatement statement,
+                                                  Supplier<OntGraphModel> model,
+                                                  InternalObjectFactory factory,
+                                                  InternalConfig config) {
+        return AxiomImpl.create(statement, model, factory, config);
+    }
+
+    @Override
+    public ONTObject<OWLDeclarationAxiom> toAxiom(OntStatement statement,
                                                   InternalObjectFactory reader,
                                                   InternalConfig config) {
         OntEntity e = Entities.find(statement.getResource())
@@ -89,56 +97,55 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
         return ONTWrapperImpl.create(res, statement).append(annotations);
     }
 
-    @Override
-    public ONTObject<OWLDeclarationAxiom> toAxiom(OntStatement statement,
-                                                  Supplier<OntGraphModel> model,
-                                                  InternalObjectFactory factory,
-                                                  InternalConfig config) {
-        return AxiomImpl.create(statement, model, factory, config);
-    }
-
-
     /**
      * @see ru.avicomp.ontapi.owlapi.axioms.OWLDeclarationAxiomImpl
      */
-    public static class AxiomImpl extends ONTSimpleAxiomImpl<OWLDeclarationAxiom>
+    public abstract static class AxiomImpl extends ONTBaseAxiomImpl<OWLDeclarationAxiom>
             implements ONTObject<OWLDeclarationAxiom>, OWLDeclarationAxiom {
 
         protected AxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
             super(subject, predicate, object, m);
         }
 
-        private static String toMessage(Node s, Node o) {
-            return String.format("entity = %s, type = %s", s, o);
-        }
-
         /**
          * Creates an {@link OWLDeclarationAxiom} that is also {@link ONTObject}.
          *
-         * @param s  {@link OntStatement}, the source
-         * @param m  {@link OntGraphModel}-provider
-         * @param of {@link InternalObjectFactory}
-         * @param c  {@link InternalConfig}
+         * Impl notes: if there is no annotations associated with the given {@link OntStatement},
+         * then a {@link Simple} instance is returned.
+         * Otherwise the method returns a {@link WithAnnotations} instance with a cache inside.
+         *
+         * @param statement  {@link OntStatement}, the source
+         * @param model  {@link OntGraphModel}-provider
+         * @param factory {@link InternalObjectFactory}
+         * @param config  {@link InternalConfig}
          * @return {@link AxiomImpl}
          */
-        public static AxiomImpl create(OntStatement s,
-                                       Supplier<OntGraphModel> m,
-                                       InternalObjectFactory of,
-                                       InternalConfig c) {
-            return init(new AxiomImpl(fromNode(s.getSubject()),
-                    s.getPredicate().getURI(), fromNode(s.getObject()), m), s, of, c);
+        public static AxiomImpl create(OntStatement statement,
+                                       Supplier<OntGraphModel> model,
+                                       InternalObjectFactory factory,
+                                       InternalConfig config) {
+            Object[] content = WithAnnotations.collectContent(statement, factory, config);
+            AxiomImpl res;
+            if (content == EMPTY) {
+                res = new Simple(statement.asTriple(), model);
+            } else {
+                res = WithContent.addContent(new WithAnnotations(statement.asTriple(), model), content);
+            }
+            res.hashCode = collectHashCode(res, factory, content);
+            return res;
+        }
+
+        private static int collectHashCode(AxiomImpl res,
+                                           InternalObjectFactory factory,
+                                           Object[] content) {
+            int hash = res.hashIndex();
+            hash = OWLObject.hashIteration(hash, res.findONTEntity(factory).hashCode());
+            return OWLObject.hashIteration(hash, hashCode(content, 0));
         }
 
         @Override
         public OntStatement asStatement() {
-            Node s = getSubjectNode();
-            Node o = getObjectNode();
-            Class<? extends OntEntity> t = Entities.find(o)
-                    .orElseThrow(() -> new OntApiException.IllegalState("Can't find type for " + toMessage(s, o)))
-                    .getActualType();
-            OntEntity e = OntApiException.mustNotBeNull(getPersonalityModel()
-                    .findNodeAs(s, t), "Can't find " + toMessage(s, o));
-            return OntApiException.mustNotBeNull(e.getRoot());
+            return OntApiException.mustNotBeNull(getResource().getRoot());
         }
 
         @Override
@@ -147,42 +154,58 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
         }
 
         @Override
+        public Stream<ONTObject<? extends OWLObject>> objects() {
+            return Stream.of(getONTEntity());
+        }
+
+        @Override
         public OWLEntity getEntity() {
             return getONTEntity().getOWLObject();
         }
 
-        @SuppressWarnings("unchecked")
         public ONTObject<? extends OWLEntity> getONTEntity() {
-            return (ONTObject<? extends OWLEntity>) getContent()[0];
+            return findONTEntity(getObjectFactory());
         }
 
-        @Override
-        protected int getOperandsNum() {
-            return 1;
+        protected ONTObject<? extends OWLEntity> findONTEntity(InternalObjectFactory factory) {
+            if (factory instanceof ModelObjectFactory) {
+                return ((ModelObjectFactory) factory).getEntity((String) subject, getResourceType());
+            }
+            return factory.getEntity(getResource());
         }
 
+        /**
+         * Returns an {@link OntEntity}, which is a {@link org.apache.jena.rdf.model.Resource Jena Resource}.
+         *
+         * @return {@link OntEntity}
+         */
+        public OntEntity getResource() {
+            Node s = getSubjectNode();
+            Class<? extends OntEntity> t = getResourceType().getActualType();
+            return OntApiException.mustNotBeNull(getPersonalityModel()
+                    .findNodeAs(s, t), "Can't find entity " + subject);
+        }
+
+        /**
+         * Returns an entity type from jena subsystem.
+         *
+         * @return {@link Entities}
+         */
+        public Entities getResourceType() {
+            Node type = getObjectNode();
+            return Entities.find(type)
+                    .orElseThrow(() -> new OntApiException.IllegalState("Can't find type for " + subject));
+        }
+
+        @FactoryAccessor
         @Override
         protected OWLDeclarationAxiom createAnnotatedAxiom(Collection<OWLAnnotation> annotations) {
             return getDataFactory().getOWLDeclarationAxiom(getEntity(), annotations);
         }
 
         @Override
-        protected void collectOperands(Object[] cache,
-                                       OntStatement statement,
-                                       InternalObjectFactory factory) {
-            OntEntity res = Entities.find(statement.getResource())
-                    .map(e -> statement.getModel().getOntEntity(e.getActualType(), statement.getSubject()))
-                    .orElseThrow(() -> new OntJenaException.IllegalArgument("Can't find entity by the statement "
-                            + statement));
-            cache[0] = factory.getEntity(res);
-        }
-
-        @Override
-        public boolean containsEntity(OWLEntity entity) {
-            if (isAnnotated() && (entity.isOWLAnnotationProperty() || entity.isOWLDatatype())) {
-                return super.containsEntity(entity);
-            }
-            return getEntity().equals(entity);
+        protected boolean sameContent(ONTBaseTripleImpl other) {
+            return false;
         }
 
         @Override
@@ -215,28 +238,130 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
             return res.isOWLObjectProperty() ? createSet(res.asOWLObjectProperty()) : createSet();
         }
 
-        @Override
-        public Set<OWLDatatype> getDatatypeSet() {
-            if (isAnnotated())
-                return super.getDatatypeSet();
-            OWLEntity res = getEntity();
-            return res.isOWLDatatype() ? createSet(res.asOWLDatatype()) : createSet();
+        /**
+         * An {@link OWLDeclarationAxiom} that has no annotations.
+         */
+        public static class Simple extends AxiomImpl {
+
+            protected Simple(Triple t, Supplier<OntGraphModel> m) {
+                this(strip(t.getSubject()), t.getPredicate().getURI(), strip(t.getObject()), m);
+            }
+
+            protected Simple(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+                super(subject, predicate, object, m);
+            }
+
+            @Override
+            public boolean containsEntity(OWLEntity entity) {
+                return getEntity().equals(entity);
+            }
+
+            @Override
+            public Set<OWLEntity> getSignatureSet() {
+                return createSet(getEntity());
+            }
+
+            @Override
+            public Set<OWLDatatype> getDatatypeSet() {
+                OWLEntity res = getEntity();
+                return res.isOWLDatatype() ? createSet(res.asOWLDatatype()) : createSet();
+            }
+
+            @Override
+            public Set<OWLAnnotationProperty> getAnnotationPropertySet() {
+                OWLEntity res = getEntity();
+                return res.isOWLAnnotationProperty() ? createSet(res.asOWLAnnotationProperty()) : createSet();
+            }
+
+            @Override
+            public boolean canContainAnonymousIndividuals() {
+                return false;
+            }
         }
 
-        @Override
-        public Set<OWLAnnotationProperty> getAnnotationPropertySet() {
-            if (isAnnotated())
-                return super.getAnnotationPropertySet();
-            OWLEntity res = getEntity();
-            return res.isOWLAnnotationProperty() ? createSet(res.asOWLAnnotationProperty()) : createSet();
+        /**
+         * An {@link OWLDeclarationAxiom} that has annotations.
+         * This class has a public constructor since it is more generic then {@link Simple}.
+         * TODO: Can't avoid copy-paste...
+         *
+         * @see ONTAnnotationImpl.WithAnnotations
+         */
+        public static class WithAnnotations extends AxiomImpl implements WithContent<WithAnnotations> {
+            protected final InternalCache.Loading<WithAnnotations, Object[]> content;
+
+            public WithAnnotations(Triple t, Supplier<OntGraphModel> m) {
+                this(strip(t.getSubject()), t.getPredicate().getURI(), strip(t.getObject()), m);
+            }
+
+            protected WithAnnotations(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+                super(subject, predicate, object, m);
+                this.content = createContent();
+            }
+
+            protected static Object[] collectContent(OntStatement statement,
+                                                     InternalObjectFactory factory,
+                                                     InternalConfig config) {
+                return toArray(collectAnnotations(statement, factory, config));
+            }
+
+            @Override
+            public Object[] collectContent() {
+                return collectContent(asStatement(), getObjectFactory(), getConfig());
+            }
+
+            @Override
+            public Object[] getContent() {
+                return content.get(this);
+            }
+
+            @Override
+            public boolean isAnnotated() {
+                return true;
+            }
+
+            @SuppressWarnings("unchecked")
+            @Override
+            public Stream<OWLAnnotation> annotations() {
+                Stream res = Arrays.stream(getContent());
+                return (Stream<OWLAnnotation>) res;
+            }
+
+            @SuppressWarnings("unchecked")
+            @Override
+            public List<OWLAnnotation> annotationsAsList() {
+                List res = Arrays.asList(getContent());
+                return (List<OWLAnnotation>) Collections.unmodifiableList(res);
+            }
+
+            @SuppressWarnings("unchecked")
+            @Override
+            public Stream<ONTObject<? extends OWLObject>> objects() {
+                Stream res = Stream.concat(super.objects(), annotations());
+                return (Stream<ONTObject<? extends OWLObject>>) res;
+            }
+
+            @Override
+            public void putContent(Object[] content) {
+                this.content.put(this, content);
+            }
+
+            @Override
+            public boolean hasContent() {
+                return !content.isEmpty();
+            }
+
+            @Override
+            public void clearContent() {
+                content.clear();
+            }
+
+            @Override
+            public boolean containsEntity(OWLEntity entity) {
+                if (entity.isOWLAnnotationProperty() || entity.isOWLDatatype()) {
+                    return super.containsEntity(entity);
+                }
+                return getEntity().equals(entity);
+            }
         }
-
-        @Override
-        public Set<OWLAnonymousIndividual> getAnonymousIndividualSet() {
-            return isAnnotated() ? super.getAnonymousIndividualSet() : createSet();
-        }
-
-
     }
-
 }

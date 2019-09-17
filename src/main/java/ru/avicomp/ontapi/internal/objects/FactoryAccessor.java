@@ -34,5 +34,5 @@ import java.lang.annotation.Target;
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.SOURCE)
-@interface FactoryAccessor {
+public @interface FactoryAccessor {
 }

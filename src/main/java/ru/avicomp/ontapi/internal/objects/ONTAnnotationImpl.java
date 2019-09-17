@@ -92,7 +92,7 @@ public abstract class ONTAnnotationImpl extends ONTBaseTripleImpl
         int hash = res.hashIndex();
         hash = OWLObject.hashIteration(hash, res.findONTAnnotationProperty(factory).hashCode());
         hash = OWLObject.hashIteration(hash, res.findONTAnnotationValue(factory).hashCode());
-        return OWLObject.hashIteration(hash, collectHashCode(content, 0));
+        return OWLObject.hashIteration(hash, hashCode(content, 0));
     }
 
     /**
@@ -194,14 +194,14 @@ public abstract class ONTAnnotationImpl extends ONTBaseTripleImpl
         return findONTAnnotationValue(getObjectFactory());
     }
 
-    private ONTObject<OWLAnnotationProperty> findONTAnnotationProperty(InternalObjectFactory factory) {
+    protected ONTObject<OWLAnnotationProperty> findONTAnnotationProperty(InternalObjectFactory factory) {
         if (factory instanceof ModelObjectFactory) {
             return ((ModelObjectFactory) factory).getAnnotationProperty(predicate);
         }
         return factory.getProperty(model.get().getAnnotationProperty(predicate));
     }
 
-    private ONTObject<? extends OWLAnnotationValue> findONTAnnotationValue(InternalObjectFactory factory) {
+    protected ONTObject<? extends OWLAnnotationValue> findONTAnnotationValue(InternalObjectFactory factory) {
         if (!(factory instanceof ModelObjectFactory)) {
             return factory.getValue(model.get().asRDFNode(getObjectNode()));
         }
@@ -365,14 +365,7 @@ public abstract class ONTAnnotationImpl extends ONTBaseTripleImpl
         }
 
         protected static Object[] collectContent(OntStatement statement, InternalObjectFactory factory) {
-            Collection annotations = collectAnnotations(statement, factory);
-            if (annotations.isEmpty()) return EMPTY;
-            Object[] res = new Object[annotations.size()];
-            int index = 0;
-            for (Object a : annotations) {
-                res[index++] = a;
-            }
-            return res;
+            return toArray(collectAnnotations(statement, factory));
         }
 
         @Override
