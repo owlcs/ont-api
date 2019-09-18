@@ -16,13 +16,13 @@ package ru.avicomp.ontapi.tests.internal;
 
 import org.junit.Assert;
 import org.semanticweb.owlapi.model.OWLObject;
-import ru.avicomp.ontapi.internal.objects.ONTBaseTripleImpl;
+import ru.avicomp.ontapi.internal.objects.ONTStatementImpl;
 import ru.avicomp.ontapi.internal.objects.WithContent;
 
 /**
  * Created by @ssz on 14.09.2019.
  *
- * @see ONTBaseTripleImpl
+ * @see ONTStatementImpl
  */
 abstract class StatementTestBase extends ContentTestBase {
 
@@ -35,7 +35,7 @@ abstract class StatementTestBase extends ContentTestBase {
         if (test instanceof WithContent) {
             super.testContent(sample, test);
         } else {
-            Assert.assertFalse(((ONTBaseTripleImpl) test).isAnnotated());
+            Assert.assertFalse(((ONTStatementImpl) test).isAnnotated());
         }
     }
 

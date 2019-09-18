@@ -36,7 +36,7 @@ import java.util.function.Supplier;
 
 /**
  * A base for {@link ONTResourceImpl ONT Resource} (a {@link org.apache.jena.graph.Node node} based object)
- * and for {@link ONTBaseTripleImpl ONT Triple} (a {@link org.apache.jena.graph.Triple triple} based object).
+ * and for {@link ONTStatementImpl ONT Triple} (a {@link org.apache.jena.graph.Triple triple} based object).
  * Has a reference to a {@link OntGraphModel} inside.
  *
  * Created by @ssz on 31.08.2019.

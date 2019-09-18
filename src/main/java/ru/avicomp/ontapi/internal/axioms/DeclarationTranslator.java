@@ -100,7 +100,7 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
     /**
      * @see ru.avicomp.ontapi.owlapi.axioms.OWLDeclarationAxiomImpl
      */
-    public abstract static class AxiomImpl extends ONTBaseAxiomImpl<OWLDeclarationAxiom>
+    public abstract static class AxiomImpl extends ONTAxiomImpl<OWLDeclarationAxiom>
             implements ONTObject<OWLDeclarationAxiom>, OWLDeclarationAxiom {
 
         protected AxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
@@ -204,7 +204,7 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
         }
 
         @Override
-        protected boolean sameContent(ONTBaseTripleImpl other) {
+        protected boolean sameContent(ONTStatementImpl other) {
             return false;
         }
 

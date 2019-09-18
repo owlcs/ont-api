@@ -109,7 +109,7 @@ public class AnnotationAssertionTranslator
      * @see ru.avicomp.ontapi.owlapi.axioms.OWLAnnotationAssertionAxiomImpl
      * @see ONTAnnotationImpl
      */
-    public static abstract class AxiomImpl extends ONTBaseAxiomImpl<OWLAnnotationAssertionAxiom>
+    public static abstract class AxiomImpl extends ONTAxiomImpl<OWLAnnotationAssertionAxiom>
             implements ONTObject<OWLAnnotationAssertionAxiom>, OWLAnnotationAssertionAxiom {
 
         protected AxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
@@ -229,7 +229,7 @@ public class AnnotationAssertionTranslator
         }
 
         @Override
-        protected boolean sameContent(ONTBaseTripleImpl other) {
+        protected boolean sameContent(ONTStatementImpl other) {
             return false;
         }
 

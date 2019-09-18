@@ -14,160 +14,361 @@
 
 package ru.avicomp.ontapi.internal.objects;
 
-import org.apache.jena.graph.FrontsTriple;
-import org.apache.jena.graph.Triple;
+import org.apache.jena.graph.*;
+import org.apache.jena.graph.impl.LiteralLabel;
+import org.apache.jena.rdf.model.RDFNode;
+import org.semanticweb.owlapi.model.HasAnnotations;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLObject;
-import ru.avicomp.ontapi.internal.HasConfig;
-import ru.avicomp.ontapi.internal.InternalCache;
-import ru.avicomp.ontapi.internal.InternalConfig;
-import ru.avicomp.ontapi.internal.ONTObject;
-import ru.avicomp.ontapi.jena.model.OntAnnotation;
+import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
+import ru.avicomp.ontapi.jena.utils.Iter;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import javax.annotation.Nullable;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
- * A base triple component that can be annotated.
- * Contains cache for object's components.
- * Created by @szz on 27.08.2019.
+ * A base triple object-component that is attached to a model.
+ * Created by @ssz on 17.08.2019.
  *
- * @see ONTExpressionImpl
+ * @see ONTResourceImpl
  * @see OntStatement
  * @since 1.4.3
  */
 @SuppressWarnings("WeakerAccess")
-public abstract class ONTStatementImpl extends ONTBaseTripleImpl
-        implements ONTComposite, HasConfig, WithContent<ONTStatementImpl> {
-    /**
-     * A cache, an {@code Array} of content, the last element is reserved for annotations,
-     * which are also presented as {@code Object[]}.
-     */
-    protected final InternalCache.Loading<ONTStatementImpl, Object[]> content;
+public abstract class ONTStatementImpl extends ONTObjectImpl implements OWLObject, HasAnnotations, FrontsTriple {
 
+    // a marker for the case when there is no content cache
+    protected static final Object[] EMPTY = new Object[0];
+
+    protected final Object subject; // b-node-id or string
+    protected final String predicate;
+    protected final Object object; // b-node-id or string or literal-label
+
+    /**
+     * Constructs the base triple object.
+     *
+     * This class do not use {@link Triple Jena Triple} as reference,
+     * instead it contains three separated triple parts: {@link #subject}, {@link #predicate} and {@link #object}.
+     * This is because a {@link Graph} generally does not guarantee that it will return
+     * the same triplets (that are equal in sense of the operation {@code ==}) for the same SPO patterns,
+     * although this is true for {@link org.apache.jena.mem.GraphMem}.
+     *
+     * @param subject   - must be either {@link BlankNodeId} or {@code String}, not {@code null}
+     * @param predicate - {@code String} (URI), not {@code null}
+     * @param object    - must be either {@link BlankNodeId}, {@link LiteralLabel} or {@code String}, not {@code null}
+     * @param m         - a facility (as {@link Supplier}) to provide nonnull {@link OntGraphModel}, not {@code null}
+     */
     protected ONTStatementImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
-        super(subject, predicate, object, m);
-        this.content = createContent();
-    }
-
-    @Override
-    public InternalConfig getConfig() {
-        return HasConfig.getConfig(model.get());
-    }
-
-    @Override
-    public abstract Object[] collectContent();
-
-    /**
-     * Gets the number of semantic operands.
-     * For axioms that generate main triple usually it equal {@code 2}.
-     * For n-ary axioms with unknown predefined number of operands the result is {@code -1}.
-     *
-     * @return a positive int or {@code -1}
-     */
-    protected abstract int getOperandsNum();
-
-    @Override
-    public final int initHashCode() {
-        return collectHashCode(getContent());
+        super(m);
+        this.subject = Objects.requireNonNull(subject);
+        this.predicate = Objects.requireNonNull(predicate);
+        this.object = Objects.requireNonNull(object);
     }
 
     /**
-     * Calculates the {@code hashCode}.
-     * Note: must be overridden for n-ary axioms.
+     * Extracts a primitive base part from the given {@link RDFNode}.
      *
-     * @param content an {@code Array} with the content
-     * @return hash code for this axiom
+     * @param r {@link RDFNode}, not {@code null}
+     * @return {@link BlankNodeId} or {@link LiteralLabel} or {@code String}
      */
-    protected int collectHashCode(Object[] content) {
-        int res = hashIndex();
-        int n = getOperandsNum();
-        for (int i = 0; i < n; i++) {
-            res = OWLObject.hashIteration(res, content[i].hashCode());
-        }
-        return OWLObject.hashIteration(res, n == content.length ? 1 : Arrays.hashCode((Object[]) content[n]));
+    @SuppressWarnings("unused")
+    public static Object fromNode(RDFNode r) {
+        return strip(r.asNode());
     }
 
-    @Override
-    public Object[] getContent() {
-        return content.get(this);
+    /**
+     * Extracts a primitive base part from the given {@link Node}.
+     *
+     * @param node {@link Node}, not {@code null}
+     * @return {@link BlankNodeId} or {@link LiteralLabel} or {@code String}
+     */
+    public static Object strip(Node node) {
+        if (node.isURI())
+            return node.getURI();
+        if (node.isBlank())
+            return node.getBlankNodeId();
+        if (node.isLiteral())
+            return node.getLiteral();
+        throw new OntApiException.IllegalState("Wrong node: " + node);
     }
 
-    @Override
-    public void putContent(Object[] content) {
-        this.content.put(this, content);
-    }
-
-    @Override
-    public boolean hasContent() {
-        return !content.isEmpty();
-    }
-
-    @Override
-    public void clearContent() {
-        content.clear();
-    }
-
-    @Override
-    public boolean isAnnotated() {
-        return getContent().length > getOperandsNum();
-    }
-
-    @SuppressWarnings("unchecked")
-    public Stream<OWLAnnotation> annotations() {
-        Object[] content = getContent();
-        int n = getOperandsNum();
-        if (content.length == n) {
-            return Stream.empty();
-        }
-        List res = Arrays.asList((Object[]) content[n]);
-        return (Stream<OWLAnnotation>) res.stream();
-    }
-
-    @SuppressWarnings("unchecked")
-    public List<OWLAnnotation> annotationsAsList() {
-        Object[] content = getContent();
-        int n = getOperandsNum();
-        if (content.length == n) {
-            return Collections.emptyList();
-        }
-        List res = Arrays.asList((Object[]) content[n]);
-        return (List<OWLAnnotation>) Collections.unmodifiableList(res);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public Stream<ONTObject<? extends OWLObject>> objects() {
-        Object[] content = getContent();
-        Stream res = Arrays.stream(content);
-        int n = getOperandsNum();
-        if (content.length == n) {
-            return (Stream<ONTObject<? extends OWLObject>>) res;
-        }
-        return (Stream<ONTObject<? extends OWLObject>>) Stream.concat(res.limit(n),
-                Arrays.stream(((Object[]) content[n])));
-    }
-
-    @Override
-    public Stream<Triple> triples() {
-        OntStatement root = asStatement();
-        Stream<Triple> res = Stream.concat(Stream.of(root.asTriple()), objects().flatMap(ONTObject::triples));
-        OntAnnotation a = root.getSubject().getAs(OntAnnotation.class);
-        if (a != null) {
-            res = Stream.concat(res, a.spec().map(FrontsTriple::asTriple));
+    /**
+     * Calculates the hash code for the given {@code array} starting with the specified position.
+     *
+     * @param array      not {@code null}
+     * @param startIndex int, non-negative
+     * @return int
+     * @see java.util.Arrays#hashCode(Object[])
+     */
+    protected static int hashCode(Object[] array, int startIndex) {
+        if (array == EMPTY)
+            return 1;
+        int res = 1;
+        for (int i = startIndex; i < array.length; i++) {
+            res = 31 * res + array[i].hashCode();
         }
         return res;
     }
 
+    /**
+     * Returns an array containing all of the elements
+     * in the specified collection in the same sequence (from first to last element).
+     * This method is slightly simpler and faster than the standard java method.
+     *
+     * @param collection a {@code Collection}, not {@code null}
+     * @return an {@code Array}
+     * @see AbstractCollection#toArray()
+     */
+    protected static Object[] toArray(Collection collection) {
+        if (collection.isEmpty()) return EMPTY;
+        Object[] res = new Object[collection.size()];
+        int index = 0;
+        for (Object a : collection) {
+            res[index++] = a;
+        }
+        return res;
+    }
+
+    /**
+     * Answers the root triple of this statement.
+     *
+     * @return {@link Triple}
+     */
     @Override
-    protected boolean sameContent(ONTBaseTripleImpl other) {
-        // assuming all the rest info is keeping in the content only:
-        return other instanceof ONTStatementImpl && Arrays.equals(getContent(), ((ONTStatementImpl) other).getContent());
+    public Triple asTriple() {
+        return Triple.create(getSubjectNode(), getPredicateNode(), getObjectNode());
+    }
+
+    /**
+     * Answers the root statement of this object.
+     *
+     * @return {@link OntStatement}
+     */
+    public OntStatement asStatement() {
+        OntGraphModel m = model.get();
+        Triple t = asTriple();
+        return m.asStatement(Iter.findFirst(m.getGraph().find(t))
+                .orElseThrow(() -> new OntApiException.IllegalState("Can't find triple " + t)));
+    }
+
+    /**
+     * Lists all {@link Triple}s, associated with this object.
+     *
+     * @return {@code Stream} of {@link Triple}s
+     */
+    public Stream<Triple> triples() {
+        return Stream.of(asTriple());
+    }
+
+    /**
+     * Answers a {@code Node} that is included into this triple-object at subject position.
+     *
+     * @return {@link Node}
+     */
+    protected Node getSubjectNode() {
+        if (subject instanceof String) {
+            return NodeFactory.createURI((String) subject);
+        }
+        if (subject instanceof BlankNodeId) {
+            return NodeFactory.createBlankNode((BlankNodeId) subject);
+        }
+        throw new OntApiException.IllegalState();
+    }
+
+    /**
+     * Answers a {@code Node} that is included into this triple-object at object position.
+     *
+     * @return {@link Node}
+     */
+    protected Node getObjectNode() {
+        if (object instanceof String) {
+            return NodeFactory.createURI((String) object);
+        }
+        if (object instanceof BlankNodeId) {
+            return NodeFactory.createBlankNode((BlankNodeId) object);
+        }
+        if (object instanceof LiteralLabel) {
+            return NodeFactory.createLiteral((LiteralLabel) object);
+        }
+        throw new OntApiException.IllegalState();
+    }
+
+    /**
+     * Answers a {@code Node} that is included into this triple-object at predicate position.
+     *
+     * @return {@link Node}
+     */
+    protected Node getPredicateNode() {
+        return NodeFactory.createURI(predicate);
+    }
+
+    /**
+     * Answers {@code true} if this statement (axiom or annotation) has sub-annotations.
+     *
+     * @return boolean
+     * @see org.semanticweb.owlapi.model.OWLAxiom#isAnnotated()
+     */
+    public boolean isAnnotated() {
+        return false;
+    }
+
+    /**
+     * Lists all {@link OWLAnnotation}s on this object.
+     * The stream must be {@link java.util.Spliterator#ORDERED ordered}, {@link java.util.Spliterator#NONNULL nonull},
+     * {@link java.util.Spliterator#DISTINCT distinct} and {@link java.util.Spliterator#SORTED sorted}.
+     *
+     * @return a {@code Stream} of {@link OWLAnnotation}s
+     * @see org.semanticweb.owlapi.model.HasAnnotations#annotations()
+     */
+    @Override
+    public Stream<OWLAnnotation> annotations() {
+        return Stream.empty();
+    }
+
+    /**
+     * Answers a sorted and distinct {@code List} of {@link OWLAnnotation}s on this object.
+     * The returned {@code List} is unmodifiable.
+     *
+     * @return a unmodifiable {@code List} of {@link OWLAnnotation}s
+     * @see org.semanticweb.owlapi.model.HasAnnotations#annotationsAsList()
+     */
+    @Override
+    public List<OWLAnnotation> annotationsAsList() {
+        return Collections.emptyList();
+    }
+
+    /**
+     * Creates a new collection containing the annotations of this object and the given.
+     *
+     * @param other {@link Iterator} of {@link OWLAnnotation}s
+     * @return a {@code Collection} with annotations both from this object and specified
+     */
+    @FactoryAccessor
+    protected Collection<OWLAnnotation> appendAnnotations(Iterator<OWLAnnotation> other) {
+        Set<OWLAnnotation> res = createSortedSet();
+        other.forEachRemaining(res::add);
+        annotations().forEach(res::add);
+        return res;
+    }
+
+    /**
+     * Answers {@code true} if this triple-object and the given have the same SPO (base triple).
+     *
+     * @param other {@link ONTStatementImpl}, not {@code null}
+     * @return boolean
+     */
+    public final boolean sameTriple(ONTStatementImpl other) {
+        return sameSubject(other) && samePredicate(other) && sameObject(other);
+    }
+
+    /**
+     * Answers {@code true} iff the subjects of this and the specified object are equal.
+     *
+     * @param other {@link ONTStatementImpl}, not {@code null}
+     * @return boolean
+     */
+    protected final boolean sameSubject(ONTStatementImpl other) {
+        return subject.equals(other.subject);
+    }
+
+    /**
+     * Answers {@code true} iff the predicates of this and the specified object are equal.
+     *
+     * @param other {@link ONTStatementImpl}, not {@code null}
+     * @return boolean
+     */
+    protected final boolean samePredicate(ONTStatementImpl other) {
+        return predicate.equals(other.predicate);
+    }
+
+    /**
+     * Answers {@code true} iff the objects of this and the specified object are equal.
+     *
+     * @param other {@link ONTStatementImpl}, not {@code null}
+     * @return boolean
+     */
+    protected final boolean sameObject(ONTStatementImpl other) {
+        return object.equals(other.object);
+    }
+
+    /**
+     * Answers {@code true} iff this triple (SPO) has an URI subject.
+     *
+     * @return boolean
+     */
+    public final boolean hasURISubject() {
+        return subject instanceof String;
+    }
+
+    /**
+     * Answers {@code true} iff this triple (SPO) has an URI object.
+     *
+     * @return boolean
+     */
+    public final boolean hasURIObject() {
+        return object instanceof String;
+    }
+
+    /**
+     * Answers {@code true} if this object and the given have the same content.
+     * Two {@link OWLObject}s may have same content,
+     * but different base triples (see {@link #sameTriple(ONTStatementImpl)}).
+     *
+     * @param other {@link ONTStatementImpl}, not {@code null}
+     * @return boolean
+     */
+    protected abstract boolean sameContent(ONTStatementImpl other);
+
+    /**
+     * Answers {@code true} if this object and the given are equal as {@link OWLObject} (i.e. in OWL-API terms).
+     *
+     * @param other {@link ONTStatementImpl}, not {@code null}
+     * @return boolean
+     */
+    protected boolean sameAs(ONTStatementImpl other) {
+        if (notSame(other)) {
+            // definitely not equal
+            return false;
+        }
+        // with a fixed configuration (InternalConfig),
+        // it is impossible to have two different axioms with the same main triple:
+        // all annotations are strictly defined by the config,
+        // so two axioms read from the model must be equal
+        // if they have identical root triple with uris as subject and object:
+        if (sameTriple(other)) {
+            // definitely equal
+            return true;
+        }
+        return sameContent(other);
+    }
+
+    @Override
+    public final boolean equals(@Nullable Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null) {
+            return false;
+        }
+        if (!(obj instanceof OWLObject)) {
+            return false;
+        }
+        OWLObject other = (OWLObject) obj;
+        if (typeIndex() != other.typeIndex()) {
+            return false;
+        }
+        if (other instanceof ONTStatementImpl) {
+            return sameAs((ONTStatementImpl) other);
+        }
+        // then OWL-API instance is given
+        if (hashCode() != other.hashCode()) {
+            return false;
+        }
+        return equalIterators(components().iterator(), other.components().iterator());
     }
 
 }

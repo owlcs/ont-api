@@ -43,7 +43,7 @@ import java.util.stream.Stream;
  * @since 1.4.3
  */
 @SuppressWarnings("WeakerAccess")
-public abstract class ONTAnnotationImpl extends ONTBaseTripleImpl
+public abstract class ONTAnnotationImpl extends ONTStatementImpl
         implements OWLAnnotation, ONTObject<OWLAnnotation>, WithMerge<ONTObject<OWLAnnotation>> {
 
     protected ONTAnnotationImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
@@ -103,7 +103,7 @@ public abstract class ONTAnnotationImpl extends ONTBaseTripleImpl
      * @param factory {@link InternalObjectFactory} to retrieve {@link ONTObject}s, not {@code null}
      * @return a sorted nonnull distinct {@code Collection} {@code Collection}
      * of {@link ONTObject}s with {@link OWLAnnotation}s (can be empty if no annotations)
-     * @see ONTBaseAxiomImpl#collectAnnotations(OntStatement, InternalObjectFactory, InternalConfig)
+     * @see ONTAxiomImpl#collectAnnotations(OntStatement, InternalObjectFactory, InternalConfig)
      */
     protected static Collection<ONTObject<OWLAnnotation>> collectAnnotations(OntStatement root,
                                                                              InternalObjectFactory factory) {
@@ -280,12 +280,12 @@ public abstract class ONTAnnotationImpl extends ONTBaseTripleImpl
         }
 
         @Override
-        protected boolean sameContent(ONTBaseTripleImpl other) {
+        protected boolean sameContent(ONTStatementImpl other) {
             return !other.isAnnotated() && predicate.equals(other.predicate) && object.equals(other.object);
         }
 
         @Override
-        protected boolean sameAs(ONTBaseTripleImpl other) {
+        protected boolean sameAs(ONTStatementImpl other) {
             if (notSame(other)) {
                 return false;
             }
@@ -369,7 +369,7 @@ public abstract class ONTAnnotationImpl extends ONTBaseTripleImpl
         }
 
         @Override
-        protected boolean sameContent(ONTBaseTripleImpl other) {
+        protected boolean sameContent(ONTStatementImpl other) {
             return other instanceof WithAnnotations
                     && predicate.equals(other.predicate) && object.equals(other.object)
                     && Arrays.equals(getContent(), ((WithAnnotations) other).getContent());

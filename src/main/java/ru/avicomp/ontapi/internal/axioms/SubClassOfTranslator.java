@@ -22,8 +22,8 @@ import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.internal.*;
 import ru.avicomp.ontapi.internal.objects.FactoryAccessor;
-import ru.avicomp.ontapi.internal.objects.ONTBaseAxiomImpl;
-import ru.avicomp.ontapi.internal.objects.ONTBaseTripleImpl;
+import ru.avicomp.ontapi.internal.objects.ONTAxiomImpl;
+import ru.avicomp.ontapi.internal.objects.ONTStatementImpl;
 import ru.avicomp.ontapi.internal.objects.WithContent;
 import ru.avicomp.ontapi.jena.model.OntCE;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
@@ -95,7 +95,7 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
     /**
      * @see ru.avicomp.ontapi.owlapi.axioms.OWLSubClassOfAxiomImpl
      */
-    public abstract static class AxiomImpl extends ONTBaseAxiomImpl<OWLSubClassOfAxiom>
+    public abstract static class AxiomImpl extends ONTAxiomImpl<OWLSubClassOfAxiom>
             implements ONTObject<OWLSubClassOfAxiom>, OWLSubClassOfAxiom {
 
         protected AxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
@@ -224,7 +224,7 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
             }
 
             @Override
-            protected boolean sameContent(ONTBaseTripleImpl other) {
+            protected boolean sameContent(ONTStatementImpl other) {
                 return false;
             }
 
@@ -436,7 +436,7 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
             }
 
             @Override
-            protected boolean sameContent(ONTBaseTripleImpl other) {
+            protected boolean sameContent(ONTStatementImpl other) {
                 if (hasURISubject() && !sameSubject(other)) {
                     return false;
                 }
@@ -447,7 +447,7 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
             }
 
             @Override
-            protected boolean sameAs(ONTBaseTripleImpl other) {
+            protected boolean sameAs(ONTStatementImpl other) {
                 if (notSame(other)) {
                     return false;
                 }
