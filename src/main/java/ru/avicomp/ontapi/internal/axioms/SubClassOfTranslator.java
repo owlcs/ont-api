@@ -322,7 +322,7 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
 
             protected Complex(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
                 super(subject, predicate, object, m);
-                this.content = createContent();
+                this.content = createContentCache();
             }
 
             protected static Object[] collectContent(OntStatement statement,
@@ -456,23 +456,8 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
             }
 
             @Override
-            public Object[] getContent() {
-                return content.get(this);
-            }
-
-            @Override
-            public void putContent(Object[] content) {
-                this.content.put(this, content);
-            }
-
-            @Override
-            public boolean hasContent() {
-                return !content.isEmpty();
-            }
-
-            @Override
-            public void clearContent() {
-                content.clear();
+            public InternalCache.Loading<Complex, Object[]> getContentCache() {
+                return content;
             }
         }
     }

@@ -29,8 +29,8 @@ import ru.avicomp.ontapi.internal.InternalCache;
 public interface WithContent<X> {
 
     /**
-     * Collects the object's content cache in the form of {@code Array}.
-     * Such a form of cache was chosen
+     * Collects the object's content in the form of {@code Array}.
+     * Such a form of content cache was chosen
      * since it allows to reduces memory consumption and, at the same time, provides fast access.
      *
      * @return {@code Array} of {@code Object}s
@@ -38,42 +38,63 @@ public interface WithContent<X> {
     Object[] collectContent();
 
     /**
-     * Gets the content cache.
+     * Returns the content-cache-container, which is created by the method {@link #createContentCache()}.
+     *
+     * @return {@link InternalCache.Loading} for an array
+     * @see #createContentCache()
+     */
+    InternalCache.Loading<X, Object[]> getContentCache();
+
+    /**
+     * Gets the content array.
      *
      * @return {@code Array} of {@code Object}s
      */
-    Object[] getContent();
+    @SuppressWarnings("unchecked")
+    default Object[] getContent() {
+        return getContentCache().get((X) this);
+    }
 
     /**
-     * Associates the given {@code Array} with this object's content
+     * Associates the given {@code Array} with the object's content within the content-cache-container.
      *
      * @param content an {@code Array}
      */
-    void putContent(Object[] content);
+    @SuppressWarnings("unchecked")
+    default void putContent(Object[] content) {
+        getContentCache().put((X) this, content);
+    }
 
     /**
-     * Answers {@code true} if the object contains no content.
+     * Answers {@code true} iff the object has some content (array) cached inside the content-cache-container.
      *
      * @return boolean
      */
-    boolean hasContent();
+    default boolean hasContent() {
+        return !getContentCache().isEmpty();
+    }
 
     /**
-     * Clears the content.
+     * Clears the content-cache-container.
      */
-    void clearContent();
+    default void clearContent() {
+        getContentCache().clear();
+    }
 
     /**
-     * Creates a content-container, which is used as a cache for different {@code ONTObject} parts.
+     * Creates a content-cache-container, which is used to store content,
+     * that can always be derived from the graph
+     * using the primary {@code ONTObject}'s information (such as triple or node).
      *
      * @return {@link InternalCache.Loading}
+     * @see #getContentCache()
      */
-    default InternalCache.Loading<X, Object[]> createContent() {
+    default InternalCache.Loading<X, Object[]> createContentCache() {
         return InternalCache.createSoftSingleton(x -> collectContent());
     }
 
     /**
-     * Puts a new content inside the {@code object}.
+     * Puts a new content inside the given {@code object}.
      *
      * @param object  an {@code Array} with new content
      * @param content a new {@code Array} to cache

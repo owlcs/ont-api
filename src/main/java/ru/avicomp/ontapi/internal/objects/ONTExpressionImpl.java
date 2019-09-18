@@ -56,7 +56,7 @@ public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResource
      */
     protected ONTExpressionImpl(BlankNodeId n, Supplier<OntGraphModel> m) {
         super(n, m);
-        this.content = createContent();
+        this.content = createContentCache();
     }
 
     /**
@@ -93,23 +93,8 @@ public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResource
     }
 
     @Override
-    public Object[] getContent() {
-        return content.get(this);
-    }
-
-    @Override
-    public void putContent(Object[] content) {
-        this.content.put(this, content);
-    }
-
-    @Override
-    public boolean hasContent() {
-        return !content.isEmpty();
-    }
-
-    @Override
-    public void clearContent() {
-        content.clear();
+    public InternalCache.Loading<ONTExpressionImpl, Object[]> getContentCache() {
+        return content;
     }
 
     @Override

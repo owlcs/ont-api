@@ -357,7 +357,7 @@ public class AnnotationAssertionTranslator
 
             protected WithAnnotations(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
                 super(subject, predicate, object, m);
-                this.content = createContent();
+                this.content = createContentCache();
             }
 
             protected static Object[] collectContent(OntStatement statement,
@@ -369,6 +369,11 @@ public class AnnotationAssertionTranslator
             @Override
             public Object[] collectContent() {
                 return collectContent(asStatement(), getObjectFactory(), getConfig());
+            }
+
+            @Override
+            public InternalCache.Loading<WithAnnotations, Object[]> getContentCache() {
+                return content;
             }
 
             @Override
@@ -396,28 +401,7 @@ public class AnnotationAssertionTranslator
                 Stream res = Stream.concat(super.objects(), annotations());
                 return (Stream<ONTObject<? extends OWLObject>>) res;
             }
-
-            @Override
-            public Object[] getContent() {
-                return content.get(this);
-            }
-
-            @Override
-            public void putContent(Object[] content) {
-                this.content.put(this, content);
-            }
-
-            @Override
-            public boolean hasContent() {
-                return !content.isEmpty();
-            }
-
-            @Override
-            public void clearContent() {
-                content.clear();
-            }
         }
-
     }
 
 }

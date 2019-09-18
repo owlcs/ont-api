@@ -295,7 +295,7 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
 
             protected WithAnnotations(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
                 super(subject, predicate, object, m);
-                this.content = createContent();
+                this.content = createContentCache();
             }
 
             protected static Object[] collectContent(OntStatement statement,
@@ -310,8 +310,8 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
             }
 
             @Override
-            public Object[] getContent() {
-                return content.get(this);
+            public InternalCache.Loading<WithAnnotations, Object[]> getContentCache() {
+                return content;
             }
 
             @Override
@@ -338,21 +338,6 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
             public Stream<ONTObject<? extends OWLObject>> objects() {
                 Stream res = Stream.concat(super.objects(), annotations());
                 return (Stream<ONTObject<? extends OWLObject>>) res;
-            }
-
-            @Override
-            public void putContent(Object[] content) {
-                this.content.put(this, content);
-            }
-
-            @Override
-            public boolean hasContent() {
-                return !content.isEmpty();
-            }
-
-            @Override
-            public void clearContent() {
-                content.clear();
             }
 
             @Override

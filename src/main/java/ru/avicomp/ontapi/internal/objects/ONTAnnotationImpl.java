@@ -361,7 +361,7 @@ public abstract class ONTAnnotationImpl extends ONTStatementImpl
 
         protected WithAnnotations(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
             super(subject, predicate, object, m);
-            this.content = createContent();
+            this.content = createContentCache();
         }
 
         protected static Object[] collectContent(OntStatement statement, InternalObjectFactory factory) {
@@ -388,23 +388,8 @@ public abstract class ONTAnnotationImpl extends ONTStatementImpl
         }
 
         @Override
-        public void putContent(Object[] content) {
-            this.content.put(this, content);
-        }
-
-        @Override
-        public boolean hasContent() {
-            return !content.isEmpty();
-        }
-
-        @Override
-        public void clearContent() {
-            content.clear();
-        }
-
-        @Override
-        public Object[] getContent() {
-            return content.get(this);
+        public InternalCache.Loading<WithAnnotations, Object[]> getContentCache() {
+            return content;
         }
 
         @Override
