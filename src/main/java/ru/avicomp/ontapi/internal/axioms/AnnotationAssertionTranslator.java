@@ -25,7 +25,9 @@ import ru.avicomp.ontapi.internal.*;
 import ru.avicomp.ontapi.internal.objects.*;
 import ru.avicomp.ontapi.jena.model.*;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -112,8 +114,8 @@ public class AnnotationAssertionTranslator
     public static abstract class AxiomImpl extends ONTAxiomImpl<OWLAnnotationAssertionAxiom>
             implements ONTObject<OWLAnnotationAssertionAxiom>, OWLAnnotationAssertionAxiom {
 
-        protected AxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
-            super(subject, predicate, object, m);
+        protected AxiomImpl(Triple t, Supplier<OntGraphModel> m) {
+            super(t, m);
         }
 
         /**
@@ -161,7 +163,8 @@ public class AnnotationAssertionTranslator
 
         @Override
         public Stream<ONTObject<? extends OWLObject>> objects() {
-            return Stream.of(getONTSubject(), getONTProperty(), getONTValue());
+            InternalObjectFactory factory = getObjectFactory();
+            return Stream.of(findONTSubject(factory), findONTProperty(factory), findONTValue(factory));
         }
 
         @Override
@@ -192,40 +195,15 @@ public class AnnotationAssertionTranslator
         }
 
         protected ONTObject<? extends OWLAnnotationSubject> findONTSubject(InternalObjectFactory factory) {
-            if (!(factory instanceof ModelObjectFactory)) {
-                return factory.getSubject(asStatement().getSubject(OntObject.class));
-            }
-            if (hasURISubject()) {
-                return factory.getIRI((String) subject);
-            }
-            if (subject instanceof BlankNodeId) {
-                return ((ModelObjectFactory) factory).getAnonymousIndividual((BlankNodeId) subject);
-            }
-            throw new OntApiException.IllegalState("Wrong subject: " + subject);
+            return ONTAnnotationImpl.findONTSubject(factory, this);
         }
 
         protected ONTObject<? extends OWLAnnotationValue> findONTValue(InternalObjectFactory factory) {
-            if (!(factory instanceof ModelObjectFactory)) {
-                return factory.getValue(asStatement().getObject(OntObject.class));
-            }
-            ModelObjectFactory f = (ModelObjectFactory) factory;
-            if (object instanceof BlankNodeId) {
-                return f.getAnonymousIndividual((BlankNodeId) object);
-            }
-            if (object instanceof LiteralLabel) {
-                return f.getLiteral((LiteralLabel) object);
-            }
-            if (object instanceof String) {
-                return f.getIRI((String) object);
-            }
-            throw new OntApiException.IllegalState("Wrong object: " + object);
+            return ONTAnnotationImpl.findONTObject(factory, this);
         }
 
         protected ONTObject<OWLAnnotationProperty> findONTProperty(InternalObjectFactory factory) {
-            if (factory instanceof ModelObjectFactory) {
-                return ((ModelObjectFactory) factory).getAnnotationProperty(predicate);
-            }
-            return factory.getProperty(asStatement().getPredicate().as(OntNAP.class));
+            return ONTAnnotationImpl.findONTPredicate(factory, this);
         }
 
         @Override
@@ -281,11 +259,7 @@ public class AnnotationAssertionTranslator
         public static class Simple extends AxiomImpl {
 
             protected Simple(Triple t, Supplier<OntGraphModel> m) {
-                this(strip(t.getSubject()), t.getPredicate().getURI(), strip(t.getObject()), m);
-            }
-
-            protected Simple(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
-                super(subject, predicate, object, m);
+                super(t, m);
             }
 
             @Override
@@ -344,7 +318,7 @@ public class AnnotationAssertionTranslator
         /**
          * An {@link OWLAnnotationAssertionAxiom} that has sub-annotations.
          * This class has a public constructor since it is more generic then {@link Simple}.
-         * TODO: Can't avoid copy-paste...
+         * Impl note: since Java does not allow multiple inheritance, copy-paste cannot be avoided here...
          *
          * @see ONTAnnotationImpl.WithAnnotations
          */
@@ -352,11 +326,7 @@ public class AnnotationAssertionTranslator
             protected final InternalCache.Loading<WithAnnotations, Object[]> content;
 
             public WithAnnotations(Triple t, Supplier<OntGraphModel> m) {
-                this(strip(t.getSubject()), t.getPredicate().getURI(), strip(t.getObject()), m);
-            }
-
-            protected WithAnnotations(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
-                super(subject, predicate, object, m);
+                super(t, m);
                 this.content = createContentCache();
             }
 
@@ -381,18 +351,14 @@ public class AnnotationAssertionTranslator
                 return true;
             }
 
-            @SuppressWarnings("unchecked")
             @Override
             public Stream<OWLAnnotation> annotations() {
-                Stream res = Arrays.stream(getContent());
-                return (Stream<OWLAnnotation>) res;
+                return ONTAnnotationImpl.contentAsStream(this);
             }
 
-            @SuppressWarnings("unchecked")
             @Override
             public List<OWLAnnotation> annotationsAsList() {
-                List res = Arrays.asList(getContent());
-                return (List<OWLAnnotation>) Collections.unmodifiableList(res);
+                return ONTAnnotationImpl.contentAsList(this);
             }
 
             @SuppressWarnings("unchecked")

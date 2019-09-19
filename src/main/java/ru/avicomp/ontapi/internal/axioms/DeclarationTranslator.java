@@ -31,7 +31,10 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.utils.OntModels;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -103,8 +106,8 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
     public abstract static class AxiomImpl extends ONTAxiomImpl<OWLDeclarationAxiom>
             implements ONTObject<OWLDeclarationAxiom>, OWLDeclarationAxiom {
 
-        protected AxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
-            super(subject, predicate, object, m);
+        protected AxiomImpl(Triple t, Supplier<OntGraphModel> m) {
+            super(t, m);
         }
 
         /**
@@ -244,11 +247,7 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
         public static class Simple extends AxiomImpl {
 
             protected Simple(Triple t, Supplier<OntGraphModel> m) {
-                this(strip(t.getSubject()), t.getPredicate().getURI(), strip(t.getObject()), m);
-            }
-
-            protected Simple(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
-                super(subject, predicate, object, m);
+                super(t, m);
             }
 
             @Override
@@ -282,7 +281,7 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
         /**
          * An {@link OWLDeclarationAxiom} that has annotations.
          * This class has a public constructor since it is more generic then {@link Simple}.
-         * TODO: Can't avoid copy-paste...
+         * Impl note: since Java does not allow multiple inheritance, copy-paste cannot be avoided here...
          *
          * @see ONTAnnotationImpl.WithAnnotations
          */
@@ -290,11 +289,7 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
             protected final InternalCache.Loading<WithAnnotations, Object[]> content;
 
             public WithAnnotations(Triple t, Supplier<OntGraphModel> m) {
-                this(strip(t.getSubject()), t.getPredicate().getURI(), strip(t.getObject()), m);
-            }
-
-            protected WithAnnotations(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
-                super(subject, predicate, object, m);
+                super(t, m);
                 this.content = createContentCache();
             }
 
@@ -319,18 +314,14 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
                 return true;
             }
 
-            @SuppressWarnings("unchecked")
             @Override
             public Stream<OWLAnnotation> annotations() {
-                Stream res = Arrays.stream(getContent());
-                return (Stream<OWLAnnotation>) res;
+                return ONTAnnotationImpl.contentAsStream(this);
             }
 
-            @SuppressWarnings("unchecked")
             @Override
             public List<OWLAnnotation> annotationsAsList() {
-                List res = Arrays.asList(getContent());
-                return (List<OWLAnnotation>) Collections.unmodifiableList(res);
+                return ONTAnnotationImpl.contentAsList(this);
             }
 
             @SuppressWarnings("unchecked")

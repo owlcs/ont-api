@@ -40,7 +40,11 @@ import java.util.stream.Stream;
 public abstract class ONTAxiomImpl<X extends OWLAxiom>
         extends ONTStatementImpl implements OWLAxiom, HasConfig {
 
-    protected ONTAxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+    protected ONTAxiomImpl(Triple t, Supplier<OntGraphModel> m) {
+        this(strip(t.getSubject()), t.getPredicate().getURI(), strip(t.getObject()), m);
+    }
+
+    private ONTAxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
         super(subject, predicate, object, m);
     }
 

@@ -98,8 +98,8 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
     public abstract static class AxiomImpl extends ONTAxiomImpl<OWLSubClassOfAxiom>
             implements ONTObject<OWLSubClassOfAxiom>, OWLSubClassOfAxiom {
 
-        protected AxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
-            super(subject, predicate, object, m);
+        protected AxiomImpl(Triple t, Supplier<OntGraphModel> m) {
+            super(t, m);
         }
 
         /**
@@ -192,11 +192,11 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
             return factory.getClass(OntApiException.mustNotBeNull(model.get().getOntClass(uri)));
         }
 
-        protected ONTObject<? extends OWLClassExpression> findONTSubClass(InternalObjectFactory factory) throws ClassCastException {
+        protected ONTObject<? extends OWLClassExpression> findONTSubClass(InternalObjectFactory factory) {
             return findONTClass((String) subject, factory);
         }
 
-        protected ONTObject<? extends OWLClassExpression> findONTSuperClass(InternalObjectFactory factory) throws ClassCastException {
+        protected ONTObject<? extends OWLClassExpression> findONTSuperClass(InternalObjectFactory factory) {
             return findONTClass((String) object, factory);
         }
 
@@ -216,11 +216,7 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
         public static class Simple extends AxiomImpl {
 
             protected Simple(Triple t, Supplier<OntGraphModel> m) {
-                this(strip(t.getSubject()), t.getPredicate().getURI(), strip(t.getObject()), m);
-            }
-
-            protected Simple(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
-                super(subject, predicate, object, m);
+                super(t, m);
             }
 
             @Override
@@ -317,11 +313,7 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
             protected final InternalCache.Loading<Complex, Object[]> content;
 
             public Complex(Triple t, Supplier<OntGraphModel> m) {
-                this(strip(t.getSubject()), t.getPredicate().getURI(), strip(t.getObject()), m);
-            }
-
-            protected Complex(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
-                super(subject, predicate, object, m);
+                super(t, m);
                 this.content = createContentCache();
             }
 
