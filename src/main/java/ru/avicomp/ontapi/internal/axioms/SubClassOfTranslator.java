@@ -19,12 +19,8 @@ import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.*;
-import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.internal.*;
-import ru.avicomp.ontapi.internal.objects.FactoryAccessor;
-import ru.avicomp.ontapi.internal.objects.ONTAxiomImpl;
-import ru.avicomp.ontapi.internal.objects.ONTStatementImpl;
-import ru.avicomp.ontapi.internal.objects.WithContent;
+import ru.avicomp.ontapi.internal.objects.*;
 import ru.avicomp.ontapi.jena.model.OntCE;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
@@ -185,19 +181,12 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
          */
         public abstract ONTObject<? extends OWLClassExpression> getONTSuperClass();
 
-        protected ONTObject<? extends OWLClassExpression> findONTClass(String uri, InternalObjectFactory factory) {
-            if (factory instanceof ModelObjectFactory) {
-                return ((ModelObjectFactory) factory).getClass(uri);
-            }
-            return factory.getClass(OntApiException.mustNotBeNull(model.get().getOntClass(uri)));
-        }
-
         protected ONTObject<? extends OWLClassExpression> findONTSubClass(InternalObjectFactory factory) {
-            return findONTClass((String) subject, factory);
+            return ONTClassImpl.find((String) subject, factory, model);
         }
 
         protected ONTObject<? extends OWLClassExpression> findONTSuperClass(InternalObjectFactory factory) {
-            return findONTClass((String) object, factory);
+            return ONTClassImpl.find((String) object, factory, model);
         }
 
         @Override
@@ -385,10 +374,10 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
                     if (hasURIObject()) {
                         res = Stream.concat(super.objects(), res);
                     } else {
-                        res = Stream.concat(Stream.of(getONTSubClass()), res);
+                        res = Stream.concat(Stream.of(findONTSubClass(content, getObjectFactory())), res);
                     }
                 } else if (hasURIObject()) {
-                    res = Stream.concat(Stream.of(getONTSuperClass()), res);
+                    res = Stream.concat(Stream.of(findONTSuperClass(content, getObjectFactory())), res);
                 }
                 return (Stream<ONTObject<? extends OWLObject>>) res;
             }
@@ -409,22 +398,32 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
                 return collectContent(asStatement(), getObjectFactory(), getConfig());
             }
 
-            @SuppressWarnings("unchecked")
             @Override
             public ONTObject<? extends OWLClassExpression> getONTSubClass() {
-                if (hasURISubject()) {
-                    return findONTSubClass(getObjectFactory());
-                }
-                return (ONTObject<? extends OWLClassExpression>) getContent()[0];
+                return findONTSubClass(getContent(), getObjectFactory());
+            }
+
+            @Override
+            public ONTObject<? extends OWLClassExpression> getONTSuperClass() {
+                return findONTSuperClass(getContent(), getObjectFactory());
             }
 
             @SuppressWarnings("unchecked")
-            @Override
-            public ONTObject<? extends OWLClassExpression> getONTSuperClass() {
-                if (hasURIObject()) {
-                    return findONTSuperClass(getObjectFactory());
+            protected ONTObject<? extends OWLClassExpression> findONTSubClass(Object[] content,
+                                                                              InternalObjectFactory factory) {
+                if (hasURISubject()) {
+                    return findONTSubClass(factory);
                 }
-                return (ONTObject<? extends OWLClassExpression>) getContent()[hasURISubject() ? 0 : 1];
+                return (ONTObject<? extends OWLClassExpression>) content[0];
+            }
+
+            @SuppressWarnings("unchecked")
+            protected ONTObject<? extends OWLClassExpression> findONTSuperClass(Object[] content,
+                                                                                InternalObjectFactory factory) {
+                if (hasURIObject()) {
+                    return findONTSuperClass(factory);
+                }
+                return (ONTObject<? extends OWLClassExpression>) content[hasURISubject() ? 0 : 1];
             }
 
             @Override

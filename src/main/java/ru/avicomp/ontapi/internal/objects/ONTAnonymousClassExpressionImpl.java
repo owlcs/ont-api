@@ -23,6 +23,7 @@ import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.OntModels;
+import ru.avicomp.ontapi.owlapi.objects.OWLAnonymousIndividualImpl;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -37,7 +38,7 @@ import java.util.stream.Stream;
  * Created by @ssz on 10.08.2019.
  *
  * @param <ONT> any subtype of {@link OntCE}
- * @param <OWL> any subtype of {@link OWLAnonymousClassExpression}
+ * @param <OWL> subtype of {@link OWLAnonymousClassExpression}, which matches {@link ONT}
  * @see ru.avicomp.ontapi.owlapi.objects.ce.OWLAnonymousClassExpressionImpl
  * @see ONTClassImpl
  * @see ru.avicomp.ontapi.internal.ReadHelper#calcClassExpression(OntCE, InternalObjectFactory, Set)
@@ -72,7 +73,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         // since we have already type information
         // we can forcibly load the cache to reduce graph traversal operations
         // (otherwise this type information will be collected again on demand, which means double-work):
-        res.putContent(res.collectContent(ce, factory));
+        res.putContent(res.collectContent(ce, factory, true));
         return res;
     }
 
@@ -148,6 +149,33 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         throw new OntApiException.IllegalState();
     }
 
+    /**
+     * Initializes the object's content.
+     * It can be invalidated while lifecycle and restored back.
+     *
+     * @param obj          {@link ONT} the source Jena resource, not {@code null}
+     * @param factory      {@link InternalObjectFactory}
+     * @param withHashCode if {@code true} calculates also hash-code, it is used only while the object's creation
+     * @return an array of {@code Object}s
+     */
+    protected Object[] collectContent(ONT obj, InternalObjectFactory factory, boolean withHashCode) {
+        Object[] content = collectContent(obj, factory);
+        if (withHashCode)
+            hashCode = collectHashCode(factory, content);
+        return content;
+    }
+
+    /**
+     * Calculates the hashcode of this object.
+     * This operations is used while init.
+     *
+     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @param content an {@code Array} with content
+     * @return int, the object's {@code hashCode}
+     * @see OWLObject#initHashCode()
+     */
+    protected abstract int collectHashCode(InternalObjectFactory factory, Object[] content);
+
     @SuppressWarnings("unchecked")
     @Override
     public OWL getOWLObject() {
@@ -221,13 +249,6 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         return false;
     }
 
-    @SuppressWarnings("unchecked")
-    @Override
-    public Stream<ONTObject<? extends OWLObject>> objects() {
-        List res = Arrays.asList(getContent());
-        return (Stream<ONTObject<? extends OWLObject>>) res.stream();
-    }
-
     /**
      * @see ru.avicomp.ontapi.owlapi.objects.ce.OWLObjectSomeValuesFromImpl
      * @see OntCE.ObjectSomeValuesFrom
@@ -269,7 +290,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
      * @see OntCE.DataSomeValuesFrom
      */
     public static class DSVF
-            extends WithDataRangeAndDataProperty<OntCE.DataSomeValuesFrom, OWLDataSomeValuesFrom>
+            extends WithDataRangeAndDataPropertyUnary<OntCE.DataSomeValuesFrom, OWLDataSomeValuesFrom>
             implements OWLDataSomeValuesFrom {
 
         public DSVF(BlankNodeId n, Supplier<OntGraphModel> m) {
@@ -287,7 +308,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
      * @see OntCE.DataAllValuesFrom
      */
     public static class DAVF
-            extends WithDataRangeAndDataProperty<OntCE.DataAllValuesFrom, OWLDataAllValuesFrom>
+            extends WithDataRangeAndDataPropertyUnary<OntCE.DataAllValuesFrom, OWLDataAllValuesFrom>
             implements OWLDataAllValuesFrom {
 
         public DAVF(BlankNodeId n, Supplier<OntGraphModel> m) {
@@ -305,7 +326,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
      * @see OntCE.NaryDataSomeValuesFrom
      */
     public static class NDSVF
-            extends WithDataProperty<OntCE.NaryDataSomeValuesFrom, OWLDataSomeValuesFrom>
+            extends WithDataRangeAndDataPropertyNary<OntCE.NaryDataSomeValuesFrom, OWLDataSomeValuesFrom>
             implements OWLDataSomeValuesFrom {
 
         public NDSVF(BlankNodeId n, Supplier<OntGraphModel> m) {
@@ -317,22 +338,6 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             return as(OntCE.NaryDataSomeValuesFrom.class);
         }
 
-        @Override
-        public OWLDataRange getFiller() {
-            return getONTDataRange().getOWLObject();
-        }
-
-        @SuppressWarnings("unchecked")
-        public ONTObject<? extends OWLDataRange> getONTDataRange() {
-            // [property, filler]
-            return (ONTObject<? extends OWLDataRange>) getContent()[1];
-        }
-
-        @Override
-        protected Object[] collectContent(OntCE.NaryDataSomeValuesFrom ce, InternalObjectFactory of) {
-            // [property, filler]
-            return new Object[]{of.getProperty(ce.getProperty()), of.getDatatype(ce.getValue())};
-        }
     }
 
     /**
@@ -340,7 +345,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
      * @see OntCE.NaryDataAllValuesFrom
      */
     public static class NDAVF
-            extends WithDataProperty<OntCE.NaryDataAllValuesFrom, OWLDataAllValuesFrom>
+            extends WithDataRangeAndDataPropertyNary<OntCE.NaryDataAllValuesFrom, OWLDataAllValuesFrom>
             implements OWLDataAllValuesFrom {
 
         public NDAVF(BlankNodeId n, Supplier<OntGraphModel> m) {
@@ -352,22 +357,6 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             return as(OntCE.NaryDataAllValuesFrom.class);
         }
 
-        @Override
-        public OWLDataRange getFiller() {
-            return getONTClassExpression().getOWLObject();
-        }
-
-        @SuppressWarnings("unchecked")
-        public ONTObject<? extends OWLDataRange> getONTClassExpression() {
-            // [property, filler]
-            return (ONTObject<? extends OWLDataRange>) getContent()[1];
-        }
-
-        @Override
-        protected Object[] collectContent(OntCE.NaryDataAllValuesFrom ce, InternalObjectFactory of) {
-            // [property, filler]
-            return new Object[]{of.getProperty(ce.getProperty()), of.getDatatype(ce.getValue())};
-        }
     }
 
     /**
@@ -387,6 +376,12 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             return as(OntCE.ObjectHasValue.class);
         }
 
+        @Override
+        public Stream<ONTObject<? extends OWLObject>> objects() {
+            InternalObjectFactory factory = getObjectFactory();
+            return Stream.of(findOPE(factory), findIndividual(factory));
+        }
+
         @FactoryAccessor
         @Override
         public OWLObjectSomeValuesFrom asSomeValuesFrom() {
@@ -399,16 +394,25 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             return getONTIndividual().getOWLObject();
         }
 
-        @SuppressWarnings("unchecked")
         public ONTObject<? extends OWLIndividual> getONTIndividual() {
-            // [property, filler]
-            return (ONTObject<? extends OWLIndividual>) getContent()[1];
+            return findIndividual(getObjectFactory());
+        }
+
+        protected ONTObject<? extends OWLIndividual> findIndividual(InternalObjectFactory factory) {
+            // [property, filler] - always last:
+            return toIndividual(getContent()[1], factory);
         }
 
         @Override
-        protected Object[] collectContent(OntCE.ObjectHasValue ce, InternalObjectFactory of) {
+        protected Object[] collectContent(OntCE.ObjectHasValue ce, InternalObjectFactory factory) {
             // [property, filler]
-            return new Object[]{of.getProperty(ce.getProperty()), of.getIndividual(ce.getValue())};
+            return new Object[]{toContentItem(ce.getProperty(), factory), toContentItem(ce.getValue())};
+        }
+
+        @Override
+        protected int collectHashCode(InternalObjectFactory factory, Object[] content) {
+            int res = OWLObject.hashIteration(hashIndex(), hashCodeOPE(content[0], factory));
+            return OWLObject.hashIteration(res, toIndividual(content[1], factory).hashCode());
         }
 
         @Override
@@ -490,6 +494,13 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             return as(OntCE.DataHasValue.class);
         }
 
+        @Override
+        public Stream<ONTObject<? extends OWLObject>> objects() {
+            InternalObjectFactory factory = getObjectFactory();
+            return Stream.of(findNDP(factory), findLiteral(factory));
+        }
+
+
         @FactoryAccessor
         @Override
         public OWLDataSomeValuesFrom asSomeValuesFrom() {
@@ -502,16 +513,25 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             return getONTLiteral().getOWLObject();
         }
 
-        @SuppressWarnings("unchecked")
         public ONTObject<OWLLiteral> getONTLiteral() {
-            // [property, filler]
-            return (ONTObject<OWLLiteral>) getContent()[1];
+            return findLiteral(getObjectFactory());
+        }
+
+        protected ONTObject<OWLLiteral> findLiteral(InternalObjectFactory factory) {
+            // [property, filler] -- always last
+            return toLiteral(getContent()[1], factory);
         }
 
         @Override
-        protected Object[] collectContent(OntCE.DataHasValue ce, InternalObjectFactory of) {
+        protected Object[] collectContent(OntCE.DataHasValue ce, InternalObjectFactory factory) {
             // [property, filler]
-            return new Object[]{of.getProperty(ce.getProperty()), of.getLiteral(ce.getValue())};
+            return new Object[]{toContentItem(ce.getProperty()), toContentItem(ce.getValue())};
+        }
+
+        @Override
+        protected int collectHashCode(InternalObjectFactory factory, Object[] content) {
+            int res = OWLObject.hashIteration(hashIndex(), hashCodeNDP(content[0], factory));
+            return OWLObject.hashIteration(res, toLiteral(content[1], factory).hashCode());
         }
     }
 
@@ -740,7 +760,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         @Override
         public Set<OWLClassExpression> asDisjunctSet() {
             Set<OWLClassExpression> res = createSortedSet();
-            getONTMembers().forEach(x -> res.addAll(x.getOWLObject().asDisjunctSet()));
+            members().forEach(x -> res.addAll(x.getOWLObject().asDisjunctSet()));
             return res;
         }
 
@@ -770,7 +790,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         @Override
         public Set<OWLClassExpression> asConjunctSet() {
             Set<OWLClassExpression> res = createSortedSet();
-            getONTMembers().forEach(x -> res.addAll(x.getOWLObject().asConjunctSet()));
+            members().forEach(x -> res.addAll(x.getOWLObject().asConjunctSet()));
             return res;
         }
 
@@ -798,8 +818,25 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        protected ONTObject<? extends OWLIndividual> map(OntIndividual i, InternalObjectFactory of) {
-            return of.getIndividual(i);
+        protected ONTObject<? extends OWLIndividual> map(OntIndividual member, InternalObjectFactory factory) {
+            return factory.getIndividual(member);
+        }
+
+        @Override
+        protected Object toContentItem(ONTObject<? extends OWLIndividual> individual) {
+            if (individual instanceof OWLAnonymousIndividualImpl) {
+                return ((OWLAnonymousIndividualImpl) individual).getBlankNodeId();
+            }
+            if (individual instanceof ONTNamedIndividualImpl) {
+                return ((ONTNamedIndividualImpl) individual).getURI();
+            }
+            return individual.getOWLObject().asOWLNamedIndividual().getIRI().getIRIString();
+
+        }
+
+        @Override
+        protected ONTObject<? extends OWLIndividual> fromContentItem(Object item, InternalObjectFactory factory) {
+            return toIndividual(item, factory);
         }
 
         @Override
@@ -815,7 +852,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         @FactoryAccessor
         @Override
         public OWLClassExpression asObjectUnionOf() {
-            Collection<ONTObject<? extends OWLIndividual>> values = getONTMembers();
+            Collection<ONTObject<? extends OWLIndividual>> values = members().collect(Collectors.toSet());
             if (values.size() == 1) {
                 return this;
             }
@@ -856,8 +893,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
 
         @SuppressWarnings("unchecked")
         protected Stream<ONTObject<? extends OWLIndividual>> objectIndividuals() {
-            List res = Arrays.asList(getContent());
-            return (Stream<ONTObject<? extends OWLIndividual>>) res.stream();
+            return (Stream<ONTObject<? extends OWLIndividual>>) objects(getObjectFactory());
         }
 
         @Override
@@ -899,6 +935,11 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
+        public boolean isClassExpressionLiteral() {
+            return getONTClassExpression().getOWLObject().isOWLClass();
+        }
+
+        @Override
         public OntCE.ComplementOf asRDFNode() {
             return as(OntCE.ComplementOf.class);
         }
@@ -908,20 +949,29 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             return getONTClassExpression().getOWLObject();
         }
 
-        @SuppressWarnings("unchecked")
+        @Override
+        public Stream<ONTObject<? extends OWLObject>> objects() {
+            return Stream.of(getONTClassExpression());
+        }
+
         protected ONTObject<? extends OWLClassExpression> getONTClassExpression() {
-            return (ONTObject<? extends OWLClassExpression>) getContent()[0];
+            return findCE(getObjectFactory());
+        }
+
+        protected ONTObject<? extends OWLClassExpression> findCE(InternalObjectFactory factory) {
+            return toCE(getContent()[0], factory);
         }
 
         @Override
-        protected Object[] collectContent(OntCE.ComplementOf ce, InternalObjectFactory of) {
-            return new Object[]{of.getClass(ce.getValue())};
+        protected Object[] collectContent(OntCE.ComplementOf ce, InternalObjectFactory factory) {
+            return new Object[]{toContentItem(ce.getValue(), factory)};
         }
 
         @Override
-        public boolean isClassExpressionLiteral() {
-            return asRDFNode().getValue().isURIResource();
+        protected int collectHashCode(InternalObjectFactory factory, Object[] content) {
+            return OWLObject.hashIteration(hashIndex(), toCE(content[0], factory).hashCode());
         }
+
     }
 
     protected abstract static class WithClassMembers<ONT extends OntCE.ComponentsCE<OntCE>,
@@ -933,11 +983,39 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        protected ONTObject<? extends OWLClassExpression> map(OntCE i, InternalObjectFactory of) {
-            return of.getClass(i);
+        protected Object toContentItem(ONTObject<? extends OWLClassExpression> ce) {
+            if (ce instanceof ONTClassImpl) {
+                return ((ONTClassImpl) ce).getURI();
+            }
+            if (ce instanceof ONTAnonymousClassExpressionImpl) {
+                return ce;
+            }
+            OWLClassExpression res = ce.getOWLObject();
+            if (res.isOWLClass()) {
+                return res.asOWLClass().getIRI().getIRIString();
+            }
+            return ce;
+        }
+
+        @Override
+        protected ONTObject<? extends OWLClassExpression> fromContentItem(Object item, InternalObjectFactory factory) {
+            return toCE(item, factory);
+        }
+
+        @Override
+        protected ONTObject<? extends OWLClassExpression> map(OntCE member, InternalObjectFactory factory) {
+            return factory.getClass(member);
         }
     }
 
+    /**
+     * Describes a class expression that is based on []-list.
+     *
+     * @param <ONT_M> subtype of {@link OntObject} - member of list
+     * @param <ONT_C> subtype of {@link OntCE.ComponentsCE} - the class expression
+     * @param <OWL_M> subtype of {@link OWLObject} that matches {@link ONT_M}
+     * @param <OWL_C> subtype of {@link OWLAnonymousClassExpression} that matches {@link ONT_C}
+     */
     protected abstract static class WithMembers<ONT_M extends OntObject,
             ONT_C extends OntCE.ComponentsCE<ONT_M>,
             OWL_M extends OWLObject,
@@ -949,41 +1027,101 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             super(n, m);
         }
 
-        protected abstract ONTObject<? extends OWL_M> map(ONT_M i, InternalObjectFactory of);
+        /**
+         * Translates Jena {@link ONT_M} resource to OWL-API {@link OWL_M} equivalent.
+         *
+         * @param member  {@link ONT_M}, not {@code null}
+         * @param factory {@link InternalObjectFactory}, not {@code null}
+         * @return an {@link ONTObject} that wraps {@link OWL_M}
+         */
+        protected abstract ONTObject<? extends OWL_M> map(ONT_M member, InternalObjectFactory factory);
+
+        /**
+         * Prepares an {@link OWL_M} to store in cache (content array).
+         *
+         * @param member the {@link ONTObject} that wraps {@link OWL_M}, not {@code null}
+         * @return {@code Object}
+         */
+        protected abstract Object toContentItem(ONTObject<? extends OWL_M> member);
+
+        /**
+         * Extracts an {@link OWL_M} from content item.
+         *
+         * @param item    an {@code Object} from cache, not {@code null}
+         * @param factory {@link InternalObjectFactory}, not {@code null}
+         * @return an {@link ONTObject} that wraps {@link OWL_M}
+         */
+        protected abstract ONTObject<? extends OWL_M> fromContentItem(Object item, InternalObjectFactory factory);
 
         @Override
         public Stream<OWL_M> operands() {
-            return getOperandsAsList().stream();
+            return members().map(ONTObject::getOWLObject);
         }
 
-        @SuppressWarnings("unchecked")
         @Override
         public List<OWL_M> getOperandsAsList() {
-            List res = getONTMembers();
-            return (List<OWL_M>) res;
+            return operands().collect(Collectors.toList());
         }
 
         @SuppressWarnings("unchecked")
-        public List<ONTObject<? extends OWL_M>> getONTMembers() {
-            List res = Arrays.asList(getContent());
-            return (List<ONTObject<? extends OWL_M>>) res;
+        protected Stream<ONTObject<? extends OWL_M>> members() {
+            return (Stream<ONTObject<? extends OWL_M>>) objects(getObjectFactory());
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public Stream<ONTObject<? extends OWLObject>> objects() {
+            return (Stream<ONTObject<? extends OWLObject>>) objects(getObjectFactory());
+        }
+
+        protected Stream objects(InternalObjectFactory factory) {
+            return Arrays.stream(getContent()).map(x -> fromContentItem(x, factory));
         }
 
         @Override
-        protected Object[] collectContent(ONT_C ce, InternalObjectFactory of) {
-            Set<ONTObject<? extends OWL_M>> res = createObjectSet();
-            listONTMembers(ce).forEachRemaining(e -> res.add(map(e, of)));
-            return res.toArray();
+        protected Object[] collectContent(ONT_C ce, InternalObjectFactory factory) {
+            return collectContent(ce, factory, false);
         }
 
-        protected Iterator<ONT_M> listONTMembers(ONT_C ce) {
-            return OntModels.listMembers(ce.getList());
+        @Override
+        protected Object[] collectContent(ONT_C ce, InternalObjectFactory factory, boolean withHashCode) {
+            // first, collect and sort all operands:
+            Set<ONTObject<? extends OWL_M>> operands = createContentSet();
+            OntModels.listMembers(ce.getList()).forEachRemaining(e -> operands.add(map(e, factory)));
+            // create a content array and fill it; also calculate a hash-code if required
+            Object[] res = new Object[operands.size()];
+            int index = 0;
+            if (withHashCode) {
+                int hash = 1;
+                for (ONTObject<? extends OWL_M> op : operands) {
+                    res[index++] = toContentItem(op);
+                    hash = 31 * hash + op.hashCode();
+                }
+                this.hashCode = OWLObject.hashIteration(hashIndex(), hash);
+                return res;
+            }
+            for (ONTObject<? extends OWL_M> op : operands) {
+                res[index++] = toContentItem(op);
+            }
+            return res;
         }
+
+        @Override
+        protected int collectHashCode(InternalObjectFactory factory, Object[] content) {
+            throw new IllegalStateException();
+        }
+
     }
 
+    /**
+     * Represents a data property restriction (class expression) with cardinality.
+     *
+     * @param <ONT> - a subtype of {@link OntCE.CardinalityRestrictionCE}
+     * @param <OWL> - a subtype of {@link OWLRestriction} that matches {@link ONT}
+     */
     protected abstract static class WithDataRangeAndDataPropertyAndCardinality<ONT extends OntCE.CardinalityRestrictionCE<OntDR, OntNDP>,
             OWL extends OWLRestriction>
-            extends WithDataRangeAndDataProperty<ONT, OWL> {
+            extends WithDataRangeAndDataPropertyUnary<ONT, OWL> {
 
         protected WithDataRangeAndDataPropertyAndCardinality(BlankNodeId n, Supplier<OntGraphModel> m) {
             super(n, m);
@@ -1000,13 +1138,68 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        protected Object[] collectContent(ONT ce, InternalObjectFactory of) {
+        protected Object[] collectContent(ONT ce, InternalObjectFactory factory) {
             // [property, cardinality, filler]
-            return new Object[]{of.getProperty(ce.getProperty()), ce.getCardinality(), of.getDatatype(ce.getValue())};
+            return new Object[]{toContentItem(ce.getProperty()),
+                    ce.getCardinality(), toContentItem(ce.getValue(), factory)};
+        }
+
+        @Override
+        protected int collectHashCode(InternalObjectFactory factory, Object[] content) {
+            int res = hashIndex();
+            res = OWLObject.hashIteration(res, hashCodeNDP(content[0], factory));
+            res = OWLObject.hashIteration(res, content[1].hashCode());
+            return OWLObject.hashIteration(res, hashCodeDR(content[2], factory));
         }
     }
 
-    protected abstract static class WithDataRangeAndDataProperty<ONT extends OntCE.ComponentRestrictionCE<OntDR, OntNDP>,
+    /**
+     * Represents a n-ary universal or existential data property restriction.
+     *
+     * @param <ONT> - a suptype of {@link OntCE.NaryRestrictionCE}
+     * @param <OWL> - a subtype of {@link OWLRestriction} that matches {@link ONT}
+     */
+    protected abstract static class WithDataRangeAndDataPropertyNary<ONT extends OntCE.NaryRestrictionCE<OntDR, OntNDP>,
+            OWL extends OWLRestriction>
+            extends WithDataRangeAndDataProperty<ONT, OWL> {
+
+        protected WithDataRangeAndDataPropertyNary(BlankNodeId n, Supplier<OntGraphModel> m) {
+            super(n, m);
+        }
+
+        @Override
+        protected Object getDRFromCE(ONT ce, InternalObjectFactory factory) {
+            return toContentItem(ce.getValue(), factory);
+        }
+    }
+
+    /**
+     * Represents an unary data property restriction that has a reference to a data range.
+     *
+     * @param <ONT> - a subtype of {@link OntCE.ComponentRestrictionCE}
+     * @param <OWL> - a subtype of {@link OWLRestriction} that matches {@link ONT}
+     */
+    protected abstract static class WithDataRangeAndDataPropertyUnary<ONT extends OntCE.ComponentRestrictionCE<OntDR, OntNDP>,
+            OWL extends OWLRestriction>
+            extends WithDataRangeAndDataProperty<ONT, OWL> {
+
+        protected WithDataRangeAndDataPropertyUnary(BlankNodeId n, Supplier<OntGraphModel> m) {
+            super(n, m);
+        }
+
+        @Override
+        protected Object getDRFromCE(ONT ce, InternalObjectFactory factory) {
+            return toContentItem(ce.getValue(), factory);
+        }
+    }
+
+    /**
+     * Represents a data property restriction that has a reference to a data range.
+     *
+     * @param <ONT> - a subtype of {@link OntCE.RestrictionCE}
+     * @param <OWL> - a subtype of {@link OWLRestriction} that matches {@link ONT}
+     */
+    protected abstract static class WithDataRangeAndDataProperty<ONT extends OntCE.RestrictionCE<OntNDP>,
             OWL extends OWLRestriction>
             extends WithDataProperty<ONT, OWL> {
 
@@ -1018,17 +1211,34 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             return getONTDataRange().getOWLObject();
         }
 
-        @SuppressWarnings("unchecked")
+        @Override
+        public Stream<ONTObject<? extends OWLObject>> objects() {
+            InternalObjectFactory factory = getObjectFactory();
+            return Stream.of(findNDP(factory), findDR(factory));
+        }
+
         public ONTObject<? extends OWLDataRange> getONTDataRange() {
-            // [property, cardinality, filler] or [property, filler]
+            return findDR(getObjectFactory());
+        }
+
+        protected ONTObject<? extends OWLDataRange> findDR(InternalObjectFactory factory) {
+            // [property, cardinality, filler] or [property, filler] - always last:
             Object[] array = getContent();
-            return (ONTObject<? extends OWLDataRange>) array[array.length - 1];
+            return toDR(array[array.length - 1], factory);
         }
 
         @Override
-        protected Object[] collectContent(ONT ce, InternalObjectFactory of) {
+        protected Object[] collectContent(ONT ce, InternalObjectFactory factory) {
             // [property, cardinality, filler] or [property, filler]
-            return new Object[]{of.getProperty(ce.getProperty()), of.getDatatype(ce.getValue())};
+            return new Object[]{toContentItem(ce.getProperty()), getDRFromCE(ce, factory)};
+        }
+
+        protected abstract Object getDRFromCE(ONT ce, InternalObjectFactory factory);
+
+        @Override
+        protected int collectHashCode(InternalObjectFactory factory, Object[] content) {
+            int res = OWLObject.hashIteration(hashIndex(), hashCodeNDP(content[0], factory));
+            return OWLObject.hashIteration(res, hashCodeDR(content[1], factory));
         }
     }
 
@@ -1038,8 +1248,8 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
      * Its signature also contains {@link OWLDatatype datatype} (explicitly or implicitly).
      * It cannot contain nested class expressions.
      *
-     * @param <ONT> - subtype of {@link OntCE.RestrictionCE}
-     * @param <OWL> - subtype of {@link OWLRestriction}
+     * @param <ONT> - a subtype of {@link OntCE.RestrictionCE}
+     * @param <OWL> - a subtype of {@link OWLRestriction} that matches {@link ONT}
      */
     protected abstract static class WithDataProperty<ONT extends OntCE.RestrictionCE<OntNDP>,
             OWL extends OWLRestriction>
@@ -1053,16 +1263,24 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             return getONTDataProperty().getOWLObject();
         }
 
-        @SuppressWarnings("unchecked")
+        @Override
+        public Stream<ONTObject<? extends OWLObject>> objects() {
+            return Stream.of(getONTDataProperty());
+        }
+
         public ONTObject<OWLDataProperty> getONTDataProperty() {
-            // [property, cardinality, filler] or [property, filler] or [property]
-            return (ONTObject<OWLDataProperty>) getContent()[0];
+            return findNDP(getObjectFactory());
+        }
+
+        protected ONTObject<OWLDataProperty> findNDP(InternalObjectFactory factory) {
+            // [property, cardinality, filler] or [property, filler] or [property] - always first
+            return toNDP(getContent()[0], factory);
         }
 
         @Override
         protected Object[] collectContent(ONT ce, InternalObjectFactory of) {
             // [property, cardinality, filler] or [property, filler] or [property]
-            return new Object[]{of.getProperty(ce.getProperty())};
+            return new Object[]{toContentItem(ce.getProperty())};
         }
 
         @Override
@@ -1089,8 +1307,19 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         public boolean canContainAnonymousIndividuals() {
             return false;
         }
+
+        @Override
+        protected int collectHashCode(InternalObjectFactory factory, Object[] content) {
+            return OWLObject.hashIteration(hashIndex(), hashCodeNDP(content[0], factory));
+        }
     }
 
+    /**
+     * Represents an object class expression with cardinality.
+     *
+     * @param <ONT> - a subtype of {@link OntCE.CardinalityRestrictionCE}
+     * @param <OWL> - a subtype of {@link OWLRestriction} that matches {@link ONT}
+     */
     protected abstract static class WithClassAndObjectPropertyAndCardinality<ONT extends OntCE.CardinalityRestrictionCE<OntCE, OntOPE>,
             OWL extends OWLRestriction>
             extends WithClassAndObjectProperty<ONT, OWL> {
@@ -1104,17 +1333,27 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        public Stream<ONTObject<? extends OWLObject>> objects() {
-            return Stream.of(getONTObjectPropertyExpression(), getONTClassExpression());
+        protected Object[] collectContent(ONT ce, InternalObjectFactory factory) {
+            // [property, cardinality, filler]
+            return new Object[]{toContentItem(ce.getProperty(), factory),
+                    ce.getCardinality(), toContentItem(ce.getValue(), factory)};
         }
 
         @Override
-        protected Object[] collectContent(ONT ce, InternalObjectFactory of) {
-            // [property, cardinality, filler]
-            return new Object[]{of.getProperty(ce.getProperty()), ce.getCardinality(), of.getClass(ce.getValue())};
+        protected int collectHashCode(InternalObjectFactory factory, Object[] content) {
+            int res = hashIndex();
+            res = OWLObject.hashIteration(res, hashCodeOPE(content[0], factory));
+            res = OWLObject.hashIteration(res, content[1].hashCode());
+            return OWLObject.hashIteration(res, hashCodeCE(content[2], factory));
         }
     }
 
+    /**
+     * Represents an object class expression,
+     * that has reference to another class expression and object property expression.
+     * @param <ONT> - a subtype of {@link OntCE.ComponentRestrictionCE}
+     * @param <OWL> - a subtype of {@link OWLRestriction} that matches {@link ONT}
+     */
     protected abstract static class WithClassAndObjectProperty<ONT extends OntCE.ComponentRestrictionCE<OntCE, OntOPE>,
             OWL extends OWLRestriction>
             extends WithObjectProperty<ONT, OWL> {
@@ -1127,19 +1366,39 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             return getONTClassExpression().getOWLObject();
         }
 
-        @SuppressWarnings("unchecked")
+        @Override
+        public Stream<ONTObject<? extends OWLObject>> objects() {
+            InternalObjectFactory factory = getObjectFactory();
+            return Stream.of(findOPE(factory), findCE(factory));
+        }
+
         public ONTObject<? extends OWLClassExpression> getONTClassExpression() {
-            // [property, cardinality, filler] or [property, filler]
+            return findCE(getObjectFactory());
+        }
+
+        protected ONTObject<? extends OWLClassExpression> findCE(InternalObjectFactory factory) {
+            // [property, cardinality, filler] or [property, filler] -- always last:
             Object[] array = getContent();
-            return (ONTObject<? extends OWLClassExpression>) array[array.length - 1];
+            return toCE(array[array.length - 1], factory);
         }
 
         @Override
-        protected Object[] collectContent(ONT ce, InternalObjectFactory of) {
-            return new Object[]{of.getProperty(ce.getProperty()), of.getClass(ce.getValue())};
+        protected Object[] collectContent(ONT ce, InternalObjectFactory factory) {
+            return new Object[]{toContentItem(ce.getProperty(), factory), toContentItem(ce.getValue(), factory)};
+        }
+
+        @Override
+        protected int collectHashCode(InternalObjectFactory factory, Object[] content) {
+            int res = OWLObject.hashIteration(hashIndex(), hashCodeOPE(content[0], factory));
+            return OWLObject.hashIteration(res, hashCodeCE(content[1], factory));
         }
     }
 
+    /**
+     * Represents a class expression with a reference to an object property expression.
+     * @param <ONT> - a subtype of {@link OntCE.RestrictionCE}
+     * @param <OWL> - a subtype of {@link OWLRestriction} that matches {@link ONT}
+     */
     protected abstract static class WithObjectProperty<ONT extends OntCE.RestrictionCE<OntOPE>,
             OWL extends OWLRestriction>
             extends ONTAnonymousClassExpressionImpl<ONT, OWL> {
@@ -1148,20 +1407,33 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             super(n, m);
         }
 
+        @Override
+        public Stream<ONTObject<? extends OWLObject>> objects() {
+            return Stream.of(getONTObjectPropertyExpression());
+        }
+
         public OWLObjectPropertyExpression getProperty() {
             return getONTObjectPropertyExpression().getOWLObject();
         }
 
-        @SuppressWarnings("unchecked")
         public ONTObject<? extends OWLObjectPropertyExpression> getONTObjectPropertyExpression() {
-            // [property, cardinality, filler] or [property, filler] or [property]
-            return (ONTObject<? extends OWLObjectPropertyExpression>) getContent()[0];
+            return findOPE(getObjectFactory());
+        }
+
+        protected ONTObject<? extends OWLObjectPropertyExpression> findOPE(InternalObjectFactory factory) {
+            // [property, cardinality, filler] or [property, filler] or [property] - always first
+            return toOPE(getContent()[0], factory);
         }
 
         @Override
-        protected Object[] collectContent(ONT ce, InternalObjectFactory of) {
+        protected Object[] collectContent(ONT ce, InternalObjectFactory factory) {
             // [property, cardinality, filler] or [property, filler] or [property]
-            return new Object[]{of.getProperty(ce.getProperty())};
+            return new Object[]{toContentItem(ce.getProperty(), factory)};
+        }
+
+        @Override
+        protected int collectHashCode(InternalObjectFactory factory, Object[] content) {
+            return OWLObject.hashIteration(hashIndex(), hashCodeOPE(content[0], factory));
         }
     }
 }

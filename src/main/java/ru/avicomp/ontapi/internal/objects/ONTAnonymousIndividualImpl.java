@@ -15,12 +15,11 @@
 package ru.avicomp.ontapi.internal.objects;
 
 import org.apache.jena.graph.BlankNodeId;
+import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.rdf.model.RDFNode;
 import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
-import ru.avicomp.ontapi.internal.AsRDFNode;
-import ru.avicomp.ontapi.internal.HasObjectFactory;
-import ru.avicomp.ontapi.internal.InternalObjectFactory;
-import ru.avicomp.ontapi.internal.ONTObject;
+import ru.avicomp.ontapi.internal.*;
 import ru.avicomp.ontapi.jena.impl.PersonalityModel;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
@@ -50,6 +49,25 @@ public class ONTAnonymousIndividualImpl extends OWLAnonymousIndividualImpl
     public ONTAnonymousIndividualImpl(BlankNodeId n, Supplier<OntGraphModel> m) {
         super(n);
         this.model = Objects.requireNonNull(m);
+    }
+
+    /**
+     * Using the {@code factory} finds or creates an {@link OWLAnonymousIndividual} instance.
+     *
+     * @param id      {@link BlankNodeId}, not {@code null}
+     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @param model   a {@code Supplier} with a {@link OntGraphModel},
+     *                which is only used in case the {@code factory} has no reference to a model
+     * @return an {@link ONTObject} that is {@link OWLAnonymousIndividual}
+     */
+    protected static ONTObject<OWLAnonymousIndividual> find(BlankNodeId id,
+                                                            InternalObjectFactory factory,
+                                                            Supplier<OntGraphModel> model) {
+        if (factory instanceof ModelObjectFactory) {
+            return ((ModelObjectFactory) factory).getAnonymousIndividual(id);
+        }
+        RDFNode res = model.get().asRDFNode(NodeFactory.createBlankNode(id));
+        return factory.getIndividual(res.as(OntIndividual.Anonymous.class));
     }
 
     @Override

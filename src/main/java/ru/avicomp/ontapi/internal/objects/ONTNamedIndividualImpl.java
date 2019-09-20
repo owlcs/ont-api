@@ -15,6 +15,8 @@
 package ru.avicomp.ontapi.internal.objects;
 
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
+import ru.avicomp.ontapi.internal.InternalObjectFactory;
+import ru.avicomp.ontapi.internal.ModelObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
@@ -33,6 +35,24 @@ public class ONTNamedIndividualImpl extends ONTEntityImpl implements OWLNamedInd
 
     public ONTNamedIndividualImpl(String uri, Supplier<OntGraphModel> m) {
         super(uri, m);
+    }
+
+    /**
+     * Using the {@code factory} finds or creates an {@link OWLNamedIndividual} instance.
+     *
+     * @param uri     {@code String}, not {@code null}
+     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @param model   a {@code Supplier} with a {@link OntGraphModel},
+     *                which is only used in case the {@code factory} has no reference to a model
+     * @return an {@link ONTObject} which is {@link OWLNamedIndividual}
+     */
+    protected static ONTObject<OWLNamedIndividual> find(String uri,
+                                                        InternalObjectFactory factory,
+                                                        Supplier<OntGraphModel> model) {
+        if (factory instanceof ModelObjectFactory) {
+            return ((ModelObjectFactory) factory).getNamedIndividual(uri);
+        }
+        return factory.getIndividual(model.get().getIndividual(uri));
     }
 
     @Override

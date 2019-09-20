@@ -17,6 +17,9 @@ package ru.avicomp.ontapi.internal.objects;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLObjectComplementOf;
+import ru.avicomp.ontapi.OntApiException;
+import ru.avicomp.ontapi.internal.InternalObjectFactory;
+import ru.avicomp.ontapi.internal.ModelObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
@@ -39,6 +42,24 @@ public class ONTClassImpl extends ONTEntityImpl implements OWLClass, ONTObject<O
 
     public ONTClassImpl(String uri, Supplier<OntGraphModel> m) {
         super(uri, m);
+    }
+
+    /**
+     * Using the {@code factory} finds or creates an {@link OWLClass} instance.
+     *
+     * @param uri     {@code String}, not {@code null}
+     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @param model   a {@code Supplier} with a {@link OntGraphModel},
+     *                which is only used in case the {@code factory} has no reference to a model
+     * @return an {@link ONTObject} which is {@link OWLClass}
+     */
+    public static ONTObject<OWLClass> find(String uri,
+                                           InternalObjectFactory factory,
+                                           Supplier<OntGraphModel> model) {
+        if (factory instanceof ModelObjectFactory) {
+            return ((ModelObjectFactory) factory).getClass(uri);
+        }
+        return factory.getClass(OntApiException.mustNotBeNull(model.get().getOntClass(uri)));
     }
 
     @Override
@@ -123,5 +144,4 @@ public class ONTClassImpl extends ONTEntityImpl implements OWLClass, ONTObject<O
     public Stream<OWLClassExpression> disjunctSet() {
         return Stream.of(this);
     }
-
 }

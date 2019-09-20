@@ -18,6 +18,8 @@ import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.OWLDatatype;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import ru.avicomp.ontapi.OntApiException;
+import ru.avicomp.ontapi.internal.InternalObjectFactory;
+import ru.avicomp.ontapi.internal.ModelObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.jena.model.OntDT;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
@@ -39,6 +41,24 @@ public class ONTDatatypeImpl extends ONTEntityImpl implements OWLDatatype, ONTOb
 
     public ONTDatatypeImpl(String uri, Supplier<OntGraphModel> m) {
         super(uri, m);
+    }
+
+    /**
+     * Using the {@code factory} finds or creates an {@link OWLDatatype} instance.
+     *
+     * @param uri     {@code String}, not {@code null}
+     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @param model   a {@code Supplier} with a {@link OntGraphModel},
+     *                which is only used in case the {@code factory} has no reference to a model
+     * @return an {@link ONTObject} which is {@link OWLDatatype}
+     */
+    protected static ONTObject<OWLDatatype> find(String uri,
+                                                 InternalObjectFactory factory,
+                                                 Supplier<OntGraphModel> model) {
+        if (factory instanceof ModelObjectFactory) {
+            return ((ModelObjectFactory) factory).getDatatype(uri);
+        }
+        return factory.getDatatype(model.get().getDatatype(uri));
     }
 
     @Override

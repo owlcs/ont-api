@@ -195,15 +195,15 @@ public class AnnotationAssertionTranslator
         }
 
         protected ONTObject<? extends OWLAnnotationSubject> findONTSubject(InternalObjectFactory factory) {
-            return ONTAnnotationImpl.findONTSubject(factory, this);
+            return ONTAnnotationImpl.findONTSubject(this, factory);
         }
 
         protected ONTObject<? extends OWLAnnotationValue> findONTValue(InternalObjectFactory factory) {
-            return ONTAnnotationImpl.findONTObject(factory, this);
+            return ONTAnnotationImpl.findONTObject(this, factory);
         }
 
         protected ONTObject<OWLAnnotationProperty> findONTProperty(InternalObjectFactory factory) {
-            return ONTAnnotationImpl.findONTPredicate(factory, this);
+            return ONTAnnotationImpl.findONTPredicate(this, factory);
         }
 
         @Override

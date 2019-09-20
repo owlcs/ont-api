@@ -19,6 +19,7 @@ import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.graph.impl.LiteralLabel;
 import org.apache.jena.rdf.model.Literal;
+import org.apache.jena.rdf.model.RDFNode;
 import org.semanticweb.owlapi.model.OWLDatatype;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLObject;
@@ -52,6 +53,25 @@ public class ONTLiteralImpl extends OWLLiteralImpl
     public ONTLiteralImpl(LiteralLabel n, Supplier<OntGraphModel> m) {
         super(n);
         this.model = Objects.requireNonNull(m);
+    }
+
+    /**
+     * Using the {@code factory} finds or creates an {@link OWLLiteral} instance.
+     *
+     * @param label   {@link LiteralLabel}, not {@code null}
+     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @param model   a {@code Supplier} with a {@link OntGraphModel},
+     *                which is only used in case the {@code factory} has no reference to a model
+     * @return an {@link ONTObject} which is {@link OWLLiteral}
+     */
+    protected static ONTObject<OWLLiteral> find(LiteralLabel label,
+                                                InternalObjectFactory factory,
+                                                Supplier<OntGraphModel> model) {
+        if (factory instanceof ModelObjectFactory) {
+            return ((ModelObjectFactory) factory).getLiteral(label);
+        }
+        RDFNode res = model.get().asRDFNode(NodeFactory.createLiteral(label));
+        return factory.getLiteral(res.asLiteral());
     }
 
     @Override

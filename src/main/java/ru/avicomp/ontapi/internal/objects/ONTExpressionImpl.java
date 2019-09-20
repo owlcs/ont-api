@@ -18,12 +18,13 @@ import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
-import org.semanticweb.owlapi.model.OWLObject;
+import org.apache.jena.graph.impl.LiteralLabel;
+import org.apache.jena.rdf.model.Literal;
+import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.internal.InternalCache;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
-import ru.avicomp.ontapi.jena.model.OntGraphModel;
-import ru.avicomp.ontapi.jena.model.OntObject;
+import ru.avicomp.ontapi.jena.model.*;
 
 import java.util.Arrays;
 import java.util.function.Supplier;
@@ -57,6 +58,99 @@ public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResource
     protected ONTExpressionImpl(BlankNodeId n, Supplier<OntGraphModel> m) {
         super(n, m);
         this.content = createContentCache();
+    }
+
+    /**
+     * Prepares a content item from the given object property expression using the {@code factory}.
+     * This is the inverse of {@link ONTExpressionImpl#toOPE(Object, InternalObjectFactory)}.
+     * For internal usage only.
+     *
+     * @param ope     {@link OntOPE}, not {@code null}
+     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @return an {@code Object}, ready for cache
+     * @see ONTExpressionImpl#toOPE(Object, InternalObjectFactory)
+     */
+    protected static Object toContentItem(OntOPE ope, InternalObjectFactory factory) {
+        if (ope.isURIResource()) {
+            return ope.getURI();
+        }
+        return factory.getProperty(ope);
+    }
+
+    /**
+     * Prepares a content item from the given class expression using the {@code factory}.
+     * This is the inverse of {@link ONTExpressionImpl#toCE(Object, InternalObjectFactory)}.
+     * For internal usage only.
+     *
+     * @param ce      {@link OntCE}, not {@code null}
+     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @return an {@code Object}, ready for cache
+     * @see ONTExpressionImpl#toCE(Object, InternalObjectFactory)
+     */
+    protected static Object toContentItem(OntCE ce, InternalObjectFactory factory) {
+        if (ce.isURIResource()) {
+            return ce.getURI();
+        }
+        return factory.getClass(ce);
+    }
+
+    /**
+     * Prepares a content item from the given data range using the {@code factory}.
+     * This is the inverse of {@link ONTExpressionImpl#toDR(Object, InternalObjectFactory)}.
+     * For internal usage only.
+     *
+     * @param dr      {@link OntDR}, not {@code null}
+     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @return an {@code Object}, ready for cache
+     * @see ONTExpressionImpl#toDR(Object, InternalObjectFactory)
+     */
+    protected static Object toContentItem(OntDR dr, InternalObjectFactory factory) {
+        if (dr.isURIResource()) {
+            return dr.getURI();
+        }
+        return factory.getDatatype(dr);
+    }
+
+    /**
+     * Prepares a content item from the given individual using the {@code factory}.
+     * This is the inverse of {@link ONTExpressionImpl#toIndividual(Object, InternalObjectFactory)}.
+     * For internal usage only.
+     *
+     * @param i {@link OntIndividual}, not {@code null}
+     * @return an {@code Object}, ready for cache
+     * @see ONTExpressionImpl#toIndividual(Object, InternalObjectFactory)
+     */
+    protected static Object toContentItem(OntIndividual i) {
+        if (i.isURIResource()) {
+            return i.getURI();
+        }
+        return i.asNode().getBlankNodeId();
+    }
+
+    /**
+     * Prepares a content item from the given data property using the {@code factory}.
+     * This is the inverse of {@link ONTExpressionImpl#toNDP(Object, InternalObjectFactory)}.
+     * For internal usage only.
+     *
+     * @param ndp {@link OntNDP}, not {@code null}
+     * @return an {@code Object}, ready for cache
+     * @see ONTExpressionImpl#toNDP(Object, InternalObjectFactory)
+     */
+    protected static Object toContentItem(OntNDP ndp) {
+        return ndp.getURI();
+    }
+
+    /**
+     * Prepares a content item from the literal using the {@code factory}.
+     * This is the inverse of {@link ONTExpressionImpl#toLiteral(Object, InternalObjectFactory)}.
+     * For internal usage only.
+     *
+     * @param literal {@link Literal}, not {@code null}
+     * @return an {@code Object}, ready for cache
+     * @see ONTExpressionImpl#toLiteral(Object, InternalObjectFactory)
+     */
+    protected static Object toContentItem(Literal literal) {
+        return literal.asNode().getLiteral();
     }
 
     /**
@@ -127,5 +221,164 @@ public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResource
             return false;
         }
         return equalIterators(components().iterator(), other.components().iterator());
+    }
+
+    /**
+     * Calculates the hash code for the content item, that represents an object property expression.
+     * For internal usage only.
+     *
+     * @param item    {@code Object} for the object property expression, not {@code null}
+     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @return int, the hash code
+     * @see ONTExpressionImpl#toOPE(Object, InternalObjectFactory)
+     * @see ONTExpressionImpl#toContentItem(OntOPE, InternalObjectFactory)
+     */
+    protected int hashCodeOPE(Object item, InternalObjectFactory factory) {
+        return (item instanceof String ? ONTObjectPropertyImpl.find((String) item, factory, model) : item).hashCode();
+    }
+
+    /**
+     * Calculates the hash code for the content item, that represents a data property.
+     * For internal usage only.
+     *
+     * @param item    {@code Object} for the data property, not {@code null}
+     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @return int, the hash code
+     * @see ONTExpressionImpl#toNDP(Object, InternalObjectFactory)
+     * @see ONTExpressionImpl#toContentItem(OntNDP)
+     */
+    protected int hashCodeNDP(Object item, InternalObjectFactory factory) {
+        return (item instanceof String ? ONTDataPropertyImpl.find((String) item, factory, model) : item).hashCode();
+    }
+
+    /**
+     * Calculates the hash code for the content item, that represents a class expression.
+     * For internal usage only.
+     *
+     * @param item    {@code Object}, for the class expression, not {@code null}
+     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @return int, hash code
+     * @see ONTExpressionImpl#toCE(Object, InternalObjectFactory)
+     * @see ONTExpressionImpl#toContentItem(OntCE, InternalObjectFactory)
+     */
+    protected int hashCodeCE(Object item, InternalObjectFactory factory) {
+        return (item instanceof String ? ONTClassImpl.find((String) item, factory, model) : item).hashCode();
+    }
+
+    /**
+     * Calculates the hash code for the content item, that represents a data range.
+     * For internal usage only.
+     *
+     * @param item    {@code Object} for the data range, not {@code null}
+     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @return int, hash code
+     * @see ONTExpressionImpl#toDR(Object, InternalObjectFactory)
+     * @see ONTExpressionImpl#toContentItem(OntDR, InternalObjectFactory)
+     */
+    protected int hashCodeDR(Object item, InternalObjectFactory factory) {
+        return (item instanceof String ? ONTDatatypeImpl.find((String) item, factory, model) : item).hashCode();
+    }
+
+    /**
+     * Restores an {@link OWLIndividual} from the content {@code item} using the {@code factory}.
+     * This is the inverse of {@link ONTExpressionImpl#toContentItem(OntIndividual)}.
+     * For internal usage only.
+     *
+     * @param item    {@code Object}, for the individual, not {@code null}
+     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @return {@link ONTObject} with {@link OWLIndividual}
+     * @see ONTExpressionImpl#toContentItem(OntIndividual)
+     */
+    protected ONTObject<? extends OWLIndividual> toIndividual(Object item, InternalObjectFactory factory) {
+        if (item instanceof String) {
+            return ONTNamedIndividualImpl.find((String) item, factory, model);
+        }
+        return ONTAnonymousIndividualImpl.find((BlankNodeId) item, factory, model);
+    }
+
+    /**
+     * Restores an {@link OWLObjectPropertyExpression} from the content {@code item} using the {@code factory}.
+     * This is the inverse of {@link ONTExpressionImpl#toContentItem(OntOPE, InternalObjectFactory)}.
+     * For internal usage only.
+     *
+     * @param item    {@code Object}, for the object property expression, not {@code null}
+     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @return {@link ONTObject} with {@link OWLObjectPropertyExpression}
+     * @see ONTExpressionImpl#toContentItem(OntOPE, InternalObjectFactory)
+     */
+    @SuppressWarnings("unchecked")
+    protected ONTObject<? extends OWLObjectPropertyExpression> toOPE(Object item, InternalObjectFactory factory) {
+        if (item instanceof String) {
+            return ONTObjectPropertyImpl.find((String) item, factory, model);
+        }
+        return (ONTObject<? extends OWLObjectPropertyExpression>) item;
+    }
+
+    /**
+     * Restores an {@link OWLDataProperty} from the content {@code item} using the {@code factory}.
+     * This is the inverse of {@link ONTExpressionImpl#toContentItem(OntNDP)}.
+     * For internal usage only.
+     *
+     * @param item    {@code Object}, for the data property, not {@code null}
+     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @return {@link ONTObject} with {@link OWLDataProperty}
+     * @see ONTExpressionImpl#toContentItem(OntNDP)
+     */
+    @SuppressWarnings("unchecked")
+    protected ONTObject<OWLDataProperty> toNDP(Object item, InternalObjectFactory factory) {
+        if (item instanceof String) {
+            return ONTDataPropertyImpl.find((String) item, factory, model);
+        }
+        return (ONTObject<OWLDataProperty>) item;
+    }
+
+    /**
+     * Restores an {@link OWLClassExpression} from the content {@code item} using the {@code factory}.
+     * This is the inverse of {@link ONTExpressionImpl#toContentItem(OntCE, InternalObjectFactory)}.
+     * For internal usage only.
+     *
+     * @param item    {@code Object}, for the class expression, not {@code null}
+     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @return {@link ONTObject} with {@link OWLClassExpression}
+     * @see ONTExpressionImpl#toContentItem(OntCE, InternalObjectFactory)
+     */
+    @SuppressWarnings("unchecked")
+    protected ONTObject<? extends OWLClassExpression> toCE(Object item, InternalObjectFactory factory) {
+        if (item instanceof String) {
+            return ONTClassImpl.find((String) item, factory, model);
+        }
+        return (ONTObject<? extends OWLClassExpression>) item;
+    }
+
+    /**
+     * Restores an {@link OWLDataRange} from the content {@code item} using the {@code factory}.
+     * This is the inverse of {@link ONTExpressionImpl#toContentItem(OntDR, InternalObjectFactory)}.
+     * For internal usage only.
+     *
+     * @param item    {@code Object}, for the data range, not {@code null}
+     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @return {@link ONTObject} with {@link OWLDataRange}
+     * @see ONTExpressionImpl#toContentItem(OntDR, InternalObjectFactory)
+     */
+    @SuppressWarnings("unchecked")
+    protected ONTObject<? extends OWLDataRange> toDR(Object item, InternalObjectFactory factory) {
+        if (item instanceof String) {
+            return ONTDatatypeImpl.find((String) item, factory, model);
+        }
+        return (ONTObject<OWLDataRange>) item;
+    }
+
+    /**
+     * Restores an {@link OWLLiteral} from the content {@code item} using the {@code factory}.
+     * This is the inverse of {@link ONTExpressionImpl#toContentItem(Literal)}.
+     * For internal usage only.
+     *
+     * @param item    {@code Object}, for the literal, not {@code null}
+     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @return {@link ONTObject} with {@link OWLLiteral}
+     * @see ONTExpressionImpl#toContentItem(Literal)
+     */
+    protected ONTObject<OWLLiteral> toLiteral(Object item, InternalObjectFactory factory) {
+        return ONTLiteralImpl.find((LiteralLabel) item, factory, model);
     }
 }

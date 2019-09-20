@@ -16,6 +16,8 @@ package ru.avicomp.ontapi.internal.objects;
 
 import org.semanticweb.owlapi.model.OWLObjectInverseOf;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
+import ru.avicomp.ontapi.internal.InternalObjectFactory;
+import ru.avicomp.ontapi.internal.ModelObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntNOP;
@@ -35,6 +37,24 @@ public class ONTObjectPropertyImpl extends ONTEntityImpl implements OWLObjectPro
 
     public ONTObjectPropertyImpl(String uri, Supplier<OntGraphModel> m) {
         super(uri, m);
+    }
+
+    /**
+     * Using the {@code factory} finds or creates an {@link OWLObjectProperty} instance.
+     *
+     * @param uri     {@code String}, not {@code null}
+     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @param model   a {@code Supplier} with a {@link OntGraphModel},
+     *                which is only used in case the {@code factory} has no reference to a model
+     * @return an {@link ONTObject} which is {@link OWLObjectProperty}
+     */
+    protected static ONTObject<OWLObjectProperty> find(String uri,
+                                                       InternalObjectFactory factory,
+                                                       Supplier<OntGraphModel> model) {
+        if (factory instanceof ModelObjectFactory) {
+            return ((ModelObjectFactory) factory).getObjectProperty(uri);
+        }
+        return factory.getProperty(model.get().getObjectProperty(uri));
     }
 
     @Override

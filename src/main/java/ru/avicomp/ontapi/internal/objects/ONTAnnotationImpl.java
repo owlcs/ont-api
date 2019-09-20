@@ -127,12 +127,12 @@ public abstract class ONTAnnotationImpl extends ONTStatementImpl
      * Note: despite the public modifier, this method is for internal usage only.
      * The specified statement must be an annotation assertion.
      *
-     * @param factory   {@link InternalObjectFactory}, not {@code null}
      * @param statement {@link ONTStatementImpl} - must be an annotation assertion, not {@code null}
+     * @param factory   {@link InternalObjectFactory}, not {@code null}
      * @return {@link ONTObject}
      */
-    public static ONTObject<? extends OWLAnnotationSubject> findONTSubject(InternalObjectFactory factory,
-                                                                           ONTStatementImpl statement) {
+    public static ONTObject<? extends OWLAnnotationSubject> findONTSubject(ONTStatementImpl statement,
+                                                                           InternalObjectFactory factory) {
         if (!(factory instanceof ModelObjectFactory)) {
             return factory.getSubject(statement.model.get().getAnnotationProperty((String) statement.subject));
         }
@@ -151,12 +151,12 @@ public abstract class ONTAnnotationImpl extends ONTStatementImpl
      * Note: despite the public modifier, this method is for internal usage only.
      * The specified statement must be an annotation assertion.
      *
-     * @param factory   {@link InternalObjectFactory}, not {@code null}
      * @param statement {@link ONTStatementImpl} - must be an annotation assertion, not {@code null}
+     * @param factory   {@link InternalObjectFactory}, not {@code null}
      * @return {@link ONTObject}
      */
-    public static ONTObject<OWLAnnotationProperty> findONTPredicate(InternalObjectFactory factory,
-                                                                    ONTStatementImpl statement) {
+    public static ONTObject<OWLAnnotationProperty> findONTPredicate(ONTStatementImpl statement,
+                                                                    InternalObjectFactory factory) {
         if (factory instanceof ModelObjectFactory) {
             return ((ModelObjectFactory) factory).getAnnotationProperty(statement.predicate);
         }
@@ -168,12 +168,12 @@ public abstract class ONTAnnotationImpl extends ONTStatementImpl
      * Note: despite the public modifier, this method is for internal usage only.
      * The specified statement must be an annotation assertion.
      *
-     * @param factory   {@link InternalObjectFactory}, not {@code null}
      * @param statement {@link ONTStatementImpl} - must be an annotation assertion, not {@code null}
+     * @param factory   {@link InternalObjectFactory}, not {@code null}
      * @return {@link ONTObject}
      */
-    public static ONTObject<? extends OWLAnnotationValue> findONTObject(InternalObjectFactory factory,
-                                                                        ONTStatementImpl statement) {
+    public static ONTObject<? extends OWLAnnotationValue> findONTObject(ONTStatementImpl statement,
+                                                                        InternalObjectFactory factory) {
         if (!(factory instanceof ModelObjectFactory)) {
             return factory.getValue(statement.model.get().asRDFNode(statement.getObjectNode()));
         }
@@ -294,11 +294,11 @@ public abstract class ONTAnnotationImpl extends ONTStatementImpl
     }
 
     protected ONTObject<OWLAnnotationProperty> findONTAnnotationProperty(InternalObjectFactory factory) {
-        return findONTPredicate(factory, this);
+        return findONTPredicate(this, factory);
     }
 
     protected ONTObject<? extends OWLAnnotationValue> findONTAnnotationValue(InternalObjectFactory factory) {
-        return findONTObject(factory, this);
+        return findONTObject(this, factory);
     }
 
     @Override

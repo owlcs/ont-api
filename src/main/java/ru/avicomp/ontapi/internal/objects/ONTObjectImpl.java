@@ -85,9 +85,9 @@ abstract class ONTObjectImpl extends OWLObjectImpl implements ONTComposite, HasO
      * OWL-API requires distinct and sorted {@code Stream}s and {@code List}s.
      *
      * @param <X> subtype of {@link ONTObject}
-     * @return an empty sorted {@code Set} that may contain {@code ONTObject}s.
+     * @return an empty sorted {@code Set} that can contain {@code ONTObject}s.
      */
-    protected <X extends ONTObject> Set<X> createObjectSet() {
+    protected <X extends ONTObject> Set<X> createContentSet() {
         return createSortedSet(Comparator.comparing(ONTObject::getOWLObject));
     }
 
