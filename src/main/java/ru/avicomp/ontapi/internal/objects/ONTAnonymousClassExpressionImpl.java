@@ -15,6 +15,8 @@
 package ru.avicomp.ontapi.internal.objects;
 
 import org.apache.jena.graph.BlankNodeId;
+import org.apache.jena.graph.Node;
+import org.apache.jena.rdf.model.Literal;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.NNF;
 import ru.avicomp.ontapi.DataFactory;
@@ -73,7 +75,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         // since we have already type information
         // we can forcibly load the cache to reduce graph traversal operations
         // (otherwise this type information will be collected again on demand, which means double-work):
-        res.putContent(res.collectContent(ce, factory, true));
+        res.putContent(res.initContent(ce, factory));
         return res;
     }
 
@@ -150,31 +152,15 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
     }
 
     /**
-     * Initializes the object's content.
-     * It can be invalidated while lifecycle and restored back.
+     * Initializes the object's content and calculates its hashcode.
      *
-     * @param obj          {@link ONT} the source Jena resource, not {@code null}
-     * @param factory      {@link InternalObjectFactory}
-     * @param withHashCode if {@code true} calculates also hash-code, it is used only while the object's creation
+     * @param ce          {@link ONT} the source Jena resource, not {@code null}
+     * @param factory      {@link InternalObjectFactory}, not {@code null}
      * @return an array of {@code Object}s
-     */
-    protected Object[] collectContent(ONT obj, InternalObjectFactory factory, boolean withHashCode) {
-        Object[] content = collectContent(obj, factory);
-        if (withHashCode)
-            hashCode = collectHashCode(factory, content);
-        return content;
-    }
-
-    /**
-     * Calculates the hashcode of this object.
-     * This operations is used while init.
-     *
-     * @param factory {@link InternalObjectFactory}, not {@code null}
-     * @param content an {@code Array} with content
-     * @return int, the object's {@code hashCode}
+     * @see ONTExpressionImpl#collectContent(OntObject, InternalObjectFactory)
      * @see OWLObject#initHashCode()
      */
-    protected abstract int collectHashCode(InternalObjectFactory factory, Object[] content);
+    protected abstract Object[] initContent(ONT ce, InternalObjectFactory factory);
 
     @SuppressWarnings("unchecked")
     @Override
@@ -337,7 +323,6 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         public OntCE.NaryDataSomeValuesFrom asRDFNode() {
             return as(OntCE.NaryDataSomeValuesFrom.class);
         }
-
     }
 
     /**
@@ -356,7 +341,6 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         public OntCE.NaryDataAllValuesFrom asRDFNode() {
             return as(OntCE.NaryDataAllValuesFrom.class);
         }
-
     }
 
     /**
@@ -410,9 +394,15 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        protected int collectHashCode(InternalObjectFactory factory, Object[] content) {
-            int res = OWLObject.hashIteration(hashIndex(), hashCodeOPE(content[0], factory));
-            return OWLObject.hashIteration(res, toIndividual(content[1], factory).hashCode());
+        protected Object[] initContent(OntCE.ObjectHasValue ce, InternalObjectFactory factory) {
+            OntOPE p = ce.getProperty();
+            OntIndividual v = ce.getValue();
+            return initContent(p.asNode(), v.asNode(), factory.getProperty(p), factory.getIndividual(v));
+        }
+
+        @Override
+        Object toLastContentItem(Node node, Object expr) {
+            return node.isURI() ? node.getURI() : node.getBlankNodeId();
         }
 
         @Override
@@ -500,7 +490,6 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             return Stream.of(findNDP(factory), findLiteral(factory));
         }
 
-
         @FactoryAccessor
         @Override
         public OWLDataSomeValuesFrom asSomeValuesFrom() {
@@ -518,7 +507,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         protected ONTObject<OWLLiteral> findLiteral(InternalObjectFactory factory) {
-            // [property, filler] -- always last
+            // [property, filler] -- always last:
             return toLiteral(getContent()[1], factory);
         }
 
@@ -529,9 +518,15 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        protected int collectHashCode(InternalObjectFactory factory, Object[] content) {
-            int res = OWLObject.hashIteration(hashIndex(), hashCodeNDP(content[0], factory));
-            return OWLObject.hashIteration(res, toLiteral(content[1], factory).hashCode());
+        protected Object[] initContent(OntCE.DataHasValue ce, InternalObjectFactory factory) {
+            OntNDP p = ce.getProperty();
+            Literal v = ce.getValue();
+            return initContent(p.asNode(), v.asNode(), factory.getProperty(p), factory.getLiteral(v));
+        }
+
+        @Override
+        Object toLastContentItem(Node node, Object expr) {
+            return node.getLiteral();
         }
     }
 
@@ -824,14 +819,10 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
 
         @Override
         protected Object toContentItem(ONTObject<? extends OWLIndividual> individual) {
-            if (individual instanceof OWLAnonymousIndividualImpl) {
+            if (!individual.getOWLObject().isOWLNamedIndividual()) {
                 return ((OWLAnonymousIndividualImpl) individual).getBlankNodeId();
             }
-            if (individual instanceof ONTNamedIndividualImpl) {
-                return ((ONTNamedIndividualImpl) individual).getURI();
-            }
-            return individual.getOWLObject().asOWLNamedIndividual().getIRI().getIRIString();
-
+            return individual.getOWLObject().asOWLNamedIndividual().toStringID();
         }
 
         @Override
@@ -927,7 +918,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
      * @see OntCE.ComplementOf
      */
     public static class CF
-            extends ONTAnonymousClassExpressionImpl<OntCE.ComplementOf, OWLObjectComplementOf>
+            extends Restriction<OntCE.ComplementOf, OWLObjectComplementOf>
             implements OWLObjectComplementOf {
 
         public CF(BlankNodeId n, Supplier<OntGraphModel> m) {
@@ -968,10 +959,10 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        protected int collectHashCode(InternalObjectFactory factory, Object[] content) {
-            return OWLObject.hashIteration(hashIndex(), toCE(content[0], factory).hashCode());
+        protected Object[] initContent(OntCE.ComplementOf ce, InternalObjectFactory factory) {
+            OntCE c = ce.getValue();
+            return initContent(c.asNode(), factory.getClass(c));
         }
-
     }
 
     protected abstract static class WithClassMembers<ONT extends OntCE.ComponentsCE<OntCE>,
@@ -984,17 +975,8 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
 
         @Override
         protected Object toContentItem(ONTObject<? extends OWLClassExpression> ce) {
-            if (ce instanceof ONTClassImpl) {
-                return ((ONTClassImpl) ce).getURI();
-            }
-            if (ce instanceof ONTAnonymousClassExpressionImpl) {
-                return ce;
-            }
             OWLClassExpression res = ce.getOWLObject();
-            if (res.isOWLClass()) {
-                return res.asOWLClass().getIRI().getIRIString();
-            }
-            return ce;
+            return res.isOWLClass() ? res.asOWLClass().toStringID() : ce;
         }
 
         @Override
@@ -1080,26 +1062,9 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
 
         @Override
         protected Object[] collectContent(ONT_C ce, InternalObjectFactory factory) {
-            return collectContent(ce, factory, false);
-        }
-
-        @Override
-        protected Object[] collectContent(ONT_C ce, InternalObjectFactory factory, boolean withHashCode) {
-            // first, collect and sort all operands:
-            Set<ONTObject<? extends OWL_M>> operands = createContentSet();
-            OntModels.listMembers(ce.getList()).forEachRemaining(e -> operands.add(map(e, factory)));
-            // create a content array and fill it; also calculate a hash-code if required
+            Set<ONTObject<? extends OWL_M>> operands = operands(ce, factory);
             Object[] res = new Object[operands.size()];
             int index = 0;
-            if (withHashCode) {
-                int hash = 1;
-                for (ONTObject<? extends OWL_M> op : operands) {
-                    res[index++] = toContentItem(op);
-                    hash = 31 * hash + op.hashCode();
-                }
-                this.hashCode = OWLObject.hashIteration(hashIndex(), hash);
-                return res;
-            }
             for (ONTObject<? extends OWL_M> op : operands) {
                 res[index++] = toContentItem(op);
             }
@@ -1107,10 +1072,24 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        protected int collectHashCode(InternalObjectFactory factory, Object[] content) {
-            throw new IllegalStateException();
+        protected Object[] initContent(ONT_C ce, InternalObjectFactory factory) {
+            Set<ONTObject<? extends OWL_M>> operands = operands(ce, factory);
+            Object[] res = new Object[operands.size()];
+            int index = 0;
+            int hash = 1;
+            for (ONTObject<? extends OWL_M> op : operands) {
+                res[index++] = toContentItem(op);
+                hash = 31 * hash + op.hashCode();
+            }
+            this.hashCode = OWLObject.hashIteration(hashIndex(), hash);
+            return res;
         }
 
+        protected Set<ONTObject<? extends OWL_M>> operands(ONT_C ce, InternalObjectFactory factory) {
+            Set<ONTObject<? extends OWL_M>> res = createContentSet();
+            OntModels.listMembers(ce.getList()).forEachRemaining(e -> res.add(map(e, factory)));
+            return res;
+        }
     }
 
     /**
@@ -1145,11 +1124,11 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        protected int collectHashCode(InternalObjectFactory factory, Object[] content) {
-            int res = hashIndex();
-            res = OWLObject.hashIteration(res, hashCodeNDP(content[0], factory));
-            res = OWLObject.hashIteration(res, content[1].hashCode());
-            return OWLObject.hashIteration(res, hashCodeDR(content[2], factory));
+        protected Object[] initContent(ONT ce, InternalObjectFactory factory) {
+            OntNDP p = ce.getProperty();
+            OntDR v = ce.getValue();
+            int c = ce.getCardinality();
+            return initContent(p.asNode(), v.asNode(), factory.getProperty(p), c, factory.getDatatype(v));
         }
     }
 
@@ -1168,8 +1147,8 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        protected Object getDRFromCE(ONT ce, InternalObjectFactory factory) {
-            return toContentItem(ce.getValue(), factory);
+        protected OntDR getValue(ONT ce) {
+            return ce.getValue();
         }
     }
 
@@ -1188,8 +1167,8 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        protected Object getDRFromCE(ONT ce, InternalObjectFactory factory) {
-            return toContentItem(ce.getValue(), factory);
+        protected OntDR getValue(ONT ce) {
+            return ce.getValue();
         }
     }
 
@@ -1230,15 +1209,16 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         @Override
         protected Object[] collectContent(ONT ce, InternalObjectFactory factory) {
             // [property, cardinality, filler] or [property, filler]
-            return new Object[]{toContentItem(ce.getProperty()), getDRFromCE(ce, factory)};
+            return new Object[]{toContentItem(ce.getProperty()), toContentItem(getValue(ce), factory)};
         }
 
-        protected abstract Object getDRFromCE(ONT ce, InternalObjectFactory factory);
+        protected abstract OntDR getValue(ONT ce);
 
         @Override
-        protected int collectHashCode(InternalObjectFactory factory, Object[] content) {
-            int res = OWLObject.hashIteration(hashIndex(), hashCodeNDP(content[0], factory));
-            return OWLObject.hashIteration(res, hashCodeDR(content[1], factory));
+        protected Object[] initContent(ONT ce, InternalObjectFactory factory) {
+            OntNDP p = ce.getProperty();
+            OntDR v = getValue(ce);
+            return initContent(p.asNode(), v.asNode(), factory.getProperty(p), factory.getDatatype(v));
         }
     }
 
@@ -1253,7 +1233,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
      */
     protected abstract static class WithDataProperty<ONT extends OntCE.RestrictionCE<OntNDP>,
             OWL extends OWLRestriction>
-            extends ONTAnonymousClassExpressionImpl<ONT, OWL> {
+            extends Restriction<ONT, OWL> {
 
         protected WithDataProperty(BlankNodeId n, Supplier<OntGraphModel> m) {
             super(n, m);
@@ -1278,9 +1258,15 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        protected Object[] collectContent(ONT ce, InternalObjectFactory of) {
+        protected Object[] collectContent(ONT ce, InternalObjectFactory factory) {
             // [property, cardinality, filler] or [property, filler] or [property]
             return new Object[]{toContentItem(ce.getProperty())};
+        }
+
+        @Override
+        protected Object[] initContent(ONT ce, InternalObjectFactory factory) {
+            OntNDP p = ce.getProperty();
+            return initContent(p.asNode(), factory.getProperty(p));
         }
 
         @Override
@@ -1306,11 +1292,6 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         @Override
         public boolean canContainAnonymousIndividuals() {
             return false;
-        }
-
-        @Override
-        protected int collectHashCode(InternalObjectFactory factory, Object[] content) {
-            return OWLObject.hashIteration(hashIndex(), hashCodeNDP(content[0], factory));
         }
     }
 
@@ -1340,11 +1321,11 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        protected int collectHashCode(InternalObjectFactory factory, Object[] content) {
-            int res = hashIndex();
-            res = OWLObject.hashIteration(res, hashCodeOPE(content[0], factory));
-            res = OWLObject.hashIteration(res, content[1].hashCode());
-            return OWLObject.hashIteration(res, hashCodeCE(content[2], factory));
+        protected Object[] initContent(ONT ce, InternalObjectFactory factory) {
+            OntOPE p = ce.getProperty();
+            OntCE v = ce.getValue();
+            int c = ce.getCardinality();
+            return initContent(p.asNode(), v.asNode(), factory.getProperty(p), c, factory.getClass(v));
         }
     }
 
@@ -1388,9 +1369,10 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        protected int collectHashCode(InternalObjectFactory factory, Object[] content) {
-            int res = OWLObject.hashIteration(hashIndex(), hashCodeOPE(content[0], factory));
-            return OWLObject.hashIteration(res, hashCodeCE(content[1], factory));
+        protected Object[] initContent(ONT ce, InternalObjectFactory factory) {
+            OntOPE p = ce.getProperty();
+            OntCE v = ce.getValue();
+            return initContent(p.asNode(), v.asNode(), factory.getProperty(p), factory.getClass(v));
         }
     }
 
@@ -1401,7 +1383,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
      */
     protected abstract static class WithObjectProperty<ONT extends OntCE.RestrictionCE<OntOPE>,
             OWL extends OWLRestriction>
-            extends ONTAnonymousClassExpressionImpl<ONT, OWL> {
+            extends Restriction<ONT, OWL> {
 
         protected WithObjectProperty(BlankNodeId n, Supplier<OntGraphModel> m) {
             super(n, m);
@@ -1421,19 +1403,65 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         protected ONTObject<? extends OWLObjectPropertyExpression> findOPE(InternalObjectFactory factory) {
-            // [property, cardinality, filler] or [property, filler] or [property] - always first
+            // [property, cardinality, filler] or [property, filler] or [property] - always first:
             return toOPE(getContent()[0], factory);
         }
 
         @Override
         protected Object[] collectContent(ONT ce, InternalObjectFactory factory) {
-            // [property, cardinality, filler] or [property, filler] or [property]
             return new Object[]{toContentItem(ce.getProperty(), factory)};
         }
 
         @Override
-        protected int collectHashCode(InternalObjectFactory factory, Object[] content) {
-            return OWLObject.hashIteration(hashIndex(), hashCodeOPE(content[0], factory));
+        protected Object[] initContent(ONT ce, InternalObjectFactory factory) {
+            OntOPE p = ce.getProperty();
+            return initContent(p.asNode(), factory.getProperty(p));
+        }
+    }
+
+    /**
+     * A base for {@code owl:Restriction} class expression
+     * with helpers to calculate hashcode and to collect content cache.
+     *
+     * @param <ONT> - subtype of {@link OntCE}
+     * @param <OWL> - subtype of {@link OWLAnonymousClassExpression}
+     */
+    protected abstract static class Restriction<ONT extends OntCE, OWL extends OWLAnonymousClassExpression>
+            extends ONTAnonymousClassExpressionImpl<ONT, OWL> {
+
+        protected Restriction(BlankNodeId n, Supplier<OntGraphModel> m) {
+            super(n, m);
+        }
+
+        Object[] initContent(Node p, Node v, Object first, int c, Object last) {
+            int res = OWLObject.hashIteration(hashIndex(), first.hashCode());
+            res = OWLObject.hashIteration(res, c);
+            res = OWLObject.hashIteration(res, last.hashCode());
+            this.hashCode = res;
+            // [property, cardinality, filler]
+            return new Object[]{toFirstContentItem(p, first), c, toLastContentItem(v, last)};
+        }
+
+        Object[] initContent(Node p, Node v, Object first, Object last) {
+            int res = OWLObject.hashIteration(hashIndex(), first.hashCode());
+            res = OWLObject.hashIteration(res, last.hashCode());
+            this.hashCode = res;
+            // [property, filler]
+            return new Object[]{toFirstContentItem(p, first), toLastContentItem(v, last)};
+        }
+
+        Object[] initContent(Node p, Object first) {
+            this.hashCode = OWLObject.hashIteration(hashIndex(), first.hashCode());
+            // [property|single value]
+            return new Object[]{toFirstContentItem(p, first)};
+        }
+
+        Object toFirstContentItem(Node node, Object expr) {
+            return node.isURI() ? node.getURI() : expr;
+        }
+
+        Object toLastContentItem(Node node, Object expr) {
+            return node.isURI() ? node.getURI() : expr;
         }
     }
 }

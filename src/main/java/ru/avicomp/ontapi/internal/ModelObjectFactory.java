@@ -15,6 +15,7 @@
 package ru.avicomp.ontapi.internal;
 
 import org.apache.jena.graph.BlankNodeId;
+import org.apache.jena.graph.Node;
 import org.apache.jena.graph.impl.LiteralLabel;
 import org.apache.jena.rdf.model.Literal;
 import org.semanticweb.owlapi.model.*;
@@ -225,6 +226,26 @@ public class ModelObjectFactory implements InternalObjectFactory {
                 return getAnnotationProperty(uri);
         }
         throw new OntApiException.IllegalArgument("Unsupported type " + type);
+    }
+
+    @Override
+    public ONTObject<? extends OWLObjectPropertyExpression> getProperty(OntOPE property) {
+        if (OntApiException.notNull(property, "Null object property.").isAnon()) {
+            return getProperty((OntOPE.Inverse) property);
+        }
+        return getObjectProperty(property.asNode().getURI());
+    }
+
+    @Override
+    public ONTObject<? extends OWLIndividual> getIndividual(OntIndividual individual) {
+        return getIndividual(OntApiException.notNull(individual, "Null individual").asNode());
+    }
+
+    public ONTObject<? extends OWLIndividual> getIndividual(Node individual) {
+        if (individual.isBlank()) {
+            return getAnonymousIndividual(individual.getBlankNodeId());
+        }
+        return getNamedIndividual(individual.getURI());
     }
 
 }

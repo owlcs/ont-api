@@ -224,62 +224,6 @@ public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResource
     }
 
     /**
-     * Calculates the hash code for the content item, that represents an object property expression.
-     * For internal usage only.
-     *
-     * @param item    {@code Object} for the object property expression, not {@code null}
-     * @param factory {@link InternalObjectFactory}, not {@code null}
-     * @return int, the hash code
-     * @see ONTExpressionImpl#toOPE(Object, InternalObjectFactory)
-     * @see ONTExpressionImpl#toContentItem(OntOPE, InternalObjectFactory)
-     */
-    protected int hashCodeOPE(Object item, InternalObjectFactory factory) {
-        return (item instanceof String ? ONTObjectPropertyImpl.find((String) item, factory, model) : item).hashCode();
-    }
-
-    /**
-     * Calculates the hash code for the content item, that represents a data property.
-     * For internal usage only.
-     *
-     * @param item    {@code Object} for the data property, not {@code null}
-     * @param factory {@link InternalObjectFactory}, not {@code null}
-     * @return int, the hash code
-     * @see ONTExpressionImpl#toNDP(Object, InternalObjectFactory)
-     * @see ONTExpressionImpl#toContentItem(OntNDP)
-     */
-    protected int hashCodeNDP(Object item, InternalObjectFactory factory) {
-        return (item instanceof String ? ONTDataPropertyImpl.find((String) item, factory, model) : item).hashCode();
-    }
-
-    /**
-     * Calculates the hash code for the content item, that represents a class expression.
-     * For internal usage only.
-     *
-     * @param item    {@code Object}, for the class expression, not {@code null}
-     * @param factory {@link InternalObjectFactory}, not {@code null}
-     * @return int, hash code
-     * @see ONTExpressionImpl#toCE(Object, InternalObjectFactory)
-     * @see ONTExpressionImpl#toContentItem(OntCE, InternalObjectFactory)
-     */
-    protected int hashCodeCE(Object item, InternalObjectFactory factory) {
-        return (item instanceof String ? ONTClassImpl.find((String) item, factory, model) : item).hashCode();
-    }
-
-    /**
-     * Calculates the hash code for the content item, that represents a data range.
-     * For internal usage only.
-     *
-     * @param item    {@code Object} for the data range, not {@code null}
-     * @param factory {@link InternalObjectFactory}, not {@code null}
-     * @return int, hash code
-     * @see ONTExpressionImpl#toDR(Object, InternalObjectFactory)
-     * @see ONTExpressionImpl#toContentItem(OntDR, InternalObjectFactory)
-     */
-    protected int hashCodeDR(Object item, InternalObjectFactory factory) {
-        return (item instanceof String ? ONTDatatypeImpl.find((String) item, factory, model) : item).hashCode();
-    }
-
-    /**
      * Restores an {@link OWLIndividual} from the content {@code item} using the {@code factory}.
      * This is the inverse of {@link ONTExpressionImpl#toContentItem(OntIndividual)}.
      * For internal usage only.
