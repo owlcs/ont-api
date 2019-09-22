@@ -58,7 +58,7 @@ public class ONTDatatypeImpl extends ONTEntityImpl implements OWLDatatype, ONTOb
         if (factory instanceof ModelObjectFactory) {
             return ((ModelObjectFactory) factory).getDatatype(uri);
         }
-        return factory.getDatatype(model.get().getDatatype(uri));
+        return factory.getDatatype(OntApiException.mustNotBeNull(model.get().getDatatype(uri)));
     }
 
     @Override

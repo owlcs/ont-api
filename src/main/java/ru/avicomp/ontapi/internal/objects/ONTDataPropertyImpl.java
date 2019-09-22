@@ -15,6 +15,7 @@
 package ru.avicomp.ontapi.internal.objects;
 
 import org.semanticweb.owlapi.model.OWLDataProperty;
+import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ModelObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
@@ -53,7 +54,7 @@ public class ONTDataPropertyImpl extends ONTEntityImpl implements OWLDataPropert
         if (factory instanceof ModelObjectFactory) {
             return ((ModelObjectFactory) factory).getDataProperty(uri);
         }
-        return factory.getProperty(model.get().getDataProperty(uri));
+        return factory.getProperty(OntApiException.mustNotBeNull(model.get().getDataProperty(uri)));
     }
 
     @Override

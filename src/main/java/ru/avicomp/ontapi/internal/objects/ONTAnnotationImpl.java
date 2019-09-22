@@ -157,10 +157,7 @@ public abstract class ONTAnnotationImpl extends ONTStatementImpl
      */
     public static ONTObject<OWLAnnotationProperty> findONTPredicate(ONTStatementImpl statement,
                                                                     InternalObjectFactory factory) {
-        if (factory instanceof ModelObjectFactory) {
-            return ((ModelObjectFactory) factory).getAnnotationProperty(statement.predicate);
-        }
-        return factory.getProperty(statement.model.get().getAnnotationProperty(statement.predicate));
+        return ONTAnnotationPropertyImpl.find(statement.predicate, factory, statement.model);
     }
 
     /**

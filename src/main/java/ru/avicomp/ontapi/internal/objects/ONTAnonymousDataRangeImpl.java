@@ -22,12 +22,16 @@ import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.jena.model.OntDR;
+import ru.avicomp.ontapi.jena.model.OntDT;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
-import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.utils.OntModels;
+import ru.avicomp.ontapi.owlapi.objects.OWLLiteralImpl;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -65,7 +69,7 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
         Class<? extends OntDR> type = OntModels.getOntType(dr);
         BlankNodeId id = dr.asNode().getBlankNodeId();
         ONTAnonymousDataRangeImpl res = create(id, type, model);
-        res.putContent(res.collectContent(dr, factory));
+        res.putContent(res.initContent(dr, factory));
         return res;
     }
 
@@ -94,10 +98,12 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
             return new R(id, model);
         }
         if (OntDR.ComplementOf.class == type) {
-            return new C(id, model);
+            return new CF(id, model);
         }
         throw new OntApiException.IllegalState();
     }
+
+    protected abstract Object[] initContent(ONT dr, InternalObjectFactory factory);
 
     @SuppressWarnings("unchecked")
     @Override
@@ -138,13 +144,6 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
     @Override
     public boolean canContainAnonymousIndividuals() {
         return false;
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public Stream<ONTObject<? extends OWLObject>> objects() {
-        List res = Arrays.asList(getContent());
-        return (Stream<ONTObject<? extends OWLObject>>) res.stream();
     }
 
     /**
@@ -199,13 +198,23 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
         }
 
         @Override
-        protected ONTObject<? extends OWLLiteral> map(Literal literal, InternalObjectFactory of) {
-            return of.getLiteral(literal);
+        protected ONTObject<? extends OWLLiteral> map(Literal literal, InternalObjectFactory factory) {
+            return factory.getLiteral(literal);
         }
 
         @Override
         public Stream<OWLLiteral> values() {
             return operands();
+        }
+
+        @Override
+        protected Object toContentItem(ONTObject<? extends OWLLiteral> literal) {
+            return ((OWLLiteralImpl) literal).getLiteralLabel();
+        }
+
+        @Override
+        protected ONTObject<? extends OWLLiteral> fromContentItem(Object item, InternalObjectFactory factory) {
+            return toLiteral(item, factory);
         }
     }
 
@@ -227,36 +236,74 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
         }
 
         @Override
-        protected Object[] collectContent(OntDR.Restriction dr, InternalObjectFactory of) {
-            Set<ONTObject<OWLFacetRestriction>> members = createContentSet();
-            OntModels.listMembers(dr.getList()).mapWith(of::getFacetRestriction).forEachRemaining(members::add);
-            List<ONTObject<?>> res = new ArrayList<>(members.size() + 1);
-            res.add(of.getDatatype(dr.getValue()));
-            res.addAll(members);
-            return res.toArray();
-        }
-
-        @SuppressWarnings("unchecked")
-        public Iterator<OWLFacetRestriction> listOWLFacetRestrictions() {
-            Iterator it = Arrays.asList(getContent()).iterator();
-            it.next();
-            return (Iterator<OWLFacetRestriction>) it;
-        }
-
-        @Override
         public OWLDatatype getDatatype() {
             return getONTDatatype().getOWLObject();
         }
 
-        @SuppressWarnings("unchecked")
         public ONTObject<OWLDatatype> getONTDatatype() {
-            return (ONTObject<OWLDatatype>) getContent()[0];
+            return findONTDatatype(getObjectFactory());
+        }
+
+        protected ONTObject<OWLDatatype> findONTDatatype(InternalObjectFactory factory) {
+            return toDatatype(getContent()[0], factory);
+        }
+
+        private ONTObject<OWLDatatype> toDatatype(Object item, InternalObjectFactory factory) {
+            return ONTDatatypeImpl.find((String) item, factory, model);
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public Stream<OWLFacetRestriction> facetRestrictions() {
+            return Arrays.stream(getContent()).skip(1)
+                    .map(x -> ((ONTObject<? extends OWLFacetRestriction>) x).getOWLObject());
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public Stream<ONTObject<? extends OWLObject>> objects() {
+            return (Stream<ONTObject<? extends OWLObject>>) objects(getObjectFactory());
+        }
+
+        protected Stream objects(InternalObjectFactory factory) {
+            return Stream.concat(Stream.of(toDatatype(getContent()[0], factory)), Arrays.stream(getContent()).skip(1));
         }
 
         @Override
-        public Stream<OWLFacetRestriction> facetRestrictions() {
-            return Iter.asStream(listOWLFacetRestrictions(),
-                    Spliterator.NONNULL | Spliterator.ORDERED | Spliterator.DISTINCT);
+        protected Object[] collectContent(OntDR.Restriction dr, InternalObjectFactory factory) {
+            Set<ONTObject<OWLFacetRestriction>> members = facetRestrictions(dr, factory);
+            Object[] res = new Object[members.size() + 1];
+            OntDT dt = dr.getValue();
+            res[0] = dt.getURI();
+            int index = 1;
+            for (ONTObject<OWLFacetRestriction> op : members) {
+                res[index++] = op;
+            }
+            return res;
+        }
+
+        @Override
+        protected Object[] initContent(OntDR.Restriction dr, InternalObjectFactory factory) {
+            Set<ONTObject<OWLFacetRestriction>> members = facetRestrictions(dr, factory);
+            Object[] res = new Object[members.size() + 1];
+            OntDT dt = dr.getValue();
+            res[0] = dt.getURI();
+            int hash = OWLObject.hashIteration(hashIndex(), factory.getDatatype(dt).hashCode());
+            int index = 1;
+            int arrayHash = 1;
+            for (ONTObject<OWLFacetRestriction> op : members) {
+                res[index++] = op;
+                arrayHash = 31 * arrayHash + op.hashCode();
+            }
+            this.hashCode = OWLObject.hashIteration(hash, arrayHash);
+            return res;
+        }
+
+        protected Set<ONTObject<OWLFacetRestriction>> facetRestrictions(OntDR.Restriction dr,
+                                                                        InternalObjectFactory factory) {
+            Set<ONTObject<OWLFacetRestriction>> res = createContentSet();
+            OntModels.listMembers(dr.getList()).mapWith(factory::getFacetRestriction).forEachRemaining(res::add);
+            return res;
         }
     }
 
@@ -264,11 +311,16 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
      * @see ru.avicomp.ontapi.owlapi.objects.dr.OWLDataComplementOfImpl
      * @see OntDR.ComplementOf
      */
-    public static class C
+    public static class CF
             extends ONTAnonymousDataRangeImpl<OntDR.ComplementOf, OWLDataComplementOf> implements OWLDataComplementOf {
 
-        public C(BlankNodeId id, Supplier<OntGraphModel> m) {
+        public CF(BlankNodeId id, Supplier<OntGraphModel> m) {
             super(id, m);
+        }
+
+        @Override
+        public Stream<ONTObject<? extends OWLObject>> objects() {
+            return Stream.of(getONTDataRange());
         }
 
         @Override
@@ -281,14 +333,24 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
             return getONTDataRange().getOWLObject();
         }
 
-        @SuppressWarnings("unchecked")
-        public ONTObject<OWLDataRange> getONTDataRange() {
-            return (ONTObject<OWLDataRange>) getContent()[0];
+        public ONTObject<? extends OWLDataRange> getONTDataRange() {
+            return toDR(getContent()[0], getObjectFactory());
         }
 
         @Override
-        protected Object[] collectContent(OntDR.ComplementOf dr, InternalObjectFactory of) {
-            return new Object[]{of.getDatatype(dr.getValue())};
+        protected Object[] collectContent(OntDR.ComplementOf dr, InternalObjectFactory factory) {
+            return new Object[]{toContentItem(dr.getValue(), factory)};
+        }
+
+        @Override
+        protected Object[] initContent(OntDR.ComplementOf dr, InternalObjectFactory factory) {
+            OntDR value = dr.getValue();
+            Object item = factory.getDatatype(value);
+            this.hashCode = OWLObject.hashIteration(hashIndex(), item.hashCode());
+            if (value.isURIResource()) {
+                item = value.getURI();
+            }
+            return new Object[]{item};
         }
     }
 
@@ -300,8 +362,19 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
         }
 
         @Override
-        protected ONTObject<? extends OWLDataRange> map(OntDR dr, InternalObjectFactory of) {
-            return of.getDatatype(dr);
+        protected ONTObject<? extends OWLDataRange> map(OntDR dr, InternalObjectFactory factory) {
+            return factory.getDatatype(dr);
+        }
+
+        @Override
+        protected Object toContentItem(ONTObject<? extends OWLDataRange> dr) {
+            OWLDataRange res = dr.getOWLObject();
+            return res.isOWLDatatype() ? res.asOWLDatatype().toStringID() : dr;
+        }
+
+        @Override
+        protected ONTObject<? extends OWLDataRange> fromContentItem(Object item, InternalObjectFactory factory) {
+            return toDR(item, factory);
         }
     }
 
@@ -316,35 +389,86 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
             super(id, m);
         }
 
-        protected abstract ONTObject<? extends OWL_M> map(ONT_M i, InternalObjectFactory of);
+        /**
+         * Translates Jena {@link ONT_M} resource to OWL-API {@link OWL_M} equivalent.
+         *
+         * @param member  {@link ONT_M}, not {@code null}
+         * @param factory {@link InternalObjectFactory}, not {@code null}
+         * @return an {@link ONTObject} that wraps {@link OWL_M}
+         */
+        protected abstract ONTObject<? extends OWL_M> map(ONT_M member, InternalObjectFactory factory);
+
+        /**
+         * Prepares an {@link OWL_M} to store in cache (content array).
+         *
+         * @param member the {@link ONTObject} that wraps {@link OWL_M}, not {@code null}
+         * @return {@code Object}
+         */
+        protected abstract Object toContentItem(ONTObject<? extends OWL_M> member);
+
+        /**
+         * Extracts an {@link OWL_M} from content item.
+         *
+         * @param item    an {@code Object} from cache, not {@code null}
+         * @param factory {@link InternalObjectFactory}, not {@code null}
+         * @return an {@link ONTObject} that wraps {@link OWL_M}
+         */
+        protected abstract ONTObject<? extends OWL_M> fromContentItem(Object item, InternalObjectFactory factory);
 
         @Override
         public Stream<OWL_M> operands() {
-            return getOperandsAsList().stream();
+            return members().map(ONTObject::getOWLObject);
         }
 
-        @SuppressWarnings("unchecked")
         @Override
         public List<OWL_M> getOperandsAsList() {
-            List res = getONTMembers();
-            return (List<OWL_M>) res;
-        }
-
-        protected Iterator<ONT_M> listONTMembers(ONT_D dr) {
-            return OntModels.listMembers(dr.getList());
-        }
-
-        @Override
-        protected Object[] collectContent(ONT_D dr, InternalObjectFactory of) {
-            Set<ONTObject<? extends OWL_M>> res = createContentSet();
-            listONTMembers(dr).forEachRemaining(e -> res.add(map(e, of)));
-            return res.toArray();
+            return operands().collect(Collectors.toList());
         }
 
         @SuppressWarnings("unchecked")
-        public List<ONTObject<? extends OWL_M>> getONTMembers() {
-            List res = Arrays.asList(getContent());
-            return (List<ONTObject<? extends OWL_M>>) res;
+        protected Stream<ONTObject<? extends OWL_M>> members() {
+            return (Stream<ONTObject<? extends OWL_M>>) objects(getObjectFactory());
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public Stream<ONTObject<? extends OWLObject>> objects() {
+            return (Stream<ONTObject<? extends OWLObject>>) objects(getObjectFactory());
+        }
+
+        protected Stream objects(InternalObjectFactory factory) {
+            return Arrays.stream(getContent()).map(x -> fromContentItem(x, factory));
+        }
+
+        @Override
+        protected Object[] collectContent(ONT_D dr, InternalObjectFactory factory) {
+            Set<ONTObject<? extends OWL_M>> operands = operands(dr, factory);
+            Object[] res = new Object[operands.size()];
+            int index = 0;
+            for (ONTObject<? extends OWL_M> op : operands) {
+                res[index++] = toContentItem(op);
+            }
+            return res;
+        }
+
+        @Override
+        protected Object[] initContent(ONT_D dr, InternalObjectFactory factory) {
+            Set<ONTObject<? extends OWL_M>> operands = operands(dr, factory);
+            Object[] res = new Object[operands.size()];
+            int index = 0;
+            int hash = 1;
+            for (ONTObject<? extends OWL_M> op : operands) {
+                res[index++] = toContentItem(op);
+                hash = 31 * hash + op.hashCode();
+            }
+            this.hashCode = OWLObject.hashIteration(hashIndex(), hash);
+            return res;
+        }
+
+        protected Set<ONTObject<? extends OWL_M>> operands(ONT_D dr, InternalObjectFactory factory) {
+            Set<ONTObject<? extends OWL_M>> res = createContentSet();
+            OntModels.listMembers(dr.getList()).forEachRemaining(e -> res.add(map(e, factory)));
+            return res;
         }
     }
 }

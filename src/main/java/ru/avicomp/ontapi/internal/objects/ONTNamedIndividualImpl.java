@@ -15,6 +15,7 @@
 package ru.avicomp.ontapi.internal.objects;
 
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
+import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ModelObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
@@ -52,7 +53,7 @@ public class ONTNamedIndividualImpl extends ONTEntityImpl implements OWLNamedInd
         if (factory instanceof ModelObjectFactory) {
             return ((ModelObjectFactory) factory).getNamedIndividual(uri);
         }
-        return factory.getIndividual(model.get().getIndividual(uri));
+        return factory.getIndividual(OntApiException.mustNotBeNull(model.get().getIndividual(uri)));
     }
 
     @Override

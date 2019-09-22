@@ -16,6 +16,9 @@ package ru.avicomp.ontapi.internal.objects;
 
 import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
+import ru.avicomp.ontapi.OntApiException;
+import ru.avicomp.ontapi.internal.InternalObjectFactory;
+import ru.avicomp.ontapi.internal.ModelObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntNAP;
@@ -36,6 +39,24 @@ public class ONTAnnotationPropertyImpl extends ONTEntityImpl
 
     public ONTAnnotationPropertyImpl(String uri, Supplier<OntGraphModel> m) {
         super(uri, m);
+    }
+
+    /**
+     * Using the {@code factory} finds or creates an {@link OWLAnnotationProperty} instance.
+     *
+     * @param uri     {@code String}, not {@code null}
+     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @param model   a {@code Supplier} with a {@link OntGraphModel},
+     *                which is only used in case the {@code factory} has no reference to a model
+     * @return an {@link ONTObject} that is {@link OWLAnnotationProperty}
+     */
+    protected static ONTObject<OWLAnnotationProperty> find(String uri,
+                                                           InternalObjectFactory factory,
+                                                           Supplier<OntGraphModel> model) {
+        if (factory instanceof ModelObjectFactory) {
+            return ((ModelObjectFactory) factory).getAnnotationProperty(uri);
+        }
+        return factory.getProperty(OntApiException.mustNotBeNull(model.get().getAnnotationProperty(uri)));
     }
 
     @Override
