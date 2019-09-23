@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -27,13 +27,15 @@ import static ru.avicomp.ontapi.owlapi.InternalizedEntities.OWL_THING;
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
  * @since 1.2.0
  */
-public class OWLIrreflexiveObjectPropertyAxiomImpl extends OWLObjectPropertyCharacteristicAxiomImpl implements OWLIrreflexiveObjectPropertyAxiom {
+public class OWLIrreflexiveObjectPropertyAxiomImpl
+        extends OWLObjectPropertyCharacteristicAxiomImpl implements OWLIrreflexiveObjectPropertyAxiom {
 
     /**
-     * @param property    property
-     * @param annotations annotations
+     * @param property    {@link OWLObjectPropertyExpression}, the property
+     * @param annotations a {@code Collection} of {@link OWLAnnotation}s
      */
-    public OWLIrreflexiveObjectPropertyAxiomImpl(OWLObjectPropertyExpression property, Collection<OWLAnnotation> annotations) {
+    public OWLIrreflexiveObjectPropertyAxiomImpl(OWLObjectPropertyExpression property,
+                                                 Collection<OWLAnnotation> annotations) {
         super(property, annotations);
     }
 
@@ -49,7 +51,7 @@ public class OWLIrreflexiveObjectPropertyAxiomImpl extends OWLObjectPropertyChar
     @SuppressWarnings("unchecked")
     @Override
     public <T extends OWLAxiom> T getAnnotatedAxiom(@Nonnull Stream<OWLAnnotation> anns) {
-        return (T) new OWLIrreflexiveObjectPropertyAxiomImpl(getProperty(), mergeAnnos(anns));
+        return (T) new OWLIrreflexiveObjectPropertyAxiomImpl(getProperty(), mergeAnnotations(this, anns));
     }
 
     @Override

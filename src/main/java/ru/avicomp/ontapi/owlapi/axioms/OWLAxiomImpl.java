@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -17,12 +17,10 @@ import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.util.NNF;
 import ru.avicomp.ontapi.DataFactoryImpl;
-import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.owlapi.OWLObjectImpl;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Stream;
 
 /**
@@ -35,12 +33,10 @@ public abstract class OWLAxiomImpl extends OWLObjectImpl implements OWLAxiom {
     protected final List<OWLAnnotation> annotations;
 
     /**
-     * @param annotations annotations on the axiom
+     * @param annotations a {@code Collection} of {@link OWLAnnotation annotation}s on the axiom
      */
     public OWLAxiomImpl(Collection<OWLAnnotation> annotations) {
-        this.annotations = Objects.requireNonNull(annotations, "annotations cannot be null")
-                .stream()
-                .filter(Objects::nonNull).distinct().sorted().collect(Iter.toUnmodifiableList());
+        this.annotations = OWLObjectImpl.prepareAnnotations(annotations);
     }
 
     @Override
@@ -57,17 +53,6 @@ public abstract class OWLAxiomImpl extends OWLObjectImpl implements OWLAxiom {
     @Override
     public boolean isAnnotated() {
         return !annotations.isEmpty();
-    }
-
-    /**
-     * A convenience method for implementation that returns a set containing the annotations on this
-     * axiom plus the annotations in the specified set.
-     *
-     * @param annos The annotations to add to the annotations on this axiom
-     * @return The annotations
-     */
-    protected Collection<OWLAnnotation> mergeAnnos(Stream<OWLAnnotation> annos) {
-        return Stream.concat(annos, annotations()).filter(Objects::nonNull).distinct().sorted().collect(Iter.toUnmodifiableList());
     }
 
     @Override

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -16,10 +16,12 @@ package ru.avicomp.ontapi.owlapi.axioms;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLNaryPropertyAxiom;
 import org.semanticweb.owlapi.model.OWLPropertyExpression;
-import ru.avicomp.ontapi.jena.utils.Iter;
 
 import javax.annotation.Nonnull;
-import java.util.*;
+import java.util.Collection;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 /**
@@ -28,27 +30,18 @@ import java.util.stream.Stream;
  * @since 1.2.0
  */
 @SuppressWarnings("WeakerAccess")
-public abstract class OWLNaryPropertyAxiomImpl<P extends OWLPropertyExpression> extends OWLPropertyAxiomImpl implements OWLNaryPropertyAxiom<P> {
+public abstract class OWLNaryPropertyAxiomImpl<P extends OWLPropertyExpression>
+        extends OWLPropertyAxiomImpl implements OWLNaryPropertyAxiom<P> {
 
     protected final List<P> properties;
 
     /**
-     * @param properties  properties
-     * @param annotations annotations
+     * @param properties a {@code Collection} of properties
+     * @param annotations a {@code Collection} of annotations
      */
     public OWLNaryPropertyAxiomImpl(Collection<? extends P> properties, Collection<OWLAnnotation> annotations) {
-        this(Objects.requireNonNull(properties, "properties cannot be null").stream(), annotations);
-    }
-
-    /**
-     * @param properties  properties
-     * @param annotations annotations
-     */
-    @SuppressWarnings("unchecked")
-    private OWLNaryPropertyAxiomImpl(Stream<? extends P> properties, Collection<OWLAnnotation> annotations) {
         super(annotations);
-        this.properties = Objects.requireNonNull(properties, "properties cannot be null")
-                .filter(Objects::nonNull).distinct().sorted().collect(Iter.toUnmodifiableList());
+        this.properties = toContentList(properties, "properties cannot be null");
     }
 
     @Override

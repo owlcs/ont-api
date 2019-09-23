@@ -27,8 +27,8 @@ import java.util.stream.Stream;
 public class OWLSameIndividualAxiomImpl extends OWLNaryIndividualAxiomImpl implements OWLSameIndividualAxiom {
 
     /**
-     * @param individuals individuals
-     * @param annotations annotations on the axiom
+     * @param individuals a {@code Collection} of {@link OWLIndividual}s
+     * @param annotations a {@code Collection} of {@link OWLAnnotation}s on the axiom
      */
     public OWLSameIndividualAxiomImpl(Collection<? extends OWLIndividual> individuals,
                                       Collection<OWLAnnotation> annotations) {
@@ -47,7 +47,7 @@ public class OWLSameIndividualAxiomImpl extends OWLNaryIndividualAxiomImpl imple
     @SuppressWarnings("unchecked")
     @Override
     public <T extends OWLAxiom> T getAnnotatedAxiom(@Nonnull Stream<OWLAnnotation> anns) {
-        return (T) new OWLSameIndividualAxiomImpl(individuals, mergeAnnos(anns));
+        return (T) new OWLSameIndividualAxiomImpl(individuals, mergeAnnotations(this, anns));
     }
 
     @Override

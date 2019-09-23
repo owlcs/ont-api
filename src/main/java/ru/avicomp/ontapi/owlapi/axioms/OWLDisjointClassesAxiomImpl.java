@@ -27,12 +27,12 @@ import java.util.stream.Stream;
 public class OWLDisjointClassesAxiomImpl extends OWLNaryClassAxiomImpl implements OWLDisjointClassesAxiom {
 
     /**
-     * @param classExpressions disjoint classes
-     * @param annotations      annotations
+     * @param classes a {@code Collection} of {@link OWLClassExpression}s, the disjoint classes
+     * @param annotations a {@code Collection} of annotations on the axiom
      */
-    public OWLDisjointClassesAxiomImpl(Collection<? extends OWLClassExpression> classExpressions,
+    public OWLDisjointClassesAxiomImpl(Collection<? extends OWLClassExpression> classes,
                                        Collection<OWLAnnotation> annotations) {
-        super(classExpressions, annotations);
+        super(classes, annotations);
     }
 
     @SuppressWarnings("unchecked")
@@ -41,18 +41,18 @@ public class OWLDisjointClassesAxiomImpl extends OWLNaryClassAxiomImpl implement
         if (!isAnnotated()) {
             return this;
         }
-        return new OWLDisjointClassesAxiomImpl(classExpressions, NO_ANNOTATIONS);
+        return new OWLDisjointClassesAxiomImpl(classes, NO_ANNOTATIONS);
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public <T extends OWLAxiom> T getAnnotatedAxiom(@Nonnull Stream<OWLAnnotation> anns) {
-        return (T) new OWLDisjointClassesAxiomImpl(classExpressions, mergeAnnos(anns));
+        return (T) new OWLDisjointClassesAxiomImpl(classes, mergeAnnotations(this, anns));
     }
 
     @Override
     public Collection<OWLDisjointClassesAxiom> asPairwiseAxioms() {
-        if (classExpressions.size() == 2) {
+        if (classes.size() == 2) {
             return createSet(this);
         }
         return walkPairwise((a, b) -> new OWLDisjointClassesAxiomImpl(Arrays.asList(a, b), NO_ANNOTATIONS));
@@ -60,7 +60,7 @@ public class OWLDisjointClassesAxiomImpl extends OWLNaryClassAxiomImpl implement
 
     @Override
     public Collection<OWLDisjointClassesAxiom> splitToAnnotatedPairs() {
-        if (classExpressions.size() == 2) {
+        if (classes.size() == 2) {
             return createSet(this);
         }
         return walkPairwise((a, b) -> new OWLDisjointClassesAxiomImpl(Arrays.asList(a, b), annotations));

@@ -15,7 +15,6 @@ package ru.avicomp.ontapi.owlapi.objects.dr;
 
 import org.semanticweb.owlapi.model.OWLDataOneOf;
 import org.semanticweb.owlapi.model.OWLLiteral;
-import ru.avicomp.ontapi.jena.utils.Iter;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -29,30 +28,22 @@ import java.util.stream.Stream;
  */
 public class OWLDataOneOfImpl extends OWLAnonymousDataRangeImpl implements OWLDataOneOf {
 
-    private final List<OWLLiteral> values;
+    protected final List<OWLLiteral> values;
 
     /**
-     * @param values literals
+     * @param values a {@code Collection} of {@link OWLLiteral}s
      */
-    public OWLDataOneOfImpl(Stream<? extends OWLLiteral> values) {
-        this.values = Objects.requireNonNull(values, "values cannot be null")
-                .filter(Objects::nonNull).distinct().sorted().collect(Iter.toUnmodifiableList());
-    }
-
-    /**
-     * @param values literals
-     */
-    @SuppressWarnings("unused")
     public OWLDataOneOfImpl(Collection<? extends OWLLiteral> values) {
-        this(Objects.requireNonNull(values, "values cannot be null").stream());
+        this.values = toContentList(values, "values cannot be null");
     }
 
     /**
-     * @param value literal
+     * Singleton.
+     * @param value {@link OWLLiteral}, not {@code null}
      */
     public OWLDataOneOfImpl(OWLLiteral value) {
         Objects.requireNonNull(value, "value cannot be null");
-        values = Collections.singletonList(value);
+        this.values = Collections.singletonList(value);
     }
 
     @Override

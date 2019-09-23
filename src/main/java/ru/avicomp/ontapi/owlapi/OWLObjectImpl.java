@@ -18,6 +18,7 @@ import org.semanticweb.owlapi.util.AbstractCollectorEx;
 import org.semanticweb.owlapi.util.OWLClassExpressionCollector;
 import org.semanticweb.owlapi.util.OWLEntityCollector;
 import org.semanticweb.owlapi.util.SimpleRenderer;
+import ru.avicomp.ontapi.jena.utils.Iter;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -41,52 +42,140 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
     /**
      * a convenience reference for an empty annotation set, saves on typing.
      */
-    protected static final Set<OWLAnnotation> NO_ANNOTATIONS = Collections.emptySet();
+    protected static final List<OWLAnnotation> NO_ANNOTATIONS = Collections.emptyList();
 
     protected int hashCode;
 
     /**
-     * Check iterator contents for equality (sensitive to order).
-     * Note: moved from {@link org.semanticweb.owlapi.util.OWLAPIStreamUtils} to control behaviour.
+     * Creates a {@code Set}.
      *
-     * @param set1 iterator to compare
-     * @param set2 iterator to compare
-     * @return true if the iterators have the same content, false otherwise.
+     * @param values Array of {@link X}s without {@code null}s
+     * @param <X>    anything
+     * @return a modifiable {@code Set} of {@link X}s
+     */
+    @SafeVarargs
+    protected static <X> Set<X> createSet(X... values) {
+        return new HashSet<>(Arrays.asList(values));
+    }
+
+    /**
+     * Creates an immutable singleton {@code Set}.
+     *
+     * @param value {@link X}, not {@code null}
+     * @param <X>   anything
+     * @return an unmodifiable {@code Set} with {@link X}-value
+     */
+    protected static <X> Set<X> createSet(X value) {
+        return Collections.singleton(value);
+    }
+
+    /**
+     * Creates an empty immutable {@code Set}.
+     *
+     * @param <X> anything
+     * @return an unmodifiable {@code Set} of {@link X}
+     */
+    protected static <X> Set<X> createSet() {
+        return Collections.emptySet();
+    }
+
+    /**
+     * Prepares the collection to be used as internal store inside an {@link OWLObject}.
+     *
+     * @param input a nonnull {@code Collection} of {@link X}, without {@code null}s
+     * @param msg   the error message if the input is {@code null}
+     * @param <X>   anything
+     * @return an unmodifiable sorted, distinct, nonnull {@code List} of {@link X}s
+     * @throws NullPointerException if {@code input} or any its element is {@code null}
+     */
+    protected static <X> List<X> toContentList(Collection<? extends X> input, String msg) {
+        return forOutput(Objects.requireNonNull(input, msg).stream()).collect(Iter.toUnmodifiableList());
+    }
+
+    /**
+     * Ensures that the given {@code Stream} is distinct and sorted, and does not contain {@code null}s.
+     * For internal usage only.
+     *
+     * @param stream a {@code Stream} of {@link X}, not {@code null}
+     * @param <X>    anything
+     * @return a distinct, sorted and nonnull {@code Stream}
+     */
+    protected static <X> Stream<X> forOutput(Stream<X> stream) {
+        return stream.map(Objects::requireNonNull).sorted().distinct();
+    }
+
+    /**
+     * A convenience method for implementation that returns a set containing the annotations on this axiom
+     * plus the annotations in the specified set.
+     * For internal usage only.
+     *
+     * @param withAnnotations {@link HasAnnotations}, not {@code null}
+     * @param other           a {@code Stream} of annotations to append to the annotations
+     *                        of the object {@code withAnnotations}, not {@code null}
+     * @return an unmodifiable sorted and distinct {@code List} of {@link OWLAnnotation annotation}s
+     */
+    protected static List<OWLAnnotation> mergeAnnotations(HasAnnotations withAnnotations,
+                                                          Stream<OWLAnnotation> other) {
+        return forOutput(Stream.concat(other, withAnnotations.annotations())).collect(Iter.toUnmodifiableList());
+    }
+
+    /**
+     * Transforms the given collection of annotations to the form that is required by OWL-API:
+     * an internal annotations collection must be distinct, nonnull and sorted.
+     *
+     * @param annotations a {@code Collection} of {@link OWLAnnotation}s
+     * @return an unmodifiable sorted and distinct {@code List} of {@link OWLAnnotation annotation}s
+     */
+    protected static List<OWLAnnotation> prepareAnnotations(Collection<OWLAnnotation> annotations) {
+        if (annotations == NO_ANNOTATIONS) {
+            return NO_ANNOTATIONS;
+        }
+        List<OWLAnnotation> res = toContentList(annotations, "Annotations cannot be null");
+        return res.isEmpty() ? NO_ANNOTATIONS : res;
+    }
+
+    /**
+     * Checks the iterator contents for equality (sensitive to order).
+     * It was moved from the {@link org.semanticweb.owlapi.util.OWLAPIStreamUtils} to control behaviour.
+     *
+     * @param left {@code Iterator} to compare, not {@code null}
+     * @param right {@code Iterator} to compare, not {@code null}
+     * @return {@code true} if the iterators have the same content, {@code false} otherwise
      * @see org.semanticweb.owlapi.util.OWLAPIStreamUtils#equalIterators(Iterator, Iterator)
      */
-    protected static boolean equalIterators(Iterator set1, Iterator set2) {
-        while (set1.hasNext() && set2.hasNext()) {
-            Object o1 = set1.next();
-            Object o2 = set2.next();
-            if (o1 instanceof Stream && o2 instanceof Stream) {
-                if (!equalIterators(((Stream) o1).iterator(), ((Stream) o2).iterator())) {
+    protected static boolean equalIterators(Iterator left, Iterator right) {
+        while (left.hasNext() && right.hasNext()) {
+            Object a = left.next();
+            Object b = right.next();
+            if (a instanceof Stream && b instanceof Stream) {
+                if (!equalIterators(((Stream) a).iterator(), ((Stream) b).iterator())) {
                     return false;
                 }
             } else {
-                if (!o1.equals(o2)) {
+                if (!a.equals(b)) {
                     return false;
                 }
             }
         }
-        return set1.hasNext() == set2.hasNext();
+        return left.hasNext() == right.hasNext();
     }
 
     /**
-     * Compare iterators element by element (sensitive to order).
-     * Note: moved from {@link org.semanticweb.owlapi.util.OWLAPIStreamUtils} to control behaviour.
+     * Compares iterators element by element (sensitive to order).
+     * It was moved from the {@link org.semanticweb.owlapi.util.OWLAPIStreamUtils} to control behaviour.
      *
-     * @param set1 iterator to compare
-     * @param set2 iterator to compare
-     * @return int, negative value if {@code set1} comes before {@code set2},
-     * positive value if {@code set2} comes before {@code set1},
-     * {@code 0} if the two sets are equal or incomparable
+     * @param left {@code Iterator} to compare, not {@code null}
+     * @param right {@code Iterator} to compare, not {@code null}
+     * @return {@code int}, a negative value if {@code left} comes before {@code right},
+     * a positive value if {@code left} comes before {@code right},
+     * or {@code 0} if the two sets are equal or incomparable
      * @see org.semanticweb.owlapi.util.OWLAPIStreamUtils#compareIterators(Iterator, Iterator)
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    protected static int compareIterators(Iterator<?> set1, Iterator<?> set2) {
-        while (set1.hasNext() && set2.hasNext()) {
-            Object o1 = set1.next();
-            Object o2 = set2.next();
+    protected static int compareIterators(Iterator<?> left, Iterator<?> right) {
+        while (left.hasNext() && right.hasNext()) {
+            Object o1 = left.next();
+            Object o2 = right.next();
             int res;
             if (o1 instanceof Stream && o2 instanceof Stream) {
                 res = compareIterators(((Stream<?>) o1).iterator(), ((Stream<?>) o2).iterator());
@@ -103,40 +192,7 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
                 return res;
             }
         }
-        return Boolean.compare(set1.hasNext(), set2.hasNext());
-    }
-
-    /**
-     * Creates a {@code Set}.
-     *
-     * @param values Array of {@link X}s without {@code null}s
-     * @param <X>    anything
-     * @return a {@code Set} of {@link X}s
-     */
-    @SafeVarargs
-    protected static <X> Set<X> createSet(X... values) {
-        return new HashSet<>(Arrays.asList(values));
-    }
-
-    /**
-     * Creates an immutable singleton {@code Set}.
-     *
-     * @param value {@link X}, not {@code null}
-     * @param <X>   anything
-     * @return a {@code Set} with {@link X}-value
-     */
-    protected static <X> Set<X> createSet(X value) {
-        return Collections.singleton(value);
-    }
-
-    /**
-     * Creates an empty immutable {@code Set}.
-     *
-     * @param <X> anything
-     * @return a {@code Set} of {@link X}
-     */
-    protected static <X> Set<X> createSet() {
-        return Collections.emptySet();
+        return Boolean.compare(left.hasNext(), right.hasNext());
     }
 
     /**

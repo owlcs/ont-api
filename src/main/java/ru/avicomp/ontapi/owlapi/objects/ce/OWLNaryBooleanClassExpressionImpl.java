@@ -15,11 +15,9 @@ package ru.avicomp.ontapi.owlapi.objects.ce;
 
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLNaryBooleanClassExpression;
-import ru.avicomp.ontapi.jena.utils.Iter;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Stream;
 
 /**
@@ -27,23 +25,16 @@ import java.util.stream.Stream;
  * @since 1.2.0
  */
 @SuppressWarnings("WeakerAccess")
-public abstract class OWLNaryBooleanClassExpressionImpl extends OWLAnonymousClassExpressionImpl implements OWLNaryBooleanClassExpression {
+public abstract class OWLNaryBooleanClassExpressionImpl
+        extends OWLAnonymousClassExpressionImpl implements OWLNaryBooleanClassExpression {
 
-    private final List<OWLClassExpression> operands;
-
-    /**
-     * @param operands operands
-     */
-    protected OWLNaryBooleanClassExpressionImpl(Stream<? extends OWLClassExpression> operands) {
-        this.operands = Objects.requireNonNull(operands, "operands cannot be null")
-                .map(Objects::requireNonNull).distinct().sorted().collect(Iter.toUnmodifiableList());
-    }
+    protected final List<OWLClassExpression> operands;
 
     /**
-     * @param operands operands
+     * @param operands a {@code Collection} of {@link OWLClassExpression}s
      */
     public OWLNaryBooleanClassExpressionImpl(Collection<? extends OWLClassExpression> operands) {
-        this(Objects.requireNonNull(operands, "operands cannot be null").stream());
+        this.operands = toContentList(operands, "operands cannot be null");
     }
 
     @Override

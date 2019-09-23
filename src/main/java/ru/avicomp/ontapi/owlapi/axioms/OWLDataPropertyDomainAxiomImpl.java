@@ -25,12 +25,13 @@ import java.util.stream.Stream;
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
  * @since 1.2.0
  */
-public class OWLDataPropertyDomainAxiomImpl extends OWLPropertyDomainAxiomImpl<OWLDataPropertyExpression> implements OWLDataPropertyDomainAxiom {
+public class OWLDataPropertyDomainAxiomImpl
+        extends OWLPropertyDomainAxiomImpl<OWLDataPropertyExpression> implements OWLDataPropertyDomainAxiom {
 
     /**
-     * @param property    property
-     * @param domain      domain
-     * @param annotations annotations
+     * @param property    {@link OWLDataPropertyExpression}, the property
+     * @param domain      {@link OWLClassExpression}, the domain
+     * @param annotations a {@code Collection} of annotations on the axiom
      */
     public OWLDataPropertyDomainAxiomImpl(OWLDataPropertyExpression property,
                                           OWLClassExpression domain,
@@ -50,7 +51,7 @@ public class OWLDataPropertyDomainAxiomImpl extends OWLPropertyDomainAxiomImpl<O
     @SuppressWarnings("unchecked")
     @Override
     public <T extends OWLAxiom> T getAnnotatedAxiom(@Nonnull Stream<OWLAnnotation> anns) {
-        return (T) new OWLDataPropertyDomainAxiomImpl(getProperty(), getDomain(), mergeAnnos(anns));
+        return (T) new OWLDataPropertyDomainAxiomImpl(getProperty(), getDomain(), mergeAnnotations(this, anns));
     }
 
     @Override

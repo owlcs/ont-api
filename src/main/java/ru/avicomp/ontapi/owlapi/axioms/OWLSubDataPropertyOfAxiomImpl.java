@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -26,12 +26,13 @@ import java.util.stream.Stream;
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
  * @since 1.2.0
  */
-public class OWLSubDataPropertyOfAxiomImpl extends OWLSubPropertyAxiomImpl<OWLDataPropertyExpression> implements OWLSubDataPropertyOfAxiom {
+public class OWLSubDataPropertyOfAxiomImpl
+        extends OWLSubPropertyAxiomImpl<OWLDataPropertyExpression> implements OWLSubDataPropertyOfAxiom {
 
     /**
-     * @param subProperty   subproperty
-     * @param superProperty superproperty
-     * @param annotations   annotations
+     * @param subProperty   a {@link OWLDataPropertyExpression}, the sub-property
+     * @param superProperty a {@link OWLDataPropertyExpression}, the super-property
+     * @param annotations a {@code Collection} of {@link OWLAnnotation}s on the axiom
      */
     public OWLSubDataPropertyOfAxiomImpl(OWLDataPropertyExpression subProperty,
                                          OWLDataPropertyExpression superProperty,
@@ -51,6 +52,7 @@ public class OWLSubDataPropertyOfAxiomImpl extends OWLSubPropertyAxiomImpl<OWLDa
     @SuppressWarnings("unchecked")
     @Override
     public <T extends OWLAxiom> T getAnnotatedAxiom(@Nonnull Stream<OWLAnnotation> anns) {
-        return (T) new OWLSubDataPropertyOfAxiomImpl(getSubProperty(), getSuperProperty(), mergeAnnos(anns));
+        return (T) new OWLSubDataPropertyOfAxiomImpl(getSubProperty(), getSuperProperty(),
+                mergeAnnotations(this, anns));
     }
 }

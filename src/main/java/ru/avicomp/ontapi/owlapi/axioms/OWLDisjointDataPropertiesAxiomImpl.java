@@ -31,8 +31,8 @@ public class OWLDisjointDataPropertiesAxiomImpl
         extends OWLNaryPropertyAxiomImpl<OWLDataPropertyExpression> implements OWLDisjointDataPropertiesAxiom {
 
     /**
-     * @param properties  disjoint properties
-     * @param annotations annotations
+     * @param properties a {@code Collection} of {@link OWLDataPropertyExpression}s, the disjoint properties
+     * @param annotations a {@code Collection} of annotations on the axiom
      */
     public OWLDisjointDataPropertiesAxiomImpl(Collection<? extends OWLDataPropertyExpression> properties,
                                               Collection<OWLAnnotation> annotations) {
@@ -51,7 +51,7 @@ public class OWLDisjointDataPropertiesAxiomImpl
     @SuppressWarnings("unchecked")
     @Override
     public <T extends OWLAxiom> T getAnnotatedAxiom(@Nonnull Stream<OWLAnnotation> anns) {
-        return (T) new OWLDisjointDataPropertiesAxiomImpl(properties, mergeAnnos(anns));
+        return (T) new OWLDisjointDataPropertiesAxiomImpl(properties, mergeAnnotations(this, anns));
     }
 
     @Override

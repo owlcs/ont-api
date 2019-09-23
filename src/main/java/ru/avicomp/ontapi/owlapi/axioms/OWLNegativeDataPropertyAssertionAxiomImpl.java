@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -26,17 +26,20 @@ import java.util.stream.Stream;
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
  * @since 1.2.0
  */
-public class OWLNegativeDataPropertyAssertionAxiomImpl extends OWLIndividualRelationshipAxiomImpl<OWLDataPropertyExpression, OWLLiteral> implements OWLNegativeDataPropertyAssertionAxiom {
+public class OWLNegativeDataPropertyAssertionAxiomImpl
+        extends OWLIndividualRelationshipAxiomImpl<OWLDataPropertyExpression, OWLLiteral>
+        implements OWLNegativeDataPropertyAssertionAxiom {
 
     /**
-     * @param subject     subject
-     * @param property    property
-     * @param object      object
-     * @param annotations annotations
+     * @param subject     {@link OWLIndividual}, the subject
+     * @param property    {@link OWLDataPropertyExpression}, the property
+     * @param object      {@link OWLLiteral}, the object
+     * @param annotations a {@code Collection} of {@link OWLAnnotation}s
      */
     public OWLNegativeDataPropertyAssertionAxiomImpl(OWLIndividual subject,
                                                      OWLDataPropertyExpression property,
-                                                     OWLLiteral object, Collection<OWLAnnotation> annotations) {
+                                                     OWLLiteral object,
+                                                     Collection<OWLAnnotation> annotations) {
         super(subject, property, object, annotations);
     }
 
@@ -58,7 +61,8 @@ public class OWLNegativeDataPropertyAssertionAxiomImpl extends OWLIndividualRela
     @SuppressWarnings("unchecked")
     @Override
     public <T extends OWLAxiom> T getAnnotatedAxiom(@Nonnull Stream<OWLAnnotation> anns) {
-        return (T) new OWLNegativeDataPropertyAssertionAxiomImpl(getSubject(), getProperty(), getObject(), mergeAnnos(anns));
+        return (T) new OWLNegativeDataPropertyAssertionAxiomImpl(getSubject(), getProperty(), getObject(),
+                mergeAnnotations(this, anns));
     }
 
     @Override

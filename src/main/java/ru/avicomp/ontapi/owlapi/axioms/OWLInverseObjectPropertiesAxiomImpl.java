@@ -30,9 +30,9 @@ public class OWLInverseObjectPropertiesAxiomImpl
     private final OWLObjectPropertyExpression second;
 
     /**
-     * @param first       first property
-     * @param second      second property
-     * @param annotations annotations
+     * @param first       {@link OWLObjectPropertyExpression}, the primary (first) property
+     * @param second      {@link OWLObjectPropertyExpression}, the second property
+     * @param annotations a {@code Collection} of {@link OWLAnnotation}s
      */
     public OWLInverseObjectPropertiesAxiomImpl(OWLObjectPropertyExpression first,
                                                OWLObjectPropertyExpression second,
@@ -65,7 +65,8 @@ public class OWLInverseObjectPropertiesAxiomImpl
     @SuppressWarnings("unchecked")
     @Override
     public <T extends OWLAxiom> T getAnnotatedAxiom(@Nonnull Stream<OWLAnnotation> anns) {
-        return (T) new OWLInverseObjectPropertiesAxiomImpl(getFirstProperty(), getSecondProperty(), mergeAnnos(anns));
+        return (T) new OWLInverseObjectPropertiesAxiomImpl(getFirstProperty(), getSecondProperty(),
+                mergeAnnotations(this, anns));
     }
 
     @Override

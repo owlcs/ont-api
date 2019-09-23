@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -17,26 +17,29 @@ import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLObjectExactCardinality;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 
-import java.util.stream.Stream;
+import java.util.Arrays;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
  * @since 1.2.0
  */
-public class OWLObjectExactCardinalityImpl extends OWLObjectCardinalityRestrictionImpl implements OWLObjectExactCardinality {
+public class OWLObjectExactCardinalityImpl
+        extends OWLObjectCardinalityRestrictionImpl implements OWLObjectExactCardinality {
 
     /**
      * @param property    property
      * @param cardinality cardinality
      * @param filler      filler
      */
-    public OWLObjectExactCardinalityImpl(OWLObjectPropertyExpression property, int cardinality, OWLClassExpression filler) {
+    public OWLObjectExactCardinalityImpl(OWLObjectPropertyExpression property,
+                                         int cardinality,
+                                         OWLClassExpression filler) {
         super(property, cardinality, filler);
     }
 
     @Override
     public OWLClassExpression asIntersectionOfMinMax() {
-        return new OWLObjectIntersectionOfImpl(Stream.of(
+        return new OWLObjectIntersectionOfImpl(Arrays.asList(
                 new OWLObjectMinCardinalityImpl(getProperty(), getCardinality(), getFiller()),
                 new OWLObjectMaxCardinalityImpl(getProperty(), getCardinality(), getFiller())));
     }

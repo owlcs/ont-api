@@ -16,7 +16,6 @@ package ru.avicomp.ontapi.owlapi.objects.dr;
 import org.semanticweb.owlapi.model.OWLDatatype;
 import org.semanticweb.owlapi.model.OWLDatatypeRestriction;
 import org.semanticweb.owlapi.model.OWLFacetRestriction;
-import ru.avicomp.ontapi.jena.utils.Iter;
 
 import java.util.Collection;
 import java.util.List;
@@ -29,18 +28,16 @@ import java.util.stream.Stream;
  */
 public class OWLDatatypeRestrictionImpl extends OWLAnonymousDataRangeImpl implements OWLDatatypeRestriction {
 
-    private final OWLDatatype datatype;
-    private final List<OWLFacetRestriction> facetRestrictions;
+    protected final OWLDatatype datatype;
+    protected final List<OWLFacetRestriction> restrictions;
 
     /**
-     * @param datatype          datatype
-     * @param facetRestrictions facet restriction
+     * @param datatype          a {@link OWLDatatype}
+     * @param restrictions a {@code Collection} of facet restriction
      */
-    public OWLDatatypeRestrictionImpl(OWLDatatype datatype, Collection<OWLFacetRestriction> facetRestrictions) {
+    public OWLDatatypeRestrictionImpl(OWLDatatype datatype, Collection<OWLFacetRestriction> restrictions) {
         this.datatype = Objects.requireNonNull(datatype, "datatype cannot be null");
-        this.facetRestrictions = Objects.requireNonNull(facetRestrictions, "facetRestrictions cannot be null")
-                .stream().filter(Objects::nonNull).distinct().sorted()
-                .collect(Iter.toUnmodifiableList());
+        this.restrictions = toContentList(restrictions, "facet restrictions cannot be null");
     }
 
     @Override
@@ -50,11 +47,11 @@ public class OWLDatatypeRestrictionImpl extends OWLAnonymousDataRangeImpl implem
 
     @Override
     public Stream<OWLFacetRestriction> facetRestrictions() {
-        return facetRestrictions.stream();
+        return restrictions.stream();
     }
 
     @Override
     public List<OWLFacetRestriction> facetRestrictionsAsList() {
-        return facetRestrictions;
+        return restrictions;
     }
 }

@@ -29,8 +29,8 @@ public class OWLDifferentIndividualsAxiomImpl
         extends OWLNaryIndividualAxiomImpl implements OWLDifferentIndividualsAxiom {
 
     /**
-     * @param individuals individuals
-     * @param annotations annotations on the axiom
+     * @param individuals a {@code Collection} of {@link OWLIndividual}s
+     * @param annotations a {@code Collection} of annotations on the axiom
      */
     public OWLDifferentIndividualsAxiomImpl(Collection<? extends OWLIndividual> individuals,
                                             Collection<OWLAnnotation> annotations) {
@@ -49,7 +49,7 @@ public class OWLDifferentIndividualsAxiomImpl
     @SuppressWarnings("unchecked")
     @Override
     public <T extends OWLAxiom> T getAnnotatedAxiom(@Nonnull Stream<OWLAnnotation> anns) {
-        return (T) new OWLDifferentIndividualsAxiomImpl(individuals, mergeAnnos(anns));
+        return (T) new OWLDifferentIndividualsAxiomImpl(individuals, mergeAnnotations(this, anns));
     }
 
     @Override

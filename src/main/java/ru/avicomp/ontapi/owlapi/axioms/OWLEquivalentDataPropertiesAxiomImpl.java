@@ -28,12 +28,11 @@ public class OWLEquivalentDataPropertiesAxiomImpl
         extends OWLNaryPropertyAxiomImpl<OWLDataPropertyExpression> implements OWLEquivalentDataPropertiesAxiom {
 
     /**
-     * @param properties  properties
-     * @param annotations annotations
+     * @param properties a {@code Collection} of {@link OWLDataPropertyExpression}s
+     * @param annotations a {@code Collection} of {@link OWLAnnotation}s
      */
-    public OWLEquivalentDataPropertiesAxiomImpl(
-            Collection<? extends OWLDataPropertyExpression> properties,
-            Collection<OWLAnnotation> annotations) {
+    public OWLEquivalentDataPropertiesAxiomImpl(Collection<? extends OWLDataPropertyExpression> properties,
+                                                Collection<OWLAnnotation> annotations) {
         super(properties, annotations);
     }
 
@@ -49,7 +48,7 @@ public class OWLEquivalentDataPropertiesAxiomImpl
     @SuppressWarnings("unchecked")
     @Override
     public <T extends OWLAxiom> T getAnnotatedAxiom(@Nonnull Stream<OWLAnnotation> anns) {
-        return (T) new OWLEquivalentDataPropertiesAxiomImpl(properties, mergeAnnos(anns));
+        return (T) new OWLEquivalentDataPropertiesAxiomImpl(properties, mergeAnnotations(this, anns));
     }
 
     @Override

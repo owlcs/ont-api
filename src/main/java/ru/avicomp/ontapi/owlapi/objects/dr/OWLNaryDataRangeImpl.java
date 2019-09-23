@@ -15,11 +15,9 @@ package ru.avicomp.ontapi.owlapi.objects.dr;
 
 import org.semanticweb.owlapi.model.OWLDataRange;
 import org.semanticweb.owlapi.model.OWLNaryDataRange;
-import ru.avicomp.ontapi.jena.utils.Iter;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Stream;
 
 /**
@@ -29,15 +27,10 @@ import java.util.stream.Stream;
 @SuppressWarnings("WeakerAccess")
 public abstract class OWLNaryDataRangeImpl extends OWLAnonymousDataRangeImpl implements OWLNaryDataRange {
 
-    private final List<OWLDataRange> operands;
+    protected final List<OWLDataRange> operands;
 
-    protected OWLNaryDataRangeImpl(Collection<OWLDataRange> operands) {
-        this(operands.stream());
-    }
-
-    protected OWLNaryDataRangeImpl(Stream<OWLDataRange> operands) {
-        this.operands = Objects.requireNonNull(operands, "operands cannot be null")
-                .filter(Objects::nonNull).distinct().sorted().collect(Iter.toUnmodifiableList());
+    protected OWLNaryDataRangeImpl(Collection<? extends OWLDataRange> operands) {
+        this.operands = toContentList(operands, "operands cannot be null");
     }
 
     @Override

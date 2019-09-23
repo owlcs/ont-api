@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -28,35 +28,38 @@ import java.util.Objects;
 public abstract class OWLIndividualRelationshipAxiomImpl<P extends OWLPropertyExpression, O extends OWLPropertyAssertionObject>
         extends OWLLogicalAxiomImpl implements OWLPropertyAssertionAxiom<P, O> {
 
-    private final OWLIndividual s;
-    private final P p;
-    private final O o;
+    private final OWLIndividual subject;
+    private final P predicate;
+    private final O object;
 
     /**
-     * @param subject     the subject
-     * @param property    the property
-     * @param object      the object
-     * @param annotations the annotations
+     * @param subject     {@link OWLIndividual}, the subject
+     * @param property    {@link P}, the predicate
+     * @param object      {@link O}, the object
+     * @param annotations a {@code Collection} of {@link OWLAnnotation}s
      */
-    public OWLIndividualRelationshipAxiomImpl(OWLIndividual subject, P property, O object, Collection<OWLAnnotation> annotations) {
+    public OWLIndividualRelationshipAxiomImpl(OWLIndividual subject,
+                                              P property,
+                                              O object,
+                                              Collection<OWLAnnotation> annotations) {
         super(annotations);
-        this.s = Objects.requireNonNull(subject, "subject cannot be null");
-        this.p = Objects.requireNonNull(property, "property cannot be null");
-        this.o = Objects.requireNonNull(object, "object cannot be null");
+        this.subject = Objects.requireNonNull(subject, "subject cannot be null");
+        this.predicate = Objects.requireNonNull(property, "property cannot be null");
+        this.object = Objects.requireNonNull(object, "object cannot be null");
     }
 
     @Override
     public OWLIndividual getSubject() {
-        return s;
+        return subject;
     }
 
     @Override
     public P getProperty() {
-        return p;
+        return predicate;
     }
 
     @Override
     public O getObject() {
-        return o;
+        return object;
     }
 }

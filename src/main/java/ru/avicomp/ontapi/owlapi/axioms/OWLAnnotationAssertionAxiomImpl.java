@@ -32,10 +32,10 @@ public class OWLAnnotationAssertionAxiomImpl extends OWLAxiomImpl implements OWL
     private final OWLAnnotationValue value;
 
     /**
-     * @param subject     subject for axiom
-     * @param property    annotation property
-     * @param value       annotation value
-     * @param annotations annotations on the axiom
+     * @param subject     {@link OWLAnnotationSubject}, subject for axiom
+     * @param property    {@link OWLAnnotationProperty}, annotation property
+     * @param value       {@link OWLAnnotationValue}, annotation value
+     * @param annotations a {@code Collection} of annotations on the axiom
      */
     public OWLAnnotationAssertionAxiomImpl(OWLAnnotationSubject subject,
                                            OWLAnnotationProperty property,
@@ -72,7 +72,8 @@ public class OWLAnnotationAssertionAxiomImpl extends OWLAxiomImpl implements OWL
     @SuppressWarnings("unchecked")
     @Override
     public <T extends OWLAxiom> T getAnnotatedAxiom(@Nonnull Stream<OWLAnnotation> anns) {
-        return (T) new OWLAnnotationAssertionAxiomImpl(getSubject(), getProperty(), getValue(), mergeAnnos(anns));
+        return (T) new OWLAnnotationAssertionAxiomImpl(getSubject(), getProperty(), getValue(),
+                mergeAnnotations(this, anns));
     }
 
     @Override

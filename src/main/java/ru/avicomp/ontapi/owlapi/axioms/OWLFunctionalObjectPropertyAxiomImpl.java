@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -26,11 +26,12 @@ import static ru.avicomp.ontapi.owlapi.InternalizedEntities.OWL_THING;
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
  * @since 1.2.0
  */
-public class OWLFunctionalObjectPropertyAxiomImpl extends OWLObjectPropertyCharacteristicAxiomImpl implements OWLFunctionalObjectPropertyAxiom {
+public class OWLFunctionalObjectPropertyAxiomImpl
+        extends OWLObjectPropertyCharacteristicAxiomImpl implements OWLFunctionalObjectPropertyAxiom {
 
     /**
-     * @param property    property
-     * @param annotations annotations
+     * @param property    {@link OWLObjectPropertyExpression}, the object property
+     * @param annotations a {@code Collection} of {@link OWLAnnotation}s
      */
     public OWLFunctionalObjectPropertyAxiomImpl(OWLObjectPropertyExpression property,
                                                 Collection<OWLAnnotation> annotations) {
@@ -49,11 +50,12 @@ public class OWLFunctionalObjectPropertyAxiomImpl extends OWLObjectPropertyChara
     @SuppressWarnings("unchecked")
     @Override
     public <T extends OWLAxiom> T getAnnotatedAxiom(@Nonnull Stream<OWLAnnotation> anns) {
-        return (T) new OWLFunctionalObjectPropertyAxiomImpl(getProperty(), mergeAnnos(anns));
+        return (T) new OWLFunctionalObjectPropertyAxiomImpl(getProperty(), mergeAnnotations(this, anns));
     }
 
     @Override
     public OWLSubClassOfAxiom asOWLSubClassOfAxiom() {
-        return new OWLSubClassOfAxiomImpl(OWL_THING, new OWLObjectMaxCardinalityImpl(getProperty(), 1, OWL_THING), NO_ANNOTATIONS);
+        return new OWLSubClassOfAxiomImpl(OWL_THING, new OWLObjectMaxCardinalityImpl(getProperty(), 1, OWL_THING),
+                NO_ANNOTATIONS);
     }
 }

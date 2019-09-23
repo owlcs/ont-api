@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,7 +14,6 @@
 package ru.avicomp.ontapi.owlapi.axioms;
 
 import org.semanticweb.owlapi.model.*;
-import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.owlapi.objects.ce.OWLObjectUnionOfImpl;
 
 import javax.annotation.Nonnull;
@@ -30,25 +29,25 @@ import java.util.stream.Stream;
  */
 public class OWLDisjointUnionAxiomImpl extends OWLClassAxiomImpl implements OWLDisjointUnionAxiom {
 
-    private final OWLClass owlClass;
-    private final List<OWLClassExpression> classExpressions;
+    private final OWLClass clazz;
+    private final List<OWLClassExpression> classes;
 
     /**
-     * @param owlClass         union
-     * @param classExpressions disjoint classes
-     * @param annotations      annotations
+     * @param clazz {@link OWLClass}, the union
+     * @param ces a {@code Collection} of {@link OWLClassExpression}s, disjoint classes
+     * @param annotations a {@code Collection} of {@link OWLAnnotation}s
      */
-    public OWLDisjointUnionAxiomImpl(OWLClass owlClass, Stream<OWLClassExpression> classExpressions, Collection<OWLAnnotation> annotations) {
+    public OWLDisjointUnionAxiomImpl(OWLClass clazz,
+                                     Collection<? extends OWLClassExpression> ces,
+                                     Collection<OWLAnnotation> annotations) {
         super(annotations);
-        this.owlClass = Objects.requireNonNull(owlClass, "owlClass cannot be null");
-        Objects.requireNonNull(classExpressions, "classExpressions cannot be null");
-        this.classExpressions = classExpressions.filter(Objects::nonNull).distinct().sorted().collect(Iter.toUnmodifiableList());
+        this.clazz = Objects.requireNonNull(clazz, "Class cannot be null");
+        this.classes = toContentList(ces, "Class expressions cannot be null");
     }
-
 
     @Override
     public Stream<OWLClassExpression> classExpressions() {
-        return classExpressions.stream();
+        return classes.stream();
     }
 
     @Override
@@ -58,7 +57,7 @@ public class OWLDisjointUnionAxiomImpl extends OWLClassAxiomImpl implements OWLD
 
     @Override
     public List<OWLClassExpression> getOperandsAsList() {
-        return classExpressions;
+        return classes;
     }
 
     @SuppressWarnings("unchecked")
@@ -67,27 +66,28 @@ public class OWLDisjointUnionAxiomImpl extends OWLClassAxiomImpl implements OWLD
         if (!isAnnotated()) {
             return this;
         }
-        return new OWLDisjointUnionAxiomImpl(getOWLClass(), classExpressions.stream(), NO_ANNOTATIONS);
+        return new OWLDisjointUnionAxiomImpl(clazz, classes, NO_ANNOTATIONS);
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T extends OWLAxiom> T getAnnotatedAxiom(@Nonnull Stream<OWLAnnotation> anns) {
-        return (T) new OWLDisjointUnionAxiomImpl(getOWLClass(), classExpressions(), mergeAnnos(anns));
+    public <T extends OWLAxiom> T getAnnotatedAxiom(@Nonnull Stream<OWLAnnotation> annotations) {
+        return (T) new OWLDisjointUnionAxiomImpl(clazz, classes, mergeAnnotations(this, annotations));
     }
 
     @Override
     public OWLClass getOWLClass() {
-        return owlClass;
+        return clazz;
     }
 
     @Override
     public OWLEquivalentClassesAxiom getOWLEquivalentClassesAxiom() {
-        return new OWLEquivalentClassesAxiomImpl(Arrays.asList(owlClass, new OWLObjectUnionOfImpl(classExpressions)), NO_ANNOTATIONS);
+        return new OWLEquivalentClassesAxiomImpl(Arrays.asList(clazz, new OWLObjectUnionOfImpl(classes)),
+                NO_ANNOTATIONS);
     }
 
     @Override
     public OWLDisjointClassesAxiom getOWLDisjointClassesAxiom() {
-        return new OWLDisjointClassesAxiomImpl(classExpressions, NO_ANNOTATIONS);
+        return new OWLDisjointClassesAxiomImpl(classes, NO_ANNOTATIONS);
     }
 }

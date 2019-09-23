@@ -27,12 +27,12 @@ import java.util.stream.Stream;
 public class OWLEquivalentClassesAxiomImpl extends OWLNaryClassAxiomImpl implements OWLEquivalentClassesAxiom {
 
     /**
-     * @param classExpressions equivalent classes
-     * @param annotations      annotations
+     * @param classes a {@code Collection} of {@link OWLClassExpression}s, the equivalent classes
+     * @param annotations a {@code Collection} of {@link OWLAnnotation}s
      */
-    public OWLEquivalentClassesAxiomImpl(Collection<? extends OWLClassExpression> classExpressions,
+    public OWLEquivalentClassesAxiomImpl(Collection<? extends OWLClassExpression> classes,
                                          Collection<OWLAnnotation> annotations) {
-        super(classExpressions, annotations);
+        super(classes, annotations);
     }
 
     private static boolean named(OWLClassExpression d) {
@@ -45,18 +45,18 @@ public class OWLEquivalentClassesAxiomImpl extends OWLNaryClassAxiomImpl impleme
         if (!isAnnotated()) {
             return this;
         }
-        return new OWLEquivalentClassesAxiomImpl(classExpressions, NO_ANNOTATIONS);
+        return new OWLEquivalentClassesAxiomImpl(classes, NO_ANNOTATIONS);
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public <T extends OWLAxiom> T getAnnotatedAxiom(@Nonnull Stream<OWLAnnotation> anns) {
-        return (T) new OWLEquivalentClassesAxiomImpl(classExpressions, mergeAnnos(anns));
+        return (T) new OWLEquivalentClassesAxiomImpl(classes, mergeAnnotations(this, anns));
     }
 
     @Override
     public Collection<OWLEquivalentClassesAxiom> asPairwiseAxioms() {
-        if (classExpressions.size() == 2) {
+        if (classes.size() == 2) {
             return createSet(this);
         }
         return walkPairwise((a, b) -> new OWLEquivalentClassesAxiomImpl(Arrays.asList(a, b), NO_ANNOTATIONS));
@@ -64,7 +64,7 @@ public class OWLEquivalentClassesAxiomImpl extends OWLNaryClassAxiomImpl impleme
 
     @Override
     public Collection<OWLEquivalentClassesAxiom> splitToAnnotatedPairs() {
-        if (classExpressions.size() == 2) {
+        if (classes.size() == 2) {
             return createSet(this);
         }
         return walkPairwise((a, b) -> new OWLEquivalentClassesAxiomImpl(Arrays.asList(a, b), annotations));

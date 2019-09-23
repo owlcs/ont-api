@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -21,9 +21,9 @@ import ru.avicomp.ontapi.owlapi.OWLObjectImpl;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -36,8 +36,8 @@ public class OWLAnnotationImplNotAnnotated extends OWLObjectImpl implements OWLA
     private final OWLAnnotationValue value;
 
     /**
-     * @param property annotation property
-     * @param value    annotation value
+     * @param property {@link OWLAnnotationProperty}, the annotation property
+     * @param value    {@link OWLAnnotationValue}, the annotation value
      */
     public OWLAnnotationImplNotAnnotated(OWLAnnotationProperty property, OWLAnnotationValue value) {
         this.property = Objects.requireNonNull(property, "property cannot be null");
@@ -46,7 +46,7 @@ public class OWLAnnotationImplNotAnnotated extends OWLObjectImpl implements OWLA
 
     @Override
     public List<OWLAnnotation> annotationsAsList() {
-        return Collections.emptyList();
+        return NO_ANNOTATIONS;
     }
 
     @Override
@@ -64,12 +64,12 @@ public class OWLAnnotationImplNotAnnotated extends OWLObjectImpl implements OWLA
         if (annotations.isEmpty()) {
             return this;
         }
-        return getAnnotatedAnnotation(annotations.stream());
+        return new OWLAnnotationImpl(property, value, annotations);
     }
 
     @Override
     public OWLAnnotation getAnnotatedAnnotation(@Nonnull Stream<OWLAnnotation> annotations) {
-        return new OWLAnnotationImpl(property, value, annotations);
+        return getAnnotatedAnnotation(annotations.collect(Collectors.toList()));
     }
 
     @Override

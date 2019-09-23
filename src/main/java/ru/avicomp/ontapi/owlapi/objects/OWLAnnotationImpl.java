@@ -16,12 +16,10 @@ package ru.avicomp.ontapi.owlapi.objects;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnnotationValue;
-import ru.avicomp.ontapi.jena.utils.Iter;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Stream;
 
 /**
@@ -33,17 +31,15 @@ public class OWLAnnotationImpl extends OWLAnnotationImplNotAnnotated {
     private final List<OWLAnnotation> annotations;
 
     /**
-     * @param property    annotation property
-     * @param value       annotation value
-     * @param annotations annotations on the axiom
+     * @param property    {@link OWLAnnotationProperty}, the predicate
+     * @param value       {@link OWLAnnotationValue}, the annotation value
+     * @param annotations {@code Collection} of sub-annotations
      */
-    public OWLAnnotationImpl(OWLAnnotationProperty property, OWLAnnotationValue value, Stream<OWLAnnotation> annotations) {
+    public OWLAnnotationImpl(OWLAnnotationProperty property,
+                             OWLAnnotationValue value,
+                             Collection<OWLAnnotation> annotations) {
         super(property, value);
-        this.annotations = Objects.requireNonNull(annotations, "Annotations cannot be null")
-                .filter(Objects::nonNull)
-                .distinct()
-                .sorted()
-                .collect(Iter.toUnmodifiableList());
+        this.annotations = prepareAnnotations(annotations);
     }
 
     @Override
@@ -61,7 +57,7 @@ public class OWLAnnotationImpl extends OWLAnnotationImplNotAnnotated {
 
     @Override
     public OWLAnnotation getAnnotatedAnnotation(@Nonnull Stream<OWLAnnotation> annotations) {
-        return new OWLAnnotationImpl(getProperty(), getValue(), Stream.concat(annotations(), annotations));
+        return new OWLAnnotationImpl(getProperty(), getValue(), mergeAnnotations(this, annotations));
     }
 
     @Override

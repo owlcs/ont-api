@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -25,28 +25,31 @@ import java.util.stream.Stream;
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
  * @since 1.2.0
  */
-public class OWLSymmetricObjectPropertyAxiomImpl extends OWLObjectPropertyCharacteristicAxiomImpl implements OWLSymmetricObjectPropertyAxiom {
+public class OWLSymmetricObjectPropertyAxiomImpl
+        extends OWLObjectPropertyCharacteristicAxiomImpl implements OWLSymmetricObjectPropertyAxiom {
 
     /**
-     * @param property    property
-     * @param annotations annotations
+     * @param property    {@link OWLObjectPropertyExpression}, the property
+     * @param annotations a {@code Collection} of {@link OWLAnnotation}s on the axiom
      */
-    public OWLSymmetricObjectPropertyAxiomImpl(OWLObjectPropertyExpression property, Collection<OWLAnnotation> annotations) {
+    public OWLSymmetricObjectPropertyAxiomImpl(OWLObjectPropertyExpression property,
+                                               Collection<OWLAnnotation> annotations) {
         super(property, annotations);
     }
 
     @Override
     public Set<OWLSubObjectPropertyOfAxiom> asSubPropertyAxioms() {
-        Set<OWLSubObjectPropertyOfAxiom> result = new HashSet<>(5);
-        result.add(new OWLSubObjectPropertyOfAxiomImpl(getProperty(), getProperty().getInverseProperty().getSimplified(), NO_ANNOTATIONS));
-        result.add(new OWLSubObjectPropertyOfAxiomImpl(getProperty().getInverseProperty().getSimplified(), getProperty(), NO_ANNOTATIONS));
+        Set<OWLSubObjectPropertyOfAxiom> result = new HashSet<>(2);
+        OWLObjectPropertyExpression p = getProperty();
+        result.add(new OWLSubObjectPropertyOfAxiomImpl(p, p.getInverseProperty().getSimplified(), NO_ANNOTATIONS));
+        result.add(new OWLSubObjectPropertyOfAxiomImpl(p.getInverseProperty().getSimplified(), p, NO_ANNOTATIONS));
         return result;
     }
 
     @SuppressWarnings("unchecked")
     @Override
     public <T extends OWLAxiom> T getAnnotatedAxiom(@Nonnull Stream<OWLAnnotation> anns) {
-        return (T) new OWLSymmetricObjectPropertyAxiomImpl(getProperty(), mergeAnnos(anns));
+        return (T) new OWLSymmetricObjectPropertyAxiomImpl(getProperty(), mergeAnnotations(this, anns));
     }
 
     @SuppressWarnings("unchecked")

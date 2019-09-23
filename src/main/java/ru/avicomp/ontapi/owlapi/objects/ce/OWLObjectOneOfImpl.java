@@ -16,10 +16,12 @@ package ru.avicomp.ontapi.owlapi.objects.ce;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLIndividual;
 import org.semanticweb.owlapi.model.OWLObjectOneOf;
-import ru.avicomp.ontapi.jena.utils.Iter;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -28,28 +30,21 @@ import java.util.stream.Stream;
  */
 public class OWLObjectOneOfImpl extends OWLAnonymousClassExpressionImpl implements OWLObjectOneOf {
 
-    private final List<OWLIndividual> values;
+    protected final List<OWLIndividual> values;
 
     /**
-     * @param values values for one of axiom
+     * @param values a {@code Collection} of values ({@link OWLIndividual}s) for {@code OneOf} class expression
      */
-    public OWLObjectOneOfImpl(Stream<OWLIndividual> values) {
-        this.values = Objects.requireNonNull(values, "values cannot be null")
-                .map(Objects::requireNonNull).distinct().sorted().collect(Iter.toUnmodifiableList());
+    public OWLObjectOneOfImpl(Collection<? extends OWLIndividual> values) {
+        this.values = toContentList(values, "values cannot be null");
     }
 
     /**
-     * @param values values for one of axiom
-     */
-    public OWLObjectOneOfImpl(OWLIndividual... values) {
-        this(Stream.of(values));
-    }
-
-    /**
-     * @param value value for one of axiom
+     * Singleton.
+     * @param value {@link OWLIndividual}, not {@code null}
      */
     public OWLObjectOneOfImpl(OWLIndividual value) {
-        this(Stream.of(value));
+        this.values = Collections.singletonList(Objects.requireNonNull(value, "Null value"));
     }
 
     @Override
@@ -67,7 +62,7 @@ public class OWLObjectOneOfImpl extends OWLAnonymousClassExpressionImpl implemen
         if (values.size() == 1) {
             return this;
         } else {
-            return new OWLObjectUnionOfImpl(individuals().map(OWLObjectOneOfImpl::new));
+            return new OWLObjectUnionOfImpl(individuals().map(OWLObjectOneOfImpl::new).collect(Collectors.toList()));
         }
     }
 }

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2018, Avicomp Services, AO
+ * Copyright (c) 2019, Avicomp Services, AO
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -30,11 +30,13 @@ public class OWLAnnotationPropertyRangeAxiomImpl extends OWLAxiomImpl implements
     private final OWLAnnotationProperty property;
 
     /**
-     * @param property    property
-     * @param range       range
-     * @param annotations annotations on the axiom
+     * @param property    {@link OWLAnnotationProperty}, the property
+     * @param range       {@link IRI}, the range
+     * @param annotations a {@code Collection} of annotations on the axiom
      */
-    public OWLAnnotationPropertyRangeAxiomImpl(OWLAnnotationProperty property, IRI range, Collection<OWLAnnotation> annotations) {
+    public OWLAnnotationPropertyRangeAxiomImpl(OWLAnnotationProperty property,
+                                               IRI range,
+                                               Collection<OWLAnnotation> annotations) {
         super(annotations);
         this.property = Objects.requireNonNull(property, "property cannot be null");
         this.range = Objects.requireNonNull(range, "range cannot be null");
@@ -52,7 +54,7 @@ public class OWLAnnotationPropertyRangeAxiomImpl extends OWLAxiomImpl implements
     @SuppressWarnings("unchecked")
     @Override
     public <T extends OWLAxiom> T getAnnotatedAxiom(@Nonnull Stream<OWLAnnotation> anns) {
-        return (T) new OWLAnnotationPropertyRangeAxiomImpl(getProperty(), getRange(), mergeAnnos(anns));
+        return (T) new OWLAnnotationPropertyRangeAxiomImpl(getProperty(), getRange(), mergeAnnotations(this, anns));
     }
 
     @Override

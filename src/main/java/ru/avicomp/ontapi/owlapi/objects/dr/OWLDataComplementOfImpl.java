@@ -27,7 +27,7 @@ public class OWLDataComplementOfImpl extends OWLAnonymousDataRangeImpl implement
     private final OWLDataRange dataRange;
 
     /**
-     * @param dataRange datarange
+     * @param dataRange {@link OWLDataRange}, not {@code null}
      */
     public OWLDataComplementOfImpl(OWLDataRange dataRange) {
         this.dataRange = Objects.requireNonNull(dataRange, "dataRange cannot be null");
