@@ -60,10 +60,14 @@ public class ONTSWRLIndividualImpl extends ONTResourceImpl
      * @return {@link ONTSWRLIndividualImpl} instance
      */
     public static ONTSWRLIndividualImpl create(OntIndividual i, Supplier<OntGraphModel> m) {
-        if (i.isURIResource()) {
+        return create(i.asNode(), m);
+    }
+
+    protected static ONTSWRLIndividualImpl create(Node i, Supplier<OntGraphModel> m) {
+        if (i.isURI()) {
             return new ONTSWRLIndividualImpl(i.getURI(), m);
         }
-        return new ONTSWRLIndividualImpl(i.asNode().getBlankNodeId(), m);
+        return new ONTSWRLIndividualImpl(i.getBlankNodeId(), m);
     }
 
     @Override

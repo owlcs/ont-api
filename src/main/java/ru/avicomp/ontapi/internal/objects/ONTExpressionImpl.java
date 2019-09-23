@@ -72,7 +72,7 @@ public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResource
      */
     protected static Object toContentItem(OntOPE ope, InternalObjectFactory factory) {
         if (ope.isURIResource()) {
-            return ope.getURI();
+            return ope.asNode().getURI();
         }
         return factory.getProperty(ope);
     }
@@ -89,7 +89,7 @@ public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResource
      */
     protected static Object toContentItem(OntCE ce, InternalObjectFactory factory) {
         if (ce.isURIResource()) {
-            return ce.getURI();
+            return ce.asNode().getURI();
         }
         return factory.getClass(ce);
     }
@@ -106,7 +106,7 @@ public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResource
      */
     protected static Object toContentItem(OntDR dr, InternalObjectFactory factory) {
         if (dr.isURIResource()) {
-            return dr.getURI();
+            return dr.asNode().getURI();
         }
         return factory.getDatatype(dr);
     }
@@ -122,7 +122,7 @@ public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResource
      */
     protected static Object toContentItem(OntIndividual i) {
         if (i.isURIResource()) {
-            return i.getURI();
+            return i.asNode().getURI();
         }
         return i.asNode().getBlankNodeId();
     }
@@ -137,7 +137,7 @@ public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResource
      * @see ONTExpressionImpl#toNDP(Object, InternalObjectFactory)
      */
     protected static Object toContentItem(OntNDP ndp) {
-        return ndp.getURI();
+        return ndp.asNode().getURI();
     }
 
     /**
@@ -158,10 +158,10 @@ public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResource
      * The array was chosen as the best option in sense of memory consumption and access speed.
      *
      * @param obj {@link R}, not {@code null}
-     * @param of  {@link InternalObjectFactory}, not {@code null}
+     * @param factory  {@link InternalObjectFactory}, not {@code null}
      * @return {@code Array} of {@code Object}s
      */
-    protected abstract Object[] collectContent(R obj, InternalObjectFactory of);
+    protected abstract Object[] collectContent(R obj, InternalObjectFactory factory);
 
     @Override
     protected BlankNodeId getBlankNodeId() {

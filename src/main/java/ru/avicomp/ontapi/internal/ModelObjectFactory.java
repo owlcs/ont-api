@@ -24,7 +24,6 @@ import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.internal.objects.*;
 import ru.avicomp.ontapi.jena.impl.Entities;
 import ru.avicomp.ontapi.jena.model.*;
-import ru.avicomp.ontapi.jena.utils.OntModels;
 
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -126,22 +125,20 @@ public class ModelObjectFactory implements InternalObjectFactory {
 
     @Override
     public ONTObject<? extends SWRLIArgument> getSWRLArgument(OntSWRL.IArg arg) {
-        OntIndividual i;
         if (arg.isAnon()) {
             // treat any b-node as anonymous individual (whatever)
-            i = OntModels.asAnonymousIndividual(arg);
-        } else {
-            i = arg.getAs(OntIndividual.class);
+            return getSWRLArgument(arg.asNode().getBlankNodeId());
         }
-        return i != null ?
-                ONTSWRLIndividualImpl.create(i, model) :
-                getSWRLVariable(arg.as(OntSWRL.Variable.class));
+        if (arg.canAs(OntSWRL.Variable.class)) {
+            return getSWRLVariable(arg.as(OntSWRL.Variable.class));
+        }
+        return getSWRLArgument(arg.asNode().getURI());
     }
 
     @Override
     public ONTObject<? extends SWRLDArgument> getSWRLArgument(OntSWRL.DArg arg) {
         return arg.isLiteral() ?
-                new ONTSWRLLiteralImpl(arg.asNode().getLiteral(), model) :
+                getSWRLArgument(arg.asNode().getLiteral()) :
                 getSWRLVariable(arg.as(OntSWRL.Variable.class));
     }
 
@@ -241,11 +238,47 @@ public class ModelObjectFactory implements InternalObjectFactory {
         return getIndividual(OntApiException.notNull(individual, "Null individual").asNode());
     }
 
-    public ONTObject<? extends OWLIndividual> getIndividual(Node individual) {
-        if (individual.isBlank()) {
-            return getAnonymousIndividual(individual.getBlankNodeId());
+    /**
+     * Creates an {@link OWLIndividual} wrapped as {@link ONTObject} for the given {@code node}.
+     *
+     * @param node {@link Node}, not {@code null}
+     * @return {@link ONTObject} with {@link OWLIndividual}
+     */
+    public ONTObject<? extends OWLIndividual> getIndividual(Node node) {
+        if (node.isBlank()) {
+            return getAnonymousIndividual(node.getBlankNodeId());
         }
-        return getNamedIndividual(individual.getURI());
+        return getNamedIndividual(node.getURI());
+    }
+
+    /**
+     * Creates a {@link SWRLDArgument} wrapped as {@link ONTObject} for the given {@code label}.
+     *
+     * @param label {@link LiteralLabel}, not {@code null}
+     * @return {@link ONTObject} with {@link SWRLDArgument}
+     */
+    public ONTObject<? extends SWRLDArgument> getSWRLArgument(LiteralLabel label) {
+        return new ONTSWRLLiteralImpl(label, model);
+    }
+
+    /**
+     * Creates a {@link SWRLIArgument} wrapped as {@link ONTObject} with the given {@code uri}.
+     *
+     * @param uri {@code String}, not {@code null}
+     * @return {@link ONTObject} with {@link SWRLIArgument}
+     */
+    public ONTObject<? extends SWRLIArgument> getSWRLArgument(String uri) {
+        return new ONTSWRLIndividualImpl(uri, model);
+    }
+
+    /**
+     * Creates a {@link SWRLIArgument} wrapped as {@link ONTObject} for the given blank node {@code id}.
+     *
+     * @param id {@link BlankNodeId}, not {@code null}
+     * @return {@link ONTObject} with {@link SWRLDArgument}
+     */
+    public ONTObject<? extends SWRLIArgument> getSWRLArgument(BlankNodeId id) {
+        return new ONTSWRLIndividualImpl(id, model);
     }
 
 }
