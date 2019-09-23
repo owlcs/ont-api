@@ -57,6 +57,17 @@ abstract class ONTObjectImpl extends OWLObjectImpl implements ONTComposite, HasO
         this.model = Objects.requireNonNull(model, "Null model.");
     }
 
+    /**
+     * Creates a sorted {@code Set} for {@link ONTObject}s, to store content cache.
+     * OWL-API requires distinct and sorted {@code Stream}s and {@code List}s.
+     *
+     * @param <X> subtype of {@link ONTObject}
+     * @return an empty sorted {@code Set} that can contain {@code ONTObject}s.
+     */
+    protected static <X extends ONTObject> Set<X> createContentSet() {
+        return createSortedSet(Comparator.comparing(ONTObject::getOWLObject));
+    }
+
     @Override
     public InternalObjectFactory getObjectFactory() {
         return HasObjectFactory.getObjectFactory(model.get());
@@ -78,17 +89,6 @@ abstract class ONTObjectImpl extends OWLObjectImpl implements ONTComposite, HasO
      */
     protected PersonalityModel getPersonalityModel() {
         return PersonalityModel.asPersonalityModel(model.get());
-    }
-
-    /**
-     * Creates a sorted {@code Set} for {@link ONTObject}s, to store content cache.
-     * OWL-API requires distinct and sorted {@code Stream}s and {@code List}s.
-     *
-     * @param <X> subtype of {@link ONTObject}
-     * @return an empty sorted {@code Set} that can contain {@code ONTObject}s.
-     */
-    protected <X extends ONTObject> Set<X> createContentSet() {
-        return createSortedSet(Comparator.comparing(ONTObject::getOWLObject));
     }
 
     @Override

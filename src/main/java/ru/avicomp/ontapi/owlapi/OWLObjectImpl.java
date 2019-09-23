@@ -80,6 +80,27 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
     }
 
     /**
+     * Creates an empty sorted {@code Set}.
+     *
+     * @param <X> subtype of {@link Comparable}
+     * @return a {@code Set}
+     */
+    protected static <X extends Comparable> Set<X> createSortedSet() {
+        return new TreeSet<>();
+    }
+
+    /**
+     * Creates an empty sorted {@code Set} with the given {@code comparator}.
+     *
+     * @param comparator {@link Comparator} for {@link X}
+     * @param <X>        anything
+     * @return a {@code Set}
+     */
+    protected static <X> Set<X> createSortedSet(Comparator<X> comparator) {
+        return new TreeSet<>(comparator);
+    }
+
+    /**
      * Prepares the collection to be used as internal store inside an {@link OWLObject}.
      *
      * @param input a nonnull {@code Collection} of {@link X}, without {@code null}s
@@ -130,8 +151,10 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
         if (annotations == NO_ANNOTATIONS) {
             return NO_ANNOTATIONS;
         }
-        List<OWLAnnotation> res = toContentList(annotations, "Annotations cannot be null");
-        return res.isEmpty() ? NO_ANNOTATIONS : res;
+        if (Objects.requireNonNull(annotations, "Annotations cannot be null").isEmpty()) {
+            return NO_ANNOTATIONS;
+        }
+        return forOutput(annotations.stream()).collect(Iter.toUnmodifiableList());
     }
 
     /**
@@ -193,27 +216,6 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
             }
         }
         return Boolean.compare(left.hasNext(), right.hasNext());
-    }
-
-    /**
-     * Creates an empty sorted {@code Set}.
-     *
-     * @param <X> subtype of {@link Comparable}
-     * @return a {@code Set}
-     */
-    protected <X extends Comparable> Set<X> createSortedSet() {
-        return new TreeSet<>();
-    }
-
-    /**
-     * Creates an empty sorted {@code Set} with the given {@code comparator}.
-     *
-     * @param comparator {@link Comparator} for {@link X}
-     * @param <X>        anything
-     * @return a {@code Set}
-     */
-    protected <X> Set<X> createSortedSet(Comparator<X> comparator) {
-        return new TreeSet<>(comparator);
     }
 
     @Override

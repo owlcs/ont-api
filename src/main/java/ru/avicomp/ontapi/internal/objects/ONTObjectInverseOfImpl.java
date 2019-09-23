@@ -22,6 +22,7 @@ import org.semanticweb.owlapi.model.OWLObjectProperty;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
+import ru.avicomp.ontapi.jena.model.OntNOP;
 import ru.avicomp.ontapi.jena.model.OntOPE;
 
 import java.util.Set;
@@ -56,7 +57,7 @@ public class ONTObjectInverseOfImpl
                                                 InternalObjectFactory factory,
                                                 Supplier<OntGraphModel> model) {
         ONTObjectInverseOfImpl res = new ONTObjectInverseOfImpl(iop.asNode().getBlankNodeId(), model);
-        res.putContent(res.collectContent(iop, factory));
+        res.putContent(res.initContent(iop, factory));
         return res;
     }
 
@@ -71,8 +72,15 @@ public class ONTObjectInverseOfImpl
     }
 
     @Override
-    protected Object[] collectContent(OntOPE.Inverse pe, InternalObjectFactory of) {
-        return new Object[]{of.getProperty(pe.getDirect())};
+    protected Object[] collectContent(OntOPE.Inverse pe, InternalObjectFactory factory) {
+        return new Object[]{pe.getDirect().getURI()};
+    }
+
+    @Override
+    protected Object[] initContent(OntOPE.Inverse pe, InternalObjectFactory factory) {
+        OntNOP p = pe.getDirect();
+        this.hashCode = OWLObject.hashIteration(hashIndex(), factory.getProperty(p).hashCode());
+        return new Object[]{p.getURI()};
     }
 
     @Override
@@ -80,9 +88,12 @@ public class ONTObjectInverseOfImpl
         return Stream.of(getONTObjectProperty());
     }
 
-    @SuppressWarnings("unchecked")
     public ONTObject<OWLObjectProperty> getONTObjectProperty() {
-        return (ONTObject<OWLObjectProperty>) getContent()[0];
+        return findONTObjectProperty(getObjectFactory());
+    }
+
+    public ONTObject<OWLObjectProperty> findONTObjectProperty(InternalObjectFactory factory) {
+        return ONTObjectPropertyImpl.find((String) getContent()[0], factory, model);
     }
 
     @Override

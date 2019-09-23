@@ -15,6 +15,8 @@
 package ru.avicomp.ontapi.internal.objects;
 
 import org.apache.jena.graph.BlankNodeId;
+import org.apache.jena.graph.impl.LiteralLabel;
+import org.apache.jena.rdf.model.Literal;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.OWLFacet;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
@@ -56,7 +58,7 @@ public class ONTFacetRestrictionImpl
                                                  InternalObjectFactory factory,
                                                  Supplier<OntGraphModel> model) {
         ONTFacetRestrictionImpl res = new ONTFacetRestrictionImpl(fr.asNode().getBlankNodeId(), model);
-        res.putContent(res.collectContent(fr, factory));
+        res.putContent(res.initContent(fr, factory));
         return res;
     }
 
@@ -71,9 +73,18 @@ public class ONTFacetRestrictionImpl
     }
 
     @Override
-    protected Object[] collectContent(OntFR fr, InternalObjectFactory of) {
+    protected Object[] collectContent(OntFR fr, InternalObjectFactory factory) {
         Class<? extends OntFR> type = OntModels.getOntType(fr);
-        return new Object[]{ReadHelper.getFacet(type), of.getLiteral(fr.getValue())};
+        return new Object[]{ReadHelper.getFacet(type), fr.getValue().asNode().getLiteral()};
+    }
+
+    @Override
+    protected Object[] initContent(OntFR fr, InternalObjectFactory factory) {
+        OWLFacet facet = ReadHelper.getFacet(OntModels.getOntType(fr));
+        Literal value = fr.getValue();
+        int hash = OWLObject.hashIteration(hashIndex(), facet.hashCode());
+        this.hashCode = OWLObject.hashIteration(hash, factory.getLiteral(value).hashCode());
+        return new Object[]{facet, value.asNode().getLiteral()};
     }
 
     @Override
@@ -86,9 +97,12 @@ public class ONTFacetRestrictionImpl
         return getONTLiteral().getOWLObject();
     }
 
-    @SuppressWarnings("unchecked")
     public ONTObject<OWLLiteral> getONTLiteral() {
-        return (ONTObject<OWLLiteral>) getContent()[1];
+        return findONTLiteral(getObjectFactory());
+    }
+
+    protected ONTObject<OWLLiteral> findONTLiteral(InternalObjectFactory factory) {
+        return ONTLiteralImpl.find((LiteralLabel) getContent()[1], factory, model);
     }
 
     public OWLDatatype getDatatype() {

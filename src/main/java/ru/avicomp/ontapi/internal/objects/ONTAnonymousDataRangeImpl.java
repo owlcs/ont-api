@@ -103,8 +103,6 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
         throw new OntApiException.IllegalState();
     }
 
-    protected abstract Object[] initContent(ONT dr, InternalObjectFactory factory);
-
     @SuppressWarnings("unchecked")
     @Override
     public OWL getOWLObject() {

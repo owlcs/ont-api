@@ -27,6 +27,7 @@ import ru.avicomp.ontapi.internal.ModelObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.OntModels;
+import ru.avicomp.ontapi.owlapi.OWLObjectImpl;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -139,8 +140,6 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
         }
         return object;
     }
-
-    protected abstract Object[] initContent(ONT obj, InternalObjectFactory factory);
 
     @SuppressWarnings("unchecked")
     @Override
@@ -313,7 +312,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
 
         @Override
         public Set<OWLEntity> getSignatureSet() {
-            return datatypes().collect(Collectors.toCollection(this::createSortedSet));
+            return datatypes().collect(Collectors.toCollection(OWLObjectImpl::createSortedSet));
         }
 
         @Override
@@ -328,7 +327,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
 
         @Override
         public Set<OWLDatatype> getDatatypeSet() {
-            return datatypes().collect(Collectors.toCollection(this::createSortedSet));
+            return datatypes().collect(Collectors.toCollection(OWLObjectImpl::createSortedSet));
         }
 
         @Override
@@ -444,7 +443,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
 
         @Override
         public Set<OWLEntity> getSignatureSet() {
-            return datatypes().collect(Collectors.toCollection(this::createSortedSet));
+            return datatypes().collect(Collectors.toCollection(OWLObjectImpl::createSortedSet));
         }
 
         @Override
@@ -459,7 +458,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
 
         @Override
         public Set<OWLDatatype> getDatatypeSet() {
-            return datatypes().collect(Collectors.toCollection(this::createSortedSet));
+            return datatypes().collect(Collectors.toCollection(OWLObjectImpl::createSortedSet));
         }
 
         @Override
@@ -757,14 +756,14 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
         public Set<OWLNamedIndividual> getNamedIndividualSet() {
             return individuals().filter(AsOWLNamedIndividual::isOWLNamedIndividual)
                     .map(AsOWLNamedIndividual::asOWLNamedIndividual)
-                    .collect(Collectors.toCollection(this::createSortedSet));
+                    .collect(Collectors.toCollection(OWLObjectImpl::createSortedSet));
         }
 
         @Override
         public Set<OWLAnonymousIndividual> getAnonymousIndividualSet() {
             return individuals().filter(x -> !x.isOWLNamedIndividual())
                     .map(OWLIndividual::asOWLAnonymousIndividual)
-                    .collect(Collectors.toCollection(this::createSortedSet));
+                    .collect(Collectors.toCollection(OWLObjectImpl::createSortedSet));
         }
 
         @Override

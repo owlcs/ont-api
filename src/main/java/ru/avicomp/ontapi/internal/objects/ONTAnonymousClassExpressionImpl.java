@@ -25,6 +25,7 @@ import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.utils.OntModels;
+import ru.avicomp.ontapi.owlapi.OWLObjectImpl;
 import ru.avicomp.ontapi.owlapi.objects.OWLAnonymousIndividualImpl;
 
 import javax.annotation.Nullable;
@@ -150,17 +151,6 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
         throw new OntApiException.IllegalState();
     }
-
-    /**
-     * Initializes the object's content and calculates its hashcode.
-     *
-     * @param ce          {@link ONT} the source Jena resource, not {@code null}
-     * @param factory      {@link InternalObjectFactory}, not {@code null}
-     * @return an array of {@code Object}s
-     * @see ONTExpressionImpl#collectContent(OntObject, InternalObjectFactory)
-     * @see OWLObject#initHashCode()
-     */
-    protected abstract Object[] initContent(ONT ce, InternalObjectFactory factory);
 
     @SuppressWarnings("unchecked")
     @Override
@@ -858,12 +848,12 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
 
         @Override
         public Set<OWLEntity> getSignatureSet() {
-            return namedIndividuals().collect(Collectors.toCollection(this::createSortedSet));
+            return namedIndividuals().collect(Collectors.toCollection(OWLObjectImpl::createSortedSet));
         }
 
         @Override
         public Set<OWLNamedIndividual> getNamedIndividualSet() {
-            return namedIndividuals().collect(Collectors.toCollection(this::createSortedSet));
+            return namedIndividuals().collect(Collectors.toCollection(OWLObjectImpl::createSortedSet));
         }
 
         @Override
@@ -872,7 +862,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
                     .map(x -> x.getOWLObject().isOWLNamedIndividual() ? null :
                             x.getOWLObject().asOWLAnonymousIndividual())
                     .filter(Objects::nonNull)
-                    .collect(Collectors.toCollection(this::createSortedSet));
+                    .collect(Collectors.toCollection(OWLObjectImpl::createSortedSet));
         }
 
         protected Stream<OWLNamedIndividual> namedIndividuals() {

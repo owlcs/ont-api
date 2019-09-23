@@ -159,9 +159,22 @@ public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResource
      *
      * @param obj {@link R}, not {@code null}
      * @param factory  {@link InternalObjectFactory}, not {@code null}
-     * @return {@code Array} of {@code Object}s
+     * @return an {@code Array} of {@code Object}s (content items)
+     * @see ONTExpressionImpl#initContent(OntObject, InternalObjectFactory)
      */
     protected abstract Object[] collectContent(R obj, InternalObjectFactory factory);
+
+    /**
+     * Initializes the object's content and calculates its hashcode.
+     * Together, this must be faster.
+     *
+     * @param obj     {@link R} the source Jena resource, not {@code null}
+     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @return an {@code Array} of {@code Object}s (content items)
+     * @see ONTExpressionImpl#collectContent(OntObject, InternalObjectFactory)
+     * @see OWLObject#initHashCode()
+     */
+    protected abstract Object[] initContent(R obj, InternalObjectFactory factory);
 
     @Override
     protected BlankNodeId getBlankNodeId() {
