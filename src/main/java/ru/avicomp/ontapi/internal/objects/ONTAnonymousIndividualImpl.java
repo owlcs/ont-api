@@ -42,7 +42,7 @@ import java.util.stream.Stream;
  * @since 1.4.3
  */
 public class ONTAnonymousIndividualImpl extends OWLAnonymousIndividualImpl
-        implements OWLAnonymousIndividual, HasObjectFactory, ONTSimple, ONTObject<OWLAnonymousIndividual>, AsRDFNode {
+        implements OWLAnonymousIndividual, HasObjectFactory, ONTSimple, ModelObject<OWLAnonymousIndividual>, AsRDFNode {
 
     protected final Supplier<OntGraphModel> model;
 
@@ -71,18 +71,28 @@ public class ONTAnonymousIndividualImpl extends OWLAnonymousIndividualImpl
     }
 
     @Override
-    public InternalObjectFactory getObjectFactory() {
-        return HasObjectFactory.getObjectFactory(model.get());
-    }
-
-    @Override
     public OntIndividual.Anonymous asRDFNode() {
-        return PersonalityModel.asPersonalityModel(model.get()).getNodeAs(asNode(), OntIndividual.Anonymous.class);
+        return PersonalityModel.asPersonalityModel(getModel()).getNodeAs(asNode(), OntIndividual.Anonymous.class);
     }
 
     @Override
     public OWLAnonymousIndividual getOWLObject() {
         return this;
+    }
+
+    @Override
+    public OWLAnonymousIndividual eraseModel() {
+        return getObjectFactory().getOWLDataFactory().getOWLAnonymousIndividual(id);
+    }
+
+    @Override
+    public OntGraphModel getModel() {
+        return model.get();
+    }
+
+    @Override
+    public InternalObjectFactory getObjectFactory() {
+        return HasObjectFactory.getObjectFactory(getModel());
     }
 
     @Override
@@ -109,5 +119,4 @@ public class ONTAnonymousIndividualImpl extends OWLAnonymousIndividualImpl
         throw new NotSerializableException("Suspicious method call. " +
                 "Deserialization is unsupported for ONTAnonymousIndividual.");
     }
-
 }

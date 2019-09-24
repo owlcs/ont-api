@@ -112,7 +112,7 @@ public class AnnotationAssertionTranslator
      * @see ONTAnnotationImpl
      */
     public static abstract class AxiomImpl extends ONTAxiomImpl<OWLAnnotationAssertionAxiom>
-            implements ONTObject<OWLAnnotationAssertionAxiom>, OWLAnnotationAssertionAxiom {
+            implements OWLAnnotationAssertionAxiom {
 
         protected AxiomImpl(Triple t, Supplier<OntGraphModel> m) {
             super(t, m);
@@ -154,11 +154,6 @@ public class AnnotationAssertionTranslator
             hash = OWLObject.hashIteration(hash, res.findONTProperty(factory).hashCode());
             hash = OWLObject.hashIteration(hash, res.findONTValue(factory).hashCode());
             return OWLObject.hashIteration(hash, hashCode(content, 0));
-        }
-
-        @Override
-        public OWLAnnotationAssertionAxiom getOWLObject() {
-            return this;
         }
 
         @Override
@@ -206,6 +201,21 @@ public class AnnotationAssertionTranslator
             return ONTAnnotationImpl.findONTPredicate(this, factory);
         }
 
+        @FactoryAccessor
+        protected OWLAnnotationProperty getFactoryProperty() {
+            return eraseModel(getProperty());
+        }
+
+        @FactoryAccessor
+        protected OWLAnnotationSubject getFactorySubject() {
+            return eraseModel(getSubject());
+        }
+
+        @FactoryAccessor
+        protected OWLAnnotationValue getFactoryValue() {
+            return eraseModel(getValue());
+        }
+
         @Override
         protected boolean sameContent(ONTStatementImpl other) {
             return false;
@@ -214,7 +224,7 @@ public class AnnotationAssertionTranslator
         @FactoryAccessor
         @Override
         public OWLAnnotation getAnnotation() {
-            return getDataFactory().getOWLAnnotation(getProperty(), getValue());
+            return getDataFactory().getOWLAnnotation(getFactoryProperty(), getFactoryValue());
         }
 
         @Override
@@ -225,7 +235,8 @@ public class AnnotationAssertionTranslator
         @FactoryAccessor
         @Override
         protected OWLAnnotationAssertionAxiom createAnnotatedAxiom(Collection<OWLAnnotation> annotations) {
-            return getDataFactory().getOWLAnnotationAssertionAxiom(getProperty(), getSubject(), getValue(), annotations);
+            return getDataFactory().getOWLAnnotationAssertionAxiom(getFactoryProperty(), getFactorySubject(),
+                    getFactoryValue(), annotations);
         }
 
         @Override

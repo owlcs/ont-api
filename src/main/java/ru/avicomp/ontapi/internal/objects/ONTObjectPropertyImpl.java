@@ -34,7 +34,7 @@ import java.util.function.Supplier;
  * @see ru.avicomp.ontapi.owlapi.objects.entity.OWLObjectPropertyImpl
  * @since 1.4.3
  */
-public class ONTObjectPropertyImpl extends ONTEntityImpl implements OWLObjectProperty, ONTObject<OWLObjectProperty> {
+public class ONTObjectPropertyImpl extends ONTEntityImpl<OWLObjectProperty> implements OWLObjectProperty {
 
     public ONTObjectPropertyImpl(String uri, Supplier<OntGraphModel> m) {
         super(uri, m);
@@ -61,11 +61,6 @@ public class ONTObjectPropertyImpl extends ONTEntityImpl implements OWLObjectPro
     @Override
     public OntNOP asRDFNode() {
         return as(OntNOP.class);
-    }
-
-    @Override
-    public OWLObjectProperty getOWLObject() {
-        return this;
     }
 
     @Override

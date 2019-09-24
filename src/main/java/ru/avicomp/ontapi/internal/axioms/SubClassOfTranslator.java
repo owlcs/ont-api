@@ -91,8 +91,7 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
     /**
      * @see ru.avicomp.ontapi.owlapi.axioms.OWLSubClassOfAxiomImpl
      */
-    public abstract static class AxiomImpl extends ONTAxiomImpl<OWLSubClassOfAxiom>
-            implements ONTObject<OWLSubClassOfAxiom>, OWLSubClassOfAxiom {
+    public abstract static class AxiomImpl extends ONTAxiomImpl<OWLSubClassOfAxiom> implements OWLSubClassOfAxiom {
 
         protected AxiomImpl(Triple t, Supplier<OntGraphModel> m) {
             super(t, m);
@@ -141,11 +140,6 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
         }
 
         @Override
-        public OWLSubClassOfAxiom getOWLObject() {
-            return this;
-        }
-
-        @Override
         public Stream<ONTObject<? extends OWLObject>> objects() {
             InternalObjectFactory factory = getObjectFactory();
             return Stream.of(findONTSubClass(factory), findONTSuperClass(factory));
@@ -154,7 +148,8 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
         @FactoryAccessor
         @Override
         protected OWLSubClassOfAxiom createAnnotatedAxiom(Collection<OWLAnnotation> annotations) {
-            return getDataFactory().getOWLSubClassOfAxiom(getSubClass(), getSuperClass(), annotations);
+            return getDataFactory().getOWLSubClassOfAxiom(eraseModel(getSubClass()),
+                    eraseModel(getSuperClass()), annotations);
         }
 
         @Override

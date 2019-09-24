@@ -42,7 +42,7 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("WeakerAccess")
 public class ONTSWRLIndividualImpl extends ONTResourceImpl
-        implements SWRLIndividualArgument, ONTObject<SWRLIndividualArgument> {
+        implements SWRLIndividualArgument, ModelObject<SWRLIndividualArgument> {
 
     public ONTSWRLIndividualImpl(String uri, Supplier<OntGraphModel> m) {
         super(uri, m);
@@ -113,15 +113,20 @@ public class ONTSWRLIndividualImpl extends ONTResourceImpl
     }
 
     public ONTObject<? extends OWLIndividual> getONTIndividual() {
-        InternalObjectFactory of = getObjectFactory();
-        if (of instanceof ModelObjectFactory) {
+        InternalObjectFactory factory = getObjectFactory();
+        if (factory instanceof ModelObjectFactory) {
             if (node instanceof String)
-                return ((ModelObjectFactory) of).getNamedIndividual((String) node);
+                return ((ModelObjectFactory) factory).getNamedIndividual((String) node);
             if (node instanceof BlankNodeId)
-                return ((ModelObjectFactory) of).getAnonymousIndividual((BlankNodeId) node);
+                return ((ModelObjectFactory) factory).getAnonymousIndividual((BlankNodeId) node);
             return wrongState();
         }
-        return of.getIndividual(asIndividual());
+        return factory.getIndividual(asIndividual());
+    }
+
+    @Override
+    public SWRLIndividualArgument eraseModel() {
+        return getDataFactory().getSWRLIndividualArgument(eraseModel(getIndividual()));
     }
 
     @Override

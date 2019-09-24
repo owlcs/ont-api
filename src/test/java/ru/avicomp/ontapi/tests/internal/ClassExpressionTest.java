@@ -46,13 +46,9 @@ public class ClassExpressionTest extends ContentTestBase {
                 .collect(Collectors.toList());
     }
 
-    @Override
-    OWLObject fromModel() {
+    static OWLObject createONTObject(OWLClassExpression ont) {
         OntologyManager m = OntManagers.createONT();
         DataFactory df = m.getOWLDataFactory();
-
-        OWLClassExpression ont = (OWLClassExpression) data.create(df);
-
         OntologyModel o = m.createOntology();
         o.add(df.getOWLSubClassOfAxiom(df.getOWLClass("C"), ont));
         o.clearCache();
@@ -60,6 +56,34 @@ public class ClassExpressionTest extends ContentTestBase {
                 .getSuperClass();
         Assert.assertTrue(res instanceof ONTObject);
         return res;
+    }
+
+    @Override
+    OWLObject fromModel() {
+        return createONTObject((OWLClassExpression) data.create(ONT_DATA_FACTORY));
+    }
+
+    @Override
+    void testEraseModel(OWLObject sample, OWLObject actual) {
+        super.testEraseModel(sample, actual);
+
+        LOGGER.debug("test NNF for '{}'", data);
+        OWLClassExpression expectedNNF = ((OWLClassExpression) sample).getNNF();
+        OWLClassExpression actualNNF = ((OWLClassExpression) actual).getNNF();
+        Assert.assertEquals(expectedNNF, actualNNF);
+        testObjectHasNoModelReference(actualNNF);
+
+        LOGGER.debug("Test ObjectComplementOf for '{}'", data);
+        OWLClassExpression expectedObjectComplementOf = ((OWLClassExpression) sample).getObjectComplementOf();
+        OWLClassExpression actualObjectComplementOf = ((OWLClassExpression) actual).getObjectComplementOf();
+        Assert.assertEquals(expectedObjectComplementOf, actualObjectComplementOf);
+        testObjectHasNoModelReference(actualObjectComplementOf);
+
+        LOGGER.debug("Test ComplementNNF for '{}'", data);
+        OWLClassExpression expectedComplementNNF = ((OWLClassExpression) sample).getComplementNNF();
+        OWLClassExpression actualComplementNNF = ((OWLClassExpression) actual).getComplementNNF();
+        Assert.assertEquals(expectedComplementNNF, actualComplementNNF);
+        testObjectHasNoModelReference(actualComplementNNF);
     }
 
 }

@@ -30,13 +30,27 @@ import java.util.function.Supplier;
  * A base {@link OWLEntity} implementation which has a reference to a model.
  * Created by @ssz on 07.08.2019.
  *
+ * @param <X> subtype of {@link OWLEntity}
  * @since 1.4.3
  */
 @SuppressWarnings("WeakerAccess")
-public abstract class ONTEntityImpl extends ONTResourceImpl implements OWLEntity, ONTSimple {
+public abstract class ONTEntityImpl<X extends OWLEntity>
+        extends ONTResourceImpl implements OWLEntity, ModelObject<X>, ONTSimple {
 
     protected ONTEntityImpl(String uri, Supplier<OntGraphModel> m) {
         super(uri, m);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public X getOWLObject() {
+        return (X) this;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public X eraseModel() {
+        return (X) getDataFactory().getOWLEntity(getEntityType(), getIRI());
     }
 
     @Override

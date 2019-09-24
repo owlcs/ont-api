@@ -38,7 +38,7 @@ import java.util.stream.Stream;
  * @see ONTAnonymousClassExpressionImpl
  * @since 1.4.3
  */
-public class ONTClassImpl extends ONTEntityImpl implements OWLClass, ONTObject<OWLClass> {
+public class ONTClassImpl extends ONTEntityImpl<OWLClass> implements OWLClass {
 
     public ONTClassImpl(String uri, Supplier<OntGraphModel> m) {
         super(uri, m);
@@ -65,11 +65,6 @@ public class ONTClassImpl extends ONTEntityImpl implements OWLClass, ONTObject<O
     @Override
     public OntClass asRDFNode() {
         return as(OntClass.class);
-    }
-
-    @Override
-    public OWLClass getOWLObject() {
-        return this;
     }
 
     @Override
@@ -105,7 +100,7 @@ public class ONTClassImpl extends ONTEntityImpl implements OWLClass, ONTObject<O
     @FactoryAccessor
     @Override
     public OWLClassExpression getNNF() {
-        return this;
+        return eraseModel();
     }
 
     @FactoryAccessor
@@ -117,7 +112,7 @@ public class ONTClassImpl extends ONTEntityImpl implements OWLClass, ONTObject<O
     @FactoryAccessor
     @Override
     public OWLObjectComplementOf getObjectComplementOf() {
-        return getDataFactory().getOWLObjectComplementOf(this);
+        return getDataFactory().getOWLObjectComplementOf(eraseModel());
     }
 
     @Override
@@ -144,4 +139,5 @@ public class ONTClassImpl extends ONTEntityImpl implements OWLClass, ONTObject<O
     public Stream<OWLClassExpression> disjunctSet() {
         return Stream.of(this);
     }
+
 }

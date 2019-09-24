@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.internal.ONTObject;
+import ru.avicomp.ontapi.internal.objects.ModelObject;
 import ru.avicomp.ontapi.tests.TestFactory;
 
 import java.util.List;
@@ -36,8 +37,8 @@ import java.util.stream.Stream;
 abstract class ObjectFactoryTestBase extends TestFactory {
     static final Logger LOGGER = LoggerFactory.getLogger(ObjectFactoryTestBase.class);
 
-    private static final OWLDataFactory ONT_DATA_FACTORY = OntManagers.getDataFactory();
-    private static final OWLDataFactory OWL_DATA_FACTORY = OntManagers.createOWLProfile().dataFactory();
+    static final OWLDataFactory ONT_DATA_FACTORY = OntManagers.getDataFactory();
+    static final OWLDataFactory OWL_DATA_FACTORY = OntManagers.createOWLProfile().dataFactory();
 
     private static final String TEST_NS = "http://" + UUID.randomUUID() + "#";
 
@@ -47,6 +48,16 @@ abstract class ObjectFactoryTestBase extends TestFactory {
         this.data = data;
     }
 
+    static Stream<? extends OWLObject> components(OWLObject object) {
+        return Stream.of(object.signature(), object.nestedClassExpressions(), object.anonymousIndividuals())
+                .flatMap(Function.identity());
+    }
+
+    static void testObjectHasNoModelReference(OWLObject test) {
+        Assert.assertFalse(test instanceof ONTObject);
+        components(test).forEach(x -> Assert.assertFalse(x instanceof ONTObject));
+    }
+
     abstract OWLObject fromModel();
 
     @Test
@@ -54,7 +65,7 @@ abstract class ObjectFactoryTestBase extends TestFactory {
         OWLObject ont = data.create(ONT_DATA_FACTORY);
         OWLObject owl = data.create(OWL_DATA_FACTORY);
         OWLObject test = fromModel();
-        Assert.assertTrue(test instanceof ONTObject);
+        Assert.assertTrue(test instanceof ModelObject);
         Assert.assertTrue(ont.getClass().getName().startsWith("ru.avicomp.ontapi.owlapi"));
         Assert.assertTrue(owl.getClass().getName().startsWith("uk.ac.manchester.cs.owl.owlapi"));
 
@@ -63,6 +74,7 @@ abstract class ObjectFactoryTestBase extends TestFactory {
 
         testSignatures(owl, test);
         testEntityContains(owl, test);
+        testEraseModel(owl, test);
         testContent(owl, test);
     }
 
@@ -70,12 +82,19 @@ abstract class ObjectFactoryTestBase extends TestFactory {
     }
 
     void testCompare(OWLObject expected, OWLObject actual) {
-        LOGGER.debug("Test compare {}", data);
+        LOGGER.debug("Test compare for '{}'", data);
         data.testCompare(expected, actual);
     }
 
+    void testEraseModel(OWLObject sample, OWLObject actual) {
+        LOGGER.debug("Test erase model for '{}'", data);
+        OWLObject factoryObject = ((ModelObject) actual).eraseModel();
+        Assert.assertEquals(sample, factoryObject);
+        testObjectHasNoModelReference(factoryObject);
+    }
+
     void testSignatures(OWLObject expected, OWLObject actual) {
-        LOGGER.debug("Test signature {}", data);
+        LOGGER.debug("Test signature for '{}'", data);
         validate(expected, actual, "signature", HasSignature::signature);
         validate(expected, actual, "classes", HasClassesInSignature::classesInSignature);
         validate(expected, actual, "datatypes", HasDatatypesInSignature::datatypesInSignature);
@@ -98,7 +117,7 @@ abstract class ObjectFactoryTestBase extends TestFactory {
     }
 
     void testEntityContains(OWLObject expected, OWLObject actual) {
-        LOGGER.debug("Test contains {}", data);
+        LOGGER.debug("Test contains for '{}'", data);
         expected.signature().forEach(x -> Assert.assertTrue(actual.containsEntityInSignature(x)));
         Assert.assertFalse(actual.containsEntityInSignature(OWL_DATA_FACTORY.getOWLClass(TEST_NS, "C")));
         Assert.assertFalse(actual.containsEntityInSignature(OWL_DATA_FACTORY.getOWLDatatype(TEST_NS, "D")));

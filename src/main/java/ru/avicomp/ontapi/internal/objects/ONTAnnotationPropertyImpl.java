@@ -34,8 +34,7 @@ import java.util.function.Supplier;
  * @see ru.avicomp.ontapi.owlapi.objects.entity.OWLAnnotationPropertyImpl
  * @since 1.4.3
  */
-public class ONTAnnotationPropertyImpl extends ONTEntityImpl
-        implements OWLAnnotationProperty, ONTObject<OWLAnnotationProperty> {
+public class ONTAnnotationPropertyImpl extends ONTEntityImpl<OWLAnnotationProperty> implements OWLAnnotationProperty {
 
     public ONTAnnotationPropertyImpl(String uri, Supplier<OntGraphModel> m) {
         super(uri, m);
@@ -62,11 +61,6 @@ public class ONTAnnotationPropertyImpl extends ONTEntityImpl
     @Override
     public OntNAP asRDFNode() {
         return as(OntNAP.class);
-    }
-
-    @Override
-    public OWLAnnotationProperty getOWLObject() {
-        return this;
     }
 
     @Override

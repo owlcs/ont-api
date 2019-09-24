@@ -26,6 +26,11 @@ import java.util.stream.Stream;
 
 /**
  * An unmodifiable container for {@link OWLObject} and associated with it {@link Triple RDF Triple}s.
+ *
+ * The critical semantics for {@code ONTObject} is that classes implementing it
+ * promise that their {@code .hashCode()} is the same as for encapsulated {@link OWLObject}
+ * and two {@code ONTObject}s are equal if corresponding {@link OWLObject}s are equal.
+ *
  * Created by @szz on 25.06.2019.
  *
  * @param <O> any subtype of {@link OWLObject}

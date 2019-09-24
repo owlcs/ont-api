@@ -68,9 +68,30 @@ abstract class ONTObjectImpl extends OWLObjectImpl implements ONTComposite, HasO
         return createSortedSet(Comparator.comparing(ONTObject::getOWLObject));
     }
 
+    /**
+     * @param object an object of the type {@link X}
+     * @param <X>    subtype of {@link OWLObject}
+     * @return {@link X}
+     * @see ModelObject#eraseModel()
+     */
+    @SuppressWarnings("unchecked")
+    public static <X extends OWLObject> X eraseModel(X object) {
+        if (object instanceof ModelObject) {
+            return (X) ((ModelObject) object).eraseModel();
+        }
+        if (object instanceof ONTObject) { // plain wrapper
+            return (X) ((ONTObject) object).getOWLObject();
+        }
+        return object;
+    }
+
+    public OntGraphModel getModel() {
+        return model.get();
+    }
+
     @Override
     public InternalObjectFactory getObjectFactory() {
-        return HasObjectFactory.getObjectFactory(model.get());
+        return HasObjectFactory.getObjectFactory(getModel());
     }
 
     /**
@@ -88,7 +109,7 @@ abstract class ONTObjectImpl extends OWLObjectImpl implements ONTComposite, HasO
      * @return {@link PersonalityModel}
      */
     protected PersonalityModel getPersonalityModel() {
-        return PersonalityModel.asPersonalityModel(model.get());
+        return PersonalityModel.asPersonalityModel(getModel());
     }
 
     @Override

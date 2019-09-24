@@ -151,7 +151,7 @@ public abstract class ONTStatementImpl extends ONTObjectImpl implements OWLObjec
      * @return {@link OntStatement}
      */
     public OntStatement asStatement() {
-        OntGraphModel m = model.get();
+        OntGraphModel m = getModel();
         Triple t = asTriple();
         return m.asStatement(Iter.findFirst(m.getGraph().find(t))
                 .orElseThrow(() -> new OntApiException.IllegalState("Can't find triple " + t)));
@@ -244,17 +244,27 @@ public abstract class ONTStatementImpl extends ONTObjectImpl implements OWLObjec
     }
 
     /**
-     * Creates a new collection containing the annotations of this object and the given.
+     * Creates a new collection containing all the annotations of this object and all the given.
      *
-     * @param other {@link Iterator} of {@link OWLAnnotation}s
-     * @return a {@code Collection} with annotations both from this object and specified
+     * @param other {@link Iterator} of {@link OWLAnnotation}s to append to the existing annotations
+     * @return a {@code Collection} with the annotations both from this object and specified
      */
     @FactoryAccessor
     protected Collection<OWLAnnotation> appendAnnotations(Iterator<OWLAnnotation> other) {
         Set<OWLAnnotation> res = createSortedSet();
-        other.forEachRemaining(res::add);
-        annotations().forEach(res::add);
+        other.forEachRemaining(x -> res.add(eraseModel(x)));
+        factoryAnnotations().forEach(res::add);
         return res;
+    }
+
+    /**
+     * Returns a {@code Stream} of {@link OWLAnnotation}s with erased model.
+     *
+     * @return a {@code Stream} of {@link OWLAnnotation}s
+     */
+    @FactoryAccessor
+    protected Stream<OWLAnnotation> factoryAnnotations() {
+        return annotations().map(ONTObjectImpl::eraseModel);
     }
 
     /**

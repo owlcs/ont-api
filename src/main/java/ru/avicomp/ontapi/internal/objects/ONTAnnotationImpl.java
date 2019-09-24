@@ -43,7 +43,7 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("WeakerAccess")
 public abstract class ONTAnnotationImpl extends ONTStatementImpl
-        implements OWLAnnotation, ONTObject<OWLAnnotation>, WithMerge<ONTObject<OWLAnnotation>> {
+        implements OWLAnnotation, ModelObject<OWLAnnotation>, WithMerge<ONTObject<OWLAnnotation>> {
 
     protected ONTAnnotationImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
         super(subject, predicate, object, m);
@@ -134,7 +134,7 @@ public abstract class ONTAnnotationImpl extends ONTStatementImpl
     public static ONTObject<? extends OWLAnnotationSubject> findONTSubject(ONTStatementImpl statement,
                                                                            InternalObjectFactory factory) {
         if (!(factory instanceof ModelObjectFactory)) {
-            return factory.getSubject(statement.model.get().getAnnotationProperty((String) statement.subject));
+            return factory.getSubject(statement.getModel().getAnnotationProperty((String) statement.subject));
         }
         if (statement.hasURISubject()) {
             return factory.getIRI((String) statement.subject);
@@ -172,7 +172,7 @@ public abstract class ONTAnnotationImpl extends ONTStatementImpl
     public static ONTObject<? extends OWLAnnotationValue> findONTObject(ONTStatementImpl statement,
                                                                         InternalObjectFactory factory) {
         if (!(factory instanceof ModelObjectFactory)) {
-            return factory.getValue(statement.model.get().asRDFNode(statement.getObjectNode()));
+            return factory.getValue(statement.getModel().asRDFNode(statement.getObjectNode()));
         }
         ModelObjectFactory f = (ModelObjectFactory) factory;
         if (statement.object instanceof BlankNodeId) {
@@ -269,7 +269,7 @@ public abstract class ONTAnnotationImpl extends ONTStatementImpl
 
     @FactoryAccessor
     protected OWLAnnotation createAnnotation(Collection<OWLAnnotation> annotations) {
-        return getDataFactory().getOWLAnnotation(getProperty(), getValue(), annotations);
+        return getDataFactory().getOWLAnnotation(eraseModel(getProperty()), eraseModel(getValue()), annotations);
     }
 
     /**
@@ -426,6 +426,11 @@ public abstract class ONTAnnotationImpl extends ONTStatementImpl
             }
             return res;
         }
+
+        @Override
+        public OWLAnnotation eraseModel() {
+            return getDataFactory().getOWLAnnotation(eraseModel(getProperty()), eraseModel(getValue()));
+        }
     }
 
     /**
@@ -485,6 +490,12 @@ public abstract class ONTAnnotationImpl extends ONTStatementImpl
         @Override
         public List<OWLAnnotation> annotationsAsList() {
             return contentAsList(this);
+        }
+
+        @Override
+        public OWLAnnotation eraseModel() {
+            return getDataFactory().getOWLAnnotation(eraseModel(getProperty()), eraseModel(getValue()),
+                    factoryAnnotations());
         }
 
         @Override

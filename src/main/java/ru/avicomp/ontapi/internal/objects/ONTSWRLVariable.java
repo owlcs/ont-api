@@ -33,7 +33,7 @@ import java.util.function.Supplier;
  * @since 1.4.3
  */
 public class ONTSWRLVariable extends ONTResourceImpl
-        implements SWRLVariable, ONTSimple, ONTObject<SWRLVariable> {
+        implements SWRLVariable, ONTSimple, ModelObject<SWRLVariable> {
 
     public ONTSWRLVariable(String uri, Supplier<OntGraphModel> m) {
         super(uri, m);
@@ -62,6 +62,11 @@ public class ONTSWRLVariable extends ONTResourceImpl
     @Override
     public OntSWRL.Variable asRDFNode() {
         return as(OntSWRL.Variable.class);
+    }
+
+    @Override
+    public SWRLVariable eraseModel() {
+        return getDataFactory().getSWRLVariable(getIRI());
     }
 
     @Override

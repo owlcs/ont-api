@@ -48,7 +48,7 @@ import java.util.stream.Stream;
 @SuppressWarnings("WeakerAccess")
 public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends OWLDataRange>
         extends ONTExpressionImpl<ONT>
-        implements OWLDataRange, ONTObject<OWL> {
+        implements OWLDataRange, ModelObject<OWL> {
 
     protected ONTAnonymousDataRangeImpl(BlankNodeId id, Supplier<OntGraphModel> m) {
         super(id, m);
@@ -159,6 +159,11 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
         public OntDR.UnionOf asRDFNode() {
             return as(OntDR.UnionOf.class);
         }
+
+        @Override
+        public OWLDataUnionOf eraseModel() {
+            return getDataFactory().getOWLDataUnionOf(factoryObjects());
+        }
     }
 
     /**
@@ -176,6 +181,11 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
         @Override
         public OntDR.IntersectionOf asRDFNode() {
             return as(OntDR.IntersectionOf.class);
+        }
+
+        @Override
+        public OWLDataIntersectionOf eraseModel() {
+            return getDataFactory().getOWLDataIntersectionOf(factoryObjects());
         }
     }
 
@@ -213,6 +223,11 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
         @Override
         protected ONTObject<? extends OWLLiteral> fromContentItem(Object item, InternalObjectFactory factory) {
             return toLiteral(item, factory);
+        }
+
+        @Override
+        public OWLDataOneOf eraseModel() {
+            return getDataFactory().getOWLDataOneOf(factoryObjects());
         }
     }
 
@@ -255,6 +270,11 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
         public Stream<OWLFacetRestriction> facetRestrictions() {
             return Arrays.stream(getContent()).skip(1)
                     .map(x -> ((ONTObject<? extends OWLFacetRestriction>) x).getOWLObject());
+        }
+
+        @FactoryAccessor
+        protected Stream<OWLFacetRestriction> factoryObjects() {
+            return facetRestrictions().map(ONTObjectImpl::eraseModel);
         }
 
         @SuppressWarnings("unchecked")
@@ -303,6 +323,12 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
             OntModels.listMembers(dr.getList()).mapWith(factory::getFacetRestriction).forEachRemaining(res::add);
             return res;
         }
+
+        @Override
+        public OWLDatatypeRestriction eraseModel() {
+            return getDataFactory().getOWLDatatypeRestriction(eraseModel(getDatatype()),
+                    factoryObjects().collect(Collectors.toList()));
+        }
     }
 
     /**
@@ -349,6 +375,11 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
                 item = value.getURI();
             }
             return new Object[]{item};
+        }
+
+        @Override
+        public OWLDataComplementOf eraseModel() {
+            return getDataFactory().getOWLDataComplementOf(eraseModel(getDataRange()));
         }
     }
 
@@ -426,6 +457,11 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
         @SuppressWarnings("unchecked")
         protected Stream<ONTObject<? extends OWL_M>> members() {
             return (Stream<ONTObject<? extends OWL_M>>) objects(getObjectFactory());
+        }
+
+        @FactoryAccessor
+        protected Stream<OWL_M> factoryObjects() {
+            return operands().map(ONTObjectImpl::eraseModel);
         }
 
         @SuppressWarnings("unchecked")

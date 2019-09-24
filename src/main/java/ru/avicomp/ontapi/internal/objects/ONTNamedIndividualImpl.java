@@ -32,7 +32,7 @@ import java.util.function.Supplier;
  * @see ru.avicomp.ontapi.owlapi.objects.entity.OWLNamedIndividualImpl
  * @since 1.4.3
  */
-public class ONTNamedIndividualImpl extends ONTEntityImpl implements OWLNamedIndividual, ONTObject<OWLNamedIndividual> {
+public class ONTNamedIndividualImpl extends ONTEntityImpl<OWLNamedIndividual> implements OWLNamedIndividual {
 
     public ONTNamedIndividualImpl(String uri, Supplier<OntGraphModel> m) {
         super(uri, m);
@@ -59,11 +59,6 @@ public class ONTNamedIndividualImpl extends ONTEntityImpl implements OWLNamedInd
     @Override
     public OntIndividual.Named asRDFNode() {
         return as(OntIndividual.Named.class);
-    }
-
-    @Override
-    public OWLNamedIndividual getOWLObject() {
-        return this;
     }
 
     @Override

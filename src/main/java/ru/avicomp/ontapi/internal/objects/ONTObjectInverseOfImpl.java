@@ -39,7 +39,7 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("WeakerAccess")
 public class ONTObjectInverseOfImpl
-        extends ONTExpressionImpl<OntOPE.Inverse> implements OWLObjectInverseOf, ONTObject<OWLObjectInverseOf> {
+        extends ONTExpressionImpl<OntOPE.Inverse> implements OWLObjectInverseOf, ModelObject<OWLObjectInverseOf> {
 
     public ONTObjectInverseOfImpl(BlankNodeId n, Supplier<OntGraphModel> m) {
         super(n, m);
@@ -107,6 +107,11 @@ public class ONTObjectInverseOfImpl
     }
 
     @Override
+    public OWLObjectInverseOf eraseModel() {
+        return getDataFactory().getOWLObjectInverseOf(eraseModel(getNamedProperty()));
+    }
+
+    @Override
     public Set<OWLEntity> getSignatureSet() {
         return createSet(getNamedProperty());
     }
@@ -155,5 +160,4 @@ public class ONTObjectInverseOfImpl
     public boolean canContainAnonymousIndividuals() {
         return false;
     }
-
 }

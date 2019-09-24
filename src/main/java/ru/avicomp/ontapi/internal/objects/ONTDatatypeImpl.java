@@ -37,7 +37,7 @@ import java.util.function.Supplier;
  * @see ru.avicomp.ontapi.owlapi.objects.entity.OWLBuiltinDatatypeImpl
  * @since 1.4.3
  */
-public class ONTDatatypeImpl extends ONTEntityImpl implements OWLDatatype, ONTObject<OWLDatatype> {
+public class ONTDatatypeImpl extends ONTEntityImpl<OWLDatatype> implements OWLDatatype {
 
     public ONTDatatypeImpl(String uri, Supplier<OntGraphModel> m) {
         super(uri, m);
@@ -64,11 +64,6 @@ public class ONTDatatypeImpl extends ONTEntityImpl implements OWLDatatype, ONTOb
     @Override
     public OntDT asRDFNode() {
         return as(OntDT.class);
-    }
-
-    @Override
-    public OWLDatatype getOWLObject() {
-        return this;
     }
 
     @Override
@@ -133,4 +128,5 @@ public class ONTDatatypeImpl extends ONTEntityImpl implements OWLDatatype, ONTOb
     public boolean isDatatype() {
         return true;
     }
+
 }

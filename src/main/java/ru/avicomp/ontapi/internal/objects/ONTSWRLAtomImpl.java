@@ -45,7 +45,7 @@ import java.util.stream.Stream;
 @SuppressWarnings("WeakerAccess")
 public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRLAtom>
         extends ONTExpressionImpl<ONT>
-        implements SWRLAtom, ONTObject<OWL> {
+        implements SWRLAtom, ModelObject<OWL> {
 
     protected ONTSWRLAtomImpl(BlankNodeId n, Supplier<OntGraphModel> m) {
         super(n, m);
@@ -210,7 +210,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
         }
         Node node = item instanceof String ?
                 NodeFactory.createURI((String) item) : NodeFactory.createBlankNode((BlankNodeId) item);
-        return factory.getSWRLArgument(model.get().asRDFNode(node).as(OntSWRL.IArg.class));
+        return factory.getSWRLArgument(getModel().asRDFNode(node).as(OntSWRL.IArg.class));
     }
 
     /**
@@ -233,7 +233,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
             return mf.getSWRLArgument((LiteralLabel) item);
         }
         Node node = NodeFactory.createLiteral((LiteralLabel) item);
-        return factory.getSWRLArgument(model.get().asRDFNode(node).as(OntSWRL.DArg.class));
+        return factory.getSWRLArgument(getModel().asRDFNode(node).as(OntSWRL.DArg.class));
     }
 
     /**
@@ -276,6 +276,18 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
             return objects(getObjectFactory());
         }
 
+        protected Stream<ONTObject<? extends OWLObject>> objects(InternalObjectFactory factory) {
+            // skip predicate (builtin) -- its spec is already included
+            List<Object> res = Arrays.asList(getContent());
+            return res.stream().skip(1).map(x -> toDArgument(x, factory));
+        }
+
+        @Override
+        public SWRLBuiltInAtom eraseModel() {
+            return getDataFactory().getSWRLBuiltInAtom(getPredicate(),
+                    arguments().map(ONTObjectImpl::eraseModel).collect(Collectors.toList()));
+        }
+
         @Override
         protected Object[] collectContent(OntSWRL.Atom.BuiltIn atom, InternalObjectFactory factory) {
             IRI predicate = factory.toIRI(atom.getPredicate().getURI());
@@ -302,12 +314,6 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
             }
             this.hashCode = OWLObject.hashIteration(OWLObject.hashIteration(hashIndex(), hash), predicate.hashCode());
             return res.toArray();
-        }
-
-        protected Stream<ONTObject<? extends OWLObject>> objects(InternalObjectFactory factory) {
-            // skip predicate (builtin) -- its spec is already included
-            List<Object> res = Arrays.asList(getContent());
-            return res.stream().skip(1).map(x -> toDArgument(x, factory));
         }
 
         @Override
@@ -361,7 +367,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
      * @see OntSWRL.Atom.OntClass
      */
     public static class CU
-            extends Unary<OntCE, OntSWRL.IArg, OntSWRL.Atom.OntClass, OWLClassExpression, SWRLIArgument>
+            extends Unary<OntCE, OntSWRL.IArg, OntSWRL.Atom.OntClass, OWLClassExpression, SWRLIArgument, SWRLClassAtom>
             implements SWRLClassAtom {
 
         protected CU(BlankNodeId n, Supplier<OntGraphModel> m) {
@@ -397,6 +403,11 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
         Object fromArgument(OntSWRL.IArg arg, ONTObject<? extends SWRLIArgument> object) {
             return fromIArgument(arg, object);
         }
+
+        @Override
+        SWRLClassAtom fromFactory(OWLClassExpression c, SWRLIArgument a) {
+            return getDataFactory().getSWRLClassAtom(c, a);
+        }
     }
 
     /**
@@ -404,7 +415,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
      * @see OntSWRL.Atom.DataRange
      */
     public static class DU
-            extends Unary<OntDR, OntSWRL.DArg, OntSWRL.Atom.DataRange, OWLDataRange, SWRLDArgument>
+            extends Unary<OntDR, OntSWRL.DArg, OntSWRL.Atom.DataRange, OWLDataRange, SWRLDArgument, SWRLDataRangeAtom>
             implements SWRLDataRangeAtom {
 
         protected DU(BlankNodeId n, Supplier<OntGraphModel> m) {
@@ -439,6 +450,11 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
         @Override
         Object fromArgument(OntSWRL.DArg arg, ONTObject<? extends SWRLDArgument> object) {
             return fromDArgument(arg, object);
+        }
+
+        @Override
+        SWRLDataRangeAtom fromFactory(OWLDataRange d, SWRLDArgument a) {
+            return getDataFactory().getSWRLDataRangeAtom(d, a);
         }
 
         @Override
@@ -493,7 +509,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
      */
     public static class SIB
             extends ObjectBinary<OntNOP, OWLObjectProperty, OntSWRL.Atom.SameIndividuals, SWRLSameIndividualAtom>
-            implements SWRLSameIndividualAtom, ONTObject<SWRLSameIndividualAtom> {
+            implements SWRLSameIndividualAtom {
 
         protected SIB(BlankNodeId n, Supplier<OntGraphModel> m) {
             super(n, m);
@@ -509,6 +525,16 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
             return new Object[]{factory.getProperty(obj.getPredicate()),
                     factory.getSWRLArgument(obj.getFirstArg()), factory.getSWRLArgument(obj.getSecondArg())};
         }
+
+        @Override
+        SWRLSameIndividualAtom fromFactory(OWLObjectProperty p, SWRLIArgument f, SWRLIArgument s) {
+            return getDataFactory().getSWRLSameIndividualAtom(f, s);
+        }
+
+        @Override
+        OWLObjectProperty factoryPredicate() {
+            return null;
+        }
     }
 
     /**
@@ -517,7 +543,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
      */
     public static class DIB
             extends ObjectBinary<OntNOP, OWLObjectProperty, OntSWRL.Atom.DifferentIndividuals, SWRLDifferentIndividualsAtom>
-            implements SWRLDifferentIndividualsAtom, ONTObject<SWRLDifferentIndividualsAtom> {
+            implements SWRLDifferentIndividualsAtom {
 
         protected DIB(BlankNodeId n, Supplier<OntGraphModel> m) {
             super(n, m);
@@ -533,6 +559,16 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
             return new Object[]{factory.getProperty(obj.getPredicate()),
                     factory.getSWRLArgument(obj.getFirstArg()), factory.getSWRLArgument(obj.getSecondArg())};
         }
+
+        @Override
+        SWRLDifferentIndividualsAtom fromFactory(OWLObjectProperty p, SWRLIArgument f, SWRLIArgument s) {
+            return getDataFactory().getSWRLDifferentIndividualsAtom(f, s);
+        }
+
+        @Override
+        OWLObjectProperty factoryPredicate() {
+            return null;
+        }
     }
 
     /**
@@ -547,7 +583,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
             SWRLIArgument,
             SWRLDArgument,
             SWRLDataPropertyAtom>
-            implements SWRLDataPropertyAtom, ONTObject<SWRLDataPropertyAtom> {
+            implements SWRLDataPropertyAtom {
 
         protected DPB(BlankNodeId n, Supplier<OntGraphModel> m) {
             super(n, m);
@@ -605,6 +641,11 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
         }
 
         @Override
+        SWRLDataPropertyAtom fromFactory(OWLDataProperty d, SWRLIArgument f, SWRLDArgument s) {
+            return getDataFactory().getSWRLDataPropertyAtom(d, f, s);
+        }
+
+        @Override
         public boolean canContainNamedClasses() {
             return false;
         }
@@ -626,7 +667,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
      */
     public static class OPB
             extends ObjectBinary<OntOPE, OWLObjectPropertyExpression, OntSWRL.Atom.ObjectProperty, SWRLObjectPropertyAtom>
-            implements SWRLObjectPropertyAtom, ONTObject<SWRLObjectPropertyAtom> {
+            implements SWRLObjectPropertyAtom {
 
         protected OPB(BlankNodeId n, Supplier<OntGraphModel> m) {
             super(n, m);
@@ -640,22 +681,31 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
         @FactoryAccessor
         @Override
         public SWRLObjectPropertyAtom getSimplified() {
-            OWLObjectPropertyExpression prop = getPredicate().getSimplified();
-            if (prop.equals(getPredicate())) {
-                return this;
+            OWLObjectPropertyExpression p = getPredicate();
+            OWLObjectPropertyExpression ps = p.getSimplified();
+            if (ps.equals(p)) {
+                return eraseModel();
             }
+            // p always equals ps (v5.1.11) - so the following code just in case:
             DataFactory df = getDataFactory();
-            if (prop.isAnonymous()) {
-                return df.getSWRLObjectPropertyAtom(prop.getInverseProperty().getSimplified(),
-                        getSecondArgument(), getFirstArgument());
+            ps = eraseModel(ps);
+            SWRLIArgument f = eraseModel(getFirstArgument());
+            SWRLIArgument s = eraseModel(getSecondArgument());
+            if (ps.isAnonymous()) {
+                return df.getSWRLObjectPropertyAtom(ps.getInverseProperty(), s, f);
             }
-            return df.getSWRLObjectPropertyAtom(prop, getFirstArgument(), getSecondArgument());
+            return df.getSWRLObjectPropertyAtom(ps, f, s);
         }
 
         @Override
         protected Object[] collectContent(OntSWRL.Atom.ObjectProperty obj, InternalObjectFactory factory) {
             return new Object[]{factory.getProperty(obj.getPredicate()),
                     factory.getSWRLArgument(obj.getFirstArg()), factory.getSWRLArgument(obj.getSecondArg())};
+        }
+
+        @Override
+        SWRLObjectPropertyAtom fromFactory(OWLObjectPropertyExpression p, SWRLIArgument f, SWRLIArgument s) {
+            return getDataFactory().getSWRLObjectPropertyAtom(p, f, s);
         }
     }
 
@@ -862,6 +912,17 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
         }
 
         @Override
+        public OWL_R eraseModel() {
+            return fromFactory(factoryPredicate(), eraseModel(getFirstArgument()), eraseModel(getSecondArgument()));
+        }
+
+        OWL_P factoryPredicate() {
+            return eraseModel(getPredicate());
+        }
+
+        abstract OWL_R fromFactory(OWL_P p, OWL_F f, OWL_S s);
+
+        @Override
         protected Object[] collectContent(ONT_R obj, InternalObjectFactory factory) {
             ONT_P p = obj.getPredicate();
             ONT_F f = obj.getFirstArg();
@@ -916,12 +977,14 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
      * @param <ONT_R> - subtype of {@link OntSWRL.Atom.Unary}, the actual jena type
      * @param <OWL_P> - subtype of {@link SWRLPredicate}, that matches {@link ONT_P}
      * @param <OWL_A> - subtype of {@link SWRLArgument}, that matches {@link ONT_A}
+     * @param <OWL_R> - subtype of {@link SWRLUnaryAtom}, that matches {@link ONT_R}
      */
     protected abstract static class Unary<ONT_P extends OntObject,
             ONT_A extends OntSWRL.Arg,
             ONT_R extends OntSWRL.Atom.Unary<ONT_P, ONT_A>,
             OWL_P extends OWLObject & SWRLPredicate,
-            OWL_A extends SWRLArgument> extends ONTSWRLAtomImpl<ONT_R, SWRLUnaryAtom<OWL_A>> {
+            OWL_A extends SWRLArgument,
+            OWL_R extends SWRLUnaryAtom<OWL_A>> extends ONTSWRLAtomImpl<ONT_R, SWRLUnaryAtom<OWL_A>> {
 
         protected Unary(BlankNodeId n, Supplier<OntGraphModel> m) {
             super(n, m);
@@ -962,6 +1025,13 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
             InternalObjectFactory factory = getObjectFactory();
             return Stream.of(findONTPredicate(factory), findONTArgument(factory));
         }
+
+        @Override
+        public OWL_R eraseModel() {
+            return fromFactory(eraseModel(getPredicate()), eraseModel(getArgument()));
+        }
+
+        abstract OWL_R fromFactory(OWL_P p, OWL_A a);
 
         @Override
         protected Object[] collectContent(ONT_R obj, InternalObjectFactory factory) {

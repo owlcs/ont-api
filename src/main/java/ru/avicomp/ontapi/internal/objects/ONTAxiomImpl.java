@@ -27,6 +27,7 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -38,7 +39,7 @@ import java.util.stream.Stream;
  * @since 1.4.3
  */
 public abstract class ONTAxiomImpl<X extends OWLAxiom>
-        extends ONTStatementImpl implements OWLAxiom, HasConfig {
+        extends ONTStatementImpl implements OWLAxiom, HasConfig, ModelObject<X> {
 
     protected ONTAxiomImpl(Triple t, Supplier<OntGraphModel> m) {
         this(strip(t.getSubject()), t.getPredicate().getURI(), strip(t.getObject()), m);
@@ -46,6 +47,17 @@ public abstract class ONTAxiomImpl<X extends OWLAxiom>
 
     private ONTAxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
         super(subject, predicate, object, m);
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public X getOWLObject() {
+        return (X) this;
+    }
+
+    @Override
+    public X eraseModel() {
+        return createAnnotatedAxiom(factoryAnnotations().collect(Collectors.toList()));
     }
 
     /**
@@ -78,7 +90,7 @@ public abstract class ONTAxiomImpl<X extends OWLAxiom>
 
     @Override
     public InternalConfig getConfig() {
-        return HasConfig.getConfig(model.get());
+        return HasConfig.getConfig(getModel());
     }
 
     @Override
@@ -101,9 +113,10 @@ public abstract class ONTAxiomImpl<X extends OWLAxiom>
     }
 
     /**
-     * Creates a fresh system-wide {@link X axiom}.
+     * Creates a fresh system-wide {@link X axiom} with the given annotations.
+     * The resulting axiom should not contain model references.
      *
-     * @param annotations a {@code Collection} of {@link OWLAnnotation}s to append to the axiom
+     * @param annotations a {@code Collection} of {@link OWLAnnotation}s to bind to the axiom
      * @return {@link X}
      */
     @FactoryAccessor
@@ -112,6 +125,7 @@ public abstract class ONTAxiomImpl<X extends OWLAxiom>
     @FactoryAccessor
     @Override
     public OWLAxiom getNNF() {
-        return accept(new NNF(getDataFactory()));
+        return eraseModel().accept(new NNF(getDataFactory()));
     }
+
 }

@@ -103,8 +103,7 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
     /**
      * @see ru.avicomp.ontapi.owlapi.axioms.OWLDeclarationAxiomImpl
      */
-    public abstract static class AxiomImpl extends ONTAxiomImpl<OWLDeclarationAxiom>
-            implements ONTObject<OWLDeclarationAxiom>, OWLDeclarationAxiom {
+    public abstract static class AxiomImpl extends ONTAxiomImpl<OWLDeclarationAxiom> implements OWLDeclarationAxiom {
 
         protected AxiomImpl(Triple t, Supplier<OntGraphModel> m) {
             super(t, m);
@@ -149,11 +148,6 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
         @Override
         public OntStatement asStatement() {
             return OntApiException.mustNotBeNull(getResource().getRoot());
-        }
-
-        @Override
-        public OWLDeclarationAxiom getOWLObject() {
-            return this;
         }
 
         @Override
@@ -203,7 +197,7 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
         @FactoryAccessor
         @Override
         protected OWLDeclarationAxiom createAnnotatedAxiom(Collection<OWLAnnotation> annotations) {
-            return getDataFactory().getOWLDeclarationAxiom(getEntity(), annotations);
+            return getDataFactory().getOWLDeclarationAxiom(eraseModel(getEntity()), annotations);
         }
 
         @Override

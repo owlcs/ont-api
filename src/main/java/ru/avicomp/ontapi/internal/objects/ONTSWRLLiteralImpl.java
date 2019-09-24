@@ -42,7 +42,7 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("WeakerAccess")
 public class ONTSWRLLiteralImpl extends ONTResourceImpl
-        implements SWRLLiteralArgument, ONTObject<SWRLLiteralArgument> {
+        implements SWRLLiteralArgument, ModelObject<SWRLLiteralArgument> {
 
     public ONTSWRLLiteralImpl(LiteralLabel n, Supplier<OntGraphModel> m) {
         super(n, m);
@@ -78,11 +78,16 @@ public class ONTSWRLLiteralImpl extends ONTResourceImpl
         if (of instanceof ModelObjectFactory) {
             return ((ModelObjectFactory) of).getLiteral(getLiteralLabel());
         }
-        return of.getLiteral(model.get().asRDFNode(asNode()).asLiteral());
+        return of.getLiteral(getModel().asRDFNode(asNode()).asLiteral());
     }
 
     private OWLDatatype getDatatype() {
         return getLiteral().getDatatype();
+    }
+
+    @Override
+    public SWRLLiteralArgument eraseModel() {
+        return getDataFactory().getSWRLLiteralArgument(eraseModel(getLiteral()));
     }
 
     @Override

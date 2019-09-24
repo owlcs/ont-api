@@ -40,7 +40,7 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("WeakerAccess")
 public class ONTFacetRestrictionImpl
-        extends ONTExpressionImpl<OntFR> implements OWLFacetRestriction, ONTObject<OWLFacetRestriction> {
+        extends ONTExpressionImpl<OntFR> implements OWLFacetRestriction, ModelObject<OWLFacetRestriction> {
 
     public ONTFacetRestrictionImpl(BlankNodeId n, Supplier<OntGraphModel> m) {
         super(n, m);
@@ -105,6 +105,11 @@ public class ONTFacetRestrictionImpl
         return ONTLiteralImpl.find((LiteralLabel) getContent()[1], factory, model);
     }
 
+    @Override
+    public OWLFacetRestriction eraseModel() {
+        return getDataFactory().getOWLFacetRestriction(getFacet(), eraseModel(getFacetValue()));
+    }
+
     public OWLDatatype getDatatype() {
         return getFacetValue().getDatatype();
     }
@@ -163,4 +168,5 @@ public class ONTFacetRestrictionImpl
     public boolean canContainAnonymousIndividuals() {
         return false;
     }
+
 }

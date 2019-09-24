@@ -19,6 +19,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAxiom;
+import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLObject;
 import ru.avicomp.ontapi.DataFactory;
 import ru.avicomp.ontapi.OntManagers;
@@ -26,6 +27,7 @@ import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.internal.ONTObject;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -58,6 +60,19 @@ public class AxiomsTest extends StatementTestBase {
         return false;
     }
 
+    static OWLObject createONTObject(OntologyManager m, OWLAxiom ont) {
+        OntologyModel o = m.createOntology();
+        o.add(ont);
+        o.clearCache();
+        OWLAxiom res = o.axioms().filter(ont::equals).findFirst().orElseThrow(AssertionError::new);
+        Assert.assertTrue(res instanceof ONTObject);
+        return res;
+    }
+
+    private static OWLAxiom createWithAnnotation(OWLAxiom a, OWLDataFactory df) {
+        return a.getAnnotatedAxiom(Collections.singletonList(df.getRDFSComment(AxiomsTest.class.getName())));
+    }
+
     @Override
     OWLObject fromModel() {
         OntologyManager m = OntManagers.createONT();
@@ -65,13 +80,30 @@ public class AxiomsTest extends StatementTestBase {
 
         OWLAxiom ont = (OWLAxiom) data.create(df);
         configure(ont, m);
+        return createONTObject(m, ont);
+    }
 
-        OntologyModel o = m.createOntology();
-        o.add(ont);
-        o.clearCache();
-        OWLAxiom res = o.axioms().filter(ont::equals).findFirst().orElseThrow(AssertionError::new);
-        Assert.assertTrue(res instanceof ONTObject);
-        return res;
+    @Override
+    void testEraseModel(OWLObject sample, OWLObject actual) {
+        super.testEraseModel(sample, actual);
+
+        LOGGER.debug("test NNF for '{}'", data);
+        OWLAxiom expectedNNF = ((OWLAxiom) sample).getNNF();
+        OWLAxiom actualNNF = ((OWLAxiom) actual).getNNF();
+        Assert.assertEquals(expectedNNF, actualNNF);
+        testObjectHasNoModelReference(actualNNF);
+
+        LOGGER.debug("Test axiom without annotation for '{}'", data);
+        OWLAxiom expectedNoAnnotations = ((OWLAxiom) sample).getAxiomWithoutAnnotations();
+        OWLAxiom actualNoAnnotations = ((OWLAxiom) actual).getAxiomWithoutAnnotations();
+        Assert.assertEquals(expectedNoAnnotations, actualNoAnnotations);
+        testObjectHasNoModelReference(actualNoAnnotations);
+
+        LOGGER.debug("Test axiom wit annotation for '{}'", data);
+        OWLAxiom expectedWithAnnotation = createWithAnnotation((OWLAxiom) sample, OWL_DATA_FACTORY);
+        OWLAxiom actualWithAnnotation = createWithAnnotation((OWLAxiom) actual, ONT_DATA_FACTORY);
+        Assert.assertEquals(expectedWithAnnotation, actualWithAnnotation);
+        testObjectHasNoModelReference(actualWithAnnotation);
     }
 
     private void configure(OWLAxiom a, OntologyManager m) {

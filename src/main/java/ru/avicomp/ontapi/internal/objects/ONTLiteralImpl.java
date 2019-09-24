@@ -46,7 +46,7 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("WeakerAccess")
 public class ONTLiteralImpl extends OWLLiteralImpl
-        implements OWLLiteral, HasObjectFactory, ONTComposite, ONTObject<OWLLiteral>, AsRDFNode {
+        implements OWLLiteral, HasObjectFactory, ONTComposite, ModelObject<OWLLiteral>, AsRDFNode {
 
     protected final Supplier<OntGraphModel> model;
 
@@ -76,12 +76,27 @@ public class ONTLiteralImpl extends OWLLiteralImpl
 
     @Override
     public Literal asRDFNode() {
-        return model.get().asRDFNode(asNode()).asLiteral();
+        return getModel().asRDFNode(asNode()).asLiteral();
+    }
+
+    @Override
+    public OWLLiteral getOWLObject() {
+        return this;
+    }
+
+    @Override
+    public OntGraphModel getModel() {
+        return model.get();
+    }
+
+    @Override
+    public OWLLiteral eraseModel() {
+        return getObjectFactory().getOWLDataFactory().getOWLLiteral(label);
     }
 
     @Override
     public InternalObjectFactory getObjectFactory() {
-        return HasObjectFactory.getObjectFactory(model.get());
+        return HasObjectFactory.getObjectFactory(getModel());
     }
 
     /**
@@ -92,7 +107,7 @@ public class ONTLiteralImpl extends OWLLiteralImpl
      * @see OntGraphModel#getDatatype(Literal)
      */
     public OntDT getDatatypeResource() {
-        return PersonalityModel.asPersonalityModel(model.get())
+        return PersonalityModel.asPersonalityModel(getModel())
                 .getNodeAs(NodeFactory.createURI(getDatatypeURI()), OntDT.class);
     }
 
@@ -110,22 +125,9 @@ public class ONTLiteralImpl extends OWLLiteralImpl
     }
 
     @Override
-    public OWLLiteral getOWLObject() {
-        return this;
-    }
-
-    @Override
     public Stream<Triple> triples() {
         OntDT res = getDatatypeResource();
         return res.isBuiltIn() ? Stream.empty() : res.spec().map(FrontsTriple::asTriple);
-    }
-
-    private void writeObject(ObjectOutputStream out) throws IOException {
-        throw new NotSerializableException("Suspicious method call. Serialization is unsupported for ONTLiteral.");
-    }
-
-    private void readObject(ObjectInputStream in) throws Exception {
-        throw new NotSerializableException("Suspicious method call. Deserialization is unsupported for ONTLiteral.");
     }
 
     @Override
@@ -166,5 +168,13 @@ public class ONTLiteralImpl extends OWLLiteralImpl
     @Override
     public boolean canContainAnnotationProperties() {
         return false;
+    }
+
+    private void writeObject(ObjectOutputStream out) throws IOException {
+        throw new NotSerializableException("Suspicious method call. Serialization is unsupported for ONTLiteral.");
+    }
+
+    private void readObject(ObjectInputStream in) throws Exception {
+        throw new NotSerializableException("Suspicious method call. Deserialization is unsupported for ONTLiteral.");
     }
 }
