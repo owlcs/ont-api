@@ -190,33 +190,75 @@ public abstract class ONTAnnotationImpl extends ONTStatementImpl
     /**
      * Creates a {@code Stream} for the object's content in unsafe manner.
      * Note: despite the public modifier, this method is for internal usage only.
-     * The specified object must represent simple {@link ONTStatementImpl triple-object},
-     * that has no structure, and its content contains only annotations.
+     * The content must contain only annotations.
      *
-     * @param object an instance of {@link X}
-     * @param <X>    subtype of {@link WithContent} and {@link ONTStatementImpl}
+     * @param content an {@code Array} with {@link OWLAnnotation}s
      * @return a {@code Stream} of {@link OWLAnnotation}s
      */
     @SuppressWarnings("unchecked")
-    public static <X extends ONTStatementImpl & WithContent> Stream<OWLAnnotation> contentAsStream(X object) {
-        Stream res = Arrays.stream(object.getContent());
+    public static Stream<OWLAnnotation> contentAsStream(Object[] content) {
+        Stream res = Arrays.stream(content);
         return (Stream<OWLAnnotation>) res;
     }
 
     /**
      * Creates a {@code List} for the object's content in unsafe manner.
      * Note: despite the public modifier, this method is for internal usage only.
-     * The specified object must represent simple {@link ONTStatementImpl triple-object},
-     * that has no structure, and its content contains only annotations.
+     * The content must contain only annotations.
      *
-     * @param object an instance of {@link X}
-     * @param <X>    subtype of {@link WithContent} and {@link ONTStatementImpl}
+     * @param content an {@code Array} with {@link OWLAnnotation}s
      * @return a {@code List} of {@link OWLAnnotation}s
      */
     @SuppressWarnings("unchecked")
-    public static <X extends ONTStatementImpl & WithContent> List<OWLAnnotation> contentAsList(X object) {
-        List res = Arrays.asList(object.getContent());
+    public static List<OWLAnnotation> contentAsList(Object[] content) {
+        List res = Arrays.asList(content);
         return (List<OWLAnnotation>) Collections.unmodifiableList(res);
+    }
+
+    /**
+     * Creates a {@code Stream} for the object's content in unsafe manner.
+     * Note: despite the public modifier, this method is for internal usage only.
+     * The content must contain only annotations beginning with the specified index.
+     *
+     * @param content   an {@code Array} with {@link OWLAnnotation}s
+     * @param fromIndex a positive int less then array length - annotation's stating position
+     * @return a {@code Stream} of {@link OWLAnnotation}s
+     */
+    @SuppressWarnings("unchecked")
+    public static Stream<OWLAnnotation> contentAsStream(Object[] content, int fromIndex) {
+        if (!ONTAnnotationImpl.hasAnnotations(content)) {
+            return Stream.empty();
+        }
+        Stream res = Arrays.stream(content, fromIndex, content.length);
+        return (Stream<OWLAnnotation>) res;
+    }
+
+    /**
+     * Creates a {@code List} for the object's content in unsafe manner.
+     * Note: despite the public modifier, this method is for internal usage only.
+     * The content must contain only annotations beginning with the specified index.
+     *
+     * @param content   an {@code Array} with {@link OWLAnnotation}s
+     * @param fromIndex a positive int less then array length - annotation's stating position
+     * @return a {@code List} of {@link OWLAnnotation}s
+     */
+    @SuppressWarnings("unchecked")
+    public static List<OWLAnnotation> contentAsList(Object[] content, int fromIndex) {
+        if (!ONTAnnotationImpl.hasAnnotations(content)) {
+            return Collections.emptyList();
+        }
+        List res = Arrays.asList(Arrays.copyOfRange(content, fromIndex, content.length));
+        return (List<OWLAnnotation>) Collections.unmodifiableList(res);
+    }
+
+    /**
+     * Answers {@code true} if the given array contains {@link OWLAnnotation} at its end.
+     *
+     * @param content an {@code Array}, not {@code null}
+     * @return boolean
+     */
+    public static boolean hasAnnotations(Object[] content) {
+        return content[content.length - 1] instanceof OWLAnnotation;
     }
 
     @Override
@@ -484,12 +526,12 @@ public abstract class ONTAnnotationImpl extends ONTStatementImpl
 
         @Override
         public Stream<OWLAnnotation> annotations() {
-            return contentAsStream(this);
+            return contentAsStream(getContent());
         }
 
         @Override
         public List<OWLAnnotation> annotationsAsList() {
-            return contentAsList(this);
+            return contentAsList(getContent());
         }
 
         @Override

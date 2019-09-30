@@ -26,7 +26,10 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.utils.OntModels;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -335,29 +338,21 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
 
             @Override
             public boolean isAnnotated() {
-                return hasAnnotations(getContent());
+                return ONTAnnotationImpl.hasAnnotations(getContent());
             }
 
-            @SuppressWarnings("unchecked")
             @Override
             public Stream<OWLAnnotation> annotations() {
-                Object[] content = getContent();
-                if (!hasAnnotations(content)) {
-                    return Stream.empty();
-                }
-                Stream res = Arrays.stream(content, getAnnotationStartIndex(), content.length);
-                return (Stream<OWLAnnotation>) res;
+                return ONTAnnotationImpl.contentAsStream(getContent(), getAnnotationStartIndex());
             }
 
-            @SuppressWarnings("unchecked")
             @Override
             public List<OWLAnnotation> annotationsAsList() {
-                Object[] content = getContent();
-                if (!hasAnnotations(content)) {
-                    return Collections.emptyList();
-                }
-                List res = Arrays.asList(Arrays.copyOfRange(content, getAnnotationStartIndex(), content.length));
-                return (List<OWLAnnotation>) Collections.unmodifiableList(res);
+                return ONTAnnotationImpl.contentAsList(getContent(), getAnnotationStartIndex());
+            }
+
+            private int getAnnotationStartIndex() {
+                return hasURISubject() ? hasURIObject() ? 0 : 1 : hasURIObject() ? 1 : 2;
             }
 
             @SuppressWarnings("unchecked")
@@ -375,17 +370,6 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
                     res = Stream.concat(Stream.of(findONTSuperClass(content, getObjectFactory())), res);
                 }
                 return (Stream<ONTObject<? extends OWLObject>>) res;
-            }
-
-            private int getAnnotationStartIndex() {
-                int res = 0;
-                if (!hasURISubject()) {
-                    res++;
-                }
-                if (!hasURIObject()) {
-                    res++;
-                }
-                return res;
             }
 
             @Override

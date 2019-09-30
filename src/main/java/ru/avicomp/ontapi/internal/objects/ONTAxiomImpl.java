@@ -78,16 +78,6 @@ public abstract class ONTAxiomImpl<X extends OWLAxiom>
         return res.values();
     }
 
-    /**
-     * Answers {@code true} if the given array contains {@link OWLAnnotation} at the end position.
-     *
-     * @param content an {@code Array}, not {@code null}
-     * @return boolean
-     */
-    protected static boolean hasAnnotations(Object[] content) {
-        return content[content.length - 1] instanceof OWLAnnotation;
-    }
-
     @Override
     public InternalConfig getConfig() {
         return HasConfig.getConfig(getModel());

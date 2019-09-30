@@ -364,12 +364,12 @@ public class AnnotationAssertionTranslator
 
             @Override
             public Stream<OWLAnnotation> annotations() {
-                return ONTAnnotationImpl.contentAsStream(this);
+                return ONTAnnotationImpl.contentAsStream(getContent());
             }
 
             @Override
             public List<OWLAnnotation> annotationsAsList() {
-                return ONTAnnotationImpl.contentAsList(this);
+                return ONTAnnotationImpl.contentAsList(getContent());
             }
 
             @SuppressWarnings("unchecked")
