@@ -312,7 +312,7 @@ public abstract class ONTStatementImpl extends ONTObjectImpl implements OWLObjec
      *
      * @return boolean
      */
-    protected final boolean hasURISubject() {
+    public final boolean hasURISubject() {
         return subject instanceof String;
     }
 
@@ -321,7 +321,7 @@ public abstract class ONTStatementImpl extends ONTObjectImpl implements OWLObjec
      *
      * @return boolean
      */
-    protected final boolean hasURIObject() {
+    public final boolean hasURIObject() {
         return object instanceof String;
     }
 

@@ -41,6 +41,19 @@ public abstract class ONTEntityImpl<X extends OWLEntity>
         super(uri, m);
     }
 
+    /**
+     * Gets the URI of {@link OWLEntity OWL-API Entity}.
+     *
+     * @param e {@link OWLEntity}, not {@code null}
+     * @return String, uri
+     */
+    public static String getURI(OWLEntity e) {
+        if (e instanceof ONTEntityImpl) {
+            return ((ONTEntityImpl) e).getURI();
+        }
+        return e.getIRI().getIRIString();
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     public X getOWLObject() {
@@ -162,7 +175,7 @@ public abstract class ONTEntityImpl<X extends OWLEntity>
         if (hashCode != 0 && entity.hashCode() != hashCode) {
             return false;
         }
-        return getIRI().equals(entity.getIRI());
+        return getURI().equals(entity.getIRI().getIRIString());
     }
 
     @Override

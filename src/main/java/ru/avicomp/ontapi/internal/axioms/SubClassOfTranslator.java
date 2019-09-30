@@ -26,10 +26,7 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.utils.OntModels;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -94,7 +91,8 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
     /**
      * @see ru.avicomp.ontapi.owlapi.axioms.OWLSubClassOfAxiomImpl
      */
-    public abstract static class AxiomImpl extends ONTAxiomImpl<OWLSubClassOfAxiom> implements OWLSubClassOfAxiom {
+    public abstract static class AxiomImpl extends ONTAxiomImpl<OWLSubClassOfAxiom>
+            implements OWLSubClassOfAxiom, WithTwoObjects<OWLClassExpression, OWLClassExpression> {
 
         protected AxiomImpl(Triple t, Supplier<OntGraphModel> m) {
             super(t, m);
@@ -119,33 +117,15 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
                                        Supplier<OntGraphModel> model,
                                        InternalObjectFactory factory,
                                        InternalConfig config) {
-            AxiomImpl res;
-            Object[] content = Complex.collectContent(statement, factory, config);
+            Simple s = new Simple(statement.asTriple(), model);
+            Object[] content = Complex.initContent(s, statement, factory, config);
             if (content == EMPTY) {
-                res = new Simple(statement.asTriple(), model);
-            } else {
-                res = WithContent.addContent(new Complex(statement.asTriple(), model), content);
+                return s;
             }
-            res.hashCode = collectHashCode(res, factory, content);
-            return res;
-        }
-
-        protected static int collectHashCode(AxiomImpl axiom, InternalObjectFactory factory, Object[] content) {
-            int res = axiom.hashIndex();
-            int index = 0;
-            res = OWLObject.hashIteration(res, (axiom.hasURISubject()
-                    ? axiom.findONTSubClass(factory)
-                    : content[index++]).hashCode());
-            res = OWLObject.hashIteration(res, (axiom.hasURIObject()
-                    ? axiom.findONTSuperClass(factory)
-                    : content[index++]).hashCode());
-            return OWLObject.hashIteration(res, hashCode(content, index));
-        }
-
-        @Override
-        public Stream<ONTObject<? extends OWLObject>> objects() {
-            InternalObjectFactory factory = getObjectFactory();
-            return Stream.of(findONTSubClass(factory), findONTSuperClass(factory));
+            Complex c = new Complex(statement.asTriple(), model);
+            c.hashCode = s.hashCode;
+            c.putContent(content);
+            return c;
         }
 
         @FactoryAccessor
@@ -157,33 +137,21 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
 
         @Override
         public OWLClassExpression getSubClass() {
-            return getONTSubClass().getOWLObject();
+            return getONTSubject().getOWLObject();
         }
 
         @Override
         public OWLClassExpression getSuperClass() {
-            return getONTSuperClass().getOWLObject();
+            return getONTObject().getOWLObject();
         }
 
-        /**
-         * Gets the subclass in this axiom.
-         *
-         * @return {@link ONTObject} with {@link OWLClassExpression (Sub) Class Expression}
-         */
-        public abstract ONTObject<? extends OWLClassExpression> getONTSubClass();
-
-        /**
-         * Gets the superclass in this axiom.
-         *
-         * @return {@link ONTObject} with {@link OWLClassExpression (Super) Class Expression}
-         */
-        public abstract ONTObject<? extends OWLClassExpression> getONTSuperClass();
-
-        protected ONTObject<? extends OWLClassExpression> findONTSubClass(InternalObjectFactory factory) {
+        @Override
+        public ONTObject<? extends OWLClassExpression> findONTSubject(InternalObjectFactory factory) {
             return ONTClassImpl.find((String) subject, factory, model);
         }
 
-        protected ONTObject<? extends OWLClassExpression> findONTSuperClass(InternalObjectFactory factory) {
+        @Override
+        public ONTObject<? extends OWLClassExpression> findONTObject(InternalObjectFactory factory) {
             return ONTClassImpl.find((String) object, factory, model);
         }
 
@@ -211,41 +179,31 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
                 return false;
             }
 
-            @Override
-            public ONTObject<? extends OWLClassExpression> getONTSubClass() {
-                return findONTSubClass(getObjectFactory());
-            }
-
-            @Override
-            public ONTObject<? extends OWLClassExpression> getONTSuperClass() {
-                return findONTSuperClass(getObjectFactory());
-            }
-
             @SuppressWarnings("unchecked")
-            private Set getOWLClasses() {
+            protected Set getRawComponents() {
                 Set res = createSortedSet();
                 InternalObjectFactory factory = getObjectFactory();
-                res.add(findONTSubClass(factory).getOWLObject());
-                res.add(findONTSuperClass(factory).getOWLObject());
+                res.add(findONTSubject(factory).getOWLObject());
+                res.add(findONTObject(factory).getOWLObject());
                 return res;
             }
 
             @SuppressWarnings("unchecked")
             @Override
             public Set<OWLClass> getNamedClassSet() {
-                return (Set<OWLClass>) getOWLClasses();
+                return (Set<OWLClass>) getRawComponents();
             }
 
             @SuppressWarnings("unchecked")
             @Override
             public Set<OWLClassExpression> getClassExpressionSet() {
-                return (Set<OWLClassExpression>) getOWLClasses();
+                return (Set<OWLClassExpression>) getRawComponents();
             }
 
             @SuppressWarnings("unchecked")
             @Override
             public Set<OWLEntity> getSignatureSet() {
-                return (Set<OWLEntity>) getOWLClasses();
+                return (Set<OWLEntity>) getRawComponents();
             }
 
             @Override
@@ -253,41 +211,38 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
                 if (!entity.isOWLClass()) {
                     return false;
                 }
-                InternalObjectFactory factory = getObjectFactory();
-                if (findONTSubClass(factory).equals(entity)) {
-                    return true;
-                }
-                return findONTSuperClass(factory).equals(entity);
+                String uri = ONTEntityImpl.getURI(entity);
+                return subject.equals(uri) || object.equals(uri);
             }
 
             @Override
-            public Set<OWLDatatype> getDatatypeSet() {
-                return createSet();
+            public boolean canContainDatatypes() {
+                return false;
             }
 
             @Override
-            public Set<OWLNamedIndividual> getNamedIndividualSet() {
-                return createSet();
+            public boolean canContainNamedIndividuals() {
+                return false;
             }
 
             @Override
-            public Set<OWLDataProperty> getDataPropertySet() {
-                return createSet();
+            public boolean canContainDataProperties() {
+                return false;
             }
 
             @Override
-            public Set<OWLObjectProperty> getObjectPropertySet() {
-                return createSet();
+            public boolean canContainObjectProperties() {
+                return false;
             }
 
             @Override
-            public Set<OWLAnnotationProperty> getAnnotationPropertySet() {
-                return createSet();
+            public boolean canContainAnnotationProperties() {
+                return false;
             }
 
             @Override
-            public Set<OWLAnonymousIndividual> getAnonymousIndividualSet() {
-                return createSet();
+            public boolean canContainAnonymousIndividuals() {
+                return false;
             }
         }
 
@@ -296,7 +251,9 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
          * that either has annotations or anonymous class expressions in subject or object positions.
          * It has a public constructor since it is more generic then {@link Simple}.
          */
-        public static class Complex extends AxiomImpl implements WithContent<Complex> {
+        public static class Complex extends AxiomImpl
+                implements WithContent<Complex, OWLClassExpression, OWLClassExpression> {
+
             protected final InternalCache.Loading<Complex, Object[]> content;
 
             public Complex(Triple t, Supplier<OntGraphModel> m) {
@@ -304,35 +261,84 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
                 this.content = createContentCache();
             }
 
+            /**
+             * Calculates the object's content.
+             * The method is called while cache restoring.
+             *
+             * @param statement {@link OntStatement}, the source statement, not {@code null}
+             * @param factory   {@link InternalObjectFactory}, not {@code null}
+             * @param config    {@link InternalConfig}, not {@code null}
+             * @return an {@code Array}
+             */
             protected static Object[] collectContent(OntStatement statement,
                                                      InternalObjectFactory factory,
                                                      InternalConfig config) {
+                List<ONTObject> res = new ArrayList<>(2);
+                if (!statement.getSubject().isURIResource()) {
+                    res.add(factory.getClass(statement.getSubject(OntCE.class)));
+                }
+                if (!statement.getObject().isURIResource()) {
+                    res.add(factory.getClass(statement.getObject(OntCE.class)));
+                }
+                res.addAll(collectAnnotations(statement, factory, config));
+                if (res.isEmpty()) {
+                    return EMPTY;
+                }
+                return res.toArray();
+            }
+
+            /**
+             * Calculates the content and {@code hashCode} simultaneously.
+             * Such a way was chosen for performance sake.
+             *
+             * @param axiom     {@link AxiomImpl} the axiom, not {@code null}
+             * @param statement {@link OntStatement}, the source statement, not {@code null}
+             * @param factory   {@link InternalObjectFactory}, not {@code null}
+             * @param config    {@link InternalConfig}, not {@code null}
+             * @return an {@code Array}
+             */
+            protected static Object[] initContent(AxiomImpl axiom,
+                                                  OntStatement statement,
+                                                  InternalObjectFactory factory,
+                                                  InternalConfig config) {
                 Collection annotations = collectAnnotations(statement, factory, config);
                 int size = annotations.size();
                 Object subject = null;
-                if (!statement.getSubject().isURIResource()) {
+                int hash = axiom.hashIndex();
+                if (statement.getSubject().isURIResource()) {
+                    hash = OWLObject.hashIteration(hash, axiom.findONTSubject(factory).hashCode());
+                } else {
                     size++;
                     subject = factory.getClass(statement.getSubject(OntCE.class));
+                    hash = OWLObject.hashIteration(hash, subject.hashCode());
                 }
                 Object object = null;
-                if (!statement.getObject().isURIResource()) {
+                if (statement.getObject().isURIResource()) {
+                    hash = OWLObject.hashIteration(hash, axiom.findONTObject(factory).hashCode());
+                } else {
                     size++;
                     object = factory.getClass(statement.getObject(OntCE.class));
+                    hash = OWLObject.hashIteration(hash, object.hashCode());
                 }
+                int h = 1;
+                Object[] res;
                 if (size == 0) {
-                    return EMPTY;
+                    res = EMPTY;
+                } else {
+                    res = new Object[size];
+                    int index = 0;
+                    if (subject != null) {
+                        res[index++] = subject;
+                    }
+                    if (object != null) {
+                        res[index++] = object;
+                    }
+                    for (Object a : annotations) {
+                        res[index++] = a;
+                        h = 31 * h + a.hashCode();
+                    }
                 }
-                Object[] res = new Object[size];
-                int index = 0;
-                if (subject != null) {
-                    res[index++] = subject;
-                }
-                if (object != null) {
-                    res[index++] = object;
-                }
-                for (Object a : annotations) {
-                    res[index++] = a;
-                }
+                axiom.hashCode = OWLObject.hashIteration(hash, h);
                 return res;
             }
 
@@ -351,58 +357,37 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
                 return ONTAnnotationImpl.contentAsList(getContent(), getAnnotationStartIndex());
             }
 
-            private int getAnnotationStartIndex() {
-                return hasURISubject() ? hasURIObject() ? 0 : 1 : hasURIObject() ? 1 : 2;
-            }
-
-            @SuppressWarnings("unchecked")
-            @Override
-            public Stream<ONTObject<? extends OWLObject>> objects() {
-                Object[] content = getContent();
-                Stream res = Arrays.stream(content);
-                if (hasURISubject()) {
-                    if (hasURIObject()) {
-                        res = Stream.concat(super.objects(), res);
-                    } else {
-                        res = Stream.concat(Stream.of(findONTSubClass(content, getObjectFactory())), res);
-                    }
-                } else if (hasURIObject()) {
-                    res = Stream.concat(Stream.of(findONTSuperClass(content, getObjectFactory())), res);
-                }
-                return (Stream<ONTObject<? extends OWLObject>>) res;
-            }
-
             @Override
             public Object[] collectContent() {
                 return collectContent(asStatement(), getObjectFactory(), getConfig());
             }
 
             @Override
-            public ONTObject<? extends OWLClassExpression> getONTSubClass() {
-                return findONTSubClass(getContent(), getObjectFactory());
+            public ONTObject<? extends OWLClassExpression> findONTSubject(InternalObjectFactory factory) {
+                return findONTSubject(getContent(), factory);
             }
 
             @Override
-            public ONTObject<? extends OWLClassExpression> getONTSuperClass() {
-                return findONTSuperClass(getContent(), getObjectFactory());
+            public ONTObject<? extends OWLClassExpression> findONTObject(InternalObjectFactory factory) {
+                return findONTObject(getContent(), factory);
             }
 
+            @Override
             @SuppressWarnings("unchecked")
-            protected ONTObject<? extends OWLClassExpression> findONTSubClass(Object[] content,
-                                                                              InternalObjectFactory factory) {
-                if (hasURISubject()) {
-                    return findONTSubClass(factory);
-                }
-                return (ONTObject<? extends OWLClassExpression>) content[0];
+            public ONTObject<? extends OWLClassExpression> findONTSubject(Object[] content,
+                                                                          InternalObjectFactory factory) {
+                return hasURISubject() ?
+                        super.findONTSubject(factory) :
+                        (ONTObject<? extends OWLClassExpression>) content[0];
             }
 
+            @Override
             @SuppressWarnings("unchecked")
-            protected ONTObject<? extends OWLClassExpression> findONTSuperClass(Object[] content,
-                                                                                InternalObjectFactory factory) {
-                if (hasURIObject()) {
-                    return findONTSuperClass(factory);
-                }
-                return (ONTObject<? extends OWLClassExpression>) content[hasURISubject() ? 0 : 1];
+            public ONTObject<? extends OWLClassExpression> findONTObject(Object[] content,
+                                                                         InternalObjectFactory factory) {
+                return hasURIObject() ?
+                        super.findONTObject(factory) :
+                        (ONTObject<? extends OWLClassExpression>) content[hasURISubject() ? 0 : 1];
             }
 
             @Override
