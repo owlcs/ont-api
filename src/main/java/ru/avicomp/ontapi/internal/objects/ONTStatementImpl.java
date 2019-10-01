@@ -17,7 +17,6 @@ package ru.avicomp.ontapi.internal.objects;
 import org.apache.jena.graph.*;
 import org.apache.jena.graph.impl.LiteralLabel;
 import org.apache.jena.rdf.model.RDFNode;
-import org.semanticweb.owlapi.model.HasAnnotations;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLObject;
 import ru.avicomp.ontapi.OntApiException;
@@ -39,10 +38,10 @@ import java.util.stream.Stream;
  * @since 1.4.3
  */
 @SuppressWarnings("WeakerAccess")
-public abstract class ONTStatementImpl extends ONTObjectImpl implements OWLObject, HasAnnotations, FrontsTriple {
+public abstract class ONTStatementImpl extends ONTObjectImpl implements WithAnnotations, AsStatement, OWLObject {
 
     // a marker for the case when there is no content cache
-    protected static final Object[] EMPTY = new Object[0];
+    public static final Object[] EMPTY = new Object[0];
 
     protected final Object subject; // b-node-id or string
     protected final String predicate;
@@ -206,41 +205,6 @@ public abstract class ONTStatementImpl extends ONTObjectImpl implements OWLObjec
      */
     protected Node getPredicateNode() {
         return NodeFactory.createURI(predicate);
-    }
-
-    /**
-     * Answers {@code true} if this statement (axiom or annotation) has sub-annotations.
-     *
-     * @return boolean
-     * @see org.semanticweb.owlapi.model.OWLAxiom#isAnnotated()
-     */
-    public boolean isAnnotated() {
-        return false;
-    }
-
-    /**
-     * Lists all {@link OWLAnnotation}s on this object.
-     * The stream must be {@link java.util.Spliterator#ORDERED ordered}, {@link java.util.Spliterator#NONNULL nonull},
-     * {@link java.util.Spliterator#DISTINCT distinct} and {@link java.util.Spliterator#SORTED sorted}.
-     *
-     * @return a {@code Stream} of {@link OWLAnnotation}s
-     * @see org.semanticweb.owlapi.model.HasAnnotations#annotations()
-     */
-    @Override
-    public Stream<OWLAnnotation> annotations() {
-        return Stream.empty();
-    }
-
-    /**
-     * Answers a sorted and distinct {@code List} of {@link OWLAnnotation}s on this object.
-     * The returned {@code List} is unmodifiable.
-     *
-     * @return a unmodifiable {@code List} of {@link OWLAnnotation}s
-     * @see org.semanticweb.owlapi.model.HasAnnotations#annotationsAsList()
-     */
-    @Override
-    public List<OWLAnnotation> annotationsAsList() {
-        return Collections.emptyList();
     }
 
     /**

@@ -85,7 +85,7 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
      * @param <X> subtype of {@link Comparable}
      * @return a {@code Set}
      */
-    protected static <X extends Comparable> Set<X> createSortedSet() {
+    public static <X extends Comparable> Set<X> createSortedSet() {
         return new TreeSet<>();
     }
 
@@ -96,7 +96,7 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
      * @param <X>        anything
      * @return a {@code Set}
      */
-    protected static <X> Set<X> createSortedSet(Comparator<X> comparator) {
+    public static <X> Set<X> createSortedSet(Comparator<X> comparator) {
         return new TreeSet<>(comparator);
     }
 

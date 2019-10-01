@@ -14,19 +14,26 @@
 
 package ru.avicomp.ontapi.internal.axioms;
 
+import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
-import ru.avicomp.ontapi.internal.HasObjectFactory;
-import ru.avicomp.ontapi.internal.InternalObjectFactory;
-import ru.avicomp.ontapi.internal.ONTObject;
-import ru.avicomp.ontapi.internal.objects.ONTComposite;
+import ru.avicomp.ontapi.internal.*;
+import ru.avicomp.ontapi.internal.objects.*;
+import ru.avicomp.ontapi.jena.model.OntStatement;
+import ru.avicomp.ontapi.owlapi.OWLObjectImpl;
 
-import java.util.Arrays;
+import java.util.*;
 import java.util.stream.Stream;
 
 /**
  * A technical interface that describes an axiom based on a single (main) triple with constant predicate.
- * Just to avoid copy-pasting.
+ * Such an axiom has two operands ({@link S subject} and {@link O object})
+ * and corresponds to the triple pattern {@code S predicate O},
+ * where {@code predicate} is a fixed constant from OWL, RDF or RDFS vocabularies
+ * (e.g. {@link org.apache.jena.vocabulary.RDFS#subClassOf}).
+ * <p>
+ * Note: for internal usage only, it is just to avoid copy-pasting.
+ * <p>
  * Created by @ssz on 30.09.2019.
  *
  * @param <S> - any subtype of {@link OWLObject} (the type of triple's subject)
@@ -34,37 +41,67 @@ import java.util.stream.Stream;
  * @since 1.4.3
  */
 interface WithTwoObjects<S extends OWLObject, O extends OWLObject>
-        extends ONTComposite, HasObjectFactory {
+        extends AsStatement, WithAnnotations, ONTComposite, HasObjectFactory, HasConfig, OWLAxiom {
 
     /**
-     * Finds the {@link ONTObject} that matches the triple's subject using the given factory.
+     * Assigns new {@code hashCode}.
+     * Note: this is for internal usage only.
+     *
+     * @param hashCode int
+     */
+    void setHashCode(int hashCode);
+
+    /**
+     * Finds the {@link ONTObject} that matches the triple's subject-uri using the given factory.
      *
      * @param factory {@link InternalObjectFactory}, not {@code null}
      * @return an {@link ONTObject}
+     * @throws ClassCastException in case the subject is not an URI resource
+     */
+    ONTObject<? extends S> findURISubject(InternalObjectFactory factory);
+
+    /**
+     * Finds the {@link ONTObject} that matches the triple's object-uri using the given factory.
+     *
+     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @return an {@link ONTObject}
+     * @throws ClassCastException in case the object is not an URI resource
+     */
+    ONTObject<? extends O> findURIObject(InternalObjectFactory factory);
+
+    /**
+     * Picks the {@link ONTObject} that matches the subject of the given {@code statement} using the {@code factory}.
+     *
+     * @param factory   {@link InternalObjectFactory} to fetch an {@link ONTObject}, not {@code null}
+     * @param statement {@link OntStatement}, the source to parse, not {@code null}
+     * @return an {@link ONTObject} that can be seen as wrapper of {@link S}
+     */
+    ONTObject<? extends S> fetchONTSubject(InternalObjectFactory factory, OntStatement statement);
+
+    /**
+     * Picks the {@link ONTObject} that matches the object of the given {@code statement} using the {@code factory}.
+     *
+     * @param factory   {@link InternalObjectFactory} to fetch an {@link ONTObject}, not {@code null}
+     * @param statement {@link OntStatement}, the source to parse, not {@code null}
+     * @return an {@link ONTObject} that can be seen as wrapper of {@link O}
+     */
+    ONTObject<? extends O> fetchONTObject(InternalObjectFactory factory, OntStatement statement);
+
+    /**
+     * Finds the {@link ONTObject} that matches the subject using the {@code factory}.
+     *
+     * @param factory {@link InternalObjectFactory} to fetch an {@link ONTObject}, not {@code null}
+     * @return an {@link ONTObject} that can be seen as wrapper of {@link S}
      */
     ONTObject<? extends S> findONTSubject(InternalObjectFactory factory);
 
     /**
-     * Finds the {@link ONTObject} that matches the triple's object using the given factory.
+     * Finds the {@link ONTObject} that matches the object using the {@code factory}.
      *
-     * @param factory {@link InternalObjectFactory}, not {@code null}
-     * @return an {@link ONTObject}
+     * @param factory {@link InternalObjectFactory} to fetch an {@link ONTObject}, not {@code null}
+     * @return an {@link ONTObject} that can be seen as wrapper of {@link O}
      */
     ONTObject<? extends O> findONTObject(InternalObjectFactory factory);
-
-    /**
-     * Answers {@code true} iff the subject is an URI resource.
-     *
-     * @return boolean
-     */
-    boolean hasURIObject();
-
-    /**
-     * Answers {@code true} iff the object is an URI resource.
-     *
-     * @return boolean
-     */
-    boolean hasURISubject();
 
     /**
      * Gets the subject from the base triple of this axiom.
@@ -91,32 +128,147 @@ interface WithTwoObjects<S extends OWLObject, O extends OWLObject>
     }
 
     /**
-     * For this class it is assumed that content contains only b-nodes and annotations, named objects are not cached.
+     * Gets the triple components as a {@code Set}.
      *
-     * @param <A> - any subtype of {@link OWLAxiom}
+     * @return a sorted {@code Set} of {@link OWLObject}s
+     */
+    default Set<? extends OWLObject> getOWLComponentsAsSet() {
+        InternalObjectFactory factory = getObjectFactory();
+        Set<OWLObject> res = OWLObjectImpl.createSortedSet();
+        res.add(findONTSubject(factory).getOWLObject());
+        res.add(findONTObject(factory).getOWLObject());
+        return res;
+    }
+
+    /**
+     * Represents the simplest case when the axiom has no annotations
+     * and the subject and object of its main triple are URI resources.
+     *
      * @param <S> - any subtype of {@link OWLObject} (the type of triple's subject)
      * @param <O> - any subtype of {@link OWLObject} (the type of triple's object)
      */
-    interface WithContent<A extends OWLAxiom, S extends OWLObject, O extends OWLObject>
-            extends WithTwoObjects<S, O>, ru.avicomp.ontapi.internal.objects.WithContent<A> {
+    interface Simple<S extends OWLObject, O extends OWLObject> extends WithTwoObjects<S, O>, WithoutAnnotations {
+        @Override
+        default boolean isAnnotated() {
+            return false;
+        }
+
+        @Override
+        default ONTObject<? extends S> findONTSubject(InternalObjectFactory factory) {
+            return findURISubject(factory);
+        }
+
+        @Override
+        default ONTObject<? extends O> findONTObject(InternalObjectFactory factory) {
+            return findURIObject(factory);
+        }
+    }
+
+    /**
+     * For a class that implements this interface it is assumed
+     * that the content contains only b-nodes and annotations,
+     * named objects (which correspond to the main triple) are not cached.
+     *
+     * @param <A> - any subtype of {@link OWLAxiom} which is implemented by the instance of this interface
+     * @param <S> - any subtype of {@link OWLObject} (the type of main triple's subject)
+     * @param <O> - any subtype of {@link OWLObject} (the type of main triple's object)
+     */
+    interface WithOrderedContent<A extends OWLAxiom, S extends OWLObject, O extends OWLObject>
+            extends WithTwoObjects<S, O>, WithContent<A> {
 
         /**
-         * Finds the {@link ONTObject} that matches the triple's subject using the given factory and content array.
+         * Calculates the content and {@code hashCode} simultaneously.
+         * Such a way was chosen for performance sake.
          *
-         * @param content an {@code Array} with content
-         * @param factory {@link InternalObjectFactory}, not {@code null}
-         * @return an {@link ONTObject}
+         * @param axiom     {@link SubClassOfTranslator.AxiomImpl} the axiom, not {@code null}
+         * @param statement {@link OntStatement}, the source statement, not {@code null}
+         * @param factory   {@link InternalObjectFactory}, not {@code null}
+         * @param config    {@link InternalConfig}, not {@code null}
+         * @return an {@code Array} with content
          */
-        ONTObject<? extends S> findONTSubject(Object[] content, InternalObjectFactory factory);
+        static Object[] initContent(WithTwoObjects axiom,
+                                    OntStatement statement,
+                                    InternalObjectFactory factory,
+                                    InternalConfig config) {
+            Collection annotations = ONTAxiomImpl.collectAnnotations(statement, factory, config);
+            int size = annotations.size();
+            Object subject = null;
+            int hash = axiom.hashIndex();
+            if (statement.getSubject().isURIResource()) {
+                hash = OWLObject.hashIteration(hash, axiom.findURISubject(factory).hashCode());
+            } else {
+                size++;
+                subject = axiom.fetchONTSubject(factory, statement);
+                hash = OWLObject.hashIteration(hash, subject.hashCode());
+            }
+            Object object = null;
+            if (statement.getObject().isURIResource()) {
+                hash = OWLObject.hashIteration(hash, axiom.findURIObject(factory).hashCode());
+            } else {
+                size++;
+                object = axiom.fetchONTObject(factory, statement);
+                hash = OWLObject.hashIteration(hash, object.hashCode());
+            }
+            int h = 1;
+            Object[] res;
+            if (size == 0) {
+                res = ONTStatementImpl.EMPTY;
+            } else {
+                res = new Object[size];
+                int index = 0;
+                if (subject != null) {
+                    res[index++] = subject;
+                }
+                if (object != null) {
+                    res[index++] = object;
+                }
+                for (Object a : annotations) {
+                    res[index++] = a;
+                    h = 31 * h + a.hashCode();
+                }
+            }
+            axiom.setHashCode(OWLObject.hashIteration(hash, h));
+            return res;
+        }
 
-        /**
-         * Finds the {@link ONTObject} that matches the triple's object using the given factory and content array.
-         *
-         * @param content an {@code Array} with content
-         * @param factory {@link InternalObjectFactory}, not {@code null}
-         * @return an {@link ONTObject}
-         */
-        ONTObject<? extends O> findONTObject(Object[] content, InternalObjectFactory factory);
+        @Override
+        default Object[] collectContent() {
+            OntStatement statement = asStatement();
+            InternalObjectFactory factory = getObjectFactory();
+            List<ONTObject> res = new ArrayList<>(2);
+            if (!statement.getSubject().isURIResource()) {
+                res.add(fetchONTSubject(factory, statement));
+            }
+            if (!statement.getObject().isURIResource()) {
+                res.add(fetchONTObject(factory, statement));
+            }
+            res.addAll(ONTAxiomImpl.collectAnnotations(statement, factory, getConfig()));
+            if (res.isEmpty()) {
+                return ONTStatementImpl.EMPTY;
+            }
+            return res.toArray();
+        }
+
+        @Override
+        default ONTObject<? extends S> findONTSubject(InternalObjectFactory factory) {
+            return findONTSubject(factory, getContent());
+        }
+
+        @Override
+        default ONTObject<? extends O> findONTObject(InternalObjectFactory factory) {
+            return findONTObject(factory, getContent());
+        }
+
+        @SuppressWarnings("unchecked")
+        default ONTObject<? extends S> findONTSubject(InternalObjectFactory factory, Object[] content) {
+            return hasURISubject() ? findURISubject(factory) : (ONTObject<? extends S>) content[0];
+        }
+
+        @SuppressWarnings("unchecked")
+        default ONTObject<? extends O> findONTObject(InternalObjectFactory factory, Object[] content) {
+            return hasURIObject() ? findURIObject(factory)
+                    : (ONTObject<? extends O>) content[hasURISubject() ? 0 : 1];
+        }
 
         /**
          * Returns {@code 0}, {@code 1} or {@code 2} depending on base triple:
@@ -136,17 +288,40 @@ interface WithTwoObjects<S extends OWLObject, O extends OWLObject>
             Stream objects = null;
             Stream res = Arrays.stream(content);
             if (hasURISubject()) {
-                if (hasURIObject()) {
-                    InternalObjectFactory factory = getObjectFactory();
-                    objects = Stream.of(findONTSubject(content, factory), findONTObject(content, factory));
-                } else {
-                    objects = Stream.of(findONTSubject(content, getObjectFactory()));
-                }
+                InternalObjectFactory factory = getObjectFactory();
+                objects = hasURIObject() ?
+                        Stream.of(findURISubject(factory), findURIObject(factory)) :
+                        Stream.of(findURISubject(factory));
             } else if (hasURIObject()) {
-                objects = Stream.of(findONTObject(content, getObjectFactory()));
+                objects = Stream.of(findURIObject(getObjectFactory()));
             }
             res = objects != null ? Stream.concat(objects, res) : res;
             return (Stream<ONTObject<? extends OWLObject>>) res;
+        }
+
+        @Override
+        default Set<? extends OWLObject> getOWLComponentsAsSet() {
+            InternalObjectFactory factory = getObjectFactory();
+            Object[] content = getContent();
+            Set<OWLObject> res = OWLObjectImpl.createSortedSet();
+            res.add(findONTSubject(factory, content).getOWLObject());
+            res.add(findONTObject(factory, content).getOWLObject());
+            return res;
+        }
+
+        @Override
+        default boolean isAnnotated() {
+            return ONTAnnotationImpl.hasAnnotations(getContent());
+        }
+
+        @Override
+        default Stream<OWLAnnotation> annotations() {
+            return ONTAnnotationImpl.contentAsStream(getContent(), getAnnotationStartIndex());
+        }
+
+        @Override
+        default List<OWLAnnotation> annotationsAsList() {
+            return ONTAnnotationImpl.contentAsList(getContent(), getAnnotationStartIndex());
         }
     }
 }

@@ -238,7 +238,7 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
         /**
          * An {@link OWLDeclarationAxiom} that has no annotations.
          */
-        public static class Simple extends AxiomImpl {
+        public static class Simple extends AxiomImpl implements WithoutAnnotations {
 
             protected Simple(Triple t, Supplier<OntGraphModel> m) {
                 super(t, m);
@@ -268,6 +268,11 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
 
             @Override
             public boolean canContainAnonymousIndividuals() {
+                return false;
+            }
+
+            @Override
+            public boolean isAnnotated() {
                 return false;
             }
         }

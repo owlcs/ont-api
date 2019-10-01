@@ -39,7 +39,7 @@ import java.util.stream.Stream;
  * @since 1.4.3
  */
 public abstract class ONTAxiomImpl<X extends OWLAxiom>
-        extends ONTStatementImpl implements OWLAxiom, HasConfig, ModelObject<X> {
+        extends ONTStatementImpl implements WithAnnotations, HasConfig, ModelObject<X>, OWLAxiom {
 
     protected ONTAxiomImpl(Triple t, Supplier<OntGraphModel> m) {
         this(strip(t.getSubject()), t.getPredicate().getURI(), strip(t.getObject()), m);
@@ -70,9 +70,9 @@ public abstract class ONTAxiomImpl<X extends OWLAxiom>
      * of {@link ONTObject}s with {@link OWLAnnotation}s (can be empty if no annotations)
      * @see ONTAnnotationImpl#collectAnnotations(OntStatement, InternalObjectFactory)
      */
-    protected static Collection<ONTObject<OWLAnnotation>> collectAnnotations(OntStatement axiom,
-                                                                             InternalObjectFactory factory,
-                                                                             InternalConfig config) {
+    public static Collection<ONTObject<OWLAnnotation>> collectAnnotations(OntStatement axiom,
+                                                                          InternalObjectFactory factory,
+                                                                          InternalConfig config) {
         Map<OWLAnnotation, ONTObject<OWLAnnotation>> res = new TreeMap<>();
         ReadHelper.listAnnotations(axiom, config, factory).forEachRemaining(x -> WithMerge.add(res, x));
         return res.values();

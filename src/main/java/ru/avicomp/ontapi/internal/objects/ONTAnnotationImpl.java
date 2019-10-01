@@ -391,7 +391,7 @@ public abstract class ONTAnnotationImpl extends ONTStatementImpl
     /**
      * An {@link OWLAnnotation} that has no sub-annotations.
      */
-    public static class Simple extends ONTAnnotationImpl {
+    public static class Simple extends ONTAnnotationImpl implements WithoutAnnotations {
 
         protected Simple(Triple t, Supplier<OntGraphModel> m) {
             this(strip(t.getSubject()), t.getPredicate().getURI(), strip(t.getObject()), m);

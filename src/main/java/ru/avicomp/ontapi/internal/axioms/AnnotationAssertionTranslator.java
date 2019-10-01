@@ -267,7 +267,7 @@ public class AnnotationAssertionTranslator
         /**
          * An {@link OWLAnnotationAssertionAxiom} that has no sub-annotations.
          */
-        public static class Simple extends AxiomImpl {
+        public static class Simple extends AxiomImpl implements WithoutAnnotations {
 
             protected Simple(Triple t, Supplier<OntGraphModel> m) {
                 super(t, m);
@@ -323,6 +323,11 @@ public class AnnotationAssertionTranslator
 
             protected OWLAnonymousIndividual findAnonymousIndividual(ONTObject<? extends OWLAnnotationObject> value) {
                 return value.getOWLObject().asAnonymousIndividual().orElseThrow(OntApiException.IllegalState::new);
+            }
+
+            @Override
+            public boolean isAnnotated() {
+                return false;
             }
         }
 
