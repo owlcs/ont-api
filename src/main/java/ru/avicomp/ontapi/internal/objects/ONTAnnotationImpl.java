@@ -136,7 +136,7 @@ public abstract class ONTAnnotationImpl extends ONTStatementImpl
         if (!(factory instanceof ModelObjectFactory)) {
             return factory.getSubject(statement.getModel().getAnnotationProperty((String) statement.subject));
         }
-        if (statement.hasURISubject()) {
+        if (statement.subject instanceof String) {
             return factory.getIRI((String) statement.subject);
         }
         if (statement.subject instanceof BlankNodeId) {

@@ -15,7 +15,6 @@
 package ru.avicomp.ontapi.internal.objects;
 
 import org.semanticweb.owlapi.model.*;
-import ru.avicomp.ontapi.DataFactory;
 import ru.avicomp.ontapi.internal.HasObjectFactory;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
@@ -44,7 +43,7 @@ import java.util.function.Supplier;
  * @since 1.4.3
  */
 @SuppressWarnings("WeakerAccess")
-abstract class ONTObjectImpl extends OWLObjectImpl implements ONTComposite, HasObjectFactory {
+public abstract class ONTObjectImpl extends OWLObjectImpl implements ONTComposite, HasObjectFactory {
     // reference to a model
     protected final Supplier<OntGraphModel> model;
 
@@ -64,7 +63,7 @@ abstract class ONTObjectImpl extends OWLObjectImpl implements ONTComposite, HasO
      * @param <X> subtype of {@link ONTObject}
      * @return an empty sorted {@code Set} that can contain {@code ONTObject}s.
      */
-    protected static <X extends ONTObject> Set<X> createContentSet() {
+    public static <X extends ONTObject> Set<X> createContentSet() {
         return createSortedSet(Comparator.comparing(ONTObject::getOWLObject));
     }
 
@@ -92,15 +91,6 @@ abstract class ONTObjectImpl extends OWLObjectImpl implements ONTComposite, HasO
     @Override
     public InternalObjectFactory getObjectFactory() {
         return HasObjectFactory.getObjectFactory(getModel());
-    }
-
-    /**
-     * Returns a {@link DataFactory} - the facility to provide static (model free) {@link OWLObject}s.
-     *
-     * @return {@link DataFactory}
-     */
-    protected DataFactory getDataFactory() {
-        return getObjectFactory().getOWLDataFactory();
     }
 
     /**

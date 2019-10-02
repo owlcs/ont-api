@@ -61,7 +61,7 @@ abstract class ObjectFactoryTestBase extends TestFactory {
     abstract OWLObject fromModel();
 
     @Test
-    public void testCompare() {
+    public void testONTObject() {
         OWLObject ont = data.create(ONT_DATA_FACTORY);
         OWLObject owl = data.create(OWL_DATA_FACTORY);
         OWLObject test = fromModel();
@@ -72,8 +72,8 @@ abstract class ObjectFactoryTestBase extends TestFactory {
         testCompare(owl, test);
         testCompare(ont, test);
 
-        testSignatures(owl, test);
-        testEntityContains(owl, test);
+        testComponents(owl, test);
+        testBooleanProperties(owl, test);
         testEraseModel(owl, test);
         testContent(owl, test);
     }
@@ -93,7 +93,7 @@ abstract class ObjectFactoryTestBase extends TestFactory {
         testObjectHasNoModelReference(factoryObject);
     }
 
-    void testSignatures(OWLObject expected, OWLObject actual) {
+    void testComponents(OWLObject expected, OWLObject actual) {
         LOGGER.debug("Test signature for '{}'", data);
         validate(expected, actual, "signature", HasSignature::signature);
         validate(expected, actual, "classes", HasClassesInSignature::classesInSignature);
@@ -107,16 +107,16 @@ abstract class ObjectFactoryTestBase extends TestFactory {
         validate(expected, actual, "object properties", HasObjectPropertiesInSignature::objectPropertiesInSignature);
     }
 
-    void validate(OWLObject expected,
-                  OWLObject actual,
-                  String msg,
-                  Function<OWLObject, Stream<? extends OWLObject>> get) {
+    <X extends OWLObject> void validate(X expected,
+                                        X actual,
+                                        String msg,
+                                        Function<X, Stream<? extends OWLObject>> get) {
         List<? extends OWLObject> expectedList = get.apply(expected).collect(Collectors.toList());
         List<? extends OWLObject> actualList = get.apply(actual).collect(Collectors.toList());
         Assert.assertEquals("Wrong " + msg + ":", expectedList, actualList);
     }
 
-    void testEntityContains(OWLObject expected, OWLObject actual) {
+    void testBooleanProperties(OWLObject expected, OWLObject actual) {
         LOGGER.debug("Test contains for '{}'", data);
         expected.signature().forEach(x -> Assert.assertTrue(actual.containsEntityInSignature(x)));
         Assert.assertFalse(actual.containsEntityInSignature(OWL_DATA_FACTORY.getOWLClass(TEST_NS, "C")));

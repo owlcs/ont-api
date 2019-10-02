@@ -93,7 +93,7 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
      * @see ru.avicomp.ontapi.owlapi.axioms.OWLSubClassOfAxiomImpl
      */
     public abstract static class AxiomImpl extends ONTAxiomImpl<OWLSubClassOfAxiom>
-            implements WithTwoObjects<OWLClassExpression, OWLClassExpression>, OWLSubClassOfAxiom {
+            implements WithTwoObjects.Unary<OWLClassExpression>, OWLSubClassOfAxiom {
 
         protected AxiomImpl(Triple t, Supplier<OntGraphModel> m) {
             super(t, m);
@@ -119,7 +119,7 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
                                        InternalObjectFactory factory,
                                        InternalConfig config) {
             SimpleImpl s = new SimpleImpl(statement.asTriple(), model);
-            Object[] content = WithOrderedContent.initContent(s, statement, factory, config);
+            Object[] content = WithPartialContent.initContent(s, statement, SET_HASH_CODE, factory, config);
             if (content == EMPTY) {
                 return s;
             }
@@ -147,29 +147,19 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
         }
 
         @Override
-        public void setHashCode(int hashCode) {
-            this.hashCode = hashCode;
+        public ONTObject<? extends OWLClassExpression> findByURI(String uri, InternalObjectFactory factory) {
+            return ONTClassImpl.find(uri, factory, model);
         }
 
         @Override
-        public ONTObject<? extends OWLClassExpression> findURISubject(InternalObjectFactory factory) {
-            return ONTClassImpl.find((String) subject, factory, model);
-        }
-
-        @Override
-        public ONTObject<? extends OWLClassExpression> findURIObject(InternalObjectFactory factory) {
-            return ONTClassImpl.find((String) object, factory, model);
-        }
-
-        @Override
-        public ONTObject<? extends OWLClassExpression> fetchONTSubject(InternalObjectFactory factory,
-                                                                       OntStatement statement) {
+        public ONTObject<? extends OWLClassExpression> fetchONTSubject(OntStatement statement,
+                                                                       InternalObjectFactory factory) {
             return factory.getClass(statement.getSubject(OntCE.class));
         }
 
         @Override
-        public ONTObject<? extends OWLClassExpression> fetchONTObject(InternalObjectFactory factory,
-                                                                      OntStatement statement) {
+        public ONTObject<? extends OWLClassExpression> fetchONTObject(OntStatement statement,
+                                                                      InternalObjectFactory factory) {
             return factory.getClass(statement.getObject(OntCE.class));
         }
 
@@ -186,7 +176,7 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
         /**
          * An {@link OWLSubClassOfAxiom} that has named classes as subject and object and has no annotations.
          */
-        public static class SimpleImpl extends AxiomImpl implements Simple<OWLClassExpression, OWLClassExpression> {
+        public static class SimpleImpl extends AxiomImpl implements UnarySimple<OWLClassExpression> {
 
             protected SimpleImpl(Triple t, Supplier<OntGraphModel> m) {
                 super(t, m);
@@ -261,13 +251,18 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
          * It has a public constructor since it is more generic then {@link SimpleImpl}.
          */
         public static class ComplexImpl extends AxiomImpl
-                implements WithOrderedContent<ComplexImpl, OWLClassExpression, OWLClassExpression> {
+                implements UnaryWithContent<ComplexImpl, OWLClassExpression> {
 
             protected final InternalCache.Loading<ComplexImpl, Object[]> content;
 
             public ComplexImpl(Triple t, Supplier<OntGraphModel> m) {
                 super(t, m);
                 this.content = createContentCache();
+            }
+
+            @Override
+            public InternalCache.Loading<ComplexImpl, Object[]> getContentCache() {
+                return content;
             }
 
             @Override
@@ -288,11 +283,6 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
                 }
                 // no #sameTriple(), since it can contain b-nodes
                 return sameContent(other);
-            }
-
-            @Override
-            public InternalCache.Loading<ComplexImpl, Object[]> getContentCache() {
-                return content;
             }
         }
     }

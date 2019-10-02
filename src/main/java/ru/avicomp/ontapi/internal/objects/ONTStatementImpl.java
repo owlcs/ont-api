@@ -110,7 +110,7 @@ public abstract class ONTStatementImpl extends ONTObjectImpl implements WithAnno
             return 1;
         int res = 1;
         for (int i = startIndex; i < array.length; i++) {
-            res = 31 * res + array[i].hashCode();
+            res = WithContent.hashIteration(res, array[i].hashCode());
         }
         return res;
     }
@@ -269,24 +269,6 @@ public abstract class ONTStatementImpl extends ONTObjectImpl implements WithAnno
      */
     protected final boolean sameObject(ONTStatementImpl other) {
         return object.equals(other.object);
-    }
-
-    /**
-     * Answers {@code true} iff this triple (SPO) has an URI subject.
-     *
-     * @return boolean
-     */
-    public final boolean hasURISubject() {
-        return subject instanceof String;
-    }
-
-    /**
-     * Answers {@code true} iff this triple (SPO) has an URI object.
-     *
-     * @return boolean
-     */
-    public final boolean hasURIObject() {
-        return object instanceof String;
     }
 
     /**

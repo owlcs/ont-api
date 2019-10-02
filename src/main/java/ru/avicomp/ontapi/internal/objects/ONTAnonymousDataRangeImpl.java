@@ -308,12 +308,12 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
             res[0] = dt.getURI();
             int hash = OWLObject.hashIteration(hashIndex(), factory.getDatatype(dt).hashCode());
             int index = 1;
-            int arrayHash = 1;
+            int h = 1;
             for (ONTObject<OWLFacetRestriction> op : members) {
                 res[index++] = op;
-                arrayHash = 31 * arrayHash + op.hashCode();
+                h = WithContent.hashIteration(h, op.hashCode());
             }
-            this.hashCode = OWLObject.hashIteration(hash, arrayHash);
+            this.hashCode = OWLObject.hashIteration(hash, h);
             return res;
         }
 
@@ -493,7 +493,7 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
             int hash = 1;
             for (ONTObject<? extends OWL_M> op : operands) {
                 res[index++] = toContentItem(op);
-                hash = 31 * hash + op.hashCode();
+                hash = WithContent.hashIteration(hash, op.hashCode());
             }
             this.hashCode = OWLObject.hashIteration(hashIndex(), hash);
             return res;

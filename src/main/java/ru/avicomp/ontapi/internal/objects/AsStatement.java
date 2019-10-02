@@ -49,21 +49,4 @@ public interface AsStatement extends FrontsTriple {
         return asStatement().asTriple();
     }
 
-    /**
-     * Answers {@code true} iff the subject is an URI resource.
-     *
-     * @return boolean
-     */
-    default boolean hasURIObject() {
-        return asTriple().getObject().isURI();
-    }
-
-    /**
-     * Answers {@code true} iff the object is an URI resource.
-     *
-     * @return boolean
-     */
-    default boolean hasURISubject() {
-        return asTriple().getSubject().isURI();
-    }
 }

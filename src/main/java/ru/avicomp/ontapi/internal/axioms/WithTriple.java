@@ -12,48 +12,60 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 
-package ru.avicomp.ontapi.internal;
+package ru.avicomp.ontapi.internal.axioms;
 
-import ru.avicomp.ontapi.DataFactory;
-import ru.avicomp.ontapi.OntApiException;
-import ru.avicomp.ontapi.jena.model.OntGraphModel;
+import org.semanticweb.owlapi.model.OWLAxiom;
+import ru.avicomp.ontapi.internal.HasConfig;
+import ru.avicomp.ontapi.internal.HasObjectFactory;
+import ru.avicomp.ontapi.internal.objects.AsStatement;
+import ru.avicomp.ontapi.internal.objects.ONTComposite;
+import ru.avicomp.ontapi.internal.objects.WithAnnotations;
 
 /**
- * An abstract {@link InternalObjectFactory} holder.
- * Created by @ssz on 07.08.2019.
+ * Provides an access to main triple's parts.
+ * <p>
+ * Created by @ssz on 02.10.2019.
  *
  * @since 1.4.3
  */
-public interface HasObjectFactory {
+interface WithTriple extends AsStatement, WithAnnotations, ONTComposite, HasObjectFactory, HasConfig, OWLAxiom {
 
     /**
-     * Returns the {@code InternalDataFactory}, that is a helper (possibly, with cache) to read OWL-API objects.
+     * Answers {@code true} iff the subject is an URI resource.
      *
-     * @return {@link InternalObjectFactory}
+     * @return boolean
      */
-    InternalObjectFactory getObjectFactory();
-
-    /**
-     * Returns a {@link DataFactory} -
-     * the facility to provide static (model free) {@link org.semanticweb.owlapi.model.OWLObject}s.
-     *
-     * @return {@link DataFactory}
-     */
-    default DataFactory getDataFactory() {
-        return getObjectFactory().getOWLDataFactory();
+    default boolean hasURIObject() {
+        return asTriple().getObject().isURI();
     }
 
     /**
-     * Gets the ONT-API Object Factory from the model's internals if possible, otherwise throws an exception.
+     * Answers {@code true} iff the object is an URI resource.
      *
-     * @param model {@link OntGraphModel}, not {@code null}
-     * @return {@link InternalObjectFactory}
-     * @throws OntApiException.IllegalArgument in case the model does not provide the object factory
+     * @return boolean
      */
-    static InternalObjectFactory getObjectFactory(OntGraphModel model) {
-        if (model instanceof HasObjectFactory) {
-            return ((HasObjectFactory) model).getObjectFactory();
-        }
-        throw new OntApiException.IllegalArgument("The given model has no object factory");
+    default boolean hasURISubject() {
+        return asTriple().getSubject().isURI();
     }
+
+    /**
+     * Answers an URI of the triple's subject.
+     *
+     * @return URI of the subject
+     * @throws RuntimeException in case the main triple has no subject uri (b-node instead)
+     */
+    default String getSubjectURI() {
+        return asTriple().getSubject().getURI();
+    }
+
+    /**
+     * Answers an URI of the triple's object.
+     *
+     * @return URI of the object
+     * @throws RuntimeException in case the main triple has no object uri (b-node or literal instead)
+     */
+    default String getObjectURI() {
+        return asTriple().getObject().getURI();
+    }
+
 }

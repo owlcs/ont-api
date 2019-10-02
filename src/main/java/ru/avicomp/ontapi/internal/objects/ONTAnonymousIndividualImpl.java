@@ -82,7 +82,7 @@ public class ONTAnonymousIndividualImpl extends OWLAnonymousIndividualImpl
 
     @Override
     public OWLAnonymousIndividual eraseModel() {
-        return getObjectFactory().getOWLDataFactory().getOWLAnonymousIndividual(id);
+        return getDataFactory().getOWLAnonymousIndividual(id);
     }
 
     @Override

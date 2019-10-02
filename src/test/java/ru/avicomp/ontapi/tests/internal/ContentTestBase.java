@@ -51,7 +51,7 @@ abstract class ContentTestBase extends ObjectFactoryTestBase {
         Assert.assertFalse(wc.hasContent());
         testCompare(sample, instance);
         Assert.assertTrue(wc.hasContent());
-        testSignatures(sample, instance);
+        testComponents(sample, instance);
     }
 
     private static InternalCache.Loading getContentCache(OWLObject inst) {

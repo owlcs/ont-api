@@ -1170,7 +1170,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             int hash = 1;
             for (ONTObject<? extends OWL_M> op : operands) {
                 res[index++] = toContentItem(op);
-                hash = 31 * hash + op.hashCode();
+                hash = WithContent.hashIteration(hash, op.hashCode());
             }
             this.hashCode = OWLObject.hashIteration(hashIndex(), hash);
             return res;

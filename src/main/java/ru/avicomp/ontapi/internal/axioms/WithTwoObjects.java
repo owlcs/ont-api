@@ -17,12 +17,15 @@ package ru.avicomp.ontapi.internal.axioms;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
-import ru.avicomp.ontapi.internal.*;
+import ru.avicomp.ontapi.internal.InternalConfig;
+import ru.avicomp.ontapi.internal.InternalObjectFactory;
+import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.internal.objects.*;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.owlapi.OWLObjectImpl;
 
 import java.util.*;
+import java.util.function.ObjIntConsumer;
 import java.util.stream.Stream;
 
 /**
@@ -40,16 +43,7 @@ import java.util.stream.Stream;
  * @param <O> - any subtype of {@link OWLObject} (the type of triple's object)
  * @since 1.4.3
  */
-interface WithTwoObjects<S extends OWLObject, O extends OWLObject>
-        extends AsStatement, WithAnnotations, ONTComposite, HasObjectFactory, HasConfig, OWLAxiom {
-
-    /**
-     * Assigns new {@code hashCode}.
-     * Note: this is for internal usage only.
-     *
-     * @param hashCode int
-     */
-    void setHashCode(int hashCode);
+interface WithTwoObjects<S extends OWLObject, O extends OWLObject> extends WithTriple {
 
     /**
      * Finds the {@link ONTObject} that matches the triple's subject-uri using the given factory.
@@ -72,20 +66,20 @@ interface WithTwoObjects<S extends OWLObject, O extends OWLObject>
     /**
      * Picks the {@link ONTObject} that matches the subject of the given {@code statement} using the {@code factory}.
      *
-     * @param factory   {@link InternalObjectFactory} to fetch an {@link ONTObject}, not {@code null}
      * @param statement {@link OntStatement}, the source to parse, not {@code null}
+     * @param factory   {@link InternalObjectFactory} to fetch an {@link ONTObject}, not {@code null}
      * @return an {@link ONTObject} that can be seen as wrapper of {@link S}
      */
-    ONTObject<? extends S> fetchONTSubject(InternalObjectFactory factory, OntStatement statement);
+    ONTObject<? extends S> fetchONTSubject(OntStatement statement, InternalObjectFactory factory);
 
     /**
      * Picks the {@link ONTObject} that matches the object of the given {@code statement} using the {@code factory}.
      *
-     * @param factory   {@link InternalObjectFactory} to fetch an {@link ONTObject}, not {@code null}
      * @param statement {@link OntStatement}, the source to parse, not {@code null}
+     * @param factory   {@link InternalObjectFactory} to fetch an {@link ONTObject}, not {@code null}
      * @return an {@link ONTObject} that can be seen as wrapper of {@link O}
      */
-    ONTObject<? extends O> fetchONTObject(InternalObjectFactory factory, OntStatement statement);
+    ONTObject<? extends O> fetchONTObject(OntStatement statement, InternalObjectFactory factory);
 
     /**
      * Finds the {@link ONTObject} that matches the subject using the {@code factory}.
@@ -173,21 +167,23 @@ interface WithTwoObjects<S extends OWLObject, O extends OWLObject>
      * @param <S> - any subtype of {@link OWLObject} (the type of main triple's subject)
      * @param <O> - any subtype of {@link OWLObject} (the type of main triple's object)
      */
-    interface WithOrderedContent<A extends OWLAxiom, S extends OWLObject, O extends OWLObject>
+    interface WithPartialContent<A extends OWLAxiom, S extends OWLObject, O extends OWLObject>
             extends WithTwoObjects<S, O>, WithContent<A> {
 
         /**
          * Calculates the content and {@code hashCode} simultaneously.
          * Such a way was chosen for performance sake.
          *
-         * @param axiom     {@link SubClassOfTranslator.AxiomImpl} the axiom, not {@code null}
-         * @param statement {@link OntStatement}, the source statement, not {@code null}
-         * @param factory   {@link InternalObjectFactory}, not {@code null}
-         * @param config    {@link InternalConfig}, not {@code null}
+         * @param axiom     - a {@link WithTwoObjects} instance, the axiom, not {@code null}
+         * @param statement - a {@link OntStatement}, the source statement, not {@code null}
+         * @param setHash   - a {@code ObjIntConsumer<OWLAxiom>}, facility to assign {@code hashCode}, not {@code null}
+         * @param factory   - a {@link InternalObjectFactory} singleton, not {@code null}
+         * @param config    - a {@link InternalConfig} singleton, not {@code null}
          * @return an {@code Array} with content
          */
         static Object[] initContent(WithTwoObjects axiom,
                                     OntStatement statement,
+                                    ObjIntConsumer<OWLAxiom> setHash,
                                     InternalObjectFactory factory,
                                     InternalConfig config) {
             Collection annotations = ONTAxiomImpl.collectAnnotations(statement, factory, config);
@@ -198,7 +194,7 @@ interface WithTwoObjects<S extends OWLObject, O extends OWLObject>
                 hash = OWLObject.hashIteration(hash, axiom.findURISubject(factory).hashCode());
             } else {
                 size++;
-                subject = axiom.fetchONTSubject(factory, statement);
+                subject = axiom.fetchONTSubject(statement, factory);
                 hash = OWLObject.hashIteration(hash, subject.hashCode());
             }
             Object object = null;
@@ -206,7 +202,7 @@ interface WithTwoObjects<S extends OWLObject, O extends OWLObject>
                 hash = OWLObject.hashIteration(hash, axiom.findURIObject(factory).hashCode());
             } else {
                 size++;
-                object = axiom.fetchONTObject(factory, statement);
+                object = axiom.fetchONTObject(statement, factory);
                 hash = OWLObject.hashIteration(hash, object.hashCode());
             }
             int h = 1;
@@ -224,10 +220,10 @@ interface WithTwoObjects<S extends OWLObject, O extends OWLObject>
                 }
                 for (Object a : annotations) {
                     res[index++] = a;
-                    h = 31 * h + a.hashCode();
+                    h = WithContent.hashIteration(h, a.hashCode());
                 }
             }
-            axiom.setHashCode(OWLObject.hashIteration(hash, h));
+            setHash.accept(axiom, OWLObject.hashIteration(hash, h));
             return res;
         }
 
@@ -237,10 +233,10 @@ interface WithTwoObjects<S extends OWLObject, O extends OWLObject>
             InternalObjectFactory factory = getObjectFactory();
             List<ONTObject> res = new ArrayList<>(2);
             if (!statement.getSubject().isURIResource()) {
-                res.add(fetchONTSubject(factory, statement));
+                res.add(fetchONTSubject(statement, factory));
             }
             if (!statement.getObject().isURIResource()) {
-                res.add(fetchONTObject(factory, statement));
+                res.add(fetchONTObject(statement, factory));
             }
             res.addAll(ONTAxiomImpl.collectAnnotations(statement, factory, getConfig()));
             if (res.isEmpty()) {
@@ -251,21 +247,21 @@ interface WithTwoObjects<S extends OWLObject, O extends OWLObject>
 
         @Override
         default ONTObject<? extends S> findONTSubject(InternalObjectFactory factory) {
-            return findONTSubject(factory, getContent());
+            return findONTSubject(getContent(), factory);
         }
 
         @Override
         default ONTObject<? extends O> findONTObject(InternalObjectFactory factory) {
-            return findONTObject(factory, getContent());
+            return findONTObject(getContent(), factory);
         }
 
         @SuppressWarnings("unchecked")
-        default ONTObject<? extends S> findONTSubject(InternalObjectFactory factory, Object[] content) {
+        default ONTObject<? extends S> findONTSubject(Object[] content, InternalObjectFactory factory) {
             return hasURISubject() ? findURISubject(factory) : (ONTObject<? extends S>) content[0];
         }
 
         @SuppressWarnings("unchecked")
-        default ONTObject<? extends O> findONTObject(InternalObjectFactory factory, Object[] content) {
+        default ONTObject<? extends O> findONTObject(Object[] content, InternalObjectFactory factory) {
             return hasURIObject() ? findURIObject(factory)
                     : (ONTObject<? extends O>) content[hasURISubject() ? 0 : 1];
         }
@@ -304,8 +300,8 @@ interface WithTwoObjects<S extends OWLObject, O extends OWLObject>
             InternalObjectFactory factory = getObjectFactory();
             Object[] content = getContent();
             Set<OWLObject> res = OWLObjectImpl.createSortedSet();
-            res.add(findONTSubject(factory, content).getOWLObject());
-            res.add(findONTObject(factory, content).getOWLObject());
+            res.add(findONTSubject(content, factory).getOWLObject());
+            res.add(findONTObject(content, factory).getOWLObject());
             return res;
         }
 
@@ -323,5 +319,31 @@ interface WithTwoObjects<S extends OWLObject, O extends OWLObject>
         default List<OWLAnnotation> annotationsAsList() {
             return ONTAnnotationImpl.contentAsList(getContent(), getAnnotationStartIndex());
         }
+    }
+
+    /**
+     * For axioms with main triple that has the subject and object of the same type.
+     *
+     * @param <X> - any subtype of {@link OWLObject} (the type of triple's subject)
+     */
+    interface Unary<X extends OWLObject> extends WithTwoObjects<X, X> {
+
+        ONTObject<? extends X> findByURI(String uri, InternalObjectFactory factory);
+
+        @Override
+        default ONTObject<? extends X> findURISubject(InternalObjectFactory factory) {
+            return findByURI(getSubjectURI(), factory);
+        }
+
+        @Override
+        default ONTObject<? extends X> findURIObject(InternalObjectFactory factory) {
+            return findByURI(getObjectURI(), factory);
+        }
+    }
+
+    interface UnarySimple<X extends OWLObject> extends Unary<X>, Simple<X, X> {
+    }
+
+    interface UnaryWithContent<A extends OWLAxiom, X extends OWLObject> extends Unary<X>, WithPartialContent<A, X, X> {
     }
 }

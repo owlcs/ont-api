@@ -105,4 +105,17 @@ public interface WithContent<X> {
         object.putContent(content);
         return object;
     }
+
+    /**
+     * A helper method that performs an iteration for {@code hashCode}s for an array's member.
+     *
+     * @param a int, previous value (hash)
+     * @param b int, value to add
+     * @return int, new {@code hashCode}
+     * @see java.util.Arrays#hashCode(Object[])
+     * @see org.semanticweb.owlapi.model.OWLObject#hashIteration(int, int)
+     */
+    static int hashIteration(int a, int b) {
+        return 31 * a + b;
+    }
 }

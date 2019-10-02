@@ -26,6 +26,7 @@ import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.function.ObjIntConsumer;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -38,26 +39,21 @@ import java.util.stream.Stream;
  * @see ru.avicomp.ontapi.owlapi.axioms.OWLAxiomImpl
  * @since 1.4.3
  */
+@SuppressWarnings("WeakerAccess")
 public abstract class ONTAxiomImpl<X extends OWLAxiom>
         extends ONTStatementImpl implements WithAnnotations, HasConfig, ModelObject<X>, OWLAxiom {
+
+    /**
+     * A helper to assign new hash code; can accept only {@link ONTAxiomImpl} instance.
+     */
+    protected static final ObjIntConsumer<OWLAxiom> SET_HASH_CODE = (a, h) -> ((ONTAxiomImpl) a).setHashCode(h);
 
     protected ONTAxiomImpl(Triple t, Supplier<OntGraphModel> m) {
         this(strip(t.getSubject()), t.getPredicate().getURI(), strip(t.getObject()), m);
     }
 
-    private ONTAxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+    protected ONTAxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
         super(subject, predicate, object, m);
-    }
-
-    @SuppressWarnings("unchecked")
-    @Override
-    public X getOWLObject() {
-        return (X) this;
-    }
-
-    @Override
-    public X eraseModel() {
-        return createAnnotatedAxiom(factoryAnnotations().collect(Collectors.toList()));
     }
 
     /**
@@ -76,6 +72,65 @@ public abstract class ONTAxiomImpl<X extends OWLAxiom>
         Map<OWLAnnotation, ONTObject<OWLAnnotation>> res = new TreeMap<>();
         ReadHelper.listAnnotations(axiom, config, factory).forEachRemaining(x -> WithMerge.add(res, x));
         return res.values();
+    }
+
+    /**
+     * Assigns new {@code hashCode}.
+     * Note: this is for internal usage only.
+     *
+     * @param hash int
+     */
+    protected void setHashCode(int hash) {
+        this.hashCode = hash;
+    }
+
+    /**
+     * Answers {@code true} iff this triple (SPO) has an URI subject.
+     *
+     * @return boolean
+     */
+    public final boolean hasURISubject() {
+        return subject instanceof String;
+    }
+
+    /**
+     * Answers {@code true} iff this triple (SPO) has an URI object.
+     *
+     * @return boolean
+     */
+    public final boolean hasURIObject() {
+        return object instanceof String;
+    }
+
+    /**
+     * Answers the triple's subject URI or throws an exception.
+     *
+     * @return String, never {@code null}
+     * @throws ClassCastException if the subject is not an URI Resource
+     */
+    public final String getSubjectURI() throws ClassCastException {
+        return (String) subject;
+    }
+
+    /**
+     * Answers the triple's object URI or throws an exception.
+     *
+     * @return String, never {@code null}
+     * @throws ClassCastException if the object is not an URI Resource
+     */
+    public final String getObjectURI() throws ClassCastException {
+        return (String) object;
+    }
+
+    @SuppressWarnings("unchecked")
+    @Override
+    public X getOWLObject() {
+        return (X) this;
+    }
+
+    @Override
+    public X eraseModel() {
+        return createAnnotatedAxiom(factoryAnnotations().collect(Collectors.toList()));
     }
 
     @Override

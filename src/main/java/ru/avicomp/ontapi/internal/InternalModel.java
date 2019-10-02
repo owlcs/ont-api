@@ -381,8 +381,9 @@ public class InternalModel extends OntGraphModelImpl
      * @return {@code Stream} of {@link OWLImportsDeclaration}s
      */
     public Stream<OWLImportsDeclaration> listOWLImportDeclarations() {
-        InternalObjectFactory df = getObjectFactory();
-        return reduce(getID().imports().map(df::toIRI).map(i -> df.getOWLDataFactory().getOWLImportsDeclaration(i)));
+        InternalObjectFactory of = getObjectFactory();
+        DataFactory df = getDataFactory();
+        return reduce(getID().imports().map(of::toIRI).map(df::getOWLImportsDeclaration));
     }
 
     /**
@@ -1123,7 +1124,7 @@ public class InternalModel extends OntGraphModelImpl
 
             @Override
             public InternalObjectFactory getObjectFactory() {
-                return new ModelObjectFactory(InternalModel.this.getObjectFactory().getOWLDataFactory(), () -> this);
+                return new ModelObjectFactory(InternalModel.this.getDataFactory(), () -> this);
             }
         }
         return new ObjectModel(u);

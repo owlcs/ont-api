@@ -309,7 +309,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
             while (it.hasNext()) {
                 OntSWRL.DArg r = it.next();
                 ONTObject<? extends SWRLDArgument> op = factory.getSWRLArgument(r);
-                hash = 31 * hash + op.hashCode();
+                hash = WithContent.hashIteration(hash, op.hashCode());
                 res.add(fromDArgument(r, op));
             }
             this.hashCode = OWLObject.hashIteration(OWLObject.hashIteration(hashIndex(), hash), predicate.hashCode());

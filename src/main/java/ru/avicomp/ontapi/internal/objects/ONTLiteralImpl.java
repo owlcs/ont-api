@@ -91,7 +91,7 @@ public class ONTLiteralImpl extends OWLLiteralImpl
 
     @Override
     public OWLLiteral eraseModel() {
-        return getObjectFactory().getOWLDataFactory().getOWLLiteral(label);
+        return getDataFactory().getOWLLiteral(label);
     }
 
     @Override

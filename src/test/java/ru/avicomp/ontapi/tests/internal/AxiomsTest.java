@@ -17,10 +17,7 @@ package ru.avicomp.ontapi.tests.internal;
 import org.junit.Assert;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.semanticweb.owlapi.model.AxiomType;
-import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLDataFactory;
-import org.semanticweb.owlapi.model.OWLObject;
+import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.DataFactory;
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
@@ -104,6 +101,24 @@ public class AxiomsTest extends StatementTestBase {
         OWLAxiom actualWithAnnotation = createWithAnnotation((OWLAxiom) actual, ONT_DATA_FACTORY);
         Assert.assertEquals(expectedWithAnnotation, actualWithAnnotation);
         testObjectHasNoModelReference(actualWithAnnotation);
+    }
+
+    @Override
+    void testComponents(OWLObject expected, OWLObject actual) {
+        LOGGER.debug("Test annotations for '{}'", data);
+        OWLAxiom owl = (OWLAxiom) expected;
+        OWLAxiom ont = (OWLAxiom) actual;
+        validate(owl, ont, "annotations", HasAnnotations::annotations);
+        super.testComponents(owl, ont);
+    }
+
+    @Override
+    void testBooleanProperties(OWLObject expected, OWLObject actual) {
+        LOGGER.debug("Test isAnnotated for '{}'", data);
+        OWLAxiom owl = (OWLAxiom) expected;
+        OWLAxiom ont = (OWLAxiom) actual;
+        Assert.assertEquals(owl.isAnnotated(), ont.isAnnotated());
+        super.testBooleanProperties(owl, ont);
     }
 
     private void configure(OWLAxiom a, OntologyManager m) {
