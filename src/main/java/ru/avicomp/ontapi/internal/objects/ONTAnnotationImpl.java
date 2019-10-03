@@ -549,8 +549,8 @@ public abstract class ONTAnnotationImpl extends ONTStatementImpl
                     return Stream.concat(super.triples(), other.triples());
                 }
             };
-            if (!hasContent()) {
-                putContent(getContent());
+            if (hasContent()) {
+                res.putContent(getContent());
             }
             return res;
         }

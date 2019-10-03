@@ -35,8 +35,16 @@ public class OWLEquivalentClassesAxiomImpl extends OWLNaryClassAxiomImpl impleme
         super(classes, annotations);
     }
 
-    private static boolean named(OWLClassExpression d) {
-        return !d.isAnonymous() && !d.isOWLNothing() && !d.isOWLThing();
+    /**
+     * Answers {@code true} if the given class expression is a named class,
+     * but not {@link ru.avicomp.ontapi.jena.vocabulary.OWL#Thing owl:Thing}
+     * and not {@link ru.avicomp.ontapi.jena.vocabulary.OWL#Nothing owl:Nothing}.
+     *
+     * @param ce {@link OWLClassExpression}, not {@code null}
+     * @return boolean
+     */
+    public static boolean isNamed(OWLClassExpression ce) {
+        return !ce.isAnonymous() && !ce.isOWLNothing() && !ce.isOWLThing();
     }
 
     @SuppressWarnings("unchecked")
@@ -72,7 +80,7 @@ public class OWLEquivalentClassesAxiomImpl extends OWLNaryClassAxiomImpl impleme
 
     @Override
     public boolean containsNamedEquivalentClass() {
-        return classExpressions().anyMatch(OWLEquivalentClassesAxiomImpl::named);
+        return classExpressions().anyMatch(OWLEquivalentClassesAxiomImpl::isNamed);
     }
 
     @Override
@@ -87,7 +95,7 @@ public class OWLEquivalentClassesAxiomImpl extends OWLNaryClassAxiomImpl impleme
 
     @Override
     public Stream<OWLClass> namedClasses() {
-        return classExpressions().filter(OWLEquivalentClassesAxiomImpl::named)
+        return classExpressions().filter(OWLEquivalentClassesAxiomImpl::isNamed)
                 .map(OWLClassExpression::asOWLClass);
     }
 
