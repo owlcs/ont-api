@@ -29,6 +29,7 @@ import ru.avicomp.ontapi.owlapi.axioms.OWLEquivalentClassesAxiomImpl;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -152,9 +153,14 @@ public class EquivalentClassesTranslator extends AbstractNaryTranslator<OWLEquiv
 
         @Override
         public Set<OWLClassExpression> getClassExpressionsMinus(OWLClassExpression... exclude) {
-            Set<OWLClassExpression> set = new HashSet<>(Arrays.asList(exclude));
-            return classExpressions().filter(x -> !set.contains(x))
-                    .collect(Collectors.toCollection(LinkedHashSet::new));
+            Predicate<OWLClassExpression> test;
+            if (exclude.length == 0) {
+                test = x -> true;
+            } else {
+                Set<OWLClassExpression> set = new HashSet<>(Arrays.asList(exclude));
+                test = x -> !set.contains(x);
+            }
+            return classExpressions().filter(test).collect(Collectors.toCollection(LinkedHashSet::new));
         }
 
         @Override
@@ -192,7 +198,7 @@ public class EquivalentClassesTranslator extends AbstractNaryTranslator<OWLEquiv
         @FactoryAccessor
         @Override
         public Collection<OWLSubClassOfAxiom> asOWLSubClassOfAxioms() {
-            return walkAllPairwise((a, b) -> getDataFactory().getOWLSubClassOfAxiom(a, b));
+            return walkAllPairwise((a, b) -> getDataFactory().getOWLSubClassOfAxiom(eraseModel(a), eraseModel(b)));
         }
 
         @FactoryAccessor

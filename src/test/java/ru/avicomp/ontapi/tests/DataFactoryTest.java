@@ -139,6 +139,7 @@ public class DataFactoryTest extends TestFactory {
             Assert.assertFalse(object instanceof OWLDataRange);
             Assert.assertFalse(object instanceof OWLClassExpression);
             Assert.assertFalse(object instanceof OWLAnnotation);
+            Assert.assertEquals(((AxiomData) data).getType(), ((OWLAxiom) object).getAxiomType());
         } else {
             Assert.assertFalse(object instanceof OWLAxiom);
         }

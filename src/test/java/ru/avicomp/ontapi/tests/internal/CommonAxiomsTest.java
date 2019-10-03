@@ -31,28 +31,28 @@ import java.util.stream.Collectors;
 /**
  * Created by @ssz on 03.09.2019.
  */
+@SuppressWarnings("WeakerAccess")
 @RunWith(Parameterized.class)
-public class AxiomsTest extends StatementTestBase {
+public class CommonAxiomsTest extends StatementTestBase {
 
-    public AxiomsTest(Data data) {
+    public CommonAxiomsTest(Data data) {
         super(data);
     }
 
     @Parameterized.Parameters(name = "{0}")
     public static List<Data> getData() {
         return getObjects().stream().filter(Data::isAxiom)
-                // TODO: it is temporary, see https://github.com/avicomp/ont-api/issues/87
+                // TODO: see https://github.com/avicomp/ont-api/issues/87
                 .filter(x -> isOneOf(x
-                        , "df.getOWLSubClass"
-                        , "df.getOWLAnnotationAssertion"
-                        , "df.getOWLDeclaration"))
+                        , AxiomType.SUBCLASS_OF
+                        , AxiomType.ANNOTATION_ASSERTION))
                 .collect(Collectors.toList());
     }
 
-    private static boolean isOneOf(Object o, String... names) {
-        String res = o.toString();
-        for (String s : names) {
-            if (res.startsWith(s)) return true;
+    static boolean isOneOf(Data o, AxiomType... types) {
+        AxiomType res = ((AxiomData) o).getType();
+        for (AxiomType t : types) {
+            if (res.equals(t)) return true;
         }
         return false;
     }
@@ -67,16 +67,14 @@ public class AxiomsTest extends StatementTestBase {
     }
 
     private static OWLAxiom createWithAnnotation(OWLAxiom a, OWLDataFactory df) {
-        return a.getAnnotatedAxiom(Collections.singletonList(df.getRDFSComment(AxiomsTest.class.getName())));
+        return a.getAnnotatedAxiom(Collections.singletonList(df.getRDFSComment(CommonAxiomsTest.class.getName())));
     }
 
     @Override
     OWLObject fromModel() {
         OntologyManager m = OntManagers.createONT();
         DataFactory df = m.getOWLDataFactory();
-
         OWLAxiom ont = (OWLAxiom) data.create(df);
-        configure(ont, m);
         return createONTObject(m, ont);
     }
 
@@ -119,11 +117,5 @@ public class AxiomsTest extends StatementTestBase {
         OWLAxiom ont = (OWLAxiom) actual;
         Assert.assertEquals(owl.isAnnotated(), ont.isAnnotated());
         super.testBooleanProperties(owl, ont);
-    }
-
-    private void configure(OWLAxiom a, OntologyManager m) {
-        if (AxiomType.DECLARATION.equals(a.getAxiomType())) { // to allow annotations for declaration:
-            m.getOntologyConfigurator().setLoadAnnotationAxioms(false);
-        }
     }
 }

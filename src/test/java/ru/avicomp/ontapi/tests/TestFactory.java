@@ -114,6 +114,11 @@ public class TestFactory {
                 }
                 , new AxiomData() {
                     @Override
+                    public AxiomType getType() {
+                        return AxiomType.ASYMMETRIC_OBJECT_PROPERTY;
+                    }
+
+                    @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLAsymmetricObjectPropertyAxiom(df.getOWLObjectProperty("P"));
                     }
@@ -124,6 +129,11 @@ public class TestFactory {
                     }
                 }
                 , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.CLASS_ASSERTION;
+                    }
+
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLClassAssertionAxiom(df.getOWLClass("C"), df.getOWLNamedIndividual("I"));
@@ -246,16 +256,28 @@ public class TestFactory {
                 }
                 , new AxiomData() {
                     @Override
+                    public AxiomType getType() {
+                        return AxiomType.DATA_PROPERTY_ASSERTION;
+                    }
+
+                    @Override
                     public OWLObject create(OWLDataFactory df) {
-                        return df.getOWLDataPropertyAssertionAxiom(df.getOWLDataProperty("P"), df.getOWLNamedIndividual("I"), df.getOWLLiteral(2));
+                        return df.getOWLDataPropertyAssertionAxiom(df.getOWLDataProperty("P"),
+                                df.getOWLNamedIndividual("I"), df.getOWLLiteral(2));
                     }
 
                     @Override
                     public String toString() {
-                        return "df.getOWLDataPropertyAssertionAxiom(df.getOWLDataProperty(\"P\"), df.getOWLNamedIndividual(\"I\"), df.getOWLLiteral(2));";
+                        return "df.getOWLDataPropertyAssertionAxiom(df.getOWLDataProperty(\"P\"), " +
+                                "df.getOWLNamedIndividual(\"I\"), df.getOWLLiteral(2));";
                     }
                 }
                 , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.DATA_PROPERTY_DOMAIN;
+                    }
+
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLDataPropertyDomainAxiom(df.getOWLDataProperty("P"), df.getOWLClass("C"));
@@ -267,6 +289,11 @@ public class TestFactory {
                     }
                 }
                 , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.DATA_PROPERTY_RANGE;
+                    }
+
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLDataPropertyRangeAxiom(df.getOWLDataProperty("P"), df.getOWLDatatype("D"));
@@ -305,6 +332,11 @@ public class TestFactory {
                 }
                 , new AxiomData() {
                     @Override
+                    public AxiomType getType() {
+                        return AxiomType.DIFFERENT_INDIVIDUALS;
+                    }
+
+                    @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLDifferentIndividualsAxiom(df.getOWLNamedIndividual("A1"),
                                 df.getOWLAnonymousIndividual("_:b0"), df.getOWLNamedIndividual("C1"));
@@ -318,6 +350,11 @@ public class TestFactory {
                 }
                 , new AxiomData() {
                     @Override
+                    public AxiomType getType() {
+                        return AxiomType.DISJOINT_CLASSES;
+                    }
+
+                    @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLDisjointClassesAxiom(df.getOWLClass("A"), df.getOWLClass("B"), df.getOWLClass("C"));
                     }
@@ -329,6 +366,11 @@ public class TestFactory {
                     }
                 }
                 , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.DISJOINT_DATA_PROPERTIES;
+                    }
+
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLDisjointDataPropertiesAxiom(df.getOWLDataProperty("A4"),
@@ -343,6 +385,11 @@ public class TestFactory {
                 }
                 , new AxiomData() {
                     @Override
+                    public AxiomType getType() {
+                        return AxiomType.DISJOINT_OBJECT_PROPERTIES;
+                    }
+
+                    @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLDisjointObjectPropertiesAxiom(df.getOWLObjectProperty("A3"),
                                 df.getOWLObjectProperty("B3"), df.getOWLObjectProperty("C3"));
@@ -355,6 +402,11 @@ public class TestFactory {
                     }
                 }
                 , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.EQUIVALENT_CLASSES;
+                    }
+
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLEquivalentClassesAxiom(df.getOWLClass("A"),
@@ -369,6 +421,11 @@ public class TestFactory {
                 }
                 , new AxiomData() {
                     @Override
+                    public AxiomType getType() {
+                        return AxiomType.EQUIVALENT_CLASSES;
+                    }
+
+                    @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLEquivalentClassesAxiom(new OWLClassExpression[]{df.getOWLClass("A"),
                                 df.getOWLClass("B")});
@@ -381,6 +438,11 @@ public class TestFactory {
                     }
                 }
                 , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.EQUIVALENT_DATA_PROPERTIES;
+                    }
+
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLEquivalentDataPropertiesAxiom(df.getOWLDataProperty("A4"),
@@ -395,6 +457,11 @@ public class TestFactory {
                 }
                 , new AxiomData() {
                     @Override
+                    public AxiomType getType() {
+                        return AxiomType.EQUIVALENT_DATA_PROPERTIES;
+                    }
+
+                    @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLEquivalentDataPropertiesAxiom(new OWLDataPropertyExpression[]{
                                 df.getOWLDataProperty("P1"), df.getOWLDataProperty("P2")});
@@ -407,6 +474,11 @@ public class TestFactory {
                     }
                 }
                 , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.EQUIVALENT_OBJECT_PROPERTIES;
+                    }
+
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLEquivalentObjectPropertiesAxiom(df.getOWLObjectProperty("A3"),
@@ -421,6 +493,11 @@ public class TestFactory {
                 }
                 , new AxiomData() {
                     @Override
+                    public AxiomType getType() {
+                        return AxiomType.FUNCTIONAL_DATA_PROPERTY;
+                    }
+
+                    @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLFunctionalDataPropertyAxiom(df.getOWLDataProperty("P"));
                     }
@@ -431,6 +508,11 @@ public class TestFactory {
                     }
                 }
                 , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.FUNCTIONAL_OBJECT_PROPERTY;
+                    }
+
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLFunctionalObjectPropertyAxiom(df.getOWLObjectProperty("P"));
@@ -443,6 +525,11 @@ public class TestFactory {
                 }
                 , new AxiomData() {
                     @Override
+                    public AxiomType getType() {
+                        return AxiomType.INVERSE_FUNCTIONAL_OBJECT_PROPERTY;
+                    }
+
+                    @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLInverseFunctionalObjectPropertyAxiom(df.getOWLObjectProperty("P"));
                     }
@@ -454,6 +541,11 @@ public class TestFactory {
                 }
                 , new AxiomData() {
                     @Override
+                    public AxiomType getType() {
+                        return AxiomType.IRREFLEXIVE_OBJECT_PROPERTY;
+                    }
+
+                    @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLIrreflexiveObjectPropertyAxiom(df.getOWLObjectProperty("P"));
                     }
@@ -464,6 +556,11 @@ public class TestFactory {
                     }
                 }
                 , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.NEGATIVE_DATA_PROPERTY_ASSERTION;
+                    }
+
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLNegativeDataPropertyAssertionAxiom(df.getOWLDataProperty("P"),
@@ -477,6 +574,11 @@ public class TestFactory {
                     }
                 }
                 , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.NEGATIVE_OBJECT_PROPERTY_ASSERTION;
+                    }
+
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLNegativeObjectPropertyAssertionAxiom(df.getOWLObjectProperty("P"),
@@ -630,6 +732,11 @@ public class TestFactory {
                 }
                 , new AxiomData() {
                     @Override
+                    public AxiomType getType() {
+                        return AxiomType.OBJECT_PROPERTY_ASSERTION;
+                    }
+
+                    @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLObjectPropertyAssertionAxiom(df.getOWLObjectProperty("P"),
                                 df.getOWLAnonymousIndividual("_:b0"), df.getOWLNamedIndividual("I"));
@@ -643,6 +750,11 @@ public class TestFactory {
                 }
                 , new AxiomData() {
                     @Override
+                    public AxiomType getType() {
+                        return AxiomType.OBJECT_PROPERTY_DOMAIN;
+                    }
+
+                    @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLObjectPropertyDomainAxiom(df.getOWLObjectProperty("P"), df.getOWLClass("C"));
                     }
@@ -654,6 +766,11 @@ public class TestFactory {
                     }
                 }
                 , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.OBJECT_PROPERTY_RANGE;
+                    }
+
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLObjectPropertyRangeAxiom(df.getOWLObjectProperty("P"), df.getOWLClass("P"));
@@ -690,6 +807,11 @@ public class TestFactory {
                 }
                 , new AxiomData() {
                     @Override
+                    public AxiomType getType() {
+                        return AxiomType.REFLEXIVE_OBJECT_PROPERTY;
+                    }
+
+                    @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLReflexiveObjectPropertyAxiom(df.getOWLObjectProperty("P"));
                     }
@@ -700,6 +822,11 @@ public class TestFactory {
                     }
                 }
                 , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.SAME_INDIVIDUAL;
+                    }
+
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLSameIndividualAxiom(df.getOWLNamedIndividual("A1"),
@@ -714,6 +841,11 @@ public class TestFactory {
                 }
                 , new AxiomData() {
                     @Override
+                    public AxiomType getType() {
+                        return AxiomType.SUB_DATA_PROPERTY;
+                    }
+
+                    @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLSubDataPropertyOfAxiom(df.getOWLDataProperty("P"), df.getOWLDataProperty("P"));
                     }
@@ -725,6 +857,11 @@ public class TestFactory {
                     }
                 }
                 , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.SUB_OBJECT_PROPERTY;
+                    }
+
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLSubObjectPropertyOfAxiom(df.getOWLObjectProperty("P"),
@@ -739,6 +876,11 @@ public class TestFactory {
                 }
                 , new AxiomData() {
                     @Override
+                    public AxiomType getType() {
+                        return AxiomType.SYMMETRIC_OBJECT_PROPERTY;
+                    }
+
+                    @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLSymmetricObjectPropertyAxiom(df.getOWLObjectProperty("P"));
                     }
@@ -750,6 +892,11 @@ public class TestFactory {
                 }
                 , new AxiomData() {
                     @Override
+                    public AxiomType getType() {
+                        return AxiomType.TRANSITIVE_OBJECT_PROPERTY;
+                    }
+
+                    @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLTransitiveObjectPropertyAxiom(df.getOWLObjectProperty("P"));
                     }
@@ -760,6 +907,11 @@ public class TestFactory {
                     }
                 }
                 , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.SWRL_RULE;
+                    }
+
                     @Override
                     public String toString() {
                         return "SWRLRule Test";
@@ -778,6 +930,11 @@ public class TestFactory {
                     }
                 }
                 , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.SWRL_RULE;
+                    }
+
                     @Override
                     public String toString() {
                         return "SWRLRule with Annotations Test";
@@ -1604,6 +1761,11 @@ public class TestFactory {
                 }
                 , new AxiomData() {
                     @Override
+                    public AxiomType getType() {
+                        return AxiomType.SUBCLASS_OF;
+                    }
+
+                    @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLSubClassOfAxiom(df.getOWLClass("Sub"),
                                 df.getOWLObjectAllValuesFrom(df.getOWLObjectProperty("P"), df.getOWLClass("Sup")));
@@ -1618,6 +1780,11 @@ public class TestFactory {
                 }
                 , new AxiomData() {
                     @Override
+                    public AxiomType getType() {
+                        return AxiomType.SUBCLASS_OF;
+                    }
+
+                    @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLSubClassOfAxiom(df.getOWLObjectComplementOf(df.getOWLClass("C2")),
                                 df.getOWLClass("C"), Collections.singletonList(df.getRDFSComment("comm")));
@@ -1630,6 +1797,11 @@ public class TestFactory {
                     }
                 }
                 , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.ANNOTATION_ASSERTION;
+                    }
+
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLAnnotationAssertionAxiom(df.getOWLAnonymousIndividual("_:b0"),
@@ -1644,6 +1816,11 @@ public class TestFactory {
                 }
                 , new AxiomData() {
                     @Override
+                    public AxiomType getType() {
+                        return AxiomType.ANNOTATION_ASSERTION;
+                    }
+
+                    @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLAnnotationAssertionAxiom(IRI.create("I"), df.getRDFSComment("comm"));
                     }
@@ -1654,6 +1831,11 @@ public class TestFactory {
                     }
                 }
                 , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.DECLARATION;
+                    }
+
                     @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLDeclarationAxiom(df.getOWLDatatype("D"),
@@ -1670,6 +1852,11 @@ public class TestFactory {
                 }
                 , new AxiomData() {
                     @Override
+                    public AxiomType getType() {
+                        return AxiomType.DECLARATION;
+                    }
+
+                    @Override
                     public OWLObject create(OWLDataFactory df) {
                         return df.getOWLDeclarationAxiom(df.getOWLNamedIndividual("I"));
                     }
@@ -1677,6 +1864,44 @@ public class TestFactory {
                     @Override
                     public String toString() {
                         return "df.getOWLDeclarationAxiom(df.getOWLNamedIndividual(\"I\"))";
+                    }
+                }
+                , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.EQUIVALENT_CLASSES;
+                    }
+
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLEquivalentClassesAxiom(df.getOWLClass("A"), df.getOWLClass("B"),
+                                Arrays.asList(df.getRDFSLabel("label"), df.getRDFSComment("comment")));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLEquivalentClassesAxiom(df.getOWLClass(\"A\"), df.getOWLClass(\"B\"), " +
+                                "Arrays.asList(df.getRDFSLabel(\"label\"), df.getRDFSComment(\"comment\")))";
+                    }
+                }
+                , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.EQUIVALENT_CLASSES;
+                    }
+
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLEquivalentClassesAxiom(df.getOWLClass("A"),
+                                df.getOWLObjectComplementOf(df.getOWLThing()),
+                                Collections.singleton(df.getRDFSLabel("label")));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLEquivalentClassesAxiom(df.getOWLClass(\"A\"), " +
+                                "df.getOWLObjectComplementOf(df.getOWLThing()), " +
+                                "Collections.singleton(df.getRDFSLabel(\"label\")))";
                     }
                 }
         );
@@ -1799,6 +2024,9 @@ public class TestFactory {
     }
 
     public interface AxiomData extends Data {
+
+        AxiomType getType();
+
         @Override
         default boolean isAxiom() {
             return true;

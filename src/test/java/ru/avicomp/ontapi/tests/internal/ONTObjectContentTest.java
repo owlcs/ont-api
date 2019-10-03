@@ -19,12 +19,15 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
+import ru.avicomp.ontapi.DataFactory;
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.jena.OntModelFactory;
+import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
+import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
 import java.util.List;
@@ -98,5 +101,45 @@ public class ONTObjectContentTest {
 
         m.applyChange(new RemoveOntologyAnnotation(o, ont.getOWLObject()));
         Assert.assertEquals(1, g.size());
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testEquivalentClassesMerge() {
+        OntologyManager m = OntManagers.createONT();
+        OntologyModel o = m.createOntology();
+        OntGraphModel g = o.asGraphModel();
+
+        OntClass x = g.createOntClass("X");
+        OntClass y = g.createOntClass("Y");
+        OntClass z = g.createOntClass("Z");
+        x.addEquivalentClass(y.addEquivalentClass(x)).addEquivalentClass(z);
+        ReadWriteUtils.print(g);
+
+        Assert.assertEquals(5, o.axioms().count());
+
+        DataFactory df = m.getOWLDataFactory();
+        OWLEquivalentClassesAxiom xz = o.axioms(AxiomType.EQUIVALENT_CLASSES)
+                .filter(a -> a.contains(df.getOWLClass(z.getURI()))).findFirst().orElseThrow(AssertionError::new);
+        OWLEquivalentClassesAxiom xy = o.axioms(AxiomType.EQUIVALENT_CLASSES)
+                .filter(a -> a.contains(df.getOWLClass(y.getURI()))).findFirst().orElseThrow(AssertionError::new);
+        Assert.assertTrue(xy.containsEntityInSignature(df.getOWLClass(x.getURI())));
+
+        ONTObject<OWLEquivalentClassesAxiom> xzOnt = (ONTObject<OWLEquivalentClassesAxiom>) xz;
+        ONTObject<OWLEquivalentClassesAxiom> xyOnt = (ONTObject<OWLEquivalentClassesAxiom>) xy;
+
+        Assert.assertEquals(3, xzOnt.triples().count());
+
+        // can't test carefully, since no method to get value (merged axiom), only keys are available:
+        Assert.assertEquals(3, xyOnt.triples().count());
+        // but can delete axiom with all its triples
+        o.remove(xyOnt.getOWLObject());
+
+        ReadWriteUtils.print(g);
+        Assert.assertEquals(4, o.axioms().count());
+        Assert.assertEquals(1, o.axioms(AxiomType.EQUIVALENT_CLASSES).count());
+        // header + "<X> owl:equivalentClass <Z>" + 3 declarations
+        Assert.assertEquals(5, g.size());
+        Assert.assertEquals(1, g.statements(null, OWL.equivalentClass, null).count());
     }
 }

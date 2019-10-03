@@ -20,6 +20,9 @@ import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.internal.objects.ModelObject;
 
+import java.util.Collection;
+import java.util.Collections;
+
 /**
  * To test {@link ModelObject}
  * Created by @ssz on 24.09.2019.
@@ -75,7 +78,7 @@ public class ModelObjectTest {
         OWLDataFactory df = ObjectFactoryTestBase.ONT_DATA_FACTORY;
         OWLAnnotation expected = df.getRDFSComment("x");
         OWLAnnotationAssertionAxiom ax = df.getOWLAnnotationAssertionAxiom(IRI.create("subject"), expected);
-        OWLAnnotationAssertionAxiom res = (OWLAnnotationAssertionAxiom) AxiomsTest.createONTObject(OntManagers.createONT(), ax);
+        OWLAnnotationAssertionAxiom res = (OWLAnnotationAssertionAxiom) CommonAxiomsTest.createONTObject(OntManagers.createONT(), ax);
         Assert.assertTrue(res instanceof ModelObject);
         OWLAnnotation actual = res.getAnnotation();
         Assert.assertEquals(expected, actual);
@@ -88,4 +91,21 @@ public class ModelObjectTest {
         OWLClassExpression c = res.asSomeValuesFrom();
         ObjectFactoryTestBase.testObjectHasNoModelReference(c);
     }
+
+    @Test
+    public void testEquivalentClassesEraseModelMethods() {
+        OWLDataFactory df = ObjectFactoryTestBase.ONT_DATA_FACTORY;
+        OWLEquivalentClassesAxiom expected = df.getOWLEquivalentClassesAxiom(df.getOWLClass("X"), df.getOWLClass("Y"),
+                Collections.singleton(df.getRDFSComment("x")));
+        Collection<? extends OWLAxiom> res = NaryAxiomsTest.createONTAxioms(OntManagers.createONT(), expected);
+        Assert.assertEquals(1, res.size());
+        OWLEquivalentClassesAxiom actual = (OWLEquivalentClassesAxiom) res.iterator().next();
+        Assert.assertTrue(actual instanceof ModelObject);
+        Assert.assertEquals(expected, actual);
+
+        actual.asPairwiseAxioms().forEach(ObjectFactoryTestBase::testObjectHasNoModelReference);
+        actual.splitToAnnotatedPairs().forEach(ObjectFactoryTestBase::testObjectHasNoModelReference);
+        actual.asOWLSubClassOfAxioms().forEach(ObjectFactoryTestBase::testObjectHasNoModelReference);
+    }
+
 }
