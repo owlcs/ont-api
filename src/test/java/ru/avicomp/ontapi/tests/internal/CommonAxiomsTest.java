@@ -41,11 +41,13 @@ public class CommonAxiomsTest extends StatementTestBase {
 
     @Parameterized.Parameters(name = "{0}")
     public static List<Data> getData() {
-        return getObjects().stream().filter(Data::isAxiom)
+        return getObjects().stream()
+                .filter(Data::isAxiom)
                 // TODO: see https://github.com/avicomp/ont-api/issues/87
                 .filter(x -> isOneOf(x
                         , AxiomType.SUBCLASS_OF
-                        , AxiomType.ANNOTATION_ASSERTION))
+                        , AxiomType.ANNOTATION_ASSERTION
+                        , AxiomType.SUB_OBJECT_PROPERTY))
                 .collect(Collectors.toList());
     }
 

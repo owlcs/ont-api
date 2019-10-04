@@ -43,7 +43,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getOWLClass(IRI.create(\"C\"));";
+                        return "df.getOWLClass(IRI.create(\"C\"))";
                     }
                 }
                 , new NamedRange() {
@@ -54,7 +54,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getOWLDatatype(IRI.create(\"D\"));";
+                        return "df.getOWLDatatype(IRI.create(\"D\"))";
                     }
                 }
                 , new ObjectProperty() {
@@ -65,7 +65,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getOWLObjectProperty(IRI.create(\"O\"));";
+                        return "df.getOWLObjectProperty(IRI.create(\"O\"))";
                     }
                 }
                 , new DataProperty() {
@@ -76,7 +76,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getOWLDataProperty(IRI.create(\"D\"));";
+                        return "df.getOWLDataProperty(IRI.create(\"D\"))";
                     }
                 }
                 , new AnnotationProperty() {
@@ -87,7 +87,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getOWLAnnotationProperty(IRI.create(\"A\"));";
+                        return "df.getOWLAnnotationProperty(IRI.create(\"A\"))";
                     }
                 }
                 , new NamedIndividual() {
@@ -98,7 +98,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getOWLNamedIndividual(IRI.create(\"I\"));";
+                        return "df.getOWLNamedIndividual(IRI.create(\"I\"))";
                     }
                 }
                 , new AnonymousIndividual() {
@@ -109,7 +109,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getOWLAnonymousIndividual(\"_:b0\");";
+                        return "df.getOWLAnonymousIndividual(\"_:b0\")";
                     }
                 }
                 , new AxiomData() {
@@ -125,7 +125,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getOWLAsymmetricObjectPropertyAxiom(df.getOWLObjectProperty(\"P\"));";
+                        return "df.getOWLAsymmetricObjectPropertyAxiom(df.getOWLObjectProperty(\"P\"))";
                     }
                 }
                 , new AxiomData() {
@@ -141,7 +141,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getOWLClassAssertionAxiom(df.getOWLClass(\"C\"), df.getOWLNamedIndividual(\"I\"));";
+                        return "df.getOWLClassAssertionAxiom(df.getOWLClass(\"C\"), df.getOWLNamedIndividual(\"I\"))";
                     }
                 }
                 , new AnonymousClass() {
@@ -152,7 +152,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getOWLDataAllValuesFrom(df.getOWLDataProperty(\"P\"), df.getOWLDatatype(\"D\"));";
+                        return "df.getOWLDataAllValuesFrom(df.getOWLDataProperty(\"P\"), df.getOWLDatatype(\"D\"))";
                     }
                 }
                 , new AnonymousRange() {
@@ -163,7 +163,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getOWLDataComplementOf(df.getOWLDatatype(\"D\"));";
+                        return "df.getOWLDataComplementOf(df.getOWLDatatype(\"D\"))";
                     }
                 }
                 , new AnonymousClass() {
@@ -174,7 +174,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getOWLDataExactCardinality(4, df.getOWLDataProperty(\"P\"), df.getOWLDatatype(\"D\"));";
+                        return "df.getOWLDataExactCardinality(4, df.getOWLDataProperty(\"P\"), df.getOWLDatatype(\"D\"))";
                     }
                 }
                 , new AnonymousClass() {
@@ -185,7 +185,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getOWLDataExactCardinality(3, df.getOWLDataProperty(\"P\"), df.getTopDatatype());";
+                        return "df.getOWLDataExactCardinality(3, df.getOWLDataProperty(\"P\"), df.getTopDatatype())";
                     }
                 }
                 , new AnonymousClass() {
@@ -196,7 +196,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getOWLDataHasValue(df.getOWLDataProperty(\"P\"), df.getOWLLiteral(1));";
+                        return "df.getOWLDataHasValue(df.getOWLDataProperty(\"P\"), df.getOWLLiteral(1))";
                     }
                 }
                 , new AnonymousClass() {
@@ -207,7 +207,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getOWLDataMaxCardinality(23, df.getOWLDataProperty(\"P\"), df.getOWLDatatype(\"D\"));";
+                        return "df.getOWLDataMaxCardinality(23, df.getOWLDataProperty(\"P\"), df.getOWLDatatype(\"D\"))";
                     }
                 }
                 , new AnonymousClass() {
@@ -218,7 +218,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getOWLDataMaxCardinality(12, df.getOWLDataProperty(\"P\"), df.getTopDatatype());";
+                        return "df.getOWLDataMaxCardinality(12, df.getOWLDataProperty(\"P\"), df.getTopDatatype())";
                     }
                 }
                 , new AnonymousClass() {
@@ -229,7 +229,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getOWLDataMinCardinality(5454, df.getOWLDataProperty(\"P\"), df.getOWLDatatype(\"D\"));";
+                        return "df.getOWLDataMinCardinality(5454, df.getOWLDataProperty(\"P\"), df.getOWLDatatype(\"D\"))";
                     }
                 }
                 , new AnonymousClass() {
@@ -240,7 +240,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getOWLDataMinCardinality(2, df.getOWLDataProperty(\"P\"), df.getTopDatatype());";
+                        return "df.getOWLDataMinCardinality(2, df.getOWLDataProperty(\"P\"), df.getTopDatatype())";
                     }
                 }
                 , new AnonymousRange() {
@@ -251,7 +251,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getOWLDataOneOf(df.getOWLLiteral(1), df.getOWLLiteral(1.0), df.getOWLLiteral(1.0F));";
+                        return "df.getOWLDataOneOf(df.getOWLLiteral(1), df.getOWLLiteral(1.0), df.getOWLLiteral(1.0F))";
                     }
                 }
                 , new AxiomData() {
@@ -269,7 +269,7 @@ public class TestFactory {
                     @Override
                     public String toString() {
                         return "df.getOWLDataPropertyAssertionAxiom(df.getOWLDataProperty(\"P\"), " +
-                                "df.getOWLNamedIndividual(\"I\"), df.getOWLLiteral(2));";
+                                "df.getOWLNamedIndividual(\"I\"), df.getOWLLiteral(2))";
                     }
                 }
                 , new AxiomData() {
@@ -285,7 +285,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getOWLDataPropertyDomainAxiom(df.getOWLDataProperty(\"P\"), df.getOWLClass(\"C\"));";
+                        return "df.getOWLDataPropertyDomainAxiom(df.getOWLDataProperty(\"P\"), df.getOWLClass(\"C\"))";
                     }
                 }
                 , new AxiomData() {
@@ -301,7 +301,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getOWLDataPropertyRangeAxiom(df.getOWLDataProperty(\"P\"), df.getOWLDatatype(\"D\"));";
+                        return "df.getOWLDataPropertyRangeAxiom(df.getOWLDataProperty(\"P\"), df.getOWLDatatype(\"D\"))";
                     }
                 }
                 , new AnonymousClass() {
@@ -312,7 +312,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getOWLDataSomeValuesFrom(df.getOWLDataProperty(\"P\"), df.getOWLDatatype(\"D\"));";
+                        return "df.getOWLDataSomeValuesFrom(df.getOWLDataProperty(\"P\"), df.getOWLDatatype(\"D\"))";
                     }
                 }
                 , new AnonymousRange() {
@@ -327,7 +327,7 @@ public class TestFactory {
                     public String toString() {
                         return "df.getOWLDatatypeRestriction(df.getOWLDatatype(\"D1\"), " +
                                 "df.getOWLFacetRestriction(OWLFacet.MAX_EXCLUSIVE, " +
-                                "df.getOWLLiteral(\"3\", df.getOWLDatatype(\"D2\"))));";
+                                "df.getOWLLiteral(\"3\", df.getOWLDatatype(\"D2\"))))";
                     }
                 }
                 , new AxiomData() {
@@ -345,7 +345,7 @@ public class TestFactory {
                     @Override
                     public String toString() {
                         return "df.getOWLDifferentIndividualsAxiom(df.getOWLNamedIndividual(\"A1\"), " +
-                                "df.getOWLAnonymousIndividual(\"_:b0\"), df.getOWLNamedIndividual(\"C1\"));";
+                                "df.getOWLAnonymousIndividual(\"_:b0\"), df.getOWLNamedIndividual(\"C1\"))";
                     }
                 }
                 , new AxiomData() {
@@ -362,7 +362,7 @@ public class TestFactory {
                     @Override
                     public String toString() {
                         return "df.getOWLDisjointClassesAxiom(df.getOWLClass(\"A\"), " +
-                                "df.getOWLClass(\"B\"), df.getOWLClass(\"C\"));";
+                                "df.getOWLClass(\"B\"), df.getOWLClass(\"C\"))";
                     }
                 }
                 , new AxiomData() {
@@ -380,7 +380,7 @@ public class TestFactory {
                     @Override
                     public String toString() {
                         return "df.getOWLDisjointDataPropertiesAxiom(df.getOWLDataProperty(\"A4\"), " +
-                                "df.getOWLDataProperty(\"B4\"), df.getOWLDataProperty(\"C4\"));";
+                                "df.getOWLDataProperty(\"B4\"), df.getOWLDataProperty(\"C4\"))";
                     }
                 }
                 , new AxiomData() {
@@ -398,7 +398,7 @@ public class TestFactory {
                     @Override
                     public String toString() {
                         return "df.getOWLDisjointObjectPropertiesAxiom(df.getOWLObjectProperty(\"A3\"), " +
-                                "df.getOWLObjectProperty(\"B3\"), df.getOWLObjectProperty(\"C3\"));";
+                                "df.getOWLObjectProperty(\"B3\"), df.getOWLObjectProperty(\"C3\"))";
                     }
                 }
                 , new AxiomData() {
@@ -416,7 +416,7 @@ public class TestFactory {
                     @Override
                     public String toString() {
                         return "df.getOWLEquivalentClassesAxiom(df.getOWLClass(\"A\"), " +
-                                "df.getOWLClass(\"B\"), df.getOWLClass(\"C\"));";
+                                "df.getOWLClass(\"B\"), df.getOWLClass(\"C\"))";
                     }
                 }
                 , new AxiomData() {
@@ -434,7 +434,7 @@ public class TestFactory {
                     @Override
                     public String toString() {
                         return "df.getOWLEquivalentClassesAxiom(new OWLClassExpression[]{df.getOWLClass(\"A\"), " +
-                                "df.getOWLClass(\"B\")});";
+                                "df.getOWLClass(\"B\")})";
                     }
                 }
                 , new AxiomData() {
@@ -452,7 +452,7 @@ public class TestFactory {
                     @Override
                     public String toString() {
                         return "df.getOWLEquivalentDataPropertiesAxiom(df.getOWLDataProperty(\"A4\"), " +
-                                "df.getOWLDataProperty(\"B4\"), df.getOWLDataProperty(\"C4\"));";
+                                "df.getOWLDataProperty(\"B4\"), df.getOWLDataProperty(\"C4\"))";
                     }
                 }
                 , new AxiomData() {
@@ -470,7 +470,7 @@ public class TestFactory {
                     @Override
                     public String toString() {
                         return "df.getOWLEquivalentDataPropertiesAxiom(new OWLDataPropertyExpression[]{" +
-                                "df.getOWLDataProperty(\"P1\"), df.getOWLDataProperty(\"P2\")});";
+                                "df.getOWLDataProperty(\"P1\"), df.getOWLDataProperty(\"P2\")})";
                     }
                 }
                 , new AxiomData() {
@@ -488,7 +488,7 @@ public class TestFactory {
                     @Override
                     public String toString() {
                         return "df.getOWLEquivalentObjectPropertiesAxiom(df.getOWLObjectProperty(\"A3\"), " +
-                                "df.getOWLObjectProperty(\"B3\"), df.getOWLObjectProperty(\"C3\"));";
+                                "df.getOWLObjectProperty(\"B3\"), df.getOWLObjectProperty(\"C3\"))";
                     }
                 }
                 , new AxiomData() {
@@ -504,7 +504,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getOWLFunctionalDataPropertyAxiom(df.getOWLDataProperty(\"P\"));";
+                        return "df.getOWLFunctionalDataPropertyAxiom(df.getOWLDataProperty(\"P\"))";
                     }
                 }
                 , new AxiomData() {
@@ -520,7 +520,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getOWLFunctionalObjectPropertyAxiom(df.getOWLObjectProperty(\"P\"));";
+                        return "df.getOWLFunctionalObjectPropertyAxiom(df.getOWLObjectProperty(\"P\"))";
                     }
                 }
                 , new AxiomData() {
@@ -536,7 +536,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getOWLInverseFunctionalObjectPropertyAxiom(df.getOWLObjectProperty(\"P\"));";
+                        return "df.getOWLInverseFunctionalObjectPropertyAxiom(df.getOWLObjectProperty(\"P\"))";
                     }
                 }
                 , new AxiomData() {
@@ -552,7 +552,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getOWLIrreflexiveObjectPropertyAxiom(df.getOWLObjectProperty(\"P\"));";
+                        return "df.getOWLIrreflexiveObjectPropertyAxiom(df.getOWLObjectProperty(\"P\"))";
                     }
                 }
                 , new AxiomData() {
@@ -570,7 +570,7 @@ public class TestFactory {
                     @Override
                     public String toString() {
                         return "df.getOWLNegativeDataPropertyAssertionAxiom(df.getOWLDataProperty(\"P\"), " +
-                                "df.getOWLAnonymousIndividual(\"_:b0\"), df.getOWLLiteral(2));";
+                                "df.getOWLAnonymousIndividual(\"_:b0\"), df.getOWLLiteral(2))";
                     }
                 }
                 , new AxiomData() {
@@ -588,7 +588,7 @@ public class TestFactory {
                     @Override
                     public String toString() {
                         return "df.getOWLNegativeObjectPropertyAssertionAxiom(df.getOWLObjectProperty(\"P\"), " +
-                                "df.getOWLAnonymousIndividual(\"_:b0\"), df.getOWLNamedIndividual(\"I\"));";
+                                "df.getOWLAnonymousIndividual(\"_:b0\"), df.getOWLNamedIndividual(\"I\"))";
                     }
                 }
                 , new AnonymousClass() {
@@ -599,7 +599,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getOWLObjectAllValuesFrom(df.getOWLObjectProperty(\"P\"), df.getOWLClass(\"C\"));";
+                        return "df.getOWLObjectAllValuesFrom(df.getOWLObjectProperty(\"P\"), df.getOWLClass(\"C\"))";
                     }
                 }
                 , new AnonymousClass() {
@@ -610,7 +610,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getOWLObjectComplementOf(df.getOWLClass(\"C\"));";
+                        return "df.getOWLObjectComplementOf(df.getOWLClass(\"C\"))";
                     }
                 }
                 , new AnonymousClass() {
@@ -622,7 +622,7 @@ public class TestFactory {
                     @Override
                     public String toString() {
                         return "df.getOWLObjectExactCardinality(3, " +
-                                "df.getOWLObjectProperty(\"P\"), df.getOWLClass(\"C\"));";
+                                "df.getOWLObjectProperty(\"P\"), df.getOWLClass(\"C\"))";
                     }
                 }
                 , new AnonymousClass() {
@@ -633,7 +633,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getOWLObjectExactCardinality(3, df.getOWLObjectProperty(\"P\"), df.getOWLThing());";
+                        return "df.getOWLObjectExactCardinality(3, df.getOWLObjectProperty(\"P\"), df.getOWLThing())";
                     }
                 }
                 , new AnonymousClass() {
@@ -644,7 +644,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getOWLObjectHasSelf(df.getOWLObjectProperty(\"P\"));";
+                        return "df.getOWLObjectHasSelf(df.getOWLObjectProperty(\"P\"))";
                     }
                 }
                 , new AnonymousClass() {
@@ -656,7 +656,7 @@ public class TestFactory {
                     @Override
                     public String toString() {
                         return "df.getOWLObjectHasValue(df.getOWLObjectProperty(\"P\"), " +
-                                "df.getOWLNamedIndividual(\"I\"));";
+                                "df.getOWLNamedIndividual(\"I\"))";
                     }
                 }
                 , new AnonymousClass() {
@@ -668,7 +668,7 @@ public class TestFactory {
                     @Override
                     public String toString() {
                         return "df.getOWLObjectIntersectionOf(df.getOWLClass(\"A\"), " +
-                                "df.getOWLClass(\"B\"), df.getOWLClass(\"C\"));";
+                                "df.getOWLClass(\"B\"), df.getOWLClass(\"C\"))";
                     }
                 }
                 , new AnonymousClass() {
@@ -680,7 +680,7 @@ public class TestFactory {
                     @Override
                     public String toString() {
                         return "df.getOWLObjectMaxCardinality(3, " +
-                                "df.getOWLObjectProperty(\"P\"), df.getOWLClass(\"A\"));";
+                                "df.getOWLObjectProperty(\"P\"), df.getOWLClass(\"A\"))";
                     }
                 }
                 , new AnonymousClass() {
@@ -691,7 +691,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getOWLObjectMaxCardinality(3, df.getOWLObjectProperty(\"P\"), df.getOWLThing());";
+                        return "df.getOWLObjectMaxCardinality(3, df.getOWLObjectProperty(\"P\"), df.getOWLThing())";
                     }
                 }
                 , new AnonymousClass() {
@@ -703,7 +703,7 @@ public class TestFactory {
                     @Override
                     public String toString() {
                         return "df.getOWLObjectMinCardinality(3, " +
-                                "df.getOWLObjectProperty(\"P\"), df.getOWLClass(\"A\"));";
+                                "df.getOWLObjectProperty(\"P\"), df.getOWLClass(\"A\"))";
                     }
                 }
                 , new AnonymousClass() {
@@ -714,7 +714,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getOWLObjectMinCardinality(3, df.getOWLObjectProperty(\"P\"), df.getOWLThing());";
+                        return "df.getOWLObjectMinCardinality(3, df.getOWLObjectProperty(\"P\"), df.getOWLThing())";
                     }
                 }
                 , new AnonymousClass() {
@@ -727,7 +727,7 @@ public class TestFactory {
                     @Override
                     public String toString() {
                         return "df.getOWLObjectOneOf(df.getOWLNamedIndividual(\"A1\"), " +
-                                "df.getOWLAnonymousIndividual(\"_:b0\"), df.getOWLNamedIndividual(\"C1\"));";
+                                "df.getOWLAnonymousIndividual(\"_:b0\"), df.getOWLNamedIndividual(\"C1\"))";
                     }
                 }
                 , new AxiomData() {
@@ -745,7 +745,7 @@ public class TestFactory {
                     @Override
                     public String toString() {
                         return "df.getOWLObjectPropertyAssertionAxiom(df.getOWLObjectProperty(\"P\"), " +
-                                "df.getOWLAnonymousIndividual(\"_:b0\"), df.getOWLNamedIndividual(\"I\"));";
+                                "df.getOWLAnonymousIndividual(\"_:b0\"), df.getOWLNamedIndividual(\"I\"))";
                     }
                 }
                 , new AxiomData() {
@@ -762,7 +762,7 @@ public class TestFactory {
                     @Override
                     public String toString() {
                         return "df.getOWLObjectPropertyDomainAxiom(df.getOWLObjectProperty(\"P\"), " +
-                                "df.getOWLClass(\"C\"));";
+                                "df.getOWLClass(\"C\"))";
                     }
                 }
                 , new AxiomData() {
@@ -779,7 +779,7 @@ public class TestFactory {
                     @Override
                     public String toString() {
                         return "df.getOWLObjectPropertyRangeAxiom(df.getOWLObjectProperty(\"P\"), " +
-                                "df.getOWLClass(\"P\"));";
+                                "df.getOWLClass(\"P\"))";
                     }
                 }
                 , new AnonymousClass() {
@@ -790,7 +790,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getOWLObjectSomeValuesFrom(df.getOWLObjectProperty(\"P\"), df.getOWLClass(\"C\"));";
+                        return "df.getOWLObjectSomeValuesFrom(df.getOWLObjectProperty(\"P\"), df.getOWLClass(\"C\"))";
                     }
                 }
                 , new AnonymousClass() {
@@ -802,7 +802,7 @@ public class TestFactory {
                     @Override
                     public String toString() {
                         return "df.getOWLObjectUnionOf(df.getOWLClass(\"A\"), df.getOWLClass(\"B\"), " +
-                                "df.getOWLThing());";
+                                "df.getOWLThing())";
                     }
                 }
                 , new AxiomData() {
@@ -818,7 +818,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getOWLReflexiveObjectPropertyAxiom(df.getOWLObjectProperty(\"P\"));";
+                        return "df.getOWLReflexiveObjectPropertyAxiom(df.getOWLObjectProperty(\"P\"))";
                     }
                 }
                 , new AxiomData() {
@@ -836,7 +836,7 @@ public class TestFactory {
                     @Override
                     public String toString() {
                         return "df.getOWLSameIndividualAxiom(df.getOWLNamedIndividual(\"A1\"), " +
-                                "df.getOWLAnonymousIndividual(\"_:b0\"), df.getOWLNamedIndividual(\"C1\"));";
+                                "df.getOWLAnonymousIndividual(\"_:b0\"), df.getOWLNamedIndividual(\"C1\"))";
                     }
                 }
                 , new AxiomData() {
@@ -853,7 +853,7 @@ public class TestFactory {
                     @Override
                     public String toString() {
                         return "df.getOWLSubDataPropertyOfAxiom(df.getOWLDataProperty(\"P\"), " +
-                                "df.getOWLDataProperty(\"P\"));";
+                                "df.getOWLDataProperty(\"P\"))";
                     }
                 }
                 , new AxiomData() {
@@ -871,7 +871,7 @@ public class TestFactory {
                     @Override
                     public String toString() {
                         return "df.getOWLSubObjectPropertyOfAxiom(df.getOWLObjectProperty(\"P\"), " +
-                                "df.getOWLObjectProperty(\"P\"));";
+                                "df.getOWLObjectProperty(\"P\"))";
                     }
                 }
                 , new AxiomData() {
@@ -887,7 +887,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getOWLSymmetricObjectPropertyAxiom(df.getOWLObjectProperty(\"P\"));";
+                        return "df.getOWLSymmetricObjectPropertyAxiom(df.getOWLObjectProperty(\"P\"))";
                     }
                 }
                 , new AxiomData() {
@@ -903,7 +903,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getOWLTransitiveObjectPropertyAxiom(df.getOWLObjectProperty(\"P\"));";
+                        return "df.getOWLTransitiveObjectPropertyAxiom(df.getOWLObjectProperty(\"P\"))";
                     }
                 }
                 , new AxiomData() {
@@ -968,7 +968,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getBooleanOWLDatatype();";
+                        return "df.getBooleanOWLDatatype()";
                     }
 
                     @Override
@@ -989,7 +989,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getDoubleOWLDatatype();";
+                        return "df.getDoubleOWLDatatype()";
                     }
 
                     @Override
@@ -1010,7 +1010,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getFloatOWLDatatype();";
+                        return "df.getFloatOWLDatatype()";
                     }
 
                     @Override
@@ -1026,7 +1026,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getOWLBackwardCompatibleWith();";
+                        return "df.getOWLBackwardCompatibleWith()";
                     }
 
                     @Override
@@ -1042,7 +1042,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getOWLBottomDataProperty();";
+                        return "df.getOWLBottomDataProperty()";
                     }
 
                     @Override
@@ -1058,7 +1058,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getOWLBottomObjectProperty();";
+                        return "df.getOWLBottomObjectProperty()";
                     }
 
                     @Override
@@ -1074,7 +1074,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getOWLDeprecated();";
+                        return "df.getOWLDeprecated()";
                     }
 
                     @Override
@@ -1090,7 +1090,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getOWLIncompatibleWith();";
+                        return "df.getOWLIncompatibleWith()";
                     }
 
                     @Override
@@ -1106,7 +1106,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getOWLNothing();";
+                        return "df.getOWLNothing()";
                     }
 
                     @Override
@@ -1122,7 +1122,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getOWLThing();";
+                        return "df.getOWLThing()";
                     }
 
                     @Override
@@ -1138,7 +1138,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getOWLTopDataProperty();";
+                        return "df.getOWLTopDataProperty()";
                     }
 
                     @Override
@@ -1154,7 +1154,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getOWLTopObjectProperty();";
+                        return "df.getOWLTopObjectProperty()";
                     }
 
                     @Override
@@ -1170,7 +1170,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getOWLVersionInfo();";
+                        return "df.getOWLVersionInfo()";
                     }
 
                     @Override
@@ -1191,7 +1191,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getRDFPlainLiteral();";
+                        return "df.getRDFPlainLiteral()";
                     }
 
                     @Override
@@ -1207,7 +1207,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getRDFSIsDefinedBy();";
+                        return "df.getRDFSIsDefinedBy()";
                     }
 
                     @Override
@@ -1223,7 +1223,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getRDFSLabel();";
+                        return "df.getRDFSLabel()";
                     }
 
                     @Override
@@ -1239,7 +1239,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getRDFSSeeAlso();";
+                        return "df.getRDFSSeeAlso()";
                     }
 
                     @Override
@@ -1260,7 +1260,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "df.getTopDatatype();";
+                        return "df.getTopDatatype()";
                     }
 
                     @Override
@@ -1902,6 +1902,28 @@ public class TestFactory {
                         return "df.getOWLEquivalentClassesAxiom(df.getOWLClass(\"A\"), " +
                                 "df.getOWLObjectComplementOf(df.getOWLThing()), " +
                                 "Collections.singleton(df.getRDFSLabel(\"label\")))";
+                    }
+                }
+                , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.SUB_OBJECT_PROPERTY;
+                    }
+
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLSubObjectPropertyOfAxiom(df.getOWLObjectProperty("P"),
+                                df.getOWLObjectInverseOf(df.getOWLObjectProperty("P")),
+                                Collections.singleton(df.getOWLAnnotation(df.getOWLAnnotationProperty("P"),
+                                        df.getOWLAnonymousIndividual("_:b0"))));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLSubObjectPropertyOfAxiom(df.getOWLObjectProperty(\"P\"), " +
+                                "df.getOWLObjectInverseOf(df.getOWLObjectProperty(\"P\")), " +
+                                "Collections.singleton(df.getOWLAnnotation(df.getOWLAnnotationProperty(\"P\"), " +
+                                "df.getOWLAnonymousIndividual(\"_:b0\"))))";
                     }
                 }
         );
