@@ -14,20 +14,30 @@
 
 package ru.avicomp.ontapi.internal.axioms;
 
+import org.apache.jena.graph.Triple;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLInverseObjectPropertiesAxiom;
-import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
+import org.semanticweb.owlapi.model.*;
+import ru.avicomp.ontapi.DataFactory;
 import ru.avicomp.ontapi.internal.*;
+import ru.avicomp.ontapi.internal.objects.*;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
+import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.utils.OntModels;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
+import javax.annotation.ParametersAreNonnullByDefault;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 /**
+ * A translator that provides {@link OWLInverseObjectPropertiesAxiom} implementations.
+ * Do not confuse with {@link org.semanticweb.owlapi.model.OWLObjectInverseOf}.
  * Example:
  * <pre>{@code
  * pizza:hasBase owl:inverseOf pizza:isBaseOf ;
@@ -65,14 +75,331 @@ public class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInvers
 
     @Override
     public ONTObject<OWLInverseObjectPropertiesAxiom> toAxiom(OntStatement statement,
-                                                              InternalObjectFactory reader,
+                                                              Supplier<OntGraphModel> model,
+                                                              InternalObjectFactory factory,
                                                               InternalConfig config) {
-        ONTObject<? extends OWLObjectPropertyExpression> f = reader.getProperty(statement.getSubject(OntOPE.class));
-        ONTObject<? extends OWLObjectPropertyExpression> s = reader.getProperty(statement.getObject().as(OntOPE.class));
-        Collection<ONTObject<OWLAnnotation>> annotations = reader.getAnnotations(statement, config);
-        OWLInverseObjectPropertiesAxiom res = reader.getOWLDataFactory()
+        return AxiomImpl.create(statement, model, factory, config);
+    }
+
+    @Override
+    public ONTObject<OWLInverseObjectPropertiesAxiom> toAxiom(OntStatement statement,
+                                                              InternalObjectFactory factory,
+                                                              InternalConfig config) {
+        ONTObject<? extends OWLObjectPropertyExpression> f = factory.getProperty(statement.getSubject(OntOPE.class));
+        ONTObject<? extends OWLObjectPropertyExpression> s = factory.getProperty(statement.getObject(OntOPE.class));
+        Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);
+        OWLInverseObjectPropertiesAxiom res = factory.getOWLDataFactory()
                 .getOWLInverseObjectPropertiesAxiom(f.getOWLObject(), s.getOWLObject(), ONTObject.toSet(annotations));
         return ONTWrapperImpl.create(res, statement).append(annotations).append(f).append(s);
     }
 
+    /**
+     * @see ru.avicomp.ontapi.owlapi.axioms.OWLInverseObjectPropertiesAxiomImpl
+     */
+    @SuppressWarnings("WeakerAccess")
+    @ParametersAreNonnullByDefault
+    public static abstract class AxiomImpl
+            extends ONTAxiomImpl<OWLInverseObjectPropertiesAxiom>
+            implements WithManyObjects<OWLObjectPropertyExpression>,
+            WithMerge<ONTObject<OWLInverseObjectPropertiesAxiom>>, OWLInverseObjectPropertiesAxiom {
+
+        protected AxiomImpl(Triple t, Supplier<OntGraphModel> m) {
+            this(strip(t.getSubject()), t.getPredicate().getURI(), strip(t.getObject()), m);
+        }
+
+        protected AxiomImpl(Object s, String p, Object o, Supplier<OntGraphModel> m) {
+            super(s, p, o, m);
+        }
+
+        /**
+         * Creates an {@link ONTObject} container, which is {@link OWLInverseObjectPropertiesAxiom},
+         * using the given {@link OntStatement} as a source.
+         * <p>
+         * Impl notes:
+         * If there is no sub-annotations and subject and object are URI-{@link org.apache.jena.rdf.model.Resource}s,
+         * then a simplified instance of {@link SimpleImpl} is returned.
+         * Otherwise the instance is {@link ComplexImpl} with a cache inside.
+         *
+         * @param statement {@link OntStatement}, not {@code null}
+         * @param model     {@link OntGraphModel} provider, not {@code null}
+         * @param factory   {@link InternalObjectFactory}, not {@code null}
+         * @param config    {@link InternalConfig}, not {@code null}
+         * @return {@link AxiomImpl}
+         */
+
+        public static AxiomImpl create(OntStatement statement,
+                                       Supplier<OntGraphModel> model,
+                                       InternalObjectFactory factory,
+                                       InternalConfig config) {
+            SimpleImpl s = new SimpleImpl(statement.asTriple(), model);
+            Object[] content = WithSortedContent.initContent(s, statement, SET_HASH_CODE, true, factory, config);
+            if (content == EMPTY) {
+                return s;
+            }
+            ComplexImpl c = new ComplexImpl(statement.asTriple(), model);
+            c.setHashCode(s.hashCode);
+            c.putContent(content);
+            return c;
+        }
+
+        public abstract ONTObject<? extends OWLObjectPropertyExpression> getFirstONTProperty();
+
+        public abstract ONTObject<? extends OWLObjectPropertyExpression> getSecondONTProperty();
+
+        @Override
+        public OWLObjectPropertyExpression getFirstProperty() {
+            return getFirstONTProperty().getOWLObject();
+        }
+
+        @Override
+        public OWLObjectPropertyExpression getSecondProperty() {
+            return getSecondONTProperty().getOWLObject();
+        }
+
+        @Override
+        public ONTObject<? extends OWLObjectPropertyExpression> findByURI(String uri, InternalObjectFactory factory) {
+            return ONTObjectPropertyImpl.find(uri, factory, model);
+        }
+
+        @Override
+        public ExtendedIterator<ONTObject<? extends OWLObjectPropertyExpression>> listONTComponents(OntStatement statement,
+                                                                                                    InternalObjectFactory factory) {
+            return Iter.of(factory.getProperty(statement.getSubject(OntOPE.class)),
+                    factory.getProperty(statement.getObject(OntOPE.class)));
+        }
+
+        @Override
+        public Stream<OWLObjectPropertyExpression> properties() {
+            return sorted().map(ONTObject::getOWLObject);
+        }
+
+        @Override
+        public Set<OWLObjectPropertyExpression> getPropertiesMinus(OWLObjectPropertyExpression property) {
+            return getSetMinus(property);
+        }
+
+        @FactoryAccessor
+        @Override
+        public Collection<OWLInverseObjectPropertiesAxiom> asPairwiseAxioms() {
+            return createSet(eraseModel());
+        }
+
+        @FactoryAccessor
+        @Override
+        public Collection<OWLInverseObjectPropertiesAxiom> splitToAnnotatedPairs() {
+            return createSet(eraseModel());
+        }
+
+        @FactoryAccessor
+        @Override
+        public Collection<OWLSubObjectPropertyOfAxiom> asSubObjectPropertyOfAxioms() {
+            OWLObjectPropertyExpression first = eraseModel(getFirstProperty());
+            OWLObjectPropertyExpression second = eraseModel(getSecondProperty());
+            Set<OWLSubObjectPropertyOfAxiom> res = new HashSet<>();
+            DataFactory df = getDataFactory();
+            res.add(df.getOWLSubObjectPropertyOfAxiom(first, second.getInverseProperty()));
+            res.add(df.getOWLSubObjectPropertyOfAxiom(second, first.getInverseProperty()));
+            return res;
+        }
+
+        @FactoryAccessor
+        @Override
+        protected OWLInverseObjectPropertiesAxiom createAnnotatedAxiom(Collection<OWLAnnotation> annotations) {
+            return getDataFactory().getOWLInverseObjectPropertiesAxiom(eraseModel(getFirstProperty()),
+                    eraseModel(getSecondProperty()), annotations);
+        }
+
+        @Override
+        public boolean canContainAnnotationProperties() {
+            return isAnnotated();
+        }
+
+        @Override
+        public boolean canContainDatatypes() {
+            return isAnnotated();
+        }
+
+        @Override
+        public boolean canContainAnonymousIndividuals() {
+            return isAnnotated();
+        }
+
+        @Override
+        public boolean canContainNamedClasses() {
+            return false;
+        }
+
+        @Override
+        public boolean canContainNamedIndividuals() {
+            return false;
+        }
+
+        @Override
+        public boolean canContainDataProperties() {
+            return false;
+        }
+
+        @Override
+        public boolean canContainClassExpressions() {
+            return false;
+        }
+
+        @Override
+        public AxiomImpl merge(ONTObject<OWLInverseObjectPropertiesAxiom> other) {
+            if (this == other) {
+                return this;
+            }
+            if (other instanceof AxiomImpl && sameTriple((AxiomImpl) other)) {
+                return this;
+            }
+            AxiomImpl res = makeCopyWith(other);
+            res.hashCode = hashCode;
+            return res;
+        }
+
+        /**
+         * Creates an instance of {@link AxiomImpl}
+         * with additional triples getting from the specified {@code other} object.
+         * The returned instance must be equivalent to this instance.
+         *
+         * @param other {@link ONTObject} with {@link OWLInverseObjectPropertiesAxiom}, not {@code null}
+         * @return {@link AxiomImpl} - a fresh instance that equals to this
+         */
+        abstract AxiomImpl makeCopyWith(ONTObject<OWLInverseObjectPropertiesAxiom> other);
+
+        /**
+         * An {@link OWLInverseObjectPropertiesAxiom}
+         * that has named object properties as subject and object and has no annotations.
+         */
+        protected static class SimpleImpl extends AxiomImpl implements Simple<OWLObjectPropertyExpression> {
+
+            protected SimpleImpl(Triple t, Supplier<OntGraphModel> m) {
+                super(t, m);
+            }
+
+            protected SimpleImpl(Object s, String p, Object o, Supplier<OntGraphModel> m) {
+                super(s, p, o, m);
+            }
+
+            @Override
+            public ONTObject<? extends OWLObjectPropertyExpression> getFirstONTProperty() {
+                return findByURI((String) subject, getObjectFactory());
+            }
+
+            @Override
+            public ONTObject<? extends OWLObjectPropertyExpression> getSecondONTProperty() {
+                return findByURI((String) object, getObjectFactory());
+            }
+
+            @Override
+            protected boolean sameContent(ONTStatementImpl other) {
+                // triple is checked above in trace
+                return other instanceof SimpleImpl
+                        && subject.equals(((AxiomImpl) other).getObjectURI())
+                        && object.equals(((AxiomImpl) other).getSubjectURI());
+            }
+
+            @SuppressWarnings("unchecked")
+            @Override
+            public Set<OWLObjectProperty> getObjectPropertySet() {
+                return (Set<OWLObjectProperty>) getOWLComponentsAsSet();
+            }
+
+            @SuppressWarnings("unchecked")
+            @Override
+            public Set<OWLEntity> getSignatureSet() {
+                return (Set<OWLEntity>) getOWLComponentsAsSet();
+            }
+
+            @Override
+            public boolean containsObjectProperty(OWLObjectProperty property) {
+                String uri = ONTEntityImpl.getURI(property);
+                return subject.equals(uri) || object.equals(uri);
+            }
+
+            @Override
+            AxiomImpl makeCopyWith(ONTObject<OWLInverseObjectPropertiesAxiom> other) {
+                if (other instanceof SimpleImpl) {
+                    Triple t = ((SimpleImpl) other).asTriple();
+                    return new SimpleImpl(subject, predicate, object, model) {
+
+                        @Override
+                        public Stream<Triple> triples() {
+                            return Stream.concat(super.triples(), Stream.of(t));
+                        }
+                    };
+                }
+                return new SimpleImpl(subject, predicate, object, model) {
+                    @Override
+                    public Stream<Triple> triples() {
+                        return Stream.concat(super.triples(), other.triples());
+                    }
+                };
+            }
+        }
+
+        /**
+         * An {@link OWLInverseObjectPropertiesAxiom}
+         * that either has annotations or anonymous object expressions ({@link OWLObjectInverseOf})
+         * in subject or object positions.
+         * It has a public constructor since it is more generic then {@link SimpleImpl}.
+         */
+        protected static class ComplexImpl extends AxiomImpl
+                implements WithSortedContent<ComplexImpl, OWLObjectPropertyExpression> {
+            protected final InternalCache.Loading<ComplexImpl, Object[]> content;
+
+            public ComplexImpl(Triple t, Supplier<OntGraphModel> m) {
+                this(strip(t.getSubject()), t.getPredicate().getURI(), strip(t.getObject()), m);
+            }
+
+            protected ComplexImpl(Object s, String p, Object o, Supplier<OntGraphModel> m) {
+                super(s, p, o, m);
+                this.content = createContentCache();
+            }
+
+            @Override
+            public InternalCache.Loading<ComplexImpl, Object[]> getContentCache() {
+                return content;
+            }
+
+            @SuppressWarnings("unchecked")
+            @Override
+            public ONTObject<? extends OWLObjectPropertyExpression> getFirstONTProperty() {
+                if (subject instanceof String) {
+                    return findByURI((String) subject, getObjectFactory());
+                }
+                Object[] content = getContent();
+                return (ONTObject<? extends OWLObjectPropertyExpression>) content[0];
+            }
+
+            @SuppressWarnings("unchecked")
+            @Override
+            public ONTObject<? extends OWLObjectPropertyExpression> getSecondONTProperty() {
+                if (object instanceof String) {
+                    return findByURI((String) object, getObjectFactory());
+                }
+                Object[] content = getContent();
+                return (ONTObject<? extends OWLObjectPropertyExpression>) content[content.length == 1 ? 0 : 1];
+            }
+
+            @Override
+            protected boolean sameContent(ONTStatementImpl other) {
+                return other instanceof ComplexImpl && Arrays.equals(getContent(), ((ComplexImpl) other).getContent());
+            }
+
+            @Override
+            ComplexImpl makeCopyWith(ONTObject<OWLInverseObjectPropertiesAxiom> other) {
+                ComplexImpl res = new ComplexImpl(subject, predicate, object, model) {
+                    @Override
+                    public Stream<Triple> triples() {
+                        return Stream.concat(super.triples(), other.triples());
+                    }
+                };
+                if (hasContent()) {
+                    res.putContent(getContent());
+                }
+                return res;
+            }
+        }
+    }
 }

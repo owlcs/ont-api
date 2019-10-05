@@ -15,13 +15,18 @@
 package ru.avicomp.ontapi.internal.axioms;
 
 import org.semanticweb.owlapi.model.OWLAxiom;
+import org.semanticweb.owlapi.model.OWLObject;
 import ru.avicomp.ontapi.internal.HasConfig;
 import ru.avicomp.ontapi.internal.HasObjectFactory;
+import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.objects.AsStatement;
 import ru.avicomp.ontapi.internal.objects.ONTComposite;
 import ru.avicomp.ontapi.internal.objects.WithAnnotations;
 
+import java.util.Set;
+
 /**
+ * The base interface for any ONTAxiom.
  * Provides an access to main triple's parts.
  * <p>
  * Created by @ssz on 02.10.2019.
@@ -66,6 +71,25 @@ interface WithTriple extends AsStatement, WithAnnotations, ONTComposite, HasObje
      */
     default String getObjectURI() {
         return asTriple().getObject().getURI();
+    }
+
+    /**
+     * Gets all OWL characteristic components in the form of {@code Set}.
+     * {@link org.semanticweb.owlapi.model.OWLAnnotation OWLAnnotation}s are not included.
+     *
+     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @return a sorted {@code Set} of {@link OWLObject}s
+     * @see ONTComposite#objects()
+     */
+    Set<? extends OWLObject> getOWLComponentsAsSet(InternalObjectFactory factory);
+
+    /**
+     * Gets all OWL characteristic components in the form of {@code Set}.
+     *
+     * @return a sorted {@code Set} of {@link OWLObject}s
+     */
+    default Set<? extends OWLObject> getOWLComponentsAsSet() {
+        return getOWLComponentsAsSet(getObjectFactory());
     }
 
 }

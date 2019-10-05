@@ -27,6 +27,7 @@ import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.jena.OntModelFactory;
 import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
+import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
@@ -141,5 +142,29 @@ public class ONTObjectContentTest {
         // header + "<X> owl:equivalentClass <Z>" + 3 declarations
         Assert.assertEquals(5, g.size());
         Assert.assertEquals(1, g.statements(null, OWL.equivalentClass, null).count());
+    }
+
+    @Test
+    public void testInverseObjectPropertiesAxiomMerge() {
+        OntologyManager m = OntManagers.createONT();
+        OntologyModel o = m.createOntology();
+        OntGraphModel g = o.asGraphModel();
+
+        OntOPE x = g.createObjectProperty("X");
+        OntOPE y = g.createObjectProperty("Y");
+        x.addInverseProperty(y.addInverseProperty(x));
+
+        // header + 2 declarations + 2 owl:inverseOf
+        Assert.assertEquals(5, g.size());
+
+        Assert.assertEquals(3, o.axioms().count());
+
+        OWLInverseObjectPropertiesAxiom a = o.axioms(AxiomType.INVERSE_OBJECT_PROPERTIES)
+                .findFirst().orElseThrow(AssertionError::new);
+        o.remove(a);
+
+        Assert.assertEquals(2, o.axioms().count());
+        // header + 2 declarations
+        Assert.assertEquals(3, g.size());
     }
 }

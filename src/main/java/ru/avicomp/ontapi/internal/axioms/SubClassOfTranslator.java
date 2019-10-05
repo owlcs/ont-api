@@ -206,11 +206,8 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
             }
 
             @Override
-            public boolean containsEntity(OWLEntity entity) {
-                if (!entity.isOWLClass()) {
-                    return false;
-                }
-                String uri = ONTEntityImpl.getURI(entity);
+            public boolean containsNamedClass(OWLClass clazz) {
+                String uri = ONTEntityImpl.getURI(clazz);
                 return subject.equals(uri) || object.equals(uri);
             }
 

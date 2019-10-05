@@ -182,7 +182,7 @@ public class SubObjectPropertyOfTranslator extends AbstractSubPropertyTranslator
          * An {@link OWLSubObjectPropertyOfAxiom}
          * that has named object properties as subject and object and has no annotations.
          */
-        protected static class SimpleImpl extends AxiomImpl implements UnarySimple<OWLObjectPropertyExpression> { // todo:
+        protected static class SimpleImpl extends AxiomImpl implements UnarySimple<OWLObjectPropertyExpression> {
 
             protected SimpleImpl(Triple t, Supplier<OntGraphModel> m) {
                 super(t, m);
@@ -201,11 +201,8 @@ public class SubObjectPropertyOfTranslator extends AbstractSubPropertyTranslator
             }
 
             @Override
-            public boolean containsEntity(OWLEntity entity) {
-                if (!entity.isOWLObjectProperty()) {
-                    return false;
-                }
-                String uri = ONTEntityImpl.getURI(entity);
+            public boolean containsObjectProperty(OWLObjectProperty property) {
+                String uri = ONTEntityImpl.getURI(property);
                 return subject.equals(uri) || object.equals(uri);
             }
 

@@ -25,9 +25,11 @@ import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.internal.objects.*;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.utils.Iter;
+import ru.avicomp.ontapi.owlapi.OWLObjectImpl;
 
 import java.util.*;
 import java.util.function.ObjIntConsumer;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -63,7 +65,7 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
     ExtendedIterator<ONTObject<? extends E>> listONTComponents(OntStatement statement, InternalObjectFactory factory);
 
     /**
-     * Gets all components in the form of sorted {@code Set}
+     * Gets all components (as {@link ONTObject}s) in the form of sorted {@code Set}.
      *
      * @param statement {@link OntStatement}, the source, not {@code null}
      * @param factory   {@link InternalObjectFactory}, not {@code null}
@@ -74,7 +76,7 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
     }
 
     /**
-     * Returns a sorted and distinct {@code Stream} over all components
+     * Returns a sorted and distinct {@code Stream} over all components (annotations are not included).
      *
      * @param factory {@link InternalObjectFactory}, not {@code null}
      * @return a {@code Stream} of {@link ONTObject}s that wrap {@link E}s
@@ -105,6 +107,35 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
      */
     default Stream<ONTObject<? extends E>> members() {
         return members(getObjectFactory());
+    }
+
+    /**
+     * Gets all components as a sorted {@code Set} with exclusion of the specified.
+     *
+     * @param excludes an {@code Array} of {@link E}s, not {@code null}
+     * @return a {@link Set} of {@link E}s
+     */
+    @SuppressWarnings("unchecked")
+    default Set<E> getSetMinus(E... excludes) {
+        return sorted().map(ONTObject::getOWLObject)
+                .filter(negationPredicate(excludes))
+                .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    /**
+     * Creates a {@code Predicate} that allows everything with exclusion of specified elements.
+     *
+     * @param excludes an {@code Array} of {@link X}-elements to exclude, not {@code null}
+     * @param <X>      - anything
+     * @return a {@link Predicate} for {@link X}
+     */
+    @SafeVarargs
+    static <X> Predicate<X> negationPredicate(X... excludes) {
+        if (excludes.length == 0) {
+            return x -> true;
+        }
+        Set<X> set = new HashSet<>(Arrays.asList(excludes));
+        return x -> !set.contains(x);
     }
 
     /**
@@ -140,6 +171,14 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
             res.add(findByURI(getSubjectURI(), factory));
             res.add(findByURI(getObjectURI(), factory));
             return res.stream();
+        }
+
+        @Override
+        default Set<? extends OWLObject> getOWLComponentsAsSet(InternalObjectFactory factory) {
+            Set<OWLObject> res = OWLObjectImpl.createSortedSet();
+            res.add(findByURI(getSubjectURI(), factory).getOWLObject());
+            res.add(findByURI(getObjectURI(), factory).getOWLObject());
+            return res;
         }
     }
 
@@ -189,7 +228,10 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
             }
             setHash.accept(axiom, OWLObject.hashIteration(hash, h));
             if (simplify && annotations.isEmpty()) {
-                if (res.length == 2 && res[0] instanceof String && res[1] instanceof String) {
+                if (res.length == 1 && res[0] instanceof String) { // symmetric triple 's p s'
+                    return ONTStatementImpl.EMPTY;
+                }
+                if (res.length == 2 && res[0] instanceof String && res[1] instanceof String) { // 's p o'
                     return ONTStatementImpl.EMPTY;
                 }
             }
@@ -249,6 +291,16 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
                     .map(x -> fromContentItem(x, factory))
                     .filter(x -> toOWLAnnotation(x) == null);
             return (Stream<ONTObject<? extends E>>) res;
+        }
+
+        @Override
+        default Set<? extends OWLObject> getOWLComponentsAsSet(InternalObjectFactory factory) {
+            Set<OWLObject> res = OWLObjectImpl.createSortedSet();
+            Arrays.stream(getContent())
+                    .map(x -> fromContentItem(x, factory))
+                    .filter(x -> toOWLAnnotation(x) == null)
+                    .forEach(x -> res.add(x.getOWLObject()));
+            return res;
         }
 
         @Override

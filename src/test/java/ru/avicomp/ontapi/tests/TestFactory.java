@@ -1926,6 +1926,64 @@ public class TestFactory {
                                 "df.getOWLAnonymousIndividual(\"_:b0\"))))";
                     }
                 }
+                , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.INVERSE_OBJECT_PROPERTIES;
+                    }
+
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLInverseObjectPropertiesAxiom(df.getOWLObjectProperty("P1"),
+                                df.getOWLObjectProperty("P2"));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLInverseObjectPropertiesAxiom(df.getOWLObjectProperty(\"P1\"), " +
+                                "df.getOWLObjectProperty(\"P2\"))";
+                    }
+                }
+                , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.INVERSE_OBJECT_PROPERTIES;
+                    }
+
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLInverseObjectPropertiesAxiom(df.getOWLObjectProperty("P"),
+                                df.getOWLObjectInverseOf(df.getOWLObjectProperty("P")));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLInverseObjectPropertiesAxiom(df.getOWLObjectProperty(\"P\"), " +
+                                "df.getOWLObjectInverseOf(df.getOWLObjectProperty(\"P\")))";
+                    }
+                }
+                , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.INVERSE_OBJECT_PROPERTIES;
+                    }
+
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLInverseObjectPropertiesAxiom(
+                                df.getOWLObjectInverseOf(df.getOWLObjectProperty("P1")),
+                                df.getOWLObjectInverseOf(df.getOWLObjectProperty("P2")),
+                                Collections.singleton(df.getRDFSLabel("inv(P1) owl:inverseOf inv(P2)")));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLInverseObjectPropertiesAxiom(" +
+                                "df.getOWLObjectInverseOf(df.getOWLObjectProperty(\"P1\")), " +
+                                "df.getOWLObjectInverseOf(df.getOWLObjectProperty(\"P2\")), " +
+                                "Collections.singleton(df.getRDFSLabel(\"inv(P1) owl:inverseOf inv(P2)\")))";
+                    }
+                }
         );
 
     }

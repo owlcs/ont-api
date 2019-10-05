@@ -22,6 +22,7 @@ import ru.avicomp.ontapi.internal.objects.ModelObject;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.function.Function;
 
 /**
  * To test {@link ModelObject}
@@ -103,9 +104,35 @@ public class ModelObjectTest {
         Assert.assertTrue(actual instanceof ModelObject);
         Assert.assertEquals(expected, actual);
 
-        actual.asPairwiseAxioms().forEach(ObjectFactoryTestBase::testObjectHasNoModelReference);
-        actual.splitToAnnotatedPairs().forEach(ObjectFactoryTestBase::testObjectHasNoModelReference);
-        actual.asOWLSubClassOfAxioms().forEach(ObjectFactoryTestBase::testObjectHasNoModelReference);
+        testNarySplitMethod(expected, actual, OWLNaryAxiom::asPairwiseAxioms);
+        testNarySplitMethod(expected, actual, OWLNaryAxiom::splitToAnnotatedPairs);
+        testNarySplitMethod(expected, actual, x -> ((OWLEquivalentClassesAxiom) x).asOWLSubClassOfAxioms());
+    }
+
+    @Test
+    public void testInversePropertiesAxiomEraseModelMethods() {
+        OWLDataFactory df = ObjectFactoryTestBase.ONT_DATA_FACTORY;
+        OWLInverseObjectPropertiesAxiom expected = df.getOWLInverseObjectPropertiesAxiom(df.getOWLObjectProperty("X"),
+                df.getOWLObjectProperty("Y"),
+                Collections.singleton(df.getRDFSComment("x")));
+        Collection<? extends OWLAxiom> res = NaryAxiomsTest.createONTAxioms(OntManagers.createONT(), expected);
+        Assert.assertEquals(1, res.size());
+        OWLInverseObjectPropertiesAxiom actual = (OWLInverseObjectPropertiesAxiom) res.iterator().next();
+        Assert.assertTrue(actual instanceof ModelObject);
+        Assert.assertEquals(expected, actual);
+
+        testNarySplitMethod(expected, actual, OWLNaryAxiom::asPairwiseAxioms);
+        testNarySplitMethod(expected, actual, OWLNaryAxiom::splitToAnnotatedPairs);
+        testNarySplitMethod(expected, actual, x -> ((OWLInverseObjectPropertiesAxiom) x).asSubObjectPropertyOfAxioms());
+    }
+
+    private void testNarySplitMethod(OWLNaryAxiom expected,
+                                     OWLNaryAxiom actual,
+                                     Function<OWLNaryAxiom, Collection<? extends OWLAxiom>> get) {
+        Collection<? extends OWLAxiom> expectedAxioms = get.apply(expected);
+        Collection<? extends OWLAxiom> actualAxioms = get.apply(actual);
+        Assert.assertEquals(expectedAxioms, actualAxioms);
+        actualAxioms.forEach(ObjectFactoryTestBase::testObjectHasNoModelReference);
     }
 
 }

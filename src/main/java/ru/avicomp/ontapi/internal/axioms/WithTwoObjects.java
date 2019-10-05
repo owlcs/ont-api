@@ -121,13 +121,7 @@ interface WithTwoObjects<S extends OWLObject, O extends OWLObject> extends WithT
         return Stream.of(findONTSubject(factory), findONTObject(factory));
     }
 
-    /**
-     * Gets the triple components as a {@code Set}.
-     *
-     * @return a sorted {@code Set} of {@link OWLObject}s
-     */
-    default Set<? extends OWLObject> getOWLComponentsAsSet() {
-        InternalObjectFactory factory = getObjectFactory();
+    default Set<? extends OWLObject> getOWLComponentsAsSet(InternalObjectFactory factory) {
         Set<OWLObject> res = OWLObjectImpl.createSortedSet();
         res.add(findONTSubject(factory).getOWLObject());
         res.add(findONTObject(factory).getOWLObject());
@@ -296,8 +290,7 @@ interface WithTwoObjects<S extends OWLObject, O extends OWLObject> extends WithT
         }
 
         @Override
-        default Set<? extends OWLObject> getOWLComponentsAsSet() {
-            InternalObjectFactory factory = getObjectFactory();
+        default Set<? extends OWLObject> getOWLComponentsAsSet(InternalObjectFactory factory) {
             Object[] content = getContent();
             Set<OWLObject> res = OWLObjectImpl.createSortedSet();
             res.add(findONTSubject(content, factory).getOWLObject());

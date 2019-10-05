@@ -51,12 +51,12 @@ public abstract class ONTStatementImpl extends ONTObjectImpl implements WithAnno
      * Constructs the base object-triple.
      *
      * This class do not use {@link Triple Jena Triple} as reference,
-     * instead it contains three separated triple parts: {@link #subject}, {@link #predicate} and {@link #object}.
+     * instead it contains three separated its triple parts: {@link #subject}, {@link #predicate} and {@link #object}.
      * This is because a {@link Graph} generally does not guarantee that it will return
      * the same triplets (that are equal in sense of the operation {@code ==}) for the same SPO patterns,
      * although this is true for {@link org.apache.jena.mem.GraphMem}.
-     * Also, the investigation shows
-     * that this way is slightly faster and economical than the way when a triple is used as a single reference.
+     * Also, the investigation shows that this way may be slightly faster and economical
+     * than another one when a triple is used as a single reference.
      *
      * @param subject   - must be either {@link BlankNodeId} or {@code String}, not {@code null}
      * @param predicate - {@code String} (URI), not {@code null}
