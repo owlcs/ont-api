@@ -115,12 +115,6 @@ interface WithTwoObjects<S extends OWLObject, O extends OWLObject> extends WithT
         return findONTObject(getObjectFactory());
     }
 
-    @Override
-    default Stream<ONTObject<? extends OWLObject>> objects() {
-        InternalObjectFactory factory = getObjectFactory();
-        return Stream.of(findONTSubject(factory), findONTObject(factory));
-    }
-
     default Set<? extends OWLObject> getOWLComponentsAsSet(InternalObjectFactory factory) {
         Set<OWLObject> res = OWLObjectImpl.createSortedSet();
         res.add(findONTSubject(factory).getOWLObject());
@@ -139,6 +133,12 @@ interface WithTwoObjects<S extends OWLObject, O extends OWLObject> extends WithT
         @Override
         default boolean isAnnotated() {
             return false;
+        }
+
+        @Override
+        default Stream<ONTObject<? extends OWLObject>> objects() {
+            InternalObjectFactory factory = getObjectFactory();
+            return Stream.of(findONTSubject(factory), findONTObject(factory));
         }
 
         @Override
@@ -161,7 +161,7 @@ interface WithTwoObjects<S extends OWLObject, O extends OWLObject> extends WithT
      * @param <S> - any subtype of {@link OWLObject} (the type of main triple's subject)
      * @param <O> - any subtype of {@link OWLObject} (the type of main triple's object)
      */
-    interface WithPartialContent<A extends OWLAxiom, S extends OWLObject, O extends OWLObject>
+    interface Complex<A extends OWLAxiom, S extends OWLObject, O extends OWLObject>
             extends WithTwoObjects<S, O>, WithContent<A> {
 
         /**
@@ -337,6 +337,6 @@ interface WithTwoObjects<S extends OWLObject, O extends OWLObject> extends WithT
     interface UnarySimple<X extends OWLObject> extends Unary<X>, Simple<X, X> {
     }
 
-    interface UnaryWithContent<A extends OWLAxiom, X extends OWLObject> extends Unary<X>, WithPartialContent<A, X, X> {
+    interface UnaryWithContent<A extends OWLAxiom, X extends OWLObject> extends Unary<X>, Complex<A, X, X> {
     }
 }

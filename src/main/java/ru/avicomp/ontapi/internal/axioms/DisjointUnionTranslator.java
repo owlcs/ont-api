@@ -26,8 +26,8 @@ import ru.avicomp.ontapi.jena.model.OntClass;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
+import java.util.Collection;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Translator for DisjointUnion Axiom.
@@ -52,8 +52,8 @@ public class DisjointUnionTranslator extends AbstractListBasedTranslator<OWLDisj
     }
 
     @Override
-    public Stream<? extends OWLObject> getObjects(OWLDisjointUnionAxiom axiom) {
-        return axiom.classExpressions();
+    public Collection<? extends OWLObject> getObjects(OWLDisjointUnionAxiom axiom) {
+        return axiom.getOperandsAsList();
     }
 
     @Override

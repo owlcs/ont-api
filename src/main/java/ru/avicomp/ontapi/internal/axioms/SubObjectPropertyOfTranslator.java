@@ -101,7 +101,7 @@ public class SubObjectPropertyOfTranslator extends AbstractSubPropertyTranslator
                                        InternalObjectFactory factory,
                                        InternalConfig config) {
             SimpleImpl s = new SimpleImpl(statement.asTriple(), model);
-            Object[] content = WithPartialContent.initContent(s, statement, SET_HASH_CODE, factory, config);
+            Object[] content = Complex.initContent(s, statement, SET_HASH_CODE, factory, config);
             if (content == EMPTY) {
                 return s;
             }

@@ -41,7 +41,8 @@ import ru.avicomp.ontapi.jena.vocabulary.RDF;
  * <p>
  * Created by @szuev on 28.09.2016.
  */
-public abstract class AbstractPropertyTypeTranslator<Axiom extends OWLAxiom & HasProperty, P extends OntPE> extends AxiomTranslator<Axiom> {
+public abstract class AbstractPropertyTypeTranslator<Axiom extends OWLAxiom & HasProperty,
+        P extends OntPE> extends AxiomTranslator<Axiom> {
 
     abstract Resource getType();
 
@@ -66,6 +67,6 @@ public abstract class AbstractPropertyTypeTranslator<Axiom extends OWLAxiom & Ha
 
     @Override
     public void write(Axiom axiom, OntGraphModel model) {
-        WriteHelper.writeTriple(model, axiom.getProperty(), RDF.type, getType(), axiom.annotations());
+        WriteHelper.writeTriple(model, axiom.getProperty(), RDF.type, getType(), axiom.annotationsAsList());
     }
 }

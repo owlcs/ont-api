@@ -71,7 +71,7 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
      * @param factory   {@link InternalObjectFactory}, not {@code null}
      * @return a {@code Set} of {@link ONTObject} with type {@link E}
      */
-    default Set<ONTObject<? extends E>> getONTComponents(OntStatement statement, InternalObjectFactory factory) {
+    default Set<ONTObject<? extends E>> fetchONTComponents(OntStatement statement, InternalObjectFactory factory) {
         return Iter.addAll(listONTComponents(statement, factory), ONTObjectImpl.createContentSet());
     }
 
@@ -189,7 +189,7 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
      * @param <A> - any subtype of {@link OWLAxiom} which is implemented by the instance of this interface
      * @param <E> - any subtype of {@link OWLObject} (the type of axiom components)
      */
-    interface WithSortedContent<A extends OWLAxiom, E extends OWLObject> extends WithManyObjects<E>, WithContent<A> {
+    interface Complex<A extends OWLAxiom, E extends OWLObject> extends WithManyObjects<E>, WithContent<A> {
 
         /**
          * Calculates the content and {@code hashCode} simultaneously.
@@ -212,7 +212,7 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
                                     InternalObjectFactory factory,
                                     InternalConfig config) {
             Collection annotations = ONTAxiomImpl.collectAnnotations(statement, factory, config);
-            Set<OWLObject> components = axiom.getONTComponents(statement, factory);
+            Set<OWLObject> components = axiom.fetchONTComponents(statement, factory);
             Object[] res = new Object[components.size() + annotations.size()];
             int index = 0;
             int h = 1;
@@ -259,7 +259,7 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
             OntStatement statement = asStatement();
             InternalObjectFactory factory = getObjectFactory();
             List<ONTObject> res = new ArrayList<>(2);
-            res.addAll(getONTComponents(statement, factory));
+            res.addAll(fetchONTComponents(statement, factory));
             res.addAll(ONTAxiomImpl.collectAnnotations(statement, factory, getConfig()));
             if (res.isEmpty()) {
                 return ONTStatementImpl.EMPTY;
@@ -311,7 +311,7 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
         @SuppressWarnings("unchecked")
         @Override
         default Stream<OWLAnnotation> annotations() {
-            Stream res = Arrays.stream(getContent()).map(WithSortedContent::toOWLAnnotation).filter(Objects::nonNull);
+            Stream res = Arrays.stream(getContent()).map(Complex::toOWLAnnotation).filter(Objects::nonNull);
             return (Stream<OWLAnnotation>) res;
         }
 

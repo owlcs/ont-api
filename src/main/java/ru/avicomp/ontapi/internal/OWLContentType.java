@@ -20,10 +20,7 @@ import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.utils.Iter;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.EnumSet;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -60,7 +57,7 @@ public enum OWLContentType {
 
         @Override
         void write(OntGraphModel m, OWLObject v) {
-            WriteHelper.addAnnotations(m.getID(), Stream.of((OWLAnnotation) v));
+            WriteHelper.addAnnotations(m.getID(), Collections.singleton(((OWLAnnotation) v)));
         }
     },
     // axioms:

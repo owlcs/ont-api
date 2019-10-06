@@ -18,6 +18,8 @@ import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.internal.AxiomTranslator;
 import ru.avicomp.ontapi.internal.InternalConfig;
@@ -27,9 +29,9 @@ import ru.avicomp.ontapi.jena.model.OntObject;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.utils.OntModels;
 
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -57,10 +59,12 @@ import java.util.stream.Collectors;
 public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxiom<OWL>,
         OWL extends OWLObject & IsAnonymous, ONT extends OntObject> extends AxiomTranslator<Axiom> {
 
+    static final Logger LOGGER = LoggerFactory.getLogger(AbstractNaryTranslator.class);
+
     private final Comparator<OWL> uriFirstComparator = (a, b) ->
             a.isAnonymous() == b.isAnonymous() ? 0 : a.isAnonymous() ? -1 : 1;
 
-    void write(OWLNaryAxiom<OWL> thisAxiom, Set<OWLAnnotation> annotations, OntGraphModel model) {
+    void write(OWLNaryAxiom<OWL> thisAxiom, Collection<OWLAnnotation> annotations, OntGraphModel model) {
         List<OWL> operands = thisAxiom.operands().sorted(uriFirstComparator).distinct().collect(Collectors.toList());
         if (operands.isEmpty() && annotations.isEmpty()) { // nothing to write, skip
             return;
@@ -68,12 +72,17 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
         if (operands.size() != 2) {
             throw new OntApiException(getClass().getSimpleName() + ": expected two operands. Axiom: " + thisAxiom);
         }
-        WriteHelper.writeTriple(model, operands.get(0), getPredicate(), operands.get(1), annotations.stream());
+        WriteHelper.writeTriple(model, operands.get(0), getPredicate(), operands.get(1), annotations);
     }
 
     @Override
     public void write(Axiom axiom, OntGraphModel model) {
-        axiom.asPairwiseAxioms().forEach(a -> write(a, axiom.annotations().collect(Collectors.toSet()), model));
+        Collection<? extends OWLNaryAxiom<OWL>> axioms = axiom.asPairwiseAxioms();
+        if (axioms.isEmpty()) {
+            LOGGER.warn("Nothing to write, wrong axiom is given: {}", axiom);
+            return;
+        }
+        axioms.forEach(a -> write(a, axiom.annotationsAsList(), model));
     }
 
     abstract Property getPredicate();

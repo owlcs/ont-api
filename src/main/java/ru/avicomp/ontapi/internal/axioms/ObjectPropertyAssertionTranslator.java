@@ -49,7 +49,7 @@ public class ObjectPropertyAssertionTranslator
                 axiom.getProperty().getInverseProperty() : axiom.getProperty();
         OWLIndividual subject = axiom.getProperty().isAnonymous() ? axiom.getObject() : axiom.getSubject();
         OWLIndividual object = axiom.getProperty().isAnonymous() ? axiom.getSubject() : axiom.getObject();
-        WriteHelper.writeAssertionTriple(model, subject, property, object, axiom.annotations());
+        WriteHelper.writeAssertionTriple(model, subject, property, object, axiom.annotationsAsList());
     }
 
     /**

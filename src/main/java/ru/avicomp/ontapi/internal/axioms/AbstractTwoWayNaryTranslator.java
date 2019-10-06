@@ -30,7 +30,7 @@ import ru.avicomp.ontapi.jena.utils.OntModels;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
 import java.util.Collection;
-import java.util.Set;
+import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -57,19 +57,20 @@ public abstract class AbstractTwoWayNaryTranslator<Axiom extends OWLAxiom & OWLN
 
     @Override
     public void write(Axiom axiom, OntGraphModel model) {
-        Set<OWL> operands = axiom.operands().collect(Collectors.toSet());
-        Set<OWLAnnotation> annotations = axiom.annotations().collect(Collectors.toSet());
+        List<OWL> operands = axiom.getOperandsAsList();
+        List<OWLAnnotation> annotations = axiom.annotationsAsList();
         if (operands.isEmpty() && annotations.isEmpty()) { // nothing to write, skip
+            LOGGER.warn("Nothing to write, wrong axiom is given: {}", axiom);
             return;
         }
-        if (operands.size() == 2) { // single triple classic way
+        if (operands.size() == 2) { // single triple - use classic way
             write(axiom, annotations, model);
         } else { // OWL2 anonymous node
             Resource root = model.createResource();
             model.add(root, RDF.type, getMembersType());
-            model.add(root, getMembersPredicate(), WriteHelper.addRDFList(model, operands.stream()));
+            model.add(root, getMembersPredicate(), WriteHelper.addRDFList(model, operands));
             OntDisjoint<ONT> res = root.as(getDisjointView());
-            WriteHelper.addAnnotations(res, annotations.stream());
+            WriteHelper.addAnnotations(res, annotations);
         }
     }
 

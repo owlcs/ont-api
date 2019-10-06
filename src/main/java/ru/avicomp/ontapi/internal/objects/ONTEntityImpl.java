@@ -33,7 +33,6 @@ import java.util.function.Supplier;
  * @param <X> subtype of {@link OWLEntity}
  * @since 1.4.3
  */
-@SuppressWarnings("WeakerAccess")
 public abstract class ONTEntityImpl<X extends OWLEntity>
         extends ONTResourceImpl implements OWLEntity, ModelObject<X>, ONTSimple {
 
@@ -183,5 +182,4 @@ public abstract class ONTEntityImpl<X extends OWLEntity>
         int res = Integer.compare(typeIndex(), Objects.requireNonNull(other, "Null object").typeIndex());
         return res != 0 ? res : other instanceof HasIRI ? getIRI().compareTo(((HasIRI) other).getIRI()) : 0;
     }
-
 }

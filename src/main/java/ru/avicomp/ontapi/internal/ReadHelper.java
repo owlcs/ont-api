@@ -203,6 +203,7 @@ public class ReadHelper {
      *
      * @param type {@code Class}-type of {@link OntFR}
      * @return {@link OWLFacet}
+     * @see WriteHelper#getFRType(OWLFacet)
      */
     public static OWLFacet getFacet(Class<? extends OntFR> type) {
         if (OntFR.Length.class == type)

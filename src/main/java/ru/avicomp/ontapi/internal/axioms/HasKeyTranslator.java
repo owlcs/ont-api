@@ -27,8 +27,8 @@ import ru.avicomp.ontapi.jena.model.OntDOP;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
+import java.util.Collection;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Translator for HasKey axiom.
@@ -53,8 +53,8 @@ public class HasKeyTranslator extends AbstractListBasedTranslator<OWLHasKeyAxiom
     }
 
     @Override
-    Stream<? extends OWLObject> getObjects(OWLHasKeyAxiom axiom) {
-        return axiom.propertyExpressions();
+    Collection<? extends OWLObject> getObjects(OWLHasKeyAxiom axiom) {
+        return axiom.getOperandsAsList();
     }
 
     @Override

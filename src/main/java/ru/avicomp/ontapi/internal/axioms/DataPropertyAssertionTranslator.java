@@ -36,7 +36,7 @@ public class DataPropertyAssertionTranslator
     @Override
     public void write(OWLDataPropertyAssertionAxiom axiom, OntGraphModel model) {
         WriteHelper.writeAssertionTriple(model, axiom.getSubject(), axiom.getProperty(), axiom.getObject(),
-                axiom.annotations());
+                axiom.annotationsAsList());
     }
 
     /**

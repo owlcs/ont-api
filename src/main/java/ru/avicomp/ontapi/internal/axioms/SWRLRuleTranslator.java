@@ -42,7 +42,7 @@ public class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
         Stream<OntSWRL.Atom> head = axiom.head().map(atom -> WriteHelper.addSWRLAtom(model, atom));
         Stream<OntSWRL.Atom> body = axiom.body().map(atom -> WriteHelper.addSWRLAtom(model, atom));
         WriteHelper.addAnnotations(model.createSWRLImp(head.collect(Collectors.toList()),
-                body.collect(Collectors.toList())), axiom.annotations());
+                body.collect(Collectors.toList())), axiom.annotationsAsList());
     }
 
     @Override

@@ -52,7 +52,7 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
     @Override
     public void write(OWLDeclarationAxiom axiom, OntGraphModel model) {
         WriteHelper.writeDeclarationTriple(model, axiom.getEntity(), RDF.type,
-                WriteHelper.getRDFType(axiom.getEntity()), axiom.annotations());
+                WriteHelper.getRDFType(axiom.getEntity()), axiom.annotationsAsList());
     }
 
     @Override

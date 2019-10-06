@@ -121,7 +121,7 @@ public class EquivalentClassesTranslator extends AbstractNaryTranslator<OWLEquiv
                                        InternalObjectFactory factory,
                                        InternalConfig config) {
             SimpleImpl s = new SimpleImpl(statement.asTriple(), model);
-            Object[] content = WithSortedContent.initContent(s, statement, SET_HASH_CODE, true, factory, config);
+            Object[] content = Complex.initContent(s, statement, SET_HASH_CODE, true, factory, config);
             if (content == EMPTY) {
                 return s;
             }
@@ -335,7 +335,7 @@ public class EquivalentClassesTranslator extends AbstractNaryTranslator<OWLEquiv
          * It has a public constructor since it is more generic then {@link SimpleImpl}.
          */
         public static class ComplexImpl extends AxiomImpl
-                implements WithManyObjects.WithSortedContent<ComplexImpl, OWLClassExpression> {
+                implements Complex<ComplexImpl, OWLClassExpression> {
             protected final InternalCache.Loading<ComplexImpl, Object[]> content;
 
             public ComplexImpl(Triple t, Supplier<OntGraphModel> m) {

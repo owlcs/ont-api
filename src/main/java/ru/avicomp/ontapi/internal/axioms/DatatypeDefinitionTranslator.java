@@ -41,7 +41,8 @@ public class DatatypeDefinitionTranslator extends AxiomTranslator<OWLDatatypeDef
 
     @Override
     public void write(OWLDatatypeDefinitionAxiom axiom, OntGraphModel model) {
-        WriteHelper.writeTriple(model, axiom.getDatatype(), OWL.equivalentClass, axiom.getDataRange(), axiom.annotations());
+        WriteHelper.writeTriple(model, axiom.getDatatype(), OWL.equivalentClass, axiom.getDataRange(),
+                axiom.annotationsAsList());
     }
 
     @Override

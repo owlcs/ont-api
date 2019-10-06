@@ -49,7 +49,8 @@ public class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInvers
 
     @Override
     public void write(OWLInverseObjectPropertiesAxiom axiom, OntGraphModel model) {
-        WriteHelper.writeTriple(model, axiom.getFirstProperty(), OWL.inverseOf, axiom.getSecondProperty(), axiom.annotations());
+        WriteHelper.writeTriple(model, axiom.getFirstProperty(), OWL.inverseOf, axiom.getSecondProperty(),
+                axiom.annotationsAsList());
     }
 
     @Override
@@ -132,7 +133,7 @@ public class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInvers
                                        InternalObjectFactory factory,
                                        InternalConfig config) {
             SimpleImpl s = new SimpleImpl(statement.asTriple(), model);
-            Object[] content = WithSortedContent.initContent(s, statement, SET_HASH_CODE, true, factory, config);
+            Object[] content = Complex.initContent(s, statement, SET_HASH_CODE, true, factory, config);
             if (content == EMPTY) {
                 return s;
             }
@@ -345,7 +346,7 @@ public class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInvers
          * It has a public constructor since it is more generic then {@link SimpleImpl}.
          */
         protected static class ComplexImpl extends AxiomImpl
-                implements WithSortedContent<ComplexImpl, OWLObjectPropertyExpression> {
+                implements Complex<ComplexImpl, OWLObjectPropertyExpression> {
             protected final InternalCache.Loading<ComplexImpl, Object[]> content;
 
             public ComplexImpl(Triple t, Supplier<OntGraphModel> m) {

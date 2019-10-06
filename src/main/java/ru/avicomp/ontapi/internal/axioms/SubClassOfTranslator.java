@@ -52,7 +52,8 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
 
     @Override
     public void write(OWLSubClassOfAxiom axiom, OntGraphModel model) {
-        WriteHelper.writeTriple(model, axiom.getSubClass(), RDFS.subClassOf, axiom.getSuperClass(), axiom.annotations());
+        WriteHelper.writeTriple(model, axiom.getSubClass(), RDFS.subClassOf, axiom.getSuperClass(),
+                axiom.annotationsAsList());
     }
 
     @Override
@@ -119,7 +120,7 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
                                        InternalObjectFactory factory,
                                        InternalConfig config) {
             SimpleImpl s = new SimpleImpl(statement.asTriple(), model);
-            Object[] content = WithPartialContent.initContent(s, statement, SET_HASH_CODE, factory, config);
+            Object[] content = Complex.initContent(s, statement, SET_HASH_CODE, factory, config);
             if (content == EMPTY) {
                 return s;
             }

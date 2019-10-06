@@ -31,9 +31,9 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.owlapi.objects.OWLAnonymousIndividualImpl;
 import ru.avicomp.ontapi.owlapi.objects.OWLLiteralImpl;
 
+import java.util.Collection;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Helper for the axioms translation to the rdf-form (writing to graph).
@@ -147,6 +147,13 @@ public class WriteHelper {
         throw new OntApiException("Unsupported " + entity);
     }
 
+    /**
+     * Gets the ONT-API facet type by OWL-API {@link OWLFacet}.
+     *
+     * @param facet {@link OWLFacet}, not {@code null}
+     * @return {@code Class}-type of {@link OntFR}
+     * @see ReadHelper#getFacet(Class)
+     */
     public static Class<? extends OntFR> getFRType(OWLFacet facet) {
         switch (facet) {
             case LENGTH:
@@ -172,14 +179,14 @@ public class WriteHelper {
             case LANG_RANGE:
                 return OntFR.LangRange.class;
         }
-        throw new OntApiException("Unsupported " + facet);
+        throw new OntApiException.IllegalArgument("Unsupported " + facet);
     }
 
     public static void writeAssertionTriple(OntGraphModel model,
                                             OWLObject subject,
                                             OWLPropertyExpression property,
                                             OWLObject object,
-                                            Stream<OWLAnnotation> annotations) {
+                                            Collection<OWLAnnotation> annotations) {
         OntObject s = addRDFNode(model, subject).as(OntObject.class);
         Property p = addRDFNode(model, property).as(Property.class);
         RDFNode o = addRDFNode(model, object);
@@ -190,7 +197,7 @@ public class WriteHelper {
                                               OWLEntity subject,
                                               Property predicate,
                                               RDFNode object,
-                                              Stream<OWLAnnotation> annotations) {
+                                              Collection<OWLAnnotation> annotations) {
         addAnnotations(toResource(subject)
                 .inModel(model).addProperty(predicate, object).as(getEntityType(subject)).getRoot(), annotations);
     }
@@ -199,7 +206,7 @@ public class WriteHelper {
                                    OWLObject subject,
                                    Property predicate,
                                    OWLObject object,
-                                   Stream<OWLAnnotation> annotations) {
+                                   Collection<OWLAnnotation> annotations) {
         writeTriple(model, subject, predicate, addRDFNode(model, object), annotations);
     }
 
@@ -207,22 +214,31 @@ public class WriteHelper {
                                    OWLObject subject,
                                    Property predicate,
                                    RDFNode object,
-                                   Stream<OWLAnnotation> annotations) {
+                                   Collection<OWLAnnotation> annotations) {
         OntObject s = addRDFNode(model, subject).as(OntObject.class);
         addAnnotations(s.addStatement(predicate, object), annotations);
     }
 
+    /**
+     * Writes an annotated list.
+     *
+     * @param model       {@link OntGraphModel}, to write in, not {@code null}
+     * @param subject     {@link OWLObject}, not {@code null}
+     * @param predicate   {@link Property}, not {@code null}
+     * @param objects     a {@code Collection} of operands, not {@code null}
+     * @param annotations a {@code Collection} of annotations, not {@code null}
+     */
     public static void writeList(OntGraphModel model,
                                  OWLObject subject,
                                  Property predicate,
-                                 Stream<? extends OWLObject> objects,
-                                 Stream<OWLAnnotation> annotations) {
+                                 Collection<? extends OWLObject> objects,
+                                 Collection<OWLAnnotation> annotations) {
         OntObject s = addRDFNode(model, subject).as(OntObject.class);
         addAnnotations(s.addStatement(predicate, addRDFList(model, objects)), annotations);
     }
 
-    public static RDFList addRDFList(OntGraphModel model, Stream<? extends OWLObject> objects) {
-        return model.createList(objects.map(o -> addRDFNode(model, o)).iterator());
+    public static RDFList addRDFList(OntGraphModel model, Collection<? extends OWLObject> objects) {
+        return model.createList(objects.stream().map(o -> addRDFNode(model, o)).iterator());
     }
 
     public static OntNAP addAnnotationProperty(OntGraphModel model, OWLEntity entity) {
@@ -366,20 +382,26 @@ public class WriteHelper {
     /**
      * Writes OWL-API annotations for the given ONT statement.
      *
-     * @param statement   {@link OntStatement}, not {@code null}
-     * @param annotations {@code Stream} of {@link OWLAnnotation}'s
+     * @param statement   a {@link OntStatement}, not {@code null}
+     * @param annotations a {@code Collection} of {@link OWLAnnotation annotation}s
      */
-    public static void addAnnotations(OntStatement statement, Stream<OWLAnnotation> annotations) {
+    public static void addAnnotations(OntStatement statement, Collection<OWLAnnotation> annotations) {
         annotations.forEach(a -> {
             OntStatement st = statement.addAnnotation(addAnnotationProperty(statement.getModel(), a.getProperty()),
                     addRDFNode(statement.getModel(), a.getValue()));
-            addAnnotations(st, a.annotations());
+            addAnnotations(st, a.annotationsAsList());
         });
     }
 
-    public static void addAnnotations(OntObject object, Stream<OWLAnnotation> annotations) {
-        addAnnotations(OntApiException.notNull(object.getRoot(),
-                "Can't determine root statement for " + object), annotations);
+    /**
+     * Writes OWL-API annotations for the given {@code OntObject}.
+     *
+     * @param object      a {@link OntObject}, not {@code null}
+     * @param annotations a {@code Collection} of {@link OWLAnnotation annotation}s
+     */
+    public static void addAnnotations(OntObject object, Collection<OWLAnnotation> annotations) {
+        addAnnotations(OntApiException.notNull(object.getRoot(), "Can't determine the root statement for " + object),
+                annotations);
     }
 
     /**

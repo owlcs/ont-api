@@ -49,7 +49,7 @@ public class AnnotationAssertionTranslator
     @Override
     public void write(OWLAnnotationAssertionAxiom axiom, OntGraphModel model) {
         WriteHelper.writeAssertionTriple(model, axiom.getSubject(),
-                axiom.getProperty(), axiom.getValue(), axiom.annotations());
+                axiom.getProperty(), axiom.getValue(), axiom.annotationsAsList());
     }
 
     /**

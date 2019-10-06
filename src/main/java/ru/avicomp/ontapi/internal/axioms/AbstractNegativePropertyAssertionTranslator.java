@@ -34,7 +34,8 @@ import ru.avicomp.ontapi.jena.vocabulary.OWL;
  * <p>
  * Created by szuev on 29.11.2016.
  */
-public abstract class AbstractNegativePropertyAssertionTranslator<Axiom extends OWLPropertyAssertionAxiom, NPA extends OntNPA> extends AxiomTranslator<Axiom> {
+public abstract class AbstractNegativePropertyAssertionTranslator<Axiom extends OWLPropertyAssertionAxiom,
+        NPA extends OntNPA> extends AxiomTranslator<Axiom> {
 
     abstract NPA createNPA(Axiom axiom, OntGraphModel model);
 
@@ -42,7 +43,7 @@ public abstract class AbstractNegativePropertyAssertionTranslator<Axiom extends 
 
     @Override
     public void write(Axiom axiom, OntGraphModel model) {
-        WriteHelper.addAnnotations(createNPA(axiom, model), axiom.annotations());
+        WriteHelper.addAnnotations(createNPA(axiom, model), axiom.annotationsAsList());
     }
 
     @Override

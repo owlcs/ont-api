@@ -33,10 +33,11 @@ import ru.avicomp.ontapi.jena.utils.OntModels;
  * <p>
  * Created by @szuev on 30.09.2016.
  */
-public abstract class AbstractPropertyDomainTranslator<Axiom extends OWLAxiom & HasDomain & HasProperty, P extends OntPE> extends AxiomTranslator<Axiom> {
+public abstract class AbstractPropertyDomainTranslator<Axiom extends OWLAxiom & HasDomain & HasProperty,
+        P extends OntPE> extends AxiomTranslator<Axiom> {
     @Override
     public void write(Axiom axiom, OntGraphModel model) {
-        WriteHelper.writeTriple(model, axiom.getProperty(), RDFS.domain, axiom.getDomain(), axiom.annotations());
+        WriteHelper.writeTriple(model, axiom.getProperty(), RDFS.domain, axiom.getDomain(), axiom.annotationsAsList());
     }
 
     abstract Class<P> getView();

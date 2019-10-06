@@ -35,7 +35,6 @@ import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collector;
-import java.util.stream.Stream;
 
 /**
  * Base class for three following implementations:
@@ -54,13 +53,13 @@ public abstract class AbstractListBasedTranslator<Axiom extends OWLLogicalAxiom,
 
     abstract Property getPredicate();
 
-    abstract Stream<? extends OWLObject> getObjects(Axiom axiom);
+    abstract Collection<? extends OWLObject> getObjects(Axiom axiom);
 
     abstract Class<ONT_SUBJECT> getView();
 
     @Override
     public void write(Axiom axiom, OntGraphModel model) {
-        WriteHelper.writeList(model, getSubject(axiom), getPredicate(), getObjects(axiom), axiom.annotations());
+        WriteHelper.writeList(model, getSubject(axiom), getPredicate(), getObjects(axiom), axiom.annotationsAsList());
     }
 
     @Override

@@ -47,7 +47,7 @@ public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionA
                 WriteHelper.toResource(individual).inModel(model).as(OntObject.class) :
                 WriteHelper.addIndividual(model, individual);
         OntStatement statement = subject.addStatement(RDF.type, ce);
-        WriteHelper.addAnnotations(statement, axiom.annotations());
+        WriteHelper.addAnnotations(statement, axiom.annotationsAsList());
     }
 
     @Override

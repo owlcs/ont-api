@@ -25,8 +25,8 @@ import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
+import java.util.Collection;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Translator for SubPropertyChainOf axiom.
@@ -51,8 +51,8 @@ public class SubPropertyChainOfTranslator extends AbstractListBasedTranslator<OW
     }
 
     @Override
-    Stream<? extends OWLObject> getObjects(OWLSubPropertyChainOfAxiom axiom) {
-        return axiom.getPropertyChain().stream();
+    Collection<? extends OWLObject> getObjects(OWLSubPropertyChainOfAxiom axiom) {
+        return axiom.getPropertyChain();
     }
 
     @Override
