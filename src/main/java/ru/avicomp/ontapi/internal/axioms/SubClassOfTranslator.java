@@ -29,6 +29,7 @@ import ru.avicomp.ontapi.jena.utils.OntModels;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
 /**
@@ -101,13 +102,7 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
         }
 
         /**
-         * Creates an {@link ONTObject} container, which is {@link OWLSubClassOfAxiom},
-         * for the given {@link OntStatement}.
-         *
-         * Impl notes:
-         * If there is no sub-annotations and subject and object are URI-{@link org.apache.jena.rdf.model.Resource}s,
-         * then a simplified instance of {@link SimpleImpl} is returned.
-         * Otherwise the instance is {@link ComplexImpl} with a cache inside.
+         * Creates an {@link ONTObject} container, that is also {@link OWLSubClassOfAxiom}.
          *
          * @param statement  {@link OntStatement}, not {@code null}
          * @param model  {@link OntGraphModel} provider, not {@code null}
@@ -119,15 +114,8 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
                                        Supplier<OntGraphModel> model,
                                        InternalObjectFactory factory,
                                        InternalConfig config) {
-            SimpleImpl s = new SimpleImpl(statement.asTriple(), model);
-            Object[] content = Complex.initContent(s, statement, SET_HASH_CODE, factory, config);
-            if (content == EMPTY) {
-                return s;
-            }
-            ComplexImpl c = new ComplexImpl(statement.asTriple(), model);
-            c.setHashCode(s.hashCode);
-            c.putContent(content);
-            return c;
+            return WithTwoObjects.create(statement, model,
+                    SimpleImpl.FACTORY, ComplexImpl.FACTORY, SET_HASH_CODE, factory, config);
         }
 
         @FactoryAccessor
@@ -178,6 +166,8 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
          * An {@link OWLSubClassOfAxiom} that has named classes as subject and object and has no annotations.
          */
         public static class SimpleImpl extends AxiomImpl implements UnarySimple<OWLClassExpression> {
+
+            private static final BiFunction<Triple, Supplier<OntGraphModel>, SimpleImpl> FACTORY = SimpleImpl::new;
 
             protected SimpleImpl(Triple t, Supplier<OntGraphModel> m) {
                 super(t, m);
@@ -251,6 +241,7 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
         public static class ComplexImpl extends AxiomImpl
                 implements UnaryWithContent<ComplexImpl, OWLClassExpression> {
 
+            private static final BiFunction<Triple, Supplier<OntGraphModel>, ComplexImpl> FACTORY = ComplexImpl::new;
             protected final InternalCache.Loading<ComplexImpl, Object[]> content;
 
             public ComplexImpl(Triple t, Supplier<OntGraphModel> m) {

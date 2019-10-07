@@ -82,6 +82,15 @@ public class TransitiveObjectPropertyTranslator extends AbstractPropertyTypeTran
             super(t, m);
         }
 
+        /**
+         * Creates an {@link ONTObject} container, that is also {@link OWLTransitiveObjectPropertyAxiom}.
+         *
+         * @param statement {@link OntStatement}, not {@code null}
+         * @param model     {@link OntGraphModel} provider, not {@code null}
+         * @param factory   {@link InternalObjectFactory}, not {@code null}
+         * @param config    {@link InternalConfig}, not {@code null}
+         * @return {@link AxiomImpl}
+         */
         public static AxiomImpl create(OntStatement statement,
                                        Supplier<OntGraphModel> model,
                                        InternalObjectFactory factory,

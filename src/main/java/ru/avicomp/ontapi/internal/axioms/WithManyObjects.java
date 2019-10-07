@@ -14,6 +14,7 @@
 
 package ru.avicomp.ontapi.internal.axioms;
 
+import org.apache.jena.graph.Triple;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
@@ -23,13 +24,16 @@ import ru.avicomp.ontapi.internal.InternalConfig;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.internal.objects.*;
+import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.owlapi.OWLObjectImpl;
 
 import java.util.*;
+import java.util.function.BiFunction;
 import java.util.function.ObjIntConsumer;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -65,17 +69,6 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
     ExtendedIterator<ONTObject<? extends E>> listONTComponents(OntStatement statement, InternalObjectFactory factory);
 
     /**
-     * Gets all components (as {@link ONTObject}s) in the form of sorted {@code Set}.
-     *
-     * @param statement {@link OntStatement}, the source, not {@code null}
-     * @param factory   {@link InternalObjectFactory}, not {@code null}
-     * @return a {@code Set} of {@link ONTObject} with type {@link E}
-     */
-    default Set<ONTObject<? extends E>> fetchONTComponents(OntStatement statement, InternalObjectFactory factory) {
-        return Iter.addAll(listONTComponents(statement, factory), ONTObjectImpl.createContentSet());
-    }
-
-    /**
      * Returns a sorted and distinct {@code Stream} over all components (annotations are not included).
      *
      * @param factory {@link InternalObjectFactory}, not {@code null}
@@ -90,6 +83,17 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
      * @return a {@code Stream} of {@link ONTObject}s that wrap {@link E}s
      */
     Stream<ONTObject<? extends E>> members(InternalObjectFactory factory);
+
+    /**
+     * Gets all components (as {@link ONTObject}s) in the form of sorted {@code Set}.
+     *
+     * @param statement {@link OntStatement}, the source, not {@code null}
+     * @param factory   {@link InternalObjectFactory}, not {@code null}
+     * @return a {@code Set} of {@link ONTObject} with type {@link E}
+     */
+    default Set<ONTObject<? extends E>> fetchONTComponents(OntStatement statement, InternalObjectFactory factory) {
+        return Iter.addAll(listONTComponents(statement, factory), ONTObjectImpl.createContentSet());
+    }
 
     /**
      * Sorts and lists all components of this axiom.
@@ -136,6 +140,71 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
         }
         Set<X> set = new HashSet<>(Arrays.asList(excludes));
         return x -> !set.contains(x);
+    }
+
+    /**
+     * Creates an {@link ONTObject} container for the given {@link OntStatement};
+     * the returned object is also {@link R}.
+     * Impl notes:
+     * If there is no sub-annotations,
+     * and the subject and object are URI-{@link org.apache.jena.rdf.model.Resource}s, which correspond operands,
+     * then a simplified instance of {@link Simple} is returned, for this the factory {@code simple} is used.
+     * Otherwise the instance is {@link Complex}, it is created by the factory {@code complex} and has a cache inside.
+     * Note: this is an auxiliary method as shortcut to reduce copy-pasting, it is for internal usage only.
+     *
+     * @param statement {@link OntStatement}, the source to parse, not {@code null}
+     * @param model     {@link OntGraphModel}-provider, not {@code null}
+     * @param simple    factory (as {@link BiFunction}) to provide {@link Simple} instance, not {@code null}
+     * @param complex   factory (as {@link BiFunction}) to provide {@link Complex} instance, not {@code null}
+     * @param setHash   {@code ObjIntConsumer<OWLAxiom>}, facility to assign {@code hashCode}, not {@code null}
+     * @param factory   {@link InternalObjectFactory} (singleton), not {@code null}
+     * @param config    {@link InternalConfig} (singleton), not {@code null}
+     * @param <R>       the desired {@link OWLAxiom axiom}-type
+     * @return {@link R}
+     */
+    static <R extends ONTObject & WithManyObjects> R create(OntStatement statement,
+                                                            Supplier<OntGraphModel> model,
+                                                            BiFunction<Triple, Supplier<OntGraphModel>, ? extends R> simple,
+                                                            BiFunction<Triple, Supplier<OntGraphModel>, ? extends R> complex,
+                                                            ObjIntConsumer<OWLAxiom> setHash,
+                                                            InternalObjectFactory factory,
+                                                            InternalConfig config) {
+        R s = simple.apply(statement.asTriple(), model);
+        Object[] content = Complex.initContent(s, statement, setHash, true, factory, config);
+        if (content == ONTStatementImpl.EMPTY) {
+            return s;
+        }
+        R c = complex.apply(statement.asTriple(), model);
+        setHash.accept(c, s.hashCode());
+        ((WithContent<?>) c).putContent(content);
+        return c;
+    }
+
+    /**
+     * Creates an {@link ONTObject} container for the given {@link OntStatement};
+     * the returned object is also {@link R}.
+     * This method is intended to produce {@code n-ary} axioms
+     * that are mapped from {@link ru.avicomp.ontapi.jena.model.OntDisjoint} list-based anonymous resources.
+     *
+     * @param statement {@link OntStatement}, the source to parse, not {@code null}
+     * @param model     {@link OntGraphModel}-provider, not {@code null}
+     * @param maker     factory (as {@link BiFunction}) to provide {@link Complex} instance, not {@code null}
+     * @param setHash   {@code ObjIntConsumer<OWLAxiom>}, facility to assign {@code hashCode}, not {@code null}
+     * @param factory   {@link InternalObjectFactory} (singleton), not {@code null}
+     * @param config    {@link InternalConfig} (singleton), not {@code null}
+     * @param <R>       the desired {@link OWLAxiom axiom}-type
+     * @return {@link R}
+     */
+    static <R extends ONTObject & Complex> R create(OntStatement statement,
+                                                    Supplier<OntGraphModel> model,
+                                                    BiFunction<Triple, Supplier<OntGraphModel>, ? extends R> maker,
+                                                    ObjIntConsumer<OWLAxiom> setHash,
+                                                    InternalObjectFactory factory,
+                                                    InternalConfig config) {
+        R res = maker.apply(statement.asTriple(), model);
+        Object[] content = Complex.initContent(res, statement, setHash, false, factory, config);
+        res.putContent(content);
+        return res;
     }
 
     /**

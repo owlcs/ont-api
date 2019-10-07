@@ -31,6 +31,7 @@ import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -102,33 +103,20 @@ public class EquivalentClassesTranslator extends AbstractNaryTranslator<OWLEquiv
         }
 
         /**
-         * Creates an {@link ONTObject} container, which is {@link OWLEquivalentClassesAxiom},
-         * using the given {@link OntStatement} as a source.
-         * <p>
-         * Impl notes:
-         * If there is no sub-annotations and subject and object are URI-{@link org.apache.jena.rdf.model.Resource}s,
-         * then a simplified instance of {@link SimpleImpl} is returned.
-         * Otherwise the instance is {@link ComplexImpl} with a cache inside.
+         * Creates an {@link ONTObject} container, that is also {@link OWLEquivalentClassesAxiom}.
          *
-         * @param statement {@link OntStatement}, not {@code null}
-         * @param model     {@link OntGraphModel} provider, not {@code null}
-         * @param factory   {@link InternalObjectFactory}, not {@code null}
-         * @param config    {@link InternalConfig}, not {@code null}
+         * @param statement  {@link OntStatement}, not {@code null}
+         * @param model  {@link OntGraphModel} provider, not {@code null}
+         * @param factory {@link InternalObjectFactory}, not {@code null}
+         * @param config  {@link InternalConfig}, not {@code null}
          * @return {@link AxiomImpl}
          */
         public static AxiomImpl create(OntStatement statement,
                                        Supplier<OntGraphModel> model,
                                        InternalObjectFactory factory,
                                        InternalConfig config) {
-            SimpleImpl s = new SimpleImpl(statement.asTriple(), model);
-            Object[] content = Complex.initContent(s, statement, SET_HASH_CODE, true, factory, config);
-            if (content == EMPTY) {
-                return s;
-            }
-            ComplexImpl c = new ComplexImpl(statement.asTriple(), model);
-            c.setHashCode(s.hashCode);
-            c.putContent(content);
-            return c;
+            return WithManyObjects.create(statement, model,
+                    SimpleImpl.FACTORY, ComplexImpl.FACTORY, SET_HASH_CODE, factory, config);
         }
 
         @Override
@@ -237,6 +225,8 @@ public class EquivalentClassesTranslator extends AbstractNaryTranslator<OWLEquiv
          */
         protected static class SimpleImpl extends AxiomImpl implements Simple<OWLClassExpression> {
 
+            private static final BiFunction<Triple, Supplier<OntGraphModel>, SimpleImpl> FACTORY = SimpleImpl::new;
+
             protected SimpleImpl(Triple t, Supplier<OntGraphModel> m) {
                 super(t, m);
             }
@@ -336,6 +326,8 @@ public class EquivalentClassesTranslator extends AbstractNaryTranslator<OWLEquiv
          */
         public static class ComplexImpl extends AxiomImpl
                 implements Complex<ComplexImpl, OWLClassExpression> {
+
+            private static final BiFunction<Triple, Supplier<OntGraphModel>, ComplexImpl> FACTORY = ComplexImpl::new;
             protected final InternalCache.Loading<ComplexImpl, Object[]> content;
 
             public ComplexImpl(Triple t, Supplier<OntGraphModel> m) {

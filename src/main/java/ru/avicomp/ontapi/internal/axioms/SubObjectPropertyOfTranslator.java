@@ -25,6 +25,7 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.function.Supplier;
 
 /**
@@ -82,13 +83,7 @@ public class SubObjectPropertyOfTranslator extends AbstractSubPropertyTranslator
         }
 
         /**
-         * Creates an {@link ONTObject} container for the given {@link OntStatement};
-         * the returned object is also {@link OWLSubObjectPropertyOfAxiom}.
-         * <p>
-         * Impl notes:
-         * If there is no sub-annotations and subject and object are URI-{@link org.apache.jena.rdf.model.Resource}s,
-         * then a simplified instance of {@link SimpleImpl} is returned.
-         * Otherwise the instance is {@link ComplexImpl} and has a cache inside.
+         * Creates an {@link ONTObject} container that is also {@link OWLSubObjectPropertyOfAxiom}.
          *
          * @param statement {@link OntStatement}, not {@code null}
          * @param model     {@link OntGraphModel} provider, not {@code null}
@@ -100,15 +95,8 @@ public class SubObjectPropertyOfTranslator extends AbstractSubPropertyTranslator
                                        Supplier<OntGraphModel> model,
                                        InternalObjectFactory factory,
                                        InternalConfig config) {
-            SimpleImpl s = new SimpleImpl(statement.asTriple(), model);
-            Object[] content = Complex.initContent(s, statement, SET_HASH_CODE, factory, config);
-            if (content == EMPTY) {
-                return s;
-            }
-            ComplexImpl c = new ComplexImpl(statement.asTriple(), model);
-            c.setHashCode(s.hashCode);
-            c.putContent(content);
-            return c;
+            return WithTwoObjects.create(statement, model,
+                    SimpleImpl.FACTORY, ComplexImpl.FACTORY, SET_HASH_CODE, factory, config);
         }
 
         @Override
@@ -184,6 +172,8 @@ public class SubObjectPropertyOfTranslator extends AbstractSubPropertyTranslator
          */
         protected static class SimpleImpl extends AxiomImpl implements UnarySimple<OWLObjectPropertyExpression> {
 
+            private static final BiFunction<Triple, Supplier<OntGraphModel>, SimpleImpl> FACTORY = SimpleImpl::new;
+
             protected SimpleImpl(Triple t, Supplier<OntGraphModel> m) {
                 super(t, m);
             }
@@ -221,6 +211,7 @@ public class SubObjectPropertyOfTranslator extends AbstractSubPropertyTranslator
         public static class ComplexImpl extends AxiomImpl
                 implements UnaryWithContent<ComplexImpl, OWLObjectPropertyExpression> {
 
+            private static final BiFunction<Triple, Supplier<OntGraphModel>, ComplexImpl> FACTORY = ComplexImpl::new;
             protected final InternalCache.Loading<ComplexImpl, Object[]> content;
 
             public ComplexImpl(Triple t, Supplier<OntGraphModel> m) {

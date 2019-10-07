@@ -66,10 +66,9 @@ public interface WithOneObject<S extends OWLObject> extends WithTriple {
      * Creates an {@link ONTObject} container for the given {@link OntStatement};
      * the returned object is also {@link R}.
      * Impl notes:
-     * If there is no sub-annotations and subject and object are URI-{@link org.apache.jena.rdf.model.Resource}s,
-     * then a simplified instance of {@link Simple} is returned, for this the factory {@code simple} is used.
-     * Otherwise the instance is created by the factory {@code complex} and has a cache inside
-     * (the type must be {@link Complex}).
+     * If there is no sub-annotations and subject is an URI-{@link org.apache.jena.rdf.model.Resource},
+     * then a simplified instance of {@link Simple} is returned, and for this the factory {@code simple} is used.
+     * Otherwise the instance is {@link Complex}, created by the factory {@code complex} and has a cache inside.
      * Note: this is an auxiliary method as shortcut to reduce copy-pasting, it is for internal usage only.
      *
      * @param statement {@link OntStatement}, the source to parse, not {@code null}
@@ -82,7 +81,6 @@ public interface WithOneObject<S extends OWLObject> extends WithTriple {
      * @param <R>       the desired {@link OWLAxiom axiom}-type
      * @return {@link R}
      */
-    @SuppressWarnings("unchecked")
     static <R extends ONTObject & WithOneObject> R create(OntStatement statement,
                                                           Supplier<OntGraphModel> model,
                                                           BiFunction<Triple, Supplier<OntGraphModel>, ? extends R> simple,
@@ -97,7 +95,7 @@ public interface WithOneObject<S extends OWLObject> extends WithTriple {
         }
         R c = complex.apply(statement.asTriple(), model);
         setHash.accept(c, s.hashCode());
-        ((WithContent<Object>) c).putContent(content);
+        ((WithContent<?>) c).putContent(content);
         return c;
     }
 
