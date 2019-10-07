@@ -1984,6 +1984,28 @@ public class TestFactory {
                                 "Collections.singleton(df.getRDFSLabel(\"inv(P1) owl:inverseOf inv(P2)\")))";
                     }
                 }
+                , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.FUNCTIONAL_OBJECT_PROPERTY;
+                    }
+
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLFunctionalObjectPropertyAxiom(
+                                df.getOWLObjectInverseOf(df.getOWLObjectProperty("O")),
+                                Arrays.asList(df.getOWLAnnotation(df.getOWLAnnotationProperty("A"),
+                                        df.getOWLAnonymousIndividual("_:b0")), df.getRDFSComment("comm")));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLFunctionalObjectPropertyAxiom(" +
+                                "df.getOWLObjectInverseOf(df.getOWLObjectProperty(\"O\")), " +
+                                "Arrays.asList(df.getOWLAnnotation(df.getOWLAnnotationProperty(\"A\"), " +
+                                "df.getOWLAnonymousIndividual(\"_:b0\")), df.getRDFSComment(\"comm\")))";
+                    }
+                }
         );
 
     }

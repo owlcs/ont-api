@@ -14,18 +14,24 @@
 
 package ru.avicomp.ontapi.internal.axioms;
 
+import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.HasProperty;
 import org.semanticweb.owlapi.model.OWLAxiom;
-import ru.avicomp.ontapi.internal.AxiomTranslator;
-import ru.avicomp.ontapi.internal.InternalConfig;
-import ru.avicomp.ontapi.internal.WriteHelper;
+import org.semanticweb.owlapi.model.OWLObjectPropertyCharacteristicAxiom;
+import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
+import ru.avicomp.ontapi.internal.*;
+import ru.avicomp.ontapi.internal.objects.ONTAxiomImpl;
+import ru.avicomp.ontapi.internal.objects.ONTObjectPropertyImpl;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
+import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.utils.OntModels;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
+
+import java.util.function.Supplier;
 
 /**
  * The base class to read and write axiom which is related to simple typed triple associated with object or data property.
@@ -68,5 +74,68 @@ public abstract class AbstractPropertyTypeTranslator<Axiom extends OWLAxiom & Ha
     @Override
     public void write(Axiom axiom, OntGraphModel model) {
         WriteHelper.writeTriple(model, axiom.getProperty(), RDF.type, getType(), axiom.annotationsAsList());
+    }
+
+    /**
+     * The base for {@code ONTAxiom} with one object property.
+     *
+     * @param <A> a subtype of {@link OWLObjectPropertyCharacteristicAxiom}
+     */
+    static abstract class ObjectAxiomImpl<A extends OWLObjectPropertyCharacteristicAxiom> extends ONTAxiomImpl<A>
+            implements WithOneObject<OWLObjectPropertyExpression> {
+
+        ObjectAxiomImpl(Triple t, Supplier<OntGraphModel> m) {
+            super(t, m);
+        }
+
+        public OWLObjectPropertyExpression getProperty() {
+            return getONTValue().getOWLObject();
+        }
+
+        @Override
+        public ONTObject<? extends OWLObjectPropertyExpression> findURISubject(InternalObjectFactory factory) {
+            return ONTObjectPropertyImpl.find((String) subject, factory, model);
+        }
+
+        @Override
+        public ONTObject<? extends OWLObjectPropertyExpression> fetchONTSubject(OntStatement statement,
+                                                                                InternalObjectFactory factory) {
+            return factory.getProperty(statement.getSubject(OntOPE.class));
+        }
+
+        @Override
+        public boolean canContainAnnotationProperties() {
+            return isAnnotated();
+        }
+
+        @Override
+        public boolean canContainDatatypes() {
+            return isAnnotated();
+        }
+
+        @Override
+        public boolean canContainAnonymousIndividuals() {
+            return isAnnotated();
+        }
+
+        @Override
+        public boolean canContainNamedClasses() {
+            return false;
+        }
+
+        @Override
+        public boolean canContainNamedIndividuals() {
+            return false;
+        }
+
+        @Override
+        public boolean canContainDataProperties() {
+            return false;
+        }
+
+        @Override
+        public boolean canContainClassExpressions() {
+            return false;
+        }
     }
 }

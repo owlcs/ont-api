@@ -23,6 +23,7 @@ import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.internal.ONTObject;
+import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -47,7 +48,8 @@ public class CommonAxiomsTest extends StatementTestBase {
                 .filter(x -> isOneOf(x
                         , AxiomType.SUBCLASS_OF
                         , AxiomType.ANNOTATION_ASSERTION
-                        , AxiomType.SUB_OBJECT_PROPERTY))
+                        , AxiomType.SUB_OBJECT_PROPERTY
+                        , AxiomType.FUNCTIONAL_OBJECT_PROPERTY))
                 .collect(Collectors.toList());
     }
 
@@ -63,6 +65,7 @@ public class CommonAxiomsTest extends StatementTestBase {
         OntologyModel o = m.createOntology();
         o.add(ont);
         o.clearCache();
+        ReadWriteUtils.print(o);
         OWLAxiom res = o.axioms().filter(ont::equals).findFirst().orElseThrow(AssertionError::new);
         Assert.assertTrue(res instanceof ONTObject);
         return res;

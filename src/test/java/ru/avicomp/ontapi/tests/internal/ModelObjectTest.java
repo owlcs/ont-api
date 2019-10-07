@@ -126,6 +126,19 @@ public class ModelObjectTest {
         testNarySplitMethod(expected, actual, x -> ((OWLInverseObjectPropertiesAxiom) x).asSubObjectPropertyOfAxioms());
     }
 
+    @Test
+    public void testFunctionalObjectAxiomEraseModelMethods() {
+        OWLDataFactory df = ObjectFactoryTestBase.ONT_DATA_FACTORY;
+        OWLFunctionalObjectPropertyAxiom expected = df.getOWLFunctionalObjectPropertyAxiom(df.getOWLObjectProperty("X"),
+                Collections.singleton(df.getRDFSComment("x")));
+        OWLObject res = CommonAxiomsTest.createONTObject(OntManagers.createONT(), expected);
+        Assert.assertTrue(res instanceof ModelObject);
+        OWLFunctionalObjectPropertyAxiom actual = (OWLFunctionalObjectPropertyAxiom) res;
+        Assert.assertEquals(expected, actual);
+        Assert.assertEquals(expected.asOWLSubClassOfAxiom(), actual.asOWLSubClassOfAxiom());
+        ObjectFactoryTestBase.testObjectHasNoModelReference(actual.asOWLSubClassOfAxiom());
+    }
+
     private void testNarySplitMethod(OWLNaryAxiom expected,
                                      OWLNaryAxiom actual,
                                      Function<OWLNaryAxiom, Collection<? extends OWLAxiom>> get) {
