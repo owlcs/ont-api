@@ -128,14 +128,27 @@ public class ModelObjectTest {
 
     @Test
     public void testFunctionalObjectAxiomEraseModelMethods() {
-        OWLDataFactory df = ObjectFactoryTestBase.ONT_DATA_FACTORY;
-        OWLFunctionalObjectPropertyAxiom expected = df.getOWLFunctionalObjectPropertyAxiom(df.getOWLObjectProperty("X"),
-                Collections.singleton(df.getRDFSComment("x")));
-        OWLObject res = CommonAxiomsTest.createONTObject(OntManagers.createONT(), expected);
+        testUnaryPropAxiom(df -> df.getOWLFunctionalObjectPropertyAxiom(df.getOWLObjectProperty("X"),
+                Collections.singleton(df.getRDFSComment("x"))));
+    }
+
+    @Test
+    public void testInverseFunctionalObjectAxiomEraseModelMethods() {
+        testUnaryPropAxiom(df -> df.getOWLInverseFunctionalObjectPropertyAxiom(df.getOWLObjectProperty("X"),
+                Collections.singleton(df.getRDFSComment("x"))));
+    }
+
+    @SuppressWarnings("unchecked")
+    private <X extends OWLSubClassOfAxiomShortCut & OWLPropertyAxiom> void testUnaryPropAxiom(Function<OWLDataFactory, X> factory) {
+        X ont = factory.apply(ObjectFactoryTestBase.ONT_DATA_FACTORY);
+        X owl = factory.apply(ObjectFactoryTestBase.OWL_DATA_FACTORY);
+        Assert.assertEquals(owl, ont);
+        Assert.assertEquals(owl.asOWLSubClassOfAxiom(), ont.asOWLSubClassOfAxiom());
+        OWLObject res = CommonAxiomsTest.createONTObject(OntManagers.createONT(), ont);
         Assert.assertTrue(res instanceof ModelObject);
-        OWLFunctionalObjectPropertyAxiom actual = (OWLFunctionalObjectPropertyAxiom) res;
-        Assert.assertEquals(expected, actual);
-        Assert.assertEquals(expected.asOWLSubClassOfAxiom(), actual.asOWLSubClassOfAxiom());
+        X actual = (X) res;
+        Assert.assertEquals(owl, actual);
+        Assert.assertEquals(owl.asOWLSubClassOfAxiom(), actual.asOWLSubClassOfAxiom());
         ObjectFactoryTestBase.testObjectHasNoModelReference(actual.asOWLSubClassOfAxiom());
     }
 

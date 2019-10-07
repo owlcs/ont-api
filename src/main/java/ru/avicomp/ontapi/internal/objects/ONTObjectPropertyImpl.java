@@ -71,7 +71,7 @@ public class ONTObjectPropertyImpl extends ONTEntityImpl<OWLObjectProperty> impl
     @FactoryAccessor
     @Override
     public OWLObjectInverseOf getInverseProperty() {
-        return getDataFactory().getOWLObjectInverseOf(this);
+        return getDataFactory().getOWLObjectInverseOf(eraseModel(this));
     }
 
     @Override
