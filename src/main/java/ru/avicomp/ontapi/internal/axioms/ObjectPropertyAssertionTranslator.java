@@ -14,21 +14,26 @@
 
 package ru.avicomp.ontapi.internal.axioms;
 
+import org.apache.jena.graph.BlankNodeId;
+import org.apache.jena.graph.Triple;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLIndividual;
-import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
-import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
+import org.semanticweb.owlapi.model.*;
+import ru.avicomp.ontapi.DataFactory;
 import ru.avicomp.ontapi.internal.*;
+import ru.avicomp.ontapi.internal.objects.*;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
 import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 
 import java.util.Collection;
+import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.function.Supplier;
 
 /**
- * example:
+ * A translator that provides {@link OWLObjectPropertyAssertionAxiom} implementations.
+ * Example:
  * <pre>{@code
  * gr:Saturday rdf:type owl:NamedIndividual , gr:hasNext gr:Sunday ;
  * }</pre>
@@ -74,16 +79,265 @@ public class ObjectPropertyAssertionTranslator
 
     @Override
     public ONTObject<OWLObjectPropertyAssertionAxiom> toAxiom(OntStatement statement,
-                                                              InternalObjectFactory reader,
+                                                              Supplier<OntGraphModel> model,
+                                                              InternalObjectFactory factory,
                                                               InternalConfig config) {
-        ONTObject<? extends OWLIndividual> subject = reader.getIndividual(statement.getSubject(OntIndividual.class));
-        ONTObject<? extends OWLObjectPropertyExpression> property = reader.getProperty(statement.getPredicate().as(OntOPE.class));
-        ONTObject<? extends OWLIndividual> object = reader.getIndividual(statement.getObject().as(OntIndividual.class));
-        Collection<ONTObject<OWLAnnotation>> annotations = reader.getAnnotations(statement, config);
-        OWLObjectPropertyAssertionAxiom res = reader.getOWLDataFactory()
-                .getOWLObjectPropertyAssertionAxiom(property.getOWLObject(), subject.getOWLObject(), object.getOWLObject(),
-                        ONTObject.toSet(annotations));
-        return ONTWrapperImpl.create(res, statement).append(annotations).append(subject).append(property).append(object);
+        return AxiomImpl.create(statement, model, factory, config);
     }
 
+    @Override
+    public ONTObject<OWLObjectPropertyAssertionAxiom> toAxiom(OntStatement statement,
+                                                              InternalObjectFactory factory,
+                                                              InternalConfig config) {
+        ONTObject<? extends OWLIndividual> subject = factory.getIndividual(statement.getSubject(OntIndividual.class));
+        ONTObject<? extends OWLObjectPropertyExpression> property = factory.getProperty(statement.getPredicate()
+                .as(OntOPE.class));
+        ONTObject<? extends OWLIndividual> object = factory.getIndividual(statement.getObject(OntIndividual.class));
+        Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);
+        OWLObjectPropertyAssertionAxiom res = factory.getOWLDataFactory()
+                .getOWLObjectPropertyAssertionAxiom(property.getOWLObject(), subject.getOWLObject(),
+                        object.getOWLObject(), ONTObject.toSet(annotations));
+        return ONTWrapperImpl.create(res, statement).append(annotations)
+                .append(subject).append(property).append(object);
+    }
+
+    /**
+     * @see ru.avicomp.ontapi.owlapi.axioms.OWLObjectPropertyAssertionAxiomImpl
+     */
+    @SuppressWarnings("WeakerAccess")
+    public static abstract class AxiomImpl extends ONTAxiomImpl<OWLObjectPropertyAssertionAxiom>
+            implements WithAssertion<OWLIndividual, OWLObjectPropertyExpression, OWLIndividual>,
+            OWLObjectPropertyAssertionAxiom {
+
+        protected AxiomImpl(Triple t, Supplier<OntGraphModel> m) {
+            super(t, m);
+        }
+
+        /**
+         * Creates an {@link OWLObjectPropertyAssertionAxiom} that is also {@link ONTObject}.
+         *
+         * @param statement {@link OntStatement}, the source, not {@code null}
+         * @param model     {@link OntGraphModel}-provider, not {@code null}
+         * @param factory   {@link InternalObjectFactory}, not {@code null}
+         * @param config    {@link InternalConfig}, not {@code null}
+         * @return {@link AxiomImpl}
+         */
+        public static AxiomImpl create(OntStatement statement,
+                                       Supplier<OntGraphModel> model,
+                                       InternalObjectFactory factory,
+                                       InternalConfig config) {
+            return WithAssertion.create(statement, model,
+                    SimpleImpl.FACTORY, WithAnnotationsImpl.FACTORY, SET_HASH_CODE, factory, config);
+        }
+
+        @Override
+        public boolean isInSimplifiedForm() {
+            return true;
+        }
+
+        @Override
+        public ONTObject<? extends OWLIndividual> findONTSubject(InternalObjectFactory factory) {
+            return findByURIOrBlankId(subject, factory);
+        }
+
+        @Override
+        public ONTObject<? extends OWLIndividual> findONTObject(InternalObjectFactory factory) {
+            return findByURIOrBlankId(object, factory);
+        }
+
+        protected ONTObject<? extends OWLIndividual> findByURIOrBlankId(Object id, InternalObjectFactory factory) {
+            return id instanceof String ? findNamedIndividual((String) id, factory) :
+                    findAnonymousIndividual((BlankNodeId) id, factory);
+        }
+
+        protected ONTObject<OWLNamedIndividual> findNamedIndividual(String uri,
+                                                                    InternalObjectFactory factory) {
+            return ONTNamedIndividualImpl.find(uri, factory, model);
+        }
+
+        protected ONTObject<OWLAnonymousIndividual> findAnonymousIndividual(BlankNodeId id,
+                                                                            InternalObjectFactory factory) {
+            return ONTAnonymousIndividualImpl.find(id, factory, model);
+        }
+
+        @Override
+        public OWLIndividual getSubject() {
+            return getONTSubject().getOWLObject();
+        }
+
+        @Override
+        public OWLIndividual getValue() {
+            return getONTObject().getOWLObject();
+        }
+
+        @Override
+        public OWLIndividual getObject() {
+            return getValue();
+        }
+
+        @Override
+        public OWLObjectPropertyExpression getProperty() {
+            return getONTPredicate().getOWLObject();
+        }
+
+        @Override
+        public ONTObject<? extends OWLObjectPropertyExpression> findONTPredicate(InternalObjectFactory factory) {
+            return findONTProperty(factory);
+        }
+
+        public ONTObject<OWLObjectProperty> findONTProperty(InternalObjectFactory factory) {
+            return ONTObjectPropertyImpl.find(predicate, factory, model);
+        }
+
+        @Override
+        protected boolean sameContent(ONTStatementImpl other) {
+            return false;
+        }
+
+        @FactoryAccessor
+        @Override
+        public OWLObjectPropertyAssertionAxiom getSimplified() {
+            return eraseModel();
+        }
+
+        @FactoryAccessor
+        @Override
+        protected OWLObjectPropertyAssertionAxiom createAnnotatedAxiom(Collection<OWLAnnotation> annotations) {
+            return getDataFactory().getOWLObjectPropertyAssertionAxiom(getFPredicate(), getFSubject(),
+                    getFObject(), annotations);
+        }
+
+        @FactoryAccessor
+        @Override
+        public OWLSubClassOfAxiom asOWLSubClassOfAxiom() {
+            DataFactory df = getDataFactory();
+            return df.getOWLSubClassOfAxiom(df.getOWLObjectOneOf(getFSubject()),
+                    df.getOWLObjectHasValue(getFPredicate(), getFObject()));
+        }
+
+        @Override
+        public boolean canContainAnnotationProperties() {
+            return isAnnotated();
+        }
+
+        @Override
+        public boolean canContainDatatypes() {
+            return isAnnotated();
+        }
+
+        @Override
+        public boolean canContainAnonymousIndividuals() {
+            return isAnnotated();
+        }
+
+        @Override
+        public boolean canContainNamedClasses() {
+            return false;
+        }
+
+        @Override
+        public boolean canContainClassExpressions() {
+            return false;
+        }
+
+        @Override
+        public boolean canContainDataProperties() {
+            return false;
+        }
+
+        @Override
+        public Set<OWLObjectProperty> getObjectPropertySet() {
+            return createSet(findONTProperty(getObjectFactory()).getOWLObject());
+        }
+
+        @Override
+        public boolean containsObjectProperty(OWLObjectProperty property) {
+            return predicate.equals(ONTEntityImpl.getURI(property));
+        }
+
+        @Override
+        public Set<OWLNamedIndividual> getNamedIndividualSet() {
+            Set<OWLNamedIndividual> res = createSortedSet();
+            collectNamedIndividuals(res, null);
+            return res;
+        }
+
+        @SuppressWarnings("unchecked")
+        protected void collectNamedIndividuals(Set res, InternalObjectFactory factory) {
+            if (subject instanceof String) {
+                res.add(findNamedIndividual((String) subject,
+                        factory == null ? factory = getObjectFactory() : factory).getOWLObject());
+            }
+            if (object instanceof String) {
+                res.add(findNamedIndividual((String) object,
+                        factory == null ? getObjectFactory() : factory).getOWLObject());
+            }
+        }
+
+        /**
+         * An {@link OWLObjectPropertyAssertionAxiom} that has no sub-annotations.
+         */
+        public static class SimpleImpl extends AxiomImpl
+                implements Simple<OWLIndividual, OWLObjectPropertyExpression, OWLIndividual> {
+
+            private static final BiFunction<Triple, Supplier<OntGraphModel>, SimpleImpl> FACTORY = SimpleImpl::new;
+
+            protected SimpleImpl(Triple t, Supplier<OntGraphModel> m) {
+                super(t, m);
+            }
+
+            @Override
+            public Set<OWLAnonymousIndividual> getAnonymousIndividualSet() {
+                Set<OWLAnonymousIndividual> res = createSortedSet();
+                InternalObjectFactory factory = null;
+                if (subject instanceof BlankNodeId) {
+                    res.add(findAnonymousIndividual((BlankNodeId) subject,
+                            factory = getObjectFactory()).getOWLObject());
+                }
+                if (object instanceof BlankNodeId) {
+                    res.add(findAnonymousIndividual((BlankNodeId) object,
+                            factory == null ? getObjectFactory() : factory).getOWLObject());
+                }
+                return res;
+            }
+
+            @Override
+            public Set<OWLEntity> getSignatureSet() {
+                Set<OWLEntity> res = createSortedSet();
+                InternalObjectFactory factory = getObjectFactory();
+                res.add(findONTProperty(factory).getOWLObject());
+                collectNamedIndividuals(res, factory);
+                return res;
+            }
+
+            @Override
+            public boolean containsNamedIndividual(OWLNamedIndividual individual) {
+                String uri = null;
+                return hasURISubject() && getSubjectURI().equals(uri = ONTEntityImpl.getURI(individual)) ||
+                        hasURIObject() && getObjectURI().equals(uri == null ? ONTEntityImpl.getURI(individual) : uri);
+            }
+        }
+
+        /**
+         * An {@link OWLObjectPropertyAssertionAxiom} that has sub-annotations.
+         * This class has a public constructor since it is more generic then {@link SimpleImpl}.
+         */
+        public static class WithAnnotationsImpl extends AxiomImpl
+                implements WithAnnotations<WithAnnotationsImpl, OWLIndividual, OWLObjectPropertyExpression, OWLIndividual> {
+
+            private static final BiFunction<Triple, Supplier<OntGraphModel>, WithAnnotationsImpl> FACTORY =
+                    WithAnnotationsImpl::new;
+            protected final InternalCache.Loading<WithAnnotationsImpl, Object[]> content;
+
+            public WithAnnotationsImpl(Triple t, Supplier<OntGraphModel> m) {
+                super(t, m);
+                this.content = createContentCache();
+            }
+
+            @Override
+            public InternalCache.Loading<WithAnnotationsImpl, Object[]> getContentCache() {
+                return content;
+            }
+        }
+    }
 }

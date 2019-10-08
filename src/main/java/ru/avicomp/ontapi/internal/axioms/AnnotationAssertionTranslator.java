@@ -20,16 +20,14 @@ import org.apache.jena.graph.impl.LiteralLabel;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.util.iterator.NullIterator;
 import org.semanticweb.owlapi.model.*;
-import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.internal.*;
 import ru.avicomp.ontapi.internal.objects.*;
 import ru.avicomp.ontapi.jena.model.*;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
 
 /**
  * A translator that provides {@link OWLAnnotationAssertionAxiom} implementations.
@@ -112,7 +110,8 @@ public class AnnotationAssertionTranslator
      * @see ONTAnnotationImpl
      */
     public static abstract class AxiomImpl extends ONTAxiomImpl<OWLAnnotationAssertionAxiom>
-            implements OWLAnnotationAssertionAxiom {
+            implements WithAssertion<OWLAnnotationSubject, OWLAnnotationProperty, OWLAnnotationValue>,
+            OWLAnnotationAssertionAxiom {
 
         protected AxiomImpl(Triple t, Supplier<OntGraphModel> m) {
             super(t, m);
@@ -120,100 +119,39 @@ public class AnnotationAssertionTranslator
 
         /**
          * Creates an {@link OWLAnnotationAssertionAxiom} that is also {@link ONTObject}.
-         * <p>
-         * Impl notes: if there is no annotations associated with the given {@link OntStatement},
-         * then a {@link Simple} instance is returned.
-         * Otherwise the method returns a {@link WithAnnotations} instance with a cache inside.
          *
-         * @param statement {@link OntStatement}, the source
-         * @param model     {@link OntGraphModel}-provider
-         * @param factory   {@link InternalObjectFactory}
-         * @param config    {@link InternalConfig}
+         * @param statement {@link OntStatement}, the source, not {@code null}
+         * @param model     {@link OntGraphModel}-provider, not {@code null}
+         * @param factory   {@link InternalObjectFactory}, not {@code null}
+         * @param config    {@link InternalConfig}, not {@code null}
          * @return {@link AxiomImpl}
          */
         public static AxiomImpl create(OntStatement statement,
                                        Supplier<OntGraphModel> model,
                                        InternalObjectFactory factory,
                                        InternalConfig config) {
-            Object[] content = WithAnnotations.collectContent(statement, factory, config);
-            AxiomImpl res;
-            if (content == EMPTY) {
-                res = new Simple(statement.asTriple(), model);
-            } else {
-                res = WithContent.addContent(new WithAnnotations(statement.asTriple(), model), content);
-            }
-            res.hashCode = collectHashCode(res, factory, content);
-            return res;
-        }
-
-        private static int collectHashCode(AxiomImpl res,
-                                           InternalObjectFactory factory,
-                                           Object[] content) {
-            int hash = res.hashIndex();
-            hash = OWLObject.hashIteration(hash, res.findONTSubject(factory).hashCode());
-            hash = OWLObject.hashIteration(hash, res.findONTProperty(factory).hashCode());
-            hash = OWLObject.hashIteration(hash, res.findONTValue(factory).hashCode());
-            return OWLObject.hashIteration(hash, hashCode(content, 0));
+            return WithAssertion.create(statement, model,
+                    SimpleImpl.FACTORY, WithAnnotationsImpl.FACTORY, SET_HASH_CODE, factory, config);
         }
 
         @Override
-        public Stream<ONTObject<? extends OWLObject>> objects() {
-            InternalObjectFactory factory = getObjectFactory();
-            return Stream.of(findONTSubject(factory), findONTProperty(factory), findONTValue(factory));
+        public ONTObject<? extends OWLAnnotationSubject> findONTSubject(InternalObjectFactory factory) {
+            return ONTAnnotationImpl.findONTSubject(this, factory);
         }
 
         @Override
-        public OWLAnnotationSubject getSubject() {
-            return getONTSubject().getOWLObject();
-        }
-
-        @Override
-        public OWLAnnotationProperty getProperty() {
-            return getONTProperty().getOWLObject();
+        public ONTObject<? extends OWLAnnotationValue> findONTObject(InternalObjectFactory factory) {
+            return ONTAnnotationImpl.findONTObject(this, factory);
         }
 
         @Override
         public OWLAnnotationValue getValue() {
-            return getONTValue().getOWLObject();
+            return getONTObject().getOWLObject();
         }
 
-        public ONTObject<? extends OWLAnnotationSubject> getONTSubject() {
-            return findONTSubject(getObjectFactory());
-        }
-
-        public ONTObject<OWLAnnotationProperty> getONTProperty() {
-            return findONTProperty(getObjectFactory());
-        }
-
-        public ONTObject<? extends OWLAnnotationValue> getONTValue() {
-            return findONTValue(getObjectFactory());
-        }
-
-        protected ONTObject<? extends OWLAnnotationSubject> findONTSubject(InternalObjectFactory factory) {
-            return ONTAnnotationImpl.findONTSubject(this, factory);
-        }
-
-        protected ONTObject<? extends OWLAnnotationValue> findONTValue(InternalObjectFactory factory) {
-            return ONTAnnotationImpl.findONTObject(this, factory);
-        }
-
-        protected ONTObject<OWLAnnotationProperty> findONTProperty(InternalObjectFactory factory) {
+        @Override
+        public ONTObject<? extends OWLAnnotationProperty> findONTPredicate(InternalObjectFactory factory) {
             return ONTAnnotationImpl.findONTPredicate(this, factory);
-        }
-
-        @FactoryAccessor
-        protected OWLAnnotationProperty getFactoryProperty() {
-            return eraseModel(getProperty());
-        }
-
-        @FactoryAccessor
-        protected OWLAnnotationSubject getFactorySubject() {
-            return eraseModel(getSubject());
-        }
-
-        @FactoryAccessor
-        protected OWLAnnotationValue getFactoryValue() {
-            return eraseModel(getValue());
         }
 
         @Override
@@ -224,7 +162,7 @@ public class AnnotationAssertionTranslator
         @FactoryAccessor
         @Override
         public OWLAnnotation getAnnotation() {
-            return getDataFactory().getOWLAnnotation(getFactoryProperty(), getFactoryValue());
+            return getDataFactory().getOWLAnnotation(getFPredicate(), getFObject());
         }
 
         @Override
@@ -235,8 +173,8 @@ public class AnnotationAssertionTranslator
         @FactoryAccessor
         @Override
         protected OWLAnnotationAssertionAxiom createAnnotatedAxiom(Collection<OWLAnnotation> annotations) {
-            return getDataFactory().getOWLAnnotationAssertionAxiom(getFactoryProperty(), getFactorySubject(),
-                    getFactoryValue(), annotations);
+            return getDataFactory().getOWLAnnotationAssertionAxiom(getFPredicate(), getFSubject(),
+                    getFObject(), annotations);
         }
 
         @Override
@@ -267,21 +205,24 @@ public class AnnotationAssertionTranslator
         /**
          * An {@link OWLAnnotationAssertionAxiom} that has no sub-annotations.
          */
-        public static class Simple extends AxiomImpl implements WithoutAnnotations {
+        public static class SimpleImpl extends AxiomImpl
+                implements Simple<OWLAnnotationSubject, OWLAnnotationProperty, OWLAnnotationValue> {
 
-            protected Simple(Triple t, Supplier<OntGraphModel> m) {
+            private static final BiFunction<Triple, Supplier<OntGraphModel>, SimpleImpl> FACTORY = SimpleImpl::new;
+
+            protected SimpleImpl(Triple t, Supplier<OntGraphModel> m) {
                 super(t, m);
             }
 
             @Override
             public boolean containsDatatype(OWLDatatype datatype) {
                 return object instanceof LiteralLabel
-                        && getONTValue().getOWLObject().containsEntityInSignature(datatype);
+                        && findLiteral(getObjectFactory()).containsEntityInSignature(datatype);
             }
 
             @Override
             public boolean containsAnnotationProperty(OWLAnnotationProperty property) {
-                return getONTProperty().getOWLObject().equals(property);
+                return getONTPredicate().getOWLObject().equals(property);
             }
 
             @Override
@@ -289,10 +230,10 @@ public class AnnotationAssertionTranslator
                 Set<OWLAnonymousIndividual> res = createSortedSet();
                 InternalObjectFactory factory = null;
                 if (subject instanceof BlankNodeId) {
-                    res.add(findAnonymousIndividual(findONTSubject(factory = getObjectFactory())));
+                    res.add(findAnonymousSubject(factory = getObjectFactory()));
                 }
                 if (object instanceof BlankNodeId) {
-                    res.add(findAnonymousIndividual(findONTValue(factory == null ? getObjectFactory() : factory)));
+                    res.add(findAnonymousObject(factory == null ? getObjectFactory() : factory));
                 }
                 return res;
             }
@@ -304,86 +245,61 @@ public class AnnotationAssertionTranslator
 
             @Override
             public Set<OWLDatatype> getDatatypeSet() {
-                return object instanceof LiteralLabel ? createSet(findDatatype()) : createSet();
+                return object instanceof LiteralLabel ?
+                        createSet(findLiteral(getObjectFactory()).getDatatype()) : createSet();
             }
 
             @Override
             public Set<OWLEntity> getSignatureSet() {
                 Set<OWLEntity> res = createSortedSet();
-                res.add(getProperty());
+                InternalObjectFactory factory = getObjectFactory();
+                res.add(findONTPredicate(factory).getOWLObject());
                 if (object instanceof LiteralLabel) {
-                    res.add(findDatatype());
+                    res.add(findLiteral(factory).getDatatype());
                 }
                 return res;
             }
 
-            protected OWLDatatype findDatatype() {
-                return getValue().asLiteral().orElseThrow(OntApiException.IllegalState::new).getDatatype();
+            protected OWLLiteral findLiteral(InternalObjectFactory factory) {
+                return ONTLiteralImpl.find((LiteralLabel) object, factory, model).getOWLObject();
             }
 
-            protected OWLAnonymousIndividual findAnonymousIndividual(ONTObject<? extends OWLAnnotationObject> value) {
-                return value.getOWLObject().asAnonymousIndividual().orElseThrow(OntApiException.IllegalState::new);
+            private OWLAnonymousIndividual findAnonymousSubject(InternalObjectFactory factory) {
+                return findAnonymousIndividual((BlankNodeId) subject, factory);
             }
 
-            @Override
-            public boolean isAnnotated() {
-                return false;
+            private OWLAnonymousIndividual findAnonymousObject(InternalObjectFactory factory) {
+                return findAnonymousIndividual((BlankNodeId) object, factory);
+            }
+
+            protected OWLAnonymousIndividual findAnonymousIndividual(BlankNodeId id, InternalObjectFactory factory) {
+                return ONTAnonymousIndividualImpl.find(id, factory, model).getOWLObject();
             }
         }
 
         /**
          * An {@link OWLAnnotationAssertionAxiom} that has sub-annotations.
-         * This class has a public constructor since it is more generic then {@link Simple}.
-         * Impl note: since Java does not allow multiple inheritance, copy-paste cannot be avoided here...
+         * This class has a public constructor since it is more generic then {@link SimpleImpl}.
          *
          * @see ONTAnnotationImpl.WithAnnotations
          */
-        public static class WithAnnotations extends AxiomImpl implements WithContent<WithAnnotations> {
-            protected final InternalCache.Loading<WithAnnotations, Object[]> content;
+        public static class WithAnnotationsImpl extends AxiomImpl
+                implements WithAnnotations<WithAnnotationsImpl,
+                OWLAnnotationSubject, OWLAnnotationProperty, OWLAnnotationValue> {
 
-            public WithAnnotations(Triple t, Supplier<OntGraphModel> m) {
+            private static final BiFunction<Triple, Supplier<OntGraphModel>, WithAnnotationsImpl> FACTORY =
+                    WithAnnotationsImpl::new;
+            protected final InternalCache.Loading<WithAnnotationsImpl, Object[]> content;
+
+            public WithAnnotationsImpl(Triple t, Supplier<OntGraphModel> m) {
                 super(t, m);
                 this.content = createContentCache();
             }
 
-            protected static Object[] collectContent(OntStatement statement,
-                                                     InternalObjectFactory factory,
-                                                     InternalConfig config) {
-                return toArray(collectAnnotations(statement, factory, config));
-            }
-
             @Override
-            public Object[] collectContent() {
-                return collectContent(asStatement(), getObjectFactory(), getConfig());
-            }
-
-            @Override
-            public InternalCache.Loading<WithAnnotations, Object[]> getContentCache() {
+            public InternalCache.Loading<WithAnnotationsImpl, Object[]> getContentCache() {
                 return content;
-            }
-
-            @Override
-            public boolean isAnnotated() {
-                return true;
-            }
-
-            @Override
-            public Stream<OWLAnnotation> annotations() {
-                return ONTAnnotationImpl.contentAsStream(getContent());
-            }
-
-            @Override
-            public List<OWLAnnotation> annotationsAsList() {
-                return ONTAnnotationImpl.contentAsList(getContent());
-            }
-
-            @SuppressWarnings("unchecked")
-            @Override
-            public Stream<ONTObject<? extends OWLObject>> objects() {
-                Stream res = Stream.concat(super.objects(), annotations());
-                return (Stream<ONTObject<? extends OWLObject>>) res;
             }
         }
     }
-
 }

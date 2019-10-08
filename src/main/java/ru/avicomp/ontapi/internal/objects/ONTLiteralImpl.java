@@ -64,9 +64,9 @@ public class ONTLiteralImpl extends OWLLiteralImpl
      *                which is only used in case the {@code factory} has no reference to a model
      * @return an {@link ONTObject} which is {@link OWLLiteral}
      */
-    protected static ONTObject<OWLLiteral> find(LiteralLabel label,
-                                                InternalObjectFactory factory,
-                                                Supplier<OntGraphModel> model) {
+    public static ONTObject<OWLLiteral> find(LiteralLabel label,
+                                             InternalObjectFactory factory,
+                                             Supplier<OntGraphModel> model) {
         if (factory instanceof ModelObjectFactory) {
             return ((ModelObjectFactory) factory).getLiteral(label);
         }

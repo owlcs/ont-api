@@ -43,7 +43,7 @@ import java.util.stream.Stream;
  * @param <S> - any subtype of {@link OWLObject} (the type of triple's subject)
  * @since 1.4.3
  */
-public interface WithOneObject<S extends OWLObject> extends WithTriple {
+interface WithOneObject<S extends OWLObject> extends WithTriple {
 
     ONTObject<? extends S> findURISubject(InternalObjectFactory factory);
 

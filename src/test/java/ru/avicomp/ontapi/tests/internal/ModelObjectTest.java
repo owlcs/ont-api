@@ -20,6 +20,7 @@ import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.internal.objects.ModelObject;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.function.Function;
@@ -138,8 +139,15 @@ public class ModelObjectTest {
                 Collections.singleton(df.getRDFSComment("x"))));
     }
 
+    @Test
+    public void testObjectPropertyAssertionAxiomEraseModelMethods() {
+        testUnaryPropAxiom(df -> df.getOWLObjectPropertyAssertionAxiom(df.getOWLObjectProperty("X"),
+                df.getOWLAnonymousIndividual("_:b33"), df.getOWLNamedIndividual("I"),
+                Arrays.asList(df.getRDFSComment("x"), df.getRDFSLabel("y"))));
+    }
+
     @SuppressWarnings("unchecked")
-    private <X extends OWLSubClassOfAxiomShortCut & OWLPropertyAxiom> void testUnaryPropAxiom(Function<OWLDataFactory, X> factory) {
+    private <X extends OWLSubClassOfAxiomShortCut & OWLAxiom> void testUnaryPropAxiom(Function<OWLDataFactory, X> factory) {
         X ont = factory.apply(ObjectFactoryTestBase.ONT_DATA_FACTORY);
         X owl = factory.apply(ObjectFactoryTestBase.OWL_DATA_FACTORY);
         Assert.assertEquals(owl, ont);

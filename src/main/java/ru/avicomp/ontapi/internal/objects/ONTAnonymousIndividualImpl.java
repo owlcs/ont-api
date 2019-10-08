@@ -60,9 +60,9 @@ public class ONTAnonymousIndividualImpl extends OWLAnonymousIndividualImpl
      *                which is only used in case the {@code factory} has no reference to a model
      * @return an {@link ONTObject} that is {@link OWLAnonymousIndividual}
      */
-    protected static ONTObject<OWLAnonymousIndividual> find(BlankNodeId id,
-                                                            InternalObjectFactory factory,
-                                                            Supplier<OntGraphModel> model) {
+    public static ONTObject<OWLAnonymousIndividual> find(BlankNodeId id,
+                                                         InternalObjectFactory factory,
+                                                         Supplier<OntGraphModel> model) {
         if (factory instanceof ModelObjectFactory) {
             return ((ModelObjectFactory) factory).getAnonymousIndividual(id);
         }

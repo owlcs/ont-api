@@ -2006,6 +2006,30 @@ public class TestFactory {
                                 "df.getOWLAnonymousIndividual(\"_:b0\")), df.getRDFSComment(\"comm\")))";
                     }
                 }
+                , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.OBJECT_PROPERTY_ASSERTION;
+                    }
+
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLObjectPropertyAssertionAxiom(df.getOWLObjectProperty("P"),
+                                df.getOWLNamedIndividual("I"),
+                                df.getOWLAnonymousIndividual("_:b0"),
+                                Collections.singleton(df.getOWLAnnotation(df.getOWLAnnotationProperty("A"),
+                                        df.getOWLAnonymousIndividual("_:b1"))));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLObjectPropertyAssertionAxiom(df.getOWLObjectProperty(\"P\"), " +
+                                "df.getOWLNamedIndividual(\"I\"), " +
+                                "df.getOWLAnonymousIndividual(\"_:b0\"), " +
+                                "Collections.singleton(df.getOWLAnnotation(df.getOWLAnnotationProperty(\"A\"), " +
+                                "df.getOWLAnonymousIndividual(\"_:b1\"))))";
+                    }
+                }
         );
 
     }
