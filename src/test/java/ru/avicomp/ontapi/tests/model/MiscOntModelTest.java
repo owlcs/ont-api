@@ -35,6 +35,25 @@ import java.util.Collections;
 public class MiscOntModelTest extends OntModelTestBase {
 
     @Test
+    public void testAddAxiomWithAnonymousIndividualsInMainTripleAndAnnotation() {
+        OntologyManager m = OntManagers.createONT();
+        DataFactory df = m.getOWLDataFactory();
+        OWLAxiom a = df.getOWLObjectPropertyAssertionAxiom(df.getOWLObjectProperty("P"),
+                df.getOWLNamedIndividual("I"),
+                df.getOWLAnonymousIndividual("_:b0"),
+                Collections.singleton(df.getOWLAnnotation(df.getOWLAnnotationProperty("A"),
+                        df.getOWLAnonymousIndividual("_:b1"))));
+        OntologyModel o = m.createOntology();
+        o.add(a);
+        Assert.assertTrue(o.containsAxiom(a));
+        o.axioms().filter(a::equals).findFirst().orElseThrow(AssertionError::new);
+
+        o.clearCache();
+        Assert.assertTrue(o.containsAxiom(a));
+        o.axioms().filter(a::equals).findFirst().orElseThrow(AssertionError::new);
+    }
+
+    @Test
     public void testRemoveAxiomWithDuplicatedAnnotations() {
         OntologyModel o = OntManagers.createONT().createOntology();
         OntGraphModel g = o.asGraphModel();

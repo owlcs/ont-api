@@ -50,10 +50,14 @@ public abstract class OntIndividualImpl extends OntObjectImpl implements OntIndi
     private static final String FORBIDDEN_SUBJECTS = OntIndividual.Anonymous.class.getName() + ".InSubject";
     private static final String FORBIDDEN_OBJECTS = OntIndividual.Anonymous.class.getName() + ".InObject";
 
+    // allowed predicates for subject (the pattern '_:x p ANY'):
     private static final Set<Node> FOR_SUBJECT = Stream.of(OWL.sameAs, OWL.differentFrom)
             .map(FrontsNode::asNode).collect(Iter.toUnmodifiableSet());
+    // allowed predicates for object (the pattern 'ANY p _:x'):
     private static final Set<Node> FOR_OBJECT = Stream.of(OWL.sameAs, OWL.differentFrom,
-            OWL.sourceIndividual, OWL.hasValue, RDF.first, SWRL.argument1, SWRL.argument2)
+            OWL.sourceIndividual, OWL.targetIndividual, OWL.hasValue,
+            OWL.annotatedSource, OWL.annotatedTarget,
+            RDF.first, SWRL.argument1, SWRL.argument2)
             .map(FrontsNode::asNode).collect(Iter.toUnmodifiableSet());
 
     public static OntFinder FINDER = OntFinder.ANY_SUBJECT_AND_OBJECT;
