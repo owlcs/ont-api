@@ -146,6 +146,14 @@ public class ModelObjectTest {
                 Arrays.asList(df.getRDFSComment("x"), df.getRDFSLabel("y"))));
     }
 
+    @Test
+    public void testNegativeObjectPropertyAssertionAxiomEraseModelMethods() {
+        testUnaryPropAxiom(df -> df.getOWLNegativeObjectPropertyAssertionAxiom(
+                df.getOWLObjectInverseOf(df.getOWLObjectProperty("X")),
+                df.getOWLNamedIndividual("I"), df.getOWLAnonymousIndividual("_:b33"),
+                Arrays.asList(df.getRDFSComment("x"), df.getRDFSLabel("y"))));
+    }
+
     @SuppressWarnings("unchecked")
     private <X extends OWLSubClassOfAxiomShortCut & OWLAxiom> void testUnaryPropAxiom(Function<OWLDataFactory, X> factory) {
         X ont = factory.apply(ObjectFactoryTestBase.ONT_DATA_FACTORY);

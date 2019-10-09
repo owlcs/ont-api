@@ -14,19 +14,23 @@
 
 package ru.avicomp.ontapi.internal.axioms;
 
+import org.apache.jena.graph.BlankNodeId;
+import org.apache.jena.graph.Triple;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDF;
-import org.semanticweb.owlapi.model.OWLPropertyAssertionAxiom;
-import ru.avicomp.ontapi.internal.AxiomTranslator;
-import ru.avicomp.ontapi.internal.InternalConfig;
-import ru.avicomp.ontapi.internal.WriteHelper;
+import org.semanticweb.owlapi.model.*;
+import ru.avicomp.ontapi.internal.*;
+import ru.avicomp.ontapi.internal.objects.*;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntNPA;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.utils.OntModels;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
+import ru.avicomp.ontapi.owlapi.objects.OWLAnonymousIndividualImpl;
 
+import java.util.Arrays;
 import java.util.Objects;
+import java.util.function.Supplier;
 
 /**
  * An abstraction for data and object negative property assertion.
@@ -62,5 +66,95 @@ public abstract class AbstractNegativePropertyAssertionTranslator<Axiom extends 
         return statement.getObject().equals(OWL.NegativePropertyAssertion)
                 && statement.isDeclaration()
                 && statement.getSubject().canAs(getView());
+    }
+
+    /**
+     * A base for data or object negative assertions
+     *
+     * @param <A> - either {@link OWLNegativeObjectPropertyAssertionAxiom}
+     *            or {@link OWLNegativeDataPropertyAssertionAxiom}
+     * @param <P> - either {@link OWLObjectPropertyExpression} or {@link OWLDataProperty}
+     * @param <O> - either {@link OWLIndividual} or {@link OWLLiteral}
+     */
+    @SuppressWarnings("WeakerAccess")
+    protected static abstract class NegativeAssertionImpl<A extends OWLPropertyAssertionAxiom,
+            P extends OWLPropertyExpression, O extends OWLObject> extends ONTAxiomImpl<A>
+            implements WithAssertion.Complex<NegativeAssertionImpl, OWLIndividual, P, O> {
+
+        protected final InternalCache.Loading<NegativeAssertionImpl, Object[]> content;
+
+        protected NegativeAssertionImpl(Triple t, Supplier<OntGraphModel> m) {
+            this(strip(t.getSubject()), t.getPredicate().getURI(), strip(t.getObject()), m);
+        }
+
+        protected NegativeAssertionImpl(Object s, String p, Object o, Supplier<OntGraphModel> m) {
+            super(s, p, o, m);
+            this.content = createContentCache();
+        }
+
+        @Override
+        public InternalCache.Loading<NegativeAssertionImpl, Object[]> getContentCache() {
+            return content;
+        }
+
+        @Override
+        protected boolean sameContent(ONTStatementImpl other) {
+            return other instanceof NegativeAssertionImpl
+                    && Arrays.equals(getContent(), ((NegativeAssertionImpl) other).getContent());
+        }
+
+        protected abstract OntNPA getResource(OntStatement statement);
+
+        @Override
+        public ONTObject<? extends OWLIndividual> fetchONTSubject(OntStatement statement,
+                                                                  InternalObjectFactory factory) {
+            return factory.getIndividual(getResource(statement).getSource());
+        }
+
+        @Override
+        public OWLIndividual getSubject() {
+            return getONTSubject().getOWLObject();
+        }
+
+        public O getObject() {
+            return getONTObject().getOWLObject();
+        }
+
+        @Override
+        public P getProperty() {
+            return getONTPredicate().getOWLObject();
+        }
+
+        @Override
+        public Object fromSubject(ONTObject o) {
+            return fromIndividual((OWLIndividual) o.getOWLObject());
+        }
+
+        @Override
+        public ONTObject<? extends OWLIndividual> toSubject(Object s, InternalObjectFactory factory) {
+            return toIndividual(s, factory);
+        }
+
+        protected ONTObject<? extends OWLIndividual> toIndividual(Object s, InternalObjectFactory factory) {
+            return s instanceof String ?
+                    toNamedIndividual((String) s, factory) :
+                    toAnonymousIndividual((BlankNodeId) s, factory);
+        }
+
+        protected ONTObject<OWLNamedIndividual> toNamedIndividual(String uri, InternalObjectFactory factory) {
+            return ONTNamedIndividualImpl.find(uri, factory, model);
+        }
+
+        protected ONTObject<OWLAnonymousIndividual> toAnonymousIndividual(BlankNodeId id,
+                                                                          InternalObjectFactory factory) {
+            return ONTAnonymousIndividualImpl.find(id, factory, model);
+        }
+
+        protected Object fromIndividual(OWLIndividual i) {
+            if (i.isOWLNamedIndividual()) {
+                return ONTEntityImpl.getURI(i.asOWLNamedIndividual());
+            }
+            return OWLAnonymousIndividualImpl.asONT(i.asOWLAnonymousIndividual()).getBlankNodeId();
+        }
     }
 }

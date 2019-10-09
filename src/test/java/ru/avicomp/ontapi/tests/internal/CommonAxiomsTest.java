@@ -49,6 +49,7 @@ public class CommonAxiomsTest extends StatementTestBase {
                         , AxiomType.SUBCLASS_OF
                         , AxiomType.ANNOTATION_ASSERTION
                         , AxiomType.OBJECT_PROPERTY_ASSERTION
+                        , AxiomType.NEGATIVE_OBJECT_PROPERTY_ASSERTION
                         , AxiomType.SUB_OBJECT_PROPERTY
                         , AxiomType.FUNCTIONAL_OBJECT_PROPERTY
                         , AxiomType.INVERSE_FUNCTIONAL_OBJECT_PROPERTY

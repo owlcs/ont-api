@@ -24,19 +24,35 @@ import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.owlapi.OWLObjectImpl;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.ObjIntConsumer;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
  * A technical interface that describes an assertion axiom.
- * The (positive) assertion statements are:  {@code a1 PN a2}, {@code a R v}, {@code s A t},
- * where:
+ * There are three positive property assertion statements ({@code a1 PN a2}, {@code a R v}, {@code s A t}),
+ * and two negative property assertions:
+ * <pre>{@code
+ * _:x rdf:type owl:NegativePropertyAssertion.
+ * _:x owl:sourceIndividual a1.
+ * _:x owl:assertionProperty P.
+ * _:x owl:targetIndividual a2.
+ * }</pre>, and
+ * <pre>{@code
+ * _:x rdf:type owl:NegativePropertyAssertion.
+ * _:x owl:sourceIndividual a.
+ * _:x owl:assertionProperty R.
+ * _:x owl:targetValue v.
+ * }</pre>.
+ * Where:
  * <ul>
+ *     <li>{@code P} - object property expression</li>
  *     <li>{@code PN} - (named) object property </li>
  *     <li>{@code R} - data property</li>
  *     <li>{@code A} - annotation property</li>
@@ -129,7 +145,7 @@ interface WithAssertion<S extends OWLObject, P extends OWLObject, O extends OWLO
 
     /**
      * Creates an {@link ONTObject} container for the given {@link OntStatement};
-     * the returned object is also {@link R}.
+     * the returned object is also {@link R} - a positive property assertion axiom.
      * Impl notes:
      * If there is no sub-annotations then a simplified instance of {@link Simple} is returned,
      * and for this the factory {@code simple} is used.
@@ -144,7 +160,7 @@ interface WithAssertion<S extends OWLObject, P extends OWLObject, O extends OWLO
      * @param setHash   {@code ObjIntConsumer<OWLAxiom>}, facility to assign {@code hashCode}, not {@code null}
      * @param factory   {@link InternalObjectFactory} (singleton), not {@code null}
      * @param config    {@link InternalConfig} (singleton), not {@code null}
-     * @param <R>       the desired assertion {@link OWLAxiom axiom}-type
+     * @param <R>       the desired positive property assertion {@link OWLAxiom axiom}-type
      * @return {@link R}
      */
     static <R extends ONTObject & WithAssertion> R create(OntStatement statement,
@@ -166,6 +182,33 @@ interface WithAssertion<S extends OWLObject, P extends OWLObject, O extends OWLO
     }
 
     /**
+     * Creates an {@link ONTObject} container for the given {@link OntStatement};
+     * the returned object is also {@link R} - a negative property assertion axiom.
+     * <p>
+     * For internal usage only.
+     *
+     * @param statement {@link OntStatement}, the source to parse, not {@code null}
+     * @param model     {@link OntGraphModel}-provider, not {@code null}
+     * @param maker     a factory (as {@link BiFunction}) to provide {@link Complex} instance, not {@code null}
+     * @param setHash   {@code ObjIntConsumer<OWLAxiom>}, facility to assign {@code hashCode}, not {@code null}
+     * @param factory   {@link InternalObjectFactory} (singleton), not {@code null}
+     * @param config    {@link InternalConfig} (singleton), not {@code null}
+     * @param <R>       the desired negative property assertion {@link OWLAxiom axiom}-type
+     * @return {@link R}
+     */
+    static <R extends ONTObject & Complex> R create(OntStatement statement,
+                                                    Supplier<OntGraphModel> model,
+                                                    BiFunction<Triple, Supplier<OntGraphModel>, ? extends R> maker,
+                                                    ObjIntConsumer<OWLAxiom> setHash,
+                                                    InternalObjectFactory factory,
+                                                    InternalConfig config) {
+        R res = maker.apply(statement.asTriple(), model);
+        Object[] content = Complex.initContent(res, statement, setHash, factory, config);
+        res.putContent(content);
+        return res;
+    }
+
+    /**
      * Represents the simplest case when the axiom has no annotations.
      *
      * @param <S> - subject
@@ -182,7 +225,8 @@ interface WithAssertion<S extends OWLObject, P extends OWLObject, O extends OWLO
     }
 
     /**
-     * Represents the case of annotated axiom.
+     * Represents the case of annotated positive assertion axiom.
+     * The {@link WithContent#getContent()} contains only annotations.
      *
      * @param <A> - assertion
      * @param <S> - subject
@@ -192,6 +236,18 @@ interface WithAssertion<S extends OWLObject, P extends OWLObject, O extends OWLO
     interface WithAnnotations<A extends OWLAxiom, S extends OWLObject, P extends OWLObject, O extends OWLObject>
             extends WithAssertion<S, P, O>, WithContent<A> {
 
+        /**
+         * Calculates the content and {@code hashCode} simultaneously.
+         * Such a way was chosen for performance sake.
+         *
+         * @param axiom     - a {@link WithAnnotations} instance, the axiom, not {@code null}
+         * @param statement - a {@link OntStatement}, the source statement, not {@code null}
+         * @param setHash   - a {@code ObjIntConsumer<OWLAxiom>}, facility to assign {@code hashCode}, not {@code null}
+         *                  (no annotations, uri subject and object), an empty array is returned
+         * @param factory   - a {@link InternalObjectFactory} singleton, not {@code null}
+         * @param config    - a {@link InternalConfig} singleton, not {@code null}
+         * @return an {@code Array} with content
+         */
         static Object[] initContent(WithAssertion axiom,
                                     OntStatement statement,
                                     ObjIntConsumer<OWLAxiom> setHash,
@@ -242,4 +298,142 @@ interface WithAssertion<S extends OWLObject, P extends OWLObject, O extends OWLO
         }
     }
 
+    /**
+     * Represents a negative assertion axiom.
+     * The {@link WithContent#getContent()} contains both annotations and part of axiom.
+     *
+     * @param <A> - assertion
+     * @param <S> - subject
+     * @param <P> - predicate
+     * @param <O> - object
+     */
+    interface Complex<A extends OWLAxiom, S extends OWLObject, P extends OWLObject, O extends OWLObject>
+            extends WithAssertion<S, P, O>, WithContent<A> {
+
+        /**
+         * Calculates the content and {@code hashCode} simultaneously.
+         * Such a way was chosen for performance sake.
+         *
+         * @param axiom     - a {@link Complex} instance, the axiom, not {@code null}
+         * @param statement - a {@link OntStatement}, the source statement, not {@code null}
+         * @param setHash   - a {@code ObjIntConsumer<OWLAxiom>}, facility to assign {@code hashCode}, not {@code null}
+         *                  (no annotations, uri subject and object), an empty array is returned
+         * @param factory   - a {@link InternalObjectFactory} singleton, not {@code null}
+         * @param config    - a {@link InternalConfig} singleton, not {@code null}
+         * @return an {@code Array} with content
+         */
+        static Object[] initContent(Complex axiom,
+                                    OntStatement statement,
+                                    ObjIntConsumer<OWLAxiom> setHash,
+                                    InternalObjectFactory factory,
+                                    InternalConfig config) {
+            Collection annotations = ONTAxiomImpl.collectAnnotations(statement, factory, config);
+            Object[] res = new Object[annotations.size() + 3];
+            int hash = axiom.hashIndex();
+            ONTObject s = axiom.fetchONTSubject(statement, factory);
+            ONTObject p = axiom.fetchONTPredicate(statement, factory);
+            ONTObject o = axiom.fetchONTObject(statement, factory);
+            hash = OWLObject.hashIteration(hash, s.hashCode());
+            hash = OWLObject.hashIteration(hash, p.hashCode());
+            hash = OWLObject.hashIteration(hash, o.hashCode());
+            int i = 0;
+            res[i++] = axiom.fromSubject(s);
+            res[i++] = axiom.fromPredicate(p);
+            res[i++] = axiom.fromObject(o);
+            int h = 1;
+            for (Object a : annotations) {
+                res[i++] = a;
+                h = WithContent.hashIteration(h, a.hashCode());
+            }
+            setHash.accept(axiom, OWLObject.hashIteration(hash, h));
+            return res;
+        }
+
+        @Override
+        default Object[] collectContent() {
+            OntStatement statement = asStatement();
+            InternalObjectFactory factory = getObjectFactory();
+            InternalConfig config = getConfig();
+            Collection annotations = ONTAxiomImpl.collectAnnotations(statement, factory, config);
+            Object[] res = new Object[annotations.size() + 3];
+            int i = 0;
+            res[i++] = fromSubject(fetchONTSubject(statement, factory));
+            res[i++] = fromPredicate(fetchONTPredicate(statement, factory));
+            res[i++] = fromObject(fetchONTObject(statement, factory));
+            for (Object a : annotations) {
+                res[i++] = a;
+            }
+            return res;
+        }
+
+        Object fromSubject(ONTObject o);
+
+        Object fromObject(ONTObject o);
+
+        Object fromPredicate(ONTObject o);
+
+        ONTObject<? extends S> toSubject(Object s, InternalObjectFactory factory);
+
+        ONTObject<? extends P> toPredicate(Object p, InternalObjectFactory factory);
+
+        ONTObject<? extends O> toObject(Object o, InternalObjectFactory factory);
+
+        default ONTObject<? extends S> findONTSubject(InternalObjectFactory factory) {
+            return toSubject(getContent()[0], factory);
+        }
+
+        default ONTObject<? extends P> findONTPredicate(InternalObjectFactory factory) {
+            return toPredicate(getContent()[1], factory);
+        }
+
+        default ONTObject<? extends O> findONTObject(InternalObjectFactory factory) {
+            return toObject(getContent()[2], factory);
+        }
+
+        @Override
+        default boolean isAnnotated() {
+            return getContent().length > 3;
+        }
+
+        @Override
+        default Stream<OWLAnnotation> annotations() {
+            return annotations(getContent());
+        }
+
+        @Override
+        default List<OWLAnnotation> annotationsAsList() {
+            return annotations().collect(Collectors.toList());
+        }
+
+        @SuppressWarnings("unchecked")
+        default Stream<OWLAnnotation> annotations(Object[] content) {
+            Stream res = Arrays.stream(content).skip(3);
+            return (Stream<OWLAnnotation>) res;
+        }
+
+        default Stream<ONTObject<? extends OWLObject>> objects(Object[] content, InternalObjectFactory factory) {
+            return Stream.of(toSubject(content[0], factory), toPredicate(content[1], factory),
+                    toObject(content[2], factory));
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        default Stream<ONTObject<? extends OWLObject>> objects() {
+            Object[] content = getContent();
+            InternalObjectFactory factory = getObjectFactory();
+            Stream res = Stream.concat(objects(content, factory), annotations(content));
+            return (Stream<ONTObject<? extends OWLObject>>) res;
+        }
+
+        @Override
+        default Set<? extends OWLObject> getOWLComponentsAsSet(InternalObjectFactory factory) {
+            return getOWLComponentsAsSet(getContent(), factory);
+        }
+
+        default Set<? extends OWLObject> getOWLComponentsAsSet(Object[] content, InternalObjectFactory factory) {
+            Set<OWLObject> res = OWLObjectImpl.createSortedSet();
+            objects(content, factory).map(ONTObject::getOWLObject).forEach(res::add);
+            return res;
+        }
+    }
 }
