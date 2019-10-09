@@ -54,6 +54,35 @@ import java.util.stream.Stream;
 public class AnnotationsOntModelTest extends OntModelTestBase {
 
     @Test
+    public void testNegativeAssertionAnnotations() {
+        OntologyManager m = OntManagers.createONT();
+        OntologyModel o = m.createOntology();
+        OntGraphModel g = o.asGraphModel();
+
+        g.createObjectProperty("OP").createInverse()
+                .addNegativeAssertion(g.createIndividual("A"), g.createIndividual("B"))
+                .addComment("x").addLabel("y");
+        g.createDataProperty("DP").addNegativeAssertion(g.createIndividual("A"), g.createLiteral("val"))
+                .addAnnotation(g.getRDFSComment(), "z")
+                .annotate(g.createAnnotationProperty("AP"), "w")
+                .annotate(g.getRDFSLabel(), "q");
+        ReadWriteUtils.print(g);
+
+        OWLAxiom nopa = o.axioms(AxiomType.NEGATIVE_OBJECT_PROPERTY_ASSERTION)
+                .findFirst().orElseThrow(AssertionError::new);
+        OWLAxiom ndpa = o.axioms(AxiomType.NEGATIVE_DATA_PROPERTY_ASSERTION)
+                .findFirst().orElseThrow(AssertionError::new);
+        LOGGER.debug("NOPA: {}", nopa);
+        LOGGER.debug("NDPA: {}", ndpa);
+
+        Assert.assertTrue(nopa.isAnnotated());
+        Assert.assertTrue(ndpa.isAnnotated());
+        Assert.assertEquals(2, nopa.annotations().count());
+        Assert.assertEquals(1, ndpa.annotations().count());
+        Assert.assertEquals(2, ndpa.annotations().findFirst().orElseThrow(AssertionError::new).annotations().count());
+    }
+
+    @Test
     public void testSingleComplexAnnotation() {
         OntIRI iri = OntIRI.create("http://test.org/annotations/1");
         // test data:
@@ -102,7 +131,8 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
                                 factory.getOWLAnnotation(factory.getRDFSLabel(), factory.getOWLLiteral(label))
                         )
                 ),
-                factory.getOWLAnnotation(factory.getRDFSLabel(), factory.getOWLLiteral(label))).collect(Collectors.toSet());
+                factory.getOWLAnnotation(factory.getRDFSLabel(), factory.getOWLLiteral(label)))
+                .collect(Collectors.toSet());
         OWLAxiom expected = factory.getOWLDeclarationAxiom(factory.getOWLClass(clazzIRI), annotations);
 
         LOGGER.debug("Current axioms:");
@@ -173,13 +203,15 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
         OWLAnnotation root2 = df.getOWLAnnotation(df.getRDFSLabel(), df.getOWLLiteral("ROOT2"), root2child1);
 
         OWLClass clazz = df.getOWLClass(iri.addFragment("SomeClass1"));
-        OWLAxiom classAxiom = df.getOWLDeclarationAxiom(clazz, Stream.of(root1, root2, simple2, simple1).collect(Collectors.toSet()));
+        OWLAxiom classAxiom = df.getOWLDeclarationAxiom(clazz,
+                Stream.of(root1, root2, simple2, simple1).collect(Collectors.toSet()));
         owl1.applyChange(new AddAxiom(owl1, classAxiom));
 
         OWLAnnotation individualAnn = df.getOWLAnnotation(df.getRDFSComment(), df.getOWLLiteral("INDI-ANN"),
                 df.getRDFSComment("indi-comment"));
         OWLAxiom individualAxiom = df.getOWLClassAssertionAxiom(clazz,
-                df.getOWLNamedIndividual(iri.addFragment("Indi")), Stream.of(individualAnn).collect(Collectors.toSet()));
+                df.getOWLNamedIndividual(iri.addFragment("Indi")),
+                Stream.of(individualAnn).collect(Collectors.toSet()));
         owl1.applyChange(new AddAxiom(owl1, individualAxiom));
 
         debug(owl1);
@@ -200,7 +232,8 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
 
         LOGGER.debug("Validate axioms"); // By default bulk assertions are allowed:
         Assert.assertEquals("Should be single class-assertion", 1, owl2.axioms(AxiomType.CLASS_ASSERTION).count());
-        Assert.assertEquals("Should be two declarations(class + individual)", 2, owl2.axioms(AxiomType.DECLARATION).count());
+        Assert.assertEquals("Should be two declarations(class + individual)", 2,
+                owl2.axioms(AxiomType.DECLARATION).count());
         Assert.assertTrue("Incorrect class assertion axiom.", owl2.containsAxiom(individualAxiom));
 
         Assert.assertEquals(allowBulkAnnotationAssertions ? 4 : 2,
@@ -209,17 +242,24 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
 
         if (allowBulkAnnotationAssertions) {
             Assert.assertEquals("Incorrect axioms count", 7, owl2.getAxiomCount());
-            Assert.assertEquals("Incorrect annotation-assertions count", 4, owl2.axioms(AxiomType.ANNOTATION_ASSERTION).count());
-            Assert.assertEquals("Incorrect count of annotated axioms", 3, owl2.axioms().filter(OWLAxiom::isAnnotated).count());
-            Assert.assertTrue("Can't find bulk assertion N1", owl2.containsAxiom(df.getOWLAnnotationAssertionAxiom(clazz.getIRI(), root1)));
-            Assert.assertTrue("Can't find bulk assertion N2", owl2.containsAxiom(df.getOWLAnnotationAssertionAxiom(clazz.getIRI(), root2)));
+            Assert.assertEquals("Incorrect annotation-assertions count", 4,
+                    owl2.axioms(AxiomType.ANNOTATION_ASSERTION).count());
+            Assert.assertEquals("Incorrect count of annotated axioms", 3,
+                    owl2.axioms().filter(OWLAxiom::isAnnotated).count());
+            Assert.assertTrue("Can't find bulk assertion N1",
+                    owl2.containsAxiom(df.getOWLAnnotationAssertionAxiom(clazz.getIRI(), root1)));
+            Assert.assertTrue("Can't find bulk assertion N2",
+                    owl2.containsAxiom(df.getOWLAnnotationAssertionAxiom(clazz.getIRI(), root2)));
             Assert.assertTrue("No unannotated class-declaration", owl2.containsAxiom(df.getOWLDeclarationAxiom(clazz)));
         } else {
             Assert.assertEquals("Incorrect axioms count", 5, owl2.getAxiomCount());
-            Assert.assertEquals("Incorrect annotation-assertions count", 2, owl2.axioms(AxiomType.ANNOTATION_ASSERTION).count());
-            Assert.assertEquals("Incorrect count of annotated axioms", 2, owl2.axioms().filter(OWLAxiom::isAnnotated).count());
+            Assert.assertEquals("Incorrect annotation-assertions count", 2,
+                    owl2.axioms(AxiomType.ANNOTATION_ASSERTION).count());
+            Assert.assertEquals("Incorrect count of annotated axioms", 2,
+                    owl2.axioms().filter(OWLAxiom::isAnnotated).count());
             // no assertion annotations inside:
-            OWLAxiom expectedClassAxiom = df.getOWLDeclarationAxiom(clazz, Stream.of(root1, root2).collect(Collectors.toSet()));
+            OWLAxiom expectedClassAxiom = df.getOWLDeclarationAxiom(clazz,
+                    Stream.of(root1, root2).collect(Collectors.toSet()));
             Assert.assertTrue("Incorrect declaration class axiom", owl2.containsAxiom(expectedClassAxiom));
         }
     }
@@ -251,9 +291,12 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
 
         owl.applyChange(new AddAxiom(owl, factory.getOWLDeclarationAxiom(clazz1)));
 
-        OWLAnnotation ann1 = factory.getOWLAnnotation(factory.getRDFSLabel(), factory.getOWLLiteral("annotation №1"));
-        OWLAnnotation ann2 = factory.getOWLAnnotation(factory.getRDFSComment(), factory.getOWLLiteral("annotation №2"), Stream.of(ann1));
-        owl.applyChange(new AddAxiom(owl, factory.getOWLClassAssertionAxiom(clazz1, ind1, Stream.of(ann1).collect(Collectors.toSet()))));
+        OWLAnnotation ann1 = factory.getOWLAnnotation(factory.getRDFSLabel(),
+                factory.getOWLLiteral("annotation №1"));
+        OWLAnnotation ann2 = factory.getOWLAnnotation(factory.getRDFSComment(),
+                factory.getOWLLiteral("annotation №2"), Stream.of(ann1));
+        owl.applyChange(new AddAxiom(owl, factory.getOWLClassAssertionAxiom(clazz1, ind1,
+                Stream.of(ann1).collect(Collectors.toSet()))));
         owl.applyChange(new AddAxiom(owl, factory.getOWLClassAssertionAxiom(clazz1, ind2)));
         owl.applyChange(new AddAxiom(owl, factory.getOWLClassAssertionAxiom(clazz1, ind3)));
         // different individuals:
@@ -263,7 +306,8 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
 
         // disjoint classes
         OWLAnnotation ann3 = factory.getOWLAnnotation(factory.getRDFSComment(), factory.getOWLLiteral("annotation №3"));
-        OWLAnnotation ann4 = factory.getOWLAnnotation(factory.getRDFSComment(), factory.getOWLLiteral("annotation №4"), ann3);
+        OWLAnnotation ann4 = factory.getOWLAnnotation(factory.getRDFSComment(),
+                factory.getOWLLiteral("annotation №4"), ann3);
         OWLAnnotation ann5 = factory.getOWLAnnotation(factory.getRDFSComment(), factory.getOWLLiteral("annotation №5"));
         owl.applyChange(new AddAxiom(owl, factory.getOWLDisjointClassesAxiom(
                 Stream.of(clazz1, clazz2, clazz3),
@@ -271,7 +315,8 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
 
         // negative object property:
         OWLAnnotation ann6 = factory.getOWLAnnotation(factory.getRDFSSeeAlso(), factory.getOWLLiteral("annotation №6"));
-        OWLAnnotation ann7 = factory.getOWLAnnotation(factory.getRDFSSeeAlso(), factory.getOWLLiteral("annotation №7"), ann6);
+        OWLAnnotation ann7 = factory.getOWLAnnotation(factory.getRDFSSeeAlso(),
+                factory.getOWLLiteral("annotation №7"), ann6);
         owl.applyChange(new AddAxiom(owl, factory.getOWLNegativeObjectPropertyAssertionAxiom(objectProperty1, ind1, ind2,
                 Stream.of(ann6).collect(Collectors.toSet()))));
         owl.applyChange(new AddAxiom(owl, factory.getOWLNegativeDataPropertyAssertionAxiom(dataProperty1, ind3,
@@ -279,7 +324,8 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
 
         // disjoint properties
         OWLAnnotation ann8 = factory.getOWLAnnotation(factory.getRDFSSeeAlso(), factory.getOWLLiteral("annotation №8"));
-        OWLAnnotation ann9 = factory.getOWLAnnotation(factory.getRDFSSeeAlso(), factory.getOWLLiteral("annotation №9"), ann8);
+        OWLAnnotation ann9 = factory.getOWLAnnotation(factory.getRDFSSeeAlso(),
+                factory.getOWLLiteral("annotation №9"), ann8);
         owl.applyChange(new AddAxiom(owl, factory.getOWLDisjointObjectPropertiesAxiom(
                 Stream.of(objectProperty1, objectProperty2, objectProperty3).collect(Collectors.toSet()),
                 Stream.of(ann8).collect(Collectors.toSet()))));
@@ -324,8 +370,9 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
 
         List<OWLNaryAxiom> axioms = new ArrayList<>();
         // equivalent classes
-        OWLAnnotation ann1 = factory.getOWLAnnotation(annotationProperty1, factory.getOWLLiteral("property annotation N1"),
-                factory.getOWLAnnotation(factory.getRDFSComment(), factory.getOWLLiteral("equivalent classes annotation N1")));
+        OWLAnnotation ann1 = factory.getOWLAnnotation(annotationProperty1,
+                factory.getOWLLiteral("property annotation N1"), factory.getOWLAnnotation(factory.getRDFSComment(),
+                        factory.getOWLLiteral("equivalent classes annotation N1")));
         axioms.add(factory.getOWLEquivalentClassesAxiom(
                 Stream.of(clazz1, clazz2, clazz3).collect(Collectors.toSet()),
                 Stream.of(ann1).collect(Collectors.toSet())));
@@ -337,13 +384,15 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
                 Stream.of(ann2).collect(Collectors.toSet())));
 
         // equivalent object properties
-        OWLAnnotation ann3 = factory.getOWLAnnotation(factory.getRDFSComment(), factory.getOWLLiteral("equivalent object properties annotation"));
+        OWLAnnotation ann3 = factory.getOWLAnnotation(factory.getRDFSComment(),
+                factory.getOWLLiteral("equivalent object properties annotation"));
         axioms.add(factory.getOWLEquivalentObjectPropertiesAxiom(
                 Stream.of(objectProperty1, objectProperty2, objectProperty3).collect(Collectors.toSet()),
                 Stream.of(ann3).collect(Collectors.toSet())));
 
         // same individuals
-        OWLAnnotation ann4 = factory.getOWLAnnotation(factory.getRDFSComment(), factory.getOWLLiteral("same individuals annotation", "fr"));
+        OWLAnnotation ann4 = factory.getOWLAnnotation(factory.getRDFSComment(),
+                factory.getOWLLiteral("same individuals annotation", "fr"));
         axioms.add(factory.getOWLSameIndividualAxiom(
                 Stream.of(ind1, ind2, ind3).collect(Collectors.toSet()),
                 Stream.of(ann4).collect(Collectors.toSet())));
@@ -416,11 +465,14 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
         OWLOntologyManager manager = owl.getOWLOntologyManager();
         OWLDataFactory factory = manager.getOWLDataFactory();
 
-        OWLAnnotation _ann1 = factory.getOWLAnnotation(factory.getRDFSLabel(), factory.getOWLLiteral("label", "swrl"));
-        OWLAnnotation _ann2 = factory.getOWLAnnotation(factory.getRDFSComment(), factory.getOWLLiteral("comment", "swrl"), _ann1);
-        OWLAnnotation annotation1 = factory.getOWLAnnotation(factory.getRDFSSeeAlso(), iri.addPath("link").addFragment("some"),
-                Stream.of(_ann1, _ann2));
-        OWLAnnotation annotation2 = factory.getOWLAnnotation(factory.getOWLAnnotationProperty(iri.addPath("ann").addFragment("prop")),
+        OWLAnnotation _ann1 = factory.getOWLAnnotation(factory.getRDFSLabel(),
+                factory.getOWLLiteral("label", "swrl"));
+        OWLAnnotation _ann2 = factory.getOWLAnnotation(factory.getRDFSComment(),
+                factory.getOWLLiteral("comment", "swrl"), _ann1);
+        OWLAnnotation annotation1 = factory.getOWLAnnotation(factory.getRDFSSeeAlso(),
+                iri.addPath("link").addFragment("some"), Stream.of(_ann1, _ann2));
+        OWLAnnotation annotation2 = factory.getOWLAnnotation(factory.getOWLAnnotationProperty(iri.addPath("ann")
+                        .addFragment("prop")),
                 factory.getOWLLiteral("ann-prop-lit", "s"));
         OWLAxiom axiom = factory.getSWRLRule(Collections.emptyList(), Collections.emptyList(),
                 Stream.of(annotation1, annotation2).collect(Collectors.toList()));
@@ -428,7 +480,8 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
 
         debug(owl);
 
-        // WARNING: Does't work due to incorrect working with complex annotations in OWL-API (just try to reload ontology using only original OWL-API ver 5.0.5)
+        // WARNING: Does't work due to incorrect working with complex annotations in OWL-API
+        // (just try to reload ontology using only original OWL-API ver 5.0.5)
         //checkAxioms(owl);
     }
 
@@ -467,7 +520,8 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
     @Test
     public void testLoadSplitBulkAnnotations() throws Exception {
         OntologyManager m = OntManagers.createONT();
-        OntLoaderConfiguration conf = m.getOntologyConfigurator().buildLoaderConfiguration().setSplitAxiomAnnotations(true);
+        OntLoaderConfiguration conf = m.getOntologyConfigurator()
+                .buildLoaderConfiguration().setSplitAxiomAnnotations(true);
         Assert.assertFalse(m.getOntologyLoaderConfiguration().isSplitAxiomAnnotations());
 
         IRI file = IRI.create(ReadWriteUtils.getResourceURI("ontapi/test-annotations-2.ttl"));
@@ -542,10 +596,9 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
 
         Assert.assertEquals("Wrong declarations count", 2, o.axioms(AxiomType.DECLARATION).count());
         Assert.assertEquals("Wrong annotations count", 1, o.axioms(AxiomType.ANNOTATION_ASSERTION).count());
-        o.axioms(AxiomType.DECLARATION).forEach(a -> {
-            Assert.assertEquals("Wrong annotations count: ", a.getEntity().isOWLClass() ? 2 : 0,
-                    a.annotations().count());
-        });
+        o.axioms(AxiomType.DECLARATION)
+                .forEach(a -> Assert.assertEquals("Wrong annotations count: ", a.getEntity().isOWLClass() ? 2 : 0,
+                        a.annotations().count()));
     }
 
     private void annotateOntologyTest(OWLOntologyManager manager) throws Exception {
@@ -584,14 +637,15 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
                     WriteHelper.toRDFNode(comment)));
             Assert.assertEquals("Should be at least two rdf:label " + label, 2, jena.listStatements(null, RDFS.label,
                     WriteHelper.toRDFNode(label)).toList().size());
-            Assert.assertTrue("Can't find rdfs:seeAlso " + link + " attached to ontology.", jena.contains(iri.toResource(),
-                    RDFS.seeAlso, WriteHelper.toResource(link)));
+            Assert.assertTrue("Can't find rdfs:seeAlso " + link + " attached to ontology.",
+                    jena.contains(iri.toResource(), RDFS.seeAlso, WriteHelper.toResource(link)));
             Resource seeAlsoRoot = jena.statements(null, OWL.annotatedProperty, RDFS.seeAlso)
                     .map(Statement::getSubject)
                     .filter(Resource::isAnon)
                     .filter(r -> r.hasProperty(RDF.type, OWL.Axiom))
                     .findFirst().orElseThrow(() -> new AssertionError("No axiom root for rdfs:seeAlso"));
-            Assert.assertTrue("Can't find owl:annotatedSource", seeAlsoRoot.hasProperty(OWL.annotatedSource, jena.getID()));
+            Assert.assertTrue("Can't find owl:annotatedSource",
+                    seeAlsoRoot.hasProperty(OWL.annotatedSource, jena.getID()));
             Assert.assertTrue("Can't find  owl:annotatedTarget", seeAlsoRoot.hasProperty(OWL.annotatedTarget,
                     WriteHelper.toResource(link)));
             // test annotation with custom property:
@@ -604,15 +658,20 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
         LOGGER.debug("2) Remove {}", seeAlsoAnnotation);
         o1.applyChanges(new RemoveOntologyAnnotation(o1, seeAlsoAnnotation));
         debug(o1);
-        Assert.assertFalse("The annotation " + seeAlsoAnnotation + " still present", o1.annotations().anyMatch(seeAlsoAnnotation::equals));
+        Assert.assertFalse("The annotation " + seeAlsoAnnotation + " still present",
+                o1.annotations().anyMatch(seeAlsoAnnotation::equals));
 
         // test jena annotation1:
         if (manager instanceof OntologyManager) {
             OntGraphModel jena = ((OntologyModel) o1).asGraphModel();
-            Assert.assertFalse("There is rdfs:comment " + comment, jena.contains(null, RDFS.comment, WriteHelper.toRDFNode(comment)));
-            Assert.assertFalse("There is owl:annotatedTarget " + comment, jena.contains(null, OWL.annotatedTarget, WriteHelper.toRDFNode(comment)));
-            Assert.assertEquals("There is rdf:label " + label, 0, jena.listStatements(null, RDFS.label, WriteHelper.toRDFNode(label)).toList().size());
-            Assert.assertFalse("There is rdfs:seeAlso " + link, jena.contains(iri.toResource(), RDFS.seeAlso, WriteHelper.toResource(link)));
+            Assert.assertFalse("There is rdfs:comment " + comment,
+                    jena.contains(null, RDFS.comment, WriteHelper.toRDFNode(comment)));
+            Assert.assertFalse("There is owl:annotatedTarget " + comment,
+                    jena.contains(null, OWL.annotatedTarget, WriteHelper.toRDFNode(comment)));
+            Assert.assertEquals("There is rdf:label " + label, 0,
+                    jena.listStatements(null, RDFS.label, WriteHelper.toRDFNode(label)).toList().size());
+            Assert.assertFalse("There is rdfs:seeAlso " + link,
+                    jena.contains(iri.toResource(), RDFS.seeAlso, WriteHelper.toResource(link)));
             // test annotation2:
             Assert.assertTrue("Can't find " + annotationProperty + " " + someLiteral, jena.contains(iri.toResource(),
                     WriteHelper.toProperty(annotationProperty), WriteHelper.toRDFNode(someLiteral)));
@@ -641,7 +700,8 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
         OWLOntology o2 = manager.loadOntologyFromOntologyDocument(new StringDocumentSource(txt));
         Assert.assertEquals("Incorrect ontologies count", count + 2, manager.ontologies().count());
         List<OWLAnnotation> actual = o2.annotations().sorted().collect(Collectors.toList());
-        List<OWLAnnotation> expected = Stream.of(seeAlsoAnnotation, customPropertyAnnotation).sorted().collect(Collectors.toList());
+        List<OWLAnnotation> expected = Stream.of(seeAlsoAnnotation, customPropertyAnnotation)
+                .sorted().collect(Collectors.toList());
         Assert.assertEquals("Incorrect ontology annotations after reloading", expected, actual);
     }
 

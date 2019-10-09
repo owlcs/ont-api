@@ -26,9 +26,11 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.utils.OntModels;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
+import java.util.Objects;
+
 /**
- * for data and object negative property assertion
- * children:
+ * An abstraction for data and object negative property assertion.
+ * Sub-classes:
  * {@link NegativeDataPropertyAssertionTranslator}
  * {@link NegativeObjectPropertyAssertionTranslator}
  * <p>
@@ -49,7 +51,10 @@ public abstract class AbstractNegativePropertyAssertionTranslator<Axiom extends 
     @Override
     public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
         return OntModels.listLocalStatements(model, null, RDF.type, OWL.NegativePropertyAssertion)
-                .filterKeep(s -> s.getSubject().canAs(getView()));
+                .mapWith(s -> {
+                    NPA res = s.getSubject().getAs(getView());
+                    return res != null ? res.getRoot() : null;
+                }).filterDrop(Objects::isNull);
     }
 
     @Override
