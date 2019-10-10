@@ -56,6 +56,10 @@ public class CommonAxiomsTest extends StatementTestBase {
                         , AxiomType.FUNCTIONAL_OBJECT_PROPERTY
                         , AxiomType.FUNCTIONAL_DATA_PROPERTY
                         , AxiomType.INVERSE_FUNCTIONAL_OBJECT_PROPERTY
+                        , AxiomType.REFLEXIVE_OBJECT_PROPERTY
+                        , AxiomType.IRREFLEXIVE_OBJECT_PROPERTY
+                        , AxiomType.SYMMETRIC_OBJECT_PROPERTY
+                        , AxiomType.ASYMMETRIC_OBJECT_PROPERTY
                         , AxiomType.TRANSITIVE_OBJECT_PROPERTY))
                 .collect(Collectors.toList());
     }

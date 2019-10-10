@@ -145,6 +145,25 @@ public class ModelObjectTest {
     }
 
     @Test
+    public void testReflexiveObjectPropertyEraseModelMethods() {
+        testUnaryPropAxiom(df -> df.getOWLReflexiveObjectPropertyAxiom(df.getOWLObjectProperty("X"),
+                Arrays.asList(df.getRDFSComment("x"), df.getRDFSLabel("y"))));
+    }
+
+    @Test
+    public void testIrreflexiveObjectPropertyEraseModelMethods() {
+        testUnaryPropAxiom(df -> df.getOWLIrreflexiveObjectPropertyAxiom(df.getOWLObjectProperty("X"),
+                Arrays.asList(df.getRDFSComment("x"), df.getRDFSLabel("y"))));
+    }
+
+    @Test
+    public void testSymmetricObjectPropertyEraseModelMethods() {
+        testUnaryPropAxiom(df -> df.getOWLSymmetricObjectPropertyAxiom(df.getOWLObjectProperty("X"),
+                Arrays.asList(df.getRDFSComment("x"), df.getRDFSLabel("y"))),
+                OWLSymmetricObjectPropertyAxiom::asSubPropertyAxioms);
+    }
+
+    @Test
     public void testObjectPropertyAssertionAxiomEraseModelMethods() {
         testUnaryPropAxiom(df -> df.getOWLObjectPropertyAssertionAxiom(df.getOWLObjectProperty("X"),
                 df.getOWLAnonymousIndividual("_:b33"), df.getOWLNamedIndividual("I"),
@@ -173,18 +192,30 @@ public class ModelObjectTest {
                 Arrays.asList(df.getRDFSComment("x"), df.getRDFSLabel("y"))));
     }
 
-    @SuppressWarnings("unchecked")
     private <X extends OWLSubClassOfAxiomShortCut & OWLAxiom> void testUnaryPropAxiom(Function<OWLDataFactory, X> factory) {
+        testUnaryPropAxiom(factory, OWLSubClassOfAxiomShortCut::asOWLSubClassOfAxiom);
+    }
+
+    @SuppressWarnings("unchecked")
+    private <X extends OWLAxiom> void testUnaryPropAxiom(Function<OWLDataFactory, X> factory,
+                                                         Function<X, Object> get) {
         X ont = factory.apply(ObjectFactoryTestBase.ONT_DATA_FACTORY);
         X owl = factory.apply(ObjectFactoryTestBase.OWL_DATA_FACTORY);
         Assert.assertEquals(owl, ont);
-        Assert.assertEquals(owl.asOWLSubClassOfAxiom(), ont.asOWLSubClassOfAxiom());
+        Assert.assertEquals(get.apply(owl), get.apply(ont));
         OWLObject res = CommonAxiomsTest.createONTObject(OntManagers.createONT(), ont);
         Assert.assertTrue(res instanceof ModelObject);
         X actual = (X) res;
         Assert.assertEquals(owl, actual);
-        Assert.assertEquals(owl.asOWLSubClassOfAxiom(), actual.asOWLSubClassOfAxiom());
-        ObjectFactoryTestBase.testObjectHasNoModelReference(actual.asOWLSubClassOfAxiom());
+        Object test = get.apply(actual);
+        Assert.assertEquals(get.apply(owl), test);
+        if (test instanceof OWLAxiom) {
+            ObjectFactoryTestBase.testObjectHasNoModelReference((OWLObject) test);
+        } else if (test instanceof Collection) {
+            Collection<OWLAxiom> list = (Collection<OWLAxiom>) test;
+            Assert.assertFalse(list.isEmpty());
+            list.forEach(ObjectFactoryTestBase::testObjectHasNoModelReference);
+        }
     }
 
     private void testNarySplitMethod(OWLNaryAxiom expected,

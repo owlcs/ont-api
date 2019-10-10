@@ -20,7 +20,9 @@ import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.internal.*;
 import ru.avicomp.ontapi.internal.objects.ONTAxiomImpl;
+import ru.avicomp.ontapi.internal.objects.ONTEntityImpl;
 import ru.avicomp.ontapi.internal.objects.ONTObjectPropertyImpl;
+import ru.avicomp.ontapi.internal.objects.ONTStatementImpl;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntPE;
@@ -28,6 +30,7 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.utils.OntModels;
 import ru.avicomp.ontapi.jena.vocabulary.RDF;
 
+import java.util.Set;
 import java.util.function.Supplier;
 
 /**
@@ -100,6 +103,25 @@ public abstract class AbstractPropertyTypeTranslator<Axiom extends OWLAxiom & Ha
         @Override
         public boolean canContainDataProperties() {
             return false;
+        }
+
+        @Override
+        protected boolean sameContent(ONTStatementImpl other) {
+            return false;
+        }
+
+        @SuppressWarnings("unchecked")
+        Set<OWLObjectProperty> getComponentsAsPropertySet() {
+            return (Set<OWLObjectProperty>) getOWLComponentsAsSet();
+        }
+
+        @SuppressWarnings("unchecked")
+        Set<OWLEntity> getComponentsAsEntitySet() {
+            return (Set<OWLEntity>) getOWLComponentsAsSet();
+        }
+
+        boolean hasSubject(OWLObjectProperty property) {
+            return subject.equals(ONTEntityImpl.getURI(property));
         }
     }
 

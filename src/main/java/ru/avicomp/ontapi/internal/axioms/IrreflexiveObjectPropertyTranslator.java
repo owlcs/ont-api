@@ -14,25 +14,28 @@
 
 package ru.avicomp.ontapi.internal.axioms;
 
+import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Resource;
-import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLIrreflexiveObjectPropertyAxiom;
-import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
-import ru.avicomp.ontapi.internal.InternalConfig;
-import ru.avicomp.ontapi.internal.InternalObjectFactory;
-import ru.avicomp.ontapi.internal.ONTObject;
-import ru.avicomp.ontapi.internal.ONTWrapperImpl;
+import org.semanticweb.owlapi.model.*;
+import ru.avicomp.ontapi.DataFactory;
+import ru.avicomp.ontapi.internal.*;
+import ru.avicomp.ontapi.internal.objects.FactoryAccessor;
+import ru.avicomp.ontapi.internal.objects.ONTStatementImpl;
+import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.function.Supplier;
 
 /**
- * Object property with owl:IrreflexiveProperty type
- * <p>
- * NOTE: owl AxiomType is "IrrefexiveObjectProperty" ({@link org.semanticweb.owlapi.model.AxiomType#IRREFLEXIVE_OBJECT_PROPERTY}), not "IrreflexiveObjectProperty"
- * example:
+ * A translator that provides {@link OWLIrreflexiveObjectPropertyAxiom} implementations.
+ * Object property with {@code owl:IrreflexiveProperty} type.
+ * Example:
  * <pre>{@code
  * :ob-prop-2 rdf:type owl:ObjectProperty , owl:IrreflexiveProperty .
  * }</pre>
@@ -53,13 +56,117 @@ public class IrreflexiveObjectPropertyTranslator
 
     @Override
     public ONTObject<OWLIrreflexiveObjectPropertyAxiom> toAxiom(OntStatement statement,
-                                                                InternalObjectFactory reader,
+                                                                Supplier<OntGraphModel> model,
+                                                                InternalObjectFactory factory,
                                                                 InternalConfig config) {
-        ONTObject<? extends OWLObjectPropertyExpression> p = reader.getProperty(getSubject(statement));
-        Collection<ONTObject<OWLAnnotation>> annotations = reader.getAnnotations(statement, config);
-        OWLIrreflexiveObjectPropertyAxiom res = reader.getOWLDataFactory()
+        return AxiomImpl.create(statement, model, factory, config);
+    }
+
+    @Override
+    public ONTObject<OWLIrreflexiveObjectPropertyAxiom> toAxiom(OntStatement statement,
+                                                                InternalObjectFactory factory,
+                                                                InternalConfig config) {
+        ONTObject<? extends OWLObjectPropertyExpression> p = factory.getProperty(getSubject(statement));
+        Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);
+        OWLIrreflexiveObjectPropertyAxiom res = factory.getOWLDataFactory()
                 .getOWLIrreflexiveObjectPropertyAxiom(p.getOWLObject(), ONTObject.toSet(annotations));
         return ONTWrapperImpl.create(res, statement).append(annotations).append(p);
     }
 
+    /**
+     * @see ru.avicomp.ontapi.owlapi.axioms.OWLIrreflexiveObjectPropertyAxiomImpl
+     */
+    public static abstract class AxiomImpl extends ObjectAxiomImpl<OWLIrreflexiveObjectPropertyAxiom>
+            implements OWLIrreflexiveObjectPropertyAxiom {
+
+        protected AxiomImpl(Triple t, Supplier<OntGraphModel> m) {
+            super(t, m);
+        }
+
+        /**
+         * Creates an {@link ONTObject} container, that is also {@link OWLIrreflexiveObjectPropertyAxiom}.
+         *
+         * @param statement {@link OntStatement}, not {@code null}
+         * @param model     {@link OntGraphModel} provider, not {@code null}
+         * @param factory   {@link InternalObjectFactory}, not {@code null}
+         * @param config    {@link InternalConfig}, not {@code null}
+         * @return {@link AxiomImpl}
+         */
+        public static AxiomImpl create(OntStatement statement,
+                                       Supplier<OntGraphModel> model,
+                                       InternalObjectFactory factory,
+                                       InternalConfig config) {
+            return WithOneObject.create(statement, model,
+                    SimpleImpl.FACTORY, ComplexImpl.FACTORY, SET_HASH_CODE, factory, config);
+        }
+
+        @FactoryAccessor
+        @Override
+        public OWLSubClassOfAxiom asOWLSubClassOfAxiom() {
+            DataFactory df = getDataFactory();
+            return df.getOWLSubClassOfAxiom(df.getOWLThing(),
+                    df.getOWLObjectComplementOf(df.getOWLObjectHasSelf(eraseModel(getProperty()))));
+        }
+
+        @FactoryAccessor
+        @Override
+        protected OWLIrreflexiveObjectPropertyAxiom createAnnotatedAxiom(Collection<OWLAnnotation> annotations) {
+            return getDataFactory().getOWLIrreflexiveObjectPropertyAxiom(eraseModel(getProperty()), annotations);
+        }
+
+        /**
+         * An {@link OWLIrreflexiveObjectPropertyAxiom}
+         * that has a named object property as subject and has no annotations.
+         */
+        public static class SimpleImpl extends AxiomImpl implements Simple<OWLObjectPropertyExpression> {
+
+            private static final BiFunction<Triple, Supplier<OntGraphModel>, SimpleImpl> FACTORY = SimpleImpl::new;
+
+            protected SimpleImpl(Triple t, Supplier<OntGraphModel> m) {
+                super(t, m);
+            }
+
+            @Override
+            public Set<OWLObjectProperty> getObjectPropertySet() {
+                return getComponentsAsPropertySet();
+            }
+
+            @Override
+            public Set<OWLEntity> getSignatureSet() {
+                return getComponentsAsEntitySet();
+            }
+
+            @Override
+            public boolean containsObjectProperty(OWLObjectProperty property) {
+                return hasSubject(property);
+            }
+        }
+
+        /**
+         * An {@link OWLIrreflexiveObjectPropertyAxiom}
+         * that either has annotations or an anonymous object property expression (inverse object property)
+         * in the main triple's subject position.
+         * It has a public constructor since this class is more generic then {@link SimpleImpl}.
+         */
+        public static class ComplexImpl extends AxiomImpl implements Complex<ComplexImpl, OWLObjectPropertyExpression> {
+
+            private static final BiFunction<Triple, Supplier<OntGraphModel>, ComplexImpl> FACTORY = ComplexImpl::new;
+            protected final InternalCache.Loading<ComplexImpl, Object[]> content;
+
+            public ComplexImpl(Triple t, Supplier<OntGraphModel> m) {
+                super(t, m);
+                this.content = createContentCache();
+            }
+
+            @Override
+            public InternalCache.Loading<ComplexImpl, Object[]> getContentCache() {
+                return content;
+            }
+
+            @Override
+            protected boolean sameContent(ONTStatementImpl other) {
+                return other instanceof ComplexImpl && Arrays.equals(getContent(), ((ComplexImpl) other).getContent());
+            }
+        }
+    }
 }

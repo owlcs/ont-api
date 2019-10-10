@@ -20,7 +20,6 @@ import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.DataFactory;
 import ru.avicomp.ontapi.internal.*;
 import ru.avicomp.ontapi.internal.objects.FactoryAccessor;
-import ru.avicomp.ontapi.internal.objects.ONTEntityImpl;
 import ru.avicomp.ontapi.internal.objects.ONTStatementImpl;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntOPE;
@@ -77,7 +76,6 @@ public class InverseFunctionalObjectPropertyTranslator
     /**
      * @see ru.avicomp.ontapi.owlapi.axioms.OWLInverseFunctionalObjectPropertyAxiomImpl
      */
-    @SuppressWarnings("WeakerAccess")
     public static abstract class AxiomImpl extends ObjectAxiomImpl<OWLInverseFunctionalObjectPropertyAxiom>
             implements OWLInverseFunctionalObjectPropertyAxiom {
 
@@ -130,25 +128,18 @@ public class InverseFunctionalObjectPropertyTranslator
             }
 
             @Override
-            protected boolean sameContent(ONTStatementImpl other) {
-                return false;
-            }
-
-            @SuppressWarnings("unchecked")
-            @Override
             public Set<OWLObjectProperty> getObjectPropertySet() {
-                return (Set<OWLObjectProperty>) getOWLComponentsAsSet();
+                return getComponentsAsPropertySet();
             }
 
-            @SuppressWarnings("unchecked")
             @Override
             public Set<OWLEntity> getSignatureSet() {
-                return (Set<OWLEntity>) getOWLComponentsAsSet();
+                return getComponentsAsEntitySet();
             }
 
             @Override
             public boolean containsObjectProperty(OWLObjectProperty property) {
-                return subject.equals(ONTEntityImpl.getURI(property));
+                return hasSubject(property);
             }
         }
 
@@ -163,7 +154,7 @@ public class InverseFunctionalObjectPropertyTranslator
             private static final BiFunction<Triple, Supplier<OntGraphModel>, ComplexImpl> FACTORY = ComplexImpl::new;
             protected final InternalCache.Loading<ComplexImpl, Object[]> content;
 
-            protected ComplexImpl(Triple t, Supplier<OntGraphModel> m) {
+            public ComplexImpl(Triple t, Supplier<OntGraphModel> m) {
                 super(t, m);
                 this.content = createContentCache();
             }

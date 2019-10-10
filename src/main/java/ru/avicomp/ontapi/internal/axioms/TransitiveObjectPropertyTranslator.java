@@ -19,7 +19,6 @@ import org.apache.jena.rdf.model.Resource;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.internal.*;
 import ru.avicomp.ontapi.internal.objects.FactoryAccessor;
-import ru.avicomp.ontapi.internal.objects.ONTEntityImpl;
 import ru.avicomp.ontapi.internal.objects.ONTStatementImpl;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntOPE;
@@ -41,7 +40,8 @@ import java.util.function.Supplier;
  * <p>
  * Created by @szuev on 28.09.2016.
  */
-public class TransitiveObjectPropertyTranslator extends AbstractPropertyTypeTranslator<OWLTransitiveObjectPropertyAxiom, OntOPE> {
+public class TransitiveObjectPropertyTranslator
+        extends AbstractPropertyTypeTranslator<OWLTransitiveObjectPropertyAxiom, OntOPE> {
 
     @Override
     Resource getType() {
@@ -75,7 +75,6 @@ public class TransitiveObjectPropertyTranslator extends AbstractPropertyTypeTran
     /**
      * @see ru.avicomp.ontapi.owlapi.axioms.OWLTransitiveObjectPropertyAxiomImpl
      */
-    @SuppressWarnings("WeakerAccess")
     public static abstract class AxiomImpl extends ObjectAxiomImpl<OWLTransitiveObjectPropertyAxiom>
             implements OWLTransitiveObjectPropertyAxiom {
 
@@ -119,25 +118,18 @@ public class TransitiveObjectPropertyTranslator extends AbstractPropertyTypeTran
             }
 
             @Override
-            protected boolean sameContent(ONTStatementImpl other) {
-                return false;
-            }
-
-            @SuppressWarnings("unchecked")
-            @Override
             public Set<OWLObjectProperty> getObjectPropertySet() {
-                return (Set<OWLObjectProperty>) getOWLComponentsAsSet();
+                return getComponentsAsPropertySet();
             }
 
-            @SuppressWarnings("unchecked")
             @Override
             public Set<OWLEntity> getSignatureSet() {
-                return (Set<OWLEntity>) getOWLComponentsAsSet();
+                return getComponentsAsEntitySet();
             }
 
             @Override
             public boolean containsObjectProperty(OWLObjectProperty property) {
-                return subject.equals(ONTEntityImpl.getURI(property));
+                return hasSubject(property);
             }
         }
 
@@ -152,7 +144,7 @@ public class TransitiveObjectPropertyTranslator extends AbstractPropertyTypeTran
             private static final BiFunction<Triple, Supplier<OntGraphModel>, ComplexImpl> FACTORY = ComplexImpl::new;
             protected final InternalCache.Loading<ComplexImpl, Object[]> content;
 
-            protected ComplexImpl(Triple t, Supplier<OntGraphModel> m) {
+            public ComplexImpl(Triple t, Supplier<OntGraphModel> m) {
                 super(t, m);
                 this.content = createContentCache();
             }
