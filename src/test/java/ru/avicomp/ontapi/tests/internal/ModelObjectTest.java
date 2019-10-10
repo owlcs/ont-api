@@ -134,6 +134,11 @@ public class ModelObjectTest {
     }
 
     @Test
+    public void testFunctionalDataAxiomEraseModelMethods() {
+        testUnaryPropAxiom(df -> df.getOWLFunctionalDataPropertyAxiom(df.getOWLDataProperty("X")));
+    }
+
+    @Test
     public void testInverseFunctionalObjectAxiomEraseModelMethods() {
         testUnaryPropAxiom(df -> df.getOWLInverseFunctionalObjectPropertyAxiom(df.getOWLObjectProperty("X"),
                 Collections.singleton(df.getRDFSComment("x"))));

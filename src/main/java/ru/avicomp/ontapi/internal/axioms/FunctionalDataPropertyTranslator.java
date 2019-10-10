@@ -14,29 +14,36 @@
 
 package ru.avicomp.ontapi.internal.axioms;
 
+import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Resource;
-import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLDataProperty;
-import org.semanticweb.owlapi.model.OWLFunctionalDataPropertyAxiom;
-import ru.avicomp.ontapi.internal.InternalConfig;
-import ru.avicomp.ontapi.internal.InternalObjectFactory;
-import ru.avicomp.ontapi.internal.ONTObject;
-import ru.avicomp.ontapi.internal.ONTWrapperImpl;
+import org.semanticweb.owlapi.model.*;
+import ru.avicomp.ontapi.DataFactory;
+import ru.avicomp.ontapi.internal.*;
+import ru.avicomp.ontapi.internal.objects.FactoryAccessor;
+import ru.avicomp.ontapi.internal.objects.ONTDataPropertyImpl;
+import ru.avicomp.ontapi.internal.objects.ONTEntityImpl;
+import ru.avicomp.ontapi.internal.objects.ONTStatementImpl;
+import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntNDP;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 import java.util.Collection;
+import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.function.Supplier;
 
 /**
- * example:
+ * A translator that provides {@link OWLFunctionalDataPropertyAxiom} implementations.
+ * Example:
  * <pre>{@code
  * foaf:gender rdf:type owl:DatatypeProperty , owl:FunctionalProperty ;
  * }</pre>
  * <p>
  * Created by @szuev on 30.09.2016.
  */
-public class FunctionalDataPropertyTranslator extends AbstractPropertyTypeTranslator<OWLFunctionalDataPropertyAxiom, OntNDP> {
+public class FunctionalDataPropertyTranslator
+        extends AbstractPropertyTypeTranslator<OWLFunctionalDataPropertyAxiom, OntNDP> {
 
     @Override
     Resource getType() {
@@ -50,13 +57,137 @@ public class FunctionalDataPropertyTranslator extends AbstractPropertyTypeTransl
 
     @Override
     public ONTObject<OWLFunctionalDataPropertyAxiom> toAxiom(OntStatement statement,
-                                                             InternalObjectFactory reader,
+                                                             Supplier<OntGraphModel> model,
+                                                             InternalObjectFactory factory,
                                                              InternalConfig config) {
-        ONTObject<OWLDataProperty> p = reader.getProperty(getSubject(statement));
-        Collection<ONTObject<OWLAnnotation>> annotations = reader.getAnnotations(statement, config);
-        OWLFunctionalDataPropertyAxiom res = reader.getOWLDataFactory()
+        return AxiomImpl.create(statement, model, factory, config);
+    }
+
+    @Override
+    public ONTObject<OWLFunctionalDataPropertyAxiom> toAxiom(OntStatement statement,
+                                                             InternalObjectFactory factory,
+                                                             InternalConfig config) {
+        ONTObject<OWLDataProperty> p = factory.getProperty(getSubject(statement));
+        Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);
+        OWLFunctionalDataPropertyAxiom res = factory.getOWLDataFactory()
                 .getOWLFunctionalDataPropertyAxiom(p.getOWLObject(), ONTObject.toSet(annotations));
         return ONTWrapperImpl.create(res, statement).append(annotations).append(p);
     }
 
+    /**
+     * @see ru.avicomp.ontapi.owlapi.axioms.OWLFunctionalDataPropertyAxiomImpl
+     */
+    @SuppressWarnings("WeakerAccess")
+    public static abstract class AxiomImpl
+            extends UnaryAxiomImpl<OWLFunctionalDataPropertyAxiom, OWLDataPropertyExpression>
+            implements OWLFunctionalDataPropertyAxiom {
+
+        protected AxiomImpl(Triple t, Supplier<OntGraphModel> m) {
+            super(t, m);
+        }
+
+        /**
+         * Creates an {@link ONTObject} container, that is also {@link OWLFunctionalDataPropertyAxiom}.
+         *
+         * @param statement {@link OntStatement}, not {@code null}
+         * @param model     {@link OntGraphModel} provider, not {@code null}
+         * @param factory   {@link InternalObjectFactory}, not {@code null}
+         * @param config    {@link InternalConfig}, not {@code null}
+         * @return {@link AxiomImpl}
+         */
+        public static AxiomImpl create(OntStatement statement,
+                                       Supplier<OntGraphModel> model,
+                                       InternalObjectFactory factory,
+                                       InternalConfig config) {
+            return WithOneObject.create(statement, model,
+                    SimpleImpl.FACTORY, ComplexImpl.FACTORY, SET_HASH_CODE, factory, config);
+        }
+
+        @Override
+        protected final boolean sameContent(ONTStatementImpl other) {
+            return false;
+        }
+
+        @FactoryAccessor
+        @Override
+        public OWLSubClassOfAxiom asOWLSubClassOfAxiom() {
+            DataFactory df = getDataFactory();
+            return df.getOWLSubClassOfAxiom(df.getOWLThing(),
+                    df.getOWLDataMaxCardinality(1, eraseModel(getProperty()), df.getTopDatatype()));
+        }
+
+        @FactoryAccessor
+        @Override
+        protected OWLFunctionalDataPropertyAxiom createAnnotatedAxiom(Collection<OWLAnnotation> annotations) {
+            return getDataFactory().getOWLFunctionalDataPropertyAxiom(eraseModel(getProperty()), annotations);
+        }
+
+        @Override
+        public ONTObject<? extends OWLDataPropertyExpression> findURISubject(InternalObjectFactory factory) {
+            return ONTDataPropertyImpl.find((String) subject, factory, model);
+        }
+
+        @Override
+        public ONTObject<? extends OWLDataPropertyExpression> fetchONTSubject(OntStatement statement,
+                                                                              InternalObjectFactory factory) {
+            return factory.getProperty(statement.getSubject(OntNDP.class));
+        }
+
+        @Override
+        public boolean canContainObjectProperties() {
+            return false;
+        }
+
+        /**
+         * An {@link OWLFunctionalDataPropertyAxiom}
+         * that has a named object property as subject and has no annotations.
+         */
+        public static class SimpleImpl extends AxiomImpl implements Simple<OWLDataPropertyExpression> {
+
+            private static final BiFunction<Triple, Supplier<OntGraphModel>, SimpleImpl> FACTORY = SimpleImpl::new;
+
+            protected SimpleImpl(Triple t, Supplier<OntGraphModel> m) {
+                super(t, m);
+            }
+
+            @SuppressWarnings("unchecked")
+            @Override
+            public Set<OWLDataProperty> getDataPropertySet() {
+                return (Set<OWLDataProperty>) getOWLComponentsAsSet();
+            }
+
+            @SuppressWarnings("unchecked")
+            @Override
+            public Set<OWLEntity> getSignatureSet() {
+                return (Set<OWLEntity>) getOWLComponentsAsSet();
+            }
+
+            @Override
+            public boolean containsDataProperty(OWLDataProperty property) {
+                return subject.equals(ONTEntityImpl.getURI(property));
+            }
+        }
+
+        /**
+         * An {@link OWLFunctionalDataPropertyAxiom}
+         * that either has annotations or an anonymous object property expression (inverse object property)
+         * in the main triple's subject position.
+         * It has a public constructor since this class is more generic then {@link SimpleImpl}.
+         */
+        public static class ComplexImpl extends AxiomImpl implements Complex<ComplexImpl, OWLDataPropertyExpression> {
+
+            private static final BiFunction<Triple, Supplier<OntGraphModel>, ComplexImpl> FACTORY = ComplexImpl::new;
+            protected final InternalCache.Loading<AxiomImpl.ComplexImpl, Object[]> content;
+
+            protected ComplexImpl(Triple t, Supplier<OntGraphModel> m) {
+                super(t, m);
+                this.content = createContentCache();
+            }
+
+            @Override
+            public InternalCache.Loading<ComplexImpl, Object[]> getContentCache() {
+                return content;
+            }
+        }
+    }
 }

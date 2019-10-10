@@ -26,6 +26,7 @@ import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
 import java.util.function.BiFunction;
@@ -163,11 +164,7 @@ public class TransitiveObjectPropertyTranslator extends AbstractPropertyTypeTran
 
             @Override
             protected boolean sameContent(ONTStatementImpl other) {
-                if (notSame(other)) {
-                    return false;
-                }
-                // no #sameTriple(), since it can contain b-nodes
-                return sameContent(other);
+                return other instanceof ComplexImpl && Arrays.equals(getContent(), ((ComplexImpl) other).getContent());
             }
         }
     }

@@ -17,10 +17,7 @@ package ru.avicomp.ontapi.internal.axioms;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import org.semanticweb.owlapi.model.HasProperty;
-import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLObjectPropertyCharacteristicAxiom;
-import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
+import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.internal.*;
 import ru.avicomp.ontapi.internal.objects.ONTAxiomImpl;
 import ru.avicomp.ontapi.internal.objects.ONTObjectPropertyImpl;
@@ -81,15 +78,12 @@ public abstract class AbstractPropertyTypeTranslator<Axiom extends OWLAxiom & Ha
      *
      * @param <A> a subtype of {@link OWLObjectPropertyCharacteristicAxiom}
      */
-    static abstract class ObjectAxiomImpl<A extends OWLObjectPropertyCharacteristicAxiom> extends ONTAxiomImpl<A>
-            implements WithOneObject<OWLObjectPropertyExpression> {
+    @SuppressWarnings("WeakerAccess")
+    protected static abstract class ObjectAxiomImpl<A extends OWLObjectPropertyCharacteristicAxiom>
+            extends UnaryAxiomImpl<A, OWLObjectPropertyExpression> {
 
-        ObjectAxiomImpl(Triple t, Supplier<OntGraphModel> m) {
+        protected ObjectAxiomImpl(Triple t, Supplier<OntGraphModel> m) {
             super(t, m);
-        }
-
-        public OWLObjectPropertyExpression getProperty() {
-            return getONTValue().getOWLObject();
         }
 
         @Override
@@ -104,37 +98,58 @@ public abstract class AbstractPropertyTypeTranslator<Axiom extends OWLAxiom & Ha
         }
 
         @Override
-        public boolean canContainAnnotationProperties() {
-            return isAnnotated();
-        }
-
-        @Override
-        public boolean canContainDatatypes() {
-            return isAnnotated();
-        }
-
-        @Override
-        public boolean canContainAnonymousIndividuals() {
-            return isAnnotated();
-        }
-
-        @Override
-        public boolean canContainNamedClasses() {
-            return false;
-        }
-
-        @Override
-        public boolean canContainNamedIndividuals() {
-            return false;
-        }
-
-        @Override
         public boolean canContainDataProperties() {
             return false;
         }
+    }
+
+
+    /**
+     * The base for {@code ONTAxiom} with one object or data property.
+     *
+     * @param <A> a subtype of {@link OWLUnaryPropertyAxiom}
+     * @param <P> a subtype of {@link OWLPropertyExpression}
+     */
+    @SuppressWarnings("WeakerAccess")
+    protected static abstract class UnaryAxiomImpl<A extends OWLUnaryPropertyAxiom,
+            P extends OWLPropertyExpression> extends ONTAxiomImpl<A>
+            implements WithOneObject<P> {
+
+        protected UnaryAxiomImpl(Triple t, Supplier<OntGraphModel> m) {
+            super(t, m);
+        }
+
+        public final P getProperty() {
+            return getONTValue().getOWLObject();
+        }
 
         @Override
-        public boolean canContainClassExpressions() {
+        public final boolean canContainAnnotationProperties() {
+            return isAnnotated();
+        }
+
+        @Override
+        public final boolean canContainDatatypes() {
+            return isAnnotated();
+        }
+
+        @Override
+        public final boolean canContainAnonymousIndividuals() {
+            return isAnnotated();
+        }
+
+        @Override
+        public final boolean canContainNamedClasses() {
+            return false;
+        }
+
+        @Override
+        public final boolean canContainNamedIndividuals() {
+            return false;
+        }
+
+        @Override
+        public final boolean canContainClassExpressions() {
             return false;
         }
     }
