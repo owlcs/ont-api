@@ -15,6 +15,7 @@
 package ru.avicomp.ontapi.internal.axioms;
 
 import org.apache.jena.graph.BlankNodeId;
+import org.apache.jena.graph.FrontsTriple;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDF;
@@ -31,6 +32,7 @@ import ru.avicomp.ontapi.owlapi.objects.OWLAnonymousIndividualImpl;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 /**
  * An abstraction for data and object negative property assertion.
@@ -71,13 +73,15 @@ public abstract class AbstractNegativePropertyAssertionTranslator<Axiom extends 
     /**
      * A base for data or object negative assertions
      *
+     * @param <R> - either {@link OntNPA.ObjectAssertion} or {@link OntNPA.DataAssertion}
      * @param <A> - either {@link OWLNegativeObjectPropertyAssertionAxiom}
-     *            or {@link OWLNegativeDataPropertyAssertionAxiom}
+     *            or {@link OWLNegativeDataPropertyAssertionAxiom}, that matches {@link R}
      * @param <P> - either {@link OWLObjectPropertyExpression} or {@link OWLDataProperty}
      * @param <O> - either {@link OWLIndividual} or {@link OWLLiteral}
      */
     @SuppressWarnings("WeakerAccess")
-    protected static abstract class NegativeAssertionImpl<A extends OWLPropertyAssertionAxiom,
+    protected static abstract class NegativeAssertionImpl<R extends OntNPA,
+            A extends OWLPropertyAssertionAxiom,
             P extends OWLPropertyExpression, O extends OWLObject> extends ONTAxiomImpl<A>
             implements WithAssertion.Complex<NegativeAssertionImpl, OWLIndividual, P, O> {
 
@@ -103,7 +107,42 @@ public abstract class AbstractNegativePropertyAssertionTranslator<Axiom extends 
                     && Arrays.equals(getContent(), ((NegativeAssertionImpl) other).getContent());
         }
 
-        protected abstract OntNPA getResource(OntStatement statement);
+        /**
+         * Gets the {@link OntNPA} type (object or data).
+         *
+         * @return {@code Class} - a type of {@link R}
+         */
+        protected abstract Class<R> getType();
+
+        @Override
+        public OntStatement asStatement() {
+            return asResource().getRoot();
+        }
+
+        /**
+         * Represents this axioms as ONT-API Jena Resource.
+         *
+         * @return {@link R}
+         */
+        public final R asResource() {
+            return getPersonalityModel().getNodeAs(getSubjectNode(), getType());
+        }
+
+        /**
+         * Extracts a {@link R}-resource from the {@code statement}
+         *
+         * @param statement {@link OntStatement} - the source, not {@code null}
+         * @return {@link R}
+         */
+        protected final R getResource(OntStatement statement) {
+            return statement.getSubject(getType());
+        }
+
+        @Override
+        public Stream<Triple> triples() {
+            return Stream.concat(asResource().spec().map(FrontsTriple::asTriple),
+                    objects().flatMap(ONTObject::triples));
+        }
 
         @Override
         public ONTObject<? extends OWLIndividual> fetchONTSubject(OntStatement statement,

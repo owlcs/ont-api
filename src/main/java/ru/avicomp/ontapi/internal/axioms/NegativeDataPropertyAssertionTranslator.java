@@ -14,16 +14,30 @@
 
 package ru.avicomp.ontapi.internal.axioms;
 
+import org.apache.jena.graph.BlankNodeId;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.graph.impl.LiteralLabel;
 import org.semanticweb.owlapi.model.*;
+import ru.avicomp.ontapi.DataFactory;
 import ru.avicomp.ontapi.internal.*;
+import ru.avicomp.ontapi.internal.objects.FactoryAccessor;
+import ru.avicomp.ontapi.internal.objects.ONTDataPropertyImpl;
+import ru.avicomp.ontapi.internal.objects.ONTEntityImpl;
+import ru.avicomp.ontapi.internal.objects.ONTLiteralImpl;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntNPA;
 import ru.avicomp.ontapi.jena.model.OntStatement;
+import ru.avicomp.ontapi.owlapi.objects.OWLLiteralImpl;
 
 import java.util.Collection;
+import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 /**
- * example:
+ * A translator that provides {@link OWLNegativeDataPropertyAssertionAxiom} implementations.
+ * Example:
  * <pre>{@code
  * [ a owl:NegativePropertyAssertion; owl:sourceIndividual :ind1; owl:assertionProperty :dataProp; owl:targetValue "TEST"^^xsd:string ]
  * }</pre>
@@ -46,17 +60,186 @@ public class NegativeDataPropertyAssertionTranslator
 
     @Override
     public ONTObject<OWLNegativeDataPropertyAssertionAxiom> toAxiom(OntStatement statement,
-                                                                    InternalObjectFactory reader,
+                                                                    Supplier<OntGraphModel> model,
+                                                                    InternalObjectFactory factory,
+                                                                    InternalConfig config) {
+        return AxiomImpl.create(statement, model, factory, config);
+    }
+
+    @Override
+    public ONTObject<OWLNegativeDataPropertyAssertionAxiom> toAxiom(OntStatement statement,
+                                                                    InternalObjectFactory factory,
                                                                     InternalConfig config) {
         OntNPA.DataAssertion npa = statement.getSubject(getView());
-        ONTObject<? extends OWLIndividual> s = reader.getIndividual(npa.getSource());
-        ONTObject<OWLDataProperty> p = reader.getProperty(npa.getProperty());
-        ONTObject<OWLLiteral> o = reader.getLiteral(npa.getTarget());
-        Collection<ONTObject<OWLAnnotation>> annotations = reader.getAnnotations(statement, config);
-        OWLNegativeDataPropertyAssertionAxiom res = reader.getOWLDataFactory()
+        ONTObject<? extends OWLIndividual> s = factory.getIndividual(npa.getSource());
+        ONTObject<OWLDataProperty> p = factory.getProperty(npa.getProperty());
+        ONTObject<OWLLiteral> o = factory.getLiteral(npa.getTarget());
+        Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);
+        OWLNegativeDataPropertyAssertionAxiom res = factory.getOWLDataFactory()
                 .getOWLNegativeDataPropertyAssertionAxiom(p.getOWLObject(),
                         s.getOWLObject(), o.getOWLObject(), ONTObject.toSet(annotations));
         return ONTWrapperImpl.create(res, npa).append(annotations).append(s).append(p).append(o);
     }
 
+    /**
+     * @see ru.avicomp.ontapi.owlapi.axioms.OWLNegativeDataPropertyAssertionAxiomImpl
+     */
+    public static class AxiomImpl
+            extends NegativeAssertionImpl<OntNPA.DataAssertion, OWLNegativeDataPropertyAssertionAxiom,
+            OWLDataPropertyExpression, OWLLiteral>
+            implements WithMerge<ONTObject<OWLNegativeDataPropertyAssertionAxiom>>, OWLNegativeDataPropertyAssertionAxiom {
+
+        private static final BiFunction<Triple, Supplier<OntGraphModel>, AxiomImpl> FACTORY = AxiomImpl::new;
+
+        public AxiomImpl(Triple t, Supplier<OntGraphModel> m) {
+            super(t, m);
+        }
+
+        /**
+         * Creates an {@link OWLNegativeDataPropertyAssertionAxiom} that is also {@link ONTObject}.
+         *
+         * @param statement {@link OntStatement}, the source, not {@code null}
+         * @param model     {@link OntGraphModel}-provider, not {@code null}
+         * @param factory   {@link InternalObjectFactory}, not {@code null}
+         * @param config    {@link InternalConfig}, not {@code null}
+         * @return {@link AxiomImpl}
+         */
+        public static AxiomImpl create(OntStatement statement,
+                                       Supplier<OntGraphModel> model,
+                                       InternalObjectFactory factory,
+                                       InternalConfig config) {
+            return WithAssertion.create(statement, model, FACTORY, SET_HASH_CODE, factory, config);
+        }
+
+        protected AxiomImpl(Object s, String p, Object o, Supplier<OntGraphModel> m) {
+            super(s, p, o, m);
+        }
+
+        @Override
+        public Class<OntNPA.DataAssertion> getType() {
+            return OntNPA.DataAssertion.class;
+        }
+
+        @Override
+        public Object fromObject(ONTObject o) {
+            return OWLLiteralImpl.asONT((OWLLiteral) o.getOWLObject()).getLiteralLabel();
+        }
+
+        @Override
+        public ONTObject<? extends OWLLiteral> toObject(Object o, InternalObjectFactory factory) {
+            return ONTLiteralImpl.find((LiteralLabel) o, factory, model);
+        }
+
+        @Override
+        public Object fromPredicate(ONTObject o) {
+            OWLDataProperty property = (OWLDataProperty) o.getOWLObject();
+            return ONTEntityImpl.getURI(property);
+        }
+
+        @Override
+        public ONTObject<? extends OWLDataProperty> toPredicate(Object p, InternalObjectFactory factory) {
+            return ONTDataPropertyImpl.find((String) p, factory, model);
+        }
+
+        @Override
+        public ONTObject<? extends OWLDataProperty> fetchONTPredicate(OntStatement statement,
+                                                                      InternalObjectFactory factory) {
+            return factory.getProperty(getResource(statement).getProperty());
+        }
+
+        @Override
+        public ONTObject<? extends OWLLiteral> fetchONTObject(OntStatement statement,
+                                                              InternalObjectFactory factory) {
+            return factory.getLiteral(getResource(statement).getTarget());
+        }
+
+        @Override
+        public boolean containsAnonymousIndividuals() {
+            return getContent()[0] instanceof BlankNodeId;
+        }
+
+        @Override
+        public AxiomImpl merge(ONTObject<OWLNegativeDataPropertyAssertionAxiom> other) {
+            if (this == other) {
+                return this;
+            }
+            if (other instanceof AxiomImpl && sameTriple((AxiomImpl) other)) {
+                return this;
+            }
+            AxiomImpl res = new AxiomImpl(subject, predicate, object, model) {
+                @Override
+                public Stream<Triple> triples() {
+                    return Stream.concat(super.triples(), other.triples());
+                }
+            };
+            if (hasContent()) {
+                res.putContent(getContent());
+            }
+            res.hashCode = hashCode;
+            return res;
+        }
+
+        @FactoryAccessor
+        @Override
+        public OWLSubClassOfAxiom asOWLSubClassOfAxiom() {
+            DataFactory df = getDataFactory();
+            return df.getOWLSubClassOfAxiom(df.getOWLObjectOneOf(getFSubject()),
+                    df.getOWLObjectComplementOf(df.getOWLDataHasValue(getFPredicate(), getFObject())));
+        }
+
+        @FactoryAccessor
+        @Override
+        protected OWLNegativeDataPropertyAssertionAxiom createAnnotatedAxiom(Collection<OWLAnnotation> annotations) {
+            DataFactory df = getDataFactory();
+            return df.getOWLNegativeDataPropertyAssertionAxiom(getFPredicate(), getFSubject(), getFObject(),
+                    annotations);
+        }
+
+        @Override
+        public boolean canContainNamedClasses() {
+            return false;
+        }
+
+        @Override
+        public boolean canContainClassExpressions() {
+            return false;
+        }
+
+        @Override
+        public boolean canContainObjectProperties() {
+            return false;
+        }
+
+        @Override
+        public boolean canContainAnnotationProperties() {
+            return isAnnotated();
+        }
+
+        @Override
+        public Set<OWLDataProperty> getDataPropertySet() {
+            return createSet(getProperty().asOWLDataProperty());
+        }
+
+        @Override
+        public boolean containsDataProperty(OWLDataProperty property) {
+            return getProperty().equals(property);
+        }
+
+        @Override
+        public Set<OWLNamedIndividual> getNamedIndividualSet() {
+            Object[] content = getContent();
+            if (content[0] instanceof String) {
+                Set<OWLNamedIndividual> res = createSortedSet();
+                res.add(toNamedIndividual((String) content[0], getObjectFactory()).getOWLObject());
+                return res;
+            }
+            return createSet();
+        }
+
+        @Override
+        public boolean containsNamedIndividual(OWLNamedIndividual individual) {
+            Object[] content = getContent();
+            return content[0] instanceof String && content[0].equals(ONTEntityImpl.getURI(individual));
+        }
+    }
 }

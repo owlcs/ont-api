@@ -82,7 +82,8 @@ public class NegativeObjectPropertyAssertionTranslator
      * @see ru.avicomp.ontapi.owlapi.axioms.OWLNegativeObjectPropertyAssertionAxiomImpl
      */
     public static class AxiomImpl
-            extends NegativeAssertionImpl<OWLNegativeObjectPropertyAssertionAxiom, OWLObjectPropertyExpression, OWLIndividual>
+            extends NegativeAssertionImpl<OntNPA.ObjectAssertion, OWLNegativeObjectPropertyAssertionAxiom,
+            OWLObjectPropertyExpression, OWLIndividual>
             implements WithMerge<ONTObject<OWLNegativeObjectPropertyAssertionAxiom>>, OWLNegativeObjectPropertyAssertionAxiom {
 
         private static final BiFunction<Triple, Supplier<OntGraphModel>, AxiomImpl> FACTORY = AxiomImpl::new;
@@ -112,13 +113,8 @@ public class NegativeObjectPropertyAssertionTranslator
         }
 
         @Override
-        public OntStatement asStatement() {
-            return super.asStatement().getSubject(OntNPA.ObjectAssertion.class).getRoot();
-        }
-
-        @Override
-        protected OntNPA.ObjectAssertion getResource(OntStatement statement) {
-            return statement.getSubject(OntNPA.ObjectAssertion.class);
+        public Class<OntNPA.ObjectAssertion> getType() {
+            return OntNPA.ObjectAssertion.class;
         }
 
         @Override

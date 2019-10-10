@@ -2056,6 +2056,26 @@ public class TestFactory {
                                 "df.getOWLAnonymousIndividual(\"_:b0\"))))";
                     }
                 }
+                , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.NEGATIVE_DATA_PROPERTY_ASSERTION;
+                    }
+
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLNegativeDataPropertyAssertionAxiom(df.getOWLDataProperty("P"),
+                                df.getOWLNamedIndividual("I"), df.getOWLLiteral("test", "ex"),
+                                Collections.singleton(df.getRDFSComment("comm")));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLNegativeDataPropertyAssertionAxiom(df.getOWLDataProperty(\"P\"), " +
+                                "df.getOWLNamedIndividual(\"I\"), df.getOWLLiteral(\"test\", \"ex\"), " +
+                                "Collections.singleton(df.getRDFSComment(\"comm\")))";
+                    }
+                }
         );
 
     }

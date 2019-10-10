@@ -48,9 +48,9 @@ public class ONTDataPropertyImpl extends ONTEntityImpl<OWLDataProperty> implemen
      *                which is only used in case the {@code factory} has no reference to a model
      * @return an {@link ONTObject} which is {@link OWLDataProperty}
      */
-    protected static ONTObject<OWLDataProperty> find(String uri,
-                                                     InternalObjectFactory factory,
-                                                     Supplier<OntGraphModel> model) {
+    public static ONTObject<OWLDataProperty> find(String uri,
+                                                  InternalObjectFactory factory,
+                                                  Supplier<OntGraphModel> model) {
         if (factory instanceof ModelObjectFactory) {
             return ((ModelObjectFactory) factory).getDataProperty(uri);
         }

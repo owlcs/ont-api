@@ -149,6 +149,7 @@ public abstract class ONTStatementImpl extends ONTObjectImpl implements WithAnno
      *
      * @return {@link OntStatement}
      */
+    @Override
     public OntStatement asStatement() {
         OntGraphModel m = getModel();
         Triple t = asTriple();

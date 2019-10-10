@@ -25,9 +25,7 @@ import ru.avicomp.ontapi.OntologyManager;
 import ru.avicomp.ontapi.OntologyModel;
 import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.jena.OntModelFactory;
-import ru.avicomp.ontapi.jena.model.OntClass;
-import ru.avicomp.ontapi.jena.model.OntGraphModel;
-import ru.avicomp.ontapi.jena.model.OntOPE;
+import ru.avicomp.ontapi.jena.model.*;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.utils.ReadWriteUtils;
 
@@ -166,5 +164,39 @@ public class ONTObjectContentTest {
         Assert.assertEquals(2, o.axioms().count());
         // header + 2 declarations
         Assert.assertEquals(3, g.size());
+    }
+
+    @Test
+    public void testNegativeObjectPropertyAxiomMerge() {
+        OntologyManager m = OntManagers.createONT();
+        OntologyModel o = m.createOntology();
+        OntGraphModel g = o.asGraphModel();
+
+        OntOPE op = g.createObjectProperty("OP");
+        OntNAP ap = g.createAnnotationProperty("AP");
+        OntIndividual i1 = g.createIndividual("I1");
+        OntIndividual i2 = g.createIndividual("I2");
+
+        // 10 + 10 triples
+        op.addNegativeAssertion(i1, i2).addAnnotation(ap, "comm1", "x").addAnnotation(g.getRDFSComment(), "comm2");
+        op.addNegativeAssertion(i1, i2).addAnnotation(ap, "comm1", "x").addAnnotation(g.getRDFSComment(), "comm2");
+        // 4 triples
+        op.addNegativeAssertion(i1, i2);
+        ReadWriteUtils.print(g);
+        Assert.assertEquals(29, g.size());
+
+        Assert.assertEquals(2, o.axioms(AxiomType.NEGATIVE_OBJECT_PROPERTY_ASSERTION).count());
+        OWLAxiom a1 = o.axioms(AxiomType.NEGATIVE_OBJECT_PROPERTY_ASSERTION).filter(x -> !x.isAnnotated())
+                .findFirst().orElseThrow(AssertionError::new);
+        OWLAxiom a2 = o.axioms(AxiomType.NEGATIVE_OBJECT_PROPERTY_ASSERTION).filter(OWLAxiom::isAnnotated)
+                .findFirst().orElseThrow(AssertionError::new);
+        // 4 from OntNPA + 3 declarations
+        Assert.assertEquals(7, ((ONTObject) a1).triples().count());
+
+        o.remove(a2);
+        Assert.assertEquals(9, g.size());
+
+        o.remove(a1);
+        Assert.assertEquals(5, g.size());
     }
 }
