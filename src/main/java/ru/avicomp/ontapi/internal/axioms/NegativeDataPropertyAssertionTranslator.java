@@ -87,7 +87,7 @@ public class NegativeDataPropertyAssertionTranslator
     public static class AxiomImpl
             extends NegativeAssertionImpl<OntNPA.DataAssertion, OWLNegativeDataPropertyAssertionAxiom,
             OWLDataPropertyExpression, OWLLiteral>
-            implements WithMerge<ONTObject<OWLNegativeDataPropertyAssertionAxiom>>, OWLNegativeDataPropertyAssertionAxiom {
+            implements OWLNegativeDataPropertyAssertionAxiom {
 
         private static final BiFunction<Triple, Supplier<OntGraphModel>, AxiomImpl> FACTORY = AxiomImpl::new;
 
@@ -158,27 +158,6 @@ public class NegativeDataPropertyAssertionTranslator
             return getContent()[0] instanceof BlankNodeId;
         }
 
-        @Override
-        public AxiomImpl merge(ONTObject<OWLNegativeDataPropertyAssertionAxiom> other) {
-            if (this == other) {
-                return this;
-            }
-            if (other instanceof AxiomImpl && sameTriple((AxiomImpl) other)) {
-                return this;
-            }
-            AxiomImpl res = new AxiomImpl(subject, predicate, object, model) {
-                @Override
-                public Stream<Triple> triples() {
-                    return Stream.concat(super.triples(), other.triples());
-                }
-            };
-            if (hasContent()) {
-                res.putContent(getContent());
-            }
-            res.hashCode = hashCode;
-            return res;
-        }
-
         @FactoryAccessor
         @Override
         public OWLSubClassOfAxiom asOWLSubClassOfAxiom() {
@@ -196,23 +175,18 @@ public class NegativeDataPropertyAssertionTranslator
         }
 
         @Override
-        public boolean canContainNamedClasses() {
-            return false;
-        }
-
-        @Override
-        public boolean canContainClassExpressions() {
-            return false;
+        protected AxiomImpl makeCopy(ONTObject<OWLNegativeDataPropertyAssertionAxiom> other) {
+            return new AxiomImpl(subject, predicate, object, model) {
+                @Override
+                public Stream<Triple> triples() {
+                    return Stream.concat(super.triples(), other.triples());
+                }
+            };
         }
 
         @Override
         public boolean canContainObjectProperties() {
             return false;
-        }
-
-        @Override
-        public boolean canContainAnnotationProperties() {
-            return isAnnotated();
         }
 
         @Override

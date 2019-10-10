@@ -2076,6 +2076,26 @@ public class TestFactory {
                                 "Collections.singleton(df.getRDFSComment(\"comm\")))";
                     }
                 }
+                , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.DATA_PROPERTY_ASSERTION;
+                    }
+
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLDataPropertyAssertionAxiom(df.getOWLDataProperty("P"),
+                                df.getOWLAnonymousIndividual("_:b12"), df.getOWLLiteral("x", "x"),
+                                Collections.singleton(df.getRDFSComment("comm")));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLDataPropertyAssertionAxiom(df.getOWLDataProperty(\"P\"), " +
+                                "df.getOWLAnonymousIndividual(\"_:b12\"), df.getOWLLiteral(\"x\", \"x\"), " +
+                                "Collections.singleton(df.getRDFSComment(\"comm\")))";
+                    }
+                }
         );
 
     }

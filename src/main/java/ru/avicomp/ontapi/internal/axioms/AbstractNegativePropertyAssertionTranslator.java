@@ -83,7 +83,7 @@ public abstract class AbstractNegativePropertyAssertionTranslator<Axiom extends 
     protected static abstract class NegativeAssertionImpl<R extends OntNPA,
             A extends OWLPropertyAssertionAxiom,
             P extends OWLPropertyExpression, O extends OWLObject> extends ONTAxiomImpl<A>
-            implements WithAssertion.Complex<NegativeAssertionImpl, OWLIndividual, P, O> {
+            implements WithMerge<ONTObject<A>>, WithAssertion.Complex<NegativeAssertionImpl, OWLIndividual, P, O> {
 
         protected final InternalCache.Loading<NegativeAssertionImpl, Object[]> content;
 
@@ -194,6 +194,46 @@ public abstract class AbstractNegativePropertyAssertionTranslator<Axiom extends 
                 return ONTEntityImpl.getURI(i.asOWLNamedIndividual());
             }
             return OWLAnonymousIndividualImpl.asONT(i.asOWLAnonymousIndividual()).getBlankNodeId();
+        }
+
+        @SuppressWarnings("unchecked")
+        @Override
+        public final ONTObject<A> merge(ONTObject<A> other) {
+            if (this == other) {
+                return this;
+            }
+            if (other instanceof NegativeAssertionImpl && sameTriple((NegativeAssertionImpl) other)) {
+                return this;
+            }
+            NegativeAssertionImpl res = makeCopy(other);
+            if (hasContent()) {
+                res.putContent(getContent());
+            }
+            res.hashCode = hashCode;
+            return res;
+        }
+
+        /**
+         * Creates a copy of this axiom with additional triples from the specified axiom (that must equal to this).
+         *
+         * @param other {@link ONTObject} to get triples
+         * @return {@link NegativeAssertionImpl}
+         */
+        protected abstract NegativeAssertionImpl makeCopy(ONTObject<A> other);
+
+        @Override
+        public final boolean canContainNamedClasses() {
+            return false;
+        }
+
+        @Override
+        public final boolean canContainClassExpressions() {
+            return false;
+        }
+
+        @Override
+        public final boolean canContainAnnotationProperties() {
+            return isAnnotated();
         }
     }
 }

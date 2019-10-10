@@ -21,7 +21,9 @@ import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.util.iterator.NullIterator;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.internal.*;
-import ru.avicomp.ontapi.internal.objects.*;
+import ru.avicomp.ontapi.internal.objects.FactoryAccessor;
+import ru.avicomp.ontapi.internal.objects.ONTAnnotationImpl;
+import ru.avicomp.ontapi.internal.objects.ONTLiteralImpl;
 import ru.avicomp.ontapi.jena.model.*;
 
 import java.util.Collection;
@@ -109,9 +111,10 @@ public class AnnotationAssertionTranslator
      * @see ru.avicomp.ontapi.owlapi.axioms.OWLAnnotationAssertionAxiomImpl
      * @see ONTAnnotationImpl
      */
-    public static abstract class AxiomImpl extends ONTAxiomImpl<OWLAnnotationAssertionAxiom>
-            implements WithAssertion<OWLAnnotationSubject, OWLAnnotationProperty, OWLAnnotationValue>,
-            OWLAnnotationAssertionAxiom {
+    public static abstract class AxiomImpl
+            extends AssertionImpl<OWLAnnotationAssertionAxiom,
+            OWLAnnotationSubject, OWLAnnotationProperty, OWLAnnotationValue>
+            implements OWLAnnotationAssertionAxiom {
 
         protected AxiomImpl(Triple t, Supplier<OntGraphModel> m) {
             super(t, m);
@@ -145,18 +148,8 @@ public class AnnotationAssertionTranslator
         }
 
         @Override
-        public OWLAnnotationValue getValue() {
-            return getONTObject().getOWLObject();
-        }
-
-        @Override
         public ONTObject<? extends OWLAnnotationProperty> findONTPredicate(InternalObjectFactory factory) {
             return ONTAnnotationImpl.findONTPredicate(this, factory);
-        }
-
-        @Override
-        protected boolean sameContent(ONTStatementImpl other) {
-            return false;
         }
 
         @FactoryAccessor
@@ -178,11 +171,6 @@ public class AnnotationAssertionTranslator
         }
 
         @Override
-        public boolean canContainNamedClasses() {
-            return false;
-        }
-
-        @Override
         public boolean canContainNamedIndividuals() {
             return false;
         }
@@ -194,11 +182,6 @@ public class AnnotationAssertionTranslator
 
         @Override
         public boolean canContainObjectProperties() {
-            return false;
-        }
-
-        @Override
-        public boolean canContainClassExpressions() {
             return false;
         }
 
@@ -265,15 +248,11 @@ public class AnnotationAssertionTranslator
             }
 
             private OWLAnonymousIndividual findAnonymousSubject(InternalObjectFactory factory) {
-                return findAnonymousIndividual((BlankNodeId) subject, factory);
+                return findAnonymousIndividual((BlankNodeId) subject, factory).getOWLObject();
             }
 
             private OWLAnonymousIndividual findAnonymousObject(InternalObjectFactory factory) {
-                return findAnonymousIndividual((BlankNodeId) object, factory);
-            }
-
-            protected OWLAnonymousIndividual findAnonymousIndividual(BlankNodeId id, InternalObjectFactory factory) {
-                return ONTAnonymousIndividualImpl.find(id, factory, model).getOWLObject();
+                return findAnonymousIndividual((BlankNodeId) object, factory).getOWLObject();
             }
         }
 

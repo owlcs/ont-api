@@ -83,8 +83,7 @@ public class NegativeObjectPropertyAssertionTranslator
      */
     public static class AxiomImpl
             extends NegativeAssertionImpl<OntNPA.ObjectAssertion, OWLNegativeObjectPropertyAssertionAxiom,
-            OWLObjectPropertyExpression, OWLIndividual>
-            implements WithMerge<ONTObject<OWLNegativeObjectPropertyAssertionAxiom>>, OWLNegativeObjectPropertyAssertionAxiom {
+            OWLObjectPropertyExpression, OWLIndividual> implements OWLNegativeObjectPropertyAssertionAxiom {
 
         private static final BiFunction<Triple, Supplier<OntGraphModel>, AxiomImpl> FACTORY = AxiomImpl::new;
 
@@ -160,24 +159,13 @@ public class NegativeObjectPropertyAssertionTranslator
         }
 
         @Override
-        public AxiomImpl merge(ONTObject<OWLNegativeObjectPropertyAssertionAxiom> other) {
-            if (this == other) {
-                return this;
-            }
-            if (other instanceof AxiomImpl && sameTriple((AxiomImpl) other)) {
-                return this;
-            }
-            AxiomImpl res = new AxiomImpl(subject, predicate, object, model) {
+        protected AxiomImpl makeCopy(ONTObject<OWLNegativeObjectPropertyAssertionAxiom> other) {
+            return new AxiomImpl(subject, predicate, object, model) {
                 @Override
                 public Stream<Triple> triples() {
                     return Stream.concat(super.triples(), other.triples());
                 }
             };
-            if (hasContent()) {
-                res.putContent(getContent());
-            }
-            res.hashCode = hashCode;
-            return res;
         }
 
         @FactoryAccessor
@@ -197,23 +185,8 @@ public class NegativeObjectPropertyAssertionTranslator
         }
 
         @Override
-        public boolean canContainNamedClasses() {
-            return false;
-        }
-
-        @Override
-        public boolean canContainClassExpressions() {
-            return false;
-        }
-
-        @Override
         public boolean canContainDataProperties() {
             return false;
-        }
-
-        @Override
-        public boolean canContainAnnotationProperties() {
-            return isAnnotated();
         }
 
         @Override
@@ -254,7 +227,5 @@ public class NegativeObjectPropertyAssertionTranslator
                     || content[2] instanceof String
                     && content[2].equals(uri == null ? ONTEntityImpl.getURI(individual) : uri);
         }
-
     }
-
 }

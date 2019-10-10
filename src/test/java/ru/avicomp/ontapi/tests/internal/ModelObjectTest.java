@@ -147,6 +147,13 @@ public class ModelObjectTest {
     }
 
     @Test
+    public void testDataPropertyAssertionAxiomEraseModelMethods() {
+        testUnaryPropAxiom(df -> df.getOWLDataPropertyAssertionAxiom(df.getOWLDataProperty("X"),
+                df.getOWLNamedIndividual("I"), df.getOWLLiteral(true),
+                Collections.singletonList(df.getRDFSComment("x"))));
+    }
+
+    @Test
     public void testNegativeObjectPropertyAssertionAxiomEraseModelMethods() {
         testUnaryPropAxiom(df -> df.getOWLNegativeObjectPropertyAssertionAxiom(
                 df.getOWLObjectInverseOf(df.getOWLObjectProperty("X")),

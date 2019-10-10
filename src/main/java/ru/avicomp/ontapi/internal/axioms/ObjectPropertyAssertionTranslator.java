@@ -20,7 +20,9 @@ import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.DataFactory;
 import ru.avicomp.ontapi.internal.*;
-import ru.avicomp.ontapi.internal.objects.*;
+import ru.avicomp.ontapi.internal.objects.FactoryAccessor;
+import ru.avicomp.ontapi.internal.objects.ONTEntityImpl;
+import ru.avicomp.ontapi.internal.objects.ONTObjectPropertyImpl;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntIndividual;
 import ru.avicomp.ontapi.jena.model.OntOPE;
@@ -50,11 +52,14 @@ public class ObjectPropertyAssertionTranslator
      */
     @Override
     public void write(OWLObjectPropertyAssertionAxiom axiom, OntGraphModel model) {
-        OWLObjectPropertyExpression property = axiom.getProperty().isAnonymous() ?
-                axiom.getProperty().getInverseProperty() : axiom.getProperty();
-        OWLIndividual subject = axiom.getProperty().isAnonymous() ? axiom.getObject() : axiom.getSubject();
-        OWLIndividual object = axiom.getProperty().isAnonymous() ? axiom.getSubject() : axiom.getObject();
-        WriteHelper.writeAssertionTriple(model, subject, property, object, axiom.annotationsAsList());
+        OWLIndividual s = axiom.getSubject();
+        OWLObjectPropertyExpression p = axiom.getProperty();
+        OWLIndividual o = axiom.getObject();
+        WriteHelper.writeAssertionTriple(model,
+                p.isAnonymous() ? o : s,
+                p.isAnonymous() ? p.getInverseProperty() : p,
+                p.isAnonymous() ? s : o,
+                axiom.annotationsAsList());
     }
 
     /**
@@ -105,9 +110,10 @@ public class ObjectPropertyAssertionTranslator
      * @see ru.avicomp.ontapi.owlapi.axioms.OWLObjectPropertyAssertionAxiomImpl
      */
     @SuppressWarnings("WeakerAccess")
-    public static abstract class AxiomImpl extends ONTAxiomImpl<OWLObjectPropertyAssertionAxiom>
-            implements WithAssertion<OWLIndividual, OWLObjectPropertyExpression, OWLIndividual>,
-            OWLObjectPropertyAssertionAxiom {
+    public static abstract class AxiomImpl
+            extends AssertionImpl<OWLObjectPropertyAssertionAxiom,
+            OWLIndividual, OWLObjectPropertyExpression, OWLIndividual>
+            implements OWLObjectPropertyAssertionAxiom {
 
         protected AxiomImpl(Triple t, Supplier<OntGraphModel> m) {
             super(t, m);
@@ -145,41 +151,6 @@ public class ObjectPropertyAssertionTranslator
             return findByURIOrBlankId(object, factory);
         }
 
-        protected ONTObject<? extends OWLIndividual> findByURIOrBlankId(Object id, InternalObjectFactory factory) {
-            return id instanceof String ? findNamedIndividual((String) id, factory) :
-                    findAnonymousIndividual((BlankNodeId) id, factory);
-        }
-
-        protected ONTObject<OWLNamedIndividual> findNamedIndividual(String uri,
-                                                                    InternalObjectFactory factory) {
-            return ONTNamedIndividualImpl.find(uri, factory, model);
-        }
-
-        protected ONTObject<OWLAnonymousIndividual> findAnonymousIndividual(BlankNodeId id,
-                                                                            InternalObjectFactory factory) {
-            return ONTAnonymousIndividualImpl.find(id, factory, model);
-        }
-
-        @Override
-        public OWLIndividual getSubject() {
-            return getONTSubject().getOWLObject();
-        }
-
-        @Override
-        public OWLIndividual getValue() {
-            return getONTObject().getOWLObject();
-        }
-
-        @Override
-        public OWLIndividual getObject() {
-            return getValue();
-        }
-
-        @Override
-        public OWLObjectPropertyExpression getProperty() {
-            return getONTPredicate().getOWLObject();
-        }
-
         @Override
         public ONTObject<? extends OWLObjectPropertyExpression> findONTPredicate(InternalObjectFactory factory) {
             return findONTProperty(factory);
@@ -187,11 +158,6 @@ public class ObjectPropertyAssertionTranslator
 
         public ONTObject<OWLObjectProperty> findONTProperty(InternalObjectFactory factory) {
             return ONTObjectPropertyImpl.find(predicate, factory, model);
-        }
-
-        @Override
-        protected boolean sameContent(ONTStatementImpl other) {
-            return false;
         }
 
         @FactoryAccessor
@@ -231,23 +197,13 @@ public class ObjectPropertyAssertionTranslator
         }
 
         @Override
-        public boolean canContainNamedClasses() {
-            return false;
-        }
-
-        @Override
-        public boolean canContainClassExpressions() {
-            return false;
-        }
-
-        @Override
         public boolean canContainDataProperties() {
             return false;
         }
 
         @Override
         public Set<OWLObjectProperty> getObjectPropertySet() {
-            return createSet(findONTProperty(getObjectFactory()).getOWLObject());
+            return createSet(getProperty().asOWLObjectProperty());
         }
 
         @Override

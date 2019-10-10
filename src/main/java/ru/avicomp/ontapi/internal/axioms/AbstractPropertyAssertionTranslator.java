@@ -14,14 +14,22 @@
 
 package ru.avicomp.ontapi.internal.axioms;
 
+import org.apache.jena.graph.BlankNodeId;
+import org.apache.jena.graph.Triple;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import org.semanticweb.owlapi.model.HasProperty;
-import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLPropertyExpression;
+import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.internal.AxiomTranslator;
+import ru.avicomp.ontapi.internal.InternalObjectFactory;
+import ru.avicomp.ontapi.internal.ONTObject;
+import ru.avicomp.ontapi.internal.objects.ONTAnonymousIndividualImpl;
+import ru.avicomp.ontapi.internal.objects.ONTAxiomImpl;
+import ru.avicomp.ontapi.internal.objects.ONTNamedIndividualImpl;
+import ru.avicomp.ontapi.internal.objects.ONTStatementImpl;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.utils.OntModels;
+
+import java.util.function.Supplier;
 
 /**
  * A common super-type for all property assertion axiom translators.
@@ -58,6 +66,74 @@ public abstract class AbstractPropertyAssertionTranslator<P extends OWLPropertyE
      */
     public ExtendedIterator<OntStatement> listStatements(OntGraphModel model) {
         return OntModels.listLocalStatements(model, null, null, null);
+    }
+
+    /**
+     * A base for annotation and positive property assertion axioms.
+     *
+     * @param <A> - assertion axiom, subtype of {@link OWLAxiom}
+     * @param <S> - subject, subtype of {@link OWLObject}
+     * @param <P> - predicate, subtype of {@link OWLObject}
+     * @param <O> - object, subtype of {@link OWLObject}
+     */
+    @SuppressWarnings("WeakerAccess")
+    protected static abstract class AssertionImpl<A extends OWLAxiom,
+            S extends OWLObject, P extends OWLObject, O extends OWLObject>
+            extends ONTAxiomImpl<A> implements WithAssertion<S, P, O> {
+
+        protected AssertionImpl(Triple t, Supplier<OntGraphModel> m) {
+            super(t, m);
+        }
+
+        @Override
+        public S getSubject() {
+            return getONTSubject().getOWLObject();
+        }
+
+        @Override
+        public O getValue() {
+            return getONTObject().getOWLObject();
+        }
+
+        public O getObject() {
+            return getValue();
+        }
+
+        @Override
+        public P getProperty() {
+            return getONTPredicate().getOWLObject();
+        }
+
+        @Override
+        protected final boolean sameContent(ONTStatementImpl other) {
+            return false;
+        }
+
+        @Override
+        public final boolean canContainNamedClasses() {
+            return false;
+        }
+
+        @Override
+        public final boolean canContainClassExpressions() {
+            return false;
+        }
+
+        protected final ONTObject<? extends OWLIndividual> findByURIOrBlankId(Object id,
+                                                                              InternalObjectFactory factory) {
+            return id instanceof String ? findNamedIndividual((String) id, factory) :
+                    findAnonymousIndividual((BlankNodeId) id, factory);
+        }
+
+        protected final ONTObject<OWLNamedIndividual> findNamedIndividual(String uri,
+                                                                          InternalObjectFactory factory) {
+            return ONTNamedIndividualImpl.find(uri, factory, model);
+        }
+
+        protected final ONTObject<OWLAnonymousIndividual> findAnonymousIndividual(BlankNodeId id,
+                                                                                  InternalObjectFactory factory) {
+            return ONTAnonymousIndividualImpl.find(id, factory, model);
+        }
     }
 
 }
