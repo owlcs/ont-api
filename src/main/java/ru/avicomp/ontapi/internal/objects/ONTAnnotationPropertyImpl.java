@@ -49,9 +49,9 @@ public class ONTAnnotationPropertyImpl extends ONTEntityImpl<OWLAnnotationProper
      *                which is only used in case the {@code factory} has no reference to a model
      * @return an {@link ONTObject} that is {@link OWLAnnotationProperty}
      */
-    protected static ONTObject<OWLAnnotationProperty> find(String uri,
-                                                           InternalObjectFactory factory,
-                                                           Supplier<OntGraphModel> model) {
+    public static ONTObject<OWLAnnotationProperty> find(String uri,
+                                                        InternalObjectFactory factory,
+                                                        Supplier<OntGraphModel> model) {
         if (factory instanceof ModelObjectFactory) {
             return ((ModelObjectFactory) factory).getAnnotationProperty(uri);
         }

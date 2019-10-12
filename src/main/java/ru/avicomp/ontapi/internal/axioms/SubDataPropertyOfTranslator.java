@@ -14,21 +14,24 @@
 
 package ru.avicomp.ontapi.internal.axioms;
 
-import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLDataProperty;
-import org.semanticweb.owlapi.model.OWLPropertyExpression;
-import org.semanticweb.owlapi.model.OWLSubDataPropertyOfAxiom;
-import ru.avicomp.ontapi.internal.InternalConfig;
-import ru.avicomp.ontapi.internal.InternalObjectFactory;
-import ru.avicomp.ontapi.internal.ONTObject;
-import ru.avicomp.ontapi.internal.ONTWrapperImpl;
+import org.apache.jena.graph.Triple;
+import org.semanticweb.owlapi.model.*;
+import ru.avicomp.ontapi.internal.*;
+import ru.avicomp.ontapi.internal.objects.FactoryAccessor;
+import ru.avicomp.ontapi.internal.objects.ONTDataPropertyImpl;
+import ru.avicomp.ontapi.internal.objects.ONTEntityImpl;
+import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntNDP;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 
 import java.util.Collection;
+import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.function.Supplier;
 
 /**
- * see {@link AbstractSubPropertyTranslator}
+ * A translator that provides {@link OWLSubDataPropertyOfAxiom} implementations.
+ * See also {@link AbstractSubPropertyTranslator}.
  * <p>
  * Created by @szuev on 30.09.2016.
  */
@@ -51,14 +54,136 @@ public class SubDataPropertyOfTranslator extends AbstractSubPropertyTranslator<O
 
     @Override
     public ONTObject<OWLSubDataPropertyOfAxiom> toAxiom(OntStatement statement,
-                                                        InternalObjectFactory reader,
+                                                        Supplier<OntGraphModel> model,
+                                                        InternalObjectFactory factory,
                                                         InternalConfig config) {
-        ONTObject<OWLDataProperty> sub = reader.getProperty(statement.getSubject(OntNDP.class));
-        ONTObject<OWLDataProperty> sup = reader.getProperty(statement.getObject().as(OntNDP.class));
-        Collection<ONTObject<OWLAnnotation>> annotations = reader.getAnnotations(statement, config);
-        OWLSubDataPropertyOfAxiom res = reader.getOWLDataFactory()
+        return AxiomImpl.create(statement, model, factory, config);
+    }
+
+    @Override
+    public ONTObject<OWLSubDataPropertyOfAxiom> toAxiom(OntStatement statement,
+                                                        InternalObjectFactory factory,
+                                                        InternalConfig config) {
+        ONTObject<OWLDataProperty> sub = factory.getProperty(statement.getSubject(OntNDP.class));
+        ONTObject<OWLDataProperty> sup = factory.getProperty(statement.getObject().as(OntNDP.class));
+        Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);
+        OWLSubDataPropertyOfAxiom res = factory.getOWLDataFactory()
                 .getOWLSubDataPropertyOfAxiom(sub.getOWLObject(), sup.getOWLObject(), ONTObject.toSet(annotations));
         return ONTWrapperImpl.create(res, statement).append(annotations).append(sub).append(sup);
     }
 
+    /**
+     * @see ru.avicomp.ontapi.owlapi.axioms.OWLSubDataPropertyOfAxiomImpl
+     */
+    public abstract static class AxiomImpl
+            extends SubPropertyImpl<OWLSubDataPropertyOfAxiom, OWLDataPropertyExpression>
+            implements OWLSubDataPropertyOfAxiom {
+
+        protected AxiomImpl(Triple t, Supplier<OntGraphModel> m) {
+            super(t, m);
+        }
+
+        /**
+         * Creates an {@link ONTObject} container that is also {@link OWLSubDataPropertyOfAxiom}.
+         *
+         * @param statement {@link OntStatement}, not {@code null}
+         * @param model     {@link OntGraphModel} provider, not {@code null}
+         * @param factory   {@link InternalObjectFactory}, not {@code null}
+         * @param config    {@link InternalConfig}, not {@code null}
+         * @return {@link AxiomImpl}
+         */
+        public static AxiomImpl create(OntStatement statement,
+                                       Supplier<OntGraphModel> model,
+                                       InternalObjectFactory factory,
+                                       InternalConfig config) {
+            return WithTwoObjects.create(statement, model,
+                    SimpleImpl.FACTORY, ComplexImpl.FACTORY, SET_HASH_CODE, factory, config);
+        }
+
+        @Override
+        public ONTObject<? extends OWLDataPropertyExpression> fetchONTSubject(OntStatement statement,
+                                                                              InternalObjectFactory factory) {
+            return factory.getProperty(statement.getSubject(OntNDP.class));
+        }
+
+        @Override
+        public ONTObject<? extends OWLDataPropertyExpression> fetchONTObject(OntStatement statement,
+                                                                             InternalObjectFactory factory) {
+            return factory.getProperty(statement.getObject(OntNDP.class));
+        }
+
+        @Override
+        public ONTObject<? extends OWLDataPropertyExpression> findByURI(String uri, InternalObjectFactory factory) {
+            return ONTDataPropertyImpl.find(uri, factory, model);
+        }
+
+        @FactoryAccessor
+        @Override
+        protected OWLSubDataPropertyOfAxiom createAnnotatedAxiom(Collection<OWLAnnotation> annotations) {
+            return getDataFactory().getOWLSubDataPropertyOfAxiom(eraseModel(getSubProperty()),
+                    eraseModel(getSuperProperty()), annotations);
+        }
+
+        @Override
+        public boolean canContainAnnotationProperties() {
+            return isAnnotated();
+        }
+
+        @Override
+        public boolean canContainObjectProperties() {
+            return false;
+        }
+
+        /**
+         * An {@link OWLSubDataPropertyOfAxiom}
+         * that has named object properties as subject and object and has no annotations.
+         */
+        protected static class SimpleImpl extends AxiomImpl implements UnarySimple<OWLDataPropertyExpression> {
+
+            private static final BiFunction<Triple, Supplier<OntGraphModel>, SimpleImpl> FACTORY = SimpleImpl::new;
+
+            protected SimpleImpl(Triple t, Supplier<OntGraphModel> m) {
+                super(t, m);
+            }
+
+            @SuppressWarnings("unchecked")
+            @Override
+            public Set<OWLDataProperty> getDataPropertySet() {
+                return (Set<OWLDataProperty>) getOWLComponentsAsSet();
+            }
+
+            @SuppressWarnings("unchecked")
+            @Override
+            public Set<OWLEntity> getSignatureSet() {
+                return (Set<OWLEntity>) getOWLComponentsAsSet();
+            }
+
+            @Override
+            public boolean containsDataProperty(OWLDataProperty property) {
+                String uri = ONTEntityImpl.getURI(property);
+                return subject.equals(uri) || object.equals(uri);
+            }
+        }
+
+        /**
+         * An {@link OWLSubDataPropertyOfAxiom} that has annotations.
+         * It has a public constructor since it is more generic then {@link SimpleImpl}.
+         */
+        public static class ComplexImpl extends AxiomImpl
+                implements UnaryWithContent<ComplexImpl, OWLDataPropertyExpression> {
+
+            private static final BiFunction<Triple, Supplier<OntGraphModel>, ComplexImpl> FACTORY = ComplexImpl::new;
+            protected final InternalCache.Loading<ComplexImpl, Object[]> content;
+
+            public ComplexImpl(Triple t, Supplier<OntGraphModel> m) {
+                super(t, m);
+                this.content = createContentCache();
+            }
+
+            @Override
+            public InternalCache.Loading<ComplexImpl, Object[]> getContentCache() {
+                return content;
+            }
+        }
+    }
 }

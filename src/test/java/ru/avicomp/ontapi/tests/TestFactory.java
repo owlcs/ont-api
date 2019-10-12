@@ -2118,6 +2118,69 @@ public class TestFactory {
                                 "df.getOWLAnonymousIndividual(\"_:b0\"))))))";
                     }
                 }
+                , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.SUB_DATA_PROPERTY;
+                    }
+
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLSubDataPropertyOfAxiom(df.getOWLDataProperty("X"), df.getOWLDataProperty("Y"),
+                                Arrays.asList(df.getRDFSComment("X"),
+                                        df.getOWLAnnotation(df.getOWLAnnotationProperty("Z"),
+                                                df.getOWLAnonymousIndividual("_:b0"))));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLSubDataPropertyOfAxiom(df.getOWLDataProperty(\"X\"), " +
+                                "df.getOWLDataProperty(\"Y\"), " +
+                                "Arrays.asList(df.getRDFSComment(\"X\"), " +
+                                "df.getOWLAnnotation(df.getOWLAnnotationProperty(\"Z\"), " +
+                                "df.getOWLAnonymousIndividual(\"_:b0\"))))";
+                    }
+                }
+                , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.SUB_ANNOTATION_PROPERTY_OF;
+                    }
+
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLSubAnnotationPropertyOfAxiom(df.getOWLAnnotationProperty("X"),
+                                df.getOWLAnnotationProperty("Y"));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLSubAnnotationPropertyOfAxiom(df.getOWLAnnotationProperty(\"X\"), " +
+                                "df.getOWLAnnotationProperty(\"Y\"))";
+                    }
+                }
+                , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.SUB_ANNOTATION_PROPERTY_OF;
+                    }
+
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLSubAnnotationPropertyOfAxiom(df.getOWLAnnotationProperty("X"),
+                                df.getOWLAnnotationProperty("Y"),
+                                Arrays.asList(df.getRDFSLabel(df.getOWLAnonymousIndividual("_:b0")),
+                                        df.getOWLAnnotation(df.getOWLAnnotationProperty("Z"), df.getOWLLiteral(3.f))));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLSubAnnotationPropertyOfAxiom(df.getOWLAnnotationProperty(\"X\"), " +
+                                "df.getOWLAnnotationProperty(\"Y\"), " +
+                                "Arrays.asList(df.getRDFSLabel(df.getOWLAnonymousIndividual(\"_:b0\")), " +
+                                "df.getOWLAnnotation(df.getOWLAnnotationProperty(\"Z\"), df.getOWLLiteral(3.f))))";
+                    }
+                }
         );
 
     }
