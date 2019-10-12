@@ -17,7 +17,10 @@ package ru.avicomp.ontapi.internal.axioms;
 import org.apache.jena.graph.Triple;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.internal.*;
-import ru.avicomp.ontapi.internal.objects.*;
+import ru.avicomp.ontapi.internal.objects.FactoryAccessor;
+import ru.avicomp.ontapi.internal.objects.ONTEntityImpl;
+import ru.avicomp.ontapi.internal.objects.ONTObjectPropertyImpl;
+import ru.avicomp.ontapi.internal.objects.ONTStatementImpl;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
@@ -27,6 +30,7 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 /**
  * A translator that provides {@link OWLSubObjectPropertyOfAxiom} implementations.
@@ -74,12 +78,16 @@ public class SubObjectPropertyOfTranslator extends AbstractSubPropertyTranslator
     /**
      * @see ru.avicomp.ontapi.owlapi.axioms.OWLSubObjectPropertyOfAxiomImpl
      */
-    @SuppressWarnings("WeakerAccess")
-    public abstract static class AxiomImpl extends ONTAxiomImpl<OWLSubObjectPropertyOfAxiom>
-            implements WithTwoObjects.Unary<OWLObjectPropertyExpression>, OWLSubObjectPropertyOfAxiom {
+    public abstract static class AxiomImpl
+            extends SubPropertyImpl<OWLSubObjectPropertyOfAxiom, OWLObjectPropertyExpression>
+            implements WithMerge<ONTObject<OWLSubObjectPropertyOfAxiom>>, OWLSubObjectPropertyOfAxiom {
 
         protected AxiomImpl(Triple t, Supplier<OntGraphModel> m) {
             super(t, m);
+        }
+
+        protected AxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+            super(subject, predicate, object, m);
         }
 
         /**
@@ -100,22 +108,14 @@ public class SubObjectPropertyOfTranslator extends AbstractSubPropertyTranslator
         }
 
         @Override
-        public OWLObjectPropertyExpression getSubProperty() {
-            return getONTSubject().getOWLObject();
-        }
-
-        @Override
-        public OWLObjectPropertyExpression getSuperProperty() {
-            return getONTObject().getOWLObject();
-        }
-
-        @Override
-        public ONTObject<? extends OWLObjectPropertyExpression> fetchONTSubject(OntStatement statement, InternalObjectFactory factory) {
+        public ONTObject<? extends OWLObjectPropertyExpression> fetchONTSubject(OntStatement statement,
+                                                                                InternalObjectFactory factory) {
             return factory.getProperty(statement.getSubject(OntOPE.class));
         }
 
         @Override
-        public ONTObject<? extends OWLObjectPropertyExpression> fetchONTObject(OntStatement statement, InternalObjectFactory factory) {
+        public ONTObject<? extends OWLObjectPropertyExpression> fetchONTObject(OntStatement statement,
+                                                                               InternalObjectFactory factory) {
             return factory.getProperty(statement.getObject(OntOPE.class));
         }
 
@@ -137,32 +137,7 @@ public class SubObjectPropertyOfTranslator extends AbstractSubPropertyTranslator
         }
 
         @Override
-        public boolean canContainDatatypes() {
-            return isAnnotated();
-        }
-
-        @Override
-        public boolean canContainAnonymousIndividuals() {
-            return isAnnotated();
-        }
-
-        @Override
-        public boolean canContainNamedClasses() {
-            return false;
-        }
-
-        @Override
-        public boolean canContainNamedIndividuals() {
-            return false;
-        }
-
-        @Override
         public boolean canContainDataProperties() {
-            return false;
-        }
-
-        @Override
-        public boolean canContainClassExpressions() {
             return false;
         }
 
@@ -197,8 +172,8 @@ public class SubObjectPropertyOfTranslator extends AbstractSubPropertyTranslator
             }
 
             @Override
-            protected boolean sameContent(ONTStatementImpl other) {
-                return false;
+            public ONTObject<OWLSubObjectPropertyOfAxiom> merge(ONTObject<OWLSubObjectPropertyOfAxiom> other) {
+                return mergeNotSupported(other);
             }
         }
 
@@ -215,13 +190,26 @@ public class SubObjectPropertyOfTranslator extends AbstractSubPropertyTranslator
             protected final InternalCache.Loading<ComplexImpl, Object[]> content;
 
             public ComplexImpl(Triple t, Supplier<OntGraphModel> m) {
-                super(t, m);
+                this(strip(t.getSubject()), t.getPredicate().getURI(), strip(t.getObject()), m);
+            }
+
+            protected ComplexImpl(Object s, String p, Object o, Supplier<OntGraphModel> m) {
+                super(s, p, o, m);
                 this.content = createContentCache();
             }
 
             @Override
             public InternalCache.Loading<ComplexImpl, Object[]> getContentCache() {
                 return content;
+            }
+
+            @Override
+            protected boolean sameAs(ONTStatementImpl other) {
+                if (notSame(other)) {
+                    return false;
+                }
+                // no #sameTriple(), since it can contain b-nodes
+                return sameContent(other);
             }
 
             @Override
@@ -236,12 +224,24 @@ public class SubObjectPropertyOfTranslator extends AbstractSubPropertyTranslator
             }
 
             @Override
-            protected boolean sameAs(ONTStatementImpl other) {
-                if (notSame(other)) {
-                    return false;
+            public ONTObject<OWLSubObjectPropertyOfAxiom> merge(ONTObject<OWLSubObjectPropertyOfAxiom> other) {
+                if (this == other) {
+                    return this;
                 }
-                // no #sameTriple(), since it can contain b-nodes
-                return sameContent(other);
+                if (other instanceof AxiomImpl && sameTriple((AxiomImpl) other)) {
+                    return this;
+                }
+                ComplexImpl res = new ComplexImpl(subject, predicate, object, model) {
+                    @Override
+                    public Stream<Triple> triples() {
+                        return Stream.concat(super.triples(), other.triples());
+                    }
+                };
+                if (hasContent()) {
+                    res.putContent(getContent());
+                }
+                res.hashCode = hashCode;
+                return res;
             }
         }
     }

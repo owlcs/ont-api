@@ -18,6 +18,7 @@ import org.apache.jena.graph.Triple;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.util.NNF;
+import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.internal.*;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
@@ -72,6 +73,17 @@ public abstract class ONTAxiomImpl<X extends OWLAxiom>
         Map<OWLAnnotation, ONTObject<OWLAnnotation>> res = new TreeMap<>();
         ReadHelper.listAnnotations(axiom, config, factory).forEachRemaining(x -> WithMerge.add(res, x));
         return res.values();
+    }
+
+    /**
+     * Auxiliary method, which is used while {@link WithMerge#merge(ONTObject)}.
+     *
+     * @param other object of type {@link Y}
+     * @param <Y>   anything
+     * @return nothing
+     */
+    protected final <Y> Y mergeNotSupported(Y other) {
+        throw new OntApiException.IllegalState("Attempt to merge " + this + " with " + other);
     }
 
     /**

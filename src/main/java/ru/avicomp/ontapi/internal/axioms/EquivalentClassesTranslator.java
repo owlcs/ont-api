@@ -87,7 +87,6 @@ public class EquivalentClassesTranslator extends AbstractNaryTranslator<OWLEquiv
      *
      * @see OWLEquivalentClassesAxiomImpl
      */
-    @SuppressWarnings("WeakerAccess")
     @ParametersAreNonnullByDefault
     public abstract static class AxiomImpl
             extends ONTAxiomImpl<OWLEquivalentClassesAxiom>

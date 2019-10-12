@@ -104,7 +104,7 @@ public class ONTObjectContentTest {
 
     @SuppressWarnings("unchecked")
     @Test
-    public void testEquivalentClassesMerge() {
+    public void testMergeEquivalentClasses() {
         OntologyManager m = OntManagers.createONT();
         OntologyModel o = m.createOntology();
         OntGraphModel g = o.asGraphModel();
@@ -143,7 +143,29 @@ public class ONTObjectContentTest {
     }
 
     @Test
-    public void testInverseObjectPropertiesAxiomMerge() {
+    public void testMergeSubClassOf() {
+        OntologyManager m = OntManagers.createONT();
+        OntologyModel o = m.createOntology();
+        OntGraphModel g = o.asGraphModel();
+
+        OntClass x = g.createOntClass("X");
+        OntClass y = g.createOntClass("Y");
+        x.addSuperClass(g.createComplementOf(y));
+        x.addSuperClass(g.createComplementOf(y));
+        ReadWriteUtils.print(g);
+
+        Assert.assertEquals(3, o.axioms().count());
+        OWLSubClassOfAxiom a = o.axioms(AxiomType.SUBCLASS_OF).findFirst().orElseThrow(AssertionError::new);
+
+        o.remove(a);
+
+        o.clearCache();
+        Assert.assertEquals(2, o.axioms().count());
+        Assert.assertEquals(3, g.size());
+    }
+
+    @Test
+    public void testMergeInverseObjectProperties() {
         OntologyManager m = OntManagers.createONT();
         OntologyModel o = m.createOntology();
         OntGraphModel g = o.asGraphModel();
@@ -167,7 +189,33 @@ public class ONTObjectContentTest {
     }
 
     @Test
-    public void testNegativeObjectPropertyAxiomMerge() {
+    public void testMergeSubObjectPropertyOf() {
+        OntologyManager m = OntManagers.createONT();
+        OntologyModel o = m.createOntology();
+        OntGraphModel g = o.asGraphModel();
+
+        OntNOP x = g.createObjectProperty("X");
+        OntNOP y = g.createObjectProperty("Y");
+        createInverse(x).addSuperProperty(createInverse(y));
+        createInverse(x).addSuperProperty(createInverse(y));
+        ReadWriteUtils.print(g);
+
+        Assert.assertEquals(3, o.axioms().count());
+        OWLSubObjectPropertyOfAxiom a = o.axioms(AxiomType.SUB_OBJECT_PROPERTY).findFirst().orElseThrow(AssertionError::new);
+
+        o.remove(a);
+
+        o.clearCache();
+        Assert.assertEquals(2, o.axioms().count());
+        Assert.assertEquals(3, g.size());
+    }
+
+    private static OntOPE createInverse(OntNOP p) {
+        return p.getModel().createResource().addProperty(OWL.inverseOf, p).as(OntOPE.class);
+    }
+
+    @Test
+    public void testMergeNegativeObjectPropertyAssertion() {
         OntologyManager m = OntManagers.createONT();
         OntologyModel o = m.createOntology();
         OntGraphModel g = o.asGraphModel();

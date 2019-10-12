@@ -87,15 +87,15 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
 
     @Override
     public ONTObject<OWLDeclarationAxiom> toAxiom(OntStatement statement,
-                                                  InternalObjectFactory reader,
+                                                  InternalObjectFactory factory,
                                                   InternalConfig config) {
         OntEntity e = Entities.find(statement.getResource())
                 .map(Entities::getActualType)
                 .map(t -> statement.getModel().getOntEntity(t, statement.getSubject()))
                 .orElseThrow(() -> new OntJenaException.IllegalArgument("Can't find entity by the statement " + statement));
-        ONTObject<? extends OWLEntity> entity = reader.getEntity(e);
-        Collection<ONTObject<OWLAnnotation>> annotations = reader.getAnnotations(statement, config);
-        OWLDeclarationAxiom res = reader.getOWLDataFactory().getOWLDeclarationAxiom(entity.getOWLObject(),
+        ONTObject<? extends OWLEntity> entity = factory.getEntity(e);
+        Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);
+        OWLDeclarationAxiom res = factory.getOWLDataFactory().getOWLDeclarationAxiom(entity.getOWLObject(),
                 ONTObject.toSet(annotations));
         return ONTWrapperImpl.create(res, statement).append(annotations);
     }
@@ -126,23 +126,29 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
                                        Supplier<OntGraphModel> model,
                                        InternalObjectFactory factory,
                                        InternalConfig config) {
-            Object[] content = WithAnnotations.collectContent(statement, factory, config);
-            AxiomImpl res;
-            if (content == EMPTY) {
-                res = new Simple(statement.asTriple(), model);
-            } else {
-                res = WithContent.addContent(new WithAnnotations(statement.asTriple(), model), content);
+            Collection annotations = ONTAxiomImpl.collectAnnotations(statement, factory, config);
+            if (annotations.isEmpty()) {
+                Simple res = new Simple(statement.asTriple(), model);
+                int hash = OWLObject.hashIteration(res.hashIndex(), res.findONTEntity(factory).hashCode());
+                res.hashCode = OWLObject.hashIteration(hash, 1);
+                return res;
             }
-            res.hashCode = collectHashCode(res, factory, content);
+            WithAnnotations res = new WithAnnotations(statement.asTriple(), model);
+            int hash = OWLObject.hashIteration(res.hashIndex(), res.findONTEntity(factory).hashCode());
+            if (annotations.isEmpty()) {
+                res.hashCode = OWLObject.hashIteration(hash, 1);
+                return res;
+            }
+            int h = 1;
+            int index = 0;
+            Object[] content = new Object[annotations.size()];
+            for (Object a : annotations) {
+                content[index++] = a;
+                h = WithContent.hashIteration(h, a.hashCode());
+            }
+            res.hashCode = OWLObject.hashIteration(hash, h);
+            res.putContent(content);
             return res;
-        }
-
-        private static int collectHashCode(AxiomImpl res,
-                                           InternalObjectFactory factory,
-                                           Object[] content) {
-            int hash = res.hashIndex();
-            hash = OWLObject.hashIteration(hash, res.findONTEntity(factory).hashCode());
-            return OWLObject.hashIteration(hash, hashCode(content, 0));
         }
 
         @Override

@@ -31,6 +31,7 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 /**
  * A translator that provides {@link OWLSubClassOfAxiom} implementations.
@@ -48,7 +49,6 @@ import java.util.function.Supplier;
  *
  * @see <a href='https://www.w3.org/TR/owl-syntax/#Subclass_Axioms'>9.1.1 Subclass Axioms</a>
  */
-@SuppressWarnings("WeakerAccess")
 public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
 
     @Override
@@ -95,10 +95,15 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
      * @see ru.avicomp.ontapi.owlapi.axioms.OWLSubClassOfAxiomImpl
      */
     public abstract static class AxiomImpl extends ONTAxiomImpl<OWLSubClassOfAxiom>
-            implements WithTwoObjects.Unary<OWLClassExpression>, OWLSubClassOfAxiom {
+            implements WithTwoObjects.Unary<OWLClassExpression>, WithMerge<ONTObject<OWLSubClassOfAxiom>>,
+            OWLSubClassOfAxiom {
 
         protected AxiomImpl(Triple t, Supplier<OntGraphModel> m) {
             super(t, m);
+        }
+
+        protected AxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+            super(subject, predicate, object, m);
         }
 
         /**
@@ -231,6 +236,11 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
             public boolean canContainAnonymousIndividuals() {
                 return false;
             }
+
+            @Override
+            public ONTObject<OWLSubClassOfAxiom> merge(ONTObject<OWLSubClassOfAxiom> other) {
+                return mergeNotSupported(other);
+            }
         }
 
         /**
@@ -245,7 +255,11 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
             protected final InternalCache.Loading<ComplexImpl, Object[]> content;
 
             public ComplexImpl(Triple t, Supplier<OntGraphModel> m) {
-                super(t, m);
+                this(strip(t.getSubject()), t.getPredicate().getURI(), strip(t.getObject()), m);
+            }
+
+            protected ComplexImpl(Object s, String p, Object o, Supplier<OntGraphModel> m) {
+                super(s, p, o, m);
                 this.content = createContentCache();
             }
 
@@ -272,6 +286,27 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
                 }
                 // no #sameTriple(), since it can contain b-nodes
                 return sameContent(other);
+            }
+
+            @Override
+            public ONTObject<OWLSubClassOfAxiom> merge(ONTObject<OWLSubClassOfAxiom> other) {
+                if (this == other) {
+                    return this;
+                }
+                if (other instanceof AxiomImpl && sameTriple((AxiomImpl) other)) {
+                    return this;
+                }
+                ComplexImpl res = new ComplexImpl(subject, predicate, object, model) {
+                    @Override
+                    public Stream<Triple> triples() {
+                        return Stream.concat(super.triples(), other.triples());
+                    }
+                };
+                if (hasContent()) {
+                    res.putContent(getContent());
+                }
+                res.hashCode = hashCode;
+                return res;
             }
         }
     }

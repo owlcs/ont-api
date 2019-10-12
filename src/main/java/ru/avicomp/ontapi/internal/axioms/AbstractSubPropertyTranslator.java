@@ -14,6 +14,7 @@
 
 package ru.avicomp.ontapi.internal.axioms;
 
+import org.apache.jena.graph.Triple;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.OWLAxiom;
@@ -21,13 +22,18 @@ import org.semanticweb.owlapi.model.OWLPropertyExpression;
 import ru.avicomp.ontapi.internal.AxiomTranslator;
 import ru.avicomp.ontapi.internal.InternalConfig;
 import ru.avicomp.ontapi.internal.WriteHelper;
+import ru.avicomp.ontapi.internal.objects.ONTAxiomImpl;
+import ru.avicomp.ontapi.internal.objects.ONTStatementImpl;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.utils.OntModels;
 
+import java.util.function.Supplier;
+
 /**
- * The base class for {@link SubObjectPropertyOfTranslator}, {@link SubDataPropertyOfTranslator} and {@link SubAnnotationPropertyOfTranslator}.
+ * The base class for {@link SubObjectPropertyOfTranslator}, {@link SubDataPropertyOfTranslator}
+ * and {@link SubAnnotationPropertyOfTranslator}.
  * Example:
  * {@code foaf:msnChatID rdfs:subPropertyOf foaf:nick .}
  * <p>
@@ -60,5 +66,64 @@ public abstract class AbstractSubPropertyTranslator<Axiom extends OWLAxiom, P ex
     public void write(Axiom axiom, OntGraphModel model) {
         WriteHelper.writeTriple(model, getSubProperty(axiom), RDFS.subPropertyOf, getSuperProperty(axiom),
                 axiom.annotationsAsList());
+    }
+
+    /**
+     * A base {@code rdfs:subPropertyOf} axiom.
+     *
+     * @param <A> - subtype of {@link OWLAxiom},
+     *            either {@link org.semanticweb.owlapi.model.OWLSubAnnotationPropertyOfAxiom}
+     *            or {@link org.semanticweb.owlapi.model.OWLSubPropertyAxiom}
+     * @param <P> - subtype of {@link OWLPropertyExpression}
+     */
+    @SuppressWarnings("WeakerAccess")
+    public abstract static class SubPropertyImpl<A extends OWLAxiom, P extends OWLPropertyExpression>
+            extends ONTAxiomImpl<A> implements WithTwoObjects.Unary<P> {
+
+        protected SubPropertyImpl(Triple t, Supplier<OntGraphModel> m) {
+            super(t, m);
+        }
+
+        protected SubPropertyImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+            super(subject, predicate, object, m);
+        }
+
+        public P getSubProperty() {
+            return getONTSubject().getOWLObject();
+        }
+
+        public P getSuperProperty() {
+            return getONTObject().getOWLObject();
+        }
+
+        @Override
+        protected boolean sameContent(ONTStatementImpl other) {
+            return false;
+        }
+
+        @Override
+        public final boolean canContainDatatypes() {
+            return isAnnotated();
+        }
+
+        @Override
+        public final boolean canContainAnonymousIndividuals() {
+            return isAnnotated();
+        }
+
+        @Override
+        public final boolean canContainClassExpressions() {
+            return false;
+        }
+
+        @Override
+        public final boolean canContainNamedClasses() {
+            return false;
+        }
+
+        @Override
+        public final boolean canContainNamedIndividuals() {
+            return false;
+        }
     }
 }
