@@ -247,4 +247,26 @@ public class ONTObjectContentTest {
         o.remove(a1);
         Assert.assertEquals(5, g.size());
     }
+
+    @Test
+    public void testMergeDisjointClasses() {
+        OntologyManager m = OntManagers.createONT();
+        OntologyModel o = m.createOntology();
+        OntGraphModel g = o.asGraphModel();
+
+        OntClass x = g.createOntClass("X");
+        OntClass y = g.createOntClass("Y");
+        x.addDisjointClass(y.addDisjointClass(x));
+        g.createDisjointClasses(x, y);
+        ReadWriteUtils.print(g);
+
+        Assert.assertEquals(3, o.axioms().count());
+        OWLDisjointClassesAxiom a = o.axioms(AxiomType.DISJOINT_CLASSES).findFirst().orElseThrow(AssertionError::new);
+
+        o.remove(a);
+
+        o.clearCache();
+        Assert.assertEquals(2, o.axioms().count());
+        Assert.assertEquals(3, g.size());
+    }
 }

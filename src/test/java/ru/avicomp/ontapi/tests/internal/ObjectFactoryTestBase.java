@@ -69,13 +69,17 @@ abstract class ObjectFactoryTestBase extends TestFactory {
         Assert.assertTrue(ont.getClass().getName().startsWith("ru.avicomp.ontapi.owlapi"));
         Assert.assertTrue(owl.getClass().getName().startsWith("uk.ac.manchester.cs.owl.owlapi"));
 
-        testCompare(owl, test);
-        testCompare(ont, test);
+        testONTObject(owl, ont, test);
+    }
 
-        testComponents(owl, test);
-        testBooleanProperties(owl, test);
-        testEraseModel(owl, test);
-        testContent(owl, test);
+    final void testONTObject(OWLObject sample, OWLObject fromFactory, OWLObject fromModel) {
+        testCompare(sample, fromModel);
+        testCompare(fromFactory, fromModel);
+
+        testComponents(sample, fromModel);
+        testBooleanProperties(sample, fromModel);
+        testEraseModel(sample, fromModel);
+        testContent(sample, fromModel);
     }
 
     void testContent(OWLObject sample, OWLObject test) {

@@ -2181,6 +2181,49 @@ public class TestFactory {
                                 "df.getOWLAnnotation(df.getOWLAnnotationProperty(\"Z\"), df.getOWLLiteral(3.f))))";
                     }
                 }
+                , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.DISJOINT_CLASSES;
+                    }
+
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLDisjointClassesAxiom(df.getOWLClass("A"), df.getOWLClass("B"));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLDisjointClassesAxiom(df.getOWLClass(\"A\"), df.getOWLClass(\"B\"))";
+                    }
+                }
+                , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.DISJOINT_CLASSES;
+                    }
+
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLDisjointClassesAxiom(Arrays.asList(
+                                df.getOWLObjectHasSelf(df.getOWLObjectProperty("OP")),
+                                df.getOWLObjectOneOf(df.getOWLNamedIndividual("I")),
+                                df.getOWLDataSomeValuesFrom(df.getOWLDataProperty("DP"), df.getOWLDatatype("D"))),
+                                Arrays.asList(df.getRDFSLabel(df.getOWLAnonymousIndividual("_:b0")),
+                                        df.getOWLAnnotation(df.getOWLBackwardCompatibleWith(), df.getOWLLiteral(2.2))));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLDisjointClassesAxiom(Arrays.asList(" +
+                                "df.getOWLObjectHasSelf(df.getOWLObjectProperty(\"OP\")), " +
+                                "df.getOWLObjectOneOf(df.getOWLNamedIndividual(\"I\")), " +
+                                "df.getOWLDataSomeValuesFrom(df.getOWLDataProperty(\"DP\"), " +
+                                "df.getOWLDatatype(\"D\"))), " +
+                                "Arrays.asList(df.getRDFSLabel(df.getOWLAnonymousIndividual(\"_:b0\")), " +
+                                "df.getOWLAnnotation(df.getOWLBackwardCompatibleWith(), df.getOWLLiteral(2.2))))";
+                    }
+                }
         );
 
     }

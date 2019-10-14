@@ -21,21 +21,18 @@ import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLNaryAxiom;
 import ru.avicomp.ontapi.OntManagers;
-import ru.avicomp.ontapi.OntologyManager;
-import ru.avicomp.ontapi.OntologyModel;
-import ru.avicomp.ontapi.internal.ONTObject;
 import ru.avicomp.ontapi.internal.objects.ModelObject;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Created by @ssz on 03.10.2019.
+ * Created by @ssz on 14.10.2019.
  */
-public class NaryAxiomsTest extends CommonAxiomsTest {
-    public NaryAxiomsTest(Data data) {
+public class ResourceNaryAxiomsTest extends NaryAxiomsTestBase {
+
+    public ResourceNaryAxiomsTest(Data data) {
         super(data);
     }
 
@@ -45,24 +42,8 @@ public class NaryAxiomsTest extends CommonAxiomsTest {
                 .filter(Data::isAxiom)
                 // TODO: see https://github.com/avicomp/ont-api/issues/87
                 .filter(x -> isOneOf(x
-                        , AxiomType.EQUIVALENT_CLASSES
-                        , AxiomType.INVERSE_OBJECT_PROPERTIES))
+                        , AxiomType.DISJOINT_CLASSES))
                 .collect(Collectors.toList());
-    }
-
-    static Collection<? extends OWLAxiom> createONTAxioms(OntologyManager m, OWLAxiom toWrite) {
-        OntologyModel o = m.createOntology();
-        o.add(toWrite);
-        o.clearCache();
-        List<OWLAxiom> res = o.axioms(toWrite.getAxiomType())
-                .peek(x -> Assert.assertTrue(x instanceof ONTObject))
-                .sorted()
-                .collect(Collectors.toList());
-        Assert.assertFalse(res.isEmpty());
-        if (res.size() == 1) {
-            return new HashSet<>(res);
-        }
-        return res;
     }
 
     @SuppressWarnings("unchecked")
@@ -79,23 +60,10 @@ public class NaryAxiomsTest extends CommonAxiomsTest {
         Collection<? extends OWLAxiom> testPairwise = ont.asPairwiseAxioms();
         Assert.assertEquals(expectedPairwise, testPairwise);
 
-        Collection<? extends OWLAxiom> fromModel = createONTAxioms(OntManagers.createONT(), owl);
-        Assert.assertEquals(expectedPairwise, fromModel);
+        OWLAxiom test = createONTObject(OntManagers.createONT(), owl);
 
-        for (OWLAxiom expected : expectedPairwise) {
-            OWLAxiom test = fromModel.stream().filter(expected::equals)
-                    .findFirst().orElseThrow(AssertionError::new);
-            OWLAxiom fromFactory = testPairwise.stream().filter(expected::equals)
-                    .findFirst().orElseThrow(AssertionError::new);
-            Assert.assertTrue(test instanceof ModelObject);
-
-            testCompare(expected, test);
-            testCompare(fromFactory, test);
-
-            testComponents(expected, test);
-            testBooleanProperties(expected, test);
-            testEraseModel(expected, test);
-            testContent(expected, test);
-        }
+        Assert.assertTrue(test instanceof ModelObject);
+        testONTObject(owl, ont, test);
     }
+
 }

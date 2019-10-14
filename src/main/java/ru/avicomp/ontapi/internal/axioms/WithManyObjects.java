@@ -84,6 +84,15 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
      */
     Stream<ONTObject<? extends E>> members(InternalObjectFactory factory);
 
+
+    /**
+     * Lists all components and annotations of this axiom.
+     *
+     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @return a {@code Stream} of {@link ONTObject}s that wrap either {@link E}s or {@link OWLAnnotation}s
+     */
+    Stream<ONTObject<? extends OWLObject>> objects(InternalObjectFactory factory);
+
     /**
      * Gets all components (as {@link ONTObject}s) in the form of sorted {@code Set}.
      *
@@ -105,12 +114,17 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
     }
 
     /**
-     * Lists all components of this axiom.
+     * Lists all characteristic (i.e. without annotations) components of this axiom.
      *
      * @return an unsorted {@code Stream} of {@link ONTObject}s that wrap {@link E}s
      */
     default Stream<ONTObject<? extends E>> members() {
         return members(getObjectFactory());
+    }
+
+    @Override
+    default Stream<ONTObject<? extends OWLObject>> objects() {
+        return objects(getObjectFactory());
     }
 
     /**
@@ -208,7 +222,8 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
     }
 
     /**
-     * Represents the simplest case of unannotated axiom with arity {@code 2}, that corresponds a single triple.
+     * Represents the simplest case of unannotated axiom with arity {@code 2},
+     * that corresponds a single triple consisting of URI nodes.
      *
      * @param <E> - any subtype of {@link OWLObject} (the type of axiom components)
      */
@@ -218,19 +233,13 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
             return false;
         }
 
-        @SuppressWarnings("unchecked")
-        @Override
-        default Stream<ONTObject<? extends OWLObject>> objects() {
-            return (Stream<ONTObject<? extends OWLObject>>) objects(getObjectFactory());
-        }
-
-        @SuppressWarnings("unchecked")
+        @SuppressWarnings({"unchecked", "RedundantCast"})
         @Override
         default Stream<ONTObject<? extends E>> members(InternalObjectFactory factory) {
-            return (Stream<ONTObject<? extends E>>) objects(getObjectFactory());
+            return (Stream<ONTObject<? extends E>>) ((Stream) objects(getObjectFactory()));
         }
 
-        default Stream objects(InternalObjectFactory factory) {
+        default Stream<ONTObject<? extends OWLObject>> objects(InternalObjectFactory factory) {
             return Stream.of(findByURI(getSubjectURI(), factory), findByURI(getObjectURI(), factory));
         }
 
@@ -342,8 +351,7 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
 
         @SuppressWarnings("unchecked")
         @Override
-        default Stream<ONTObject<? extends OWLObject>> objects() {
-            InternalObjectFactory factory = getObjectFactory();
+        default Stream<ONTObject<? extends OWLObject>> objects(InternalObjectFactory factory) {
             Stream res = Arrays.stream(getContent());
             return (Stream<ONTObject<? extends OWLObject>>) res.map(x -> fromContentItem(x, factory));
         }

@@ -62,8 +62,8 @@ public class CommonAxiomsTest extends StatementTestBase {
                         , AxiomType.IRREFLEXIVE_OBJECT_PROPERTY
                         , AxiomType.SYMMETRIC_OBJECT_PROPERTY
                         , AxiomType.ASYMMETRIC_OBJECT_PROPERTY
-                        , AxiomType.TRANSITIVE_OBJECT_PROPERTY))
-                .collect(Collectors.toList());
+                        , AxiomType.TRANSITIVE_OBJECT_PROPERTY
+                )).collect(Collectors.toList());
     }
 
     static boolean isOneOf(Data o, AxiomType... types) {
@@ -74,7 +74,7 @@ public class CommonAxiomsTest extends StatementTestBase {
         return false;
     }
 
-    static OWLObject createONTObject(OntologyManager m, OWLAxiom ont) {
+    static OWLAxiom createONTObject(OntologyManager m, OWLAxiom ont) {
         OntologyModel o = m.createOntology();
         o.add(ont);
         o.clearCache();
@@ -112,7 +112,7 @@ public class CommonAxiomsTest extends StatementTestBase {
         Assert.assertEquals(expectedNoAnnotations, actualNoAnnotations);
         testObjectHasNoModelReference(actualNoAnnotations);
 
-        LOGGER.debug("Test axiom wit annotation for '{}'", data);
+        LOGGER.debug("Test axiom with annotation for '{}'", data);
         OWLAxiom expectedWithAnnotation = createWithAnnotation((OWLAxiom) sample, OWL_DATA_FACTORY);
         OWLAxiom actualWithAnnotation = createWithAnnotation((OWLAxiom) actual, ONT_DATA_FACTORY);
         Assert.assertEquals(expectedWithAnnotation, actualWithAnnotation);

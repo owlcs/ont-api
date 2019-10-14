@@ -16,24 +16,22 @@ package ru.avicomp.ontapi.internal.axioms;
 
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Property;
-import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.*;
 import ru.avicomp.ontapi.internal.*;
-import ru.avicomp.ontapi.internal.objects.*;
+import ru.avicomp.ontapi.internal.objects.FactoryAccessor;
+import ru.avicomp.ontapi.internal.objects.ONTEntityImpl;
+import ru.avicomp.ontapi.internal.objects.ONTStatementImpl;
 import ru.avicomp.ontapi.jena.model.OntCE;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
-import ru.avicomp.ontapi.jena.utils.Iter;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 import ru.avicomp.ontapi.owlapi.axioms.OWLEquivalentClassesAxiomImpl;
 
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -71,12 +69,12 @@ public class EquivalentClassesTranslator extends AbstractNaryTranslator<OWLEquiv
 
     @Override
     public ONTObject<OWLEquivalentClassesAxiom> toAxiom(OntStatement statement,
-                                                        InternalObjectFactory reader,
+                                                        InternalObjectFactory factory,
                                                         InternalConfig config) {
-        ONTObject<? extends OWLClassExpression> a = reader.getClass(statement.getSubject(getView()));
-        ONTObject<? extends OWLClassExpression> b = reader.getClass(statement.getObject().as(getView()));
-        Collection<ONTObject<OWLAnnotation>> annotations = reader.getAnnotations(statement, config);
-        OWLEquivalentClassesAxiom res = reader.getOWLDataFactory()
+        ONTObject<? extends OWLClassExpression> a = factory.getClass(statement.getSubject(getView()));
+        ONTObject<? extends OWLClassExpression> b = factory.getClass(statement.getObject().as(getView()));
+        Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);
+        OWLEquivalentClassesAxiom res = factory.getOWLDataFactory()
                 .getOWLEquivalentClassesAxiom(a.getOWLObject(), b.getOWLObject(), ONTObject.toSet(annotations));
         return ONTWrapperImpl.create(res, statement).append(annotations).append(a).append(b);
     }
@@ -87,11 +85,8 @@ public class EquivalentClassesTranslator extends AbstractNaryTranslator<OWLEquiv
      *
      * @see OWLEquivalentClassesAxiomImpl
      */
-    @ParametersAreNonnullByDefault
-    public abstract static class AxiomImpl
-            extends ONTAxiomImpl<OWLEquivalentClassesAxiom>
-            implements WithManyObjects<OWLClassExpression>,
-            WithMerge<ONTObject<OWLEquivalentClassesAxiom>>, OWLEquivalentClassesAxiom {
+    public abstract static class AxiomImpl extends ClassNaryAxiomImpl<OWLEquivalentClassesAxiom>
+            implements OWLEquivalentClassesAxiom {
 
         protected AxiomImpl(Triple t, Supplier<OntGraphModel> m) {
             this(strip(t.getSubject()), t.getPredicate().getURI(), strip(t.getObject()), m);
@@ -119,31 +114,14 @@ public class EquivalentClassesTranslator extends AbstractNaryTranslator<OWLEquiv
         }
 
         @Override
-        public ExtendedIterator<ONTObject<? extends OWLClassExpression>> listONTComponents(OntStatement statement,
-                                                                                           InternalObjectFactory factory) {
-            return Iter.of(factory.getClass(statement.getSubject(OntCE.class)),
-                    factory.getClass(statement.getObject(OntCE.class)));
-        }
-
-        @Override
-        public ONTObject<? extends OWLClassExpression> findByURI(String uri, InternalObjectFactory factory) {
-            return ONTClassImpl.find(uri, factory, model);
-        }
-
-        @Override
-        public Stream<OWLClassExpression> classExpressions() {
-            return sorted().map(ONTObject::getOWLObject);
+        protected final long count() {
+            return 2;
         }
 
         @Override
         public Stream<OWLClass> namedClasses() {
             return classExpressions().filter(OWLEquivalentClassesAxiomImpl::isNamed)
                     .map(OWLClassExpression::asOWLClass);
-        }
-
-        @Override
-        public Set<OWLClassExpression> getClassExpressionsMinus(OWLClassExpression... excludes) {
-            return getSetMinus(excludes);
         }
 
         @Override
@@ -161,63 +139,19 @@ public class EquivalentClassesTranslator extends AbstractNaryTranslator<OWLEquiv
             return members().map(ONTObject::getOWLObject).anyMatch(OWLClassExpression::isOWLThing);
         }
 
+        @FactoryAccessor
         @Override
-        public boolean contains(OWLClassExpression ce) {
-            return members().map(ONTObject::getOWLObject).anyMatch(ce::equals);
+        protected OWLEquivalentClassesAxiom createAxiom(Collection<OWLClassExpression> members,
+                                                        Collection<OWLAnnotation> annotations) {
+            return getDataFactory().getOWLEquivalentClassesAxiom(members,
+                    annotations == null ? NO_ANNOTATIONS : annotations);
         }
 
         @FactoryAccessor
         @Override
-        public Collection<OWLEquivalentClassesAxiom> asPairwiseAxioms() {
-            return createSet(eraseModel());
+        protected OWLSubClassOfAxiom createSubClassOf(OWLClassExpression a, OWLClassExpression b) {
+            return getDataFactory().getOWLSubClassOfAxiom(a, b);
         }
-
-        @FactoryAccessor
-        @Override
-        public Collection<OWLEquivalentClassesAxiom> splitToAnnotatedPairs() {
-            return createSet(eraseModel());
-        }
-
-        @FactoryAccessor
-        @Override
-        public Collection<OWLSubClassOfAxiom> asOWLSubClassOfAxioms() {
-            return walkAllPairwise((a, b) -> getDataFactory().getOWLSubClassOfAxiom(eraseModel(a), eraseModel(b)));
-        }
-
-        @FactoryAccessor
-        @Override
-        protected OWLEquivalentClassesAxiom createAnnotatedAxiom(Collection<OWLAnnotation> annotations) {
-            return getDataFactory().getOWLEquivalentClassesAxiom(members()
-                    .map(x -> eraseModel(x.getOWLObject())).collect(Collectors.toList()), annotations);
-        }
-
-        @Override
-        public boolean canContainAnnotationProperties() {
-            return isAnnotated();
-        }
-
-        @Override
-        public AxiomImpl merge(ONTObject<OWLEquivalentClassesAxiom> other) {
-            if (this == other) {
-                return this;
-            }
-            if (other instanceof AxiomImpl && sameTriple((AxiomImpl) other)) {
-                return this;
-            }
-            AxiomImpl res = makeCopyWith(other);
-            res.hashCode = hashCode;
-            return res;
-        }
-
-        /**
-         * Creates an instance of {@link AxiomImpl}
-         * with additional triples getting from the specified {@code other} object.
-         * The returned instance must be equivalent to this instance.
-         *
-         * @param other {@link ONTObject} with {@link OWLEquivalentClassesAxiom}, not {@code null}
-         * @return {@link AxiomImpl} - a fresh instance that equals to this
-         */
-        abstract AxiomImpl makeCopyWith(ONTObject<OWLEquivalentClassesAxiom> other);
 
         /**
          * An {@link OWLEquivalentClassesAxiom} that has named classes as subject and object and has no annotations.
@@ -243,7 +177,7 @@ public class EquivalentClassesTranslator extends AbstractNaryTranslator<OWLEquiv
             }
 
             @Override
-            AxiomImpl makeCopyWith(ONTObject<OWLEquivalentClassesAxiom> other) {
+            protected AxiomImpl makeCopyWith(ONTObject<OWLEquivalentClassesAxiom> other) {
                 if (other instanceof SimpleImpl) {
                     Triple t = ((SimpleImpl) other).asTriple();
                     return new SimpleImpl(subject, predicate, object, model) {
@@ -349,7 +283,7 @@ public class EquivalentClassesTranslator extends AbstractNaryTranslator<OWLEquiv
             }
 
             @Override
-            ComplexImpl makeCopyWith(ONTObject<OWLEquivalentClassesAxiom> other) {
+            protected ComplexImpl makeCopyWith(ONTObject<OWLEquivalentClassesAxiom> other) {
                 ComplexImpl res = new ComplexImpl(subject, predicate, object, model) {
                     @Override
                     public Stream<Triple> triples() {

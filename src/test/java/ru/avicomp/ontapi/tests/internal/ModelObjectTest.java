@@ -99,7 +99,7 @@ public class ModelObjectTest {
         OWLDataFactory df = ObjectFactoryTestBase.ONT_DATA_FACTORY;
         OWLEquivalentClassesAxiom expected = df.getOWLEquivalentClassesAxiom(df.getOWLClass("X"), df.getOWLClass("Y"),
                 Collections.singleton(df.getRDFSComment("x")));
-        Collection<? extends OWLAxiom> res = NaryAxiomsTest.createONTAxioms(OntManagers.createONT(), expected);
+        Collection<? extends OWLAxiom> res = SplitNaryAxiomsTest.createONTAxioms(OntManagers.createONT(), expected);
         Assert.assertEquals(1, res.size());
         OWLEquivalentClassesAxiom actual = (OWLEquivalentClassesAxiom) res.iterator().next();
         Assert.assertTrue(actual instanceof ModelObject);
@@ -111,12 +111,25 @@ public class ModelObjectTest {
     }
 
     @Test
+    public void testDisjointClassesEraseModelMethods() {
+        OWLDataFactory df = ObjectFactoryTestBase.ONT_DATA_FACTORY;
+        OWLDisjointClassesAxiom expected = df.getOWLDisjointClassesAxiom(Arrays.asList(df.getOWLClass("X"),
+                df.getOWLClass("Y"), df.getOWLClass("Z"), df.getOWLObjectOneOf(df.getOWLNamedIndividual("I"))),
+                Collections.singleton(df.getRDFSComment("x")));
+        OWLAxiom res = ResourceNaryAxiomsTest.createONTObject(OntManagers.createONT(), expected);
+        OWLDisjointClassesAxiom actual = (OWLDisjointClassesAxiom) res;
+        Assert.assertTrue(actual instanceof ModelObject);
+        Assert.assertEquals(expected, actual);
+        testNarySplitMethod(expected, actual, x -> ((OWLDisjointClassesAxiom) x).asOWLSubClassOfAxioms());
+    }
+
+    @Test
     public void testInversePropertiesAxiomEraseModelMethods() {
         OWLDataFactory df = ObjectFactoryTestBase.ONT_DATA_FACTORY;
         OWLInverseObjectPropertiesAxiom expected = df.getOWLInverseObjectPropertiesAxiom(df.getOWLObjectProperty("X"),
                 df.getOWLObjectProperty("Y"),
                 Collections.singleton(df.getRDFSComment("x")));
-        Collection<? extends OWLAxiom> res = NaryAxiomsTest.createONTAxioms(OntManagers.createONT(), expected);
+        Collection<? extends OWLAxiom> res = SplitNaryAxiomsTest.createONTAxioms(OntManagers.createONT(), expected);
         Assert.assertEquals(1, res.size());
         OWLInverseObjectPropertiesAxiom actual = (OWLInverseObjectPropertiesAxiom) res.iterator().next();
         Assert.assertTrue(actual instanceof ModelObject);
