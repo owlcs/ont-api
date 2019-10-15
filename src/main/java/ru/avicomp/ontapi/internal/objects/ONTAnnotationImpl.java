@@ -420,7 +420,7 @@ public abstract class ONTAnnotationImpl extends ONTStatementImpl
 
                 @Override
                 public Stream<Triple> triples() {
-                    return Stream.concat(super.triples(), other.triples());
+                    return Stream.concat(Simple.this.triples(), other.triples());
                 }
             };
         }
@@ -546,7 +546,7 @@ public abstract class ONTAnnotationImpl extends ONTStatementImpl
 
                 @Override
                 public Stream<Triple> triples() {
-                    return Stream.concat(super.triples(), other.triples());
+                    return Stream.concat(WithAnnotations.this.triples(), other.triples());
                 }
             };
             if (hasContent()) {

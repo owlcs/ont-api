@@ -63,6 +63,7 @@ public class CommonAxiomsTest extends StatementTestBase {
                         , AxiomType.SYMMETRIC_OBJECT_PROPERTY
                         , AxiomType.ASYMMETRIC_OBJECT_PROPERTY
                         , AxiomType.TRANSITIVE_OBJECT_PROPERTY
+                        , AxiomType.SUB_PROPERTY_CHAIN_OF
                 )).collect(Collectors.toList());
     }
 

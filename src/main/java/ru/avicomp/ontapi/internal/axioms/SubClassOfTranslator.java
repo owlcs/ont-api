@@ -299,7 +299,7 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
                 ComplexImpl res = new ComplexImpl(subject, predicate, object, model) {
                     @Override
                     public Stream<Triple> triples() {
-                        return Stream.concat(super.triples(), other.triples());
+                        return Stream.concat(ComplexImpl.this.triples(), other.triples());
                     }
                 };
                 if (hasContent()) {

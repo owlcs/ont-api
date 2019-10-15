@@ -14,22 +14,35 @@
 
 package ru.avicomp.ontapi.internal.axioms;
 
+import org.apache.jena.graph.FrontsTriple;
+import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Property;
-import org.semanticweb.owlapi.model.OWLObject;
-import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
-import org.semanticweb.owlapi.model.OWLSubPropertyChainOfAxiom;
-import ru.avicomp.ontapi.internal.InternalConfig;
-import ru.avicomp.ontapi.internal.InternalObjectFactory;
-import ru.avicomp.ontapi.internal.ONTObject;
+import org.apache.jena.rdf.model.RDFList;
+import org.apache.jena.util.iterator.ExtendedIterator;
+import org.semanticweb.owlapi.model.*;
+import ru.avicomp.ontapi.OntApiException;
+import ru.avicomp.ontapi.internal.*;
+import ru.avicomp.ontapi.internal.objects.FactoryAccessor;
+import ru.avicomp.ontapi.internal.objects.ONTAxiomImpl;
+import ru.avicomp.ontapi.internal.objects.ONTObjectPropertyImpl;
+import ru.avicomp.ontapi.internal.objects.ONTStatementImpl;
+import ru.avicomp.ontapi.jena.model.OntGraphModel;
+import ru.avicomp.ontapi.jena.model.OntList;
 import ru.avicomp.ontapi.jena.model.OntOPE;
 import ru.avicomp.ontapi.jena.model.OntStatement;
+import ru.avicomp.ontapi.jena.utils.OntModels;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
+import java.util.function.BiFunction;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
- * Translator for SubPropertyChainOf axiom.
+ * A translator that provides {@link OWLSubPropertyChainOfAxiom} implementations.
  * Example in turtle:
  * <pre>{@code
  * owl:topObjectProperty owl:propertyChainAxiom ( :ob-prop-1 :ob-prop-2 ) .
@@ -39,7 +52,9 @@ import java.util.stream.Collectors;
  *
  * @see <a href='https://www.w3.org/TR/owl2-syntax/#Object_Subproperties'>9.2.1 Object Subproperties</a>
  */
-public class SubPropertyChainOfTranslator extends AbstractListBasedTranslator<OWLSubPropertyChainOfAxiom, OntOPE, OWLObjectPropertyExpression, OntOPE, OWLObjectPropertyExpression> {
+public class SubPropertyChainOfTranslator
+        extends AbstractListBasedTranslator<OWLSubPropertyChainOfAxiom, OntOPE,
+        OWLObjectPropertyExpression, OntOPE, OWLObjectPropertyExpression> {
     @Override
     OWLObject getSubject(OWLSubPropertyChainOfAxiom axiom) {
         return axiom.getSuperProperty();
@@ -62,13 +77,214 @@ public class SubPropertyChainOfTranslator extends AbstractListBasedTranslator<OW
 
     @Override
     public ONTObject<OWLSubPropertyChainOfAxiom> toAxiom(OntStatement statement,
-                                                         InternalObjectFactory reader,
+                                                         Supplier<OntGraphModel> model,
+                                                         InternalObjectFactory factory,
                                                          InternalConfig config) {
-        return makeAxiom(statement, reader::getProperty, OntOPE::findPropertyChain, reader::getProperty, Collectors.toList(),
-                (s, m) -> reader.getOWLDataFactory().getOWLSubPropertyChainOfAxiom(
-                        m.stream().map(ONTObject::getOWLObject).collect(Collectors.toList()),
-                        s.getOWLObject(),
-                        ONTObject.toSet(reader.getAnnotations(statement, config))));
+        return AxiomImpl.create(statement, model, factory, config);
     }
 
+    @Override
+    public ONTObject<OWLSubPropertyChainOfAxiom> toAxiom(OntStatement statement,
+                                                         InternalObjectFactory factory,
+                                                         InternalConfig config) {
+        return makeAxiom(statement,
+                factory::getProperty,
+                OntOPE::findPropertyChain,
+                factory::getProperty,
+                Collectors.toList(),
+                (s, m) -> factory.getOWLDataFactory().getOWLSubPropertyChainOfAxiom(m.stream()
+                                .map(ONTObject::getOWLObject).collect(Collectors.toList()), s.getOWLObject(),
+                        ONTObject.toSet(factory.getAnnotations(statement, config))));
+    }
+
+    /**
+     * @see ru.avicomp.ontapi.owlapi.axioms.OWLSubPropertyChainAxiomImpl
+     */
+    @SuppressWarnings("WeakerAccess")
+    public static class AxiomImpl
+            extends ONTAxiomImpl<OWLSubPropertyChainOfAxiom>
+            implements WithList.Sequent<AxiomImpl, OWLObjectPropertyExpression, OWLObjectPropertyExpression>,
+            WithMerge<ONTObject<OWLSubPropertyChainOfAxiom>>, OWLSubPropertyChainOfAxiom {
+
+        private static final BiFunction<Triple, Supplier<OntGraphModel>, AxiomImpl> FACTORY = AxiomImpl::new;
+        protected final InternalCache.Loading<AxiomImpl, Object[]> content;
+
+        public AxiomImpl(Triple t, Supplier<OntGraphModel> m) {
+            this(strip(t.getSubject()), t.getPredicate().getURI(), strip(t.getObject()), m);
+        }
+
+        protected AxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+            super(subject, predicate, object, m);
+            this.content = createContentCache();
+        }
+
+        @Override
+        public Stream<Triple> triples() {
+            OntStatement s = asStatement();
+            return Stream.concat(Stream.concat(Stream.of(s), findList(s).spec()).map(FrontsTriple::asTriple),
+                    objects().flatMap(ONTObject::triples));
+        }
+
+        /**
+         * Extracts the {@link OntList} from the statement.
+         *
+         * @param statement {@link OntStatement}, not {@code null}
+         * @return {@link OntList} with {@link OntOPE}s
+         */
+        protected OntList<OntOPE> findList(OntStatement statement) {
+            return statement.getSubject(OntOPE.class).findPropertyChain(statement.getObject(RDFList.class))
+                    .orElseThrow(() -> new OntApiException.IllegalState("Can't find []-list in " + statement));
+        }
+
+        /**
+         * Creates an {@link ONTObject} container that is also {@link  OWLSubPropertyChainOfAxiom}.
+         *
+         * @param statement {@link OntStatement}, not {@code null}
+         * @param model     {@link OntGraphModel} provider, not {@code null}
+         * @param factory   {@link InternalObjectFactory}, not {@code null}
+         * @param config    {@link InternalConfig}, not {@code null}
+         * @return {@link AxiomImpl}
+         */
+        public static AxiomImpl create(OntStatement statement,
+                                       Supplier<OntGraphModel> model,
+                                       InternalObjectFactory factory,
+                                       InternalConfig config) {
+            return WithList.Sequent.create(statement, model, FACTORY, SET_HASH_CODE, factory, config);
+        }
+
+        @Override
+        public InternalCache.Loading<AxiomImpl, Object[]> getContentCache() {
+            return content;
+        }
+
+        @Override
+        public List<OWLObjectPropertyExpression> getPropertyChain() {
+            return members(getContent(), getObjectFactory()).map(ONTObject::getOWLObject).collect(Collectors.toList());
+        }
+
+        @Override
+        public OWLObjectPropertyExpression getSuperProperty() {
+            return getONTSubject().getOWLObject();
+        }
+
+        @Override
+        protected boolean sameContent(ONTStatementImpl other) {
+            return other instanceof AxiomImpl && Arrays.equals(getContent(), ((AxiomImpl) other).getContent());
+        }
+
+        @Override
+        public ONTObject<? extends OWLObjectPropertyExpression> findByURI(String uri,
+                                                                          InternalObjectFactory factory) {
+            return findPropertyByURI(uri, factory);
+        }
+
+        @Override
+        public ONTObject<? extends OWLObjectPropertyExpression> findSubjectByURI(String uri,
+                                                                                 InternalObjectFactory factory) {
+            return findPropertyByURI(uri, factory);
+        }
+
+        private ONTObject<OWLObjectProperty> findPropertyByURI(String uri,
+                                                               InternalObjectFactory factory) {
+            return ONTObjectPropertyImpl.find(uri, factory, model);
+        }
+
+        @Override
+        public ExtendedIterator<ONTObject<? extends OWLObjectPropertyExpression>> listONTComponents(OntStatement statement,
+                                                                                                    InternalObjectFactory factory) {
+            return OntModels.listMembers(findList(statement)).mapWith(factory::getProperty);
+        }
+
+        @Override
+        public ONTObject<? extends OWLObjectPropertyExpression> fetchONTSubject(OntStatement statement,
+                                                                                InternalObjectFactory factory) {
+            return factory.getProperty(statement.getSubject(OntOPE.class));
+        }
+
+        @FactoryAccessor
+        @Override
+        protected OWLSubPropertyChainOfAxiom createAnnotatedAxiom(Collection<OWLAnnotation> annotations) {
+            return createAnnotatedAxiom(getContent(), getObjectFactory(), annotations);
+        }
+
+        private OWLSubPropertyChainOfAxiom createAnnotatedAxiom(Object[] content,
+                                                                InternalObjectFactory factory,
+                                                                Collection<OWLAnnotation> annotations) {
+            return getDataFactory().getOWLSubPropertyChainOfAxiom(members(content, factory)
+                            .map(x -> eraseModel(x.getOWLObject())).collect(Collectors.toList()),
+                    eraseModel(findONTSubject(content[0], factory).getOWLObject()), annotations);
+        }
+
+        @Override
+        public boolean isEncodingOfTransitiveProperty() {
+            return isEncodingOfTransitiveProperty(getContent(), getObjectFactory());
+        }
+
+        protected boolean isEncodingOfTransitiveProperty(Object[] content, InternalObjectFactory factory) {
+            if (content.length < 3) {
+                return false;
+            }
+            List<ONTObject> members = members(content, factory).collect(Collectors.toList());
+            if (members.size() != 2)
+                return false;
+            ONTObject subject = findONTSubject(content[0], factory);
+            return subject.equals(members.get(0)) && subject.equals(members.get(1));
+        }
+
+        @Override
+        public AxiomImpl merge(ONTObject<OWLSubPropertyChainOfAxiom> other) {
+            if (this == other) {
+                return this;
+            }
+            if (other instanceof AxiomImpl && sameTriple((AxiomImpl) other)) {
+                return this;
+            }
+            AxiomImpl res = new AxiomImpl(subject, predicate, object, model) {
+                @Override
+                public Stream<Triple> triples() {
+                    return Stream.concat(AxiomImpl.this.triples(), other.triples());
+                }
+            };
+            if (hasContent()) {
+                res.putContent(getContent());
+            }
+            res.hashCode = hashCode;
+            return res;
+        }
+
+        @Override
+        public final boolean canContainAnnotationProperties() {
+            return isAnnotated();
+        }
+
+        @Override
+        public final boolean canContainDatatypes() {
+            return isAnnotated();
+        }
+
+        @Override
+        public final boolean canContainAnonymousIndividuals() {
+            return isAnnotated();
+        }
+
+        @Override
+        public final boolean canContainDataProperties() {
+            return false;
+        }
+
+        @Override
+        public final boolean canContainClassExpressions() {
+            return false;
+        }
+
+        @Override
+        public final boolean canContainNamedClasses() {
+            return false;
+        }
+
+        @Override
+        public final boolean canContainNamedIndividuals() {
+            return false;
+        }
+    }
 }

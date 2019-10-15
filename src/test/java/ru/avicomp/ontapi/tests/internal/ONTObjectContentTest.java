@@ -269,4 +269,31 @@ public class ONTObjectContentTest {
         Assert.assertEquals(2, o.axioms().count());
         Assert.assertEquals(3, g.size());
     }
+
+    @Test
+    public void testMergePropertyChains() {
+        OntologyManager m = OntManagers.createONT();
+        OntologyModel o = m.createOntology();
+        OntGraphModel g = o.asGraphModel();
+
+        OntNOP x = g.createObjectProperty("P");
+        OntNOP y = g.createObjectProperty("Y");
+        OntNOP z = g.createObjectProperty("Z");
+
+        createInverse(x).addPropertyChain(y, z).addPropertyChain(y, z);
+        createInverse(x).addPropertyChain(y, z);
+        ReadWriteUtils.print(g);
+        Assert.assertEquals(21, g.size());
+
+        Assert.assertEquals(4, o.axioms().count());
+        OWLSubPropertyChainOfAxiom a = o.axioms(AxiomType.SUB_PROPERTY_CHAIN_OF)
+                .findFirst().orElseThrow(AssertionError::new);
+
+        o.remove(a);
+
+        ReadWriteUtils.print(g);
+        o.clearCache();
+        Assert.assertEquals(3, o.axioms().count());
+        Assert.assertEquals(4, g.size());
+    }
 }

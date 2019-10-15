@@ -18,7 +18,6 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLObject;
 import ru.avicomp.ontapi.internal.InternalConfig;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
@@ -84,7 +83,6 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
      */
     Stream<ONTObject<? extends E>> members(InternalObjectFactory factory);
 
-
     /**
      * Lists all components and annotations of this axiom.
      *
@@ -138,6 +136,17 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
         return sorted().map(ONTObject::getOWLObject)
                 .filter(negationPredicate(excludes))
                 .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    /**
+     * Auxiliary method to represent object as cached item.
+     *
+     * @param x {@link ONTObject}, not {@code null}
+     * @return an item for cache
+     * @see WithList#fromContentItem(Object, InternalObjectFactory)
+     */
+    default Object mapItem(ONTObject x) {
+        return WithList.toContentItem(x);
     }
 
     /**
@@ -267,7 +276,7 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
      * @param <A> - any subtype of {@link OWLAxiom} which is implemented by the instance of this interface
      * @param <E> - any subtype of {@link OWLObject} (the type of axiom components)
      */
-    interface Complex<A extends OWLAxiom, E extends OWLObject> extends WithManyObjects<E>, WithContent<A> {
+    interface Complex<A extends OWLAxiom, E extends OWLObject> extends WithManyObjects<E>, WithList<A, E> {
 
         /**
          * Calculates the content and {@code hashCode} simultaneously.
@@ -290,12 +299,12 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
                                     InternalObjectFactory factory,
                                     InternalConfig config) {
             Collection annotations = ONTAxiomImpl.collectAnnotations(statement, factory, config);
-            Set<OWLObject> components = axiom.fetchONTComponents(statement, factory);
+            Set<ONTObject> components = axiom.fetchONTComponents(statement, factory);
             Object[] res = new Object[components.size() + annotations.size()];
             int index = 0;
             int h = 1;
-            for (OWLObject c : components) {
-                res[index++] = toContentItem(c);
+            for (ONTObject c : components) {
+                res[index++] = axiom.mapItem(c);
                 h = WithContent.hashIteration(h, c.hashCode());
             }
             int hash = OWLObject.hashIteration(axiom.hashIndex(), h);
@@ -316,22 +325,6 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
             return res;
         }
 
-        static Object toContentItem(Object o) {
-            return o instanceof OWLEntity ? ONTEntityImpl.getURI((OWLEntity) o) : o;
-        }
-
-        static OWLAnnotation toOWLAnnotation(Object x) {
-            if (x instanceof OWLAnnotation) {
-                return (OWLAnnotation) x;
-            }
-            if (x instanceof ONTObject) {
-                OWLObject res = ((ONTObject) x).getOWLObject();
-                if (res instanceof OWLAnnotation)
-                    return (OWLAnnotation) res;
-            }
-            return null;
-        }
-
         @Override
         default Object[] collectContent() {
             OntStatement statement = asStatement();
@@ -343,10 +336,6 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
                 return ONTStatementImpl.EMPTY;
             }
             return res.toArray();
-        }
-
-        default ONTObject fromContentItem(Object o, InternalObjectFactory factory) {
-            return o instanceof String ? findByURI((String) o, factory) : (ONTObject) o;
         }
 
         @SuppressWarnings("unchecked")
@@ -366,7 +355,7 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
         default Stream<ONTObject<? extends E>> sorted(InternalObjectFactory factory) {
             Stream res = Arrays.stream(getContent())
                     .map(x -> fromContentItem(x, factory))
-                    .filter(x -> toOWLAnnotation(x) == null);
+                    .filter(x -> WithList.toOWLAnnotation(x) == null);
             return (Stream<ONTObject<? extends E>>) res;
         }
 
@@ -375,26 +364,9 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
             Set<OWLObject> res = OWLObjectImpl.createSortedSet();
             Arrays.stream(getContent())
                     .map(x -> fromContentItem(x, factory))
-                    .filter(x -> toOWLAnnotation(x) == null)
+                    .filter(x -> WithList.toOWLAnnotation(x) == null)
                     .forEach(x -> res.add(x.getOWLObject()));
             return res;
-        }
-
-        @Override
-        default boolean isAnnotated() {
-            return ONTAnnotationImpl.hasAnnotations(getContent());
-        }
-
-        @SuppressWarnings("unchecked")
-        @Override
-        default Stream<OWLAnnotation> annotations() {
-            Stream res = Arrays.stream(getContent()).map(Complex::toOWLAnnotation).filter(Objects::nonNull);
-            return (Stream<OWLAnnotation>) res;
-        }
-
-        @Override
-        default List<OWLAnnotation> annotationsAsList() {
-            return annotations().collect(Collectors.toList());
         }
     }
 

@@ -179,7 +179,7 @@ public class NegativeDataPropertyAssertionTranslator
             return new AxiomImpl(subject, predicate, object, model) {
                 @Override
                 public Stream<Triple> triples() {
-                    return Stream.concat(super.triples(), other.triples());
+                    return Stream.concat(AxiomImpl.this.triples(), other.triples());
                 }
             };
         }

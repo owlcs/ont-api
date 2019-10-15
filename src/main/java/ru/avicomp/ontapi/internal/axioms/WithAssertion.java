@@ -56,9 +56,9 @@ import java.util.stream.Stream;
  *     <li>{@code PN} - (named) object property </li>
  *     <li>{@code R} - data property</li>
  *     <li>{@code A} - annotation property</li>
- *     <li>{@code a} is an individual (named or anonymous)</li>
- *     <li>{@code v} is an literal</li>
- *     <li>{@code s} is either an IRI or an anonymous individual</li>
+ *     <li>{@code a} - individual (named or anonymous)</li>
+ *     <li>{@code v} - literal</li>
+ *     <li>{@code s} - either an IRI or an anonymous individual</li>
  *     <li>{@code t} - IRI, anonymous individual, or literal</li>
  * </ul>
  * Created by @szz on 08.10.2019.
@@ -67,6 +67,7 @@ import java.util.stream.Stream;
  * @param <P> - subtype of {@link OWLObject}
  *            (that be {@link OWLProperty}; it is not restricted due to OWL-API interface limitations)
  * @param <O> - subtype of {@link OWLObject}
+ * @since 1.4.3
  */
 interface WithAssertion<S extends OWLObject, P extends OWLObject, O extends OWLObject>
         extends WithTriple, HasSubject<S>, HasProperty<P> {

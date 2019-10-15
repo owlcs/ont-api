@@ -184,14 +184,14 @@ public class EquivalentClassesTranslator extends AbstractNaryTranslator<OWLEquiv
 
                         @Override
                         public Stream<Triple> triples() {
-                            return Stream.concat(super.triples(), Stream.of(t));
+                            return Stream.concat(SimpleImpl.this.triples(), Stream.of(t));
                         }
                     };
                 }
                 return new SimpleImpl(subject, predicate, object, model) {
                     @Override
                     public Stream<Triple> triples() {
-                        return Stream.concat(super.triples(), other.triples());
+                        return Stream.concat(SimpleImpl.this.triples(), other.triples());
                     }
                 };
             }
@@ -287,7 +287,7 @@ public class EquivalentClassesTranslator extends AbstractNaryTranslator<OWLEquiv
                 ComplexImpl res = new ComplexImpl(subject, predicate, object, model) {
                     @Override
                     public Stream<Triple> triples() {
-                        return Stream.concat(super.triples(), other.triples());
+                        return Stream.concat(ComplexImpl.this.triples(), other.triples());
                     }
                 };
                 if (hasContent()) {

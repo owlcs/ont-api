@@ -2224,6 +2224,50 @@ public class TestFactory {
                                 "df.getOWLAnnotation(df.getOWLBackwardCompatibleWith(), df.getOWLLiteral(2.2))))";
                     }
                 }
+                , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.SUB_PROPERTY_CHAIN_OF;
+                    }
+
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLSubPropertyChainOfAxiom(Arrays.asList(df.getOWLObjectProperty("P1"),
+                                df.getOWLObjectProperty("P2"),
+                                df.getOWLObjectInverseOf(df.getOWLObjectProperty("P3"))),
+                                df.getOWLObjectInverseOf(df.getOWLObjectProperty("P")),
+                                Arrays.asList(df.getRDFSLabel(df.getOWLAnonymousIndividual("_:b0")),
+                                        df.getOWLAnnotation(df.getOWLBackwardCompatibleWith(), df.getOWLLiteral(2))));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLSubPropertyChainOfAxiom(Arrays.asList(df.getOWLObjectProperty(\"P1\"), " +
+                                "df.getOWLObjectProperty(\"P2\"), " +
+                                "df.getOWLObjectInverseOf(df.getOWLObjectProperty(\"P3\"))), " +
+                                "df.getOWLObjectInverseOf(df.getOWLObjectProperty(\"P\")), " +
+                                "Arrays.asList(df.getRDFSLabel(df.getOWLAnonymousIndividual(\"_:b0\")), " +
+                                "df.getOWLAnnotation(df.getOWLBackwardCompatibleWith(), df.getOWLLiteral(2))))";
+                    }
+                }
+                , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.SUB_PROPERTY_CHAIN_OF;
+                    }
+
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLSubPropertyChainOfAxiom(Arrays.asList(df.getOWLObjectProperty("P"),
+                                df.getOWLObjectProperty("P")), df.getOWLObjectProperty("P"));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLSubPropertyChainOfAxiom(Arrays.asList(df.getOWLObjectProperty(\"P\"), " +
+                                "df.getOWLObjectProperty(\"P\")), df.getOWLObjectProperty(\"P\"))";
+                    }
+                }
         );
 
     }
