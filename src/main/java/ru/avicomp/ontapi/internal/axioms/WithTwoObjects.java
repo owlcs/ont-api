@@ -21,7 +21,10 @@ import org.semanticweb.owlapi.model.OWLObject;
 import ru.avicomp.ontapi.internal.InternalConfig;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
-import ru.avicomp.ontapi.internal.objects.*;
+import ru.avicomp.ontapi.internal.objects.ONTAnnotationImpl;
+import ru.avicomp.ontapi.internal.objects.ONTAxiomImpl;
+import ru.avicomp.ontapi.internal.objects.WithContent;
+import ru.avicomp.ontapi.internal.objects.WithoutAnnotations;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.owlapi.OWLObjectImpl;
@@ -155,7 +158,7 @@ interface WithTwoObjects<S extends OWLObject, O extends OWLObject> extends WithT
                                                            InternalConfig config) {
         R s = simple.apply(statement.asTriple(), model);
         Object[] content = Complex.initContent(s, statement, setHash, factory, config);
-        if (content == ONTStatementImpl.EMPTY) {
+        if (content == null) {
             return s;
         }
         R c = complex.apply(statement.asTriple(), model);
@@ -214,7 +217,7 @@ interface WithTwoObjects<S extends OWLObject, O extends OWLObject> extends WithT
          * @param setHash   - a {@code ObjIntConsumer<OWLAxiom>}, facility to assign {@code hashCode}, not {@code null}
          * @param factory   - a {@link InternalObjectFactory} singleton, not {@code null}
          * @param config    - a {@link InternalConfig} singleton, not {@code null}
-         * @return an {@code Array} with content
+         * @return an {@code Array} with content or {@code null} if no content is needed
          */
         static Object[] initContent(WithTwoObjects axiom,
                                     OntStatement statement,
@@ -240,23 +243,22 @@ interface WithTwoObjects<S extends OWLObject, O extends OWLObject> extends WithT
                 object = axiom.fetchONTObject(statement, factory);
                 hash = OWLObject.hashIteration(hash, object.hashCode());
             }
-            int h = 1;
-            Object[] res;
             if (size == 0) {
-                res = ONTStatementImpl.EMPTY;
-            } else {
-                res = new Object[size];
-                int index = 0;
-                if (subject != null) {
-                    res[index++] = subject;
-                }
-                if (object != null) {
-                    res[index++] = object;
-                }
-                for (Object a : annotations) {
-                    res[index++] = a;
-                    h = WithContent.hashIteration(h, a.hashCode());
-                }
+                setHash.accept(axiom, OWLObject.hashIteration(hash, 1));
+                return null;
+            }
+            int h = 1;
+            Object[] res = new Object[size];
+            int index = 0;
+            if (subject != null) {
+                res[index++] = subject;
+            }
+            if (object != null) {
+                res[index++] = object;
+            }
+            for (Object a : annotations) {
+                res[index++] = a;
+                h = WithContent.hashIteration(h, a.hashCode());
             }
             setHash.accept(axiom, OWLObject.hashIteration(hash, h));
             return res;
@@ -274,9 +276,6 @@ interface WithTwoObjects<S extends OWLObject, O extends OWLObject> extends WithT
                 res.add(fetchONTObject(statement, factory));
             }
             res.addAll(ONTAxiomImpl.collectAnnotations(statement, factory, getConfig()));
-            if (res.isEmpty()) {
-                return ONTStatementImpl.EMPTY;
-            }
             return res.toArray();
         }
 

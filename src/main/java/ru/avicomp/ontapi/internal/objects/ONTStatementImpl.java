@@ -25,7 +25,10 @@ import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.utils.Iter;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.Collection;
+import java.util.Iterator;
+import java.util.Objects;
+import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -39,9 +42,6 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("WeakerAccess")
 public abstract class ONTStatementImpl extends ONTObjectImpl implements WithAnnotations, AsStatement, OWLObject {
-
-    // a marker for the case when there is no content cache
-    public static final Object[] EMPTY = new Object[0];
 
     protected final Object subject; // b-node-id or string
     protected final String predicate;
@@ -95,43 +95,6 @@ public abstract class ONTStatementImpl extends ONTObjectImpl implements WithAnno
         if (node.isLiteral())
             return node.getLiteral();
         throw new OntApiException.IllegalState("Wrong node: " + node);
-    }
-
-    /**
-     * Calculates the hash code for the given {@code array} starting with the specified position.
-     *
-     * @param array      not {@code null}
-     * @param startIndex int, non-negative
-     * @return int
-     * @see java.util.Arrays#hashCode(Object[])
-     */
-    protected static int hashCode(Object[] array, int startIndex) {
-        if (array == EMPTY)
-            return 1;
-        int res = 1;
-        for (int i = startIndex; i < array.length; i++) {
-            res = WithContent.hashIteration(res, array[i].hashCode());
-        }
-        return res;
-    }
-
-    /**
-     * Returns an array containing all of the elements
-     * in the specified collection in the same sequence (from first to last element).
-     * This method is slightly simpler and faster than the standard java method.
-     *
-     * @param collection a {@code Collection}, not {@code null}
-     * @return an {@code Array}
-     * @see AbstractCollection#toArray()
-     */
-    protected static Object[] toArray(Collection collection) {
-        if (collection.isEmpty()) return EMPTY;
-        Object[] res = new Object[collection.size()];
-        int index = 0;
-        for (Object a : collection) {
-            res[index++] = a;
-        }
-        return res;
     }
 
     /**

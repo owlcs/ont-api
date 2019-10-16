@@ -173,7 +173,7 @@ interface WithAssertion<S extends OWLObject, P extends OWLObject, O extends OWLO
                                                           InternalConfig config) {
         R s = simple.apply(statement.asTriple(), model);
         Object[] content = WithAnnotations.initContent(s, statement, setHash, factory, config);
-        if (content == ONTStatementImpl.EMPTY) {
+        if (content == null) {
             return s;
         }
         R c = complex.apply(statement.asTriple(), model);
@@ -247,7 +247,7 @@ interface WithAssertion<S extends OWLObject, P extends OWLObject, O extends OWLO
          *                  (no annotations, uri subject and object), an empty array is returned
          * @param factory   - a {@link InternalObjectFactory} singleton, not {@code null}
          * @param config    - a {@link InternalConfig} singleton, not {@code null}
-         * @return an {@code Array} with content
+         * @return an {@code Array} with content or {@code null} if no content is needed
          */
         static Object[] initContent(WithAssertion axiom,
                                     OntStatement statement,
@@ -265,7 +265,7 @@ interface WithAssertion<S extends OWLObject, P extends OWLObject, O extends OWLO
                 h = WithContent.hashIteration(h, a.hashCode());
             }
             setHash.accept(axiom, OWLObject.hashIteration(hash, h));
-            return res.length == 0 ? ONTStatementImpl.EMPTY : res;
+            return res.length == 0 ? null : res;
         }
 
         @Override

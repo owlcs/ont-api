@@ -22,7 +22,10 @@ import org.semanticweb.owlapi.model.OWLObject;
 import ru.avicomp.ontapi.internal.InternalConfig;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
-import ru.avicomp.ontapi.internal.objects.*;
+import ru.avicomp.ontapi.internal.objects.ONTAxiomImpl;
+import ru.avicomp.ontapi.internal.objects.ONTObjectImpl;
+import ru.avicomp.ontapi.internal.objects.WithContent;
+import ru.avicomp.ontapi.internal.objects.WithoutAnnotations;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.jena.utils.Iter;
@@ -139,17 +142,6 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
     }
 
     /**
-     * Auxiliary method to represent object as cached item.
-     *
-     * @param x {@link ONTObject}, not {@code null}
-     * @return an item for cache
-     * @see WithList#fromContentItem(Object, InternalObjectFactory)
-     */
-    default Object mapItem(ONTObject x) {
-        return WithList.toContentItem(x);
-    }
-
-    /**
      * Creates a {@code Predicate} that allows everything with exclusion of specified elements.
      *
      * @param excludes an {@code Array} of {@link X}-elements to exclude, not {@code null}
@@ -192,15 +184,15 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
                                                             ObjIntConsumer<OWLAxiom> setHash,
                                                             InternalObjectFactory factory,
                                                             InternalConfig config) {
-        R s = simple.apply(statement.asTriple(), model);
-        Object[] content = Complex.initContent(s, statement, setHash, true, factory, config);
-        if (content == ONTStatementImpl.EMPTY) {
-            return s;
-        }
         R c = complex.apply(statement.asTriple(), model);
-        setHash.accept(c, s.hashCode());
-        ((WithContent<?>) c).putContent(content);
-        return c;
+        Object[] content = Complex.initContent((Complex) c, statement, setHash, true, factory, config);
+        if (content != null) {
+            ((WithContent<?>) c).putContent(content);
+            return c;
+        }
+        R s = simple.apply(statement.asTriple(), model);
+        setHash.accept(s, c.hashCode());
+        return s;
     }
 
     /**
@@ -225,8 +217,7 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
                                                     InternalObjectFactory factory,
                                                     InternalConfig config) {
         R res = maker.apply(statement.asTriple(), model);
-        Object[] content = Complex.initContent(res, statement, setHash, false, factory, config);
-        res.putContent(content);
+        res.putContent(Complex.initContent(res, statement, setHash, false, factory, config));
         return res;
     }
 
@@ -289,10 +280,10 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
          *                  (no annotations, uri subject and object), an empty array is returned
          * @param factory   - a {@link InternalObjectFactory} singleton, not {@code null}
          * @param config    - a {@link InternalConfig} singleton, not {@code null}
-         * @return an {@code Array} with content
+         * @return an {@code Array} with content or {@code null} if no content is needed
          */
         @SuppressWarnings("unchecked")
-        static Object[] initContent(WithManyObjects axiom,
+        static Object[] initContent(Complex axiom,
                                     OntStatement statement,
                                     ObjIntConsumer<OWLAxiom> setHash,
                                     boolean simplify,
@@ -304,7 +295,7 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
             int index = 0;
             int h = 1;
             for (ONTObject c : components) {
-                res[index++] = axiom.mapItem(c);
+                res[index++] = axiom.toContentItem(c);
                 h = WithContent.hashIteration(h, c.hashCode());
             }
             int hash = OWLObject.hashIteration(axiom.hashIndex(), h);
@@ -316,10 +307,10 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
             setHash.accept(axiom, OWLObject.hashIteration(hash, h));
             if (simplify && annotations.isEmpty()) {
                 if (res.length == 1 && res[0] instanceof String) { // symmetric triple 's p s'
-                    return ONTStatementImpl.EMPTY;
+                    return null;
                 }
                 if (res.length == 2 && res[0] instanceof String && res[1] instanceof String) { // 's p o'
-                    return ONTStatementImpl.EMPTY;
+                    return null;
                 }
             }
             return res;
@@ -332,9 +323,6 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
             List<ONTObject> res = new ArrayList<>(2);
             res.addAll(fetchONTComponents(statement, factory));
             res.addAll(ONTAxiomImpl.collectAnnotations(statement, factory, getConfig()));
-            if (res.isEmpty()) {
-                return ONTStatementImpl.EMPTY;
-            }
             return res.toArray();
         }
 

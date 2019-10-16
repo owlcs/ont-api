@@ -21,7 +21,10 @@ import org.semanticweb.owlapi.model.OWLObject;
 import ru.avicomp.ontapi.internal.InternalConfig;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
-import ru.avicomp.ontapi.internal.objects.*;
+import ru.avicomp.ontapi.internal.objects.ONTAnnotationImpl;
+import ru.avicomp.ontapi.internal.objects.ONTAxiomImpl;
+import ru.avicomp.ontapi.internal.objects.WithContent;
+import ru.avicomp.ontapi.internal.objects.WithoutAnnotations;
 import ru.avicomp.ontapi.jena.model.OntGraphModel;
 import ru.avicomp.ontapi.jena.model.OntStatement;
 import ru.avicomp.ontapi.owlapi.OWLObjectImpl;
@@ -90,7 +93,7 @@ interface WithOneObject<S extends OWLObject> extends WithTriple {
                                                           InternalConfig config) {
         R s = simple.apply(statement.asTriple(), model);
         Object[] content = Complex.initContent(s, statement, setHash, factory, config);
-        if (content == ONTStatementImpl.EMPTY) {
+        if (content == null) {
             return s;
         }
         R c = complex.apply(statement.asTriple(), model);
@@ -141,7 +144,7 @@ interface WithOneObject<S extends OWLObject> extends WithTriple {
          * @param setHash   - a {@code ObjIntConsumer<OWLAxiom>}, facility to assign {@code hashCode}, not {@code null}
          * @param factory   - a {@link InternalObjectFactory} singleton, not {@code null}
          * @param config    - a {@link InternalConfig} singleton, not {@code null}
-         * @return an {@code Array} with content
+         * @return an {@code Array} with content or {@code null} if no content is needed
          */
         static Object[] initContent(WithOneObject axiom,
                                     OntStatement statement,
@@ -165,7 +168,7 @@ interface WithOneObject<S extends OWLObject> extends WithTriple {
                 h = WithContent.hashIteration(h, a.hashCode());
             }
             setHash.accept(axiom, OWLObject.hashIteration(hash, h));
-            return res.length == 0 ? ONTStatementImpl.EMPTY : res;
+            return res.length == 0 ? null : res;
         }
 
         @Override
@@ -178,9 +181,6 @@ interface WithOneObject<S extends OWLObject> extends WithTriple {
                 res.add(value);
             }
             res.addAll(ONTAxiomImpl.collectAnnotations(statement, factory, getConfig()));
-            if (res.isEmpty()) {
-                return ONTStatementImpl.EMPTY;
-            }
             return res.toArray();
         }
 

@@ -113,8 +113,8 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
          * Creates an {@link OWLDeclarationAxiom} that is also {@link ONTObject}.
          *
          * Impl notes: if there is no annotations associated with the given {@link OntStatement},
-         * then a {@link Simple} instance is returned.
-         * Otherwise the method returns a {@link WithAnnotations} instance with a cache inside.
+         * then a {@link SimpleImpl} instance is returned.
+         * Otherwise the method returns a {@link WithAnnotationsImpl} instance with a cache inside.
          *
          * @param statement  {@link OntStatement}, the source
          * @param model  {@link OntGraphModel}-provider
@@ -128,12 +128,12 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
                                        InternalConfig config) {
             Collection annotations = ONTAxiomImpl.collectAnnotations(statement, factory, config);
             if (annotations.isEmpty()) {
-                Simple res = new Simple(statement.asTriple(), model);
+                SimpleImpl res = new SimpleImpl(statement.asTriple(), model);
                 int hash = OWLObject.hashIteration(res.hashIndex(), res.findONTEntity(factory).hashCode());
                 res.hashCode = OWLObject.hashIteration(hash, 1);
                 return res;
             }
-            WithAnnotations res = new WithAnnotations(statement.asTriple(), model);
+            WithAnnotationsImpl res = new WithAnnotationsImpl(statement.asTriple(), model);
             int hash = OWLObject.hashIteration(res.hashIndex(), res.findONTEntity(factory).hashCode());
             if (annotations.isEmpty()) {
                 res.hashCode = OWLObject.hashIteration(hash, 1);
@@ -244,9 +244,9 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
         /**
          * An {@link OWLDeclarationAxiom} that has no annotations.
          */
-        public static class Simple extends AxiomImpl implements WithoutAnnotations {
+        public static class SimpleImpl extends AxiomImpl implements WithoutAnnotations {
 
-            protected Simple(Triple t, Supplier<OntGraphModel> m) {
+            protected SimpleImpl(Triple t, Supplier<OntGraphModel> m) {
                 super(t, m);
             }
 
@@ -285,32 +285,26 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
 
         /**
          * An {@link OWLDeclarationAxiom} that has annotations.
-         * This class has a public constructor since it is more generic then {@link Simple}.
+         * This class has a public constructor since it is more generic then {@link SimpleImpl}.
          * Impl note: since Java does not allow multiple inheritance, copy-paste cannot be avoided here...
          *
-         * @see ONTAnnotationImpl.WithAnnotations
+         * @see ONTAnnotationImpl.WithAnnotationsImpl
          */
-        public static class WithAnnotations extends AxiomImpl implements WithContent<WithAnnotations> {
-            protected final InternalCache.Loading<WithAnnotations, Object[]> content;
+        public static class WithAnnotationsImpl extends AxiomImpl implements WithContent<WithAnnotationsImpl> {
+            protected final InternalCache.Loading<WithAnnotationsImpl, Object[]> content;
 
-            public WithAnnotations(Triple t, Supplier<OntGraphModel> m) {
+            public WithAnnotationsImpl(Triple t, Supplier<OntGraphModel> m) {
                 super(t, m);
                 this.content = createContentCache();
             }
 
-            protected static Object[] collectContent(OntStatement statement,
-                                                     InternalObjectFactory factory,
-                                                     InternalConfig config) {
-                return toArray(collectAnnotations(statement, factory, config));
-            }
-
             @Override
             public Object[] collectContent() {
-                return collectContent(asStatement(), getObjectFactory(), getConfig());
+                return collectAnnotations(asStatement(), getObjectFactory(), getConfig()).toArray();
             }
 
             @Override
-            public InternalCache.Loading<WithAnnotations, Object[]> getContentCache() {
+            public InternalCache.Loading<WithAnnotationsImpl, Object[]> getContentCache() {
                 return content;
             }
 

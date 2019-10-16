@@ -134,7 +134,7 @@ public class AnnotationAssertionTranslator
                                        InternalObjectFactory factory,
                                        InternalConfig config) {
             return WithAssertion.create(statement, model,
-                    SimpleImpl.FACTORY, WithAnnotationsImpl.FACTORY, SET_HASH_CODE, factory, config);
+                    SimpleImpl.FACTORY, AxiomImpl.WithAnnotationsImpl.FACTORY, SET_HASH_CODE, factory, config);
         }
 
         @Override
@@ -260,14 +260,14 @@ public class AnnotationAssertionTranslator
          * An {@link OWLAnnotationAssertionAxiom} that has sub-annotations.
          * This class has a public constructor since it is more generic then {@link SimpleImpl}.
          *
-         * @see ONTAnnotationImpl.WithAnnotations
+         * @see ONTAnnotationImpl.WithAnnotationsImpl
          */
         public static class WithAnnotationsImpl extends AxiomImpl
                 implements WithAnnotations<WithAnnotationsImpl,
                 OWLAnnotationSubject, OWLAnnotationProperty, OWLAnnotationValue> {
 
             private static final BiFunction<Triple, Supplier<OntGraphModel>, WithAnnotationsImpl> FACTORY =
-                    WithAnnotationsImpl::new;
+                    AxiomImpl.WithAnnotationsImpl::new;
             protected final InternalCache.Loading<WithAnnotationsImpl, Object[]> content;
 
             public WithAnnotationsImpl(Triple t, Supplier<OntGraphModel> m) {

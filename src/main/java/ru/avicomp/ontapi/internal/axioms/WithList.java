@@ -103,12 +103,12 @@ interface WithList<A extends OWLAxiom, E extends OWLObject> extends WithTriple, 
     }
 
     /**
-     * Makes an item to cache from the object.
+     * Makes a content item from the object.
      *
      * @param x {@link ONTObject} to cache, not {@code null}
-     * @return cache item
+     * @return a content item
      */
-    static Object toContentItem(ONTObject x) {
+    default Object toContentItem(ONTObject x) {
         return x instanceof OWLEntity ? ONTEntityImpl.getURI((OWLEntity) x) : x;
     }
 
@@ -232,13 +232,13 @@ interface WithList<A extends OWLAxiom, E extends OWLObject> extends WithTriple, 
             R res = getAxiom.apply(statement.asTriple(), model);
             List content = new ArrayList();
             ONTObject<? extends OWLObject> s = res.fetchONTSubject(statement, factory);
-            content.add(toContentItem(s));
+            content.add(res.toContentItem(s));
             Iterator<ONTObject<? extends OWLObject>> it = res.listONTComponents(statement, factory);
             int h = 1;
             while (it.hasNext()) {
                 ONTObject e = it.next();
                 h = WithContent.hashIteration(h, e.hashCode());
-                content.add(toContentItem(e));
+                content.add(res.toContentItem(e));
             }
             int hash = OWLObject.hashIteration(res.hashIndex(), h);
             hash = OWLObject.hashIteration(hash, s.hashCode());
@@ -304,11 +304,11 @@ interface WithList<A extends OWLAxiom, E extends OWLObject> extends WithTriple, 
             Collection<ONTObject<OWLAnnotation>> annotations = ONTAxiomImpl.collectAnnotations(statement, factory, config);
             Object[] content = new Object[1 + components.size() + annotations.size()];
             int index = 0;
-            content[index++] = toContentItem(s);
+            content[index++] = res.toContentItem(s);
             int h = 1;
             for (ONTObject x : components) {
                 h = WithContent.hashIteration(h, x.hashCode());
-                content[index++] = toContentItem(x);
+                content[index++] = res.toContentItem(x);
             }
             hash = OWLObject.hashIteration(hash, s.hashCode());
             h = 1;

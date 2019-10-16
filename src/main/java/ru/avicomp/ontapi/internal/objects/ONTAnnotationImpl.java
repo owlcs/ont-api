@@ -54,8 +54,8 @@ public abstract class ONTAnnotationImpl extends ONTStatementImpl
      *
      * Impl notes:
      * If the annotation does not contain sub-annotations,
-     * then a simplified instance of {@link Simple} is returned.
-     * Otherwise the instance is {@link WithAnnotations} with a cache inside.
+     * then a simplified instance of {@link SimpleImpl} is returned.
+     * Otherwise the instance is {@link WithAnnotationsImpl} with a cache inside.
      *
      * @param statement {@link OntStatement}, must be annotation (i.e. {@link OntStatement#isAnnotation()}
      *                   must be {@code true}), not {@code null}
@@ -66,14 +66,20 @@ public abstract class ONTAnnotationImpl extends ONTStatementImpl
     public static ONTAnnotationImpl create(OntStatement statement,
                                            InternalObjectFactory factory,
                                            Supplier<OntGraphModel> model) {
-        Object[] content = WithAnnotations.collectContent(statement, factory);
-        ONTAnnotationImpl res;
-        if (content == EMPTY) {
-            res = new Simple(statement.asTriple(), model);
-        } else {
-            res = WithContent.addContent(new WithAnnotations(statement.asTriple(), model), content);
+        Collection annotations = collectAnnotations(statement, factory);
+        if (annotations.isEmpty()) {
+            SimpleImpl res = new SimpleImpl(statement.asTriple(), model);
+            res.hashCode = collectHashCode(res, factory, 1);
         }
-        res.hashCode = collectHashCode(res, factory, content);
+        Object[] content = new Object[annotations.size()];
+        WithAnnotationsImpl res = new WithAnnotationsImpl(statement.asTriple(), model);
+        int hash = 1, index = 0;
+        for (Object a : annotations) {
+            content[index++] = a;
+            hash = WithContent.hashIteration(hash, a.hashCode());
+        }
+        res.hashCode = collectHashCode(res, factory, hash);
+        res.putContent(content);
         return res;
     }
 
@@ -82,16 +88,15 @@ public abstract class ONTAnnotationImpl extends ONTStatementImpl
      *
      * @param res     {@link ONTAnnotationImpl}, not {@code null}
      * @param factory {@link InternalObjectFactory}, not {@code null}
-     * @param content an {@code Array} of sub-annotations
+     * @param contentHashCode int, a {@code hashCode} of sub-annotations
      * @return int
      */
     private static int collectHashCode(ONTAnnotationImpl res,
                                        InternalObjectFactory factory,
-                                       Object[] content) {
-        int hash = res.hashIndex();
-        hash = OWLObject.hashIteration(hash, res.findONTAnnotationProperty(factory).hashCode());
+                                       int contentHashCode) {
+        int hash = OWLObject.hashIteration(res.hashIndex(), res.findONTAnnotationProperty(factory).hashCode());
         hash = OWLObject.hashIteration(hash, res.findONTAnnotationValue(factory).hashCode());
-        return OWLObject.hashIteration(hash, hashCode(content, 0));
+        return OWLObject.hashIteration(hash, contentHashCode);
     }
 
     /**
@@ -391,13 +396,13 @@ public abstract class ONTAnnotationImpl extends ONTStatementImpl
     /**
      * An {@link OWLAnnotation} that has no sub-annotations.
      */
-    public static class Simple extends ONTAnnotationImpl implements WithoutAnnotations {
+    public static class SimpleImpl extends ONTAnnotationImpl implements WithoutAnnotations {
 
-        protected Simple(Triple t, Supplier<OntGraphModel> m) {
+        protected SimpleImpl(Triple t, Supplier<OntGraphModel> m) {
             this(strip(t.getSubject()), t.getPredicate().getURI(), strip(t.getObject()), m);
         }
 
-        protected Simple(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+        protected SimpleImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
             super(subject, predicate, object, m);
         }
 
@@ -415,12 +420,12 @@ public abstract class ONTAnnotationImpl extends ONTStatementImpl
         }
 
         @Override
-        protected Simple makeCopyWith(ONTObject<OWLAnnotation> other) {
-            return new Simple(subject, predicate, object, model) {
+        protected SimpleImpl makeCopyWith(ONTObject<OWLAnnotation> other) {
+            return new SimpleImpl(subject, predicate, object, model) {
 
                 @Override
                 public Stream<Triple> triples() {
-                    return Stream.concat(Simple.this.triples(), other.triples());
+                    return Stream.concat(SimpleImpl.this.triples(), other.triples());
                 }
             };
         }
@@ -477,29 +482,25 @@ public abstract class ONTAnnotationImpl extends ONTStatementImpl
 
     /**
      * An {@link OWLAnnotation} that has sub-annotations.
-     * It has a public constructor since it is more generic then {@link Simple}.
+     * It has a public constructor since it is more generic then {@link SimpleImpl}.
      */
-    public static class WithAnnotations extends ONTAnnotationImpl implements WithContent<WithAnnotations> {
-        protected final InternalCache.Loading<WithAnnotations, Object[]> content;
+    public static class WithAnnotationsImpl extends ONTAnnotationImpl implements WithContent<WithAnnotationsImpl> {
+        protected final InternalCache.Loading<WithAnnotationsImpl, Object[]> content;
 
-        public WithAnnotations(Triple t, Supplier<OntGraphModel> m) {
+        public WithAnnotationsImpl(Triple t, Supplier<OntGraphModel> m) {
             this(strip(t.getSubject()), t.getPredicate().getURI(), strip(t.getObject()), m);
         }
 
-        protected WithAnnotations(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+        protected WithAnnotationsImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
             super(subject, predicate, object, m);
             this.content = createContentCache();
         }
 
-        protected static Object[] collectContent(OntStatement statement, InternalObjectFactory factory) {
-            return toArray(collectAnnotations(statement, factory));
-        }
-
         @Override
         protected boolean sameContent(ONTStatementImpl other) {
-            return other instanceof WithAnnotations
+            return other instanceof WithAnnotationsImpl
                     && predicate.equals(other.predicate) && object.equals(other.object)
-                    && Arrays.equals(getContent(), ((WithAnnotations) other).getContent());
+                    && Arrays.equals(getContent(), ((WithAnnotationsImpl) other).getContent());
         }
 
         @SuppressWarnings("unchecked")
@@ -511,11 +512,11 @@ public abstract class ONTAnnotationImpl extends ONTStatementImpl
 
         @Override
         public Object[] collectContent() {
-            return collectContent(asStatement(), getObjectFactory());
+            return collectAnnotations(asStatement(), getObjectFactory()).toArray();
         }
 
         @Override
-        public InternalCache.Loading<WithAnnotations, Object[]> getContentCache() {
+        public InternalCache.Loading<WithAnnotationsImpl, Object[]> getContentCache() {
             return content;
         }
 
@@ -541,12 +542,12 @@ public abstract class ONTAnnotationImpl extends ONTStatementImpl
         }
 
         @Override
-        protected WithAnnotations makeCopyWith(ONTObject<OWLAnnotation> other) {
-            WithAnnotations res = new WithAnnotations(subject, predicate, object, model) {
+        protected WithAnnotationsImpl makeCopyWith(ONTObject<OWLAnnotation> other) {
+            WithAnnotationsImpl res = new WithAnnotationsImpl(subject, predicate, object, model) {
 
                 @Override
                 public Stream<Triple> triples() {
-                    return Stream.concat(WithAnnotations.this.triples(), other.triples());
+                    return Stream.concat(WithAnnotationsImpl.this.triples(), other.triples());
                 }
             };
             if (hasContent()) {
