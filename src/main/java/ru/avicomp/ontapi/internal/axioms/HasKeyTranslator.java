@@ -14,24 +14,29 @@
 
 package ru.avicomp.ontapi.internal.axioms;
 
+import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Property;
-import org.semanticweb.owlapi.model.OWLClassExpression;
-import org.semanticweb.owlapi.model.OWLHasKeyAxiom;
-import org.semanticweb.owlapi.model.OWLObject;
-import org.semanticweb.owlapi.model.OWLPropertyExpression;
+import org.apache.jena.rdf.model.RDFList;
+import org.apache.jena.util.iterator.ExtendedIterator;
+import org.semanticweb.owlapi.model.*;
+import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.internal.InternalConfig;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
-import ru.avicomp.ontapi.jena.model.OntCE;
-import ru.avicomp.ontapi.jena.model.OntDOP;
-import ru.avicomp.ontapi.jena.model.OntStatement;
+import ru.avicomp.ontapi.internal.objects.FactoryAccessor;
+import ru.avicomp.ontapi.internal.objects.ONTClassImpl;
+import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.utils.OntModels;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 import java.util.Collection;
+import java.util.function.BiFunction;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
- * Translator for HasKey axiom.
+ * A translator that provides {@link OWLHasKeyAxiom} implementations.
  * Example in turtle:
  * <pre>{@code
  * :MyClass1 owl:hasKey ( :ob-prop-1 ) .
@@ -41,7 +46,8 @@ import java.util.stream.Collectors;
  *
  * @see <a href='https://www.w3.org/TR/owl2-syntax/#Keys'>9.5 Keys</a>
  */
-public class HasKeyTranslator extends AbstractListBasedTranslator<OWLHasKeyAxiom, OntCE, OWLClassExpression, OntDOP, OWLPropertyExpression> {
+public class HasKeyTranslator
+        extends AbstractListBasedTranslator<OWLHasKeyAxiom, OntCE, OWLClassExpression, OntDOP, OWLPropertyExpression> {
     @Override
     OWLObject getSubject(OWLHasKeyAxiom axiom) {
         return axiom.getClassExpression();
@@ -63,10 +69,131 @@ public class HasKeyTranslator extends AbstractListBasedTranslator<OWLHasKeyAxiom
     }
 
     @Override
-    public ONTObject<OWLHasKeyAxiom> toAxiom(OntStatement statement, InternalObjectFactory reader, InternalConfig config) {
-        return makeAxiom(statement, reader::getClass, OntCE::findHasKey, reader::getProperty, Collectors.toSet(),
-                (s, m) -> reader.getOWLDataFactory().getOWLHasKeyAxiom(s.getOWLObject(),
-                        ONTObject.toSet(m),
-                        ONTObject.toSet(reader.getAnnotations(statement, config))));
+    public ONTObject<OWLHasKeyAxiom> toAxiom(OntStatement statement,
+                                             Supplier<OntGraphModel> model,
+                                             InternalObjectFactory factory,
+                                             InternalConfig config) {
+        return AxiomImpl.create(statement, model, factory, config);
     }
+
+    @Override
+    public ONTObject<OWLHasKeyAxiom> toAxiom(OntStatement statement,
+                                             InternalObjectFactory factory,
+                                             InternalConfig config) {
+        return makeAxiom(statement, factory::getClass, OntCE::findHasKey, factory::getProperty, Collectors.toSet(),
+                (s, m) -> factory.getOWLDataFactory().getOWLHasKeyAxiom(s.getOWLObject(),
+                        ONTObject.toSet(m),
+                        ONTObject.toSet(factory.getAnnotations(statement, config))));
+    }
+
+    /**
+     * @see ru.avicomp.ontapi.owlapi.axioms.OWLHasKeyAxiomImpl
+     */
+    public static class AxiomImpl
+            extends WithListImpl<OWLHasKeyAxiom, OntDOP>
+            implements WithList.Sorted<OWLHasKeyAxiom, OWLClassExpression, OWLPropertyExpression>, OWLHasKeyAxiom {
+
+        private static final BiFunction<Triple, Supplier<OntGraphModel>, AxiomImpl> FACTORY = AxiomImpl::new;
+
+        protected AxiomImpl(Triple t, Supplier<OntGraphModel> m) {
+            super(t, m);
+        }
+
+        protected AxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+            super(subject, predicate, object, m);
+        }
+
+        /**
+         * Creates an {@link ONTObject} container that is also {@link  OWLHasKeyAxiom}.
+         *
+         * @param statement {@link OntStatement}, not {@code null}
+         * @param model     {@link OntGraphModel} provider, not {@code null}
+         * @param factory   {@link InternalObjectFactory}, not {@code null}
+         * @param config    {@link InternalConfig}, not {@code null}
+         * @return {@link AxiomImpl}
+         */
+        public static AxiomImpl create(OntStatement statement,
+                                       Supplier<OntGraphModel> model,
+                                       InternalObjectFactory factory,
+                                       InternalConfig config) {
+            return WithList.Sorted.create(statement, model, FACTORY, SET_HASH_CODE, factory, config);
+        }
+
+        @Override
+        protected OntList<OntDOP> findList(OntStatement statement) {
+            return statement.getSubject(OntCE.class).findHasKey(statement.getObject(RDFList.class))
+                    .orElseThrow(() -> new OntApiException.IllegalState("Can't find []-list in " + statement));
+        }
+
+        @Override
+        public ExtendedIterator<ONTObject<? extends OWLPropertyExpression>> listONTComponents(OntStatement statement,
+                                                                                              InternalObjectFactory factory) {
+            return OntModels.listMembers(findList(statement)).mapWith(factory::getProperty);
+        }
+
+        @Override
+        public OWLClassExpression getClassExpression() {
+            return getONTSubject().getOWLObject();
+        }
+
+        @Override
+        public Stream<OWLPropertyExpression> propertyExpressions() {
+            return operands();
+        }
+
+        @Override
+        public Stream<OWLPropertyExpression> operands() {
+            return members().map(ONTObject::getOWLObject);
+        }
+
+        /**
+         * {@inheritDoc}
+         * Since the concrete type of a property is unknown, the item is cached as is.
+         */
+        @Override
+        public ONTObject fromContentItem(Object x, InternalObjectFactory factory) {
+            return (ONTObject) x;
+        }
+
+        /**
+         * {@inheritDoc}
+         * Since the concrete type of a property is unknown, the item is cached as is.
+         */
+        @Override
+        public Object toContentItem(ONTObject x) {
+            return x;
+        }
+
+        @Override
+        public ONTObject<? extends OWLClassExpression> findSubjectByURI(String uri, InternalObjectFactory factory) {
+            return ONTClassImpl.find(uri, factory, model);
+        }
+
+        @Override
+        public ONTObject<? extends OWLClassExpression> fetchONTSubject(OntStatement statement,
+                                                                       InternalObjectFactory factory) {
+            return factory.getClass(statement.getSubject(OntCE.class));
+        }
+
+        @Override
+        protected AxiomImpl makeCopy(ONTObject<OWLHasKeyAxiom> other) {
+            return new AxiomImpl(subject, predicate, object, model) {
+                @Override
+                public Stream<Triple> triples() {
+                    return Stream.concat(AxiomImpl.this.triples(), other.triples());
+                }
+            };
+        }
+
+        @FactoryAccessor
+        @Override
+        protected OWLHasKeyAxiom createAnnotatedAxiom(Object[] content,
+                                                      InternalObjectFactory factory,
+                                                      Collection<OWLAnnotation> annotations) {
+            return getDataFactory().getOWLHasKeyAxiom(eraseModel(findONTSubject(content[0], factory).getOWLObject()),
+                    members(content, factory).map(x -> eraseModel(x.getOWLObject())).collect(Collectors.toList()),
+                    annotations);
+        }
+    }
+
 }

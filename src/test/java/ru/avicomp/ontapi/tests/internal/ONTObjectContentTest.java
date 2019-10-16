@@ -296,4 +296,31 @@ public class ONTObjectContentTest {
         Assert.assertEquals(3, o.axioms().count());
         Assert.assertEquals(4, g.size());
     }
+
+    @Test
+    public void testMergeHasKeys() {
+        OntologyManager m = OntManagers.createONT();
+        OntologyModel o = m.createOntology();
+        OntGraphModel g = o.asGraphModel();
+
+        OntClass c = g.createOntClass("C");
+        OntNOP x = g.createObjectProperty("P");
+        OntNOP y = g.createObjectProperty("Y");
+        OntNDP z = g.createDataProperty("Z");
+
+        c.addHasKey(x, y, z).addHasKey(x, z, y, x);
+        ReadWriteUtils.print(g);
+        Assert.assertEquals(19, g.size());
+
+        Assert.assertEquals(5, o.axioms().count());
+        OWLHasKeyAxiom a = o.axioms(AxiomType.HAS_KEY)
+                .findFirst().orElseThrow(AssertionError::new);
+
+        o.remove(a);
+
+        ReadWriteUtils.print(g);
+        o.clearCache();
+        Assert.assertEquals(4, o.axioms().count());
+        Assert.assertEquals(5, g.size());
+    }
 }

@@ -49,15 +49,6 @@ import java.util.stream.Stream;
 interface WithList<A extends OWLAxiom, E extends OWLObject> extends WithTriple, WithContent<A> {
 
     /**
-     * Gets the {@link ONTObject} list-member from the factory by the specified URI.
-     *
-     * @param uri     String, an entity URI, not {@code null}
-     * @param factory {@link InternalObjectFactory}, not {@code null}
-     * @return {@link ONTObject} of {@link E}
-     */
-    ONTObject<? extends E> findByURI(String uri, InternalObjectFactory factory);
-
-    /**
      * Extracts and lists all members from the statement.
      *
      * @param statement {@link OntStatement}, not {@code null}
@@ -65,6 +56,24 @@ interface WithList<A extends OWLAxiom, E extends OWLObject> extends WithTriple, 
      * @return an {@link ExtendedIterator} of {@link ONTObject}s with {@link E}s
      */
     ExtendedIterator<ONTObject<? extends E>> listONTComponents(OntStatement statement, InternalObjectFactory factory);
+
+    /**
+     * Lists all components and annotations of this axiom.
+     *
+     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @return a {@code Stream} of {@link ONTObject}s that wrap either {@link E}s or {@link OWLAnnotation}s
+     */
+    Stream<ONTObject<? extends OWLObject>> objects(InternalObjectFactory factory);
+
+    /**
+     * Restores the cached object to the {@link ONTObject} instance.
+     *
+     * @param x       - cached item, not {@code null}
+     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @return {@link ONTObject}
+     * @see WithList#toContentItem(ONTObject)
+     */
+    ONTObject fromContentItem(Object x, InternalObjectFactory factory);
 
     @Override
     default boolean isAnnotated() {
@@ -84,29 +93,11 @@ interface WithList<A extends OWLAxiom, E extends OWLObject> extends WithTriple, 
     }
 
     /**
-     * Lists all components and annotations of this axiom.
-     *
-     * @param factory {@link InternalObjectFactory}, not {@code null}
-     * @return a {@code Stream} of {@link ONTObject}s that wrap either {@link E}s or {@link OWLAnnotation}s
-     */
-    Stream<ONTObject<? extends OWLObject>> objects(InternalObjectFactory factory);
-
-    /**
-     * Restores the cached object to the {@link ONTObject} instance.
-     *
-     * @param x       - cached item, not {@code null}
-     * @param factory {@link InternalObjectFactory}, not {@code null}
-     * @return {@link ONTObject}
-     */
-    default ONTObject fromContentItem(Object x, InternalObjectFactory factory) {
-        return x instanceof String ? findByURI((String) x, factory) : (ONTObject) x;
-    }
-
-    /**
      * Makes a content item from the object.
      *
      * @param x {@link ONTObject} to cache, not {@code null}
      * @return a content item
+     * @see WithList#fromContentItem(Object, InternalObjectFactory)
      */
     default Object toContentItem(ONTObject x) {
         return x instanceof OWLEntity ? ONTEntityImpl.getURI((OWLEntity) x) : x;
@@ -179,6 +170,10 @@ interface WithList<A extends OWLAxiom, E extends OWLObject> extends WithTriple, 
         default ONTObject<? extends S> findONTSubject(Object content, InternalObjectFactory factory) {
             return content instanceof String ?
                     findSubjectByURI((String) content, factory) : (ONTObject<? extends S>) content;
+        }
+
+        default Stream<ONTObject<? extends E>> members() {
+            return members(getContent(), getObjectFactory());
         }
 
         @SuppressWarnings("unchecked")
@@ -268,7 +263,7 @@ interface WithList<A extends OWLAxiom, E extends OWLObject> extends WithTriple, 
     }
 
     /**
-     * A {@link WithList.WithSubject} axiom that has no order determining by {@code rdf:List},
+     * A {@link WithList.WithSubject} axiom whose components order does not determine by underlying {@code rdf:List},
      * all items are stored as sorted {@code Collection}.
      *
      * @param <A> - subtype of {@link OWLAxiom}
@@ -310,7 +305,7 @@ interface WithList<A extends OWLAxiom, E extends OWLObject> extends WithTriple, 
                 h = WithContent.hashIteration(h, x.hashCode());
                 content[index++] = res.toContentItem(x);
             }
-            hash = OWLObject.hashIteration(hash, s.hashCode());
+            hash = OWLObject.hashIteration(hash, h);
             h = 1;
             for (Object a : annotations) {
                 h = WithContent.hashIteration(h, a.hashCode());

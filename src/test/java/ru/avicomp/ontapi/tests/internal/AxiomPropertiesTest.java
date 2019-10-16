@@ -16,17 +16,14 @@ package ru.avicomp.ontapi.tests.internal;
 
 import org.junit.Assert;
 import org.junit.Test;
-import org.semanticweb.owlapi.model.AxiomType;
-import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
-import org.semanticweb.owlapi.model.OWLSubPropertyChainOfAxiom;
+import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.tests.TestFactory;
 
 import java.util.List;
-import java.util.function.Predicate;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -48,11 +45,23 @@ public class AxiomPropertiesTest {
         List<TestFactory.AxiomData> data = TestFactory.getObjects().stream().filter(TestFactory.Data::isAxiom)
                 .map(x -> (TestFactory.AxiomData) x).filter(x -> AxiomType.SUB_PROPERTY_CHAIN_OF.equals(x.getType()))
                 .collect(Collectors.toList());
-        testAxiom(data, OWLSubPropertyChainOfAxiom::isEncodingOfTransitiveProperty);
+        testAxiom(data, OWLSubPropertyChainOfAxiom::isEncodingOfTransitiveProperty,
+                OWLSubPropertyChainOfAxiom::getPropertyChain);
+    }
+
+    @Test
+    public void testHasKey() {
+        List<TestFactory.AxiomData> data = TestFactory.getObjects().stream().filter(TestFactory.Data::isAxiom)
+                .map(x -> (TestFactory.AxiomData) x).filter(x -> AxiomType.HAS_KEY.equals(x.getType()))
+                .collect(Collectors.toList());
+        testAxiom(data, (OWLHasKeyAxiom a) -> a.dataPropertyExpressions().collect(Collectors.toSet()),
+                (OWLHasKeyAxiom a) -> a.objectPropertyExpressions().collect(Collectors.toSet()));
     }
 
     @SuppressWarnings("unchecked")
-    private static <X extends OWLAxiom> void testAxiom(List<TestFactory.AxiomData> data, Predicate<X> property) {
+    @SafeVarargs
+    private static <X extends OWLAxiom> void testAxiom(List<TestFactory.AxiomData> data,
+                                                       Function<X, Object>... properties) {
         Assert.assertFalse(data.isEmpty());
         for (TestFactory.AxiomData a : data) {
             LOGGER.debug("Test properties for '{}'", a);
@@ -60,9 +69,11 @@ public class AxiomPropertiesTest {
             X ont = (X) a.create(ObjectFactoryTestBase.ONT_DATA_FACTORY);
             X res = (X) CommonAxiomsTest.createONTObject(OntManagers.createONT(), owl);
             Assert.assertEquals(owl, res);
-            boolean expected = property.test(owl);
-            Assert.assertEquals(expected, property.test(ont));
-            Assert.assertEquals(expected, property.test(res));
+            for (Function<X, Object> property : properties) {
+                Object expected = property.apply(owl);
+                Assert.assertEquals(expected, property.apply(ont));
+                Assert.assertEquals(expected, property.apply(res));
+            }
         }
     }
 }

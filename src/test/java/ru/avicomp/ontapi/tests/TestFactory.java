@@ -2268,6 +2268,46 @@ public class TestFactory {
                                 "df.getOWLObjectProperty(\"P\")), df.getOWLObjectProperty(\"P\"))";
                     }
                 }
+                , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.HAS_KEY;
+                    }
+
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLHasKeyAxiom(df.getOWLClass("C"),
+                                Arrays.asList(df.getOWLObjectProperty("O"), df.getOWLDataProperty("D")));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLHasKeyAxiom(df.getOWLClass(\"C\"), " +
+                                "Arrays.asList(df.getOWLObjectProperty(\"O\"), df.getOWLDataProperty(\"D\")))";
+                    }
+                }
+                , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.HAS_KEY;
+                    }
+
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLHasKeyAxiom(df.getOWLObjectOneOf(df.getOWLNamedIndividual("I"),
+                                df.getOWLAnonymousIndividual("_:b0")),
+                                Collections.singletonList(df.getOWLObjectInverseOf(df.getOWLObjectProperty("OP"))),
+                                Collections.singleton(df.getRDFSComment(df.getOWLLiteral(false))));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLHasKeyAxiom(df.getOWLObjectOneOf(df.getOWLNamedIndividual(\"I\"), " +
+                                "df.getOWLAnonymousIndividual(\"_:b0\")), " +
+                                "Collections.singletonList(df.getOWLObjectInverseOf(df.getOWLObjectProperty(\"OP\"))), " +
+                                "Collections.singleton(df.getRDFSComment(df.getOWLLiteral(false))))";
+                    }
+                }
         );
 
     }

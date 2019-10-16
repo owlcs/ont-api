@@ -326,6 +326,11 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
             return res.toArray();
         }
 
+        @Override
+        default ONTObject fromContentItem(Object x, InternalObjectFactory factory) {
+            return x instanceof String ? findByURI((String) x, factory) : (ONTObject) x;
+        }
+
         @SuppressWarnings("unchecked")
         @Override
         default Stream<ONTObject<? extends OWLObject>> objects(InternalObjectFactory factory) {
