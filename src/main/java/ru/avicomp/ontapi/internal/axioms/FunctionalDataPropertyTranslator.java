@@ -77,7 +77,6 @@ public class FunctionalDataPropertyTranslator
     /**
      * @see ru.avicomp.ontapi.owlapi.axioms.OWLFunctionalDataPropertyAxiomImpl
      */
-    @SuppressWarnings("WeakerAccess")
     public static abstract class AxiomImpl
             extends UnaryAxiomImpl<OWLFunctionalDataPropertyAxiom, OWLDataPropertyExpression>
             implements OWLFunctionalDataPropertyAxiom {

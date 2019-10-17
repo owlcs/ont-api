@@ -14,23 +14,31 @@
 
 package ru.avicomp.ontapi.internal.axioms;
 
+import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Property;
-import org.semanticweb.owlapi.model.OWLClassExpression;
-import org.semanticweb.owlapi.model.OWLDisjointUnionAxiom;
-import org.semanticweb.owlapi.model.OWLObject;
+import org.apache.jena.rdf.model.RDFList;
+import org.apache.jena.util.iterator.ExtendedIterator;
+import org.semanticweb.owlapi.model.*;
+import ru.avicomp.ontapi.DataFactory;
+import ru.avicomp.ontapi.OntApiException;
 import ru.avicomp.ontapi.internal.InternalConfig;
 import ru.avicomp.ontapi.internal.InternalObjectFactory;
 import ru.avicomp.ontapi.internal.ONTObject;
-import ru.avicomp.ontapi.jena.model.OntCE;
-import ru.avicomp.ontapi.jena.model.OntClass;
-import ru.avicomp.ontapi.jena.model.OntStatement;
+import ru.avicomp.ontapi.internal.objects.FactoryAccessor;
+import ru.avicomp.ontapi.internal.objects.ONTClassImpl;
+import ru.avicomp.ontapi.jena.model.*;
+import ru.avicomp.ontapi.jena.utils.OntModels;
 import ru.avicomp.ontapi.jena.vocabulary.OWL;
 
 import java.util.Collection;
+import java.util.List;
+import java.util.function.BiFunction;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
- * Translator for DisjointUnion Axiom.
+ * A translator that provides {@link OWLDisjointUnionAxiom} implementations.
  * Example in turtle:
  * <pre>{@code
  * :MyClass1 owl:disjointUnionOf ( :MyClass2 [ a owl:Class ; owl:unionOf ( :MyClass3 :MyClass4  ) ] ) ;
@@ -40,7 +48,8 @@ import java.util.stream.Collectors;
  *
  * @see <a href='https://www.w3.org/TR/owl2-syntax/#Disjoint_Union_of_Class_Expressions'>9.1.4 Disjoint Union of Class Expressions</a>
  */
-public class DisjointUnionTranslator extends AbstractListBasedTranslator<OWLDisjointUnionAxiom, OntClass, OWLClassExpression, OntCE, OWLClassExpression> {
+public class DisjointUnionTranslator extends AbstractListBasedTranslator<OWLDisjointUnionAxiom, OntClass,
+        OWLClassExpression, OntCE, OWLClassExpression> {
     @Override
     public OWLObject getSubject(OWLDisjointUnionAxiom axiom) {
         return axiom.getOWLClass();
@@ -63,11 +72,142 @@ public class DisjointUnionTranslator extends AbstractListBasedTranslator<OWLDisj
 
     @Override
     public ONTObject<OWLDisjointUnionAxiom> toAxiom(OntStatement statement,
-                                                    InternalObjectFactory reader,
+                                                    Supplier<OntGraphModel> model,
+                                                    InternalObjectFactory factory,
                                                     InternalConfig config) {
-        return makeAxiom(statement, reader::getClass, OntClass::findDisjointUnion, reader::getClass, Collectors.toSet(),
-                (s, m) -> reader.getOWLDataFactory().getOWLDisjointUnionAxiom(s.getOWLObject().asOWLClass(),
+        return AxiomImpl.create(statement, model, factory, config);
+    }
+
+    @Override
+    public ONTObject<OWLDisjointUnionAxiom> toAxiom(OntStatement statement,
+                                                    InternalObjectFactory factory,
+                                                    InternalConfig config) {
+        return makeAxiom(statement, factory::getClass, OntClass::findDisjointUnion, factory::getClass, Collectors.toSet(),
+                (s, m) -> factory.getOWLDataFactory().getOWLDisjointUnionAxiom(s.getOWLObject().asOWLClass(),
                         ONTObject.toSet(m),
-                        ONTObject.toSet(reader.getAnnotations(statement, config))));
+                        ONTObject.toSet(factory.getAnnotations(statement, config))));
+    }
+
+    /**
+     * @see ru.avicomp.ontapi.owlapi.axioms.OWLDisjointUnionAxiomImpl
+     */
+    @SuppressWarnings("WeakerAccess")
+    public static class AxiomImpl
+            extends WithListImpl<OWLDisjointUnionAxiom, OntCE>
+            implements WithList.Sorted<OWLDisjointUnionAxiom, OWLClass, OWLClassExpression>, OWLDisjointUnionAxiom {
+
+        private static final BiFunction<Triple, Supplier<OntGraphModel>, AxiomImpl> FACTORY = AxiomImpl::new;
+
+        protected AxiomImpl(Triple t, Supplier<OntGraphModel> m) {
+            super(t, m);
+        }
+
+        protected AxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+            super(subject, predicate, object, m);
+        }
+
+        /**
+         * Creates an {@link ONTObject} container that is also {@link  OWLDisjointUnionAxiom}.
+         *
+         * @param statement {@link OntStatement}, not {@code null}
+         * @param model     {@link OntGraphModel} provider, not {@code null}
+         * @param factory   {@link InternalObjectFactory}, not {@code null}
+         * @param config    {@link InternalConfig}, not {@code null}
+         * @return {@link AxiomImpl}
+         */
+        public static AxiomImpl create(OntStatement statement,
+                                       Supplier<OntGraphModel> model,
+                                       InternalObjectFactory factory,
+                                       InternalConfig config) {
+            return WithList.Sorted.create(statement, model, FACTORY, SET_HASH_CODE, factory, config);
+        }
+
+        @Override
+        protected OntList<OntCE> findList(OntStatement statement) {
+            return statement.getSubject(OntClass.class).findDisjointUnion(statement.getObject(RDFList.class))
+                    .orElseThrow(() -> new OntApiException.IllegalState("Can't find []-list in " + statement));
+        }
+
+        @Override
+        public ExtendedIterator<ONTObject<? extends OWLClassExpression>> listONTComponents(OntStatement statement,
+                                                                                           InternalObjectFactory factory) {
+            return OntModels.listMembers(findList(statement)).mapWith(factory::getClass);
+        }
+
+        @Override
+        public OWLClass getOWLClass() {
+            return getONTSubject().getOWLObject();
+        }
+
+        @Override
+        public Stream<OWLClassExpression> classExpressions() {
+            return operands();
+        }
+
+        @Override
+        public Stream<OWLClassExpression> operands() {
+            return members().map(ONTObject::getOWLObject);
+        }
+
+        @Override
+        public ONTObject fromContentItem(Object x, InternalObjectFactory factory) {
+            return x instanceof String ? findSubjectByURI((String) x, factory) : (ONTObject) x;
+        }
+
+        @Override
+        public ONTObject<OWLClass> findSubjectByURI(String uri, InternalObjectFactory factory) {
+            return ONTClassImpl.find(uri, factory, model);
+        }
+
+        @Override
+        public ONTObject<OWLClass> fetchONTSubject(OntStatement statement,
+                                                   InternalObjectFactory factory) {
+            return findSubjectByURI(statement.getSubject().getURI(), factory);
+        }
+
+        @Override
+        protected AxiomImpl makeCopy(ONTObject<OWLDisjointUnionAxiom> other) {
+            return new AxiomImpl(subject, predicate, object, model) {
+                @Override
+                public Stream<Triple> triples() {
+                    return Stream.concat(AxiomImpl.this.triples(), other.triples());
+                }
+            };
+        }
+
+        @FactoryAccessor
+        @Override
+        protected OWLDisjointUnionAxiom createAnnotatedAxiom(Object[] content,
+                                                             InternalObjectFactory factory,
+                                                             Collection<OWLAnnotation> annotations) {
+            return getDataFactory().getOWLDisjointUnionAxiom(getFactoryClass(content, factory),
+                    getFactoryMembers(content, factory), annotations);
+        }
+
+        @FactoryAccessor
+        @Override
+        public OWLEquivalentClassesAxiom getOWLEquivalentClassesAxiom() {
+            DataFactory df = getDataFactory();
+            InternalObjectFactory factory = getObjectFactory();
+            Object[] content = getContent();
+            return df.getOWLEquivalentClassesAxiom(getFactoryClass(content, factory),
+                    df.getOWLObjectUnionOf(getFactoryMembers(content, factory)));
+        }
+
+        @FactoryAccessor
+        @Override
+        public OWLDisjointClassesAxiom getOWLDisjointClassesAxiom() {
+            return getDataFactory().getOWLDisjointClassesAxiom(getFactoryMembers(getContent(), getObjectFactory()));
+        }
+
+        @FactoryAccessor
+        protected List<OWLClassExpression> getFactoryMembers(Object[] content, InternalObjectFactory factory) {
+            return members(content, factory).map(x -> eraseModel(x.getOWLObject())).collect(Collectors.toList());
+        }
+
+        @FactoryAccessor
+        protected OWLClass getFactoryClass(Object[] content, InternalObjectFactory factory) {
+            return eraseModel(findONTSubject(content[0], factory).getOWLObject());
+        }
     }
 }

@@ -65,6 +65,7 @@ public class CommonAxiomsTest extends StatementTestBase {
                         , AxiomType.TRANSITIVE_OBJECT_PROPERTY
                         , AxiomType.SUB_PROPERTY_CHAIN_OF
                         , AxiomType.HAS_KEY
+                        , AxiomType.DISJOINT_UNION
                 )).collect(Collectors.toList());
     }
 

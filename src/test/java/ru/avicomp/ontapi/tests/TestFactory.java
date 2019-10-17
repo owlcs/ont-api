@@ -2308,6 +2308,49 @@ public class TestFactory {
                                 "Collections.singleton(df.getRDFSComment(df.getOWLLiteral(false))))";
                     }
                 }
+                , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.DISJOINT_UNION;
+                    }
+
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLDisjointUnionAxiom(df.getOWLClass("C"),
+                                Arrays.asList(df.getOWLObjectOneOf(df.getOWLAnonymousIndividual("_:b0"),
+                                        df.getOWLNamedIndividual("I")),
+                                        df.getOWLObjectHasValue(df.getOWLObjectProperty("O"),
+                                                df.getOWLAnonymousIndividual("_:b0")),
+                                        df.getOWLDataMaxCardinality(11, df.getOWLDataProperty("D"),
+                                                df.getOWLDataComplementOf(df.getStringOWLDatatype()))),
+                                Arrays.asList(df.getRDFSLabel(df.getOWLAnonymousIndividual("_:b1")),
+                                        df.getOWLAnnotation(df.getOWLAnnotationProperty("A"),
+                                                df.getOWLLiteral("x", "x"))));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "ComplexDisjointUnionAxiom";
+                    }
+                }
+                , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.DISJOINT_UNION;
+                    }
+
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLDisjointUnionAxiom(df.getOWLClass("A"),
+                                Arrays.asList(df.getOWLClass("B"), df.getOWLClass("C")));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLDisjointUnionAxiom(df.getOWLClass(\"A\"), " +
+                                "Arrays.asList(df.getOWLClass(\"B\"), df.getOWLClass(\"C\")))";
+                    }
+                }
         );
 
     }

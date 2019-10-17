@@ -17,6 +17,8 @@ package ru.avicomp.ontapi.tests.internal;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.avicomp.ontapi.OntManagers;
 import ru.avicomp.ontapi.internal.objects.ModelObject;
 
@@ -30,6 +32,7 @@ import java.util.function.Function;
  * Created by @ssz on 24.09.2019.
  */
 public class ModelObjectTest {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ModelObjectTest.class);
 
     @Test
     public void testObjectAsSomeValuesFrom() {
@@ -210,24 +213,31 @@ public class ModelObjectTest {
     }
 
     @SuppressWarnings("unchecked")
-    private <X extends OWLAxiom> void testUnaryPropAxiom(Function<OWLDataFactory, X> factory,
-                                                         Function<X, Object> get) {
+    @SafeVarargs
+    private static <X extends OWLAxiom> void testUnaryPropAxiom(Function<OWLDataFactory, X> factory,
+                                                                Function<X, Object>... properties) {
         X ont = factory.apply(ObjectFactoryTestBase.ONT_DATA_FACTORY);
         X owl = factory.apply(ObjectFactoryTestBase.OWL_DATA_FACTORY);
+        LOGGER.debug("Test factory properties for '{}'", owl);
         Assert.assertEquals(owl, ont);
-        Assert.assertEquals(get.apply(owl), get.apply(ont));
-        OWLObject res = CommonAxiomsTest.createONTObject(OntManagers.createONT(), ont);
-        Assert.assertTrue(res instanceof ModelObject);
-        X actual = (X) res;
-        Assert.assertEquals(owl, actual);
-        Object test = get.apply(actual);
-        Assert.assertEquals(get.apply(owl), test);
-        if (test instanceof OWLAxiom) {
-            ObjectFactoryTestBase.testObjectHasNoModelReference((OWLObject) test);
-        } else if (test instanceof Collection) {
-            Collection<OWLAxiom> list = (Collection<OWLAxiom>) test;
-            Assert.assertFalse(list.isEmpty());
-            list.forEach(ObjectFactoryTestBase::testObjectHasNoModelReference);
+        Assert.assertNotEquals(0, properties.length);
+        for (Function<X, Object> property : properties) {
+            Object expected = property.apply(owl);
+            LOGGER.debug("Test factory property '{}'", expected);
+            Assert.assertEquals(expected, property.apply(ont));
+            OWLObject res = CommonAxiomsTest.createONTObject(OntManagers.createONT(), ont);
+            Assert.assertTrue(res instanceof ModelObject);
+            X actual = (X) res;
+            Assert.assertEquals(owl, actual);
+            Object test = property.apply(actual);
+            Assert.assertEquals(expected, test);
+            if (test instanceof OWLAxiom) {
+                ObjectFactoryTestBase.testObjectHasNoModelReference((OWLObject) test);
+            } else if (test instanceof Collection) {
+                Collection<OWLAxiom> list = (Collection<OWLAxiom>) test;
+                Assert.assertFalse(list.isEmpty());
+                list.forEach(ObjectFactoryTestBase::testObjectHasNoModelReference);
+            }
         }
     }
 
@@ -240,4 +250,12 @@ public class ModelObjectTest {
         actualAxioms.forEach(ObjectFactoryTestBase::testObjectHasNoModelReference);
     }
 
+    @Test
+    public void testDisjointUnionAxiomEraseModelMethods() {
+        testUnaryPropAxiom(df -> df.getOWLDisjointUnionAxiom(df.getOWLClass("X"),
+                Arrays.asList(df.getOWLObjectOneOf(df.getOWLAnonymousIndividual("_:b33"),
+                        df.getOWLNamedIndividual("I")), df.getOWLObjectComplementOf(df.getOWLNothing())),
+                Arrays.asList(df.getRDFSComment("x"), df.getRDFSLabel("y"))),
+                OWLDisjointUnionAxiom::getOWLDisjointClassesAxiom, OWLDisjointUnionAxiom::getOWLEquivalentClassesAxiom);
+    }
 }

@@ -323,4 +323,30 @@ public class ONTObjectContentTest {
         Assert.assertEquals(4, o.axioms().count());
         Assert.assertEquals(5, g.size());
     }
+
+    @Test
+    public void testMergeDisjointUnion() {
+        OntologyManager m = OntManagers.createONT();
+        OntologyModel o = m.createOntology();
+        OntGraphModel g = o.asGraphModel();
+
+        OntClass c1 = g.createOntClass("C1");
+        OntClass c2 = g.createOntClass("C2");
+        OntClass c3 = g.createOntClass("C3");
+
+        c1.addDisjointUnion(g.createComplementOf(c2), c3).addDisjointUnion(c3, g.createComplementOf(c2));
+        ReadWriteUtils.print(g);
+        Assert.assertEquals(18, g.size());
+
+        Assert.assertEquals(4, o.axioms().count());
+        OWLDisjointUnionAxiom a = o.axioms(AxiomType.DISJOINT_UNION)
+                .findFirst().orElseThrow(AssertionError::new);
+
+        o.remove(a);
+
+        ReadWriteUtils.print(g);
+        o.clearCache();
+        Assert.assertEquals(3, o.axioms().count());
+        Assert.assertEquals(4, g.size());
+    }
 }
