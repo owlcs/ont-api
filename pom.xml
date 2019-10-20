@@ -2,7 +2,7 @@
 <!--
   ~ This file is part of the ONT API.
   ~ The contents of this file are subject to the LGPL License, Version 3.0.
-  ~ Copyright (c) 2019, Avicomp Services, AO
+  ~ Copyright (c) 2019, The University of Manchester, owl.cs group.
   ~
   ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
   ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -25,7 +25,7 @@
 
     <name>${project.groupId}:${project.artifactId}</name>
     <description>ONT-API is an OWL-API impl over Apache Jena</description>
-    <url>https://github.com/avicomp/ont-api</url>
+    <url>https://github.com/owlcs/ont-api</url>
 
     <properties>
         <maven.compiler.target>1.8</maven.compiler.target>
@@ -49,8 +49,8 @@
     </licenses>
 
     <organization>
-        <name>Avicomp Services, AO</name>
-        <url>http://avicomp.ru/</url>
+        <name>The University of Manchester, owl.cs group</name>
+        <url>https://github.com/owlcs/</url>
     </organization>
 
     <developers>
@@ -62,13 +62,13 @@
 
     <issueManagement>
         <system>GitHub</system>
-        <url>https://github.com/avicomp/ont-api/issues</url>
+        <url>https://github.com/owlcs/ont-api/issues</url>
     </issueManagement>
 
     <scm>
-        <connection>scm:git:git://github.com/avicomp/ont-api.git</connection>
-        <developerConnection>scm:git:ssh://github.com/avicomp/ont-api.git</developerConnection>
-        <url>https://github.com/avicomp/ont-api</url>
+        <connection>scm:git:git://github.com/owlcs/ont-api.git</connection>
+        <developerConnection>scm:git:ssh://github.com/owlcs/ont-api.git</developerConnection>
+        <url>https://github.com/owlcs/ont-api</url>
     </scm>
 
     <distributionManagement>

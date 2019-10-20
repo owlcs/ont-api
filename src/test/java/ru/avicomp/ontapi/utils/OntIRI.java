@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2017, Avicomp Services, AO
+ * Copyright (c) 2019, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -15,19 +15,18 @@
 package ru.avicomp.ontapi.utils;
 
 
-import javax.annotation.Nullable;
-import java.net.URI;
-import java.util.Optional;
-
+import com.google.common.base.Strings;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyID;
-
-import com.google.common.base.Strings;
 import ru.avicomp.ontapi.OntApiException;
+
+import javax.annotation.Nullable;
+import java.net.URI;
+import java.util.Optional;
 
 /**
  * An extended {@link IRI} with several new methods.
