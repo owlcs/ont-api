@@ -56,6 +56,27 @@ public class OWLTransformTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(OWLTransformTest.class);
 
     @Test
+    public void testCustomDatatypes() throws Exception {
+        String txt = "<http://dbpedia.org/resource/Belgium>\t" +
+                "<http://dbpedia.org/ontology/PopulatedPlace/populationDensity>\t" +
+                "\"363.6\"^^<http://dbpedia.org/datatype/inhabitantsPerSquareKilometre> .\n" +
+                "<http://dbpedia.org/resource/Belgium>\t" +
+                "<http://dbpedia.org/ontology/PopulatedPlace/populationDensity>\t" +
+                "\"363.58468065625044\"^^<http://dbpedia.org/datatype/inhabitantsPerSquareKilometre> .\n" +
+                "<http://dbpedia.org/resource/London>\t" +
+                "<http://dbpedia.org/ontology/PopulatedPlace/populationDensity>\t" +
+                "\"5518.0\"^^<http://dbpedia.org/datatype/inhabitantsPerSquareKilometre> .";
+
+        OWLOntologyDocumentSource src = ReadWriteUtils.getStringDocumentSource(txt, OntFormat.TURTLE);
+
+        OntologyModel o = OntManagers.createONT().loadOntologyFromOntologyDocument(src);
+        ReadWriteUtils.print(o);
+        o.saveOntology(OntFormat.FUNCTIONAL_SYNTAX.createOwlFormat(), ReadWriteUtils.NULL_OUT);
+        Assert.assertEquals(6, o.asGraphModel().size());
+        Assert.assertEquals(5, o.axioms().peek(x -> LOGGER.debug("Axiom: {}", x)).count());
+    }
+
+    @Test
     public void testNCBITAXONTransform() throws OWLOntologyCreationException {
         OWLOntologyDocumentSource src = ReadWriteUtils.getFileDocumentSource("/ontapi/NCBITAXON-CUT.ttl", OntFormat.TURTLE);
         OWLOntologyManager m = OntManagers.createONT();

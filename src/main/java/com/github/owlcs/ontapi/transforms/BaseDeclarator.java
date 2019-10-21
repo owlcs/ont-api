@@ -24,12 +24,13 @@ import com.github.owlcs.ontapi.transforms.vocabulary.AVC;
 
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
  * The collection of base methods for {@link ManifestDeclarator} and {@link ReasonerDeclarator}
  */
-@SuppressWarnings("WeakerAccess")
+@SuppressWarnings({"WeakerAccess", "UnusedReturnValue"})
 public abstract class BaseDeclarator extends Transform {
     private static final List<Property> RESTRICTION_PROPERTY_MARKERS = Stream.of(OWL.onProperty, OWL.allValuesFrom,
             OWL.someValuesFrom, OWL.hasValue, OWL.onClass,
@@ -39,6 +40,8 @@ public abstract class BaseDeclarator extends Transform {
 
     private static final List<Property> ANONYMOUS_CLASS_MARKERS = Stream.of(OWL.intersectionOf, OWL.oneOf,
             OWL.unionOf, OWL.complementOf).collect(Iter.toUnmodifiableList());
+
+    private Set<String> datatypes;
 
     protected BaseDeclarator(Graph graph) {
         super(graph);
@@ -156,6 +159,20 @@ public abstract class BaseDeclarator extends Transform {
     protected BaseDeclarator declareDatatype(Resource resource) {
         declare(resource, RDFS.Datatype, builtins.datatypes());
         return this;
+    }
+
+    protected BaseDeclarator declareDatatype(String uri) {
+        if (uri == null || getBuiltinDatatypeURIs().contains(uri)) {
+            return this;
+        }
+        declare(getWorkModel().createResource(uri), RDFS.Datatype);
+        return this;
+    }
+
+    protected Set<String> getBuiltinDatatypeURIs() {
+        return datatypes == null ?
+                datatypes = builtins.datatypes().stream().map(Resource::getURI).collect(Collectors.toSet()) :
+                datatypes;
     }
 
     protected boolean declareClass(Resource resource) {

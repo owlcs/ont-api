@@ -313,7 +313,9 @@ public class ReasonerDeclarator extends BaseDeclarator {
         if (isAnnotationProperty(property)) { // annotation assertion ("s A t")
             return Res.TRUE;
         }
-        if (right.isLiteral()) { // data property assertion ("a R v")
+        if (right.isLiteral()) { // may be data property assertion ("a R v")
+            // handle custom datatypes:
+            declareDatatype(right.asNode().getLiteralDatatypeURI());
             if (isDataProperty(property)) {
                 declareIndividual(subject);
                 return Res.TRUE;
