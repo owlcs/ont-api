@@ -39,7 +39,7 @@ import java.util.stream.Stream;
  * Created by @ssz on 07.08.2019.
  *
  * @see OWLAnonymousIndividualImpl
- * @since 1.4.3
+ * @since 2.0.0
  */
 public class ONTAnonymousIndividualImpl extends OWLAnonymousIndividualImpl
         implements OWLAnonymousIndividual, HasObjectFactory, ONTSimple, ModelObject<OWLAnonymousIndividual>, AsRDFNode {

@@ -29,7 +29,7 @@ import com.github.owlcs.ontapi.jena.model.OntStatement;
  *
  * @see com.github.owlcs.ontapi.internal.AsRDFNode
  * @see AsNode
- * @since 1.4.3
+ * @since 2.0.0
  */
 public interface AsStatement extends FrontsTriple {
 

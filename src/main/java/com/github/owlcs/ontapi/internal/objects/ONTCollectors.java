@@ -26,7 +26,7 @@ import java.util.stream.Stream;
  * A collection of {@link OWLObjectVisitorEx OWL-API Object Visitor}s used internally.
  * Created by @ssz on 30.08.2019.
  *
- * @since 1.4.3
+ * @since 2.0.0
  */
 @SuppressWarnings("WeakerAccess")
 @ParametersAreNonnullByDefault

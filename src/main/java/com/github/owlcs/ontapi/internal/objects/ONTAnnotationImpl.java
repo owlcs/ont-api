@@ -39,7 +39,7 @@ import java.util.stream.Stream;
  *
  * @see ReadHelper#getAnnotation(OntStatement, InternalObjectFactory)
  * @see com.github.owlcs.ontapi.owlapi.objects.OWLAnnotationImpl
- * @since 1.4.3
+ * @since 2.0.0
  */
 @SuppressWarnings("WeakerAccess")
 public abstract class ONTAnnotationImpl extends ONTStatementImpl

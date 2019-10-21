@@ -40,7 +40,7 @@ import java.util.function.Supplier;
  *
  * Created by @ssz on 31.08.2019.
  *
- * @since 1.4.3
+ * @since 2.0.0
  */
 @SuppressWarnings("WeakerAccess")
 public abstract class ONTObjectImpl extends OWLObjectImpl implements ONTComposite, HasObjectFactory {

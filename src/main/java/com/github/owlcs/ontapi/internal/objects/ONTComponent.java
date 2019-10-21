@@ -18,7 +18,7 @@ package com.github.owlcs.ontapi.internal.objects;
  * A technical interface that describes a typed object.
  * Created by @ssz on 31.08.2019.
  *
- * @since 1.4.3
+ * @since 2.0.0
  */
 interface ONTComponent {
 

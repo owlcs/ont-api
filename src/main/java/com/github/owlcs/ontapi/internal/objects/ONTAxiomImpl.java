@@ -38,7 +38,7 @@ import java.util.stream.Stream;
  *
  * @param <X> - the {@link OWLAxiom} subtype, must be the same that this class implements
  * @see com.github.owlcs.ontapi.owlapi.axioms.OWLAxiomImpl
- * @since 1.4.3
+ * @since 2.0.0
  */
 @SuppressWarnings("WeakerAccess")
 public abstract class ONTAxiomImpl<X extends OWLAxiom>

@@ -22,7 +22,7 @@ import com.github.owlcs.ontapi.AsNode;
  * Created by @szz on 27.08.2019.
  *
  * @see AsNode
- * @since 1.4.3
+ * @since 2.0.0
  */
 public interface AsRDFNode {
 

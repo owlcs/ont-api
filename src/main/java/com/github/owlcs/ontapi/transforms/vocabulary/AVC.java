@@ -26,7 +26,7 @@ import java.util.UUID;
  * Might be moved to {@link com.github.owlcs.ontapi.jena.vocabulary} if necessary.
  */
 public class AVC {
-    public final static String URI = "https://github.com/avicomp/ont-api";
+    public final static String URI = "https://github.com/owlcs/ont-api";
     public final static String NS = URI + "#";
 
     public static final Resource AnonymousIndividual = resource("AnonymousIndividual");

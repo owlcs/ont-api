@@ -38,7 +38,7 @@ import java.util.stream.Stream;
  *
  * @see ONTResourceImpl
  * @see OntStatement
- * @since 1.4.3
+ * @since 2.0.0
  */
 @SuppressWarnings("WeakerAccess")
 public abstract class ONTStatementImpl extends ONTObjectImpl implements WithAnnotations, AsStatement, OWLObject {

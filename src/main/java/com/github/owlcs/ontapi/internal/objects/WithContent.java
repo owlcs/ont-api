@@ -24,7 +24,7 @@ import com.github.owlcs.ontapi.internal.InternalCache;
  * Created by @ssz on 15.09.2019.
  *
  * @see InternalCache
- * @since 1.4.3
+ * @since 2.0.0
  */
 public interface WithContent<X> {
 

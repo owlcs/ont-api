@@ -31,7 +31,7 @@ import java.util.Set;
  * <p>
  * Created by @ssz on 02.10.2019.
  *
- * @since 1.4.3
+ * @since 2.0.0
  */
 interface WithTriple extends AsStatement, WithAnnotations, ONTComposite, HasObjectFactory, HasConfig, OWLAxiom {
 

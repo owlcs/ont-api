@@ -38,7 +38,7 @@ import java.util.stream.Stream;
  * @see com.github.owlcs.ontapi.owlapi.objects.swrl.SWRLIndividualArgumentImpl
  * @see org.semanticweb.owlapi.model.SWRLIArgument
  * @see OntSWRL.IArg
- * @since 1.4.3
+ * @since 2.0.0
  */
 @SuppressWarnings("WeakerAccess")
 public class ONTSWRLIndividualImpl extends ONTResourceImpl

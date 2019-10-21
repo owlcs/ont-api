@@ -48,7 +48,7 @@ import java.util.stream.Stream;
  * Created by @ssz on 02.10.2019.
  *
  * @param <E> - any subtype of {@link OWLObject} (the type of axiom components)
- * @since 1.4.3
+ * @since 2.0.0
  */
 interface WithManyObjects<E extends OWLObject> extends WithTriple {
 

@@ -32,7 +32,7 @@ import java.lang.annotation.Target;
  * <p>
  * Created by @ssz on 09.09.2019.
  *
- * @since 1.4.3
+ * @since 2.0.0
  */
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.SOURCE)

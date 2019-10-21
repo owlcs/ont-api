@@ -38,7 +38,7 @@ import java.util.stream.Stream;
  * @see com.github.owlcs.ontapi.owlapi.objects.swrl.SWRLLiteralArgumentImpl
  * @see org.semanticweb.owlapi.model.SWRLDArgument
  * @see com.github.owlcs.ontapi.jena.model.OntSWRL.DArg
- * @since 1.4.3
+ * @since 2.0.0
  */
 @SuppressWarnings("WeakerAccess")
 public class ONTSWRLLiteralImpl extends ONTResourceImpl

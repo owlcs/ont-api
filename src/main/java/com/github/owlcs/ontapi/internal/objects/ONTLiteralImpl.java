@@ -42,7 +42,7 @@ import java.util.stream.Stream;
  * Created by @ssz on 07.08.2019.
  *
  * @see OWLLiteralImpl
- * @since 1.4.3
+ * @since 2.0.0
  */
 @SuppressWarnings("WeakerAccess")
 public class ONTLiteralImpl extends OWLLiteralImpl

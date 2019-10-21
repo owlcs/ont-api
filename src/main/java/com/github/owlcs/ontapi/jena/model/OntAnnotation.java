@@ -47,7 +47,7 @@ public interface OntAnnotation extends OntObject {
     /**
      * Returns the base statement, i.e. statement to which this bulk-annotation is attached.
      * In the example above it is the statement {@code <Class> rdf:type owl:Class}.
-     * Note: starting {@code v 1.4.3} the presence of this statement in the Graph does not required anymore.
+     * Note: starting v.{@code 2.0.0} the presence of this statement in the Graph does not required anymore.
      *
      * @return {@link OntStatement}
      */

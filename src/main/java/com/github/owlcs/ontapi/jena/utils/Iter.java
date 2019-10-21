@@ -400,7 +400,7 @@ public class Iter {
      * @param iterator   the {@code Iterator} with elements of type {@link X}
      * @param collection the collection of type {@link C}
      * @return {@link C}, the same instance as specified
-     * @since 1.4.3
+     * @since 2.0.0
      */
     public static <X, C extends Collection<X>> C addAll(Iterator<? extends X> iterator, C collection) {
         iterator.forEachRemaining(collection::add);

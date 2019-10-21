@@ -38,7 +38,7 @@ import static org.semanticweb.owlapi.vocab.OWL2Datatype.*;
  *
  * @author Matthew Horridge, Stanford University, Bio-Medical Informatics Research Group
  * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWL2DatatypeImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWL2DatatypeImpl</a>
- * @since 1.4.3
+ * @since 2.0.0
  */
 @SuppressWarnings("WeakerAccess")
 public class OWLBuiltinDatatypeImpl extends OWLDatatypeImpl {

@@ -23,7 +23,7 @@ import java.util.stream.Stream;
  * A composite object that does not contain any structure.
  * Created by @ssz on 31.08.2019.
  *
- * @since 1.4.3
+ * @since 2.0.0
  */
 interface ONTSimple extends ONTComposite {
 

@@ -30,7 +30,7 @@ import java.util.function.Supplier;
  * Created by @ssz on 09.08.2019.
  *
  * @see com.github.owlcs.ontapi.owlapi.objects.entity.OWLNamedIndividualImpl
- * @since 1.4.3
+ * @since 2.0.0
  */
 public class ONTNamedIndividualImpl extends ONTEntityImpl<OWLNamedIndividual> implements OWLNamedIndividual {
 

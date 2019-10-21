@@ -21,7 +21,7 @@ import com.github.owlcs.ontapi.owlapi.OWLObjectImpl;
  * An abstraction for anonymous data range expressions.
  * Created by @ssz on 11.08.2019.
  *
- * @since 1.4.3
+ * @since 2.0.0
  */
 public abstract class OWLAnonymousDataRangeImpl extends OWLObjectImpl implements OWLDataRange {
 

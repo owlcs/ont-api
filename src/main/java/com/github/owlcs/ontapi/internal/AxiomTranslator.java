@@ -112,7 +112,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * @param model {@link OntGraphModel ONT-API Jena Model}, not {@code null}
      * @return an {@code ExtendedIterator} of {@link ONTObject}s that wrap {@link Axiom}s
      * @throws JenaException if unable to read axioms of this type
-     * @since 1.4.3
+     * @since 2.0.0
      */
     public final ExtendedIterator<ONTObject<Axiom>> listAxioms(OntGraphModel model) throws JenaException {
         Objects.requireNonNull(model, "Null model.");

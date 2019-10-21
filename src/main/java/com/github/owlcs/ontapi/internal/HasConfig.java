@@ -21,7 +21,7 @@ import com.github.owlcs.ontapi.jena.model.OntGraphModel;
  * An abstract {@link InternalConfig} holder.
  * Created by @ssz on 07.08.2019.
  *
- * @since 1.4.3
+ * @since 2.0.0
  */
 public interface HasConfig {
 

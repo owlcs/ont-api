@@ -38,7 +38,7 @@ import java.util.stream.Stream;
  *
  * @see ONTStatementImpl
  * @see OntObject
- * @since 1.4.3
+ * @since 2.0.0
  */
 @SuppressWarnings("WeakerAccess")
 public abstract class ONTResourceImpl extends ONTObjectImpl implements OWLObject, AsNode, AsRDFNode {

@@ -25,7 +25,7 @@ import java.util.stream.Stream;
  * A generic interface describing an {@link ONTObject} that has components and signature.
  *
  * Created by @szz on 29.08.2019.
- * @since 1.4.3
+ * @since 2.0.0
  */
 public interface ONTComposite extends ONTComponent {
 

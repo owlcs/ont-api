@@ -48,7 +48,7 @@ import java.util.stream.Stream;
  *
  * @param <S> - any subtype of {@link OWLObject} (the type of triple's subject)
  * @param <O> - any subtype of {@link OWLObject} (the type of triple's object)
- * @since 1.4.3
+ * @since 2.0.0
  */
 interface WithTwoObjects<S extends OWLObject, O extends OWLObject> extends WithTriple {
 

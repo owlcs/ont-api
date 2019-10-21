@@ -44,7 +44,7 @@ import java.util.stream.Stream;
  *
  * @param <A> - a subtype of {@link OWLAxiom}
  * @param <E> - a list's member subtype ({@link OWLObject})
- * @since 1.4.3
+ * @since 2.0.0
  */
 interface WithList<A extends OWLAxiom, E extends OWLObject> extends WithTriple, WithContent<A> {
 

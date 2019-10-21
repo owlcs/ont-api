@@ -30,7 +30,7 @@ import java.util.function.Supplier;
  *
  * @see com.github.owlcs.ontapi.owlapi.objects.swrl.SWRLVariableImpl
  * @see OntSWRL.Variable
- * @since 1.4.3
+ * @since 2.0.0
  */
 public class ONTSWRLVariable extends ONTResourceImpl
         implements SWRLVariable, ONTSimple, ModelObject<SWRLVariable> {

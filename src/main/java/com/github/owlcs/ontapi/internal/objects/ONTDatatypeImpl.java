@@ -35,7 +35,7 @@ import java.util.function.Supplier;
  *
  * @see com.github.owlcs.ontapi.owlapi.objects.entity.OWLDatatypeImpl
  * @see com.github.owlcs.ontapi.owlapi.objects.entity.OWLBuiltinDatatypeImpl
- * @since 1.4.3
+ * @since 2.0.0
  */
 public class ONTDatatypeImpl extends ONTEntityImpl<OWLDatatype> implements OWLDatatype {
 

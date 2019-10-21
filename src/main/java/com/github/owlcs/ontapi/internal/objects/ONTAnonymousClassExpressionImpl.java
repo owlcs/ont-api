@@ -47,7 +47,7 @@ import java.util.stream.Stream;
  * @see com.github.owlcs.ontapi.internal.ReadHelper#calcClassExpression(OntCE, InternalObjectFactory, Set)
  * @see OntCE
  * @see OntClass
- * @since 1.4.3
+ * @since 2.0.0
  */
 @SuppressWarnings("WeakerAccess")
 public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL extends OWLAnonymousClassExpression>

@@ -28,7 +28,7 @@ import java.util.stream.Stream;
  * An {@link IRI} implementation that is also {@link ONTObject}.
  * Created by @ssz on 31.08.2019.
  *
- * @since 1.4.3
+ * @since 2.0.0
  */
 @SuppressWarnings("WeakerAccess")
 public class ONTIRI extends IRI

@@ -67,7 +67,7 @@ import java.util.stream.Stream;
  * @param <P> - subtype of {@link OWLObject}
  *            (that be {@link OWLProperty}; it is not restricted due to OWL-API interface limitations)
  * @param <O> - subtype of {@link OWLObject}
- * @since 1.4.3
+ * @since 2.0.0
  */
 interface WithAssertion<S extends OWLObject, P extends OWLObject, O extends OWLObject>
         extends WithTriple, HasSubject<S>, HasProperty<P> {

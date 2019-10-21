@@ -25,7 +25,7 @@ import org.apache.jena.graph.Node;
  * Created by @szz on 27.08.2019.
  *
  * @see org.apache.jena.graph.FrontsNode
- * @since 1.4.3
+ * @since 2.0.0
  */
 public interface AsNode {
 

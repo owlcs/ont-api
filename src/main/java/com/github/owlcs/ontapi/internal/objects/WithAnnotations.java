@@ -24,7 +24,7 @@ import java.util.stream.Stream;
  * The generic interface describing an object that has annotation.
  * Created by @szz on 01.10.2019.
  *
- * @since 1.4.3
+ * @since 2.0.0
  */
 public interface WithAnnotations extends HasAnnotations {
 

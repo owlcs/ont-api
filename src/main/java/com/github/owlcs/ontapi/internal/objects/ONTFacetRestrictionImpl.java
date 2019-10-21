@@ -36,7 +36,7 @@ import java.util.stream.Stream;
  *
  * @see com.github.owlcs.ontapi.owlapi.objects.OWLFacetRestrictionImpl
  * @see OntFR
- * @since 1.4.3
+ * @since 2.0.0
  */
 @SuppressWarnings("WeakerAccess")
 public class ONTFacetRestrictionImpl

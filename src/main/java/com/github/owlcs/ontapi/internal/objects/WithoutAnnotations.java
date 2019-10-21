@@ -26,7 +26,7 @@ import java.util.stream.Stream;
  * <p>
  * Created by @szz on 01.10.2019.
  *
- * @since 1.4.3
+ * @since 2.0.0
  */
 public interface WithoutAnnotations extends WithAnnotations {
 

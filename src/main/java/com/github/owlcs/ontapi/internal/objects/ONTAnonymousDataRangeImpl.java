@@ -43,7 +43,7 @@ import java.util.stream.Stream;
  * @see com.github.owlcs.ontapi.owlapi.objects.dr.OWLAnonymousDataRangeImpl
  * @see com.github.owlcs.ontapi.internal.ReadHelper#calcDataRange(OntDR, InternalObjectFactory, Set)
  * @see OntDR
- * @since 1.4.3
+ * @since 2.0.0
  */
 @SuppressWarnings("WeakerAccess")
 public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends OWLDataRange>

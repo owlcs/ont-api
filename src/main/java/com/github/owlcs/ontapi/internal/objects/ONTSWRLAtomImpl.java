@@ -40,7 +40,7 @@ import java.util.stream.Stream;
  *
  * @see com.github.owlcs.ontapi.owlapi.objects.swrl.SWRLAtomImpl
  * @see OntSWRL.Atom
- * @since 1.4.3
+ * @since 2.0.0
  */
 @SuppressWarnings("WeakerAccess")
 public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRLAtom>

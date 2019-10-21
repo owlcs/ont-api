@@ -31,7 +31,7 @@ import java.util.function.Supplier;
  * Created by @ssz on 07.08.2019.
  *
  * @param <X> subtype of {@link OWLEntity}
- * @since 1.4.3
+ * @since 2.0.0
  */
 public abstract class ONTEntityImpl<X extends OWLEntity>
         extends ONTResourceImpl implements OWLEntity, ModelObject<X>, ONTSimple {

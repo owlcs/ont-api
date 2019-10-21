@@ -136,7 +136,7 @@ public class SpinMappingTest {
         List<OntNDP> sourceProperties = source.dataProperties().collect(Collectors.toList());
         OntNDP targetProperty = target.dataProperties().findFirst().orElse(null);
 
-        OntGraphModel mapping = manager.createGraphModel("http://spin.avicomp.ru");
+        OntGraphModel mapping = manager.createGraphModel("http://spin.owlcs.ru");
         OntGraphModel spinmapl = manager.getGraphModel(SpinModels.SPINMAPL.getIRI().getIRIString());
 
         mapping.addImport(spinmapl).addImport(source).addImport(target).setNsPrefixes(OntModelFactory.STANDARD);
@@ -179,7 +179,7 @@ public class SpinMappingTest {
      */
     public OntGraphModel createSourceModel() {
         LOGGER.debug("Create the source model.");
-        String uri = "http://source.avicomp.ru";
+        String uri = "http://source.owlcs.ru";
         String ns = uri + "#";
         OntGraphModel res = manager.createGraphModel(uri).setNsPrefixes(OntModelFactory.STANDARD);
         OntClass clazz = res.createOntClass(ns + "ClassSource");
@@ -206,7 +206,7 @@ public class SpinMappingTest {
      */
     public OntGraphModel createTargetModel() {
         LOGGER.debug("Create the target model.");
-        String uri = "http://target.avicomp.ru";
+        String uri = "http://target.owlcs.ru";
         String ns = uri + "#";
         OntGraphModel res = manager.createGraphModel(uri).setNsPrefixes(OntModelFactory.STANDARD);
         OntClass clazz = res.createOntClass(ns + "ClassTarget");
