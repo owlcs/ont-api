@@ -133,7 +133,7 @@
         </dependency>
         <!--
         net.sourceforge.owlapi:owlapi-impl is required by tests on OWL-API reasoner and by OWL-API-tests (org.semanticweb) in comparing mode
-        (i.e. with -Ddebug.use.owl=true, see ru.avicomp.owlapi.OWLManager)
+        (i.e. with -Ddebug.use.owl=true, see com.github.owlcs.owlapi.OWLManager)
         -->
         <dependency>
             <groupId>net.sourceforge.owlapi</groupId>
