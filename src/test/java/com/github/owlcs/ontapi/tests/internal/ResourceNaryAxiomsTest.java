@@ -14,14 +14,14 @@
 
 package com.github.owlcs.ontapi.tests.internal;
 
+import com.github.owlcs.ontapi.OntManagers;
+import com.github.owlcs.ontapi.internal.objects.ModelObject;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runners.Parameterized;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLNaryAxiom;
-import com.github.owlcs.ontapi.OntManagers;
-import com.github.owlcs.ontapi.internal.objects.ModelObject;
 
 import java.util.Collection;
 import java.util.List;
@@ -42,7 +42,8 @@ public class ResourceNaryAxiomsTest extends NaryAxiomsTestBase {
                 .filter(Data::isAxiom)
                 // TODO: see https://github.com/avicomp/ont-api/issues/87
                 .filter(x -> isOneOf(x
-                        , AxiomType.DISJOINT_CLASSES))
+                        , AxiomType.DISJOINT_CLASSES
+                        , AxiomType.DIFFERENT_INDIVIDUALS))
                 .collect(Collectors.toList());
     }
 

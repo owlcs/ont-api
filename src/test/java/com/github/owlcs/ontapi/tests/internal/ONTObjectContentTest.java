@@ -14,11 +14,6 @@
 
 package com.github.owlcs.ontapi.tests.internal;
 
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
-import org.junit.Assert;
-import org.junit.Test;
-import org.semanticweb.owlapi.model.*;
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.OntologyManager;
@@ -28,6 +23,11 @@ import com.github.owlcs.ontapi.jena.OntModelFactory;
 import com.github.owlcs.ontapi.jena.model.*;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
+import org.junit.Assert;
+import org.junit.Test;
+import org.semanticweb.owlapi.model.*;
 
 import java.util.List;
 
@@ -348,5 +348,30 @@ public class ONTObjectContentTest {
         o.clearCache();
         Assert.assertEquals(3, o.axioms().count());
         Assert.assertEquals(4, g.size());
+    }
+
+    @Test
+    public void testMergeDifferentIndividuals() {
+        OntologyManager m = OntManagers.createONT();
+        OntologyModel o = m.createOntology();
+        OntGraphModel g = o.asGraphModel();
+
+        OntIndividual x = g.getOWLThing().createIndividual("X");
+        OntIndividual y = g.getOWLThing().createIndividual("Y");
+        x.addDifferentIndividual(y.addDifferentIndividual(x));
+        g.createDifferentIndividuals(x, y);
+        g.createDifferentIndividuals(y, x);
+        ReadWriteUtils.print(g);
+
+        Assert.assertEquals(19, g.size());
+        Assert.assertEquals(5, o.axioms().count());
+        OWLDifferentIndividualsAxiom a = o.axioms(AxiomType.DIFFERENT_INDIVIDUALS)
+                .findFirst().orElseThrow(AssertionError::new);
+
+        o.remove(a);
+
+        o.clearCache();
+        Assert.assertEquals(4, o.axioms().count());
+        Assert.assertEquals(5, g.size());
     }
 }

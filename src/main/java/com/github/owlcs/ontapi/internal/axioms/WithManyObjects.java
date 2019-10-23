@@ -14,11 +14,6 @@
 
 package com.github.owlcs.ontapi.internal.axioms;
 
-import org.apache.jena.graph.Triple;
-import org.apache.jena.util.iterator.ExtendedIterator;
-import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLObject;
 import com.github.owlcs.ontapi.internal.InternalConfig;
 import com.github.owlcs.ontapi.internal.InternalObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
@@ -30,6 +25,11 @@ import com.github.owlcs.ontapi.jena.model.OntGraphModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.owlapi.OWLObjectImpl;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.util.iterator.ExtendedIterator;
+import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.OWLAxiom;
+import org.semanticweb.owlapi.model.OWLObject;
 
 import java.util.*;
 import java.util.function.BiFunction;
@@ -320,8 +320,8 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
         default Object[] collectContent() {
             OntStatement statement = asStatement();
             InternalObjectFactory factory = getObjectFactory();
-            List<ONTObject> res = new ArrayList<>(2);
-            res.addAll(fetchONTComponents(statement, factory));
+            List<Object> res = new ArrayList<>(2);
+            fetchONTComponents(statement, factory).forEach(c -> res.add(toContentItem(c)));
             res.addAll(ONTAxiomImpl.collectAnnotations(statement, factory, getConfig()));
             return res.toArray();
         }

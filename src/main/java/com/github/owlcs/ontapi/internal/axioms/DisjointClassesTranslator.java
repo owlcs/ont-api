@@ -14,12 +14,6 @@
 
 package com.github.owlcs.ontapi.internal.axioms;
 
-import org.apache.jena.graph.FrontsTriple;
-import org.apache.jena.graph.Triple;
-import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.util.iterator.ExtendedIterator;
-import org.semanticweb.owlapi.model.*;
 import com.github.owlcs.ontapi.internal.InternalCache;
 import com.github.owlcs.ontapi.internal.InternalConfig;
 import com.github.owlcs.ontapi.internal.InternalObjectFactory;
@@ -33,8 +27,13 @@ import com.github.owlcs.ontapi.jena.model.OntGraphModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import org.apache.jena.graph.FrontsTriple;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.util.iterator.ExtendedIterator;
+import org.semanticweb.owlapi.model.*;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
 import java.util.function.BiFunction;
@@ -56,9 +55,11 @@ import java.util.stream.Stream;
 public class DisjointClassesTranslator
         extends AbstractTwoWayNaryTranslator<OWLDisjointClassesAxiom, OWLClassExpression, OntCE> {
 
+    private static final Property PREDICATE = OWL.disjointWith;
+
     @Override
     Property getPredicate() {
-        return OWL.disjointWith;
+        return PREDICATE;
     }
 
     @Override
@@ -126,7 +127,7 @@ public class DisjointClassesTranslator
                                        Supplier<OntGraphModel> model,
                                        InternalObjectFactory factory,
                                        InternalConfig config) {
-            if (OWL.disjointWith.equals(statement.getPredicate())) {
+            if (PREDICATE.equals(statement.getPredicate())) {
                 return WithManyObjects.create(statement, model,
                         SimpleImpl.FACTORY, ComplexImpl.FACTORY, SET_HASH_CODE, factory, config);
             }
@@ -136,7 +137,7 @@ public class DisjointClassesTranslator
         @Override
         public ExtendedIterator<ONTObject<? extends OWLClassExpression>> listONTComponents(OntStatement statement,
                                                                                            InternalObjectFactory factory) {
-            if (OWL.disjointWith.equals(statement.getPredicate())) {
+            if (PREDICATE.equals(statement.getPredicate())) {
                 return super.listONTComponents(statement, factory);
             }
             return OntModels.listMembers(statement.getSubject(OntDisjoint.Classes.class).getList())
@@ -180,10 +181,7 @@ public class DisjointClassesTranslator
 
             @Override
             protected boolean sameContent(ONTStatementImpl other) {
-                // triple is checked above in trace
-                return other instanceof SimpleImpl
-                        && subject.equals(((AxiomImpl) other).getObjectURI())
-                        && object.equals(((AxiomImpl) other).getSubjectURI());
+                return other instanceof SimpleImpl && isReverseTriple((SimpleImpl) other);
             }
 
             @Override
@@ -251,11 +249,6 @@ public class DisjointClassesTranslator
             }
 
             @Override
-            public boolean canContainAnnotationProperties() {
-                return false;
-            }
-
-            @Override
             public boolean canContainAnonymousIndividuals() {
                 return false;
             }
@@ -267,8 +260,7 @@ public class DisjointClassesTranslator
          * or it is based on {@link OntDisjoint.Classes} resource.
          * It has a public constructor since it is more generic then {@link SimpleImpl}.
          */
-        public static class ComplexImpl extends AxiomImpl
-                implements Complex<ComplexImpl, OWLClassExpression> {
+        public static class ComplexImpl extends AxiomImpl implements Complex<ComplexImpl, OWLClassExpression> {
 
             private static final BiFunction<Triple, Supplier<OntGraphModel>, ComplexImpl> FACTORY = ComplexImpl::new;
             protected final InternalCache.Loading<ComplexImpl, Object[]> content;
@@ -288,7 +280,7 @@ public class DisjointClassesTranslator
             }
 
             boolean isSimple() {
-                return predicate.equals(OWL.disjointWith.getURI());
+                return predicate.equals(PREDICATE.getURI());
             }
 
             protected OntDisjoint.Classes asResource() {
@@ -319,15 +311,7 @@ public class DisjointClassesTranslator
 
             @Override
             protected boolean sameContent(ONTStatementImpl other) {
-                if (other instanceof ComplexImpl) {
-                    return Arrays.equals(getContent(), ((ComplexImpl) other).getContent());
-                }
-                if (other instanceof SimpleImpl) {
-                    InternalObjectFactory factory = getObjectFactory();
-                    return equalIterators(objects(factory).iterator(),
-                            ((SimpleImpl) other).objects(factory).iterator());
-                }
-                return false;
+                return testSameContent(other);
             }
 
             @Override

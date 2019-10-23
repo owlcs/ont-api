@@ -14,13 +14,13 @@
 
 package com.github.owlcs.ontapi.tests.internal;
 
+import com.github.owlcs.ontapi.OntManagers;
+import com.github.owlcs.ontapi.internal.objects.ModelObject;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.github.owlcs.ontapi.OntManagers;
-import com.github.owlcs.ontapi.internal.objects.ModelObject;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -51,7 +51,8 @@ public class ModelObjectTest {
     @Test
     public void testObjectAsIntersectionOfMinMax() {
         OWLDataFactory df = ObjectFactoryTestBase.ONT_DATA_FACTORY;
-        OWLObjectExactCardinality in = df.getOWLObjectExactCardinality(12, df.getOWLObjectProperty("P"), df.getOWLClass("X"));
+        OWLObjectExactCardinality in = df.getOWLObjectExactCardinality(12,
+                df.getOWLObjectProperty("P"), df.getOWLClass("X"));
         OWLObjectExactCardinality res = (OWLObjectExactCardinality) ClassExpressionTest.createONTObject(in);
         Assert.assertTrue(res instanceof ModelObject);
         OWLClassExpression c = res.asIntersectionOfMinMax();
@@ -61,7 +62,8 @@ public class ModelObjectTest {
     @Test
     public void testDataAsIntersectionOfMinMax() {
         OWLDataFactory df = ObjectFactoryTestBase.ONT_DATA_FACTORY;
-        OWLDataExactCardinality in = df.getOWLDataExactCardinality(12, df.getOWLDataProperty("P"), df.getOWLDatatype("X"));
+        OWLDataExactCardinality in = df.getOWLDataExactCardinality(12,
+                df.getOWLDataProperty("P"), df.getOWLDatatype("X"));
         OWLDataExactCardinality res = (OWLDataExactCardinality) ClassExpressionTest.createONTObject(in);
         Assert.assertTrue(res instanceof ModelObject);
         OWLClassExpression c = res.asIntersectionOfMinMax();
@@ -83,7 +85,8 @@ public class ModelObjectTest {
         OWLDataFactory df = ObjectFactoryTestBase.ONT_DATA_FACTORY;
         OWLAnnotation expected = df.getRDFSComment("x");
         OWLAnnotationAssertionAxiom ax = df.getOWLAnnotationAssertionAxiom(IRI.create("subject"), expected);
-        OWLAnnotationAssertionAxiom res = (OWLAnnotationAssertionAxiom) CommonAxiomsTest.createONTObject(OntManagers.createONT(), ax);
+        OWLAnnotationAssertionAxiom res = (OWLAnnotationAssertionAxiom) CommonAxiomsTest
+                .createONTObject(OntManagers.createONT(), ax);
         Assert.assertTrue(res instanceof ModelObject);
         OWLAnnotation actual = res.getAnnotation();
         Assert.assertEquals(expected, actual);
@@ -257,5 +260,19 @@ public class ModelObjectTest {
                         df.getOWLNamedIndividual("I")), df.getOWLObjectComplementOf(df.getOWLNothing())),
                 Arrays.asList(df.getRDFSComment("x"), df.getRDFSLabel("y"))),
                 OWLDisjointUnionAxiom::getOWLDisjointClassesAxiom, OWLDisjointUnionAxiom::getOWLEquivalentClassesAxiom);
+    }
+
+    @Test
+    public void testDifferentIndividualsEraseModelMethods() {
+        OWLDataFactory df = ObjectFactoryTestBase.ONT_DATA_FACTORY;
+        OWLDifferentIndividualsAxiom expected =
+                df.getOWLDifferentIndividualsAxiom(Arrays.asList(df.getOWLAnonymousIndividual("_:b0"),
+                        df.getOWLNamedIndividual("Y"), df.getOWLNamedIndividual("Z")),
+                        Collections.singleton(df.getRDFSComment("x")));
+        OWLAxiom res = ResourceNaryAxiomsTest.createONTObject(OntManagers.createONT(), expected);
+        OWLDifferentIndividualsAxiom actual = (OWLDifferentIndividualsAxiom) res;
+        Assert.assertTrue(actual instanceof ModelObject);
+        Assert.assertEquals(expected, actual);
+        testNarySplitMethod(expected, actual, x -> ((OWLDifferentIndividualsAxiom) x).asOWLSubClassOfAxioms());
     }
 }

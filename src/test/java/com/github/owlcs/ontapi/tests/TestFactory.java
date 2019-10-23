@@ -14,12 +14,12 @@
 
 package com.github.owlcs.ontapi.tests;
 
+import com.github.owlcs.ontapi.owlapi.OWLObjectImpl;
+import com.github.owlcs.ontapi.owlapi.objects.entity.OWLBuiltinDatatypeImpl;
 import org.junit.Assert;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.semanticweb.owlapi.vocab.OWLFacet;
-import com.github.owlcs.ontapi.owlapi.OWLObjectImpl;
-import com.github.owlcs.ontapi.owlapi.objects.entity.OWLBuiltinDatatypeImpl;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -2349,6 +2349,46 @@ public class TestFactory {
                     public String toString() {
                         return "df.getOWLDisjointUnionAxiom(df.getOWLClass(\"A\"), " +
                                 "Arrays.asList(df.getOWLClass(\"B\"), df.getOWLClass(\"C\")))";
+                    }
+                }
+                , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.DIFFERENT_INDIVIDUALS;
+                    }
+
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLDifferentIndividualsAxiom(df.getOWLNamedIndividual("A"),
+                                df.getOWLNamedIndividual("B"));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLDifferentIndividualsAxiom(df.getOWLNamedIndividual(\"A\"), " +
+                                "df.getOWLNamedIndividual(\"B\"))";
+                    }
+                }
+                , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.DIFFERENT_INDIVIDUALS;
+                    }
+
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLDifferentIndividualsAxiom(Arrays.asList(df.getOWLAnonymousIndividual("_:b0"),
+                                df.getOWLAnonymousIndividual("_:b1"), df.getOWLNamedIndividual("B")),
+                                Arrays.asList(df.getRDFSLabel("label"),
+                                        df.getRDFSComment(df.getOWLAnonymousIndividual("_:b4"))));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLDifferentIndividualsAxiom(Arrays.asList(df.getOWLAnonymousIndividual(\"_:b0\"), " +
+                                "df.getOWLAnonymousIndividual(\"_:b1\"), df.getOWLNamedIndividual(\"B\")), " +
+                                "Arrays.asList(df.getRDFSLabel(\"label\"), " +
+                                "df.getRDFSComment(df.getOWLAnonymousIndividual(\"_:b4\"))))";
                     }
                 }
         );

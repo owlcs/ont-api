@@ -14,23 +14,20 @@
 
 package com.github.owlcs.ontapi.internal.axioms;
 
+import com.github.owlcs.ontapi.OntApiException;
+import com.github.owlcs.ontapi.internal.*;
+import com.github.owlcs.ontapi.internal.objects.*;
+import com.github.owlcs.ontapi.jena.model.*;
+import com.github.owlcs.ontapi.jena.utils.Iter;
+import com.github.owlcs.ontapi.jena.utils.OntModels;
+import com.github.owlcs.ontapi.owlapi.objects.OWLAnonymousIndividualImpl;
+import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.github.owlcs.ontapi.OntApiException;
-import com.github.owlcs.ontapi.internal.*;
-import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
-import com.github.owlcs.ontapi.internal.objects.ONTAxiomImpl;
-import com.github.owlcs.ontapi.internal.objects.ONTClassImpl;
-import com.github.owlcs.ontapi.jena.model.OntCE;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
-import com.github.owlcs.ontapi.jena.model.OntObject;
-import com.github.owlcs.ontapi.jena.model.OntStatement;
-import com.github.owlcs.ontapi.jena.utils.Iter;
-import com.github.owlcs.ontapi.jena.utils.OntModels;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -166,11 +163,6 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
                     .collect(Collectors.toList()), annotations);
         }
 
-        @Override
-        public boolean canContainAnnotationProperties() {
-            return isAnnotated();
-        }
-
         @SuppressWarnings("unchecked")
         @Override
         public final NaryAxiomImpl merge(ONTObject<A> other) {
@@ -202,6 +194,40 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
             List<OWLAnnotation> annotations = factoryAnnotations().collect(Collectors.toList());
             return walkPairwise((a, b) -> createAxiom(a, b, annotations));
         }
+
+        @Override
+        public final boolean canContainAnnotationProperties() {
+            return isAnnotated();
+        }
+
+        /**
+         * Answers {@code true} if the given axiom has mirror triple.
+         *
+         * @param other {@link ONTAxiomImpl} to test, not {@code null}
+         * @return boolean
+         */
+        protected boolean isReverseTriple(ONTAxiomImpl other) {
+            return subject.equals(other.getObjectURI()) && object.equals(other.getSubjectURI());
+        }
+
+        /**
+         * Tests content's assuming this instance also implements {@link WithContent} interface.
+         * Unsafe.
+         *
+         * @param other {@link ONTStatementImpl}, not {@code null}
+         * @return boolean
+         */
+        boolean testSameContent(ONTStatementImpl other) {
+            if (other instanceof WithContent) {
+                return Arrays.equals(((WithContent) this).getContent(), ((WithContent<?>) other).getContent());
+            }
+            if (other instanceof WithManyObjects) {
+                InternalObjectFactory factory = getObjectFactory();
+                return equalIterators(objects(factory).iterator(),
+                        ((WithManyObjects<?>) other).objects(factory).iterator());
+            }
+            return false;
+        }
     }
 
     /**
@@ -211,7 +237,7 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
      */
     @SuppressWarnings({"NullableProblems", "WeakerAccess"})
     protected abstract static class ClassNaryAxiomImpl<A extends OWLNaryClassAxiom>
-            extends NaryAxiomImpl<A, OWLClassExpression> implements OWLNaryClassAxiom {
+            extends ClassOrIndividualNaryAxiomImpl<A, OWLClassExpression> implements OWLNaryClassAxiom {
 
         protected ClassNaryAxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
             super(subject, predicate, object, m);
@@ -243,16 +269,98 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
         public boolean contains(OWLClassExpression ce) {
             return members().map(ONTObject::getOWLObject).anyMatch(ce::equals);
         }
+    }
+
+    /**
+     * An abstract {@link OWLNaryIndividualAxiom} implementation.
+     *
+     * @param <A> subtype of {@link OWLNaryIndividualAxiom}
+     */
+    @SuppressWarnings("WeakerAccess")
+    protected abstract static class IndividualNaryAxiomImpl<A extends OWLNaryIndividualAxiom>
+            extends ClassOrIndividualNaryAxiomImpl<A, OWLIndividual> implements OWLNaryIndividualAxiom {
+
+        protected IndividualNaryAxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+            super(subject, predicate, object, m);
+        }
+
+        @Override
+        public ExtendedIterator<ONTObject<? extends OWLIndividual>> listONTComponents(OntStatement statement,
+                                                                                      InternalObjectFactory factory) {
+            return Iter.of(factory.getIndividual(statement.getSubject(OntIndividual.class)),
+                    factory.getIndividual(statement.getObject(OntIndividual.class)));
+        }
+
+        @Override
+        public ONTObject<? extends OWLIndividual> findByURI(String uri, InternalObjectFactory factory) {
+            return ONTNamedIndividualImpl.find(uri, factory, model);
+        }
+
+        @Override
+        public Stream<OWLIndividual> individuals() {
+            return sorted().map(ONTObject::getOWLObject);
+        }
+
+        @Override
+        public final boolean canContainNamedClasses() {
+            return false;
+        }
+
+        @Override
+        public final boolean canContainClassExpressions() {
+            return true;
+        }
+
+        @Override
+        public final boolean canContainDataProperties() {
+            return false;
+        }
+
+        @Override
+        public final boolean canContainObjectProperties() {
+            return false;
+        }
+
+        @Override
+        public final boolean canContainDatatypes() {
+            return isAnnotated();
+        }
+
+        public ONTObject fromContentItem(Object x, InternalObjectFactory factory) {
+            if (x instanceof String)
+                return findByURI((String) x, factory);
+            if (x instanceof BlankNodeId)
+                return ONTAnonymousIndividualImpl.find((BlankNodeId) x, factory, model);
+            return (ONTObject) x;
+        }
+
+        public Object toContentItem(ONTObject x) {
+            if (x instanceof OWLNamedIndividual) return ONTEntityImpl.getURI((OWLEntity) x);
+            return ((OWLAnonymousIndividualImpl) x).getBlankNodeId();
+        }
+    }
+
+    /**
+     * An abstraction, that combines common properties for {@link OWLNaryIndividualAxiom} and {@link OWLNaryClassAxiom}.
+     *
+     * @param <A> subtype of {@link OWLNaryAxiom}
+     */
+    abstract static class ClassOrIndividualNaryAxiomImpl<A extends OWLNaryAxiom<M>, M extends OWLObject>
+            extends NaryAxiomImpl<A, M> implements OWLSubClassOfAxiomSetShortCut {
+
+        ClassOrIndividualNaryAxiomImpl(Object s, String p, Object o, Supplier<OntGraphModel> m) {
+            super(s, p, o, m);
+        }
 
         /**
          * Creates a {@link OWLSubClassOfAxiom} axiom from factory.
          *
-         * @param a - the first operand, not {@code null}
-         * @param b - the second operand, not {@code null}
+         * @param a - {@link M}, the first operand, not {@code null}
+         * @param b - {@link M}, the second operand, not {@code null}
          * @return {@link OWLSubClassOfAxiom}
          */
         @FactoryAccessor
-        protected abstract OWLSubClassOfAxiom createSubClassOf(OWLClassExpression a, OWLClassExpression b);
+        protected abstract OWLSubClassOfAxiom createSubClassOf(M a, M b);
 
         @FactoryAccessor
         @Override

@@ -14,9 +14,6 @@
 
 package com.github.owlcs.ontapi.internal.axioms;
 
-import org.apache.jena.graph.Triple;
-import org.apache.jena.rdf.model.Property;
-import org.semanticweb.owlapi.model.*;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
@@ -26,6 +23,9 @@ import com.github.owlcs.ontapi.jena.model.OntGraphModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.owlapi.axioms.OWLEquivalentClassesAxiomImpl;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.rdf.model.Property;
+import org.semanticweb.owlapi.model.*;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -170,10 +170,7 @@ public class EquivalentClassesTranslator extends AbstractNaryTranslator<OWLEquiv
 
             @Override
             protected boolean sameContent(ONTStatementImpl other) {
-                // triple is checked above in trace
-                return other instanceof SimpleImpl
-                        && subject.equals(((AxiomImpl) other).getObjectURI())
-                        && object.equals(((AxiomImpl) other).getSubjectURI());
+                return other instanceof SimpleImpl && isReverseTriple((SimpleImpl) other);
             }
 
             @Override
@@ -241,15 +238,9 @@ public class EquivalentClassesTranslator extends AbstractNaryTranslator<OWLEquiv
             }
 
             @Override
-            public boolean canContainAnnotationProperties() {
-                return false;
-            }
-
-            @Override
             public boolean canContainAnonymousIndividuals() {
                 return false;
             }
-
         }
 
         /**
