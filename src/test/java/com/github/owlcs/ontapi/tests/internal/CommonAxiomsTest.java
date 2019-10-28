@@ -14,16 +14,16 @@
 
 package com.github.owlcs.ontapi.tests.internal;
 
-import org.junit.Assert;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.semanticweb.owlapi.model.*;
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.OntologyModel;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
+import org.junit.Assert;
+import org.junit.runner.RunWith;
+import org.junit.runners.Parameterized;
+import org.semanticweb.owlapi.model.*;
 
 import java.util.Collections;
 import java.util.List;
@@ -41,12 +41,9 @@ public class CommonAxiomsTest extends StatementTestBase {
     }
 
     @Parameterized.Parameters(name = "{0}")
-    public static List<Data> getData() {
-        return getObjects().stream()
-                .filter(Data::isAxiom)
-                // TODO: see https://github.com/avicomp/ont-api/issues/87
-                .filter(x -> isOneOf(x
-                        , AxiomType.SUBCLASS_OF
+    public static List<AxiomData> getData() {
+        return getAxiomData( // TODO: see https://github.com/avicomp/ont-api/issues/87
+                AxiomType.SUBCLASS_OF
                         , AxiomType.ANNOTATION_ASSERTION
                         , AxiomType.OBJECT_PROPERTY_ASSERTION
                         , AxiomType.DATA_PROPERTY_ASSERTION
@@ -66,11 +63,18 @@ public class CommonAxiomsTest extends StatementTestBase {
                         , AxiomType.SUB_PROPERTY_CHAIN_OF
                         , AxiomType.HAS_KEY
                         , AxiomType.DISJOINT_UNION
-                )).collect(Collectors.toList());
+        );
     }
 
-    static boolean isOneOf(Data o, AxiomType... types) {
-        AxiomType res = ((AxiomData) o).getType();
+    public static List<AxiomData> getAxiomData(AxiomType... types) {
+        return getObjects().stream().filter(Data::isAxiom)
+                .map(x -> (AxiomData) x)
+                .filter(x -> isOneOf(x, types))
+                .collect(Collectors.toList());
+    }
+
+    private static boolean isOneOf(AxiomData o, AxiomType... types) {
+        AxiomType res = o.getType();
         for (AxiomType t : types) {
             if (res.equals(t)) return true;
         }

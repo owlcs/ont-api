@@ -25,7 +25,6 @@ import org.semanticweb.owlapi.model.OWLNaryAxiom;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Created by @ssz on 14.10.2019.
@@ -37,14 +36,11 @@ public class ResourceNaryAxiomsTest extends NaryAxiomsTestBase {
     }
 
     @Parameterized.Parameters(name = "{0}")
-    public static List<Data> getData() {
-        return getObjects().stream()
-                .filter(Data::isAxiom)
+    public static List<AxiomData> getData() {
+        return getAxiomData(
                 // TODO: see https://github.com/avicomp/ont-api/issues/87
-                .filter(x -> isOneOf(x
-                        , AxiomType.DISJOINT_CLASSES
-                        , AxiomType.DIFFERENT_INDIVIDUALS))
-                .collect(Collectors.toList());
+                AxiomType.DISJOINT_CLASSES
+                , AxiomType.DIFFERENT_INDIVIDUALS);
     }
 
     @SuppressWarnings("unchecked")

@@ -14,23 +14,30 @@
 
 package com.github.owlcs.ontapi.internal.axioms;
 
-import org.apache.jena.rdf.model.Property;
-import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLIndividual;
-import org.semanticweb.owlapi.model.OWLSameIndividualAxiom;
-import com.github.owlcs.ontapi.internal.InternalConfig;
-import com.github.owlcs.ontapi.internal.InternalObjectFactory;
-import com.github.owlcs.ontapi.internal.ONTObject;
-import com.github.owlcs.ontapi.internal.ONTWrapperImpl;
+import com.github.owlcs.ontapi.DataFactory;
+import com.github.owlcs.ontapi.internal.*;
+import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
+import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
+import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
+import com.github.owlcs.ontapi.jena.model.OntGraphModel;
 import com.github.owlcs.ontapi.jena.model.OntIndividual;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.rdf.model.Property;
+import org.semanticweb.owlapi.model.*;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
- * base class {@link AbstractNaryTranslator}
- * example:
+ * A translator that provides {@link OWLSameIndividualAxiom} implementations.
+ * Example:
  * <pre>{@code
  * :indi1 owl:sameAs :indi2, :indi3 .
  * }</pre>
@@ -39,7 +46,8 @@ import java.util.Collection;
  *
  * @see OWLSameIndividualAxiom
  */
-public class SameIndividualTranslator extends AbstractNaryTranslator<OWLSameIndividualAxiom, OWLIndividual, OntIndividual> {
+public class SameIndividualTranslator
+        extends AbstractNaryTranslator<OWLSameIndividualAxiom, OWLIndividual, OntIndividual> {
 
     @Override
     public Property getPredicate() {
@@ -53,14 +61,197 @@ public class SameIndividualTranslator extends AbstractNaryTranslator<OWLSameIndi
 
     @Override
     public ONTObject<OWLSameIndividualAxiom> toAxiom(OntStatement statement,
-                                                     InternalObjectFactory reader,
+                                                     Supplier<OntGraphModel> model,
+                                                     InternalObjectFactory factory,
                                                      InternalConfig config) {
-        ONTObject<? extends OWLIndividual> a = reader.getIndividual(statement.getSubject(getView()));
-        ONTObject<? extends OWLIndividual> b = reader.getIndividual(statement.getObject().as(getView()));
-        Collection<ONTObject<OWLAnnotation>> annotations = reader.getAnnotations(statement, config);
-        OWLSameIndividualAxiom res = reader.getOWLDataFactory()
+        return AxiomImpl.create(statement, model, factory, config);
+    }
+
+    @Override
+    public ONTObject<OWLSameIndividualAxiom> toAxiom(OntStatement statement,
+                                                     InternalObjectFactory factory,
+                                                     InternalConfig config) {
+        ONTObject<? extends OWLIndividual> a = factory.getIndividual(statement.getSubject(getView()));
+        ONTObject<? extends OWLIndividual> b = factory.getIndividual(statement.getObject().as(getView()));
+        Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);
+        OWLSameIndividualAxiom res = factory.getOWLDataFactory()
                 .getOWLSameIndividualAxiom(a.getOWLObject(), b.getOWLObject(), ONTObject.toSet(annotations));
         return ONTWrapperImpl.create(res, statement).append(annotations).append(a).append(b);
     }
 
+    /**
+     * @see com.github.owlcs.ontapi.owlapi.axioms.OWLSameIndividualAxiomImpl
+     */
+    public abstract static class AxiomImpl extends IndividualNaryAxiomImpl<OWLSameIndividualAxiom>
+            implements OWLSameIndividualAxiom {
+
+        protected AxiomImpl(Triple t, Supplier<OntGraphModel> m) {
+            this(strip(t.getSubject()), t.getPredicate().getURI(), strip(t.getObject()), m);
+        }
+
+        protected AxiomImpl(Object s, String p, Object o, Supplier<OntGraphModel> m) {
+            super(s, p, o, m);
+        }
+
+        /**
+         * Creates an {@link ONTObject} container, that is also {@link OWLSameIndividualAxiom}.
+         *
+         * @param statement {@link OntStatement}, not {@code null}
+         * @param model     {@link OntGraphModel} provider, not {@code null}
+         * @param factory   {@link InternalObjectFactory}, not {@code null}
+         * @param config    {@link InternalConfig}, not {@code null}
+         * @return {@link AxiomImpl}
+         */
+        public static AxiomImpl create(OntStatement statement,
+                                       Supplier<OntGraphModel> model,
+                                       InternalObjectFactory factory,
+                                       InternalConfig config) {
+            return WithManyObjects.create(statement, model,
+                    SimpleImpl.FACTORY, ComplexImpl.FACTORY, SET_HASH_CODE, factory, config);
+        }
+
+        @Override
+        protected final long count() {
+            return 2;
+        }
+
+        @Override
+        public boolean containsAnonymousIndividuals() {
+            return individuals().anyMatch(OWLIndividual::isAnonymous);
+        }
+
+        @FactoryAccessor
+        @Override
+        protected OWLSameIndividualAxiom createAxiom(Collection<OWLIndividual> members,
+                                                     Collection<OWLAnnotation> annotations) {
+            return getDataFactory().getOWLSameIndividualAxiom(members,
+                    annotations == null ? NO_ANNOTATIONS : annotations);
+        }
+
+        @FactoryAccessor
+        @Override
+        protected OWLSubClassOfAxiom createSubClassOf(OWLIndividual a, OWLIndividual b) {
+            DataFactory df = getDataFactory();
+            return df.getOWLSubClassOfAxiom(df.getOWLObjectOneOf(a), df.getOWLObjectOneOf(b));
+        }
+
+        @FactoryAccessor
+        @Override
+        public Collection<OWLSubClassOfAxiom> asOWLSubClassOfAxioms() { // OWL-API-impl returns a Set here
+            return fromPairs((a, b) -> createSubClassOf(eraseModel(a), eraseModel(b))).collect(Collectors.toSet());
+        }
+
+        /**
+         * An {@link OWLSameIndividualAxiom} that has named classes as subject and object and has no annotations.
+         */
+        protected static class SimpleImpl extends AxiomImpl implements Simple<OWLIndividual> {
+
+            private static final BiFunction<Triple, Supplier<OntGraphModel>, SimpleImpl> FACTORY = SimpleImpl::new;
+
+            protected SimpleImpl(Triple t, Supplier<OntGraphModel> m) {
+                super(t, m);
+            }
+
+            protected SimpleImpl(Object s, String p, Object o, Supplier<OntGraphModel> m) {
+                super(s, p, o, m);
+            }
+
+            @Override
+            protected boolean sameContent(ONTStatementImpl other) {
+                return other instanceof SimpleImpl && isReverseTriple((SimpleImpl) other);
+            }
+
+            @Override
+            protected AxiomImpl makeCopyWith(ONTObject<OWLSameIndividualAxiom> other) {
+                if (other instanceof SimpleImpl) {
+                    Triple t = ((SimpleImpl) other).asTriple();
+                    return new SimpleImpl(subject, predicate, object, model) {
+
+                        @Override
+                        public Stream<Triple> triples() {
+                            return Stream.concat(SimpleImpl.this.triples(), Stream.of(t));
+                        }
+                    };
+                }
+                return new SimpleImpl(subject, predicate, object, model) {
+                    @Override
+                    public Stream<Triple> triples() {
+                        return Stream.concat(SimpleImpl.this.triples(), other.triples());
+                    }
+                };
+            }
+
+            @Override
+            public boolean containsAnonymousIndividuals() {
+                return false;
+            }
+
+            @SuppressWarnings("unchecked")
+            @Override
+            public Set<OWLNamedIndividual> getNamedIndividualSet() {
+                return (Set<OWLNamedIndividual>) getOWLComponentsAsSet();
+            }
+
+            @SuppressWarnings("unchecked")
+            @Override
+            public Set<OWLEntity> getSignatureSet() {
+                return (Set<OWLEntity>) getOWLComponentsAsSet();
+            }
+
+            @Override
+            public boolean containsNamedIndividual(OWLNamedIndividual individual) {
+                return hasURIResource(ONTEntityImpl.getURI(individual));
+            }
+
+            @Override
+            public boolean canContainAnonymousIndividuals() {
+                return false;
+            }
+        }
+
+        /**
+         * An {@link OWLSameIndividualAxiom}
+         * that either has annotations or anonymous class expressions in subject or object positions.
+         * It has a public constructor since it is more generic then {@link SimpleImpl}.
+         */
+        public static class ComplexImpl extends AxiomImpl
+                implements Complex<ComplexImpl, OWLIndividual> {
+
+            private static final BiFunction<Triple, Supplier<OntGraphModel>, ComplexImpl> FACTORY = ComplexImpl::new;
+            protected final InternalCache.Loading<ComplexImpl, Object[]> content;
+
+            public ComplexImpl(Triple t, Supplier<OntGraphModel> m) {
+                this(strip(t.getSubject()), t.getPredicate().getURI(), strip(t.getObject()), m);
+            }
+
+            protected ComplexImpl(Object s, String p, Object o, Supplier<OntGraphModel> m) {
+                super(s, p, o, m);
+                this.content = createContentCache();
+            }
+
+            @Override
+            public InternalCache.Loading<ComplexImpl, Object[]> getContentCache() {
+                return content;
+            }
+
+            @Override
+            protected boolean sameContent(ONTStatementImpl other) {
+                return other instanceof ComplexImpl && Arrays.equals(getContent(), ((ComplexImpl) other).getContent());
+            }
+
+            @Override
+            protected ComplexImpl makeCopyWith(ONTObject<OWLSameIndividualAxiom> other) {
+                ComplexImpl res = new ComplexImpl(subject, predicate, object, model) {
+                    @Override
+                    public Stream<Triple> triples() {
+                        return Stream.concat(ComplexImpl.this.triples(), other.triples());
+                    }
+                };
+                if (hasContent()) {
+                    res.putContent(getContent());
+                }
+                return res;
+            }
+        }
+    }
 }

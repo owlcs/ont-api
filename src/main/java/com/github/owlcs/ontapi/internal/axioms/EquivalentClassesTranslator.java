@@ -36,7 +36,7 @@ import java.util.stream.Stream;
 
 /**
  * A translator that provides {@link OWLEquivalentClassesAxiom} implementations.
- * Base class {@link AbstractNaryTranslator}
+ * Base class {@link AbstractNaryTranslator}.
  * Example of ttl:
  * <pre>{@code
  *  pizza:SpicyTopping owl:equivalentClass [ a owl:Class; owl:intersectionOf ( pizza:PizzaTopping [a owl:Restriction; owl:onProperty pizza:hasSpiciness; owl:someValuesFrom pizza:Hot] )] ;
@@ -44,8 +44,6 @@ import java.util.stream.Stream;
  * </pre>
  * <p>
  * Created by @szuev on 29.09.2016.
- *
- * @see OWLEquivalentClassesAxiom
  */
 public class EquivalentClassesTranslator extends AbstractNaryTranslator<OWLEquivalentClassesAxiom, OWLClassExpression, OntCE> {
 
@@ -168,6 +166,10 @@ public class EquivalentClassesTranslator extends AbstractNaryTranslator<OWLEquiv
                 super(s, p, o, m);
             }
 
+            private static boolean isNonBuiltin(String uri) {
+                return !uri.equals(OWL.Thing.getURI()) && !uri.equals(OWL.Nothing.getURI());
+            }
+
             @Override
             protected boolean sameContent(ONTStatementImpl other) {
                 return other instanceof SimpleImpl && isReverseTriple((SimpleImpl) other);
@@ -193,6 +195,21 @@ public class EquivalentClassesTranslator extends AbstractNaryTranslator<OWLEquiv
                 };
             }
 
+            @Override
+            public boolean containsNamedEquivalentClass() {
+                return isNonBuiltin((String) subject) || isNonBuiltin((String) object);
+            }
+
+            @Override
+            public boolean containsOWLNothing() {
+                return hasURIResource(OWL.Nothing);
+            }
+
+            @Override
+            public boolean containsOWLThing() {
+                return hasURIResource(OWL.Thing);
+            }
+
             @SuppressWarnings("unchecked")
             @Override
             public Set<OWLClass> getNamedClassSet() {
@@ -213,8 +230,7 @@ public class EquivalentClassesTranslator extends AbstractNaryTranslator<OWLEquiv
 
             @Override
             public boolean containsNamedClass(OWLClass clazz) {
-                String uri = ONTEntityImpl.getURI(clazz);
-                return subject.equals(uri) || object.equals(uri);
+                return hasURIResource(ONTEntityImpl.getURI(clazz));
             }
 
             @Override

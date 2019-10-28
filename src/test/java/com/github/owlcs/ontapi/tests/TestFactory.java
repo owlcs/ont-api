@@ -2391,8 +2391,47 @@ public class TestFactory {
                                 "df.getRDFSComment(df.getOWLAnonymousIndividual(\"_:b4\"))))";
                     }
                 }
-        );
+                , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.SAME_INDIVIDUAL;
+                    }
 
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLSameIndividualAxiom(df.getOWLNamedIndividual("A"),
+                                df.getOWLAnonymousIndividual("_:B"));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLSameIndividualAxiom(df.getOWLNamedIndividual(\"A\"), " +
+                                "df.getOWLAnonymousIndividual(\"_:B\"))";
+                    }
+                }
+                , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.SAME_INDIVIDUAL;
+                    }
+
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLSameIndividualAxiom(Arrays.asList(df.getOWLAnonymousIndividual("_:b0"),
+                                df.getOWLNamedIndividual("I")),
+                                Arrays.asList(df.getRDFSComment(df.getOWLAnonymousIndividual("_:b1")),
+                                        df.getRDFSLabel(df.getOWLLiteral("x", "x"))));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLSameIndividualAxiom(Arrays.asList(df.getOWLAnonymousIndividual(\"_:b0\"), " +
+                                "df.getOWLNamedIndividual(\"I\")), " +
+                                "Arrays.asList(df.getRDFSComment(df.getOWLAnonymousIndividual(\"_:b1\")), " +
+                                "df.getRDFSLabel(df.getOWLLiteral(\"x\", \"x\"))))";
+                    }
+                }
+        );
     }
 
     public interface Data {
@@ -2407,6 +2446,9 @@ public class TestFactory {
         }
 
         default void assertCheckEquals(OWLObject expected, OWLObject actual) {
+            if (!expected.equals(actual)) {
+                System.err.println("Not eq:: " + actual);
+            }
             Assert.assertEquals("'" + expected + "': not equal", expected, actual);
         }
 

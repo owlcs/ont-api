@@ -105,15 +105,7 @@ public class ModelObjectTest {
         OWLDataFactory df = ObjectFactoryTestBase.ONT_DATA_FACTORY;
         OWLEquivalentClassesAxiom expected = df.getOWLEquivalentClassesAxiom(df.getOWLClass("X"), df.getOWLClass("Y"),
                 Collections.singleton(df.getRDFSComment("x")));
-        Collection<? extends OWLAxiom> res = SplitNaryAxiomsTest.createONTAxioms(OntManagers.createONT(), expected);
-        Assert.assertEquals(1, res.size());
-        OWLEquivalentClassesAxiom actual = (OWLEquivalentClassesAxiom) res.iterator().next();
-        Assert.assertTrue(actual instanceof ModelObject);
-        Assert.assertEquals(expected, actual);
-
-        testNarySplitMethod(expected, actual, OWLNaryAxiom::asPairwiseAxioms);
-        testNarySplitMethod(expected, actual, OWLNaryAxiom::splitToAnnotatedPairs);
-        testNarySplitMethod(expected, actual, x -> ((OWLEquivalentClassesAxiom) x).asOWLSubClassOfAxioms());
+        testNaryAxiom(expected);
     }
 
     @Test
@@ -274,5 +266,26 @@ public class ModelObjectTest {
         Assert.assertTrue(actual instanceof ModelObject);
         Assert.assertEquals(expected, actual);
         testNarySplitMethod(expected, actual, x -> ((OWLDifferentIndividualsAxiom) x).asOWLSubClassOfAxioms());
+    }
+
+    @Test
+    public void testSameIndividualsEraseModelMethods() {
+        OWLDataFactory df = ObjectFactoryTestBase.ONT_DATA_FACTORY;
+        OWLSameIndividualAxiom expected = df.getOWLSameIndividualAxiom(df.getOWLNamedIndividual("X"), df.getOWLNamedIndividual("Y"),
+                Collections.singleton(df.getRDFSComment("x")));
+        testNaryAxiom(expected);
+    }
+
+    @SuppressWarnings("unchecked")
+    private <X extends OWLNaryAxiom & OWLSubClassOfAxiomSetShortCut> void testNaryAxiom(X expected) {
+        Collection<? extends OWLAxiom> res = SplitNaryAxiomsTest.createONTAxioms(OntManagers.createONT(), expected);
+        Assert.assertEquals(1, res.size());
+        X actual = (X) res.iterator().next();
+        Assert.assertTrue(actual instanceof ModelObject);
+        Assert.assertEquals(expected, actual);
+
+        testNarySplitMethod(expected, actual, OWLNaryAxiom::asPairwiseAxioms);
+        testNarySplitMethod(expected, actual, OWLNaryAxiom::splitToAnnotatedPairs);
+        testNarySplitMethod(expected, actual, x -> ((X) x).asOWLSubClassOfAxioms());
     }
 }

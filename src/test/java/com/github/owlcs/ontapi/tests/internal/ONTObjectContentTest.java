@@ -28,6 +28,8 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
@@ -35,6 +37,7 @@ import java.util.List;
  * Created by @szz on 12.09.2019.
  */
 public class ONTObjectContentTest {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ONTObjectContentTest.class);
 
     @SuppressWarnings("unchecked")
     @Test
@@ -369,6 +372,30 @@ public class ONTObjectContentTest {
                 .findFirst().orElseThrow(AssertionError::new);
 
         o.remove(a);
+
+        o.clearCache();
+        Assert.assertEquals(4, o.axioms().count());
+        Assert.assertEquals(5, g.size());
+    }
+
+    @Test
+    public void testMergeSameIndividuals() {
+        OntologyManager m = OntManagers.createONT();
+        OntologyModel o = m.createOntology();
+        OntGraphModel g = o.asGraphModel();
+
+        OntIndividual x = g.getOWLThing().createIndividual("X");
+        OntIndividual y = g.getOWLThing().createIndividual("Y");
+        x.addSameIndividual(y.addSameIndividual(x));
+        ReadWriteUtils.print(g);
+
+        Assert.assertEquals(7, g.size());
+        Assert.assertEquals(5, o.axioms().peek(a -> LOGGER.debug("A: {}", a)).count());
+        OWLSameIndividualAxiom a = o.axioms(AxiomType.SAME_INDIVIDUAL)
+                .findFirst().orElseThrow(AssertionError::new);
+
+        o.remove(a);
+        ReadWriteUtils.print(g);
 
         o.clearCache();
         Assert.assertEquals(4, o.axioms().count());

@@ -14,17 +14,17 @@
 
 package com.github.owlcs.ontapi.tests.internal;
 
+import com.github.owlcs.ontapi.OntManagers;
+import com.github.owlcs.ontapi.OntologyManager;
+import com.github.owlcs.ontapi.OntologyModel;
+import com.github.owlcs.ontapi.internal.ONTObject;
+import com.github.owlcs.ontapi.internal.objects.ModelObject;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runners.Parameterized;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLNaryAxiom;
-import com.github.owlcs.ontapi.OntManagers;
-import com.github.owlcs.ontapi.OntologyManager;
-import com.github.owlcs.ontapi.OntologyModel;
-import com.github.owlcs.ontapi.internal.ONTObject;
-import com.github.owlcs.ontapi.internal.objects.ModelObject;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -40,14 +40,12 @@ public class SplitNaryAxiomsTest extends NaryAxiomsTestBase {
     }
 
     @Parameterized.Parameters(name = "{0}")
-    public static List<Data> getData() {
-        return getObjects().stream()
-                .filter(Data::isAxiom)
+    public static List<AxiomData> getData() {
+        return getAxiomData(
                 // TODO: see https://github.com/avicomp/ont-api/issues/87
-                .filter(x -> isOneOf(x
-                        , AxiomType.EQUIVALENT_CLASSES
-                        , AxiomType.INVERSE_OBJECT_PROPERTIES))
-                .collect(Collectors.toList());
+                AxiomType.EQUIVALENT_CLASSES
+                , AxiomType.INVERSE_OBJECT_PROPERTIES
+                , AxiomType.SAME_INDIVIDUAL);
     }
 
     static Collection<? extends OWLAxiom> createONTAxioms(OntologyManager m, OWLAxiom toWrite) {

@@ -14,14 +14,15 @@
 
 package com.github.owlcs.ontapi.internal.objects;
 
-import org.apache.jena.graph.Triple;
-import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.util.NNF;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.jena.model.OntGraphModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.rdf.model.Resource;
+import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.OWLAxiom;
+import org.semanticweb.owlapi.util.NNF;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
@@ -132,6 +133,26 @@ public abstract class ONTAxiomImpl<X extends OWLAxiom>
      */
     public final String getObjectURI() throws ClassCastException {
         return (String) object;
+    }
+
+    /**
+     * Answers {@code true} if the specified {@code uri} appears either in the position of a subject or object.
+     *
+     * @param uri {@link Resource}, not {@code null}
+     * @return boolean
+     */
+    protected boolean hasURIResource(Resource uri) {
+        return hasURIResource(uri.getURI());
+    }
+
+    /**
+     * Answers {@code true} if the specified {@code uri} appears either in the position of a subject or object.
+     *
+     * @param uri String, not {@code null}
+     * @return boolean
+     */
+    protected boolean hasURIResource(String uri) {
+        return subject.equals(uri) || object.equals(uri);
     }
 
     @SuppressWarnings("unchecked")

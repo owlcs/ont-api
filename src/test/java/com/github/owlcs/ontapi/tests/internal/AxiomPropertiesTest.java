@@ -14,14 +14,15 @@
 
 package com.github.owlcs.ontapi.tests.internal;
 
+import com.github.owlcs.ontapi.OntManagers;
+import com.github.owlcs.ontapi.tests.TestFactory;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.github.owlcs.ontapi.OntManagers;
-import com.github.owlcs.ontapi.tests.TestFactory;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -34,28 +35,35 @@ public class AxiomPropertiesTest {
 
     @Test
     public void testSubClassOf() {
-        List<TestFactory.AxiomData> data = TestFactory.getObjects().stream().filter(TestFactory.Data::isAxiom)
-                .map(x -> (TestFactory.AxiomData) x).filter(x -> AxiomType.SUBCLASS_OF.equals(x.getType()))
-                .collect(Collectors.toList());
+        List<TestFactory.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.SUBCLASS_OF);
         testAxiom(data, OWLSubClassOfAxiom::isGCI);
     }
 
     @Test
     public void testPropertyChains() {
-        List<TestFactory.AxiomData> data = TestFactory.getObjects().stream().filter(TestFactory.Data::isAxiom)
-                .map(x -> (TestFactory.AxiomData) x).filter(x -> AxiomType.SUB_PROPERTY_CHAIN_OF.equals(x.getType()))
-                .collect(Collectors.toList());
+        List<TestFactory.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.SUB_PROPERTY_CHAIN_OF);
         testAxiom(data, OWLSubPropertyChainOfAxiom::isEncodingOfTransitiveProperty,
                 OWLSubPropertyChainOfAxiom::getPropertyChain);
     }
 
     @Test
     public void testHasKey() {
-        List<TestFactory.AxiomData> data = TestFactory.getObjects().stream().filter(TestFactory.Data::isAxiom)
-                .map(x -> (TestFactory.AxiomData) x).filter(x -> AxiomType.HAS_KEY.equals(x.getType()))
-                .collect(Collectors.toList());
+        List<TestFactory.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.HAS_KEY);
         testAxiom(data, (OWLHasKeyAxiom a) -> a.dataPropertyExpressions().collect(Collectors.toSet()),
                 (OWLHasKeyAxiom a) -> a.objectPropertyExpressions().collect(Collectors.toSet()));
+    }
+
+    @Test
+    public void testEquivalentClasses() {
+        List<TestFactory.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.EQUIVALENT_CLASSES);
+        testSplitNaryAxioms(data, OWLEquivalentClassesAxiom::containsNamedEquivalentClass,
+                OWLEquivalentClassesAxiom::containsOWLNothing, OWLEquivalentClassesAxiom::containsOWLThing);
+    }
+
+    @Test
+    public void testSameIndividuals() {
+        List<TestFactory.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.SAME_INDIVIDUAL);
+        testSplitNaryAxioms(data, OWLSameIndividualAxiom::containsAnonymousIndividuals);
     }
 
     @SuppressWarnings("unchecked")
@@ -73,6 +81,31 @@ public class AxiomPropertiesTest {
                 Object expected = property.apply(owl);
                 Assert.assertEquals(expected, property.apply(ont));
                 Assert.assertEquals(expected, property.apply(res));
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    @SafeVarargs
+    private static <X extends OWLNaryAxiom> void testSplitNaryAxioms(List<TestFactory.AxiomData> data,
+                                                                     Function<X, Object>... properties) {
+        Assert.assertFalse(data.isEmpty());
+        for (TestFactory.AxiomData a : data) {
+            LOGGER.debug("Test properties for '{}'", a);
+            X base = (X) a.create(ObjectFactoryTestBase.OWL_DATA_FACTORY);
+            Collection<X> owlList = ((X) a.create(ObjectFactoryTestBase.OWL_DATA_FACTORY)).asPairwiseAxioms();
+            Collection<X> ontList = ((X) a.create(ObjectFactoryTestBase.ONT_DATA_FACTORY)).asPairwiseAxioms();
+            Collection<X> resList = (Collection<X>) SplitNaryAxiomsTest.createONTAxioms(OntManagers.createONT(), base);
+            for (X owl : owlList) {
+                X ont = ontList.stream().filter(owl::equals)
+                        .findFirst().orElseThrow(AssertionError::new);
+                X res = resList.stream().filter(owl::equals)
+                        .findFirst().orElseThrow(AssertionError::new);
+                for (Function<X, Object> property : properties) {
+                    Object expected = property.apply(owl);
+                    Assert.assertEquals(expected, property.apply(ont));
+                    Assert.assertEquals(expected, property.apply(res));
+                }
             }
         }
     }

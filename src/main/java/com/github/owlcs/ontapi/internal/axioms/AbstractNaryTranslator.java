@@ -26,6 +26,7 @@ import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.util.OWLAPIStreamUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -120,6 +121,9 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
 
         /**
          * Returns the number of components.
+         * For single-triple axioms (i.e. a with predicate such as {@code owl:sameAs}, {@code owl:equivalentClass})
+         * the method returns {@code 2}.
+         * Only n-ary axioms which are based on {@link OntDisjoint} resource can different members count.
          *
          * @return long
          */
@@ -228,6 +232,19 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
             }
             return false;
         }
+
+        /**
+         * Lists {@link T}s retrieved from the axiom internals.
+         *
+         * @param visitor {@link OWLPairwiseVisitor}, a visitor to apply to all pairwise elements in this axiom;
+         *                pairs are ordered,  i.e., (i, j) and (j, i) will be considered. (i,i) is skipped, not {@code null}
+         * @param <T>     the type returned by the {@code visitor}
+         * @return a {@code Stream} of {@link T}s
+         * @see OWLNaryAxiom#walkAllPairwise(OWLPairwiseVisitor)
+         */
+        protected <T> Stream<T> fromPairs(OWLPairwiseVisitor<T, M> visitor) {
+            return OWLAPIStreamUtils.allPairs(operands()).map(v -> visitor.visit(v.i, v.j)).filter(Objects::nonNull);
+        }
     }
 
     /**
@@ -308,7 +325,7 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
 
         @Override
         public final boolean canContainClassExpressions() {
-            return true;
+            return false;
         }
 
         @Override
@@ -358,13 +375,14 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
          * @param a - {@link M}, the first operand, not {@code null}
          * @param b - {@link M}, the second operand, not {@code null}
          * @return {@link OWLSubClassOfAxiom}
+         * @see NaryAxiomImpl#fromPairs(OWLPairwiseVisitor)
          */
         @FactoryAccessor
         protected abstract OWLSubClassOfAxiom createSubClassOf(M a, M b);
 
         @FactoryAccessor
         @Override
-        public final Collection<OWLSubClassOfAxiom> asOWLSubClassOfAxioms() {
+        public Collection<OWLSubClassOfAxiom> asOWLSubClassOfAxioms() {
             return walkAllPairwise((a, b) -> createSubClassOf(eraseModel(a), eraseModel(b)));
         }
     }

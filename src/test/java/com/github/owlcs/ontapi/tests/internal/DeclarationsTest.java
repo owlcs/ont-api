@@ -14,16 +14,15 @@
 
 package com.github.owlcs.ontapi.tests.internal;
 
+import com.github.owlcs.ontapi.DataFactory;
+import com.github.owlcs.ontapi.OntManagers;
+import com.github.owlcs.ontapi.OntologyManager;
 import org.junit.runners.Parameterized;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
-import com.github.owlcs.ontapi.DataFactory;
-import com.github.owlcs.ontapi.OntManagers;
-import com.github.owlcs.ontapi.OntologyManager;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Created by @ssz on 03.10.2019.
@@ -34,11 +33,8 @@ public class DeclarationsTest extends CommonAxiomsTest {
     }
 
     @Parameterized.Parameters(name = "{0}")
-    public static List<Data> getData() {
-        return getObjects().stream().filter(Data::isAxiom)
-                .map(x -> (AxiomData) x)
-                .filter(x -> AxiomType.DECLARATION.equals(x.getType()))
-                .collect(Collectors.toList());
+    public static List<AxiomData> getData() {
+        return getAxiomData(AxiomType.DECLARATION);
     }
 
     @Override
