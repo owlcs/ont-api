@@ -14,7 +14,20 @@
 
 package com.github.owlcs.ontapi.internal;
 
+import com.github.owlcs.ontapi.DataFactory;
+import com.github.owlcs.ontapi.OntApiException;
+import com.github.owlcs.ontapi.OntologyID;
 import com.github.owlcs.ontapi.OntologyModel;
+import com.github.owlcs.ontapi.internal.axioms.*;
+import com.github.owlcs.ontapi.jena.OntJenaException;
+import com.github.owlcs.ontapi.jena.RWLockedGraph;
+import com.github.owlcs.ontapi.jena.UnionGraph;
+import com.github.owlcs.ontapi.jena.impl.OntGraphModelImpl;
+import com.github.owlcs.ontapi.jena.impl.conf.OntPersonality;
+import com.github.owlcs.ontapi.jena.model.*;
+import com.github.owlcs.ontapi.jena.utils.Iter;
+import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphEventManager;
@@ -31,19 +44,6 @@ import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.github.owlcs.ontapi.DataFactory;
-import com.github.owlcs.ontapi.OntApiException;
-import com.github.owlcs.ontapi.OntologyID;
-import com.github.owlcs.ontapi.internal.axioms.*;
-import com.github.owlcs.ontapi.jena.OntJenaException;
-import com.github.owlcs.ontapi.jena.RWLockedGraph;
-import com.github.owlcs.ontapi.jena.UnionGraph;
-import com.github.owlcs.ontapi.jena.impl.OntGraphModelImpl;
-import com.github.owlcs.ontapi.jena.impl.conf.OntPersonality;
-import com.github.owlcs.ontapi.jena.model.*;
-import com.github.owlcs.ontapi.jena.utils.Iter;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
-import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -989,7 +989,7 @@ public class InternalModel extends OntGraphModelImpl
             OntGraphModel m = toModel(value);
             // triples that are used by other content objects:
             Set<Triple> used = new HashSet<>();
-            used.addAll(getUsedAxiomTriples(m, container));
+            used.addAll(getUsedDefinitionTriples(m, container));
             used.addAll(getUsedComponentTriples(m, container));
             // remove related components from the objects cache
             // (even there is no graph changes);
@@ -1009,36 +1009,78 @@ public class InternalModel extends OntGraphModelImpl
     }
 
     /**
-     * Returns a {@code Set} of {@link Triple}s,
-     * that belongs to both the given and some other content component
-     * in the form of axiom (or annotation) intersection.
-     * This includes intersection in axiom definition
-     * (e.g. a triple with the predicate {@code rdfs:subPropertyOf} may belong to several axiom in case of punnings)
-     * and re-using OWL entity declarations.
-     * Note that
-     * each axiom-container {@link ONTObject} contains not only direct triples, but also all invoked declarations.
+     * Returns the {@link Triple triple}s,
+     * that belong to both the given and some other content-container.
+     * This method only takes into account intersections in axiom definitions and re-using OWL entity declarations.
+     * Intersection in definition may appear in case of punning.
+     * For example, a triple with the predicate {@code rdfs:subPropertyOf} may belong to several axiom.
+     * In addition, an input container (i.e. a complex {@link ONTObject} - axiom or annotation)
+     * always contains declaration triples for all its (signature) entities,
+     * that can be used by existing (in cache) axioms.
      *
-     * @param m      {@link OntGraphModel} the model to traverse over
-     * @param object {@link OWLObject} for which this operation is performed
+     * @param m {@link OntGraphModel} the model to traverse over, that corresponds to the {@code o}, not {@code null}
+     * @param o {@link OWLObject} - a content-container, for which this operation is performed, not {@code null}
      * @return {@code Set} of {@code Triple}s
      */
-    protected Set<Triple> getUsedAxiomTriples(OntGraphModel m, OWLObject object) {
+    protected Set<Triple> getUsedDefinitionTriples(OntGraphModel m, OWLObject o) {
         InternalObjectFactory f = HasObjectFactory.getObjectFactory(m);
         InternalConfig c = HasConfig.getConfig(m);
         Set<Triple> res = new HashSet<>();
         Iter.flatMap(OWLContentType.listAll(), k -> k.read(() -> m, f, c)
-                .filterKeep(x -> !object.equals(x.getOWLObject()) && isUsed(k, x.getOWLObject())))
+                .filterKeep(x -> !o.equals(x.getOWLObject()) && isUsed(k, x.getOWLObject())))
                 .forEachRemaining(x -> x.triples().forEach(res::add));
+        return res;
+    }
+
+    /**
+     * Returns the {@link Triple triple}s,
+     * that belong to both the given and some other content-container.
+     * This method performs a full search by components.
+     * Any {@code OWLObject}-component can be shared between different content objects
+     * (i.e. containers - axioms or annotations).
+     * In this case, the triples, belonging to such a component, intersect with triples of other component,
+     * and cannot be deleted.
+     *
+     * @param m {@link OntGraphModel} the model to traverse over, that corresponds to the {@code o}, not {@code null}
+     * @param o {@link OWLObject} - a content-container, for which this operation is performed, not {@code null}
+     * @return {@code Set} of {@code Triple}s
+     */
+    protected Set<Triple> getUsedComponentTriples(OntGraphModel m, OWLObject o) {
+        InternalObjectFactory of = getObjectFactory();
+        Set<Triple> res = new HashSet<>();
+        OWLComponentType.sharedComponents().forEach(type -> {
+            Set<OWLObject> candidates = new HashSet<>();
+            Set<Triple> triples = new HashSet<>();
+            type.select(m, of).forEach(x -> {
+                candidates.add(x.getOWLObject());
+                x.triples().forEach(triples::add);
+            });
+            if (candidates.isEmpty()) {
+                return;
+            }
+            // search for axioms for this component type
+            // todo: this is a heavy operation, need to optimize somehow
+            selectContentContainers(type)
+                    .forEach(x -> {
+                        if (o.equals(x.getOWLObject())) {
+                            return;
+                        }
+                        if (!type.containsAny(x.getOWLObject(), candidates)) {
+                            return;
+                        }
+                        x.triples().filter(triples::contains).forEach(res::add);
+                    });
+        });
         return res;
     }
 
     /**
      * Answers {@code true} iff the given object-container (axiom or annotation)
      * is present in the {@link #content} cache,
-     * or, if it is declaration, it is used as a part by any other content container.
+     * or, if it is declaration, it is used implicitly as a part by any other content container.
      *
-     * @param type   {@link OWLContentType}, the type of object
-     * @param object {@link OWLObject} - the content container, axiom or annotation
+     * @param type   {@link OWLContentType}, the type of the content-container
+     * @param object {@link OWLObject} - the content-container, axiom or annotation
      * @return boolean
      */
     protected boolean isUsed(OWLContentType type, OWLObject object) {
@@ -1054,43 +1096,21 @@ public class InternalModel extends OntGraphModelImpl
     }
 
     /**
-     * Returns a {@code Set} of {@link Triple}s,
-     * that belongs to both the given and some other content component in the form of component intersection.
-     * This method only takes into account intersections in components.
-     * Almost any {@code OWLObject}-component - whatever named or anonymous -
-     * could be shared between different content objects.
-     * In this case, the triples, belonging to such a component, cannot be deleted.
+     * Finds the container object which contains the given component object somewhere in its depths.
      *
-     * @param m      {@link OntGraphModel} the model to traverse over
-     * @param object {@link OWLObject} for which this operation is performed
-     * @return {@code Set} of {@code Triple}s
+     * @param entity   {@link OWLObject} to check, not {@code null}
+     * @param excludes Array, with containers
+     *                 (that must be either {@link OWLAxiom} or {@link OWLAnnotation}) to exclude from consideration
+     * @return {@code Optional} around the container object
      */
-    protected Set<Triple> getUsedComponentTriples(OntGraphModel m, OWLObject object) {
-        InternalObjectFactory of = getObjectFactory();
-        Set<Triple> res = new HashSet<>();
-        OWLComponentType.sharedComponents().forEach(type -> {
-            Set<OWLObject> objects = new HashSet<>();
-            Set<Triple> triples = new HashSet<>();
-            type.select(m, of).forEach(x -> {
-                objects.add(x.getOWLObject());
-                x.triples().forEach(triples::add);
-            });
-            if (objects.isEmpty()) {
-                return;
-            }
-            // axioms for this component type:
-            selectContentContainers(type)
-                    .forEach(x -> {
-                        if (object.equals(x.getOWLObject())) {
-                            return;
-                        }
-                        if (type.components(x.getOWLObject()).noneMatch(objects::contains)) {
-                            return;
-                        }
-                        x.triples().filter(triples::contains).forEach(res::add);
-                    });
-        });
-        return res;
+    protected Optional<OWLObject> findUsedContentContainer(OWLObject entity, OWLObject... excludes) {
+        OWLComponentType type = OWLComponentType.get(entity);
+        Stream<OWLObject> res = selectContentObjects(type);
+        if (excludes.length != 0) {
+            Set<OWLObject> ignore = new HashSet<>(Arrays.asList(excludes));
+            res = res.filter(x -> !ignore.contains(x));
+        }
+        return res.filter(x -> type.contains(x, entity)).findFirst();
     }
 
     /**
@@ -1277,24 +1297,6 @@ public class InternalModel extends OntGraphModelImpl
     }
 
     /**
-     * Finds the container object which contains the given component object somewhere in its depths.
-     *
-     * @param entity   {@link OWLObject} to check, not {@code null}
-     * @param excludes Array, with containers
-     *                 (that must be either {@link OWLAxiom} or {@link OWLAnnotation}) to exclude from consideration
-     * @return {@code Optional} around the container object
-     */
-    protected Optional<OWLObject> findUsedContentContainer(OWLObject entity, OWLObject... excludes) {
-        OWLComponentType type = OWLComponentType.get(entity);
-        Stream<OWLObject> res = selectContentObjects(type);
-        if (excludes.length != 0) {
-            Set<OWLObject> ignore = new HashSet<>(Arrays.asList(excludes));
-            res = res.filter(x -> !ignore.contains(x));
-        }
-        return res.filter(x -> type.contains(x, entity)).findFirst();
-    }
-
-    /**
      * Creates a {@link ObjectMap} container for the given {@link OWLComponentType}.
      *
      * @param key {@link OWLComponentType}, not {@code null}
@@ -1397,7 +1399,7 @@ public class InternalModel extends OntGraphModelImpl
             if (!map.isLoaded()) {
                 return;
             }
-            if (!type.components(container).findFirst().isPresent()) return;
+            if (!type.select(container).findFirst().isPresent()) return;
             map.clear();
         });
     }

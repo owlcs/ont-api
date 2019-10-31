@@ -14,16 +14,16 @@
 
 package com.github.owlcs.ontapi.internal;
 
-import org.apache.jena.rdf.model.Literal;
-import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.util.iterator.ExtendedIterator;
-import org.semanticweb.owlapi.model.*;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.OwlObjects;
 import com.github.owlcs.ontapi.jena.model.*;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
+import org.apache.jena.rdf.model.Literal;
+import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.util.iterator.ExtendedIterator;
+import org.semanticweb.owlapi.model.*;
 
 import java.util.*;
 import java.util.stream.Stream;
@@ -167,7 +167,7 @@ public enum OWLComponentType {
         }
 
         @Override
-        public Stream<OWLObject> select(OWLObject container) {
+        public Stream<OWLObject> components(OWLObject container) {
             return OwlObjects.objects(owl, container);
         }
 
@@ -350,7 +350,7 @@ public enum OWLComponentType {
         }
     };
 
-    private static final Set<OWLComponentType> CACHE_KEYS = EnumSet.of(CLASS
+    private static final Set<OWLComponentType> PRIMITIVE_COMPONENTS = EnumSet.of(CLASS
             , DATATYPE
             , ANNOTATION_PROPERTY
             , DATATYPE_PROPERTY
@@ -358,7 +358,7 @@ public enum OWLComponentType {
             , NAMED_INDIVIDUAL
             , ANONYMOUS_INDIVIDUAL);
 
-    private static final Set<OWLComponentType> SHARED_COMPONENTS = EnumSet.of(ANONYMOUS_CLASS_EXPRESSION
+    private static final Set<OWLComponentType> COMPLEX_COMPONENTS = EnumSet.of(ANONYMOUS_CLASS_EXPRESSION
             , ANONYMOUS_DATA_RANGE
             , FACET_RESTRICTION
             , INVERSE_OBJECT_PROPERTY
@@ -424,7 +424,7 @@ public enum OWLComponentType {
      * @see InternalModel#getUsedComponentTriples(OntGraphModel, OWLObject)
      */
     static Stream<OWLComponentType> sharedComponents() {
-        return SHARED_COMPONENTS.stream();
+        return Stream.concat(PRIMITIVE_COMPONENTS.stream(), COMPLEX_COMPONENTS.stream());
     }
 
     /**
@@ -434,7 +434,7 @@ public enum OWLComponentType {
      * @see InternalModel#components
      */
     static Stream<OWLComponentType> keys() {
-        return CACHE_KEYS.stream();
+        return PRIMITIVE_COMPONENTS.stream();
     }
 
     /**
@@ -453,6 +453,12 @@ public enum OWLComponentType {
         includes().forEach(i -> i.putInSet(set));
     }
 
+    /**
+     * Extracts all components of this type from the specified {@code container}.
+     *
+     * @param container {@link OWLObject}, not {@code null}
+     * @return {@code Stream} of components
+     */
     Stream<? extends OWLObject> components(OWLObject container) {
         return OwlObjects.parseComponents(owl, container);
     }
@@ -497,7 +503,7 @@ public enum OWLComponentType {
      * @return {@code Stream} of {@link OWLObject} of this type
      */
     @SuppressWarnings("unchecked")
-    public Stream<OWLObject> select(OWLObject container) {
+    public final Stream<OWLObject> select(OWLObject container) {
         return (Stream<OWLObject>) components(container);
     }
 
