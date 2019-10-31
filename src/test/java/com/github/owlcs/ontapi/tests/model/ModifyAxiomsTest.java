@@ -46,20 +46,25 @@ public class ModifyAxiomsTest {
     public void testRemoveAllAxiomsFromLoadedOntology() {
         String ns = "http://x#";
         OntologyManager m = OntManagers.createONT();
+        DataFactory df = m.getOWLDataFactory();
 
         OntologyModel o = m.createOntology();
         OntGraphModel g = o.asGraphModel();
         g.createOntClass(ns + "X").addSuperClass(g.createOntClass(ns + "Y"));
         ReadWriteUtils.print(g);
+        Assert.assertEquals(4, g.size());
+        Assert.assertEquals(3, o.axioms().peek(x -> LOGGER.debug("1): {}", x)).count());
 
-        List<OWLAxiom> axioms = o.axioms().peek(x -> LOGGER.debug("(1): {}", x)).collect(Collectors.toList());
-        Assert.assertEquals(3, axioms.size());
+        o.remove(df.getOWLDeclarationAxiom(df.getOWLClass(ns + "X")));
+        Assert.assertEquals(2, o.axioms().peek(x -> LOGGER.debug("2): {}", x)).count());
+        Assert.assertEquals(4, g.size());
 
-        for (OWLAxiom a : axioms) {
-            LOGGER.debug("REMOVE: {}", a);
-            o.remove(a);
-        }
-        Assert.assertEquals(0, o.axioms().peek(x -> LOGGER.debug("(2): {}", x)).count());
+        o.remove(df.getOWLDeclarationAxiom(df.getOWLClass(ns + "Y")));
+        Assert.assertEquals(1, o.axioms().peek(x -> LOGGER.debug("3): {}", x)).count());
+        Assert.assertEquals(4, g.size());
+
+        o.remove(df.getOWLSubClassOfAxiom(df.getOWLClass(ns + "X"), df.getOWLClass(ns + "Y")));
+        Assert.assertEquals(0, o.axioms().peek(x -> LOGGER.debug("4): {}", x)).count());
         Assert.assertEquals(1, g.size());
     }
 

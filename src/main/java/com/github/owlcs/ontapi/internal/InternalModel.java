@@ -1056,9 +1056,10 @@ public class InternalModel extends OntGraphModelImpl
     /**
      * Returns a {@code Set} of {@link Triple}s,
      * that belongs to both the given and some other content component in the form of component intersection.
+     * This method only takes into account intersections in components.
      * Almost any {@code OWLObject}-component - whatever named or anonymous -
      * could be shared between different content objects.
-     * In this case the triples, belonging to such a component, cannot be deleted.
+     * In this case, the triples, belonging to such a component, cannot be deleted.
      *
      * @param m      {@link OntGraphModel} the model to traverse over
      * @param object {@link OWLObject} for which this operation is performed
@@ -1077,6 +1078,7 @@ public class InternalModel extends OntGraphModelImpl
             if (objects.isEmpty()) {
                 return;
             }
+            // axioms for this component type:
             selectContentContainers(type)
                     .forEach(x -> {
                         if (object.equals(x.getOWLObject())) {

@@ -35,7 +35,7 @@ import java.util.stream.Stream;
  * Created by @ssz on 13.07.2019.
  */
 public enum OWLComponentType {
-    IRI(org.semanticweb.owlapi.model.IRI.class, Resource.class, true) {
+    IRI(org.semanticweb.owlapi.model.IRI.class, Resource.class, false, true) {
         @Override
         List<OWLComponentType> includes() {
             return Collections.emptyList();
@@ -70,7 +70,7 @@ public enum OWLComponentType {
         }
 
     },
-    ANNOTATION_PROPERTY(OWLAnnotationProperty.class, OntNAP.class, true) {
+    ANNOTATION_PROPERTY(OWLAnnotationProperty.class, OntNAP.class, true, true) {
         @Override
         Stream<OWLAnnotationProperty> components(OWLObject o) {
             return o.annotationPropertiesInSignature();
@@ -81,7 +81,7 @@ public enum OWLComponentType {
             return df.getProperty(n.as(OntNAP.class));
         }
     },
-    DATATYPE_PROPERTY(OWLDataProperty.class, OntNDP.class, true) {
+    DATATYPE_PROPERTY(OWLDataProperty.class, OntNDP.class, true, true) {
         @Override
         Stream<OWLDataProperty> components(OWLObject o) {
             return o.dataPropertiesInSignature();
@@ -92,7 +92,7 @@ public enum OWLComponentType {
             return df.getProperty(n.as(OntNDP.class));
         }
     },
-    NAMED_OBJECT_PROPERTY(OWLObjectProperty.class, OntNOP.class, true) {
+    NAMED_OBJECT_PROPERTY(OWLObjectProperty.class, OntNOP.class, true, true) {
         @Override
         Stream<OWLObjectProperty> components(OWLObject o) {
             return o.objectPropertiesInSignature();
@@ -103,7 +103,7 @@ public enum OWLComponentType {
             return df.getProperty(n.as(OntNOP.class));
         }
     },
-    NAMED_INDIVIDUAL(OWLNamedIndividual.class, OntIndividual.Named.class, true) {
+    NAMED_INDIVIDUAL(OWLNamedIndividual.class, OntIndividual.Named.class, true, true) {
         @Override
         Stream<OWLNamedIndividual> components(OWLObject o) {
             return o.individualsInSignature();
@@ -114,7 +114,7 @@ public enum OWLComponentType {
             return df.getIndividual(n.as(OntIndividual.Named.class));
         }
     },
-    CLASS(OWLClass.class, OntClass.class, true) {
+    CLASS(OWLClass.class, OntClass.class, true, true) {
         @Override
         Stream<OWLClass> components(OWLObject o) {
             return o.classesInSignature();
@@ -125,7 +125,7 @@ public enum OWLComponentType {
             return df.getClass(n.as(OntClass.class));
         }
     },
-    DATATYPE(OWLDatatype.class, OntDT.class, true) {
+    DATATYPE(OWLDatatype.class, OntDT.class, true, true) {
         @Override
         Stream<OWLDatatype> components(OWLObject o) {
             return o.datatypesInSignature();
@@ -136,7 +136,7 @@ public enum OWLComponentType {
             return df.getDatatype(n.as(OntDT.class));
         }
     },
-    ENTITY(OWLEntity.class, OntEntity.class, false) {
+    ENTITY(OWLEntity.class, OntEntity.class, true, false) {
         @Override
         List<OWLComponentType> includes() {
             return Arrays.asList(ANNOTATION_PROPERTY, DATATYPE_PROPERTY, NAMED_OBJECT_PROPERTY,
@@ -153,7 +153,7 @@ public enum OWLComponentType {
             return o.signature();
         }
     },
-    LITERAL(OWLLiteral.class, Literal.class, true) {
+    LITERAL(OWLLiteral.class, Literal.class, false, true) {
         @Override
         List<OWLComponentType> includes() {
             return Collections.singletonList(DATATYPE);
@@ -176,7 +176,7 @@ public enum OWLComponentType {
             return df.getLiteral(n.asLiteral());
         }
     },
-    INDIVIDUAL(OWLIndividual.class, OntIndividual.class, false) {
+    INDIVIDUAL(OWLIndividual.class, OntIndividual.class) {
         @Override
         List<OWLComponentType> includes() {
             return Arrays.asList(NAMED_INDIVIDUAL, ANONYMOUS_INDIVIDUAL);
@@ -192,7 +192,7 @@ public enum OWLComponentType {
             return df.getIndividual(n.as(OntIndividual.class));
         }
     },
-    ANONYMOUS_INDIVIDUAL(OWLAnonymousIndividual.class, OntIndividual.Anonymous.class, true) {
+    ANONYMOUS_INDIVIDUAL(OWLAnonymousIndividual.class, OntIndividual.Anonymous.class, false, true) {
         @Override
         Stream<OWLAnonymousIndividual> components(OWLObject o) {
             return o.anonymousIndividuals();
@@ -203,7 +203,7 @@ public enum OWLComponentType {
             return df.getIndividual(n.as(OntIndividual.Anonymous.class));
         }
     },
-    ANONYMOUS_DATA_RANGE(OWLDataRange.class, OntDR.class, false) {
+    ANONYMOUS_DATA_RANGE(OWLDataRange.class, OntDR.class) {
         /**
          * {@inheritDoc}
          * + literals ({@code DataOneOf}, {@code DatatypeRestriction})
@@ -231,7 +231,7 @@ public enum OWLComponentType {
             return df.getDatatype(n.as(OntDR.class));
         }
     },
-    DATA_RANGE(OWLDataRange.class, OntDR.class, false) {
+    DATA_RANGE(OWLDataRange.class, OntDR.class) {
         /**
          * {@inheritDoc}
          * + literals ({@code DataOneOf}, {@code DatatypeRestriction})
@@ -246,7 +246,7 @@ public enum OWLComponentType {
             return df.getDatatype(n.as(OntDR.class));
         }
     },
-    ANONYMOUS_CLASS_EXPRESSION(OWLAnonymousClassExpression.class, OntCE.class, false) {
+    ANONYMOUS_CLASS_EXPRESSION(OWLAnonymousClassExpression.class, OntCE.class) {
         /**
          * {@inheritDoc}
          * This component may contain:
@@ -281,7 +281,7 @@ public enum OWLComponentType {
             return df.getClass(n.as(OntCE.class));
         }
     },
-    CLASS_EXPRESSION(OWLClassExpression.class, OntCE.class, false) {
+    CLASS_EXPRESSION(OWLClassExpression.class, OntCE.class) {
         @Override
         List<OWLComponentType> includes() {
             return Arrays.asList(CLASS, ANONYMOUS_CLASS_EXPRESSION);
@@ -297,7 +297,7 @@ public enum OWLComponentType {
             return df.getClass(n.as(OntCE.class));
         }
     },
-    INVERSE_OBJECT_PROPERTY(OWLObjectInverseOf.class, OntOPE.Inverse.class, false) {
+    INVERSE_OBJECT_PROPERTY(OWLObjectInverseOf.class, OntOPE.Inverse.class) {
         @Override
         List<OWLComponentType> includes() {
             return Collections.singletonList(NAMED_OBJECT_PROPERTY);
@@ -308,7 +308,7 @@ public enum OWLComponentType {
             return df.getProperty(n.as(OntOPE.Inverse.class));
         }
     },
-    OBJECT_PROPERTY_EXPRESSION(OWLObjectPropertyExpression.class, OntOPE.class, false) {
+    OBJECT_PROPERTY_EXPRESSION(OWLObjectPropertyExpression.class, OntOPE.class) {
         @Override
         List<OWLComponentType> includes() {
             return Arrays.asList(NAMED_OBJECT_PROPERTY, INVERSE_OBJECT_PROPERTY);
@@ -319,7 +319,7 @@ public enum OWLComponentType {
             return df.getProperty(n.as(OntOPE.class));
         }
     },
-    FACET_RESTRICTION(OWLFacetRestriction.class, OntFR.class, false) {
+    FACET_RESTRICTION(OWLFacetRestriction.class, OntFR.class) {
         @Override
         List<OWLComponentType> includes() {
             return Collections.singletonList(LITERAL);
@@ -331,13 +331,13 @@ public enum OWLComponentType {
         }
 
     },
-    SWRL_VARIABLE(SWRLVariable.class, OntSWRL.Variable.class, true) {
+    SWRL_VARIABLE(SWRLVariable.class, OntSWRL.Variable.class, false, true) {
         @Override
         ONTObject<SWRLVariable> wrap(RDFNode n, InternalObjectFactory df) {
             return df.getSWRLVariable(n.as(OntSWRL.Variable.class));
         }
     },
-    SWRL_ATOM(SWRLAtom.class, OntSWRL.Atom.class, false) {
+    SWRL_ATOM(SWRLAtom.class, OntSWRL.Atom.class) {
         @Override
         List<OWLComponentType> includes() {
             return Arrays.asList(INDIVIDUAL, LITERAL, SWRL_VARIABLE,
@@ -368,10 +368,22 @@ public enum OWLComponentType {
     final Class<? extends OWLObject> owl;
     final Class<? extends RDFNode> jena;
     private final boolean primitive;
+    private final boolean entity;
 
-    OWLComponentType(Class<? extends OWLObject> owl, Class<? extends RDFNode> rdf, boolean primitive) {
+    OWLComponentType(Class<? extends OWLObject> owl, Class<? extends RDFNode> rdf) {
+        this(owl, rdf, false, false);
+    }
+
+    /**
+     * @param owl       OWL-API {@code Class}-type
+     * @param rdf       ONT-API {@code Class}-type
+     * @param entity    {@code true} if the this is an entity type
+     * @param primitive {@code true} if the this is a primitive type
+     */
+    OWLComponentType(Class<? extends OWLObject> owl, Class<? extends RDFNode> rdf, boolean entity, boolean primitive) {
         this.owl = owl;
         this.jena = rdf;
+        this.entity = entity;
         this.primitive = primitive;
     }
 
@@ -390,7 +402,7 @@ public enum OWLComponentType {
 
     /**
      * Determines and returns the most specific type for the given {@link OWLObject}.
-     * The primitive types go first, then the composite.
+     * The primitive types go first, then the composite or abstract.
      *
      * @param o {@link OWLObject}, not {@code null}
      * @return {@link OWLComponentType}
@@ -406,8 +418,7 @@ public enum OWLComponentType {
     }
 
     /**
-     * Lists components that can be shared,
-     * but at the same time are not {@link OWLEntity OWL entities}.
+     * Lists components that can be shared.
      *
      * @return {@code Stream} of {@link OWLContentType}s
      * @see InternalModel#getUsedComponentTriples(OntGraphModel, OWLObject)
@@ -493,15 +504,28 @@ public enum OWLComponentType {
     /**
      * Answers {@code true} if the given {@code container} contains the given {@code component} somewhere in its depths.
      *
-     * @param container {@link OWLObject} to search in, not {@code null}
-     * @param component {@link OWLObject} to search for, not {@code null}
+     * @param container {@link OWLObject} the container to search in, not {@code null}
+     * @param component {@link OWLObject} to search for, must be of this type, not {@code null}
      * @return boolean
      */
     public boolean contains(OWLObject container, OWLObject component) {
-        if (component instanceof OWLEntity) {
+        if (entity) {
             return container.containsEntityInSignature((OWLEntity) component);
         }
         return components(container).anyMatch(component::equals);
+    }
+
+    /**
+     * Answers {@code true} if the given {@code container} contains
+     * any of the given {@code components} somewhere in its depths.
+     * Input collection must contain objects of this type only.
+     *
+     * @param container  {@link OWLObject}, the container to search in, not {@code null}
+     * @param components a {@code Collection} of {@link OWLObject}s of this type, not {@code null}
+     * @return boolean, {@code true} iff any of the {@code components} in present in the {@code container}
+     */
+    public boolean containsAny(OWLObject container, Collection<? extends OWLObject> components) {
+        return components(container).anyMatch(components::contains);
     }
 
     /**
