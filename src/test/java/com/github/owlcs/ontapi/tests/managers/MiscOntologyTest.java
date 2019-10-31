@@ -15,6 +15,12 @@
 package com.github.owlcs.ontapi.tests.managers;
 
 import com.github.owlcs.ontapi.*;
+import com.github.owlcs.ontapi.jena.OntJenaException;
+import com.github.owlcs.ontapi.jena.OntModelFactory;
+import com.github.owlcs.ontapi.jena.model.OntCE;
+import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.vocabulary.RDF;
+import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
@@ -26,12 +32,6 @@ import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.github.owlcs.ontapi.jena.OntJenaException;
-import com.github.owlcs.ontapi.jena.OntModelFactory;
-import com.github.owlcs.ontapi.jena.model.OntCE;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
-import com.github.owlcs.ontapi.jena.vocabulary.RDF;
-import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -53,7 +53,6 @@ public class MiscOntologyTest {
         anon.addProperty(OWL.complementOf, anon);
         return m.getGraph();
     }
-
 
     @Test
     public void testImportsOnConcurrentManager() {

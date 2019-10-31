@@ -15,12 +15,6 @@
 package com.github.owlcs.ontapi.tests.model;
 
 import com.github.owlcs.ontapi.*;
-import org.junit.Assert;
-import org.junit.Test;
-import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
-import org.semanticweb.owlapi.model.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.github.owlcs.ontapi.jena.impl.conf.OntModelConfig;
 import com.github.owlcs.ontapi.jena.model.*;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
@@ -28,6 +22,12 @@ import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import com.github.owlcs.ontapi.jena.vocabulary.SWRL;
 import com.github.owlcs.ontapi.jena.vocabulary.XSD;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
+import org.junit.Assert;
+import org.junit.Test;
+import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
+import org.semanticweb.owlapi.model.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -41,6 +41,27 @@ import java.util.stream.Collectors;
  */
 public class ModifyAxiomsTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(ModifyAxiomsTest.class);
+
+    @Test
+    public void testRemoveAllAxiomsFromLoadedOntology() {
+        String ns = "http://x#";
+        OntologyManager m = OntManagers.createONT();
+
+        OntologyModel o = m.createOntology();
+        OntGraphModel g = o.asGraphModel();
+        g.createOntClass(ns + "X").addSuperClass(g.createOntClass(ns + "Y"));
+        ReadWriteUtils.print(g);
+
+        List<OWLAxiom> axioms = o.axioms().peek(x -> LOGGER.debug("(1): {}", x)).collect(Collectors.toList());
+        Assert.assertEquals(3, axioms.size());
+
+        for (OWLAxiom a : axioms) {
+            LOGGER.debug("REMOVE: {}", a);
+            o.remove(a);
+        }
+        Assert.assertEquals(0, o.axioms().peek(x -> LOGGER.debug("(2): {}", x)).count());
+        Assert.assertEquals(1, g.size());
+    }
 
     @Test
     public void testAddRemoveSeveralAxioms() {
