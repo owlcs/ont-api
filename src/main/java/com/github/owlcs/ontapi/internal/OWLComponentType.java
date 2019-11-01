@@ -418,13 +418,13 @@ public enum OWLComponentType {
     }
 
     /**
-     * Lists components that can be shared.
+     * Lists non-primitive components that can be shared.
      *
      * @return {@code Stream} of {@link OWLContentType}s
      * @see InternalModel#getUsedComponentTriples(OntGraphModel, OWLObject)
      */
     static Stream<OWLComponentType> sharedComponents() {
-        return Stream.concat(PRIMITIVE_COMPONENTS.stream(), COMPLEX_COMPONENTS.stream());
+        return COMPLEX_COMPONENTS.stream();
     }
 
     /**
@@ -531,6 +531,9 @@ public enum OWLComponentType {
      * @return boolean, {@code true} iff any of the {@code components} in present in the {@code container}
      */
     public boolean containsAny(OWLObject container, Collection<? extends OWLObject> components) {
+        if (entity && components.size() == 1) {
+            return container.containsEntityInSignature((OWLEntity) components.iterator().next());
+        }
         return components(container).anyMatch(components::contains);
     }
 

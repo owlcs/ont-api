@@ -988,9 +988,7 @@ public class InternalModel extends OntGraphModelImpl
             container = value.getOWLObject();
             OntGraphModel m = toModel(value);
             // triples that are used by other content objects:
-            Set<Triple> used = new HashSet<>();
-            used.addAll(getUsedDefinitionTriples(m, container));
-            used.addAll(getUsedComponentTriples(m, container));
+            Set<Triple> used = getUsedTriples(m, container);
             // remove related components from the objects cache
             // (even there is no graph changes);
             // do it before graph modification since ONTObject's may rely on graph
@@ -1009,49 +1007,53 @@ public class InternalModel extends OntGraphModelImpl
     }
 
     /**
-     * Returns the {@link Triple triple}s,
-     * that belong to both the given and some other content-container.
-     * This method only takes into account intersections in axiom definitions and re-using OWL entity declarations.
-     * Intersection in definition may appear in case of punning.
-     * For example, a triple with the predicate {@code rdfs:subPropertyOf} may belong to several axiom.
-     * In addition, an input container (i.e. a complex {@link ONTObject} - axiom or annotation)
-     * always contains declaration triples for all its (signature) entities,
-     * that can be used by existing (in cache) axioms.
+     * Calculates and returns the {@link Triple triple}s,
+     * that belong to both the given content-container and some other one.
+     * There are three cases of triples intersections:
+     * <ul>
+     * <li>Shared entity declarations.
+     * Each ONT-API axiom is supplied with full triple set, that includes all used declarations,
+     * therefore two axioms that have some entity in common,
+     * also have the same triple-declaration for that entity in their triple sets.</li>
+     * <li>Punned axiom definition. If punning is allowed
+     * it is possible to have same main triple shared between different axioms with distinguished type.
+     * E.g. {@code rdfs:subPropertyOf}-axiom for punned properties.</li>
+     * <li>Shared component. Although, this case is prohibited for a good OWL2 ontology,
+     * in general it is possible to have non-entity shared components, e.g. class-expressions.
+     * For example {@code SubClassOf(A, _:x)} and {@code SubClassOf(B, _:x)}
+     * would have identical sets of triples for class expression {@code _:x}.</li>
+     * </ul>
      *
-     * @param m {@link OntGraphModel} the model to traverse over, that corresponds to the {@code o}, not {@code null}
-     * @param o {@link OWLObject} - a content-container, for which this operation is performed, not {@code null}
-     * @return {@code Set} of {@code Triple}s
+     * @param model {@link OntGraphModel} the model to traverse over,
+     *                                   must correspond to the {@code container}, not {@code null}
+     * @param container {@link OWLObject} - a content-container,
+     *                                   for which this operation is performed, not {@code null}
+     * @return {@code Set} of {@code Triple}s in intersection
      */
-    protected Set<Triple> getUsedDefinitionTriples(OntGraphModel m, OWLObject o) {
-        InternalObjectFactory f = HasObjectFactory.getObjectFactory(m);
-        InternalConfig c = HasConfig.getConfig(m);
+    protected Set<Triple> getUsedTriples(OntGraphModel model, OWLObject container) {
+        InternalObjectFactory f = HasObjectFactory.getObjectFactory(model);
+        InternalConfig c = HasConfig.getConfig(model);
         Set<Triple> res = new HashSet<>();
-        Iter.flatMap(OWLContentType.listAll(), k -> k.read(() -> m, f, c)
-                .filterKeep(x -> !o.equals(x.getOWLObject()) && isUsed(k, x.getOWLObject())))
+        // shared declaration and punned axioms:
+        Iter.flatMap(OWLContentType.listAll(), type -> type.read(() -> model, f, c)
+                .filterKeep(x -> {
+                    OWLObject obj = x.getOWLObject();
+                    if (type != OWLContentType.DECLARATION && container.equals(obj)) return false;
+                    if (getContentCache(type).contains(obj)) {
+                        return true;
+                    }
+                    if (type == OWLContentType.DECLARATION) {
+                        OWLEntity entity = ((OWLDeclarationAxiom) obj).getEntity();
+                        return findUsedContentContainer(entity, obj).isPresent();
+                    }
+                    return false;
+                }))
                 .forEachRemaining(x -> x.triples().forEach(res::add));
-        return res;
-    }
-
-    /**
-     * Returns the {@link Triple triple}s,
-     * that belong to both the given and some other content-container.
-     * This method performs a full search by components.
-     * Any {@code OWLObject}-component can be shared between different content objects
-     * (i.e. containers - axioms or annotations).
-     * In this case, the triples, belonging to such a component, intersect with triples of other component,
-     * and cannot be deleted.
-     *
-     * @param m {@link OntGraphModel} the model to traverse over, that corresponds to the {@code o}, not {@code null}
-     * @param o {@link OWLObject} - a content-container, for which this operation is performed, not {@code null}
-     * @return {@code Set} of {@code Triple}s
-     */
-    protected Set<Triple> getUsedComponentTriples(OntGraphModel m, OWLObject o) {
-        InternalObjectFactory of = getObjectFactory();
-        Set<Triple> res = new HashSet<>();
+        // other shared components:
         OWLComponentType.sharedComponents().forEach(type -> {
             Set<OWLObject> candidates = new HashSet<>();
             Set<Triple> triples = new HashSet<>();
-            type.select(m, of).forEach(x -> {
+            type.select(model, f).forEach(x -> {
                 candidates.add(x.getOWLObject());
                 x.triples().forEach(triples::add);
             });
@@ -1059,40 +1061,19 @@ public class InternalModel extends OntGraphModelImpl
                 return;
             }
             // search for axioms for this component type
-            // todo: this is a heavy operation, need to optimize somehow
             selectContentContainers(type)
                     .forEach(x -> {
-                        if (o.equals(x.getOWLObject())) {
+                        OWLObject obj = x.getOWLObject();
+                        if (container.equals(obj)) {
                             return;
                         }
-                        if (!type.containsAny(x.getOWLObject(), candidates)) {
+                        if (!type.containsAny(obj, candidates)) {
                             return;
                         }
                         x.triples().filter(triples::contains).forEach(res::add);
                     });
         });
         return res;
-    }
-
-    /**
-     * Answers {@code true} iff the given object-container (axiom or annotation)
-     * is present in the {@link #content} cache,
-     * or, if it is declaration, it is used implicitly as a part by any other content container.
-     *
-     * @param type   {@link OWLContentType}, the type of the content-container
-     * @param object {@link OWLObject} - the content-container, axiom or annotation
-     * @return boolean
-     */
-    protected boolean isUsed(OWLContentType type, OWLObject object) {
-        ObjectMap<OWLObject> cache = getContentCache(type);
-        if (cache.contains(object)) {
-            return true;
-        }
-        if (type == OWLContentType.DECLARATION) {
-            OWLEntity entity = ((OWLDeclarationAxiom) object).getEntity();
-            return findUsedContentContainer(entity, object).isPresent();
-        }
-        return false;
     }
 
     /**
@@ -1107,7 +1088,8 @@ public class InternalModel extends OntGraphModelImpl
         OWLComponentType type = OWLComponentType.get(entity);
         Stream<OWLObject> res = selectContentObjects(type);
         if (excludes.length != 0) {
-            Set<OWLObject> ignore = new HashSet<>(Arrays.asList(excludes));
+            Set<OWLObject> ignore = excludes.length == 1 ?
+                    Collections.singleton(excludes[0]) : new HashSet<>(Arrays.asList(excludes));
             res = res.filter(x -> !ignore.contains(x));
         }
         return res.filter(x -> type.contains(x, entity)).findFirst();
