@@ -421,7 +421,7 @@ public enum OWLComponentType {
      * Lists non-primitive components that can be shared.
      *
      * @return {@code Stream} of {@link OWLContentType}s
-     * @see InternalModel#getUsedComponentTriples(OntGraphModel, OWLObject)
+     * @see InternalModel#getUsedTriples(OntGraphModel, OWLObject)
      */
     static Stream<OWLComponentType> sharedComponents() {
         return COMPLEX_COMPONENTS.stream();

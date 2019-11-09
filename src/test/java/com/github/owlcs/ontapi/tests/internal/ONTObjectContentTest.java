@@ -401,4 +401,27 @@ public class ONTObjectContentTest {
         Assert.assertEquals(4, o.axioms().count());
         Assert.assertEquals(5, g.size());
     }
+
+    @Test
+    public void testMergeDisjointObjectProperties() {
+        OntologyManager m = OntManagers.createONT();
+        OntologyModel o = m.createOntology();
+        OntGraphModel g = o.asGraphModel();
+
+        OntNOP x = g.createObjectProperty("X");
+        OntNOP y = g.createObjectProperty("Y");
+        x.addDisjointProperty(y.addDisjointProperty(x));
+        g.createDisjointObjectProperties(x, y);
+        ReadWriteUtils.print(g);
+
+        Assert.assertEquals(3, o.axioms().count());
+        OWLDisjointObjectPropertiesAxiom a = o.axioms(AxiomType.DISJOINT_OBJECT_PROPERTIES)
+                .findFirst().orElseThrow(AssertionError::new);
+
+        o.remove(a);
+
+        o.clearCache();
+        Assert.assertEquals(2, o.axioms().count());
+        Assert.assertEquals(3, g.size());
+    }
 }

@@ -93,19 +93,12 @@ public class ModelObjectTest {
         ObjectFactoryTestBase.testObjectHasNoModelReference(actual);
     }
 
-    private void testAsSomeValuesFrom(OWLHasValueRestriction in) {
-        OWLHasValueRestriction res = (OWLHasValueRestriction) ClassExpressionTest.createONTObject(in);
-        Assert.assertTrue(res instanceof ModelObject);
-        OWLClassExpression c = res.asSomeValuesFrom();
-        ObjectFactoryTestBase.testObjectHasNoModelReference(c);
-    }
-
     @Test
     public void testEquivalentClassesEraseModelMethods() {
         OWLDataFactory df = ObjectFactoryTestBase.ONT_DATA_FACTORY;
         OWLEquivalentClassesAxiom expected = df.getOWLEquivalentClassesAxiom(df.getOWLClass("X"), df.getOWLClass("Y"),
                 Collections.singleton(df.getRDFSComment("x")));
-        testNaryAxiom(expected);
+        testSubClassShortCutNaryAxiom(expected);
     }
 
     @Test
@@ -114,11 +107,7 @@ public class ModelObjectTest {
         OWLDisjointClassesAxiom expected = df.getOWLDisjointClassesAxiom(Arrays.asList(df.getOWLClass("X"),
                 df.getOWLClass("Y"), df.getOWLClass("Z"), df.getOWLObjectOneOf(df.getOWLNamedIndividual("I"))),
                 Collections.singleton(df.getRDFSComment("x")));
-        OWLAxiom res = ResourceNaryAxiomsTest.createONTObject(OntManagers.createONT(), expected);
-        OWLDisjointClassesAxiom actual = (OWLDisjointClassesAxiom) res;
-        Assert.assertTrue(actual instanceof ModelObject);
-        Assert.assertEquals(expected, actual);
-        testNarySplitMethod(expected, actual, x -> ((OWLDisjointClassesAxiom) x).asOWLSubClassOfAxioms());
+        testSubClassShortCutNaryAxiom(expected);
     }
 
     @Test
@@ -203,6 +192,70 @@ public class ModelObjectTest {
                 Arrays.asList(df.getRDFSComment("x"), df.getRDFSLabel("y"))));
     }
 
+    @Test
+    public void testDisjointUnionAxiomEraseModelMethods() {
+        testUnaryPropAxiom(df -> df.getOWLDisjointUnionAxiom(df.getOWLClass("X"),
+                Arrays.asList(df.getOWLObjectOneOf(df.getOWLAnonymousIndividual("_:b33"),
+                        df.getOWLNamedIndividual("I")), df.getOWLObjectComplementOf(df.getOWLNothing())),
+                Arrays.asList(df.getRDFSComment("x"), df.getRDFSLabel("y"))),
+                OWLDisjointUnionAxiom::getOWLDisjointClassesAxiom, OWLDisjointUnionAxiom::getOWLEquivalentClassesAxiom);
+    }
+
+    @Test
+    public void testDifferentIndividualsEraseModelMethods() {
+        OWLDataFactory df = ObjectFactoryTestBase.ONT_DATA_FACTORY;
+        OWLDifferentIndividualsAxiom expected =
+                df.getOWLDifferentIndividualsAxiom(Arrays.asList(df.getOWLAnonymousIndividual("_:b0"),
+                        df.getOWLNamedIndividual("Y"), df.getOWLNamedIndividual("Z")),
+                        Collections.singleton(df.getRDFSComment("x")));
+        testSubClassShortCutNaryAxiom(expected);
+    }
+
+    @Test
+    public void testSameIndividualsEraseModelMethods() {
+        OWLDataFactory df = ObjectFactoryTestBase.ONT_DATA_FACTORY;
+        OWLSameIndividualAxiom expected = df.getOWLSameIndividualAxiom(df.getOWLNamedIndividual("X"), df.getOWLNamedIndividual("Y"),
+                Collections.singleton(df.getRDFSComment("x")));
+        testSubClassShortCutNaryAxiom(expected);
+    }
+
+    @Test
+    public void testDisjointObjectPropertiesEraseModelMethods() {
+        OWLDataFactory df = ObjectFactoryTestBase.ONT_DATA_FACTORY;
+        OWLDisjointObjectPropertiesAxiom expected = df.getOWLDisjointObjectPropertiesAxiom(Arrays.asList(df.getOWLObjectProperty("X"),
+                df.getOWLObjectProperty("Y"), df.getOWLObjectProperty("Z"), df.getOWLObjectInverseOf(df.getOWLObjectProperty("W"))),
+                Collections.singleton(df.getRDFSLabel("lab")));
+        testNaryAxiom(expected);
+    }
+
+    @SuppressWarnings("unchecked")
+    private <X extends OWLNaryAxiom & OWLSubClassOfAxiomSetShortCut> void testSubClassShortCutNaryAxiom(X expected) {
+        X actual = testNaryAxiom(expected);
+        testNarySplitMethod(expected, actual, x -> ((X) x).asOWLSubClassOfAxioms());
+    }
+
+    @SuppressWarnings("unchecked")
+    private <X extends OWLNaryAxiom> X testNaryAxiom(X expected) {
+        Collection<? extends OWLAxiom> res = SplitNaryAxiomsTest.createONTAxioms(OntManagers.createONT(), expected);
+        Assert.assertEquals(1, res.size());
+        X actual = (X) res.iterator().next();
+        Assert.assertTrue(actual instanceof ModelObject);
+        Assert.assertEquals(expected, actual);
+
+        testNarySplitMethod(expected, actual, OWLNaryAxiom::asPairwiseAxioms);
+        testNarySplitMethod(expected, actual, OWLNaryAxiom::splitToAnnotatedPairs);
+        return actual;
+    }
+
+    private void testNarySplitMethod(OWLNaryAxiom expected,
+                                     OWLNaryAxiom actual,
+                                     Function<OWLNaryAxiom, Collection<? extends OWLAxiom>> get) {
+        Collection<? extends OWLAxiom> expectedAxioms = get.apply(expected);
+        Collection<? extends OWLAxiom> actualAxioms = get.apply(actual);
+        Assert.assertEquals(expectedAxioms, actualAxioms);
+        actualAxioms.forEach(ObjectFactoryTestBase::testObjectHasNoModelReference);
+    }
+
     private <X extends OWLSubClassOfAxiomShortCut & OWLAxiom> void testUnaryPropAxiom(Function<OWLDataFactory, X> factory) {
         testUnaryPropAxiom(factory, OWLSubClassOfAxiomShortCut::asOWLSubClassOfAxiom);
     }
@@ -236,56 +289,12 @@ public class ModelObjectTest {
         }
     }
 
-    private void testNarySplitMethod(OWLNaryAxiom expected,
-                                     OWLNaryAxiom actual,
-                                     Function<OWLNaryAxiom, Collection<? extends OWLAxiom>> get) {
-        Collection<? extends OWLAxiom> expectedAxioms = get.apply(expected);
-        Collection<? extends OWLAxiom> actualAxioms = get.apply(actual);
-        Assert.assertEquals(expectedAxioms, actualAxioms);
-        actualAxioms.forEach(ObjectFactoryTestBase::testObjectHasNoModelReference);
+    private void testAsSomeValuesFrom(OWLHasValueRestriction in) {
+        OWLHasValueRestriction res = (OWLHasValueRestriction) ClassExpressionTest.createONTObject(in);
+        Assert.assertTrue(res instanceof ModelObject);
+        OWLClassExpression c = res.asSomeValuesFrom();
+        ObjectFactoryTestBase.testObjectHasNoModelReference(c);
     }
 
-    @Test
-    public void testDisjointUnionAxiomEraseModelMethods() {
-        testUnaryPropAxiom(df -> df.getOWLDisjointUnionAxiom(df.getOWLClass("X"),
-                Arrays.asList(df.getOWLObjectOneOf(df.getOWLAnonymousIndividual("_:b33"),
-                        df.getOWLNamedIndividual("I")), df.getOWLObjectComplementOf(df.getOWLNothing())),
-                Arrays.asList(df.getRDFSComment("x"), df.getRDFSLabel("y"))),
-                OWLDisjointUnionAxiom::getOWLDisjointClassesAxiom, OWLDisjointUnionAxiom::getOWLEquivalentClassesAxiom);
-    }
 
-    @Test
-    public void testDifferentIndividualsEraseModelMethods() {
-        OWLDataFactory df = ObjectFactoryTestBase.ONT_DATA_FACTORY;
-        OWLDifferentIndividualsAxiom expected =
-                df.getOWLDifferentIndividualsAxiom(Arrays.asList(df.getOWLAnonymousIndividual("_:b0"),
-                        df.getOWLNamedIndividual("Y"), df.getOWLNamedIndividual("Z")),
-                        Collections.singleton(df.getRDFSComment("x")));
-        OWLAxiom res = ResourceNaryAxiomsTest.createONTObject(OntManagers.createONT(), expected);
-        OWLDifferentIndividualsAxiom actual = (OWLDifferentIndividualsAxiom) res;
-        Assert.assertTrue(actual instanceof ModelObject);
-        Assert.assertEquals(expected, actual);
-        testNarySplitMethod(expected, actual, x -> ((OWLDifferentIndividualsAxiom) x).asOWLSubClassOfAxioms());
-    }
-
-    @Test
-    public void testSameIndividualsEraseModelMethods() {
-        OWLDataFactory df = ObjectFactoryTestBase.ONT_DATA_FACTORY;
-        OWLSameIndividualAxiom expected = df.getOWLSameIndividualAxiom(df.getOWLNamedIndividual("X"), df.getOWLNamedIndividual("Y"),
-                Collections.singleton(df.getRDFSComment("x")));
-        testNaryAxiom(expected);
-    }
-
-    @SuppressWarnings("unchecked")
-    private <X extends OWLNaryAxiom & OWLSubClassOfAxiomSetShortCut> void testNaryAxiom(X expected) {
-        Collection<? extends OWLAxiom> res = SplitNaryAxiomsTest.createONTAxioms(OntManagers.createONT(), expected);
-        Assert.assertEquals(1, res.size());
-        X actual = (X) res.iterator().next();
-        Assert.assertTrue(actual instanceof ModelObject);
-        Assert.assertEquals(expected, actual);
-
-        testNarySplitMethod(expected, actual, OWLNaryAxiom::asPairwiseAxioms);
-        testNarySplitMethod(expected, actual, OWLNaryAxiom::splitToAnnotatedPairs);
-        testNarySplitMethod(expected, actual, x -> ((X) x).asOWLSubClassOfAxioms());
-    }
 }

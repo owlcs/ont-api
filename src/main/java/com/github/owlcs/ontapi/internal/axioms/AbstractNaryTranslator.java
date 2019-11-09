@@ -199,11 +199,6 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
             return walkPairwise((a, b) -> createAxiom(a, b, annotations));
         }
 
-        @Override
-        public final boolean canContainAnnotationProperties() {
-            return isAnnotated();
-        }
-
         /**
          * Answers {@code true} if the given axiom has mirror triple.
          *
@@ -244,6 +239,11 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
          */
         protected <T> Stream<T> fromPairs(OWLPairwiseVisitor<T, M> visitor) {
             return OWLAPIStreamUtils.allPairs(operands()).map(v -> visitor.visit(v.i, v.j)).filter(Objects::nonNull);
+        }
+
+        @Override
+        public final boolean canContainAnnotationProperties() {
+            return isAnnotated();
         }
     }
 
@@ -358,6 +358,37 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
     }
 
     /**
+     * An abstract {@link OWLNaryPropertyAxiom} implementation for member-type {@link OWLObjectPropertyExpression}.
+     *
+     * @param <A> either {@link OWLEquivalentObjectPropertiesAxiom} or {@link OWLDisjointObjectPropertiesAxiom}
+     */
+    @SuppressWarnings("WeakerAccess")
+    protected abstract static class ObjectPropertyNaryAxiomImpl<A extends OWLNaryPropertyAxiom<OWLObjectPropertyExpression>>
+            extends PropertyNaryAxiomImpl<A, OWLObjectPropertyExpression> {
+
+        protected ObjectPropertyNaryAxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+            super(subject, predicate, object, m);
+        }
+
+        @Override
+        public ExtendedIterator<ONTObject<? extends OWLObjectPropertyExpression>> listONTComponents(OntStatement statement,
+                                                                                                    InternalObjectFactory factory) {
+            return Iter.of(factory.getProperty(statement.getSubject(OntOPE.class)),
+                    factory.getProperty(statement.getObject(OntOPE.class)));
+        }
+
+        @Override
+        public ONTObject<? extends OWLObjectPropertyExpression> findByURI(String uri, InternalObjectFactory factory) {
+            return ONTObjectPropertyImpl.find(uri, factory, model);
+        }
+
+        @Override
+        public final boolean canContainDataProperties() {
+            return false;
+        }
+    }
+
+    /**
      * An abstraction, that combines common properties for {@link OWLNaryIndividualAxiom} and {@link OWLNaryClassAxiom}.
      *
      * @param <A> subtype of {@link OWLNaryAxiom}
@@ -384,6 +415,56 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
         @Override
         public Collection<OWLSubClassOfAxiom> asOWLSubClassOfAxioms() {
             return walkAllPairwise((a, b) -> createSubClassOf(eraseModel(a), eraseModel(b)));
+        }
+    }
+
+    /**
+     * An abstract {@link OWLNaryPropertyAxiom} implementation.
+     *
+     * @param <A> subtype of {@link OWLNaryPropertyAxiom}
+     * @param <P> subtype of {@link OWLPropertyExpression}
+     */
+    abstract static class PropertyNaryAxiomImpl<A extends OWLNaryPropertyAxiom<P>, P extends OWLPropertyExpression>
+            extends NaryAxiomImpl<A, P> implements OWLNaryPropertyAxiom<P> {
+
+        PropertyNaryAxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+            super(subject, predicate, object, m);
+        }
+
+        @Override
+        public Stream<P> properties() {
+            return sorted().map(ONTObject::getOWLObject);
+        }
+
+        @SuppressWarnings({"unchecked", "NullableProblems"})
+        @Override
+        public Set<P> getPropertiesMinus(P property) {
+            return getSetMinus(property);
+        }
+
+        @Override
+        public final boolean canContainNamedClasses() {
+            return false;
+        }
+
+        @Override
+        public final boolean canContainClassExpressions() {
+            return false;
+        }
+
+        @Override
+        public final boolean canContainNamedIndividuals() {
+            return false;
+        }
+
+        @Override
+        public final boolean canContainDatatypes() {
+            return isAnnotated();
+        }
+
+        @Override
+        public final boolean canContainAnonymousIndividuals() {
+            return isAnnotated();
         }
     }
 }

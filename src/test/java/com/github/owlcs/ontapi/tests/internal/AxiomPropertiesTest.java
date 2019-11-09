@@ -66,6 +66,12 @@ public class AxiomPropertiesTest {
         testSplitNaryAxioms(data, OWLSameIndividualAxiom::containsAnonymousIndividuals);
     }
 
+    @Test
+    public void testDisjointObjectProperties() {
+        List<TestFactory.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.DISJOINT_OBJECT_PROPERTIES);
+        testAxiom(data, (OWLNaryPropertyAxiom<?> a) -> a.properties().collect(Collectors.toList()));
+    }
+
     @SuppressWarnings("unchecked")
     @SafeVarargs
     private static <X extends OWLAxiom> void testAxiom(List<TestFactory.AxiomData> data,

@@ -40,7 +40,8 @@ public class ResourceNaryAxiomsTest extends NaryAxiomsTestBase {
         return getAxiomData(
                 // TODO: see https://github.com/avicomp/ont-api/issues/87
                 AxiomType.DISJOINT_CLASSES
-                , AxiomType.DIFFERENT_INDIVIDUALS);
+                , AxiomType.DIFFERENT_INDIVIDUALS
+                , AxiomType.DISJOINT_OBJECT_PROPERTIES);
     }
 
     @SuppressWarnings("unchecked")
