@@ -15,17 +15,17 @@
 package com.github.owlcs.ontapi.internal;
 
 import com.github.owlcs.ontapi.DataFactory;
-import org.apache.jena.graph.Node;
-import org.apache.jena.shared.JenaException;
-import org.apache.jena.util.iterator.ExtendedIterator;
-import org.semanticweb.owlapi.model.AxiomType;
-import org.semanticweb.owlapi.model.OWLAxiom;
 import com.github.owlcs.ontapi.jena.impl.PersonalityModel;
 import com.github.owlcs.ontapi.jena.model.OntClass;
 import com.github.owlcs.ontapi.jena.model.OntGraphModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
+import org.apache.jena.graph.Node;
+import org.apache.jena.shared.JenaException;
+import org.apache.jena.util.iterator.ExtendedIterator;
+import org.semanticweb.owlapi.model.AxiomType;
+import org.semanticweb.owlapi.model.OWLAxiom;
 
 import java.util.Collections;
 import java.util.Objects;
@@ -254,7 +254,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * Impl note: the method returns a simple {@link ONTWrapperImpl ONT Wrapper} with an {@link Axiom} inside,
      * an axiom is created from the system-wide {@link DataFactory Data Factory}.
      * TODO: will be replaced with {@link #toAxiom(OntStatement, Supplier, InternalObjectFactory, InternalConfig)},
-     *  see <a href='https://github.com/avicomp/ont-api/issues/87'>#87</a>
+     *  see <a href='https://github.com/owlcs/ont-api/issues/2'>#87</a>
      *
      * @param statement {@link OntStatement} the statement which determines the axiom
      * @param factory   {@link InternalObjectFactory} the data factory to create OWL-API objects

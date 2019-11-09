@@ -116,14 +116,7 @@ public class ModelObjectTest {
         OWLInverseObjectPropertiesAxiom expected = df.getOWLInverseObjectPropertiesAxiom(df.getOWLObjectProperty("X"),
                 df.getOWLObjectProperty("Y"),
                 Collections.singleton(df.getRDFSComment("x")));
-        Collection<? extends OWLAxiom> res = SplitNaryAxiomsTest.createONTAxioms(OntManagers.createONT(), expected);
-        Assert.assertEquals(1, res.size());
-        OWLInverseObjectPropertiesAxiom actual = (OWLInverseObjectPropertiesAxiom) res.iterator().next();
-        Assert.assertTrue(actual instanceof ModelObject);
-        Assert.assertEquals(expected, actual);
-
-        testNarySplitMethod(expected, actual, OWLNaryAxiom::asPairwiseAxioms);
-        testNarySplitMethod(expected, actual, OWLNaryAxiom::splitToAnnotatedPairs);
+        OWLInverseObjectPropertiesAxiom actual = testNaryAxiom(expected);
         testNarySplitMethod(expected, actual, x -> ((OWLInverseObjectPropertiesAxiom) x).asSubObjectPropertyOfAxioms());
     }
 
@@ -226,6 +219,16 @@ public class ModelObjectTest {
                 df.getOWLObjectProperty("Y"), df.getOWLObjectProperty("Z"), df.getOWLObjectInverseOf(df.getOWLObjectProperty("W"))),
                 Collections.singleton(df.getRDFSLabel("lab")));
         testNaryAxiom(expected);
+    }
+
+    @Test
+    public void testEquivalentObjectPropertiesAxiomEraseModelMethods() {
+        OWLDataFactory df = ObjectFactoryTestBase.ONT_DATA_FACTORY;
+        OWLEquivalentObjectPropertiesAxiom expected = df.getOWLEquivalentObjectPropertiesAxiom(df.getOWLObjectProperty("X"),
+                df.getOWLObjectProperty("Y"),
+                Collections.singleton(df.getRDFSComment("x")));
+        OWLEquivalentObjectPropertiesAxiom actual = testNaryAxiom(expected);
+        testNarySplitMethod(expected, actual, x -> ((OWLEquivalentObjectPropertiesAxiom) x).asSubObjectPropertyOfAxioms());
     }
 
     @SuppressWarnings("unchecked")

@@ -424,4 +424,29 @@ public class ONTObjectContentTest {
         Assert.assertEquals(2, o.axioms().count());
         Assert.assertEquals(3, g.size());
     }
+
+    @Test
+    public void testMergeEquivalentObjectProperties() {
+        OntologyManager m = OntManagers.createONT();
+        OntologyModel o = m.createOntology();
+        OntGraphModel g = o.asGraphModel();
+
+        OntNOP x = g.createObjectProperty("X");
+        OntNOP y = g.createObjectProperty("Y");
+        x.addEquivalentPropertyStatement(y).addAnnotation(g.getRDFSComment(), "x");
+        y.addEquivalentPropertyStatement(x).addAnnotation(g.getRDFSComment(), "x");
+        ReadWriteUtils.print(g);
+
+        Assert.assertEquals(15, g.size());
+        Assert.assertEquals(3, o.axioms().peek(a -> LOGGER.debug("A: {}", a)).count());
+        OWLEquivalentObjectPropertiesAxiom a = o.axioms(AxiomType.EQUIVALENT_OBJECT_PROPERTIES)
+                .findFirst().orElseThrow(AssertionError::new);
+
+        o.remove(a);
+        ReadWriteUtils.print(g);
+
+        o.clearCache();
+        Assert.assertEquals(2, o.axioms().count());
+        Assert.assertEquals(3, g.size());
+    }
 }

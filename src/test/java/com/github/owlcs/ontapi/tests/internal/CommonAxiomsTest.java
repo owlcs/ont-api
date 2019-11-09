@@ -42,7 +42,7 @@ public class CommonAxiomsTest extends StatementTestBase {
 
     @Parameterized.Parameters(name = "{0}")
     public static List<AxiomData> getData() {
-        return getAxiomData( // TODO: see https://github.com/avicomp/ont-api/issues/87
+        return getAxiomData( // TODO: see https://github.com/owlcs/ont-api/issues/2
                 AxiomType.SUBCLASS_OF
                         , AxiomType.ANNOTATION_ASSERTION
                         , AxiomType.OBJECT_PROPERTY_ASSERTION

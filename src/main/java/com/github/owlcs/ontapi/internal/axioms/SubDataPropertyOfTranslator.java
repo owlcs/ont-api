@@ -14,8 +14,6 @@
 
 package com.github.owlcs.ontapi.internal.axioms;
 
-import org.apache.jena.graph.Triple;
-import org.semanticweb.owlapi.model.*;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTDataPropertyImpl;
@@ -23,6 +21,8 @@ import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
 import com.github.owlcs.ontapi.jena.model.OntGraphModel;
 import com.github.owlcs.ontapi.jena.model.OntNDP;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
+import org.apache.jena.graph.Triple;
+import org.semanticweb.owlapi.model.*;
 
 import java.util.Collection;
 import java.util.Set;
@@ -160,8 +160,7 @@ public class SubDataPropertyOfTranslator extends AbstractSubPropertyTranslator<O
 
             @Override
             public boolean containsDataProperty(OWLDataProperty property) {
-                String uri = ONTEntityImpl.getURI(property);
-                return subject.equals(uri) || object.equals(uri);
+                return hasURIResource(ONTEntityImpl.getURI(property));
             }
         }
 

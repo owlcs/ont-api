@@ -49,8 +49,6 @@ import java.util.stream.Stream;
  * </ul>
  * <p>
  * Created by szuev on 12.10.2016.
- *
- * @see OWLDisjointObjectPropertiesAxiom
  */
 public class DisjointObjectPropertiesTranslator
         extends AbstractTwoWayNaryTranslator<OWLDisjointObjectPropertiesAxiom, OWLObjectPropertyExpression, OntOPE> {
@@ -213,8 +211,7 @@ public class DisjointObjectPropertiesTranslator
 
             @Override
             public boolean containsObjectProperty(OWLObjectProperty property) {
-                String uri = ONTEntityImpl.getURI(property);
-                return subject.equals(uri) || object.equals(uri);
+                return hasURIResource(ONTEntityImpl.getURI(property));
             }
         }
 

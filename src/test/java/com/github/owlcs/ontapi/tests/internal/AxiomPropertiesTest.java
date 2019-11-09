@@ -72,6 +72,12 @@ public class AxiomPropertiesTest {
         testAxiom(data, (OWLNaryPropertyAxiom<?> a) -> a.properties().collect(Collectors.toList()));
     }
 
+    @Test
+    public void testEquivalentObjectProperties() {
+        List<TestFactory.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.EQUIVALENT_OBJECT_PROPERTIES);
+        testSplitNaryAxioms(data, (OWLNaryPropertyAxiom<?> a) -> a.properties().collect(Collectors.toList()));
+    }
+
     @SuppressWarnings("unchecked")
     @SafeVarargs
     private static <X extends OWLAxiom> void testAxiom(List<TestFactory.AxiomData> data,

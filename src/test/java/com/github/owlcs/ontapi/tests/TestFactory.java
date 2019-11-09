@@ -2474,6 +2474,46 @@ public class TestFactory {
                                 "df.getOWLLiteral(\"x\", df.getOWLDatatype(\"D\")))))";
                     }
                 }
+                , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.EQUIVALENT_OBJECT_PROPERTIES;
+                    }
+
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLEquivalentObjectPropertiesAxiom(df.getOWLObjectProperty("P1"),
+                                df.getOWLObjectProperty("P2"));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLEquivalentObjectPropertiesAxiom(df.getOWLObjectProperty(\"P1\"), " +
+                                "df.getOWLObjectProperty(\"P2\"))";
+                    }
+                }
+                , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.EQUIVALENT_OBJECT_PROPERTIES;
+                    }
+
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLEquivalentObjectPropertiesAxiom(Arrays.asList(df.getOWLObjectProperty("P1"),
+                                df.getOWLObjectInverseOf(df.getOWLObjectProperty("P2"))),
+                                Collections.singletonList(df.getOWLAnnotation(df.getRDFSSeeAlso(),
+                                        IRI.create("https://github.com/owlcs"))));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLEquivalentObjectPropertiesAxiom(Arrays.asList(df.getOWLObjectProperty(\"P1\"), " +
+                                "df.getOWLObjectInverseOf(df.getOWLObjectProperty(\"P2\"))), " +
+                                "Collections.singletonList(df.getOWLAnnotation(df.getRDFSSeeAlso(), " +
+                                "IRI.create(\"https://github.com/owlcs\"))))";
+                    }
+                }
         );
     }
 

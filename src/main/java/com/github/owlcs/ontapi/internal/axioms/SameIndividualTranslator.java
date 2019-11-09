@@ -214,8 +214,7 @@ public class SameIndividualTranslator
          * that either has annotations or anonymous class expressions in subject or object positions.
          * It has a public constructor since it is more generic then {@link SimpleImpl}.
          */
-        public static class ComplexImpl extends AxiomImpl
-                implements Complex<ComplexImpl, OWLIndividual> {
+        public static class ComplexImpl extends AxiomImpl implements Complex<ComplexImpl, OWLIndividual> {
 
             private static final BiFunction<Triple, Supplier<OntGraphModel>, ComplexImpl> FACTORY = ComplexImpl::new;
             protected final InternalCache.Loading<ComplexImpl, Object[]> content;

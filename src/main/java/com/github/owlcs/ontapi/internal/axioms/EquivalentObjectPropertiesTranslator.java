@@ -14,30 +14,33 @@
 
 package com.github.owlcs.ontapi.internal.axioms;
 
-import org.apache.jena.rdf.model.Property;
-import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLEquivalentObjectPropertiesAxiom;
-import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
-import com.github.owlcs.ontapi.internal.InternalConfig;
-import com.github.owlcs.ontapi.internal.InternalObjectFactory;
-import com.github.owlcs.ontapi.internal.ONTObject;
-import com.github.owlcs.ontapi.internal.ONTWrapperImpl;
+import com.github.owlcs.ontapi.DataFactory;
+import com.github.owlcs.ontapi.internal.*;
+import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
+import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
+import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
+import com.github.owlcs.ontapi.jena.model.OntGraphModel;
 import com.github.owlcs.ontapi.jena.model.OntOPE;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.rdf.model.Property;
+import org.semanticweb.owlapi.model.*;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 /**
- * example:
- * <pre>
- * {@code
+ * A translator that provides {@link OWLEquivalentObjectPropertiesAxiom} implementations.
+ * Example:
+ * <pre>{@code
  *      <http://schema.org/image> rdf:type owl:ObjectProperty ;  owl:equivalentProperty foaf:depiction .
- * }
- * </pre>
+ * }</pre>
  * Created by @szuev on 01.10.2016.
- *
- * @see OWLEquivalentObjectPropertiesAxiom
  */
 public class EquivalentObjectPropertiesTranslator
         extends AbstractNaryTranslator<OWLEquivalentObjectPropertiesAxiom, OWLObjectPropertyExpression, OntOPE> {
@@ -54,14 +57,182 @@ public class EquivalentObjectPropertiesTranslator
 
     @Override
     public ONTObject<OWLEquivalentObjectPropertiesAxiom> toAxiom(OntStatement statement,
-                                                                 InternalObjectFactory reader,
+                                                                 Supplier<OntGraphModel> model,
+                                                                 InternalObjectFactory factory,
                                                                  InternalConfig config) {
-        ONTObject<? extends OWLObjectPropertyExpression> a = reader.getProperty(statement.getSubject(getView()));
-        ONTObject<? extends OWLObjectPropertyExpression> b = reader.getProperty(statement.getObject().as(getView()));
-        Collection<ONTObject<OWLAnnotation>> annotations = reader.getAnnotations(statement, config);
-        OWLEquivalentObjectPropertiesAxiom res = reader.getOWLDataFactory()
+        return AxiomImpl.create(statement, model, factory, config);
+    }
+
+    @Override
+    public ONTObject<OWLEquivalentObjectPropertiesAxiom> toAxiom(OntStatement statement,
+                                                                 InternalObjectFactory factory,
+                                                                 InternalConfig config) {
+        ONTObject<? extends OWLObjectPropertyExpression> a = factory.getProperty(statement.getSubject(getView()));
+        ONTObject<? extends OWLObjectPropertyExpression> b = factory.getProperty(statement.getObject().as(getView()));
+        Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);
+        OWLEquivalentObjectPropertiesAxiom res = factory.getOWLDataFactory()
                 .getOWLEquivalentObjectPropertiesAxiom(a.getOWLObject(), b.getOWLObject(), ONTObject.toSet(annotations));
         return ONTWrapperImpl.create(res, statement).append(annotations).append(a).append(b);
     }
 
+    /**
+     * @see com.github.owlcs.ontapi.owlapi.axioms.OWLEquivalentObjectPropertiesAxiomImpl
+     */
+    public abstract static class AxiomImpl extends ObjectPropertyNaryAxiomImpl<OWLEquivalentObjectPropertiesAxiom>
+            implements OWLEquivalentObjectPropertiesAxiom {
+
+        protected AxiomImpl(Triple t, Supplier<OntGraphModel> m) {
+            this(strip(t.getSubject()), t.getPredicate().getURI(), strip(t.getObject()), m);
+        }
+
+        protected AxiomImpl(Object s, String p, Object o, Supplier<OntGraphModel> m) {
+            super(s, p, o, m);
+        }
+
+        /**
+         * Creates an {@link ONTObject} container, that is also {@link OWLEquivalentObjectPropertiesAxiom}.
+         *
+         * @param statement {@link OntStatement}, not {@code null}
+         * @param model     {@link OntGraphModel} provider, not {@code null}
+         * @param factory   {@link InternalObjectFactory}, not {@code null}
+         * @param config    {@link InternalConfig}, not {@code null}
+         * @return {@link AxiomImpl}
+         */
+        public static AxiomImpl create(OntStatement statement,
+                                       Supplier<OntGraphModel> model,
+                                       InternalObjectFactory factory,
+                                       InternalConfig config) {
+            return WithManyObjects.create(statement, model,
+                    SimpleImpl.FACTORY, ComplexImpl.FACTORY, SET_HASH_CODE, factory, config);
+        }
+
+        @Override
+        protected final long count() {
+            return 2;
+        }
+
+        @FactoryAccessor
+        @Override
+        protected OWLEquivalentObjectPropertiesAxiom createAxiom(Collection<OWLObjectPropertyExpression> members,
+                                                                 Collection<OWLAnnotation> annotations) {
+            return getDataFactory().getOWLEquivalentObjectPropertiesAxiom(members,
+                    annotations == null ? NO_ANNOTATIONS : annotations);
+        }
+
+        @FactoryAccessor
+        OWLSubObjectPropertyOfAxiom createSubPropertyOf(OWLObjectPropertyExpression a,
+                                                        OWLObjectPropertyExpression b) {
+            DataFactory df = getDataFactory();
+            return df.getOWLSubObjectPropertyOfAxiom(a, b);
+        }
+
+        @FactoryAccessor
+        @Override
+        public Collection<OWLSubObjectPropertyOfAxiom> asSubObjectPropertyOfAxioms() {
+            return walkAllPairwise((a, b) -> createSubPropertyOf(eraseModel(a), eraseModel(b)));
+        }
+
+        /**
+         * An {@link OWLEquivalentObjectPropertiesAxiom} that has named object property expressions
+         * as subject and object and has no annotations.
+         */
+        protected static class SimpleImpl extends AxiomImpl implements Simple<OWLObjectPropertyExpression> {
+
+            private static final BiFunction<Triple, Supplier<OntGraphModel>, SimpleImpl> FACTORY = SimpleImpl::new;
+
+            protected SimpleImpl(Triple t, Supplier<OntGraphModel> m) {
+                super(t, m);
+            }
+
+            protected SimpleImpl(Object s, String p, Object o, Supplier<OntGraphModel> m) {
+                super(s, p, o, m);
+            }
+
+            @Override
+            protected boolean sameContent(ONTStatementImpl other) {
+                return other instanceof SimpleImpl && isReverseTriple((SimpleImpl) other);
+            }
+
+            @Override
+            protected AxiomImpl makeCopyWith(ONTObject<OWLEquivalentObjectPropertiesAxiom> other) {
+                if (other instanceof SimpleImpl) {
+                    Triple t = ((SimpleImpl) other).asTriple();
+                    return new SimpleImpl(subject, predicate, object, model) {
+
+                        @Override
+                        public Stream<Triple> triples() {
+                            return Stream.concat(SimpleImpl.this.triples(), Stream.of(t));
+                        }
+                    };
+                }
+                return new SimpleImpl(subject, predicate, object, model) {
+                    @Override
+                    public Stream<Triple> triples() {
+                        return Stream.concat(SimpleImpl.this.triples(), other.triples());
+                    }
+                };
+            }
+
+            @SuppressWarnings("unchecked")
+            @Override
+            public Set<OWLObjectProperty> getObjectPropertySet() {
+                return (Set<OWLObjectProperty>) getOWLComponentsAsSet();
+            }
+
+            @SuppressWarnings("unchecked")
+            @Override
+            public Set<OWLEntity> getSignatureSet() {
+                return (Set<OWLEntity>) getOWLComponentsAsSet();
+            }
+
+            @Override
+            public boolean containsObjectProperty(OWLObjectProperty property) {
+                return hasURIResource(ONTEntityImpl.getURI(property));
+            }
+        }
+
+        /**
+         * An {@link OWLEquivalentObjectPropertiesAxiom}
+         * that either has annotations or anonymous object property expressions in the subject or the object positions.
+         * It has a public constructor since it is more generic then {@link SimpleImpl}.
+         */
+        public static class ComplexImpl extends AxiomImpl implements Complex<ComplexImpl, OWLObjectPropertyExpression> {
+
+            private static final BiFunction<Triple, Supplier<OntGraphModel>, ComplexImpl> FACTORY = ComplexImpl::new;
+            protected final InternalCache.Loading<ComplexImpl, Object[]> content;
+
+            public ComplexImpl(Triple t, Supplier<OntGraphModel> m) {
+                this(strip(t.getSubject()), t.getPredicate().getURI(), strip(t.getObject()), m);
+            }
+
+            protected ComplexImpl(Object s, String p, Object o, Supplier<OntGraphModel> m) {
+                super(s, p, o, m);
+                this.content = createContentCache();
+            }
+
+            @Override
+            public InternalCache.Loading<ComplexImpl, Object[]> getContentCache() {
+                return content;
+            }
+
+            @Override
+            protected boolean sameContent(ONTStatementImpl other) {
+                return other instanceof ComplexImpl && Arrays.equals(getContent(), ((ComplexImpl) other).getContent());
+            }
+
+            @Override
+            protected ComplexImpl makeCopyWith(ONTObject<OWLEquivalentObjectPropertiesAxiom> other) {
+                ComplexImpl res = new ComplexImpl(subject, predicate, object, model) {
+                    @Override
+                    public Stream<Triple> triples() {
+                        return Stream.concat(ComplexImpl.this.triples(), other.triples());
+                    }
+                };
+                if (hasContent()) {
+                    res.putContent(getContent());
+                }
+                return res;
+            }
+        }
+    }
 }

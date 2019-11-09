@@ -222,8 +222,7 @@ public class DifferentIndividualsTranslator
 
             @Override
             public boolean containsNamedIndividual(OWLNamedIndividual individual) {
-                String uri = ONTEntityImpl.getURI(individual);
-                return subject.equals(uri) || object.equals(uri);
+                return hasURIResource(ONTEntityImpl.getURI(individual));
             }
 
             @Override

@@ -42,10 +42,12 @@ public class SplitNaryAxiomsTest extends NaryAxiomsTestBase {
     @Parameterized.Parameters(name = "{0}")
     public static List<AxiomData> getData() {
         return getAxiomData(
-                // TODO: see https://github.com/avicomp/ont-api/issues/87
+                // TODO: https://github.com/owlcs/ont-api/issues/2
                 AxiomType.EQUIVALENT_CLASSES
                 , AxiomType.INVERSE_OBJECT_PROPERTIES
-                , AxiomType.SAME_INDIVIDUAL);
+                , AxiomType.SAME_INDIVIDUAL
+                , AxiomType.EQUIVALENT_OBJECT_PROPERTIES
+        );
     }
 
     static Collection<? extends OWLAxiom> createONTAxioms(OntologyManager m, OWLAxiom toWrite) {
@@ -70,8 +72,8 @@ public class SplitNaryAxiomsTest extends NaryAxiomsTestBase {
         LOGGER.debug("Test: '{}'", owl);
         OWLNaryAxiom ont = (OWLNaryAxiom) data.create(ONT_DATA_FACTORY);
 
-        Assert.assertTrue(ont.getClass().getName().startsWith("com.github.owlcs.ontapi.owlapi"));
-        Assert.assertTrue(owl.getClass().getName().startsWith("uk.ac.manchester.cs.owl.owlapi"));
+        Assert.assertTrue(isONT(ont));
+        Assert.assertTrue(isOWL(owl));
 
         Collection<? extends OWLAxiom> expectedPairwise = owl.asPairwiseAxioms();
         Collection<? extends OWLAxiom> testPairwise = ont.asPairwiseAxioms();

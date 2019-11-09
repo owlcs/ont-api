@@ -14,17 +14,17 @@
 
 package com.github.owlcs.ontapi.internal.axioms;
 
-import org.apache.jena.graph.Triple;
-import org.apache.jena.rdf.model.Statement;
-import org.apache.jena.util.iterator.ExtendedIterator;
-import org.apache.jena.vocabulary.RDFS;
-import org.semanticweb.owlapi.model.*;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.*;
 import com.github.owlcs.ontapi.jena.model.OntCE;
 import com.github.owlcs.ontapi.jena.model.OntGraphModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.vocabulary.RDFS;
+import org.semanticweb.owlapi.model.*;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -203,8 +203,7 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
 
             @Override
             public boolean containsNamedClass(OWLClass clazz) {
-                String uri = ONTEntityImpl.getURI(clazz);
-                return subject.equals(uri) || object.equals(uri);
+                return hasURIResource(ONTEntityImpl.getURI(clazz));
             }
 
             @Override
@@ -248,8 +247,7 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
          * that either has annotations or anonymous class expressions in subject or object positions.
          * It has a public constructor since it is more generic then {@link SimpleImpl}.
          */
-        public static class ComplexImpl extends AxiomImpl
-                implements UnaryWithContent<ComplexImpl, OWLClassExpression> {
+        public static class ComplexImpl extends AxiomImpl implements UnaryWithContent<ComplexImpl, OWLClassExpression> {
 
             private static final BiFunction<Triple, Supplier<OntGraphModel>, ComplexImpl> FACTORY = ComplexImpl::new;
             protected final InternalCache.Loading<ComplexImpl, Object[]> content;

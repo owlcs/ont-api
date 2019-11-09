@@ -14,9 +14,6 @@
 
 package com.github.owlcs.ontapi.internal.axioms;
 
-import org.apache.jena.graph.Triple;
-import org.apache.jena.util.iterator.ExtendedIterator;
-import org.semanticweb.owlapi.model.*;
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.*;
@@ -26,6 +23,9 @@ import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.util.iterator.ExtendedIterator;
+import org.semanticweb.owlapi.model.*;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Arrays;
@@ -302,8 +302,7 @@ public class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInvers
 
             @Override
             public boolean containsObjectProperty(OWLObjectProperty property) {
-                String uri = ONTEntityImpl.getURI(property);
-                return subject.equals(uri) || object.equals(uri);
+                return hasURIResource(ONTEntityImpl.getURI(property));
             }
 
             @Override
@@ -333,8 +332,7 @@ public class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInvers
          * in subject or object positions.
          * It has a public constructor since it is more generic then {@link SimpleImpl}.
          */
-        protected static class ComplexImpl extends AxiomImpl
-                implements Complex<ComplexImpl, OWLObjectPropertyExpression> {
+        protected static class ComplexImpl extends AxiomImpl implements Complex<ComplexImpl, OWLObjectPropertyExpression> {
 
             private static final BiFunction<Triple, Supplier<OntGraphModel>, ComplexImpl> FACTORY = ComplexImpl::new;
             protected final InternalCache.Loading<ComplexImpl, Object[]> content;

@@ -14,15 +14,15 @@
 
 package com.github.owlcs.ontapi.tests.internal;
 
+import com.github.owlcs.ontapi.OntManagers;
+import com.github.owlcs.ontapi.internal.ONTObject;
+import com.github.owlcs.ontapi.internal.objects.ModelObject;
+import com.github.owlcs.ontapi.tests.TestFactory;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.github.owlcs.ontapi.OntManagers;
-import com.github.owlcs.ontapi.internal.ONTObject;
-import com.github.owlcs.ontapi.internal.objects.ModelObject;
-import com.github.owlcs.ontapi.tests.TestFactory;
 
 import java.util.List;
 import java.util.UUID;
@@ -58,6 +58,18 @@ abstract class ObjectFactoryTestBase extends TestFactory {
         components(test).forEach(x -> Assert.assertFalse(x instanceof ONTObject));
     }
 
+    static boolean isOWL(OWLObject obj) {
+        return isInPackage(obj, "uk.ac.manchester.cs.owl.owlapi");
+    }
+
+    static boolean isONT(OWLObject obj) {
+        return isInPackage(obj, "com.github.owlcs.ontapi.owlapi");
+    }
+
+    private static boolean isInPackage(Object obj, String packageFullName) {
+        return obj.getClass().getName().startsWith(packageFullName);
+    }
+
     abstract OWLObject fromModel();
 
     @Test
@@ -66,8 +78,8 @@ abstract class ObjectFactoryTestBase extends TestFactory {
         OWLObject owl = data.create(OWL_DATA_FACTORY);
         OWLObject test = fromModel();
         Assert.assertTrue(test instanceof ModelObject);
-        Assert.assertTrue(ont.getClass().getName().startsWith("com.github.owlcs.ontapi.owlapi"));
-        Assert.assertTrue(owl.getClass().getName().startsWith("uk.ac.manchester.cs.owl.owlapi"));
+        Assert.assertTrue(isONT(ont));
+        Assert.assertTrue(isOWL(owl));
 
         testONTObject(owl, ont, test);
     }

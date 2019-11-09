@@ -224,8 +224,7 @@ public class DisjointClassesTranslator
 
             @Override
             public boolean containsNamedClass(OWLClass clazz) {
-                String uri = ONTEntityImpl.getURI(clazz);
-                return subject.equals(uri) || object.equals(uri);
+                return hasURIResource(ONTEntityImpl.getURI(clazz));
             }
 
             @Override
