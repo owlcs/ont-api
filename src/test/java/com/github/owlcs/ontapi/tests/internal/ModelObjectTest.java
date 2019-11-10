@@ -231,6 +231,14 @@ public class ModelObjectTest {
         testNarySplitMethod(expected, actual, x -> ((OWLEquivalentObjectPropertiesAxiom) x).asSubObjectPropertyOfAxioms());
     }
 
+    @Test
+    public void testDisjointDataPropertiesEraseModelMethods() {
+        OWLDataFactory df = ObjectFactoryTestBase.ONT_DATA_FACTORY;
+        OWLDisjointDataPropertiesAxiom expected = df.getOWLDisjointDataPropertiesAxiom(Arrays.asList(df.getOWLDataProperty("X"),
+                df.getOWLDataProperty("Y"), df.getOWLDataProperty("Z")), Collections.singleton(df.getRDFSLabel("lab")));
+        testNaryAxiom(expected);
+    }
+
     @SuppressWarnings("unchecked")
     private <X extends OWLNaryAxiom & OWLSubClassOfAxiomSetShortCut> void testSubClassShortCutNaryAxiom(X expected) {
         X actual = testNaryAxiom(expected);
@@ -298,6 +306,4 @@ public class ModelObjectTest {
         OWLClassExpression c = res.asSomeValuesFrom();
         ObjectFactoryTestBase.testObjectHasNoModelReference(c);
     }
-
-
 }

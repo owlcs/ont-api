@@ -32,6 +32,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 
 /**
  * Created by @szz on 12.09.2019.
@@ -213,10 +215,6 @@ public class ONTObjectContentTest {
         Assert.assertEquals(3, g.size());
     }
 
-    private static OntOPE createInverse(OntNOP p) {
-        return p.getModel().createResource().addProperty(OWL.inverseOf, p).as(OntOPE.class);
-    }
-
     @Test
     public void testMergeNegativeObjectPropertyAssertion() {
         OntologyManager m = OntManagers.createONT();
@@ -253,24 +251,9 @@ public class ONTObjectContentTest {
 
     @Test
     public void testMergeDisjointClasses() {
-        OntologyManager m = OntManagers.createONT();
-        OntologyModel o = m.createOntology();
-        OntGraphModel g = o.asGraphModel();
-
-        OntClass x = g.createOntClass("X");
-        OntClass y = g.createOntClass("Y");
-        x.addDisjointClass(y.addDisjointClass(x));
-        g.createDisjointClasses(x, y);
-        ReadWriteUtils.print(g);
-
-        Assert.assertEquals(3, o.axioms().count());
-        OWLDisjointClassesAxiom a = o.axioms(AxiomType.DISJOINT_CLASSES).findFirst().orElseThrow(AssertionError::new);
-
-        o.remove(a);
-
-        o.clearCache();
-        Assert.assertEquals(2, o.axioms().count());
-        Assert.assertEquals(3, g.size());
+        simpleTestMergeDisjointAxioms(OntGraphModel::createOntClass,
+                (x, y) -> x.addDisjointClass(y.addDisjointClass(x)).getModel().createDisjointClasses(x, y),
+                AxiomType.DISJOINT_CLASSES);
     }
 
     @Test
@@ -404,25 +387,9 @@ public class ONTObjectContentTest {
 
     @Test
     public void testMergeDisjointObjectProperties() {
-        OntologyManager m = OntManagers.createONT();
-        OntologyModel o = m.createOntology();
-        OntGraphModel g = o.asGraphModel();
-
-        OntNOP x = g.createObjectProperty("X");
-        OntNOP y = g.createObjectProperty("Y");
-        x.addDisjointProperty(y.addDisjointProperty(x));
-        g.createDisjointObjectProperties(x, y);
-        ReadWriteUtils.print(g);
-
-        Assert.assertEquals(3, o.axioms().count());
-        OWLDisjointObjectPropertiesAxiom a = o.axioms(AxiomType.DISJOINT_OBJECT_PROPERTIES)
-                .findFirst().orElseThrow(AssertionError::new);
-
-        o.remove(a);
-
-        o.clearCache();
-        Assert.assertEquals(2, o.axioms().count());
-        Assert.assertEquals(3, g.size());
+        simpleTestMergeDisjointAxioms(OntGraphModel::createObjectProperty,
+                (x, y) -> x.addDisjointProperty(y.addDisjointProperty(x)).getModel().createDisjointObjectProperties(x, y),
+                AxiomType.DISJOINT_OBJECT_PROPERTIES);
     }
 
     @Test
@@ -448,5 +415,36 @@ public class ONTObjectContentTest {
         o.clearCache();
         Assert.assertEquals(2, o.axioms().count());
         Assert.assertEquals(3, g.size());
+    }
+
+    @Test
+    public void testMergeDisjointDataProperties() {
+        simpleTestMergeDisjointAxioms(OntGraphModel::createDataProperty,
+                (x, y) -> x.addDisjointProperty(y.addDisjointProperty(x)).getModel().createDisjointDataProperties(x, y),
+                AxiomType.DISJOINT_DATA_PROPERTIES);
+    }
+
+    private <X extends OntObject, Y extends OWLNaryAxiom> void simpleTestMergeDisjointAxioms(BiFunction<OntGraphModel, String, X> addDeclaration,
+                                                                                             BiConsumer<X, X> addDisjoints,
+                                                                                             AxiomType<Y> type) {
+        OntologyManager m = OntManagers.createONT();
+        OntologyModel o = m.createOntology();
+        OntGraphModel g = o.asGraphModel();
+
+        X x = addDeclaration.apply(g, "X");
+        X y = addDeclaration.apply(g, "Y");
+        addDisjoints.accept(x, y);
+        ReadWriteUtils.print(g);
+
+        Assert.assertEquals(3, o.axioms().count());
+        Y a = o.axioms(type).findFirst().orElseThrow(AssertionError::new);
+
+        o.remove(a);
+        Assert.assertEquals(2, o.axioms().count());
+        Assert.assertEquals(3, g.size());
+    }
+
+    private static OntOPE createInverse(OntNOP p) {
+        return p.getModel().createResource().addProperty(OWL.inverseOf, p).as(OntOPE.class);
     }
 }

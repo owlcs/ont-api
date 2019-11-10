@@ -2514,6 +2514,43 @@ public class TestFactory {
                                 "IRI.create(\"https://github.com/owlcs\"))))";
                     }
                 }
+                , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.DISJOINT_DATA_PROPERTIES;
+                    }
+
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLDisjointDataPropertiesAxiom(df.getOWLDataProperty("A"),
+                                df.getOWLDataProperty("B"));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLDisjointDataPropertiesAxiom(df.getOWLDataProperty(\"A\"), " +
+                                "df.getOWLDataProperty(\"B\"))";
+                    }
+                }
+                , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.DISJOINT_DATA_PROPERTIES;
+                    }
+
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLDisjointDataPropertiesAxiom(Collections.singleton(df.getOWLDataProperty("P")),
+                                Collections.singleton(df.getRDFSLabel(IRI.create("https://github.com/owlcs"))));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLDisjointDataPropertiesAxiom(Collections.singleton(" +
+                                "df.getOWLDataProperty(\"P\")), " +
+                                "Collections.singleton(df.getRDFSLabel(IRI.create(\"https://github.com/owlcs\"))))";
+                    }
+                }
         );
     }
 

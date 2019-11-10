@@ -389,6 +389,37 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
     }
 
     /**
+     * An abstract {@link OWLNaryPropertyAxiom} implementation for member-type {@link OWLDataPropertyExpression}.
+     *
+     * @param <A> either {@link OWLEquivalentDataPropertiesAxiom} or {@link OWLDisjointDataPropertiesAxiom}
+     */
+    @SuppressWarnings("WeakerAccess")
+    protected abstract static class DataPropertyNaryAxiomImpl<A extends OWLNaryPropertyAxiom<OWLDataPropertyExpression>>
+            extends PropertyNaryAxiomImpl<A, OWLDataPropertyExpression> {
+
+        protected DataPropertyNaryAxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+            super(subject, predicate, object, m);
+        }
+
+        @Override
+        public ExtendedIterator<ONTObject<? extends OWLDataPropertyExpression>> listONTComponents(OntStatement statement,
+                                                                                                  InternalObjectFactory factory) {
+            return Iter.of(factory.getProperty(statement.getSubject(OntNDP.class)),
+                    factory.getProperty(statement.getObject(OntNDP.class)));
+        }
+
+        @Override
+        public ONTObject<? extends OWLDataPropertyExpression> findByURI(String uri, InternalObjectFactory factory) {
+            return ONTDataPropertyImpl.find(uri, factory, model);
+        }
+
+        @Override
+        public final boolean canContainObjectProperties() {
+            return false;
+        }
+    }
+
+    /**
      * An abstraction, that combines common properties for {@link OWLNaryIndividualAxiom} and {@link OWLNaryClassAxiom}.
      *
      * @param <A> subtype of {@link OWLNaryAxiom}

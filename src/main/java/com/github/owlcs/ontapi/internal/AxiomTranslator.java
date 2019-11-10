@@ -276,6 +276,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * @param config    {@link InternalConfig} to control process
      * @return {@link ONTObject} around {@link OWLAxiom}
      * @throws JenaException if no possible to get axiom from the statement
+     * @since 2.0.0
      */
     protected ONTObject<Axiom> toAxiom(OntStatement statement,
                                        Supplier<OntGraphModel> model,
