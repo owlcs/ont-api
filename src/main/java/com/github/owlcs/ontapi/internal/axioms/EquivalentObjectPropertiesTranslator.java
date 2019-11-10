@@ -78,6 +78,7 @@ public class EquivalentObjectPropertiesTranslator
     /**
      * @see com.github.owlcs.ontapi.owlapi.axioms.OWLEquivalentObjectPropertiesAxiomImpl
      */
+    @SuppressWarnings("WeakerAccess")
     public abstract static class AxiomImpl extends ObjectPropertyNaryAxiomImpl<OWLEquivalentObjectPropertiesAxiom>
             implements OWLEquivalentObjectPropertiesAxiom {
 
@@ -119,9 +120,8 @@ public class EquivalentObjectPropertiesTranslator
                     annotations == null ? NO_ANNOTATIONS : annotations);
         }
 
-        @FactoryAccessor
-        OWLSubObjectPropertyOfAxiom createSubPropertyOf(OWLObjectPropertyExpression a,
-                                                        OWLObjectPropertyExpression b) {
+        protected OWLSubObjectPropertyOfAxiom createSubPropertyOf(OWLObjectPropertyExpression a,
+                                                                  OWLObjectPropertyExpression b) {
             DataFactory df = getDataFactory();
             return df.getOWLSubObjectPropertyOfAxiom(a, b);
         }

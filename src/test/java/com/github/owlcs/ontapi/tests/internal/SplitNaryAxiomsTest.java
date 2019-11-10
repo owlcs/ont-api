@@ -42,11 +42,11 @@ public class SplitNaryAxiomsTest extends NaryAxiomsTestBase {
     @Parameterized.Parameters(name = "{0}")
     public static List<AxiomData> getData() {
         return getAxiomData(
-                // TODO: https://github.com/owlcs/ont-api/issues/2
                 AxiomType.EQUIVALENT_CLASSES
                 , AxiomType.INVERSE_OBJECT_PROPERTIES
                 , AxiomType.SAME_INDIVIDUAL
                 , AxiomType.EQUIVALENT_OBJECT_PROPERTIES
+                , AxiomType.EQUIVALENT_DATA_PROPERTIES
         );
     }
 

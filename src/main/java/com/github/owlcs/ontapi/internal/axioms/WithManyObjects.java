@@ -277,7 +277,7 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
          * @param statement - a {@link OntStatement}, the source statement, not {@code null}
          * @param setHash   - a {@code ObjIntConsumer<OWLAxiom>}, facility to assign {@code hashCode}, not {@code null}
          * @param simplify  - boolean, if {@code true}, and the given statement is simple
-         *                  (no annotations, uri subject and object), an empty array is returned
+         *                  (no annotations, uri subject and object), an {@code null} array is returned
          * @param factory   - a {@link InternalObjectFactory} singleton, not {@code null}
          * @param config    - a {@link InternalConfig} singleton, not {@code null}
          * @return an {@code Array} with content or {@code null} if no content is needed

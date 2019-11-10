@@ -239,6 +239,16 @@ public class ModelObjectTest {
         testNaryAxiom(expected);
     }
 
+    @Test
+    public void testEquivalentDataPropertiesAxiomEraseModelMethods() {
+        OWLDataFactory df = ObjectFactoryTestBase.ONT_DATA_FACTORY;
+        OWLEquivalentDataPropertiesAxiom expected = df.getOWLEquivalentDataPropertiesAxiom(Arrays.asList(df.getOWLDataProperty("X"),
+                df.getOWLDataProperty("Y")),
+                Arrays.asList(df.getRDFSComment("x"), df.getRDFSComment("y")));
+        OWLEquivalentDataPropertiesAxiom actual = testNaryAxiom(expected);
+        testNarySplitMethod(expected, actual, x -> ((OWLEquivalentDataPropertiesAxiom) x).asSubDataPropertyOfAxioms());
+    }
+
     @SuppressWarnings("unchecked")
     private <X extends OWLNaryAxiom & OWLSubClassOfAxiomSetShortCut> void testSubClassShortCutNaryAxiom(X expected) {
         X actual = testNaryAxiom(expected);

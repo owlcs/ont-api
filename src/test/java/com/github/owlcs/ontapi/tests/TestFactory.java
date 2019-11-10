@@ -2551,6 +2551,25 @@ public class TestFactory {
                                 "Collections.singleton(df.getRDFSLabel(IRI.create(\"https://github.com/owlcs\"))))";
                     }
                 }
+                , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.EQUIVALENT_DATA_PROPERTIES;
+                    }
+
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLEquivalentDataPropertiesAxiom(Arrays.asList(df.getOWLDataProperty("P1"),
+                                df.getOWLDataProperty("P2")), Collections.singleton(df.getRDFSComment("the comment")));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLEquivalentDataPropertiesAxiom(Arrays.asList(df.getOWLDataProperty(\"P1\"), " +
+                                "df.getOWLDataProperty(\"P2\")), " +
+                                "Collections.singleton(df.getRDFSComment(\"the comment\")))";
+                    }
+                }
         );
     }
 
