@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 
 /**
  * Created by @szz on 12.09.2019.
@@ -148,70 +149,31 @@ public class ONTObjectContentTest {
 
     @Test
     public void testMergeSubClassOf() {
-        OntologyManager m = OntManagers.createONT();
-        OntologyModel o = m.createOntology();
-        OntGraphModel g = o.asGraphModel();
-
-        OntClass x = g.createOntClass("X");
-        OntClass y = g.createOntClass("Y");
-        x.addSuperClass(g.createComplementOf(y));
-        x.addSuperClass(g.createComplementOf(y));
-        ReadWriteUtils.print(g);
-
-        Assert.assertEquals(3, o.axioms().count());
-        OWLSubClassOfAxiom a = o.axioms(AxiomType.SUBCLASS_OF).findFirst().orElseThrow(AssertionError::new);
-
-        o.remove(a);
-
-        o.clearCache();
-        Assert.assertEquals(2, o.axioms().count());
-        Assert.assertEquals(3, g.size());
+        simpleMergeTest(g -> {
+            OntClass x = g.createOntClass("X");
+            OntClass y = g.createOntClass("Y");
+            x.addSuperClass(g.createComplementOf(y));
+            x.addSuperClass(g.createComplementOf(y));
+        }, 9, AxiomType.SUBCLASS_OF, 3, 3);
     }
 
     @Test
     public void testMergeInverseObjectProperties() {
-        OntologyManager m = OntManagers.createONT();
-        OntologyModel o = m.createOntology();
-        OntGraphModel g = o.asGraphModel();
-
-        OntOPE x = g.createObjectProperty("X");
-        OntOPE y = g.createObjectProperty("Y");
-        x.addInverseProperty(y.addInverseProperty(x));
-
-        // header + 2 declarations + 2 owl:inverseOf
-        Assert.assertEquals(5, g.size());
-
-        Assert.assertEquals(3, o.axioms().count());
-
-        OWLInverseObjectPropertiesAxiom a = o.axioms(AxiomType.INVERSE_OBJECT_PROPERTIES)
-                .findFirst().orElseThrow(AssertionError::new);
-        o.remove(a);
-
-        Assert.assertEquals(2, o.axioms().count());
-        // header + 2 declarations
-        Assert.assertEquals(3, g.size());
+        simpleMergeTest(g -> {
+            OntOPE x = g.createObjectProperty("X");
+            OntOPE y = g.createObjectProperty("Y");
+            x.addInverseProperty(y.addInverseProperty(x));
+        }, 5, AxiomType.INVERSE_OBJECT_PROPERTIES, 3, 3);
     }
 
     @Test
     public void testMergeSubObjectPropertyOf() {
-        OntologyManager m = OntManagers.createONT();
-        OntologyModel o = m.createOntology();
-        OntGraphModel g = o.asGraphModel();
-
-        OntNOP x = g.createObjectProperty("X");
-        OntNOP y = g.createObjectProperty("Y");
-        createInverse(x).addSuperProperty(createInverse(y));
-        createInverse(x).addSuperProperty(createInverse(y));
-        ReadWriteUtils.print(g);
-
-        Assert.assertEquals(3, o.axioms().count());
-        OWLSubObjectPropertyOfAxiom a = o.axioms(AxiomType.SUB_OBJECT_PROPERTY).findFirst().orElseThrow(AssertionError::new);
-
-        o.remove(a);
-
-        o.clearCache();
-        Assert.assertEquals(2, o.axioms().count());
-        Assert.assertEquals(3, g.size());
+        simpleMergeTest(g -> {
+            OntNOP x = g.createObjectProperty("X");
+            OntNOP y = g.createObjectProperty("Y");
+            createInverse(x).addSuperProperty(createInverse(y));
+            createInverse(x).addSuperProperty(createInverse(y));
+        }, 9, AxiomType.SUB_OBJECT_PROPERTY, 3, 3);
     }
 
     @Test
@@ -250,94 +212,46 @@ public class ONTObjectContentTest {
 
     @Test
     public void testMergeDisjointClasses() {
-        simpleTestMergeNaryAxioms(OntGraphModel::createOntClass,
+        simpleMergeTest(OntGraphModel::createOntClass,
                 (x, y) -> x.addDisjointClass(y.addDisjointClass(x)).getModel().createDisjointClasses(x, y),
                 11, AxiomType.DISJOINT_CLASSES);
     }
 
     @Test
     public void testMergePropertyChains() {
-        OntologyManager m = OntManagers.createONT();
-        OntologyModel o = m.createOntology();
-        OntGraphModel g = o.asGraphModel();
-
-        OntNOP x = g.createObjectProperty("P");
-        OntNOP y = g.createObjectProperty("Y");
-        OntNOP z = g.createObjectProperty("Z");
-
-        createInverse(x).addPropertyChain(y, z).addPropertyChain(y, z);
-        createInverse(x).addPropertyChain(y, z);
-        ReadWriteUtils.print(g);
-        Assert.assertEquals(21, g.size());
-
-        Assert.assertEquals(4, o.axioms().count());
-        OWLSubPropertyChainOfAxiom a = o.axioms(AxiomType.SUB_PROPERTY_CHAIN_OF)
-                .findFirst().orElseThrow(AssertionError::new);
-
-        o.remove(a);
-
-        ReadWriteUtils.print(g);
-        o.clearCache();
-        Assert.assertEquals(3, o.axioms().count());
-        Assert.assertEquals(4, g.size());
+        simpleMergeTest(g -> {
+            OntNOP x = g.createObjectProperty("P");
+            OntNOP y = g.createObjectProperty("Y");
+            OntNOP z = g.createObjectProperty("Z");
+            createInverse(x).addPropertyChain(y, z).addPropertyChain(y, z);
+            createInverse(x).addPropertyChain(y, z);
+        }, 21, AxiomType.SUB_PROPERTY_CHAIN_OF, 4, 4);
     }
 
     @Test
     public void testMergeHasKeys() {
-        OntologyManager m = OntManagers.createONT();
-        OntologyModel o = m.createOntology();
-        OntGraphModel g = o.asGraphModel();
-
-        OntClass c = g.createOntClass("C");
-        OntNOP x = g.createObjectProperty("P");
-        OntNOP y = g.createObjectProperty("Y");
-        OntNDP z = g.createDataProperty("Z");
-
-        c.addHasKey(x, y, z).addHasKey(x, z, y, x);
-        ReadWriteUtils.print(g);
-        Assert.assertEquals(19, g.size());
-
-        Assert.assertEquals(5, o.axioms().count());
-        OWLHasKeyAxiom a = o.axioms(AxiomType.HAS_KEY)
-                .findFirst().orElseThrow(AssertionError::new);
-
-        o.remove(a);
-
-        ReadWriteUtils.print(g);
-        o.clearCache();
-        Assert.assertEquals(4, o.axioms().count());
-        Assert.assertEquals(5, g.size());
+        simpleMergeTest(g -> {
+            OntClass c = g.createOntClass("C");
+            OntNOP x = g.createObjectProperty("P");
+            OntNOP y = g.createObjectProperty("Y");
+            OntNDP z = g.createDataProperty("Z");
+            c.addHasKey(x, y, z).addHasKey(x, z, y, x);
+        }, 19, AxiomType.HAS_KEY, 5, 5);
     }
 
     @Test
     public void testMergeDisjointUnion() {
-        OntologyManager m = OntManagers.createONT();
-        OntologyModel o = m.createOntology();
-        OntGraphModel g = o.asGraphModel();
-
-        OntClass c1 = g.createOntClass("C1");
-        OntClass c2 = g.createOntClass("C2");
-        OntClass c3 = g.createOntClass("C3");
-
-        c1.addDisjointUnion(g.createComplementOf(c2), c3).addDisjointUnion(c3, g.createComplementOf(c2));
-        ReadWriteUtils.print(g);
-        Assert.assertEquals(18, g.size());
-
-        Assert.assertEquals(4, o.axioms().count());
-        OWLDisjointUnionAxiom a = o.axioms(AxiomType.DISJOINT_UNION)
-                .findFirst().orElseThrow(AssertionError::new);
-
-        o.remove(a);
-
-        ReadWriteUtils.print(g);
-        o.clearCache();
-        Assert.assertEquals(3, o.axioms().count());
-        Assert.assertEquals(4, g.size());
+        simpleMergeTest(g -> {
+            OntClass c1 = g.createOntClass("C1");
+            OntClass c2 = g.createOntClass("C2");
+            OntClass c3 = g.createOntClass("C3");
+            c1.addDisjointUnion(g.createComplementOf(c2), c3).addDisjointUnion(c3, g.createComplementOf(c2));
+        }, 18, AxiomType.DISJOINT_UNION, 4, 4);
     }
 
     @Test
     public void testMergeDifferentIndividuals() {
-        simpleTestMergeNaryAxioms((g, u) -> g.getOWLThing().createIndividual(u),
+        simpleMergeTest((g, u) -> g.getOWLThing().createIndividual(u),
                 (x, y) -> x.addDifferentIndividual(y.addDifferentIndividual(x))
                         .getModel().createDifferentIndividuals(x, y).getModel().createDifferentIndividuals(y, x),
                 19, AxiomType.DIFFERENT_INDIVIDUALS, 5, 5);
@@ -345,67 +259,86 @@ public class ONTObjectContentTest {
 
     @Test
     public void testMergeSameIndividuals() {
-        simpleTestMergeNaryAxioms((g, u) -> g.getOWLThing().createIndividual(u),
+        simpleMergeTest((g, u) -> g.getOWLThing().createIndividual(u),
                 (x, y) -> x.addSameIndividual(y.addSameIndividual(x)),
                 7, AxiomType.SAME_INDIVIDUAL, 5, 5);
     }
 
     @Test
     public void testMergeDisjointObjectProperties() {
-        simpleTestMergeNaryAxioms(OntGraphModel::createObjectProperty,
+        simpleMergeTest(OntGraphModel::createObjectProperty,
                 (x, y) -> x.addDisjointProperty(y.addDisjointProperty(x)).getModel().createDisjointObjectProperties(x, y),
                 11, AxiomType.DISJOINT_OBJECT_PROPERTIES);
     }
 
     @Test
     public void testMergeEquivalentObjectProperties() {
-        simpleTestMergeNaryAxioms(OntGraphModel::createObjectProperty,
+        simpleMergeTest(OntGraphModel::createObjectProperty,
                 (x, y) -> {
                     OntGraphModel g = x.getModel();
                     x.addEquivalentPropertyStatement(y).addAnnotation(g.getRDFSComment(), "x");
                     y.addEquivalentPropertyStatement(x).addAnnotation(g.getRDFSComment(), "x");
-                },
-                15, AxiomType.EQUIVALENT_OBJECT_PROPERTIES);
+                }, 15, AxiomType.EQUIVALENT_OBJECT_PROPERTIES);
     }
 
     @Test
     public void testMergeDisjointDataProperties() {
-        simpleTestMergeNaryAxioms(OntGraphModel::createDataProperty,
+        simpleMergeTest(OntGraphModel::createDataProperty,
                 (x, y) -> x.addDisjointProperty(y.addDisjointProperty(x)).getModel().createDisjointDataProperties(x, y),
                 11, AxiomType.DISJOINT_DATA_PROPERTIES);
     }
 
     @Test
     public void testMergeEquivalentDataProperties() {
-        simpleTestMergeNaryAxioms(OntGraphModel::createDataProperty,
+        simpleMergeTest(OntGraphModel::createDataProperty,
                 (x, y) -> {
                     OntGraphModel g = x.getModel();
                     x.addEquivalentPropertyStatement(y).addAnnotation(g.getRDFSComment(), "x");
                     y.addEquivalentPropertyStatement(x).addAnnotation(g.getRDFSComment(), "x");
-                },
-                15, AxiomType.EQUIVALENT_DATA_PROPERTIES);
+                }, 15, AxiomType.EQUIVALENT_DATA_PROPERTIES);
     }
 
-    private <ONT extends OntObject, OWL extends OWLNaryAxiom> void simpleTestMergeNaryAxioms(BiFunction<OntGraphModel, String, ONT> addDeclaration,
-                                                                                             BiConsumer<ONT, ONT> addAxioms,
-                                                                                             int initModelSize,
-                                                                                             AxiomType<OWL> type) {
-        simpleTestMergeNaryAxioms(addDeclaration, addAxioms, initModelSize, type, 3, 3);
+    @Test
+    public void testMergeDataPropertyDomainAxiom() {
+        simpleMergeTest(g -> {
+            OntNDP p = g.createDataProperty("X");
+            p.addDomain(g.createUnionOf(g.getOWLThing(), g.createDataHasValue(p, g.createLiteral("x"))))
+                    .addDomain(g.createUnionOf(g.getOWLThing(), g.createDataHasValue(p, g.createLiteral("x"))));
+
+        }, 22, AxiomType.DATA_PROPERTY_DOMAIN, 2, 2);
     }
 
-    private <ONT extends OntObject, OWL extends OWLNaryAxiom> void simpleTestMergeNaryAxioms(BiFunction<OntGraphModel, String, ONT> addDeclaration,
-                                                                                             BiConsumer<ONT, ONT> addAxioms,
-                                                                                             int initModelSize,
-                                                                                             AxiomType<OWL> type,
-                                                                                             int initAxiomsSize,
-                                                                                             int afterRemoveModelSize) {
+    private <ONT extends OntObject, OWL extends OWLNaryAxiom> void simpleMergeTest(BiFunction<OntGraphModel, String, ONT> addDeclaration,
+                                                                                   BiConsumer<ONT, ONT> addAxioms,
+                                                                                   int initModelSize,
+                                                                                   AxiomType<OWL> type) {
+        simpleMergeTest(addDeclaration, addAxioms, initModelSize, type, 3, 3);
+    }
+
+    private <ONT extends OntObject, OWL extends OWLAxiom> void simpleMergeTest(BiFunction<OntGraphModel, String, ONT> addDeclaration,
+                                                                               BiConsumer<ONT, ONT> addAxioms,
+                                                                               int initModelSize,
+                                                                               AxiomType<OWL> type,
+                                                                               int initAxiomsSize,
+                                                                               int afterRemoveModelSize) {
+
+        simpleMergeTest(g -> {
+            ONT x = addDeclaration.apply(g, "X");
+            ONT y = addDeclaration.apply(g, "Y");
+            addAxioms.accept(x, y);
+        }, initModelSize, type, initAxiomsSize, afterRemoveModelSize);
+    }
+
+    private <OWL extends OWLAxiom> void simpleMergeTest(Consumer<OntGraphModel> contentMaker,
+                                                        int initModelSize,
+                                                        AxiomType<OWL> type,
+                                                        int initAxiomsSize,
+                                                        int afterRemoveModelSize) {
         OntologyManager m = OntManagers.createONT();
         OntologyModel o = m.createOntology();
         OntGraphModel g = o.asGraphModel();
 
-        ONT x = addDeclaration.apply(g, "X");
-        ONT y = addDeclaration.apply(g, "Y");
-        addAxioms.accept(x, y);
+        contentMaker.accept(g);
         Assert.assertEquals(initModelSize, g.size());
 
         ReadWriteUtils.print(g);

@@ -146,14 +146,14 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
         }
 
         @Override
-        public ONTObject<? extends OWLClassExpression> fetchONTSubject(OntStatement statement,
-                                                                       InternalObjectFactory factory) {
+        public ONTObject<? extends OWLClassExpression> subjectFromStatement(OntStatement statement,
+                                                                            InternalObjectFactory factory) {
             return factory.getClass(statement.getSubject(OntCE.class));
         }
 
         @Override
-        public ONTObject<? extends OWLClassExpression> fetchONTObject(OntStatement statement,
-                                                                      InternalObjectFactory factory) {
+        public ONTObject<? extends OWLClassExpression> objectFromStatement(OntStatement statement,
+                                                                           InternalObjectFactory factory) {
             return factory.getClass(statement.getObject(OntCE.class));
         }
 

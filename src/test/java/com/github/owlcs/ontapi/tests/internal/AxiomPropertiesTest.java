@@ -90,6 +90,12 @@ public class AxiomPropertiesTest {
         testSplitNaryAxioms(data, (OWLNaryPropertyAxiom<?> a) -> a.properties().collect(Collectors.toList()));
     }
 
+    @Test
+    public void testDataPropertyDomain() {
+        List<TestFactory.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.DATA_PROPERTY_DOMAIN);
+        testAxiom(data, (Function<OWLDataPropertyDomainAxiom, Object>) HasDomain::getDomain, HasProperty::getProperty);
+    }
+
     @SuppressWarnings("unchecked")
     @SafeVarargs
     private static <X extends OWLAxiom> void testAxiom(List<TestFactory.AxiomData> data,

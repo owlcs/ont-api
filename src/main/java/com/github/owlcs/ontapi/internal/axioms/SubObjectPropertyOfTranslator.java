@@ -79,7 +79,7 @@ public class SubObjectPropertyOfTranslator extends AbstractSubPropertyTranslator
      * @see com.github.owlcs.ontapi.owlapi.axioms.OWLSubObjectPropertyOfAxiomImpl
      */
     public abstract static class AxiomImpl
-            extends SubPropertyImpl<OWLSubObjectPropertyOfAxiom, OWLObjectPropertyExpression>
+            extends SubPropertyAxiomImpl<OWLSubObjectPropertyOfAxiom, OWLObjectPropertyExpression>
             implements WithMerge<ONTObject<OWLSubObjectPropertyOfAxiom>>, OWLSubObjectPropertyOfAxiom {
 
         protected AxiomImpl(Triple t, Supplier<OntGraphModel> m) {
@@ -108,14 +108,14 @@ public class SubObjectPropertyOfTranslator extends AbstractSubPropertyTranslator
         }
 
         @Override
-        public ONTObject<? extends OWLObjectPropertyExpression> fetchONTSubject(OntStatement statement,
-                                                                                InternalObjectFactory factory) {
+        public ONTObject<? extends OWLObjectPropertyExpression> subjectFromStatement(OntStatement statement,
+                                                                                     InternalObjectFactory factory) {
             return factory.getProperty(statement.getSubject(OntOPE.class));
         }
 
         @Override
-        public ONTObject<? extends OWLObjectPropertyExpression> fetchONTObject(OntStatement statement,
-                                                                               InternalObjectFactory factory) {
+        public ONTObject<? extends OWLObjectPropertyExpression> objectFromStatement(OntStatement statement,
+                                                                                    InternalObjectFactory factory) {
             return factory.getProperty(statement.getObject(OntOPE.class));
         }
 

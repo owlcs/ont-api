@@ -104,7 +104,7 @@ public class SubAnnotationPropertyOfTranslator
      * @see com.github.owlcs.ontapi.owlapi.axioms.OWLSubAnnotationPropertyOfAxiomImpl
      */
     public abstract static class AxiomImpl
-            extends SubPropertyImpl<OWLSubAnnotationPropertyOfAxiom, OWLAnnotationProperty>
+            extends SubPropertyAxiomImpl<OWLSubAnnotationPropertyOfAxiom, OWLAnnotationProperty>
             implements OWLSubAnnotationPropertyOfAxiom {
 
         protected AxiomImpl(Triple t, Supplier<OntGraphModel> m) {
@@ -129,14 +129,14 @@ public class SubAnnotationPropertyOfTranslator
         }
 
         @Override
-        public ONTObject<? extends OWLAnnotationProperty> fetchONTSubject(OntStatement statement,
-                                                                          InternalObjectFactory factory) {
+        public ONTObject<? extends OWLAnnotationProperty> subjectFromStatement(OntStatement statement,
+                                                                               InternalObjectFactory factory) {
             return factory.getProperty(statement.getSubject(OntNAP.class));
         }
 
         @Override
-        public ONTObject<? extends OWLAnnotationProperty> fetchONTObject(OntStatement statement,
-                                                                         InternalObjectFactory factory) {
+        public ONTObject<? extends OWLAnnotationProperty> objectFromStatement(OntStatement statement,
+                                                                              InternalObjectFactory factory) {
             return factory.getProperty(statement.getObject(OntNAP.class));
         }
 

@@ -14,10 +14,6 @@
 
 package com.github.owlcs.ontapi.internal.axioms;
 
-import org.apache.jena.graph.Triple;
-import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLObject;
 import com.github.owlcs.ontapi.internal.InternalConfig;
 import com.github.owlcs.ontapi.internal.InternalObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
@@ -28,6 +24,10 @@ import com.github.owlcs.ontapi.internal.objects.WithoutAnnotations;
 import com.github.owlcs.ontapi.jena.model.OntGraphModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.owlapi.OWLObjectImpl;
+import org.apache.jena.graph.Triple;
+import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.OWLAxiom;
+import org.semanticweb.owlapi.model.OWLObject;
 
 import java.util.*;
 import java.util.function.BiFunction;
@@ -59,7 +59,7 @@ interface WithTwoObjects<S extends OWLObject, O extends OWLObject> extends WithT
      * @return an {@link ONTObject}
      * @throws ClassCastException in case the subject is not an URI resource
      */
-    ONTObject<? extends S> findURISubject(InternalObjectFactory factory);
+    ONTObject<? extends S> getURISubject(InternalObjectFactory factory);
 
     /**
      * Finds the {@link ONTObject} that matches the triple's object-uri using the given factory.
@@ -68,7 +68,7 @@ interface WithTwoObjects<S extends OWLObject, O extends OWLObject> extends WithT
      * @return an {@link ONTObject}
      * @throws ClassCastException in case the object is not an URI resource
      */
-    ONTObject<? extends O> findURIObject(InternalObjectFactory factory);
+    ONTObject<? extends O> getURIObject(InternalObjectFactory factory);
 
     /**
      * Picks the {@link ONTObject} that matches the subject of the given {@code statement} using the {@code factory}.
@@ -77,7 +77,7 @@ interface WithTwoObjects<S extends OWLObject, O extends OWLObject> extends WithT
      * @param factory   {@link InternalObjectFactory} to fetch an {@link ONTObject}, not {@code null}
      * @return an {@link ONTObject} that can be seen as wrapper of {@link S}
      */
-    ONTObject<? extends S> fetchONTSubject(OntStatement statement, InternalObjectFactory factory);
+    ONTObject<? extends S> subjectFromStatement(OntStatement statement, InternalObjectFactory factory);
 
     /**
      * Picks the {@link ONTObject} that matches the object of the given {@code statement} using the {@code factory}.
@@ -86,7 +86,7 @@ interface WithTwoObjects<S extends OWLObject, O extends OWLObject> extends WithT
      * @param factory   {@link InternalObjectFactory} to fetch an {@link ONTObject}, not {@code null}
      * @return an {@link ONTObject} that can be seen as wrapper of {@link O}
      */
-    ONTObject<? extends O> fetchONTObject(OntStatement statement, InternalObjectFactory factory);
+    ONTObject<? extends O> objectFromStatement(OntStatement statement, InternalObjectFactory factory);
 
     /**
      * Finds the {@link ONTObject} that matches the subject using the {@code factory}.
@@ -94,7 +94,7 @@ interface WithTwoObjects<S extends OWLObject, O extends OWLObject> extends WithT
      * @param factory {@link InternalObjectFactory} to fetch an {@link ONTObject}, not {@code null}
      * @return an {@link ONTObject} that can be seen as wrapper of {@link S}
      */
-    ONTObject<? extends S> findONTSubject(InternalObjectFactory factory);
+    ONTObject<? extends S> getONTSubject(InternalObjectFactory factory);
 
     /**
      * Finds the {@link ONTObject} that matches the object using the {@code factory}.
@@ -102,7 +102,7 @@ interface WithTwoObjects<S extends OWLObject, O extends OWLObject> extends WithT
      * @param factory {@link InternalObjectFactory} to fetch an {@link ONTObject}, not {@code null}
      * @return an {@link ONTObject} that can be seen as wrapper of {@link O}
      */
-    ONTObject<? extends O> findONTObject(InternalObjectFactory factory);
+    ONTObject<? extends O> getONTObject(InternalObjectFactory factory);
 
     /**
      * Gets the subject from the base triple of this axiom.
@@ -110,7 +110,7 @@ interface WithTwoObjects<S extends OWLObject, O extends OWLObject> extends WithT
      * @return {@link ONTObject} with {@link S}
      */
     default ONTObject<? extends S> getONTSubject() {
-        return findONTSubject(getObjectFactory());
+        return getONTSubject(getObjectFactory());
     }
 
     /**
@@ -119,13 +119,13 @@ interface WithTwoObjects<S extends OWLObject, O extends OWLObject> extends WithT
      * @return {@link ONTObject} with {@link O}
      */
     default ONTObject<? extends O> getONTObject() {
-        return findONTObject(getObjectFactory());
+        return getONTObject(getObjectFactory());
     }
 
     default Set<? extends OWLObject> getOWLComponentsAsSet(InternalObjectFactory factory) {
         Set<OWLObject> res = OWLObjectImpl.createSortedSet();
-        res.add(findONTSubject(factory).getOWLObject());
-        res.add(findONTObject(factory).getOWLObject());
+        res.add(getONTSubject(factory).getOWLObject());
+        res.add(getONTObject(factory).getOWLObject());
         return res;
     }
 
@@ -182,17 +182,17 @@ interface WithTwoObjects<S extends OWLObject, O extends OWLObject> extends WithT
         @Override
         default Stream<ONTObject<? extends OWLObject>> objects() {
             InternalObjectFactory factory = getObjectFactory();
-            return Stream.of(findONTSubject(factory), findONTObject(factory));
+            return Stream.of(getONTSubject(factory), getONTObject(factory));
         }
 
         @Override
-        default ONTObject<? extends S> findONTSubject(InternalObjectFactory factory) {
-            return findURISubject(factory);
+        default ONTObject<? extends S> getONTSubject(InternalObjectFactory factory) {
+            return getURISubject(factory);
         }
 
         @Override
-        default ONTObject<? extends O> findONTObject(InternalObjectFactory factory) {
-            return findURIObject(factory);
+        default ONTObject<? extends O> getONTObject(InternalObjectFactory factory) {
+            return getURIObject(factory);
         }
     }
 
@@ -229,18 +229,18 @@ interface WithTwoObjects<S extends OWLObject, O extends OWLObject> extends WithT
             Object subject = null;
             int hash = axiom.hashIndex();
             if (statement.getSubject().isURIResource()) {
-                hash = OWLObject.hashIteration(hash, axiom.findURISubject(factory).hashCode());
+                hash = OWLObject.hashIteration(hash, axiom.getURISubject(factory).hashCode());
             } else {
                 size++;
-                subject = axiom.fetchONTSubject(statement, factory);
+                subject = axiom.subjectFromStatement(statement, factory);
                 hash = OWLObject.hashIteration(hash, subject.hashCode());
             }
             Object object = null;
             if (statement.getObject().isURIResource()) {
-                hash = OWLObject.hashIteration(hash, axiom.findURIObject(factory).hashCode());
+                hash = OWLObject.hashIteration(hash, axiom.getURIObject(factory).hashCode());
             } else {
                 size++;
-                object = axiom.fetchONTObject(statement, factory);
+                object = axiom.objectFromStatement(statement, factory);
                 hash = OWLObject.hashIteration(hash, object.hashCode());
             }
             if (size == 0) {
@@ -270,33 +270,33 @@ interface WithTwoObjects<S extends OWLObject, O extends OWLObject> extends WithT
             InternalObjectFactory factory = getObjectFactory();
             List<ONTObject> res = new ArrayList<>(2);
             if (!statement.getSubject().isURIResource()) {
-                res.add(fetchONTSubject(statement, factory));
+                res.add(subjectFromStatement(statement, factory));
             }
             if (!statement.getObject().isURIResource()) {
-                res.add(fetchONTObject(statement, factory));
+                res.add(objectFromStatement(statement, factory));
             }
             res.addAll(ONTAxiomImpl.collectAnnotations(statement, factory, getConfig()));
             return res.toArray();
         }
 
         @Override
-        default ONTObject<? extends S> findONTSubject(InternalObjectFactory factory) {
+        default ONTObject<? extends S> getONTSubject(InternalObjectFactory factory) {
             return findONTSubject(getContent(), factory);
         }
 
         @Override
-        default ONTObject<? extends O> findONTObject(InternalObjectFactory factory) {
+        default ONTObject<? extends O> getONTObject(InternalObjectFactory factory) {
             return findONTObject(getContent(), factory);
         }
 
         @SuppressWarnings("unchecked")
         default ONTObject<? extends S> findONTSubject(Object[] content, InternalObjectFactory factory) {
-            return hasURISubject() ? findURISubject(factory) : (ONTObject<? extends S>) content[0];
+            return hasURISubject() ? getURISubject(factory) : (ONTObject<? extends S>) content[0];
         }
 
         @SuppressWarnings("unchecked")
         default ONTObject<? extends O> findONTObject(Object[] content, InternalObjectFactory factory) {
-            return hasURIObject() ? findURIObject(factory)
+            return hasURIObject() ? getURIObject(factory)
                     : (ONTObject<? extends O>) content[hasURISubject() ? 0 : 1];
         }
 
@@ -320,10 +320,10 @@ interface WithTwoObjects<S extends OWLObject, O extends OWLObject> extends WithT
             if (hasURISubject()) {
                 InternalObjectFactory factory = getObjectFactory();
                 objects = hasURIObject() ?
-                        Stream.of(findURISubject(factory), findURIObject(factory)) :
-                        Stream.of(findURISubject(factory));
+                        Stream.of(getURISubject(factory), getURIObject(factory)) :
+                        Stream.of(getURISubject(factory));
             } else if (hasURIObject()) {
-                objects = Stream.of(findURIObject(getObjectFactory()));
+                objects = Stream.of(getURIObject(getObjectFactory()));
             }
             res = objects != null ? Stream.concat(objects, res) : res;
             return (Stream<ONTObject<? extends OWLObject>>) res;
@@ -364,12 +364,12 @@ interface WithTwoObjects<S extends OWLObject, O extends OWLObject> extends WithT
         ONTObject<? extends X> findByURI(String uri, InternalObjectFactory factory);
 
         @Override
-        default ONTObject<? extends X> findURISubject(InternalObjectFactory factory) {
+        default ONTObject<? extends X> getURISubject(InternalObjectFactory factory) {
             return findByURI(getSubjectURI(), factory);
         }
 
         @Override
-        default ONTObject<? extends X> findURIObject(InternalObjectFactory factory) {
+        default ONTObject<? extends X> getURIObject(InternalObjectFactory factory) {
             return findByURI(getObjectURI(), factory);
         }
     }

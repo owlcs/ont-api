@@ -14,11 +14,11 @@
 
 package com.github.owlcs.ontapi.internal;
 
-import org.apache.jena.util.iterator.ExtendedIterator;
-import org.semanticweb.owlapi.model.*;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.jena.model.OntGraphModel;
 import com.github.owlcs.ontapi.jena.utils.Iter;
+import org.apache.jena.util.iterator.ExtendedIterator;
+import org.semanticweb.owlapi.model.*;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -62,48 +62,48 @@ public enum OWLContentType {
     },
     // axioms:
     DECLARATION(AxiomType.DECLARATION, true, ENTITY),
-    EQUIVALENT_CLASSES(AxiomType.EQUIVALENT_CLASSES, false, CLASS_EXPRESSION),
-    SUBCLASS_OF(AxiomType.SUBCLASS_OF, false, CLASS_EXPRESSION),
-    DISJOINT_CLASSES(AxiomType.DISJOINT_CLASSES, false, CLASS_EXPRESSION),
-    DISJOINT_UNION(AxiomType.DISJOINT_UNION, false, CLASS, CLASS_EXPRESSION),
-    CLASS_ASSERTION(AxiomType.CLASS_ASSERTION, true, INDIVIDUAL, CLASS_EXPRESSION),
-    SAME_INDIVIDUAL(AxiomType.SAME_INDIVIDUAL, false, INDIVIDUAL),
-    DIFFERENT_INDIVIDUALS(AxiomType.DIFFERENT_INDIVIDUALS, false, INDIVIDUAL),
+    EQUIVALENT_CLASSES(AxiomType.EQUIVALENT_CLASSES, CLASS_EXPRESSION),
+    SUBCLASS_OF(AxiomType.SUBCLASS_OF, CLASS_EXPRESSION),
+    DISJOINT_CLASSES(AxiomType.DISJOINT_CLASSES, CLASS_EXPRESSION),
+    DISJOINT_UNION(AxiomType.DISJOINT_UNION, CLASS, CLASS_EXPRESSION),
+    CLASS_ASSERTION(AxiomType.CLASS_ASSERTION, INDIVIDUAL, CLASS_EXPRESSION),
+    SAME_INDIVIDUAL(AxiomType.SAME_INDIVIDUAL, INDIVIDUAL),
+    DIFFERENT_INDIVIDUALS(AxiomType.DIFFERENT_INDIVIDUALS, INDIVIDUAL),
     OBJECT_PROPERTY_ASSERTION(AxiomType.OBJECT_PROPERTY_ASSERTION, true, NAMED_OBJECT_PROPERTY, INDIVIDUAL),
-    NEGATIVE_OBJECT_PROPERTY_ASSERTION(AxiomType.NEGATIVE_OBJECT_PROPERTY_ASSERTION, false, OBJECT_PROPERTY_EXPRESSION, INDIVIDUAL),
+    NEGATIVE_OBJECT_PROPERTY_ASSERTION(AxiomType.NEGATIVE_OBJECT_PROPERTY_ASSERTION, OBJECT_PROPERTY_EXPRESSION, INDIVIDUAL),
     DATA_PROPERTY_ASSERTION(AxiomType.DATA_PROPERTY_ASSERTION, true, DATATYPE_PROPERTY, LITERAL, INDIVIDUAL),
-    NEGATIVE_DATA_PROPERTY_ASSERTION(AxiomType.NEGATIVE_DATA_PROPERTY_ASSERTION, false, DATATYPE_PROPERTY, INDIVIDUAL, LITERAL),
-    EQUIVALENT_OBJECT_PROPERTIES(AxiomType.EQUIVALENT_OBJECT_PROPERTIES, false, OBJECT_PROPERTY_EXPRESSION),
-    SUB_OBJECT_PROPERTY(AxiomType.SUB_OBJECT_PROPERTY, false, OBJECT_PROPERTY_EXPRESSION),
-    INVERSE_OBJECT_PROPERTIES(AxiomType.INVERSE_OBJECT_PROPERTIES, false, OBJECT_PROPERTY_EXPRESSION),
-    FUNCTIONAL_OBJECT_PROPERTY(AxiomType.FUNCTIONAL_OBJECT_PROPERTY, true, OBJECT_PROPERTY_EXPRESSION),
-    INVERSE_FUNCTIONAL_OBJECT_PROPERTY(AxiomType.INVERSE_FUNCTIONAL_OBJECT_PROPERTY, true, OBJECT_PROPERTY_EXPRESSION),
-    SYMMETRIC_OBJECT_PROPERTY(AxiomType.SYMMETRIC_OBJECT_PROPERTY, true, OBJECT_PROPERTY_EXPRESSION),
-    ASYMMETRIC_OBJECT_PROPERTY(AxiomType.ASYMMETRIC_OBJECT_PROPERTY, true, OBJECT_PROPERTY_EXPRESSION),
-    TRANSITIVE_OBJECT_PROPERTY(AxiomType.TRANSITIVE_OBJECT_PROPERTY, true, OBJECT_PROPERTY_EXPRESSION),
-    REFLEXIVE_OBJECT_PROPERTY(AxiomType.REFLEXIVE_OBJECT_PROPERTY, true, OBJECT_PROPERTY_EXPRESSION),
-    IRREFLEXIVE_OBJECT_PROPERTY(AxiomType.IRREFLEXIVE_OBJECT_PROPERTY, true, OBJECT_PROPERTY_EXPRESSION),
-    OBJECT_PROPERTY_DOMAIN(AxiomType.OBJECT_PROPERTY_DOMAIN, true, OBJECT_PROPERTY_EXPRESSION, CLASS_EXPRESSION),
-    OBJECT_PROPERTY_RANGE(AxiomType.OBJECT_PROPERTY_RANGE, true, OBJECT_PROPERTY_EXPRESSION, CLASS_EXPRESSION),
-    DISJOINT_OBJECT_PROPERTIES(AxiomType.DISJOINT_OBJECT_PROPERTIES, false, OBJECT_PROPERTY_EXPRESSION),
-    SUB_PROPERTY_CHAIN_OF(AxiomType.SUB_PROPERTY_CHAIN_OF, false, OBJECT_PROPERTY_EXPRESSION),
-    EQUIVALENT_DATA_PROPERTIES(AxiomType.EQUIVALENT_DATA_PROPERTIES, false, DATATYPE_PROPERTY),
+    NEGATIVE_DATA_PROPERTY_ASSERTION(AxiomType.NEGATIVE_DATA_PROPERTY_ASSERTION, DATATYPE_PROPERTY, INDIVIDUAL, LITERAL),
+    EQUIVALENT_OBJECT_PROPERTIES(AxiomType.EQUIVALENT_OBJECT_PROPERTIES, OBJECT_PROPERTY_EXPRESSION),
+    SUB_OBJECT_PROPERTY(AxiomType.SUB_OBJECT_PROPERTY, OBJECT_PROPERTY_EXPRESSION),
+    INVERSE_OBJECT_PROPERTIES(AxiomType.INVERSE_OBJECT_PROPERTIES, OBJECT_PROPERTY_EXPRESSION),
+    FUNCTIONAL_OBJECT_PROPERTY(AxiomType.FUNCTIONAL_OBJECT_PROPERTY, OBJECT_PROPERTY_EXPRESSION),
+    INVERSE_FUNCTIONAL_OBJECT_PROPERTY(AxiomType.INVERSE_FUNCTIONAL_OBJECT_PROPERTY, OBJECT_PROPERTY_EXPRESSION),
+    SYMMETRIC_OBJECT_PROPERTY(AxiomType.SYMMETRIC_OBJECT_PROPERTY, OBJECT_PROPERTY_EXPRESSION),
+    ASYMMETRIC_OBJECT_PROPERTY(AxiomType.ASYMMETRIC_OBJECT_PROPERTY, OBJECT_PROPERTY_EXPRESSION),
+    TRANSITIVE_OBJECT_PROPERTY(AxiomType.TRANSITIVE_OBJECT_PROPERTY, OBJECT_PROPERTY_EXPRESSION),
+    REFLEXIVE_OBJECT_PROPERTY(AxiomType.REFLEXIVE_OBJECT_PROPERTY, OBJECT_PROPERTY_EXPRESSION),
+    IRREFLEXIVE_OBJECT_PROPERTY(AxiomType.IRREFLEXIVE_OBJECT_PROPERTY, OBJECT_PROPERTY_EXPRESSION),
+    OBJECT_PROPERTY_DOMAIN(AxiomType.OBJECT_PROPERTY_DOMAIN, OBJECT_PROPERTY_EXPRESSION, CLASS_EXPRESSION),
+    OBJECT_PROPERTY_RANGE(AxiomType.OBJECT_PROPERTY_RANGE, OBJECT_PROPERTY_EXPRESSION, CLASS_EXPRESSION),
+    DISJOINT_OBJECT_PROPERTIES(AxiomType.DISJOINT_OBJECT_PROPERTIES, OBJECT_PROPERTY_EXPRESSION),
+    SUB_PROPERTY_CHAIN_OF(AxiomType.SUB_PROPERTY_CHAIN_OF, OBJECT_PROPERTY_EXPRESSION),
+    EQUIVALENT_DATA_PROPERTIES(AxiomType.EQUIVALENT_DATA_PROPERTIES, DATATYPE_PROPERTY),
     SUB_DATA_PROPERTY(AxiomType.SUB_DATA_PROPERTY, true, DATATYPE_PROPERTY),
     FUNCTIONAL_DATA_PROPERTY(AxiomType.FUNCTIONAL_DATA_PROPERTY, true, DATATYPE_PROPERTY),
-    DATA_PROPERTY_DOMAIN(AxiomType.DATA_PROPERTY_DOMAIN, true, DATATYPE_PROPERTY, CLASS_EXPRESSION),
-    DATA_PROPERTY_RANGE(AxiomType.DATA_PROPERTY_RANGE, true, DATATYPE_PROPERTY, DATA_RANGE),
-    DISJOINT_DATA_PROPERTIES(AxiomType.DISJOINT_DATA_PROPERTIES, false, DATATYPE_PROPERTY),
-    HAS_KEY(AxiomType.HAS_KEY, false, CLASS_EXPRESSION, DATATYPE_PROPERTY, OBJECT_PROPERTY_EXPRESSION),
-    SWRL_RULE(AxiomType.SWRL_RULE, false, SWRL_ATOM),
+    DATA_PROPERTY_DOMAIN(AxiomType.DATA_PROPERTY_DOMAIN, DATATYPE_PROPERTY, CLASS_EXPRESSION),
+    DATA_PROPERTY_RANGE(AxiomType.DATA_PROPERTY_RANGE, DATATYPE_PROPERTY, DATA_RANGE),
+    DISJOINT_DATA_PROPERTIES(AxiomType.DISJOINT_DATA_PROPERTIES, DATATYPE_PROPERTY),
+    HAS_KEY(AxiomType.HAS_KEY, CLASS_EXPRESSION, DATATYPE_PROPERTY, OBJECT_PROPERTY_EXPRESSION),
+    SWRL_RULE(AxiomType.SWRL_RULE, SWRL_ATOM),
     ANNOTATION_ASSERTION(AxiomType.ANNOTATION_ASSERTION, true, ANNOTATION_PROPERTY, LITERAL, ANONYMOUS_INDIVIDUAL, IRI),
     SUB_ANNOTATION_PROPERTY_OF(AxiomType.SUB_ANNOTATION_PROPERTY_OF, true, ANNOTATION_PROPERTY),
     ANNOTATION_PROPERTY_RANGE(AxiomType.ANNOTATION_PROPERTY_RANGE, true, ANNOTATION_PROPERTY, IRI),
     ANNOTATION_PROPERTY_DOMAIN(AxiomType.ANNOTATION_PROPERTY_DOMAIN, true, ANNOTATION_PROPERTY, IRI),
-    DATATYPE_DEFINITION(AxiomType.DATATYPE_DEFINITION, true, DATATYPE, DATA_RANGE),
+    DATATYPE_DEFINITION(AxiomType.DATATYPE_DEFINITION, DATATYPE, DATA_RANGE),
     ;
 
-    private static final Set<OWLContentType> AXIOMS;
-    private static final Set<OWLContentType> LOGICAL;
+    private static final Set<OWLContentType> ALL_AXIOMS;
+    private static final Set<OWLContentType> LOGICAL_AXIOMS;
 
     static {
         Set<OWLContentType> axioms = EnumSet.noneOf(OWLContentType.class);
@@ -116,14 +116,23 @@ public enum OWLContentType {
                 logical.add(x);
             }
         }
-        AXIOMS = axioms;
-        LOGICAL = logical;
+        ALL_AXIOMS = axioms;
+        LOGICAL_AXIOMS = logical;
     }
 
     private final AxiomType<OWLAxiom> type;
     private final boolean distinct;
     private final Set<OWLComponentType> components;
 
+    OWLContentType(AxiomType<? extends OWLAxiom> type, OWLComponentType... types) {
+        this(type, false, types);
+    }
+
+    /**
+     * @param type     {@link AxiomType} or {@code null} if ontology header
+     * @param distinct see {@link #isDistinct()}
+     * @param types    an {@code Array} of top-level components
+     */
     @SuppressWarnings("unchecked")
     OWLContentType(AxiomType<? extends OWLAxiom> type, boolean distinct, OWLComponentType... types) {
         this.type = (AxiomType<OWLAxiom>) type;
@@ -181,7 +190,7 @@ public enum OWLContentType {
      * @return {@code Stream} of {@link OWLContentType}s
      */
     public static Stream<OWLContentType> axioms() {
-        return AXIOMS.stream();
+        return ALL_AXIOMS.stream();
     }
 
     /**
@@ -190,7 +199,7 @@ public enum OWLContentType {
      * @return {@code Stream} of {@link OWLContentType}s
      */
     public static Stream<OWLContentType> logical() {
-        return LOGICAL.stream();
+        return LOGICAL_AXIOMS.stream();
     }
 
     /**
@@ -231,12 +240,13 @@ public enum OWLContentType {
     }
 
     /**
-     * Answers {@code true} if and only if
-     * there can be only one unique content object of this enum-type,
-     * which means that there is only one statement in the graph, to which that object corresponds.
-     * Returns {@code false}, if an object of the enum-type can be derived from different RDF statements.
-     * <p>
-     * Several examples when the method returns {@code false}:
+     * Answers {@code true} iff
+     * an object of this type can be derived from one and only one main triple,
+     * and returns {@code false}, if several main triples can correspond to the same object.
+     * Usually the method returns {@code false}, only few types allow mapping to be distinct.
+     * An example of distinct type is {@link #DECLARATION}:
+     * any triple {@code x rdf:type y} uniquely corresponds to the entity {@code x} of the type {@code y}.
+     * Below are examples of non-distinct types:
      * <ul>
      * <li>{@link #DIFFERENT_INDIVIDUALS}: the same axiom {@code DifferentIndividuals(<A> <B>)} can be derived
      * form three statements: {@code a1 owl:differentFrom a2}, {@code a2 owl:differentFrom a1}
@@ -246,6 +256,9 @@ public enum OWLContentType {
      * {@code C1 owl:disjointUnionOf ( C2 ) . C1 owl:disjointUnionOf ( C2 ) . }</li>
      * <li>{@link #ANNOTATION}: bulk annotation is a b-node, RDF graph can contain any number of b-nodes
      * with the same content (annotation property and annotation value)</li>
+     * <li>{@link #FUNCTIONAL_OBJECT_PROPERTY}:
+     * the axiom {@code FunctionalObjectProperty(ObjectInverseOf(P))} can be derived from
+     * the any statements of the form {@code _:bi rdf:type owl:FunctionalProperty . _:bi owl:inverseOf P .}</li>
      * </ul>
      *
      * @return boolean

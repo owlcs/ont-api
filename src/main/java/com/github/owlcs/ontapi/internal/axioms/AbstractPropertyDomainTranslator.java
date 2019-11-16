@@ -14,22 +14,25 @@
 
 package com.github.owlcs.ontapi.internal.axioms;
 
-import org.apache.jena.util.iterator.ExtendedIterator;
-import org.apache.jena.vocabulary.RDFS;
-import org.semanticweb.owlapi.model.HasDomain;
-import org.semanticweb.owlapi.model.HasProperty;
-import org.semanticweb.owlapi.model.OWLAxiom;
-import com.github.owlcs.ontapi.internal.AxiomTranslator;
-import com.github.owlcs.ontapi.internal.InternalConfig;
-import com.github.owlcs.ontapi.internal.WriteHelper;
+import com.github.owlcs.ontapi.internal.*;
+import com.github.owlcs.ontapi.internal.objects.ONTAxiomImpl;
+import com.github.owlcs.ontapi.internal.objects.ONTClassImpl;
+import com.github.owlcs.ontapi.jena.model.OntCE;
 import com.github.owlcs.ontapi.jena.model.OntGraphModel;
 import com.github.owlcs.ontapi.jena.model.OntPE;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.vocabulary.RDFS;
+import org.semanticweb.owlapi.model.*;
+
+import java.util.function.Supplier;
 
 /**
- * The base class for {@link ObjectPropertyDomainTranslator} and {@link DataPropertyDomainTranslator} and {@link AnnotationPropertyDomainTranslator}.
- * The for mapping statement with {@code rdfs:domain} predicate.
+ * The base class for {@link ObjectPropertyDomainTranslator},
+ * {@link DataPropertyDomainTranslator} and {@link AnnotationPropertyDomainTranslator} axioms.
+ * All of them are based on a statement with {@code rdfs:domain} predicate.
  * <p>
  * Created by @szuev on 30.09.2016.
  */
@@ -54,5 +57,67 @@ public abstract class AbstractPropertyDomainTranslator<Axiom extends OWLAxiom & 
     @Override
     public boolean testStatement(OntStatement statement, InternalConfig config) {
         return RDFS.domain.equals(statement.getPredicate()) && filter(statement, config);
+    }
+
+    /**
+     * @param <A> either {@link OWLDataPropertyDomainAxiom}
+     *            or {@link OWLObjectPropertyDomainAxiom} or {@link OWLAnnotationPropertyDomainAxiom}
+     * @param <P> either {@link OWLAnnotationProperty}
+     *            or {@link OWLDataPropertyExpression} or {@link OWLObjectPropertyExpression}
+     * @param <D> either {@link OWLClassExpression} or {@link IRI}
+     */
+    @SuppressWarnings("WeakerAccess")
+    protected abstract static class DomainAxiomImpl<A extends OWLAxiom & HasProperty<P> & HasDomain<D>,
+            P extends OWLPropertyExpression, D extends OWLObject>
+            extends ONTAxiomImpl<A> implements WithTwoObjects<P, D> {
+
+        protected DomainAxiomImpl(Triple t, Supplier<OntGraphModel> m) {
+            super(t, m);
+        }
+
+        protected DomainAxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+            super(subject, predicate, object, m);
+        }
+
+        public P getProperty() {
+            return getONTSubject().getOWLObject();
+        }
+
+        public D getDomain() {
+            return getONTObject().getOWLObject();
+        }
+    }
+
+    /**
+     * @param <A> either {@link OWLDataPropertyDomainAxiom} or {@link OWLObjectPropertyDomainAxiom}
+     * @param <P> either {@link OWLDataPropertyExpression} or {@link OWLObjectPropertyExpression}
+     */
+    @SuppressWarnings("WeakerAccess")
+    protected abstract static class ClassDomainAxiomImpl<A extends OWLAxiom & HasProperty<P> & HasDomain<OWLClassExpression>,
+            P extends OWLPropertyExpression> extends DomainAxiomImpl<A, P, OWLClassExpression> {
+
+        protected ClassDomainAxiomImpl(Triple t, Supplier<OntGraphModel> m) {
+            super(t, m);
+        }
+
+        protected ClassDomainAxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+            super(subject, predicate, object, m);
+        }
+
+        @Override
+        public final boolean canContainAnnotationProperties() {
+            return isAnnotated();
+        }
+
+        @Override
+        public ONTObject<? extends OWLClassExpression> getURIObject(InternalObjectFactory factory) {
+            return ONTClassImpl.find(getObjectURI(), factory, model);
+        }
+
+        @Override
+        public ONTObject<? extends OWLClassExpression> objectFromStatement(OntStatement statement,
+                                                                           InternalObjectFactory factory) {
+            return factory.getClass(statement.getObject(OntCE.class));
+        }
     }
 }

@@ -63,6 +63,7 @@ public class CommonAxiomsTest extends StatementTestBase {
                         , AxiomType.SUB_PROPERTY_CHAIN_OF
                         , AxiomType.HAS_KEY
                         , AxiomType.DISJOINT_UNION
+                , AxiomType.DATA_PROPERTY_DOMAIN
         );
     }
 

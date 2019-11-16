@@ -2570,6 +2570,30 @@ public class TestFactory {
                                 "Collections.singleton(df.getRDFSComment(\"the comment\")))";
                     }
                 }
+                , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.DATA_PROPERTY_DOMAIN;
+                    }
+
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLDataPropertyDomainAxiom(df.getOWLDataProperty("P"),
+                                df.getOWLObjectOneOf(df.getOWLNamedIndividual("I"),
+                                        df.getOWLAnonymousIndividual("_:b0")),
+                                Arrays.asList(df.getRDFSComment("comm"),
+                                        df.getOWLAnnotation(df.getRDFSSeeAlso(), IRI.create("X"))));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLDataPropertyDomainAxiom(df.getOWLDataProperty(\"P\"), " +
+                                "df.getOWLObjectOneOf(df.getOWLNamedIndividual(\"I\"), " +
+                                "df.getOWLAnonymousIndividual(\"_:b0\")), " +
+                                "Arrays.asList(df.getRDFSComment(\"comm\"), " +
+                                "df.getOWLAnnotation(df.getRDFSSeeAlso(), IRI.create(\"X\"))))";
+                    }
+                }
         );
     }
 

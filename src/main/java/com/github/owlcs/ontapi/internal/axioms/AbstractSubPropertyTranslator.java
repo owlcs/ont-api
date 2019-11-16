@@ -14,11 +14,6 @@
 
 package com.github.owlcs.ontapi.internal.axioms;
 
-import org.apache.jena.graph.Triple;
-import org.apache.jena.util.iterator.ExtendedIterator;
-import org.apache.jena.vocabulary.RDFS;
-import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLPropertyExpression;
 import com.github.owlcs.ontapi.internal.AxiomTranslator;
 import com.github.owlcs.ontapi.internal.InternalConfig;
 import com.github.owlcs.ontapi.internal.WriteHelper;
@@ -28,6 +23,11 @@ import com.github.owlcs.ontapi.jena.model.OntGraphModel;
 import com.github.owlcs.ontapi.jena.model.OntPE;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.vocabulary.RDFS;
+import org.semanticweb.owlapi.model.OWLAxiom;
+import org.semanticweb.owlapi.model.OWLPropertyExpression;
 
 import java.util.function.Supplier;
 
@@ -77,14 +77,14 @@ public abstract class AbstractSubPropertyTranslator<Axiom extends OWLAxiom, P ex
      * @param <P> - subtype of {@link OWLPropertyExpression}
      */
     @SuppressWarnings("WeakerAccess")
-    public abstract static class SubPropertyImpl<A extends OWLAxiom, P extends OWLPropertyExpression>
+    public abstract static class SubPropertyAxiomImpl<A extends OWLAxiom, P extends OWLPropertyExpression>
             extends ONTAxiomImpl<A> implements WithTwoObjects.Unary<P> {
 
-        protected SubPropertyImpl(Triple t, Supplier<OntGraphModel> m) {
+        protected SubPropertyAxiomImpl(Triple t, Supplier<OntGraphModel> m) {
             super(t, m);
         }
 
-        protected SubPropertyImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+        protected SubPropertyAxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
             super(subject, predicate, object, m);
         }
 

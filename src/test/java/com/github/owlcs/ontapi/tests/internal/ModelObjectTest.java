@@ -249,6 +249,13 @@ public class ModelObjectTest {
         testNarySplitMethod(expected, actual, x -> ((OWLEquivalentDataPropertiesAxiom) x).asSubDataPropertyOfAxioms());
     }
 
+    @Test
+    public void testDataPropertyDomainEraseModelMethods() {
+        testUnaryPropAxiom(df -> df.getOWLDataPropertyDomainAxiom(df.getOWLDataProperty("X"),
+                df.getOWLObjectOneOf(df.getOWLAnonymousIndividual("_:b33"), df.getOWLNamedIndividual("Y")),
+                Arrays.asList(df.getRDFSComment("x"), df.getRDFSLabel("y"))));
+    }
+
     @SuppressWarnings("unchecked")
     private <X extends OWLNaryAxiom & OWLSubClassOfAxiomSetShortCut> void testSubClassShortCutNaryAxiom(X expected) {
         X actual = testNaryAxiom(expected);

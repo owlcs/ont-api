@@ -76,7 +76,7 @@ public class SubDataPropertyOfTranslator extends AbstractSubPropertyTranslator<O
      * @see com.github.owlcs.ontapi.owlapi.axioms.OWLSubDataPropertyOfAxiomImpl
      */
     public abstract static class AxiomImpl
-            extends SubPropertyImpl<OWLSubDataPropertyOfAxiom, OWLDataPropertyExpression>
+            extends SubPropertyAxiomImpl<OWLSubDataPropertyOfAxiom, OWLDataPropertyExpression>
             implements OWLSubDataPropertyOfAxiom {
 
         protected AxiomImpl(Triple t, Supplier<OntGraphModel> m) {
@@ -101,14 +101,14 @@ public class SubDataPropertyOfTranslator extends AbstractSubPropertyTranslator<O
         }
 
         @Override
-        public ONTObject<? extends OWLDataPropertyExpression> fetchONTSubject(OntStatement statement,
-                                                                              InternalObjectFactory factory) {
+        public ONTObject<? extends OWLDataPropertyExpression> subjectFromStatement(OntStatement statement,
+                                                                                   InternalObjectFactory factory) {
             return factory.getProperty(statement.getSubject(OntNDP.class));
         }
 
         @Override
-        public ONTObject<? extends OWLDataPropertyExpression> fetchONTObject(OntStatement statement,
-                                                                             InternalObjectFactory factory) {
+        public ONTObject<? extends OWLDataPropertyExpression> objectFromStatement(OntStatement statement,
+                                                                                  InternalObjectFactory factory) {
             return factory.getProperty(statement.getObject(OntNDP.class));
         }
 
@@ -135,8 +135,7 @@ public class SubDataPropertyOfTranslator extends AbstractSubPropertyTranslator<O
         }
 
         /**
-         * An {@link OWLSubDataPropertyOfAxiom}
-         * that has named object properties as subject and object and has no annotations.
+         * An {@link OWLSubDataPropertyOfAxiom} that has no annotations.
          */
         protected static class SimpleImpl extends AxiomImpl implements UnarySimple<OWLDataPropertyExpression> {
 
