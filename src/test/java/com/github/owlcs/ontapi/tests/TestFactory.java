@@ -2594,6 +2594,26 @@ public class TestFactory {
                                 "df.getOWLAnnotation(df.getRDFSSeeAlso(), IRI.create(\"X\"))))";
                     }
                 }
+                , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.OBJECT_PROPERTY_DOMAIN;
+                    }
+
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLObjectPropertyDomainAxiom(
+                                df.getOWLObjectInverseOf(df.getOWLObjectProperty("P")),
+                                df.getOWLObjectComplementOf(df.getOWLClass("C")), Collections.emptyList());
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLObjectPropertyDomainAxiom(" +
+                                "df.getOWLObjectInverseOf(df.getOWLObjectProperty(\"P\")), " +
+                                "df.getOWLObjectComplementOf(df.getOWLClass(\"C\")), Collections.emptyList())";
+                    }
+                }
         );
     }
 

@@ -44,26 +44,27 @@ public class CommonAxiomsTest extends StatementTestBase {
     public static List<AxiomData> getData() {
         return getAxiomData( // TODO: see https://github.com/owlcs/ont-api/issues/2
                 AxiomType.SUBCLASS_OF
-                        , AxiomType.ANNOTATION_ASSERTION
-                        , AxiomType.OBJECT_PROPERTY_ASSERTION
-                        , AxiomType.DATA_PROPERTY_ASSERTION
-                        , AxiomType.NEGATIVE_OBJECT_PROPERTY_ASSERTION
-                        , AxiomType.NEGATIVE_DATA_PROPERTY_ASSERTION
-                        , AxiomType.SUB_OBJECT_PROPERTY
-                        , AxiomType.SUB_DATA_PROPERTY
-                        , AxiomType.SUB_ANNOTATION_PROPERTY_OF
-                        , AxiomType.FUNCTIONAL_OBJECT_PROPERTY
-                        , AxiomType.FUNCTIONAL_DATA_PROPERTY
-                        , AxiomType.INVERSE_FUNCTIONAL_OBJECT_PROPERTY
-                        , AxiomType.REFLEXIVE_OBJECT_PROPERTY
-                        , AxiomType.IRREFLEXIVE_OBJECT_PROPERTY
-                        , AxiomType.SYMMETRIC_OBJECT_PROPERTY
-                        , AxiomType.ASYMMETRIC_OBJECT_PROPERTY
-                        , AxiomType.TRANSITIVE_OBJECT_PROPERTY
-                        , AxiomType.SUB_PROPERTY_CHAIN_OF
-                        , AxiomType.HAS_KEY
-                        , AxiomType.DISJOINT_UNION
+                , AxiomType.ANNOTATION_ASSERTION
+                , AxiomType.OBJECT_PROPERTY_ASSERTION
+                , AxiomType.DATA_PROPERTY_ASSERTION
+                , AxiomType.NEGATIVE_OBJECT_PROPERTY_ASSERTION
+                , AxiomType.NEGATIVE_DATA_PROPERTY_ASSERTION
+                , AxiomType.SUB_OBJECT_PROPERTY
+                , AxiomType.SUB_DATA_PROPERTY
+                , AxiomType.SUB_ANNOTATION_PROPERTY_OF
+                , AxiomType.FUNCTIONAL_OBJECT_PROPERTY
+                , AxiomType.FUNCTIONAL_DATA_PROPERTY
+                , AxiomType.INVERSE_FUNCTIONAL_OBJECT_PROPERTY
+                , AxiomType.REFLEXIVE_OBJECT_PROPERTY
+                , AxiomType.IRREFLEXIVE_OBJECT_PROPERTY
+                , AxiomType.SYMMETRIC_OBJECT_PROPERTY
+                , AxiomType.ASYMMETRIC_OBJECT_PROPERTY
+                , AxiomType.TRANSITIVE_OBJECT_PROPERTY
+                , AxiomType.SUB_PROPERTY_CHAIN_OF
+                , AxiomType.HAS_KEY
+                , AxiomType.DISJOINT_UNION
                 , AxiomType.DATA_PROPERTY_DOMAIN
+                , AxiomType.OBJECT_PROPERTY_DOMAIN
         );
     }
 

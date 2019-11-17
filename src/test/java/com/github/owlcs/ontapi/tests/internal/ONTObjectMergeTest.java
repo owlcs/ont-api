@@ -395,6 +395,17 @@ public class ONTObjectMergeTest {
             }
         },
 
+        OBJECT_PROPERTY_DOMAIN {
+            @Override
+            void doTest() {
+                test(g -> {
+                    OntNOP p = g.createObjectProperty("X");
+                    createInverse(p).addDomain(g.createUnionOf(g.getOWLThing(), g.createComplementOf(g.getOWLThing())));
+                    createInverse(p).addDomain(g.createUnionOf(g.getOWLThing(), g.createComplementOf(g.getOWLThing())));
+                }, 22, AxiomType.OBJECT_PROPERTY_DOMAIN, 2, 2);
+            }
+        },
+
         INVERSE_FUNCTIONAL_OBJECT_PROPERTY {
             @Override
             void doTest() {

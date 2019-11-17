@@ -14,26 +14,34 @@
 
 package com.github.owlcs.ontapi.internal.axioms;
 
-import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLClassExpression;
-import org.semanticweb.owlapi.model.OWLObjectPropertyDomainAxiom;
-import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
-import com.github.owlcs.ontapi.internal.InternalConfig;
-import com.github.owlcs.ontapi.internal.InternalObjectFactory;
-import com.github.owlcs.ontapi.internal.ONTObject;
-import com.github.owlcs.ontapi.internal.ONTWrapperImpl;
+import com.github.owlcs.ontapi.DataFactory;
+import com.github.owlcs.ontapi.internal.*;
+import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
+import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
+import com.github.owlcs.ontapi.internal.objects.ONTObjectPropertyImpl;
+import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
 import com.github.owlcs.ontapi.jena.model.OntCE;
+import com.github.owlcs.ontapi.jena.model.OntGraphModel;
 import com.github.owlcs.ontapi.jena.model.OntOPE;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
+import org.apache.jena.graph.Triple;
+import org.semanticweb.owlapi.model.*;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 /**
- * See {@link AbstractPropertyDomainTranslator}.
+ * A translator that provides {@link OWLObjectPropertyDomainAxiom} implementations.
+ * A Property Domain Axiom is a statement with predicate {@link org.apache.jena.vocabulary.RDFS#domain rdfs:domain}.
  * <p>
  * Created by @szuev on 29.09.2016.
  */
-public class ObjectPropertyDomainTranslator extends AbstractPropertyDomainTranslator<OWLObjectPropertyDomainAxiom, OntOPE> {
+public class ObjectPropertyDomainTranslator
+        extends AbstractPropertyDomainTranslator<OWLObjectPropertyDomainAxiom, OntOPE> {
 
     @Override
     Class<OntOPE> getView() {
@@ -47,14 +55,204 @@ public class ObjectPropertyDomainTranslator extends AbstractPropertyDomainTransl
 
     @Override
     public ONTObject<OWLObjectPropertyDomainAxiom> toAxiom(OntStatement statement,
-                                                           InternalObjectFactory reader,
+                                                           Supplier<OntGraphModel> model,
+                                                           InternalObjectFactory factory,
                                                            InternalConfig config) {
-        ONTObject<? extends OWLObjectPropertyExpression> p = reader.getProperty(statement.getSubject(getView()));
-        ONTObject<? extends OWLClassExpression> ce = reader.getClass(statement.getObject().as(OntCE.class));
-        Collection<ONTObject<OWLAnnotation>> annotations = reader.getAnnotations(statement, config);
-        OWLObjectPropertyDomainAxiom res = reader.getOWLDataFactory()
+        return AxiomImpl.create(statement, model, factory, config);
+    }
+
+    @Override
+    public ONTObject<OWLObjectPropertyDomainAxiom> toAxiom(OntStatement statement,
+                                                           InternalObjectFactory factory,
+                                                           InternalConfig config) {
+        ONTObject<? extends OWLObjectPropertyExpression> p = factory.getProperty(statement.getSubject(getView()));
+        ONTObject<? extends OWLClassExpression> ce = factory.getClass(statement.getObject(OntCE.class));
+        Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);
+        OWLObjectPropertyDomainAxiom res = factory.getOWLDataFactory()
                 .getOWLObjectPropertyDomainAxiom(p.getOWLObject(), ce.getOWLObject(), ONTObject.toSet(annotations));
         return ONTWrapperImpl.create(res, statement).append(annotations).append(p).append(ce);
     }
 
+    /**
+     * @see com.github.owlcs.ontapi.owlapi.axioms.OWLObjectPropertyDomainAxiomImpl
+     */
+    public abstract static class AxiomImpl
+            extends ClassDomainAxiomImpl<OWLObjectPropertyDomainAxiom, OWLObjectPropertyExpression>
+            implements OWLObjectPropertyDomainAxiom {
+
+        protected AxiomImpl(Triple t, Supplier<OntGraphModel> m) {
+            super(t, m);
+        }
+
+        public AxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+            super(subject, predicate, object, m);
+        }
+
+        /**
+         * Creates an {@link ONTObject} container that is also {@link OWLObjectPropertyDomainAxiom}.
+         *
+         * @param statement {@link OntStatement}, not {@code null}
+         * @param model     {@link OntGraphModel} provider, not {@code null}
+         * @param factory   {@link InternalObjectFactory}, not {@code null}
+         * @param config    {@link InternalConfig}, not {@code null}
+         * @return {@link AxiomImpl}
+         */
+        public static AxiomImpl create(OntStatement statement,
+                                       Supplier<OntGraphModel> model,
+                                       InternalObjectFactory factory,
+                                       InternalConfig config) {
+            return WithTwoObjects.create(statement, model,
+                    SimpleImpl.FACTORY, ComplexImpl.FACTORY, SET_HASH_CODE, factory, config);
+        }
+
+        @Override
+        public ONTObject<? extends OWLObjectPropertyExpression> getURISubject(InternalObjectFactory factory) {
+            return ONTObjectPropertyImpl.find(getSubjectURI(), factory, model);
+        }
+
+        @Override
+        public ONTObject<? extends OWLObjectPropertyExpression> subjectFromStatement(OntStatement statement,
+                                                                                     InternalObjectFactory factory) {
+            return factory.getProperty(statement.getSubject(OntOPE.class));
+        }
+
+        @FactoryAccessor
+        @Override
+        protected OWLObjectPropertyDomainAxiom createAnnotatedAxiom(Collection<OWLAnnotation> annotations) {
+            return getDataFactory().getOWLObjectPropertyDomainAxiom(eraseModel(getProperty()),
+                    eraseModel(getDomain()), annotations);
+        }
+
+        @FactoryAccessor
+        @Override
+        public OWLSubClassOfAxiom asOWLSubClassOfAxiom() {
+            DataFactory df = getDataFactory();
+            return df.getOWLSubClassOfAxiom(df.getOWLObjectSomeValuesFrom(eraseModel(getProperty()), df.getOWLThing()),
+                    eraseModel(getDomain()));
+        }
+
+        /**
+         * An {@link OWLObjectPropertyDomainAxiom}
+         * that has named object property and class expressions and has no annotations.
+         */
+        protected static class SimpleImpl extends AxiomImpl
+                implements Simple<OWLObjectPropertyExpression, OWLClassExpression> {
+
+            private static final BiFunction<Triple, Supplier<OntGraphModel>, SimpleImpl> FACTORY = SimpleImpl::new;
+
+            protected SimpleImpl(Triple t, Supplier<OntGraphModel> m) {
+                super(t, m);
+            }
+
+            @Override
+            public Set<OWLObjectProperty> getObjectPropertySet() {
+                return createSet(getONTSubject().getOWLObject().asOWLObjectProperty());
+            }
+
+            @Override
+            public Set<OWLClass> getNamedClassSet() {
+                return createSet(getONTObject().getOWLObject().asOWLClass());
+            }
+
+            @Override
+            public Set<OWLClassExpression> getClassExpressionSet() {
+                return createSet(getONTObject().getOWLObject());
+            }
+
+            @SuppressWarnings("unchecked")
+            @Override
+            public Set<OWLEntity> getSignatureSet() {
+                return (Set<OWLEntity>) getOWLComponentsAsSet();
+            }
+
+            @Override
+            public boolean containsObjectProperty(OWLObjectProperty property) {
+                return getSubjectURI().equals(ONTEntityImpl.getURI(property));
+            }
+
+            @Override
+            public boolean containsNamedClass(OWLClass clazz) {
+                return getObjectURI().equals(ONTEntityImpl.getURI(clazz));
+            }
+
+            @Override
+            protected boolean sameContent(ONTStatementImpl other) {
+                return false;
+            }
+
+            @Override
+            public boolean canContainDatatypes() {
+                return false;
+            }
+
+            @Override
+            public boolean canContainAnonymousIndividuals() {
+                return false;
+            }
+
+            @Override
+            public boolean canContainNamedIndividuals() {
+                return false;
+            }
+
+            @Override
+            public boolean canContainDataProperties() {
+                return false;
+            }
+        }
+
+        /**
+         * An {@link OWLObjectPropertyDomainAxiom}
+         * that either has annotations
+         * or anonymous object/class expressions in main triple's subject/object positions respectively.
+         * It has a public constructor since it is more generic then {@link SimpleImpl}.
+         */
+        public static class ComplexImpl extends AxiomImpl
+                implements Complex<ComplexImpl, OWLObjectPropertyExpression, OWLClassExpression> {
+
+            private static final BiFunction<Triple, Supplier<OntGraphModel>, ComplexImpl> FACTORY = ComplexImpl::new;
+
+            protected final InternalCache.Loading<ComplexImpl, Object[]> content;
+
+            public ComplexImpl(Triple t, Supplier<OntGraphModel> m) {
+                this(strip(t.getSubject()), t.getPredicate().getURI(), strip(t.getObject()), m);
+            }
+
+            protected ComplexImpl(Object s, String p, Object o, Supplier<OntGraphModel> m) {
+                super(s, p, o, m);
+                this.content = createContentCache();
+            }
+
+            @Override
+            public InternalCache.Loading<ComplexImpl, Object[]> getContentCache() {
+                return content;
+            }
+
+            @Override
+            protected boolean sameContent(ONTStatementImpl other) {
+                return other instanceof ComplexImpl && Arrays.equals(getContent(), ((ComplexImpl) other).getContent());
+            }
+
+            @Override
+            public ONTObject<OWLObjectPropertyDomainAxiom> merge(ONTObject<OWLObjectPropertyDomainAxiom> other) {
+                if (this == other) {
+                    return this;
+                }
+                if (other instanceof AxiomImpl && sameTriple((AxiomImpl) other)) {
+                    return this;
+                }
+                ComplexImpl res = new ComplexImpl(subject, predicate, object, model) {
+                    @Override
+                    public Stream<Triple> triples() {
+                        return Stream.concat(ComplexImpl.this.triples(), other.triples());
+                    }
+                };
+                if (hasContent()) {
+                    res.putContent(getContent());
+                }
+                res.hashCode = hashCode;
+                return res;
+            }
+        }
+    }
 }
