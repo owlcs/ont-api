@@ -108,6 +108,12 @@ public class AxiomPropertiesTest {
         testAxiom(data, (Function<OWLAnnotationPropertyDomainAxiom, Object>) HasDomain::getDomain, HasProperty::getProperty);
     }
 
+    @Test
+    public void testAnnotationPropertyRange() {
+        List<TestFactory.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.ANNOTATION_PROPERTY_RANGE);
+        testAxiom(data, (Function<OWLAnnotationPropertyRangeAxiom, Object>) HasRange::getRange, HasProperty::getProperty);
+    }
+
     @SuppressWarnings("unchecked")
     @SafeVarargs
     private static <X extends OWLAxiom> void testAxiom(List<TestFactory.AxiomData> data,

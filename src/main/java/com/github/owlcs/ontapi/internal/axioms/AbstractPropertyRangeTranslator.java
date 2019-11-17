@@ -14,28 +14,31 @@
 
 package com.github.owlcs.ontapi.internal.axioms;
 
-import org.apache.jena.util.iterator.ExtendedIterator;
-import org.apache.jena.vocabulary.RDFS;
-import org.semanticweb.owlapi.model.HasProperty;
-import org.semanticweb.owlapi.model.HasRange;
-import org.semanticweb.owlapi.model.OWLAxiom;
 import com.github.owlcs.ontapi.internal.AxiomTranslator;
 import com.github.owlcs.ontapi.internal.InternalConfig;
 import com.github.owlcs.ontapi.internal.WriteHelper;
+import com.github.owlcs.ontapi.internal.objects.ONTAxiomImpl;
 import com.github.owlcs.ontapi.jena.model.OntGraphModel;
 import com.github.owlcs.ontapi.jena.model.OntPE;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.vocabulary.RDFS;
+import org.semanticweb.owlapi.model.*;
+
+import java.util.function.Supplier;
 
 /**
- * The base class for {@link ObjectPropertyRangeTranslator} and {@link DataPropertyRangeTranslator} and {@link AnnotationPropertyRangeTranslator}.
- * example:
+ * The base class for {@link ObjectPropertyRangeTranslator} and {@link DataPropertyRangeTranslator}
+ * and {@link AnnotationPropertyRangeTranslator}.
+ * Example:
  * <pre>{@code foaf:name rdfs:range rdfs:Literal}</pre>
  * <p>
  * Created by @szuev on 30.09.2016.
  */
-public abstract class AbstractPropertyRangeTranslator<Axiom extends OWLAxiom & HasProperty & HasRange,
-        P extends OntPE> extends AxiomTranslator<Axiom> {
+public abstract class AbstractPropertyRangeTranslator<Axiom extends OWLAxiom & HasProperty & HasRange, P extends OntPE>
+        extends AxiomTranslator<Axiom> {
     @Override
     public void write(Axiom axiom, OntGraphModel graph) {
         WriteHelper.writeTriple(graph, axiom.getProperty(), RDFS.range, axiom.getRange(), axiom.annotationsAsList());
@@ -57,4 +60,36 @@ public abstract class AbstractPropertyRangeTranslator<Axiom extends OWLAxiom & H
         return RDFS.range.equals(statement.getPredicate()) && filter(statement, config);
     }
 
+    /**
+     * @param <A> either {@link OWLDataPropertyRangeAxiom}
+     *            or {@link OWLObjectPropertyRangeAxiom}
+     *            or {@link OWLAnnotationPropertyRangeAxiom}
+     * @param <P> either {@link OWLAnnotationProperty}
+     *            or {@link OWLDataPropertyExpression}
+     *            or {@link OWLObjectPropertyExpression}
+     * @param <R> either {@link OWLClassExpression}
+     *            or {@link OWLDataRange}
+     *            or {@link IRI}
+     */
+    @SuppressWarnings("WeakerAccess")
+    protected abstract static class RangeAxiomImpl<A extends OWLAxiom & HasProperty<P> & HasRange<R>,
+            P extends OWLPropertyExpression, R extends OWLObject>
+            extends ONTAxiomImpl<A> implements WithTwoObjects<P, R> {
+
+        protected RangeAxiomImpl(Triple t, Supplier<OntGraphModel> m) {
+            super(t, m);
+        }
+
+        protected RangeAxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+            super(subject, predicate, object, m);
+        }
+
+        public P getProperty() {
+            return getONTSubject().getOWLObject();
+        }
+
+        public R getRange() {
+            return getONTObject().getOWLObject();
+        }
+    }
 }

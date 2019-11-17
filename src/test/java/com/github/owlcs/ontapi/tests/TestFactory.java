@@ -2654,6 +2654,47 @@ public class TestFactory {
                                 "df.getRDFSLabel(df.getOWLAnonymousIndividual(\"_:b0\"))))";
                     }
                 }
+                , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.ANNOTATION_PROPERTY_RANGE;
+                    }
+
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLAnnotationPropertyRangeAxiom(df.getOWLAnnotationProperty("P"), IRI.create("D"));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLAnnotationPropertyRangeAxiom(df.getOWLAnnotationProperty(\"P\"), " +
+                                "IRI.create(\"D\"))";
+                    }
+                }
+                , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.ANNOTATION_PROPERTY_RANGE;
+                    }
+
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLAnnotationPropertyRangeAxiom(df.getOWLAnnotationProperty("P"),
+                                IRI.create("D"),
+                                Arrays.asList(df.getOWLAnnotation(df.getRDFSSeeAlso(),
+                                        df.getOWLLiteral("dt", df.getOWLDatatype("D"))),
+                                        df.getRDFSLabel(df.getOWLAnonymousIndividual("_:b0"))));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLAnnotationPropertyRangeAxiom(df.getOWLAnnotationProperty(\"P\"), " +
+                                "IRI.create(\"D\"), " +
+                                "Arrays.asList(df.getOWLAnnotation(df.getRDFSSeeAlso(), " +
+                                "df.getOWLLiteral(\"dt\", df.getOWLDatatype(\"D\"))), " +
+                                "df.getRDFSLabel(df.getOWLAnonymousIndividual(\"_:b0\"))))";
+                    }
+                }
         );
     }
 
