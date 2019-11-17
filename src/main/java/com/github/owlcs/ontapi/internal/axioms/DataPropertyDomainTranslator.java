@@ -83,7 +83,7 @@ public class DataPropertyDomainTranslator extends AbstractPropertyDomainTranslat
             super(t, m);
         }
 
-        public AxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+        protected AxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
             super(subject, predicate, object, m);
         }
 
@@ -134,7 +134,7 @@ public class DataPropertyDomainTranslator extends AbstractPropertyDomainTranslat
          * An {@link OWLDataPropertyDomainAxiom}
          * that has named class expression ({@link OWLClass OWL Class}) as object and has no annotations.
          */
-        protected static class SimpleImpl extends AxiomImpl
+        public static class SimpleImpl extends AxiomImpl
                 implements Simple<OWLDataPropertyExpression, OWLClassExpression> {
 
             private static final BiFunction<Triple, Supplier<OntGraphModel>, SimpleImpl> FACTORY = SimpleImpl::new;

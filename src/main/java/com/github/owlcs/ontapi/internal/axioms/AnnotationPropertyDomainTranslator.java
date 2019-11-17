@@ -14,18 +14,28 @@
 
 package com.github.owlcs.ontapi.internal.axioms;
 
-import org.apache.jena.util.iterator.ExtendedIterator;
-import org.apache.jena.util.iterator.NullIterator;
-import org.semanticweb.owlapi.model.*;
 import com.github.owlcs.ontapi.internal.*;
+import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
+import com.github.owlcs.ontapi.internal.objects.ONTAnnotationPropertyImpl;
+import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
+import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
 import com.github.owlcs.ontapi.jena.model.OntGraphModel;
 import com.github.owlcs.ontapi.jena.model.OntNAP;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.util.iterator.NullIterator;
+import org.semanticweb.owlapi.model.*;
 
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Set;
+import java.util.function.BiFunction;
+import java.util.function.Supplier;
 
 /**
- * Translator for {@link AbstractPropertyDomainTranslator}.
+ * A translator that provides {@link OWLAnnotationPropertyDomainAxiom} implementations.
+ * The main triple is {@code A rdfs:domain U}, where {@code A} is annotation property and {@code U} is IRI.
  * <p>
  * Created by @szuev on 30.09.2016.
  */
@@ -65,14 +75,175 @@ public class AnnotationPropertyDomainTranslator
 
     @Override
     public ONTObject<OWLAnnotationPropertyDomainAxiom> toAxiom(OntStatement statement,
-                                                               InternalObjectFactory reader,
+                                                               Supplier<OntGraphModel> model,
+                                                               InternalObjectFactory factory,
                                                                InternalConfig config) {
-        ONTObject<OWLAnnotationProperty> p = reader.getProperty(statement.getSubject(getView()));
-        ONTObject<IRI> d = reader.getIRI(statement.getResource().getURI());
-        Collection<ONTObject<OWLAnnotation>> annotations = reader.getAnnotations(statement, config);
-        OWLAnnotationPropertyDomainAxiom res = reader.getOWLDataFactory()
+        return AxiomImpl.create(statement, model, factory, config);
+    }
+
+    @Override
+    public ONTObject<OWLAnnotationPropertyDomainAxiom> toAxiom(OntStatement statement,
+                                                               InternalObjectFactory factory,
+                                                               InternalConfig config) {
+        ONTObject<OWLAnnotationProperty> p = factory.getProperty(statement.getSubject(getView()));
+        ONTObject<IRI> d = factory.getIRI(statement.getResource().getURI());
+        Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);
+        OWLAnnotationPropertyDomainAxiom res = factory.getOWLDataFactory()
                 .getOWLAnnotationPropertyDomainAxiom(p.getOWLObject(), d.getOWLObject(), ONTObject.toSet(annotations));
         return ONTWrapperImpl.create(res, statement).append(annotations).append(p).append(d);
     }
 
+    /**
+     * @see com.github.owlcs.ontapi.owlapi.axioms.OWLAnnotationPropertyDomainAxiomImpl
+     */
+    @SuppressWarnings("WeakerAccess")
+    public abstract static class AxiomImpl
+            extends DomainAxiomImpl<OWLAnnotationPropertyDomainAxiom, OWLAnnotationProperty, IRI>
+            implements OWLAnnotationPropertyDomainAxiom {
+
+        protected AxiomImpl(Triple t, Supplier<OntGraphModel> m) {
+            super(t, m);
+        }
+
+        /**
+         * Creates an {@link ONTObject} container that is also {@link OWLAnnotationPropertyDomainAxiom}.
+         *
+         * @param statement {@link OntStatement}, not {@code null}
+         * @param model     {@link OntGraphModel} provider, not {@code null}
+         * @param factory   {@link InternalObjectFactory}, not {@code null}
+         * @param config    {@link InternalConfig}, not {@code null}
+         * @return {@link AxiomImpl}
+         */
+        public static AxiomImpl create(OntStatement statement,
+                                       Supplier<OntGraphModel> model,
+                                       InternalObjectFactory factory,
+                                       InternalConfig config) {
+            return WithTwoObjects.create(statement, model,
+                    SimpleImpl.FACTORY, WithAnnotationsImpl.FACTORY, SET_HASH_CODE, factory, config);
+        }
+
+        @Override
+        public ONTObject<? extends OWLAnnotationProperty> getURISubject(InternalObjectFactory factory) {
+            return ONTAnnotationPropertyImpl.find(getSubjectURI(), factory, model);
+        }
+
+        @Override
+        public ONTObject<? extends IRI> getURIObject(InternalObjectFactory factory) {
+            return factory.getIRI(getObjectURI());
+        }
+
+        @Override
+        public ONTObject<? extends OWLAnnotationProperty> subjectFromStatement(OntStatement statement,
+                                                                               InternalObjectFactory factory) {
+            return factory.getProperty(statement.getSubject(OntNAP.class));
+        }
+
+        @Override
+        public ONTObject<? extends IRI> objectFromStatement(OntStatement statement, InternalObjectFactory factory) {
+            return factory.getIRI(statement.getObject().asNode().getURI());
+        }
+
+        @FactoryAccessor
+        @Override
+        protected OWLAnnotationPropertyDomainAxiom createAnnotatedAxiom(Collection<OWLAnnotation> annotations) {
+            return getDataFactory().getOWLAnnotationPropertyDomainAxiom(eraseModel(getProperty()),
+                    getDomain(), annotations);
+        }
+
+        @Override
+        public final boolean canContainNamedClasses() {
+            return false;
+        }
+
+        @Override
+        public final boolean canContainNamedIndividuals() {
+            return false;
+        }
+
+        @Override
+        public final boolean canContainObjectProperties() {
+            return false;
+        }
+
+        @Override
+        public final boolean canContainDataProperties() {
+            return false;
+        }
+
+        @Override
+        public final boolean canContainClassExpressions() {
+            return false;
+        }
+
+        /**
+         * An {@link OWLAnnotationPropertyDomainAxiom} without annotations.
+         */
+        public static class SimpleImpl extends AxiomImpl implements Simple<OWLAnnotationProperty, IRI> {
+
+            private static final BiFunction<Triple, Supplier<OntGraphModel>, SimpleImpl> FACTORY = SimpleImpl::new;
+
+            protected SimpleImpl(Triple t, Supplier<OntGraphModel> m) {
+                super(t, m);
+            }
+
+            @Override
+            public Set<OWLAnnotationProperty> getAnnotationPropertySet() {
+                return createSet(getONTSubject().getOWLObject());
+            }
+
+            @Override
+            public Set<OWLEntity> getSignatureSet() {
+                return createSet(getONTSubject().getOWLObject());
+            }
+
+            @Override
+            public boolean containsAnnotationProperty(OWLAnnotationProperty property) {
+                return getSubjectURI().equals(ONTEntityImpl.getURI(property));
+            }
+
+            @Override
+            protected boolean sameContent(ONTStatementImpl other) {
+                return false;
+            }
+
+            @Override
+            public boolean canContainDatatypes() {
+                return false;
+            }
+
+            @Override
+            public boolean canContainAnonymousIndividuals() {
+                return false;
+            }
+        }
+
+        /**
+         * An {@link OWLAnnotationPropertyDomainAxiom} with annotations.
+         * It has a public constructor since it is more generic then {@link SimpleImpl}.
+         */
+        public static class WithAnnotationsImpl extends AxiomImpl
+                implements Complex<WithAnnotationsImpl, OWLAnnotationProperty, IRI> {
+
+            private static final BiFunction<Triple, Supplier<OntGraphModel>, WithAnnotationsImpl> FACTORY =
+                    WithAnnotationsImpl::new;
+
+            protected final InternalCache.Loading<WithAnnotationsImpl, Object[]> content;
+
+            public WithAnnotationsImpl(Triple t, Supplier<OntGraphModel> m) {
+                super(t, m);
+                this.content = createContentCache();
+            }
+
+            @Override
+            public InternalCache.Loading<WithAnnotationsImpl, Object[]> getContentCache() {
+                return content;
+            }
+
+            @Override
+            protected boolean sameContent(ONTStatementImpl other) {
+                return other instanceof WithAnnotationsImpl
+                        && Arrays.equals(getContent(), ((WithAnnotationsImpl) other).getContent());
+            }
+        }
+    }
 }

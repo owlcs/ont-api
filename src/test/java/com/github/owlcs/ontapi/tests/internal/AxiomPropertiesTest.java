@@ -102,6 +102,12 @@ public class AxiomPropertiesTest {
         testAxiom(data, (Function<OWLObjectPropertyDomainAxiom, Object>) HasDomain::getDomain, HasProperty::getProperty);
     }
 
+    @Test
+    public void testAnnotationPropertyDomain() {
+        List<TestFactory.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.ANNOTATION_PROPERTY_DOMAIN);
+        testAxiom(data, (Function<OWLAnnotationPropertyDomainAxiom, Object>) HasDomain::getDomain, HasProperty::getProperty);
+    }
+
     @SuppressWarnings("unchecked")
     @SafeVarargs
     private static <X extends OWLAxiom> void testAxiom(List<TestFactory.AxiomData> data,

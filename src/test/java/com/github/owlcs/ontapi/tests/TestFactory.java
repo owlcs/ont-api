@@ -2614,6 +2614,46 @@ public class TestFactory {
                                 "df.getOWLObjectComplementOf(df.getOWLClass(\"C\")), Collections.emptyList())";
                     }
                 }
+                , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.ANNOTATION_PROPERTY_DOMAIN;
+                    }
+
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLAnnotationPropertyDomainAxiom(df.getOWLAnnotationProperty("P"), IRI.create("D"));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLAnnotationPropertyDomainAxiom(df.getOWLAnnotationProperty(\"P\"), " +
+                                "IRI.create(\"D\"))";
+                    }
+                }
+                , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.ANNOTATION_PROPERTY_DOMAIN;
+                    }
+
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLAnnotationPropertyDomainAxiom(df.getOWLAnnotationProperty("P"), IRI.create("D"),
+                                Arrays.asList(df.getOWLAnnotation(df.getRDFSSeeAlso(), IRI.create("D")),
+                                        df.getRDFSComment("commm"),
+                                        df.getRDFSLabel(df.getOWLAnonymousIndividual("_:b0"))));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLAnnotationPropertyDomainAxiom(df.getOWLAnnotationProperty(\"P\"), " +
+                                "IRI.create(\"D\"), " +
+                                "Arrays.asList(df.getOWLAnnotation(df.getRDFSSeeAlso(), IRI.create(\"D\")), " +
+                                "df.getRDFSComment(\"commm\"), " +
+                                "df.getRDFSLabel(df.getOWLAnonymousIndividual(\"_:b0\"))))";
+                    }
+                }
         );
     }
 
