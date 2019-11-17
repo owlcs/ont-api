@@ -39,11 +39,13 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 
 /**
+ * To test {@link com.github.owlcs.ontapi.internal.WithMerge#merge(ONTObject)}
  * Created by @ssz on 16.11.2019.
  */
 @RunWith(Parameterized.class)
 public class ONTObjectMergeTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(ONTObjectMergeTest.class);
+
     private final Data data;
 
     public ONTObjectMergeTest(Data data) {
@@ -55,32 +57,41 @@ public class ONTObjectMergeTest {
         return Data.values();
     }
 
-    private static <ONT extends OntObject, OWL extends OWLNaryAxiom> void simpleTest(BiFunction<OntGraphModel, String, ONT> addDeclaration,
-                                                                                     BiConsumer<ONT, ONT> addAxioms,
-                                                                                     int initModelSize,
-                                                                                     AxiomType<OWL> type) {
-        simpleTest(addDeclaration, addAxioms, initModelSize, type, 3, 3);
+    private static <ONT extends OntObject, OWL extends OWLNaryAxiom> void test(BiFunction<OntGraphModel, String, ONT> addDeclaration,
+                                                                               BiConsumer<ONT, ONT> addAxioms,
+                                                                               int initModelSize,
+                                                                               AxiomType<OWL> type) {
+        test(addDeclaration, addAxioms, initModelSize, type, 3, 3);
     }
 
-    private static <ONT extends OntObject, OWL extends OWLAxiom> void simpleTest(BiFunction<OntGraphModel, String, ONT> addDeclaration,
-                                                                                 BiConsumer<ONT, ONT> addAxioms,
-                                                                                 int initModelSize,
-                                                                                 AxiomType<OWL> type,
-                                                                                 int initAxiomsSize,
-                                                                                 int afterRemoveModelSize) {
+    private static <ONT extends OntObject, OWL extends OWLAxiom> void test(BiFunction<OntGraphModel, String, ONT> addDeclaration,
+                                                                           BiConsumer<ONT, ONT> addAxioms,
+                                                                           int initModelSize,
+                                                                           AxiomType<OWL> type,
+                                                                           int initAxiomsSize,
+                                                                           int afterRemoveModelSize) {
 
-        simpleTest(g -> {
+        test(g -> {
             ONT x = addDeclaration.apply(g, "X");
             ONT y = addDeclaration.apply(g, "Y");
             addAxioms.accept(x, y);
         }, initModelSize, type, initAxiomsSize, afterRemoveModelSize);
     }
 
-    private static <OWL extends OWLAxiom> void simpleTest(Consumer<OntGraphModel> contentMaker,
-                                                          int initModelSize,
-                                                          AxiomType<OWL> type,
-                                                          int initAxiomsSize,
-                                                          int afterRemoveModelSize) {
+    private static <OWL extends OWLObjectPropertyCharacteristicAxiom> void test(Consumer<OntOPE> prop,
+                                                                                AxiomType<OWL> type) {
+        test(g -> {
+            OntNOP p = g.createObjectProperty("X");
+            prop.accept(createInverse(p));
+            prop.accept(createInverse(p));
+        }, 6, type, 2, 2);
+    }
+
+    private static <OWL extends OWLAxiom> void test(Consumer<OntGraphModel> contentMaker,
+                                                    int initModelSize,
+                                                    AxiomType<OWL> type,
+                                                    int initAxiomsSize,
+                                                    int afterRemoveModelSize) {
         OntologyManager m = OntManagers.createONT();
         OntologyModel o = m.createOntology();
         OntGraphModel g = o.asGraphModel();
@@ -94,6 +105,8 @@ public class ONTObjectMergeTest {
         OWL a = o.axioms(type).findFirst().orElseThrow(AssertionError::new);
 
         o.remove(a);
+
+        ReadWriteUtils.print(g);
         Assert.assertEquals(initAxiomsSize - 1, o.axioms().count());
         Assert.assertEquals(afterRemoveModelSize, g.size());
     }
@@ -108,7 +121,7 @@ public class ONTObjectMergeTest {
         data.doTest();
     }
 
-    enum Data {
+    public enum Data {
         HEADER {
             @Override
             void doTest() {
@@ -178,10 +191,10 @@ public class ONTObjectMergeTest {
             }
         },
 
-        SUB_CLASS_OF {
+        SUBCLASS_OF {
             @Override
             void doTest() {
-                simpleTest(g -> {
+                test(g -> {
                     OntClass x = g.createOntClass("X");
                     OntClass y = g.createOntClass("Y");
                     x.addSuperClass(g.createComplementOf(y));
@@ -193,7 +206,7 @@ public class ONTObjectMergeTest {
         INVERSE_OBJECT_PROPERTIES {
             @Override
             void doTest() {
-                simpleTest(g -> {
+                test(g -> {
                     OntOPE x = g.createObjectProperty("X");
                     OntOPE y = g.createObjectProperty("Y");
                     x.addInverseProperty(y.addInverseProperty(x));
@@ -204,7 +217,7 @@ public class ONTObjectMergeTest {
         SUB_OBJECT_PROPERTY {
             @Override
             void doTest() {
-                simpleTest(g -> {
+                test(g -> {
                     OntNOP x = g.createObjectProperty("X");
                     OntNOP y = g.createObjectProperty("Y");
                     createInverse(x).addSuperProperty(createInverse(y));
@@ -249,10 +262,23 @@ public class ONTObjectMergeTest {
             }
         },
 
+        NEGATIVE_DATA_PROPERTY_ASSERTION {
+            @Override
+            void doTest() {
+                test(g -> {
+                    OntNDP p = g.createDataProperty("X");
+                    OntIndividual i = g.createIndividual("I");
+                    p.addNegativeAssertion(i, g.createTypedLiteral(1));
+                    p.addNegativeAssertion(i, g.createTypedLiteral(1));
+
+                }, 11, AxiomType.NEGATIVE_DATA_PROPERTY_ASSERTION, 3, 3);
+            }
+        },
+
         DISJOINT_CLASSES {
             @Override
             void doTest() {
-                simpleTest(OntGraphModel::createOntClass,
+                test(OntGraphModel::createOntClass,
                         (x, y) -> x.addDisjointClass(y.addDisjointClass(x)).getModel().createDisjointClasses(x, y),
                         11, AxiomType.DISJOINT_CLASSES);
             }
@@ -261,7 +287,7 @@ public class ONTObjectMergeTest {
         SUB_PROPERTY_CHAIN_OF {
             @Override
             void doTest() {
-                simpleTest(g -> {
+                test(g -> {
                     OntNOP x = g.createObjectProperty("P");
                     OntNOP y = g.createObjectProperty("Y");
                     OntNOP z = g.createObjectProperty("Z");
@@ -274,7 +300,7 @@ public class ONTObjectMergeTest {
         HAS_KEY {
             @Override
             void doTest() {
-                simpleTest(g -> {
+                test(g -> {
                     OntClass c = g.createOntClass("C");
                     OntNOP x = g.createObjectProperty("P");
                     OntNOP y = g.createObjectProperty("Y");
@@ -287,7 +313,7 @@ public class ONTObjectMergeTest {
         DISJOINT_UNION {
             @Override
             void doTest() {
-                simpleTest(g -> {
+                test(g -> {
                     OntClass c1 = g.createOntClass("C1");
                     OntClass c2 = g.createOntClass("C2");
                     OntClass c3 = g.createOntClass("C3");
@@ -299,7 +325,7 @@ public class ONTObjectMergeTest {
         DIFFERENT_INDIVIDUALS {
             @Override
             void doTest() {
-                simpleTest((g, u) -> g.getOWLThing().createIndividual(u),
+                test((g, u) -> g.getOWLThing().createIndividual(u),
                         (x, y) -> x.addDifferentIndividual(y.addDifferentIndividual(x))
                                 .getModel().createDifferentIndividuals(x, y).getModel().createDifferentIndividuals(y, x),
                         19, AxiomType.DIFFERENT_INDIVIDUALS, 5, 5);
@@ -309,7 +335,7 @@ public class ONTObjectMergeTest {
         SAME_INDIVIDUAL {
             @Override
             void doTest() {
-                simpleTest((g, u) -> g.getOWLThing().createIndividual(u),
+                test((g, u) -> g.getOWLThing().createIndividual(u),
                         (x, y) -> x.addSameIndividual(y.addSameIndividual(x)),
                         7, AxiomType.SAME_INDIVIDUAL, 5, 5);
             }
@@ -318,7 +344,7 @@ public class ONTObjectMergeTest {
         DISJOINT_OBJECT_PROPERTIES {
             @Override
             void doTest() {
-                simpleTest(OntGraphModel::createObjectProperty,
+                test(OntGraphModel::createObjectProperty,
                         (x, y) -> x.addDisjointProperty(y.addDisjointProperty(x)).getModel().createDisjointObjectProperties(x, y),
                         11, AxiomType.DISJOINT_OBJECT_PROPERTIES);
             }
@@ -327,7 +353,7 @@ public class ONTObjectMergeTest {
         EQUIVALENT_OBJECT_PROPERTIES {
             @Override
             void doTest() {
-                simpleTest(OntGraphModel::createObjectProperty,
+                test(OntGraphModel::createObjectProperty,
                         (x, y) -> {
                             OntGraphModel g = x.getModel();
                             x.addEquivalentPropertyStatement(y).addAnnotation(g.getRDFSComment(), "x");
@@ -339,7 +365,7 @@ public class ONTObjectMergeTest {
         DISJOINT_DATA_PROPERTIES {
             @Override
             void doTest() {
-                simpleTest(OntGraphModel::createDataProperty,
+                test(OntGraphModel::createDataProperty,
                         (x, y) -> x.addDisjointProperty(y.addDisjointProperty(x)).getModel().createDisjointDataProperties(x, y),
                         11, AxiomType.DISJOINT_DATA_PROPERTIES);
             }
@@ -348,7 +374,7 @@ public class ONTObjectMergeTest {
         EQUIVALENT_DATA_PROPERTIES {
             @Override
             void doTest() {
-                simpleTest(OntGraphModel::createDataProperty,
+                test(OntGraphModel::createDataProperty,
                         (x, y) -> {
                             OntGraphModel g = x.getModel();
                             x.addEquivalentPropertyStatement(y).addAnnotation(g.getRDFSComment(), "x");
@@ -360,7 +386,7 @@ public class ONTObjectMergeTest {
         DATA_PROPERTY_DOMAIN {
             @Override
             void doTest() {
-                simpleTest(g -> {
+                test(g -> {
                     OntNDP p = g.createDataProperty("X");
                     p.addDomain(g.createUnionOf(g.getOWLThing(), g.createDataHasValue(p, g.createLiteral("x"))))
                             .addDomain(g.createUnionOf(g.getOWLThing(), g.createDataHasValue(p, g.createLiteral("x"))));
@@ -368,9 +394,60 @@ public class ONTObjectMergeTest {
                 }, 22, AxiomType.DATA_PROPERTY_DOMAIN, 2, 2);
             }
         },
+
+        INVERSE_FUNCTIONAL_OBJECT_PROPERTY {
+            @Override
+            void doTest() {
+                test(OntOPE::addInverseFunctionalDeclaration, AxiomType.INVERSE_FUNCTIONAL_OBJECT_PROPERTY);
+            }
+        },
+
+        FUNCTIONAL_OBJECT_PROPERTY {
+            @Override
+            void doTest() {
+                test(OntOPE::addFunctionalDeclaration, AxiomType.FUNCTIONAL_OBJECT_PROPERTY);
+            }
+        },
+
+        SYMMETRIC_OBJECT_PROPERTY {
+            @Override
+            void doTest() {
+                test(OntOPE::addSymmetricDeclaration, AxiomType.SYMMETRIC_OBJECT_PROPERTY);
+            }
+        },
+
+        ASYMMETRIC_OBJECT_PROPERTY {
+            @Override
+            void doTest() {
+                test(OntOPE::addAsymmetricDeclaration, AxiomType.ASYMMETRIC_OBJECT_PROPERTY);
+            }
+        },
+
+        TRANSITIVE_OBJECT_PROPERTY {
+            @Override
+            void doTest() {
+                test(OntOPE::addTransitiveDeclaration, AxiomType.TRANSITIVE_OBJECT_PROPERTY);
+            }
+        },
+
+        REFLEXIVE_OBJECT_PROPERTY {
+            @Override
+            void doTest() {
+                test(OntOPE::addReflexiveDeclaration, AxiomType.REFLEXIVE_OBJECT_PROPERTY);
+            }
+        },
+
+        IRREFLEXIVE_OBJECT_PROPERTY {
+            @Override
+            void doTest() {
+                test(OntOPE::addIrreflexiveDeclaration, AxiomType.IRREFLEXIVE_OBJECT_PROPERTY);
+            }
+        },
         ;
 
-        abstract void doTest();
+        void doTest() {
+            Assert.fail("Not supported");
+        }
 
     }
 }

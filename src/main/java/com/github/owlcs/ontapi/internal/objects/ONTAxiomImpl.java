@@ -42,8 +42,8 @@ import java.util.stream.Stream;
  * @since 2.0.0
  */
 @SuppressWarnings("WeakerAccess")
-public abstract class ONTAxiomImpl<X extends OWLAxiom>
-        extends ONTStatementImpl implements WithAnnotations, HasConfig, ModelObject<X>, OWLAxiom {
+public abstract class ONTAxiomImpl<X extends OWLAxiom> extends ONTStatementImpl
+        implements WithAnnotations, WithMerge<ONTObject<X>>, HasConfig, ModelObject<X>, OWLAxiom {
 
     /**
      * A helper to assign new hash code; can accept only {@link ONTAxiomImpl} instance.
@@ -76,15 +76,9 @@ public abstract class ONTAxiomImpl<X extends OWLAxiom>
         return res.values();
     }
 
-    /**
-     * Auxiliary method, which is used while {@link WithMerge#merge(ONTObject)}.
-     *
-     * @param other object of type {@link Y}
-     * @param <Y>   anything
-     * @return nothing
-     */
-    protected final <Y> Y mergeNotSupported(Y other) {
-        throw new OntApiException.IllegalState("Attempt to merge " + this + " with " + other);
+    @Override
+    public ONTObject<X> merge(ONTObject<X> other) {
+        throw new OntApiException.Unsupported("Attempt to merge " + this + " with " + other);
     }
 
     /**

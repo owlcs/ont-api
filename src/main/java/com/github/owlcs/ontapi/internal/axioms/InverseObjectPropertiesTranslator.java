@@ -101,8 +101,7 @@ public class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInvers
     @ParametersAreNonnullByDefault
     public static abstract class AxiomImpl
             extends ONTAxiomImpl<OWLInverseObjectPropertiesAxiom>
-            implements WithManyObjects<OWLObjectPropertyExpression>,
-            WithMerge<ONTObject<OWLInverseObjectPropertiesAxiom>>, OWLInverseObjectPropertiesAxiom {
+            implements WithManyObjects<OWLObjectPropertyExpression>, OWLInverseObjectPropertiesAxiom {
 
         protected AxiomImpl(Triple t, Supplier<OntGraphModel> m) {
             this(strip(t.getSubject()), t.getPredicate().getURI(), strip(t.getObject()), m);

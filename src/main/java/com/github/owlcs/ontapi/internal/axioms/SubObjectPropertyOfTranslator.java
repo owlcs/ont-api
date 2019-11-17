@@ -80,7 +80,7 @@ public class SubObjectPropertyOfTranslator extends AbstractSubPropertyTranslator
      */
     public abstract static class AxiomImpl
             extends SubPropertyAxiomImpl<OWLSubObjectPropertyOfAxiom, OWLObjectPropertyExpression>
-            implements WithMerge<ONTObject<OWLSubObjectPropertyOfAxiom>>, OWLSubObjectPropertyOfAxiom {
+            implements OWLSubObjectPropertyOfAxiom {
 
         protected AxiomImpl(Triple t, Supplier<OntGraphModel> m) {
             super(t, m);
@@ -168,11 +168,6 @@ public class SubObjectPropertyOfTranslator extends AbstractSubPropertyTranslator
             @Override
             public boolean containsObjectProperty(OWLObjectProperty property) {
                 return hasURIResource(ONTEntityImpl.getURI(property));
-            }
-
-            @Override
-            public ONTObject<OWLSubObjectPropertyOfAxiom> merge(ONTObject<OWLSubObjectPropertyOfAxiom> other) {
-                return mergeNotSupported(other);
             }
         }
 

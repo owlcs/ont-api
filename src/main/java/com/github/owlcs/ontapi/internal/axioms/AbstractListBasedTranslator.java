@@ -14,16 +14,6 @@
 
 package com.github.owlcs.ontapi.internal.axioms;
 
-import org.apache.jena.graph.FrontsTriple;
-import org.apache.jena.graph.Triple;
-import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.RDFList;
-import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.util.iterator.ExtendedIterator;
-import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLLogicalAxiom;
-import org.semanticweb.owlapi.model.OWLObject;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
@@ -36,6 +26,16 @@ import com.github.owlcs.ontapi.jena.model.OntObject;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Models;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
+import org.apache.jena.graph.FrontsTriple;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.RDFList;
+import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.util.iterator.ExtendedIterator;
+import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.OWLAxiom;
+import org.semanticweb.owlapi.model.OWLLogicalAxiom;
+import org.semanticweb.owlapi.model.OWLObject;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -115,7 +115,7 @@ public abstract class AbstractListBasedTranslator<Axiom extends OWLLogicalAxiom,
      */
     @SuppressWarnings("WeakerAccess")
     protected abstract static class WithListImpl<A extends OWLAxiom, M extends OntObject>
-            extends ONTAxiomImpl<A> implements WithContent<A>, WithMerge<ONTObject<A>> {
+            extends ONTAxiomImpl<A> implements WithContent<A> {
         protected final InternalCache.Loading<A, Object[]> content;
 
         protected WithListImpl(Triple t, Supplier<OntGraphModel> m) {

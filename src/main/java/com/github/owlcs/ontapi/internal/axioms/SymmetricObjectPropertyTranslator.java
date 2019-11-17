@@ -14,9 +14,6 @@
 
 package com.github.owlcs.ontapi.internal.axioms;
 
-import org.apache.jena.graph.Triple;
-import org.apache.jena.rdf.model.Resource;
-import org.semanticweb.owlapi.model.*;
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
@@ -25,6 +22,9 @@ import com.github.owlcs.ontapi.jena.model.OntGraphModel;
 import com.github.owlcs.ontapi.jena.model.OntOPE;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.rdf.model.Resource;
+import org.semanticweb.owlapi.model.*;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -32,6 +32,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 
 /**
  * A translator that provides {@link OWLSymmetricObjectPropertyAxiom} implementations.
@@ -42,7 +43,8 @@ import java.util.function.Supplier;
  * <p>
  * Created by @szuev on 30.09.2016.
  */
-public class SymmetricObjectPropertyTranslator extends AbstractPropertyTypeTranslator<OWLSymmetricObjectPropertyAxiom, OntOPE> {
+public class SymmetricObjectPropertyTranslator
+        extends AbstractPropertyTypeTranslator<OWLSymmetricObjectPropertyAxiom, OntOPE> {
 
     @Override
     Resource getType() {
@@ -169,6 +171,27 @@ public class SymmetricObjectPropertyTranslator extends AbstractPropertyTypeTrans
             @Override
             protected boolean sameContent(ONTStatementImpl other) {
                 return other instanceof ComplexImpl && Arrays.equals(getContent(), ((ComplexImpl) other).getContent());
+            }
+
+            @Override
+            public ONTObject<OWLSymmetricObjectPropertyAxiom> merge(ONTObject<OWLSymmetricObjectPropertyAxiom> other) {
+                if (this == other) {
+                    return this;
+                }
+                if (other instanceof AxiomImpl && sameTriple((AxiomImpl) other)) {
+                    return this;
+                }
+                ComplexImpl res = new ComplexImpl(asTriple(), model) {
+                    @Override
+                    public Stream<Triple> triples() {
+                        return Stream.concat(ComplexImpl.this.triples(), other.triples());
+                    }
+                };
+                if (hasContent()) {
+                    res.putContent(getContent());
+                }
+                res.hashCode = hashCode;
+                return res;
             }
         }
     }

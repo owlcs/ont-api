@@ -95,8 +95,7 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
      * @see com.github.owlcs.ontapi.owlapi.axioms.OWLSubClassOfAxiomImpl
      */
     public abstract static class AxiomImpl extends ONTAxiomImpl<OWLSubClassOfAxiom>
-            implements WithTwoObjects.Unary<OWLClassExpression>, WithMerge<ONTObject<OWLSubClassOfAxiom>>,
-            OWLSubClassOfAxiom {
+            implements WithTwoObjects.Unary<OWLClassExpression>, OWLSubClassOfAxiom {
 
         protected AxiomImpl(Triple t, Supplier<OntGraphModel> m) {
             super(t, m);
@@ -234,11 +233,6 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
             @Override
             public boolean canContainAnonymousIndividuals() {
                 return false;
-            }
-
-            @Override
-            public ONTObject<OWLSubClassOfAxiom> merge(ONTObject<OWLSubClassOfAxiom> other) {
-                return mergeNotSupported(other);
             }
         }
 

@@ -77,7 +77,7 @@ public class DataPropertyDomainTranslator extends AbstractPropertyDomainTranslat
      */
     public abstract static class AxiomImpl
             extends ClassDomainAxiomImpl<OWLDataPropertyDomainAxiom, OWLDataPropertyExpression>
-            implements WithMerge<ONTObject<OWLDataPropertyDomainAxiom>>, OWLDataPropertyDomainAxiom {
+            implements OWLDataPropertyDomainAxiom {
 
         protected AxiomImpl(Triple t, Supplier<OntGraphModel> m) {
             super(t, m);
@@ -177,11 +177,6 @@ public class DataPropertyDomainTranslator extends AbstractPropertyDomainTranslat
             @Override
             protected boolean sameContent(ONTStatementImpl other) {
                 return false;
-            }
-
-            @Override
-            public ONTObject<OWLDataPropertyDomainAxiom> merge(ONTObject<OWLDataPropertyDomainAxiom> other) {
-                return mergeNotSupported(other);
             }
 
             @Override

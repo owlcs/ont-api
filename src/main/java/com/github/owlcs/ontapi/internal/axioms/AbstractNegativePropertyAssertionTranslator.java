@@ -14,12 +14,6 @@
 
 package com.github.owlcs.ontapi.internal.axioms;
 
-import org.apache.jena.graph.BlankNodeId;
-import org.apache.jena.graph.FrontsTriple;
-import org.apache.jena.graph.Triple;
-import org.apache.jena.util.iterator.ExtendedIterator;
-import org.apache.jena.vocabulary.RDF;
-import org.semanticweb.owlapi.model.*;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.*;
 import com.github.owlcs.ontapi.jena.model.OntGraphModel;
@@ -28,6 +22,12 @@ import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.owlapi.objects.OWLAnonymousIndividualImpl;
+import org.apache.jena.graph.BlankNodeId;
+import org.apache.jena.graph.FrontsTriple;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.vocabulary.RDF;
+import org.semanticweb.owlapi.model.*;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -83,7 +83,7 @@ public abstract class AbstractNegativePropertyAssertionTranslator<Axiom extends 
     protected static abstract class NegativeAssertionImpl<R extends OntNPA,
             A extends OWLPropertyAssertionAxiom,
             P extends OWLPropertyExpression, O extends OWLObject> extends ONTAxiomImpl<A>
-            implements WithMerge<ONTObject<A>>, WithAssertion.Complex<NegativeAssertionImpl, OWLIndividual, P, O> {
+            implements WithAssertion.Complex<NegativeAssertionImpl, OWLIndividual, P, O> {
 
         protected final InternalCache.Loading<NegativeAssertionImpl, Object[]> content;
 

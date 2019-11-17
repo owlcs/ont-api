@@ -113,7 +113,7 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
     @SuppressWarnings("WeakerAccess")
     protected abstract static class NaryAxiomImpl<A extends OWLNaryAxiom<M>, M extends OWLObject>
             extends ONTAxiomImpl<A>
-            implements WithManyObjects<M>, WithMerge<ONTObject<A>>, OWLNaryAxiom<M> {
+            implements WithManyObjects<M>, OWLNaryAxiom<M> {
 
         protected NaryAxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
             super(subject, predicate, object, m);
