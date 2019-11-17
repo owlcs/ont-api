@@ -2695,6 +2695,30 @@ public class TestFactory {
                                 "df.getRDFSLabel(df.getOWLAnonymousIndividual(\"_:b0\"))))";
                     }
                 }
+                , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.DATA_PROPERTY_RANGE;
+                    }
+
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLDataPropertyRangeAxiom(df.getOWLDataProperty("P"),
+                                df.getOWLDataComplementOf(df.getOWLDatatype("D")),
+                                Arrays.asList(df.getRDFSComment("x",
+                                        Stream.of(df.getRDFSLabel(df.getOWLLiteral("x", "x")))),
+                                        df.getRDFSLabel(df.getOWLAnonymousIndividual("_:b0"))));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLDataPropertyRangeAxiom(df.getOWLDataProperty(\"P\"), " +
+                                "df.getOWLDataComplementOf(df.getOWLDatatype(\"D\")), " +
+                                "Arrays.asList(df.getRDFSComment(\"x\", " +
+                                "Stream.of(df.getRDFSLabel(df.getOWLLiteral(\"x\", \"x\")))), " +
+                                "df.getRDFSLabel(df.getOWLAnonymousIndividual(\"_:b0\"))))";
+                    }
+                }
         );
     }
 

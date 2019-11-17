@@ -14,9 +14,6 @@
 
 package com.github.owlcs.ontapi.internal.objects;
 
-import org.apache.jena.vocabulary.RDFS;
-import org.semanticweb.owlapi.model.OWLDatatype;
-import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.internal.InternalObjectFactory;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
@@ -25,6 +22,9 @@ import com.github.owlcs.ontapi.jena.model.OntDT;
 import com.github.owlcs.ontapi.jena.model.OntGraphModel;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import com.github.owlcs.ontapi.jena.vocabulary.XSD;
+import org.apache.jena.vocabulary.RDFS;
+import org.semanticweb.owlapi.model.OWLDatatype;
+import org.semanticweb.owlapi.vocab.OWL2Datatype;
 
 import java.util.Set;
 import java.util.function.Supplier;
@@ -52,9 +52,9 @@ public class ONTDatatypeImpl extends ONTEntityImpl<OWLDatatype> implements OWLDa
      *                which is only used in case the {@code factory} has no reference to a model
      * @return an {@link ONTObject} which is {@link OWLDatatype}
      */
-    protected static ONTObject<OWLDatatype> find(String uri,
-                                                 InternalObjectFactory factory,
-                                                 Supplier<OntGraphModel> model) {
+    public static ONTObject<OWLDatatype> find(String uri,
+                                              InternalObjectFactory factory,
+                                              Supplier<OntGraphModel> model) {
         if (factory instanceof ModelObjectFactory) {
             return ((ModelObjectFactory) factory).getDatatype(uri);
         }

@@ -25,6 +25,7 @@ import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.vocabulary.XSD;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -403,6 +404,18 @@ public class ONTObjectMergeTest {
                     createInverse(p).addDomain(g.createUnionOf(g.getOWLThing(), g.createComplementOf(g.getOWLThing())));
                     createInverse(p).addDomain(g.createUnionOf(g.getOWLThing(), g.createComplementOf(g.getOWLThing())));
                 }, 22, AxiomType.OBJECT_PROPERTY_DOMAIN, 2, 2);
+            }
+        },
+
+        DATA_PROPERTY_RANGE {
+            @Override
+            void doTest() {
+                test(g -> {
+                    OntNDP p = g.createDataProperty("X");
+                    p.addRange(g.createComplementOfDataRange(g.getDatatype(XSD.xboolean)))
+                            .addRange(g.createComplementOfDataRange(g.getDatatype(XSD.xboolean)));
+
+                }, 8, AxiomType.DATA_PROPERTY_RANGE, 2, 2);
             }
         },
 

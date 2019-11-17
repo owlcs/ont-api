@@ -114,6 +114,12 @@ public class AxiomPropertiesTest {
         testAxiom(data, (Function<OWLAnnotationPropertyRangeAxiom, Object>) HasRange::getRange, HasProperty::getProperty);
     }
 
+    @Test
+    public void testDataPropertyRange() {
+        List<TestFactory.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.DATA_PROPERTY_RANGE);
+        testAxiom(data, (Function<OWLDataPropertyRangeAxiom, Object>) HasRange::getRange, HasProperty::getProperty);
+    }
+
     @SuppressWarnings("unchecked")
     @SafeVarargs
     private static <X extends OWLAxiom> void testAxiom(List<TestFactory.AxiomData> data,
