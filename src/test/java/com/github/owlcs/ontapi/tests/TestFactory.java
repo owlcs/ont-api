@@ -2787,6 +2787,50 @@ public class TestFactory {
                                 "df.getRDFSLabel(df.getOWLAnonymousIndividual(\"_:b0\"))))";
                     }
                 }
+                , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.CLASS_ASSERTION;
+                    }
+
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLClassAssertionAxiom(df.getOWLClass("C"), df.getOWLAnonymousIndividual("_:b9"));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLClassAssertionAxiom(df.getOWLClass(\"C\"), " +
+                                "df.getOWLAnonymousIndividual(\"_:b9\"))";
+                    }
+                }
+                , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.CLASS_ASSERTION;
+                    }
+
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLClassAssertionAxiom(df.getOWLObjectIntersectionOf(df.getOWLThing(),
+                                df.getOWLObjectUnionOf(df.getOWLObjectComplementOf(df.getOWLClass("C"))),
+                                df.getOWLDataAllValuesFrom(df.getOWLDataProperty("P"), df.getOWLDatatype("D"))),
+                                df.getOWLNamedIndividual("I"),
+                                Arrays.asList(df.getOWLAnnotation(df.getRDFSSeeAlso(), IRI.create("X")),
+                                        df.getRDFSLabel(df.getOWLAnonymousIndividual("_:b0"))));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLClassAssertionAxiom(df.getOWLThing(), " +
+                                "df.getOWLObjectIntersectionOf(df.getOWLObjectUnionOf(" +
+                                "df.getOWLObjectComplementOf(df.getOWLClass(\"C\"))), " +
+                                "df.getOWLDataAllValuesFrom(df.getOWLDataProperty(\"P\"), " +
+                                "df.getOWLDatatype(\"D\"))), df.getOWLNamedIndividual(\"I\"), " +
+                                "Arrays.asList(df.getOWLAnnotation(df.getRDFSSeeAlso(), IRI.create(\"X\")), " +
+                                "df.getRDFSLabel(df.getOWLAnonymousIndividual(\"_:b0\"))))";
+                    }
+                }
         );
     }
 

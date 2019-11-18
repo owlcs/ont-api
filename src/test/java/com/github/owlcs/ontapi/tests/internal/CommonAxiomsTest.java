@@ -70,6 +70,7 @@ public class CommonAxiomsTest extends StatementTestBase {
                 , AxiomType.DATA_PROPERTY_RANGE
                 , AxiomType.OBJECT_PROPERTY_RANGE
                 , AxiomType.DATATYPE_DEFINITION
+                , AxiomType.CLASS_ASSERTION
         );
     }
 

@@ -489,6 +489,17 @@ public class ONTObjectMergeTest {
                 }, 8, AxiomType.DATATYPE_DEFINITION, 2, 2);
             }
         },
+
+        CLASS_ASSERTION {
+            @Override
+            void doTest() {
+                test(g -> {
+                    OntIndividual i = g.createIndividual("X");
+                    i.addClassAssertion(g.createComplementOf(g.getOWLThing()));
+                    i.addClassAssertion(g.createComplementOf(g.getOWLThing()));
+                }, 8, AxiomType.CLASS_ASSERTION, 2, 2);
+            }
+        },
         ;
 
         void doTest() {

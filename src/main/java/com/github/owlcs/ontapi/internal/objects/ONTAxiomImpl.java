@@ -18,6 +18,7 @@ import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.jena.model.OntGraphModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
+import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Resource;
 import org.semanticweb.owlapi.model.OWLAnnotation;
@@ -117,6 +118,16 @@ public abstract class ONTAxiomImpl<X extends OWLAxiom> extends ONTStatementImpl
      */
     public final String getSubjectURI() throws ClassCastException {
         return (String) subject;
+    }
+
+    /**
+     * Answers the triple's subject blank node id or throws an exception.
+     *
+     * @return {@link BlankNodeId}, never {@code null}
+     * @throws ClassCastException if the subject is not an URI Resource
+     */
+    public final BlankNodeId getSubjectBlankNodeId() throws ClassCastException {
+        return (BlankNodeId) subject;
     }
 
     /**

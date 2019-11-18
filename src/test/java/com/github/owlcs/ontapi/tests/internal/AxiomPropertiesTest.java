@@ -132,6 +132,12 @@ public class AxiomPropertiesTest {
         testAxiom(data, OWLDatatypeDefinitionAxiom::getDatatype, OWLDatatypeDefinitionAxiom::getDataRange);
     }
 
+    @Test
+    public void testClassAssertion() {
+        List<TestFactory.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.CLASS_ASSERTION);
+        testAxiom(data, OWLClassAssertionAxiom::getClassExpression, OWLClassAssertionAxiom::getIndividual);
+    }
+
     @SuppressWarnings("unchecked")
     @SafeVarargs
     private static <X extends OWLAxiom> void testAxiom(List<TestFactory.AxiomData> data,
