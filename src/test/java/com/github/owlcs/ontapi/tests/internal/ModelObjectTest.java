@@ -270,6 +270,13 @@ public class ModelObjectTest {
                 Arrays.asList(df.getRDFSComment("x"), df.getRDFSLabel("y"))));
     }
 
+    @Test
+    public void testObjectPropertyRangeEraseModelMethods() {
+        testUnaryPropAxiom(df -> df.getOWLObjectPropertyRangeAxiom(df.getOWLObjectProperty("X"),
+                df.getOWLObjectUnionOf(),
+                Arrays.asList(df.getRDFSComment("x"), df.getRDFSLabel("y"))));
+    }
+
     @SuppressWarnings("unchecked")
     private <X extends OWLNaryAxiom & OWLSubClassOfAxiomSetShortCut> void testSubClassShortCutNaryAxiom(X expected) {
         X actual = testNaryAxiom(expected);

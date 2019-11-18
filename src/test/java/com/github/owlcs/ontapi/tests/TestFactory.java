@@ -2719,6 +2719,32 @@ public class TestFactory {
                                 "df.getRDFSLabel(df.getOWLAnonymousIndividual(\"_:b0\"))))";
                     }
                 }
+                , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.OBJECT_PROPERTY_RANGE;
+                    }
+
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLObjectPropertyRangeAxiom(df.getOWLObjectInverseOf(df.getOWLObjectProperty("P")),
+                                df.getOWLObjectIntersectionOf(df.getOWLClass("C"), df.getOWLThing()),
+                                Collections.singleton(df.getRDFSComment("comm",
+                                        Stream.of(df.getOWLAnnotation(df.getRDFSIsDefinedBy(), IRI.create("X")),
+                                                df.getOWLAnnotation(df.getOWLIncompatibleWith(),
+                                                        df.getOWLLiteral("x", "x"))))));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLObjectPropertyRangeAxiom(" +
+                                "df.getOWLObjectInverseOf(df.getOWLObjectProperty(\"P\")), " +
+                                "df.getOWLObjectIntersectionOf(df.getOWLClass(\"C\"), df.getOWLThing()), " +
+                                "Collections.singleton(df.getRDFSComment(\"comm\", " +
+                                "Stream.of(df.getOWLAnnotation(df.getRDFSIsDefinedBy(), IRI.create(\"X\")), " +
+                                "df.getOWLAnnotation(df.getOWLIncompatibleWith(), df.getOWLLiteral(\"x\", \"x\"))))))";
+                    }
+                }
         );
     }
 

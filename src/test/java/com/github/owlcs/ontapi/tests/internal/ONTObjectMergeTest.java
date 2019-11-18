@@ -419,6 +419,17 @@ public class ONTObjectMergeTest {
             }
         },
 
+        OBJECT_PROPERTY_RANGE {
+            @Override
+            void doTest() {
+                test(g -> {
+                    OntNOP p = g.createObjectProperty("X");
+                    createInverse(p).addRange(g.createIntersectionOf(g.getOWLThing(), g.createComplementOf(g.getOWLThing())));
+                    createInverse(p).addRange(g.createIntersectionOf(g.getOWLThing(), g.createComplementOf(g.getOWLThing())));
+                }, 22, AxiomType.OBJECT_PROPERTY_RANGE, 2, 2);
+            }
+        },
+
         INVERSE_FUNCTIONAL_OBJECT_PROPERTY {
             @Override
             void doTest() {

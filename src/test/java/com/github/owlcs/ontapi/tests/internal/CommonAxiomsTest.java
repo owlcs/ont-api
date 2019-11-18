@@ -68,6 +68,7 @@ public class CommonAxiomsTest extends StatementTestBase {
                 , AxiomType.ANNOTATION_PROPERTY_DOMAIN
                 , AxiomType.ANNOTATION_PROPERTY_RANGE
                 , AxiomType.DATA_PROPERTY_RANGE
+                , AxiomType.OBJECT_PROPERTY_RANGE
         );
     }
 
