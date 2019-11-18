@@ -2745,6 +2745,48 @@ public class TestFactory {
                                 "df.getOWLAnnotation(df.getOWLIncompatibleWith(), df.getOWLLiteral(\"x\", \"x\"))))))";
                     }
                 }
+                , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.DATATYPE_DEFINITION;
+                    }
+
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLDatatypeDefinitionAxiom(df.getOWLDatatype("A"), df.getOWLDatatype("B"));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLDatatypeDefinitionAxiom(df.getOWLDatatype(\"A\"), df.getOWLDatatype(\"B\"))";
+                    }
+                }
+                , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.DATATYPE_DEFINITION;
+                    }
+
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        return df.getOWLDatatypeDefinitionAxiom(df.getOWLDatatype("A"),
+                                df.getOWLDatatypeRestriction(df.getOWLDatatype("B"),
+                                        df.getOWLFacetRestriction(OWLFacet.TOTAL_DIGITS, 2),
+                                        df.getOWLFacetRestriction(OWLFacet.PATTERN, df.getOWLLiteral("xxx", "xx"))),
+                                Arrays.asList(df.getRDFSComment("comm"),
+                                        df.getRDFSLabel(df.getOWLAnonymousIndividual("_:b0"))));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLDatatypeDefinitionAxiom(df.getOWLDatatype(\"A\"), " +
+                                "df.getOWLDatatypeRestriction(df.getOWLDatatype(\"B\"), " +
+                                "df.getOWLFacetRestriction(OWLFacet.TOTAL_DIGITS, 2), " +
+                                "df.getOWLFacetRestriction(OWLFacet.PATTERN, df.getOWLLiteral(\"xxx\", \"xx\"))), " +
+                                "Arrays.asList(df.getRDFSComment(\"comm\"), " +
+                                "df.getRDFSLabel(df.getOWLAnonymousIndividual(\"_:b0\"))))";
+                    }
+                }
         );
     }
 

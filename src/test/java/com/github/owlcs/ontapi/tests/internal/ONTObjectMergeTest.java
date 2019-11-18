@@ -478,11 +478,21 @@ public class ONTObjectMergeTest {
                 test(OntOPE::addIrreflexiveDeclaration, AxiomType.IRREFLEXIVE_OBJECT_PROPERTY);
             }
         },
+
+        DATATYPE_DEFINITION {
+            @Override
+            void doTest() {
+                test(g -> {
+                    OntDT dt = g.createDatatype("X");
+                    dt.addEquivalentClass(g.createComplementOfDataRange(g.getDatatype(XSD.xlong)));
+                    dt.addEquivalentClass(g.createComplementOfDataRange(g.getDatatype(XSD.xlong)));
+                }, 8, AxiomType.DATATYPE_DEFINITION, 2, 2);
+            }
+        },
         ;
 
         void doTest() {
             Assert.fail("Not supported");
         }
-
     }
 }
