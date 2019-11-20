@@ -14,16 +14,16 @@
 
 package com.github.owlcs.ontapi.internal;
 
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.util.iterator.ExtendedIterator;
-import org.apache.jena.vocabulary.RDFS;
-import org.semanticweb.owlapi.model.*;
-import org.semanticweb.owlapi.vocab.OWLFacet;
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.jena.model.*;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.vocabulary.RDFS;
+import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.vocab.OWLFacet;
 
 import java.util.List;
 import java.util.Set;
@@ -483,7 +483,7 @@ public class ReadHelper {
                     .collect(Collectors.toList());
             SWRLAtom res = of.getOWLDataFactory().getSWRLBuiltInAtom(iri, arguments.stream().map(ONTObject::getOWLObject)
                     .collect(Collectors.toList()));
-            return ONTWrapperImpl.create(res, _atom).appendWildcards(arguments);
+            return ONTWrapperImpl.create(res, _atom).append(arguments);
         }
         if (atom instanceof OntSWRL.Atom.OntClass) {
             OntSWRL.Atom.OntClass _atom = (OntSWRL.Atom.OntClass) atom;

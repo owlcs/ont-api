@@ -14,11 +14,11 @@
 
 package com.github.owlcs.ontapi.internal;
 
+import com.github.owlcs.ontapi.jena.model.OntObject;
+import com.github.owlcs.ontapi.jena.model.OntStatement;
 import org.apache.jena.graph.FrontsTriple;
 import org.apache.jena.graph.Triple;
 import org.semanticweb.owlapi.model.OWLObject;
-import com.github.owlcs.ontapi.jena.model.OntObject;
-import com.github.owlcs.ontapi.jena.model.OntStatement;
 
 import java.util.Collection;
 import java.util.Objects;
@@ -134,22 +134,42 @@ public abstract class ONTWrapperImpl<O extends OWLObject> implements ONTObject<O
         return String.valueOf(object);
     }
 
+    /**
+     * Creates and returns a copy of this wrapper, appending all {@link OntObject#spec()} triples from the given object.
+     *
+     * @param other {@link OntObject}, not {@code null}
+     * @return {@link ONTWrapperImpl}, new instance
+     */
     public ONTWrapperImpl<O> append(OntObject other) {
         return append(() -> other.spec().map(FrontsTriple::asTriple));
     }
 
+    /**
+     * Creates and returns a copy of this wrapper, appending all triples from the given object.
+     *
+     * @param other {@link ONTObject}, not {@code null}
+     * @return {@link ONTWrapperImpl}, new instance
+     */
     public ONTWrapperImpl<O> append(ONTObject<? extends OWLObject> other) {
         return append(other::triples);
     }
 
-    public <B extends OWLObject> ONTWrapperImpl<O> append(Collection<? extends ONTObject<B>> others) {
+    /**
+     * Creates and returns a copy of this wrapper, appending all triples from the given collection.
+     *
+     * @param others {@code Collection} of {@link ONTObject}s
+     * @return {@link ONTWrapperImpl}, new instance
+     */
+    public ONTWrapperImpl<O> append(Collection<? extends ONTObject<?>> others) {
         return append(() -> others.stream().flatMap(ONTObject::triples));
     }
 
-    public <B extends OWLObject> ONTWrapperImpl<O> appendWildcards(Collection<? extends ONTObject<? extends B>> others) {
-        return append(() -> others.stream().flatMap(ONTObject::triples));
-    }
-
+    /**
+     * Creates and returns a copy of this wrapper, appending all triples from the given supplier.
+     *
+     * @param triples a facility to provide {@code Stream} of {@link Triple}s
+     * @return {@link ONTWrapperImpl}, new instance
+     */
     public ONTWrapperImpl<O> append(Supplier<Stream<Triple>> triples) {
         return new ONTWrapperImpl<O>(object) {
             @Override

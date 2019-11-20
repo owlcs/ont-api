@@ -104,7 +104,7 @@ public abstract class AbstractListBasedTranslator<Axiom extends OWLLogicalAxiom,
         Axiom res = axiomMaker.apply(subject, members);
         return ONTWrapperImpl.create(res, statement)
                 .append(() -> list.spec().map(FrontsTriple::asTriple))
-                .appendWildcards(members);
+                .append(members);
     }
 
     /**

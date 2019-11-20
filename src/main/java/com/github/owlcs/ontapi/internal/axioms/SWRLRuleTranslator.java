@@ -14,23 +14,24 @@
 
 package com.github.owlcs.ontapi.internal.axioms;
 
-import org.apache.jena.util.iterator.ExtendedIterator;
-import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.SWRLAtom;
-import org.semanticweb.owlapi.model.SWRLRule;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.jena.model.OntGraphModel;
 import com.github.owlcs.ontapi.jena.model.OntObject;
 import com.github.owlcs.ontapi.jena.model.OntSWRL;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
+import org.apache.jena.util.iterator.ExtendedIterator;
+import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.SWRLAtom;
+import org.semanticweb.owlapi.model.SWRLRule;
 
 import java.util.Collection;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * for "Rule" Axiom {@link org.semanticweb.owlapi.model.AxiomType#SWRL_RULE}
+ * A translator that provides {@link SWRLRule} implementations.
+ * All of them have type {@link org.semanticweb.owlapi.model.AxiomType#SWRL_RULE}.
  * Specification: <a href='https://www.w3.org/Submission/SWRL/'>SWRL: A Semantic Web Rule Language Combining OWL and RuleML</a>.
  * <p>
  * Created by szuev on 20.10.2016.
@@ -56,17 +57,20 @@ public class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
     }
 
     @Override
-    public ONTObject<SWRLRule> toAxiom(OntStatement statement, InternalObjectFactory reader, InternalConfig config) {
+    public ONTObject<SWRLRule> toAxiom(OntStatement statement, InternalObjectFactory factory, InternalConfig config) {
         OntSWRL.Imp imp = statement.getSubject(OntSWRL.Imp.class);
 
-        Collection<ONTObject<? extends SWRLAtom>> head = imp.head().map(reader::getSWRLAtom).collect(Collectors.toList());
-        Collection<ONTObject<? extends SWRLAtom>> body = imp.body().map(reader::getSWRLAtom).collect(Collectors.toList());
+        Collection<ONTObject<? extends SWRLAtom>> head = imp.head()
+                .map(factory::getSWRLAtom).collect(Collectors.toList());
+        Collection<ONTObject<? extends SWRLAtom>> body = imp.body()
+                .map(factory::getSWRLAtom).collect(Collectors.toList());
 
-        Collection<ONTObject<OWLAnnotation>> annotations = reader.getAnnotations(statement, config);
-        SWRLRule res = reader.getOWLDataFactory()
+        Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);
+        SWRLRule res = factory.getOWLDataFactory()
                 .getSWRLRule(body.stream().map(ONTObject::getOWLObject).collect(Collectors.toList()),
-                        head.stream().map(ONTObject::getOWLObject).collect(Collectors.toList()), ONTObject.toSet(annotations));
-        return ONTWrapperImpl.create(res, imp).append(annotations).appendWildcards(body).appendWildcards(head);
+                        head.stream().map(ONTObject::getOWLObject)
+                                .collect(Collectors.toList()), ONTObject.toSet(annotations));
+        return ONTWrapperImpl.create(res, imp).append(annotations).append(body).append(head);
     }
 
 }
