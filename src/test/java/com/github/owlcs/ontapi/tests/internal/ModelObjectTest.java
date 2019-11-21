@@ -283,6 +283,12 @@ public class ModelObjectTest {
                 df.getOWLNamedIndividual("I"), Arrays.asList(df.getRDFSComment("x"), df.getRDFSLabel("y"))));
     }
 
+    @Test
+    public void testSWRLRuleEraseModelMethods() {
+        CommonAxiomsTest.getAxiomData(AxiomType.SWRL_RULE)
+                .forEach(t -> testUnaryPropAxiom(df -> (SWRLRule) t.create(df), SWRLRule::getSimplified));
+    }
+
     @SuppressWarnings("unchecked")
     private <X extends OWLNaryAxiom & OWLSubClassOfAxiomSetShortCut> void testSubClassShortCutNaryAxiom(X expected) {
         X actual = testNaryAxiom(expected);

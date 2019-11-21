@@ -14,15 +14,16 @@
 
 package com.github.owlcs.ontapi.internal.objects;
 
-import org.apache.jena.graph.*;
-import org.apache.jena.graph.impl.LiteralLabel;
-import org.apache.jena.rdf.model.RDFNode;
-import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLObject;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.jena.model.OntGraphModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
+import org.apache.jena.graph.*;
+import org.apache.jena.graph.impl.LiteralLabel;
+import org.apache.jena.rdf.model.RDFNode;
+import org.semanticweb.owlapi.model.HasComponents;
+import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.OWLObject;
 
 import javax.annotation.Nullable;
 import java.util.Collection;
@@ -246,6 +247,16 @@ public abstract class ONTStatementImpl extends ONTObjectImpl implements WithAnno
     protected abstract boolean sameContent(ONTStatementImpl other);
 
     /**
+     * Answers {@code true} if this object and the specified have the same components.
+     *
+     * @param other {@link HasComponents}, not {@code null}
+     * @return boolean
+     */
+    protected boolean sameComponents(HasComponents other) {
+        return equalStreams(components(), other.components());
+    }
+
+    /**
      * Answers {@code true} if this object and the given are equal as {@link OWLObject} (i.e. in OWL-API terms).
      *
      * @param other {@link ONTStatementImpl}, not {@code null}
@@ -290,7 +301,6 @@ public abstract class ONTStatementImpl extends ONTObjectImpl implements WithAnno
         if (hashCode() != other.hashCode()) {
             return false;
         }
-        return equalIterators(components().iterator(), other.components().iterator());
+        return sameComponents(other);
     }
-
 }

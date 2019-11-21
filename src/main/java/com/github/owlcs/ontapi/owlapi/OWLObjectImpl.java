@@ -13,12 +13,12 @@
  */
 package com.github.owlcs.ontapi.owlapi;
 
+import com.github.owlcs.ontapi.jena.utils.Iter;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.AbstractCollectorEx;
 import org.semanticweb.owlapi.util.OWLClassExpressionCollector;
 import org.semanticweb.owlapi.util.OWLEntityCollector;
 import org.semanticweb.owlapi.util.SimpleRenderer;
-import com.github.owlcs.ontapi.jena.utils.Iter;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -159,7 +159,8 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
 
     /**
      * Checks the iterator contents for equality (sensitive to order).
-     * It was moved from the {@link org.semanticweb.owlapi.util.OWLAPIStreamUtils} to control behaviour.
+     * This method has been moved here from the {@link org.semanticweb.owlapi.util.OWLAPIStreamUtils}
+     * to better control behaviour.
      *
      * @param left {@code Iterator} to compare, not {@code null}
      * @param right {@code Iterator} to compare, not {@code null}
@@ -181,6 +182,18 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
             }
         }
         return left.hasNext() == right.hasNext();
+    }
+
+    /**
+     * Checks streams for equality (sensitive to order)
+     *
+     * @param left  {@code Stream} to compare, not {@code null}
+     * @param right {@code Stream} to compare, not {@code null}
+     * @return {@code true} if the streams have the same content, {@code false} otherwise
+     * @see org.semanticweb.owlapi.util.OWLAPIStreamUtils#equalStreams(Stream, Stream)
+     */
+    protected static boolean equalStreams(Stream left, Stream right) {
+        return equalIterators(left.iterator(), right.iterator());
     }
 
     /**

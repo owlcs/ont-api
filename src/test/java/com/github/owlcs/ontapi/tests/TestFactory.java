@@ -914,7 +914,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "SWRLRule Test";
+                        return "SWRLRule Axiom with duplicates";
                     }
 
                     @Override
@@ -924,8 +924,10 @@ public class TestFactory {
                         OWLClass b = df.getOWLClass("urn:test#", "B");
                         OWLClass c = df.getOWLClass("urn:test#", "C");
                         OWLClass d = df.getOWLClass("urn:test#", "D");
-                        List<SWRLClassAtom> body = Arrays.asList(df.getSWRLClassAtom(a, v), df.getSWRLClassAtom(c, v));
-                        List<SWRLClassAtom> head = Arrays.asList(df.getSWRLClassAtom(b, v), df.getSWRLClassAtom(d, v));
+                        List<SWRLClassAtom> body = Arrays.asList(df.getSWRLClassAtom(a, v),
+                                df.getSWRLClassAtom(c, v), df.getSWRLClassAtom(a, v));
+                        List<SWRLClassAtom> head = Arrays.asList(df.getSWRLClassAtom(b, v),
+                                df.getSWRLClassAtom(d, v), df.getSWRLClassAtom(d, v));
                         return df.getSWRLRule(body, head);
                     }
                 }
@@ -937,7 +939,7 @@ public class TestFactory {
 
                     @Override
                     public String toString() {
-                        return "SWRLRule with Annotations Test";
+                        return "SWRLRule Axiom with Annotations";
                     }
 
                     @Override

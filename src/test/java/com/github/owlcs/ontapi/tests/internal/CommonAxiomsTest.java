@@ -42,7 +42,7 @@ public class CommonAxiomsTest extends StatementTestBase {
 
     @Parameterized.Parameters(name = "{0}")
     public static List<AxiomData> getData() {
-        return getAxiomData( // TODO: see https://github.com/owlcs/ont-api/issues/2
+        return getAxiomData(
                 AxiomType.SUBCLASS_OF
                 , AxiomType.ANNOTATION_ASSERTION
                 , AxiomType.OBJECT_PROPERTY_ASSERTION
@@ -71,6 +71,7 @@ public class CommonAxiomsTest extends StatementTestBase {
                 , AxiomType.OBJECT_PROPERTY_RANGE
                 , AxiomType.DATATYPE_DEFINITION
                 , AxiomType.CLASS_ASSERTION
+                , AxiomType.SWRL_RULE
         );
     }
 

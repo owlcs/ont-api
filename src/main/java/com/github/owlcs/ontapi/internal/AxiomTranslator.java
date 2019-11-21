@@ -278,10 +278,8 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * @throws JenaException if no possible to get axiom from the statement
      * @since 2.0.0
      */
-    protected ONTObject<Axiom> toAxiom(OntStatement statement,
-                                       Supplier<OntGraphModel> model,
-                                       InternalObjectFactory factory,
-                                       InternalConfig config) throws JenaException {
-        return toAxiom(statement, factory, config);
-    }
+    protected abstract ONTObject<Axiom> toAxiom(OntStatement statement,
+                                                Supplier<OntGraphModel> model,
+                                                InternalObjectFactory factory,
+                                                InternalConfig config) throws JenaException;
 }

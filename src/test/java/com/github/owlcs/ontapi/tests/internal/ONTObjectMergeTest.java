@@ -22,6 +22,7 @@ import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.jena.OntModelFactory;
 import com.github.owlcs.ontapi.jena.model.*;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import com.github.owlcs.ontapi.jena.vocabulary.SWRL;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -34,6 +35,8 @@ import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
@@ -98,16 +101,16 @@ public class ONTObjectMergeTest {
         OntGraphModel g = o.asGraphModel();
 
         contentMaker.accept(g);
-        Assert.assertEquals(initModelSize, g.size());
-
         ReadWriteUtils.print(g);
+
+        Assert.assertEquals(initModelSize, g.size());
 
         Assert.assertEquals(initAxiomsSize, o.axioms().peek(a -> LOGGER.debug("Axiom: {}", a)).count());
         OWL a = o.axioms(type).findFirst().orElseThrow(AssertionError::new);
 
         o.remove(a);
-
         ReadWriteUtils.print(g);
+
         Assert.assertEquals(initAxiomsSize - 1, o.axioms().count());
         Assert.assertEquals(afterRemoveModelSize, g.size());
     }
@@ -498,6 +501,19 @@ public class ONTObjectMergeTest {
                     i.addClassAssertion(g.createComplementOf(g.getOWLThing()));
                     i.addClassAssertion(g.createComplementOf(g.getOWLThing()));
                 }, 8, AxiomType.CLASS_ASSERTION, 2, 2);
+            }
+        },
+
+        SWRL_RULE {
+            @Override
+            void doTest() {
+                test(g -> {
+                    g.setNsPrefix("s", SWRL.NS);
+                    OntSWRL.Atom a1 = g.createClassSWRLAtom(g.createOntClass("X"), g.createSWRLVariable("x"));
+                    OntSWRL.Atom a2 = g.createClassSWRLAtom(g.createOntClass("X"), g.createSWRLVariable("x"));
+                    g.createSWRLImp(Arrays.asList(a1, a1), Collections.emptyList());
+                    g.createSWRLImp(Arrays.asList(a1, a2), Collections.emptyList());
+                }, 27, AxiomType.SWRL_RULE, 2, 2);
             }
         },
         ;

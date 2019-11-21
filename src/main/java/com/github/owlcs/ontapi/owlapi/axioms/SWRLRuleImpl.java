@@ -13,12 +13,15 @@
  */
 package com.github.owlcs.ontapi.owlapi.axioms;
 
+import com.github.owlcs.ontapi.jena.utils.Iter;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.SWRLVariableExtractor;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -26,11 +29,12 @@ import java.util.stream.Stream;
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
  * @since 1.2.0
  */
+@SuppressWarnings("WeakerAccess")
 public class SWRLRuleImpl extends OWLLogicalAxiomImpl implements SWRLRule {
 
     private static final AtomSimplifier ATOM_SIMPLIFIER = new AtomSimplifier();
-    private final LinkedHashSet<SWRLAtom> head;
-    private final LinkedHashSet<SWRLAtom> body;
+    private final List<SWRLAtom> head;
+    private final List<SWRLAtom> body;
     private final boolean containsAnonymousClassExpressions;
 
     /**
@@ -38,12 +42,84 @@ public class SWRLRuleImpl extends OWLLogicalAxiomImpl implements SWRLRule {
      * @param head        a {@code Collection} of {@link SWRLAtom}s, the rule head
      * @param annotations a {@code Collection} of {@link OWLAnnotation}s on the axiom
      */
-    public SWRLRuleImpl(Collection<? extends SWRLAtom> body, Collection<? extends SWRLAtom> head,
+    public SWRLRuleImpl(Collection<? extends SWRLAtom> body,
+                        Collection<? extends SWRLAtom> head,
                         Collection<OWLAnnotation> annotations) {
         super(annotations);
-        this.head = new LinkedHashSet<>(Objects.requireNonNull(head, "head cannot be null"));
-        this.body = new LinkedHashSet<>(Objects.requireNonNull(body, "body cannot be null"));
-        this.containsAnonymousClassExpressions = hasAnon();
+        this.head = toDistinctList(Objects.requireNonNull(head, "head cannot be null"));
+        this.body = toDistinctList(Objects.requireNonNull(body, "body cannot be null"));
+        this.containsAnonymousClassExpressions = classAtomPredicates().anyMatch(OWLClassExpression::isAnonymous);
+    }
+
+    /**
+     * Makes a {@code List} without duplicates (and nulls) from the given collection.
+     * Both rule's head and body have the same order as specified, but must be distinct at the same time.
+     *
+     * @param collection {@code Collection}, not {@code null}
+     * @param <X>        anything
+     * @return a {@code List} of {@link X}s
+     */
+    private static <X> List<X> toDistinctList(Collection<? extends X> collection) {
+        return toDistinctList(collection.stream());
+    }
+
+    /**
+     * Collects the given {@code stream} into a {@code List} without duplicates (and nulls).
+     *
+     * @param stream {@code Stream}, not {@code null}
+     * @param <X>    anything
+     * @return a {@code List} of {@link X}s
+     */
+    private static <X> List<X> toDistinctList(Stream<? extends X> stream) {
+        return stream.map(Objects::requireNonNull).distinct().collect(Iter.toUnmodifiableList());
+    }
+
+    /**
+     * Lists class expressions that are predicates of class atoms.
+     *
+     * @param rule {@link SWRLRule}, not {@code null}
+     * @return a {@code Stream} of {@link OWLClassExpression}s
+     */
+    public static Stream<OWLClassExpression> classAtomPredicates(SWRLRule rule) {
+        return forOutput(Stream.concat(rule.head(), rule.body())
+                .filter(x -> x instanceof SWRLClassAtom)
+                .map(c -> ((SWRLClassAtom) c).getPredicate()));
+    }
+
+    /**
+     * Gets rule's body as {@code List}.
+     *
+     * @param rule {@link SWRLRule}, not {@code null}
+     * @return a {@link List} of {@link SWRLAtom}s
+     */
+    public static List<SWRLAtom> getBodyList(SWRLRule rule) {
+        if (rule instanceof SWRLRuleImpl) {
+            return rule.bodyList();
+        }
+        return toDistinctList(rule.body());
+    }
+
+    /**
+     * Gets rule's head as {@code List}.
+     *
+     * @param rule {@link SWRLRule}, not {@code null}
+     * @return a {@link List} of {@link SWRLAtom}s
+     */
+    public static List<SWRLAtom> getHeadList(SWRLRule rule) {
+        if (rule instanceof SWRLRuleImpl) {
+            return rule.headList();
+        }
+        return toDistinctList(rule.head().distinct());
+    }
+
+    /**
+     * Lists all variables that appear in the given rule.
+     *
+     * @param rule {@link SWRLRule}, not {@code null}
+     * @return a {@code Stream} of {@link SWRLVariable}s
+     */
+    public static Stream<SWRLVariable> variables(SWRLRule rule) {
+        return rule.accept(new SWRLVariableExtractor()).stream();
     }
 
     @SuppressWarnings("unchecked")
@@ -57,17 +133,13 @@ public class SWRLRuleImpl extends OWLLogicalAxiomImpl implements SWRLRule {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T extends OWLAxiom> T getAnnotatedAxiom(@Nonnull Stream<OWLAnnotation> anns) {
-        return (T) new SWRLRuleImpl(body, head, mergeAnnotations(this, anns));
+    public <T extends OWLAxiom> T getAnnotatedAxiom(@Nonnull Stream<OWLAnnotation> annotations) {
+        return (T) new SWRLRuleImpl(body, head, mergeAnnotations(this, annotations));
     }
 
     @Override
     public Stream<SWRLVariable> variables() {
-        return accept(new SWRLVariableExtractor()).stream();
-    }
-
-    private boolean hasAnon() {
-        return classAtomPredicates().anyMatch(OWLClassExpression::isAnonymous);
+        return variables(this);
     }
 
     @Override
@@ -77,9 +149,7 @@ public class SWRLRuleImpl extends OWLLogicalAxiomImpl implements SWRLRule {
 
     @Override
     public Stream<OWLClassExpression> classAtomPredicates() {
-        return forOutput(Stream.concat(head(), body())
-                .filter(x -> x instanceof SWRLClassAtom)
-                .map(c -> ((SWRLClassAtom) c).getPredicate()));
+        return classAtomPredicates(this);
     }
 
     @Override
@@ -94,12 +164,12 @@ public class SWRLRuleImpl extends OWLLogicalAxiomImpl implements SWRLRule {
 
     @Override
     public List<SWRLAtom> bodyList() {
-        return new ArrayList<>(body);
+        return body;
     }
 
     @Override
     public List<SWRLAtom> headList() {
-        return new ArrayList<>(head);
+        return head;
     }
 
     @Override
@@ -118,17 +188,9 @@ public class SWRLRuleImpl extends OWLLogicalAxiomImpl implements SWRLRule {
         if (!(obj instanceof SWRLRule)) {
             return false;
         }
-        // For same implementation instances, no need to create or sort sets
-        if (obj instanceof SWRLRuleImpl) {
-            SWRLRuleImpl other = (SWRLRuleImpl) obj;
-            return body.equals(other.body) && head.equals(other.head)
-                    && annotations.equals(other.annotationsAsList());
-        }
-        // For different implementations, just use sets, do not sort
         SWRLRule other = (SWRLRule) obj;
-        return body.equals(other.body().collect(Collectors.toCollection(LinkedHashSet::new)))
-                && head.equals(other.head().collect(Collectors.toCollection(LinkedHashSet::new)))
-                && annotations.equals(other.annotationsAsList());
+        return annotations.equals(other.annotationsAsList())
+                && body.equals(getBodyList(other)) && head.equals(getHeadList(other));
     }
 
     protected static class AtomSimplifier implements SWRLObjectVisitorEx<SWRLObject> {

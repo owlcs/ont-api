@@ -138,6 +138,20 @@ public class AxiomPropertiesTest {
         testAxiom(data, OWLClassAssertionAxiom::getClassExpression, OWLClassAssertionAxiom::getIndividual);
     }
 
+    @Test
+    public void testSWRLRule() {
+        List<TestFactory.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.SWRL_RULE);
+        testAxiom(data
+                , SWRLRule::bodyList
+                , SWRLRule::headList
+                , SWRLRule::containsAnonymousClassExpressions
+                , x -> x.body().collect(Collectors.toList())
+                , x -> x.head().collect(Collectors.toList())
+                , x -> x.variables().collect(Collectors.toList())
+                , x -> x.classAtomPredicates().collect(Collectors.toList())
+        );
+    }
+
     @SuppressWarnings("unchecked")
     @SafeVarargs
     private static <X extends OWLAxiom> void testAxiom(List<TestFactory.AxiomData> data,
