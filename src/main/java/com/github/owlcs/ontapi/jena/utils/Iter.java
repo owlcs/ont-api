@@ -14,6 +14,7 @@
 
 package com.github.owlcs.ontapi.jena.utils;
 
+import com.github.owlcs.ontapi.jena.OntJenaException;
 import org.apache.jena.atlas.iterator.FilterUnique;
 import org.apache.jena.graph.FrontsNode;
 import org.apache.jena.graph.Node;
@@ -23,7 +24,6 @@ import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.rdf.model.impl.StmtIteratorImpl;
 import org.apache.jena.util.iterator.*;
-import com.github.owlcs.ontapi.jena.OntJenaException;
 
 import java.util.*;
 import java.util.function.*;
@@ -466,6 +466,29 @@ public class Iter {
     @SafeVarargs // Creating an iterator from an array is safe
     public static <X> ExtendedIterator<X> of(X... members) {
         return create(Arrays.asList(members));
+    }
+
+    /**
+     * Creates a new {@link ExtendedIterator Extended Iterator}} containing nothing.
+     *
+     * @param <X> the element type of the new iterator
+     * @return a fresh {@link ExtendedIterator} instance
+     * @since 2.0.0
+     */
+    public static <X> ExtendedIterator<X> of() {
+        return NullIterator.instance();
+    }
+
+    /**
+     * Creates a new {@link ExtendedIterator Extended Iterator}} containing single specified element.
+     *
+     * @param item - an object of type {@link X}
+     * @param <X>  the element type of the new iterator
+     * @return a fresh {@link ExtendedIterator} instance
+     * @since 2.0.0
+     */
+    public static <X> ExtendedIterator<X> of(X item) {
+        return new SingletonIterator<>(item);
     }
 
     /**

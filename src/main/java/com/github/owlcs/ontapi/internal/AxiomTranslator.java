@@ -28,9 +28,9 @@ import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAxiom;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -143,8 +143,8 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * Impl notes: any item of the returned iterator can be either {@link ONTWrapperImpl ONTWrapper}
      * with raw {@link Axiom} from the system-wide {@link DataFactory DataFactory}
      * or {@link ONTObject} attached to the given model.
-     * If {@link com.github.owlcs.ontapi.config.AxiomsSettings#isSplitAxiomAnnotations()} is {@code true},
-     * then the method returns {@link ONTWrapperImpl}s only.
+     * If {@link com.github.owlcs.ontapi.config.AxiomsSettings#isSplitAxiomAnnotations()} is {@code true}
+     * and a processed statement is splittable, then the method returns {@link ONTWrapperImpl}s only.
      *
      * This method is for internal usage only,
      *
@@ -159,37 +159,24 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
                                                            Supplier<OntGraphModel> model,
                                                            InternalObjectFactory factory,
                                                            InternalConfig config) {
-        Function<OntStatement, ONTObject<Axiom>> toAxiom;
-        // When the spit-setting is true, we cannot provide an ONTStatement based axioms,
-        // just because in this case a mapping statement to axiom is ambiguous.
-        // So, currently there is only one solution - need to use wrappers
-        if (factory == InternalObjectFactory.DEFAULT || config == InternalConfig.DEFAULT || config.isSplitAxiomAnnotations()) {
-            // use ONTWrapper
-            toAxiom = s -> toAxiom(s, factory, config);
-        } else {
-            // use ONTObject-impl
-            toAxiom = s -> toAxiom(s, model, factory, config);
+        boolean withDefault = factory == InternalObjectFactory.DEFAULT || config == InternalConfig.DEFAULT;
+        if (config.isSplitAxiomAnnotations()) {
+            // When the spit-setting is true, we cannot always provide an ONTStatement based axiom,
+            // because a mapping statement to axiom becomes ambiguous:
+            // the same triple may correspond different axiom-instances
+            // So, currently there is only one solution - need to use wrappers instead of model-impls
+            return Iter.flatMap(statements, s -> {
+                if (withDefault) {
+                    return OntModels.listSplitStatements(s).mapWith(x -> toAxiom(x, factory, config));
+                }
+                List<OntStatement> sts = OntModels.listSplitStatements(s).toList();
+                if (sts.size() == 1) { // unambiguous mapping
+                    return Iter.of(toAxiom(s, model, factory, config));
+                }
+                return Iter.create(sts).mapWith(x -> toAxiom(x, factory, config));
+            });
         }
-        return translate(statements, toAxiom, config.isSplitAxiomAnnotations());
-    }
-
-    /**
-     * Maps each {@link OntStatement Ontology Statement} from the given iterator to the {@link Axiom} instance
-     * and returns a new iterator containing {@link Axiom}s.
-     *
-     * @param statements an {@link ExtendedIterator} of the source {@link OntStatement Statement}s
-     * @param toAxiom    a mapping function,
-     *                   either {@link AxiomTranslator#toAxiom(OntStatement, InternalObjectFactory, InternalConfig)}
-     *                   or {@link AxiomTranslator#toAxiom(OntStatement, Supplier, InternalObjectFactory, InternalConfig)}
-     * @param split      if {@code true} splits all given statements if that possible
-     * @return a new {@link ExtendedIterator} of {@link Axiom}s
-     */
-    private ExtendedIterator<ONTObject<Axiom>> translate(ExtendedIterator<OntStatement> statements,
-                                                         Function<OntStatement, ONTObject<Axiom>> toAxiom,
-                                                         boolean split) {
-        return split ?
-                Iter.flatMap(statements, OntModels::listSplitStatements).mapWith(toAxiom) :
-                statements.mapWith(toAxiom);
+        return statements.mapWith(s -> withDefault ? toAxiom(s, factory, config) : toAxiom(s, model, factory, config));
     }
 
     /**
@@ -250,11 +237,10 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
     public abstract boolean testStatement(OntStatement statement, InternalConfig config);
 
     /**
-     * Creates an OWL Axiom from a statement.
-     * Impl note: the method returns a simple {@link ONTWrapperImpl ONT Wrapper} with an {@link Axiom} inside,
-     * an axiom is created from the system-wide {@link DataFactory Data Factory}.
-     * TODO: will be replaced with {@link #toAxiom(OntStatement, Supplier, InternalObjectFactory, InternalConfig)},
-     *  see <a href='https://github.com/owlcs/ont-api/issues/2'>#87</a>
+     * Creates an OWL Axiom wrapper from a statement.
+     * Impl note: the method returns a simple {@link ONTWrapperImpl ONT Wrapper}
+     * with an actual {@link Axiom} instance inside,
+     * that is created by the system-wide {@link DataFactory Data Factory}.
      *
      * @param statement {@link OntStatement} the statement which determines the axiom
      * @param factory   {@link InternalObjectFactory} the data factory to create OWL-API objects
@@ -267,8 +253,9 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
                                                 InternalConfig config) throws JenaException;
 
     /**
-     * Creates an OWL Axiom from a statement.
-     * Impl note: the method returns {@link ONTObject ONT Object} which is attached to the model.
+     * Creates an OWL Axiom impl from a statement.
+     * Impl note: the method returns {@link com.github.owlcs.ontapi.internal.objects.ONTAxiomImpl} instance
+     * that is attached to the model.
      *
      * @param statement {@link OntStatement} the statement which determines the axiom
      * @param model     a facility (as {@link Supplier}) to provide nonnull {@link OntGraphModel}

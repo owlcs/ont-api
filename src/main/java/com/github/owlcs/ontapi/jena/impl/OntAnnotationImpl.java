@@ -14,12 +14,6 @@
 
 package com.github.owlcs.ontapi.jena.impl;
 
-import org.apache.jena.enhanced.EnhGraph;
-import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.Node;
-import org.apache.jena.graph.Triple;
-import org.apache.jena.rdf.model.*;
-import org.apache.jena.util.iterator.ExtendedIterator;
 import com.github.owlcs.ontapi.jena.OntJenaException;
 import com.github.owlcs.ontapi.jena.impl.conf.ObjectFactory;
 import com.github.owlcs.ontapi.jena.model.OntAnnotation;
@@ -30,6 +24,12 @@ import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.utils.Models;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
+import org.apache.jena.enhanced.EnhGraph;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.rdf.model.*;
+import org.apache.jena.util.iterator.ExtendedIterator;
 
 import java.util.Comparator;
 import java.util.List;
@@ -177,7 +177,7 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
      * @return {@link ExtendedIterator} of {@link Node}s
      */
     public static ExtendedIterator<Node> listRootAnnotations(EnhGraph eg) {
-        return Iter.flatMap(Iter.of(OWL.Axiom.asNode()).andThen(EXTRA_ROOT_TYPES_AS_NODES.iterator()),
+        return Iter.flatMap(Iter.of(AXIOM).andThen(EXTRA_ROOT_TYPES_AS_NODES.iterator()),
                 t -> eg.asGraph().find(Node.ANY, RDF.Nodes.type, t))
                 .mapWith(Triple::getSubject);
     }
