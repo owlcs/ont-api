@@ -14,16 +14,13 @@
 
 package com.github.owlcs.ontapi.tests;
 
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.vocabulary.RDFS;
+import com.github.owlcs.ontapi.DataFactory;
+import com.github.owlcs.ontapi.OntManagers;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.semanticweb.owlapi.model.*;
-import com.github.owlcs.ontapi.DataFactory;
-import com.github.owlcs.ontapi.OntManagers;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -50,10 +47,6 @@ public class DataFactoryTest extends TestFactory {
         this.data = data;
     }
 
-    private static boolean isSameIRI(Resource e, OWLObject a) {
-        return e.getURI().equals(((OWLEntity) a).toStringID());
-    }
-
     @Test
     public void testCreateAndValidate() {
         Class<? extends OWLObject> implType = data.getSuperImplClassType();
@@ -72,140 +65,77 @@ public class DataFactoryTest extends TestFactory {
 
     @Test
     public void testBooleanProperties() {
-        OWLObject object = data.create(ONT_DATA_FACTORY);
-        final boolean expectedAnonymousExpression = data.isAnonymousClassExpression()
-                || data.isAnonymousDataRange() || data.isAnonymousProperty();
-        Assert.assertEquals(data.isAnonymousDataRange(), object instanceof OWLDataRange && !(object instanceof OWLDatatype));
-        Assert.assertEquals(data.isAnonymousClassExpression(), object instanceof OWLAnonymousClassExpression);
-        final boolean expectedAnonymous = data.isAxiom() || data.isAnonymousIndividual() || expectedAnonymousExpression;
-        // todo: the following is wrong, but it is what OWL-API does. see https://github.com/owlcs/owlapi/issues/867
-        final boolean expectedNamed = !expectedAnonymous; //data.isEntity() || data.isOWLAnnotation();
-        final boolean expectedBottomEntity;
-        final boolean expectedTopEntity;
+        OWLObject test = data.create(ONT_DATA_FACTORY);
+        OWLObject sample = data.create(OWL_DATA_FACTORY);
+        checkBooleanProperties(sample);
+        checkBooleanProperties(test);
+
+        // NOTE: sometimes the properties below are contrary to common sense
+        // (for example, OWLLiteral and SWRLVariable are anonymous),
+        // but this is what OWL-API does, and we can't change that behaviour,
+        // for more details see issue https://github.com/owlcs/owlapi/issues/867
+        final boolean expectedAnonymous = sample.isAnonymous()
+                || (sample instanceof OWLDataRange && !(sample instanceof OWLDatatype)); // todo: owlapi#867  (fixed in 5.1.12)
+        final boolean expectedNamed = sample.isNamed()
+                && (!(sample instanceof OWLDataRange) || (sample instanceof OWLDatatype)); // todo: owlapi#867 (fixed in 5.1.12)
+        final boolean expectedAnonymousExpression = sample.isAnonymousExpression()
+                || (sample instanceof OWLDataRange && !(sample instanceof OWLDatatype)); // todo: owlapi#867  (fixed in 5.1.12)
+        final boolean expectedIndividual = sample.isIndividual();
+        final boolean expectedAxiom = sample.isAxiom();
+        final boolean expectedBottomEntity = sample.isBottomEntity();
+        final boolean expectedTopEntity = sample.isTopEntity();
+
+        Assert.assertEquals("'" + test + "'#isAnonymous() must be " + expectedAnonymous,
+                expectedAnonymous, test.isAnonymous());
+        Assert.assertEquals("'" + test + "'#isNamed() must be " + expectedNamed, expectedNamed, test.isNamed());
+
+        Assert.assertEquals("'" + test + "'#isIndividual() must be " + expectedIndividual,
+                expectedIndividual, test.isIndividual());
+        Assert.assertEquals("'" + test + "'#isAxiom() must be " + expectedAxiom, expectedAxiom, test.isAxiom());
+
+        Assert.assertEquals("'" + test + "'#isAnonymousExpression() must be " + expectedAnonymousExpression,
+                expectedAnonymousExpression, test.isAnonymousExpression());
+
+        Assert.assertFalse("'" + test + "' must not be IRI", test.isIRI());
+        Assert.assertFalse("'" + test + "' must not be Ontology", test.isOntology());
+
+        Assert.assertEquals("'" + test + "'#isBottomEntity() must be " + expectedBottomEntity,
+                expectedBottomEntity, test.isBottomEntity());
+        Assert.assertEquals("'" + test + "'#isTopEntity() must be " + expectedTopEntity,
+                expectedTopEntity, test.isTopEntity());
+    }
+
+    private void checkBooleanProperties(OWLObject object) {
         if (data.isEntity()) {
             Assert.assertTrue(object instanceof OWLEntity);
             Assert.assertEquals(data.shouldBeSame(), ((OWLEntity) object).isBuiltIn());
-            if (data.isClass()) {
-                Assert.assertTrue(object instanceof OWLClass);
-            } else {
-                Assert.assertFalse(object instanceof OWLClass);
-            }
-            if (data.isDatatype()) {
-                Assert.assertTrue(object instanceof OWLDatatype);
-            } else {
-                Assert.assertFalse(object instanceof OWLDatatype);
-            }
-            if (data.isAnnotationProperty()) {
-                Assert.assertTrue(object instanceof OWLAnnotationProperty);
-            } else {
-                Assert.assertFalse(object instanceof OWLAnnotationProperty);
-            }
-            if (data.isObjectProperty()) {
-                Assert.assertTrue(object instanceof OWLObjectProperty);
-            } else {
-                Assert.assertFalse(object instanceof OWLObjectProperty);
-            }
-            if (data.isDatatypeProperty()) {
-                Assert.assertTrue(object instanceof OWLDataProperty);
-            } else {
-                Assert.assertFalse(object instanceof OWLDataProperty);
-            }
-            if (data.isClass()) {
-                expectedBottomEntity = isSameIRI(OWL.Nothing, object);
-                expectedTopEntity = isSameIRI(OWL.Thing, object);
-            } else if (data.isDatatypeProperty()) {
-                expectedBottomEntity = isSameIRI(OWL.bottomDataProperty, object);
-                expectedTopEntity = isSameIRI(OWL.topDataProperty, object);
-            } else if (data.isObjectProperty()) {
-                expectedBottomEntity = isSameIRI(OWL.bottomObjectProperty, object);
-                expectedTopEntity = isSameIRI(OWL.topObjectProperty, object);
-            } else if (data.isDatatype()) {
-                expectedTopEntity = isSameIRI(RDFS.Literal, object);
-                expectedBottomEntity = false;
-            } else {
-                expectedBottomEntity = false;
-                expectedTopEntity = false;
-            }
         } else {
             Assert.assertFalse(object instanceof OWLEntity);
-            expectedBottomEntity = false;
-            expectedTopEntity = false;
         }
-        final boolean expectedAxiom = data.isAxiom();
-        if (expectedAxiom) {
+        if (data.isAxiom()) {
             Assert.assertTrue(object instanceof OWLAxiom);
-            Assert.assertFalse(object instanceof OWLEntity);
-            Assert.assertFalse(object instanceof OWLIndividual);
-            Assert.assertFalse(object instanceof OWLDataRange);
-            Assert.assertFalse(object instanceof OWLClassExpression);
-            Assert.assertFalse(object instanceof OWLAnnotation);
             Assert.assertEquals(((AxiomData) data).getType(), ((OWLAxiom) object).getAxiomType());
         } else {
             Assert.assertFalse(object instanceof OWLAxiom);
         }
-
-        final boolean expectedIndividual = data.isIndividual();
-        if (expectedIndividual) {
-            Assert.assertTrue(object instanceof OWLIndividual);
-            Assert.assertFalse(object instanceof OWLDataRange);
-            Assert.assertFalse(object instanceof OWLClassExpression);
-        } else {
-            Assert.assertFalse(object instanceof OWLIndividual);
-        }
-        if (data.isLiteral()) {
-            Assert.assertTrue(object instanceof OWLLiteral);
-            Assert.assertFalse(object instanceof OWLEntity);
-            Assert.assertFalse(object instanceof OWLAxiom);
-            Assert.assertFalse(object instanceof OWLIndividual);
-            Assert.assertFalse(object instanceof OWLDataRange);
-            Assert.assertFalse(object instanceof OWLClassExpression);
-            Assert.assertFalse(object instanceof OWLAnnotation);
-        } else {
-            Assert.assertFalse(object instanceof OWLLiteral);
-        }
-        if (data.isOWLAnnotation()) {
-            Assert.assertTrue(object instanceof OWLAnnotation);
-            Assert.assertFalse(object instanceof OWLEntity);
-            Assert.assertFalse(object instanceof OWLIndividual);
-            Assert.assertFalse(object instanceof OWLDataRange);
-            Assert.assertFalse(object instanceof OWLClassExpression);
-        } else {
-            Assert.assertFalse(object instanceof OWLAnnotation);
-        }
-
-        if (data.isFacetRestriction()) {
-            Assert.assertTrue(object instanceof OWLFacetRestriction);
-            Assert.assertFalse(object instanceof OWLAnnotation);
-            Assert.assertFalse(object instanceof OWLEntity);
-            Assert.assertFalse(object instanceof OWLIndividual);
-            Assert.assertFalse(object instanceof OWLDataRange);
-            Assert.assertFalse(object instanceof OWLClassExpression);
-        } else {
-            Assert.assertFalse(object instanceof OWLFacetRestriction);
-        }
+        Assert.assertEquals(data.isClass(), object instanceof OWLClass);
+        Assert.assertEquals(data.isDatatype(), object instanceof OWLDatatype);
+        Assert.assertEquals(data.isAnnotationProperty(), object instanceof OWLAnnotationProperty);
+        Assert.assertEquals(data.isObjectProperty(), object instanceof OWLObjectProperty);
+        Assert.assertEquals(data.isDatatypeProperty(), object instanceof OWLDataProperty);
+        Assert.assertEquals(data.isIndividual(), object instanceof OWLIndividual);
+        Assert.assertEquals(data.isAnonymousIndividual(), object instanceof OWLAnonymousIndividual);
+        Assert.assertEquals(data.isAnonymousDataRange(),
+                !(object instanceof OWLDatatype) && object instanceof OWLDataRange);
+        Assert.assertEquals(data.isAnonymousClassExpression(),
+                !(object instanceof OWLClass) && object instanceof OWLClassExpression);
+        Assert.assertEquals(data.isLiteral(), object instanceof OWLLiteral);
+        Assert.assertEquals(data.isOWLAnnotation(), object instanceof OWLAnnotation);
+        Assert.assertEquals(data.isFacetRestriction(), object instanceof OWLFacetRestriction);
         Assert.assertEquals(data.isSWRLVariable(), object instanceof SWRLVariable);
         Assert.assertEquals(data.isSWRLIndividual(), object instanceof SWRLIndividualArgument);
         Assert.assertEquals(data.isSWRLLiteral(), object instanceof SWRLLiteralArgument);
-        if (data.isSWRLAtom()) {
-            Assert.assertTrue(object instanceof SWRLAtom);
-        } else {
-            Assert.assertFalse(object instanceof SWRLAtom);
-        }
-
-        Assert.assertEquals("'" + object + "' must be anonymous", expectedAnonymous, object.isAnonymous());
-        Assert.assertEquals("'" + object + "' must be named", expectedNamed, object.isNamed());
-
-        Assert.assertEquals("'" + object + "' must be individual", expectedIndividual, object.isIndividual());
-        Assert.assertEquals("'" + object + "' must be axiom", expectedAxiom, object.isAxiom());
-
-        Assert.assertEquals("'" + object + "' must be anonymous expression", expectedAnonymousExpression,
-                object.isAnonymousExpression());
-
-        Assert.assertFalse("'" + object + "' must not be IRI", object.isIRI());
-        Assert.assertFalse("'" + object + "' must not be Ontology", object.isOntology());
-
-        Assert.assertEquals("'" + object + "' must be bottom entity", expectedBottomEntity, object.isBottomEntity());
-        Assert.assertEquals("'" + object + "' must be top entity", expectedTopEntity, object.isTopEntity());
+        Assert.assertEquals(data.isSWRLAtom(), object instanceof SWRLAtom);
     }
 
     @Test
