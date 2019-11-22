@@ -56,17 +56,17 @@ public class EquivalentObjectPropertiesTranslator
     }
 
     @Override
-    public ONTObject<OWLEquivalentObjectPropertiesAxiom> toAxiom(OntStatement statement,
-                                                                 Supplier<OntGraphModel> model,
-                                                                 InternalObjectFactory factory,
-                                                                 InternalConfig config) {
+    public ONTObject<OWLEquivalentObjectPropertiesAxiom> toAxiomImpl(OntStatement statement,
+                                                                     Supplier<OntGraphModel> model,
+                                                                     InternalObjectFactory factory,
+                                                                     InternalConfig config) {
         return AxiomImpl.create(statement, model, factory, config);
     }
 
     @Override
-    public ONTObject<OWLEquivalentObjectPropertiesAxiom> toAxiom(OntStatement statement,
-                                                                 InternalObjectFactory factory,
-                                                                 InternalConfig config) {
+    public ONTObject<OWLEquivalentObjectPropertiesAxiom> toAxiomWrap(OntStatement statement,
+                                                                     InternalObjectFactory factory,
+                                                                     InternalConfig config) {
         ONTObject<? extends OWLObjectPropertyExpression> a = factory.getProperty(statement.getSubject(getView()));
         ONTObject<? extends OWLObjectPropertyExpression> b = factory.getProperty(statement.getObject().as(getView()));
         Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);

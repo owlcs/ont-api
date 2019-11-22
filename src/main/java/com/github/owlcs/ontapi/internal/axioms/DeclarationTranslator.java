@@ -14,11 +14,6 @@
 
 package com.github.owlcs.ontapi.internal.axioms;
 
-import org.apache.jena.graph.Node;
-import org.apache.jena.graph.Triple;
-import org.apache.jena.util.iterator.ExtendedIterator;
-import org.apache.jena.util.iterator.NullIterator;
-import org.semanticweb.owlapi.model.*;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.*;
@@ -30,6 +25,11 @@ import com.github.owlcs.ontapi.jena.model.OntObject;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.util.iterator.NullIterator;
+import org.semanticweb.owlapi.model.*;
 
 import java.util.Collection;
 import java.util.List;
@@ -78,17 +78,17 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
     }
 
     @Override
-    public ONTObject<OWLDeclarationAxiom> toAxiom(OntStatement statement,
-                                                  Supplier<OntGraphModel> model,
-                                                  InternalObjectFactory factory,
-                                                  InternalConfig config) {
+    public ONTObject<OWLDeclarationAxiom> toAxiomImpl(OntStatement statement,
+                                                      Supplier<OntGraphModel> model,
+                                                      InternalObjectFactory factory,
+                                                      InternalConfig config) {
         return AxiomImpl.create(statement, model, factory, config);
     }
 
     @Override
-    public ONTObject<OWLDeclarationAxiom> toAxiom(OntStatement statement,
-                                                  InternalObjectFactory factory,
-                                                  InternalConfig config) {
+    public ONTObject<OWLDeclarationAxiom> toAxiomWrap(OntStatement statement,
+                                                      InternalObjectFactory factory,
+                                                      InternalConfig config) {
         OntEntity e = Entities.find(statement.getResource())
                 .map(Entities::getActualType)
                 .map(t -> statement.getModel().getOntEntity(t, statement.getSubject()))

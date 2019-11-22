@@ -53,17 +53,17 @@ public class SubDataPropertyOfTranslator extends AbstractSubPropertyTranslator<O
     }
 
     @Override
-    public ONTObject<OWLSubDataPropertyOfAxiom> toAxiom(OntStatement statement,
-                                                        Supplier<OntGraphModel> model,
-                                                        InternalObjectFactory factory,
-                                                        InternalConfig config) {
+    public ONTObject<OWLSubDataPropertyOfAxiom> toAxiomImpl(OntStatement statement,
+                                                            Supplier<OntGraphModel> model,
+                                                            InternalObjectFactory factory,
+                                                            InternalConfig config) {
         return AxiomImpl.create(statement, model, factory, config);
     }
 
     @Override
-    public ONTObject<OWLSubDataPropertyOfAxiom> toAxiom(OntStatement statement,
-                                                        InternalObjectFactory factory,
-                                                        InternalConfig config) {
+    public ONTObject<OWLSubDataPropertyOfAxiom> toAxiomWrap(OntStatement statement,
+                                                            InternalObjectFactory factory,
+                                                            InternalConfig config) {
         ONTObject<OWLDataProperty> sub = factory.getProperty(statement.getSubject(OntNDP.class));
         ONTObject<OWLDataProperty> sup = factory.getProperty(statement.getObject().as(OntNDP.class));
         Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);

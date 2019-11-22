@@ -58,15 +58,15 @@ public class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
     }
 
     @Override
-    public ONTObject<SWRLRule> toAxiom(OntStatement statement,
-                                       Supplier<OntGraphModel> model,
-                                       InternalObjectFactory factory,
-                                       InternalConfig config) {
+    public ONTObject<SWRLRule> toAxiomImpl(OntStatement statement,
+                                           Supplier<OntGraphModel> model,
+                                           InternalObjectFactory factory,
+                                           InternalConfig config) {
         return AxiomImpl.create(statement, model, factory, config);
     }
 
     @Override
-    public ONTObject<SWRLRule> toAxiom(OntStatement statement, InternalObjectFactory factory, InternalConfig config) {
+    public ONTObject<SWRLRule> toAxiomWrap(OntStatement statement, InternalObjectFactory factory, InternalConfig config) {
         OntSWRL.Imp imp = statement.getSubject(OntSWRL.Imp.class);
 
         Collection<ONTObject<? extends SWRLAtom>> head = imp.head()

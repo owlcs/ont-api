@@ -14,10 +14,6 @@
 
 package com.github.owlcs.ontapi.internal.axioms;
 
-import org.apache.jena.graph.BlankNodeId;
-import org.apache.jena.graph.Triple;
-import org.apache.jena.graph.impl.LiteralLabel;
-import org.semanticweb.owlapi.model.*;
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
@@ -28,6 +24,10 @@ import com.github.owlcs.ontapi.jena.model.OntGraphModel;
 import com.github.owlcs.ontapi.jena.model.OntNPA;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.owlapi.objects.OWLLiteralImpl;
+import org.apache.jena.graph.BlankNodeId;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.graph.impl.LiteralLabel;
+import org.semanticweb.owlapi.model.*;
 
 import java.util.Collection;
 import java.util.Set;
@@ -59,17 +59,17 @@ public class NegativeDataPropertyAssertionTranslator
     }
 
     @Override
-    public ONTObject<OWLNegativeDataPropertyAssertionAxiom> toAxiom(OntStatement statement,
-                                                                    Supplier<OntGraphModel> model,
-                                                                    InternalObjectFactory factory,
-                                                                    InternalConfig config) {
+    public ONTObject<OWLNegativeDataPropertyAssertionAxiom> toAxiomImpl(OntStatement statement,
+                                                                        Supplier<OntGraphModel> model,
+                                                                        InternalObjectFactory factory,
+                                                                        InternalConfig config) {
         return AxiomImpl.create(statement, model, factory, config);
     }
 
     @Override
-    public ONTObject<OWLNegativeDataPropertyAssertionAxiom> toAxiom(OntStatement statement,
-                                                                    InternalObjectFactory factory,
-                                                                    InternalConfig config) {
+    public ONTObject<OWLNegativeDataPropertyAssertionAxiom> toAxiomWrap(OntStatement statement,
+                                                                        InternalObjectFactory factory,
+                                                                        InternalConfig config) {
         OntNPA.DataAssertion npa = statement.getSubject(getView());
         ONTObject<? extends OWLIndividual> s = factory.getIndividual(npa.getSource());
         ONTObject<OWLDataProperty> p = factory.getProperty(npa.getProperty());

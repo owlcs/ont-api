@@ -55,17 +55,17 @@ public class TransitiveObjectPropertyTranslator
     }
 
     @Override
-    public ONTObject<OWLTransitiveObjectPropertyAxiom> toAxiom(OntStatement statement,
-                                                               Supplier<OntGraphModel> model,
-                                                               InternalObjectFactory factory,
-                                                               InternalConfig config) {
+    public ONTObject<OWLTransitiveObjectPropertyAxiom> toAxiomImpl(OntStatement statement,
+                                                                   Supplier<OntGraphModel> model,
+                                                                   InternalObjectFactory factory,
+                                                                   InternalConfig config) {
         return AxiomImpl.create(statement, model, factory, config);
     }
 
     @Override
-    public ONTObject<OWLTransitiveObjectPropertyAxiom> toAxiom(OntStatement statement,
-                                                               InternalObjectFactory factory,
-                                                               InternalConfig config) {
+    public ONTObject<OWLTransitiveObjectPropertyAxiom> toAxiomWrap(OntStatement statement,
+                                                                   InternalObjectFactory factory,
+                                                                   InternalConfig config) {
         ONTObject<? extends OWLObjectPropertyExpression> p = factory.getProperty(getSubject(statement));
         Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);
         OWLTransitiveObjectPropertyAxiom res = factory.getOWLDataFactory()

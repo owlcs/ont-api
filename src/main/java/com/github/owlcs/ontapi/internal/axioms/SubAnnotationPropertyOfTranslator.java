@@ -81,17 +81,17 @@ public class SubAnnotationPropertyOfTranslator
     }
 
     @Override
-    public ONTObject<OWLSubAnnotationPropertyOfAxiom> toAxiom(OntStatement statement,
-                                                              Supplier<OntGraphModel> model,
-                                                              InternalObjectFactory factory,
-                                                              InternalConfig config) {
+    public ONTObject<OWLSubAnnotationPropertyOfAxiom> toAxiomImpl(OntStatement statement,
+                                                                  Supplier<OntGraphModel> model,
+                                                                  InternalObjectFactory factory,
+                                                                  InternalConfig config) {
         return AxiomImpl.create(statement, model, factory, config);
     }
 
     @Override
-    public ONTObject<OWLSubAnnotationPropertyOfAxiom> toAxiom(OntStatement statement,
-                                                              InternalObjectFactory factory,
-                                                              InternalConfig config) {
+    public ONTObject<OWLSubAnnotationPropertyOfAxiom> toAxiomWrap(OntStatement statement,
+                                                                  InternalObjectFactory factory,
+                                                                  InternalConfig config) {
         ONTObject<OWLAnnotationProperty> sub = factory.getProperty(statement.getSubject(OntNAP.class));
         ONTObject<OWLAnnotationProperty> sup = factory.getProperty(statement.getObject().as(OntNAP.class));
         Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);

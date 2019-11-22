@@ -621,7 +621,7 @@ public class InternalModel extends OntGraphModelImpl
         if (res == null) return Stream.empty();
         InternalObjectFactory df = getObjectFactory();
         OntStatement s = res.getRoot();
-        return s == null ? Stream.empty() : Stream.of(t.toAxiom(s, this::getSearchModel, df, getConfig())
+        return s == null ? Stream.empty() : Stream.of(t.toAxiomImpl(s, this::getSearchModel, df, getConfig())
                 .getOWLObject());
     }
 

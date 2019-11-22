@@ -76,17 +76,17 @@ public class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInvers
     }
 
     @Override
-    public ONTObject<OWLInverseObjectPropertiesAxiom> toAxiom(OntStatement statement,
-                                                              Supplier<OntGraphModel> model,
-                                                              InternalObjectFactory factory,
-                                                              InternalConfig config) {
+    public ONTObject<OWLInverseObjectPropertiesAxiom> toAxiomImpl(OntStatement statement,
+                                                                  Supplier<OntGraphModel> model,
+                                                                  InternalObjectFactory factory,
+                                                                  InternalConfig config) {
         return AxiomImpl.create(statement, model, factory, config);
     }
 
     @Override
-    public ONTObject<OWLInverseObjectPropertiesAxiom> toAxiom(OntStatement statement,
-                                                              InternalObjectFactory factory,
-                                                              InternalConfig config) {
+    public ONTObject<OWLInverseObjectPropertiesAxiom> toAxiomWrap(OntStatement statement,
+                                                                  InternalObjectFactory factory,
+                                                                  InternalConfig config) {
         ONTObject<? extends OWLObjectPropertyExpression> f = factory.getProperty(statement.getSubject(OntOPE.class));
         ONTObject<? extends OWLObjectPropertyExpression> s = factory.getProperty(statement.getObject(OntOPE.class));
         Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);

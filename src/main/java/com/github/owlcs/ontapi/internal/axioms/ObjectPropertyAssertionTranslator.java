@@ -14,10 +14,6 @@
 
 package com.github.owlcs.ontapi.internal.axioms;
 
-import org.apache.jena.graph.BlankNodeId;
-import org.apache.jena.graph.Triple;
-import org.apache.jena.util.iterator.ExtendedIterator;
-import org.semanticweb.owlapi.model.*;
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
@@ -27,6 +23,10 @@ import com.github.owlcs.ontapi.jena.model.OntGraphModel;
 import com.github.owlcs.ontapi.jena.model.OntIndividual;
 import com.github.owlcs.ontapi.jena.model.OntOPE;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
+import org.apache.jena.graph.BlankNodeId;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.util.iterator.ExtendedIterator;
+import org.semanticweb.owlapi.model.*;
 
 import java.util.Collection;
 import java.util.Set;
@@ -83,17 +83,17 @@ public class ObjectPropertyAssertionTranslator
     }
 
     @Override
-    public ONTObject<OWLObjectPropertyAssertionAxiom> toAxiom(OntStatement statement,
-                                                              Supplier<OntGraphModel> model,
-                                                              InternalObjectFactory factory,
-                                                              InternalConfig config) {
+    public ONTObject<OWLObjectPropertyAssertionAxiom> toAxiomImpl(OntStatement statement,
+                                                                  Supplier<OntGraphModel> model,
+                                                                  InternalObjectFactory factory,
+                                                                  InternalConfig config) {
         return AxiomImpl.create(statement, model, factory, config);
     }
 
     @Override
-    public ONTObject<OWLObjectPropertyAssertionAxiom> toAxiom(OntStatement statement,
-                                                              InternalObjectFactory factory,
-                                                              InternalConfig config) {
+    public ONTObject<OWLObjectPropertyAssertionAxiom> toAxiomWrap(OntStatement statement,
+                                                                  InternalObjectFactory factory,
+                                                                  InternalConfig config) {
         ONTObject<? extends OWLIndividual> subject = factory.getIndividual(statement.getSubject(OntIndividual.class));
         ONTObject<? extends OWLObjectPropertyExpression> property = factory.getProperty(statement.getPredicate()
                 .as(OntOPE.class));

@@ -52,17 +52,17 @@ public class AsymmetricObjectPropertyTranslator
     }
 
     @Override
-    public ONTObject<OWLAsymmetricObjectPropertyAxiom> toAxiom(OntStatement statement,
-                                                               Supplier<OntGraphModel> model,
-                                                               InternalObjectFactory factory,
-                                                               InternalConfig config) {
+    public ONTObject<OWLAsymmetricObjectPropertyAxiom> toAxiomImpl(OntStatement statement,
+                                                                   Supplier<OntGraphModel> model,
+                                                                   InternalObjectFactory factory,
+                                                                   InternalConfig config) {
         return AxiomImpl.create(statement, model, factory, config);
     }
 
     @Override
-    public ONTObject<OWLAsymmetricObjectPropertyAxiom> toAxiom(OntStatement statement,
-                                                               InternalObjectFactory factory,
-                                                               InternalConfig config) {
+    public ONTObject<OWLAsymmetricObjectPropertyAxiom> toAxiomWrap(OntStatement statement,
+                                                                   InternalObjectFactory factory,
+                                                                   InternalConfig config) {
         ONTObject<? extends OWLObjectPropertyExpression> p = factory.getProperty(getSubject(statement));
         Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);
         OWLAsymmetricObjectPropertyAxiom res = factory.getOWLDataFactory()

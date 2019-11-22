@@ -14,11 +14,6 @@
 
 package com.github.owlcs.ontapi.internal.axioms;
 
-import org.apache.jena.graph.Triple;
-import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.RDFList;
-import org.apache.jena.util.iterator.ExtendedIterator;
-import org.semanticweb.owlapi.model.*;
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.internal.InternalConfig;
@@ -29,6 +24,11 @@ import com.github.owlcs.ontapi.internal.objects.ONTClassImpl;
 import com.github.owlcs.ontapi.jena.model.*;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.RDFList;
+import org.apache.jena.util.iterator.ExtendedIterator;
+import org.semanticweb.owlapi.model.*;
 
 import java.util.Collection;
 import java.util.List;
@@ -71,17 +71,17 @@ public class DisjointUnionTranslator extends AbstractListBasedTranslator<OWLDisj
     }
 
     @Override
-    public ONTObject<OWLDisjointUnionAxiom> toAxiom(OntStatement statement,
-                                                    Supplier<OntGraphModel> model,
-                                                    InternalObjectFactory factory,
-                                                    InternalConfig config) {
+    public ONTObject<OWLDisjointUnionAxiom> toAxiomImpl(OntStatement statement,
+                                                        Supplier<OntGraphModel> model,
+                                                        InternalObjectFactory factory,
+                                                        InternalConfig config) {
         return AxiomImpl.create(statement, model, factory, config);
     }
 
     @Override
-    public ONTObject<OWLDisjointUnionAxiom> toAxiom(OntStatement statement,
-                                                    InternalObjectFactory factory,
-                                                    InternalConfig config) {
+    public ONTObject<OWLDisjointUnionAxiom> toAxiomWrap(OntStatement statement,
+                                                        InternalObjectFactory factory,
+                                                        InternalConfig config) {
         return makeAxiom(statement, factory::getClass, OntClass::findDisjointUnion, factory::getClass, Collectors.toSet(),
                 (s, m) -> factory.getOWLDataFactory().getOWLDisjointUnionAxiom(s.getOWLObject().asOWLClass(),
                         ONTObject.toSet(m),

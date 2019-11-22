@@ -14,9 +14,6 @@
 
 package com.github.owlcs.ontapi.internal.axioms;
 
-import org.apache.jena.graph.Triple;
-import org.apache.jena.rdf.model.Resource;
-import org.semanticweb.owlapi.model.*;
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
@@ -27,6 +24,9 @@ import com.github.owlcs.ontapi.jena.model.OntGraphModel;
 import com.github.owlcs.ontapi.jena.model.OntNDP;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.rdf.model.Resource;
+import org.semanticweb.owlapi.model.*;
 
 import java.util.Collection;
 import java.util.Set;
@@ -56,17 +56,17 @@ public class FunctionalDataPropertyTranslator
     }
 
     @Override
-    public ONTObject<OWLFunctionalDataPropertyAxiom> toAxiom(OntStatement statement,
-                                                             Supplier<OntGraphModel> model,
-                                                             InternalObjectFactory factory,
-                                                             InternalConfig config) {
+    public ONTObject<OWLFunctionalDataPropertyAxiom> toAxiomImpl(OntStatement statement,
+                                                                 Supplier<OntGraphModel> model,
+                                                                 InternalObjectFactory factory,
+                                                                 InternalConfig config) {
         return AxiomImpl.create(statement, model, factory, config);
     }
 
     @Override
-    public ONTObject<OWLFunctionalDataPropertyAxiom> toAxiom(OntStatement statement,
-                                                             InternalObjectFactory factory,
-                                                             InternalConfig config) {
+    public ONTObject<OWLFunctionalDataPropertyAxiom> toAxiomWrap(OntStatement statement,
+                                                                 InternalObjectFactory factory,
+                                                                 InternalConfig config) {
         ONTObject<OWLDataProperty> p = factory.getProperty(getSubject(statement));
         Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);
         OWLFunctionalDataPropertyAxiom res = factory.getOWLDataFactory()

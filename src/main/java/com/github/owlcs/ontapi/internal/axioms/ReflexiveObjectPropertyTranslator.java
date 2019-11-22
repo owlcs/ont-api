@@ -55,17 +55,17 @@ public class ReflexiveObjectPropertyTranslator
     }
 
     @Override
-    public ONTObject<OWLReflexiveObjectPropertyAxiom> toAxiom(OntStatement statement,
-                                                              Supplier<OntGraphModel> model,
-                                                              InternalObjectFactory factory,
-                                                              InternalConfig config) {
+    public ONTObject<OWLReflexiveObjectPropertyAxiom> toAxiomImpl(OntStatement statement,
+                                                                  Supplier<OntGraphModel> model,
+                                                                  InternalObjectFactory factory,
+                                                                  InternalConfig config) {
         return AxiomImpl.create(statement, model, factory, config);
     }
 
     @Override
-    public ONTObject<OWLReflexiveObjectPropertyAxiom> toAxiom(OntStatement statement,
-                                                              InternalObjectFactory factory,
-                                                              InternalConfig config) {
+    public ONTObject<OWLReflexiveObjectPropertyAxiom> toAxiomWrap(OntStatement statement,
+                                                                  InternalObjectFactory factory,
+                                                                  InternalConfig config) {
         ONTObject<? extends OWLObjectPropertyExpression> p = factory.getProperty(getSubject(statement));
         Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);
         OWLReflexiveObjectPropertyAxiom res = factory.getOWLDataFactory()

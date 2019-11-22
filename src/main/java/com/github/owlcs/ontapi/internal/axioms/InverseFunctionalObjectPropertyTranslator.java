@@ -56,17 +56,17 @@ public class InverseFunctionalObjectPropertyTranslator
     }
 
     @Override
-    public ONTObject<OWLInverseFunctionalObjectPropertyAxiom> toAxiom(OntStatement statement,
-                                                                      Supplier<OntGraphModel> model,
-                                                                      InternalObjectFactory factory,
-                                                                      InternalConfig config) {
+    public ONTObject<OWLInverseFunctionalObjectPropertyAxiom> toAxiomImpl(OntStatement statement,
+                                                                          Supplier<OntGraphModel> model,
+                                                                          InternalObjectFactory factory,
+                                                                          InternalConfig config) {
         return AxiomImpl.create(statement, model, factory, config);
     }
 
     @Override
-    public ONTObject<OWLInverseFunctionalObjectPropertyAxiom> toAxiom(OntStatement statement,
-                                                                      InternalObjectFactory factory,
-                                                                      InternalConfig config) {
+    public ONTObject<OWLInverseFunctionalObjectPropertyAxiom> toAxiomWrap(OntStatement statement,
+                                                                          InternalObjectFactory factory,
+                                                                          InternalConfig config) {
         ONTObject<? extends OWLObjectPropertyExpression> p = factory.getProperty(getSubject(statement));
         Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);
         OWLInverseFunctionalObjectPropertyAxiom res = factory.getOWLDataFactory()

@@ -56,17 +56,17 @@ public class FunctionalObjectPropertyTranslator
     }
 
     @Override
-    public ONTObject<OWLFunctionalObjectPropertyAxiom> toAxiom(OntStatement statement,
-                                                               Supplier<OntGraphModel> model,
-                                                               InternalObjectFactory factory,
-                                                               InternalConfig config) {
+    public ONTObject<OWLFunctionalObjectPropertyAxiom> toAxiomImpl(OntStatement statement,
+                                                                   Supplier<OntGraphModel> model,
+                                                                   InternalObjectFactory factory,
+                                                                   InternalConfig config) {
         return AxiomImpl.create(statement, model, factory, config);
     }
 
     @Override
-    public ONTObject<OWLFunctionalObjectPropertyAxiom> toAxiom(OntStatement statement,
-                                                               InternalObjectFactory factory,
-                                                               InternalConfig config) {
+    public ONTObject<OWLFunctionalObjectPropertyAxiom> toAxiomWrap(OntStatement statement,
+                                                                   InternalObjectFactory factory,
+                                                                   InternalConfig config) {
         ONTObject<? extends OWLObjectPropertyExpression> p = factory.getProperty(getSubject(statement));
         Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);
         OWLFunctionalObjectPropertyAxiom res = factory.getOWLDataFactory()

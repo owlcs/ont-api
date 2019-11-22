@@ -81,17 +81,17 @@ public class DisjointObjectPropertiesTranslator
     }
 
     @Override
-    public ONTObject<OWLDisjointObjectPropertiesAxiom> toAxiom(OntStatement statement,
-                                                               Supplier<OntGraphModel> model,
-                                                               InternalObjectFactory factory,
-                                                               InternalConfig config) {
+    public ONTObject<OWLDisjointObjectPropertiesAxiom> toAxiomImpl(OntStatement statement,
+                                                                   Supplier<OntGraphModel> model,
+                                                                   InternalObjectFactory factory,
+                                                                   InternalConfig config) {
         return AxiomImpl.create(statement, model, factory, config);
     }
 
     @Override
-    public ONTObject<OWLDisjointObjectPropertiesAxiom> toAxiom(OntStatement statement,
-                                                               InternalObjectFactory factory,
-                                                               InternalConfig config) {
+    public ONTObject<OWLDisjointObjectPropertiesAxiom> toAxiomWrap(OntStatement statement,
+                                                                   InternalObjectFactory factory,
+                                                                   InternalConfig config) {
         return makeAxiom(statement, factory.getAnnotations(statement, config),
                 factory::getProperty,
                 (members, annotations) -> factory.getOWLDataFactory()

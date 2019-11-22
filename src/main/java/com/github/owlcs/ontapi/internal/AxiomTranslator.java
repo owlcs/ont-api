@@ -159,24 +159,24 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
                                                            Supplier<OntGraphModel> model,
                                                            InternalObjectFactory factory,
                                                            InternalConfig config) {
-        boolean withDefault = factory == InternalObjectFactory.DEFAULT || config == InternalConfig.DEFAULT;
+        boolean hasDefault = factory == InternalObjectFactory.DEFAULT || config == InternalConfig.DEFAULT;
         if (config.isSplitAxiomAnnotations()) {
             // When the spit-setting is true, we cannot always provide an ONTStatement based axiom,
             // because a mapping statement to axiom becomes ambiguous:
             // the same triple may correspond different axiom-instances
             // So, currently there is only one solution - need to use wrappers instead of model-impls
             return Iter.flatMap(statements, s -> {
-                if (withDefault) {
-                    return OntModels.listSplitStatements(s).mapWith(x -> toAxiom(x, factory, config));
+                if (hasDefault) {
+                    return OntModels.listSplitStatements(s).mapWith(x -> toAxiomWrap(x, factory, config));
                 }
                 List<OntStatement> sts = OntModels.listSplitStatements(s).toList();
                 if (sts.size() == 1) { // unambiguous mapping
-                    return Iter.of(toAxiom(s, model, factory, config));
+                    return Iter.of(toAxiomImpl(s, model, factory, config));
                 }
-                return Iter.create(sts).mapWith(x -> toAxiom(x, factory, config));
+                return Iter.create(sts).mapWith(x -> toAxiomWrap(x, factory, config));
             });
         }
-        return statements.mapWith(s -> withDefault ? toAxiom(s, factory, config) : toAxiom(s, model, factory, config));
+        return statements.mapWith(s -> hasDefault ? toAxiomWrap(s, factory, config) : toAxiomImpl(s, model, factory, config));
     }
 
     /**
@@ -211,11 +211,11 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
         OntGraphModel m = statement.getModel();
         if (m instanceof HasConfig && m instanceof HasObjectFactory) {
             // use ONTObject implementations:
-            return toAxiom(statement, () -> m,
+            return toAxiomImpl(statement, () -> m,
                     ((HasObjectFactory) m).getObjectFactory(), ((HasConfig) m).getConfig());
         }
         // use ONTWrapper:
-        return toAxiom(statement, getObjectFactory(statement.getModel()), getConfig(statement.getModel()));
+        return toAxiomWrap(statement, getObjectFactory(statement.getModel()), getConfig(statement.getModel()));
     }
 
     /**
@@ -248,9 +248,9 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * @return {@link ONTObject} around {@link OWLAxiom}
      * @throws JenaException if no possible to get an axiom from the statement
      */
-    protected abstract ONTObject<Axiom> toAxiom(OntStatement statement,
-                                                InternalObjectFactory factory,
-                                                InternalConfig config) throws JenaException;
+    protected abstract ONTObject<Axiom> toAxiomWrap(OntStatement statement,
+                                                    InternalObjectFactory factory,
+                                                    InternalConfig config) throws JenaException;
 
     /**
      * Creates an OWL Axiom impl from a statement.
@@ -265,8 +265,8 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * @throws JenaException if no possible to get axiom from the statement
      * @since 2.0.0
      */
-    protected abstract ONTObject<Axiom> toAxiom(OntStatement statement,
-                                                Supplier<OntGraphModel> model,
-                                                InternalObjectFactory factory,
-                                                InternalConfig config) throws JenaException;
+    protected abstract ONTObject<Axiom> toAxiomImpl(OntStatement statement,
+                                                    Supplier<OntGraphModel> model,
+                                                    InternalObjectFactory factory,
+                                                    InternalConfig config) throws JenaException;
 }

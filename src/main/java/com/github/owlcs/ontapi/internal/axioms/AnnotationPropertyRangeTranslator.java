@@ -74,17 +74,17 @@ public class AnnotationPropertyRangeTranslator
     }
 
     @Override
-    public ONTObject<OWLAnnotationPropertyRangeAxiom> toAxiom(OntStatement statement,
-                                                              Supplier<OntGraphModel> model,
-                                                              InternalObjectFactory factory,
-                                                              InternalConfig config) {
+    public ONTObject<OWLAnnotationPropertyRangeAxiom> toAxiomImpl(OntStatement statement,
+                                                                  Supplier<OntGraphModel> model,
+                                                                  InternalObjectFactory factory,
+                                                                  InternalConfig config) {
         return AxiomImpl.create(statement, model, factory, config);
     }
 
     @Override
-    public ONTObject<OWLAnnotationPropertyRangeAxiom> toAxiom(OntStatement statement,
-                                                              InternalObjectFactory factory,
-                                                              InternalConfig config) {
+    public ONTObject<OWLAnnotationPropertyRangeAxiom> toAxiomWrap(OntStatement statement,
+                                                                  InternalObjectFactory factory,
+                                                                  InternalConfig config) {
         ONTObject<OWLAnnotationProperty> p = factory.getProperty(statement.getSubject(getView()));
         ONTObject<IRI> d = factory.getIRI(statement.getResource().getURI());
         Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);

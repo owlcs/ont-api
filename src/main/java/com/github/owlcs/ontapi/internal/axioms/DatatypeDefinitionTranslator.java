@@ -67,17 +67,17 @@ public class DatatypeDefinitionTranslator extends AxiomTranslator<OWLDatatypeDef
     }
 
     @Override
-    public ONTObject<OWLDatatypeDefinitionAxiom> toAxiom(OntStatement statement,
-                                                         Supplier<OntGraphModel> model,
-                                                         InternalObjectFactory factory,
-                                                         InternalConfig config) {
+    public ONTObject<OWLDatatypeDefinitionAxiom> toAxiomImpl(OntStatement statement,
+                                                             Supplier<OntGraphModel> model,
+                                                             InternalObjectFactory factory,
+                                                             InternalConfig config) {
         return AxiomImpl.create(statement, model, factory, config);
     }
 
     @Override
-    public ONTObject<OWLDatatypeDefinitionAxiom> toAxiom(OntStatement statement,
-                                                         InternalObjectFactory factory,
-                                                         InternalConfig config) {
+    public ONTObject<OWLDatatypeDefinitionAxiom> toAxiomWrap(OntStatement statement,
+                                                             InternalObjectFactory factory,
+                                                             InternalConfig config) {
         ONTObject<OWLDatatype> dt = factory.getDatatype(statement.getSubject(OntDT.class));
         ONTObject<? extends OWLDataRange> dr = factory.getDatatype(statement.getObject(OntDR.class));
         Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);

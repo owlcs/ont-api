@@ -60,17 +60,17 @@ public class SameIndividualTranslator
     }
 
     @Override
-    public ONTObject<OWLSameIndividualAxiom> toAxiom(OntStatement statement,
-                                                     Supplier<OntGraphModel> model,
-                                                     InternalObjectFactory factory,
-                                                     InternalConfig config) {
+    public ONTObject<OWLSameIndividualAxiom> toAxiomImpl(OntStatement statement,
+                                                         Supplier<OntGraphModel> model,
+                                                         InternalObjectFactory factory,
+                                                         InternalConfig config) {
         return AxiomImpl.create(statement, model, factory, config);
     }
 
     @Override
-    public ONTObject<OWLSameIndividualAxiom> toAxiom(OntStatement statement,
-                                                     InternalObjectFactory factory,
-                                                     InternalConfig config) {
+    public ONTObject<OWLSameIndividualAxiom> toAxiomWrap(OntStatement statement,
+                                                         InternalObjectFactory factory,
+                                                         InternalConfig config) {
         ONTObject<? extends OWLIndividual> a = factory.getIndividual(statement.getSubject(getView()));
         ONTObject<? extends OWLIndividual> b = factory.getIndividual(statement.getObject().as(getView()));
         Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);

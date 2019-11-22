@@ -72,17 +72,17 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
     }
 
     @Override
-    public ONTObject<OWLSubClassOfAxiom> toAxiom(OntStatement statement,
-                                                 Supplier<OntGraphModel> model,
-                                                 InternalObjectFactory factory,
-                                                 InternalConfig config) {
+    public ONTObject<OWLSubClassOfAxiom> toAxiomImpl(OntStatement statement,
+                                                     Supplier<OntGraphModel> model,
+                                                     InternalObjectFactory factory,
+                                                     InternalConfig config) {
         return AxiomImpl.create(statement, model, factory, config);
     }
 
     @Override
-    public ONTObject<OWLSubClassOfAxiom> toAxiom(OntStatement statement,
-                                                 InternalObjectFactory factory,
-                                                 InternalConfig config) {
+    public ONTObject<OWLSubClassOfAxiom> toAxiomWrap(OntStatement statement,
+                                                     InternalObjectFactory factory,
+                                                     InternalConfig config) {
         ONTObject<? extends OWLClassExpression> sub = factory.getClass(statement.getSubject(OntCE.class));
         ONTObject<? extends OWLClassExpression> sup = factory.getClass(statement.getObject().as(OntCE.class));
         Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);
