@@ -14,19 +14,30 @@
 
 package com.github.owlcs.ontapi.tests.jena;
 
+import com.github.andrewoma.dexx.collection.Sets;
+import com.github.owlcs.ontapi.jena.RWLockedGraph;
+import com.github.owlcs.ontapi.jena.UnionGraph;
+import com.github.owlcs.ontapi.jena.utils.Graphs;
+import com.github.owlcs.ontapi.utils.SpinModels;
 import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.graph.compose.MultiUnion;
+import org.apache.jena.graph.impl.GraphBase;
 import org.apache.jena.graph.impl.WrappedGraph;
+import org.apache.jena.mem.GraphMem;
+import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.GraphWrapper;
+import org.apache.jena.util.iterator.ExtendedIterator;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.github.owlcs.ontapi.jena.UnionGraph;
-import com.github.owlcs.ontapi.jena.utils.Graphs;
-import com.github.owlcs.ontapi.utils.SpinModels;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -67,5 +78,96 @@ public class GraphUtilsTest {
     private static Stream<Graph> flat(Graph graph) {
         if (graph == null) return Stream.empty();
         return Stream.concat(Stream.of(Graphs.getBase(graph)), Graphs.subGraphs(graph).flatMap(GraphUtilsTest::flat));
+    }
+
+    @Test
+    public void testIsSized() {
+        Assert.assertTrue(Graphs.isSized(new GraphMem()));
+        Assert.assertTrue(Graphs.isSized(new UnionGraph(new GraphMem())));
+        Assert.assertTrue(Graphs.isSized(new UnionGraph(new RWLockedGraph(new GraphMem(), new ReentrantReadWriteLock()))));
+
+        UnionGraph u1 = new UnionGraph(new GraphMem());
+        u1.addGraph(u1);
+        Assert.assertFalse(Graphs.isSized(u1));
+
+        Graph g = new GraphBase() {
+            @Override
+            protected ExtendedIterator<Triple> graphBaseFind(Triple tp) {
+                throw new AssertionError();
+            }
+        };
+        Assert.assertFalse(Graphs.isSized(g));
+    }
+
+    @Test
+    public void testIsDistinct() {
+        Assert.assertTrue(Graphs.isDistinct(new GraphMem()));
+        Assert.assertTrue(Graphs.isDistinct(new UnionGraph(new GraphMem())));
+        Assert.assertTrue(Graphs.isDistinct(new UnionGraph(new RWLockedGraph(new GraphMem(), new ReentrantReadWriteLock()))));
+
+        UnionGraph u1 = new UnionGraph(new GraphMem(), false);
+        Assert.assertTrue(Graphs.isDistinct(u1));
+
+        u1.addGraph(new GraphMem());
+        Assert.assertFalse(Graphs.isDistinct(u1));
+
+        Graph g = new GraphBase() {
+            @Override
+            protected ExtendedIterator<Triple> graphBaseFind(Triple tp) {
+                throw new AssertionError();
+            }
+        };
+        Assert.assertFalse(Graphs.isDistinct(g));
+    }
+
+    @Test
+    public void testIsSame() {
+        GraphMem g = new GraphMem();
+        Assert.assertTrue(Graphs.isSameBase(g, g));
+
+        Graph a = new UnionGraph(new GraphWrapper(new GraphWrapper(g)));
+        Assert.assertTrue(Graphs.isSameBase(a, g));
+
+        MultiUnion b = new MultiUnion();
+        b.addGraph(g);
+        b.addGraph(new GraphMem());
+        Assert.assertTrue(Graphs.isSameBase(a, b));
+
+        UnionGraph c = new UnionGraph(new RWLockedGraph(g, new ReentrantReadWriteLock()));
+        Assert.assertTrue(Graphs.isSameBase(a, c));
+
+        Assert.assertFalse(Graphs.isSameBase(g, new GraphMem()));
+
+        Graph d = new UnionGraph(new WrappedGraph(new WrappedGraph(g)));
+        Assert.assertFalse(Graphs.isSameBase(a, d));
+
+        Assert.assertFalse(Graphs.isSameBase(new UnionGraph(g), new UnionGraph(new GraphMem())));
+
+        MultiUnion e = new MultiUnion();
+        e.addGraph(new GraphMem());
+        e.addGraph(g);
+        Assert.assertFalse(Graphs.isSameBase(b, e));
+    }
+
+    @Test
+    public void testCollectPrefixes() {
+        Graph a = new GraphMem();
+        Graph b = new GraphMem();
+        Graph c = new GraphMem();
+        a.getPrefixMapping().setNsPrefix("a1", "x1").setNsPrefix("a2", "x2");
+        b.getPrefixMapping().setNsPrefix("b1", "x3");
+        c.getPrefixMapping().setNsPrefix("b2", "x4");
+
+        Assert.assertEquals(4, Graphs.collectPrefixes(Arrays.asList(a, b, c)).numPrefixes());
+        Assert.assertEquals(3, Graphs.collectPrefixes(Arrays.asList(a, b)).numPrefixes());
+        Assert.assertEquals(2, Graphs.collectPrefixes(Arrays.asList(b, c)).numPrefixes());
+        Assert.assertEquals(1, Graphs.collectPrefixes(Collections.singleton(b)).numPrefixes());
+
+        try {
+            Graphs.collectPrefixes(Sets.of(b, c)).setNsPrefix("X", "x");
+            Assert.fail();
+        } catch (PrefixMapping.JenaLockedException j) {
+            // expected
+        }
     }
 }

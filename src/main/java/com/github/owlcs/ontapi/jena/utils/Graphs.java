@@ -14,6 +14,11 @@
 
 package com.github.owlcs.ontapi.jena.utils;
 
+import com.github.owlcs.ontapi.jena.RWLockedGraph;
+import com.github.owlcs.ontapi.jena.UnionGraph;
+import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import org.apache.jena.graph.*;
 import org.apache.jena.graph.compose.Dyadic;
 import org.apache.jena.graph.compose.Polyadic;
@@ -24,11 +29,6 @@ import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.GraphWrapper;
 import org.apache.jena.sparql.util.graph.GraphUtils;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import com.github.owlcs.ontapi.jena.RWLockedGraph;
-import com.github.owlcs.ontapi.jena.UnionGraph;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
-import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 
 import java.io.StringWriter;
 import java.util.*;
@@ -46,7 +46,7 @@ import java.util.stream.Stream;
  * @see GraphUtil
  * @see GraphUtils
  */
-@SuppressWarnings({"WeakerAccess", "unused"})
+@SuppressWarnings({"WeakerAccess"})
 public class Graphs {
 
     public static final String NULL_ONTOLOGY_IDENTIFIER = "NullOntology";
@@ -83,7 +83,7 @@ public class Graphs {
      * Extracts the base (primary) primitive graph from a composite or wrapper graph if it is possible
      * otherwise returns the same graph untouched.
      * Warning: this is a recursive method.
-     * The {@link org.apache.jena.graph.impl.WrappedGraph} is intentionally not included into the consideration:
+     * Note: the {@link org.apache.jena.graph.impl.WrappedGraph} is intentionally not included into the consideration:
      * any sub-instances of that class are considered as indivisible.
      *
      * @param graph {@link Graph}
@@ -170,10 +170,7 @@ public class Graphs {
         }
         if (graph instanceof UnionGraph) {
             UnionGraph u = (UnionGraph) graph;
-            if (u.isDistinct()) {
-                return true;
-            }
-            return u.getUnderlying().isEmpty() && isDistinct(((UnionGraph) graph).getBaseGraph());
+            return u.isDistinct() || u.getUnderlying().isEmpty() && isDistinct(getBase(u));
         }
         return false;
     }
@@ -181,6 +178,8 @@ public class Graphs {
     /**
      * Answers {@code true} iff the given {@code graph} has known size
      * and therefore the operation {@code graph.size()} does not take significant efforts.
+     * Composite graphs are considered as sized only if they relays on a single base graph,
+     * since their sizes are not always a sum of parts size.
      *
      * @param graph {@link Graph} to test
      * @return boolean if {@code graph} is sized
@@ -194,7 +193,7 @@ public class Graphs {
         }
         if (graph instanceof UnionGraph) {
             UnionGraph u = (UnionGraph) graph;
-            return u.getUnderlying().isEmpty() && isSized(((UnionGraph) graph).getBaseGraph());
+            return u.getUnderlying().isEmpty() && isSized(getBase(u));
         }
         return false;
     }
@@ -335,9 +334,9 @@ public class Graphs {
      * @return {@link Comparator}
      */
     public static Comparator<Node> rootNodeComparator(Graph graph) {
-        return ((Comparator<Node>) (a, b) -> Boolean.compare(b.isURI(), a.isURI()))
-                .thenComparing(Comparator.comparingInt((Node subj) ->
-                        graph.find(subj, Node.ANY, Node.ANY).toList().size()).reversed());
+        return Comparator.comparing(Node::isURI).reversed()
+                .thenComparing(Comparator.comparingInt((Node x) ->
+                        graph.find(x, Node.ANY, Node.ANY).toList().size()).reversed());
     }
 
     /**
@@ -570,57 +569,4 @@ public class Graphs {
         return Iter.create(() -> Collections.unmodifiableSet(Iter.flatMap(g.find(),
                 t -> Iter.of(t.getSubject(), t.getPredicate(), t.getObject())).toSet()).iterator());
     }
-
-    /**
-     * Lists all graphs from the composite or wrapper graph
-     * including the base as flat stream of non-composite (primitive) graphs.
-     *
-     * @param graph {@link Graph}
-     * @return {@code Stream} of {@link Graph}
-     * @deprecated since 1.4.2: use the method {@link #baseGraphs(Graph)} instead
-     */
-    @Deprecated
-    public static Stream<Graph> flat(Graph graph) {
-        return baseGraphs(graph);
-    }
-
-    /**
-     * Lists all unique nodes in the given graph.
-     * Warning: the result is stored in-memory!
-     *
-     * @param g {@link Graph}, not {@code null}
-     * @return an {@link ExtendedIterator Extended Iterator} (<b>distinct</b>) of all nodes in the graph
-     * @deprecated since 1.4.2: use the method {@link #listAllNodes(Graph)} instead
-     */
-    @Deprecated
-    public static ExtendedIterator<Node> all(Graph g) {
-        return listAllNodes(g);
-    }
-
-    /**
-     * Lists all unique subject nodes in the given graph.
-     * Warning: the result is stored in-memory!
-     *
-     * @param g {@link Graph}
-     * @return an {@link ExtendedIterator Extended Iterator} (distinct) of all subjects in the graph
-     * @deprecated since 1.4.2: use the method {@link #listSubjects(Graph)} instead
-     */
-    @Deprecated
-    public static ExtendedIterator<Node> subjects(Graph g) {
-        return listSubjects(g);
-    }
-
-    /**
-     * Lists all unique nodes in the given graph, which are used as subject or object.
-     * Warning: the result is temporary stored in-memory!
-     *
-     * @param g {@link Graph}, not {@code null}
-     * @return an {@link ExtendedIterator Extended Iterator} (distinct) of all subjects or objects in the graph
-     * @deprecated since 1.4.2: use the method {@link #listSubjectsAndObjects(Graph)} instead
-     */
-    @Deprecated
-    public static ExtendedIterator<Node> subjectsAndObjects(Graph g) {
-        return listSubjectsAndObjects(g);
-    }
-
 }
