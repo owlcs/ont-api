@@ -36,7 +36,7 @@ import static com.github.owlcs.ontapi.internal.OWLComponentType.*;
  * the declarations and widely used axioms go first, which is good for the data-factory and other caching mechanisms.
  */
 public enum OWLContentType {
-    // a header annotation
+    // an ontology header annotations
     ANNOTATION(null, false, ANNOTATION_PROPERTY, LITERAL, ANONYMOUS_INDIVIDUAL, IRI) {
         @Override
         public boolean isAxiom() {
@@ -53,6 +53,19 @@ public enum OWLContentType {
                                                                         InternalObjectFactory f,
                                                                         InternalConfig c) {
             return ReadHelper.listOWLAnnotations(m.get().getID(), f);
+        }
+
+        @Override
+        Optional<? extends ONTObject<? extends OWLObject>> find(Supplier<OntGraphModel> m,
+                                                                InternalObjectFactory f,
+                                                                InternalConfig c,
+                                                                OWLObject key) {
+            return Iter.findFirst(read(m, f, c).filterKeep(x -> x.getOWLObject().equals(key)));
+        }
+
+        @Override
+        boolean has(Supplier<OntGraphModel> m, InternalObjectFactory f, InternalConfig c, OWLObject key) {
+            return find(m, f, c, key).isPresent();
         }
 
         @Override
@@ -301,7 +314,38 @@ public enum OWLContentType {
     ExtendedIterator<? extends ONTObject<? extends OWLObject>> read(Supplier<OntGraphModel> m,
                                                                     InternalObjectFactory f,
                                                                     InternalConfig c) {
-        return getTranslator().listAxioms(m, f, c);
+        return getRawTranslator().listAxioms(m, f, c);
+    }
+
+    /**
+     * Answers an {@code Optional} {@link ONTObject}, that corresponds to the given {@code OWLObject}-key.
+     *
+     * @param m   a facility to get {@link OntGraphModel Model}, to search over, not {@code null}
+     * @param f   {@link InternalObjectFactory} to construct OWL-API Objects, not {@code null}
+     * @param c   {@link InternalConfig} to configure and control the process, not {@code null}
+     * @param key - an {@link OWLObject}, must correspond to this enum-type, not {@code null}
+     * @return {@link Optional}, possible empty
+     */
+    Optional<? extends ONTObject<? extends OWLObject>> find(Supplier<OntGraphModel> m,
+                                                            InternalObjectFactory f,
+                                                            InternalConfig c,
+                                                            OWLObject key) {
+        OWLAxiom k = (OWLAxiom) key;
+        return getRawTranslator().findAxiom(m, f, c, k);
+    }
+
+    /**
+     * Answers {@code true} iff the given {@code OWLObject} is present in the graph.
+     *
+     * @param m   a facility to get {@link OntGraphModel Model}, to search over, not {@code null}
+     * @param f   {@link InternalObjectFactory} to construct OWL-API Objects, not {@code null}
+     * @param c   {@link InternalConfig} to configure and control the process, not {@code null}
+     * @param key - an {@link OWLObject}, must correspond to this enum-type, not {@code null}
+     * @return boolean
+     */
+    boolean has(Supplier<OntGraphModel> m, InternalObjectFactory f, InternalConfig c, OWLObject key) {
+        OWLAxiom k = (OWLAxiom) key;
+        return getRawTranslator().containsAxiom(m, f, c, k);
     }
 
     /**
@@ -310,9 +354,8 @@ public enum OWLContentType {
      * @param m     {@link OntGraphModel ONT-API Jena Model}, to modify
      * @param value {@link OWLObject} - either {@link OWLAxiom} or {@link OWLAnnotation}, to write
      */
-    @SuppressWarnings("unchecked")
     void write(OntGraphModel m, OWLObject value) {
-        ((AxiomTranslator<OWLAxiom>) getTranslator()).write((OWLAxiom) value, m);
+        getRawTranslator().write((OWLAxiom) value, m);
     }
 
     /**
@@ -320,8 +363,19 @@ public enum OWLContentType {
      *
      * @return {@link AxiomTranslator}
      */
-    AxiomTranslator<? extends OWLAxiom> getTranslator() {
+    private AxiomTranslator<OWLAxiom> getRawTranslator() {
         return AxiomParserProvider.get(type);
+    }
+
+    /**
+     * Provides a translator - the facility to read/write {@link OWLAxiom} in/from a graph.
+     *
+     * @param <X> a subtype of {@link OWLAxiom} that corresponds to <b>this</b> enum-type
+     * @return {@link AxiomTranslator}
+     */
+    @SuppressWarnings("unchecked")
+    <X extends AxiomTranslator<? extends OWLAxiom>> X getTranslator() {
+        return (X) getRawTranslator();
     }
 
 }

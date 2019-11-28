@@ -14,14 +14,15 @@
 
 package com.github.owlcs.ontapi.internal;
 
+import com.github.owlcs.ontapi.jena.utils.Iter;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLObject;
-import com.github.owlcs.ontapi.jena.utils.Iter;
 
 import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -31,28 +32,34 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("WeakerAccess")
 public class DirectObjectMapImpl<X extends OWLObject> implements ObjectMap<X> {
-    private final Supplier<Iterator<ONTObject<X>>> loader;
-    private final Function<X, Optional<ONTObject<X>>> finder;
+    private final Supplier<Iterator<ONTObject<X>>> list;
+    private final Function<X, Optional<ONTObject<X>>> find;
+    private final Predicate<X> contains;
 
     /**
-     * Creates a direct {@link ObjectMap} instance with default finder.
+     * Creates a direct {@link ObjectMap} instance with default behaviour specified by the given {@code loader}.
      *
      * @param loader {@code Supplier}, that provides a {@code Stream} of {@link ONTObject}s, not {@code null}
      */
     public DirectObjectMapImpl(Supplier<Iterator<ONTObject<X>>> loader) {
         this(Objects.requireNonNull(loader),
-                k -> Iter.findFirst(Iter.create(loader.get()).filterKeep(x -> x.getOWLObject().equals(k))));
+                k -> Iter.findFirst(Iter.create(loader.get()).filterKeep(x -> x.getOWLObject().equals(k))),
+                k -> Iter.findFirst(loader.get()).isPresent());
     }
 
     /**
      * Creates a direct {@link ObjectMap} instance.
      *
      * @param loader {@code Supplier}, that provides a {@code Stream} of {@link ONTObject}s, not {@code null}
-     * @param finder {@code Function}, that maps a {@link OWLObject}-key to {@link ONTObject}-value, not {@code null}
+     * @param finder {@code Function}, that maps an {@link OWLObject}-key to {@link ONTObject}-value, not {@code null}
+     * @param tester {@code Predicate}, that tests if an {@link OWLObject}-key is present in this map, not {@code null}
      */
-    public DirectObjectMapImpl(Supplier<Iterator<ONTObject<X>>> loader, Function<X, Optional<ONTObject<X>>> finder) {
-        this.loader = Objects.requireNonNull(loader);
-        this.finder = Objects.requireNonNull(finder);
+    public DirectObjectMapImpl(Supplier<Iterator<ONTObject<X>>> loader,
+                               Function<X, Optional<ONTObject<X>>> finder,
+                               Predicate<X> tester) {
+        this.list = Objects.requireNonNull(loader);
+        this.find = Objects.requireNonNull(finder);
+        this.contains = Objects.requireNonNull(tester);
     }
 
     /**
@@ -61,7 +68,7 @@ public class DirectObjectMapImpl<X extends OWLObject> implements ObjectMap<X> {
      * @return {@code ExtendedIterator} over all {@link ONTObject}s
      */
     public ExtendedIterator<ONTObject<X>> listONTObjects() {
-        return Iter.create(loader.get());
+        return Iter.create(list.get());
     }
 
     /**
@@ -71,7 +78,7 @@ public class DirectObjectMapImpl<X extends OWLObject> implements ObjectMap<X> {
      * @return {@code Optional} of {@link ONTObject}
      */
     public Optional<ONTObject<X>> findONTObject(X key) {
-        return finder.apply(key);
+        return find.apply(key);
     }
 
     @Override
@@ -86,7 +93,7 @@ public class DirectObjectMapImpl<X extends OWLObject> implements ObjectMap<X> {
 
     @Override
     public boolean contains(X key) {
-        return findONTObject(key).isPresent();
+        return contains.test(key);
     }
 
     @Override

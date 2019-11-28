@@ -616,7 +616,7 @@ public class InternalModel extends OntGraphModelImpl
             return listOWLAxioms(OWLDeclarationAxiom.class).filter(a -> e.equals(a.getEntity()));
         }
         // in the case of a large ontology, the direct traverse over the graph works significantly faster:
-        DeclarationTranslator t = (DeclarationTranslator) OWLContentType.DECLARATION.getTranslator();
+        DeclarationTranslator t = OWLContentType.DECLARATION.getTranslator();
         OntEntity res = getSearchModel().findNodeAs(WriteHelper.toResource(e).asNode(), WriteHelper.getEntityType(e));
         if (res == null) return Stream.empty();
         InternalObjectFactory df = getObjectFactory();
@@ -639,7 +639,7 @@ public class InternalModel extends OntGraphModelImpl
             return listOWLAxioms(OWLAnnotationAssertionAxiom.class).filter(a -> s.equals(a.getSubject()));
         }
         InternalObjectFactory df = getObjectFactory();
-        AnnotationAssertionTranslator t = (AnnotationAssertionTranslator) OWLContentType.ANNOTATION_ASSERTION.getTranslator();
+        AnnotationAssertionTranslator t = OWLContentType.ANNOTATION_ASSERTION.getTranslator();
         ExtendedIterator<OntStatement> res = getSearchModel()
                 .listLocalStatements(WriteHelper.toResource(s), null, null)
                 .filterKeep(x -> t.testStatement(x, getConfig()));
@@ -659,7 +659,7 @@ public class InternalModel extends OntGraphModelImpl
             return listOWLAxioms(OWLSubClassOfAxiom.class).filter(a -> Objects.equals(a.getSubClass(), sub));
         }
         InternalObjectFactory df = getObjectFactory();
-        SubClassOfTranslator t = (SubClassOfTranslator) OWLContentType.SUBCLASS_OF.getTranslator();
+        SubClassOfTranslator t = OWLContentType.SUBCLASS_OF.getTranslator();
         ExtendedIterator<OntStatement> res = getSearchModel()
                 .listLocalStatements(WriteHelper.toResource(sub), RDFS.subClassOf, null)
                 .filterKeep(t::filter);
@@ -681,7 +681,7 @@ public class InternalModel extends OntGraphModelImpl
         }
         InternalObjectFactory df = getObjectFactory();
         OntGraphModelImpl m = getSearchModel();
-        EquivalentClassesTranslator t = (EquivalentClassesTranslator) OWLContentType.EQUIVALENT_CLASSES.getTranslator();
+        EquivalentClassesTranslator t = OWLContentType.EQUIVALENT_CLASSES.getTranslator();
         Resource r = WriteHelper.toResource(c);
         ExtendedIterator<OntStatement> res = m.listLocalStatements(r, OWL.equivalentClass, null)
                 .andThen(m.listLocalStatements(null, OWL.equivalentClass, r))
@@ -1491,9 +1491,9 @@ public class InternalModel extends OntGraphModelImpl
                 () -> (Iterator<ONTObject<OWLObject>>) key.read(m, df, getConfig());
         InternalConfig conf = getConfig();
         if (!conf.useContentCache()) {
-            // todo: need a straight way to find ONTObject by OWLObject,
-            //  the default one is extremely inefficient
-            return new DirectObjectMapImpl<>(loader);
+            return new DirectObjectMapImpl<>(loader,
+                    k -> (Optional<ONTObject<OWLObject>>) key.find(m, df, getConfig(), k),
+                    k -> key.has(m, df, getConfig(), k));
         }
         boolean parallel = conf.parallel();
         boolean fastIterator = conf.useIteratorCache();
