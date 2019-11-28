@@ -12,11 +12,10 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 
-/**
- *
- */
 package com.github.owlcs.owlapi.tests.rio;
 
+import com.github.owlcs.owlapi.OWLManager;
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
 import org.eclipse.rdf4j.model.vocabulary.OWL;
@@ -31,8 +30,6 @@ import org.junit.Test;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.rio.*;
-import com.github.owlcs.owlapi.OWLManager;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -203,8 +200,9 @@ public class RioRendererTestCase extends TestBase {
         // actual length depends on the length of dynamically assigned blank
         // node identifiers, so we
         // only test a minimum length and a maximum length
+        // also note: the line separator is '\r\n' (two symbols) in windows, and '\n' in linux
         assertTrue("result.length()=" + result.length() + " was not inside the expected bounds", result
-                .length() > 8250);
+                .length() > 8150);
         assertTrue("result.length()=" + result.length() + " was not inside the expected bounds", result
                 .length() < 9500);
         RDFParser parser = Rio.createParser(RDFFormat.TURTLE, vf);
