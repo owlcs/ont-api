@@ -15,6 +15,12 @@
 package com.github.owlcs.ontapi.tests.managers;
 
 import com.github.owlcs.ontapi.*;
+import com.github.owlcs.ontapi.jena.OntModelFactory;
+import com.github.owlcs.ontapi.jena.UnionGraph;
+import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntIndividual;
+import com.github.owlcs.ontapi.transforms.GraphTransformers;
+import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.graph.compose.Union;
@@ -33,12 +39,6 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.github.owlcs.ontapi.jena.OntModelFactory;
-import com.github.owlcs.ontapi.jena.UnionGraph;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
-import com.github.owlcs.ontapi.jena.model.OntIndividual;
-import com.github.owlcs.ontapi.transforms.GraphTransformers;
-import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -126,7 +126,7 @@ public class GraphDocumentSourceTest {
     @Test
     public void testBrokenOntGraphDocumentSource() throws IOException {
         String key = "TEST";
-        testBrokenOGDS(String.format("Unknown error: %s", key), new OntGraphDocumentSource() {
+        testBrokenOGDS(String.format("unknown: '%s'", key), new OntGraphDocumentSource() {
             @Override
             public Graph getGraph() {
                 return new GraphMem() {
@@ -151,8 +151,8 @@ public class GraphDocumentSourceTest {
         }
         Assert.assertNotNull(expected);
         LOGGER.debug("Message: {}", expected.getMessage());
-        if (!expected.getMessage().contains(graphName))
-            throw expected;
+        Assert.assertTrue("Unexpected message: '" + expected.getMessage() + "'",
+                expected.getMessage().contains(graphName));
         Assert.assertNotNull(expected.getCause());
         LOGGER.debug("Cause: {}", expected.getCause().getMessage());
         Assert.assertTrue("No fail?", ogds.hasAlredyFailedOnStreams());

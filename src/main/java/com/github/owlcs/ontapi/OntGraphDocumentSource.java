@@ -14,6 +14,7 @@
 
 package com.github.owlcs.ontapi;
 
+import com.github.owlcs.ontapi.jena.utils.Graphs;
 import org.apache.jena.atlas.web.ContentType;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.riot.Lang;
@@ -23,7 +24,6 @@ import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.PrefixManager;
-import com.github.owlcs.ontapi.jena.utils.Graphs;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -31,7 +31,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Supplier;
 
 
 /**
@@ -111,49 +110,68 @@ public abstract class OntGraphDocumentSource implements OWLOntologyDocumentSourc
     }
 
     /**
-     * Creates a new InputStream for the given Graph and lang.
+     * Creates a new {@code InputStream} for the given {@code Graph} and {@code lang}.
+     * Please don't forget to call {@link AutoCloseable#close()} - all exceptions are handled there.
      *
      * @param graph  {@link Graph} a graph to read from
      * @param lang   {@link Lang} format syntax
-     * @param holder {@link AtomicReference}, a container that will contain an IOException if it occurs
-     * @return InputStream
+     * @param error {@link AtomicReference}, a container that will contain an {@code Exception} if it occurs
+     * @return {@code InputStream}
      */
-    public static InputStream toInputStream(Graph graph, Lang lang, AtomicReference<Exception> holder) {
+    protected static InputStream toInputStream(Graph graph, Lang lang, AtomicReference<Exception> error) {
+        Objects.requireNonNull(graph);
+        Objects.requireNonNull(lang);
+        Objects.requireNonNull(error);
         PipedInputStream in = new PipedInputStream();
-        Supplier<String> safeName = () -> {
-            try {
-                return Graphs.getName(graph);
-            } catch (Exception e) {
-                return "Unknown error: " + e.getMessage();
-            }
-        };
+        CountDownLatch complete = new CountDownLatch(1);
         FilterInputStream res = new FilterInputStream(in) {
             private volatile boolean closed;
 
             @Override
             public void close() throws IOException {
-                synchronized (this) {
-                    if (closed) return;
-                    closed = true;
-                }
-                Optional<IOException> res = Optional.ofNullable(holder.get())
-                        .map(e -> new IOException(String.format("Convert output->input. Graph: %s, %s.",
-                                safeName.get(), lang), e));
+                // next 'close' should not throw an exception
+                if (closed) return;
+                closed = true;
                 try {
                     super.close();
                 } catch (IOException e) {
-                    res.ifPresent(x -> x.addSuppressed(e));
+                    IOException x = findIOException(error.get(), graph, lang);
+                    if (x == null) {
+                        error.set(e);
+                    } else {
+                        x.addSuppressed(e);
+                    }
                 }
-                if (res.isPresent()) throw res.get();
+                IOException ex = findIOException(error.get(), graph, lang);
+                if (ex != null) throw ex;
             }
         };
-        CountDownLatch complete = new CountDownLatch(1);
+
         new Thread(() -> {
-            try (PipedOutputStream out = new PipedOutputStream(in)) {
+            PipedOutputStream out;
+            try {
+                out = new PipedOutputStream(in);
+            } catch (IOException e) {
+                error.set(e);
+                return;
+            } finally {
                 complete.countDown();
+            }
+            try {
                 RDFDataMgr.write(out, graph, lang);
-            } catch (Exception e) {
-                holder.set(e);
+            } catch (Exception ex) {
+                error.set(ex);
+            } finally {
+                try {
+                    out.close();
+                } catch (IOException e) {
+                    Exception x = error.get();
+                    if (x == null) {
+                        error.set(e);
+                    } else {
+                        x.addSuppressed(e);
+                    }
+                }
             }
         }).start();
         try {
@@ -162,6 +180,18 @@ public abstract class OntGraphDocumentSource implements OWLOntologyDocumentSourc
             Thread.currentThread().interrupt();
         }
         return res;
+    }
+
+    private static IOException findIOException(Exception from, Graph graph, Lang lang) {
+        if (from == null) return null;
+        if (from instanceof IOException) return (IOException) from;
+        String name;
+        try {
+            name = Graphs.getName(graph);
+        } catch (Exception e) {
+            name = "{unknown: '" + e.getMessage() + "'}";
+        }
+        return new IOException(String.format("Convert output->input. Graph: %s, %s.", name, lang), from);
     }
 
     /**

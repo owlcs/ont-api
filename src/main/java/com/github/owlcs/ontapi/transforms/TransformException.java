@@ -21,7 +21,7 @@ import org.apache.jena.shared.JenaException;
  * <p>
  * Created by @szuev on 25.01.2018.
  */
-@SuppressWarnings({"WeakerAccess", "unused"})
+@SuppressWarnings({"unused"})
 public class TransformException extends JenaException {
     public TransformException() {
     }
