@@ -165,5 +165,6 @@ interface CreateSWRL {
      * @param body {@code Collection} of {@link OntSWRL.Atom}s
      * @return {@link OntSWRL.Imp}
      */
-    OntSWRL.Imp createSWRLImp(Collection<OntSWRL.Atom> head, Collection<OntSWRL.Atom> body);
+    OntSWRL.Imp createSWRLImp(Collection<OntSWRL.Atom<?>> head,
+                              Collection<OntSWRL.Atom<?>> body);
 }

@@ -23,7 +23,7 @@ package com.github.owlcs.ontapi.jena.model;
  * @see HasCardinality
  * @since 1.4.0
  */
-interface SetCardinality<R extends OntCE.CardinalityRestrictionCE> {
+interface SetCardinality<R extends OntCE.CardinalityRestrictionCE<?, ?>> {
 
     /**
      * Sets a new cardinality value.

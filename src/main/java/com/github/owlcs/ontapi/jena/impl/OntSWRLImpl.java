@@ -14,6 +14,13 @@
 
 package com.github.owlcs.ontapi.jena.impl;
 
+import com.github.owlcs.ontapi.jena.OntJenaException;
+import com.github.owlcs.ontapi.jena.impl.conf.*;
+import com.github.owlcs.ontapi.jena.model.*;
+import com.github.owlcs.ontapi.jena.utils.Iter;
+import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import com.github.owlcs.ontapi.jena.vocabulary.RDF;
+import com.github.owlcs.ontapi.jena.vocabulary.SWRL;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.enhanced.Implementation;
@@ -28,13 +35,6 @@ import org.apache.jena.rdf.model.impl.LiteralImpl;
 import org.apache.jena.rdf.model.impl.RDFListImpl;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.util.iterator.NullIterator;
-import com.github.owlcs.ontapi.jena.OntJenaException;
-import com.github.owlcs.ontapi.jena.impl.conf.*;
-import com.github.owlcs.ontapi.jena.model.*;
-import com.github.owlcs.ontapi.jena.utils.Iter;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
-import com.github.owlcs.ontapi.jena.vocabulary.RDF;
-import com.github.owlcs.ontapi.jena.vocabulary.SWRL;
 
 import java.util.Collection;
 import java.util.Objects;
@@ -129,7 +129,7 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
     public static ObjectFactory impSWRLFactory = new SWRLImplFactory();
     //Factories.createCommon(ImpImpl.class, new OntFinder.ByType(SWRL.Imp), new OntFilter.HasType(SWRL.Imp));
 
-    private static ObjectFactory makeAtomFactory(Class<? extends AtomImpl> view, Resource type) {
+    private static ObjectFactory makeAtomFactory(Class<? extends AtomImpl<?>> view, Resource type) {
         return Factories.createCommon(new OntMaker.Default(view),
                 new OntFinder.ByType(type), OntFilter.BLANK.and(new OntFilter.HasType(type)));
     }
@@ -234,8 +234,8 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
     }
 
     public static Imp createImp(OntGraphModelImpl model,
-                                Collection<Atom> head,
-                                Collection<Atom> body) {
+                                Collection<Atom<? extends OntObject>> head,
+                                Collection<Atom<? extends OntObject>> body) {
         OntJenaException.notNull(head, "Null head");
         OntJenaException.notNull(body, "Null body");
         OntObject res = model.createResource(SWRL.Imp).as(OntObject.class);
@@ -547,6 +547,7 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         }
     }
 
+    @SuppressWarnings("rawtypes")
     public static class ImpImpl extends OntSWRLImpl implements Imp {
 
         public ImpImpl(Node n, EnhGraph m) {

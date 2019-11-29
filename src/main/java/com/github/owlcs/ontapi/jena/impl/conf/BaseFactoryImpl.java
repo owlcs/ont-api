@@ -14,11 +14,11 @@
 
 package com.github.owlcs.ontapi.jena.impl.conf;
 
+import com.github.owlcs.ontapi.jena.OntJenaException;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.enhanced.Implementation;
 import org.apache.jena.graph.Node;
-import com.github.owlcs.ontapi.jena.OntJenaException;
 
 /**
  * An extended {@link Implementation} factory,
@@ -33,14 +33,6 @@ import com.github.owlcs.ontapi.jena.OntJenaException;
 public abstract class BaseFactoryImpl extends Implementation implements ObjectFactory {
 
     protected static EnhNode safeWrap(Node n, EnhGraph g, Iterable<ObjectFactory> factories) {
-        for (ObjectFactory f : factories) {
-            EnhNode r = safeWrap(n, g, f);
-            if (r != null) return r;
-        }
-        return null;
-    }
-
-    protected static EnhNode safeWrap(Node n, EnhGraph g, ObjectFactory... factories) {
         for (ObjectFactory f : factories) {
             EnhNode r = safeWrap(n, g, f);
             if (r != null) return r;

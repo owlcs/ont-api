@@ -14,13 +14,13 @@
 
 package com.github.owlcs.ontapi.jena.impl.conf;
 
+import com.github.owlcs.ontapi.jena.utils.Iter;
+import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
-import com.github.owlcs.ontapi.jena.utils.Iter;
-import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 
 import java.util.Collection;
 import java.util.Objects;
@@ -68,6 +68,7 @@ public interface OntFilter {
         return (Node n, EnhGraph g) -> this.test(n, g) || other.test(n, g);
     }
 
+    @SuppressWarnings("unused")
     default OntFilter negate() {
         if (this.equals(TRUE)) return FALSE;
         if (this.equals(FALSE)) return TRUE;

@@ -14,15 +14,15 @@
 
 package com.github.owlcs.ontapi.jena.impl.conf;
 
+import com.github.owlcs.ontapi.jena.OntJenaException;
+import com.github.owlcs.ontapi.jena.model.OntEntity;
+import com.github.owlcs.ontapi.jena.model.OntObject;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.Personality;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
-import com.github.owlcs.ontapi.jena.OntJenaException;
-import com.github.owlcs.ontapi.jena.model.OntEntity;
-import com.github.owlcs.ontapi.jena.model.OntObject;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -68,6 +68,7 @@ public class PersonalityBuilder {
                 .setReserved(from.getReserved());
     }
 
+    @SuppressWarnings("rawtypes")
     private static <X extends Vocabulary> X require(X obj, Class<X> type) {
         if (obj == null) {
             throw new IllegalStateException("The " + type.getSimpleName() + " Vocabulary must be present in builder.");
@@ -75,6 +76,7 @@ public class PersonalityBuilder {
         return obj;
     }
 
+    @SuppressWarnings("rawtypes")
     private static <V extends Vocabulary> V hasSpec(V voc, Class... types) {
         Objects.requireNonNull(voc);
         Set<?> errors = Arrays.stream(types).filter(x -> {

@@ -14,6 +14,15 @@
 
 package com.github.owlcs.ontapi.jena.impl;
 
+import com.github.owlcs.ontapi.jena.OntJenaException;
+import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntList;
+import com.github.owlcs.ontapi.jena.model.OntObject;
+import com.github.owlcs.ontapi.jena.model.OntStatement;
+import com.github.owlcs.ontapi.jena.utils.Iter;
+import com.github.owlcs.ontapi.jena.utils.Models;
+import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.UnsupportedPolymorphismException;
 import org.apache.jena.graph.Graph;
@@ -25,15 +34,6 @@ import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.shared.PropertyNotFoundException;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.util.iterator.NullIterator;
-import com.github.owlcs.ontapi.jena.OntJenaException;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
-import com.github.owlcs.ontapi.jena.model.OntList;
-import com.github.owlcs.ontapi.jena.model.OntObject;
-import com.github.owlcs.ontapi.jena.model.OntStatement;
-import com.github.owlcs.ontapi.jena.utils.Iter;
-import com.github.owlcs.ontapi.jena.utils.Models;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
-import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 
 import java.util.*;
 import java.util.function.BiFunction;
@@ -282,7 +282,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
                                            OntObject s,
                                            Property p,
                                            Resource listType,
-                                           Class elementType) throws IllegalArgumentException, NullPointerException {
+                                           Class<?> elementType) throws IllegalArgumentException, NullPointerException {
         Objects.requireNonNull(m, "Null model");
         Objects.requireNonNull(s, "Null subject");
         Objects.requireNonNull(p, "Null predicate");

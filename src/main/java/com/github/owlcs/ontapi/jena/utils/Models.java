@@ -14,6 +14,8 @@
 
 package com.github.owlcs.ontapi.jena.utils;
 
+import com.github.owlcs.ontapi.jena.impl.OntListImpl;
+import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Graph;
@@ -25,15 +27,9 @@ import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.util.NodeUtils;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.util.iterator.NullIterator;
-import com.github.owlcs.ontapi.jena.OntJenaException;
-import com.github.owlcs.ontapi.jena.impl.OntListImpl;
-import com.github.owlcs.ontapi.jena.impl.OntStatementImpl;
-import com.github.owlcs.ontapi.jena.model.*;
-import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 
 import java.util.*;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
@@ -43,7 +39,6 @@ import java.util.stream.Stream;
  * <p>
  * Created by szuev on 20.10.2016.
  */
-
 @SuppressWarnings("WeakerAccess")
 public class Models {
     public static final Comparator<RDFNode> RDF_NODE_COMPARATOR = (r1, r2) -> NodeUtils.compareRDFTerms(r1.asNode(), r2.asNode());
@@ -334,267 +329,10 @@ public class Models {
      * Returns a string representation of the given Jena statement.
      *
      * @param inModel {@link Statement}, not null
-     * @return String
+     * @return {@code String}
      * @since 1.3.0
      */
     public static String toString(Statement inModel) {
         return toString(inModel, inModel.getModel());
-    }
-
-    /**
-     * Converts rdf-node to anonymous individual.
-     *
-     * @param node {@link RDFNode}
-     * @return {@link OntIndividual.Anonymous}
-     * @throws OntJenaException if the node cannot be present as anonymous individual
-     * @deprecated since 1.4.2: it is replaced by the {@link OntModels#asAnonymousIndividual(RDFNode)}
-     */
-    @Deprecated
-    public static OntIndividual.Anonymous asAnonymousIndividual(RDFNode node) {
-        return OntModels.asAnonymousIndividual(node);
-    }
-
-    /**
-     * Determines the actual ontology object type.
-     *
-     * @param object instance of {@link O}
-     * @param <O>    any subtype of {@link OntObject}
-     * @return {@link Class}-type of {@link O}
-     * @since 1.4.1
-     * @deprecated since 1.4.2: it is replaced by the {@link OntModels#getOntType(OntObject)}
-     */
-    @Deprecated
-    public static <O extends OntObject> Class<O> getOntType(O object) {
-        return OntModels.getOntType(object);
-    }
-
-    /**
-     * Inserts the given ontology in the dependencies of each ontology from the specified collection,
-     * provided as {@code Supplier} (the {@code manager} parameter).
-     *
-     * @param manager the collection of other ontologies in form of {@link Supplier} that answers a {@code Stream}
-     * @param ont     {@link OntGraphModel} the ontology to insert, must be named
-     * @param replace a boolean, if {@code true} then any found sub-graphs will be replaced by new one
-     * @see OntID#getImportsIRI()
-     * @since 1.3.0
-     * @deprecated since 1.4.2: it is replaced by the {@link OntModels#insert(Supplier, OntGraphModel, boolean)}
-     */
-    @Deprecated
-    public static void insert(Supplier<Stream<OntGraphModel>> manager, OntGraphModel ont, boolean replace) {
-        OntModels.insert(manager, ont, replace);
-    }
-
-    /**
-     * Synchronizes the import declarations with the graph hierarchy.
-     *
-     * @param m {@link OntGraphModel}, not {@code null}
-     * @throws StackOverflowError in case the given model has a recursion in the hierarchy
-     * @see Graphs#importsTreeAsString(Graph)
-     * @since 1.3.2
-     * @deprecated since 1.4.2: it is replaced by the {@link OntModels#syncImports(OntGraphModel)}
-     */
-    @Deprecated
-    public static void syncImports(OntGraphModel m) {
-        OntModels.syncImports(m);
-    }
-
-    /**
-     * Recursively lists all models that are associated with the given model in the form of a flat stream.
-     *
-     * @param m {@link OntGraphModel}
-     * @return {@code Stream} of models, not empty (contains at least the input model)
-     * @throws StackOverflowError in case the given model has a recursion in the hierarchy
-     * @since 1.3.0
-     * @deprecated since 1.4.2: it is replaced by the {@link OntModels#importsClosure(OntGraphModel)}
-     */
-    @Deprecated
-    public static Stream<OntGraphModel> flat(OntGraphModel m) {
-        return OntModels.importsClosure(m);
-    }
-
-    /**
-     * Lists all ontology objects with the given {@code type} that are defined in the base graph.
-     *
-     * @param model {@link OntGraphModel}
-     * @param type  {@link Class}-type
-     * @param <O>   subclass of {@link OntObject}
-     * @return {@link ExtendedIterator} of ontology objects of the type {@link O} that are local to the base graph
-     * @see OntGraphModel#ontObjects(Class)
-     * @since 1.4.1
-     * @deprecated since 1.4.2: it is replaced by the {@link OntModels#listLocalObjects(OntGraphModel, Class)} method
-     */
-    @Deprecated
-    public static <O extends OntObject> ExtendedIterator<O> listLocalObjects(OntGraphModel model,
-                                                                             Class<? extends O> type) {
-        return OntModels.listLocalObjects(model, type);
-    }
-
-    /**
-     * Lists all OWL entities that are defined in the base graph.
-     *
-     * @param model {@link OntGraphModel}
-     * @return {@link ExtendedIterator} of {@link OntEntity}s that are local to the base graph
-     * @see OntGraphModel#ontEntities()
-     * @since 1.4.1
-     * @deprecated since 1.4.2: it is replaced by the {@link OntModels#listLocalEntities(OntGraphModel)} method
-     */
-    @Deprecated
-    public static ExtendedIterator<OntEntity> listLocalEntities(OntGraphModel model) {
-        return OntModels.listLocalEntities(model);
-    }
-
-    /**
-     * Lists all model statements, which belong to the base graph, using the given SPO.
-     *
-     * @param model {@link OntGraphModel}, not {@code null}
-     * @param s     {@link Resource}, can be {@code null} for any
-     * @param p     {@link Property}, can be {@code null} for any
-     * @param o     {@link RDFNode}, can be {@code null} for any
-     * @return {@link ExtendedIterator} of {@link OntStatement}s local to the base model graph
-     * @see OntGraphModel#localStatements(Resource, Property, RDFNode)
-     * @since 1.4.1
-     * @deprecated since 1.4.2:
-     * it is replaced by the {@link OntModels#listLocalStatements(OntGraphModel, Resource, Property, RDFNode)} method
-     */
-    @Deprecated
-    public static ExtendedIterator<OntStatement> listLocalStatements(OntGraphModel model,
-                                                                     Resource s,
-                                                                     Property p,
-                                                                     RDFNode o) {
-        return OntModels.listLocalStatements(model, s, p, o);
-    }
-
-    /**
-     * Lists all members from {@link OntList Ontology List}.
-     *
-     * @param list {@link RDFNodeList}
-     * @param <R>  {@link RDFNode}, a type of list members
-     * @return {@link ExtendedIterator} of {@link R}
-     * @since 1.3.0
-     * @deprecated since 1.4.2: use the method {@link OntModels#listMembers(RDFNodeList)} instead
-     */
-    @Deprecated
-    public static <R extends RDFNode> ExtendedIterator<R> listMembers(RDFNodeList<R> list) {
-        return OntModels.listMembers(list);
-    }
-
-    /**
-     * Returns an iterator over all annotations of the given ontology statement.
-     *
-     * @param s {@link OntStatement}
-     * @return {@link ExtendedIterator} over {@link OntStatement}s
-     * @since 1.4.1
-     * @deprecated since 1.4.2: use {@link OntModels#listAnnotations(OntStatement)} instead
-     */
-    @Deprecated
-    public static ExtendedIterator<OntStatement> listAnnotations(OntStatement s) {
-        return OntModels.listAnnotations(s);
-    }
-
-    /**
-     * Lists all object's annotations.
-     *
-     * @param o {@link OntObject}, not {@code null}
-     * @return {@link ExtendedIterator} over {@link OntStatement}s
-     * @since 1.4.1
-     * @deprecated since 1.4.2: use {@link OntModels#listAnnotations(OntObject)} instead
-     */
-    @Deprecated
-    public static ExtendedIterator<OntStatement> listAnnotations(OntObject o) {
-        return OntModels.listAnnotations(o);
-    }
-
-    /**
-     * Lists split statements.
-     *
-     * @param statement {@link OntStatement}, not {@code null}
-     * @return {@link ExtendedIterator} of {@link OntStatement}s
-     * @since 1.3.0
-     * @deprecated since 1.4.2: use {@link OntModels#listSplitStatements(OntStatement)} instead
-     */
-    @Deprecated
-    public static ExtendedIterator<OntStatement> listSplitStatements(OntStatement statement) {
-        return OntModels.listSplitStatements(statement);
-    }
-
-    /**
-     * Splits the statement into several equivalent ones but with disjoint annotations.
-     * Each of the returned statements is equal to the given, the difference is only in the related annotations.
-     *
-     * @param statement {@link OntStatement} the statement to split
-     * @return {@code Stream} of {@link OntStatement ont-statements}, not empty,
-     * each element equals to the input statement but has different related annotations
-     * @see OntModels#listSplitStatements(OntStatement)
-     * @deprecated since 1.4.2: use the methods
-     * {@link OntModels#listSplitStatements(OntStatement)} and {@link Iter#asStream(Iterator)} instead
-     */
-    @Deprecated
-    public static Stream<OntStatement> split(OntStatement statement) {
-        return Iter.asStream(OntModels.listSplitStatements(statement));
-    }
-
-    /**
-     * Creates a read-only wrapper for the given {@link OntStatement Ontology Statement} with in-memory caches.
-     * This wrapper can be used to minimize graph access and speed-up the annotation calculations.
-     * If there are many tree-like annotations in the ontology model, this speed-up may be noticeable.
-     *
-     * @param delegate {@link OntStatement}
-     * @return {@link OntStatement}
-     * @deprecated since 1.4.2: useless functionality, scheduled to remove;
-     * but if somebody still needs it, please contact with me.
-     */
-    @Deprecated
-    public static OntStatement createCachedStatement(OntStatement delegate) {
-        return OntStatementImpl.createCachedOntStatementImpl(delegate);
-    }
-
-    /**
-     * Recursively lists all annotations for the given {@link OntStatement Ontology Statement}
-     * in the form of a flat stream.
-     *
-     * @param st {@link OntStatement}
-     * @return {@code Stream} of {@link OntStatement}s, each of them is annotation property assertion
-     * @since 1.3.0
-     * @deprecated since 1.4.2: use since {@link OntModels#annotations(OntStatement)} instead
-     */
-    @Deprecated
-    public static Stream<OntStatement> flat(OntStatement st) {
-        return OntModels.annotations(st);
-    }
-
-
-    /**
-     * Recursively lists all statements for the specified subject (rdf-node).
-     * Note: there is a possibility of StackOverflowError in case graph contains a recursion.
-     *
-     * @param subject {@link RDFNode}, nullable
-     * @return {@code Stream} of {@link Statement}s
-     * @throws StackOverflowError in case graph contains recursion
-     * @see Models#getAssociatedStatements(Resource)
-     * @deprecated since 1.4.2 (due to bad method name):
-     * use the method {@link #listDescendingStatements(RDFNode)} with {@link Iter#asStream(Iterator)}
-     */
-    @Deprecated
-    public static Stream<Statement> listProperties(RDFNode subject) {
-        if (subject == null || !subject.isAnon()) return Stream.empty();
-        return Iter.asStream(listDescendingStatements(subject));
-    }
-
-    /**
-     * Recursively lists all parent resources (subjects) for the specified object (rdf-node).
-     * Note: a possibility of StackOverflowError in case the graph contains a recursion.
-     *
-     * @param object {@link RDFNode}, not null
-     * @return {@code Stream} of {@link Resource}s
-     * @throws StackOverflowError in case graph contains recursion
-     * @deprecated since 1.4.2 (due to bad method name):
-     * use the method {@link #listAscendingStatements(RDFNode)} with {@link Iter#asStream(Iterator)}
-     */
-    @Deprecated
-    public static Stream<Resource> listSubjects(RDFNode object) {
-        return subjects(object).flatMap(s -> {
-            Stream<Resource> r = Stream.of(s);
-            return s.isAnon() ? Stream.concat(r, listSubjects(s)) : r;
-        });
     }
 }

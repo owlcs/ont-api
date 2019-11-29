@@ -14,6 +14,8 @@
 
 package com.github.owlcs.ontapi.jena;
 
+import com.github.owlcs.ontapi.jena.utils.Graphs;
+import com.github.owlcs.ontapi.jena.utils.Iter;
 import org.apache.jena.graph.*;
 import org.apache.jena.graph.impl.SimpleEventManager;
 import org.apache.jena.graph.impl.SimpleTransactionHandler;
@@ -25,8 +27,6 @@ import org.apache.jena.shared.impl.PrefixMappingImpl;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.util.iterator.FilterIterator;
 import org.apache.jena.util.iterator.WrappedIterator;
-import com.github.owlcs.ontapi.jena.utils.Graphs;
-import com.github.owlcs.ontapi.jena.utils.Iter;
 
 import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -323,6 +323,7 @@ public class RWLockedGraph implements Graph {
         return gem;
     }
 
+    @SuppressWarnings("deprecation")
     @Override
     public GraphStatisticsHandler getStatisticsHandler() {
         return (s, p, o) -> withReadLock(() -> base.getStatisticsHandler().getStatistic(s, p, o));
@@ -372,7 +373,7 @@ public class RWLockedGraph implements Graph {
      *
      * @param it {@link WIT}
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     protected void makeIteratorSnapshot(WIT<?> it) {
         ExtendedIterator base = it.setBase(null);
         ArrayList res = new ArrayList();

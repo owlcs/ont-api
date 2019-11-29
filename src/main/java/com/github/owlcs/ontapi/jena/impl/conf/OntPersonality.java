@@ -14,16 +14,16 @@
 
 package com.github.owlcs.ontapi.jena.impl.conf;
 
+import com.github.owlcs.ontapi.jena.OntJenaException;
+import com.github.owlcs.ontapi.jena.model.OntEntity;
+import com.github.owlcs.ontapi.jena.model.OntObject;
+import com.github.owlcs.ontapi.jena.utils.Iter;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.Personality;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
-import com.github.owlcs.ontapi.jena.OntJenaException;
-import com.github.owlcs.ontapi.jena.model.OntEntity;
-import com.github.owlcs.ontapi.jena.model.OntObject;
-import com.github.owlcs.ontapi.jena.utils.Iter;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -139,17 +139,6 @@ public interface OntPersonality {
      * @since 1.4.0
      */
     interface Builtins extends Vocabulary.Entities {
-
-        /**
-         * Answers {@code true} if the behaviour should match OWL-API, since
-         * <a href='https://github.com/owlcs/owlapi/issues/783'>it does not list some builtin entities</a>
-         *
-         * @return boolean
-         */
-        default boolean matchOWLAPI() {
-            return true;
-        }
-
         /**
          * Returns a {@code Set} of all OWL builtin properties
          * (annotation, datatype and object named property expressions)
@@ -160,7 +149,6 @@ public interface OntPersonality {
             return Stream.of(getObjectProperties(), getAnnotationProperties(), getDatatypeProperties())
                     .flatMap(Collection::stream).collect(Iter.toUnmodifiableSet());
         }
-
     }
 
     /**

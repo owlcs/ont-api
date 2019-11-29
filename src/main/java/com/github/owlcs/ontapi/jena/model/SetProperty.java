@@ -25,7 +25,7 @@ package com.github.owlcs.ontapi.jena.model;
  * @see HasProperty
  * @since 1.4.0
  */
-interface SetProperty<P extends OntDOP, R extends OntCE.RestrictionCE> {
+interface SetProperty<P extends OntDOP, R extends OntCE.RestrictionCE<?>> {
 
     /**
      * Sets the given property into this Restriction
@@ -36,5 +36,4 @@ interface SetProperty<P extends OntDOP, R extends OntCE.RestrictionCE> {
      * @return <b>this</b> instance to allow cascading calls
      */
     R setProperty(P property);
-
 }

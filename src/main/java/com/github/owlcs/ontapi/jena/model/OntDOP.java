@@ -14,10 +14,10 @@
 
 package com.github.owlcs.ontapi.jena.model;
 
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.vocabulary.RDFS;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.vocabulary.RDFS;
 
 import java.util.stream.Stream;
 
@@ -94,7 +94,7 @@ public interface OntDOP extends OntPE {
      *
      * @return {@code Stream} of {@link OntNPA}
      */
-    Stream<? extends OntNPA> negativeAssertions();
+    Stream<? extends OntNPA<?, ?>> negativeAssertions();
 
     /**
      * Adds or removes {@link OWL#FunctionalProperty owl:FunctionalProperty} declaration

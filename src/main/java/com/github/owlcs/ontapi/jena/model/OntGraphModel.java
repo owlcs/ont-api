@@ -14,16 +14,16 @@
 
 package com.github.owlcs.ontapi.jena.model;
 
+import com.github.owlcs.ontapi.jena.OntJenaException;
+import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import com.github.owlcs.ontapi.jena.vocabulary.RDF;
+import com.github.owlcs.ontapi.jena.vocabulary.XSD;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.reasoner.Reasoner;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.vocabulary.RDFS;
-import com.github.owlcs.ontapi.jena.OntJenaException;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
-import com.github.owlcs.ontapi.jena.vocabulary.RDF;
-import com.github.owlcs.ontapi.jena.vocabulary.XSD;
 
 import java.util.Collection;
 import java.util.Map;
@@ -605,6 +605,14 @@ public interface OntGraphModel extends Model, CreateClasses, CreateRanges, Creat
         return ontEntities(OntIndividual.Named.class);
     }
 
+    /**
+     * Returns {@link OntEntity OWL Entity} with the specified class-type and {@code uri}.
+     *
+     * @param type {@code Class}, not {@code null}
+     * @param uri  {@link Resource}, must be URI, not {@code null}
+     * @param <E>  any {@link OntEntity} subtype, not {@code null}
+     * @return a {@link E} instance
+     */
     default <E extends OntEntity> E getOntEntity(Class<E> type, Resource uri) {
         return getOntEntity(type, uri.getURI());
     }
@@ -649,67 +657,5 @@ public interface OntGraphModel extends Model, CreateClasses, CreateRanges, Creat
 
     default OntNDP getOWLBottomDataProperty() {
         return getDataProperty(OWL.bottomDataProperty);
-    }
-
-    /**
-     * Lists all individuals that participate in class assertion axioms.
-     *
-     * @return {@code Stream} of {@link OntIndividual}s
-     * @since 1.3.0
-     * @deprecated since 1.4.1: use {@link #individuals()} instead
-     */
-    @Deprecated
-    default Stream<OntIndividual> classAssertions() {
-        return individuals();
-    }
-
-    /**
-     * Lists all built-in OWL entities,
-     * that are present somewhere in the whole or only the base graph (depending on the second parameter).
-     * <p>
-     * The original comment:
-     * The presence means that a builtin entity (e.g. a built-in OWL Class {@link #getOWLThing()} owl:Thing}),
-     * is a part of some OWL statement (SPO) (e.g. {@code <SomeClass> rdfs:subClassOf owl:Thing}).
-     * If an entity is only mentioned in some SPO, which is beyond the OWL2 syntax,
-     * than it is not included in the returned {@code Stream}.
-     * To list all model builtins (i.e. from sub-model hierarchy also,
-     * not only from the base graph) the method {@link #ontBuiltins(Class)} can also be used.
-     * Note that the result can be configured
-     * through {@link com.github.owlcs.ontapi.jena.impl.conf.OntPersonality.Builtins Builtins Vocabulary}.
-     * <p>
-     * Note: since 1.4.1 this functionality is scheduled to be deleted,
-     * though it is possible that it will be returned after a time.
-     * If you find this functionality useful, please contact me.
-     *
-     * @param type  a concrete class-type of entity
-     * @param local if {@code true} only the base graph is considered
-     * @param <E>   any subtype of {@link OntEntity}
-     * @return {@code Stream} of builtin {@link OntEntity}s
-     * @see <a href='https://github.com/avicomp/ont-api/issues/40'>functionality description</a>
-     * @since 1.4.0
-     * @deprecated since 1.4.1: marked as obsolete because it is almost useless at this time, see issue #40
-     */
-    @Deprecated
-    default <E extends OntEntity> Stream<E> ontBuiltins(Class<E> type, boolean local) {
-        if (local) return ontBuiltins(type);
-        return Stream.concat(ontEntities(type), imports().flatMap(x -> x.ontBuiltins(type))).distinct();
-    }
-
-    /**
-     * Lists all built-in OWL entities, that participate somewhere in the base graph.
-     *
-     * @param type a concrete class-type of entity
-     * @param <E>  any subtype of {@link OntEntity}
-     * @return <b>distinct</b> {@code Stream} of builtin entities
-     * @see <a href='https://github.com/avicomp/ont-api/issues/40'>functionality description</a>
-     * @since 1.4.0
-     * @deprecated since 1.4.1: marked as obsolete because it is almost useless at this time, see issue #40
-     */
-    @Deprecated
-    default <E extends OntEntity> Stream<E> ontBuiltins(Class<E> type) {
-        return localStatements().flatMap(s -> Stream.of(s.getSubject(), s.getPredicate(), s.getObject()))
-                .filter(x -> x.canAs(type)).map(o -> o.as(type))
-                .filter(OntEntity::isBuiltIn)
-                .distinct();
     }
 }

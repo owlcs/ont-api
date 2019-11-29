@@ -14,14 +14,6 @@
 
 package com.github.owlcs.ontapi.jena.impl;
 
-import org.apache.jena.enhanced.EnhGraph;
-import org.apache.jena.enhanced.EnhNode;
-import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.Node;
-import org.apache.jena.graph.Triple;
-import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.util.iterator.ExtendedIterator;
 import com.github.owlcs.ontapi.jena.OntJenaException;
 import com.github.owlcs.ontapi.jena.impl.conf.BaseFactoryImpl;
 import com.github.owlcs.ontapi.jena.impl.conf.ObjectFactory;
@@ -30,6 +22,14 @@ import com.github.owlcs.ontapi.jena.model.*;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
+import org.apache.jena.enhanced.EnhGraph;
+import org.apache.jena.enhanced.EnhNode;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.util.iterator.ExtendedIterator;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -186,7 +186,7 @@ public abstract class OntPEImpl extends OntObjectImpl implements OntPE {
             throw ex;
         }
 
-        private class Factory {
+        private static class Factory {
             private final Node nt;
             private final ObjectFactory f;
 

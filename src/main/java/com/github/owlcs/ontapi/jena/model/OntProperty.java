@@ -21,10 +21,11 @@ import org.apache.jena.rdf.model.RDFNode;
  * Named Ontology property: {@link OntNAP}, {@link OntNDP} and {@link OntNOP}.
  * <p>
  * Created by @ssz on 20.01.2019.
+ *
  * @param <P> subtype of {@link OntProperty}
  * @since 1.4.0
  */
-public interface OntProperty<P extends OntProperty> extends OntEntity, Property {
+public interface OntProperty<P extends OntProperty<P>> extends OntEntity, Property {
 
     /**
      * @see Property#isProperty()

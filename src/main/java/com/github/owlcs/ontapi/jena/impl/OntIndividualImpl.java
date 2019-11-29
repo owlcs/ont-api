@@ -14,14 +14,6 @@
 
 package com.github.owlcs.ontapi.jena.impl;
 
-import org.apache.jena.enhanced.EnhGraph;
-import org.apache.jena.graph.FrontsNode;
-import org.apache.jena.graph.Node;
-import org.apache.jena.graph.Triple;
-import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.util.iterator.ExtendedIterator;
-import org.apache.jena.vocabulary.RDFS;
 import com.github.owlcs.ontapi.jena.OntJenaException;
 import com.github.owlcs.ontapi.jena.impl.conf.ObjectFactory;
 import com.github.owlcs.ontapi.jena.impl.conf.OntFinder;
@@ -31,6 +23,14 @@ import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import com.github.owlcs.ontapi.jena.vocabulary.SWRL;
+import org.apache.jena.enhanced.EnhGraph;
+import org.apache.jena.graph.FrontsNode;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.vocabulary.RDFS;
 
 import java.util.HashSet;
 import java.util.Optional;
@@ -214,11 +214,13 @@ public abstract class OntIndividualImpl extends OntObjectImpl implements OntIndi
         throw new OntJenaException.Conversion(node + " could not be " + OntIndividual.Anonymous.class);
     }
 
+    @SuppressWarnings("rawtypes")
     @Override
     public Stream<OntNPA> negativeAssertions() {
         return Iter.asStream(listNegativeAssertions(), getCharacteristics());
     }
 
+    @SuppressWarnings("rawtypes")
     public ExtendedIterator<OntNPA> listNegativeAssertions() {
         return listSubjects(OWL.sourceIndividual, OntNPA.class);
     }

@@ -14,6 +14,15 @@
 
 package com.github.owlcs.ontapi.jena.impl;
 
+import com.github.owlcs.ontapi.jena.OntJenaException;
+import com.github.owlcs.ontapi.jena.impl.conf.ObjectFactory;
+import com.github.owlcs.ontapi.jena.impl.conf.OntFilter;
+import com.github.owlcs.ontapi.jena.impl.conf.OntFinder;
+import com.github.owlcs.ontapi.jena.impl.conf.OntMaker;
+import com.github.owlcs.ontapi.jena.model.*;
+import com.github.owlcs.ontapi.jena.utils.Iter;
+import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
@@ -24,15 +33,6 @@ import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.impl.RDFListImpl;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import com.github.owlcs.ontapi.jena.OntJenaException;
-import com.github.owlcs.ontapi.jena.impl.conf.ObjectFactory;
-import com.github.owlcs.ontapi.jena.impl.conf.OntFilter;
-import com.github.owlcs.ontapi.jena.impl.conf.OntFinder;
-import com.github.owlcs.ontapi.jena.impl.conf.OntMaker;
-import com.github.owlcs.ontapi.jena.model.*;
-import com.github.owlcs.ontapi.jena.utils.Iter;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
-import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -107,7 +107,7 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
         return Iter.concat(super.listSpec(), getList().listContent());
     }
 
-    private static ObjectFactory createFactory(Class<? extends OntDisjointImpl> impl,
+    private static ObjectFactory createFactory(Class<? extends OntDisjointImpl<?>> impl,
                                                Resource type,
                                                Class<? extends RDFNode> view,
                                                boolean allowEmptyList,
@@ -185,11 +185,11 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
         return create(model, OWL.AllDisjointProperties, DataProperties.class, OntNDP.class, properties);
     }
 
-    public static <R extends OntDisjoint, E extends OntObject> R create(OntGraphModelImpl model,
-                                                                        Resource type,
-                                                                        Class<R> resultType,
-                                                                        Class<E> memberType,
-                                                                        Stream<E> members) {
+    public static <R extends OntDisjoint<?>, E extends OntObject> R create(OntGraphModelImpl model,
+                                                                           Resource type,
+                                                                           Class<R> resultType,
+                                                                           Class<E> memberType,
+                                                                           Stream<E> members) {
         OntJenaException.notNull(members, "Null " + OntObjectImpl.viewAsString(memberType) + " members stream.");
         Resource res = model.createResource()
                 .addProperty(RDF.type, type)

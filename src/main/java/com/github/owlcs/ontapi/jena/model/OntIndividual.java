@@ -14,13 +14,13 @@
 
 package com.github.owlcs.ontapi.jena.model;
 
+import com.github.owlcs.ontapi.jena.OntJenaException;
+import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
-import com.github.owlcs.ontapi.jena.OntJenaException;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
-import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -31,6 +31,7 @@ import java.util.stream.Stream;
  * <p>
  * Created by @szuev on 02.11.2016.
  */
+@SuppressWarnings("rawtypes")
 public interface OntIndividual extends OntObject {
 
     /**

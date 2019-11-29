@@ -26,7 +26,8 @@ package com.github.owlcs.ontapi.jena.model;
  * @see HasProperties
  * @since 1.4.0
  */
-interface SetProperties<P extends OntDOP, R extends OntCE.NaryRestrictionCE> extends SetComponents<P, R>, SetProperty<P, R> {
+interface SetProperties<P extends OntDOP, R extends OntCE.NaryRestrictionCE<?, ?>>
+        extends SetComponents<P, R>, SetProperty<P, R> {
 
     /**
      * Sets the given property as the only member of the []-list.

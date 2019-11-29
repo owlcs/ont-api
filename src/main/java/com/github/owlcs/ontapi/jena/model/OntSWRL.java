@@ -33,6 +33,7 @@ public interface OntSWRL extends OntObject {
     /**
      * @see OntGraphModel#createSWRLImp(Collection, Collection)
      */
+    @SuppressWarnings("rawtypes")
     interface Imp extends OntSWRL {
 
         /**
@@ -101,6 +102,11 @@ public interface OntSWRL extends OntObject {
     interface IArg extends Arg {
     }
 
+    /**
+     * A base abstraction for SWRL-Atom.
+     *
+     * @param <P> subtype of {@link OntObject}
+     */
     interface Atom<P extends OntObject> extends OntSWRL {
 
         /**

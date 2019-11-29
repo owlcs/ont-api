@@ -98,7 +98,7 @@ public class Iter {
      */
     public static <X> Stream<X> asStream(Iterator<? extends X> iterator, long size, int characteristics) {
         Stream<X> res = StreamSupport.stream(asSpliterator(iterator, size, characteristics), false);
-        return iterator instanceof ClosableIterator ? res.onClose(((ClosableIterator) iterator)::close) : res;
+        return iterator instanceof ClosableIterator ? res.onClose(((ClosableIterator<?>) iterator)::close) : res;
     }
 
     /**

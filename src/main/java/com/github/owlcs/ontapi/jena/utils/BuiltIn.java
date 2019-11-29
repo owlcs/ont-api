@@ -14,6 +14,8 @@
 
 package com.github.owlcs.ontapi.jena.utils;
 
+import com.github.owlcs.ontapi.jena.OntJenaException;
+import com.github.owlcs.ontapi.jena.vocabulary.*;
 import org.apache.jena.datatypes.BaseDatatype;
 import org.apache.jena.datatypes.RDFDatatype;
 import org.apache.jena.datatypes.TypeMapper;
@@ -23,8 +25,6 @@ import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.vocabulary.DC;
 import org.apache.jena.vocabulary.RDFS;
 import org.apache.jena.vocabulary.SKOS;
-import com.github.owlcs.ontapi.jena.OntJenaException;
-import com.github.owlcs.ontapi.jena.vocabulary.*;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -73,19 +73,19 @@ public class BuiltIn {
         return prev;
     }
 
-    private static Stream<Field> directFields(Class vocabulary, Class<?> type) {
+    private static Stream<Field> directFields(Class<?> vocabulary, Class<?> type) {
         return Arrays.stream(vocabulary.getDeclaredFields()).
                 filter(field -> Modifier.isPublic(field.getModifiers())).
                 filter(field -> Modifier.isStatic(field.getModifiers())).
                 filter(field -> type.equals(field.getType()));
     }
 
-    private static Stream<Field> fields(Class vocabulary, Class<?> type) {
+    private static Stream<Field> fields(Class<?> vocabulary, Class<?> type) {
         Stream<Field> res = directFields(vocabulary, type);
         return vocabulary.getSuperclass() != null ? Stream.concat(res, fields(vocabulary.getSuperclass(), type)) : res;
     }
 
-    private static <T> Stream<T> constants(Class vocabulary, Class<T> type) {
+    private static <T> Stream<T> constants(Class<?> vocabulary, Class<T> type) {
         return fields(vocabulary, type).map(field -> getValue(field, type)).filter(Objects::nonNull);
     }
 
@@ -97,7 +97,7 @@ public class BuiltIn {
         }
     }
 
-    protected static <T> Set<T> getConstants(Class<? extends T> type, Class... vocabularies) {
+    protected static <T> Set<T> getConstants(Class<? extends T> type, Class<?>... vocabularies) {
         return Arrays.stream(vocabularies)
                 .map(voc -> constants(voc, type)).flatMap(Function.identity()).collect(Iter.toUnmodifiableSet());
     }
@@ -238,7 +238,7 @@ public class BuiltIn {
      */
     @SuppressWarnings("WeakerAccess")
     public static class OWLVocabulary implements Vocabulary {
-        private static final Class[] VOCABULARIES = new Class[]{XSD.class, RDF.class, RDFS.class, OWL.class};
+        private static final Class<?>[] VOCABULARIES = new Class<?>[]{XSD.class, RDF.class, RDFS.class, OWL.class};
         public static final Set<Property> ALL_PROPERTIES = getConstants(Property.class, VOCABULARIES);
         public static final Set<Resource> ALL_RESOURCES = getConstants(Resource.class, VOCABULARIES);
         /**
@@ -400,7 +400,7 @@ public class BuiltIn {
      * @see SWRLB
      */
     public static class SWRLVocabulary extends Empty implements Vocabulary {
-        private static final Class[] VOCABULARIES = new Class[]{SWRL.class, SWRLB.class};
+        private static final Class<?>[] VOCABULARIES = new Class<?>[]{SWRL.class, SWRLB.class};
         public static final Set<Property> ALL_PROPERTIES = getConstants(Property.class, VOCABULARIES);
         public static final Set<Resource> ALL_RESOURCES = getConstants(Resource.class, VOCABULARIES);
         public static final Set<Resource> BUILTINS = getConstants(Property.class, SWRLB.class);

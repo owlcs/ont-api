@@ -14,6 +14,14 @@
 
 package com.github.owlcs.ontapi.jena.impl;
 
+import com.github.owlcs.ontapi.jena.OntJenaException;
+import com.github.owlcs.ontapi.jena.UnionGraph;
+import com.github.owlcs.ontapi.jena.impl.conf.OntPersonality;
+import com.github.owlcs.ontapi.jena.model.*;
+import com.github.owlcs.ontapi.jena.utils.Graphs;
+import com.github.owlcs.ontapi.jena.utils.Iter;
+import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import org.apache.jena.datatypes.RDFDatatype;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Graph;
@@ -27,19 +35,10 @@ import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.util.iterator.NullIterator;
 import org.apache.jena.vocabulary.RDFS;
-import com.github.owlcs.ontapi.jena.OntJenaException;
-import com.github.owlcs.ontapi.jena.UnionGraph;
-import com.github.owlcs.ontapi.jena.impl.conf.OntPersonality;
-import com.github.owlcs.ontapi.jena.model.*;
-import com.github.owlcs.ontapi.jena.utils.Graphs;
-import com.github.owlcs.ontapi.jena.utils.Iter;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
-import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 
 import java.io.OutputStream;
 import java.io.Writer;
 import java.util.*;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -347,6 +346,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
      * @return <b>distinct</b> {@code ExtendedIterator} of {@link OntGraphModelImpl}s
      * @since 1.4.2
      */
+    @SuppressWarnings("unused")
     protected final ExtendedIterator<OntGraphModelImpl> listAllModels(OntPersonality personality) {
         return getGraph().listUnionGraphs().mapWith(u -> new OntGraphModelImpl(u, personality));
     }
@@ -676,7 +676,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
      * @return this model instance
      */
     @SuppressWarnings("UnusedReturnValue")
-    public OntGraphModelImpl deleteOntList(OntObject subject, Property predicate, OntList object) {
+    public OntGraphModelImpl deleteOntList(OntObject subject, Property predicate, OntList<?> object) {
         Objects.requireNonNull(subject);
         Objects.requireNonNull(predicate);
         OntJenaException.notNull(object, "Null list for subject " + subject + " and predicate " + predicate);
@@ -687,48 +687,6 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
             return remove(subject, predicate, object);
         }
         return this;
-    }
-
-    /**
-     * Gets all builtin entities of the given type and returns them as {@code Set}.
-     * It is not expected a huge amount of builtins,
-     * so a {@code Set} is more applicable here as returned object than {@code Stream} or {@code ExtendedIterator}.
-     * <p>
-     * Note: this method is a part of obsolete functionality (see issue #40), and can be deleted on any time.
-     * If you find it useful, please contact me.
-     *
-     * @param type  a concrete class-type of entity
-     * @param local if {@code true} only the base graph is considered
-     * @param <E>   any subtype of {@link OntEntity}
-     * @return {@code Stream} of builtin {@link OntEntity}s
-     */
-    @SuppressWarnings("unused")
-    public <E extends OntEntity> Set<E> getBuiltinEntities(Class<E> type, boolean local) {
-        if (OntClass.class == type) {
-            return getEntitySet(OntClassImpl::getBuiltinClasses, local);
-        }
-        if (OntDT.class == type) {
-            return getEntitySet(OntDatatypeImpl::getBuiltinDatatypes, local);
-        }
-        if (OntIndividual.Named.class == type) {
-            return Collections.emptySet();
-        }
-        // TODO: issue #40 (that is now canceled -> delete the whole method?)
-        throw new OntJenaException.Unsupported("Attempt to get builtins for " + OntObjectImpl.viewAsString(type) +
-                ". This functionality is not ready, see https://github.com/avicomp/ont-api/issues/40");
-    }
-
-    @SuppressWarnings("unchecked")
-    private <E extends OntEntity> Set<E> getEntitySet(Function<OntGraphModelImpl, Set<? extends OntEntity>> getLocalSet,
-                                                      boolean local) {
-        if (local) {
-            return (Set<E>) getLocalSet.apply(this);
-        }
-        Set<E> res = new HashSet<>();
-        listAllModels(getOntPersonality())
-                .mapWith(getLocalSet::apply)
-                .forEachRemaining(x -> res.addAll((Set<E>) x));
-        return Collections.unmodifiableSet(res);
     }
 
     /**
@@ -1001,7 +959,8 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
     }
 
     @Override
-    public OntSWRL.Imp createSWRLImp(Collection<OntSWRL.Atom> head, Collection<OntSWRL.Atom> body) {
+    public OntSWRL.Imp createSWRLImp(Collection<OntSWRL.Atom<?>> head,
+                                     Collection<OntSWRL.Atom<?>> body) {
         return OntSWRLImpl.createImp(this, head, body);
     }
 
