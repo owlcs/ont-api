@@ -94,19 +94,6 @@ public interface WithContent<X> {
     }
 
     /**
-     * Puts a new content inside the given {@code object}.
-     *
-     * @param object  an {@code Array} with new content
-     * @param content a new {@code Array} to cache
-     * @param <X>     subtype of {@link WithContent}
-     * @return the same {@code object} as specified
-     */
-    static <X extends WithContent> X addContent(X object, Object[] content) {
-        object.putContent(content);
-        return object;
-    }
-
-    /**
      * A helper method that performs an iteration for {@code hashCode}s for an array's member.
      *
      * @param a int, previous value (hash)

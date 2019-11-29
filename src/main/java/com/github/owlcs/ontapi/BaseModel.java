@@ -14,13 +14,13 @@
 
 package com.github.owlcs.ontapi;
 
-import org.apache.jena.graph.Graph;
-import org.semanticweb.owlapi.model.OWLPrimitive;
 import com.github.owlcs.ontapi.internal.InternalCache;
 import com.github.owlcs.ontapi.internal.InternalConfig;
 import com.github.owlcs.ontapi.internal.InternalModel;
 import com.github.owlcs.ontapi.jena.impl.conf.OntModelConfig;
 import com.github.owlcs.ontapi.jena.impl.conf.OntPersonality;
+import org.apache.jena.graph.Graph;
+import org.semanticweb.owlapi.model.OWLPrimitive;
 
 import java.util.Map;
 
@@ -99,7 +99,7 @@ public interface BaseModel {
                                              OntPersonality personality,
                                              InternalConfig config,
                                              DataFactory dataFactory,
-                                             Map<Class<? extends OWLPrimitive>, InternalCache> caches) {
+                                             Map<Class<? extends OWLPrimitive>, InternalCache<?, ?>> caches) {
         return new InternalModel(OntApiException.notNull(graph, "Null graph."),
                 OntApiException.notNull(personality, "Null personality."),
                 OntApiException.notNull(config, "Null config."),

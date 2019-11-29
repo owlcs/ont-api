@@ -14,14 +14,14 @@
 
 package com.github.owlcs.ontapi.internal;
 
-import org.apache.jena.rdf.model.Literal;
-import org.apache.jena.rdf.model.RDFNode;
-import org.semanticweb.owlapi.model.*;
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.jena.model.*;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
+import org.apache.jena.rdf.model.Literal;
+import org.apache.jena.rdf.model.RDFNode;
+import org.semanticweb.owlapi.model.*;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -75,7 +75,7 @@ public interface InternalObjectFactory {
 
     ONTObject<? extends SWRLDArgument> getSWRLArgument(OntSWRL.DArg arg);
 
-    ONTObject<? extends SWRLAtom> getSWRLAtom(OntSWRL.Atom atom);
+    ONTObject<? extends SWRLAtom> getSWRLAtom(OntSWRL.Atom<?> atom);
 
     /**
      * Gets an {@link IRI} that is wrapped as {@code ONTObject} from the specified {@code String}.

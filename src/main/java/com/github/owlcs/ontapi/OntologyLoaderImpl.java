@@ -14,6 +14,14 @@
 
 package com.github.owlcs.ontapi;
 
+import com.github.owlcs.ontapi.config.OntConfig;
+import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
+import com.github.owlcs.ontapi.jena.UnionGraph;
+import com.github.owlcs.ontapi.jena.utils.Graphs;
+import com.github.owlcs.ontapi.jena.utils.OntModels;
+import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import com.github.owlcs.ontapi.transforms.GraphTransformers;
+import com.github.owlcs.ontapi.transforms.TransformException;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphUtil;
 import org.apache.jena.graph.Node;
@@ -24,14 +32,6 @@ import org.semanticweb.owlapi.io.OWLParserFactory;
 import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.github.owlcs.ontapi.config.OntConfig;
-import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
-import com.github.owlcs.ontapi.jena.UnionGraph;
-import com.github.owlcs.ontapi.jena.utils.Graphs;
-import com.github.owlcs.ontapi.jena.utils.OntModels;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
-import com.github.owlcs.ontapi.transforms.GraphTransformers;
-import com.github.owlcs.ontapi.transforms.TransformException;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -686,7 +686,7 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
      * A container for a {@link Graph graph} and some load parameters, such as source-iri and format.
      * Used for simplification as temporary storage by this factory only.
      */
-    public class GraphInfo {
+    public static class GraphInfo {
         // constant language format
         private final OntFormat format;
         // graph is also a prefixes holder
@@ -730,6 +730,7 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
             return imports == null ? imports = Graphs.getImports(graph) : imports;
         }
 
+        @SuppressWarnings("BooleanMethodIsAlwaysInverted")
         protected boolean isFresh() {
             return fresh;
         }

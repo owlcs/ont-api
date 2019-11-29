@@ -14,12 +14,12 @@
 
 package com.github.owlcs.ontapi.internal;
 
-import org.apache.jena.rdf.model.Literal;
-import org.apache.jena.rdf.model.Resource;
-import org.semanticweb.owlapi.model.*;
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.jena.model.*;
+import org.apache.jena.rdf.model.Literal;
+import org.apache.jena.rdf.model.Resource;
+import org.semanticweb.owlapi.model.*;
 
 import java.util.HashSet;
 import java.util.Objects;
@@ -128,7 +128,7 @@ public class SimpleObjectFactory implements InternalObjectFactory {
     }
 
     @Override
-    public ONTObject<? extends SWRLAtom> getSWRLAtom(OntSWRL.Atom atom) {
+    public ONTObject<? extends SWRLAtom> getSWRLAtom(OntSWRL.Atom<?> atom) {
         return ReadHelper.calcSWRLAtom(atom, this);
     }
 

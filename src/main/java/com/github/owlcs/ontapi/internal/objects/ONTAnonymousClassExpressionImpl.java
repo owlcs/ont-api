@@ -14,11 +14,6 @@
 
 package com.github.owlcs.ontapi.internal.objects;
 
-import org.apache.jena.graph.BlankNodeId;
-import org.apache.jena.graph.Node;
-import org.apache.jena.rdf.model.Literal;
-import org.semanticweb.owlapi.model.*;
-import org.semanticweb.owlapi.util.NNF;
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.internal.InternalObjectFactory;
@@ -27,6 +22,11 @@ import com.github.owlcs.ontapi.jena.model.*;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
 import com.github.owlcs.ontapi.owlapi.OWLObjectImpl;
 import com.github.owlcs.ontapi.owlapi.objects.OWLAnonymousIndividualImpl;
+import org.apache.jena.graph.BlankNodeId;
+import org.apache.jena.graph.Node;
+import org.apache.jena.rdf.model.Literal;
+import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.util.NNF;
 
 import javax.annotation.Nullable;
 import java.util.*;
@@ -66,7 +66,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
      * @param model a provider of non-null {@link OntGraphModel}, not {@code null}
      * @return {@link ONTAnonymousClassExpressionImpl} instance
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public static ONTAnonymousClassExpressionImpl create(OntCE ce,
                                                          InternalObjectFactory factory,
                                                          Supplier<OntGraphModel> model) {
@@ -89,9 +89,9 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
      * @param model a provider of non-null {@link OntGraphModel}, not {@code null}
      * @return {@link ONTAnonymousClassExpressionImpl} instance
      */
-    public static ONTAnonymousClassExpressionImpl create(BlankNodeId id,
-                                                         Class<? extends OntCE> type,
-                                                         Supplier<OntGraphModel> model) {
+    public static ONTAnonymousClassExpressionImpl<?, ?> create(BlankNodeId id,
+                                                               Class<? extends OntCE> type,
+                                                               Supplier<OntGraphModel> model) {
         if (OntCE.ObjectSomeValuesFrom.class == type) {
             return new OSVF(id, model);
         }
@@ -1147,7 +1147,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             return (Stream<ONTObject<? extends OWLObject>>) objects(getObjectFactory());
         }
 
-        protected Stream objects(InternalObjectFactory factory) {
+        protected Stream<?> objects(InternalObjectFactory factory) {
             return Arrays.stream(getContent()).map(x -> fromContentItem(x, factory));
         }
 
@@ -1226,7 +1226,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
     /**
      * Represents a n-ary universal or existential data property restriction.
      *
-     * @param <ONT> - a suptype of {@link OntCE.NaryRestrictionCE}
+     * @param <ONT> - a subtype of {@link OntCE.NaryRestrictionCE}
      * @param <OWL> - a subtype of {@link OWLRestriction} that matches {@link ONT}
      */
     protected abstract static class WithDataRangeAndDataPropertyNary<ONT extends OntCE.NaryRestrictionCE<OntDR, OntNDP>,

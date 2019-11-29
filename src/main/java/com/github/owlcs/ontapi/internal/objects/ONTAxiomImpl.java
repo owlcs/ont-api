@@ -49,7 +49,7 @@ public abstract class ONTAxiomImpl<X extends OWLAxiom> extends ONTStatementImpl
     /**
      * A helper to assign new hash code; can accept only {@link ONTAxiomImpl} instance.
      */
-    protected static final ObjIntConsumer<OWLAxiom> SET_HASH_CODE = (a, h) -> ((ONTAxiomImpl) a).setHashCode(h);
+    protected static final ObjIntConsumer<OWLAxiom> SET_HASH_CODE = (a, h) -> ((ONTAxiomImpl<?>) a).setHashCode(h);
 
     protected ONTAxiomImpl(Triple t, Supplier<OntGraphModel> m) {
         this(strip(t.getSubject()), t.getPredicate().getURI(), strip(t.getObject()), m);

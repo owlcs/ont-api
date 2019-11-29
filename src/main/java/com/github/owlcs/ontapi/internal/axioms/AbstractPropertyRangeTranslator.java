@@ -37,7 +37,7 @@ import java.util.function.Supplier;
  * <p>
  * Created by @szuev on 30.09.2016.
  */
-public abstract class AbstractPropertyRangeTranslator<Axiom extends OWLAxiom & HasProperty & HasRange, P extends OntPE>
+public abstract class AbstractPropertyRangeTranslator<Axiom extends OWLAxiom & HasProperty<?> & HasRange<?>, P extends OntPE>
         extends AxiomTranslator<Axiom> {
     @Override
     public void write(Axiom axiom, OntGraphModel graph) {

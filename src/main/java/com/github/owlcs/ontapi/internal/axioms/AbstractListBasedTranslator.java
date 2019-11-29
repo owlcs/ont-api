@@ -141,7 +141,7 @@ public abstract class AbstractListBasedTranslator<Axiom extends OWLLogicalAxiom,
          * @param other {@link ONTObject} to get triples
          * @return {@link WithListImpl}
          */
-        protected abstract WithListImpl makeCopy(ONTObject<A> other);
+        protected abstract WithListImpl<A, M> makeCopy(ONTObject<A> other);
 
         /**
          * Creates a factory axiom using the given parameters.
@@ -163,7 +163,7 @@ public abstract class AbstractListBasedTranslator<Axiom extends OWLLogicalAxiom,
 
         @Override
         protected boolean sameContent(ONTStatementImpl other) {
-            return Arrays.equals(getContent(), ((WithListImpl) other).getContent());
+            return Arrays.equals(getContent(), ((WithListImpl<?, ?>) other).getContent());
         }
 
         @Override
@@ -173,16 +173,15 @@ public abstract class AbstractListBasedTranslator<Axiom extends OWLLogicalAxiom,
                     objects().flatMap(ONTObject::triples));
         }
 
-        @SuppressWarnings("unchecked")
         @Override
         public final ONTObject<A> merge(ONTObject<A> other) {
             if (this == other) {
                 return this;
             }
-            if (other instanceof WithListImpl && sameTriple((WithListImpl) other)) {
+            if (other instanceof WithListImpl && sameTriple((WithListImpl<A, M>) other)) {
                 return this;
             }
-            WithListImpl res = makeCopy(other);
+            WithListImpl<A, M> res = makeCopy(other);
             if (hasContent()) {
                 res.putContent(getContent());
             }

@@ -14,6 +14,11 @@
 
 package com.github.owlcs.ontapi;
 
+import com.github.owlcs.ontapi.jena.utils.Graphs;
+import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import com.github.owlcs.ontapi.jena.vocabulary.RDF;
+import com.github.owlcs.ontapi.transforms.GraphTransformers;
+import com.github.owlcs.ontapi.transforms.OWLIDTransform;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
@@ -27,11 +32,6 @@ import org.semanticweb.owlapi.io.OWLOntologyLoaderMetaData;
 import org.semanticweb.owlapi.io.RDFOntologyHeaderStatus;
 import org.semanticweb.owlapi.io.RDFTriple;
 import org.semanticweb.owlapi.model.*;
-import com.github.owlcs.ontapi.jena.utils.Graphs;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
-import com.github.owlcs.ontapi.jena.vocabulary.RDF;
-import com.github.owlcs.ontapi.transforms.GraphTransformers;
-import com.github.owlcs.ontapi.transforms.OWLIDTransform;
 
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -195,7 +195,7 @@ public class OntologyMetaData implements OWLOntologyLoaderMetaData {
         return unparsed.stream();
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     @Override
     public Multimap<IRI, Class<?>> getGuessedDeclarations() {
         return Multimaps.unmodifiableMultimap((Multimap) guessed);

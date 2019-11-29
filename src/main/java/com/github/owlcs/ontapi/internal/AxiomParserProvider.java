@@ -14,11 +14,11 @@
 
 package com.github.owlcs.ontapi.internal;
 
+import com.github.owlcs.ontapi.internal.axioms.*;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.github.owlcs.ontapi.internal.axioms.*;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
@@ -33,7 +33,7 @@ public abstract class AxiomParserProvider {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AxiomParserProvider.class);
 
-    public static Map<AxiomType, AxiomTranslator<? extends OWLAxiom>> getParsers() {
+    public static Map<AxiomType<?>, AxiomTranslator<? extends OWLAxiom>> getParsers() {
         return ParserHolder.PARSERS;
     }
 
@@ -74,15 +74,10 @@ public abstract class AxiomParserProvider {
                 "Can't find parser for axiom " + type.getActualClass());
     }
 
-    @SuppressWarnings("unchecked")
-    static <A extends OWLAxiom> AxiomTranslator<A> getByType(AxiomType<? extends OWLAxiom> type) {
-        return (AxiomTranslator<A>) get(type);
-    }
-
     private static class ParserHolder {
 
         // 39 axiom types:
-        private static final List<Class<? extends AxiomTranslator>> TRANSLATORS = Arrays.asList(
+        private static final List<Class<? extends AxiomTranslator<?>>> TRANSLATORS = Arrays.asList(
                 DataPropertyDomainTranslator.class,
                 SameIndividualTranslator.class,
                 SubObjectPropertyOfTranslator.class,
@@ -123,7 +118,7 @@ public abstract class AxiomParserProvider {
                 IrreflexiveObjectPropertyTranslator.class,
                 NegativeObjectPropertyAssertionTranslator.class
         );
-        private static final Map<AxiomType, AxiomTranslator<? extends OWLAxiom>> PARSERS = init();
+        private static final Map<AxiomType<?>, AxiomTranslator<? extends OWLAxiom>> PARSERS = init();
 
         static {
             if (LOGGER.isDebugEnabled()) {
@@ -132,12 +127,11 @@ public abstract class AxiomParserProvider {
             }
         }
 
-        @SuppressWarnings("unchecked")
-        private static Map<AxiomType, AxiomTranslator<? extends OWLAxiom>> init() {
-            Map<AxiomType, AxiomTranslator<? extends OWLAxiom>> res = new HashMap<>();
+        private static Map<AxiomType<?>, AxiomTranslator<? extends OWLAxiom>> init() {
+            Map<AxiomType<?>, AxiomTranslator<? extends OWLAxiom>> res = new HashMap<>();
             // to be sure that list of types are exactly the same in ont-api as in owl-api:
             AxiomType.AXIOM_TYPES.forEach(type -> {
-                Class<? extends AxiomTranslator> parserClass = findParserClass(type);
+                Class<? extends AxiomTranslator<?>> parserClass = findParserClass(type);
                 try {
                     res.put(type, parserClass.newInstance());
                 } catch (InstantiationException | IllegalAccessException e) {
@@ -147,14 +141,14 @@ public abstract class AxiomParserProvider {
             return res;
         }
 
-        private static Class<? extends AxiomTranslator> findParserClass(AxiomType<? extends OWLAxiom> type) {
+        private static Class<? extends AxiomTranslator<?>> findParserClass(AxiomType<? extends OWLAxiom> type) {
             return ParserHolder.TRANSLATORS.stream()
                     .filter(p -> isRelatedToAxiom(p, type.getActualClass()))
                     .findFirst()
                     .orElseThrow(() -> new IllegalStateException("Can't find parser class for type '" + type + "'"));
         }
 
-        private static boolean isRelatedToAxiom(Class<? extends AxiomTranslator> parserClass,
+        private static boolean isRelatedToAxiom(Class<? extends AxiomTranslator<?>> parserClass,
                                                 Class<? extends OWLAxiom> actualClass) {
             ParameterizedType type = ((ParameterizedType) parserClass.getGenericSuperclass());
             if (type == null) return false;

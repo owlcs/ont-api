@@ -14,8 +14,6 @@
 
 package com.github.owlcs.ontapi.internal.axioms;
 
-import org.apache.jena.graph.Triple;
-import org.semanticweb.owlapi.model.*;
 import com.github.owlcs.ontapi.internal.InternalConfig;
 import com.github.owlcs.ontapi.internal.InternalObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
@@ -23,6 +21,8 @@ import com.github.owlcs.ontapi.internal.objects.*;
 import com.github.owlcs.ontapi.jena.model.OntGraphModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.owlapi.OWLObjectImpl;
+import org.apache.jena.graph.Triple;
+import org.semanticweb.owlapi.model.*;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -69,6 +69,7 @@ import java.util.stream.Stream;
  * @param <O> - subtype of {@link OWLObject}
  * @since 2.0.0
  */
+@SuppressWarnings("rawtypes")
 interface WithAssertion<S extends OWLObject, P extends OWLObject, O extends OWLObject>
         extends WithTriple, HasSubject<S>, HasProperty<P> {
 

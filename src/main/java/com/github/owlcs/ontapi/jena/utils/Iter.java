@@ -409,7 +409,7 @@ public class Iter {
 
     /**
      * Returns a {@code Map} (of the type of {@link M})
-     * whose keys and values are the result of applying the providedmapping functions to the input elements.
+     * whose keys and values are the result of applying the provided mapping functions to the input elements.
      * A functional equivalent of {@code stream.collect(Collectors.toMap(...))}, but for plain {@link Iterator}s.
      * This method makes no guarantees about synchronization or atomicity properties of it.
      *

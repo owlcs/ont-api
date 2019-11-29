@@ -218,7 +218,7 @@ public class ObjectPropertyAssertionTranslator
             return res;
         }
 
-        @SuppressWarnings("unchecked")
+        @SuppressWarnings({"unchecked", "rawtypes"})
         protected void collectNamedIndividuals(Set res, InternalObjectFactory factory) {
             if (subject instanceof String) {
                 res.add(findNamedIndividual((String) subject,

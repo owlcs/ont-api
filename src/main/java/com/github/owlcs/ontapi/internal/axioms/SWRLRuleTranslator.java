@@ -41,8 +41,8 @@ public class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
 
     @Override
     public void write(SWRLRule axiom, OntGraphModel model) {
-        Stream<OntSWRL.Atom> head = axiom.head().map(atom -> WriteHelper.addSWRLAtom(model, atom));
-        Stream<OntSWRL.Atom> body = axiom.body().map(atom -> WriteHelper.addSWRLAtom(model, atom));
+        Stream<OntSWRL.Atom<?>> head = axiom.head().map(atom -> WriteHelper.addSWRLAtom(model, atom));
+        Stream<OntSWRL.Atom<?>> body = axiom.body().map(atom -> WriteHelper.addSWRLAtom(model, atom));
         WriteHelper.addAnnotations(model.createSWRLImp(head.collect(Collectors.toList()),
                 body.collect(Collectors.toList())), axiom.annotationsAsList());
     }
@@ -110,6 +110,7 @@ public class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
             return new AxiomImpl(statement.asTriple(), model);
         }
 
+        @SuppressWarnings("rawtypes")
         private static Collection<ONTObject<? extends SWRLAtom>> collectAtoms(OntList<OntSWRL.Atom> list,
                                                                               InternalObjectFactory factory) {
             return Iter.addAll(OntModels.listMembers(list).mapWith(factory::getSWRLAtom), new ArrayList<>());
@@ -121,7 +122,7 @@ public class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
             return Arrays.stream(arr).map(x -> type.isInstance(x) ? (X) x : ((ONTObject<? extends X>) x).getOWLObject());
         }
 
-        @SuppressWarnings({"unchecked", "SameParameterValue"})
+        @SuppressWarnings({"unchecked", "SameParameterValue", "rawtypes"})
         private static <X extends OWLObject> List<X> getContentAsList(Class<X> type, Object[] content, int index) {
             Object[] arr = (Object[]) content[index];
             if (arr.length == 0) {
@@ -172,7 +173,7 @@ public class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
                     objects().flatMap(ONTObject::triples));
         }
 
-        @SuppressWarnings("unchecked")
+        @SuppressWarnings({"unchecked", "rawtypes"})
         @Override
         public Stream<ONTObject<? extends OWLObject>> objects() {
             Stream res = Arrays.stream(getContent()).flatMap(x -> Arrays.stream((Object[]) x));

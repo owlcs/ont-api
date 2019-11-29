@@ -14,6 +14,9 @@
 
 package com.github.owlcs.ontapi;
 
+import com.github.owlcs.ontapi.internal.InternalModel;
+import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.owlapi.OWLObjectImpl;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.mem.GraphMem;
 import org.apache.jena.rdf.model.Resource;
@@ -25,9 +28,6 @@ import org.semanticweb.owlapi.model.parameters.Navigation;
 import org.semanticweb.owlapi.search.Filters;
 import org.semanticweb.owlapi.util.OWLAxiomSearchFilter;
 import org.semanticweb.owlapi.util.OWLClassExpressionCollector;
-import com.github.owlcs.ontapi.internal.InternalModel;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
-import com.github.owlcs.ontapi.owlapi.OWLObjectImpl;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -643,7 +643,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, BaseModel {
         }
         if (OWLNaryAxiom.class.isAssignableFrom(type)) {
             return base.listOWLAxioms(type)
-                    .filter(a -> ((OWLNaryAxiom) a).operands().anyMatch(o -> Objects.equals(o, object)));
+                    .filter(a -> ((OWLNaryAxiom<?>) a).operands().anyMatch(o -> Objects.equals(o, object)));
         }
         // default:
         return base.listOWLAxioms(type, object);

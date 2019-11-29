@@ -14,6 +14,10 @@
 
 package com.github.owlcs.ontapi.internal.objects;
 
+import com.github.owlcs.ontapi.internal.InternalCache;
+import com.github.owlcs.ontapi.internal.InternalObjectFactory;
+import com.github.owlcs.ontapi.internal.ONTObject;
+import com.github.owlcs.ontapi.jena.model.*;
 import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
@@ -21,10 +25,6 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.graph.impl.LiteralLabel;
 import org.apache.jena.rdf.model.Literal;
 import org.semanticweb.owlapi.model.*;
-import com.github.owlcs.ontapi.internal.InternalCache;
-import com.github.owlcs.ontapi.internal.InternalObjectFactory;
-import com.github.owlcs.ontapi.internal.ONTObject;
-import com.github.owlcs.ontapi.jena.model.*;
 
 import java.util.Arrays;
 import java.util.function.Supplier;
@@ -39,14 +39,14 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("WeakerAccess")
 public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResourceImpl
-        implements ONTComposite, WithContent<ONTExpressionImpl> {
+        implements ONTComposite, WithContent<ONTExpressionImpl<R>> {
 
     /**
      * All the {@code OWLObject}'s components are store here.
      * Since this is essentially duplication of the graph information, this store is designed as a soft cache.
      * Note that any graph change will break this object.
      */
-    protected final InternalCache.Loading<ONTExpressionImpl, Object[]> content;
+    protected final InternalCache.Loading<ONTExpressionImpl<R>, Object[]> content;
 
     /**
      * Constructs an expression.
@@ -200,7 +200,7 @@ public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResource
     }
 
     @Override
-    public InternalCache.Loading<ONTExpressionImpl, Object[]> getContentCache() {
+    public InternalCache.Loading<ONTExpressionImpl<R>, Object[]> getContentCache() {
         return content;
     }
 
@@ -220,7 +220,7 @@ public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResource
             return false;
         }
         if (other instanceof ONTExpressionImpl) {
-            ONTExpressionImpl expr = (ONTExpressionImpl) other;
+            ONTExpressionImpl<?> expr = (ONTExpressionImpl<?>) other;
             if (notSame(expr)) {
                 return false;
             }

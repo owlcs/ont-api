@@ -85,7 +85,7 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
      * @param <X> subtype of {@link Comparable}
      * @return a {@code Set}
      */
-    public static <X extends Comparable> Set<X> createSortedSet() {
+    public static <X extends Comparable<?>> Set<X> createSortedSet() {
         return new TreeSet<>();
     }
 
@@ -162,17 +162,17 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
      * This method has been moved here from the {@link org.semanticweb.owlapi.util.OWLAPIStreamUtils}
      * to better control behaviour.
      *
-     * @param left {@code Iterator} to compare, not {@code null}
+     * @param left  {@code Iterator} to compare, not {@code null}
      * @param right {@code Iterator} to compare, not {@code null}
      * @return {@code true} if the iterators have the same content, {@code false} otherwise
      * @see org.semanticweb.owlapi.util.OWLAPIStreamUtils#equalIterators(Iterator, Iterator)
      */
-    protected static boolean equalIterators(Iterator left, Iterator right) {
+    protected static boolean equalIterators(Iterator<?> left, Iterator<?> right) {
         while (left.hasNext() && right.hasNext()) {
             Object a = left.next();
             Object b = right.next();
             if (a instanceof Stream && b instanceof Stream) {
-                if (!equalIterators(((Stream) a).iterator(), ((Stream) b).iterator())) {
+                if (!equalStreams(((Stream<?>) a), ((Stream<?>) b))) {
                     return false;
                 }
             } else {
@@ -192,7 +192,7 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
      * @return {@code true} if the streams have the same content, {@code false} otherwise
      * @see org.semanticweb.owlapi.util.OWLAPIStreamUtils#equalStreams(Stream, Stream)
      */
-    protected static boolean equalStreams(Stream left, Stream right) {
+    protected static boolean equalStreams(Stream<?> left, Stream<?> right) {
         return equalIterators(left.iterator(), right.iterator());
     }
 

@@ -116,6 +116,7 @@ public class NegativeObjectPropertyAssertionTranslator
             return OntNPA.ObjectAssertion.class;
         }
 
+        @SuppressWarnings("rawtypes")
         @Override
         public Object fromObject(ONTObject o) {
             return fromIndividual((OWLIndividual) o.getOWLObject());
@@ -126,6 +127,7 @@ public class NegativeObjectPropertyAssertionTranslator
             return toIndividual(o, factory);
         }
 
+        @SuppressWarnings("rawtypes")
         @Override
         public Object fromPredicate(ONTObject o) {
             OWLObjectPropertyExpression ope = (OWLObjectPropertyExpression) o.getOWLObject();

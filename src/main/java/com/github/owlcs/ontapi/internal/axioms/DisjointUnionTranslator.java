@@ -149,6 +149,7 @@ public class DisjointUnionTranslator extends AbstractListBasedTranslator<OWLDisj
             return members().map(ONTObject::getOWLObject);
         }
 
+        @SuppressWarnings("rawtypes")
         @Override
         public ONTObject fromContentItem(Object x, InternalObjectFactory factory) {
             return x instanceof String ? findSubjectByURI((String) x, factory) : (ONTObject) x;

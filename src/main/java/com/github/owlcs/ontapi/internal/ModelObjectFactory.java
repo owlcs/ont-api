@@ -14,16 +14,16 @@
 
 package com.github.owlcs.ontapi.internal;
 
-import org.apache.jena.graph.BlankNodeId;
-import org.apache.jena.graph.Node;
-import org.apache.jena.graph.impl.LiteralLabel;
-import org.apache.jena.rdf.model.Literal;
-import org.semanticweb.owlapi.model.*;
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.internal.objects.*;
 import com.github.owlcs.ontapi.jena.impl.Entities;
 import com.github.owlcs.ontapi.jena.model.*;
+import org.apache.jena.graph.BlankNodeId;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.impl.LiteralLabel;
+import org.apache.jena.rdf.model.Literal;
+import org.semanticweb.owlapi.model.*;
 
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -144,7 +144,7 @@ public class ModelObjectFactory implements InternalObjectFactory {
 
     @SuppressWarnings("unchecked")
     @Override
-    public ONTObject<? extends SWRLAtom> getSWRLAtom(OntSWRL.Atom atom) {
+    public ONTObject<? extends SWRLAtom> getSWRLAtom(OntSWRL.Atom<?> atom) {
         return (ONTObject<? extends SWRLAtom>) ONTSWRLAtomImpl.create(atom, this, model);
     }
 

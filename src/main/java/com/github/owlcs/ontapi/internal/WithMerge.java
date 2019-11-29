@@ -27,7 +27,7 @@ import java.util.function.BiFunction;
  *
  * @param <X> a subtype of {@link ONTObject}
  */
-public interface WithMerge<X extends ONTObject> {
+public interface WithMerge<X extends ONTObject<? extends OWLObject>> {
 
     /**
      * Merges this object and the given {@code other} into a new one of the same type {@link X}.
@@ -40,10 +40,11 @@ public interface WithMerge<X extends ONTObject> {
     /**
      * A {@link BiFunction} that accepts two {@link ONTObject}s and returns a fresh {@link ONTObject}.
      * For internal usage only.
+     *
      * @see #getMerger()
      */
-    @SuppressWarnings("unchecked")
-    BiFunction ONT_OBJECT_MERGER = (left, right) -> ((WithMerge<ONTObject>) left).merge((ONTObject) right);
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    BiFunction ONT_OBJECT_MERGER = (left, right) -> ((WithMerge<ONTObject<?>>) left).merge((ONTObject) right);
 
     /**
      * Returns a merge that maps two objects to a new one.

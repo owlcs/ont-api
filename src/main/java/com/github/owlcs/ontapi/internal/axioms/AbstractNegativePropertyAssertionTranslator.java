@@ -42,8 +42,8 @@ import java.util.stream.Stream;
  * <p>
  * Created by szuev on 29.11.2016.
  */
-public abstract class AbstractNegativePropertyAssertionTranslator<Axiom extends OWLPropertyAssertionAxiom,
-        NPA extends OntNPA> extends AxiomTranslator<Axiom> {
+public abstract class AbstractNegativePropertyAssertionTranslator<Axiom extends OWLPropertyAssertionAxiom<?, ?>,
+        NPA extends OntNPA<?, ?>> extends AxiomTranslator<Axiom> {
 
     abstract NPA createNPA(Axiom axiom, OntGraphModel model);
 
@@ -79,13 +79,13 @@ public abstract class AbstractNegativePropertyAssertionTranslator<Axiom extends 
      * @param <P> - either {@link OWLObjectPropertyExpression} or {@link OWLDataProperty}
      * @param <O> - either {@link OWLIndividual} or {@link OWLLiteral}
      */
-    @SuppressWarnings("WeakerAccess")
-    protected static abstract class NegativeAssertionImpl<R extends OntNPA,
-            A extends OWLPropertyAssertionAxiom,
+    @SuppressWarnings({"WeakerAccess", "rawtypes"})
+    protected static abstract class NegativeAssertionImpl<R extends OntNPA<?, ?>,
+            A extends OWLPropertyAssertionAxiom<?, ?>,
             P extends OWLPropertyExpression, O extends OWLObject> extends ONTAxiomImpl<A>
-            implements WithAssertion.Complex<NegativeAssertionImpl, OWLIndividual, P, O> {
+            implements WithAssertion.Complex<NegativeAssertionImpl<?, ?, ?, ?>, OWLIndividual, P, O> {
 
-        protected final InternalCache.Loading<NegativeAssertionImpl, Object[]> content;
+        protected final InternalCache.Loading<NegativeAssertionImpl<?, ?, ?, ?>, Object[]> content;
 
         protected NegativeAssertionImpl(Triple t, Supplier<OntGraphModel> m) {
             this(strip(t.getSubject()), t.getPredicate().getURI(), strip(t.getObject()), m);
@@ -97,14 +97,14 @@ public abstract class AbstractNegativePropertyAssertionTranslator<Axiom extends 
         }
 
         @Override
-        public InternalCache.Loading<NegativeAssertionImpl, Object[]> getContentCache() {
+        public InternalCache.Loading<NegativeAssertionImpl<?, ?, ?, ?>, Object[]> getContentCache() {
             return content;
         }
 
         @Override
         protected boolean sameContent(ONTStatementImpl other) {
-            return other instanceof NegativeAssertionImpl
-                    && Arrays.equals(getContent(), ((NegativeAssertionImpl) other).getContent());
+            return other instanceof NegativeAssertionImpl<?, ?, ?, ?>
+                    && Arrays.equals(getContent(), ((NegativeAssertionImpl<?, ?, ?, ?>) other).getContent());
         }
 
         /**

@@ -14,10 +14,6 @@
 
 package com.github.owlcs.ontapi.internal.axioms;
 
-import org.apache.jena.graph.Triple;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.util.iterator.ExtendedIterator;
-import org.semanticweb.owlapi.model.*;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.ONTAxiomImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
@@ -29,6 +25,10 @@ import com.github.owlcs.ontapi.jena.model.OntPE;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.util.iterator.ExtendedIterator;
+import org.semanticweb.owlapi.model.*;
 
 import java.util.Set;
 import java.util.function.Supplier;
@@ -47,7 +47,7 @@ import java.util.function.Supplier;
  * <p>
  * Created by @szuev on 28.09.2016.
  */
-public abstract class AbstractPropertyTypeTranslator<Axiom extends OWLAxiom & HasProperty,
+public abstract class AbstractPropertyTypeTranslator<Axiom extends OWLAxiom & HasProperty<?>,
         P extends OntPE> extends AxiomTranslator<Axiom> {
 
     abstract Resource getType();
@@ -133,7 +133,7 @@ public abstract class AbstractPropertyTypeTranslator<Axiom extends OWLAxiom & Ha
      * @param <P> a subtype of {@link OWLPropertyExpression}
      */
     @SuppressWarnings("WeakerAccess")
-    protected static abstract class UnaryAxiomImpl<A extends OWLUnaryPropertyAxiom,
+    protected static abstract class UnaryAxiomImpl<A extends OWLUnaryPropertyAxiom<P>,
             P extends OWLPropertyExpression> extends ONTAxiomImpl<A>
             implements WithOneObject<P> {
 

@@ -120,6 +120,7 @@ public class NegativeDataPropertyAssertionTranslator
             return OntNPA.DataAssertion.class;
         }
 
+        @SuppressWarnings("rawtypes")
         @Override
         public Object fromObject(ONTObject o) {
             return OWLLiteralImpl.asONT((OWLLiteral) o.getOWLObject()).getLiteralLabel();
@@ -130,6 +131,7 @@ public class NegativeDataPropertyAssertionTranslator
             return ONTLiteralImpl.find((LiteralLabel) o, factory, model);
         }
 
+        @SuppressWarnings("rawtypes")
         @Override
         public Object fromPredicate(ONTObject o) {
             OWLDataProperty property = (OWLDataProperty) o.getOWLObject();

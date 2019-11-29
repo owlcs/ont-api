@@ -14,12 +14,12 @@
 
 package com.github.owlcs.ontapi.internal.objects;
 
+import com.github.owlcs.ontapi.jena.model.OntEntity;
+import com.github.owlcs.ontapi.jena.model.OntGraphModel;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.rdf.model.Resource;
 import org.semanticweb.owlapi.model.*;
-import com.github.owlcs.ontapi.jena.model.OntEntity;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
 
 import javax.annotation.Nullable;
 import java.util.Objects;
@@ -47,8 +47,8 @@ public abstract class ONTEntityImpl<X extends OWLEntity>
      * @return String, uri
      */
     public static String getURI(OWLEntity e) {
-        if (e instanceof ONTEntityImpl) {
-            return ((ONTEntityImpl) e).getURI();
+        if (e instanceof ONTEntityImpl<?>) {
+            return ((ONTEntityImpl<?>) e).getURI();
         }
         return e.getIRI().getIRIString();
     }

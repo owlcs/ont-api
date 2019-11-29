@@ -14,10 +14,6 @@
 
 package com.github.owlcs.ontapi.internal.objects;
 
-import org.apache.jena.graph.BlankNodeId;
-import org.apache.jena.rdf.model.Literal;
-import org.apache.jena.rdf.model.RDFNode;
-import org.semanticweb.owlapi.model.*;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.internal.InternalObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
@@ -26,6 +22,10 @@ import com.github.owlcs.ontapi.jena.model.OntDT;
 import com.github.owlcs.ontapi.jena.model.OntGraphModel;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
 import com.github.owlcs.ontapi.owlapi.objects.OWLLiteralImpl;
+import org.apache.jena.graph.BlankNodeId;
+import org.apache.jena.rdf.model.Literal;
+import org.apache.jena.rdf.model.RDFNode;
+import org.semanticweb.owlapi.model.*;
 
 import java.util.Arrays;
 import java.util.List;
@@ -62,7 +62,7 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
      * @param model a provider of non-null {@link OntGraphModel}, not {@code null}
      * @return {@link ONTAnonymousDataRangeImpl} instance
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public static ONTAnonymousDataRangeImpl create(OntDR dr,
                                                    InternalObjectFactory factory,
                                                    Supplier<OntGraphModel> model) {
@@ -82,9 +82,9 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
      * @param model a provider of non-null {@link OntGraphModel}, not {@code null}
      * @return {@link ONTAnonymousDataRangeImpl} instance
      */
-    public static ONTAnonymousDataRangeImpl create(BlankNodeId id,
-                                                   Class<? extends OntDR> type,
-                                                   Supplier<OntGraphModel> model) {
+    public static ONTAnonymousDataRangeImpl<?, ?> create(BlankNodeId id,
+                                                         Class<? extends OntDR> type,
+                                                         Supplier<OntGraphModel> model) {
         if (OntDR.UnionOf.class == type) {
             return new UF(id, model);
         }
@@ -283,7 +283,7 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
             return (Stream<ONTObject<? extends OWLObject>>) objects(getObjectFactory());
         }
 
-        protected Stream objects(InternalObjectFactory factory) {
+        protected Stream<?> objects(InternalObjectFactory factory) {
             return Stream.concat(Stream.of(toDatatype(getContent()[0], factory)), Arrays.stream(getContent()).skip(1));
         }
 
@@ -470,7 +470,7 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
             return (Stream<ONTObject<? extends OWLObject>>) objects(getObjectFactory());
         }
 
-        protected Stream objects(InternalObjectFactory factory) {
+        protected Stream<?> objects(InternalObjectFactory factory) {
             return Arrays.stream(getContent()).map(x -> fromContentItem(x, factory));
         }
 

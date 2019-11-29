@@ -301,7 +301,7 @@ public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionA
                                         OntStatement statement,
                                         InternalObjectFactory factory,
                                         InternalConfig config) {
-                Collection annotations = ONTAxiomImpl.collectAnnotations(statement, factory, config);
+                Collection<?> annotations = ONTAxiomImpl.collectAnnotations(statement, factory, config);
                 int size = annotations.size();
                 int hash = OWLObject.hashIteration(axiom.hashIndex(), axiom.getONTSubject(factory).hashCode());
                 Object object = null;
@@ -335,7 +335,7 @@ public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionA
             public Object[] collectContent() {
                 OntStatement statement = asStatement();
                 InternalObjectFactory factory = getObjectFactory();
-                List<ONTObject> res = new ArrayList<>(1);
+                List<ONTObject<?>> res = new ArrayList<>(1);
                 if (!statement.getObject().isURIResource()) {
                     res.add(factory.getClass(statement.getObject(OntCE.class)));
                 }
@@ -365,8 +365,8 @@ public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionA
             public Stream<ONTObject<? extends OWLObject>> objects() {
                 Object[] content = getContent();
                 InternalObjectFactory f = getObjectFactory();
-                Stream res = Arrays.stream(content);
-                Stream objects;
+                Stream<?> res = Arrays.stream(content);
+                Stream<?> objects;
                 if (hasURIObject()) {
                     objects = Stream.of(getONTSubject(f), getONTObject(content, f));
                 } else {

@@ -14,12 +14,6 @@
 
 package com.github.owlcs.ontapi.internal.objects;
 
-import org.apache.jena.graph.BlankNodeId;
-import org.apache.jena.graph.Node;
-import org.apache.jena.graph.NodeFactory;
-import org.apache.jena.graph.impl.LiteralLabel;
-import org.semanticweb.owlapi.model.*;
-import org.semanticweb.owlapi.vocab.SWRLBuiltInsVocabulary;
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.internal.InternalObjectFactory;
@@ -28,6 +22,12 @@ import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.jena.model.*;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
 import com.github.owlcs.ontapi.owlapi.OWLObjectImpl;
+import org.apache.jena.graph.BlankNodeId;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
+import org.apache.jena.graph.impl.LiteralLabel;
+import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.vocab.SWRLBuiltInsVocabulary;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -43,7 +43,7 @@ import java.util.stream.Stream;
  * @since 2.0.0
  */
 @SuppressWarnings("WeakerAccess")
-public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRLAtom>
+public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends SWRLAtom>
         extends ONTExpressionImpl<ONT>
         implements SWRLAtom, ModelObject<OWL> {
 
@@ -55,16 +55,16 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
      * Wraps the given {@link OntSWRL.Atom atom} as {@link SWRLAtom} object,
      * which is an {@link ONTObject} at the same time.
      *
-     * @param atom  {@link OntSWRL.Atom}, not {@code null}, must be anonymous
+     * @param atom    {@link OntSWRL.Atom}, not {@code null}, must be anonymous
      * @param factory {@link InternalObjectFactory}, not {@code null}
-     * @param model a provider of non-null {@link OntGraphModel}, not {@code null}
+     * @param model   a provider of non-null {@link OntGraphModel}, not {@code null}
      * @return {@link ONTSWRLAtomImpl} instance
      */
-    @SuppressWarnings("unchecked")
-    public static ONTSWRLAtomImpl create(OntSWRL.Atom atom,
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static ONTSWRLAtomImpl create(OntSWRL.Atom<?> atom,
                                          InternalObjectFactory factory,
                                          Supplier<OntGraphModel> model) {
-        Class<? extends OntSWRL.Atom> type = OntModels.getOntType(atom);
+        Class<? extends OntSWRL.Atom<?>> type = OntModels.getOntType(atom);
         BlankNodeId id = atom.asNode().getBlankNodeId();
         ONTSWRLAtomImpl res = create(id, type, model);
         res.putContent(res.initContent(atom, factory));
@@ -79,9 +79,9 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom, OWL extends SWRL
      * @param model {@link OntGraphModel}-provider, not {@code null}
      * @return {@link ONTSWRLAtomImpl}
      */
-    public static ONTSWRLAtomImpl create(BlankNodeId id,
-                                         Class<? extends OntSWRL.Atom> type,
-                                         Supplier<OntGraphModel> model) {
+    public static ONTSWRLAtomImpl<?, ?> create(BlankNodeId id,
+                                               Class<? extends OntSWRL.Atom<?>> type,
+                                               Supplier<OntGraphModel> model) {
         if (type == OntSWRL.Atom.BuiltIn.class) {
             return new BN(id, model);
         }

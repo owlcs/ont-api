@@ -126,7 +126,7 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
                                        Supplier<OntGraphModel> model,
                                        InternalObjectFactory factory,
                                        InternalConfig config) {
-            Collection annotations = ONTAxiomImpl.collectAnnotations(statement, factory, config);
+            Collection<?> annotations = ONTAxiomImpl.collectAnnotations(statement, factory, config);
             if (annotations.isEmpty()) {
                 SimpleImpl res = new SimpleImpl(statement.asTriple(), model);
                 int hash = OWLObject.hashIteration(res.hashIndex(), res.findONTEntity(factory).hashCode());
@@ -326,7 +326,7 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
             @SuppressWarnings("unchecked")
             @Override
             public Stream<ONTObject<? extends OWLObject>> objects() {
-                Stream res = Stream.concat(super.objects(), annotations());
+                Stream<?> res = Stream.concat(super.objects(), annotations());
                 return (Stream<ONTObject<? extends OWLObject>>) res;
             }
 

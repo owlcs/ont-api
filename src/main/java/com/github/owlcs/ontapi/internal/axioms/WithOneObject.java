@@ -14,10 +14,6 @@
 
 package com.github.owlcs.ontapi.internal.axioms;
 
-import org.apache.jena.graph.Triple;
-import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLObject;
 import com.github.owlcs.ontapi.internal.InternalConfig;
 import com.github.owlcs.ontapi.internal.InternalObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
@@ -28,6 +24,10 @@ import com.github.owlcs.ontapi.internal.objects.WithoutAnnotations;
 import com.github.owlcs.ontapi.jena.model.OntGraphModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.owlapi.OWLObjectImpl;
+import org.apache.jena.graph.Triple;
+import org.semanticweb.owlapi.model.OWLAnnotation;
+import org.semanticweb.owlapi.model.OWLAxiom;
+import org.semanticweb.owlapi.model.OWLObject;
 
 import java.util.*;
 import java.util.function.BiFunction;
@@ -46,6 +46,7 @@ import java.util.stream.Stream;
  * @param <S> - any subtype of {@link OWLObject} (the type of triple's subject)
  * @since 2.0.0
  */
+@SuppressWarnings("rawtypes")
 interface WithOneObject<S extends OWLObject> extends WithTriple {
 
     ONTObject<? extends S> findURISubject(InternalObjectFactory factory);

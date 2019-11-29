@@ -191,7 +191,7 @@ public class ExtendedProperties extends Properties {
      * @param key String, not {@code null}
      * @return {@code Class}
      */
-    public Class getClassProperty(String key) {
+    public Class<?> getClassProperty(String key) {
         return getTypedProperty(key, Class.class);
     }
 
@@ -201,7 +201,7 @@ public class ExtendedProperties extends Properties {
      * @param key String, not {@code null}
      * @return {@code Enum}
      */
-    public Enum getEnumProperty(String key) {
+    public Enum<?> getEnumProperty(String key) {
         return getTypedProperty(key, Enum.class);
     }
 
@@ -254,7 +254,7 @@ public class ExtendedProperties extends Properties {
 
             @Override
             public String toString(Object value) {
-                return ((Class) value).getName();
+                return ((Class<?>) value).getName();
             }
         },
         ENUM(Enum.class) {
@@ -309,7 +309,7 @@ public class ExtendedProperties extends Properties {
 
             @Override
             public String toString(Object value) {
-                Enum val = (Enum) value;
+                Enum<?> val = (Enum<?>) value;
                 return val.getDeclaringClass().getName() + "#" + val.name();
             }
 

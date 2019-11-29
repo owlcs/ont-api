@@ -14,10 +14,10 @@
 
 package com.github.owlcs.ontapi.internal;
 
-import org.semanticweb.owlapi.model.*;
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.internal.objects.ONTIRI;
 import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import org.semanticweb.owlapi.model.*;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -48,7 +48,7 @@ public class CacheObjectFactory extends ModelObjectFactory {
     protected final InternalCache.Loading<String, ONTObject<OWLObjectProperty>> objectProperties;
     protected final InternalCache.Loading<String, ONTObject<OWLNamedIndividual>> individuals;
     protected final InternalCache.Loading<String, IRI> iris;
-    protected final Set<InternalCache> caches;
+    protected final Set<InternalCache<?, ?>> caches;
 
     /**
      * Creates a default instance.
@@ -85,8 +85,8 @@ public class CacheObjectFactory extends ModelObjectFactory {
      */
     protected CacheObjectFactory(DataFactory dataFactory,
                                  Supplier<OntGraphModel> model,
-                                 Map<Class<? extends OWLPrimitive>, InternalCache> external,
-                                 Supplier<InternalCache> cacheFactory) {
+                                 Map<Class<? extends OWLPrimitive>, InternalCache<?, ?>> external,
+                                 Supplier<InternalCache<?, ?>> cacheFactory) {
         super(dataFactory, model);
         this.caches = new HashSet<>();
         this.iris = fetchCache(external, caches, cacheFactory, org.semanticweb.owlapi.model.IRI.class).asLoading(super::toIRI);
@@ -103,11 +103,11 @@ public class CacheObjectFactory extends ModelObjectFactory {
     }
 
     @SuppressWarnings("unchecked")
-    private static <R> InternalCache<String, R> fetchCache(Map<Class<? extends OWLPrimitive>, InternalCache> system,
-                                                           Set<InternalCache> caches,
-                                                           Supplier<InternalCache> factory,
+    private static <R> InternalCache<String, R> fetchCache(Map<Class<? extends OWLPrimitive>, InternalCache<?, ?>> system,
+                                                           Set<InternalCache<?, ?>> caches,
+                                                           Supplier<InternalCache<?, ?>> factory,
                                                            Class<? extends OWLPrimitive> key) {
-        InternalCache res = system.get(key);
+        InternalCache<?, ?> res = system.get(key);
         if (res == null) {
             res = factory.get();
             caches.add(res);

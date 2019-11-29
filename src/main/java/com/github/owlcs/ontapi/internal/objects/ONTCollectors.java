@@ -14,8 +14,8 @@
 
 package com.github.owlcs.ontapi.internal.objects;
 
-import org.semanticweb.owlapi.model.*;
 import com.github.owlcs.ontapi.internal.ONTObject;
+import org.semanticweb.owlapi.model.*;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Objects;
@@ -69,7 +69,7 @@ public abstract class ONTCollectors {
 
             @Override
             public Boolean visit(OWLClass x) {
-                return clazz.equals(x) ? (res = true) : res;
+                return clazz.equals(x);
             }
         };
     }
@@ -132,7 +132,7 @@ public abstract class ONTCollectors {
 
             @Override
             public Boolean visit(OWLNamedIndividual x) {
-                return individual.equals(x) ? (res = true) : res;
+                return individual.equals(x);
             }
         };
     }
@@ -174,7 +174,7 @@ public abstract class ONTCollectors {
 
             @Override
             public Boolean visit(OWLDatatype x) {
-                return datatype.equals(x) ? (res = true) : res;
+                return datatype.equals(x);
             }
         };
     }
@@ -217,7 +217,7 @@ public abstract class ONTCollectors {
 
             @Override
             public Boolean visit(OWLObjectProperty x) {
-                return property.equals(x) ? (res = true) : res;
+                return property.equals(x);
             }
         };
     }
@@ -259,7 +259,7 @@ public abstract class ONTCollectors {
 
             @Override
             public Boolean visit(OWLDataProperty x) {
-                return property.equals(x) ? (res = true) : res;
+                return property.equals(x);
             }
         };
     }
@@ -301,7 +301,7 @@ public abstract class ONTCollectors {
 
             @Override
             public Boolean visit(OWLAnnotationProperty x) {
-                return property.equals(x) ? (res = true) : res;
+                return property.equals(x);
             }
         };
     }
@@ -349,18 +349,13 @@ public abstract class ONTCollectors {
         }
     }
 
+    /**
+     * A collector to find first occurrence.
+     */
     public static abstract class ContainsCollector extends ONTCollector<Boolean> {
-        protected boolean res;
-
         @Override
         public Boolean doDefault(Object object) {
-            if (res) return res;
-            components(object).forEach(x -> {
-                if (testComponent((ONTComposite) x)) {
-                    res = x.getOWLObject().accept(ContainsCollector.this);
-                }
-            });
-            return res;
+            return components(object).anyMatch(x -> testComponent((ONTComposite) x) && x.getOWLObject().accept(this));
         }
     }
 

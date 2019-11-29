@@ -14,13 +14,13 @@
 
 package com.github.owlcs.ontapi.internal.objects;
 
-import org.semanticweb.owlapi.model.*;
 import com.github.owlcs.ontapi.internal.HasObjectFactory;
 import com.github.owlcs.ontapi.internal.InternalObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.jena.impl.PersonalityModel;
 import com.github.owlcs.ontapi.jena.model.OntGraphModel;
 import com.github.owlcs.ontapi.owlapi.OWLObjectImpl;
+import org.semanticweb.owlapi.model.*;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -63,7 +63,7 @@ public abstract class ONTObjectImpl extends OWLObjectImpl implements ONTComposit
      * @param <X> subtype of {@link ONTObject}
      * @return an empty sorted {@code Set} that can contain {@code ONTObject}s.
      */
-    public static <X extends ONTObject> Set<X> createContentSet() {
+    public static <X extends ONTObject<? extends OWLObject>> Set<X> createContentSet() {
         return createSortedSet(Comparator.comparing(ONTObject::getOWLObject));
     }
 
@@ -73,7 +73,7 @@ public abstract class ONTObjectImpl extends OWLObjectImpl implements ONTComposit
      * @return {@link X}
      * @see ModelObject#eraseModel()
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public static <X extends OWLObject> X eraseModel(X object) {
         if (object instanceof ModelObject) {
             return (X) ((ModelObject) object).eraseModel();

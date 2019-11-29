@@ -14,17 +14,17 @@
 
 package com.github.owlcs.ontapi;
 
-import org.apache.jena.graph.Graph;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
-import org.semanticweb.owlapi.model.OWLOntologyWriterConfiguration;
-import org.semanticweb.owlapi.model.OWLPrimitive;
 import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
 import com.github.owlcs.ontapi.config.OntWriterConfiguration;
 import com.github.owlcs.ontapi.internal.InternalCache;
 import com.github.owlcs.ontapi.internal.InternalConfig;
 import com.github.owlcs.ontapi.internal.InternalModel;
 import com.github.owlcs.ontapi.jena.impl.conf.OntPersonality;
+import org.apache.jena.graph.Graph;
+import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
+import org.semanticweb.owlapi.model.OWLOntologyWriterConfiguration;
+import org.semanticweb.owlapi.model.OWLPrimitive;
 
 import java.io.Serializable;
 import java.util.Collections;
@@ -124,9 +124,10 @@ public class ModelConfig implements InternalConfig, Serializable {
 
     /**
      * Extracts the manager caches to share between different ontology instances.
+     *
      * @return a {@code Map} with {@link OWLPrimitive} class-types as keys and {@link InternalCache}s as values
      */
-    public Map<Class<? extends OWLPrimitive>, InternalCache> getManagerCaches() {
+    public Map<Class<? extends OWLPrimitive>, InternalCache<?, ?>> getManagerCaches() {
         Map<Class<? extends OWLPrimitive>, InternalCache<String, ? extends OWLPrimitive>> res = new HashMap<>();
         res.put(IRI.class, manager.iris.asCache());
         return Collections.unmodifiableMap(res);

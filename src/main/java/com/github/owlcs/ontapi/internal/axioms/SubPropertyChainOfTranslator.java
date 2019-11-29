@@ -152,6 +152,7 @@ public class SubPropertyChainOfTranslator
             return getONTSubject().getOWLObject();
         }
 
+        @SuppressWarnings("rawtypes")
         @Override
         public ONTObject fromContentItem(Object x, InternalObjectFactory factory) {
             return x instanceof String ? findPropertyByURI((String) x, factory) : (ONTObject) x;
@@ -193,10 +194,10 @@ public class SubPropertyChainOfTranslator
             if (content.length < 3) {
                 return false;
             }
-            List<ONTObject> members = members(content, factory).collect(Collectors.toList());
+            List<ONTObject<?>> members = members(content, factory).collect(Collectors.toList());
             if (members.size() != 2)
                 return false;
-            ONTObject subject = findONTSubject(content[0], factory);
+            ONTObject<?> subject = findONTSubject(content[0], factory);
             return subject.equals(members.get(0)) && subject.equals(members.get(1));
         }
 

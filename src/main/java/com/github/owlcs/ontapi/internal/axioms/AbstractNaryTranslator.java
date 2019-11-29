@@ -137,7 +137,7 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
          * @param other {@link ONTObject} with {@link A}, not {@code null}
          * @return {@link NaryAxiomImpl} - a fresh instance that equals to this
          */
-        protected abstract NaryAxiomImpl makeCopyWith(ONTObject<A> other);
+        protected abstract NaryAxiomImpl<A, M> makeCopyWith(ONTObject<A> other);
 
         /**
          * Creates a factory instance of {@link A}.
@@ -167,16 +167,15 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
                     .collect(Collectors.toList()), annotations);
         }
 
-        @SuppressWarnings("unchecked")
         @Override
-        public final NaryAxiomImpl merge(ONTObject<A> other) {
+        public final NaryAxiomImpl<A, M> merge(ONTObject<A> other) {
             if (this == other) {
                 return this;
             }
-            if (other instanceof NaryAxiomImpl && sameTriple((NaryAxiomImpl) other)) {
+            if (other instanceof NaryAxiomImpl && sameTriple((NaryAxiomImpl<A, M>) other)) {
                 return this;
             }
-            NaryAxiomImpl res = makeCopyWith(other);
+            NaryAxiomImpl<A, M> res = makeCopyWith(other);
             res.hashCode = hashCode;
             return res;
         }
@@ -205,7 +204,7 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
          * @param other {@link ONTAxiomImpl} to test, not {@code null}
          * @return boolean
          */
-        protected boolean isReverseTriple(ONTAxiomImpl other) {
+        protected boolean isReverseTriple(ONTAxiomImpl<A> other) {
             return subject.equals(other.getObjectURI()) && object.equals(other.getSubjectURI());
         }
 
@@ -218,7 +217,7 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
          */
         boolean testSameContent(ONTStatementImpl other) {
             if (other instanceof WithContent) {
-                return Arrays.equals(((WithContent) this).getContent(), ((WithContent<?>) other).getContent());
+                return Arrays.equals(((WithContent<?>) this).getContent(), ((WithContent<?>) other).getContent());
             }
             if (other instanceof WithManyObjects) {
                 InternalObjectFactory factory = getObjectFactory();
@@ -343,6 +342,7 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
             return isAnnotated();
         }
 
+        @SuppressWarnings("rawtypes")
         public ONTObject fromContentItem(Object x, InternalObjectFactory factory) {
             if (x instanceof String)
                 return findByURI((String) x, factory);
@@ -351,6 +351,7 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
             return (ONTObject) x;
         }
 
+        @SuppressWarnings("rawtypes")
         public Object toContentItem(ONTObject x) {
             if (x instanceof OWLNamedIndividual) return ONTEntityImpl.getURI((OWLEntity) x);
             return ((OWLAnonymousIndividualImpl) x).getBlankNodeId();

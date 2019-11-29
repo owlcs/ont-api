@@ -14,11 +14,6 @@
 
 package com.github.owlcs.ontapi.internal.objects;
 
-import org.apache.jena.graph.BlankNodeId;
-import org.apache.jena.graph.FrontsTriple;
-import org.apache.jena.graph.Triple;
-import org.apache.jena.graph.impl.LiteralLabel;
-import org.semanticweb.owlapi.model.*;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.jena.model.OntAnnotation;
@@ -27,6 +22,11 @@ import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Models;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import org.apache.jena.graph.BlankNodeId;
+import org.apache.jena.graph.FrontsTriple;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.graph.impl.LiteralLabel;
+import org.semanticweb.owlapi.model.*;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -66,7 +66,7 @@ public abstract class ONTAnnotationImpl extends ONTStatementImpl
     public static ONTAnnotationImpl create(OntStatement statement,
                                            InternalObjectFactory factory,
                                            Supplier<OntGraphModel> model) {
-        Collection annotations = collectAnnotations(statement, factory);
+        Collection<?> annotations = collectAnnotations(statement, factory);
         if (annotations.isEmpty()) {
             SimpleImpl res = new SimpleImpl(statement.asTriple(), model);
             res.hashCode = collectHashCode(res, factory, 1);
@@ -202,7 +202,7 @@ public abstract class ONTAnnotationImpl extends ONTStatementImpl
      */
     @SuppressWarnings("unchecked")
     public static Stream<OWLAnnotation> contentAsStream(Object[] content) {
-        Stream res = Arrays.stream(content);
+        Stream<?> res = Arrays.stream(content);
         return (Stream<OWLAnnotation>) res;
     }
 
@@ -214,7 +214,7 @@ public abstract class ONTAnnotationImpl extends ONTStatementImpl
      * @param content an {@code Array} with {@link OWLAnnotation}s
      * @return a {@code List} of {@link OWLAnnotation}s
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public static List<OWLAnnotation> contentAsList(Object[] content) {
         List res = Arrays.asList(content);
         return (List<OWLAnnotation>) Collections.unmodifiableList(res);
@@ -234,7 +234,7 @@ public abstract class ONTAnnotationImpl extends ONTStatementImpl
         if (!ONTAnnotationImpl.hasAnnotations(content)) {
             return Stream.empty();
         }
-        Stream res = Arrays.stream(content, fromIndex, content.length);
+        Stream<?> res = Arrays.stream(content, fromIndex, content.length);
         return (Stream<OWLAnnotation>) res;
     }
 
@@ -247,7 +247,7 @@ public abstract class ONTAnnotationImpl extends ONTStatementImpl
      * @param fromIndex a positive int less then array length - annotation's stating position
      * @return a {@code List} of {@link OWLAnnotation}s
      */
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public static List<OWLAnnotation> contentAsList(Object[] content, int fromIndex) {
         if (!ONTAnnotationImpl.hasAnnotations(content)) {
             return Collections.emptyList();
@@ -506,7 +506,7 @@ public abstract class ONTAnnotationImpl extends ONTStatementImpl
         @SuppressWarnings("unchecked")
         @Override
         public Stream<ONTObject<? extends OWLObject>> objects() {
-            Stream res = Stream.concat(super.objects(), annotations());
+            Stream<?> res = Stream.concat(super.objects(), annotations());
             return (Stream<ONTObject<? extends OWLObject>>) res;
         }
 

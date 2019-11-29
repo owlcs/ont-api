@@ -157,7 +157,7 @@ public class InternalModel extends OntGraphModelImpl
                          OntPersonality personality,
                          InternalConfig config,
                          DataFactory dataFactory,
-                         Map<Class<? extends OWLPrimitive>, InternalCache> fromManager) {
+                         Map<Class<? extends OWLPrimitive>, InternalCache<?, ?>> fromManager) {
         super(base, personality);
         Objects.requireNonNull(dataFactory);
         Objects.requireNonNull(config);
@@ -253,7 +253,7 @@ public class InternalModel extends OntGraphModelImpl
      * @see com.github.owlcs.ontapi.config.CacheSettings#getLoadObjectsCacheSize()
      */
     protected InternalObjectFactory createObjectFactory(DataFactory df,
-                                                        Map<Class<? extends OWLPrimitive>, InternalCache> external) {
+                                                        Map<Class<? extends OWLPrimitive>, InternalCache<?, ?>> external) {
         InternalConfig conf = getConfig();
         Supplier<OntGraphModel> model = this::getSearchModel;
         if (!conf.useLoadObjectsCache()) {
@@ -261,7 +261,7 @@ public class InternalModel extends OntGraphModelImpl
         }
         long size = conf.getLoadObjectsCacheSize();
         boolean parallel = conf.parallel();
-        Map<Class<? extends OWLPrimitive>, InternalCache> map = external == null ? Collections.emptyMap() : external;
+        Map<Class<? extends OWLPrimitive>, InternalCache<?, ?>> map = external == null ? Collections.emptyMap() : external;
         return new CacheObjectFactory(df, model, map, () -> InternalCache.createBounded(parallel, size));
     }
 
@@ -1504,9 +1504,9 @@ public class InternalModel extends OntGraphModelImpl
         OntID id = getID();
         return new CacheObjectMapImpl<OWLObject>(loader, withMerge, parallel, fastIterator) {
             @Override
-            protected CachedMap loadMap() {
+            protected CachedMap<OWLObject, ONTObject<OWLObject>> loadMap() {
                 Instant start = Instant.now();
-                CachedMap res = super.loadMap();
+                CachedMap<OWLObject, ONTObject<OWLObject>> res = super.loadMap();
                 Duration d = Duration.between(start, Instant.now());
                 if (res.size() == 0) return res;
                 // commons-lang3 is included in jena-arq (3.6.0)

@@ -475,7 +475,7 @@ public class ReadHelper {
      * @param of   {@link InternalObjectFactory}
      * @return {@link ONTObject} around {@link SWRLAtom}
      */
-    public static ONTObject<? extends SWRLAtom> calcSWRLAtom(OntSWRL.Atom atom, InternalObjectFactory of) {
+    public static ONTObject<? extends SWRLAtom> calcSWRLAtom(OntSWRL.Atom<?> atom, InternalObjectFactory of) {
         if (atom instanceof OntSWRL.Atom.BuiltIn) {
             OntSWRL.Atom.BuiltIn _atom = (OntSWRL.Atom.BuiltIn) atom;
             IRI iri = of.toIRI(_atom.getPredicate().getURI());

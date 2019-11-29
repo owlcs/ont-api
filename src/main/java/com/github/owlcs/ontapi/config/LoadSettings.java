@@ -15,10 +15,10 @@
 package com.github.owlcs.ontapi.config;
 
 import com.github.owlcs.ontapi.*;
-import org.apache.jena.graph.Graph;
-import org.semanticweb.owlapi.model.IRI;
 import com.github.owlcs.ontapi.jena.impl.conf.OntPersonality;
 import com.github.owlcs.ontapi.transforms.GraphTransformers;
+import org.apache.jena.graph.Graph;
+import org.semanticweb.owlapi.model.IRI;
 
 import java.io.Serializable;
 import java.util.Collection;
@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * A common interface to access loadingg settings.
+ * A common interface to access loading settings.
  * The settings from configs {@link AxiomsSettings} and {@link CacheSettings}
  * can be changed during the ontology model evolution,
  * but the settings of this config cannot be changed after the ontology is loaded.

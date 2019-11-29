@@ -14,6 +14,17 @@
 
 package com.github.owlcs.ontapi;
 
+import com.github.owlcs.ontapi.config.OntConfig;
+import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
+import com.github.owlcs.ontapi.config.OntWriterConfiguration;
+import com.github.owlcs.ontapi.internal.InternalCache;
+import com.github.owlcs.ontapi.internal.InternalConfig;
+import com.github.owlcs.ontapi.internal.InternalModel;
+import com.github.owlcs.ontapi.jena.UnionGraph;
+import com.github.owlcs.ontapi.jena.impl.OntGraphModelImpl;
+import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.utils.Graphs;
+import com.github.owlcs.ontapi.jena.utils.OntModels;
 import org.apache.commons.io.output.WriterOutputStream;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphUtil;
@@ -28,17 +39,6 @@ import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.model.parameters.OntologyCopy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.github.owlcs.ontapi.config.OntConfig;
-import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
-import com.github.owlcs.ontapi.config.OntWriterConfiguration;
-import com.github.owlcs.ontapi.internal.InternalCache;
-import com.github.owlcs.ontapi.internal.InternalConfig;
-import com.github.owlcs.ontapi.internal.InternalModel;
-import com.github.owlcs.ontapi.jena.UnionGraph;
-import com.github.owlcs.ontapi.jena.impl.OntGraphModelImpl;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
-import com.github.owlcs.ontapi.jena.utils.Graphs;
-import com.github.owlcs.ontapi.jena.utils.OntModels;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -1436,29 +1436,6 @@ public class OntologyManagerImpl implements OntologyManager,
         } finally {
             getLock().writeLock().unlock();
         }
-    }
-
-    /**
-     * In case of coping from ONT to OWL there will be an exception.
-     * This method helps to fix the origin manager.
-     *
-     * @param o          {@link OWLOntology o}, must be our (ONT) object.
-     * @param owlManager {@link OWLOntologyManager} any OWL manager.
-     */
-    protected void rollBackMoving(OWLOntology o, OWLOntologyManager owlManager) {
-        ontologyCreated(o);
-        OWLDocumentFormat f = owlManager.getOntologyFormat(o);
-        if (f != null) {
-            setOntologyFormat(o, f);
-        }
-        IRI doc;
-        try {
-            doc = owlManager.getOntologyDocumentIRI(o);
-        } catch (RuntimeException e) {
-            LOGGER.warn("Document IRI is not expected to be null!", e);
-            return;
-        }
-        setOntologyDocumentIRI(o, doc);
     }
 
     /**

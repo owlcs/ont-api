@@ -150,6 +150,7 @@ public class HasKeyTranslator
          * {@inheritDoc}
          * Since the concrete type of a property is unknown, the item is cached as is.
          */
+        @SuppressWarnings("rawtypes")
         @Override
         public ONTObject fromContentItem(Object x, InternalObjectFactory factory) {
             return (ONTObject) x;
@@ -159,6 +160,7 @@ public class HasKeyTranslator
          * {@inheritDoc}
          * Since the concrete type of a property is unknown, the item is cached as is.
          */
+        @SuppressWarnings("rawtypes")
         @Override
         public Object toContentItem(ONTObject x) {
             return x;

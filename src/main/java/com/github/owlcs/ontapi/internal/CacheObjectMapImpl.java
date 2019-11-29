@@ -216,10 +216,10 @@ public class CacheObjectMapImpl<X extends OWLObject> implements ObjectMap<X> {
     public static class CachedMap<K, V> {
         protected final Map<K, V> map;
         protected final BiFunction<V, V, V> merger;
-        protected final InternalCache.Loading<CachedMap, List<K>> keys;
+        protected final InternalCache.Loading<CachedMap<?, ?>, List<K>> keys;
 
         protected CachedMap(Map<K, V> objects,
-                            InternalCache.Loading<CachedMap, List<K>> cache,
+                            InternalCache.Loading<CachedMap<?, ?>, List<K>> cache,
                             BiFunction<V, V, V> merger) {
             this.map = Objects.requireNonNull(objects);
             this.keys = Objects.requireNonNull(cache);
@@ -239,7 +239,7 @@ public class CacheObjectMapImpl<X extends OWLObject> implements ObjectMap<X> {
         public static <K, V> CachedMap<K, V> create(Map<K, V> map,
                                                     BiFunction<V, V, V> merger,
                                                     boolean parallel) {
-            InternalCache.Loading<CachedMap, List<K>> keys = InternalCache.createSoftSingleton(m -> {
+            InternalCache.Loading<CachedMap<?, ?>, List<K>> keys = InternalCache.createSoftSingleton(m -> {
                 if (!parallel) {
                     return new ArrayList<>(map.keySet());
                 }

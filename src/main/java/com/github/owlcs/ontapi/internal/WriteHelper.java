@@ -14,6 +14,12 @@
 
 package com.github.owlcs.ontapi.internal;
 
+import com.github.owlcs.ontapi.OntApiException;
+import com.github.owlcs.ontapi.jena.model.*;
+import com.github.owlcs.ontapi.jena.utils.OntModels;
+import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import com.github.owlcs.ontapi.owlapi.objects.OWLAnonymousIndividualImpl;
+import com.github.owlcs.ontapi.owlapi.objects.OWLLiteralImpl;
 import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
@@ -24,12 +30,6 @@ import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.OWLFacet;
-import com.github.owlcs.ontapi.OntApiException;
-import com.github.owlcs.ontapi.jena.model.*;
-import com.github.owlcs.ontapi.jena.utils.OntModels;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
-import com.github.owlcs.ontapi.owlapi.objects.OWLAnonymousIndividualImpl;
-import com.github.owlcs.ontapi.owlapi.objects.OWLLiteralImpl;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -356,7 +356,7 @@ public class WriteHelper {
         return model.createSWRLVariable(var.getIRI().getIRIString());
     }
 
-    public static OntSWRL.Atom addSWRLAtom(OntGraphModel model, SWRLAtom atom) {
+    public static OntSWRL.Atom<?> addSWRLAtom(OntGraphModel model, SWRLAtom atom) {
         SWRLAtomTranslator swrlt = OntApiException.notNull(SWRLAtomTranslator.valueOf(atom),
                 "Unsupported swrl-atom " + atom);
         return swrlt.translator.add(model, atom).as(OntSWRL.Atom.class);
@@ -510,10 +510,10 @@ public class WriteHelper {
         }),
         ;
 
-        private final Translator<? extends SWRLAtom, ? extends OntSWRL.Atom> translator;
+        private final Translator<? extends SWRLAtom, ? extends OntSWRL.Atom<?>> translator;
         private final Class<? extends SWRLAtom> type;
 
-        SWRLAtomTranslator(Class<? extends SWRLAtom> type, Translator<? extends SWRLAtom, ? extends OntSWRL.Atom> translator) {
+        SWRLAtomTranslator(Class<? extends SWRLAtom> type, Translator<? extends SWRLAtom, ? extends OntSWRL.Atom<?>> translator) {
             this.translator = translator;
             this.type = type;
         }
@@ -525,7 +525,7 @@ public class WriteHelper {
             return null;
         }
 
-        private static abstract class Translator<FROM extends SWRLAtom, TO extends OntSWRL.Atom> {
+        private static abstract class Translator<FROM extends SWRLAtom, TO extends OntSWRL.Atom<?>> {
             @SuppressWarnings("unchecked")
             private Resource add(OntGraphModel model, SWRLAtom atom) {
                 return translate(model, (FROM) atom);
