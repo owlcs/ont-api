@@ -14,6 +14,15 @@
 
 package com.github.owlcs.ontapi.tests.jena;
 
+import com.github.owlcs.ontapi.jena.OntJenaException;
+import com.github.owlcs.ontapi.jena.OntModelFactory;
+import com.github.owlcs.ontapi.jena.impl.OntGraphModelImpl;
+import com.github.owlcs.ontapi.jena.model.*;
+import com.github.owlcs.ontapi.jena.utils.Models;
+import com.github.owlcs.ontapi.jena.utils.OntModels;
+import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import com.github.owlcs.ontapi.jena.vocabulary.RDF;
+import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.util.iterator.UniqueFilter;
 import org.apache.jena.vocabulary.RDFS;
@@ -21,18 +30,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.github.owlcs.ontapi.jena.OntJenaException;
-import com.github.owlcs.ontapi.jena.OntModelFactory;
-import com.github.owlcs.ontapi.jena.impl.CachedAnnotationImpl;
-import com.github.owlcs.ontapi.jena.impl.CachedStatementImpl;
-import com.github.owlcs.ontapi.jena.impl.OntGraphModelImpl;
-import com.github.owlcs.ontapi.jena.impl.OntStatementImpl;
-import com.github.owlcs.ontapi.jena.model.*;
-import com.github.owlcs.ontapi.jena.utils.Models;
-import com.github.owlcs.ontapi.jena.utils.OntModels;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
-import com.github.owlcs.ontapi.jena.vocabulary.RDF;
-import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 
 import java.util.List;
 
@@ -565,86 +562,6 @@ public class OntAnnotationsTest {
         Assert.assertEquals(2, split2.size());
         Assert.assertEquals(3, split2.get(0).annotations().count());
         Assert.assertEquals(1, split2.get(1).annotations().count());
-    }
-
-
-    @Test
-    public void testCachedAnnotations() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntClass clazz = m.createOntClass("A");
-        clazz.getRoot().annotate(m.getRDFSLabel(), "X").annotate(m.getRDFSLabel(), "Y");
-        m.createResource(null, OWL.Axiom)
-                .addProperty(OWL.annotatedSource, clazz)
-                .addProperty(OWL.annotatedProperty, RDF.type)
-                .addProperty(OWL.annotatedTarget, OWL.Class)
-                .addProperty(m.getRDFSComment(), "Z")
-                .addProperty(m.getRDFSComment(), "S");
-        m.createResource(null, OWL.Axiom)
-                .addProperty(OWL.annotatedSource, clazz)
-                .addProperty(OWL.annotatedProperty, RDF.type)
-                .addProperty(OWL.annotatedTarget, OWL.Class)
-                .addProperty(m.getRDFSComment(), "R");
-        ReadWriteUtils.print(m);
-
-        clazz.getRoot().annotations()
-                .filter(a -> a.getObject().asLiteral().getLexicalForm().equals("S"))
-                .findFirst().orElseThrow(AssertionError::new)
-                .addAnnotation(m.getRDFSLabel(), "G");
-
-        Assert.assertEquals(2, clazz.getRoot().annotationResources().count());
-        Assert.assertEquals(5, clazz.getRoot().annotations().peek(x -> LOGGER.debug("Annotation: {}", x)).count());
-        List<OntAnnotation> list = clazz.getRoot().getAnnotationList();
-        OntAnnotation first = list.get(0);
-        Assert.assertEquals(1, first.getBase().annotationResources()
-                .peek(x -> LOGGER.debug("{}:: R: {}", first, x)).count());
-        Assert.assertFalse(first.getBase().isRoot());
-        Assert.assertEquals(1, first.descendants().findFirst()
-                .orElseThrow(AssertionError::new)
-                .assertions().peek(x -> LOGGER.debug("Descendant assertion: {}", x)).count());
-
-        OntStatement cachedRoot = OntStatementImpl.createCachedOntStatementImpl(clazz.getRoot());
-        Assert.assertEquals(5, cachedRoot.annotations().count());
-        Assert.assertEquals(2, cachedRoot.annotationResources().count());
-        Assert.assertEquals(2, cachedRoot.getAnnotationList().size());
-        Assert.assertEquals(1, cachedRoot.getAnnotationList().get(0).descendants().findFirst()
-                .orElseThrow(AssertionError::new)
-                .assertions().count());
-
-        first.addAnnotation(m.getRDFSComment(), "Q");
-        first.getBase().addAnnotation(m.getRDFSComment(), "W");
-        ReadWriteUtils.print(m);
-        Assert.assertEquals(4, first.assertions().count());
-        Assert.assertEquals(1, first.descendants().count());
-
-        Assert.assertEquals(7, clazz.getRoot().annotations().peek(x -> LOGGER.debug("All root ann: {}", x)).count());
-
-        Assert.assertEquals(0, OntModels.listSplitStatements(clazz.getRoot()).toList().get(1)
-                .asAnnotationResource().orElseThrow(AssertionError::new)
-                .descendants()
-                .peek(x -> LOGGER.debug("Second des: {}, {}", x, x.getBase())).count());
-
-        List<OntStatement> split = OntModels.listSplitStatements(OntStatementImpl.createCachedOntStatementImpl(clazz.getRoot())).toList();
-        Assert.assertEquals(2, split.size());
-        split.forEach(s -> Assert.assertTrue(s instanceof CachedStatementImpl));
-        Assert.assertEquals(6, split.get(0).annotations().peek(x -> LOGGER.debug("Split first ann: {}", x))
-                .peek(s -> Assert.assertTrue(s instanceof CachedStatementImpl)).count());
-        Assert.assertEquals(7, OntModels.annotations(split.get(0))
-                .peek(s -> Assert.assertTrue(s instanceof CachedStatementImpl)).count());
-        Assert.assertEquals(1, OntModels.annotations(split.get(1))
-                .peek(s -> Assert.assertTrue(s instanceof CachedStatementImpl)).count());
-        Assert.assertEquals(1, split.get(0).annotationResources()
-                .peek(s -> Assert.assertTrue(s instanceof CachedAnnotationImpl)).count());
-        Assert.assertEquals(1, split.get(1).annotationResources()
-                .peek(s -> Assert.assertTrue(s instanceof CachedAnnotationImpl)).count());
-        Assert.assertEquals(4, split.get(0).asAnnotationResource().orElseThrow(AssertionError::new)
-                .assertions().peek(s -> Assert.assertTrue(s instanceof CachedStatementImpl)).count());
-        Assert.assertEquals(1, split.get(0).asAnnotationResource().orElseThrow(AssertionError::new)
-                .descendants().peek(s -> Assert.assertTrue(s instanceof CachedAnnotationImpl))
-                .peek(x -> LOGGER.debug("Split first des: {}, {}", x, x.getBase())).count());
-
-        Assert.assertEquals(0, split.get(1).asAnnotationResource().orElseThrow(AssertionError::new)
-                .descendants().peek(s -> Assert.assertTrue(s instanceof CachedAnnotationImpl))
-                .peek(x -> LOGGER.debug("Split second des: {}, {}", x, x.getBase())).count());
     }
 
     @Test

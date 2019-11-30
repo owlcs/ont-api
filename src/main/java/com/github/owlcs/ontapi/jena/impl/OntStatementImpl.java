@@ -14,6 +14,12 @@
 
 package com.github.owlcs.ontapi.jena.impl;
 
+import com.github.owlcs.ontapi.jena.OntJenaException;
+import com.github.owlcs.ontapi.jena.model.*;
+import com.github.owlcs.ontapi.jena.utils.Iter;
+import com.github.owlcs.ontapi.jena.utils.Models;
+import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
@@ -23,12 +29,6 @@ import org.apache.jena.rdf.model.impl.ModelCom;
 import org.apache.jena.rdf.model.impl.PropertyImpl;
 import org.apache.jena.rdf.model.impl.StatementImpl;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import com.github.owlcs.ontapi.jena.OntJenaException;
-import com.github.owlcs.ontapi.jena.model.*;
-import com.github.owlcs.ontapi.jena.utils.Iter;
-import com.github.owlcs.ontapi.jena.utils.Models;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
-import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 
 import java.util.Collections;
 import java.util.List;
@@ -112,17 +112,6 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
      */
     public static OntStatementImpl createOntStatementImpl(Resource s, Property p, RDFNode o, OntGraphModelImpl m) {
         return new OntStatementImpl(s, p, o, m);
-    }
-
-    /**
-     * Creates a read-only wrapper for the given ont-statement with in-memory caches.
-     *
-     * @param delegate {@link OntStatement}
-     * @return {@link CachedStatementImpl}
-     */
-    public static CachedStatementImpl createCachedOntStatementImpl(OntStatement delegate) {
-        return delegate instanceof CachedStatementImpl ?
-                (CachedStatementImpl) delegate : new CachedStatementImpl(delegate);
     }
 
     /**
