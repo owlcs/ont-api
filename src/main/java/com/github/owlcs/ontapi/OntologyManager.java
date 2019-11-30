@@ -14,14 +14,14 @@
 
 package com.github.owlcs.ontapi;
 
-import org.apache.jena.graph.Graph;
-import org.semanticweb.owlapi.io.*;
-import org.semanticweb.owlapi.model.*;
-import org.semanticweb.owlapi.model.parameters.OntologyCopy;
 import com.github.owlcs.ontapi.config.OntConfig;
 import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
 import com.github.owlcs.ontapi.config.OntWriterConfiguration;
 import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import org.apache.jena.graph.Graph;
+import org.semanticweb.owlapi.io.*;
+import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.model.parameters.OntologyCopy;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -497,45 +497,6 @@ public interface OntologyManager extends OWLOntologyManager {
     @Override
     default void clearIRIMappers() {
         getIRIMappers().clear();
-    }
-
-    /**
-     * Returns document-source-mappings as stream.
-     * New (ONT-API) method.
-     *
-     * @return {@code Stream} of {@link DocumentSourceMapping}
-     * @since 1.0.1
-     * @deprecated use {@code getDocumentSourceMappers().stream()} instead
-     */
-    @Deprecated
-    default Stream<DocumentSourceMapping> documentSourceMappers() {
-        return getDocumentSourceMappers().stream();
-    }
-
-    /**
-     * Adds Document Source Mapping to the manager.
-     * New (ONT-API) method.
-     *
-     * @param mapper {@link DocumentSourceMapping}
-     * @since 1.0.1
-     * @deprecated use {@code getDocumentSourceMappers().add(mapper)} instead
-     */
-    @Deprecated
-    default void addDocumentSourceMapper(DocumentSourceMapping mapper) {
-        getDocumentSourceMappers().add(mapper);
-    }
-
-    /**
-     * Removes Document Source Mapping from the manager.
-     * New (ONT-API) method.
-     *
-     * @param mapper {@link DocumentSourceMapping}
-     * @since 1.0.1
-     * @deprecated use {@code getDocumentSourceMappers().remove(mapper)} instead
-     */
-    @Deprecated
-    default void removeDocumentSourceMapper(DocumentSourceMapping mapper) {
-        getDocumentSourceMappers().remove(mapper);
     }
 
     /**

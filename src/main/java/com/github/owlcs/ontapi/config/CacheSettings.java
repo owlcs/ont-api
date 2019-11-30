@@ -210,49 +210,4 @@ public interface CacheSettings {
     default boolean useLoadObjectsCache() {
         return getLoadObjectsCacheSize() > 0;
     }
-
-    /**
-     * Answers {@code true} iff the content caching is enabled.
-     *
-     * @return boolean
-     * @deprecated since 1.4.2: use {@link #useContentCache()} instead
-     */
-    @Deprecated
-    default boolean isContentCacheEnabled() {
-        return useContentCache();
-    }
-
-    /**
-     * Answers {@code true} iff iterator caching is enabled.
-     *
-     * @return boolean
-     * @deprecated since 1.4.2: use {@link #useIteratorCache()} instead
-     */
-    @Deprecated
-    default boolean useIteratorContentCache() {
-        return useIteratorCache();
-    }
-
-    /**
-     * Not supported anymore.
-     *
-     * @return boolean
-     * @deprecated since 1.4.2 - no such cache anymore
-     */
-    @Deprecated
-    default boolean useTriplesContentCache() {
-        throw new UnsupportedOperationException();
-    }
-
-
-    /**
-     * Gets the model content cache level.
-     *
-     * @return int
-     * @deprecated since 1.4.2 (bad naming): use {@link #getModelCacheLevel()}
-     */
-    @Deprecated
-    default int getContentCacheLevel() {
-        return getModelCacheLevel();
-    }
 }

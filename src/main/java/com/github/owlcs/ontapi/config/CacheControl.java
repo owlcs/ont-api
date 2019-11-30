@@ -84,30 +84,4 @@ interface CacheControl<R> extends CacheSettings {
         int current = getModelCacheLevel();
         return setModelCacheLevel(b ? current | constant : current & ~constant);
     }
-
-    /**
-     * Sets the model content cache level to the specified integer value.
-     *
-     * @param level non-negative integer
-     * @return {@link R}
-     * @deprecated since 1.4.2: use {@link #setModelCacheLevel(int)}
-     */
-    @Deprecated
-    default R setContentCacheLevel(int level) {
-        return setModelCacheLevel(level);
-    }
-
-    /**
-     * Turns on/off the content cache.
-     *
-     * @param b boolean
-     * @return {@link R}
-     * @see CacheSettings#useContentCache()
-     * @deprecated since 1.4.2: bad naming, use {@link #setModelCacheLevel(int, boolean)}
-     */
-    @Deprecated
-    default R setUseContentCache(boolean b) {
-        return setModelCacheLevel(CACHE_ALL, b);
-    }
-
 }

@@ -14,12 +14,12 @@
 
 package com.github.owlcs.ontapi.jena.model;
 
+import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import org.apache.jena.datatypes.RDFDatatype;
 import org.apache.jena.datatypes.TypeMapper;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 
 import java.util.Objects;
 import java.util.stream.Stream;
@@ -174,16 +174,4 @@ public interface OntDT extends OntEntity, OntDR {
         addAnnotation(predicate, value);
         return this;
     }
-
-    /**
-     * Lists all equivalent classes.
-     *
-     * @return {@code Stream} of equivalent {@link OntDR}s
-     * @deprecated since 1.4.2: use the method {@link #equivalentClasses()} instead
-     */
-    @Deprecated
-    default Stream<OntDR> equivalentClass() {
-        return equivalentClasses();
-    }
-
 }
