@@ -15,6 +15,8 @@
 package com.github.owlcs.ontapi.tests.model;
 
 import com.github.owlcs.ontapi.OntBaseModelImpl;
+import com.github.owlcs.ontapi.OntManagers;
+import com.github.owlcs.ontapi.Ontology;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,8 +26,6 @@ import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.semanticweb.owlapi.vocab.OWLFacet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.github.owlcs.ontapi.OntManagers;
-import com.github.owlcs.ontapi.OntologyModel;
 
 import java.util.*;
 import java.util.function.Function;
@@ -67,7 +67,7 @@ public class AxiomsByEntityTest {
         List<OWLAxiom> axioms = data.createTestAxioms().peek(x -> LOGGER.debug("ADD: {}", x)).collect(Collectors.toList());
 
         OWLOntology expected = data.createOntology(OntManagers.createOWL(), axioms);
-        OntologyModel actual = (OntologyModel) data.createOntology(OntManagers.createONT(), axioms);
+        Ontology actual = (Ontology) data.createOntology(OntManagers.createONT(), axioms);
 
         data.testAxioms(expected, actual);
 
@@ -382,7 +382,7 @@ public class AxiomsByEntityTest {
             return IRI.create(getURI() + "#" + name);
         }
 
-        Set<OWLEntity> testEntities(OWLOntology expected, OntologyModel actual) {
+        Set<OWLEntity> testEntities(OWLOntology expected, Ontology actual) {
             Set<OWLEntity> actualEntities = entities(actual).collect(Collectors.toSet());
             Set<OWLEntity> expectedEntities = entities(expected).collect(Collectors.toSet());
             Assert.assertEquals(String.format("%s - wrong %s list:", toString(actual), this),
@@ -390,13 +390,13 @@ public class AxiomsByEntityTest {
             return expectedEntities;
         }
 
-        void testAxioms(OWLOntology expected, OntologyModel actual) {
+        void testAxioms(OWLOntology expected, Ontology actual) {
             List<OWLAxiom> actualAxioms = actual.axioms().sorted().collect(Collectors.toList());
             List<OWLAxiom> expectedAxioms = expected.axioms().sorted().collect(Collectors.toList());
             assertAxioms(toString(actual) + " - wrong axioms list", expectedAxioms, actualAxioms);
         }
 
-        void testReferencingAxioms(Set<OWLEntity> entities, OWLOntology expected, OntologyModel actual) {
+        void testReferencingAxioms(Set<OWLEntity> entities, OWLOntology expected, Ontology actual) {
             Map<OWLPrimitive, Set<OWLAxiom>> actualReferencingAxioms = getReferencingAxiomsByClass(entities, actual);
             Map<OWLPrimitive, Set<OWLAxiom>> expectedRefAxioms = getReferencingAxiomsByClass(entities, expected);
             entities.forEach(e -> assertAxioms(
@@ -404,7 +404,7 @@ public class AxiomsByEntityTest {
                     expectedRefAxioms.get(e), actualReferencingAxioms.get(e)));
         }
 
-        void testAxiomsBy(Set<OWLEntity> entities, OWLOntology expected, OntologyModel actual) {
+        void testAxiomsBy(Set<OWLEntity> entities, OWLOntology expected, Ontology actual) {
             Map<OWLEntity, Set<OWLAxiom>> actualDirectAxioms = getAxioms(entities, actual);
             Map<OWLEntity, Set<OWLAxiom>> expectedDirectAxioms = getAxioms(entities, expected);
             entities.forEach(c -> assertAxioms(
@@ -433,7 +433,7 @@ public class AxiomsByEntityTest {
         }
 
         private static boolean isONT(OWLOntology o) {
-            return o instanceof OntologyModel;
+            return o instanceof Ontology;
         }
 
         private static String toString(OWLOntology o) {

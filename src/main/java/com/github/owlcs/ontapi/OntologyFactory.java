@@ -52,46 +52,47 @@ public interface OntologyFactory extends OWLOntologyFactory, HasAdapter {
 
     /**
      * Adds the specified ontology into the manager and performs some final tuning actions.
+     *
      * @param manager {@link OntologyManager} the ontology manager, which will hold the {@code model}, not {@code null}
-     * @param model {@link OntologyModel} that has been created by the {@link #getBuilder() Builder}, not {@code null}
+     * @param model   {@link Ontology} that has been created by the {@link #getBuilder() Builder}, not {@code null}
      * @since 1.4.2
      */
-    void includeOntology(OntologyManager manager, OntologyModel model);
+    void includeOntology(OntologyManager manager, Ontology model);
 
     /**
-     * Creates a fresh {@link OntologyModel Ontology Model} inside the manager
+     * Creates a fresh {@link Ontology Ontology Model} inside the manager
      * with the given ID and default configuration.
      *
      * @param manager {@link OntologyManager} the ontology manager to set, not {@code null}
      * @param id      {@link ID} the ID of the ontology to create, not {@code null}
-     * @return {@link OntologyModel}
+     * @return {@link Ontology}
      * @throws OntApiException if something goes wrong
      * @since 1.3.0
      */
-    default OntologyModel createOntology(OntologyManager manager, ID id) throws OntApiException {
-        OntologyModel res = getBuilder().createOntology(id, manager, manager.getOntologyLoaderConfiguration());
+    default Ontology createOntology(OntologyManager manager, ID id) throws OntApiException {
+        Ontology res = getBuilder().createOntology(id, manager, manager.getOntologyLoaderConfiguration());
         includeOntology(manager, res);
         return res;
     }
 
     /**
      * Reads a graph from the given document source and stores
-     * it as a ready to use {@link OntologyModel Ontology Model} in the specified manager.
+     * it as a ready to use {@link Ontology Ontology Model} in the specified manager.
      * {@inheritDoc}
      *
      * @param manager {@link OntologyManager} manager the ontology manager to set, not {@code null}
      * @param source  {@link OWLOntologyDocumentSource} the document source that provides the means
      *                of getting a representation of a document, not {@code null}
      * @param config  {@link OntLoaderConfiguration} settings to manage loading process, not {@code null}
-     * @return {@link OntologyModel}
+     * @return {@link Ontology}
      * @throws OWLOntologyCreationException if the ontology could not be created due to some I/O problem,
      *                                      broken source or incompatible state of manager
      * @throws OntApiException              if something else goes wrong
      * @since 1.3.0
      */
-    default OntologyModel loadOntology(OntologyManager manager,
-                                       OWLOntologyDocumentSource source,
-                                       OntLoaderConfiguration config) throws OWLOntologyCreationException, OntApiException {
+    default Ontology loadOntology(OntologyManager manager,
+                                  OWLOntologyDocumentSource source,
+                                  OntLoaderConfiguration config) throws OWLOntologyCreationException, OntApiException {
         return getLoader().loadOntology(getBuilder(), manager, source, config);
     }
 
@@ -131,14 +132,14 @@ public interface OntologyFactory extends OWLOntologyFactory, HasAdapter {
      * @param id          {@link OWLOntologyID} the ID of the ontology to create, not {@code null}
      * @param documentIRI unused parameter
      * @param handler     unused parameter
-     * @return {@link OntologyModel} the newly created ontology
+     * @return {@link Ontology} the newly created ontology
      * @throws OntApiException if something goes wrong
      */
     @Override
-    default OntologyModel createOWLOntology(OWLOntologyManager manager,
-                                            OWLOntologyID id,
-                                            IRI documentIRI,
-                                            OWLOntologyCreationHandler handler) {
+    default Ontology createOWLOntology(OWLOntologyManager manager,
+                                       OWLOntologyID id,
+                                       IRI documentIRI,
+                                       OWLOntologyCreationHandler handler) {
         Adapter adapter = getAdapter();
         return createOntology(adapter.asONT(manager), adapter.asONT(id));
     }
@@ -152,16 +153,16 @@ public interface OntologyFactory extends OWLOntologyFactory, HasAdapter {
      * @param handler unused parameter
      * @param config  {@link OWLOntologyLoaderConfiguration} a configuration object which can be used
      *                to pass various options to th loader, not {@code null}
-     * @return {@link OntologyModel} the newly created and loaded ontology
+     * @return {@link Ontology} the newly created and loaded ontology
      * @throws OWLOntologyCreationException if the ontology could not be created due to some I/O problem,
      *                                      broken source or incompatible state of manager
      * @throws OntApiException              if something else goes wrong
      */
     @Override
-    default OntologyModel loadOWLOntology(OWLOntologyManager manager,
-                                          OWLOntologyDocumentSource source,
-                                          OWLOntologyCreationHandler handler,
-                                          OWLOntologyLoaderConfiguration config) throws OWLOntologyCreationException {
+    default Ontology loadOWLOntology(OWLOntologyManager manager,
+                                     OWLOntologyDocumentSource source,
+                                     OWLOntologyCreationHandler handler,
+                                     OWLOntologyLoaderConfiguration config) throws OWLOntologyCreationException {
         Adapter adapter = getAdapter();
         return loadOntology(adapter.asONT(manager), source, adapter.asONT(config));
     }
@@ -174,7 +175,7 @@ public interface OntologyFactory extends OWLOntologyFactory, HasAdapter {
     interface Builder extends OntologyCreator, HasAdapter, OWLOntologyBuilder {
 
         @Override
-        default OntologyModel createOWLOntology(OWLOntologyManager manager, OWLOntologyID id) {
+        default Ontology createOWLOntology(OWLOntologyManager manager, OWLOntologyID id) {
             Adapter adapter = getAdapter();
             return createOntology(adapter.asONT(id), adapter.asONT(manager),
                     adapter.asONT(manager.getOntologyLoaderConfiguration()));

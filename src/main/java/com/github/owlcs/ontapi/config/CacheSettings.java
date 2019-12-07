@@ -14,7 +14,7 @@
 
 package com.github.owlcs.ontapi.config;
 
-import com.github.owlcs.ontapi.OntologyModel;
+import com.github.owlcs.ontapi.Ontology;
 
 /**
  * A common interface to access cache settings.
@@ -136,7 +136,7 @@ public interface CacheSettings {
      * <li>OWL-API allows some uncertainty in axiom's definition,
      * the same data amount can be represented as an axiom in various ways
      * (more about this see in the description of
-     * the method {@link OntologyModel#clearCache()}).
+     * the method {@link Ontology#clearCache()}).
      * It follows from this that the newly added axiom may not be found in the same form as it was,
      * which may confuse</li>
      * <li>Currently,
@@ -145,10 +145,10 @@ public interface CacheSettings {
      * which is also a consequence of OWL-API ambiguity.
      * This implies some calculations that may take a long time if there is no cache</li>
      * </ul>
-     * But non-modifiability concerns only the top-level {@link OntologyModel OWL Model} interface.
+     * But non-modifiability concerns only the top-level {@link Ontology OWL Model} interface.
      * If it is not restricted in some other place, a graph is editable.
      * So it is possible to modify model using {@link com.github.owlcs.ontapi.jena.model.OntGraphModel} interface
-     * (see the method {@link OntologyModel#asGraphModel()}).
+     * (see the method {@link Ontology#asGraphModel()}).
      * Also, to add axiom a {@link com.github.owlcs.ontapi.internal.AxiomTranslator} mechanism can be used,
      * e.g. to add the axiom {@code A} into the RDF Model {@code m},
      * the expression {@code AxiomParserProvider.get(A).writeAxiom(A, m)} can be used.

@@ -14,6 +14,11 @@
 
 package com.github.owlcs.ontapi.tests.formats;
 
+import com.github.owlcs.ontapi.OntFormat;
+import com.github.owlcs.ontapi.OntManagers;
+import com.github.owlcs.ontapi.Ontology;
+import com.github.owlcs.ontapi.utils.OntIRI;
+import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import org.hamcrest.core.IsEqual;
 import org.junit.Assert;
 import org.junit.BeforeClass;
@@ -24,11 +29,6 @@ import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.github.owlcs.ontapi.OntFormat;
-import com.github.owlcs.ontapi.OntManagers;
-import com.github.owlcs.ontapi.OntologyModel;
-import com.github.owlcs.ontapi.utils.OntIRI;
-import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 
 import java.util.Arrays;
 import java.util.List;
@@ -84,7 +84,7 @@ public class SimpleFormatsTest {
     public void test() {
         IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI("ontapi", fileName + "." + format.getExt()));
         LOGGER.debug("Load ontology {}. Format: {}", fileIRI, format);
-        OntologyModel o;
+        Ontology o;
         try {
             o = OntManagers.createONT().loadOntology(fileIRI);
         } catch (OWLOntologyCreationException e) {

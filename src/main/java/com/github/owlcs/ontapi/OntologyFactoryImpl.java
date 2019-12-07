@@ -14,14 +14,14 @@
 
 package com.github.owlcs.ontapi;
 
+import com.github.owlcs.ontapi.jena.utils.Models;
+import com.github.owlcs.ontapi.transforms.TransformException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.riot.system.ErrorHandlerFactory;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyFactory;
-import com.github.owlcs.ontapi.jena.utils.Models;
-import com.github.owlcs.ontapi.transforms.TransformException;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Objects;
@@ -76,7 +76,7 @@ public class OntologyFactoryImpl implements OntologyFactory {
      * since it is more readable and more widely used in Jena-world.
      */
     @Override
-    public void includeOntology(OntologyManager manager, OntologyModel model) {
+    public void includeOntology(OntologyManager manager, Ontology model) {
         if (model.getOWLOntologyManager() != manager) {
             throw new OntApiException.IllegalState("The specified ontology is attached to another manager: " + model);
         }

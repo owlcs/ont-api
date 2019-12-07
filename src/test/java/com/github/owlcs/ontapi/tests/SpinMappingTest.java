@@ -14,6 +14,19 @@
 
 package com.github.owlcs.ontapi.tests;
 
+import com.github.owlcs.ontapi.OntManagers;
+import com.github.owlcs.ontapi.Ontology;
+import com.github.owlcs.ontapi.OntologyManager;
+import com.github.owlcs.ontapi.jena.OntModelFactory;
+import com.github.owlcs.ontapi.jena.model.OntClass;
+import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntIndividual;
+import com.github.owlcs.ontapi.jena.model.OntNDP;
+import com.github.owlcs.ontapi.jena.vocabulary.XSD;
+import com.github.owlcs.ontapi.utils.ReadWriteUtils;
+import com.github.owlcs.ontapi.utils.SP;
+import com.github.owlcs.ontapi.utils.SPINMAPL;
+import com.github.owlcs.ontapi.utils.SpinModels;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.util.FileManager;
 import org.apache.jena.vocabulary.RDF;
@@ -27,19 +40,6 @@ import org.topbraid.spin.inference.SPINInferences;
 import org.topbraid.spin.system.SPINModuleRegistry;
 import org.topbraid.spin.vocabulary.SPIN;
 import org.topbraid.spin.vocabulary.SPINMAP;
-import com.github.owlcs.ontapi.OntManagers;
-import com.github.owlcs.ontapi.OntologyManager;
-import com.github.owlcs.ontapi.OntologyModel;
-import com.github.owlcs.ontapi.jena.OntModelFactory;
-import com.github.owlcs.ontapi.jena.model.OntClass;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
-import com.github.owlcs.ontapi.jena.model.OntIndividual;
-import com.github.owlcs.ontapi.jena.model.OntNDP;
-import com.github.owlcs.ontapi.jena.vocabulary.XSD;
-import com.github.owlcs.ontapi.utils.ReadWriteUtils;
-import com.github.owlcs.ontapi.utils.SP;
-import com.github.owlcs.ontapi.utils.SPINMAPL;
-import com.github.owlcs.ontapi.utils.SpinModels;
 
 import java.util.List;
 import java.util.Optional;
@@ -94,7 +94,7 @@ public class SpinMappingTest {
         Assert.assertEquals("Incorrect ontologies count", SpinModels.values().length + 3, manager.ontologies().count());
 
         ReadWriteUtils.print(mapping);
-        OntologyModel map = manager.getOntology(IRI.create(mapping.getID().getURI()));
+        Ontology map = manager.getOntology(IRI.create(mapping.getID().getURI()));
         Assert.assertNotNull(map);
         runInferences(map, target);
         ReadWriteUtils.print(target);
@@ -191,7 +191,7 @@ public class SpinMappingTest {
         i1.addLiteral(prop2, Integer.valueOf(2));
         i2.addLiteral(prop1, "val2");
         i2.addLiteral(prop2, Integer.valueOf(99090));
-        OntologyModel o = manager.getOntology(IRI.create(uri));
+        Ontology o = manager.getOntology(IRI.create(uri));
         Assert.assertNotNull("Can't find ontology " + uri, o);
         o.axioms().forEach(x -> LOGGER.debug("{}", x));
         Assert.assertEquals("Incorrect number of data-property assertions", 4, o.axioms(AxiomType.DATA_PROPERTY_ASSERTION).count());
@@ -211,14 +211,14 @@ public class SpinMappingTest {
         OntGraphModel res = manager.createGraphModel(uri).setNsPrefixes(OntModelFactory.STANDARD);
         OntClass clazz = res.createOntClass(ns + "ClassTarget");
         res.createDataProperty(ns + "targetProperty").addRange(XSD.xstring).addDomain(clazz);
-        OntologyModel o = manager.getOntology(IRI.create(uri));
+        Ontology o = manager.getOntology(IRI.create(uri));
         Assert.assertNotNull("Can't find ontology " + uri, o);
         o.axioms().forEach(x -> LOGGER.debug("{}", x));
         ReadWriteUtils.print(res);
         return res;
     }
 
-    public void runInferences(OntologyModel mapping, Model target) {
+    public void runInferences(Ontology mapping, Model target) {
         // recreate model since there is spin specific personalities inside org.topbraid.spin.vocabulary.SP#init
         Model source = ModelFactory.createModelForGraph(mapping.asGraphModel().getGraph());
         LOGGER.debug("Run Inferences");

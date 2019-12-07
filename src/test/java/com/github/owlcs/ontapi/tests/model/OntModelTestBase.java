@@ -14,17 +14,17 @@
 
 package com.github.owlcs.ontapi.tests.model;
 
+import com.github.owlcs.ontapi.OntFormat;
+import com.github.owlcs.ontapi.OntManagers;
+import com.github.owlcs.ontapi.Ontology;
+import com.github.owlcs.ontapi.utils.ReadWriteUtils;
+import com.github.owlcs.ontapi.utils.TestUtils;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.github.owlcs.ontapi.OntFormat;
-import com.github.owlcs.ontapi.OntManagers;
-import com.github.owlcs.ontapi.OntologyModel;
-import com.github.owlcs.ontapi.utils.ReadWriteUtils;
-import com.github.owlcs.ontapi.utils.TestUtils;
 
 import java.util.List;
 import java.util.Map;
@@ -53,7 +53,7 @@ abstract class OntModelTestBase {
         return ontology.axioms().filter(axiom -> !types.contains(axiom.getAxiomType()));
     }
 
-    void checkAxioms(OntologyModel original, AxiomType... excluded) {
+    void checkAxioms(Ontology original, AxiomType... excluded) {
         LOGGER.debug("Load ontology to another manager from jena graph.");
         OWLOntologyManager manager = OntManagers.createOWL();
         OWLOntology result = ReadWriteUtils.convertJenaToOWL(manager, original.asGraphModel());

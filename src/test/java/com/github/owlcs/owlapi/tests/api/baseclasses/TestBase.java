@@ -13,8 +13,13 @@
  */
 package com.github.owlcs.owlapi.tests.api.baseclasses;
 
-import com.github.owlcs.ontapi.OntologyModel;
+import com.github.owlcs.ontapi.NoOpReadWriteLock;
+import com.github.owlcs.ontapi.OntFormat;
+import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyModelImpl;
+import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
+import com.github.owlcs.owlapi.OWLManager;
+import com.github.owlcs.owlapi.tests.api.anonymous.AnonymousIndividualsNormaliser;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
@@ -34,11 +39,6 @@ import org.semanticweb.owlapi.util.OWLAPIStreamUtils;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.github.owlcs.ontapi.NoOpReadWriteLock;
-import com.github.owlcs.ontapi.OntFormat;
-import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
-import com.github.owlcs.owlapi.OWLManager;
-import com.github.owlcs.owlapi.tests.api.anonymous.AnonymousIndividualsNormaliser;
 
 import javax.annotation.Nonnull;
 import java.io.File;
@@ -386,7 +386,7 @@ public abstract class TestBase {
     protected OWLOntology roundTripOntology(OWLOntology ont, OWLDocumentFormat format, boolean recalculateAxiomsCache)
             throws OWLOntologyStorageException, OWLOntologyCreationException {
         if (!OWLManager.DEBUG_USE_OWL && recalculateAxiomsCache) {
-            ((OntologyModel) ont).clearCache();
+            ((Ontology) ont).clearCache();
         }
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("Origin (source) ontology:");

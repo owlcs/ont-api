@@ -32,10 +32,11 @@ import java.util.stream.Collectors;
 
 /**
  * An implementation of {@link OntologyLoader} which is actually {@link OWLOntologyFactory} decorator.
- * Used to load {@link OntologyModel ontology} through pure OWL-API mechanisms (i.e. owl-api parsers).
+ * Used to load {@link Ontology ontology} through pure OWL-API mechanisms (i.e. owl-api parsers).
  * Some formats (such as {@link org.semanticweb.owlapi.formats.ManchesterSyntaxDocumentFormat} or
  * {@link org.semanticweb.owlapi.formats.FunctionalSyntaxDocumentFormat}) are not supported by Jena,
  * so this is the only way to handle them by ONT-API.
+ *
  * @see OntologyLoaderImpl
  * @see com.github.owlcs.ontapi.config.LoadSettings#isUseOWLParsersToLoad()
  */
@@ -108,7 +109,7 @@ public class OWLFactoryWrapper implements OntologyFactory.Loader {
     /**
      * {@inheritDoc}
      *
-     * @param builder {@link OntologyCreator} to construct a fresh {@link OntologyModel} instance
+     * @param builder {@link OntologyCreator} to construct a fresh {@link Ontology} instance
      * @param manager {@link OntologyManager}
      * @param source  {@link OWLOntologyDocumentSource}
      * @param conf    {@link OntLoaderConfiguration}
@@ -119,10 +120,10 @@ public class OWLFactoryWrapper implements OntologyFactory.Loader {
      * @throws OWLOntologyCreationException              if any other problem occurs
      */
     @Override
-    public OntologyModel loadOntology(OntologyCreator builder,
-                                      OntologyManager manager,
-                                      OWLOntologyDocumentSource source,
-                                      OntLoaderConfiguration conf) throws OWLOntologyCreationException {
+    public Ontology loadOntology(OntologyCreator builder,
+                                 OntologyManager manager,
+                                 OWLOntologyDocumentSource source,
+                                 OntLoaderConfiguration conf) throws OWLOntologyCreationException {
         OWLAdapter adapter = getAdapter();
         OWLOntologyFactory factory = new FactoryImpl(builder);
         try {
@@ -131,7 +132,7 @@ public class OWLFactoryWrapper implements OntologyFactory.Loader {
                 throw new OntologyFactoryImpl.BadRecursionException("Cycle loading for source " + doc);
             }
             sources.add(doc);
-            OntologyModel res = getAdapter().asONT(factory.loadOWLOntology(manager, source, adapter.asHandler(manager), conf));
+            Ontology res = getAdapter().asONT(factory.loadOWLOntology(manager, source, adapter.asHandler(manager), conf));
             if (LOGGER.isDebugEnabled()) {
                 OntFormat format = OntFormat.get(manager.getOntologyFormat(res));
                 LOGGER.debug("The ontology <{}> is loaded. Format: {}[{}]", res.getOntologyID(), format, source.getClass().getSimpleName());
@@ -230,7 +231,8 @@ public class OWLFactoryWrapper implements OntologyFactory.Loader {
 
         /**
          * Creates an OWL-API compatible factory.
-         * This version cannot be used with ONT-API if the builder does not produce {@link OntologyModel}.
+         * This version cannot be used with ONT-API if the builder does not produce {@link Ontology}.
+         *
          * @param builder {@link OWLOntologyBuilder}, not {@code null}
          */
         public FactoryImpl(OWLOntologyBuilder builder) {

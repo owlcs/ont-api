@@ -34,7 +34,7 @@ import java.util.stream.Stream;
 
 /**
  * An ONT-API Ontology manager, which is an extended {@link OWLOntologyManager OWL-API manager}.
- * It is the main point for creating, loading and accessing {@link OntologyModel Ontology Model}s.
+ * It is the main point for creating, loading and accessing {@link Ontology Ontology Model}s.
  * Any ontology in this manager is a wrapper around a {@link Graph Jena Graph},
  * which may be linked to the another ontology through {@link com.github.owlcs.ontapi.jena.UnionGraph UnionGraph} interface.
  * <p>
@@ -215,26 +215,26 @@ public interface OntologyManager extends OWLOntologyManager {
      * and present in all versions of the OWL-API v5.
      *
      * @param iri {@link IRI} which is an ontology IRI or a version IRI as described above, cannot be {@code null}
-     * @return {@link OntologyModel} or {@code null}
+     * @return {@link Ontology} or {@code null}
      * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java#L392'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#getOntology(IRI)</a>
      * @see OWLOntologyID#match(IRI)
      * @see OntologyManager#contains(IRI)
      */
     @Override
-    OntologyModel getOntology(IRI iri);
+    Ontology getOntology(IRI iri);
 
     /**
      * Finds the ontology by the specified {@code id}, which is allowed to be anonymous.
      * If there is no such ontology it tries to find the first with the same ontology IRI as in the given {@code id}.
      *
      * @param id {@link OWLOntologyID} ID, cannot be {@code null}
-     * @return {@link OntologyModel} or {@code null}
+     * @return {@link Ontology} or {@code null}
      * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java#L410'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#getOntology(OWLOntologyID)</a>
      * @see OntologyManager#contains(OWLOntologyID)
      * @see OWLOntologyID#matchOntology(IRI)
      */
     @Override
-    OntologyModel getOntology(OWLOntologyID id);
+    Ontology getOntology(OWLOntologyID id);
 
     /**
      * Answers {@code true} if the manager contains an ontology with the given ontology {@code iri}.
@@ -269,21 +269,21 @@ public interface OntologyManager extends OWLOntologyManager {
      * Given an imports declaration, obtains the ontology that this import has been resolved to.
      *
      * @param iri {@link OWLImportsDeclaration} the declaration that points to the imported ontology
-     * @return {@link OntologyModel} the ontology that the imports declaration resolves to,
+     * @return {@link Ontology} the ontology that the imports declaration resolves to,
      * or {@code null} if the imports declaration could not be resolved to an ontology,
      * because the ontology was not loaded or has been removed from this manager
      * @see OWLOntologyManager#getImportedOntology(OWLImportsDeclaration)
      * @see #getImportedOntology(IRI)
      */
     @Nullable
-    OntologyModel getImportedOntology(OWLImportsDeclaration iri);
+    Ontology getImportedOntology(OWLImportsDeclaration iri);
 
     /**
      * Lists all ontologies contained within the manager.
-     * Each of the returned ontologies is an instance of {@link OntologyModel} interface
+     * Each of the returned ontologies is an instance of {@link Ontology} interface
      * and encapsulates a {@link Graph Jena RDF Graph}.
      *
-     * @return {@code Stream} of {@link OntologyModel}s
+     * @return {@code Stream} of {@link Ontology}s
      * @see #models()
      */
     @Override
@@ -301,11 +301,11 @@ public interface OntologyManager extends OWLOntologyManager {
      * and just create an object should not throw a checked exception.
      *
      * @param id {@link OWLOntologyID}
-     * @return ontology {@link OntologyModel}
+     * @return ontology {@link Ontology}
      * @throws OntApiException in case something is wrong
      */
     @Override
-    OntologyModel createOntology(OWLOntologyID id);
+    Ontology createOntology(OWLOntologyID id);
 
     /**
      * Creates an ontology model from the given {@link Graph Jena Graph},
@@ -318,16 +318,16 @@ public interface OntologyManager extends OWLOntologyManager {
      *
      * @param graph {@link Graph}
      * @param conf  {@link OntLoaderConfiguration}
-     * @return {@link OntologyModel}
+     * @return {@link Ontology}
      * @see OntGraphDocumentSource
      * @since 1.2.0
      */
-    OntologyModel addOntology(Graph graph, OntLoaderConfiguration conf);
+    Ontology addOntology(Graph graph, OntLoaderConfiguration conf);
 
     /**
      * Copies an ontology from another manager to this one.
      * The returned {@code OntologyModel} will answer with this manager instance
-     * when the method {@link OntologyModel#getOWLOntologyManager()} is invoked.
+     * when the method {@link Ontology#getOWLOntologyManager()} is invoked.
      * <p>
      * Note: the axioms list, retrieved from the returned ontology, may differ with the source axioms
      * due to different config settings (see {@link com.github.owlcs.ontapi.config.AxiomsSettings}).
@@ -340,7 +340,7 @@ public interface OntologyManager extends OWLOntologyManager {
      * If you want to move, then just copy ontology using this method
      * and then delete the source ontology using the method {@link #removeOntology(OWLOntology)}.
      * <p>
-     * If the second parameter is {@link OntologyCopy#SHALLOW SHALLOW} and the source ontology is {@link OntologyModel},
+     * If the second parameter is {@link OntologyCopy#SHALLOW SHALLOW} and the source ontology is {@link Ontology},
      * then the operation is effectively equivalent to calling the {@link #addOntology(Graph, OntLoaderConfiguration)}
      * method with a configuration that has disabled transformations and import processing
      * (see {@link com.github.owlcs.ontapi.config.LoadSettings#isPerformTransformation()
@@ -358,15 +358,15 @@ public interface OntologyManager extends OWLOntologyManager {
      * the returned ontology would also have a reference to an ontology with the same import declaration IRI,
      * if it is found in this manager.
      *
-     * @param source   {@link OWLOntology} the source, possible, not an {@link OntologyModel} instance
+     * @param source   {@link OWLOntology} the source, possible, not an {@link Ontology} instance
      * @param settings {@link OntologyCopy} the settings,
      *                 either {@link OntologyCopy#DEEP} or {@link OntologyCopy#SHALLOW}
-     * @return a new (copied) {@link OntologyModel}
+     * @return a new (copied) {@link Ontology}
      * @throws OntApiException if any unexpected error occurs or input parameters are wrong
      * @see OWLOntologyManager#copyOntology(OWLOntology, OntologyCopy)
      */
     @Override
-    OntologyModel copyOntology(OWLOntology source, OntologyCopy settings);
+    Ontology copyOntology(OWLOntology source, OntologyCopy settings);
 
     /**
      * Loads an ontology by the specified {@code source} IRI.
@@ -382,12 +382,12 @@ public interface OntologyManager extends OWLOntologyManager {
      *               it can be an ontology IRI, version IRI or document IRI to load directly,
      *               also it can be mapped to some other IRI using {@link OWLOntologyIRIMapper}
      *               or to some prepared document source using {@link DocumentSourceMapping}
-     * @return {@link OntologyModel}
+     * @return {@link Ontology}
      * @throws OWLOntologyCreationException if there is a problem when creating or loading an ontology
      * @see OWLOntologyManager#loadOntology(IRI)
      */
     @Override
-    OntologyModel loadOntology(IRI source) throws OWLOntologyCreationException;
+    Ontology loadOntology(IRI source) throws OWLOntologyCreationException;
 
     /**
      * Loads an ontology from the specified {@link OWLOntologyDocumentSource document source} using
@@ -398,13 +398,13 @@ public interface OntologyManager extends OWLOntologyManager {
      *
      * @param source {@link OWLOntologyDocumentSource} the document source to produce i
      * @param config {@link OWLOntologyLoaderConfiguration} the loading settings, see {@link OntLoaderConfiguration}
-     * @return {@link OntologyModel}
+     * @return {@link Ontology}
      * @throws OWLOntologyCreationException in case any error occurs during reading source or construct the ontology
      * @see OWLOntologyManager#loadOntologyFromOntologyDocument(OWLOntologyDocumentSource, OWLOntologyLoaderConfiguration)
      */
     @Override
-    OntologyModel loadOntologyFromOntologyDocument(OWLOntologyDocumentSource source,
-                                                   OWLOntologyLoaderConfiguration config) throws OWLOntologyCreationException;
+    Ontology loadOntologyFromOntologyDocument(OWLOntologyDocumentSource source,
+                                              OWLOntologyLoaderConfiguration config) throws OWLOntologyCreationException;
 
     /**
      * Resolves the given IRI to the ontology if possible.
@@ -415,14 +415,14 @@ public interface OntologyManager extends OWLOntologyManager {
      * otherwise this IRI cannot be considered as current version of the ontology series.
      *
      * @param iri the declaration {@link IRI} to find the imported ontology
-     * @return {@link OntologyModel} or {@code null}
+     * @return {@link Ontology} or {@code null}
      * @see #getImportedOntology(OWLImportsDeclaration)
      * @see <a href='https://www.w3.org/TR/owl2-syntax/#Ontology_Documents'>3.2 Ontology Documents</a>
      * @see <a href='https://www.w3.org/TR/owl2-syntax/#Imports'>3.4 Imports</a>
      * @since 1.3.2
      */
     @Nullable
-    default OntologyModel getImportedOntology(IRI iri) {
+    default Ontology getImportedOntology(IRI iri) {
         return getImportedOntology(getOWLDataFactory().getOWLImportsDeclaration(iri));
     }
 
@@ -569,10 +569,10 @@ public interface OntologyManager extends OWLOntologyManager {
      * Note: graph transformation are not performed.
      *
      * @param graph {@link Graph}
-     * @return {@link OntologyModel}
+     * @return {@link Ontology}
      * @since 1.0.1
      */
-    default OntologyModel addOntology(Graph graph) {
+    default Ontology addOntology(Graph graph) {
         return addOntology(graph, getOntologyLoaderConfiguration().setPerformTransformation(false));
     }
 
@@ -581,11 +581,11 @@ public interface OntologyManager extends OWLOntologyManager {
      * (and therefore does not have a version IRI).
      * A document IRI will automatically be generated.
      *
-     * @return {@link OntologyModel} the newly created ONT-API ontology instance
+     * @return {@link Ontology} the newly created ONT-API ontology instance
      * @see OWLOntologyManager#createOntology()
      */
     @Override
-    default OntologyModel createOntology() {
+    default Ontology createOntology() {
         return createOntology(new ID());
     }
 
@@ -597,14 +597,14 @@ public interface OntologyManager extends OWLOntologyManager {
      * then the ontology document IRI will be set to the value of {@code iri}.
      *
      * @param iri {@link IRI} the IRI of the ontology to be created
-     * @return {@link OntologyModel} the newly created ONT-API ontology instance
+     * @return {@link Ontology} the newly created ONT-API ontology instance
      * @throws OntApiException in case of error, this exception can wrap one of the OWL-API checked exception,
      *                         e.g. {@link OWLOntologyCreationException}, {@link OWLOntologyAlreadyExistsException},
      *                         {@link  OWLOntologyDocumentAlreadyExistsException}.
      * @see OWLOntologyManager#createOntology(IRI)
      */
     @Override
-    default OntologyModel createOntology(@Nullable IRI iri) {
+    default Ontology createOntology(@Nullable IRI iri) {
         return createOntology(ID.create(iri));
     }
 
@@ -615,12 +615,12 @@ public interface OntologyManager extends OWLOntologyManager {
      * In this case, take into account the possible internet diving to retrieve missed ontologies.
      *
      * @param source {@link OWLOntologyDocumentSource}
-     * @return {@link OntologyModel}
+     * @return {@link Ontology}
      * @throws OWLOntologyCreationException if something is wrong
      * @see OWLOntologyManager#loadOntologyFromOntologyDocument(OWLOntologyDocumentSource)
      */
     @Override
-    default OntologyModel loadOntologyFromOntologyDocument(OWLOntologyDocumentSource source)
+    default Ontology loadOntologyFromOntologyDocument(OWLOntologyDocumentSource source)
             throws OWLOntologyCreationException {
         return loadOntologyFromOntologyDocument(source, getOntologyLoaderConfiguration());
     }
@@ -637,12 +637,12 @@ public interface OntologyManager extends OWLOntologyManager {
      * are included into consideration.
      *
      * @param iri {@link IRI} the ontology document IRI where the ontology will be loaded from
-     * @return {@link OntologyModel} the newly loaded ONT-API ontology instance
+     * @return {@link Ontology} the newly loaded ONT-API ontology instance
      * @throws OWLOntologyCreationException if there is a problem in creating or loading the ontology
      * @see OWLOntologyManager#loadOntologyFromOntologyDocument(IRI)
      */
     @Override
-    default OntologyModel loadOntologyFromOntologyDocument(IRI iri) throws OWLOntologyCreationException {
+    default Ontology loadOntologyFromOntologyDocument(IRI iri) throws OWLOntologyCreationException {
         return loadOntologyFromOntologyDocument(new IRIDocumentSource(iri));
     }
 
@@ -656,12 +656,12 @@ public interface OntologyManager extends OWLOntologyManager {
      * then API may dive into the Internet to retrieve them.
      *
      * @param file {@link File}, not {@code null}
-     * @return {@link OntologyModel}
+     * @return {@link Ontology}
      * @throws OWLOntologyCreationException if something is wrong in loading process
      * @see OWLOntologyManager#loadOntologyFromOntologyDocument(File)
      */
     @Override
-    default OntologyModel loadOntologyFromOntologyDocument(File file) throws OWLOntologyCreationException {
+    default Ontology loadOntologyFromOntologyDocument(File file) throws OWLOntologyCreationException {
         return loadOntologyFromOntologyDocument(new FileDocumentSource(file));
     }
 
@@ -676,12 +676,12 @@ public interface OntologyManager extends OWLOntologyManager {
      * then API may dive into the Internet to retrieve dependent ontologies.
      *
      * @param input {@link InputStream}
-     * @return {@link OntologyModel}
+     * @return {@link Ontology}
      * @throws OWLOntologyCreationException if something is wrong in loading process
      * @see OWLOntologyManager#loadOntologyFromOntologyDocument(InputStream)
      */
     @Override
-    default OntologyModel loadOntologyFromOntologyDocument(InputStream input) throws OWLOntologyCreationException {
+    default Ontology loadOntologyFromOntologyDocument(InputStream input) throws OWLOntologyCreationException {
         return loadOntologyFromOntologyDocument(new StreamDocumentSource(input));
     }
 
@@ -694,7 +694,7 @@ public interface OntologyManager extends OWLOntologyManager {
      */
     default OntGraphModel getGraphModel(@Nullable String iri, @Nullable String version) {
         ID id = ID.create(iri, version);
-        OntologyModel res = getOntology(id);
+        Ontology res = getOntology(id);
         return res == null ? null : res.asGraphModel();
     }
 
@@ -736,7 +736,7 @@ public interface OntologyManager extends OWLOntologyManager {
      * @see #ontologies()
      */
     default Stream<OntGraphModel> models() {
-        return ontologies().map(OntologyModel.class::cast).map(OntologyModel::asGraphModel);
+        return ontologies().map(Ontology.class::cast).map(Ontology::asGraphModel);
     }
 
     /**

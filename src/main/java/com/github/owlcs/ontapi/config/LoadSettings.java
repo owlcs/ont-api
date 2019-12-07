@@ -57,7 +57,7 @@ public interface LoadSettings {
      * One of the goals of this mechanism is data transformation in accordance with OWL2 specification.
      * Any {@link org.apache.jena.graph.Graph RDF Graph} can be presented by the system
      * in the form of {@link com.github.owlcs.ontapi.jena.model.OntGraphModel RDF Model}
-     * or {@link OntologyModel Axiomatic Model}, but without a proper transformation
+     * or {@link Ontology Axiomatic Model}, but without a proper transformation
      * you might not found valid {@link org.semanticweb.owlapi.model.OWLAxiom Axiom}s inside that data.
      * Transformations can be simply disabled through
      * the method {@link LoadControl#setGraphTransformers(GraphTransformers.Store)}.

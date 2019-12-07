@@ -51,7 +51,7 @@ public class OWLAnnotationTest extends StatementTestBase {
         OWLAnnotation ont = (OWLAnnotation) data.create(df);
 
         ID id = ID.create("u", "v");
-        OntologyModel o = m.createOntology(id);
+        Ontology o = m.createOntology(id);
 
         m.applyChange(new AddOntologyAnnotation(o, ont));
         o.clearCache();

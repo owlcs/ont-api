@@ -14,12 +14,12 @@
 
 package com.github.owlcs.ontapi.tests.model;
 
+import com.github.owlcs.ontapi.OntManagers;
+import com.github.owlcs.ontapi.Ontology;
+import com.github.owlcs.ontapi.utils.OntIRI;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
-import com.github.owlcs.ontapi.OntManagers;
-import com.github.owlcs.ontapi.OntologyModel;
-import com.github.owlcs.ontapi.utils.OntIRI;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -42,7 +42,7 @@ public class SWRLRuleOntModelTest extends OntModelTestBase {
 
         debug(owl);
 
-        checkAxioms((OntologyModel) owl, AxiomType.DECLARATION);
+        checkAxioms((Ontology) owl, AxiomType.DECLARATION);
     }
 
     private OWLOntology make(OWLOntologyManager manager, OntIRI iri) throws OWLOntologyCreationException {

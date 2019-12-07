@@ -100,10 +100,10 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
     }
 
     @Override
-    public OntologyModel loadOntology(OntologyCreator builder,
-                                      OntologyManager manager,
-                                      OWLOntologyDocumentSource source,
-                                      OntLoaderConfiguration config) throws OWLOntologyCreationException {
+    public Ontology loadOntology(OntologyCreator builder,
+                                 OntologyManager manager,
+                                 OWLOntologyDocumentSource source,
+                                 OntLoaderConfiguration config) throws OWLOntologyCreationException {
         if (config.isUseOWLParsersToLoad()) {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Load ontology using OWL-API methods. Source [{}]{}",
@@ -117,7 +117,7 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
             // But: only one anonymous is allowed (as root of imports tree), if there is no mapping in manager.
             graphs.put(primary.getURI(), primary);
             // first expand graphs map by creating primary model:
-            OntologyModel res = OntApiException.notNull(createModel(primary, builder, manager, config), "Should never happen");
+            Ontology res = OntApiException.notNull(createModel(primary, builder, manager, config), "Should never happen");
             // then process all the rest dependent models
             // (we have already all graphs compiled, now need populate them as models):
             List<GraphInfo> graphs = this.graphs.keySet().stream()
@@ -145,19 +145,19 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
     }
 
     /**
-     * Populates {@link Graph} as {@link OntologyModel} inside manager.
+     * Populates {@link Graph} as {@link Ontology} inside manager.
      *
      * @param info    {@link GraphInfo} container with info about the graph
-     * @param builder {@link OntologyCreator} to construct a fresh {@link OntologyModel} instance
+     * @param builder {@link OntologyCreator} to construct a fresh {@link Ontology} instance
      * @param manager {@link OntologyManager}
      * @param config  {@link OntLoaderConfiguration}
-     * @return {@link OntologyModel}, it is ready to use.
+     * @return {@link Ontology}, it is ready to use.
      * @throws OWLOntologyCreationException if can't assemble model from ready graph.
      */
-    protected OntologyModel createModel(GraphInfo info,
-                                        OntologyCreator builder,
-                                        OntologyManager manager,
-                                        OntLoaderConfiguration config) throws OWLOntologyCreationException {
+    protected Ontology createModel(GraphInfo info,
+                                   OntologyCreator builder,
+                                   OntologyManager manager,
+                                   OntLoaderConfiguration config) throws OWLOntologyCreationException {
         if (!info.isFresh()) {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("The ontology {} is already configured.", info.name());
@@ -170,7 +170,7 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
             }
             Graph graph = makeUnionGraph(info, builder, manager, config);
             // create ontology instance
-            OntologyModel res = builder.createOntology(graph, manager, config);
+            Ontology res = builder.createOntology(graph, manager, config);
             if (manager.contains(res)) {
                 throw new OWLOntologyAlreadyExistsException(res.getOntologyID());
             }
@@ -364,7 +364,7 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
 
     /**
      * Returns the {@link Graph} wrapped by {@link GraphInfo} which corresponds the specified ontology uri.
-     * If there the model ({@link OntologyModel}) with the specified uri already exists inside manager then
+     * If there the model ({@link Ontology}) with the specified uri already exists inside manager then
      * the method returns the base graph from it.
      * Otherwise it tries to load graph directly by uri or using predefined document iri from
      * some manager's iri mapper (see {@link OWLOntologyIRIMapper}).
@@ -383,7 +383,7 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
                                    OntologyManager manager,
                                    OntLoaderConfiguration config) throws OWLOntologyCreationException {
         IRI ontologyIRI = IRI.create(uri);
-        OntologyModel res = findModel(manager, ontologyIRI);
+        Ontology res = findModel(manager, ontologyIRI);
         if (res != null) {
             return toGraphInfo(res, null);
         }
@@ -419,11 +419,11 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
      *
      * @param m   {@link OntologyManager}
      * @param iri {@link IRI}
-     * @return {@link OntologyModel} or null.
+     * @return {@link Ontology} or null.
      * @see org.apache.jena.riot.system.IRIResolver
      */
-    protected OntologyModel findModel(OntologyManager m, IRI iri) {
-        OntologyModel res = m.getOntology(ID.create(iri));
+    protected Ontology findModel(OntologyManager m, IRI iri) {
+        Ontology res = m.getOntology(ID.create(iri));
         if (res != null) return res;
         if (iri.toString().startsWith("file://")) { // hack:
             iri = IRI.create(iri.toString().replaceAll("/+", "/"));
@@ -457,11 +457,11 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
     /**
      * Wraps an already existed model as inner container.
      *
-     * @param model {@link OntologyModel ontology}
+     * @param model {@link Ontology ontology}
      * @param src   the document source {@link IRI}, {@code null} to indicate the ontology is existing
      * @return {@link GraphInfo graph-wrapper}
      */
-    protected GraphInfo toGraphInfo(OntologyModel model, IRI src) {
+    protected GraphInfo toGraphInfo(Ontology model, IRI src) {
         OWLDocumentFormat owl = model.getOWLOntologyManager().getOntologyFormat(model);
         Graph graph = model.asGraphModel().getBaseGraph();
         OntFormat format = null;
@@ -558,7 +558,7 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
             try {
                 // WARNING: it is a recursive part:
                 // The OWL-API will call some manager load methods which, in turn, will call a factory methods.
-                OntologyModel ont = alternative.loadOntology(_builder, _manager, src, _config);
+                Ontology ont = alternative.loadOntology(_builder, _manager, src, _config);
                 ont.imports().forEach(o -> _manager.documentIRIByOntology(o)
                         .ifPresent(iri -> loaded.put(iri, toGraphInfo(getAdapter().asONT(o), iri))));
                 GraphInfo res = toGraphInfo(ont, doc);
@@ -616,19 +616,19 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
         return new OntologyManagerImpl(delegate.getOWLDataFactory(), factory, null) {
 
             @Override
-            protected Optional<OntologyModel> ontology(OWLOntologyID id) {
-                Optional<OntologyModel> res = delegate.ontology(id);
+            protected Optional<Ontology> ontology(OWLOntologyID id) {
+                Optional<Ontology> res = delegate.ontology(id);
                 return res.isPresent() ? res : super.ontology(id);
             }
 
             @Override
-            protected Optional<OntologyModel> importedOntology(IRI declaration) {
-                Optional<OntologyModel> res = delegate.importedOntology(declaration);
+            protected Optional<Ontology> importedOntology(IRI declaration) {
+                Optional<Ontology> res = delegate.importedOntology(declaration);
                 return res.isPresent() ? res : super.importedOntology(declaration);
             }
 
             @Override
-            protected OntologyModel loadImports(IRI declaration, OWLOntologyLoaderConfiguration conf)
+            protected Ontology loadImports(IRI declaration, OWLOntologyLoaderConfiguration conf)
                     throws OWLOntologyCreationException {
                 return super.loadImports(declaration, makeImportConfig(conf));
             }
@@ -650,8 +650,8 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
             }
 
             @Override
-            protected Optional<OntologyModel> ontologyByDocumentIRI(IRI iri) {
-                Optional<OntologyModel> res = delegate.ontologyByDocumentIRI(iri);
+            protected Optional<Ontology> ontologyByDocumentIRI(IRI iri) {
+                Optional<Ontology> res = delegate.ontologyByDocumentIRI(iri);
                 return res.isPresent() ? res : super.ontologyByDocumentIRI(iri);
             }
 

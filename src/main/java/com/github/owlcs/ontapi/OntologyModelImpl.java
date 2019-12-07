@@ -14,15 +14,15 @@
 
 package com.github.owlcs.ontapi;
 
-import org.apache.jena.graph.Graph;
-import org.semanticweb.owlapi.model.*;
-import org.semanticweb.owlapi.model.parameters.ChangeApplied;
 import com.github.owlcs.ontapi.internal.InternalModel;
 import com.github.owlcs.ontapi.jena.UnionGraph;
 import com.github.owlcs.ontapi.jena.impl.OntGraphModelImpl;
 import com.github.owlcs.ontapi.jena.impl.conf.OntPersonality;
 import com.github.owlcs.ontapi.jena.model.OntGraphModel;
 import com.github.owlcs.ontapi.jena.utils.Graphs;
+import org.apache.jena.graph.Graph;
+import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.model.parameters.ChangeApplied;
 
 import javax.annotation.Nonnull;
 import java.io.Serializable;
@@ -42,10 +42,10 @@ import java.util.stream.Stream;
  *
  * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl</a>
  * @see OntBaseModelImpl
- * @see OntologyModel
+ * @see Ontology
  */
 @SuppressWarnings("WeakerAccess")
-public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel, OWLMutableOntology {
+public class OntologyModelImpl extends OntBaseModelImpl implements Ontology, OWLMutableOntology {
 
     private static final long serialVersionUID = -2882895355499914294L;
     protected final OWLOntologyChangeVisitorEx<ChangeApplied> changer;
@@ -209,7 +209,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
         protected void addImport(OWLImportsDeclaration declaration) {
             // to match behaviour of OWL-API add to graph only single IRI -
             // either ontology IRI or specified declaration IRI.
-            OntologyModel ont = getOWLOntologyManager().getImportedOntology(declaration);
+            Ontology ont = getOWLOntologyManager().getImportedOntology(declaration);
             if (ont == null) {
                 getBase().getID().addImport(declaration.getIRI().getIRIString());
                 return;
@@ -227,7 +227,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
         protected void removeImport(OWLImportsDeclaration declaration) {
             // to match behaviour of OWL-API removes both declaration IRI and ontology IRI
             // (could be different in case of renaming)
-            OntologyModel ont = getOWLOntologyManager().getImportedOntology(declaration);
+            Ontology ont = getOWLOntologyManager().getImportedOntology(declaration);
             getBase().getID().removeImport(declaration.getIRI().getIRIString());
             if (ont == null) {
                 return;
@@ -242,12 +242,12 @@ public class OntologyModelImpl extends OntBaseModelImpl implements OntologyModel
     }
 
     /**
-     * A concurrent version of {@link OntologyModel}.
+     * A concurrent version of {@link Ontology}.
      * <p>
      * Created by szuev on 22.12.2016.
      */
     @SuppressWarnings("WeakerAccess")
-    public static class Concurrent extends OWLOntologyWrapper implements OntologyModel, BaseModel {
+    public static class Concurrent extends OWLOntologyWrapper implements Ontology, BaseModel {
 
         private static final long serialVersionUID = 5823394836022970162L;
 

@@ -14,6 +14,15 @@
 
 package com.github.owlcs.ontapi.utils;
 
+import com.github.owlcs.ontapi.OntManagers;
+import com.github.owlcs.ontapi.Ontology;
+import com.github.owlcs.ontapi.OntologyManager;
+import com.github.owlcs.ontapi.jena.impl.conf.OntModelConfig;
+import com.github.owlcs.ontapi.jena.impl.conf.OntPersonality;
+import com.github.owlcs.ontapi.jena.utils.Graphs;
+import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import com.github.owlcs.ontapi.jena.vocabulary.RDF;
+import com.github.owlcs.ontapi.owlapi.objects.OWLAnonymousIndividualImpl;
 import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
@@ -24,15 +33,6 @@ import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.OWLAPIStreamUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.github.owlcs.ontapi.OntManagers;
-import com.github.owlcs.ontapi.OntologyManager;
-import com.github.owlcs.ontapi.OntologyModel;
-import com.github.owlcs.ontapi.jena.impl.conf.OntModelConfig;
-import com.github.owlcs.ontapi.jena.impl.conf.OntPersonality;
-import com.github.owlcs.ontapi.jena.utils.Graphs;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
-import com.github.owlcs.ontapi.jena.vocabulary.RDF;
-import com.github.owlcs.ontapi.owlapi.objects.OWLAnonymousIndividualImpl;
 
 import java.util.*;
 import java.util.function.Function;
@@ -50,15 +50,15 @@ public class TestUtils {
 
     private static final OWLAnonymousIndividual ANONYMOUS_INDIVIDUAL = new OWLAnonymousIndividualImpl(BlankNodeId.create());
 
-    public static OntologyModel createModel(OntIRI iri) {
+    public static Ontology createModel(OntIRI iri) {
         return createModel(iri.toOwlOntologyID());
     }
 
-    public static OntologyModel createModel(OWLOntologyID id) {
+    public static Ontology createModel(OWLOntologyID id) {
         return createModel(OntManagers.createONT(), id);
     }
 
-    public static OntologyModel createModel(OntologyManager manager, OWLOntologyID id) {
+    public static Ontology createModel(OntologyManager manager, OWLOntologyID id) {
         LOGGER.debug("Create ontology {}", id);
         return manager.createOntology(id);
     }

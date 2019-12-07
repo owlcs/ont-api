@@ -22,8 +22,9 @@ import org.apache.jena.graph.Graph;
 import java.util.Objects;
 
 /**
- * An interface to create {@link OntologyModel} instances.
+ * An interface to create {@link Ontology} instances.
  * Created by @ssz on 03.06.2019.
+ *
  * @since 1.4.1
  */
 public interface OntologyCreator {
@@ -33,14 +34,14 @@ public interface OntologyCreator {
      * which is associated to the specified manager.
      * Does not change the manager state,
      * although the returned ontology must have a reference to the given manager,
-     * i.e. the method {@link OntologyModel#getOWLOntologyManager()} must return the passed manager instance.
+     * i.e. the method {@link Ontology#getOWLOntologyManager()} must return the passed manager instance.
      *
      * @param id      {@link ID}, not {@code null}
      * @param manager {@link OntologyManager}, not {@code null}
      * @param config  {@link OntLoaderConfiguration} the config, not {@code null}
-     * @return {@link OntologyModel} new instance reflecting manager settings
+     * @return {@link Ontology} new instance reflecting manager settings
      */
-    OntologyModel createOntology(ID id, OntologyManager manager, OntLoaderConfiguration config);
+    Ontology createOntology(ID id, OntologyManager manager, OntLoaderConfiguration config);
 
     /**
      * Creates a new detached ontology model which wraps the specified {@link Graph graph}.
@@ -50,10 +51,10 @@ public interface OntologyCreator {
      * @param graph   {@link Graph} the graph, not {@code null}
      * @param manager {@link OntologyManager} manager, not {@code null}
      * @param config  {@link OntLoaderConfiguration} the config, not {@code null}
-     * @return {@link OntologyModel} new instance reflecting manager settings
+     * @return {@link Ontology} new instance reflecting manager settings
      * @since 1.3.0
      */
-    OntologyModel createOntology(Graph graph, OntologyManager manager, OntLoaderConfiguration config);
+    Ontology createOntology(Graph graph, OntologyManager manager, OntLoaderConfiguration config);
 
     /**
      * Creates a fresh empty {@link Graph RDF Graph} instance.

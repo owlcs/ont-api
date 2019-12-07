@@ -14,21 +14,21 @@
 
 package com.github.owlcs.ontapi.tests.model;
 
-import org.junit.Assert;
-import org.junit.Test;
-import org.semanticweb.owlapi.model.AddAxiom;
-import org.semanticweb.owlapi.model.AxiomType;
-import org.semanticweb.owlapi.model.OWLDataFactory;
-import org.semanticweb.owlapi.model.RemoveAxiom;
 import com.github.owlcs.ontapi.OntManagers;
+import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
-import com.github.owlcs.ontapi.OntologyModel;
 import com.github.owlcs.ontapi.jena.model.OntClass;
 import com.github.owlcs.ontapi.jena.model.OntGraphModel;
 import com.github.owlcs.ontapi.jena.model.OntIndividual;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import com.github.owlcs.ontapi.utils.OntIRI;
+import org.junit.Assert;
+import org.junit.Test;
+import org.semanticweb.owlapi.model.AddAxiom;
+import org.semanticweb.owlapi.model.AxiomType;
+import org.semanticweb.owlapi.model.OWLDataFactory;
+import org.semanticweb.owlapi.model.RemoveAxiom;
 
 /**
  * test individuals using jena-graph and owl-api
@@ -43,7 +43,7 @@ public class IndividualsOntModelTest extends OntModelTestBase {
         OntologyManager manager = OntManagers.createONT();
         OWLDataFactory factory = manager.getOWLDataFactory();
 
-        OntologyModel owl = manager.createOntology(iri.toOwlOntologyID());
+        Ontology owl = manager.createOntology(iri.toOwlOntologyID());
         OntGraphModel jena = owl.asGraphModel();
 
         OntIRI class1 = iri.addFragment("ClassN1");

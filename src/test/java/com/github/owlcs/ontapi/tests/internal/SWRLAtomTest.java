@@ -14,6 +14,12 @@
 
 package com.github.owlcs.ontapi.tests.internal;
 
+import com.github.owlcs.ontapi.DataFactory;
+import com.github.owlcs.ontapi.OntManagers;
+import com.github.owlcs.ontapi.Ontology;
+import com.github.owlcs.ontapi.OntologyManager;
+import com.github.owlcs.ontapi.internal.ONTObject;
+import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import org.junit.Assert;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -21,12 +27,6 @@ import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.SWRLAtom;
 import org.semanticweb.owlapi.model.SWRLRule;
-import com.github.owlcs.ontapi.DataFactory;
-import com.github.owlcs.ontapi.OntManagers;
-import com.github.owlcs.ontapi.OntologyManager;
-import com.github.owlcs.ontapi.OntologyModel;
-import com.github.owlcs.ontapi.internal.ONTObject;
-import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 
 import java.util.Collections;
 import java.util.List;
@@ -56,7 +56,7 @@ public class SWRLAtomTest extends ContentTestBase {
 
         SWRLAtom ont = (SWRLAtom) data.create(df);
 
-        OntologyModel o = m.createOntology();
+        Ontology o = m.createOntology();
         o.add(df.getSWRLRule(Collections.singletonList(ont), Collections.emptyList()));
         o.clearCache();
         ReadWriteUtils.print(o);

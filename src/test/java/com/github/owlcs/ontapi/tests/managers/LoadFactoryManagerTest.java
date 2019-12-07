@@ -15,19 +15,6 @@
 package com.github.owlcs.ontapi.tests.managers;
 
 import com.github.owlcs.ontapi.*;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.jena.graph.Graph;
-import org.apache.jena.rdf.model.RDFList;
-import org.apache.jena.rdf.model.Statement;
-import org.apache.jena.vocabulary.RDFS;
-import org.junit.Assert;
-import org.junit.Test;
-import org.semanticweb.owlapi.io.*;
-import org.semanticweb.owlapi.model.*;
-import org.semanticweb.owlapi.model.parameters.Imports;
-import org.semanticweb.owlapi.util.SimpleIRIMapper;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.github.owlcs.ontapi.config.OntConfig;
 import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
 import com.github.owlcs.ontapi.jena.OntModelFactory;
@@ -42,6 +29,19 @@ import com.github.owlcs.ontapi.transforms.OWLRecursiveTransform;
 import com.github.owlcs.ontapi.transforms.Transform;
 import com.github.owlcs.ontapi.transforms.TransformException;
 import com.github.owlcs.ontapi.utils.*;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.rdf.model.RDFList;
+import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.vocabulary.RDFS;
+import org.junit.Assert;
+import org.junit.Test;
+import org.semanticweb.owlapi.io.*;
+import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.model.parameters.Imports;
+import org.semanticweb.owlapi.util.SimpleIRIMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.InputStream;
@@ -62,7 +62,7 @@ import java.util.stream.Stream;
 public class LoadFactoryManagerTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(LoadFactoryManagerTest.class);
 
-    private static void checkForMissedImportsTest(OntologyModel b) {
+    private static void checkForMissedImportsTest(Ontology b) {
         checkForMissedImportsTest((OWLOntology) b);
         Assert.assertEquals(1, b.asGraphModel().imports().count());
     }
@@ -305,7 +305,7 @@ public class LoadFactoryManagerTest {
         if (!store.contains(OWLRecursiveTransform.class.getName())) {
             m.getOntologyConfigurator().setGraphTransformers(store.addFirst(OWLRecursiveTransform::new));
         }
-        OntologyModel o = m.loadOntology(iri);
+        Ontology o = m.loadOntology(iri);
         ReadWriteUtils.print(o.asGraphModel());
         o.axioms().forEach(a -> LOGGER.debug("{}", a));
         Assert.assertEquals("Wrong axioms count", 5, o.getAxiomCount());
@@ -460,8 +460,8 @@ public class LoadFactoryManagerTest {
     public void testMissedImports() throws OWLOntologyCreationException {
         // create data:
         OntologyManager m = OntManagers.createONT();
-        OntologyModel a = m.createOntology(IRI.create("urn:a"));
-        OntologyModel b = m.createOntology(IRI.create("urn:b"));
+        Ontology a = m.createOntology(IRI.create("urn:a"));
+        Ontology b = m.createOntology(IRI.create("urn:b"));
         a.asGraphModel().createOntClass("A");
         b.asGraphModel().createOntClass("B");
         b.asGraphModel().addImport(a.asGraphModel());
@@ -472,12 +472,12 @@ public class LoadFactoryManagerTest {
         // direct:
         OntologyManager m2 = OntManagers.createONT();
         m2.loadOntologyFromOntologyDocument(new StringDocumentSource(sA));
-        OntologyModel b2 = m2.loadOntologyFromOntologyDocument(new StringDocumentSource(sB));
+        Ontology b2 = m2.loadOntologyFromOntologyDocument(new StringDocumentSource(sB));
         checkForMissedImportsTest(b2);
 
         // reverse through stream:
         OntologyManager m3 = OntManagers.createONT();
-        OntologyModel b3 = m3.loadOntologyFromOntologyDocument(new StringDocumentSource(sB),
+        Ontology b3 = m3.loadOntologyFromOntologyDocument(new StringDocumentSource(sB),
                 m3.getOntologyLoaderConfiguration()
                         .setMissingImportHandlingStrategy(MissingImportHandlingStrategy.SILENT));
         m3.loadOntologyFromOntologyDocument(new StringDocumentSource(sA));
@@ -485,7 +485,7 @@ public class LoadFactoryManagerTest {
 
         // reverse through graph
         OntologyManager m4 = OntManagers.createONT();
-        OntologyModel b4 = m4.addOntology(b.asGraphModel().getBaseGraph(),
+        Ontology b4 = m4.addOntology(b.asGraphModel().getBaseGraph(),
                 m4.getOntologyLoaderConfiguration()
                         .setMissingImportHandlingStrategy(MissingImportHandlingStrategy.SILENT));
         m4.addOntology(a.asGraphModel().getBaseGraph());
@@ -536,7 +536,7 @@ public class LoadFactoryManagerTest {
         //m.getOntologyConfigurator().setSupportedSchemes(Collections.singletonList(() -> "store"));
         //m.setIRIMappers(Collections.singleton(iriMapper));
         m.getDocumentSourceMappers().add(docMapper);
-        OntologyModel o = m.loadOntology(IRI.create(b_uri));
+        Ontology o = m.loadOntology(IRI.create(b_uri));
         Assert.assertNotNull(o);
         Assert.assertEquals(2, m.ontologies().count());
     }
@@ -592,14 +592,14 @@ public class LoadFactoryManagerTest {
         Assert.assertEquals(1, manager.getOntologyFactories().size());
 
         String uri1 = "http://test1.com";
-        OntologyModel o1 = manager.createOntology(IRI.create(uri1));
+        Ontology o1 = manager.createOntology(IRI.create(uri1));
         Assert.assertNotNull(o1);
         ReadWriteUtils.print(o1);
         Assert.assertEquals(uri1, o1.getOntologyID().getOntologyIRI()
                 .map(IRI::getIRIString).orElseThrow(AssertionError::new));
         Assert.assertEquals(comment, getOWLComment(o1));
 
-        OntologyModel o2 = manager.loadOntology(IRI.create(ReadWriteUtils.getResourceURI("/ontapi/test1.ttl")));
+        Ontology o2 = manager.loadOntology(IRI.create(ReadWriteUtils.getResourceURI("/ontapi/test1.ttl")));
         Assert.assertNotNull(o2);
         ReadWriteUtils.print(o2);
         Assert.assertEquals("http://test.test/complex", o2.getOntologyID().getOntologyIRI()
@@ -621,7 +621,7 @@ public class LoadFactoryManagerTest {
 
         // Load using Jena turtle reader:
         OntologyManager m1 = OntManagers.createONT();
-        OntologyModel o1 = m1.loadOntologyFromOntologyDocument(source, conf.buildLoaderConfiguration());
+        Ontology o1 = m1.loadOntologyFromOntologyDocument(source, conf.buildLoaderConfiguration());
         Assert.assertEquals(1, m1.ontologies().count());
         Assert.assertEquals(0, o1.asGraphModel().imports().count());
         // check all []-lists are valid:
@@ -633,7 +633,7 @@ public class LoadFactoryManagerTest {
 
         // Load using OWL-API Turtle Parser
         OntologyManager m2 = OntManagers.createONT();
-        OntologyModel o2 = m2.loadOntologyFromOntologyDocument(source,
+        Ontology o2 = m2.loadOntologyFromOntologyDocument(source,
                 conf.buildLoaderConfiguration().setUseOWLParsersToLoad(true));
         Assert.assertEquals(1, m2.ontologies().count());
         Assert.assertEquals(0, o2.asGraphModel().imports().count());
@@ -657,7 +657,7 @@ public class LoadFactoryManagerTest {
         OWLOntologyDocumentSource src1 = ReadWriteUtils.getStringDocumentSource(txt1, OntFormat.TURTLE);
         Assert.assertTrue(m.getOntologyConfigurator().isProcessImports());
         Assert.assertTrue(m.getOntologyLoaderConfiguration().isProcessImports());
-        OntologyModel o1 = m.loadOntologyFromOntologyDocument(src1,
+        Ontology o1 = m.loadOntologyFromOntologyDocument(src1,
                 m.getOntologyLoaderConfiguration().setProcessImports(false));
         ReadWriteUtils.print(o1);
 
@@ -670,7 +670,7 @@ public class LoadFactoryManagerTest {
 
         String txt2 = String.format("%s <%s> a owl:Ontology; owl:imports <%s> .", prefixes, uri_a, uri_b);
         OWLOntologyDocumentSource src2 = ReadWriteUtils.getStringDocumentSource(txt2, OntFormat.TURTLE);
-        OntologyModel o2 = m.loadOntologyFromOntologyDocument(src2,
+        Ontology o2 = m.loadOntologyFromOntologyDocument(src2,
                 m.getOntologyLoaderConfiguration().setProcessImports(false));
         ReadWriteUtils.print(o2);
 
@@ -682,7 +682,7 @@ public class LoadFactoryManagerTest {
 
         String txt3 = String.format("%s <%s> a owl:Ontology .", prefixes, uri_b);
         OWLOntologyDocumentSource src3 = ReadWriteUtils.getStringDocumentSource(txt3, OntFormat.TURTLE);
-        OntologyModel o3 = m.loadOntologyFromOntologyDocument(src3,
+        Ontology o3 = m.loadOntologyFromOntologyDocument(src3,
                 m.getOntologyLoaderConfiguration().setProcessImports(false));
         ReadWriteUtils.print(o3);
 
@@ -728,9 +728,9 @@ public class LoadFactoryManagerTest {
         OWLOntologyDocumentSource src_a = ReadWriteUtils.getStringDocumentSource(txt_a, OntFormat.TURTLE);
         OWLOntologyDocumentSource src_b = ReadWriteUtils.getStringDocumentSource(txt_b, OntFormat.TURTLE);
 
-        OntologyModel b = m.loadOntologyFromOntologyDocument(src_b);
-        OntologyModel a = m.loadOntologyFromOntologyDocument(src_a);
-        OntologyModel c = m.createOntology(IRI.create(uri_c));
+        Ontology b = m.loadOntologyFromOntologyDocument(src_b);
+        Ontology a = m.loadOntologyFromOntologyDocument(src_a);
+        Ontology c = m.createOntology(IRI.create(uri_c));
 
         m.applyChange(new AddImport(c, m.getOWLDataFactory().getOWLImportsDeclaration(IRI.create(uri_a))));
 
@@ -751,7 +751,7 @@ public class LoadFactoryManagerTest {
         OWLOntologyDocumentSource src = ReadWriteUtils.getFileDocumentSource("/ontapi/test2.owl", OntFormat.OWL_XML);
         OntologyManager m = OntManagers.createONT();
         OntLoaderConfiguration conf = m.getOntologyLoaderConfiguration().setUseOWLParsersToLoad(true);
-        OntologyModel o = m.loadOntologyFromOntologyDocument(src, conf);
+        Ontology o = m.loadOntologyFromOntologyDocument(src, conf);
         OWLAdapter adapter = OWLAdapter.get();
         OntLoaderConfiguration conf2 = adapter.asModelConfig(adapter.asBaseModel(o).getConfig()).getLoaderConfig();
         Assert.assertSame(conf, conf2);
@@ -768,7 +768,7 @@ public class LoadFactoryManagerTest {
         Assert.assertEquals(1, m.getOntologyParsers().size());
         Assert.assertEquals(0, m.getOntologyStorers().size());
         OntLoaderConfiguration conf = m.getOntologyLoaderConfiguration().setUseOWLParsersToLoad(true);
-        OntologyModel o = m.loadOntologyFromOntologyDocument(src, conf);
+        Ontology o = m.loadOntologyFromOntologyDocument(src, conf);
         OWLAdapter adapter = OWLAdapter.get();
         OntLoaderConfiguration conf2 = adapter.asModelConfig(adapter.asBaseModel(o).getConfig()).getLoaderConfig();
         Assert.assertSame(conf, conf2);

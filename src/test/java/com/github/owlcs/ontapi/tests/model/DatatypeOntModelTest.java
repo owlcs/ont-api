@@ -14,13 +14,13 @@
 
 package com.github.owlcs.ontapi.tests.model;
 
+import com.github.owlcs.ontapi.Ontology;
+import com.github.owlcs.ontapi.utils.OntIRI;
+import com.github.owlcs.ontapi.utils.TestUtils;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.semanticweb.owlapi.vocab.OWLFacet;
-import com.github.owlcs.ontapi.OntologyModel;
-import com.github.owlcs.ontapi.utils.OntIRI;
-import com.github.owlcs.ontapi.utils.TestUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +35,7 @@ public class DatatypeOntModelTest extends OntModelTestBase {
     @Test
     public void testDefinitionAxiom() {
         OntIRI iri = OntIRI.create("http://test.org/datatypes/1");
-        OntologyModel owl = TestUtils.createModel(iri);
+        Ontology owl = TestUtils.createModel(iri);
         OWLOntologyManager manager = owl.getOWLOntologyManager();
 
         OWLDataFactory factory = manager.getOWLDataFactory();
@@ -58,7 +58,7 @@ public class DatatypeOntModelTest extends OntModelTestBase {
     @Test
     public void testWithClassExpressions() {
         OntIRI iri = OntIRI.create("http://test.org/datatypes/2");
-        OntologyModel owl = TestUtils.createModel(iri);
+        Ontology owl = TestUtils.createModel(iri);
         OWLOntologyManager manager = owl.getOWLOntologyManager();
 
         OWLDataFactory factory = manager.getOWLDataFactory();

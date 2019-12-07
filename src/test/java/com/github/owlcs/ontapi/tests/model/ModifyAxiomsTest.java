@@ -48,7 +48,7 @@ public class ModifyAxiomsTest {
         OntologyManager m = OntManagers.createONT();
         DataFactory df = m.getOWLDataFactory();
 
-        OntologyModel o = m.createOntology();
+        Ontology o = m.createOntology();
         OntGraphModel g = o.asGraphModel();
         g.createOntClass(ns + "X").addSuperClass(g.createOntClass(ns + "Y"));
         ReadWriteUtils.print(g);
@@ -72,7 +72,7 @@ public class ModifyAxiomsTest {
     public void testAddRemoveSeveralAxioms() {
         OntologyManager m = OntManagers.createONT();
         OWLDataFactory df = m.getOWLDataFactory();
-        OntologyModel o = m.createOntology(IRI.create("X"));
+        Ontology o = m.createOntology(IRI.create("X"));
 
         OWLAxiom a = df.getOWLDeclarationAxiom(df.getOWLClass("x"));
         OWLAxiom b = df.getOWLSubClassOfAxiom(df.getOWLClass("x"), df.getOWLThing());
@@ -90,7 +90,7 @@ public class ModifyAxiomsTest {
     public void testRemoveAxiomWithDirectlySharedClassExpression() {
         OntologyManager man = OntManagers.createONT();
         OWLDataFactory df = man.getOWLDataFactory();
-        OntologyModel o = man.createOntology(IRI.create("X"));
+        Ontology o = man.createOntology(IRI.create("X"));
 
         OntGraphModel m = o.asGraphModel();
         OntCE ce = m.createUnionOf(m.createOntClass("y"), m.createOntClass("z"));
@@ -123,7 +123,7 @@ public class ModifyAxiomsTest {
     public void testRemoveAxiomWithIndirectlySharedClassExpression() {
         OntologyManager man = OntManagers.createONT();
         OWLDataFactory df = man.getOWLDataFactory();
-        OntologyModel o = man.createOntology(IRI.create("X"));
+        Ontology o = man.createOntology(IRI.create("X"));
 
         OntGraphModel m = o.asGraphModel();
         OntCE ce1 = m.createUnionOf(m.createOntClass("y"), m.createOntClass("z"));
@@ -157,7 +157,7 @@ public class ModifyAxiomsTest {
     public void testRemoveAxiomWithSimilarClassExpression() {
         OntologyManager man = OntManagers.createONT();
         OWLDataFactory df = man.getOWLDataFactory();
-        OntologyModel o = man.createOntology(IRI.create("X"));
+        Ontology o = man.createOntology(IRI.create("X"));
 
         OntGraphModel m = o.asGraphModel();
         m.createOntClass("x").addSuperClass(m.createUnionOf(m.createOntClass("y"), m.createOntClass("z")));
@@ -188,7 +188,7 @@ public class ModifyAxiomsTest {
     @Test
     public void testRemoveAxiomWithSharedSWRL() {
         OntologyManager man = OntManagers.createONT();
-        OntologyModel o = man.createOntology(IRI.create("http://swrl-test"));
+        Ontology o = man.createOntology(IRI.create("http://swrl-test"));
 
         OntGraphModel m = o.asGraphModel().setNsPrefix("swrl", SWRL.NS);
 
@@ -236,7 +236,7 @@ public class ModifyAxiomsTest {
     @Test
     public void testRemoveAxiomWithSharedDataRange() {
         OntologyManager man = OntManagers.createONT();
-        OntologyModel o = man.createOntology(IRI.create("http://dr-test"));
+        Ontology o = man.createOntology(IRI.create("http://dr-test"));
 
         OntGraphModel m = o.asGraphModel();
         OntFR fr = m.createFacetRestriction(OntFR.TotalDigits.class, m.createTypedLiteral(2));
@@ -278,7 +278,7 @@ public class ModifyAxiomsTest {
     public void testAddRemoveSingleAxiom() {
         OntologyManager m = OntManagers.createONT();
         OWLDataFactory df = m.getOWLDataFactory();
-        OntologyModel o = m.createOntology(IRI.create("X"));
+        Ontology o = m.createOntology(IRI.create("X"));
 
         OWLAxiom a = df.getOWLSubClassOfAxiom(df.getOWLClass("A"),
                 df.getOWLObjectMaxCardinality(1, df.getOWLObjectProperty("P2"), df.getOWLClass("B")),
@@ -298,7 +298,7 @@ public class ModifyAxiomsTest {
     public void testAddRemoveSingleHeaderAnnotation() {
         OntologyManager m = OntManagers.createONT();
         OWLDataFactory df = m.getOWLDataFactory();
-        OntologyModel o = m.createOntology(IRI.create("X"));
+        Ontology o = m.createOntology(IRI.create("X"));
 
         OWLAnnotation a = df.getOWLAnnotation(df.getRDFSComment(), df.getOWLLiteral("comm"),
                 Arrays.asList(df.getOWLAnnotation(df.getOWLAnnotationProperty("P1"), df.getOWLLiteral(23.3)),
@@ -334,7 +334,7 @@ public class ModifyAxiomsTest {
                 "        rdfs:subClassOf  owl:Thing .\n" +
                 "\n" +
                 "<http://testX>  a  owl:Ontology .", OntFormat.TURTLE);
-        OntologyModel o = man.loadOntologyFromOntologyDocument(source);
+        Ontology o = man.loadOntologyFromOntologyDocument(source);
         ReadWriteUtils.print(o);
         OWLAxiom subClassOf = o.axioms(AxiomType.SUBCLASS_OF).findFirst().orElseThrow(AssertionError::new);
         OWLAxiom declaration = o.axioms(AxiomType.DECLARATION).findFirst().orElseThrow(AssertionError::new);
@@ -352,7 +352,7 @@ public class ModifyAxiomsTest {
         OntologyManager man = OntManagers.createONT();
         man.getOntologyConfigurator().setPersonality(OntModelConfig.ONT_PERSONALITY_LAX);
 
-        OntologyModel o = man.createOntology(IRI.create("http://test1"));
+        Ontology o = man.createOntology(IRI.create("http://test1"));
         OntGraphModel m = o.asGraphModel();
         OntDT dt = m.createDatatype("X");
         OntDR dr = m.createOneOfDataRange(m.createLiteral("l"));
@@ -391,7 +391,7 @@ public class ModifyAxiomsTest {
         OWLAdapter ad = OWLAdapter.get();
         OWLDataFactory df = man.getOWLDataFactory();
 
-        OntologyModel o = man.createOntology(IRI.create("http://test2"));
+        Ontology o = man.createOntology(IRI.create("http://test2"));
         int system = ad.asBaseModel(o).getBase().getSystemResources(OntClass.class).size();
         OntGraphModel m = o.asGraphModel();
         m.createOntClass(OWL.NegativePropertyAssertion.getURI());
@@ -436,7 +436,7 @@ public class ModifyAxiomsTest {
         OWLDataProperty dp_b = df.getOWLDataProperty("B");
         OWLAnnotationProperty ap_a = df.getOWLAnnotationProperty("A");
         OWLAnnotationProperty ap_b = df.getOWLAnnotationProperty("B");
-        OntologyModel o = man.createOntology(IRI.create("http://test3"));
+        Ontology o = man.createOntology(IRI.create("http://test3"));
         o.add(df.getOWLDeclarationAxiom(dp_a));
         o.add(df.getOWLDeclarationAxiom(dp_b));
         o.add(df.getOWLDeclarationAxiom(ap_a));

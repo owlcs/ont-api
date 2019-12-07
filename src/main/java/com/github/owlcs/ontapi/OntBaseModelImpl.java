@@ -1104,10 +1104,10 @@ public abstract class OntBaseModelImpl implements OWLOntology, BaseModel {
         if (obj == this) {
             return true;
         }
-        if (!(obj instanceof OntologyModel)) {
+        if (!(obj instanceof Ontology)) {
             return false;
         }
-        OntGraphModel right = ((OntologyModel) obj).asGraphModel();
+        OntGraphModel right = ((Ontology) obj).asGraphModel();
         OntGraphModel left = getBase();
         return left.getID().sameAs(right.getID());
     }

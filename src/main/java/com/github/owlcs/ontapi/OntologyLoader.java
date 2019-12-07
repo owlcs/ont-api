@@ -14,20 +14,21 @@
 
 package com.github.owlcs.ontapi;
 
+import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyIRIMapper;
-import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
 
 /**
  * An interface intended to process OWL document sources
- * and produce {@link OntologyModel} instances inside a {@link OntologyManager} instance.
+ * and produce {@link Ontology} instances inside a {@link OntologyManager} instance.
+ *
  * @since 1.4.1
  */
 public interface OntologyLoader {
 
     /**
-     * This method loads an {@link OntologyModel ontology model} from
+     * This method loads an {@link Ontology ontology model} from
      * the given {@link OWLOntologyDocumentSource document source}
      * into the {@link OntologyManager manarer} according to the {@link OntLoaderConfiguration configuration} settings.
      * If the document source corresponds an ontology that has imports,
@@ -37,22 +38,22 @@ public interface OntologyLoader {
      * and {@link OntologyManager.DocumentSourceMapping Graph Mapper} are used.
      * In case of any error the manager state should not be change.
      *
-     * @param builder {@link OntologyCreator} to create {@link OntologyModel} instance with all its parts
-     *                                       ({@link com.github.owlcs.ontapi.jena.UnionGraph},
-     *                                       {@link org.apache.jena.graph.Graph}), cannot be {@code null}
+     * @param builder {@link OntologyCreator} to create {@link Ontology} instance with all its parts
+     *                ({@link com.github.owlcs.ontapi.jena.UnionGraph},
+     *                {@link org.apache.jena.graph.Graph}), cannot be {@code null}
      * @param source  {@link OWLOntologyDocumentSource} the source (iri, file iri, stream, graph or whatever else),
-     *                                                 cannot be {@code null}
+     *                cannot be {@code null}
      * @param manager {@link OntologyManager}, the manager, cannot be {@code null}
      * @param conf    {@link OntLoaderConfiguration}, the load settings configuration, cannot be {@code null}
-     * @return {@link OntologyModel} the resulting ontology model, which must be within the manager
+     * @return {@link Ontology} the resulting ontology model, which must be within the manager
      * @throws OWLOntologyCreationException if something is wrong
-     * @throws OntApiException if something is very wrong
+     * @throws OntApiException              if something is very wrong
      * @see OWLOntologyIRIMapper
      * @see OntologyManager.DocumentSourceMapping
      */
-    OntologyModel loadOntology(OntologyCreator builder,
-                               OntologyManager manager,
-                               OWLOntologyDocumentSource source,
-                               OntLoaderConfiguration conf) throws OWLOntologyCreationException;
+    Ontology loadOntology(OntologyCreator builder,
+                          OntologyManager manager,
+                          OWLOntologyDocumentSource source,
+                          OntLoaderConfiguration conf) throws OWLOntologyCreationException;
 
 }

@@ -14,19 +14,19 @@
 
 package com.github.owlcs.ontapi.tests.model;
 
+import com.github.owlcs.ontapi.OntFormat;
+import com.github.owlcs.ontapi.OntManagers;
+import com.github.owlcs.ontapi.Ontology;
+import com.github.owlcs.ontapi.OntologyManager;
+import com.github.owlcs.ontapi.jena.OntModelFactory;
+import com.github.owlcs.ontapi.utils.OntIRI;
+import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import org.apache.log4j.Logger;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
-import com.github.owlcs.ontapi.OntFormat;
-import com.github.owlcs.ontapi.OntManagers;
-import com.github.owlcs.ontapi.OntologyManager;
-import com.github.owlcs.ontapi.OntologyModel;
-import com.github.owlcs.ontapi.jena.OntModelFactory;
-import com.github.owlcs.ontapi.utils.OntIRI;
-import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 
 /**
  * Just simple example test.
@@ -55,7 +55,7 @@ public class SimpleCreationTest {
         OntologyManager m = OntManagers.createONT();
         OWLDataFactory df = m.getOWLDataFactory();
 
-        OntologyModel ontology = m.createOntology(owlURI.toOwlOntologyID());
+        Ontology ontology = m.createOntology(owlURI.toOwlOntologyID());
         m.applyChange(new AddImport(ontology,
                 df.getOWLImportsDeclaration(IRI.create(ReadWriteUtils.getResourceURI("etc/sp.ttl")))));
         //manager.applyChange(new AddImport(ontology, factory.getOWLImportsDeclaration(IRI.create(SPINMAP_SPIN.BASE_URI))));

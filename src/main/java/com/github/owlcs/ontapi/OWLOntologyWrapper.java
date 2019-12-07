@@ -33,7 +33,7 @@ import java.util.stream.Stream;
 
 /**
  * A decorator for any {@link OWLOntology} instance.
- * Notices that it does not implement {@link OntologyModel} and therefore cannot be used in ONT-API directly.
+ * Notices that it does not implement {@link Ontology} and therefore cannot be used in ONT-API directly.
  * <p>
  * Matthew Horridge Stanford Center for Biomedical Informatics Research 03/04/15
  *

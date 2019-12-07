@@ -78,7 +78,7 @@ public class GraphDocumentSourceTest {
     public void testOntGraphDocumentSourceInOWL() throws OWLOntologyCreationException {
         IRI pizza = IRI.create(MiscOntologyTest.class.getResource("/ontapi/pizza.ttl"));
         LOGGER.debug("File: {}", pizza);
-        OntologyModel ont = OntManagers.createONT().loadOntology(pizza);
+        Ontology ont = OntManagers.createONT().loadOntology(pizza);
         OWLOntologyDocumentSource src = OntGraphDocumentSource.wrap(ont.asGraphModel().getBaseGraph());
         URI uri = src.getDocumentIRI().toURI();
         LOGGER.debug("Load using pipes from: {}", uri);
@@ -179,7 +179,7 @@ public class GraphDocumentSourceTest {
         ReadWriteUtils.print(ModelFactory.createModelForGraph(u));
 
         OntologyManager manager = OntManagers.createONT();
-        OntologyModel o = manager.addOntology(u);
+        Ontology o = manager.addOntology(u);
         Assert.assertEquals(1, manager.ontologies().peek(x -> LOGGER.debug("Ontology: {}", x)).count());
         Assert.assertNotNull(manager.getOntology(new ID(m1.getID())));
 
@@ -230,7 +230,7 @@ public class GraphDocumentSourceTest {
                 return false;
             }
         };
-        OntologyModel o = m.loadOntologyFromOntologyDocument(s2);
+        Ontology o = m.loadOntologyFromOntologyDocument(s2);
         Assert.assertNotNull(o);
         Assert.assertEquals(1, m.ontologies().count());
     }

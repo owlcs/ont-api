@@ -16,8 +16,8 @@ package com.github.owlcs.ontapi.tests.internal;
 
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.OntManagers;
+import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
-import com.github.owlcs.ontapi.OntologyModel;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.jena.OntModelFactory;
 import com.github.owlcs.ontapi.jena.model.*;
@@ -97,7 +97,7 @@ public class ONTObjectMergeTest {
                                                     int initAxiomsSize,
                                                     int afterRemoveModelSize) {
         OntologyManager m = OntManagers.createONT();
-        OntologyModel o = m.createOntology();
+        Ontology o = m.createOntology();
         OntGraphModel g = o.asGraphModel();
 
         contentMaker.accept(g);
@@ -131,7 +131,7 @@ public class ONTObjectMergeTest {
             void doTest() {
                 OntologyManager m = OntManagers.createONT();
                 m.getOntologyConfigurator().setLoadAnnotationAxioms(false);
-                OntologyModel o = m.createOntology();
+                Ontology o = m.createOntology();
                 OntGraphModel g = o.asGraphModel();
                 // two identical annotations, but one is assertion, and the second one is bulk
                 g.getID().addComment("x");
@@ -156,7 +156,7 @@ public class ONTObjectMergeTest {
             @Override
             void doTest() {
                 OntologyManager m = OntManagers.createONT();
-                OntologyModel o = m.createOntology();
+                Ontology o = m.createOntology();
                 OntGraphModel g = o.asGraphModel();
 
                 OntClass x = g.createOntClass("X");
@@ -234,7 +234,7 @@ public class ONTObjectMergeTest {
             @Override
             void doTest() {
                 OntologyManager m = OntManagers.createONT();
-                OntologyModel o = m.createOntology();
+                Ontology o = m.createOntology();
                 OntGraphModel g = o.asGraphModel();
 
                 OntOPE op = g.createObjectProperty("OP");

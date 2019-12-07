@@ -14,16 +14,10 @@
 
 package com.github.owlcs.ontapi.tests.model;
 
-import org.apache.jena.rdf.model.*;
-import org.apache.jena.util.ResourceUtils;
-import org.apache.jena.vocabulary.RDFS;
-import org.junit.Assert;
-import org.junit.Test;
-import org.semanticweb.owlapi.model.*;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.OntManagers;
+import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
-import com.github.owlcs.ontapi.OntologyModel;
 import com.github.owlcs.ontapi.jena.OntModelFactory;
 import com.github.owlcs.ontapi.jena.model.OntClass;
 import com.github.owlcs.ontapi.jena.model.OntGraphModel;
@@ -33,6 +27,12 @@ import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import com.github.owlcs.ontapi.owlapi.objects.OWLAnnotationImplNotAnnotated;
 import com.github.owlcs.ontapi.utils.OntIRI;
+import org.apache.jena.rdf.model.*;
+import org.apache.jena.util.ResourceUtils;
+import org.apache.jena.vocabulary.RDFS;
+import org.junit.Assert;
+import org.junit.Test;
+import org.semanticweb.owlapi.model.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -60,7 +60,7 @@ public class ChangeIDOntModelTest extends OntModelTestBase {
         Assert.assertNotNull(m.getOntology(IRI.create(iri2)));
 
         OntologyManager m2 = OntManagers.createConcurrentONT();
-        OntologyModel o3 = m2.createOntology();
+        Ontology o3 = m2.createOntology();
         OntGraphModel g3 = o3.asGraphModel();
         String iri3 = "http://z.com";
         g3.setID(iri3);
@@ -116,7 +116,7 @@ public class ChangeIDOntModelTest extends OntModelTestBase {
         OntologyManager manager = OntManagers.createONT();
 
         // anon ontology
-        OntologyModel anon = manager.createOntology();
+        Ontology anon = manager.createOntology();
         Assert.assertEquals("Should be one ontology inside jena-graph", 1,
                 anon.asGraphModel().listStatements(null, RDF.type, OWL.Ontology).toList().size());
 
@@ -135,7 +135,7 @@ public class ChangeIDOntModelTest extends OntModelTestBase {
         OWLDataFactory df = manager.getOWLDataFactory();
         OWLOntologyID id = iri.toOwlOntologyID();
         LOGGER.debug("Create ontology, ID={}", id);
-        OntologyModel owl = manager.createOntology(id);
+        Ontology owl = manager.createOntology(id);
         createOntologyProperties(owl, imports, annotations);
         OWLAnnotationProperty ap1 = df.getOWLAnnotationProperty(iri.addFragment("annotation-property-1"));
         OWLAnnotation a1 = df.getOWLAnnotation(ap1, df.getOWLLiteral("tess-annotation-1"));
@@ -194,7 +194,7 @@ public class ChangeIDOntModelTest extends OntModelTestBase {
     }
 
     private static void testIRIChanged(OntologyManager manager,
-                                       OntologyModel owl,
+                                       Ontology owl,
                                        OntGraphModel jena,
                                        OWLOntologyID id,
                                        List<Resource> imports,
@@ -245,7 +245,7 @@ public class ChangeIDOntModelTest extends OntModelTestBase {
         }
     }
 
-    private static void testHasClass(OntologyModel owl, OntGraphModel jena, IRI classIRI) {
+    private static void testHasClass(Ontology owl, OntGraphModel jena, IRI classIRI) {
         OWLEntity entity = owl.axioms(AxiomType.DECLARATION)
                 .map(OWLDeclarationAxiom::getEntity)
                 .filter(AsOWLClass::isOWLClass).findFirst().orElseThrow(AssertionError::new);
@@ -255,7 +255,7 @@ public class ChangeIDOntModelTest extends OntModelTestBase {
         Assert.assertEquals("Incorrect jena-class uri", classIRI.getIRIString(), classes.get(0).getURI());
     }
 
-    private static void createOntologyProperties(OntologyModel owl,
+    private static void createOntologyProperties(Ontology owl,
                                                  List<Resource> imports,
                                                  Map<Property, List<RDFNode>> annotations) {
         OWLOntologyManager m = owl.getOWLOntologyManager();

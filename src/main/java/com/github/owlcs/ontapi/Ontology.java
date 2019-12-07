@@ -14,13 +14,13 @@
 
 package com.github.owlcs.ontapi;
 
-import org.semanticweb.owlapi.model.OWLOntology;
 import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import org.semanticweb.owlapi.model.OWLOntology;
 
 /**
- * A Structural Ontological Model, that is an extended {@link OWLOntology OWL-API Ontology}, and
- * represents an <a href="http://www.w3.org/TR/owl2-syntax/#Ontologies">Ontology</a> in the OWL2 specification.
+ * A Structural Ontological Model, that is an extended {@link OWLOntology OWL-API Ontology}.
+ * It represents an <a href="http://www.w3.org/TR/owl2-syntax/#Ontologies">Ontology</a> in the OWL2 specification.
  * This interface provides a wide range of methods inherited from OWL-API
  * for working with structural (OWL Axioms and Annotations) representation of data
  * stored in the form of {@link org.apache.jena.graph.Graph RDF Graph}.
@@ -28,7 +28,7 @@ import com.github.owlcs.ontapi.jena.model.OntGraphModel;
  * <p>
  * Created by szuev on 24.10.2016.
  */
-public interface OntologyModel extends OWLOntology {
+public interface Ontology extends OWLOntology {
 
     /**
      * Returns the jena model shadow,

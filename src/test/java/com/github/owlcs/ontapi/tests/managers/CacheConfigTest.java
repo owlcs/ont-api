@@ -15,6 +15,13 @@
 package com.github.owlcs.ontapi.tests.managers;
 
 import com.github.owlcs.ontapi.*;
+import com.github.owlcs.ontapi.config.CacheSettings;
+import com.github.owlcs.ontapi.config.OntConfig;
+import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
+import com.github.owlcs.ontapi.config.OntSettings;
+import com.github.owlcs.ontapi.internal.*;
+import com.github.owlcs.ontapi.jena.impl.OntGraphModelImpl;
+import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
@@ -26,13 +33,6 @@ import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.github.owlcs.ontapi.config.CacheSettings;
-import com.github.owlcs.ontapi.config.OntConfig;
-import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
-import com.github.owlcs.ontapi.config.OntSettings;
-import com.github.owlcs.ontapi.internal.*;
-import com.github.owlcs.ontapi.jena.impl.OntGraphModelImpl;
-import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 
 import java.lang.reflect.Field;
 import java.util.*;
@@ -99,7 +99,7 @@ public class CacheConfigTest {
                 "Annotations:\n" +
                 "rdfs:label \"bob-label\"@en";
         OWLOntologyDocumentSource source = ReadWriteUtils.getStringDocumentSource(input, OntFormat.MANCHESTER_SYNTAX);
-        OntologyModel o = m.loadOntologyFromOntologyDocument(source);
+        Ontology o = m.loadOntologyFromOntologyDocument(source);
         Assert.assertNotNull(o);
         Assert.assertEquals(2, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
     }
@@ -117,7 +117,7 @@ public class CacheConfigTest {
         Assert.assertNotNull(m.getOntologyConfigurator().setLoadNodesCacheSize(-123));
         Assert.assertEquals(-123, m.getOntologyLoaderConfiguration().getLoadNodesCacheSize());
         // cache is disabled, try to load model
-        OntologyModel o = m.loadOntologyFromOntologyDocument(ReadWriteUtils.getFileDocumentSource("/ontapi/pizza.ttl",
+        Ontology o = m.loadOntologyFromOntologyDocument(ReadWriteUtils.getFileDocumentSource("/ontapi/pizza.ttl",
                 OntFormat.TURTLE));
         Assert.assertNotNull(o);
         Assert.assertEquals(945, o.axioms().count());
@@ -138,7 +138,7 @@ public class CacheConfigTest {
         OntLoaderConfiguration conf = new OntConfig().buildLoaderConfiguration().setLoadObjectsCacheSize(-1);
         Assert.assertEquals(-1, conf.getLoadObjectsCacheSize());
         m.setOntologyLoaderConfiguration(conf);
-        OntologyModel o = m.loadOntologyFromOntologyDocument(ReadWriteUtils.getFileDocumentSource("/ontapi/pizza.ttl",
+        Ontology o = m.loadOntologyFromOntologyDocument(ReadWriteUtils.getFileDocumentSource("/ontapi/pizza.ttl",
                 OntFormat.TURTLE));
         Assert.assertNotNull(o);
         Assert.assertEquals(axioms, o.axioms().count());
@@ -185,7 +185,7 @@ public class CacheConfigTest {
         Assert.assertEquals(CacheSettings.CACHE_ALL, Prop.CONTENT_CACHE_LEVEL.getInt());
         Assert.assertTrue(m1.getOntologyConfigurator().useContentCache());
         LogFindGraph g1 = new LogFindGraph(g);
-        OntologyModel o1 = m1.addOntology(g1);
+        Ontology o1 = m1.addOntology(g1);
         Assert.assertEquals(axioms1, o1.axioms().count());
         int count1 = g1.getFindPatterns().size();
         LOGGER.debug("1) Find invocation count: {}", count1);
@@ -203,7 +203,7 @@ public class CacheConfigTest {
         Assert.assertFalse(conf.useContentCache());
         m2.setOntologyLoaderConfiguration(conf);
         LogFindGraph g2 = new LogFindGraph(g);
-        OntologyModel o2 = m2.addOntology(g2);
+        Ontology o2 = m2.addOntology(g2);
         Assert.assertEquals(axioms2, o2.axioms().count());
         int count2_1 = g2.getFindPatterns().size();
         LOGGER.debug("2) Find invocation count: {}", count2_1);
@@ -241,7 +241,7 @@ public class CacheConfigTest {
         OWLOntologyDocumentSource src = ReadWriteUtils.getFileDocumentSource("/ontapi/pizza.ttl", OntFormat.TURTLE);
 
         OntologyManager m1 = OntManagers.createONT();
-        OntologyModel o1 = m1.loadOntologyFromOntologyDocument(src,
+        Ontology o1 = m1.loadOntologyFromOntologyDocument(src,
                 m1.getOntologyLoaderConfiguration().setModelCacheLevel(CacheSettings.CACHE_CONTENT, true));
         InternalModel im1 = adapter.asBaseModel(o1).getBase();
         InternalCache.Loading c1 = getInternalCache(im1, OWLContentType.class);
@@ -266,7 +266,7 @@ public class CacheConfigTest {
         });
 
         OntologyManager m2 = OntManagers.createONT();
-        OntologyModel o2 = m2.loadOntologyFromOntologyDocument(src,
+        Ontology o2 = m2.loadOntologyFromOntologyDocument(src,
                 m2.getOntologyLoaderConfiguration().setModelCacheLevel(CacheSettings.CACHE_CONTENT, false));
         InternalModel im2 = adapter.asBaseModel(o2).getBase();
         InternalCache.Loading c2 = getInternalCache(im2, OWLContentType.class);
@@ -293,7 +293,7 @@ public class CacheConfigTest {
         Assert.assertTrue(m1.getOntologyConfigurator().useComponentCache());
 
         LogFindGraph g1 = new LogFindGraph(g);
-        OntologyModel o1 = m1.addOntology(g1);
+        Ontology o1 = m1.addOntology(g1);
         Assert.assertEquals(signature1, o1.signature().count());
         int count1 = g1.getFindPatterns().size();
         LOGGER.debug("1) Find invocation count: {}", count1);
@@ -312,7 +312,7 @@ public class CacheConfigTest {
         Assert.assertFalse(conf.useComponentCache());
         Assert.assertTrue(conf.useContentCache());
         LogFindGraph g2 = new LogFindGraph(g);
-        OntologyModel o2 = m2.addOntology(g2, conf);
+        Ontology o2 = m2.addOntology(g2, conf);
         Assert.assertEquals(signature2, o2.signature().distinct().count());
         int count2_1 = g2.getFindPatterns().size();
         LOGGER.debug("2) Find invocation count: {}", count2_1);
@@ -339,7 +339,7 @@ public class CacheConfigTest {
         OWLOntologyDocumentSource src = ReadWriteUtils.getFileDocumentSource("/ontapi/pizza.ttl", OntFormat.TURTLE);
 
         OntologyManager m1 = OntManagers.createONT();
-        OntologyModel o1 = m1.loadOntologyFromOntologyDocument(src,
+        Ontology o1 = m1.loadOntologyFromOntologyDocument(src,
                 m1.getOntologyLoaderConfiguration().setModelCacheLevel(CacheSettings.CACHE_COMPONENT, true));
         InternalModel im1 = adapter.asBaseModel(o1).getBase();
         InternalCache.Loading c1 = getInternalCache(im1, OWLComponentType.class);
@@ -364,7 +364,7 @@ public class CacheConfigTest {
         });
 
         OntologyManager m2 = OntManagers.createONT();
-        OntologyModel o2 = m2.loadOntologyFromOntologyDocument(src,
+        Ontology o2 = m2.loadOntologyFromOntologyDocument(src,
                 m2.getOntologyLoaderConfiguration().setModelCacheLevel(CacheSettings.CACHE_COMPONENT, false));
         InternalModel im2 = adapter.asBaseModel(o2).getBase();
         InternalCache.Loading c2 = getInternalCache(im2, OWLComponentType.class);
@@ -418,7 +418,7 @@ public class CacheConfigTest {
         DataFactory df = m.getOWLDataFactory();
         m.getOntologyConfigurator().setModelCacheLevel(CacheSettings.CACHE_CONTENT);
 
-        OntologyModel o = m.loadOntologyFromOntologyDocument(s);
+        Ontology o = m.loadOntologyFromOntologyDocument(s);
         Assert.assertEquals(axioms, o.getAxiomCount());
         OWLClass c = df.getOWLClass("C");
         OWLAxiom a = df.getOWLSubClassOfAxiom(c, df.getOWLNothing(), Collections.singletonList(df.getRDFSLabel("x1")));
@@ -481,7 +481,7 @@ public class CacheConfigTest {
         m.getOntologyConfigurator().setModelCacheLevel(0);
 
         OWLOntologyDocumentSource source = ReadWriteUtils.getStringDocumentSource(wrong, OntFormat.TURTLE);
-        OntologyModel o = m.loadOntologyFromOntologyDocument(source);
+        Ontology o = m.loadOntologyFromOntologyDocument(source);
         ReadWriteUtils.print(o);
         Assert.assertEquals(16, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
     }

@@ -160,10 +160,10 @@ public class OWLAdapter implements HasAdapter.Adapter {
      * Performs mapping {@code OWLOntology -> OntologyModel}.
      *
      * @param ont {@link OWLOntology}, not {@code null}
-     * @return {@link OntologyModel}
+     * @return {@link Ontology}
      */
-    public OntologyModel asONT(OWLOntology ont) {
-        return (OntologyModel) ont;
+    public Ontology asONT(OWLOntology ont) {
+        return (Ontology) ont;
     }
 
     /**
@@ -193,10 +193,10 @@ public class OWLAdapter implements HasAdapter.Adapter {
     /**
      * Performs mapping {@code OntologyModel -> InternalModelHolder}.
      *
-     * @param ont {@link OntologyModel}, not {@code null}
+     * @param ont {@link Ontology}, not {@code null}
      * @return {@link BaseModel}
      */
-    public BaseModel asBaseModel(OntologyModel ont) {
+    public BaseModel asBaseModel(Ontology ont) {
         return (BaseModel) ont;
     }
 

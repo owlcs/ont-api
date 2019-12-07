@@ -14,15 +14,9 @@
 
 package com.github.owlcs.ontapi.tests.model;
 
-import org.apache.jena.rdf.model.RDFList;
-import org.apache.jena.rdf.model.Resource;
-import org.hamcrest.core.IsEqual;
-import org.junit.Assert;
-import org.junit.Test;
-import org.semanticweb.owlapi.model.*;
 import com.github.owlcs.ontapi.OntFormat;
 import com.github.owlcs.ontapi.OntManagers;
-import com.github.owlcs.ontapi.OntologyModel;
+import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.jena.model.OntCE;
 import com.github.owlcs.ontapi.jena.model.OntClass;
 import com.github.owlcs.ontapi.jena.model.OntGraphModel;
@@ -31,6 +25,12 @@ import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import com.github.owlcs.ontapi.utils.OntIRI;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
+import org.apache.jena.rdf.model.RDFList;
+import org.apache.jena.rdf.model.Resource;
+import org.hamcrest.core.IsEqual;
+import org.junit.Assert;
+import org.junit.Test;
+import org.semanticweb.owlapi.model.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -71,7 +71,7 @@ public class DisjointClassesOntModelTest extends OntModelTestBase {
         LOGGER.debug("Assemble new ontology with the same content.");
         OntIRI iri = OntIRI.create("http://test.test/complex");
         OntIRI ver = OntIRI.create("http://test.test/complex/version-iri/1.0");
-        OntologyModel result = OntManagers.createONT().createOntology(iri.toOwlOntologyID());
+        Ontology result = OntManagers.createONT().createOntology(iri.toOwlOntologyID());
         OntGraphModel jena = result.asGraphModel()
                 .setNsPrefix("", iri.getIRIString() + "#")
                 .getID().setVersionIRI(ver.getIRIString())

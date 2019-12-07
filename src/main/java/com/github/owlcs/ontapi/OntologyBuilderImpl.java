@@ -24,7 +24,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 
 /**
  * An implementation of {@link OntologyFactory.Builder} - a technical factory to create standalone ontology instances.
- * This should be the only way to create {@link OntologyModel} instances.
+ * This should be the only way to create {@link Ontology} instances.
  */
 @SuppressWarnings("WeakerAccess")
 @ParametersAreNonnullByDefault
@@ -36,7 +36,7 @@ public class OntologyBuilderImpl implements OntologyFactory.Builder {
     }
 
     @Override
-    public OntologyModel createOntology(ID id, OntologyManager manager, OntLoaderConfiguration config) {
+    public Ontology createOntology(ID id, OntologyManager manager, OntLoaderConfiguration config) {
         OntologyManagerImpl m = getAdapter().asIMPL(manager);
         OntologyModelImpl res = createOntologyImpl(createGraph(), m, config);
         res.setOntologyID(id);
@@ -44,7 +44,7 @@ public class OntologyBuilderImpl implements OntologyFactory.Builder {
     }
 
     @Override
-    public OntologyModel createOntology(Graph graph, OntologyManager manager, OntLoaderConfiguration config) {
+    public Ontology createOntology(Graph graph, OntologyManager manager, OntLoaderConfiguration config) {
         OntologyManagerImpl m = getAdapter().asIMPL(manager);
         return withLock(createOntologyImpl(graph, m, config), m.getLock());
     }
@@ -79,11 +79,11 @@ public class OntologyBuilderImpl implements OntologyFactory.Builder {
     /**
      * Wraps the given {@code ont} as a concurrent R/W locked view impl, if it is needed.
      *
-     * @param ont {@link OntologyModelImpl}, not {@code null}
+     * @param ont  {@link OntologyModelImpl}, not {@code null}
      * @param lock {@link ReadWriteLock}, possible {@code null}
-     * @return {@link OntologyModel} instance
+     * @return {@link Ontology} instance
      */
-    protected OntologyModel withLock(OntologyModelImpl ont, ReadWriteLock lock) {
+    protected Ontology withLock(OntologyModelImpl ont, ReadWriteLock lock) {
         if (!NoOpReadWriteLock.isConcurrent(lock)) return ont;
         return new OntologyModelImpl.Concurrent(ont, lock);
     }

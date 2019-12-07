@@ -15,15 +15,15 @@
 package com.github.owlcs.ontapi.tests.model;
 
 import com.github.owlcs.ontapi.*;
+import com.github.owlcs.ontapi.jena.model.*;
+import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import com.github.owlcs.ontapi.jena.vocabulary.XSD;
+import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import org.apache.jena.vocabulary.RDFS;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.*;
-import com.github.owlcs.ontapi.jena.model.*;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
-import com.github.owlcs.ontapi.jena.vocabulary.XSD;
-import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 
 import java.util.Collections;
 
@@ -43,7 +43,7 @@ public class MiscOntModelTest extends OntModelTestBase {
                 df.getOWLAnonymousIndividual("_:b0"),
                 Collections.singleton(df.getOWLAnnotation(df.getOWLAnnotationProperty("A"),
                         df.getOWLAnonymousIndividual("_:b1"))));
-        OntologyModel o = m.createOntology();
+        Ontology o = m.createOntology();
         o.add(a);
         Assert.assertTrue(o.containsAxiom(a));
         o.axioms().filter(a::equals).findFirst().orElseThrow(AssertionError::new);
@@ -55,7 +55,7 @@ public class MiscOntModelTest extends OntModelTestBase {
 
     @Test
     public void testRemoveAxiomWithDuplicatedAnnotations() {
-        OntologyModel o = OntManagers.createONT().createOntology();
+        Ontology o = OntManagers.createONT().createOntology();
         OntGraphModel g = o.asGraphModel();
         OntStatement s = g.createOntClass("X").addSubClassOfStatement(g.createOntClass("Y"));
         int duplicates = 2;
@@ -80,7 +80,7 @@ public class MiscOntModelTest extends OntModelTestBase {
     public void testGraphIsUnchangedInCaseOfError() {
         OntologyManager m = OntManagers.createONT();
         DataFactory df = m.getOWLDataFactory();
-        OntologyModel o = m.createOntology();
+        Ontology o = m.createOntology();
 
         o.add(df.getOWLDeclarationAxiom(df.getOWLObjectProperty("P")));
         try {
@@ -97,7 +97,7 @@ public class MiscOntModelTest extends OntModelTestBase {
     @Test
     public void testNaryRestrictions() {
         OntologyManager man = OntManagers.createONT();
-        OntologyModel o = man.createOntology();
+        Ontology o = man.createOntology();
 
         OntGraphModel m = o.asGraphModel();
         OntNDP p = m.createDataProperty("p");
@@ -128,7 +128,7 @@ public class MiscOntModelTest extends OntModelTestBase {
         for (int i = 0; i < iter; i++) {
             LOGGER.debug("Iter: #{}", (i + 1));
             OntologyManager m = OntManagers.createONT();
-            OntologyModel o = m.loadOntologyFromOntologyDocument(source);
+            Ontology o = m.loadOntologyFromOntologyDocument(source);
             Assert.assertEquals(2, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
         }
     }
@@ -155,7 +155,7 @@ public class MiscOntModelTest extends OntModelTestBase {
     public void testDeleteAxiomWithSharedEntity() {
         OntologyManager m = OntManagers.createONT();
         DataFactory df = m.getOWLDataFactory();
-        OntologyModel o = m.createOntology();
+        Ontology o = m.createOntology();
         OWLClass c = df.getOWLClass("X");
         OWLAxiom a1 = df.getOWLSubClassOfAxiom(c, df.getOWLObjectUnionOf(df.getOWLThing(), df.getOWLNothing()));
         OWLAxiom a2 = df.getOWLDisjointClassesAxiom(c, df.getOWLThing(), df.getOWLNothing());
@@ -242,14 +242,14 @@ public class MiscOntModelTest extends OntModelTestBase {
                 .filter(a -> OwlObjects.objects(OWLObjectInverseOf.class, a).findAny().isPresent())
                 .peek(x -> LOGGER.debug("AxiomWithInverseOf: {}", x)).count());
 
-        Assert.assertEquals(2, ((OntologyModel) o).asGraphModel().statements(null, OWL.inverseOf, null).count());
+        Assert.assertEquals(2, ((Ontology) o).asGraphModel().statements(null, OWL.inverseOf, null).count());
     }
 
     @Test
     public void testAnonymousIndividuals() {
         OntologyManager manager = OntManagers.createONT();
         OWLDataFactory df = manager.getOWLDataFactory();
-        OntologyModel o = manager.createOntology();
+        Ontology o = manager.createOntology();
 
         OntGraphModel m = o.asGraphModel();
         OntIndividual ti1 = m.getOWLThing().createIndividual();
@@ -271,7 +271,7 @@ public class MiscOntModelTest extends OntModelTestBase {
     @Test
     public void testRemoveStatement() {
         OntologyManager man = OntManagers.createONT();
-        OntologyModel o = man.createOntology(IRI.create("X"));
+        Ontology o = man.createOntology(IRI.create("X"));
 
         OntGraphModel m = o.asGraphModel();
         OntCE ce = m.createUnionOf(m.createOntClass("y"), m.createOntClass("z"));

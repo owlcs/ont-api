@@ -14,6 +14,19 @@
 
 package com.github.owlcs.ontapi.tests.transforms;
 
+import com.github.owlcs.ontapi.OntFormat;
+import com.github.owlcs.ontapi.OntManagers;
+import com.github.owlcs.ontapi.Ontology;
+import com.github.owlcs.ontapi.OntologyManager;
+import com.github.owlcs.ontapi.jena.OntModelFactory;
+import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import com.github.owlcs.ontapi.jena.vocabulary.XSD;
+import com.github.owlcs.ontapi.transforms.GraphTransformers;
+import com.github.owlcs.ontapi.transforms.Transform;
+import com.github.owlcs.ontapi.transforms.TransformException;
+import com.github.owlcs.ontapi.transforms.vocabulary.DEPRECATED;
+import com.github.owlcs.ontapi.utils.ReadWriteUtils;
+import com.github.owlcs.ontapi.utils.TestUtils;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
@@ -31,19 +44,6 @@ import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.github.owlcs.ontapi.OntFormat;
-import com.github.owlcs.ontapi.OntManagers;
-import com.github.owlcs.ontapi.OntologyManager;
-import com.github.owlcs.ontapi.OntologyModel;
-import com.github.owlcs.ontapi.jena.OntModelFactory;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
-import com.github.owlcs.ontapi.jena.vocabulary.XSD;
-import com.github.owlcs.ontapi.transforms.GraphTransformers;
-import com.github.owlcs.ontapi.transforms.Transform;
-import com.github.owlcs.ontapi.transforms.TransformException;
-import com.github.owlcs.ontapi.transforms.vocabulary.DEPRECATED;
-import com.github.owlcs.ontapi.utils.ReadWriteUtils;
-import com.github.owlcs.ontapi.utils.TestUtils;
 
 import java.util.Arrays;
 import java.util.stream.Stream;
@@ -69,7 +69,7 @@ public class OWLTransformTest {
 
         OWLOntologyDocumentSource src = ReadWriteUtils.getStringDocumentSource(txt, OntFormat.TURTLE);
 
-        OntologyModel o = OntManagers.createONT().loadOntologyFromOntologyDocument(src);
+        Ontology o = OntManagers.createONT().loadOntologyFromOntologyDocument(src);
         ReadWriteUtils.print(o);
         o.saveOntology(OntFormat.FUNCTIONAL_SYNTAX.createOwlFormat(), ReadWriteUtils.NULL_OUT);
         Assert.assertEquals(6, o.asGraphModel().size());
@@ -140,7 +140,7 @@ public class OWLTransformTest {
         LOGGER.debug("Source: {}", src);
         OntologyManager m = OntManagers.createONT();
         m.getOntologyConfigurator().setPerformTransformation(false);
-        OntologyModel o = m.loadOntologyFromOntologyDocument(src);
+        Ontology o = m.loadOntologyFromOntologyDocument(src);
 
         ReadWriteUtils.print(o);
 
@@ -175,7 +175,7 @@ public class OWLTransformTest {
                 "@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .\n" +
                 "\n" +
                 "ex:c    owl:unionOf  ( ex:x ex:y ) .";
-        OntologyModel o = OntManagers.createONT().loadOntologyFromOntologyDocument(new StringDocumentSource(s));
+        Ontology o = OntManagers.createONT().loadOntologyFromOntologyDocument(new StringDocumentSource(s));
         ReadWriteUtils.print(o);
         Assert.assertEquals(3, o.axioms(AxiomType.DECLARATION).peek(x -> LOGGER.debug("DE: {}", x)).count());
         Assert.assertEquals(1, o.axioms(AxiomType.EQUIVALENT_CLASSES).peek(x -> LOGGER.debug("EC: {}", x)).count());
@@ -199,7 +199,7 @@ public class OWLTransformTest {
         ReadWriteUtils.print(m);
 
         OntologyManager manager = OntManagers.createONT();
-        OntologyModel o = manager.addOntology(m.getGraph(), manager.getOntologyLoaderConfiguration());
+        Ontology o = manager.addOntology(m.getGraph(), manager.getOntologyLoaderConfiguration());
         ReadWriteUtils.print(o);
         TestUtils.assertAxiom(o, AxiomType.DECLARATION, 3);
         TestUtils.assertAxiom(o, AxiomType.CLASS_ASSERTION, 1);
@@ -217,7 +217,7 @@ public class OWLTransformTest {
         String txt = ReadWriteUtils.toString(m, OntFormat.TURTLE);
 
         OntologyManager manager = OntManagers.createONT();
-        OntologyModel o = manager.loadOntologyFromOntologyDocument(ReadWriteUtils.getStringDocumentSource(txt, OntFormat.TURTLE));
+        Ontology o = manager.loadOntologyFromOntologyDocument(ReadWriteUtils.getStringDocumentSource(txt, OntFormat.TURTLE));
         OWLOntologyLoaderMetaData meta = manager.getNonnullOntologyFormat(o)
                 .getOntologyLoaderMetaData().orElseThrow(AssertionError::new);
         print(meta);
@@ -242,7 +242,7 @@ public class OWLTransformTest {
         LOGGER.debug("Original RDF:\n{}", txt);
 
         OntologyManager manager = OntManagers.createONT();
-        OntologyModel o = manager.loadOntologyFromOntologyDocument(ReadWriteUtils.getStringDocumentSource(txt, OntFormat.TURTLE));
+        Ontology o = manager.loadOntologyFromOntologyDocument(ReadWriteUtils.getStringDocumentSource(txt, OntFormat.TURTLE));
         ReadWriteUtils.print(o);
         Assert.assertEquals(ontIRI, o.getOntologyID().getOntologyIRI().map(IRI::getIRIString).orElseThrow(AssertionError::new));
         Assert.assertEquals(verIRI, o.getOntologyID().getVersionIRI().map(IRI::getIRIString).orElseThrow(AssertionError::new));
@@ -287,7 +287,7 @@ public class OWLTransformTest {
         manager.getOntologyConfigurator().setGraphTransformers(transformers);
 
         OWLOntologyDocumentSource src = ReadWriteUtils.getFileDocumentSource("/ontapi/pizza.ttl", OntFormat.TURTLE);
-        OntologyModel o = manager.loadOntologyFromOntologyDocument(src);
+        Ontology o = manager.loadOntologyFromOntologyDocument(src);
         ReadWriteUtils.print(o);
 
         OWLOntologyLoaderMetaData meta = manager.getNonnullOntologyFormat(o)

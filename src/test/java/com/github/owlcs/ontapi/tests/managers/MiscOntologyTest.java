@@ -59,10 +59,10 @@ public class MiscOntologyTest {
         Class<? extends OWLOntology> expected = OntologyModelImpl.Concurrent.class;
         OntologyManager m = OntManagers.createConcurrentONT();
         DataFactory df = m.getOWLDataFactory();
-        OntologyModel a = m.createOntology(IRI.create("A"));
-        OntologyModel b = m.createOntology(IRI.create("B"));
-        OntologyModel c = m.createOntology(IRI.create("C"));
-        OntologyModel d = m.createOntology(IRI.create("D"));
+        Ontology a = m.createOntology(IRI.create("A"));
+        Ontology b = m.createOntology(IRI.create("B"));
+        Ontology c = m.createOntology(IRI.create("C"));
+        Ontology d = m.createOntology(IRI.create("D"));
         a.asGraphModel().addImport(b.asGraphModel());
         m.applyChange(new AddImport(a,
                 df.getOWLImportsDeclaration(c.getOntologyID().getOntologyIRI().orElseThrow(AssertionError::new))));
@@ -84,7 +84,7 @@ public class MiscOntologyTest {
         LOGGER.debug("The file: {}", iri);
         OntologyManager m = OntManagers.createONT();
         m.getOntologyConfigurator().setPerformTransformation(false);
-        OntologyModel o = m.loadOntology(iri);
+        Ontology o = m.loadOntology(iri);
         ReadWriteUtils.print(o.asGraphModel());
         o.axioms().forEach(a -> LOGGER.debug("{}", a));
     }
@@ -123,7 +123,7 @@ public class MiscOntologyTest {
 
         LOGGER.debug("Add to manager");
         OntologyManager manager1 = OntManagers.createONT();
-        OntologyModel ontology1 = manager1.addOntology(model.getGraph());
+        Ontology ontology1 = manager1.addOntology(model.getGraph());
         Assert.assertEquals(1, ontology1.getAxiomCount());
         OWLDocumentFormat format1 = manager1.getOntologyFormat(ontology1);
         Assert.assertEquals(OntFormat.TURTLE.createOwlFormat(), format1);
@@ -141,7 +141,7 @@ public class MiscOntologyTest {
         LOGGER.debug("Reload");
         OWLOntologyDocumentSource source = new FileDocumentSource(file.toFile(), OntFormat.RDF_XML.createOwlFormat());
         OntologyManager manager2 = OntManagers.createONT();
-        OntologyModel ontology2 = manager2.loadOntologyFromOntologyDocument(source);
+        Ontology ontology2 = manager2.loadOntologyFromOntologyDocument(source);
 
         Assert.assertEquals(1, ontology2.getAxiomCount());
         OWLDocumentFormat format2 = manager2.getOntologyFormat(ontology2);

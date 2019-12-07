@@ -17,7 +17,7 @@ package com.github.owlcs.ontapi.internal;
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.ID;
 import com.github.owlcs.ontapi.OntApiException;
-import com.github.owlcs.ontapi.OntologyModel;
+import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.internal.axioms.*;
 import com.github.owlcs.ontapi.jena.OntJenaException;
 import com.github.owlcs.ontapi.jena.RWLockedGraph;
@@ -60,7 +60,7 @@ import java.util.stream.Stream;
  * and Jena interfaces (through the {@link OntGraphModel} view of RDF Graph).
  * <p>
  * It is an analogue of <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/Internals.java'>uk.ac.manchester.cs.owl.owlapi.Internals</a>.
- * This model is used by the facade model (i.e. by {@link OntologyModel}) while reading and writing
+ * This model is used by the facade model (i.e. by {@link Ontology}) while reading and writing
  * the structural (axiomatic) representation of ontology.
  * <p>
  * Notice that this model is a non-serializable (while everything in OWL-API is {@link java.io.Serializable}),

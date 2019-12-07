@@ -14,6 +14,11 @@
 
 package com.github.owlcs.ontapi.tests.internal;
 
+import com.github.owlcs.ontapi.DataFactory;
+import com.github.owlcs.ontapi.OntManagers;
+import com.github.owlcs.ontapi.Ontology;
+import com.github.owlcs.ontapi.OntologyManager;
+import com.github.owlcs.ontapi.internal.ONTObject;
 import org.junit.Assert;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -21,11 +26,6 @@ import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectInverseOf;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
-import com.github.owlcs.ontapi.DataFactory;
-import com.github.owlcs.ontapi.OntManagers;
-import com.github.owlcs.ontapi.OntologyManager;
-import com.github.owlcs.ontapi.OntologyModel;
-import com.github.owlcs.ontapi.internal.ONTObject;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -54,7 +54,7 @@ public class PropertyExpressionTest extends ContentTestBase {
 
         OWLObjectInverseOf ont = (OWLObjectInverseOf) data.create(df);
 
-        OntologyModel o = m.createOntology();
+        Ontology o = m.createOntology();
         o.add(df.getOWLSubObjectPropertyOfAxiom(df.getOWLObjectProperty("P"), ont));
         o.clearCache();
         OWLObjectPropertyExpression res = o.axioms(AxiomType.SUB_OBJECT_PROPERTY)

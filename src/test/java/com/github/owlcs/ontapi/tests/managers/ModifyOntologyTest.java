@@ -16,8 +16,8 @@ package com.github.owlcs.ontapi.tests.managers;
 
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.OntManagers;
+import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
-import com.github.owlcs.ontapi.OntologyModel;
 import com.github.owlcs.ontapi.jena.model.OntGraphModel;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import org.junit.Assert;
@@ -44,7 +44,7 @@ public class ModifyOntologyTest {
         String ns = "http://x#";
         OntologyManager m = OntManagers.createONT();
 
-        OntologyModel o = m.createOntology();
+        Ontology o = m.createOntology();
         OntGraphModel g = o.asGraphModel();
         g.createOntClass(ns + "X").addSuperClass(g.createOntClass(ns + "Y"));
         ReadWriteUtils.print(g);
@@ -69,7 +69,7 @@ public class ModifyOntologyTest {
         axioms.add(df.getOWLSubClassOfAxiom(df.getOWLClass(ns + "X"), df.getOWLClass(ns + "Y")));
         axioms.add(df.getOWLSubClassOfAxiom(df.getOWLClass(ns + "Z"), df.getOWLClass(ns + "W")));
 
-        OntologyModel o = m.createOntology();
+        Ontology o = m.createOntology();
         List<AddAxiom> changes = axioms.stream().map(x -> new AddAxiom(o, x)).collect(Collectors.toList());
         m.applyChanges(changes);
         ReadWriteUtils.print(o);

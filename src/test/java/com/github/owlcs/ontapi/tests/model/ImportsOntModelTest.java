@@ -15,16 +15,6 @@
 package com.github.owlcs.ontapi.tests.model;
 
 import com.github.owlcs.ontapi.*;
-import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.Triple;
-import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.vocabulary.RDFS;
-import org.junit.Assert;
-import org.junit.Test;
-import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
-import org.semanticweb.owlapi.model.*;
-import org.semanticweb.owlapi.model.parameters.Imports;
 import com.github.owlcs.ontapi.jena.OntModelFactory;
 import com.github.owlcs.ontapi.jena.impl.UnionModel;
 import com.github.owlcs.ontapi.jena.model.OntGraphModel;
@@ -36,6 +26,16 @@ import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import com.github.owlcs.ontapi.utils.OntIRI;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import com.github.owlcs.ontapi.utils.TestUtils;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.vocabulary.RDFS;
+import org.junit.Assert;
+import org.junit.Test;
+import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
+import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.model.parameters.Imports;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -85,7 +85,7 @@ public class ImportsOntModelTest extends OntModelTestBase {
     }
 
     private static void assertOntologyAxioms(OntologyManager m, String ontURI, int expectedAxiomsCount) {
-        OntologyModel o = m.getOntology(IRI.create(ontURI));
+        Ontology o = m.getOntology(IRI.create(ontURI));
         Assert.assertNotNull(o);
         Assert.assertEquals(expectedAxiomsCount, o.axioms(Imports.INCLUDED).count());
     }
@@ -106,9 +106,9 @@ public class ImportsOntModelTest extends OntModelTestBase {
         DataFactory df = m.getOWLDataFactory();
         m.getDocumentSourceMappers().add(source);
 
-        OntologyModel a = m.loadOntology(a_iri);
+        Ontology a = m.loadOntology(a_iri);
         Assert.assertEquals(2, m.ontologies().count());
-        OntologyModel b = m.getOntology(b_iri);
+        Ontology b = m.getOntology(b_iri);
         Assert.assertNotNull(b);
 
         a.add(df.getOWLDeclarationAxiom(df.getOWLClass("http://X")));
@@ -154,9 +154,9 @@ public class ImportsOntModelTest extends OntModelTestBase {
         String b_uri = "http://b";
         String c_uri = "http://c";
         OWLDataFactory df = m.getOWLDataFactory();
-        OntologyModel a = m.createOntology(IRI.create(a_uri));
-        OntologyModel b = m.createOntology(IRI.create(b_uri));
-        OntologyModel c = m.createOntology(IRI.create(c_uri));
+        Ontology a = m.createOntology(IRI.create(a_uri));
+        Ontology b = m.createOntology(IRI.create(b_uri));
+        Ontology c = m.createOntology(IRI.create(c_uri));
         c.asGraphModel().createOntClass(c_uri + "#c-1");
 
         a.add(df.getOWLDeclarationAxiom(df.getOWLClass(IRI.create(a_uri + "#a-1"))));
@@ -277,8 +277,8 @@ public class ImportsOntModelTest extends OntModelTestBase {
         IRI iri_b = IRI.create("B");
 
         OWLDataFactory d = m.getOWLDataFactory();
-        OntologyModel a = m.createOntology(iri_a);
-        OntologyModel b = m.createOntology(iri_b);
+        Ontology a = m.createOntology(iri_a);
+        Ontology b = m.createOntology(iri_b);
 
         m.applyChange(new AddImport(a, d.getOWLImportsDeclaration(iri_b)));
         Assert.assertTrue(a.isEmpty());
@@ -352,8 +352,8 @@ public class ImportsOntModelTest extends OntModelTestBase {
 
         OntologyManager m = OntManagers.createONT();
         OWLDataFactory df = m.getOWLDataFactory();
-        OntologyModel a = m.createOntology(new OWLOntologyID(aIRI, ver1));
-        OntologyModel b = m.createOntology(bIRI);
+        Ontology a = m.createOntology(new OWLOntologyID(aIRI, ver1));
+        Ontology b = m.createOntology(bIRI);
 
         // add owl:imports for 'a' inside 'b':
         m.applyChange(new AddImport(b, df.getOWLImportsDeclaration(ver1)));
@@ -373,7 +373,7 @@ public class ImportsOntModelTest extends OntModelTestBase {
         Assert.assertSame(b, m.getImportedOntology(bIRI));
 
         // what if in manager there is one more ontology with the same iri but different version iri ?
-        OntologyModel c = m.createOntology(new OWLOntologyID(aIRI, ver2));
+        Ontology c = m.createOntology(new OWLOntologyID(aIRI, ver2));
         Assert.assertSame(a, m.getImportedOntology(ver1));
         Assert.assertSame(c, m.getImportedOntology(ver2));
         Assert.assertSame(b, m.getImportedOntology(bIRI));
@@ -384,7 +384,7 @@ public class ImportsOntModelTest extends OntModelTestBase {
     @Test
     public void testMixedAddImports() {
         OntIRI iri = OntIRI.create("http://test.test/add-import/1");
-        OntologyModel owl = TestUtils.createModel(iri);
+        Ontology owl = TestUtils.createModel(iri);
         OntologyManager manager = owl.getOWLOntologyManager();
         OWLDataFactory factory = manager.getOWLDataFactory();
         OntGraphModel jena = owl.asGraphModel();
@@ -429,7 +429,7 @@ public class ImportsOntModelTest extends OntModelTestBase {
 
         OWLDataFactory factory = manager.getOWLDataFactory();
 
-        OntologyModel base = manager.createOntology(baseIRI);
+        Ontology base = manager.createOntology(baseIRI);
 
         OntIRI classIRI1 = baseIRI.addFragment("Class-1");
         OntIRI classIRI2 = baseIRI.addFragment("Class-2");
@@ -460,7 +460,7 @@ public class ImportsOntModelTest extends OntModelTestBase {
 
         LOGGER.debug("Add import {}", baseIRI);
         OntIRI childIRI = OntIRI.create("http://test.test/add-import/child");
-        OntologyModel child = manager.createOntology(childIRI);
+        Ontology child = manager.createOntology(childIRI);
         child.applyChanges(new AddImport(child, factory.getOWLImportsDeclaration(baseIRI)));
 
         Assert.assertEquals("Incorrect imports count", 1, child.imports().count());
@@ -494,8 +494,8 @@ public class ImportsOntModelTest extends OntModelTestBase {
 
         LOGGER.debug("Reload models.");
         OntologyManager newManager = OntManagers.createONT();
-        OntologyModel newBase = ReadWriteUtils.convertJenaToONT(newManager, base.asGraphModel());
-        OntologyModel newChild = ReadWriteUtils.convertJenaToONT(newManager, child.asGraphModel());
+        Ontology newBase = ReadWriteUtils.convertJenaToONT(newManager, base.asGraphModel());
+        Ontology newChild = ReadWriteUtils.convertJenaToONT(newManager, child.asGraphModel());
 
         Assert.assertEquals("Incorrect imports count", 1, newChild.imports().count());
         Assert.assertEquals("Should be the same number of statements",
@@ -526,8 +526,8 @@ public class ImportsOntModelTest extends OntModelTestBase {
         OntologyManager m = OntManagers.createONT();
         String a_uri = "A";
         String b_uri = "B";
-        OntologyModel a_owl = m.createOntology(IRI.create(a_uri));
-        OntologyModel b_owl = m.createOntology(IRI.create(b_uri));
+        Ontology a_owl = m.createOntology(IRI.create(a_uri));
+        Ontology b_owl = m.createOntology(IRI.create(b_uri));
 
         OntGraphModel a = m.getGraphModel(a_uri);
         Assert.assertNotNull(a);
@@ -561,8 +561,8 @@ public class ImportsOntModelTest extends OntModelTestBase {
     @Test
     public void testConcurrentImportsBehaviour() {
         OntologyManager m = OntManagers.createConcurrentONT();
-        OntologyModel a = m.createOntology(IRI.create("a"));
-        OntologyModel b = m.createOntology(IRI.create("b"));
+        Ontology a = m.createOntology(IRI.create("a"));
+        Ontology b = m.createOntology(IRI.create("b"));
         a.asGraphModel().addImport(b.asGraphModel());
         Assert.assertEquals(1, a.imports().count());
         Assert.assertEquals(0, b.imports().count());

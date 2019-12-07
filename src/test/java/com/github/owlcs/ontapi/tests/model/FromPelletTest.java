@@ -14,17 +14,17 @@
 
 package com.github.owlcs.ontapi.tests.model;
 
+import com.github.owlcs.ontapi.OntManagers;
+import com.github.owlcs.ontapi.Ontology;
+import com.github.owlcs.ontapi.OntologyManager;
+import com.github.owlcs.ontapi.jena.model.OntOPE;
+import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.github.owlcs.ontapi.OntManagers;
-import com.github.owlcs.ontapi.OntologyManager;
-import com.github.owlcs.ontapi.OntologyModel;
-import com.github.owlcs.ontapi.jena.model.OntOPE;
-import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 
 /**
  * The ontologies or/and test scenarios (but in some general terms only) were taken from
@@ -149,7 +149,7 @@ public class FromPelletTest {
         IRI iri = IRI.create(ReadWriteUtils.getResourceURI("ontapi/propertyChain.owl"));
         LOGGER.debug("{}", iri);
         OntologyManager m = OntManagers.createONT();
-        OntologyModel o = m.loadOntology(iri);
+        Ontology o = m.loadOntology(iri);
         ReadWriteUtils.print(o);
         o.axioms().map(String::valueOf).forEach(LOGGER::debug);
         Assert.assertEquals("Incorrect count of property chains axioms", 4, o.axioms(AxiomType.SUB_PROPERTY_CHAIN_OF).count());

@@ -14,26 +14,10 @@
 
 package com.github.owlcs.ontapi.tests.transforms;
 
-import org.apache.jena.graph.Graph;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.util.FileManager;
-import org.apache.jena.vocabulary.RDFS;
-import org.hamcrest.core.IsEqual;
-import org.junit.Assert;
-import org.junit.Test;
-import org.semanticweb.owlapi.io.OWLOntologyLoaderMetaData;
-import org.semanticweb.owlapi.io.RDFOntologyHeaderStatus;
-import org.semanticweb.owlapi.model.*;
-import org.semanticweb.owlapi.model.parameters.Imports;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.github.owlcs.ontapi.OntFormat;
 import com.github.owlcs.ontapi.OntManagers;
+import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
-import com.github.owlcs.ontapi.OntologyModel;
 import com.github.owlcs.ontapi.jena.OntModelFactory;
 import com.github.owlcs.ontapi.jena.UnionGraph;
 import com.github.owlcs.ontapi.jena.impl.conf.OntModelConfig;
@@ -50,6 +34,22 @@ import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import com.github.owlcs.ontapi.utils.SP;
 import com.github.owlcs.ontapi.utils.SpinModels;
 import com.github.owlcs.ontapi.utils.SpinTransform;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.rdf.model.Model;
+import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.util.FileManager;
+import org.apache.jena.vocabulary.RDFS;
+import org.hamcrest.core.IsEqual;
+import org.junit.Assert;
+import org.junit.Test;
+import org.semanticweb.owlapi.io.OWLOntologyLoaderMetaData;
+import org.semanticweb.owlapi.io.RDFOntologyHeaderStatus;
+import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.model.parameters.Imports;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -83,7 +83,7 @@ public class GraphTransformersTest {
         SpinModels.addMappings(FileManager.get());
 
         IRI iri = SpinModels.SPINMAPL.getIRI();
-        OntologyModel spinmapl = m.loadOntology(iri);
+        Ontology spinmapl = m.loadOntology(iri);
         String actualTree = Graphs.importsTreeAsString(spinmapl.asGraphModel().getGraph());
         LOGGER.debug("Tree:\n{}", actualTree);
         Assert.assertEquals(27, actualTree.split("\n").length);
@@ -106,7 +106,7 @@ public class GraphTransformersTest {
             Assert.assertNotEquals("Wrong guessed declarations count for " + uri, 0, d.getGuessedDeclarations().size());
         });
 
-        OntologyModel spl = m.getOntology(SpinModels.SPL.getIRI());
+        Ontology spl = m.getOntology(SpinModels.SPL.getIRI());
         Assert.assertNotNull("Can't find SPL", spl);
 
         //String splAsString = ReadWriteUtils.toString(spl.asGraphModel(), OntFormat.TURTLE);
@@ -139,7 +139,7 @@ public class GraphTransformersTest {
                 .disableWebAccess();
         SpinModels.addMappings(m);
         SpinModels.addMappings(FileManager.get());
-        OntologyModel spin = m.loadOntology(SpinModels.SPINMAPL.getIRI());
+        Ontology spin = m.loadOntology(SpinModels.SPINMAPL.getIRI());
         Assert.assertEquals(10, m.ontologies().count());
         m.ontologies().forEach(o -> {
             IRI uri = o.getOntologyID().getOntologyIRI().orElseThrow(AssertionError::new);
@@ -173,7 +173,7 @@ public class GraphTransformersTest {
     }
 
     private static void assertGraphSize(OntologyManager m, SpinModels ont, long count) {
-        OntologyModel o = m.getOntology(ont.getIRI());
+        Ontology o = m.getOntology(ont.getIRI());
         Assert.assertNotNull(o);
         Assert.assertEquals(count, o.asGraphModel().localStatements().count());
     }
@@ -240,7 +240,7 @@ public class GraphTransformersTest {
         IRI file = IRI.create(ReadWriteUtils.getResourceURI("ontapi/swrl.owl.rdf"));
         OntologyManager m = OntManagers.createONT();
         m.getOntologyConfigurator().setPersonality(OntModelConfig.ONT_PERSONALITY_LAX);
-        OntologyModel o = m.loadOntology(file);
+        Ontology o = m.loadOntology(file);
         Assert.assertTrue("No ontology", m.contains(iri));
 
         ReadWriteUtils.print(o);

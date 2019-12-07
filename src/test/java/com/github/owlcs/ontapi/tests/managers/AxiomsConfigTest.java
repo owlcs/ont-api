@@ -14,17 +14,17 @@
 
 package com.github.owlcs.ontapi.tests.managers;
 
+import com.github.owlcs.ontapi.OntFormat;
+import com.github.owlcs.ontapi.OntManagers;
+import com.github.owlcs.ontapi.Ontology;
+import com.github.owlcs.ontapi.OntologyManager;
+import com.github.owlcs.ontapi.config.AxiomsSettings;
+import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.github.owlcs.ontapi.OntFormat;
-import com.github.owlcs.ontapi.OntManagers;
-import com.github.owlcs.ontapi.OntologyManager;
-import com.github.owlcs.ontapi.OntologyModel;
-import com.github.owlcs.ontapi.config.AxiomsSettings;
-import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 
 import java.util.Arrays;
 import java.util.List;
@@ -46,7 +46,7 @@ public class AxiomsConfigTest {
         Assert.assertTrue("Incorrect default settings", m.getOntologyLoaderConfiguration().isLoadAnnotationAxioms());
         OWLDataFactory df = m.getOWLDataFactory();
 
-        OntologyModel o1 = m.createOntology();
+        Ontology o1 = m.createOntology();
         OWLClass cl = df.getOWLClass(IRI.create("C"));
         OWLAnnotationProperty ap = df.getOWLAnnotationProperty(IRI.create("http://a"));
         OWLAnnotation a1 = df.getOWLAnnotation(ap, df.getOWLLiteral("assertion1"));
@@ -74,7 +74,7 @@ public class AxiomsConfigTest {
                 axioms1.contains(df.getOWLDeclarationAxiom(cl, Arrays.asList(a1, a2))));
 
         LOGGER.debug("Create new ontology ");
-        OntologyModel o2 = m.createOntology();
+        Ontology o2 = m.createOntology();
         axioms.forEach(o2::add);
         ReadWriteUtils.print(o2);
         List<OWLAxiom> axioms2 = o2.axioms().collect(Collectors.toList());
@@ -92,7 +92,7 @@ public class AxiomsConfigTest {
                 m.getOntologyLoaderConfiguration().isAllowBulkAnnotationAssertions());
         OWLDataFactory df = m.getOWLDataFactory();
 
-        OntologyModel o1 = m.createOntology();
+        Ontology o1 = m.createOntology();
         OWLClass cl = df.getOWLClass(IRI.create("http://class"));
         OWLAnnotation a1 = df.getOWLAnnotation(df.getRDFSComment(), df.getOWLLiteral("plain assertion"));
         OWLAnnotation a2 = df.getOWLAnnotation(df.getRDFSLabel(), df.getOWLLiteral("bulk assertion"),
@@ -156,7 +156,7 @@ public class AxiomsConfigTest {
         LOGGER.debug("The file: {}", iri);
         OntologyManager m = OntManagers.createONT();
         m.getOntologyConfigurator().setIgnoreAxiomsReadErrors(true).setPerformTransformation(false);
-        OntologyModel o = m.loadOntology(iri);
+        Ontology o = m.loadOntology(iri);
         ReadWriteUtils.print(o.asGraphModel());
         o.axioms().forEach(a -> LOGGER.debug("{}", a));
         Assert.assertEquals("Wrong axioms count", 5, o.getAxiomCount());

@@ -15,8 +15,8 @@
 package com.github.owlcs.ontapi.tests.internal;
 
 import com.github.owlcs.ontapi.OntManagers;
+import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
-import com.github.owlcs.ontapi.OntologyModel;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.jena.OntModelFactory;
 import com.github.owlcs.ontapi.jena.model.OntGraphModel;
@@ -37,7 +37,7 @@ public class ONTObjectContentTest {
     @SuppressWarnings("unchecked")
     @Test
     public void testAnnotatedSubClassOf() {
-        OntologyModel o = OntManagers.createONT().createOntology();
+        Ontology o = OntManagers.createONT().createOntology();
         OntGraphModel g = o.asGraphModel();
         g.createOntClass("X").addSubClassOfStatement(g.createOntClass("Y")).annotate(g.getRDFSComment(), "XY");
         ReadWriteUtils.print(g);
@@ -59,7 +59,7 @@ public class ONTObjectContentTest {
     public void testAnnotatedDeclaration() {
         OntologyManager m = OntManagers.createONT();
         m.getOntologyConfigurator().setLoadAnnotationAxioms(false);
-        OntologyModel o = m.createOntology();
+        Ontology o = m.createOntology();
         OntGraphModel g = o.asGraphModel();
         g.createOntClass("X").addComment("X");
         ReadWriteUtils.print(g);

@@ -14,6 +14,10 @@
 
 package com.github.owlcs.ontapi.utils;
 
+import com.github.owlcs.ontapi.OntFormat;
+import com.github.owlcs.ontapi.OntManagers;
+import com.github.owlcs.ontapi.Ontology;
+import com.github.owlcs.ontapi.OntologyManager;
 import org.apache.commons.io.IOUtils;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -24,10 +28,6 @@ import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.github.owlcs.ontapi.OntFormat;
-import com.github.owlcs.ontapi.OntManagers;
-import com.github.owlcs.ontapi.OntologyManager;
-import com.github.owlcs.ontapi.OntologyModel;
 
 import java.io.*;
 import java.net.URI;
@@ -265,8 +265,8 @@ public class ReadWriteUtils {
         return loadOWLOntology(OntManagers.createOWL(), fileIRI);
     }
 
-    public static OntologyModel loadOntologyModel(IRI fileIRI) {
-        return (OntologyModel) loadOWLOntology(OntManagers.createONT(), fileIRI);
+    public static Ontology loadOntologyModel(IRI fileIRI) {
+        return (Ontology) loadOWLOntology(OntManagers.createONT(), fileIRI);
     }
 
     public static OWLOntology convertJenaToOWL(OWLOntologyManager manager, Model model, OntFormat convertFormat) {
@@ -288,13 +288,13 @@ public class ReadWriteUtils {
         return convertJenaToOWL(manager, model, OntFormat.TURTLE);
     }
 
-    public static OntologyModel convertJenaToONT(Model model) {
+    public static Ontology convertJenaToONT(Model model) {
         return convertJenaToONT(null, model);
     }
 
-    public static OntologyModel convertJenaToONT(OntologyManager manager, Model model) {
+    public static Ontology convertJenaToONT(OntologyManager manager, Model model) {
         if (manager == null) manager = OntManagers.createONT();
-        return (OntologyModel) convertJenaToOWL(manager, model, OntFormat.TURTLE);
+        return (Ontology) convertJenaToOWL(manager, model, OntFormat.TURTLE);
     }
 
     public static OWLOntologyDocumentSource getFileDocumentSource(String file, OntFormat format) {

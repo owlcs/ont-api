@@ -14,6 +14,20 @@
 
 package com.github.owlcs.ontapi.tests.model;
 
+import com.github.owlcs.ontapi.OntFormat;
+import com.github.owlcs.ontapi.OntManagers;
+import com.github.owlcs.ontapi.Ontology;
+import com.github.owlcs.ontapi.OntologyManager;
+import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
+import com.github.owlcs.ontapi.internal.AxiomParserProvider;
+import com.github.owlcs.ontapi.internal.WriteHelper;
+import com.github.owlcs.ontapi.jena.model.OntClass;
+import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import com.github.owlcs.ontapi.jena.vocabulary.RDF;
+import com.github.owlcs.ontapi.utils.OntIRI;
+import com.github.owlcs.ontapi.utils.ReadWriteUtils;
+import com.github.owlcs.ontapi.utils.TestUtils;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
@@ -25,20 +39,6 @@ import org.semanticweb.owlapi.io.IRIDocumentSource;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.model.*;
-import com.github.owlcs.ontapi.OntFormat;
-import com.github.owlcs.ontapi.OntManagers;
-import com.github.owlcs.ontapi.OntologyManager;
-import com.github.owlcs.ontapi.OntologyModel;
-import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
-import com.github.owlcs.ontapi.internal.AxiomParserProvider;
-import com.github.owlcs.ontapi.internal.WriteHelper;
-import com.github.owlcs.ontapi.jena.model.OntClass;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
-import com.github.owlcs.ontapi.jena.vocabulary.RDF;
-import com.github.owlcs.ontapi.utils.OntIRI;
-import com.github.owlcs.ontapi.utils.ReadWriteUtils;
-import com.github.owlcs.ontapi.utils.TestUtils;
 
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -56,7 +56,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
     @Test
     public void testNegativeAssertionAnnotations() {
         OntologyManager m = OntManagers.createONT();
-        OntologyModel o = m.createOntology();
+        Ontology o = m.createOntology();
         OntGraphModel g = o.asGraphModel();
 
         g.createObjectProperty("OP").createInverse()
@@ -95,7 +95,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
         LOGGER.debug("Create fresh ontology ({}).", iri);
         OntologyManager manager = OntManagers.createONT();
         OWLDataFactory factory = manager.getOWLDataFactory();
-        OntologyModel owl = manager.createOntology(iri);
+        Ontology owl = manager.createOntology(iri);
 
         OntGraphModel jena = owl.asGraphModel();
 
@@ -174,7 +174,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
 
         OWLOntologyID id1 = iri.toOwlOntologyID(iri.addPath("1.0"));
         LOGGER.debug("Create ontology {}", id1);
-        OntologyModel owl1 = manager.createOntology(id1);
+        Ontology owl1 = manager.createOntology(id1);
 
         // plain annotations will go as assertion annotation axioms after reloading owl. so disable
         OWLAnnotation simple1 = df.getOWLAnnotation(df.getRDFSLabel(), df.getOWLLiteral("PLAIN-1"));
@@ -218,7 +218,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
 
         OWLOntologyID id2 = iri.toOwlOntologyID(iri.addPath("2.0"));
         LOGGER.debug("Create ontology {} (empty)", id2);
-        OntologyModel owl2 = manager.createOntology(id2);
+        Ontology owl2 = manager.createOntology(id2);
         Assert.assertEquals("Incorrect number of ontologies.", count + 2, manager.ontologies().count());
 
         LOGGER.debug("Pass all content from {} to {} using jena.", id1, id2);
@@ -272,7 +272,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
     @Test
     public void testBulkNaryAnnotatedAxioms() {
         OntIRI iri = OntIRI.create("http://test.org/annotations/3");
-        OntologyModel owl = TestUtils.createModel(iri);
+        Ontology owl = TestUtils.createModel(iri);
         OWLOntologyManager manager = owl.getOWLOntologyManager();
         OWLDataFactory factory = manager.getOWLDataFactory();
 
@@ -344,7 +344,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
     @Test
     public void testNaryAnnotatedAxioms() {
         OntIRI iri = OntIRI.create("http://test.org/annotations/4");
-        OntologyModel owl = TestUtils.createModel(iri);
+        Ontology owl = TestUtils.createModel(iri);
         OWLOntologyManager manager = owl.getOWLOntologyManager();
         OWLDataFactory factory = manager.getOWLDataFactory();
 
@@ -412,7 +412,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
     @Test
     public void testAnnotatedAxiomsWithSubChain() {
         OntIRI iri = OntIRI.create("http://test.org/annotations/5");
-        OntologyModel owl = TestUtils.createModel(iri);
+        Ontology owl = TestUtils.createModel(iri);
 
         OWLOntologyManager manager = owl.getOWLOntologyManager();
         OWLDataFactory factory = manager.getOWLDataFactory();
@@ -461,7 +461,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
     @Test
     public void testSWRLRuleAnnotation() {
         OntIRI iri = OntIRI.create("http://test.org/annotations/6");
-        OntologyModel owl = TestUtils.createModel(iri);
+        Ontology owl = TestUtils.createModel(iri);
         OWLOntologyManager manager = owl.getOWLOntologyManager();
         OWLDataFactory factory = manager.getOWLDataFactory();
 
@@ -526,7 +526,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
 
         IRI file = IRI.create(ReadWriteUtils.getResourceURI("ontapi/test-annotations-2.ttl"));
         OWLOntologyDocumentSource src = new IRIDocumentSource(file, OntFormat.TURTLE.createOwlFormat(), null);
-        OntologyModel o = m.loadOntologyFromOntologyDocument(src, conf);
+        Ontology o = m.loadOntologyFromOntologyDocument(src, conf);
 
         OWLDataFactory df = m.getOWLDataFactory();
         OWLAnnotationProperty p1 = df.getOWLAnnotationProperty("http://www.geneontology.org/formats/oboInOwl#hasNarrowSynonym");
@@ -629,7 +629,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
         o1.annotations().map(String::valueOf).forEach(LOGGER::debug);
         // checking jena shadow
         if (manager instanceof OntologyManager) {
-            OntGraphModel jena = ((OntologyModel) o1).asGraphModel();
+            OntGraphModel jena = ((Ontology) o1).asGraphModel();
             // test annotation see-also:
             Assert.assertTrue("Can't find rdfs:comment " + comment, jena.contains(null, RDFS.comment,
                     WriteHelper.toRDFNode(comment)));
@@ -663,7 +663,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
 
         // test jena annotation1:
         if (manager instanceof OntologyManager) {
-            OntGraphModel jena = ((OntologyModel) o1).asGraphModel();
+            OntGraphModel jena = ((Ontology) o1).asGraphModel();
             Assert.assertFalse("There is rdfs:comment " + comment,
                     jena.contains(null, RDFS.comment, WriteHelper.toRDFNode(comment)));
             Assert.assertFalse("There is owl:annotatedTarget " + comment,
@@ -686,7 +686,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
         o1.remove(df.getOWLDeclarationAxiom(annotationProperty));
         debug(o1);
         if (manager instanceof OntologyManager) {
-            OntGraphModel jena = ((OntologyModel) o1).asGraphModel();
+            OntGraphModel jena = ((Ontology) o1).asGraphModel();
             List<Statement> rest = jena.listStatements().toList();
             LOGGER.debug("Rest statements : ");
             rest.stream().map(String::valueOf).forEach(LOGGER::debug);

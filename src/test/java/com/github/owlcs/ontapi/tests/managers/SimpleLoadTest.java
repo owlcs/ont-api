@@ -14,21 +14,21 @@
 
 package com.github.owlcs.ontapi.tests.managers;
 
-import org.apache.jena.rdf.model.Resource;
-import org.junit.Assert;
-import org.junit.Test;
-import org.semanticweb.owlapi.model.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.github.owlcs.ontapi.OntManagers;
+import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
-import com.github.owlcs.ontapi.OntologyModel;
 import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
 import com.github.owlcs.ontapi.jena.impl.conf.OntModelConfig;
 import com.github.owlcs.ontapi.jena.model.OntEntity;
 import com.github.owlcs.ontapi.jena.model.OntGraphModel;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import com.github.owlcs.ontapi.utils.TestUtils;
+import org.apache.jena.rdf.model.Resource;
+import org.junit.Assert;
+import org.junit.Test;
+import org.semanticweb.owlapi.model.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Set;
@@ -59,7 +59,7 @@ public class SimpleLoadTest {
 
         IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI(fileName));
         LOGGER.debug("The source document file {}", fileIRI);
-        OntologyModel ont = manager.loadOntologyFromOntologyDocument(fileIRI);
+        Ontology ont = manager.loadOntologyFromOntologyDocument(fileIRI);
         OntGraphModel model = ont.asGraphModel();
         ReadWriteUtils.print(model);
 
@@ -92,7 +92,7 @@ public class SimpleLoadTest {
         IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI(fileName));
         LOGGER.debug("The source document file {}", fileIRI);
 
-        OntologyModel ont = OntManagers.createONT().loadOntologyFromOntologyDocument(fileIRI);
+        Ontology ont = OntManagers.createONT().loadOntologyFromOntologyDocument(fileIRI);
         OWLOntology owl = OntManagers.createOWL().loadOntologyFromOntologyDocument(fileIRI);
 
         List<OWLAxiom> owlList = TestUtils.splitAxioms(owl).sorted().collect(Collectors.toList());
@@ -160,7 +160,7 @@ public class SimpleLoadTest {
         IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI(fileName));
         LOGGER.debug("The source document file {}", fileIRI);
 
-        OntologyModel ont = OntManagers.createONT().loadOntologyFromOntologyDocument(fileIRI);
+        Ontology ont = OntManagers.createONT().loadOntologyFromOntologyDocument(fileIRI);
         OWLOntology owl = OntManagers.createOWL().loadOntologyFromOntologyDocument(fileIRI);
 
         List<OWLAxiom> owlList = TestUtils.splitAxioms(owl).sorted().collect(Collectors.toList());

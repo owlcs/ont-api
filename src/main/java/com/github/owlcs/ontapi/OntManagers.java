@@ -14,10 +14,10 @@
 
 package com.github.owlcs.ontapi;
 
+import com.github.owlcs.ontapi.jena.OntModelFactory;
 import com.google.common.collect.LinkedListMultimap;
 import org.semanticweb.owlapi.io.OWLParserFactory;
 import org.semanticweb.owlapi.model.*;
-import com.github.owlcs.ontapi.jena.OntModelFactory;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -66,7 +66,7 @@ public class OntManagers implements OWLOntologyManagerFactory {
      * <p>
      * Alternative way to assembly ontology is direct working with the {@link org.apache.jena.graph.Graph Graph}
      * through the {@link com.github.owlcs.ontapi.jena.model.OntGraphModel} view of the ontology,
-     * that can be obtained using the method {@link OntologyModel#asGraphModel()}.
+     * that can be obtained using the method {@link Ontology#asGraphModel()}.
      * The first way of ontology editing is native for OWL-API,
      * the second way is native for Apache Jena and provided by ONT-API as a feature,
      * that actually underlies any interaction with ontologies in ONT-API.

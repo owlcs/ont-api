@@ -14,18 +14,18 @@
 
 package com.github.owlcs.ontapi.tests.transforms;
 
+import com.github.owlcs.ontapi.OntFormat;
+import com.github.owlcs.ontapi.OntManagers;
+import com.github.owlcs.ontapi.Ontology;
+import com.github.owlcs.ontapi.OntologyManager;
+import com.github.owlcs.ontapi.utils.ReadWriteUtils;
+import com.github.owlcs.ontapi.utils.TestUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.github.owlcs.ontapi.OntFormat;
-import com.github.owlcs.ontapi.OntManagers;
-import com.github.owlcs.ontapi.OntologyManager;
-import com.github.owlcs.ontapi.OntologyModel;
-import com.github.owlcs.ontapi.utils.ReadWriteUtils;
-import com.github.owlcs.ontapi.utils.TestUtils;
 
 /**
  * Created by @ssz on 08.03.2019.
@@ -39,7 +39,7 @@ public class SWRLTransformTest {
         LOGGER.debug("Source: {}", src);
         OntologyManager m = OntManagers.createONT();
         m.getOntologyConfigurator().setPerformTransformation(false);
-        OntologyModel o = m.loadOntologyFromOntologyDocument(src);
+        Ontology o = m.loadOntologyFromOntologyDocument(src);
 
         ReadWriteUtils.print(o);
 
@@ -55,7 +55,7 @@ public class SWRLTransformTest {
         OWLOntologyDocumentSource src = ReadWriteUtils.getFileDocumentSource("/ontapi/anyURI-premise.rdf", OntFormat.RDF_XML);
         LOGGER.debug("Source: {}", src);
         OntologyManager m = OntManagers.createONT();
-        OntologyModel o = m.loadOntologyFromOntologyDocument(src);
+        Ontology o = m.loadOntologyFromOntologyDocument(src);
 
         ReadWriteUtils.print(o);
 

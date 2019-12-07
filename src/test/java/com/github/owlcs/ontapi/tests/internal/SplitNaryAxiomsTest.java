@@ -15,8 +15,8 @@
 package com.github.owlcs.ontapi.tests.internal;
 
 import com.github.owlcs.ontapi.OntManagers;
+import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
-import com.github.owlcs.ontapi.OntologyModel;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.objects.ModelObject;
 import org.junit.Assert;
@@ -51,7 +51,7 @@ public class SplitNaryAxiomsTest extends NaryAxiomsTestBase {
     }
 
     static Collection<? extends OWLAxiom> createONTAxioms(OntologyManager m, OWLAxiom toWrite) {
-        OntologyModel o = m.createOntology();
+        Ontology o = m.createOntology();
         o.add(toWrite);
         o.clearCache();
         List<OWLAxiom> res = o.axioms(toWrite.getAxiomType())

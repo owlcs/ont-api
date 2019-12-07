@@ -14,14 +14,14 @@
 
 package com.github.owlcs.ontapi.tests;
 
+import com.github.owlcs.ontapi.OntManagers;
+import com.github.owlcs.ontapi.Ontology;
+import com.github.owlcs.ontapi.OntologyManager;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.github.owlcs.ontapi.OntManagers;
-import com.github.owlcs.ontapi.OntologyManager;
-import com.github.owlcs.ontapi.OntologyModel;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -49,10 +49,10 @@ public class RaceTest {
     /**
      * Adds sub-class-of axioms in loop
      *
-     * @param o     {@link OntologyModel}
+     * @param o     {@link Ontology}
      * @param ready {@link AtomicBoolean}
      */
-    private static void add(OntologyModel o, AtomicBoolean ready) {
+    private static void add(Ontology o, AtomicBoolean ready) {
         OWLDataFactory df = o.getOWLOntologyManager().getOWLDataFactory();
         List<OWLAnnotation> annotations = ADD_WITH_ANNOTATIONS ?
                 Stream.of(df.getOWLAnnotation(df.getRDFSComment(), df.getOWLLiteral("comm"), df.getRDFSLabel("lab")))
@@ -71,10 +71,10 @@ public class RaceTest {
     /**
      * Removes axioms in loop.
      *
-     * @param o     {@link OntologyModel}
+     * @param o     {@link Ontology}
      * @param ready {@link AtomicBoolean}
      */
-    private static void remove(OntologyModel o, AtomicBoolean ready) {
+    private static void remove(Ontology o, AtomicBoolean ready) {
         while (ready.get()) {
             Stream<? extends OWLAxiom> axioms = ThreadLocalRandom.current().nextBoolean() ?
                     o.axioms() : o.generalClassAxioms();
@@ -86,9 +86,9 @@ public class RaceTest {
         }
     }
 
-    private static Runnable toTask(OntologyModel o,
+    private static Runnable toTask(Ontology o,
                                    AtomicBoolean process,
-                                   BiConsumer<OntologyModel, AtomicBoolean> func) {
+                                   BiConsumer<Ontology, AtomicBoolean> func) {
         return () -> {
             try {
                 func.accept(o, process);
@@ -103,7 +103,7 @@ public class RaceTest {
     public void testConcurrency() throws InterruptedException, ExecutionException {
         OntologyManager m = OntManagers.createConcurrentONT();
         m.getOntologyConfigurator().setAllowReadDeclarations(false);
-        OntologyModel o = m.createOntology();
+        Ontology o = m.createOntology();
         AtomicBoolean process = new AtomicBoolean(true);
         int threads = ADD_THREADS_NUM + REMOVE_THREADS_NUM + 1;
         ScheduledExecutorService service = Executors.newScheduledThreadPool(threads);

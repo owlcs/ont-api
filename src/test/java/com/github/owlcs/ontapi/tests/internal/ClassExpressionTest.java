@@ -14,17 +14,17 @@
 
 package com.github.owlcs.ontapi.tests.internal;
 
+import com.github.owlcs.ontapi.DataFactory;
+import com.github.owlcs.ontapi.OntManagers;
+import com.github.owlcs.ontapi.Ontology;
+import com.github.owlcs.ontapi.OntologyManager;
+import com.github.owlcs.ontapi.internal.ONTObject;
 import org.junit.Assert;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLObject;
-import com.github.owlcs.ontapi.DataFactory;
-import com.github.owlcs.ontapi.OntManagers;
-import com.github.owlcs.ontapi.OntologyManager;
-import com.github.owlcs.ontapi.OntologyModel;
-import com.github.owlcs.ontapi.internal.ONTObject;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -49,7 +49,7 @@ public class ClassExpressionTest extends ContentTestBase {
     static OWLObject createONTObject(OWLClassExpression ont) {
         OntologyManager m = OntManagers.createONT();
         DataFactory df = m.getOWLDataFactory();
-        OntologyModel o = m.createOntology();
+        Ontology o = m.createOntology();
         o.add(df.getOWLSubClassOfAxiom(df.getOWLClass("C"), ont));
         o.clearCache();
         OWLClassExpression res = o.axioms(AxiomType.SUBCLASS_OF).findFirst().orElseThrow(AssertionError::new)
