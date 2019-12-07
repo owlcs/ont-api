@@ -13,11 +13,10 @@
  */
 package com.github.owlcs.owlapi.tests.api.multithread;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
-import javax.annotation.Nonnull;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -32,12 +31,9 @@ import static org.semanticweb.owlapi.model.parameters.Imports.EXCLUDED;
 import static org.semanticweb.owlapi.model.parameters.Imports.INCLUDED;
 import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asList;
 
-@SuppressWarnings("javadoc")
 public class OwlOntologyMultipleThreadsTest extends TestBase {
 
-    private static final
-    @Nonnull
-    String KOALA = "<?xml version=\"1.0\"?>\n"
+    private static final String KOALA = "<?xml version=\"1.0\"?>\n"
             + "<rdf:RDF xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" xmlns:rdfs=\"http://www.w3.org/2000/01/rdf-schema#\" xmlns:owl=\"http://www.w3.org/2002/07/owl#\" xmlns=\"http://protege.stanford.edu/plugins/owl/owl-library/koala.owl#\" xml:base=\"http://protege.stanford.edu/plugins/owl/owl-library/koala.owl\">\n"
             + "  <owl:Ontology rdf:about=\"\"/>\n"
             + "  <owl:Class rdf:ID=\"Female\"><owl:equivalentClass><owl:Restriction><owl:onProperty><owl:FunctionalProperty rdf:about=\"#hasGender\"/></owl:onProperty><owl:hasValue><Gender rdf:ID=\"female\"/></owl:hasValue></owl:Restriction></owl:equivalentClass></owl:Class>\n"
@@ -316,6 +312,7 @@ public class OwlOntologyMultipleThreadsTest extends TestBase {
             successful = counter.get() == expected;
         }
 
+        @SuppressWarnings("unused")
         public boolean isSuccessful() {
             return successful;
         }

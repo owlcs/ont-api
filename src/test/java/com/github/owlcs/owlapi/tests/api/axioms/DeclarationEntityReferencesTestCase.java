@@ -13,24 +13,21 @@
  */
 package com.github.owlcs.owlapi.tests.api.axioms;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
+import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
 import static org.junit.Assert.assertTrue;
 import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.contains;
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
 
 /**
  * A test case which ensures that an ontology contains entity references when
  * that ontology only contains entity declaration axioms. In other words, entity
  * declaration axioms produce the correct entity references.
  *
- * @author Matthew Horridge, The University Of Manchester, Bio-Health
- *         Informatics Group
- * @since 2.0.0
+ * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
  */
-@SuppressWarnings("javadoc")
 public class DeclarationEntityReferencesTestCase extends TestBase {
 
     @Test

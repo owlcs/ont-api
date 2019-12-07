@@ -14,19 +14,17 @@
 package com.github.owlcs.owlapi.tests.api.literals;
 
 import com.github.owlcs.ontapi.OntFormat;
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 import java.io.ByteArrayOutputStream;
 
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
 
-
-@SuppressWarnings("javadoc")
 public class TestPlainLiteralTestCase extends TestBase {
 
     @Test

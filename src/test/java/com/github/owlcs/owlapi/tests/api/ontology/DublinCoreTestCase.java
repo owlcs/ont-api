@@ -13,20 +13,17 @@
  */
 package com.github.owlcs.owlapi.tests.api.ontology;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.vocab.DublinCoreVocabulary;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 import static org.junit.Assert.assertTrue;
 import static org.semanticweb.owlapi.model.parameters.Imports.EXCLUDED;
 
 /**
- * @author Matthew Horridge, The University of Manchester, Bio-Health
- *         Informatics Group
- * @since 3.1.0
+ * @author Matthew Horridge, The University of Manchester, Bio-Health Informatics Group
  */
-@SuppressWarnings("javadoc")
 public class DublinCoreTestCase extends TestBase {
 
     @Test

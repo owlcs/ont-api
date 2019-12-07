@@ -21,12 +21,8 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * @author Matthew Horridge, The University Of Manchester, Information
- *         Management Group
- * @since 2.2.0
+ * @author Matthew Horridge, The University Of Manchester, Information Management Group
  */
-
-@SuppressWarnings("javadoc")
 @RunWith(Parameterized.class)
 public class FileRoundTripTestCase extends AbstractFileRoundTrippingTestCase {
 

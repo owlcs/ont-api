@@ -14,6 +14,8 @@
 
 package com.github.owlcs.owlapi.tests.decomposition;
 
+import com.github.owlcs.owlapi.OWLManager;
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,8 +23,6 @@ import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
 import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.model.*;
-import com.github.owlcs.owlapi.OWLManager;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import uk.ac.manchester.cs.atomicdecomposition.AtomicDecomposition;
 import uk.ac.manchester.cs.atomicdecomposition.AtomicDecompositionImpl;
 import uk.ac.manchester.cs.owlapi.modularity.ModuleType;
@@ -37,8 +37,6 @@ import static org.junit.Assert.assertEquals;
 import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asList;
 import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asSet;
 
-
-@SuppressWarnings({"javadoc", "WeakerAccess"})
 @RunWith(Parameterized.class)
 public class OldModularisationEquivalenceTestCase extends TestBase {
 

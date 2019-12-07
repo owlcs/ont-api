@@ -14,6 +14,8 @@
 
 package com.github.owlcs.owlapi.tests.api.annotations;
 
+import com.github.owlcs.owlapi.OWLManager;
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Assert;
 import org.junit.runner.Description;
 import org.junit.runner.notification.Failure;
@@ -23,8 +25,6 @@ import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.DefaultPrefixManager;
 import org.semanticweb.owlapi.util.OWLAPIPreconditions;
 import org.semanticweb.owlapi.util.OWLAPIStreamUtils;
-import com.github.owlcs.owlapi.OWLManager;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 import javax.annotation.Nullable;
 import java.io.ByteArrayInputStream;
@@ -34,8 +34,6 @@ import java.util.*;
 /**
  * Created by ses on 3/2/15.
  */
-
-@SuppressWarnings("javadoc")
 public class PunRunner extends org.junit.runner.Runner {
 
     private final Class<?> testClass;
@@ -44,7 +42,7 @@ public class PunRunner extends org.junit.runner.Runner {
         this.testClass = testClass;
     }
 
-    class TestSetting {
+    static class TestSetting {
 
         OWLEntity[] entities;
         Class<? extends PrefixDocumentFormat> formatClass;

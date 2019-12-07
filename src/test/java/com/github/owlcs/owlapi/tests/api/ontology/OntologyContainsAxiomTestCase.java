@@ -13,6 +13,7 @@
  */
 package com.github.owlcs.owlapi.tests.api.ontology;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.formats.FunctionalSyntaxDocumentFormat;
@@ -24,7 +25,6 @@ import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.AxiomAnnotations;
 import org.semanticweb.owlapi.model.parameters.Imports;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -33,12 +33,8 @@ import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
 
 /**
- * @author Matthew Horridge, The University of Manchester, Information
- *         Management Group
- * @since 3.0.0
+ * @author Matthew Horridge, The University of Manchester, Information Management Group
  */
-
-@SuppressWarnings("javadoc")
 public class OntologyContainsAxiomTestCase extends TestBase {
 
     @Test
@@ -107,9 +103,6 @@ public class OntologyContainsAxiomTestCase extends TestBase {
      * After ontology reloading with default config settings all annotations from declarations become annotation assertions.
      * So NOTE: there is a replacement: {@link AxiomAnnotations#CONSIDER_AXIOM_ANNOTATIONS} -> {@link AxiomAnnotations#IGNORE_AXIOM_ANNOTATIONS}
      * in the final checks.
-     *
-     * @param format
-     * @throws Exception
      */
     private void runTestOntologyContainsAxioms1(OWLDocumentFormat format) throws Exception {
         OWLOntology ont1 = getOWLOntology();
@@ -211,7 +204,6 @@ public class OntologyContainsAxiomTestCase extends TestBase {
         runTestOntologyContainsAxioms2(createTurtleOntologyFormat());
     }
 
-    @SuppressWarnings("resource")
     private void runTestOntologyContainsAxioms2(OWLDocumentFormat format) throws Exception {
         OWLOntology ont1 = getOWLOntology();
         IRI ont1iri = get(ont1.getOntologyID().getOntologyIRI());

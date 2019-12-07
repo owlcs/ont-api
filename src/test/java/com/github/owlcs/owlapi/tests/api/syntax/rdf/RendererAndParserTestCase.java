@@ -13,6 +13,8 @@
  */
 package com.github.owlcs.owlapi.tests.api.syntax.rdf;
 
+import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,8 +23,6 @@ import org.junit.runners.Parameterized.Parameters;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLLogicalAxiom;
 import org.semanticweb.owlapi.model.OWLOntology;
-import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 import java.util.Arrays;
 import java.util.List;
@@ -31,9 +31,7 @@ import java.util.stream.Collectors;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
  */
-@SuppressWarnings("javadoc")
 @RunWith(Parameterized.class)
 public class RendererAndParserTestCase extends TestBase {
 

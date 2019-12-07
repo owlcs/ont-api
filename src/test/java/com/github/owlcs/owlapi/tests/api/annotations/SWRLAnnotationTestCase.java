@@ -13,27 +13,23 @@
  */
 package com.github.owlcs.owlapi.tests.api.annotations;
 
+import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Before;
 import org.junit.Test;
 import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.io.StringDocumentTarget;
 import org.semanticweb.owlapi.model.*;
-import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
-import javax.annotation.Nonnull;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
 
 import static org.junit.Assert.assertTrue;
 
-
-@SuppressWarnings({"javadoc", "null"})
 public class SWRLAnnotationTestCase extends TestBase {
 
-    @Nonnull
     private static final String NS = "http://protege.org/ontologies/SWRLAnnotation.owl";
     private static final String HEAD = "<?xml version=\"1.0\"?>\n"
             + "<rdf:RDF xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" xmlns:protege=\"http://protege.stanford.edu/plugins/owl/protege#\" xmlns=\"urn:test#\" xmlns:xsp=\"http://www.owl-ontologies.com/2005/08/07/xsp.owl#\"\n"
@@ -54,9 +50,7 @@ public class SWRLAnnotationTestCase extends TestBase {
             + "    <swrla:isRuleEnabled rdf:datatype=\"http://www.w3.org/2001/XMLSchema#boolean\">true</swrla:isRuleEnabled>\n"
             + "    <rdfs:comment rdf:datatype=\"http://www.w3.org/2001/XMLSchema#string\">:i62, :i61</rdfs:comment></swrl:Imp>\n"
             + "</rdf:RDF>";
-    @Nonnull
     protected OWLClass a = OWLFunctionalSyntaxFactory.Class(OWLFunctionalSyntaxFactory.IRI(NS + "#", "A"));
-    @Nonnull
     protected OWLClass b = OWLFunctionalSyntaxFactory.Class(OWLFunctionalSyntaxFactory.IRI(NS + "#", "B"));
     protected OWLAxiom axiom;
 
@@ -109,11 +103,10 @@ public class SWRLAnnotationTestCase extends TestBase {
         assertTrue(ontology.axioms(AxiomType.SWRL_RULE).anyMatch(ax -> ax.toString().contains(makeSWRLRuleAnnotatedAxiomString(ontology))));
     }
 
-    private OWLOntology debug(OWLOntology ontology) {
+    private void debug(OWLOntology ontology) {
         LOGGER.debug("Model: ");
         com.github.owlcs.ontapi.utils.ReadWriteUtils.print(ontology);
         ontology.axioms().forEach(x -> LOGGER.debug(x.toString()));
-        return ontology;
     }
 
     private String makeSWRLRuleAnnotatedAxiomString(OWLOntology ontology) {
@@ -138,7 +131,7 @@ public class SWRLAnnotationTestCase extends TestBase {
     /**
      * <a href='http://swrl.stanford.edu/ontologies/3.3/swrla.owl#'>SWRLA scheme</a>
      *
-     * @see {@link com.github.owlcs.ontapi.jena.vocabulary.SWRL}
+     * @see com.github.owlcs.ontapi.jena.vocabulary.SWRL
      */
     public static class SWRLA {
         public final static String URI = "http://swrl.stanford.edu/ontologies/3.3/swrla.owl";

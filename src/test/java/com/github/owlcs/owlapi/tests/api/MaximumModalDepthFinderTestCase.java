@@ -26,7 +26,6 @@ import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
 
-@SuppressWarnings({"javadoc"})
 @RunWith(Parameterized.class)
 public class MaximumModalDepthFinderTestCase {
 

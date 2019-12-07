@@ -13,26 +13,22 @@
  */
 package com.github.owlcs.owlapi.tests.api.syntax;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Before;
 import org.junit.Test;
 import org.semanticweb.owlapi.formats.FunctionalSyntaxDocumentFormat;
 import org.semanticweb.owlapi.model.*;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
-import javax.annotation.Nonnull;
 import java.util.Set;
 
-import static org.junit.Assert.*;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asUnorderedSet;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
+import static org.junit.Assert.*;
+import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asUnorderedSet;
 
-@SuppressWarnings({"javadoc", "null"})
 public class InvalidAxiomRoundTripTestCase extends TestBase {
 
-    private
-    @Nonnull
-    OWLOntology o;
+    private OWLOntology o;
 
     @Before
     public void setUpO() {

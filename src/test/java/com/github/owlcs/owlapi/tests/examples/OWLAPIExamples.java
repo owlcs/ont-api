@@ -13,6 +13,8 @@
  */
 package com.github.owlcs.owlapi.tests.examples;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
+import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.semanticweb.owlapi.formats.ManchesterSyntaxDocumentFormat;
@@ -29,7 +31,6 @@ import org.semanticweb.owlapi.search.Filters;
 import org.semanticweb.owlapi.util.*;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.semanticweb.owlapi.vocab.OWLFacet;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import uk.ac.manchester.cs.owlapi.modularity.ModuleType;
 import uk.ac.manchester.cs.owlapi.modularity.SyntacticLocalityModuleExtractor;
 
@@ -49,14 +50,11 @@ import static org.semanticweb.owlapi.vocab.OWLFacet.MAX_EXCLUSIVE;
 import static org.semanticweb.owlapi.vocab.OWLFacet.MIN_INCLUSIVE;
 
 /**
- * @author Matthew Horridge, The University Of Manchester, Bio-Health
- *         Informatics Group
- * @since 2.0.0
+ * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
  */
-@SuppressWarnings({"javadoc", "unused"})
+@SuppressWarnings("all")
 public class OWLAPIExamples extends TestBase {
 
-    @Nonnull
     public static final String KOALA = "<?xml version=\"1.0\"?>\n"
             + "<rdf:RDF xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" xmlns:rdfs=\"http://www.w3.org/2000/01/rdf-schema#\" xmlns:owl=\"http://www.w3.org/2002/07/owl#\" xmlns=\"http://protege.stanford.edu/plugins/owl/owl-library/koala.owl#\" xml:base=\"http://protege.stanford.edu/plugins/owl/owl-library/koala.owl\">\n"
             + "  <owl:Ontology rdf:about=\"\"/>\n"
@@ -153,6 +151,7 @@ public class OWLAPIExamples extends TestBase {
         // supports prefixes. When we save the ontology in the new format we
         // will copy the prefixes over so that we have nicely abbreviated IRIs
         // in the new ontology document
+        Assert.assertNotNull(format);
         if (format.isPrefixOWLDocumentFormat()) {
             owlxmlFormat.copyPrefixesFrom(format.asPrefixOWLDocumentFormat());
         }
@@ -632,7 +631,7 @@ public class OWLAPIExamples extends TestBase {
         OWLObjectProperty propB = factory.getOWLObjectProperty(ontologyIRI + "#", "propB");
         SWRLObjectPropertyAtom propAtom = factory.getSWRLObjectPropertyAtom(prop, var, var);
         SWRLObjectPropertyAtom propAtom2 = factory.getSWRLObjectPropertyAtom(propB, var, var);
-        Set<SWRLAtom> antecedent = new HashSet<SWRLAtom>();
+        Set<SWRLAtom> antecedent = new HashSet<>();
         antecedent.add(propAtom);
         antecedent.add(propAtom2);
         SWRLRule rule2 = factory.getSWRLRule(antecedent, Collections.singleton(propAtom));
@@ -988,40 +987,47 @@ public class OWLAPIExamples extends TestBase {
     }
 
     /**
-     * Visits existential restrictions and collects the properties which are
-     * restricted.
+     * This example shows how to generate an ontology containing some inferred
+     * information.
+     *
+     * @throws Exception exception
      */
-    private static class RestrictionVisitor implements OWLClassExpressionVisitor {
-
-        private final
-        @Nonnull
-        Set<OWLClass> processedClasses;
-        private final Set<OWLOntology> onts;
-
-        RestrictionVisitor(Set<OWLOntology> onts) {
-            processedClasses = new HashSet<OWLClass>();
-            this.onts = onts;
-        }
-
-        @Override
-        public void visit(OWLClass ce) {
-            if (!processedClasses.contains(ce)) {
-                // If we are processing inherited restrictions then we
-                // recursively visit named supers. Note that we need to keep
-                // track of the classes that we have processed so that we don't
-                // get caught out by cycles in the taxonomy
-                processedClasses.add(ce);
-                for (OWLOntology ont : onts) {
-                    ont.subClassAxiomsForSubClass(ce).forEach(ax -> ax.getSuperClass().accept(this));
-                }
-            }
-        }
-
-        @Override
-        public void visit(OWLObjectSomeValuesFrom ce) {
-            // This method gets called when a class expression is an existential
-            // (someValuesFrom) restriction and it asks us to visit it
-        }
+    @Test
+    public void shouldCreateInferredAxioms() throws Exception {
+        // Create a reasoner factory.
+        // See Profiles for a list of known reasoner factories; note that you
+        // will need to add the reasoner and any dependency to the classpath for
+        // this to work.
+        // The structural reasoner is a mock reasoner that does no inferences;
+        // it is used only for examples.
+        OWLReasonerFactory reasonerFactory = new StructuralReasonerFactory();
+        // Uncomment the line below reasonerFactory = new
+        // PelletReasonerFactory(); Load an example ontology - for the purposes
+        // of the example, we will just load the ontology.
+        OWLOntologyManager man = TestBase.createOWLManager();
+        OWLOntology ont = load(man);
+        // Create the reasoner and classify the ontology
+        OWLReasoner reasoner = reasonerFactory.createNonBufferingReasoner(ont);
+        reasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
+        // To generate an inferred ontology we use implementations of inferred
+        // axiom generators to generate the parts of the ontology we want (e.g.
+        // subclass axioms, equivalent classes axioms, class assertion axiom
+        // etc. - see the org.semanticweb.owlapi.util package for more
+        // implementations). Set up our list of inferred axiom generators
+        List<InferredAxiomGenerator<? extends OWLAxiom>> gens = new ArrayList<>();
+        gens.add(new InferredSubClassAxiomGenerator());
+        // Put the inferred axioms into a fresh empty ontology - note that there
+        // is nothing stopping us stuffing them back into the original asserted
+        // ontology if we wanted to do this.
+        OWLOntology infOnt = man.createOntology();
+        // Now get the inferred ontology generator to generate some inferred
+        // axioms for us (into our fresh ontology). We specify the reasoner that
+        // we want to use and the inferred axiom generators that we want to use.
+        InferredOntologyGenerator iog = new InferredOntologyGenerator(reasoner, gens);
+        iog.fillOntology(man.getOWLDataFactory(), infOnt);
+        // Save the inferred ontology. (Replace the IRI with one that is
+        // appropriate for your setup)
+        man.saveOntology(infOnt, new StringDocumentTarget());
     }
 
     /**
@@ -1079,47 +1085,47 @@ public class OWLAPIExamples extends TestBase {
     }
 
     /**
-     * This example shows how to generate an ontology containing some inferred
-     * information.
+     * This example shows how to extract modules.
      *
      * @throws Exception exception
      */
     @Test
-    public void shouldCreateInferredAxioms() throws Exception {
-        // Create a reasoner factory.
-        // See Profiles for a list of known reasoner factories; note that you
-        // will need to add the reasoner and any dependency to the classpath for
-        // this to work.
-        // The structural reasoner is a mock reasoner that does no inferences;
-        // it is used only for examples.
-        OWLReasonerFactory reasonerFactory = new StructuralReasonerFactory();
-        // Uncomment the line below reasonerFactory = new
-        // PelletReasonerFactory(); Load an example ontology - for the purposes
-        // of the example, we will just load the ontology.
+    public void shouldExtractModules() throws Exception {
+        // Create our manager
         OWLOntologyManager man = TestBase.createOWLManager();
+        // Load the Koala ontology
         OWLOntology ont = load(man);
-        // Create the reasoner and classify the ontology
-        OWLReasoner reasoner = reasonerFactory.createNonBufferingReasoner(ont);
-        reasoner.precomputeInferences(InferenceType.CLASS_HIERARCHY);
-        // To generate an inferred ontology we use implementations of inferred
-        // axiom generators to generate the parts of the ontology we want (e.g.
-        // subclass axioms, equivalent classes axioms, class assertion axiom
-        // etc. - see the org.semanticweb.owlapi.util package for more
-        // implementations). Set up our list of inferred axiom generators
-        List<InferredAxiomGenerator<? extends OWLAxiom>> gens = new ArrayList<InferredAxiomGenerator<? extends OWLAxiom>>();
-        gens.add(new InferredSubClassAxiomGenerator());
-        // Put the inferred axioms into a fresh empty ontology - note that there
-        // is nothing stopping us stuffing them back into the original asserted
-        // ontology if we wanted to do this.
-        OWLOntology infOnt = man.createOntology();
-        // Now get the inferred ontology generator to generate some inferred
-        // axioms for us (into our fresh ontology). We specify the reasoner that
-        // we want to use and the inferred axiom generators that we want to use.
-        InferredOntologyGenerator iog = new InferredOntologyGenerator(reasoner, gens);
-        iog.fillOntology(man.getOWLDataFactory(), infOnt);
-        // Save the inferred ontology. (Replace the IRI with one that is
-        // appropriate for your setup)
-        man.saveOntology(infOnt, new StringDocumentTarget());
+        // We want to extract a module for all toppings. We therefore have to
+        // generate a seed signature that contains "Quokka" and its
+        // subclasses. We start by creating a signature that consists of
+        // "Quokka".
+        OWLClass toppingCls = df.getOWLClass(ont.getOntologyID().getOntologyIRI().get() + "#", "Quokka");
+        Set<OWLEntity> sig = new HashSet<>();
+        sig.add(toppingCls);
+        // We now add all subclasses (direct and indirect) of the chosen
+        // classes. Ideally, it should be done using a DL reasoner, in order to
+        // take inferred subclass relations into account. We are using the
+        // structural reasoner of the OWL API for simplicity.
+        Set<OWLEntity> seedSig = new HashSet<>();
+        OWLReasoner reasoner = new StructuralReasoner(ont, new SimpleConfiguration(), BufferingMode.NON_BUFFERING);
+        for (OWLEntity ent : sig) {
+            seedSig.add(ent);
+            if (OWLClass.class.isAssignableFrom(ent.getClass())) {
+                NodeSet<OWLClass> subClasses = reasoner.getSubClasses((OWLClass) ent, false);
+                seedSig.addAll(asList(subClasses.entities()));
+            }
+        }
+        // We now extract a locality-based module. For most reuse purposes, the
+        // module type should be STAR -- this yields the smallest possible
+        // locality-based module. These modules guarantee that all entailments
+        // of the original ontology that can be formulated using only terms from
+        // the seed signature or the module will also be entailments of the
+        // module. In easier words, the module preserves all knowledge of the
+        // ontology about the terms in the seed signature or the module.
+        SyntacticLocalityModuleExtractor sme = new SyntacticLocalityModuleExtractor(man, ont, ModuleType.STAR);
+        IRI moduleIRI = IRI.create("urn:test:QuokkaModule.owl", "");
+        OWLOntology mod = sme.extractAsOntology(seedSig, moduleIRI);
+        // The module can now be saved as usual
     }
 
     /**
@@ -1336,50 +1342,6 @@ public class OWLAPIExamples extends TestBase {
     }
 
     /**
-     * This example shows how to extract modules.
-     *
-     * @throws Exception exception
-     */
-    @Test
-    public void shouldExtractModules() throws Exception {
-        // Create our manager
-        OWLOntologyManager man = TestBase.createOWLManager();
-        // Load the Koala ontology
-        OWLOntology ont = load(man);
-        // We want to extract a module for all toppings. We therefore have to
-        // generate a seed signature that contains "Quokka" and its
-        // subclasses. We start by creating a signature that consists of
-        // "Quokka".
-        OWLClass toppingCls = df.getOWLClass(ont.getOntologyID().getOntologyIRI().get() + "#", "Quokka");
-        Set<OWLEntity> sig = new HashSet<OWLEntity>();
-        sig.add(toppingCls);
-        // We now add all subclasses (direct and indirect) of the chosen
-        // classes. Ideally, it should be done using a DL reasoner, in order to
-        // take inferred subclass relations into account. We are using the
-        // structural reasoner of the OWL API for simplicity.
-        Set<OWLEntity> seedSig = new HashSet<OWLEntity>();
-        OWLReasoner reasoner = new StructuralReasoner(ont, new SimpleConfiguration(), BufferingMode.NON_BUFFERING);
-        for (OWLEntity ent : sig) {
-            seedSig.add(ent);
-            if (OWLClass.class.isAssignableFrom(ent.getClass())) {
-                NodeSet<OWLClass> subClasses = reasoner.getSubClasses((OWLClass) ent, false);
-                seedSig.addAll(asList(subClasses.entities()));
-            }
-        }
-        // We now extract a locality-based module. For most reuse purposes, the
-        // module type should be STAR -- this yields the smallest possible
-        // locality-based module. These modules guarantee that all entailments
-        // of the original ontology that can be formulated using only terms from
-        // the seed signature or the module will also be entailments of the
-        // module. In easier words, the module preserves all knowledge of the
-        // ontology about the terms in the seed signature or the module.
-        SyntacticLocalityModuleExtractor sme = new SyntacticLocalityModuleExtractor(man, ont, ModuleType.STAR);
-        IRI moduleIRI = IRI.create("urn:test:QuokkaModule.owl", "");
-        OWLOntology mod = sme.extractAsOntology(seedSig, moduleIRI);
-        // The module can now be saved as usual
-    }
-
-    /**
      * The following example uses entities and axioms that are used in the OWL
      * Primer. The purpose of this example is to illustrate some of the methods
      * of creating class expressions and various types of axioms. Typically, an
@@ -1479,7 +1441,7 @@ public class OWLAPIExamples extends TestBase {
         // model, which means we can stack up changes (or sets of axioms) and
         // apply the changes (or add the axioms) in one go. We will do this for
         // Mary
-        Set<OWLAxiom> axioms = new HashSet<OWLAxiom>();
+        Set<OWLAxiom> axioms = new HashSet<>();
         axioms.add(factory.getOWLObjectPropertyAssertionAxiom(hasSon, mary, bill));
         axioms.add(factory.getOWLObjectPropertyAssertionAxiom(hasDaughter, mary, susan));
         axioms.add(factory.getOWLDataPropertyAssertionAxiom(hasAge, mary, 31));
@@ -1497,7 +1459,7 @@ public class OWLAPIExamples extends TestBase {
         OWLIndividual male = factory.getOWLNamedIndividual(ontologyIRI + "#", "male");
         OWLIndividual female = factory.getOWLNamedIndividual(ontologyIRI + "#", "female");
         OWLObjectProperty hasGender = factory.getOWLObjectProperty(ontologyIRI + "#", "hasGender");
-        Set<OWLAxiom> genders = new HashSet<OWLAxiom>();
+        Set<OWLAxiom> genders = new HashSet<>();
         genders.add(factory.getOWLObjectPropertyAssertionAxiom(hasGender, john, male));
         genders.add(factory.getOWLObjectPropertyAssertionAxiom(hasGender, mary, female));
         genders.add(factory.getOWLObjectPropertyAssertionAxiom(hasGender, bill, male));
@@ -1514,7 +1476,7 @@ public class OWLAPIExamples extends TestBase {
         OWLClass person = factory.getOWLClass(ontologyIRI + "#", "Person");
         // Now we add the domain and range axioms that specify the domains and
         // ranges of the various properties that we are interested in.
-        Set<OWLAxiom> domainsAndRanges = new HashSet<OWLAxiom>();
+        Set<OWLAxiom> domainsAndRanges = new HashSet<>();
         // Domain and then range of hasWife
         domainsAndRanges.add(factory.getOWLObjectPropertyDomainAxiom(hasWife, person));
         domainsAndRanges.add(factory.getOWLObjectPropertyRangeAxiom(hasWife, person));
@@ -1570,7 +1532,7 @@ public class OWLAPIExamples extends TestBase {
         // Irreflexive and Asymmetric. Note that the asymmetric property axiom
         // used to be called antisymmetric - older versions of the OWL API may
         // refer to antisymmetric property axioms
-        Set<OWLAxiom> hasWifeAxioms = new HashSet<OWLAxiom>();
+        Set<OWLAxiom> hasWifeAxioms = new HashSet<>();
         hasWifeAxioms.add(factory.getOWLFunctionalObjectPropertyAxiom(hasWife));
         hasWifeAxioms.add(factory.getOWLInverseFunctionalObjectPropertyAxiom(hasWife));
         hasWifeAxioms.add(factory.getOWLIrreflexiveObjectPropertyAxiom(hasWife));
@@ -1701,5 +1663,40 @@ public class OWLAPIExamples extends TestBase {
         // Turtle
         // System.out.println("Turtle: ");
         manager.saveOntology(ont, new TurtleDocumentFormat(), new StringDocumentTarget());
+    }
+
+    /**
+     * Visits existential restrictions and collects the properties which are
+     * restricted.
+     */
+    private static class RestrictionVisitor implements OWLClassExpressionVisitor {
+
+        private final Set<OWLClass> processedClasses;
+        private final Set<OWLOntology> onts;
+
+        RestrictionVisitor(Set<OWLOntology> onts) {
+            processedClasses = new HashSet<>();
+            this.onts = onts;
+        }
+
+        @Override
+        public void visit(OWLClass ce) {
+            if (!processedClasses.contains(ce)) {
+                // If we are processing inherited restrictions then we
+                // recursively visit named supers. Note that we need to keep
+                // track of the classes that we have processed so that we don't
+                // get caught out by cycles in the taxonomy
+                processedClasses.add(ce);
+                for (OWLOntology ont : onts) {
+                    ont.subClassAxiomsForSubClass(ce).forEach(ax -> ax.getSuperClass().accept(this));
+                }
+            }
+        }
+
+        @Override
+        public void visit(OWLObjectSomeValuesFrom ce) {
+            // This method gets called when a class expression is an existential
+            // (someValuesFrom) restriction and it asks us to visit it
+        }
     }
 }

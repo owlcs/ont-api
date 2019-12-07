@@ -18,19 +18,16 @@ import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests that the isOWLThing and isOWLNothing methods return correct values.
  *
- * @author Matthew Horridge, The University Of Manchester, Bio-Health
- *         Informatics Group
- * @since 2.0.0
+ * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
  */
-@SuppressWarnings("javadoc")
 public class BuiltInClassTestCase {
 
     @Test

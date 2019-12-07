@@ -14,16 +14,15 @@
 
 package com.github.owlcs.owlapi.tests.api.syntax;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 import java.io.File;
 
-import static org.junit.Assert.assertTrue;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.ObjectProperty;
+import static org.junit.Assert.assertTrue;
 
-@SuppressWarnings("javadoc")
 public class OWLXMLTestCase extends TestBase {
 
     @Test

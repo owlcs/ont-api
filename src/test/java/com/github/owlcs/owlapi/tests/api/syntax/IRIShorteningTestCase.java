@@ -14,6 +14,8 @@
 
 package com.github.owlcs.owlapi.tests.api.syntax;
 
+import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.formats.FunctionalSyntaxDocumentFormat;
@@ -21,8 +23,6 @@ import org.semanticweb.owlapi.formats.TurtleDocumentFormat;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.Namespaces;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
-import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -33,8 +33,6 @@ import java.util.stream.Stream;
 /**
  * Created by ses on 6/23/14.
  */
-
-@SuppressWarnings("javadoc")
 public class IRIShorteningTestCase extends TestBase {
 
     @Test
@@ -47,7 +45,7 @@ public class IRIShorteningTestCase extends TestBase {
 
     private void testMatchExact(String output, String text, boolean expected) {
         String message = "should " + (expected ? "" : "not ") + "contain" + text + " - " + output;
-        Assert.assertTrue(message, expected == output.contains(text));
+        Assert.assertEquals(message, expected, output.contains(text));
     }
 
     @Test

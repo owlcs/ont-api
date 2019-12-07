@@ -14,6 +14,7 @@
 
 package com.github.owlcs.owlapi.tests.api.syntax;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.ComparisonFailure;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -22,7 +23,6 @@ import org.junit.runners.Parameterized;
 import org.semanticweb.owlapi.formats.*;
 import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.model.*;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -37,8 +37,6 @@ import static org.junit.Assert.assertEquals;
  * In addition the test data below contains uri "<testString>".
  * It is bad for jena XML Writer: {@link org.apache.jena.shared.BadURIException} expected.
  */
-
-@SuppressWarnings("javadoc")
 @RunWith(Parameterized.class)
 @Ignore
 public class OutputSyntaxSortTestCase extends TestBase {

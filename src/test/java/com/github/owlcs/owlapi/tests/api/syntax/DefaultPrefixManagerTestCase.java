@@ -19,15 +19,12 @@ import org.semanticweb.owlapi.model.PrefixManager;
 import org.semanticweb.owlapi.util.DefaultPrefixManager;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
-import static org.junit.Assert.*;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.IRI;
+import static org.junit.Assert.*;
 
 /**
- * @author Matthew Horridge, The University of Manchester, Information
- *         Management Group
- * @since 3.0.0
+ * @author Matthew Horridge, The University of Manchester, Information Management Group
  */
-@SuppressWarnings("javadoc")
 public class DefaultPrefixManagerTestCase {
 
     @Test

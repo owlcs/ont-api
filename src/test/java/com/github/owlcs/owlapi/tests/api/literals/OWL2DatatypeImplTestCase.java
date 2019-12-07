@@ -13,14 +13,14 @@
  */
 package com.github.owlcs.owlapi.tests.api.literals;
 
+import com.github.owlcs.ontapi.owlapi.objects.entity.OWLDatatypeImpl;
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Before;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.DataRangeType;
 import org.semanticweb.owlapi.model.EntityType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLDatatype;
-import com.github.owlcs.ontapi.owlapi.objects.entity.OWLDatatypeImpl;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -30,11 +30,8 @@ import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asUnorderedSet;
 import static org.semanticweb.owlapi.vocab.OWL2Datatype.*;
 
 /**
- * @author Matthew Horridge, Stanford University, Bio-Medical Informatics
- *         Research Group
- * @since 3.2.0
+ * @author Matthew Horridge, Stanford University, Bio-Medical Informatics Research Group
  */
-@SuppressWarnings("javadoc")
 public class OWL2DatatypeImplTestCase extends TestBase {
 
     private OWLDatatype plainLiteral;
@@ -208,27 +205,27 @@ public class OWL2DatatypeImplTestCase extends TestBase {
 
     @Test
     public void getClassesInSignature() {
-        assertTrue(plainLiteral.classesInSignature().count() == 0);
+        assertEquals(0, plainLiteral.classesInSignature().count());
     }
 
     @Test
     public void getObjectPropertiesInSignature() {
-        assertTrue(plainLiteral.objectPropertiesInSignature().count() == 0);
+        assertEquals(0, plainLiteral.objectPropertiesInSignature().count());
     }
 
     @Test
     public void getDataPropertiesInSignature() {
-        assertTrue(plainLiteral.dataPropertiesInSignature().count() == 0);
+        assertEquals(0, plainLiteral.dataPropertiesInSignature().count());
     }
 
     @Test
     public void getIndividualsInSignature() {
-        assertTrue(plainLiteral.individualsInSignature().count() == 0);
+        assertEquals(0, plainLiteral.individualsInSignature().count());
     }
 
     @Test
     public void getNestedClassExpressions() {
-        assertTrue(plainLiteral.nestedClassExpressions().count() == 0);
+        assertEquals(0, plainLiteral.nestedClassExpressions().count());
     }
 
     @Test

@@ -13,13 +13,13 @@
  */
 package com.github.owlcs.owlapi.tests.api.individuals;
 
+import com.github.owlcs.owlapi.OWLManager;
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.rdf.rdfxml.renderer.IllegalElementNameException;
-import com.github.owlcs.owlapi.OWLManager;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 import java.lang.Class;
 import java.util.HashSet;
@@ -28,24 +28,22 @@ import java.util.Set;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
 
 /**
- * @author Matthew Horridge, The University of Manchester, Information
- *         Management Group
- * @since 3.0.0
+ * @author Matthew Horridge, The University of Manchester, Information  Management Group
  */
-
-@SuppressWarnings("javadoc")
 public class NoQNameTestCase extends TestBase {
 
     @Test
     public void testCreate() throws Exception {
-        Class<? extends Throwable> expectedCause = OWLManager.DEBUG_USE_OWL ? IllegalElementNameException.class : org.apache.jena.shared.InvalidPropertyURIException.class;
+        Class<? extends Throwable> expectedCause = OWLManager.DEBUG_USE_OWL ?
+                IllegalElementNameException.class : org.apache.jena.shared.InvalidPropertyURIException.class;
         try {
             roundTripOntology(createOntology());
             Assert.fail("Expected an exception specifying that a QName could not be generated");
         } catch (OWLOntologyStorageException e) {
-            LOGGER.debug("Exception:::{}", e);
+            LOGGER.debug("Exception:::{}", e.getMessage());
             Throwable cause = e.getCause();
-            LOGGER.debug("Cause:::{}", cause);
+            Assert.assertNotNull(cause);
+            LOGGER.debug("Cause:::{}", cause.getMessage());
             if (!expectedCause.isInstance(cause)) {
                 throw e;
             }
@@ -63,5 +61,4 @@ public class NoQNameTestCase extends TestBase {
         ont.signature().filter(e -> !e.isBuiltIn() && !ont.isDeclared(e, Imports.INCLUDED)).forEach(e -> ont.add(Declaration(e)));
         return ont;
     }
-
 }

@@ -14,11 +14,12 @@
 
 package com.github.owlcs.owlapi.tests.api.syntax.rdf;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
+import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.model.*;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 import javax.annotation.Nonnull;
 import java.util.Set;
@@ -31,7 +32,6 @@ import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asUnorderedSet;
 /**
  * Created by ses on 3/10/14.
  */
-@SuppressWarnings("javadoc")
 public class UndeclaredAnnotationTestCase extends TestBase {
 
     @Test
@@ -43,7 +43,8 @@ public class UndeclaredAnnotationTestCase extends TestBase {
                 + "    <rdf:Description rdf:about=\"&ns;test\"><ns:rel><rdf:Description ns:pred =\"Not visible\"/></ns:rel></rdf:Description>\n"
                 + "</rdf:RDF>";
         OWLOntology oo = loadOntologyFromString(input);
-        @Nonnull RDFXMLDocumentFormat format = (RDFXMLDocumentFormat) oo.getFormat();
+        RDFXMLDocumentFormat format = (RDFXMLDocumentFormat) oo.getFormat();
+        Assert.assertNotNull(format);
         assertTrue(format.getOntologyLoaderMetaData().isPresent());
         assertEquals("Should have no unparsed triples", 0, format.getOntologyLoaderMetaData().get().getUnparsedTriples()
                 .count());

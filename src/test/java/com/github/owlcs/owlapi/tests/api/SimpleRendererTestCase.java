@@ -14,16 +14,15 @@
 
 package com.github.owlcs.owlapi.tests.api;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Test;
 import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.util.SimpleRenderer;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 import static org.junit.Assert.assertEquals;
 
-@SuppressWarnings("javadoc")
 public class SimpleRendererTestCase extends TestBase {
 
     private final SimpleRenderer testSubject = new SimpleRenderer();

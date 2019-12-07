@@ -13,27 +13,24 @@
  */
 package com.github.owlcs.owlapi.tests.api.literals;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.OWLLiteralReplacer;
 import org.semanticweb.owlapi.util.OWLObjectTransformer;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
 
 /**
- * @author Matthew Horridge, The University of Manchester, Information
- *         Management Group
- * @since 3.0.0
+ * @author Matthew Horridge, The University of Manchester, Information Management Group
  */
-@SuppressWarnings("javadoc")
 public class TypedLiteralsTestCase extends TestBase {
 
     OWLDataProperty prop = DataProperty(iri("p"));

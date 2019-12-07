@@ -13,6 +13,7 @@
  */
 package com.github.owlcs.owlapi.tests.api;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,15 +41,11 @@ import org.semanticweb.owlapi.rdf.rdfxml.parser.RDFXMLParserFactory;
 import org.semanticweb.owlapi.rdf.rdfxml.renderer.RDFXMLStorerFactory;
 import org.semanticweb.owlapi.rdf.turtle.parser.TurtleOntologyParserFactory;
 import org.semanticweb.owlapi.rdf.turtle.renderer.TurtleStorerFactory;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-
-
-@SuppressWarnings({"javadoc"})
 @RunWith(Parameterized.class)
 public class ParsersStorersTestCase extends TestBase {
 
@@ -69,7 +66,11 @@ public class ParsersStorersTestCase extends TestBase {
         return o;
     }
 
-    public void test(OWLStorerFactory stores, OWLParserFactory parsers, OWLDocumentFormat format, boolean expectParse, boolean expectRoundtrip) throws Exception {
+    public void test(OWLStorerFactory stores,
+                     OWLParserFactory parsers,
+                     OWLDocumentFormat format,
+                     boolean expectParse,
+                     boolean expectRoundtrip) throws Exception {
         LOGGER.debug("Test object: <{}>", object);
         LOGGER.debug("Test format: {}", format.getClass().getSimpleName());
         StringDocumentTarget target = new StringDocumentTarget();

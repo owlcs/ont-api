@@ -26,24 +26,18 @@ import java.util.function.Function;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
 
 /**
- * @author Matthew Horridge, The University of Manchester, Information
- *         Management Group
- * @since 3.0.0
+ * @author Matthew Horridge, The University of Manchester, Information Management Group
  */
-@SuppressWarnings("javadoc")
-public abstract class AnnotatedAxiomRoundTrippingTestCase extends
-        AxiomsRoundTrippingBase {
+public abstract class AnnotatedAxiomRoundTrippingTestCase extends AxiomsRoundTrippingBase {
 
     private static OWLAnnotationProperty prop = AnnotationProperty(iri("prop"));
     private static OWLLiteral lit = Literal("Test", "");
     private static OWLAnnotation anno1 = Annotation(prop, lit);
-    private static OWLAnnotationProperty prop2 = AnnotationProperty(iri(
-            "prop2"));
+    private static OWLAnnotationProperty prop2 = AnnotationProperty(iri("prop2"));
     private static OWLAnnotation anno2 = Annotation(prop2, lit);
     private static Set<OWLAnnotation> annos = Sets.newHashSet(anno1, anno2);
 
-    public AnnotatedAxiomRoundTrippingTestCase(
-            Function<Set<OWLAnnotation>, OWLAxiom> f) {
+    public AnnotatedAxiomRoundTrippingTestCase(Function<Set<OWLAnnotation>, OWLAxiom> f) {
         super(() -> {
             Set<OWLAxiom> axioms = new HashSet<>();
             OWLAxiom ax = f.apply(annos);

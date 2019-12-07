@@ -14,21 +14,17 @@
 package com.github.owlcs.owlapi.tests.api.ontology;
 
 import com.github.owlcs.ontapi.OntApiException;
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.SimpleIRIMapper;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 import java.util.Optional;
 
 /**
- * @author Matthew Horridge, The University of Manchester, Information
- *         Management Group
- * @since 3.0.0
+ * @author Matthew Horridge, The University of Manchester, Information Management Group
  */
-
-@SuppressWarnings({"javadoc", "OptionalGetWithoutIsPresent"})
 public class OWLOntologyManagerTestCase extends TestBase {
 
     @Test
@@ -50,8 +46,8 @@ public class OWLOntologyManagerTestCase extends TestBase {
         Assert.assertNotNull("ontology should not be null", ontology);
         Assert.assertNotNull("ontology id should not be null", ontology
                 .getOntologyID());
-        Assert.assertEquals(ontologyIRI, ontology.getOntologyID().getDefaultDocumentIRI().get());
-        Assert.assertEquals(ontologyIRI, ontology.getOntologyID().getOntologyIRI().get());
+        Assert.assertEquals(ontologyIRI, ontology.getOntologyID().getDefaultDocumentIRI().orElse(null));
+        Assert.assertEquals(ontologyIRI, ontology.getOntologyID().getOntologyIRI().orElse(null));
         Assert.assertFalse(ontology.getOntologyID().getVersionIRI().isPresent());
         Assert.assertEquals(ontologyIRI, m.getOntologyDocumentIRI(ontology));
     }
@@ -64,9 +60,9 @@ public class OWLOntologyManagerTestCase extends TestBase {
                 ontologyIRI), Optional.of(versionIRI)));
         Assert.assertNotNull("ontology should not be null", ontology);
         Assert.assertNotNull("ontology id should not be null", ontology.getOntologyID());
-        Assert.assertEquals(versionIRI, ontology.getOntologyID().getDefaultDocumentIRI().get());
-        Assert.assertEquals(ontologyIRI, ontology.getOntologyID().getOntologyIRI().get());
-        Assert.assertEquals(versionIRI, ontology.getOntologyID().getVersionIRI().get());
+        Assert.assertEquals(versionIRI, ontology.getOntologyID().getDefaultDocumentIRI().orElse(null));
+        Assert.assertEquals(ontologyIRI, ontology.getOntologyID().getOntologyIRI().orElse(null));
+        Assert.assertEquals(versionIRI, ontology.getOntologyID().getVersionIRI().orElse(null));
         Assert.assertEquals(versionIRI, m.getOntologyDocumentIRI(ontology));
     }
 
@@ -79,8 +75,8 @@ public class OWLOntologyManagerTestCase extends TestBase {
         OWLOntology ontology = getOWLOntology(ontologyIRI);
         Assert.assertNotNull("ontology should not be null", ontology);
         Assert.assertNotNull("ontology id should not be null", ontology.getOntologyID());
-        Assert.assertEquals(ontologyIRI, ontology.getOntologyID().getDefaultDocumentIRI().get());
-        Assert.assertEquals(ontologyIRI, ontology.getOntologyID().getOntologyIRI().get());
+        Assert.assertEquals(ontologyIRI, ontology.getOntologyID().getDefaultDocumentIRI().orElse(null));
+        Assert.assertEquals(ontologyIRI, ontology.getOntologyID().getOntologyIRI().orElse(null));
         Assert.assertFalse(ontology.getOntologyID().getVersionIRI().isPresent());
         Assert.assertEquals(documentIRI, m.getOntologyDocumentIRI(ontology));
     }
@@ -96,9 +92,9 @@ public class OWLOntologyManagerTestCase extends TestBase {
         Assert.assertNotNull("ontology should not be null", ontology);
         Assert.assertNotNull("ontology id should not be null", ontology
                 .getOntologyID());
-        Assert.assertEquals(versionIRI, ontology.getOntologyID().getDefaultDocumentIRI().get());
-        Assert.assertEquals(ontologyIRI, ontology.getOntologyID().getOntologyIRI().get());
-        Assert.assertEquals(versionIRI, ontology.getOntologyID().getVersionIRI().get());
+        Assert.assertEquals(versionIRI, ontology.getOntologyID().getDefaultDocumentIRI().orElse(null));
+        Assert.assertEquals(ontologyIRI, ontology.getOntologyID().getOntologyIRI().orElse(null));
+        Assert.assertEquals(versionIRI, ontology.getOntologyID().getVersionIRI().orElse(null));
         Assert.assertEquals(documentIRI, m.getOntologyDocumentIRI(ontology));
     }
 

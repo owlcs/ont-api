@@ -13,16 +13,14 @@
  */
 package com.github.owlcs.owlapi.tests.api.ontology;
 
-import org.semanticweb.owlapi.model.*;
 import com.github.owlcs.owlapi.tests.api.baseclasses.AbstractRoundTrippingTestCase;
+import org.semanticweb.owlapi.model.*;
 
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.optional;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.IRI;
+import static org.semanticweb.owlapi.util.OWLAPIPreconditions.optional;
 
 /**
- * @author Matthew Horridge, The University of Manchester, Information
- *         Management Group
- * @since 3.0.0
+ * @author Matthew Horridge, The University of Manchester, Information Management Group
  */
 public class OntologyVersionIRITestCase extends AbstractRoundTrippingTestCase {
 

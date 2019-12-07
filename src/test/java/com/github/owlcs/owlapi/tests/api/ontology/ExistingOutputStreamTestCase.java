@@ -13,13 +13,13 @@
  */
 package com.github.owlcs.owlapi.tests.api.ontology;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Test;
 import org.semanticweb.owlapi.formats.*;
 import org.semanticweb.owlapi.io.StringDocumentTarget;
 import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLRuntimeException;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 import javax.annotation.Nonnull;
 import java.io.BufferedOutputStream;
@@ -30,11 +30,8 @@ import java.io.OutputStreamWriter;
  * API writers/storers/renderers should not close streams if they didn't open
  * them.
  *
- * @author Matthew Horridge, The University of Manchester, Bio-Health
- *         Informatics Group
- * @since 3.2.3
+ * @author Matthew Horridge, The University of Manchester, Bio-Health Informatics Group
  */
-@SuppressWarnings("javadoc")
 public class ExistingOutputStreamTestCase extends TestBase {
 
     @Test

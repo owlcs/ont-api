@@ -15,15 +15,12 @@ package com.github.owlcs.owlapi.tests.api.baseclasses;
 
 import org.semanticweb.owlapi.model.OWLOntology;
 
-import static org.semanticweb.owlapi.model.parameters.Imports.INCLUDED;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Declaration;
+import static org.semanticweb.owlapi.model.parameters.Imports.INCLUDED;
 
 /**
- * @author Matthew Horridge, The University of Manchester, Information
- *         Management Group
- * @since 3.0.0
+ * @author Matthew Horridge, The University of Manchester, Information  Management Group
  */
-@SuppressWarnings("javadoc")
 public abstract class AxiomsRoundTrippingBase extends AbstractRoundTrippingTestCase {
 
     private final AxiomBuilder createAxioms;

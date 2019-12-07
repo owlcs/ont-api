@@ -14,6 +14,7 @@
 
 package com.github.owlcs.owlapi.tests.api.swrl;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Before;
 import org.junit.Test;
 import org.semanticweb.owlapi.formats.ManchesterSyntaxDocumentFormat;
@@ -23,39 +24,29 @@ import org.semanticweb.owlapi.formats.TurtleDocumentFormat;
 import org.semanticweb.owlapi.io.StringDocumentTarget;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.DefaultPrefixManager;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
-import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
 import static org.hamcrest.CoreMatchers.equalTo;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.Is.is;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asList;
 import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asUnorderedSet;
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
 
 /**
- * @author Matthew Horridge, Stanford University, Bio-Medical Informatics
- *         Research Group, Date: 04/04/2014
+ * @author Matthew Horridge, Stanford University, Bio-Medical Informatics Research Group, Date: 04/04/2014
  */
-@SuppressWarnings({"javadoc", "null"})
 public class SWRLAtomOrderingRoundTripTestCase extends TestBase {
 
-    private final
-    @Nonnull
-    Set<SWRLAtom> body = new LinkedHashSet<>();
-    private final
-    @Nonnull
-    Set<SWRLAtom> head = new LinkedHashSet<>();
-    private
-    @Nonnull
-    SWRLRule rule;
+    private final Set<SWRLAtom> body = new LinkedHashSet<>();
+    private final Set<SWRLAtom> head = new LinkedHashSet<>();
+    private SWRLRule rule;
 
     @Before
     public void setUpPrefixes() {
@@ -138,7 +129,7 @@ public class SWRLAtomOrderingRoundTripTestCase extends TestBase {
         ont.saveOntology(ontologyFormat, documentTarget);
         OWLOntology ont2 = loadOntologyFromString(documentTarget);
         Set<SWRLRule> rules = asUnorderedSet(ont2.axioms(AxiomType.SWRL_RULE));
-        assertTrue(rules.size() == 1);
+        assertEquals(1, rules.size());
         SWRLRule parsedRule = rules.iterator().next();
         assertThat(parsedRule, is(equalTo(rule)));
         List<SWRLAtom> originalBody = new ArrayList<>(body);

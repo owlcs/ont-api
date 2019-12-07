@@ -14,11 +14,10 @@
 
 package com.github.owlcs.owlapi.tests.api.annotations;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.AbstractRoundTrippingTestCase;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
-import com.github.owlcs.owlapi.tests.api.baseclasses.AbstractRoundTrippingTestCase;
 
-@SuppressWarnings("javadoc")
 public class ThreeLayersOfAnnotationsTestCase extends AbstractRoundTrippingTestCase {
 
     @Override

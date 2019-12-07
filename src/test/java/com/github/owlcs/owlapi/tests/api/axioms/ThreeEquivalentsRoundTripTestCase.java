@@ -13,21 +13,20 @@
  */
 package com.github.owlcs.owlapi.tests.api.axioms;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntology;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
-import static org.junit.Assert.assertTrue;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
+import static org.junit.Assert.assertTrue;
 
 /**
  * test for 3178902 adapted from the report Thimoty provided.
  */
-@SuppressWarnings("javadoc")
 public class ThreeEquivalentsRoundTripTestCase extends TestBase {
 
     @Test

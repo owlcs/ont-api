@@ -42,16 +42,14 @@ import static org.junit.Assert.assertTrue;
 /**
  * @author Peter Ansell p_ansell@yahoo.com
  */
-
-@SuppressWarnings({"javadoc", "null", "ConstantConditions"})
+@SuppressWarnings({"null", "ConstantConditions"})
 public class RioRendererTestCase extends TestBase {
 
     private SimpleValueFactory vf;
     private OWLOntology testOntologyEmpty;
     private OWLOntology testOntologyKoala;
     private Statement testOntologyEmptyStatement;
-    private final
-    IRI testOntologyUri1 = IRI.create("urn:test:ontology:uri:1", "");
+    private final IRI testOntologyUri1 = IRI.create("urn:test:ontology:uri:1", "");
     private StatementCollector testHandlerStatementCollector;
     private StringWriter testRdfXmlStringWriter;
     private RDFWriter testRdfXmlRioWriter;
@@ -63,8 +61,8 @@ public class RioRendererTestCase extends TestBase {
     @Before
     public void setUp() throws Exception {
         vf = SimpleValueFactory.getInstance();
-        m.getOntologyStorers().set(new RioNTriplesStorerFactory(), new RioRDFXMLStorerFactory(),
-                new RioTurtleStorerFactory());
+        m.getOntologyStorers()
+                .set(new RioNTriplesStorerFactory(), new RioRDFXMLStorerFactory(), new RioTurtleStorerFactory());
         testOntologyEmpty = m.createOntology(testOntologyUri1);
         testOntologyKoala = m.loadOntologyFromOntologyDocument(getClass().getResourceAsStream("/owlapi/koala.owl"));
         LOGGER.debug("Axioms:");

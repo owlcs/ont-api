@@ -13,19 +13,16 @@
  */
 package com.github.owlcs.owlapi.tests.api.ontology;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntologyAlreadyExistsException;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 import static org.junit.Assert.fail;
 
 /**
- * @author Matthew Horridge, The University of Manchester, Information
- *         Management Group
- * @since 3.0.0
+ * @author Matthew Horridge, The University of Manchester, Information Management Group
  */
-@SuppressWarnings({"javadoc"})
 public class DifferentPhysicalURISameOntologyIRITestCase extends TestBase {
 
     private static final String ONTOLOGY_A = "ImportsTestOntologyA.owl";

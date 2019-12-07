@@ -13,6 +13,8 @@
  */
 package com.github.owlcs.owlapi.tests.api.fileroundtrip;
 
+import com.github.owlcs.ontapi.OWLAdapter;
+import com.github.owlcs.owlapi.OWLManager;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
@@ -20,18 +22,12 @@ import org.semanticweb.owlapi.io.RDFTriple;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.OWLOntology;
-import com.github.owlcs.ontapi.OWLAdapter;
-import com.github.owlcs.owlapi.OWLManager;
 
 import java.util.stream.Stream;
 
 /**
- * @author Matthew Horridge, The University of Manchester, Bio-Health
- *         Informatics Group
- * @since 3.2.3
+ * @author Matthew Horridge, The University of Manchester, Bio-Health Informatics Group
  */
-
-@SuppressWarnings("javadoc")
 public class FileRoundTripSubClassOfUntypedOWLClassStrictTestCase extends AbstractFileRoundTrippingTestCase {
 
     public FileRoundTripSubClassOfUntypedOWLClassStrictTestCase() {

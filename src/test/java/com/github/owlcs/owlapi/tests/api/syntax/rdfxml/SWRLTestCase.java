@@ -13,19 +13,16 @@
  */
 package com.github.owlcs.owlapi.tests.api.syntax.rdfxml;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 
 /**
- * @author Matthew Horridge, The University Of Manchester, Bio-Health
- *         Informatics Group
- * @since 2.1.1
+ * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
  */
-@SuppressWarnings("javadoc")
 public class SWRLTestCase extends TestBase {
 
     @Test
@@ -92,6 +89,6 @@ public class SWRLTestCase extends TestBase {
                 + "      </swrl:AtomList>\n" + "    </swrl:body>\n"
                 + "  </swrl:Imp>\n" + "</rdf:RDF>";
         OWLOntology ont = loadOntologyFromString(input);
-        assertTrue(ont.individualsInSignature().count() == 0);
+        assertEquals(0, ont.individualsInSignature().count());
     }
 }

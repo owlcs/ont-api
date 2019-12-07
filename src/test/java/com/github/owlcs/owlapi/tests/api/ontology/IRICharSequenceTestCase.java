@@ -16,15 +16,12 @@ package com.github.owlcs.owlapi.tests.api.ontology;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.IRI;
 
-import static org.junit.Assert.assertEquals;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.IRI;
+import static org.junit.Assert.assertEquals;
 
 /**
- * @author Matthew Horridge, Stanford University, Bio-Medical Informatics
- *         Research Group
- * @since 3.3.0
+ * @author Matthew Horridge, Stanford University, Bio-Medical Informatics Research Group
  */
-@SuppressWarnings("javadoc")
 public class IRICharSequenceTestCase {
 
     @Test

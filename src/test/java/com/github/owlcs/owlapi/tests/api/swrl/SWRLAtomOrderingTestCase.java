@@ -14,16 +14,15 @@
 
 package com.github.owlcs.owlapi.tests.api.swrl;
 
+import com.github.owlcs.ontapi.owlapi.axioms.SWRLRuleImpl;
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.runners.MockitoJUnitRunner;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.SWRLAtom;
-import com.github.owlcs.ontapi.owlapi.axioms.SWRLRuleImpl;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
-import javax.annotation.Nonnull;
 import java.util.*;
 
 import static org.hamcrest.CoreMatchers.equalTo;
@@ -32,10 +31,8 @@ import static org.hamcrest.core.Is.is;
 import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asList;
 
 /**
- * @author Matthew Horridge, Stanford University, Bio-Medical Informatics
- *         Research Group, Date: 04/04/2014
+ * @author Matthew Horridge, Stanford University, Bio-Medical Informatics Research Group, Date: 04/04/2014
  */
-@SuppressWarnings("javadoc")
 @RunWith(MockitoJUnitRunner.class)
 public class SWRLAtomOrderingTestCase extends TestBase {
 
@@ -44,9 +41,7 @@ public class SWRLAtomOrderingTestCase extends TestBase {
     protected SWRLAtom atomC;
     protected SWRLAtom atomD;
     private SWRLRuleImpl rule;
-    private final
-    @Nonnull
-    Set<SWRLAtom> body = new LinkedHashSet<>();
+    private final Set<SWRLAtom> body = new LinkedHashSet<>();
 
     @Before
     public void setUp() {

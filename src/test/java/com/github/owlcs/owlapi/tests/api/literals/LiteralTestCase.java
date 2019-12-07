@@ -13,23 +13,20 @@
  */
 package com.github.owlcs.owlapi.tests.api.literals;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Test;
 import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
-import static org.junit.Assert.*;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
+import static org.junit.Assert.*;
 
 /**
- * @author Matthew Horridge, The University of Manchester, Bio-Health
- *         Informatics Group
- * @since 3.1.0
+ * @author Matthew Horridge, The University of Manchester, Bio-Health Informatics Group
  */
-@SuppressWarnings("javadoc")
 public class LiteralTestCase extends TestBase {
 
     @Test
@@ -75,6 +72,7 @@ public class LiteralTestCase extends TestBase {
         assertEquals(literal.getDatatype(), OWL2Datatype.RDF_LANG_STRING.getDatatype(df));
     }
 
+    @SuppressWarnings("unused") // todo?
     public void tesPlainLiteralWithEmbeddedEmptyLang() {
         OWLLiteral literal = Literal("abc@", PlainLiteral());
         assertFalse(literal.hasLang());
@@ -84,6 +82,7 @@ public class LiteralTestCase extends TestBase {
         assertEquals(literal.getDatatype(), OWL2Datatype.XSD_STRING.getDatatype(df));
     }
 
+    @SuppressWarnings("unused") // todo?
     public void tesPlainLiteralWithDoubleSep() {
         OWLLiteral literal = Literal("abc@@en", PlainLiteral());
         assertTrue(literal.hasLang());

@@ -29,17 +29,12 @@ import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
 
 /**
- * @author Matthew Horridge, The University of Manchester, Bio-Health
- *         Informatics Group
- * @since 3.1.0
+ * @author Matthew Horridge, The University of Manchester, Bio-Health Informatics Group
  */
-@SuppressWarnings("javadoc")
 @RunWith(Parameterized.class)
-public class AnnotatedAxiomRoundtripExceptManchesterSyntaxTestCase
-        extends AnnotatedAxiomRoundTrippingTestCase {
+public class AnnotatedAxiomRoundtripExceptManchesterSyntaxTestCase extends AnnotatedAxiomRoundTrippingTestCase {
 
-    public AnnotatedAxiomRoundtripExceptManchesterSyntaxTestCase(
-            Function<Set<OWLAnnotation>, OWLAxiom> f) {
+    public AnnotatedAxiomRoundtripExceptManchesterSyntaxTestCase(Function<Set<OWLAnnotation>, OWLAxiom> f) {
         super(f);
     }
 
@@ -55,7 +50,7 @@ public class AnnotatedAxiomRoundtripExceptManchesterSyntaxTestCase
 
     @Override
     @Test
-    public void testManchesterOWLSyntax() {
+    public void testManchesterOWLSyntax() { // todo ?
         // Can't represent annotated declarations in Manchester Syntax
         // super.testManchesterOWLSyntax();
     }

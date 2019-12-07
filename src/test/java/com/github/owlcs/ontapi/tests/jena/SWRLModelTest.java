@@ -14,6 +14,13 @@
 
 package com.github.owlcs.ontapi.tests.jena;
 
+import com.github.owlcs.ontapi.OntFormat;
+import com.github.owlcs.ontapi.jena.OntModelFactory;
+import com.github.owlcs.ontapi.jena.model.*;
+import com.github.owlcs.ontapi.jena.vocabulary.RDF;
+import com.github.owlcs.ontapi.jena.vocabulary.SWRL;
+import com.github.owlcs.ontapi.jena.vocabulary.SWRLB;
+import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.RDFList;
@@ -24,13 +31,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.github.owlcs.ontapi.OntFormat;
-import com.github.owlcs.ontapi.jena.OntModelFactory;
-import com.github.owlcs.ontapi.jena.model.*;
-import com.github.owlcs.ontapi.jena.vocabulary.RDF;
-import com.github.owlcs.ontapi.jena.vocabulary.SWRL;
-import com.github.owlcs.ontapi.jena.vocabulary.SWRLB;
-import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -188,11 +188,11 @@ public class SWRLModelTest {
 
         OntSWRL.Variable var1 = m.createSWRLVariable("v1");
         OntSWRL.Variable var2 = m.createSWRLVariable("v2");
-        OntSWRL.Atom a = m.createBuiltInSWRLAtom(SWRLB.equal,
+        OntSWRL.Atom<?> a = m.createBuiltInSWRLAtom(SWRLB.equal,
                 Arrays.asList(m.createTypedLiteral(1d).as(OntSWRL.DArg.class), var1));
-        OntSWRL.Atom b = m.createBuiltInSWRLAtom(SWRLB.add,
+        OntSWRL.Atom<?> b = m.createBuiltInSWRLAtom(SWRLB.add,
                 Arrays.asList(var1, m.createTypedLiteral(2d).as(OntSWRL.DArg.class), var2));
-        OntSWRL.Atom c = m.createBuiltInSWRLAtom(m.getResource(ns + "del"),
+        OntSWRL.Atom<?> c = m.createBuiltInSWRLAtom(m.getResource(ns + "del"),
                 Arrays.asList(var2, m.createTypedLiteral(2d).as(OntSWRL.DArg.class)));
 
         ReadWriteUtils.print(m);

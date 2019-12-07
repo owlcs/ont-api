@@ -20,7 +20,6 @@ import org.semanticweb.owlapi.model.IRI;
 
 import static org.junit.Assert.assertEquals;
 
-@SuppressWarnings("javadoc")
 public class RdfGraphComparatorTestCase {
 
     @Test

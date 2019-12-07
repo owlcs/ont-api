@@ -17,15 +17,12 @@ import org.junit.Test;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.util.SimpleIRIShortFormProvider;
 
-import static org.junit.Assert.assertEquals;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.IRI;
+import static org.junit.Assert.assertEquals;
 
 /**
- * @author Matthew Horridge, The University of Manchester, Bio-Health
- *         Informatics Group
- * @since 3.1.0
+ * @author Matthew Horridge, The University of Manchester, Bio-Health Informatics Group
  */
-@SuppressWarnings("javadoc")
 public class SimpleIRIShortFormProviderTestCase {
 
     @Test

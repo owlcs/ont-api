@@ -14,14 +14,12 @@
 
 package com.github.owlcs.owlapi.tests.api.syntax;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Test;
 import org.semanticweb.owlapi.io.StringDocumentSource;
-import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
-@SuppressWarnings("javadoc")
 public class ParserBanningTestCase extends TestBase {
 
     @Test(expected = OWLOntologyCreationException.class)
@@ -61,6 +59,6 @@ public class ParserBanningTestCase extends TestBase {
         // org.semanticweb.owlapi.rio.RioTurtleParserFactory
         String name = "org.semanticweb.owlapi.rio.RioTrixParserFactory";
         manager.getOntologyConfigurator().withBannedParsers(name);
-        OWLOntology o = manager.loadOntologyFromOntologyDocument(new StringDocumentSource(in));
+        manager.loadOntologyFromOntologyDocument(new StringDocumentSource(in));
     }
 }

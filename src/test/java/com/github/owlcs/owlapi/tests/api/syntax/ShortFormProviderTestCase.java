@@ -20,11 +20,10 @@ import org.semanticweb.owlapi.util.QNameShortFormProvider;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.IRI;
+import static org.junit.Assert.assertEquals;
 
-@SuppressWarnings("javadoc")
 public class ShortFormProviderTestCase {
 
     @Test

@@ -21,12 +21,8 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 
 /**
- * @author Matthew Horridge, The University Of Manchester, Bio-Health
- *         Informatics Group
- * @since 2.2.0
+ * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
  */
-
-@SuppressWarnings("javadoc")
 public abstract class AbstractRoundTrippingTestCase extends TestBase {
 
     protected abstract OWLOntology createOntology();
@@ -81,18 +77,6 @@ public abstract class AbstractRoundTrippingTestCase extends TestBase {
         roundTripOntology(createOntology(), new NQuadsDocumentFormat());
     }
 
-    public void testKRSS2() throws Exception {
-        roundTripOntology(createOntology(), new KRSS2DocumentFormat());
-    }
-
-    public void testKRSS() throws Exception {
-        roundTripOntology(createOntology(), new KRSS2DocumentFormat());
-    }
-
-    public void testDLSyntax() throws Exception {
-        roundTripOntology(createOntology(), new DLSyntaxDocumentFormat());
-    }
-
     @Test
     public void roundTripRDFXMLAndFunctionalShouldBeSame() throws OWLOntologyCreationException,
             OWLOntologyStorageException {
@@ -112,13 +96,13 @@ public abstract class AbstractRoundTrippingTestCase extends TestBase {
      *
      * @param ont    The ontology to be round tripped.
      * @param format The format to use when doing the round trip.
-     * @return
-     * @throws OWLOntologyStorageException
-     * @throws OWLOntologyCreationException
+     * @return {@code OWLOntology}
+     * @throws OWLOntologyStorageException  can't save ontology
+     * @throws OWLOntologyCreationException can't create ontology
      */
     @Override
-    public OWLOntology roundTripOntology(OWLOntology ont, OWLDocumentFormat format) throws OWLOntologyStorageException,
-            OWLOntologyCreationException {
+    public OWLOntology roundTripOntology(OWLOntology ont, OWLDocumentFormat format)
+            throws OWLOntologyStorageException, OWLOntologyCreationException {
         return super.roundTripOntology(ont, format, true);
     }
 }

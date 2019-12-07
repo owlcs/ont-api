@@ -61,10 +61,10 @@ public class ONTObjectMergeTest {
         return Data.values();
     }
 
-    private static <ONT extends OntObject, OWL extends OWLNaryAxiom> void test(BiFunction<OntGraphModel, String, ONT> addDeclaration,
-                                                                               BiConsumer<ONT, ONT> addAxioms,
-                                                                               int initModelSize,
-                                                                               AxiomType<OWL> type) {
+    private static <ONT extends OntObject, OWL extends OWLNaryAxiom<?>> void test(BiFunction<OntGraphModel, String, ONT> addDeclaration,
+                                                                                  BiConsumer<ONT, ONT> addAxioms,
+                                                                                  int initModelSize,
+                                                                                  AxiomType<OWL> type) {
         test(addDeclaration, addAxioms, initModelSize, type, 3, 3);
     }
 
@@ -256,7 +256,7 @@ public class ONTObjectMergeTest {
                 OWLAxiom a2 = o.axioms(AxiomType.NEGATIVE_OBJECT_PROPERTY_ASSERTION).filter(OWLAxiom::isAnnotated)
                         .findFirst().orElseThrow(AssertionError::new);
                 // 4 from OntNPA + 3 declarations
-                Assert.assertEquals(7, ((ONTObject) a1).triples().count());
+                Assert.assertEquals(7, ((ONTObject<?>) a1).triples().count());
 
                 o.remove(a2);
                 Assert.assertEquals(9, g.size());
@@ -509,8 +509,8 @@ public class ONTObjectMergeTest {
             void doTest() {
                 test(g -> {
                     g.setNsPrefix("s", SWRL.NS);
-                    OntSWRL.Atom a1 = g.createClassSWRLAtom(g.createOntClass("X"), g.createSWRLVariable("x"));
-                    OntSWRL.Atom a2 = g.createClassSWRLAtom(g.createOntClass("X"), g.createSWRLVariable("x"));
+                    OntSWRL.Atom<?> a1 = g.createClassSWRLAtom(g.createOntClass("X"), g.createSWRLVariable("x"));
+                    OntSWRL.Atom<?> a2 = g.createClassSWRLAtom(g.createOntClass("X"), g.createSWRLVariable("x"));
                     g.createSWRLImp(Arrays.asList(a1, a1), Collections.emptyList());
                     g.createSWRLImp(Arrays.asList(a1, a2), Collections.emptyList());
                 }, 27, AxiomType.SWRL_RULE, 2, 2);

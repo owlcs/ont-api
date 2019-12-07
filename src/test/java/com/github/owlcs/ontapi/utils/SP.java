@@ -14,6 +14,7 @@
 
 package com.github.owlcs.ontapi.utils;
 
+import com.github.owlcs.ontapi.jena.impl.conf.OntModelConfig;
 import org.apache.jena.enhanced.Personality;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.*;
@@ -27,7 +28,6 @@ import org.topbraid.spin.util.SimpleImplementation;
 import org.topbraid.spin.util.SimpleImplementation2;
 import org.topbraid.spin.vocabulary.SPIN;
 import org.topbraid.spin.vocabulary.SPL;
-import com.github.owlcs.ontapi.jena.impl.conf.OntModelConfig;
 
 /**
  * A copy-paste from {@link org.topbraid.spin.vocabulary.SP}.
@@ -178,6 +178,7 @@ public class SP {
      * @return {@link Personality} the same instance
      * @see org.topbraid.spin.vocabulary.SP#init(Personality)
      */
+    @SuppressWarnings("JavadocReference")
     public static Personality<RDFNode> init(Personality<RDFNode> p) {
         p.add(org.topbraid.spin.model.Aggregation.class, new SimpleImplementation(SPL.Argument.asNode(), AggregationImpl.class));
         p.add(Argument.class, new SimpleImplementation(SPL.Argument.asNode(), ArgumentImpl.class));

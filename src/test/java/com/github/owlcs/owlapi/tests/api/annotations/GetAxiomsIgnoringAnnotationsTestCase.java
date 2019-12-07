@@ -13,22 +13,19 @@
  */
 package com.github.owlcs.owlapi.tests.api.annotations;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
+import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
+import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.contains;
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
 
 /**
- * @author Matthew Horridge, The University of Manchester, Information
- *         Management Group
- * @since 3.0.0
+ * @author Matthew Horridge, The University of Manchester, Information Management Group
  */
-@SuppressWarnings("javadoc")
 public class GetAxiomsIgnoringAnnotationsTestCase extends TestBase {
 
     @Test

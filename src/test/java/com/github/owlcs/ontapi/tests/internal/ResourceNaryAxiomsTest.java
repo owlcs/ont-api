@@ -45,12 +45,11 @@ public class ResourceNaryAxiomsTest extends NaryAxiomsTestBase {
         );
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void testONTObject() {
-        OWLNaryAxiom owl = (OWLNaryAxiom) data.create(OWL_DATA_FACTORY);
+        OWLNaryAxiom<?> owl = (OWLNaryAxiom<?>) data.create(OWL_DATA_FACTORY);
         LOGGER.debug("Test: '{}'", owl);
-        OWLNaryAxiom ont = (OWLNaryAxiom) data.create(ONT_DATA_FACTORY);
+        OWLNaryAxiom<?> ont = (OWLNaryAxiom<?>) data.create(ONT_DATA_FACTORY);
 
         Assert.assertTrue(isONT(ont));
         Assert.assertTrue(isOWL(owl));

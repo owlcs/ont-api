@@ -13,12 +13,14 @@
  */
 package com.github.owlcs.owlapi.tests.api.ontology;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 import java.util.Collection;
 
+import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
+import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.semanticweb.owlapi.model.parameters.Imports.INCLUDED;
@@ -28,15 +30,10 @@ import static org.semanticweb.owlapi.search.Filters.subClassWithSuper;
 import static org.semanticweb.owlapi.search.Searcher.*;
 import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asUnorderedSet;
 import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.contains;
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
 
 /**
- * @author Matthew Horridge, The University Of Manchester, Information
- *         Management Group
- * @since 2.2.0
+ * @author Matthew Horridge, The University Of Manchester, Information Management Group
  */
-@SuppressWarnings("javadoc")
 public class OWLOntologyAccessorsTestCase extends TestBase {
 
     private static void performAxiomTests(OWLOntology ont, OWLAxiom... axioms) {

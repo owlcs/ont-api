@@ -100,7 +100,7 @@ public class SimpleLoadTest {
 
         ReadWriteUtils.print(ont.asGraphModel());
 
-        Set<AxiomType> excluded = Stream.of(AxiomType.DECLARATION,
+        Set<AxiomType<?>> excluded = Stream.of(AxiomType.DECLARATION,
                 AxiomType.CLASS_ASSERTION, AxiomType.DATA_PROPERTY_ASSERTION).collect(Collectors.toSet());
 
         test(owlList, ontList, excluded);
@@ -156,7 +156,7 @@ public class SimpleLoadTest {
     }
 
     @SuppressWarnings("SameParameterValue")
-    private void test(String fileName, AxiomType... toExclude) throws Exception {
+    private void test(String fileName, AxiomType<?>... toExclude) throws Exception {
         IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI(fileName));
         LOGGER.debug("The source document file {}", fileIRI);
 
@@ -168,12 +168,12 @@ public class SimpleLoadTest {
 
         ReadWriteUtils.print(ont.asGraphModel());
 
-        Set<AxiomType> excluded = Stream.of(toExclude).collect(Collectors.toSet());
+        Set<AxiomType<?>> excluded = Stream.of(toExclude).collect(Collectors.toSet());
 
         test(owlList, ontList, excluded);
     }
 
-    private void test(List<OWLAxiom> owlList, List<OWLAxiom> ontList, Set<AxiomType> excluded) {
+    private void test(List<OWLAxiom> owlList, List<OWLAxiom> ontList, Set<AxiomType<?>> excluded) {
         AxiomType.AXIOM_TYPES.forEach(type -> {
             if (excluded.contains(type)) {
                 LOGGER.debug("Skip <{}>", type);

@@ -25,11 +25,8 @@ import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
 
 /**
- * @author Matthew Horridge, The University of Manchester, Bio-Health
- *         Informatics Group
- * @since 3.3.0
+ * @author Matthew Horridge, The University of Manchester, Bio-Health Informatics Group
  */
-@SuppressWarnings("javadoc")
 @RunWith(Parameterized.class)
 public class LiteralWithEscapesTestCase extends AbstractRoundTrippingTestCase {
 
@@ -51,7 +48,7 @@ public class LiteralWithEscapesTestCase extends AbstractRoundTrippingTestCase {
                 // LiteralWithNewLine
                 "\n",
                 // LiteralWithSingleQuote
-                "\'");
+                "'");
     }
 
     @Override

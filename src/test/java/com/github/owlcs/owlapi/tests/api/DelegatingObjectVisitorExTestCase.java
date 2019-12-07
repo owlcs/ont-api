@@ -13,23 +13,22 @@
  */
 package com.github.owlcs.owlapi.tests.api;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.DelegatingObjectVisitorEx;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
-@SuppressWarnings({"javadoc"})
 public class DelegatingObjectVisitorExTestCase extends TestBase {
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @Test
     public void testAssertion() {
-        OWLObjectVisitorEx<Object> test = mock(OWLObjectVisitorEx.class);
-        DelegatingObjectVisitorEx<Object> testsubject = new DelegatingObjectVisitorEx<>(
-                test);
+        OWLObjectVisitorEx test = mock(OWLObjectVisitorEx.class);
+        DelegatingObjectVisitorEx testsubject = new DelegatingObjectVisitorEx(test);
         testsubject.visit(mock(OWLDeclarationAxiom.class));
         testsubject.visit(mock(OWLDatatypeDefinitionAxiom.class));
         testsubject.visit(mock(OWLAnnotationPropertyRangeAxiom.class));

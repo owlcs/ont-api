@@ -14,12 +14,11 @@
 
 package com.github.owlcs.owlapi.tests.api.annotations;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.rdf.rdfxml.parser.RDFXMLParserFactory;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
-@SuppressWarnings("javadoc")
 public class BFOTestCase extends TestBase {
 
     @Test

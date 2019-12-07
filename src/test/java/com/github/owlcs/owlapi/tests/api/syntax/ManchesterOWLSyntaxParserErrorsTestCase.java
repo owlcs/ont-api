@@ -14,6 +14,7 @@
 
 package com.github.owlcs.owlapi.tests.api.syntax;
 
+import com.github.owlcs.owlapi.OWLManager;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -24,9 +25,6 @@ import org.semanticweb.owlapi.manchestersyntax.parser.ManchesterOWLSyntaxTokeniz
 import org.semanticweb.owlapi.manchestersyntax.renderer.ParserException;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.mansyntax.ManchesterOWLSyntaxParser;
-import com.github.owlcs.owlapi.OWLManager;
-
-import javax.annotation.Nonnull;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.mock;
@@ -36,18 +34,13 @@ import static org.mockito.Mockito.when;
  * Some tests that ensure the correct token and token position are returned when
  * errors are encountered.
  *
- * @author Matthew Horridge, Stanford University, Bio-Medical Informatics
- *         Research Group, Date: 01/04/2014
+ * @author Matthew Horridge, Stanford University, Bio-Medical Informatics Research Group, Date: 01/04/2014
  */
-
-@SuppressWarnings({"javadoc", "null"})
 @RunWith(MockitoJUnitRunner.class)
 public class ManchesterOWLSyntaxParserErrorsTestCase {
 
     @Mock
-    protected
-    @Nonnull
-    OWLEntityChecker entityChecker;
+    protected OWLEntityChecker entityChecker;
     private ParserWrapper parser;
 
     @Before
@@ -494,7 +487,7 @@ public class ManchesterOWLSyntaxParserErrorsTestCase {
         } catch (ParserException e) {
             assertEquals(index, e.getStartPos());
             assertEquals(currentToken, e.getCurrentToken());
-            assertTrue(!e.getTokenSequence().isEmpty());
+            assertFalse(e.getTokenSequence().isEmpty());
             assertEquals(currentToken, e.getTokenSequence().get(0));
         }
     }

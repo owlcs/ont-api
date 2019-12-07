@@ -14,6 +14,7 @@
 
 package com.github.owlcs.owlapi.tests.util;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Before;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
@@ -22,19 +23,17 @@ import org.semanticweb.owlapi.model.OWLProperty;
 import org.semanticweb.owlapi.model.PrefixManager;
 import org.semanticweb.owlapi.search.EntitySearcher;
 import org.semanticweb.owlapi.util.DefaultPrefixManager;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
 import static org.junit.Assert.assertTrue;
 import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asList;
 import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.contains;
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
 
-@SuppressWarnings("javadoc")
 public class EntitySearcherTestCase extends TestBase {
 
     private OWLObjectProperty superProperty;

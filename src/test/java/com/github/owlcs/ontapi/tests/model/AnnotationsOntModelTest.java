@@ -368,7 +368,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
         owl.applyChanges(new AddAxiom(owl, factory.getOWLClassAssertionAxiom(clazz2, ind2)));
         owl.applyChanges(new AddAxiom(owl, factory.getOWLClassAssertionAxiom(clazz3, ind3)));
 
-        List<OWLNaryAxiom> axioms = new ArrayList<>();
+        List<OWLNaryAxiom<?>> axioms = new ArrayList<>();
         // equivalent classes
         OWLAnnotation ann1 = factory.getOWLAnnotation(annotationProperty1,
                 factory.getOWLLiteral("property annotation N1"), factory.getOWLAnnotation(factory.getRDFSComment(),
@@ -706,12 +706,11 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
     }
 
     @Override
-    Stream<OWLAxiom> filterAxioms(OWLOntology ontology, AxiomType... excluded) {
+    Stream<OWLAxiom> filterAxioms(OWLOntology ontology, AxiomType<?>... excluded) {
         List<OWLAxiom> res = new ArrayList<>();
         super.filterAxioms(ontology, excluded).filter(OWLAxiom::isAnnotated).forEach(axiom -> {
             if (axiom instanceof OWLNaryAxiom) {
-                //noinspection unchecked
-                res.addAll(((OWLNaryAxiom) axiom).splitToAnnotatedPairs());
+                res.addAll(((OWLNaryAxiom<?>) axiom).splitToAnnotatedPairs());
             } else {
                 res.add(axiom);
             }

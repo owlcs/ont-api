@@ -14,17 +14,16 @@
 
 package com.github.owlcs.owlapi.tests.rio;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLStorerFactory;
 import org.semanticweb.owlapi.util.PriorityCollection;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 import static org.junit.Assert.assertEquals;
 
 /**
  * @author Peter Ansell p_ansell@yahoo.com
  */
-@SuppressWarnings("javadoc")
 public class OWLOntologyStorerFactoryRegistryTestCase {
 
     private static final int EXPECTED_STORERS = 20;

@@ -24,7 +24,6 @@ import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 
-@SuppressWarnings({"javadoc"})
 @RunWith(Parameterized.class)
 public class OWLEntityCollectorTestCase {
 

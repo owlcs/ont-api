@@ -13,22 +13,19 @@
  */
 package com.github.owlcs.owlapi.tests.api.axioms;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLDataPropertyExpression;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.DataProperty;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.ObjectProperty;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
- * @author Matthew Horridge, The University of Manchester, Information
- *         Management Group
- * @since 3.0.0
+ * @author Matthew Horridge, The University of Manchester, Information Management Group
  */
-@SuppressWarnings("javadoc")
 public class BuiltInPropertyTestCase extends TestBase {
 
     @Test

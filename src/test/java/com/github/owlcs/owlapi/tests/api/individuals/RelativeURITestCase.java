@@ -13,6 +13,7 @@
  */
 package com.github.owlcs.owlapi.tests.api.individuals;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.AxiomsRoundTrippingBase;
 import com.google.common.collect.Sets;
 import org.junit.Test;
 import org.semanticweb.owlapi.io.StringDocumentSource;
@@ -20,21 +21,17 @@ import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.rdf.rdfxml.parser.OWLRDFXMLParserException;
 import org.semanticweb.owlapi.rdf.rdfxml.parser.RDFXMLParser;
-import com.github.owlcs.owlapi.tests.api.baseclasses.AxiomsRoundTrippingBase;
 
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
 
 /**
- * @author Matthew Horridge, The University of Manchester, Information
- *         Management Group
- * @since 3.0.0
+ * @author Matthew Horridge, The University of Manchester, Information Management Group
  */
-@SuppressWarnings("javadoc")
 public class RelativeURITestCase extends AxiomsRoundTrippingBase {
 
     public RelativeURITestCase() {
-        super(() -> Sets.newHashSet(Declaration(Class(IRI(IRI.getNextDocumentIRI(uriBase) + "/", "Office")))));
+        super(() -> Sets.newHashSet(Declaration(Class(IRI(IRI.getNextDocumentIRI(URI_BASE) + "/", "Office")))));
     }
 
     @Test

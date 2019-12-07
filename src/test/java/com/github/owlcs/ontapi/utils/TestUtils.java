@@ -72,14 +72,15 @@ public class TestUtils {
         compareAxioms(toMap(expected), toMap(actual));
     }
 
-    public static void compareAxioms(Map<AxiomType, List<OWLAxiom>> expected, Map<AxiomType, List<OWLAxiom>> actual) {
+    public static void compareAxioms(Map<AxiomType<?>, List<OWLAxiom>> expected,
+                                     Map<AxiomType<?>, List<OWLAxiom>> actual) {
         LOGGER.debug("[Compare] Expected axioms: ");
         expected.values().forEach(x -> LOGGER.debug("{}", x));
         LOGGER.debug("[Compare] Actual axioms: ");
         actual.values().forEach(x -> LOGGER.debug("{}", x));
         Assert.assertEquals("Incorrect axiom types:", expected.keySet(), actual.keySet());
         List<String> errors = new ArrayList<>();
-        for (AxiomType type : expected.keySet()) {
+        for (AxiomType<?> type : expected.keySet()) {
             List<OWLAxiom> exList = expected.get(type);
             List<OWLAxiom> acList = actual.get(type);
             if (exList.size() != acList.size()) {
@@ -97,13 +98,13 @@ public class TestUtils {
         Assert.assertTrue("There are " + errors.size() + " errors", errors.isEmpty());
     }
 
-    public static Map<AxiomType, List<OWLAxiom>> toMap(Stream<? extends OWLAxiom> stream) {
+    public static Map<AxiomType<?>, List<OWLAxiom>> toMap(Stream<? extends OWLAxiom> stream) {
         return toMap(stream.collect(Collectors.toList()));
     }
 
-    public static Map<AxiomType, List<OWLAxiom>> toMap(List<? extends OWLAxiom> axioms) {
-        Set<AxiomType> types = axioms.stream().map(OWLAxiom::getAxiomType).collect(Collectors.toSet());
-        Map<AxiomType, List<OWLAxiom>> res = new HashMap<>();
+    public static Map<AxiomType<?>, List<OWLAxiom>> toMap(List<? extends OWLAxiom> axioms) {
+        Set<AxiomType<?>> types = axioms.stream().map(OWLAxiom::getAxiomType).collect(Collectors.toSet());
+        Map<AxiomType<?>, List<OWLAxiom>> res = new HashMap<>();
         types.forEach(type -> {
             List<OWLAxiom> value = res.computeIfAbsent(type, t -> new ArrayList<>());
             List<OWLAxiom> byType = axioms.stream().filter(a -> type.equals(a.getAxiomType())).sorted().collect(Collectors.toList());
@@ -113,7 +114,8 @@ public class TestUtils {
     }
 
     public static boolean same(OWLAxiom a, OWLAxiom b) {
-        return a.typeIndex() == b.typeIndex() && OWLAPIStreamUtils.equalStreams(replaceAnonymous(a.components()), replaceAnonymous(b.components()));
+        return a.typeIndex() == b.typeIndex()
+                && OWLAPIStreamUtils.equalStreams(replaceAnonymous(a.components()), replaceAnonymous(b.components()));
     }
 
     private static Stream<?> replaceAnonymous(Stream<?> stream) {
@@ -123,7 +125,8 @@ public class TestUtils {
     @SuppressWarnings("unchecked")
     public static Stream<OWLAxiom> splitAxioms(OWLOntology o) {
         return o.axioms()
-                .map(a -> a instanceof OWLNaryAxiom ? (Stream<OWLAxiom>) ((OWLNaryAxiom) a).splitToAnnotatedPairs().stream() : Stream.of(a))
+                .map(a -> a instanceof OWLNaryAxiom ?
+                        (Stream<OWLAxiom>) ((OWLNaryAxiom<?>) a).splitToAnnotatedPairs().stream() : Stream.of(a))
                 .flatMap(Function.identity()).distinct();
     }
 
@@ -150,11 +153,14 @@ public class TestUtils {
      */
     public static Set<Resource> getPropertyPunnings(Model model, OntModelConfig.StdMode mode) {
         if (OntModelConfig.StdMode.LAX.equals(mode)) return Collections.emptySet();
-        Set<Resource> objectProperties = model.listStatements(null, RDF.type, OWL.ObjectProperty).mapWith(Statement::getSubject).toSet();
-        Set<Resource> datatypeProperties = model.listStatements(null, RDF.type, OWL.DatatypeProperty).mapWith(Statement::getSubject).toSet();
+        Set<Resource> objectProperties = model.listStatements(null, RDF.type, OWL.ObjectProperty)
+                .mapWith(Statement::getSubject).toSet();
+        Set<Resource> datatypeProperties = model.listStatements(null, RDF.type, OWL.DatatypeProperty)
+                .mapWith(Statement::getSubject).toSet();
         if (OntModelConfig.StdMode.MEDIUM.equals(mode))
             return unionOfIntersections(objectProperties, datatypeProperties);
-        Set<Resource> annotationProperties = model.listStatements(null, RDF.type, OWL.AnnotationProperty).mapWith(Statement::getSubject).toSet();
+        Set<Resource> annotationProperties = model.listStatements(null, RDF.type, OWL.AnnotationProperty)
+                .mapWith(Statement::getSubject).toSet();
         return unionOfIntersections(annotationProperties, objectProperties, datatypeProperties);
     }
 

@@ -14,12 +14,12 @@
 
 package com.github.owlcs.owlapi.tests.util;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Before;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.AnnotationWalkingControl;
 import org.semanticweb.owlapi.util.OWLObjectWalker;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 import java.util.*;
 
@@ -29,7 +29,7 @@ import static org.semanticweb.owlapi.util.AnnotationWalkingControl.*;
 /**
  * Created by ses on 8/15/15.
  */
-@SuppressWarnings("javadoc")
+@SuppressWarnings("NullableProblems")
 public class OWLObjectWalkerTest extends TestBase {
 
     private OWLAnnotation world;
@@ -52,7 +52,7 @@ public class OWLObjectWalkerTest extends TestBase {
         OWLOntology o = getOwlOntology();
         List<OWLAnnotation> emptyAnnotationList = Collections.emptyList();
         checkWalkWithFlags(o, DONT_WALK_ANNOTATIONS, emptyAnnotationList);
-        checkWalkWithFlags(o, WALK_ONTOLOGY_ANNOTATIONS_ONLY, Arrays.asList(hello));
+        checkWalkWithFlags(o, WALK_ONTOLOGY_ANNOTATIONS_ONLY, Collections.singletonList(hello));
         checkWalkWithFlags(o, WALK_ANNOTATIONS, Arrays.asList(hello, world, goodbye, cruelWorld));
     }
 

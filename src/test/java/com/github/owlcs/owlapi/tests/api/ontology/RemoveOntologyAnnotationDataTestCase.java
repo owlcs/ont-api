@@ -19,26 +19,17 @@ import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.RemoveOntologyAnnotation;
 
-import javax.annotation.Nonnull;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 
 /**
- * @author Matthew Horridge, Stanford University, Bio-Medical Informatics
- *         Research Group
- * @since 3.2.0
+ * @author Matthew Horridge, Stanford University, Bio-Medical Informatics Research Group
  */
-@SuppressWarnings({"javadoc"})
 public class RemoveOntologyAnnotationDataTestCase {
 
-    private final
-    @Nonnull
-    OWLAnnotation mockAnnotation = mock(OWLAnnotation.class);
-    private final
-    @Nonnull
-    OWLOntology mockOntology = mock(OWLOntology.class);
+    private final OWLAnnotation mockAnnotation = mock(OWLAnnotation.class);
+    private final OWLOntology mockOntology = mock(OWLOntology.class);
 
     private RemoveOntologyAnnotationData createData() {
         return new RemoveOntologyAnnotationData(mockAnnotation);

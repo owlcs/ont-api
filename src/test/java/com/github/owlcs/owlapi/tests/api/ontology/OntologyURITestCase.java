@@ -14,37 +14,33 @@
 package com.github.owlcs.owlapi.tests.api.ontology;
 
 import com.github.owlcs.ontapi.OntApiException;
+import com.github.owlcs.owlapi.OWLManager;
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
-import com.github.owlcs.owlapi.OWLManager;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 import java.util.Optional;
 
 /**
- * @author Matthew Horridge, The University Of Manchester, Information
- *         Management Group
- * @since 2.2.0
+ * @author Matthew Horridge, The University Of Manchester, Information Management Group
  */
-
-@SuppressWarnings("javadoc")
 public class OntologyURITestCase extends TestBase {
 
     /**
      * ONT-API: I changed behaviour of {@link OWLOntology#toString()} since don't want any calculation on this operation.
      * In ONT-API we are working with graph, while in OWL-API there is a collections.
      * Beyond that the solution when you provide some complex info during toString seems strange to me.
-     *
-     * @throws OWLOntologyCreationException
      */
     @Test
     public void testNamedOntologyToString() throws OWLOntologyCreationException {
         IRI ontIRI = IRI.create("http://owlapi.sourceforge.net/", "ont");
         OWLOntology ont = m.createOntology(ontIRI);
         String s = ont.toString();
-        String suffix = String.format("[Axioms: %d Logical Axioms: %d] First 20 axioms: {}", ont.getAxiomCount(), ont.getLogicalAxiomCount());
-        String expected = OWLManager.DEBUG_USE_OWL ? String.format("Ontology(%s) %s", ont.getOntologyID(), suffix) : String.format("Ontology(%s)", ont.getOntologyID());
+        String suffix = String.format("[Axioms: %d Logical Axioms: %d] First 20 axioms: {}",
+                ont.getAxiomCount(), ont.getLogicalAxiomCount());
+        String expected = OWLManager.DEBUG_USE_OWL ? String.format("Ontology(%s) %s",
+                ont.getOntologyID(), suffix) : String.format("Ontology(%s)", ont.getOntologyID());
         Assert.assertEquals(expected, s);
     }
 
@@ -102,15 +98,15 @@ public class OntologyURITestCase extends TestBase {
         IRI ontIRI = IRI.getNextDocumentIRI("http://www.another.com/ont");
         IRI verIRI = IRI.getNextDocumentIRI("http://www.another.com/ont/versions/1.0.0");
         OWLOntology ont = getOWLOntology(new OWLOntologyID(Optional.of(ontIRI), Optional.of(verIRI)));
-        Assert.assertEquals(ontIRI, ont.getOntologyID().getOntologyIRI().orElseThrow(() -> new AssertionError("No IRI")));
-        Assert.assertEquals(verIRI, ont.getOntologyID().getVersionIRI().orElseThrow(() -> new AssertionError("No ver IRI")));
+        Assert.assertEquals(ontIRI, ont.getOntologyID().getOntologyIRI().orElseThrow(AssertionError::new));
+        Assert.assertEquals(verIRI, ont.getOntologyID().getVersionIRI().orElseThrow(AssertionError::new));
     }
 
     @Test
     public void testNullVersionURI() throws OWLOntologyCreationException {
         IRI ontIRI = IRI.getNextDocumentIRI("http://www.another.com/ont");
         OWLOntology ont = getOWLOntology(new OWLOntologyID(Optional.of(ontIRI), Optional.empty()));
-        Assert.assertEquals(ontIRI, ont.getOntologyID().getOntologyIRI().orElseThrow(() -> new AssertionError("No IRI")));
+        Assert.assertEquals(ontIRI, ont.getOntologyID().getOntologyIRI().orElseThrow(AssertionError::new));
         Assert.assertFalse(ont.getOntologyID().getVersionIRI().isPresent());
     }
 }

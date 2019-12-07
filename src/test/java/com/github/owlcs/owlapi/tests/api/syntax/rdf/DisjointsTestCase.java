@@ -13,11 +13,11 @@
  */
 package com.github.owlcs.owlapi.tests.api.syntax.rdf;
 
+import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
-import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -32,9 +32,7 @@ import java.util.Set;
  * ~This test case ensure that these axioms are serialised correctly.
  *
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
  */
-@SuppressWarnings("javadoc")
 public class DisjointsTestCase extends TestBase {
 
     @Test

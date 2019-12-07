@@ -13,29 +13,23 @@
  */
 package com.github.owlcs.owlapi.tests.api.syntax;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.util.AutoIRIMapper;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
-import javax.annotation.Nonnull;
 import java.io.File;
 
-import static org.junit.Assert.*;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.IRI;
+import static org.junit.Assert.*;
 
-@SuppressWarnings("javadoc")
 public class ManchesterImportTestCase extends TestBase {
 
-    private final
-    @Nonnull
-    IRI str = IRI("http://owlapitestontologies.com/", "thesuperont");
-    private final
-    @Nonnull
-    String superpath = "/imports/thesuperont.omn";
+    private final IRI str = IRI("http://owlapitestontologies.com/", "thesuperont");
+    private final String superpath = "/imports/thesuperont.omn";
 
     @Test
     public void testManualImports() throws OWLOntologyCreationException {
@@ -55,7 +49,7 @@ public class ManchesterImportTestCase extends TestBase {
         OWLOntologyManager manager = getManager();
         OWLOntology ontology = manager.loadOntology(str);
         assertEquals(1, ontology.axioms().count());
-        assertEquals(ontology.getOntologyID().getOntologyIRI().get(), str);
+        assertEquals(str, ontology.getOntologyID().getOntologyIRI().orElse(null));
         assertNotNull(manager.getOntology(str));
     }
 

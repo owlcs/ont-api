@@ -13,28 +13,22 @@
  */
 package com.github.owlcs.owlapi.tests.api.fileroundtrip;
 
-import org.junit.Test;
-import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyID;
-import org.semanticweb.owlapi.model.OWLRuntimeException;
 import com.github.owlcs.owlapi.tests.api.baseclasses.AbstractRoundTrippingTestCase;
+import org.junit.Test;
+import org.semanticweb.owlapi.model.*;
 
 import static org.junit.Assert.assertEquals;
 
 /**
- * @author Matthew Horridge, The University of Manchester, Information
- *         Management Group
- * @since 3.0.0
+ * @author Matthew Horridge, The University of Manchester, Information Management Group
  */
-@SuppressWarnings("javadoc")
 public class OntologyIRITestCase extends AbstractRoundTrippingTestCase {
 
     @Test
     public void testCorrectOntologyIRI() {
         OWLOntology ont = createOntology();
         OWLOntologyID id = ont.getOntologyID();
-        assertEquals("http://www.test.com/right.owl", id.getOntologyIRI().get().toString());
+        assertEquals("http://www.test.com/right.owl", id.getOntologyIRI().map(IRI::toString).orElse(null));
     }
 
     @Override

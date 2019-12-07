@@ -13,13 +13,12 @@
  */
 package com.github.owlcs.owlapi.tests.api.ontology;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
-@SuppressWarnings("javadoc")
 public class OWLOntologyManagerRemoveAxiomsTestCase extends TestBase {
 
     @Test

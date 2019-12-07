@@ -14,15 +14,14 @@
 
 package com.github.owlcs.owlapi.tests.api;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Before;
 import org.junit.Test;
 import org.semanticweb.owlapi.formats.PrefixDocumentFormat;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.search.Filters;
 import org.semanticweb.owlapi.search.Searcher;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
-import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
@@ -46,21 +45,12 @@ import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asUnorderedSet;
  * See <a href="http://www.cidoc-crm.org/">The CIDOC Web Site</a> for more
  * details.
  */
-@SuppressWarnings({"javadoc", "null"})
 public class GuessRDFSPropertyTypeTestCase extends TestBase {
 
-    private static final
-    @Nonnull
-    String CIDOC_FILE = "cidoc_crm_v5.0.4_official_release.rdfs.xml";
-    private static final
-    @Nonnull
-    String CIDOC_PREFIX = "http://www.cidoc-crm.org/cidoc-crm/";
-    private
-    @Nonnull
-    OWLOntology cidocOntology;
-    private
-    @Nonnull
-    PrefixDocumentFormat prefixOWLDocumentFormat;
+    private static final String CIDOC_FILE = "cidoc_crm_v5.0.4_official_release.rdfs.xml";
+    private static final String CIDOC_PREFIX = "http://www.cidoc-crm.org/cidoc-crm/";
+    private OWLOntology cidocOntology;
+    private PrefixDocumentFormat prefixOWLDocumentFormat;
 
     @Before
     public void setUp() {

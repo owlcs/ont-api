@@ -13,6 +13,7 @@
  */
 package com.github.owlcs.owlapi.tests.api.annotations;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.formats.FunctionalSyntaxDocumentFormat;
@@ -20,7 +21,6 @@ import org.semanticweb.owlapi.formats.OWLXMLDocumentFormat;
 import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.formats.TurtleDocumentFormat;
 import org.semanticweb.owlapi.model.*;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -31,12 +31,8 @@ import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
 
 /**
- * @author Matthew Horridge, The University of Manchester, Bio-Health
- *         Informatics Group
- * @since 3.1.0
+ * @author Matthew Horridge, The University of Manchester, Bio-Health Informatics Group
  */
-
-@SuppressWarnings("javadoc")
 public class LoadAnnotationAxiomsTestCase extends TestBase {
 
     private OWLOntology createOntology() {

@@ -13,25 +13,23 @@
  */
 package com.github.owlcs.owlapi.tests.api.ontology;
 
+import com.github.owlcs.ontapi.owlapi.objects.OWLLiteralImpl;
+import com.github.owlcs.owlapi.OWLManager;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLDatatype;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
-import com.github.owlcs.ontapi.owlapi.objects.OWLLiteralImpl;
-import com.github.owlcs.owlapi.OWLManager;
 
 import java.util.HashSet;
 import java.util.Set;
 
 
 /**
- * @author Matthew Horridge, Stanford University, Bio-Medical Informatics
- * Research Group
- * @since 3.2.0
+ * @author Matthew Horridge, Stanford University, Bio-Medical Informatics Research Group
  */
-@SuppressWarnings({"javadoc", "SameParameterValue"})
+@SuppressWarnings({"SameParameterValue"})
 public class HashCodeTestCase {
 
     @Test

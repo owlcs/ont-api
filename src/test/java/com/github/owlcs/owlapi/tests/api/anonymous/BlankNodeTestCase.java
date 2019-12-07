@@ -13,24 +13,20 @@
  */
 package com.github.owlcs.owlapi.tests.api.anonymous;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Test;
 import org.semanticweb.owlapi.formats.TurtleDocumentFormat;
 import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 /**
- * @author Matthew Horridge, The University of Manchester, Information
- *         Management Group
- * @since 3.0.0
+ * @author Matthew Horridge, The University of Manchester, Information Management Group
  */
-@SuppressWarnings("javadoc")
 public class BlankNodeTestCase extends TestBase {
 
     @Test
     public void testBlankNodes() throws OWLOntologyCreationException {
-        loadOntologyFromString(
-                new StringDocumentSource("_:foo <http://example.com/> _:bar .",
-                        "string:ontology", new TurtleDocumentFormat(), null));
+        loadOntologyFromString(new StringDocumentSource("_:foo <http://example.com/> _:bar .",
+                "string:ontology", new TurtleDocumentFormat(), null));
     }
 }

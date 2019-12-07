@@ -22,14 +22,10 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * @author Matthew Horridge, The University Of Manchester, Information
- *         Management Group
- * @since 2.2.0
+ * @author Matthew Horridge, The University Of Manchester, Information Management Group
  */
-@SuppressWarnings("javadoc")
 @RunWith(Parameterized.class)
-public class FileRoundTripNoManSyntaxTestCase extends
-        AbstractFileRoundTrippingTestCase {
+public class FileRoundTripNoManSyntaxTestCase extends AbstractFileRoundTrippingTestCase {
 
     public FileRoundTripNoManSyntaxTestCase(String f) {
         super(f);
@@ -46,7 +42,7 @@ public class FileRoundTripNoManSyntaxTestCase extends
 
     @Override
     @Test
-    public void testManchesterOWLSyntax() {
+    public void testManchesterOWLSyntax() { // todo?
         // super.testManchesterOWLSyntax();
     }
 }

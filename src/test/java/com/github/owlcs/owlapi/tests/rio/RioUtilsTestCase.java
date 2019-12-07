@@ -34,7 +34,6 @@ import static org.junit.Assert.assertEquals;
  * Copy-paste from <a href='https://github.com/owlcs/owlapi'>OWL-API, ver. 5.1.1</a>
  * @author Peter Ansell p_ansell@yahoo.com
  */
-@SuppressWarnings({"javadoc", "null"})
 public class RioUtilsTestCase {
 
     private static final ValueFactory VF = SimpleValueFactory.getInstance();

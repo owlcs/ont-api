@@ -26,7 +26,6 @@ import java.util.*;
 import static org.junit.Assert.assertEquals;
 import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asUnorderedSet;
 
-@SuppressWarnings({"javadoc"})
 @RunWith(Parameterized.class)
 public class OWLClassExpressionCollectorTestCase {
 

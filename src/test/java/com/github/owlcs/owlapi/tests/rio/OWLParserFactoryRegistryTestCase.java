@@ -14,6 +14,7 @@
 
 package com.github.owlcs.owlapi.tests.rio;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Test;
 import org.semanticweb.owlapi.functional.parser.OWLFunctionalSyntaxOWLParserFactory;
 import org.semanticweb.owlapi.io.OWLParserFactory;
@@ -25,7 +26,6 @@ import org.semanticweb.owlapi.rdf.rdfxml.parser.RDFXMLParserFactory;
 import org.semanticweb.owlapi.rdf.turtle.parser.TurtleOntologyParserFactory;
 import org.semanticweb.owlapi.rio.*;
 import org.semanticweb.owlapi.util.PriorityCollection;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -35,7 +35,6 @@ import static org.junit.Assert.assertTrue;
 /**
  * @author Peter Ansell p_ansell@yahoo.com
  */
-@SuppressWarnings("javadoc")
 public class OWLParserFactoryRegistryTestCase {
 
     @Test

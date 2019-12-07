@@ -13,18 +13,17 @@
  */
 package com.github.owlcs.owlapi.tests.api.syntax;
 
+import com.github.owlcs.owlapi.OWLManager;
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Test;
 import org.semanticweb.owlapi.expression.OWLEntityChecker;
 import org.semanticweb.owlapi.manchestersyntax.renderer.ParserException;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.mansyntax.ManchesterOWLSyntaxParser;
-import com.github.owlcs.owlapi.OWLManager;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 import javax.annotation.Nullable;
 
 
-@SuppressWarnings("javadoc")
 public class ManchesterParseErrorTestCase extends TestBase {
 
     @Test(expected = ParserException.class)
@@ -41,12 +40,12 @@ public class ManchesterParseErrorTestCase extends TestBase {
         parse(text1);
     }
 
-    private static OWLClassExpression parse(String text) {
+    private static void parse(String text) {
         MockEntityChecker checker = new MockEntityChecker(df);
         ManchesterOWLSyntaxParser parser = OWLManager.createManchesterParser();
         parser.setStringToParse(text);
         parser.setOWLEntityChecker(checker);
-        return parser.parseClassExpression();
+        parser.parseClassExpression();
     }
 
     /**
@@ -57,6 +56,7 @@ public class ManchesterParseErrorTestCase extends TestBase {
      *
      * @author tredmond
      */
+    @SuppressWarnings("NullableProblems")
     private static class MockEntityChecker implements OWLEntityChecker {
 
         private final OWLDataFactory factory;
@@ -66,23 +66,17 @@ public class ManchesterParseErrorTestCase extends TestBase {
         }
 
         @Override
-        public
-        @Nullable
-        OWLClass getOWLClass(String name) {
+        public OWLClass getOWLClass(String name) {
             return null;
         }
 
         @Override
-        public
-        @Nullable
-        OWLObjectProperty getOWLObjectProperty(String name) {
+        public OWLObjectProperty getOWLObjectProperty(String name) {
             return null;
         }
 
         @Override
-        public
-        @Nullable
-        OWLDataProperty getOWLDataProperty(@Nullable String name) {
+        public OWLDataProperty getOWLDataProperty(@Nullable String name) {
             if ("p".equals(name)) {
                 return factory.getOWLDataProperty("http://protege.org/Test.owl#", "p");
             } else {
@@ -91,23 +85,17 @@ public class ManchesterParseErrorTestCase extends TestBase {
         }
 
         @Override
-        public
-        @Nullable
-        OWLAnnotationProperty getOWLAnnotationProperty(String name) {
+        public OWLAnnotationProperty getOWLAnnotationProperty(String name) {
             return null;
         }
 
         @Override
-        public
-        @Nullable
-        OWLNamedIndividual getOWLIndividual(String name) {
+        public OWLNamedIndividual getOWLIndividual(String name) {
             return null;
         }
 
         @Override
-        public
-        @Nullable
-        OWLDatatype getOWLDatatype(@Nullable String name) {
+        public OWLDatatype getOWLDatatype(@Nullable String name) {
             if ("rdfs:Literal".equals(name)) {
                 return factory.getTopDatatype();
             } else {

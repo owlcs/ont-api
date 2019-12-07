@@ -15,6 +15,8 @@
 package com.github.owlcs.owlapi.tests.api;
 
 import com.github.owlcs.ontapi.OntApiException;
+import com.github.owlcs.owlapi.OWLManager;
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -25,20 +27,17 @@ import org.semanticweb.owlapi.formats.OWLXMLDocumentFormat;
 import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.formats.TurtleDocumentFormat;
 import org.semanticweb.owlapi.model.*;
-import com.github.owlcs.owlapi.OWLManager;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 import java.util.Arrays;
 import java.util.Collection;
 
-
-@SuppressWarnings("javadoc")
 @RunWith(Parameterized.class)
 public class PunnedDeclarationsNotAddedTestCase extends TestBase {
 
     @Parameters(name = "{0}")
     public static Collection<OWLDocumentFormat> data() {
-        return Arrays.asList(new FunctionalSyntaxDocumentFormat(), new OWLXMLDocumentFormat(), new RDFXMLDocumentFormat(), new TurtleDocumentFormat());
+        return Arrays.asList(new FunctionalSyntaxDocumentFormat(),
+                new OWLXMLDocumentFormat(), new RDFXMLDocumentFormat(), new TurtleDocumentFormat());
     }
 
     private final OWLDocumentFormat format;
@@ -53,7 +52,8 @@ public class PunnedDeclarationsNotAddedTestCase extends TestBase {
         OWLAnnotationProperty ap = df.getOWLAnnotationProperty(iri("testProperty"));
         o.add(df.getOWLDeclarationAxiom(op));
         o.add(df.getOWLTransitiveObjectPropertyAxiom(op));
-        OWLAnnotationAssertionAxiom assertion = df.getOWLAnnotationAssertionAxiom(iri("test"), df.getOWLAnnotation(ap, iri("otherTest")));
+        OWLAnnotationAssertionAxiom assertion = df.getOWLAnnotationAssertionAxiom(iri("test"),
+                df.getOWLAnnotation(ap, iri("otherTest")));
         o.add(assertion);
         return o;
     }
@@ -63,7 +63,8 @@ public class PunnedDeclarationsNotAddedTestCase extends TestBase {
         OWLObjectProperty op = df.getOWLObjectProperty(iri("testObjectProperty"));
         OWLAnnotationProperty ap = df.getOWLAnnotationProperty(iri("testAnnotationProperty"));
         o.add(df.getOWLTransitiveObjectPropertyAxiom(op));
-        OWLAnnotationAssertionAxiom assertion = df.getOWLAnnotationAssertionAxiom(iri("test"), df.getOWLAnnotation(ap, iri("otherTest")));
+        OWLAnnotationAssertionAxiom assertion = df.getOWLAnnotationAssertionAxiom(iri("test"),
+                df.getOWLAnnotation(ap, iri("otherTest")));
         o.add(assertion);
         return o;
     }
@@ -103,11 +104,12 @@ public class PunnedDeclarationsNotAddedTestCase extends TestBase {
                 .setPersonality(com.github.owlcs.ontapi.jena.impl.conf.OntModelConfig.ONT_PERSONALITY_STRICT);
         m.setOntologyLoaderConfiguration(conf);
 
-        OWLOntology o = m.createOntology(IRI.getNextDocumentIRI(uriBase));
+        OWLOntology o = m.createOntology(IRI.getNextDocumentIRI(URI_BASE));
 
         OWLObjectProperty op = df.getOWLObjectProperty(iri("testProperty"));
         OWLAnnotationProperty ap = df.getOWLAnnotationProperty(iri("testProperty"));
-        OWLAnnotationAssertionAxiom assertion = df.getOWLAnnotationAssertionAxiom(iri("test"), df.getOWLAnnotation(ap, iri("otherTest")));
+        OWLAnnotationAssertionAxiom assertion = df.getOWLAnnotationAssertionAxiom(iri("test"),
+                df.getOWLAnnotation(ap, iri("otherTest")));
 
         o.add(df.getOWLDeclarationAxiom(op));
         o.add(df.getOWLTransitiveObjectPropertyAxiom(op));
@@ -117,10 +119,10 @@ public class PunnedDeclarationsNotAddedTestCase extends TestBase {
             o.add(assertion);
             Assert.fail("The assetrtion succesfully added: " + assertion);
         } catch (OntApiException e) {
-            LOGGER.debug("Exception: {}", e);
+            LOGGER.debug("Exception: {}", e.getMessage());
             Throwable cause = e.getCause();
             if (cause instanceof com.github.owlcs.ontapi.jena.OntJenaException) {
-                LOGGER.debug("Cause: {}", cause);
+                LOGGER.debug("Cause: {}", cause.getMessage());
                 return;
             }
             throw e;

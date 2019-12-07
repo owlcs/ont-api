@@ -63,13 +63,13 @@ public class CacheConfigTest {
         Assert.assertEquals(1, m.getOntologyConfigurator().getManagerIRIsCacheSize());
     }
 
-    private static InternalCache getInternalCache(CacheObjectFactory of,
-                                                  Class<? extends OWLEntity> type) throws Exception {
+    private static InternalCache<?, ?> getInternalCache(CacheObjectFactory of,
+                                                        Class<? extends OWLEntity> type) throws Exception {
         return getPrivateField(of, InternalCache.Loading.class, type).asCache();
     }
 
-    private static InternalCache.Loading getInternalCache(InternalModel m,
-                                                          Class<? extends Enum> type) throws Exception {
+    private static InternalCache.Loading<?, ?> getInternalCache(InternalModel m,
+                                                                Class<? extends Enum<?>> type) throws Exception {
         return getPrivateField(m, InternalCache.Loading.class, type);
     }
 
@@ -233,7 +233,7 @@ public class CacheConfigTest {
         Assert.assertEquals(size, g.size());
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     @Test
     public void testContentCacheInternal() throws Exception {
         int axioms = 945;
@@ -324,7 +324,7 @@ public class CacheConfigTest {
         Assert.assertEquals(count2_1, count2_2);
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     @Test
     public void testComponentCacheInternal() throws Exception {
         long signature = 118;

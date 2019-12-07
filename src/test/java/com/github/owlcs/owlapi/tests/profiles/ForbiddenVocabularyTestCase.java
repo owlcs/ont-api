@@ -13,6 +13,7 @@
  */
 package com.github.owlcs.owlapi.tests.profiles;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.io.StringDocumentSource;
@@ -24,12 +25,10 @@ import org.semanticweb.owlapi.profiles.OWLProfileViolation;
 import org.semanticweb.owlapi.profiles.violations.UseOfReservedVocabularyForAnnotationPropertyIRI;
 import org.semanticweb.owlapi.util.CollectionFactory;
 import org.semanticweb.owlapi.util.OWLObjectPropertyManager;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 import java.util.Arrays;
 import java.util.List;
 
-@SuppressWarnings("javadoc")
 public class ForbiddenVocabularyTestCase extends TestBase {
 
     private static final String input1 = "<?xml version=\"1.0\"?>\n"

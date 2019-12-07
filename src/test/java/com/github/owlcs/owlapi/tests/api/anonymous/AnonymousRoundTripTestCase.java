@@ -13,16 +13,15 @@
  */
 package com.github.owlcs.owlapi.tests.api.anonymous;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Test;
 import org.semanticweb.owlapi.formats.ManchesterSyntaxDocumentFormat;
 import org.semanticweb.owlapi.model.*;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
-import static org.junit.Assert.assertNull;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
+import static org.junit.Assert.assertNull;
 
-@SuppressWarnings("javadoc")
 public class AnonymousRoundTripTestCase extends TestBase {
 
     @Test

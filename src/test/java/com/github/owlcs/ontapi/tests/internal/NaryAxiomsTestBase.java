@@ -29,13 +29,12 @@ class NaryAxiomsTestBase extends CommonAxiomsTest {
         super(data);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
     void testEraseModel(OWLObject sample, OWLObject actual) {
         super.testEraseModel(sample, actual);
 
-        OWLNaryAxiom owl = (OWLNaryAxiom) sample;
-        OWLNaryAxiom ont = (OWLNaryAxiom) actual;
+        OWLNaryAxiom<?> owl = (OWLNaryAxiom<?>) sample;
+        OWLNaryAxiom<?> ont = (OWLNaryAxiom<?>) actual;
 
         LOGGER.debug("Test asPairwiseAxioms for '{}'", data);
         Collection<? extends OWLObject> expectedPairwise = owl.asPairwiseAxioms();

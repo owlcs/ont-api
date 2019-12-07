@@ -14,6 +14,7 @@
 
 package com.github.owlcs.owlapi.tests.api.annotations;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.AbstractRoundTrippingTestCase;
 import org.junit.Test;
 import org.semanticweb.owlapi.formats.OWLXMLDocumentFormat;
 import org.semanticweb.owlapi.formats.RioTurtleDocumentFormat;
@@ -24,11 +25,9 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.model.OWLRuntimeException;
-import com.github.owlcs.owlapi.tests.api.baseclasses.AbstractRoundTrippingTestCase;
 
 import static org.junit.Assert.assertEquals;
 
-@SuppressWarnings("javadoc")
 public class RoundTripOWLXMLToRioTurtleTestCase extends AbstractRoundTrippingTestCase {
 
     //@formatter:off

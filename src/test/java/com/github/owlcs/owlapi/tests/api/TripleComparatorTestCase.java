@@ -28,14 +28,14 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import static org.semanticweb.owlapi.vocab.OWLRDFVocabulary.*;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
+import static org.semanticweb.owlapi.vocab.OWLRDFVocabulary.*;
 
 /**
  * Copy-paste from <a href='https://github.com/owlcs/owlapi'>OWL-API, ver. 5.1.1</a>
  */
-@SuppressWarnings("javadoc")
+@SuppressWarnings("SameParameterValue")
 public class TripleComparatorTestCase {
 
     private final String ns = "http://www.co-ode.org/roberts/pto.owl#";
@@ -57,6 +57,7 @@ public class TripleComparatorTestCase {
 
     @Test
     public void shouldSort() {
+        @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
         List<RDFTriple> list = new ArrayList<>(Arrays.asList(
                 //@formatter:off
                 triple("MoleOfNiobiumAtom"),

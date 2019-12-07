@@ -13,23 +13,18 @@
  */
 package com.github.owlcs.owlapi.tests.api.axioms;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.NNF;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
-import javax.annotation.Nonnull;
-
-import static org.junit.Assert.assertEquals;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
+import static org.junit.Assert.assertEquals;
 
 /**
- * @author Matthew Horridge, The University of Manchester, Information
- *         Management Group
- * @since 3.0.0
+ * @author Matthew Horridge, The University of Manchester, Information Management Group
  */
-@SuppressWarnings("javadoc")
 public class NNFTestCase extends TestBase {
 
     @Test
@@ -139,24 +134,12 @@ public class NNFTestCase extends TestBase {
         assertEquals(cls.getNNF(), nnf);
     }
 
-    private final
-    @Nonnull
-    OWLClass clsA = Class(iri("A"));
-    private final
-    @Nonnull
-    OWLClass clsB = Class(iri("B"));
-    private final
-    @Nonnull
-    OWLClass clsC = Class(iri("C"));
-    private final
-    @Nonnull
-    OWLClass clsD = Class(iri("D"));
-    private final
-    @Nonnull
-    OWLObjectProperty propP = ObjectProperty(iri("p"));
-    private final
-    @Nonnull
-    OWLNamedIndividual indA = NamedIndividual(iri("a"));
+    private final OWLClass clsA = Class(iri("A"));
+    private final OWLClass clsB = Class(iri("B"));
+    private final OWLClass clsC = Class(iri("C"));
+    private final OWLClass clsD = Class(iri("D"));
+    private final OWLObjectProperty propP = ObjectProperty(iri("p"));
+    private final OWLNamedIndividual indA = NamedIndividual(iri("a"));
 
     private static OWLClassExpression getNNF(OWLClassExpression classExpression) {
         NNF nnf = new NNF(df);
@@ -165,10 +148,8 @@ public class NNFTestCase extends TestBase {
 
     @Test
     public void testNamedClass() {
-        OWLClassExpression desc = clsA;
-        OWLClassExpression nnf = clsA;
-        OWLClassExpression comp = getNNF(desc);
-        assertEquals(nnf, comp);
+        OWLClassExpression comp = getNNF(clsA);
+        assertEquals(clsA, comp);
     }
 
     @Test
@@ -193,9 +174,8 @@ public class NNFTestCase extends TestBase {
     public void testDoubleNegation() {
         OWLClassExpression desc = ObjectComplementOf(clsA);
         OWLClassExpression neg = ObjectComplementOf(desc);
-        OWLClassExpression nnf = clsA;
         OWLClassExpression comp = getNNF(neg);
-        assertEquals(nnf, comp);
+        assertEquals(clsA, comp);
     }
 
     @Test
@@ -256,8 +236,7 @@ public class NNFTestCase extends TestBase {
     public void testNestedA() {
         OWLClassExpression fillerA = ObjectUnionOf(clsA, clsB);
         OWLClassExpression opA = ObjectSomeValuesFrom(propP, fillerA);
-        OWLClassExpression opB = clsB;
-        OWLClassExpression desc = ObjectUnionOf(opA, opB);
+        OWLClassExpression desc = ObjectUnionOf(opA, clsB);
         OWLClassExpression nnf = ObjectIntersectionOf(ObjectComplementOf(clsB), ObjectAllValuesFrom(propP,
                 ObjectIntersectionOf(ObjectComplementOf(clsA), ObjectComplementOf(clsB))));
         OWLClassExpression neg = ObjectComplementOf(desc);

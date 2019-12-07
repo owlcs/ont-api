@@ -13,13 +13,13 @@
  */
 package com.github.owlcs.owlapi.tests.api.syntax.rdfxml;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 import java.io.File;
 import java.net.URISyntaxException;
@@ -28,9 +28,7 @@ import java.util.Objects;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.0.0
  */
-@SuppressWarnings("javadoc")
 public class RDFParserTestCase extends TestBase {
 
     @Test

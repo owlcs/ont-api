@@ -13,26 +13,19 @@
  */
 package com.github.owlcs.owlapi.tests.api.anonymous;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Test;
 import org.semanticweb.owlapi.formats.FunctionalSyntaxDocumentFormat;
 import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.model.*;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-
-import javax.annotation.Nonnull;
 
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
 
-@SuppressWarnings("javadoc")
 public class AnonymousFunctionalRoundtripTestCase extends TestBase {
 
-    private static final
-    @Nonnull
-    String NS = "http://namespace.owl";
-    private static final
-    @Nonnull
-    String BROKEN = "<?xml version=\"1.0\"?>\n"
+    private static final String NS = "http://namespace.owl";
+    private static final String BROKEN = "<?xml version=\"1.0\"?>\n"
             + "<rdf:RDF xmlns=\"http://namespace.owl#\"\n" + "     xml:base=\"http://namespace.owl\"\n"
             + "     xmlns:rdfs=\"http://www.w3.org/2000/01/rdf-schema#\"\n"
             + "     xmlns:owl=\"http://www.w3.org/2002/07/owl#\"\n"
@@ -40,9 +33,7 @@ public class AnonymousFunctionalRoundtripTestCase extends TestBase {
             + "     xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\">\n"
             + "    <owl:Ontology rdf:about=\"http://namespace.owl\"/>\n"
             + "    <owl:Class rdf:about=\"http://namespace.owl#A\"/>\n" + "<A/></rdf:RDF>";
-    private static final
-    @Nonnull
-    String FIXED = "Prefix(:=<http://namespace.owl#>)\n"
+    private static final String FIXED = "Prefix(:=<http://namespace.owl#>)\n"
             + "Prefix(owl:=<http://www.w3.org/2002/07/owl#>)\n"
             + "Prefix(rdf:=<http://www.w3.org/1999/02/22-rdf-syntax-ns#>)\n"
             + "Prefix(xml:=<http://www.w3.org/XML/1998/namespace>)\n" + "Prefix(xsd:=<http://www.w3.org/2001/XMLSchema#>)\n"
@@ -80,6 +71,6 @@ public class AnonymousFunctionalRoundtripTestCase extends TestBase {
         ontology = roundTrip(ontology, format);
         FunctionalSyntaxDocumentFormat format2 = new FunctionalSyntaxDocumentFormat();
         format2.setDefaultPrefix(NS + '#');
-        ontology = roundTrip(ontology, format2);
+        roundTrip(ontology, format2);
     }
 }

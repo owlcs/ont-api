@@ -13,43 +13,31 @@
  */
 package com.github.owlcs.owlapi.tests.api.annotations;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.PrefixManager;
 import org.semanticweb.owlapi.util.*;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
-import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
+import static org.junit.Assert.assertEquals;
 
 /**
- * @author Matthew Horridge, The University of Manchester, Bio-Health
- *         Informatics Group
- * @since 3.1.0
+ * @author Matthew Horridge, The University of Manchester, Bio-Health Informatics Group
  */
-@SuppressWarnings("javadoc")
 public class AnnotationShortFormProviderTestCase extends TestBase {
 
-    protected
-    @Nonnull
-    PrefixManager pm = new DefaultPrefixManager(null, null, "http://org.semanticweb.owlapi/ont#");
-    protected
-    @Nonnull
-    OWLAnnotationProperty prop = AnnotationProperty("prop", pm);
-    protected
-    @Nonnull
-    List<OWLAnnotationProperty> props = CollectionFactory.list(prop);
-    protected
-    @Nonnull
-    Map<OWLAnnotationProperty, List<String>> langMap = new HashMap<>();
+    protected PrefixManager pm = new DefaultPrefixManager(null, null, "http://org.semanticweb.owlapi/ont#");
+    protected OWLAnnotationProperty prop = AnnotationProperty("prop", pm);
+    protected List<OWLAnnotationProperty> props = CollectionFactory.list(prop);
+    protected Map<OWLAnnotationProperty, List<String>> langMap = new HashMap<>();
 
     @Test
     public void testLiteralWithoutLanguageValue() {

@@ -27,11 +27,8 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * @author Matthew Horridge, The University Of Manchester, Information
- *         Management Group
- * @since 2.2.0
+ * @author Matthew Horridge, The University Of Manchester, Information Management Group
  */
-@SuppressWarnings("javadoc")
 @RunWith(Parameterized.class)
 public class FileRoudTripWithEqualTestCase extends AbstractFileRoundTrippingTestCase {
 
@@ -52,8 +49,8 @@ public class FileRoudTripWithEqualTestCase extends AbstractFileRoundTrippingTest
 
     @Override
     @Test
-    public void roundTripRDFXMLAndFunctionalShouldBeSame() throws OWLOntologyCreationException,
-            OWLOntologyStorageException {
+    public void roundTripRDFXMLAndFunctionalShouldBeSame()
+            throws OWLOntologyCreationException, OWLOntologyStorageException {
         OWLOntology ont = createOntology();
         OWLOntology o1 = roundTrip(ont, new RDFXMLDocumentFormat());
         OWLOntology o2 = roundTrip(ont, new FunctionalSyntaxDocumentFormat());

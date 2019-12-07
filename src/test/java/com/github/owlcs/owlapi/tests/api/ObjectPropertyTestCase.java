@@ -13,23 +13,20 @@
  */
 package com.github.owlcs.owlapi.tests.api;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import com.google.common.collect.Lists;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
+import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.InverseObjectProperties;
+import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.ObjectProperty;
 import static org.junit.Assert.*;
 import static org.semanticweb.owlapi.search.Searcher.inverse;
 import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.contains;
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.InverseObjectProperties;
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.ObjectProperty;
 
 /**
- * @author Matthew Horridge, The University Of Manchester, Information
- *         Management Group
- * @since 2.2.0
+ * @author Matthew Horridge, The University Of Manchester, Information  Management Group
  */
-@SuppressWarnings("javadoc")
 public class ObjectPropertyTestCase extends TestBase {
 
     @Test

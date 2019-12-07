@@ -13,20 +13,18 @@
  */
 package com.github.owlcs.owlapi.tests.api.literals;
 
+import com.github.owlcs.owlapi.OWLManager;
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLDatatype;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import com.github.owlcs.owlapi.OWLManager;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 import java.util.Set;
 import java.util.TreeSet;
 
-
-@SuppressWarnings("javadoc")
 public class TestCornerCasesTestCase extends TestBase {
 
     @Test
@@ -35,7 +33,7 @@ public class TestCornerCasesTestCase extends TestBase {
         OWLDatatype type = df.getFloatOWLDatatype();
         OWLLiteral lit1 = df.getOWLLiteral("0.0", type);
         OWLLiteral lit2 = df.getOWLLiteral("-0.0", type);
-        Assert.assertFalse(lit1.equals(lit2));
+        Assert.assertNotEquals(lit1, lit2);
     }
 
     @Test
@@ -57,14 +55,12 @@ public class TestCornerCasesTestCase extends TestBase {
         OWLDatatype type = df.getIntegerOWLDatatype();
         OWLLiteral lit1 = df.getOWLLiteral("01", type);
         OWLLiteral lit2 = df.getOWLLiteral("1", type);
-        Assert.assertFalse(lit1.equals(lit2));
+        Assert.assertNotEquals(lit1, lit2);
     }
 
     /**
      * ONT-API loads all axioms which could be read from the graph.
      * The Declaration of NamedIndividuals is not an exceptional case.
-     *
-     * @throws OWLOntologyCreationException
      */
     @Test
     public void testWebOnt() throws OWLOntologyCreationException {
@@ -89,14 +85,14 @@ public class TestCornerCasesTestCase extends TestBase {
         o.axioms().forEach(a -> LOGGER.debug("{}", a));
         Set<String> result = new TreeSet<>();
         o.axioms().forEach(ax -> result.add(ax.toString()));
-        if (!result.equals(expected)) {
+        /*if (!result.equals(expected)) {
             Set<String> intersection = new TreeSet<>(result);
             intersection.retainAll(expected);
             Set<String> s1 = new TreeSet<>(result);
             s1.removeAll(intersection);
             Set<String> s2 = new TreeSet<>(expected);
             s2.removeAll(intersection);
-        }
+        }*/
         Assert.assertEquals("Sets were supposed to be equal", result, expected);
     }
 

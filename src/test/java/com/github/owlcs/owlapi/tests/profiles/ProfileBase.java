@@ -14,6 +14,7 @@
 
 package com.github.owlcs.owlapi.tests.profiles;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Assert;
 import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -21,10 +22,8 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.profiles.OWLProfileReport;
 import org.semanticweb.owlapi.profiles.Profiles;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 
-@SuppressWarnings("javadoc")
 public class ProfileBase extends TestBase {
 
     protected void test(String in, boolean el, boolean ql, boolean rl, boolean dl) {

@@ -31,10 +31,9 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 
 @RunWith(Parameterized.class)
-@SuppressWarnings("javadoc")
 public class ConfigurationOptionsTestCase {
 
-    @Parameter(0)
+    @Parameter()
     public ConfigurationOptions config;
     @Parameter(1)
     public Object value;

@@ -14,6 +14,7 @@
 
 package com.github.owlcs.owlapi.tests.profiles;
 
+import com.github.owlcs.owlapi.OWLManager;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -23,13 +24,10 @@ import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.profiles.OWL2DLProfile;
 import org.semanticweb.owlapi.profiles.Profiles;
-import com.github.owlcs.owlapi.OWLManager;
 
 import java.util.Arrays;
 import java.util.List;
 
-
-@SuppressWarnings("javadoc")
 @RunWith(Parameterized.class)
 public class ProfileFullTestCase extends ProfileBase {
 

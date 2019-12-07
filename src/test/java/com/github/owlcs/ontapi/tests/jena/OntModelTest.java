@@ -14,14 +14,6 @@
 
 package com.github.owlcs.ontapi.tests.jena;
 
-import org.apache.jena.graph.Graph;
-import org.apache.jena.rdf.model.*;
-import org.apache.jena.riot.Lang;
-import org.hamcrest.core.IsEqual;
-import org.junit.Assert;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.github.owlcs.ontapi.OntFormat;
 import com.github.owlcs.ontapi.jena.OntJenaException;
 import com.github.owlcs.ontapi.jena.OntModelFactory;
@@ -38,6 +30,14 @@ import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import com.github.owlcs.ontapi.jena.vocabulary.XSD;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.rdf.model.*;
+import org.apache.jena.riot.Lang;
+import org.hamcrest.core.IsEqual;
+import org.junit.Assert;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -69,6 +69,7 @@ public class OntModelTest {
                 .toSet().size(), ces.size());
     }
 
+    @SuppressWarnings("rawtypes")
     static void simplePropertiesValidation(OntGraphModel ont) {
         Model jena = ModelFactory.createModelForGraph(ont.getGraph());
         Set<Resource> annotationProperties = jena.listStatements(null, RDF.type, OWL.AnnotationProperty)
@@ -103,6 +104,7 @@ public class OntModelTest {
                 ont.objectProperties().flatMap(OntOPE::inverseProperties).count());
     }
 
+    @SuppressWarnings("rawtypes")
     @Test
     public void testPizzaLoadCE() {
         LOGGER.debug("load pizza");
@@ -412,7 +414,7 @@ public class OntModelTest {
         OntIndividual i1 = class5.createIndividual("i1");
         OntIndividual i2 = class6.createIndividual();
         // nap:
-        OntNPA npa1 = p1.addNegativeAssertion(i1, m.createLiteral("xxx"));
+        OntNPA<?, ?> npa1 = p1.addNegativeAssertion(i1, m.createLiteral("xxx"));
 
         ReadWriteUtils.print(m);
 
@@ -495,7 +497,7 @@ public class OntModelTest {
         OntCE class6 = m.createIntersectionOf(m.getOWLThing(), class2, class4, class5);
         Assert.assertEquals(6, m.ontObjects(OntCE.class).count());
         long size = m.size();
-        OntDisjoint d = m.createDisjointClasses(m.getOWLNothing(), class1, class6);
+        OntDisjoint<?> d = m.createDisjointClasses(m.getOWLNothing(), class1, class6);
         ReadWriteUtils.print(m);
 
         m.removeOntObject(d);
@@ -655,7 +657,7 @@ public class OntModelTest {
     public void testOntPropertyOrdinal() {
         Graph g = ReadWriteUtils.loadResourceTTLFile("/ontapi/pizza.ttl").getGraph();
         OntGraphModel m = OntModelFactory.createModel(g);
-        OntProperty p = m.getOntEntity(OntProperty.class, m.expandPrefix(":isIngredientOf"));
+        OntProperty<?> p = m.getOntEntity(OntProperty.class, m.expandPrefix(":isIngredientOf"));
         Assert.assertNotNull(p);
         Assert.assertEquals(0, p.getOrdinal());
         Assert.assertEquals(0, m.getRDFSComment().getOrdinal());

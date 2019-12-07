@@ -25,6 +25,7 @@ import java.util.Set;
 /**
  * Created by ses on 9/30/14.
  */
+@SuppressWarnings({"NullableProblems", "EqualsWhichDoesntCheckParameterClass", "ConstantConditions"})
 public class PlainLiteralTypeFoldingAxiomSet implements Set<OWLAxiom> {
 
     private final Set<OWLAxiom> delegate = createPlainLiteralTypeFoldingSet();
@@ -65,6 +66,7 @@ public class PlainLiteralTypeFoldingAxiomSet implements Set<OWLAxiom> {
         return delegate.toArray();
     }
 
+    @SuppressWarnings("SuspiciousToArrayCall")
     @Override
     public <T> T[] toArray(@Nullable T[] a) {
         return delegate.toArray(a);

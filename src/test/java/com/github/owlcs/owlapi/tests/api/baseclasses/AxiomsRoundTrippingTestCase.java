@@ -13,6 +13,7 @@
  */
 package com.github.owlcs.owlapi.tests.api.baseclasses;
 
+import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.google.common.collect.Sets;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -21,23 +22,18 @@ import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.semanticweb.owlapi.vocab.OWLFacet;
-import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 
 import java.util.*;
 import java.util.stream.Stream;
 
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asUnorderedSet;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Integer;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
+import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asUnorderedSet;
 
 /**
- * @author Matthew Horridge, The University of Manchester, Information
- *         Management Group
- * @since 3.0.0
+ * @author Matthew Horridge, The University of Manchester, Information Management Group
  */
-
-@SuppressWarnings("javadoc")
 @RunWith(Parameterized.class)
 public class AxiomsRoundTrippingTestCase extends AxiomsRoundTrippingBase {
 
@@ -85,6 +81,7 @@ public class AxiomsRoundTrippingTestCase extends AxiomsRoundTrippingBase {
      * It fixes {@link #testJSONLD()}, {@link #testTurtle()} and {@link #testTrig()}
      * (for these formats Jena uses common way ({@link org.apache.jena.riot.system.IRIResolver.IRIResolverNormal})).
      */
+    @SuppressWarnings("JavadocReference")
     private static final OWLDatatype dt = Datatype(IRI("file:///c/test.owlapi#", "SSN"));
     private static final OWLFacetRestriction fr = FacetRestriction(OWLFacet.PATTERN, Literal(
             "[0-9]{3}-[0-9]{2}-[0-9]{4}"));

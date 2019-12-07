@@ -14,15 +14,6 @@
 
 package com.github.owlcs.ontapi.tests.jena;
 
-import org.apache.jena.graph.Factory;
-import org.apache.jena.rdf.model.*;
-import org.apache.jena.util.iterator.NullIterator;
-import org.apache.jena.vocabulary.RDFS;
-import org.apache.jena.vocabulary.XSD;
-import org.junit.Assert;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.github.owlcs.ontapi.jena.OntJenaException;
 import com.github.owlcs.ontapi.jena.OntModelFactory;
 import com.github.owlcs.ontapi.jena.impl.OntGraphModelImpl;
@@ -34,8 +25,20 @@ import com.github.owlcs.ontapi.jena.utils.Models;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
+import org.apache.jena.graph.Factory;
+import org.apache.jena.rdf.model.*;
+import org.apache.jena.util.iterator.NullIterator;
+import org.apache.jena.vocabulary.RDFS;
+import org.apache.jena.vocabulary.XSD;
+import org.junit.Assert;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -334,7 +337,6 @@ public class OntListTest {
         Assert.assertEquals(0, list.spec().count());
     }
 
-    @SuppressWarnings("unchecked")
     @Test
     public void testTypedList() {
         OntGraphModelImpl m = new OntGraphModelImpl(Factory.createDefaultGraph(), OntModelConfig.ONT_PERSONALITY_LAX);
@@ -347,9 +349,9 @@ public class OntListTest {
 
         OntObject s = m.createResource("list").as(OntObject.class);
         Property p = m.createProperty("of");
-        OntList list = OntListImpl.create(m, s, p, RDF.List, RDFNode.class, Iter.of(a, b, c, d, e));
+        OntList<RDFNode> list = OntListImpl.create(m, s, p, RDF.List, RDFNode.class, Iter.of(a, b, c, d, e));
         ReadWriteUtils.print(m);
-        Assert.assertEquals(RDF.List, ((Optional<Resource>) list.type()).orElseThrow(AssertionError::new));
+        Assert.assertEquals(RDF.List, list.type().orElseThrow(AssertionError::new));
         Assert.assertEquals(16, m.size());
         Assert.assertEquals(15, list.spec().count());
         Assert.assertEquals(16, list.content().count());

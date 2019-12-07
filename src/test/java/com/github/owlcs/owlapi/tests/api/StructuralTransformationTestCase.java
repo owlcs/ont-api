@@ -14,12 +14,12 @@
 
 package com.github.owlcs.owlapi.tests.api;
 
+import com.github.owlcs.owlapi.OWLManager;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.util.StructuralTransformation;
-import com.github.owlcs.owlapi.OWLManager;
 
 import java.util.*;
 
@@ -28,8 +28,6 @@ import static org.junit.Assert.assertEquals;
 /**
  * Copy-paste from <a href='https://github.com/owlcs/owlapi'>OWL-API, ver. 5.1.4</a>
  */
-
-@SuppressWarnings({"javadoc"})
 @RunWith(Parameterized.class)
 public class StructuralTransformationTestCase {
 

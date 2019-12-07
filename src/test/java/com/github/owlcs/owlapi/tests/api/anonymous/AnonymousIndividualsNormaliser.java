@@ -24,15 +24,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asSet;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.AnonymousIndividual;
+import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asSet;
 
 /**
- * @author Matthew Horridge, The University of Manchester, Information
- *         Management Group
- * @since 3.0.0
+ * @author Matthew Horridge, The University of Manchester, Information Management Group
  */
-@SuppressWarnings("javadoc")
 public class AnonymousIndividualsNormaliser extends OWLObjectDuplicator {
 
     private final Map<OWLAnonymousIndividual, OWLAnonymousIndividual> renamingMap = new HashMap<>();
@@ -49,6 +46,7 @@ public class AnonymousIndividualsNormaliser extends OWLObjectDuplicator {
         super(m);
     }
 
+    @SuppressWarnings("unused")
     public Set<OWLAxiom> getNormalisedAxioms(Collection<OWLAxiom> axioms) {
         return getNormalisedAxioms(axioms.stream());
     }

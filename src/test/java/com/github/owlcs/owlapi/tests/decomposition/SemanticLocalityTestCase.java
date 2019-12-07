@@ -14,16 +14,17 @@
 
 package com.github.owlcs.owlapi.tests.decomposition;
 
+import com.github.owlcs.owlapi.OWLManager;
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapitools.decomposition.AxiomWrapper;
 import org.semanticweb.owlapitools.decomposition.SemanticLocalityChecker;
-import com.github.owlcs.owlapi.OWLManager;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -32,7 +33,6 @@ import static org.junit.Assert.assertEquals;
 
 
 @Ignore
-@SuppressWarnings("javadoc")
 public class SemanticLocalityTestCase {
 
     private OWLAxiom axiom;
@@ -463,8 +463,8 @@ public class SemanticLocalityTestCase {
 
     @Test
     public void shouldBeLocalswrlRule() {
-        Set<SWRLAtom> head = new HashSet<>(Arrays.asList(df.getSWRLClassAtom(a, df.getSWRLIndividualArgument(x))));
-        Set<SWRLAtom> body = new HashSet<>(Arrays.asList(df.getSWRLClassAtom(b, df.getSWRLIndividualArgument(y))));
+        Set<SWRLAtom> head = new HashSet<>(Collections.singletonList(df.getSWRLClassAtom(a, df.getSWRLIndividualArgument(x))));
+        Set<SWRLAtom> body = new HashSet<>(Collections.singletonList(df.getSWRLClassAtom(b, df.getSWRLIndividualArgument(y))));
         axiom = df.getSWRLRule(head, body);
         // signature intersects
         test(axiom, true, a);
@@ -475,7 +475,7 @@ public class SemanticLocalityTestCase {
     @Test
     public void shouldResetSignature() {
         OWLSubClassOfAxiom ax = df.getOWLSubClassOfAxiom(a, b);
-        testSubject.preprocessOntology(Arrays.asList(new AxiomWrapper(ax)));
+        testSubject.preprocessOntology(Collections.singletonList(new AxiomWrapper(ax)));
     }
 
     private static final String NS = "urn:test#";
@@ -505,6 +505,7 @@ public class SemanticLocalityTestCase {
     private OWLObjectProperty bottomObject = df.getOWLBottomObjectProperty();
     private OWLObjectProperty topObject = df.getOWLTopObjectProperty();
 
+    @SuppressWarnings("ConstantConditions")
     @Before
     public void setUp() {
         // XXX add a reasoner factory
@@ -516,14 +517,15 @@ public class SemanticLocalityTestCase {
     }
 
     private void test(OWLAxiom ax, boolean expected, OWLEntity... entities) {
-        testSubject.preprocessOntology(Arrays.asList(new AxiomWrapper(ax)));
+        testSubject.preprocessOntology(Collections.singletonList(new AxiomWrapper(ax)));
         set(entities);
         boolean local = testSubject.local(ax);
         assertEquals(expected, local);
     }
 
+    @SuppressWarnings("SameParameterValue")
     private void test(OWLAxiom ax, boolean expected, boolean locality, OWLEntity... entities) {
-        testSubject.preprocessOntology(Arrays.asList(new AxiomWrapper(ax)));
+        testSubject.preprocessOntology(Collections.singletonList(new AxiomWrapper(ax)));
         set(entities);
         testSubject.getSignature().setLocality(locality);
         boolean local = testSubject.local(ax);

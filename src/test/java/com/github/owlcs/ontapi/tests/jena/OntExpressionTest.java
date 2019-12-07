@@ -14,6 +14,13 @@
 
 package com.github.owlcs.ontapi.tests.jena;
 
+import com.github.owlcs.ontapi.jena.OntJenaException;
+import com.github.owlcs.ontapi.jena.OntModelFactory;
+import com.github.owlcs.ontapi.jena.model.*;
+import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import com.github.owlcs.ontapi.jena.vocabulary.RDF;
+import com.github.owlcs.ontapi.jena.vocabulary.XSD;
+import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.RDFList;
 import org.apache.jena.rdf.model.RDFNode;
@@ -22,13 +29,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.github.owlcs.ontapi.jena.OntJenaException;
-import com.github.owlcs.ontapi.jena.OntModelFactory;
-import com.github.owlcs.ontapi.jena.model.*;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
-import com.github.owlcs.ontapi.jena.vocabulary.RDF;
-import com.github.owlcs.ontapi.jena.vocabulary.XSD;
-import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -52,7 +52,7 @@ public class OntExpressionTest {
         OntCE.DataMinCardinality r2 = m.createDataMinCardinality(dp, 1, null);
         OntCE.DataMaxCardinality r3 = m.createDataMaxCardinality(dp, 2, m.getRDFSLiteral());
         OntCE.ObjectMinCardinality r4 = m.createObjectMinCardinality(op, 12, m.getOWLThing());
-        OntCE.CardinalityRestrictionCE r5 = m.createDataCardinality(dp, 0, m.getDatatype(XSD.xstring));
+        OntCE.CardinalityRestrictionCE<?, ?> r5 = m.createDataCardinality(dp, 0, m.getDatatype(XSD.xstring));
         ReadWriteUtils.print(m);
 
         Assert.assertTrue(r1.isQualified());

@@ -13,6 +13,9 @@
  */
 package com.github.owlcs.owlapi.tests.profiles;
 
+import com.github.owlcs.ontapi.OWLAdapter;
+import com.github.owlcs.owlapi.OWLManager;
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.io.StringDocumentSource;
@@ -20,9 +23,6 @@ import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.profiles.*;
 import org.semanticweb.owlapi.search.Searcher;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
-import com.github.owlcs.ontapi.OWLAdapter;
-import com.github.owlcs.owlapi.OWLManager;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 import java.util.Collection;
 import java.util.List;
@@ -46,12 +46,8 @@ import java.util.stream.Stream;
  * 4) OWL-API also does not always pass checking for DL.
  * By these reasons the DL checking is temporary disabled.
  *
- * @author Matthew Horridge, The University of Manchester, Information
- *         Management Group
- * @since 3.0.0
+ * @author Matthew Horridge, The University of Manchester, Information Management Group
  */
-
-@SuppressWarnings("javadoc")
 public class ProfileValidationTestCase extends TestBase {
     private static final String ALL_NS = "http://www.w3.org/2007/OWL/testOntology#";
     private static final String ALL_PATH = "/owlapi/all.rdf";
@@ -95,6 +91,8 @@ public class ProfileValidationTestCase extends TestBase {
         OWLNamedIndividual rl = df.getOWLNamedIndividual(IRI.create(ALL_NS, "RL"));
         OWLNamedIndividual full = df.getOWLNamedIndividual(IRI.create(ALL_NS, "FULL"));
         OWLNamedIndividual dl = df.getOWLNamedIndividual(IRI.create(ALL_NS, "DL"));
+        Assert.assertNotNull(full);
+        Assert.assertNotNull(dl);
         OWLOntologyManager manager = manager();
         OWLOntology ontology = manager.loadOntologyFromOntologyDocument(new StringDocumentSource(txt));
         //com.github.owlcs.ontapi.utils.ReadWriteUtils.print(ontology);

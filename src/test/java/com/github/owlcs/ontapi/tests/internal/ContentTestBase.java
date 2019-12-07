@@ -14,10 +14,10 @@
 
 package com.github.owlcs.ontapi.tests.internal;
 
-import org.junit.Assert;
-import org.semanticweb.owlapi.model.OWLObject;
 import com.github.owlcs.ontapi.internal.InternalCache;
 import com.github.owlcs.ontapi.internal.objects.WithContent;
+import org.junit.Assert;
+import org.semanticweb.owlapi.model.OWLObject;
 
 import java.lang.reflect.Field;
 import java.util.Arrays;
@@ -40,6 +40,7 @@ abstract class ContentTestBase extends ObjectFactoryTestBase {
         testInternalCacheReset(sample, test);
     }
 
+    @SuppressWarnings("rawtypes")
     private void testInternalCacheReset(OWLObject sample, OWLObject instance) {
         Assert.assertTrue(instance instanceof WithContent);
         WithContent wc = (WithContent) instance;
@@ -54,15 +55,15 @@ abstract class ContentTestBase extends ObjectFactoryTestBase {
         testComponents(sample, instance);
     }
 
-    private static InternalCache.Loading getContentCache(OWLObject inst) {
+    private static InternalCache.Loading<?, ?> getContentCache(OWLObject inst) {
         return findDeclaredField(inst, "content");
     }
 
     @SuppressWarnings({"unchecked", "SameParameterValue"})
     private static <X> X findDeclaredField(Object inst, String name) {
         AssertionError error = new AssertionError("Can't find field '" + name + "'");
-        Class type = inst.getClass();
-        Set<Class> seen = new HashSet<>();
+        Class<?> type = inst.getClass();
+        Set<Class<?>> seen = new HashSet<>();
         while (type != null) {
             try {
                 Field[] fields = type.getDeclaredFields();

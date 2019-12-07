@@ -14,6 +14,7 @@
 
 package com.github.owlcs.owlapi.tests.api.syntax.rdf;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -21,13 +22,11 @@ import org.junit.runners.Parameterized.Parameters;
 import org.semanticweb.owlapi.io.ReaderDocumentSource;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 import java.io.*;
 import java.util.Arrays;
 import java.util.Collection;
 
-@SuppressWarnings("javadoc")
 @RunWith(Parameterized.class)
 public class BOMSafeInputStreamAndParseTestCase extends TestBase {
 

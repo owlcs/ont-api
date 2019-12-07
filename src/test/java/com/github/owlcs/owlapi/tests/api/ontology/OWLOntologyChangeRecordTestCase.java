@@ -13,36 +13,25 @@
  */
 package com.github.owlcs.owlapi.tests.api.ontology;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Test;
 import org.semanticweb.owlapi.change.AddAxiomData;
 import org.semanticweb.owlapi.change.OWLOntologyChangeData;
 import org.semanticweb.owlapi.change.OWLOntologyChangeRecord;
 import org.semanticweb.owlapi.model.*;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-
-import javax.annotation.Nonnull;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 
 /**
- * @author Matthew Horridge, Stanford University, Bio-Medical Informatics
- *         Research Group
- * @since 3.2.0
+ * @author Matthew Horridge, Stanford University, Bio-Medical Informatics Research Group
  */
-@SuppressWarnings({"javadoc"})
 public class OWLOntologyChangeRecordTestCase extends TestBase {
 
-    private final
-    @Nonnull
-    OWLOntologyID mockOntologyID = new OWLOntologyID();
-    private final
-    @Nonnull
-    OWLOntologyChangeData mockChangeData = mock(OWLOntologyChangeData.class);
-    private final
-    @Nonnull
-    OWLAxiom mockAxiom = mock(OWLAxiom.class);
+    private final OWLOntologyID mockOntologyID = new OWLOntologyID();
+    private final OWLOntologyChangeData mockChangeData = mock(OWLOntologyChangeData.class);
+    private final OWLAxiom mockAxiom = mock(OWLAxiom.class);
 
     @Test
     public void testEquals() {

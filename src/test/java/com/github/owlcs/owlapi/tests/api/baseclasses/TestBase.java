@@ -40,7 +40,6 @@ import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
 import java.io.File;
 import java.net.URISyntaxException;
 import java.util.*;
@@ -49,24 +48,20 @@ import java.util.stream.Stream;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 2.2.0
  */
-@SuppressWarnings({"javadoc", "null"})
 public abstract class TestBase {
 
     protected static final Logger LOGGER = LoggerFactory.getLogger(TestBase.class);
-    protected static final String uriBase = "http://www.semanticweb.org/owlapi/test";
+    protected static final String URI_BASE = "http://www.semanticweb.org/owlapi/test";
     protected static OWLDataFactory df;
     protected static OWLOntologyManager masterManager;
     protected static final File RESOURCES = resources();
-    @Nonnull
     @Rule
     public TemporaryFolder folder = new TemporaryFolder();
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
     @Rule
     public Timeout timeout = new Timeout(1_000_000, TimeUnit.MILLISECONDS);
-    @Nonnull
     protected OWLOntologyLoaderConfiguration config = new OWLOntologyLoaderConfiguration();
     protected OWLOntologyManager m;
     protected OWLOntologyManager m1;
@@ -124,25 +119,25 @@ public abstract class TestBase {
         return elements[1] + "\n" + elements[2] + '\n' + elements[3];
     }
 
-    /**
-     * @param leftOnly
-     * @param rightOnly
-     * @return boolean
-     */
     private static boolean verifyErrorIsDueToBlankNodesId(Set<OWLAxiom> leftOnly, Set<OWLAxiom> rightOnly) {
         Set<String> leftOnlyStrings = new HashSet<>();
         Set<String> rightOnlyStrings = new HashSet<>();
         for (OWLAxiom ax : leftOnly) {
-            leftOnlyStrings.add(ax.toString().replaceAll("_:anon-ind-[0-9]+", "blank").replaceAll("_:genid[0-9]+", "blank"));
+            leftOnlyStrings.add(replaceOWLAPIAnonIndexes(ax.toString(), "blank"));
         }
         for (OWLAxiom ax : rightOnly) {
-            rightOnlyStrings.add(ax.toString().replaceAll("_:anon-ind-[0-9]+", "blank").replaceAll("_:genid[0-9]+", "blank"));
+            rightOnlyStrings.add(replaceOWLAPIAnonIndexes(ax.toString(), "blank"));
         }
         return rightOnlyStrings.equals(leftOnlyStrings);
     }
 
+    @SuppressWarnings("SameParameterValue")
+    private static String replaceOWLAPIAnonIndexes(String str, String temp) {
+        return str.replaceAll("_:anon-ind-[0-9]+", "blank").replaceAll("_:genid[0-9]+", temp);
+    }
+
     public static IRI iri(String name) {
-        return OWLFunctionalSyntaxFactory.IRI(uriBase + '#', name);
+        return OWLFunctionalSyntaxFactory.IRI(URI_BASE + '#', name);
     }
 
     @SuppressWarnings({"OptionalUsedAsFieldOrParameterType", "OptionalGetWithoutIsPresent"})
@@ -342,7 +337,7 @@ public abstract class TestBase {
 
     public OWLOntology getOWLOntology() {
         try {
-            return m.createOntology(IRI.getNextDocumentIRI(uriBase));
+            return m.createOntology(IRI.getNextDocumentIRI(URI_BASE));
         } catch (OWLOntologyCreationException e) {
             throw new OWLRuntimeException(e);
         }
@@ -379,8 +374,6 @@ public abstract class TestBase {
      * @param recalculateAxiomsCache only for ONT-API.
      *                               if true clears the axioms cache inside specified {@link OntologyModelImpl} ontology.
      * @return {@link OWLOntology} the reloaded ontology.
-     * @throws OWLOntologyStorageException
-     * @throws OWLOntologyCreationException
      */
     @SuppressWarnings("WeakerAccess")
     protected OWLOntology roundTripOntology(OWLOntology ont, OWLDocumentFormat format, boolean recalculateAxiomsCache)

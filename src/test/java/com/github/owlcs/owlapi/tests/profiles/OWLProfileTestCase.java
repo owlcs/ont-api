@@ -14,6 +14,9 @@
 package com.github.owlcs.owlapi.tests.profiles;
 
 import com.github.owlcs.ontapi.OntologyManager;
+import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
+import com.github.owlcs.owlapi.OWLManager;
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -23,9 +26,6 @@ import org.semanticweb.owlapi.profiles.*;
 import org.semanticweb.owlapi.profiles.violations.*;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.semanticweb.owlapi.vocab.OWLFacet;
-import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
-import com.github.owlcs.owlapi.OWLManager;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 import java.lang.Class;
 import java.util.*;
@@ -37,7 +37,7 @@ import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Double;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Integer;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
 
-@SuppressWarnings({"javadoc", "rawtypes"})
+@SuppressWarnings({"rawtypes"})
 public class OWLProfileTestCase extends TestBase {
 
     private static final String START = OWLThing().getIRI().getNamespace();

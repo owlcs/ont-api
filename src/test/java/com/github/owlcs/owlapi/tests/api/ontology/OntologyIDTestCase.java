@@ -13,25 +13,20 @@
  */
 package com.github.owlcs.owlapi.tests.api.ontology;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntologyID;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
-import javax.annotation.Nonnull;
-
+import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.IRI;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.semanticweb.owlapi.util.OWLAPIPreconditions.emptyOptional;
 import static org.semanticweb.owlapi.util.OWLAPIPreconditions.optional;
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.IRI;
 
-@SuppressWarnings("javadoc")
 public class OntologyIDTestCase extends TestBase {
 
-    private static final
-    @Nonnull
-    String TEST_ONTOLOGY_IRI_STRING = "http://test.it/check1";
+    private static final String TEST_ONTOLOGY_IRI_STRING = "http://test.it/check1";
 
     @Test
     public void shouldFindSameHashCode() {

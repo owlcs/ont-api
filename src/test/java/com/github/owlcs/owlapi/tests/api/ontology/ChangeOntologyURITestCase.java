@@ -13,24 +13,20 @@
  */
 package com.github.owlcs.owlapi.tests.api.ontology;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.OWLOntologyIRIChanger;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static org.junit.Assert.*;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.IRI;
+import static org.junit.Assert.*;
 
 /**
- * @author Matthew Horridge, The University Of Manchester, Bio-Health
- *         Informatics Group
- * @since 2.0.0
+ * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
  */
-
-@SuppressWarnings({"javadoc"})
 public class ChangeOntologyURITestCase extends TestBase {
 
     @Test

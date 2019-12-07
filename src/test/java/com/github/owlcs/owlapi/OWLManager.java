@@ -13,17 +13,15 @@
  */
 package com.github.owlcs.owlapi;
 
+import com.github.owlcs.ontapi.OWLAdapter;
+import com.github.owlcs.ontapi.OntManagers;
+import com.github.owlcs.ontapi.config.OntConfig;
 import org.semanticweb.owlapi.model.OWLDataFactory;
-import org.semanticweb.owlapi.model.OWLOntologyBuilder;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 import org.semanticweb.owlapi.model.OntologyConfigurator;
 import org.semanticweb.owlapi.util.mansyntax.ManchesterOWLSyntaxParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.github.owlcs.ontapi.OWLAdapter;
-import com.github.owlcs.ontapi.OntManagers;
-import com.github.owlcs.ontapi.OntologyBuilderImpl;
-import com.github.owlcs.ontapi.config.OntConfig;
 
 import java.util.concurrent.locks.ReadWriteLock;
 
@@ -104,24 +102,5 @@ public class OWLManager {
      */
     public static ManchesterOWLSyntaxParser createManchesterParser() {
         return new org.semanticweb.owlapi.manchestersyntax.parser.ManchesterOWLSyntaxParserImpl(newConfig(), getOWLDataFactory());
-    }
-
-    /**
-     * Creates a builder.
-     *
-     * @return {@link OWLOntologyBuilder} the builder
-     */
-    public static OWLOntologyBuilder createOntologyBuilder() {
-        return OWLManager.DEBUG_USE_OWL ?
-                (m, i) -> new OntManagers.OWLAPIImplProfile().createOWLOntologyImpl(m, i) :
-                new OntologyBuilderImpl();
-    }
-
-    public static Class<?> findClass(String name) {
-        try {
-            return Class.forName(name);
-        } catch (ClassNotFoundException e) {
-            throw new AssertionError("Unable to find " + name, e);
-        }
     }
 }

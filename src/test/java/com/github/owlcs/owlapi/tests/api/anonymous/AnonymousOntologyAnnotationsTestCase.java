@@ -13,15 +13,13 @@
  */
 package com.github.owlcs.owlapi.tests.api.anonymous;
 
-import org.semanticweb.owlapi.model.*;
 import com.github.owlcs.owlapi.tests.api.baseclasses.AbstractRoundTrippingTestCase;
+import org.semanticweb.owlapi.model.*;
 
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
 
 /**
- * @author Matthew Horridge, The University of Manchester, Bio-Health
- *         Informatics Group
- * @since 3.2.0
+ * @author Matthew Horridge, The University of Manchester, Bio-Health Informatics Group
  */
 public class AnonymousOntologyAnnotationsTestCase extends AbstractRoundTrippingTestCase {
 

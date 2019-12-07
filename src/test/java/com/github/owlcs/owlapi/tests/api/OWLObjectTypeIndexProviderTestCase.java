@@ -17,7 +17,6 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
-@SuppressWarnings({"javadoc"})
 public class OWLObjectTypeIndexProviderTestCase {
 
     DataBuilder b = new DataBuilder();

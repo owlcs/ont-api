@@ -13,16 +13,12 @@
  */
 package com.github.owlcs.owlapi.tests.api.fileroundtrip;
 
-import org.semanticweb.owlapi.model.OWLOntology;
 import com.github.owlcs.owlapi.tests.api.baseclasses.AbstractRoundTrippingTestCase;
+import org.semanticweb.owlapi.model.OWLOntology;
 
 /**
- * @author Matthew Horridge, The University Of Manchester, Information
- *         Management Group
- * @since 2.2.0
+ * @author Matthew Horridge, The University Of Manchester, Information  Management Group
  */
-
-@SuppressWarnings("javadoc")
 public abstract class AbstractFileRoundTrippingTestCase extends AbstractRoundTrippingTestCase {
 
     private String fileName;
@@ -35,8 +31,8 @@ public abstract class AbstractFileRoundTrippingTestCase extends AbstractRoundTri
     protected OWLOntology createOntology() {
         LOGGER.debug("Load ontology from file <{}>", fileName);
         OWLOntology o = ontologyFromClasspathFile(fileName);
-            LOGGER.debug("ontology as parsed from input file:");
-            o.axioms().forEach(ax -> LOGGER.debug(ax.toString()));
+        LOGGER.debug("ontology as parsed from input file:");
+        o.axioms().forEach(ax -> LOGGER.debug(ax.toString()));
         return o;
     }
 }

@@ -14,94 +14,22 @@
 
 package com.github.owlcs.owlapi.tests.api.syntax;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Before;
 import org.junit.Test;
 import org.semanticweb.owlapi.formats.*;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.profiles.OWL2DLProfile;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
-import javax.annotation.Nonnull;
 import java.util.Set;
 
 import static org.junit.Assert.assertTrue;
 import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asUnorderedSet;
 
-@SuppressWarnings("javadoc")
 public class PrimerTestCase extends TestBase {
 
     private static final String NS = "http://example.com/owl/families/";
-    protected
-    @Nonnull
-    OWLOntology func = loadOntologyFromString(FUNCTIONAL, IRI.create("urn:primer#", "functional"),
-            new FunctionalSyntaxDocumentFormat());
-    OWL2DLProfile profile = new OWL2DLProfile();
-
-    @Before
-    public void setUpProfile() {
-        assertTrue(profile.checkOntology(func).isInProfile());
-    }
-
-    @Test
-    public void shouldManchBeEquivalent() throws OWLOntologyCreationException {
-        OWLOntology manch = loadOntologyFromString(MANCHESTER, IRI.create("urn:primer#", "manchester"),
-                new ManchesterSyntaxDocumentFormat());
-        assertTrue(profile.checkOntology(manch).getViolations().isEmpty());
-        // XXX Manchester OWL Syntax does not support GCIs
-        // the input adopts a trick to semantically get around this, by
-        // asserting a new named class equivalent to the right hand side of the
-        // GCI and subclass of the left hand side
-        // Rectifying this to be able to assert equality, and using a different
-        // ontology
-        // so that the equality test does not skip gcis because of the format
-        OWLClass x = df.getOWLClass(NS, "X");
-        Set<OWLClassAxiom> axioms = asUnorderedSet(manch.axioms(x));
-        manch.remove(axioms);
-        OWLClass female = df.getOWLClass(NS, "Female");
-        OWLClassExpression oneOf = df.getOWLObjectOneOf(df.getOWLNamedIndividual(NS, "Bill"), df.getOWLNamedIndividual(
-                NS, "Mary"), df.getOWLNamedIndividual(NS, "Meg"));
-        OWLClass parent = df.getOWLClass(NS, "Parent");
-        OWLObjectProperty hasChild = df.getOWLObjectProperty(NS, "hasChild");
-        OWLClassExpression superClass = df.getOWLObjectIntersectionOf(parent, df.getOWLObjectAllValuesFrom(hasChild,
-                female), df.getOWLObjectMaxCardinality(1, hasChild));
-        manch.getOWLOntologyManager().addAxiom(manch, df.getOWLSubClassOfAxiom(df.getOWLObjectIntersectionOf(female,
-                oneOf), superClass));
-        OWLOntology replacement = m.createOntology(manch.axioms(), get(manch.getOntologyID().getOntologyIRI()));
-        equal(func, replacement);
-    }
-
-    @Test
-    public void shouldRDFXMLBeEquivalent() {
-        OWLOntology rdf = loadOntologyFromString(RDFXML, IRI.create("urn:primer#", "rdfxml"),
-                new RDFXMLDocumentFormat());
-        assertTrue(profile.checkOntology(rdf).getViolations().isEmpty());
-        equal(func, rdf);
-    }
-
-    @Test
-    public void shouldOWLXMLBeEquivalent() {
-        OWLOntology owl = loadOntologyFromString(OWLXML, IRI.create("urn:primer#", "owlxml"),
-                new OWLXMLDocumentFormat());
-        assertTrue(profile.checkOntology(owl).getViolations().isEmpty());
-        equal(func, owl);
-    }
-
-    @Test
-    public void shouldTURTLEBeEquivalent() {
-        OWLOntology turt = loadOntologyFromString(TURTLE, IRI.create("urn:primer#", "turtle"),
-                new TurtleDocumentFormat());
-        assertTrue(profile.checkOntology(turt).getViolations().isEmpty());
-        // XXX somehow the Turtle parser introduces a tautology: the inverse of
-        // inverse(hasParent) is hasParent
-        // dropping said tautology to assert equality of the rest of the axioms
-        OWLObjectProperty hasParent = df.getOWLObjectProperty(NS, "hasParent");
-        turt.remove(df.getOWLInverseObjectPropertiesAxiom(df.getOWLObjectInverseOf(hasParent), hasParent));
-        equal(func, turt);
-    }
-
-    private static final
-    @Nonnull
-    String RDFXML = "<!DOCTYPE rdf:RDF [\n"
+    private static final String RDFXML = "<!DOCTYPE rdf:RDF [\n"
             + "    <!ENTITY owl \"http://www.w3.org/2002/07/owl#\" >\n"
             + "    <!ENTITY xsd \"http://www.w3.org/2001/XMLSchema#\" >\n"
             + "    <!ENTITY rdfs \"http://www.w3.org/2000/01/rdf-schema#\" >\n"
@@ -172,9 +100,71 @@ public class PrimerTestCase extends TestBase {
             + "   <owl:NegativePropertyAssertion><owl:sourceIndividual rdf:resource=\"Jack\"/><owl:assertionProperty rdf:resource=\"hasAge\"/><owl:targetValue rdf:datatype=\"&xsd;integer\">53</owl:targetValue></owl:NegativePropertyAssertion>\n"
             + "   <owl:NegativePropertyAssertion><owl:sourceIndividual rdf:resource=\"Bill\"/><owl:assertionProperty rdf:resource=\"hasDaughter\"/><owl:targetIndividual rdf:resource=\"Susan\"/></owl:NegativePropertyAssertion>\n"
             + " </rdf:RDF>";
-    private static final
-    @Nonnull
-    String OWLXML = "<!DOCTYPE Ontology [\n"
+    OWL2DLProfile profile = new OWL2DLProfile();
+
+    @Before
+    public void setUpProfile() {
+        assertTrue(profile.checkOntology(func).isInProfile());
+    }
+
+    @Test
+    public void shouldManchBeEquivalent() throws OWLOntologyCreationException {
+        OWLOntology manch = loadOntologyFromString(MANCHESTER, IRI.create("urn:primer#", "manchester"),
+                new ManchesterSyntaxDocumentFormat());
+        assertTrue(profile.checkOntology(manch).getViolations().isEmpty());
+        // XXX Manchester OWL Syntax does not support GCIs
+        // the input adopts a trick to semantically get around this, by
+        // asserting a new named class equivalent to the right hand side of the
+        // GCI and subclass of the left hand side
+        // Rectifying this to be able to assert equality, and using a different
+        // ontology
+        // so that the equality test does not skip gcis because of the format
+        OWLClass x = df.getOWLClass(NS, "X");
+        Set<OWLClassAxiom> axioms = asUnorderedSet(manch.axioms(x));
+        manch.remove(axioms);
+        OWLClass female = df.getOWLClass(NS, "Female");
+        OWLClassExpression oneOf = df.getOWLObjectOneOf(df.getOWLNamedIndividual(NS, "Bill"), df.getOWLNamedIndividual(
+                NS, "Mary"), df.getOWLNamedIndividual(NS, "Meg"));
+        OWLClass parent = df.getOWLClass(NS, "Parent");
+        OWLObjectProperty hasChild = df.getOWLObjectProperty(NS, "hasChild");
+        OWLClassExpression superClass = df.getOWLObjectIntersectionOf(parent, df.getOWLObjectAllValuesFrom(hasChild,
+                female), df.getOWLObjectMaxCardinality(1, hasChild));
+        manch.getOWLOntologyManager().addAxiom(manch, df.getOWLSubClassOfAxiom(df.getOWLObjectIntersectionOf(female,
+                oneOf), superClass));
+        OWLOntology replacement = m.createOntology(manch.axioms(), get(manch.getOntologyID().getOntologyIRI()));
+        equal(func, replacement);
+    }
+
+    @Test
+    public void shouldRDFXMLBeEquivalent() {
+        OWLOntology rdf = loadOntologyFromString(RDFXML, IRI.create("urn:primer#", "rdfxml"),
+                new RDFXMLDocumentFormat());
+        assertTrue(profile.checkOntology(rdf).getViolations().isEmpty());
+        equal(func, rdf);
+    }
+
+    @Test
+    public void shouldOWLXMLBeEquivalent() {
+        OWLOntology owl = loadOntologyFromString(OWLXML, IRI.create("urn:primer#", "owlxml"),
+                new OWLXMLDocumentFormat());
+        assertTrue(profile.checkOntology(owl).getViolations().isEmpty());
+        equal(func, owl);
+    }
+
+    @Test
+    public void shouldTURTLEBeEquivalent() {
+        OWLOntology turt = loadOntologyFromString(TURTLE, IRI.create("urn:primer#", "turtle"),
+                new TurtleDocumentFormat());
+        assertTrue(profile.checkOntology(turt).getViolations().isEmpty());
+        // XXX somehow the Turtle parser introduces a tautology: the inverse of
+        // inverse(hasParent) is hasParent
+        // dropping said tautology to assert equality of the rest of the axioms
+        OWLObjectProperty hasParent = df.getOWLObjectProperty(NS, "hasParent");
+        turt.remove(df.getOWLInverseObjectPropertiesAxiom(df.getOWLObjectInverseOf(hasParent), hasParent));
+        equal(func, turt);
+    }
+
+    private static final String OWLXML = "<!DOCTYPE Ontology [\n"
             + "        <!ENTITY xsd \"http://www.w3.org/2001/XMLSchema#\" >\n"
             + "        <!ENTITY rdfs \"http://www.w3.org/2000/01/rdf-schema#\" >\n" + "        ]>\n" + '\n'
             + "<Ontology xml:base=\"http://example.com/owl/families/\" ontologyIRI=\"http://example.com/owl/families\" xmlns=\"http://www.w3.org/2002/07/owl#\">\n"
@@ -307,9 +297,7 @@ public class PrimerTestCase extends TestBase {
             + "    <NegativeDataPropertyAssertion><DataProperty IRI=\"hasAge\"/><NamedIndividual IRI=\"Jack\"/><Literal datatypeIRI=\"&xsd;integer\">53</Literal></NegativeDataPropertyAssertion>\n"
             + "    <NegativeObjectPropertyAssertion><ObjectProperty IRI=\"hasDaughter\"/><NamedIndividual IRI=\"Bill\"/><NamedIndividual IRI=\"Susan\"/></NegativeObjectPropertyAssertion>\n"
             + '\n' + "</Ontology>";
-    private static final
-    @Nonnull
-    String FUNCTIONAL = " Prefix(:=<http://example.com/owl/families/>)\n"
+    private static final String FUNCTIONAL = " Prefix(:=<http://example.com/owl/families/>)\n"
             + " Prefix(otherOnt:=<http://example.org/otherOntologies/families/>)\n"
             + " Prefix(xsd:=<http://www.w3.org/2001/XMLSchema#>)\n" + " Prefix(owl:=<http://www.w3.org/2002/07/owl#>)\n"
             + " Ontology(<http://example.com/owl/families>\n" + '\n' + "   Declaration( NamedIndividual( :John ) )\n"
@@ -392,9 +380,7 @@ public class PrimerTestCase extends TestBase {
             + "   NegativeDataPropertyAssertion( :hasAge :Jack \"53\"^^xsd:integer )\n" + '\n'
             + "   SameIndividual( :James :Jim )\n" + "   SameIndividual( :John otherOnt:JohnBrown )\n"
             + "   SameIndividual( :Mary otherOnt:MaryBrown )\n" + "   DifferentIndividuals( :John :Bill )\n" + " )";
-    private static final
-    @Nonnull
-    String MANCHESTER = "Prefix: : <http://example.com/owl/families/>\n"
+    private static final String MANCHESTER = "Prefix: : <http://example.com/owl/families/>\n"
             + "Prefix: xsd: <http://www.w3.org/2001/XMLSchema#>\n" + "Prefix: owl: <http://www.w3.org/2002/07/owl#>\n"
             + "Prefix: otherOnt: <http://example.org/otherOntologies/families/>\n"
             + "Ontology: <http://example.com/owl/families>\n"
@@ -448,9 +434,7 @@ public class PrimerTestCase extends TestBase {
             + "Individual: Meg\n" + "Individual: Susan\n" + "Individual: Jim\n" + "Individual: otherOnt:JohnBrown\n"
             + "Individual: otherOnt:MaryBrown\n" + '\n' + "SameIndividual: John, otherOnt:JohnBrown\n"
             + "SameIndividual: Mary, otherOnt:MaryBrown";
-    private static final
-    @Nonnull
-    String TURTLE = "@prefix : <http://example.com/owl/families/> .\n"
+    private static final String TURTLE = "@prefix : <http://example.com/owl/families/> .\n"
             + "@prefix otherOnt: <http://example.org/otherOntologies/families/> .\n"
             + "@prefix owl: <http://www.w3.org/2002/07/owl#> .\n"
             + "@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .\n"
@@ -603,4 +587,6 @@ public class PrimerTestCase extends TestBase {
             + "                            [ rdf:type            owl:Restriction ; owl:maxCardinality  \"1\"^^xsd:nonNegativeInteger ; owl:onProperty      :hasChild ]\n"
             + "                            [ rdf:type           owl:Restriction ; owl:onProperty     :hasChild ; owl:allValuesFrom  :Female ]\n"
             + "                          )\n" + "    ] .";
+    protected OWLOntology func = loadOntologyFromString(FUNCTIONAL, IRI.create("urn:primer#", "functional"),
+            new FunctionalSyntaxDocumentFormat());
 }

@@ -31,6 +31,7 @@ import java.util.stream.Stream;
  * The collection of test data for testing inputs.
  * Created by @ssz on 22.08.2019.
  */
+@SuppressWarnings("rawtypes")
 public class TestFactory {
 
     public static List<Data> getObjects() {

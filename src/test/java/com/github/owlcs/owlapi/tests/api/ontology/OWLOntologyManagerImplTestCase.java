@@ -13,11 +13,11 @@
  */
 package com.github.owlcs.owlapi.tests.api.ontology;
 
+import com.github.owlcs.owlapi.OWLManager;
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Before;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
-import com.github.owlcs.owlapi.OWLManager;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 import java.util.Set;
 
@@ -26,12 +26,8 @@ import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asUnorderedSet;
 import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.contains;
 
 /**
- * @author Matthew Horridge, The University Of Manchester, Bio-Health
- *         Informatics Group
- * @since 2.0.0
+ * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
  */
-
-@SuppressWarnings({"javadoc"})
 public class OWLOntologyManagerImplTestCase extends TestBase {
 
     private OWLOntologyManager manager;
@@ -87,7 +83,7 @@ public class OWLOntologyManagerImplTestCase extends TestBase {
     @Test
     public void testImportsLoad() throws OWLException {
         OWLOntology ontA = manager.createOntology(IRI.create("urn:test:", "a"));
-        assertTrue(ontA.directImports().count() == 0);
+        assertEquals(0, ontA.directImports().count());
         IRI b = IRI.create("urn:test:", "b");
         OWLImportsDeclaration declB = manager.getOWLDataFactory().getOWLImportsDeclaration(b);
         manager.applyChange(new AddImport(ontA, declB));

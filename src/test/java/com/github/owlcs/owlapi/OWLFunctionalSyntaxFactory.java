@@ -38,9 +38,7 @@ import static org.semanticweb.owlapi.model.IRI.getNextDocumentIRI;
  * {@link org.semanticweb.owlapi.model.OWLDataFactory} for creating objects.
  *
  * @author Matthew Horridge, The University of Manchester, Information Management Group
- * @since 3.0.0
  */
-@SuppressWarnings("javadoc")
 public final class OWLFunctionalSyntaxFactory {
 
     private static final String URNTESTS_URI = "urn:tests#uri";

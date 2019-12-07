@@ -104,7 +104,7 @@ abstract class ObjectFactoryTestBase extends TestFactory {
 
     void testEraseModel(OWLObject sample, OWLObject actual) {
         LOGGER.debug("Test erase model for '{}'", data);
-        OWLObject factoryObject = ((ModelObject) actual).eraseModel();
+        OWLObject factoryObject = ((ModelObject<?>) actual).eraseModel();
         Assert.assertEquals(sample, factoryObject);
         testObjectHasNoModelReference(factoryObject);
     }

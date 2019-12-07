@@ -22,7 +22,6 @@ import org.junit.runners.Parameterized.Parameters;
 import java.util.Arrays;
 import java.util.List;
 
-@SuppressWarnings("javadoc")
 @RunWith(Parameterized.class)
 public class ProfileAllProfilesTestCase extends ProfileBase {
 

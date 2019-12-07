@@ -75,16 +75,16 @@ public class CommonAxiomsTest extends StatementTestBase {
         );
     }
 
-    public static List<AxiomData> getAxiomData(AxiomType... types) {
+    public static List<AxiomData> getAxiomData(AxiomType<?>... types) {
         return getObjects().stream().filter(Data::isAxiom)
                 .map(x -> (AxiomData) x)
                 .filter(x -> isOneOf(x, types))
                 .collect(Collectors.toList());
     }
 
-    private static boolean isOneOf(AxiomData o, AxiomType... types) {
-        AxiomType res = o.getType();
-        for (AxiomType t : types) {
+    private static boolean isOneOf(AxiomData o, AxiomType<?>... types) {
+        AxiomType<?> res = o.getType();
+        for (AxiomType<?> t : types) {
             if (res.equals(t)) return true;
         }
         return false;

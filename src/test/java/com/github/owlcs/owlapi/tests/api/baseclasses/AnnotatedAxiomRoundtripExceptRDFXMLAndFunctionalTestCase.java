@@ -29,17 +29,12 @@ import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
 
 /**
- * @author Matthew Horridge, The University of Manchester, Bio-Health
- *         Informatics Group
- * @since 3.1.0
+ * @author Matthew Horridge, The University of Manchester, Bio-Health Informatics Group
  */
-@SuppressWarnings("javadoc")
 @RunWith(Parameterized.class)
-public class AnnotatedAxiomRoundtripExceptRDFXMLAndFunctionalTestCase
-        extends AnnotatedAxiomRoundTrippingTestCase {
+public class AnnotatedAxiomRoundtripExceptRDFXMLAndFunctionalTestCase extends AnnotatedAxiomRoundTrippingTestCase {
 
-    public AnnotatedAxiomRoundtripExceptRDFXMLAndFunctionalTestCase(
-            Function<Set<OWLAnnotation>, OWLAxiom> f) {
+    public AnnotatedAxiomRoundtripExceptRDFXMLAndFunctionalTestCase(Function<Set<OWLAnnotation>, OWLAxiom> f) {
         super(f);
     }
 
@@ -56,7 +51,7 @@ public class AnnotatedAxiomRoundtripExceptRDFXMLAndFunctionalTestCase
 
     @Override
     @Test
-    public void roundTripRDFXMLAndFunctionalShouldBeSame() {
+    public void roundTripRDFXMLAndFunctionalShouldBeSame() { //todo?
         // Serializations are structurally different because of nary equivalent
         // axioms
     }

@@ -27,14 +27,10 @@ import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
 
 /**
- * @author Matthew Horridge, The University of Manchester, Information
- *         Management Group
- * @since 3.0.0
+ * @author Matthew Horridge, The University of Manchester, Information Management Group
  */
-@SuppressWarnings("javadoc")
 @RunWith(Parameterized.class)
-public class AxiomsRoundTrippingNoManchesterSyntaxTestCase extends
-        AxiomsRoundTrippingBase {
+public class AxiomsRoundTrippingNoManchesterSyntaxTestCase extends AxiomsRoundTrippingBase {
 
     public AxiomsRoundTrippingNoManchesterSyntaxTestCase(AxiomBuilder f) {
         super(f);

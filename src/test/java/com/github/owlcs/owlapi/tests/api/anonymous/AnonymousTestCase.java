@@ -13,14 +13,13 @@
  */
 package com.github.owlcs.owlapi.tests.api.anonymous;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
 
-@SuppressWarnings("javadoc")
 public class AnonymousTestCase extends TestBase {
 
     @Test

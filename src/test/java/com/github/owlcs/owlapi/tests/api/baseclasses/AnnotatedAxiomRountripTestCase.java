@@ -28,17 +28,12 @@ import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
 
 /**
- * @author Matthew Horridge, The University of Manchester, Information
- *         Management Group
- * @since 3.0.0
+ * @author Matthew Horridge, The University of Manchester, Information  Management Group
  */
-@SuppressWarnings("javadoc")
 @RunWith(Parameterized.class)
-public class AnnotatedAxiomRountripTestCase
-        extends AnnotatedAxiomRoundTrippingTestCase {
+public class AnnotatedAxiomRountripTestCase extends AnnotatedAxiomRoundTrippingTestCase {
 
-    public AnnotatedAxiomRountripTestCase(
-            Function<Set<OWLAnnotation>, OWLAxiom> f) {
+    public AnnotatedAxiomRountripTestCase(Function<Set<OWLAnnotation>, OWLAxiom> f) {
         super(f);
     }
 

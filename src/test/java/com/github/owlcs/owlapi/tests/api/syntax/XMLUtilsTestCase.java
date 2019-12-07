@@ -13,6 +13,8 @@
  */
 package com.github.owlcs.owlapi.tests.api.syntax;
 
+import com.github.owlcs.owlapi.OWLManager;
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
@@ -21,19 +23,13 @@ import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLOntology;
-import com.github.owlcs.owlapi.OWLManager;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * @author Matthew Horridge, The University of Manchester, Bio-Health
- *         Informatics Group
- * @since 3.3.0
+ * @author Matthew Horridge, The University of Manchester, Bio-Health Informatics Group
  */
-
-@SuppressWarnings({"javadoc"})
 public class XMLUtilsTestCase extends TestBase {
 
     private static final int CODE_POINT = 0xEFFFF;
@@ -89,8 +85,10 @@ public class XMLUtilsTestCase extends TestBase {
      * so it is incorrect to treat is as an annotation property.
      * The second difference with ONT-API behaviour is in fact that SKOS and DC are built-in vocabularies,
      * so there is no need in explicit declarations.
-     * @Since 1.1.0: fix data due to changes in jena-3.4.0: Spaces in IRI are illegal. see {@link org.apache.jena.riot.tokens.TokenizerText#AllowSpacesInIRI}
+     *
+     * @since 1.1.0: fix data due to changes in jena-3.4.0: Spaces in IRI are illegal. see {@link org.apache.jena.riot.tokens.TokenizerText#AllowSpacesInIRI}
      */
+    @SuppressWarnings("JavadocReference")
     @Test
     public void testmissingTypes() {
         // given

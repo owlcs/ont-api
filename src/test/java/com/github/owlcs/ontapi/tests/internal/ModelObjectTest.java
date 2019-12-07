@@ -37,14 +37,14 @@ public class ModelObjectTest {
     @Test
     public void testObjectAsSomeValuesFrom() {
         OWLDataFactory df = ObjectFactoryTestBase.ONT_DATA_FACTORY;
-        OWLHasValueRestriction in = df.getOWLObjectHasValue(df.getOWLObjectProperty("P"), df.getOWLNamedIndividual("I"));
+        OWLObjectHasValue in = df.getOWLObjectHasValue(df.getOWLObjectProperty("P"), df.getOWLNamedIndividual("I"));
         testAsSomeValuesFrom(in);
     }
 
     @Test
     public void testDataAsSomeValuesFrom() {
         OWLDataFactory df = ObjectFactoryTestBase.ONT_DATA_FACTORY;
-        OWLHasValueRestriction in = df.getOWLDataHasValue(df.getOWLDataProperty("P"), df.getOWLLiteral("I"));
+        OWLDataHasValue in = df.getOWLDataHasValue(df.getOWLDataProperty("P"), df.getOWLLiteral("I"));
         testAsSomeValuesFrom(in);
     }
 
@@ -290,13 +290,13 @@ public class ModelObjectTest {
     }
 
     @SuppressWarnings("unchecked")
-    private <X extends OWLNaryAxiom & OWLSubClassOfAxiomSetShortCut> void testSubClassShortCutNaryAxiom(X expected) {
+    private <X extends OWLNaryAxiom<?> & OWLSubClassOfAxiomSetShortCut> void testSubClassShortCutNaryAxiom(X expected) {
         X actual = testNaryAxiom(expected);
         testNarySplitMethod(expected, actual, x -> ((X) x).asOWLSubClassOfAxioms());
     }
 
     @SuppressWarnings("unchecked")
-    private <X extends OWLNaryAxiom> X testNaryAxiom(X expected) {
+    private <X extends OWLNaryAxiom<?>> X testNaryAxiom(X expected) {
         Collection<? extends OWLAxiom> res = SplitNaryAxiomsTest.createONTAxioms(OntManagers.createONT(), expected);
         Assert.assertEquals(1, res.size());
         X actual = (X) res.iterator().next();
@@ -308,9 +308,9 @@ public class ModelObjectTest {
         return actual;
     }
 
-    private void testNarySplitMethod(OWLNaryAxiom expected,
-                                     OWLNaryAxiom actual,
-                                     Function<OWLNaryAxiom, Collection<? extends OWLAxiom>> get) {
+    private void testNarySplitMethod(OWLNaryAxiom<?> expected,
+                                     OWLNaryAxiom<?> actual,
+                                     Function<OWLNaryAxiom<?>, Collection<? extends OWLAxiom>> get) {
         Collection<? extends OWLAxiom> expectedAxioms = get.apply(expected);
         Collection<? extends OWLAxiom> actualAxioms = get.apply(actual);
         Assert.assertEquals(expectedAxioms, actualAxioms);
@@ -350,8 +350,8 @@ public class ModelObjectTest {
         }
     }
 
-    private void testAsSomeValuesFrom(OWLHasValueRestriction in) {
-        OWLHasValueRestriction res = (OWLHasValueRestriction) ClassExpressionTest.createONTObject(in);
+    private void testAsSomeValuesFrom(OWLHasValueRestriction<?> in) {
+        OWLHasValueRestriction<?> res = (OWLHasValueRestriction<?>) ClassExpressionTest.createONTObject(in);
         Assert.assertTrue(res instanceof ModelObject);
         OWLClassExpression c = res.asSomeValuesFrom();
         ObjectFactoryTestBase.testObjectHasNoModelReference(c);

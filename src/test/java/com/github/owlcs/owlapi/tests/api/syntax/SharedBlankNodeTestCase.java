@@ -14,6 +14,9 @@
 
 package com.github.owlcs.owlapi.tests.api.syntax;
 
+import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
+import com.github.owlcs.owlapi.OWLManager;
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.formats.FunctionalSyntaxDocumentFormat;
@@ -23,9 +26,6 @@ import org.semanticweb.owlapi.io.StringDocumentTarget;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.rdf.rdfxml.renderer.RDFXMLStorerFactory;
 import org.semanticweb.owlapi.util.OWLAPIStreamUtils;
-import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
-import com.github.owlcs.owlapi.OWLManager;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -37,8 +37,6 @@ import java.util.stream.Stream;
  * test for 3294629 - currently disabled. Not clear whether structure sharing is
  * allowed or disallowed. Data is equivalent, ontology annotations are not
  */
-
-@SuppressWarnings("javadoc")
 public class SharedBlankNodeTestCase extends TestBase {
 
     @Test

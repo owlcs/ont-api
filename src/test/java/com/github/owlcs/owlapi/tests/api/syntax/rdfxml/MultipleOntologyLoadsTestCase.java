@@ -14,6 +14,7 @@
 package com.github.owlcs.owlapi.tests.api.syntax.rdfxml;
 
 import com.github.owlcs.ontapi.OntApiException;
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Test;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.io.OWLParser;
@@ -23,12 +24,11 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyAlreadyExistsException;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.rdf.rdfxml.parser.RDFXMLParser;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
+import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.IRI;
 import static org.junit.Assert.assertEquals;
 import static org.semanticweb.owlapi.util.OWLAPIPreconditions.emptyOptional;
 import static org.semanticweb.owlapi.util.OWLAPIPreconditions.optional;
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.IRI;
 
 /**
  * Tests the loading of a single ontology multiple times, using the same
@@ -37,8 +37,6 @@ import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.IRI;
  *
  * @author Peter Ansell p_ansell@yahoo.com
  */
-
-@SuppressWarnings({"javadoc"})
 public class MultipleOntologyLoadsTestCase extends TestBase {
 
     private static final IRI CREATEV1 = IRI("http://test.example.org/ontology/0139/version:1", "");
@@ -98,10 +96,10 @@ public class MultipleOntologyLoadsTestCase extends TestBase {
         OWLOntology secondOntology = getOWLOntology(secondUniqueOWLOntologyID);
         parseOnto(secondDocumentSource, secondOntology);
         // then
-        assertEquals(CREATE0139, initialOntology.getOntologyID().getOntologyIRI().get());
-        assertEquals(CREATEV1, initialOntology.getOntologyID().getVersionIRI().get());
-        assertEquals(CREATE0139, secondOntology.getOntologyID().getOntologyIRI().get());
-        assertEquals(CREATEV2, secondOntology.getOntologyID().getVersionIRI().get());
+        assertEquals(CREATE0139, initialOntology.getOntologyID().getOntologyIRI().orElse(null));
+        assertEquals(CREATEV1, initialOntology.getOntologyID().getVersionIRI().orElse(null));
+        assertEquals(CREATE0139, secondOntology.getOntologyID().getOntologyIRI().orElse(null));
+        assertEquals(CREATEV2, secondOntology.getOntologyID().getVersionIRI().orElse(null));
     }
 
     @Test
@@ -116,10 +114,10 @@ public class MultipleOntologyLoadsTestCase extends TestBase {
         OWLOntology secondOntology = getOWLOntology(secondUniqueOWLOntologyID);
         parseOnto(secondDocumentSource, secondOntology);
         // then
-        assertEquals(CREATE0139, initialOntology.getOntologyID().getOntologyIRI().get());
-        assertEquals(CREATEV1, initialOntology.getOntologyID().getVersionIRI().get());
-        assertEquals(CREATE0139, secondOntology.getOntologyID().getOntologyIRI().get());
-        assertEquals(CREATEV2, secondOntology.getOntologyID().getVersionIRI().get());
+        assertEquals(CREATE0139, initialOntology.getOntologyID().getOntologyIRI().orElse(null));
+        assertEquals(CREATEV1, initialOntology.getOntologyID().getVersionIRI().orElse(null));
+        assertEquals(CREATE0139, secondOntology.getOntologyID().getOntologyIRI().orElse(null));
+        assertEquals(CREATEV2, secondOntology.getOntologyID().getVersionIRI().orElse(null));
     }
 
     @Test
@@ -135,10 +133,10 @@ public class MultipleOntologyLoadsTestCase extends TestBase {
         OWLOntology secondOntology = getOWLOntology(secondUniqueOWLOntologyID);
         parseOnto(secondDocumentSource, secondOntology);
         // then
-        assertEquals(CREATE0139, initialOntology.getOntologyID().getOntologyIRI().get());
-        assertEquals(CREATEV1, initialOntology.getOntologyID().getVersionIRI().get());
-        assertEquals(CREATE0139, secondOntology.getOntologyID().getOntologyIRI().get());
-        assertEquals(CREATEV2, secondOntology.getOntologyID().getVersionIRI().get());
+        assertEquals(CREATE0139, initialOntology.getOntologyID().getOntologyIRI().orElse(null));
+        assertEquals(CREATEV1, initialOntology.getOntologyID().getVersionIRI().orElse(null));
+        assertEquals(CREATE0139, secondOntology.getOntologyID().getOntologyIRI().orElse(null));
+        assertEquals(CREATEV2, secondOntology.getOntologyID().getVersionIRI().orElse(null));
     }
 
     @Test
@@ -150,8 +148,8 @@ public class MultipleOntologyLoadsTestCase extends TestBase {
         OWLOntology secondOntology = getOWLOntology(secondUniqueOWLOntologyID);
         parseOnto(secondDocumentSource, secondOntology);
         // then
-        assertEquals(CREATE0139, secondOntology.getOntologyID().getOntologyIRI().get());
-        assertEquals(CREATEV2, secondOntology.getOntologyID().getVersionIRI().get());
+        assertEquals(CREATE0139, secondOntology.getOntologyID().getOntologyIRI().orElse(null));
+        assertEquals(CREATEV2, secondOntology.getOntologyID().getVersionIRI().orElse(null));
     }
 
     @Test
@@ -163,8 +161,8 @@ public class MultipleOntologyLoadsTestCase extends TestBase {
         OWLOntology initialOntology = getOWLOntology(initialUniqueOWLOntologyID);
         parseOnto(documentSource, initialOntology);
         // then
-        assertEquals(CREATE0139, initialOntology.getOntologyID().getOntologyIRI().get());
-        assertEquals(CREATEV1, initialOntology.getOntologyID().getVersionIRI().get());
+        assertEquals(CREATE0139, initialOntology.getOntologyID().getOntologyIRI().orElse(null));
+        assertEquals(CREATEV1, initialOntology.getOntologyID().getVersionIRI().orElse(null));
     }
 
     private void parseOnto(OWLOntologyDocumentSource initialDocumentSource, OWLOntology initialOntology) {

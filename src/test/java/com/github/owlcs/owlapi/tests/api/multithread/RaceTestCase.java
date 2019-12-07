@@ -13,12 +13,12 @@
  */
 package com.github.owlcs.owlapi.tests.api.multithread;
 
+import com.github.owlcs.owlapi.OWLManager;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.github.owlcs.owlapi.OWLManager;
 
 import java.util.HashSet;
 import java.util.List;
@@ -30,8 +30,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-
-@SuppressWarnings("javadoc")
 public class RaceTestCase {
     private static final Logger LOGGER = LoggerFactory.getLogger(RaceTestCase.class);
 

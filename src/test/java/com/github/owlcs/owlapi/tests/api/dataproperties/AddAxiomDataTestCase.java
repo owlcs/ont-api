@@ -19,25 +19,16 @@ import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLOntology;
 
-import javax.annotation.Nonnull;
-
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.mock;
 
 /**
- * @author Matthew Horridge, Stanford University, Bio-Medical Informatics
- *         Research Group
- * @since 3.2.0
+ * @author Matthew Horridge, Stanford University, Bio-Medical Informatics Research Group
  */
-@SuppressWarnings({"javadoc"})
 public class AddAxiomDataTestCase {
 
-    private final
-    @Nonnull
-    OWLAxiom mockAxiom = mock(OWLAxiom.class);
-    private final
-    @Nonnull
-    OWLOntology mockOntology = mock(OWLOntology.class);
+    private final OWLAxiom mockAxiom = mock(OWLAxiom.class);
+    private final OWLOntology mockOntology = mock(OWLOntology.class);
 
     @Test
     public void testEquals() {

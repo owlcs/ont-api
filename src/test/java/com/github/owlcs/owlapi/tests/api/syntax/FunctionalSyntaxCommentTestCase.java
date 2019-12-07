@@ -13,20 +13,19 @@
  */
 package com.github.owlcs.owlapi.tests.api.syntax;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Test;
 import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 import java.util.Optional;
 
-import static org.junit.Assert.*;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
+import static org.junit.Assert.*;
 
-@SuppressWarnings("javadoc")
 public class FunctionalSyntaxCommentTestCase extends TestBase {
 
     @Test

@@ -14,13 +14,12 @@
 
 package com.github.owlcs.owlapi.tests.api.syntax;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Test;
 import org.semanticweb.owlapi.formats.FunctionalSyntaxDocumentFormat;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
-@SuppressWarnings("javadoc")
 public class PunningAndDomainsRangesTestCase extends TestBase {
 
     @Test

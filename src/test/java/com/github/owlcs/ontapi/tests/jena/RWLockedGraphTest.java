@@ -14,17 +14,6 @@
 
 package com.github.owlcs.ontapi.tests.jena;
 
-import org.apache.jena.graph.Factory;
-import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.GraphStatisticsHandler;
-import org.apache.jena.graph.Node;
-import org.apache.jena.shared.PrefixMapping;
-import org.junit.Assert;
-import org.junit.Test;
-import org.semanticweb.owlapi.model.AxiomType;
-import org.semanticweb.owlapi.model.OWLAxiom;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.github.owlcs.ontapi.NoOpReadWriteLock;
 import com.github.owlcs.ontapi.internal.AxiomParserProvider;
 import com.github.owlcs.ontapi.internal.ONTObject;
@@ -36,6 +25,17 @@ import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
+import org.apache.jena.graph.Factory;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.GraphStatisticsHandler;
+import org.apache.jena.graph.Node;
+import org.apache.jena.shared.PrefixMapping;
+import org.junit.Assert;
+import org.junit.Test;
+import org.semanticweb.owlapi.model.AxiomType;
+import org.semanticweb.owlapi.model.OWLAxiom;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -180,6 +180,7 @@ public class RWLockedGraphTest {
         Assert.assertEquals(THREADS_NUM_2, pm.numPrefixes());
     }
 
+    @SuppressWarnings("deprecation")
     @Test
     public void testGraphStatisticHandler() {
         RWLockedGraph g = new RWLockedGraph(loadPizza(), NoOpReadWriteLock.NO_OP_RW_LOCK);

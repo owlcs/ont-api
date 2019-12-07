@@ -19,26 +19,17 @@ import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.RemoveImport;
 
-import javax.annotation.Nonnull;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
 
 /**
- * @author Matthew Horridge, Stanford University, Bio-Medical Informatics
- *         Research Group
- * @since 3.2.0
+ * @author Matthew Horridge, Stanford University, Bio-Medical Informatics Research Group
  */
-@SuppressWarnings({"javadoc"})
 public class RemoveImportDataTestCase {
 
-    private final
-    @Nonnull
-    OWLImportsDeclaration mockDeclaration = mock(OWLImportsDeclaration.class);
-    private final
-    @Nonnull
-    OWLOntology mockOntology = mock(OWLOntology.class);
+    private final OWLImportsDeclaration mockDeclaration = mock(OWLImportsDeclaration.class);
+    private final OWLOntology mockOntology = mock(OWLOntology.class);
 
     private RemoveImportData createData() {
         return new RemoveImportData(mockDeclaration);

@@ -13,32 +13,21 @@
  */
 package com.github.owlcs.owlapi.tests.api.dataproperties;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLOntology;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
-import javax.annotation.Nonnull;
-
-import static org.junit.Assert.assertEquals;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
+import static org.junit.Assert.assertEquals;
 
-@SuppressWarnings("javadoc")
 public class DisjointUnionTestCase extends TestBase {
 
-    private static final
-    @Nonnull
-    String NS = "http://protege.org/protege/DisjointUnion.owl";
-    public static final
-    @Nonnull
-    OWLClass A = Class(IRI(NS + "#", "A"));
-    public static final
-    @Nonnull
-    OWLClass B = Class(IRI(NS + "#", "B"));
-    public static final
-    @Nonnull
-    OWLClass C = Class(IRI(NS + "#", "C"));
+    private static final String NS = "http://protege.org/protege/DisjointUnion.owl";
+    public static final OWLClass A = Class(IRI(NS + "#", "A"));
+    public static final OWLClass B = Class(IRI(NS + "#", "B"));
+    public static final OWLClass C = Class(IRI(NS + "#", "C"));
 
     @Test
     public void testDisjointUnion() {

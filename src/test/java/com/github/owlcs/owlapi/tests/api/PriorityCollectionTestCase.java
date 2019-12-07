@@ -33,7 +33,6 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
-@SuppressWarnings("javadoc")
 public class PriorityCollectionTestCase {
 
     @Test

@@ -196,10 +196,10 @@ public class ModifyAxiomsTest {
         OntSWRL.DArg id1 = v.as(OntSWRL.DArg.class);
         OntSWRL.IArg ia1 = v.as(OntSWRL.IArg.class);
         OntSWRL.IArg ia2 = m.createIndividual("I").as(OntSWRL.IArg.class);
-        OntSWRL.Atom a1 = m.createDataRangeSWRLAtom(m.getDatatype(XSD.xstring), id1);
-        OntSWRL.Atom a2 = m.createClassSWRLAtom(m.getOWLThing(), ia1);
-        OntSWRL.Atom a3 = m.createObjectPropertySWRLAtom(m.createObjectProperty("P1"), ia1, ia2);
-        OntSWRL.Atom a4 = m.createDataPropertySWRLAtom(m.createDataProperty("P2"), ia1, id1);
+        OntSWRL.Atom<?> a1 = m.createDataRangeSWRLAtom(m.getDatatype(XSD.xstring), id1);
+        OntSWRL.Atom<?> a2 = m.createClassSWRLAtom(m.getOWLThing(), ia1);
+        OntSWRL.Atom<?> a3 = m.createObjectPropertySWRLAtom(m.createObjectProperty("P1"), ia1, ia2);
+        OntSWRL.Atom<?> a4 = m.createDataPropertySWRLAtom(m.createDataProperty("P2"), ia1, id1);
 
         m.createSWRLImp(Collections.emptyList(), Arrays.asList(a1, a2, a3));
         m.createSWRLImp(Arrays.asList(a2, a1, a4), Collections.emptyList());

@@ -21,8 +21,6 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.SetOntologyID;
 
-import javax.annotation.Nonnull;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.mock;
@@ -30,19 +28,12 @@ import static org.mockito.Mockito.when;
 import static org.semanticweb.owlapi.util.OWLAPIPreconditions.optional;
 
 /**
- * @author Matthew Horridge, Stanford University, Bio-Medical Informatics
- *         Research Group
- * @since 3.2.0
+ * @author Matthew Horridge, Stanford University, Bio-Medical Informatics Research Group
  */
-@SuppressWarnings({"javadoc"})
 public class SetOntologyIDDataTestCase {
 
-    private final
-    @Nonnull
-    OWLOntology mockOntology = mock(OWLOntology.class);
-    private final
-    @Nonnull
-    OWLOntologyID mockOntologyID = new OWLOntologyID();
+    private final OWLOntology mockOntology = mock(OWLOntology.class);
+    private final OWLOntologyID mockOntologyID = new OWLOntologyID();
 
     @Before
     public void setUp() {

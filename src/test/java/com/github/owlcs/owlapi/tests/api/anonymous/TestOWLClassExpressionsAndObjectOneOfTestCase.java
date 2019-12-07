@@ -13,14 +13,13 @@
  */
 package com.github.owlcs.owlapi.tests.api.anonymous;
 
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 import static org.junit.Assert.assertNotNull;
 
-@SuppressWarnings("javadoc")
 public class TestOWLClassExpressionsAndObjectOneOfTestCase extends TestBase {
 
     @Test

@@ -171,7 +171,7 @@ public class AxiomPropertiesTest {
         }
     }
 
-    @SuppressWarnings("unchecked")
+    @SuppressWarnings({"unchecked", "rawtypes"})
     @SafeVarargs
     private static <X extends OWLNaryAxiom> void testSplitNaryAxioms(List<TestFactory.AxiomData> data,
                                                                      Function<X, Object>... properties) {

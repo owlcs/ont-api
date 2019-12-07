@@ -14,6 +14,8 @@
 package com.github.owlcs.owlapi.tests.api.imports;
 
 import com.github.owlcs.ontapi.OntFormat;
+import com.github.owlcs.owlapi.OWLManager;
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Matchers;
@@ -26,8 +28,6 @@ import org.semanticweb.owlapi.profiles.Profiles;
 import org.semanticweb.owlapi.util.AutoIRIMapper;
 import org.semanticweb.owlapi.util.OWLAPIStreamUtils;
 import org.semanticweb.owlapi.util.SimpleIRIMapper;
-import com.github.owlcs.owlapi.OWLManager;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -38,11 +38,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * @author Matthew Horridge, The University of Manchester, Bio-Health
- * Informatics Group
- * @since 3.1.0
+ * @author Matthew Horridge, The University of Manchester, Bio-Health Informatics Group
  */
-@SuppressWarnings("javadoc")
 public class ImportsTestCase extends TestBase {
 
     @Test

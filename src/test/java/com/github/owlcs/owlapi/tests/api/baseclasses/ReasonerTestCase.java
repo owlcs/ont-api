@@ -23,11 +23,9 @@ import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.reasoner.*;
 import org.semanticweb.owlapi.reasoner.structural.StructuralReasonerFactory;
 
-import javax.annotation.Nonnull;
-
-import static org.junit.Assert.*;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
+import static org.junit.Assert.*;
 
 /**
  * This test case creates a small ontology and tests the getters in the reasoner
@@ -35,16 +33,11 @@ import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
  * reasoning results, rather it is designed to test the reasoner returns the
  * results in the form required by the OWL API reasoner interface.
  *
- * @author Matthew Horridge, The University of Manchester, Bio-Health
- *         Informatics Group
- * @since 3.1.0
+ * @author Matthew Horridge, The University of Manchester, Bio-Health Informatics Group
  */
-@SuppressWarnings("javadoc")
 public class ReasonerTestCase extends TestBase {
 
-    private final
-    @Nonnull
-    OWLReasonerFactory reasonerFactory = new StructuralReasonerFactory();
+    private final OWLReasonerFactory reasonerFactory = new StructuralReasonerFactory();
     private OWLReasoner reasoner;
 
     private OWLOntology createOntology() {

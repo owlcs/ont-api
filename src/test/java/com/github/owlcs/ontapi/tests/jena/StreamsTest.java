@@ -14,16 +14,16 @@
 
 package com.github.owlcs.ontapi.tests.jena;
 
-import org.apache.jena.mem.GraphMem;
-import org.apache.jena.vocabulary.RDFS;
-import org.junit.Assert;
-import org.junit.Test;
 import com.github.owlcs.ontapi.jena.OntJenaException;
 import com.github.owlcs.ontapi.jena.OntModelFactory;
 import com.github.owlcs.ontapi.jena.UnionGraph;
 import com.github.owlcs.ontapi.jena.model.*;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
+import org.apache.jena.mem.GraphMem;
+import org.apache.jena.vocabulary.RDFS;
+import org.junit.Assert;
+import org.junit.Test;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -67,7 +67,7 @@ public class StreamsTest {
     }
 
     @SuppressWarnings("SameParameterValue")
-    private static Stream<Field> directFields(Class vocabulary, Class<?> type) {
+    private static Stream<Field> directFields(Class<?> vocabulary, Class<?> type) {
         return Arrays.stream(vocabulary.getDeclaredFields()).
                 filter(field -> Modifier.isPublic(field.getModifiers())).
                 filter(field -> Modifier.isStatic(field.getModifiers())).

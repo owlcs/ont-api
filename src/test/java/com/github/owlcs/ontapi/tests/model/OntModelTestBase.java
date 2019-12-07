@@ -47,20 +47,20 @@ abstract class OntModelTestBase {
         ontology.axioms().forEach(x -> LOGGER.debug("AXIOM: {}", x));
     }
 
-    Stream<OWLAxiom> filterAxioms(OWLOntology ontology, AxiomType... excluded) {
+    Stream<OWLAxiom> filterAxioms(OWLOntology ontology, AxiomType<?>... excluded) {
         if (excluded.length == 0) return ontology.axioms();
-        List<AxiomType> types = Stream.of(excluded).collect(Collectors.toList());
+        List<AxiomType<?>> types = Stream.of(excluded).collect(Collectors.toList());
         return ontology.axioms().filter(axiom -> !types.contains(axiom.getAxiomType()));
     }
 
-    void checkAxioms(Ontology original, AxiomType... excluded) {
+    void checkAxioms(Ontology original, AxiomType<?>... excluded) {
         LOGGER.debug("Load ontology to another manager from jena graph.");
         OWLOntologyManager manager = OntManagers.createOWL();
         OWLOntology result = ReadWriteUtils.convertJenaToOWL(manager, original.asGraphModel());
         LOGGER.debug("All (actual) axioms from reloaded ontology[OWL]:");
         result.axioms().map(String::valueOf).forEach(LOGGER::debug);
-        Map<AxiomType, List<OWLAxiom>> expected = TestUtils.toMap(filterAxioms(original, excluded));
-        Map<AxiomType, List<OWLAxiom>> actual = TestUtils.toMap(filterAxioms(result, excluded));
+        Map<AxiomType<?>, List<OWLAxiom>> expected = TestUtils.toMap(filterAxioms(original, excluded));
+        Map<AxiomType<?>, List<OWLAxiom>> actual = TestUtils.toMap(filterAxioms(result, excluded));
         TestUtils.compareAxioms(expected, actual);
     }
 }
