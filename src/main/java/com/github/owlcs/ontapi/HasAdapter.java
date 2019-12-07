@@ -14,10 +14,10 @@
 
 package com.github.owlcs.ontapi;
 
+import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
-import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
 
 /**
  * A technical interface to provide an {@link Adapter} instance.
@@ -40,12 +40,12 @@ interface HasAdapter {
     interface Adapter {
 
         /**
-         * Performs mapping {@link OWLOntologyID} to {@link OntologyID}.
+         * Performs mapping {@link OWLOntologyID} to {@link ID}.
          *
          * @param id {@link OWLOntologyID}, not {@code null}
-         * @return {@link OntologyID}
+         * @return {@link ID}
          */
-        OntologyID asONT(OWLOntologyID id);
+        ID asONT(OWLOntologyID id);
 
         /**
          * Performs mapping {@link OWLOntologyLoaderConfiguration} to {@link OntLoaderConfiguration}.

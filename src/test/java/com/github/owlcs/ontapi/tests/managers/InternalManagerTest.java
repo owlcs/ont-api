@@ -14,6 +14,11 @@
 
 package com.github.owlcs.ontapi.tests.managers;
 
+import com.github.owlcs.ontapi.ID;
+import com.github.owlcs.ontapi.NoOpReadWriteLock;
+import com.github.owlcs.ontapi.OntologyCollection;
+import com.github.owlcs.ontapi.OntologyCollectionImpl;
+import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import org.apache.jena.graph.Node;
 import org.junit.Assert;
 import org.junit.Test;
@@ -22,11 +27,6 @@ import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.github.owlcs.ontapi.NoOpReadWriteLock;
-import com.github.owlcs.ontapi.OntologyCollection;
-import com.github.owlcs.ontapi.OntologyCollectionImpl;
-import com.github.owlcs.ontapi.OntologyID;
-import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 
 import java.io.PrintStream;
 import java.util.*;
@@ -105,10 +105,10 @@ public class InternalManagerTest {
         LOGGER.debug("1) List: {}", list1);
         Assert.assertEquals(2, list1.size());
         Assert.assertFalse(list1.isEmpty());
-        Assert.assertTrue(list1.get(OntologyID.create("a", null)).isPresent());
-        Assert.assertFalse(list1.get(OntologyID.create("a", "v")).isPresent());
+        Assert.assertTrue(list1.get(ID.create("a", null)).isPresent());
+        Assert.assertFalse(list1.get(ID.create("a", "v")).isPresent());
         Assert.assertTrue(list1.contains(b.getOntologyID()));
-        Assert.assertFalse(list1.contains(OntologyID.create("a", "v")));
+        Assert.assertFalse(list1.contains(ID.create("a", "v")));
 
         // change id externally for 'b':
         b.setOntologyID(IDHolder.of("x").getOntologyID());
@@ -123,10 +123,10 @@ public class InternalManagerTest {
         Assert.assertEquals(2, list2.size());
         Assert.assertEquals(2, list2.values().peek(x -> LOGGER.debug("{}", x)).count());
         Assert.assertFalse(list2.isEmpty());
-        Assert.assertFalse(list2.get(OntologyID.create("b", null)).isPresent());
-        Assert.assertTrue(list2.get(OntologyID.create("x", null)).isPresent());
+        Assert.assertFalse(list2.get(ID.create("b", null)).isPresent());
+        Assert.assertTrue(list2.get(ID.create("x", null)).isPresent());
         Assert.assertEquals(Arrays.asList("a", "x"), list2.keys()
-                .map(OntologyID::asONT).map(OntologyID::asNode)
+                .map(ID::asONT).map(ID::asNode)
                 .map(Node::getURI).sorted().collect(Collectors.toList()));
         list2.clear();
         Assert.assertTrue(list2.isEmpty());
@@ -136,31 +136,31 @@ public class InternalManagerTest {
         LOGGER.debug("4) List: {}", list2);
 
         // change id externally for 'a':
-        a.setOntologyID(OntologyID.create("x", null));
+        a.setOntologyID(ID.create("x", null));
         LOGGER.debug("5) List: {}", list2);
         Assert.assertEquals(2, list2.size());
         Assert.assertEquals(Arrays.asList("x", "x"), list2.keys()
-                .map(OntologyID::asONT).map(OntologyID::asNode)
+                .map(ID::asONT).map(ID::asNode)
                 .map(Node::getURI).sorted().collect(Collectors.toList()));
-        Assert.assertSame(b, list2.get(OntologyID.create("x", null)).orElseThrow(AssertionError::new));
-        Assert.assertNotSame(a, list2.get(OntologyID.create("x", null)).orElseThrow(AssertionError::new));
+        Assert.assertSame(b, list2.get(ID.create("x", null)).orElseThrow(AssertionError::new));
+        Assert.assertNotSame(a, list2.get(ID.create("x", null)).orElseThrow(AssertionError::new));
 
         // change id externally for 'b':
-        b.setOntologyID(OntologyID.create("x", "v"));
+        b.setOntologyID(ID.create("x", "v"));
         LOGGER.debug("6) List: {}", list2);
         Set<OWLOntologyID> keys = list2.keys().collect(Collectors.toSet());
         LOGGER.debug("Keys: {}", keys);
         Assert.assertEquals(2, keys.size());
-        Assert.assertSame(a, list2.get(OntologyID.create("x", null)).orElseThrow(AssertionError::new));
-        Assert.assertNotSame(b, list2.get(OntologyID.create("x", null)).orElseThrow(AssertionError::new));
+        Assert.assertSame(a, list2.get(ID.create("x", null)).orElseThrow(AssertionError::new));
+        Assert.assertNotSame(b, list2.get(ID.create("x", null)).orElseThrow(AssertionError::new));
 
         // change id externally for 'a' and 'b':
-        a.setOntologyID(OntologyID.create("y", null));
-        b.setOntologyID(OntologyID.create("x", null));
+        a.setOntologyID(ID.create("y", null));
+        b.setOntologyID(ID.create("x", null));
         LOGGER.debug("7) List: {}", list2);
         Assert.assertEquals(2, list2.values().peek(x -> LOGGER.debug("{}", x)).count());
-        Assert.assertSame(b, list2.get(OntologyID.create("x", null)).orElseThrow(AssertionError::new));
-        Assert.assertSame(a, list2.get(OntologyID.create("y", null)).orElseThrow(AssertionError::new));
+        Assert.assertSame(b, list2.get(ID.create("x", null)).orElseThrow(AssertionError::new));
+        Assert.assertSame(a, list2.get(ID.create("y", null)).orElseThrow(AssertionError::new));
     }
 
     @Test(expected = Exception.class)
@@ -191,14 +191,14 @@ public class InternalManagerTest {
 
     @SuppressWarnings("WeakerAccess")
     public static class IDHolder implements HasOntologyID {
-        private OntologyID id;
+        private ID id;
 
-        private IDHolder(OntologyID id) {
+        private IDHolder(ID id) {
             this.id = Objects.requireNonNull(id);
         }
 
         public static IDHolder of(String iri, String ver) {
-            return new IDHolder(OntologyID.create(iri, ver));
+            return new IDHolder(ID.create(iri, ver));
         }
 
         public static IDHolder of(String iri) {
@@ -206,12 +206,12 @@ public class InternalManagerTest {
         }
 
         @Override
-        public OntologyID getOntologyID() {
+        public ID getOntologyID() {
             return id;
         }
 
         public void setOntologyID(OWLOntologyID id) {
-            this.id = OntologyID.asONT(id);
+            this.id = ID.asONT(id);
         }
 
         public String getOntologyIRI() {
@@ -219,7 +219,7 @@ public class InternalManagerTest {
         }
 
         public void setOntologyIRI(String x) {
-            setOntologyID(OntologyID.create(x, getVersionIRI()));
+            setOntologyID(ID.create(x, getVersionIRI()));
         }
 
         public String getVersionIRI() {
@@ -227,7 +227,7 @@ public class InternalManagerTest {
         }
 
         public void setVersionIRI(String x) {
-            setOntologyID(OntologyID.create(getOntologyIRI(), x));
+            setOntologyID(ID.create(getOntologyIRI(), x));
         }
 
         @Override

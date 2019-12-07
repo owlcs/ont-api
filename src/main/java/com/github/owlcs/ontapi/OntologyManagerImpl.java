@@ -548,7 +548,7 @@ public class OntologyManagerImpl implements OntologyManager,
      * @see #load(OWLOntologyDocumentSource, OWLOntologyLoaderConfiguration)
      */
     protected OntInfo create(OWLOntologyID ontologyID) throws OWLOntologyCreationException, OWLOntologyFactoryNotFoundException {
-        OntologyID id = getAdapter().asONT(ontologyID);
+        ID id = getAdapter().asONT(ontologyID);
         Optional<OntInfo> ont = content.get(id);
         if (ont.isPresent()) {
             throw new OWLOntologyAlreadyExistsException(id);
@@ -582,7 +582,7 @@ public class OntologyManagerImpl implements OntologyManager,
                                         boolean copyLogicalAxiomsOnly) {
         getLock().writeLock().lock();
         try {
-            OntologyID id = OntologyID.create(Objects.requireNonNull(iri));
+            ID id = ID.create(Objects.requireNonNull(iri));
             if (contains(iri)) {
                 throw new OWLOntologyAlreadyExistsException(id);
             }
@@ -605,7 +605,7 @@ public class OntologyManagerImpl implements OntologyManager,
     public OntologyModel createOntology(@Nonnull Stream<OWLAxiom> axioms, @Nonnull IRI iri) {
         getLock().writeLock().lock();
         try {
-            OntologyID id = OntologyID.create(Objects.requireNonNull(iri));
+            ID id = ID.create(Objects.requireNonNull(iri));
             if (contains(iri)) {
                 throw new OWLOntologyAlreadyExistsException(id);
             }
@@ -629,8 +629,8 @@ public class OntologyManagerImpl implements OntologyManager,
     public OntologyModel addOntology(@Nonnull Graph graph, @Nonnull OntLoaderConfiguration conf) {
         getLock().writeLock().lock();
         try {
-            OntologyID id = OntGraphUtils.getOntologyID(graph);
-            Map<OntologyID, Graph> graphs = OntGraphUtils.toGraphMap(graph);
+            ID id = OntGraphUtils.getOntologyID(graph);
+            Map<ID, Graph> graphs = OntGraphUtils.toGraphMap(graph);
             DocumentSourceMapping mapping = i -> graphs.entrySet()
                     .stream()
                     .filter(e -> matchIDs(e.getKey(), i))
@@ -737,7 +737,7 @@ public class OntologyManagerImpl implements OntologyManager,
     public OntologyModel getOntology(@Nonnull IRI iri) {
         getLock().readLock().lock();
         try {
-            OntologyID id = OntologyID.create(Objects.requireNonNull(iri));
+            ID id = ID.create(Objects.requireNonNull(iri));
             Optional<OntInfo> res = content.get(id);
             if (!res.isPresent()) {
                 res = content.values().filter(e -> e.getOntologyID().match(iri)).findFirst();
@@ -1484,7 +1484,7 @@ public class OntologyManagerImpl implements OntologyManager,
                                  OWLOntologyLoaderConfiguration conf,
                                  boolean allowExists) throws OWLOntologyCreationException {
         // Check for matches on the ontology IRI first
-        OntologyID id = OntologyID.create(Objects.requireNonNull(iri));
+        ID id = ID.create(Objects.requireNonNull(iri));
         OntologyModel res = getOntology(id);
         if (res != null) {
             return res;
@@ -1523,9 +1523,9 @@ public class OntologyManagerImpl implements OntologyManager,
     protected OntologyModel load(@Nullable IRI iri,
                                  OWLOntologyDocumentSource source,
                                  OWLOntologyLoaderConfiguration conf) throws OWLOntologyCreationException {
-        listeners.fireStartedLoadingEvent(OntologyID.create(iri), source.getDocumentIRI());
+        listeners.fireStartedLoadingEvent(ID.create(iri), source.getDocumentIRI());
         Exception ex = null;
-        OWLOntologyID id = new OntologyID();
+        OWLOntologyID id = new ID();
         try {
             OntologyModel res = load(source, conf).get();
             id = res.getOntologyID();
@@ -2097,7 +2097,7 @@ public class OntologyManagerImpl implements OntologyManager,
         }
 
         @Override
-        public OntologyID getOntologyID() {
+        public ID getOntologyID() {
             return getAdapter().asONT(ont.getOntologyID());
         }
 
@@ -2137,7 +2137,7 @@ public class OntologyManagerImpl implements OntologyManager,
 
         public boolean hasImportDeclaration(IRI declaration) {
             if (Objects.equals(declaration, this.declarationIRI)) return true;
-            OntologyID id = getOntologyID();
+            ID id = getOntologyID();
             if (Objects.equals(declaration, id.getVersionIRI().orElse(null))) return true;
             IRI iri = id.getOntologyIRI().orElse(null);
             if (Objects.equals(declaration, iri)) {

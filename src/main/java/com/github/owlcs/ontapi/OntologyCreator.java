@@ -14,10 +14,10 @@
 
 package com.github.owlcs.ontapi;
 
-import org.apache.jena.graph.Factory;
-import org.apache.jena.graph.Graph;
 import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
 import com.github.owlcs.ontapi.jena.UnionGraph;
+import org.apache.jena.graph.Factory;
+import org.apache.jena.graph.Graph;
 
 import java.util.Objects;
 
@@ -35,12 +35,12 @@ public interface OntologyCreator {
      * although the returned ontology must have a reference to the given manager,
      * i.e. the method {@link OntologyModel#getOWLOntologyManager()} must return the passed manager instance.
      *
-     * @param id      {@link OntologyID}, not {@code null}
+     * @param id      {@link ID}, not {@code null}
      * @param manager {@link OntologyManager}, not {@code null}
      * @param config  {@link OntLoaderConfiguration} the config, not {@code null}
      * @return {@link OntologyModel} new instance reflecting manager settings
      */
-    OntologyModel createOntology(OntologyID id, OntologyManager manager, OntLoaderConfiguration config);
+    OntologyModel createOntology(ID id, OntologyManager manager, OntLoaderConfiguration config);
 
     /**
      * Creates a new detached ontology model which wraps the specified {@link Graph graph}.

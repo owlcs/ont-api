@@ -14,10 +14,10 @@
 
 package com.github.owlcs.ontapi;
 
+import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
 import org.apache.jena.graph.Graph;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.*;
-import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.Serializable;
@@ -63,12 +63,12 @@ public interface OntologyFactory extends OWLOntologyFactory, HasAdapter {
      * with the given ID and default configuration.
      *
      * @param manager {@link OntologyManager} the ontology manager to set, not {@code null}
-     * @param id      {@link OntologyID} the ID of the ontology to create, not {@code null}
+     * @param id      {@link ID} the ID of the ontology to create, not {@code null}
      * @return {@link OntologyModel}
      * @throws OntApiException if something goes wrong
      * @since 1.3.0
      */
-    default OntologyModel createOntology(OntologyManager manager, OntologyID id) throws OntApiException {
+    default OntologyModel createOntology(OntologyManager manager, ID id) throws OntApiException {
         OntologyModel res = getBuilder().createOntology(id, manager, manager.getOntologyLoaderConfiguration());
         includeOntology(manager, res);
         return res;

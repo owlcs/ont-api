@@ -586,7 +586,7 @@ public interface OntologyManager extends OWLOntologyManager {
      */
     @Override
     default OntologyModel createOntology() {
-        return createOntology(new OntologyID());
+        return createOntology(new ID());
     }
 
     /**
@@ -605,7 +605,7 @@ public interface OntologyManager extends OWLOntologyManager {
      */
     @Override
     default OntologyModel createOntology(@Nullable IRI iri) {
-        return createOntology(OntologyID.create(iri));
+        return createOntology(ID.create(iri));
     }
 
     /**
@@ -693,7 +693,7 @@ public interface OntologyManager extends OWLOntologyManager {
      * @return {@link OntGraphModel} or {@code null} if no ontology found
      */
     default OntGraphModel getGraphModel(@Nullable String iri, @Nullable String version) {
-        OntologyID id = OntologyID.create(iri, version);
+        ID id = ID.create(iri, version);
         OntologyModel res = getOntology(id);
         return res == null ? null : res.asGraphModel();
     }
@@ -716,7 +716,7 @@ public interface OntologyManager extends OWLOntologyManager {
      * @return {@link OntGraphModel}
      */
     default OntGraphModel createGraphModel(@Nullable String iri, @Nullable String version) {
-        return createOntology(OntologyID.create(iri, version)).asGraphModel();
+        return createOntology(ID.create(iri, version)).asGraphModel();
     }
 
     /**
@@ -766,7 +766,7 @@ public interface OntologyManager extends OWLOntologyManager {
          * @since 1.3.2
          */
         default OWLOntologyDocumentSource map(IRI iri) {
-            return map(OntologyID.create(iri));
+            return map(ID.create(iri));
         }
     }
 }

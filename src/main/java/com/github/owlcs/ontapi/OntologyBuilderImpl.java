@@ -14,10 +14,10 @@
 
 package com.github.owlcs.ontapi;
 
-import org.apache.jena.graph.Graph;
 import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
 import com.github.owlcs.ontapi.jena.OntModelFactory;
 import com.github.owlcs.ontapi.jena.UnionGraph;
+import org.apache.jena.graph.Graph;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -36,7 +36,7 @@ public class OntologyBuilderImpl implements OntologyFactory.Builder {
     }
 
     @Override
-    public OntologyModel createOntology(OntologyID id, OntologyManager manager, OntLoaderConfiguration config) {
+    public OntologyModel createOntology(ID id, OntologyManager manager, OntLoaderConfiguration config) {
         OntologyManagerImpl m = getAdapter().asIMPL(manager);
         OntologyModelImpl res = createOntologyImpl(createGraph(), m, config);
         res.setOntologyID(id);

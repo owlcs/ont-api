@@ -14,11 +14,11 @@
 
 package com.github.owlcs.ontapi;
 
-import org.semanticweb.owlapi.model.*;
 import com.github.owlcs.ontapi.config.OntConfig;
 import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
 import com.github.owlcs.ontapi.config.OntWriterConfiguration;
 import com.github.owlcs.ontapi.internal.InternalConfig;
+import org.semanticweb.owlapi.model.*;
 
 import java.util.Objects;
 
@@ -120,11 +120,11 @@ public class OWLAdapter implements HasAdapter.Adapter {
      * Converts id.
      *
      * @param id {@link OWLOntologyID}, not {@code null}
-     * @return {@link OntologyID}, must not be {@code null}
+     * @return {@link ID}, must not be {@code null}
      */
     @Override
-    public OntologyID asONT(OWLOntologyID id) {
-        return OntologyID.asONT(id);
+    public ID asONT(OWLOntologyID id) {
+        return ID.asONT(id);
     }
 
     /**

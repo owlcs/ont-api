@@ -423,11 +423,11 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
      * @see org.apache.jena.riot.system.IRIResolver
      */
     protected OntologyModel findModel(OntologyManager m, IRI iri) {
-        OntologyModel res = m.getOntology(OntologyID.create(iri));
+        OntologyModel res = m.getOntology(ID.create(iri));
         if (res != null) return res;
         if (iri.toString().startsWith("file://")) { // hack:
             iri = IRI.create(iri.toString().replaceAll("/+", "/"));
-            return m.getOntology(OntologyID.create(iri));
+            return m.getOntology(ID.create(iri));
         }
         return null;
     }

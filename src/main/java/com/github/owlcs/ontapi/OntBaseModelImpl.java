@@ -109,7 +109,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, BaseModel {
      * @return the {@link OWLOntologyID}
      */
     @Override
-    public OntologyID getOntologyID() {
+    public ID getOntologyID() {
         return this.base.getOntologyID();
     }
 

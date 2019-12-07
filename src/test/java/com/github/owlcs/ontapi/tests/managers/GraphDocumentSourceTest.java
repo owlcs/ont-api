@@ -181,7 +181,7 @@ public class GraphDocumentSourceTest {
         OntologyManager manager = OntManagers.createONT();
         OntologyModel o = manager.addOntology(u);
         Assert.assertEquals(1, manager.ontologies().peek(x -> LOGGER.debug("Ontology: {}", x)).count());
-        Assert.assertNotNull(manager.getOntology(new OntologyID(m1.getID())));
+        Assert.assertNotNull(manager.getOntology(new ID(m1.getID())));
 
         // class declaration and annotation property assertion with anonymous individual
         Assert.assertEquals(2, o.axioms().peek(x -> LOGGER.debug("AXIOM: {}", x)).count());

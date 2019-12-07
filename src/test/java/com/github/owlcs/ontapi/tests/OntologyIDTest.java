@@ -14,17 +14,17 @@
 
 package com.github.owlcs.ontapi.tests;
 
+import com.github.owlcs.ontapi.ID;
+import com.github.owlcs.ontapi.jena.OntModelFactory;
+import com.github.owlcs.ontapi.jena.model.OntGraphModel;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntologyID;
-import com.github.owlcs.ontapi.OntologyID;
-import com.github.owlcs.ontapi.jena.OntModelFactory;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
 
 /**
- * To test {@link OntologyID} and related functionality.
- *
+ * To test {@link ID} and related functionality.
+ * <p>
  * Created by @ssz on 13.09.2018.
  */
 public class OntologyIDTest {
@@ -32,7 +32,7 @@ public class OntologyIDTest {
     @Test
     public void testAnonymousID() {
         OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OWLOntologyID id = new OntologyID(m.getID());
+        OWLOntologyID id = new ID(m.getID());
         Assert.assertTrue(id.isAnonymous());
         Assert.assertFalse(id.getOntologyIRI().isPresent());
         Assert.assertFalse(id.getVersionIRI().isPresent());
@@ -43,7 +43,7 @@ public class OntologyIDTest {
     public void testOntologyIRI() {
         String uri = "http://ex";
         OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OWLOntologyID id = new OntologyID(m.setID(uri));
+        OWLOntologyID id = new ID(m.setID(uri));
         Assert.assertFalse(id.isAnonymous());
         Assert.assertTrue(id.getOntologyIRI().isPresent());
         Assert.assertFalse(id.getVersionIRI().isPresent());
@@ -60,7 +60,7 @@ public class OntologyIDTest {
         String ver = "http://v";
         OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD)
                 .setID(uri).setVersionIRI(ver).getModel();
-        OWLOntologyID id = new OntologyID(m.getID());
+        OWLOntologyID id = new ID(m.getID());
         Assert.assertFalse(id.isAnonymous());
         Assert.assertTrue(id.getOntologyIRI().isPresent());
         Assert.assertTrue(id.getVersionIRI().isPresent());
@@ -75,7 +75,7 @@ public class OntologyIDTest {
     @Test
     public void testCompareIDs() {
         OWLOntologyID owl1 = new OWLOntologyID(IRI.create("x://A"), IRI.create("x://B"));
-        OntologyID ont1 = OntologyID.asONT(owl1);
+        ID ont1 = ID.asONT(owl1);
         Assert.assertFalse(ont1.isAnonymous());
         Assert.assertTrue(ont1.getOntologyIRI().isPresent());
         Assert.assertTrue(ont1.getVersionIRI().isPresent());
@@ -84,7 +84,7 @@ public class OntologyIDTest {
         Assert.assertEquals(owl1.toString(), ont1.toString());
 
         OWLOntologyID owl2 = new OWLOntologyID(IRI.create("x://C"));
-        OntologyID ont2 = OntologyID.asONT(owl2);
+        ID ont2 = ID.asONT(owl2);
         Assert.assertFalse(ont2.isAnonymous());
         Assert.assertTrue(ont2.getOntologyIRI().isPresent());
         Assert.assertFalse(ont2.getVersionIRI().isPresent());
@@ -93,7 +93,7 @@ public class OntologyIDTest {
         Assert.assertEquals(owl2.toString(), ont2.toString());
 
         OWLOntologyID owl3 = new OWLOntologyID();
-        OntologyID ont3 = OntologyID.asONT(owl3);
+        ID ont3 = ID.asONT(owl3);
         Assert.assertTrue(ont3.isAnonymous());
         Assert.assertFalse(ont3.getOntologyIRI().isPresent());
         Assert.assertFalse(ont3.getVersionIRI().isPresent());

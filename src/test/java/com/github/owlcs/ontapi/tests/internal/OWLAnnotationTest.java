@@ -15,13 +15,13 @@
 package com.github.owlcs.ontapi.tests.internal;
 
 import com.github.owlcs.ontapi.*;
+import com.github.owlcs.ontapi.internal.ONTObject;
 import org.junit.Assert;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.semanticweb.owlapi.model.AddOntologyAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLObject;
-import com.github.owlcs.ontapi.internal.ONTObject;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -50,7 +50,7 @@ public class OWLAnnotationTest extends StatementTestBase {
 
         OWLAnnotation ont = (OWLAnnotation) data.create(df);
 
-        OntologyID id = OntologyID.create("u", "v");
+        ID id = ID.create("u", "v");
         OntologyModel o = m.createOntology(id);
 
         m.applyChange(new AddOntologyAnnotation(o, ont));

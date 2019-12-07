@@ -14,6 +14,9 @@
 
 package com.github.owlcs.ontapi;
 
+import com.github.owlcs.ontapi.config.CacheSettings;
+import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
+import com.github.owlcs.ontapi.jena.UnionGraph;
 import org.apache.jena.graph.Graph;
 import org.semanticweb.owlapi.io.*;
 import org.semanticweb.owlapi.model.*;
@@ -21,9 +24,6 @@ import org.semanticweb.owlapi.model.parameters.ChangeApplied;
 import org.semanticweb.owlapi.util.PriorityCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.github.owlcs.ontapi.config.CacheSettings;
-import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
-import com.github.owlcs.ontapi.jena.UnionGraph;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.IOException;
@@ -341,7 +341,7 @@ public class OWLFactoryWrapper implements OntologyFactory.Loader {
             if (manager.contains(iri)) {
                 existingOntology = manager.getOntology(iri);
             }
-            OntologyID id = new OntologyID();
+            ID id = new ID();
             OWLOntology ont = createOWLOntology(id, manager, config);
             // Now parse the input into the empty ontology that we created select a parser
             // if the input source has format information and MIME information

@@ -15,8 +15,8 @@
 package com.github.owlcs.ontapi.internal;
 
 import com.github.owlcs.ontapi.DataFactory;
+import com.github.owlcs.ontapi.ID;
 import com.github.owlcs.ontapi.OntApiException;
-import com.github.owlcs.ontapi.OntologyID;
 import com.github.owlcs.ontapi.OntologyModel;
 import com.github.owlcs.ontapi.internal.axioms.*;
 import com.github.owlcs.ontapi.jena.OntJenaException;
@@ -92,10 +92,11 @@ public class InternalModel extends OntGraphModelImpl
     /**
      * Ontology ID cache.
      */
-    protected volatile OntologyID cachedID;
+    protected volatile ID cachedID;
     /**
      * The configuration settings to control behaviour.
      * As a container that contains an immutable snapshot, which should be reset on {@link #clearCache()}.
+     *
      * @see InternalConfig#snapshot()
      */
     private final InternalCache.Loading<InternalModel, InternalConfig> config;
@@ -173,16 +174,16 @@ public class InternalModel extends OntGraphModelImpl
     /**
      * Gets the {@link OWLOntologyID OWL Ontology ID} from the model.
      *
-     * @return {@link OntologyID}
+     * @return {@link ID}
      * @see #getID()
      */
     @Override
-    public OntologyID getOntologyID() {
+    public ID getOntologyID() {
         // believe the last condition (which is very fast) justifies having a cache
         if (cachedID != null && getBaseGraph().contains(cachedID.asNode(), RDF.Nodes.type, OWL.Ontology.asNode())) {
             return cachedID;
         }
-        return cachedID = new OntologyID(getID());
+        return cachedID = new ID(getID());
     }
 
     /**
@@ -201,8 +202,8 @@ public class InternalModel extends OntGraphModelImpl
             getHeaderCache().clear();
             if (Objects.requireNonNull(id, "Null id").isAnonymous()) {
                 OntID res;
-                if (id instanceof OntologyID) {
-                    res = getNodeAs(createOntologyID(this, ((OntologyID) id).asNode()).asNode(), OntID.class);
+                if (id instanceof ID) {
+                    res = getNodeAs(createOntologyID(this, ((ID) id).asNode()).asNode(), OntID.class);
                 } else {
                     res = setID(null);
                 }
@@ -214,8 +215,8 @@ public class InternalModel extends OntGraphModelImpl
         } finally {
             enableDirectListening();
         }
-        if (id instanceof OntologyID) {
-            this.cachedID = (OntologyID) id;
+        if (id instanceof ID) {
+            this.cachedID = (ID) id;
         }
     }
 

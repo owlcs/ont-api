@@ -14,6 +14,12 @@
 
 package com.github.owlcs.ontapi;
 
+import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
+import com.github.owlcs.ontapi.jena.impl.OntIDImpl;
+import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.utils.Graphs;
+import com.github.owlcs.ontapi.jena.utils.Models;
+import com.github.owlcs.ontapi.transforms.GraphTransformers;
 import org.apache.commons.io.input.ReaderInputStream;
 import org.apache.jena.graph.*;
 import org.apache.jena.rdf.model.impl.ModelCom;
@@ -28,12 +34,6 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.PrefixManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
-import com.github.owlcs.ontapi.jena.impl.OntIDImpl;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
-import com.github.owlcs.ontapi.jena.utils.Graphs;
-import com.github.owlcs.ontapi.jena.utils.Models;
-import com.github.owlcs.ontapi.transforms.GraphTransformers;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -77,18 +77,18 @@ public class OntGraphUtils {
      * Each method's call should return the same value for the same graph.
      *
      * @param graph {@link Graph}, not {@code null}
-     * @return {@link OntologyID}, not {@code null}
+     * @return {@link ID}, not {@code null}
      * @throws OntApiException in case it is an anonymous graph but with version iri
      */
-    public static OntologyID getOntologyID(Graph graph) throws OntApiException {
+    public static ID getOntologyID(Graph graph) throws OntApiException {
         Graph base = Graphs.getBase(graph);
         Node res = Graphs.ontologyNode(base)
                 .orElseGet(() -> NodeFactory.createBlankNode(toString(graph)));
-        return new OntologyID(new OntIDImpl(res, new ModelCom(base)));
+        return new ID(new OntIDImpl(res, new ModelCom(base)));
     }
 
     /**
-     * Builds a map form the ontology graph with {@link OntologyID}s as keys and component {@link Graph Graph}s as values.
+     * Builds a map form the ontology graph with {@link ID}s as keys and component {@link Graph Graph}s as values.
      * <p>
      * If any graph (the root or any its component) has no import declarations
      * (i.e. no statements {@code _:x owl:imports uri}) then this graph is put into the map as is.
@@ -100,17 +100,17 @@ public class OntGraphUtils {
      * To check the equivalence of two graphs, the method {@link Graph#isIsomorphicWith(Graph)} is used.
      *
      * @param graph {@link Graph graph}, not {@code null}
-     * @return Map with {@link OntologyID OWL Ontology ID} as a key and {@link Graph graph} as a value
+     * @return Map with {@link ID OWL Ontology ID} as a key and {@link Graph graph} as a value
      * @throws OntApiException in case of violation of the restrictions described above
      */
-    public static Map<OntologyID, Graph> toGraphMap(Graph graph) throws OntApiException {
-        Map<OntologyID, Graph> res = new LinkedHashMap<>();
-        OntologyID id = getOntologyID(graph);
+    public static Map<ID, Graph> toGraphMap(Graph graph) throws OntApiException {
+        Map<ID, Graph> res = new LinkedHashMap<>();
+        ID id = getOntologyID(graph);
         assembleMap(id, graph, res);
         return res;
     }
 
-    private static void assembleMap(OntologyID id, Graph graph, Map<OntologyID, Graph> res) {
+    private static void assembleMap(ID id, Graph graph, Map<ID, Graph> res) {
         Set<String> imports = Graphs.getImports(graph);
         if (imports.isEmpty()) {
             // do not analyse graph structure -> put it as is
@@ -121,7 +121,7 @@ public class OntGraphUtils {
         Iterator<Graph> graphs = Graphs.subGraphs(graph).iterator();
         while (graphs.hasNext()) {
             Graph g = graphs.next();
-            OntologyID i = getOntologyID(g);
+            ID i = getOntologyID(g);
             // get first version IRI, then ontology IRI:
             String uri = i.getVersionIRI().orElse(i.getOntologyIRI()
                     .orElseThrow(() -> new OntApiException("Anonymous sub graph found: " + i + ". " +
@@ -132,7 +132,7 @@ public class OntGraphUtils {
         }
     }
 
-    private static void put(OntologyID id, Graph graph, Map<OntologyID, Graph> map) {
+    private static void put(ID id, Graph graph, Map<ID, Graph> map) {
         Graph prev = map.get(id);
         if (prev != null) {
             if (prev.isIsomorphicWith(graph)) {

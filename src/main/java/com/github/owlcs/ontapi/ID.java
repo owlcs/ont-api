@@ -14,11 +14,11 @@
 
 package com.github.owlcs.ontapi;
 
+import com.github.owlcs.ontapi.jena.model.OntID;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntologyID;
-import com.github.owlcs.ontapi.jena.model.OntID;
 
 import java.lang.reflect.Field;
 import java.util.Objects;
@@ -34,7 +34,7 @@ import java.util.Optional;
  * @see OntID
  * @see <a href='https://www.w3.org/TR/owl-syntax/#Ontology_IRI_and_Version_IRI'>3.1 Ontology IRI and Version IRI</a>
  */
-public class OntologyID extends OWLOntologyID implements AsNode {
+public class ID extends OWLOntologyID implements AsNode {
 
     protected final Node node;
 
@@ -43,7 +43,7 @@ public class OntologyID extends OWLOntologyID implements AsNode {
      *
      * @param iri String, not {@code null}
      */
-    public OntologyID(String iri) {
+    public ID(String iri) {
         this(iri, null);
     }
 
@@ -53,7 +53,7 @@ public class OntologyID extends OWLOntologyID implements AsNode {
      * @param iri String, not {@code null}
      * @param ver String, can be {@code null}
      */
-    public OntologyID(String iri, String ver) {
+    public ID(String iri, String ver) {
         this(NodeFactory.createURI(Objects.requireNonNull(iri, "Null iri")), ver);
     }
 
@@ -61,19 +61,19 @@ public class OntologyID extends OWLOntologyID implements AsNode {
      * Constructs an anonymous ontology identifier
      * specifying that the ontology IRI (and hence the version IRI) is not present.
      */
-    public OntologyID() {
+    public ID() {
         this(NodeFactory.createBlankNode(), null);
     }
 
     /**
      * Constructs an ontology identifier from the given {@link OntID Ontology Graph Model ID}.
-     * The difference between these two IDs ( {@link OntID} and {@link OntologyID this classs}) is
+     * The difference between these two IDs ( {@link OntID} and {@link ID this classs}) is
      * that the former is used in the RDF representation (i.e. in {@link com.github.owlcs.ontapi.jena.model.OntGraphModel}),
      * while the other is in the axiomatic view (i.e. in {@link org.semanticweb.owlapi.model.OWLOntology}).
      *
      * @param id {@link OntID}, not {@code null}
      */
-    public OntologyID(OntID id) {
+    public ID(OntID id) {
         this(id.asNode(), id.getVersionIRI());
     }
 
@@ -82,27 +82,31 @@ public class OntologyID extends OWLOntologyID implements AsNode {
      *
      * @param id      {@link Node}, not {@code null}, ether blank or uri node
      * @param version {@link String}, can be {@code null}
-     * @throws OntApiException               if {@code id} is anonymous and {@code version} is not {@code null}
-     * @throws IllegalStateException         if the OWL-API guys have changed the basic implementation, and I do not know about it yet
-     * @throws UnsupportedOperationException if {@code id} is not uri or blank node
-     * @throws NullPointerException          if {@code id} is {@code null}
+     * @throws OntApiException       if {@code id} is not blank or URI (i.e. it is literal) or
+     *                               it is anonymous and {@code version} is not {@code null}
+     * @throws IllegalStateException if the OWL-API guys have changed the basic implementation,
+     *                               but we have not yet learned about it
+     * @throws NullPointerException  if {@code id} is {@code null}
      */
-    protected OntologyID(Node id, String version) throws OntApiException,
+    protected ID(Node id, String version) throws OntApiException,
             IllegalStateException, UnsupportedOperationException, NullPointerException {
         Optional<String> internalID;
         Optional<IRI> ontologyIRI, versionIRI;
         if (Objects.requireNonNull(id, "Null id node").isBlank()) {
             if (version != null) {
-                throw new OntApiException("Anonymous ontology id (" + id +
+                throw new OntApiException.IllegalArgument("Anonymous ontology id (" + id +
                         ") can not be accompanied by a version (" + version + ")");
             }
             internalID = Optional.of(id.getBlankNodeLabel());
             ontologyIRI = Optional.empty();
             versionIRI = Optional.empty();
-        } else {
+        } else if (id.isURI()) {
             internalID = Optional.empty();
             ontologyIRI = Optional.of(id.getURI()).map(IRI::create);
             versionIRI = Optional.ofNullable(version).map(IRI::create);
+        } else {
+            throw new OntApiException.IllegalArgument("Illegal node is given: " +
+                    id + " - it must be either URI or Blank resource.");
         }
         this.node = id;
         int hashCode = 17;
@@ -136,17 +140,17 @@ public class OntologyID extends OWLOntologyID implements AsNode {
     }
 
     /**
-     * Converts any instance of {@link OWLOntologyID} to the {@link OntologyID ONT-API Ontology Identifier implementation}.
+     * Converts any instance of {@link OWLOntologyID} to the {@link ID ONT-API Ontology Identifier implementation}.
      *
      * @param id {@link OWLOntologyID}, not {@code null}
-     * @return {@link OntologyID}, not {@code null}
+     * @return {@link ID}, not {@code null}
      * @throws IllegalArgumentException should never happen, actually
      */
-    public static OntologyID asONT(OWLOntologyID id) throws IllegalArgumentException {
-        if (id instanceof OntologyID) {
-            return (OntologyID) id;
+    public static ID asONT(OWLOntologyID id) throws IllegalArgumentException {
+        if (id instanceof ID) {
+            return (ID) id;
         }
-        if (id.isAnonymous()) return new OntologyID();
+        if (id.isAnonymous()) return new ID();
         String iri = id.getOntologyIRI().map(IRI::getIRIString).orElseThrow(IllegalArgumentException::new);
         String ver = id.getVersionIRI().map(IRI::getIRIString).orElse(null);
         return create(iri, ver);
@@ -157,9 +161,9 @@ public class OntologyID extends OWLOntologyID implements AsNode {
      * Notice that the corresponding constructor does not allow {@code null}s, while this method does.
      *
      * @param iri {@link IRI}, can be {@code null}
-     * @return {@link OntologyID}, not {@code null}
+     * @return {@link ID}, not {@code null}
      */
-    public static OntologyID create(IRI iri) {
+    public static ID create(IRI iri) {
         return create(iri == null ? null : iri.getIRIString(), null);
     }
 
@@ -169,10 +173,9 @@ public class OntologyID extends OWLOntologyID implements AsNode {
      *
      * @param iri String, can be {@code null}
      * @param ver String, can be {@code null}
-     * @return {@link OntologyID}, not {@code null}
+     * @return {@link ID}, not {@code null}
      */
-    public static OntologyID create(String iri, String ver) {
-        return iri == null ? new OntologyID() : new OntologyID(iri, ver);
+    public static ID create(String iri, String ver) {
+        return iri == null ? new ID() : new ID(iri, ver);
     }
-
 }
