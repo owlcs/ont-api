@@ -18,7 +18,10 @@ import com.github.owlcs.ontapi.jena.OntJenaException;
 import com.github.owlcs.ontapi.jena.impl.conf.BaseFactoryImpl;
 import com.github.owlcs.ontapi.jena.impl.conf.ObjectFactory;
 import com.github.owlcs.ontapi.jena.impl.conf.OntFinder;
-import com.github.owlcs.ontapi.jena.model.*;
+import com.github.owlcs.ontapi.jena.model.OntAnnotationProperty;
+import com.github.owlcs.ontapi.jena.model.OntDataProperty;
+import com.github.owlcs.ontapi.jena.model.OntObjectProperty;
+import com.github.owlcs.ontapi.jena.model.OntProperty;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
@@ -44,14 +47,14 @@ import static com.github.owlcs.ontapi.jena.impl.WrappedFactoryImpl.of;
  * Created by @szuev on 08.11.2016.
  */
 @SuppressWarnings("WeakerAccess")
-public abstract class OntPEImpl extends OntObjectImpl implements OntPE {
+public abstract class OntPEImpl extends OntObjectImpl implements OntProperty {
 
     public static final OntFinder NAMED_PROPERTY_FINDER = Factories.createFinder(OWL.AnnotationProperty
             , OWL.ObjectProperty, OWL.DatatypeProperty);
 
     public static ObjectFactory inversePropertyFactory = createAnonymousObjectPropertyFactory();
     public static ObjectFactory abstractNamedPropertyFactory = Factories.createFrom(NAMED_PROPERTY_FINDER
-            , OntNOP.class, OntNDP.class, OntNAP.class);
+            , OntObjectProperty.Named.class, OntDataProperty.class, OntAnnotationProperty.class);
 
     public static ObjectFactory abstractOPEFactory = createObjectPropertyExpressionFactory();
     //Factories.createFrom(OBJECT_PROPERTY_FINDER, OntNOP.class, OntOPE.Inverse.class);
@@ -68,7 +71,7 @@ public abstract class OntPEImpl extends OntObjectImpl implements OntPE {
 
     public static ObjectFactory createObjectPropertyExpressionFactory() {
         return new HasAnonymous() {
-            private final ObjectFactory named = of(OntNOP.class);
+            private final ObjectFactory named = of(OntObjectProperty.Named.class);
 
             @Override
             public ExtendedIterator<EnhNode> iterator(EnhGraph eg) {
@@ -107,15 +110,15 @@ public abstract class OntPEImpl extends OntObjectImpl implements OntPE {
 
     public static ObjectFactory createDataOrObjectPropertyFactory() {
         return new PropertiesFactory()
-                .add(OWL.ObjectProperty, OntNOP.class)
-                .add(OWL.DatatypeProperty, OntNDP.class);
+                .add(OWL.ObjectProperty, OntObjectProperty.Named.class)
+                .add(OWL.DatatypeProperty, OntDataProperty.class);
     }
 
     public static ObjectFactory createPropertyExpressionFactory() {
         return new PropertiesFactory()
-                .add(OWL.ObjectProperty, OntNOP.class)
-                .add(OWL.DatatypeProperty, OntNDP.class)
-                .add(OWL.AnnotationProperty, OntNAP.class);
+                .add(OWL.ObjectProperty, OntObjectProperty.Named.class)
+                .add(OWL.DatatypeProperty, OntDataProperty.class)
+                .add(OWL.AnnotationProperty, OntAnnotationProperty.class);
     }
 
     public static ObjectFactory createAnonymousObjectPropertyFactory() {
@@ -131,7 +134,7 @@ public abstract class OntPEImpl extends OntObjectImpl implements OntPE {
     protected static class PropertiesFactory extends HasAnonymous {
         final List<Factory> factories = new ArrayList<>();
 
-        PropertiesFactory add(Resource declaration, Class<? extends OntPE> type) {
+        PropertiesFactory add(Resource declaration, Class<? extends OntProperty> type) {
             factories.add(new Factory(declaration.asNode(), type));
             return this;
         }
@@ -190,7 +193,7 @@ public abstract class OntPEImpl extends OntObjectImpl implements OntPE {
             private final Node nt;
             private final ObjectFactory f;
 
-            private Factory(Node nodeType, Class<? extends OntPE> classType) {
+            private Factory(Node nodeType, Class<? extends OntProperty> classType) {
                 this.nt = Objects.requireNonNull(nodeType);
                 this.f = of(classType);
             }
@@ -198,12 +201,12 @@ public abstract class OntPEImpl extends OntObjectImpl implements OntPE {
     }
 
     protected static abstract class HasAnonymous extends BaseFactoryImpl {
-        protected final ObjectFactory anonymous = of(OntOPE.Inverse.class);
+        protected final ObjectFactory anonymous = of(OntObjectProperty.Inverse.class);
     }
 
     public static class AnonymousObjectPropertyFactory extends BaseFactoryImpl {
         private static final Node OWL_INVERSE_OF = OWL.inverseOf.asNode();
-        protected final ObjectFactory named = of(OntNOP.class);
+        protected final ObjectFactory named = of(OntObjectProperty.Named.class);
 
         @Override
         public ExtendedIterator<EnhNode> iterator(EnhGraph eg) {

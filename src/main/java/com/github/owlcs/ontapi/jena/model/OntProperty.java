@@ -15,73 +15,150 @@
 package com.github.owlcs.ontapi.jena.model;
 
 import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.vocabulary.RDFS;
+
+import java.util.stream.Stream;
 
 /**
- * Named Ontology property: {@link OntNAP}, {@link OntNDP} and {@link OntNOP}.
+ * An abstraction for any Ontology Property Expression.
+ * In OWL2 there are four such property expressions:
+ * Data Property, Object Property (OWL Entity and InverseOf) and Annotation Property.
  * <p>
- * Created by @ssz on 20.01.2019.
+ * Created by @szuev on 02.11.2016.
  *
- * @param <P> subtype of {@link OntProperty}
- * @since 1.4.0
+ * @see <a href='https://www.w3.org/TR/owl2-quick-reference/'>2.2 Properties</a>
+ * @see OntObjectProperty
+ * @see OntAnnotationProperty
+ * @see OntDataProperty
  */
-public interface OntProperty<P extends OntProperty<P>> extends OntEntity, Property {
+public interface OntProperty extends OntObject {
 
     /**
-     * @see Property#isProperty()
+     * Answers a {@code Stream} over all of the properties that are declared to be super-properties of this property.
+     * Each element of the {@code Stream} will have the same type as this property instance:
+     * if it is datatype property the method will return only data properties, etc.
+     * The parameter {@code direct} controls selectivity over the properties that appear in the {@code Stream}.
+     * Consider the following scenario:
+     * <pre>{@code
+     *  :A rdfs:subPropertyOf :B .
+     *  :A rdfs:subPropertyOf :C .
+     *  :C rdfs:subPropertyOf :D .
+     * } </pre>
+     * If the flag {@code direct} is {@code true}, then the output will contain only direct super properties:
+     * {@code B} and {@code C}. In this case the method is almost equivalent to the method {@link #superProperties()}.
+     * If the flag {@code direct} is {@code false}, then the output will contain three properties:
+     * {@code B}, {@code C} and {@code D} (indirectly).
+     * This property instance is not included into the output in any case.
+     *
+     * @param direct if {@code true}, only answers the directly adjacent properties in the property hierarchy:
+     *               i.e. eliminate any property for which there is a longer route
+     *               to reach that child under the super-property relation
+     * @return <b>distinct</b> {@code Stream} of properties with the same type as this property
+     * @see #superProperties()
+     * @see #subProperties(boolean)
+     * @since 1.4.0
      */
-    @Override
-    default boolean isProperty() {
-        return true;
-    }
+    Stream<? extends OntProperty> superProperties(boolean direct);
 
     /**
-     * {@inheritDoc}
+     * Answers a {@code Stream} over all of the properties that are declared to be sub-properties of this property.
+     * Each element of the {@code Stream} will have the same type as this property instance:
+     * if it is datatype property the method will return only data properties, etc.
+     * The parameter {@code direct} controls selectivity over the properties that appear in the {@code Stream}.
+     * Consider the following scenario:
+     * <pre>{@code
+     *  :D rdfs:subPropertyOf :C .
+     *  :C rdfs:subPropertyOf :A .
+     *  :B rdfs:subPropertyOf :A .
+     * } </pre>
+     * If the flag {@code direct} is {@code true}, then the output contains only direct sub properties:
+     * {@code B} and {@code C}.
+     * If the flag {@code direct} is {@code false}, then the output contains three properties:
+     * {@code B}, {@code C} and {@code D}.
+     * This property instance is not included into the output in any case.
+     *
+     * @param direct if {@code true}, only answers the directly adjacent properties in the property hierarchy:
+     *               i.e. eliminate any property for which there is a longer route
+     *               to reach that child under the super-property relation
+     * @return <b>distinct</b> {@code Stream} of properties with the same type as this property
+     * @see #superProperties(boolean)
+     * @since 1.4.0
      */
-    @Override
-    default P addComment(String txt) {
-        return addComment(txt, null);
-    }
+    Stream<? extends OntProperty> subProperties(boolean direct);
 
     /**
-     * {@inheritDoc}
+     * Lists all direct super properties for this property expression.
+     * The pattern: {@code P1 rdfs:subPropertyOf P2}.
+     * Note: the return elements have the same type as this instance.
+     *
+     * @return {@code Stream} of {@link Resource jena resource}s
+     * @see OntAnnotationProperty#superProperties()
+     * @see OntRealProperty#superProperties()
+     * @since 1.4.0
      */
-    @Override
-    default P addComment(String txt, String lang) {
-        return annotate(getModel().getRDFSComment(), txt, lang);
-    }
+    Stream<? extends OntProperty> superProperties();
 
     /**
-     * {@inheritDoc}
+     * Lists all property domains.
+     *
+     * @return {@code Stream} of {@link Resource}s
+     * @see OntAnnotationProperty#domains()
+     * @see OntObjectProperty#domains()
+     * @see OntDataProperty#domains()
+     * @since 1.4.0
      */
-    @Override
-    default P addLabel(String txt) {
-        return addLabel(txt, null);
-    }
+    Stream<? extends Resource> domains();
 
     /**
-     * {@inheritDoc}
+     * Lists all property ranges.
+     *
+     * @return {@code Stream} of {@link Resource}s
+     * @see OntAnnotationProperty#ranges()
+     * @see OntRealProperty#ranges()
+     * @since 1.4.0
      */
-    @Override
-    default P addLabel(String txt, String lang) {
-        return annotate(getModel().getRDFSLabel(), txt, lang);
-    }
+    Stream<? extends Resource> ranges();
 
     /**
-     * {@inheritDoc}
+     * Returns a named part of this property expression.
+     *
+     * @return {@link Property}
      */
-    @Override
-    default P annotate(OntNAP predicate, String txt, String lang) {
-        return annotate(predicate, getModel().createLiteral(txt, lang));
-    }
+    Property asProperty();
 
     /**
-     * {@inheritDoc}
+     * Removes the specified domain resource (predicate is {@link RDFS#domain rdfs:domain}),
+     * including the corresponding statement's annotations.
+     * No-op in case no such domain found.
+     * Removes all domains if {@code null} is specified.
+     *
+     * @param domain {@link Resource}, or {@code null} to remove all domains
+     * @return <b>this</b> instance to allow cascading calls
      */
-    @Override
-    @SuppressWarnings("unchecked")
-    default P annotate(OntNAP predicate, RDFNode value) {
-        addAnnotation(predicate, value);
-        return (P) this;
-    }
+    OntProperty removeDomain(Resource domain);
+
+    /**
+     * Removes the specified range resource (predicate is {@link RDFS#range rdfs:range}),
+     * including the corresponding statement's annotations.
+     * No-op in case no such range is found.
+     * Removes all ranges if {@code null} is specified.
+     *
+     * @param range {@link Resource}, or {@code null} to remove all ranges
+     * @return <b>this</b> instance to allow cascading calls
+     */
+    OntProperty removeRange(Resource range);
+
+    /**
+     * Removes the specified super property (predicate is {@link RDFS#subPropertyOf rdfs:subPropertyOf}),
+     * including the corresponding statement's annotations.
+     * No-op in case no such super-property is found.
+     * Removes all triples with predicate {@code rdfs:subPropertyOf} if {@code null} is specified.
+     *
+     * @param property {@link Resource} or {@code null} to remove all direct super properties
+     * @return <b>this</b> instance to allow cascading calls
+     * @since 1.4.0
+     */
+    OntProperty removeSuperProperty(Resource property);
+
 }

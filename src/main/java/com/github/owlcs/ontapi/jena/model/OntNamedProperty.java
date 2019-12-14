@@ -15,27 +15,73 @@
 package com.github.owlcs.ontapi.jena.model;
 
 import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.RDFNode;
 
 /**
- * Interface encapsulating an Ontology <b>N</b>amed <b>O</b>bject <b>P</b>roperty.
- * The first word in this abbreviation means that it is an URI-{@link org.apache.jena.rdf.model.Resource Resource}.
- * This is an extension to the standard jena {@link Property},
- * the {@link OntEntity OWL Entity} and the {@link OntDOP abstract data object property} interfaces.
+ * Named Ontology property: {@link OntAnnotationProperty}, {@link OntDataProperty} and {@link OntObjectProperty.Named}.
  * <p>
- * Created by szuev on 01.11.2016.
+ * Created by @ssz on 20.01.2019.
+ *
+ * @param <P> subtype of {@link OntNamedProperty}
+ * @since 1.4.0
  */
-public interface OntNOP extends OntOPE, OntProperty<OntNOP> {
+public interface OntNamedProperty<P extends OntNamedProperty<P>> extends OntEntity, Property {
 
     /**
-     * Creates or finds an inverse of this property.
-     * The searching is performed only in the base graph,
-     * so it is possible to have more than one anonymous object property expressions
-     * in case the named companion belongs to some sub-graph.
-     * For a single-graph model a named object property can be answered
-     * by one and only one {@code Inverse} object property expression.
-     *
-     * @return {@link OntOPE.Inverse} - an anonymous {@link OntOPE} resource (fresh or existing)
+     * @see Property#isProperty()
      */
-    Inverse createInverse();
+    @Override
+    default boolean isProperty() {
+        return true;
+    }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    default P addComment(String txt) {
+        return addComment(txt, null);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    default P addComment(String txt, String lang) {
+        return annotate(getModel().getRDFSComment(), txt, lang);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    default P addLabel(String txt) {
+        return addLabel(txt, null);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    default P addLabel(String txt, String lang) {
+        return annotate(getModel().getRDFSLabel(), txt, lang);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    default P annotate(OntAnnotationProperty predicate, String txt, String lang) {
+        return annotate(predicate, getModel().createLiteral(txt, lang));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    default P annotate(OntAnnotationProperty predicate, RDFNode value) {
+        addAnnotation(predicate, value);
+        return (P) this;
+    }
 }

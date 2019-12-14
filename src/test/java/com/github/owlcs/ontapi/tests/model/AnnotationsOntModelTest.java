@@ -99,7 +99,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
 
         OntModel jena = owl.asGraphModel();
 
-        OntClass ontClass = jena.createOntClass(clazzIRI.getIRIString());
+        OntClass.Named ontClass = jena.createOntClass(clazzIRI.getIRIString());
 
         LOGGER.debug("Assemble annotations using jena.");
         Resource commentURI;

@@ -72,22 +72,22 @@ public abstract class OntIndividualImpl extends OntObjectImpl implements OntIndi
     }
 
     @Override
-    public Stream<OntCE> classes() {
+    public Stream<OntClass> classes() {
         return Iter.asStream(listClasses(), getCharacteristics());
     }
 
     @Override
-    public Stream<OntCE> classes(boolean direct) {
+    public Stream<OntClass> classes(boolean direct) {
         return Iter.fromSet(() -> getClasses(direct));
     }
 
     /**
      * Lists all right parts from class assertion statements where this individual is at subject position.
      *
-     * @return {@link ExtendedIterator} over all direct {@link OntCE class}-types
+     * @return {@link ExtendedIterator} over all direct {@link OntClass class}-types
      */
-    public ExtendedIterator<OntCE> listClasses() {
-        return listObjects(RDF.type, OntCE.class);
+    public ExtendedIterator<OntClass> listClasses() {
+        return listObjects(RDF.type, OntClass.class);
     }
 
     /**
@@ -95,12 +95,12 @@ public abstract class OntIndividualImpl extends OntObjectImpl implements OntIndi
      * and also all their super-classes if the parameter {@code direct} is {@code false}.
      *
      * @param direct if {@code true} returns only direct types, just like {@link #listClasses()}
-     * @return {@link ExtendedIterator} over all {@link OntCE class}-types
+     * @return {@link ExtendedIterator} over all {@link OntClass class}-types
      * @see #listClasses()
      * @since 1.4.2
      */
     @SuppressWarnings("unused")
-    public ExtendedIterator<OntCE> listClasses(boolean direct) {
+    public ExtendedIterator<OntClass> listClasses(boolean direct) {
         return Iter.create(() -> getClasses(direct).iterator());
     }
 
@@ -109,17 +109,17 @@ public abstract class OntIndividualImpl extends OntObjectImpl implements OntIndi
      * including their super-classes if the parameter {@code direct} is {@code false}.
      *
      * @param direct if {@code true} returns only direct types, just like {@code #listClasses().toSet()}
-     * @return a {@code Set} of all {@link OntCE class}-types
+     * @return a {@code Set} of all {@link OntClass class}-types
      * @since 1.4.2
      */
-    public Set<OntCE> getClasses(boolean direct) {
+    public Set<OntClass> getClasses(boolean direct) {
         if (direct) {
             return listClasses().toSet();
         }
-        Set<OntCE> res = new HashSet<>();
-        Function<OntCE, ExtendedIterator<OntCE>> listSuperClasses =
-                x -> ((OntObjectImpl) x).listObjects(RDFS.subClassOf, OntCE.class);
-        listObjects(RDF.type, OntCE.class).forEachRemaining(c -> collectIndirect(c, listSuperClasses, res));
+        Set<OntClass> res = new HashSet<>();
+        Function<OntClass, ExtendedIterator<OntClass>> listSuperClasses =
+                x -> ((OntObjectImpl) x).listObjects(RDFS.subClassOf, OntClass.class);
+        listObjects(RDF.type, OntClass.class).forEachRemaining(c -> collectIndirect(c, listSuperClasses, res));
         return res;
     }
 
@@ -139,7 +139,7 @@ public abstract class OntIndividualImpl extends OntObjectImpl implements OntIndi
      * @return {@link ExtendedIterator} over all class assertions.
      */
     public ExtendedIterator<OntStatement> listClassAssertions() {
-        return listStatements(RDF.type).filterKeep(s -> s.getObject().canAs(OntCE.class));
+        return listStatements(RDF.type).filterKeep(s -> s.getObject().canAs(OntClass.class));
     }
 
     public static boolean testAnonymousIndividual(Node node, EnhGraph eg) {
@@ -151,7 +151,7 @@ public abstract class OntIndividualImpl extends OntObjectImpl implements OntIndi
         ExtendedIterator<Node> types = eg.asGraph().find(node, RDF.Nodes.type, Node.ANY).mapWith(Triple::getObject);
         try {
             while (types.hasNext()) {
-                if (PersonalityModel.canAs(OntCE.class, types.next(), eg)) return true;
+                if (PersonalityModel.canAs(OntClass.class, types.next(), eg)) return true;
                 hasType = true;
             }
         } finally {
@@ -216,13 +216,13 @@ public abstract class OntIndividualImpl extends OntObjectImpl implements OntIndi
 
     @SuppressWarnings("rawtypes")
     @Override
-    public Stream<OntNPA> negativeAssertions() {
+    public Stream<OntNegativeAssertion> negativeAssertions() {
         return Iter.asStream(listNegativeAssertions(), getCharacteristics());
     }
 
     @SuppressWarnings("rawtypes")
-    public ExtendedIterator<OntNPA> listNegativeAssertions() {
-        return listSubjects(OWL.sourceIndividual, OntNPA.class);
+    public ExtendedIterator<OntNegativeAssertion> listNegativeAssertions() {
+        return listSubjects(OWL.sourceIndividual, OntNegativeAssertion.class);
     }
 
     @Override
@@ -307,7 +307,7 @@ public abstract class OntIndividualImpl extends OntObjectImpl implements OntIndi
 
         @Override
         public AnonymousImpl detachClass(Resource clazz) {
-            Set<OntCE> classes = classes().collect(Collectors.toSet());
+            Set<OntClass> classes = classes().collect(Collectors.toSet());
             if (clazz == null && !classes.isEmpty()) {
                 throw new OntJenaException.IllegalState("Detaching classes is prohibited: " +
                         "the anonymous individual (" + this + ") should contain at least one class assertion, " +

@@ -25,7 +25,8 @@ import java.util.stream.Stream;
  * <p>
  * Created by @szuev on 15.11.2016.
  *
- * @param <O> {@link OntIndividual individual}, {@link OntCE class expression}, {@link OntOPE object property expression} or {@link OntNDP data property}
+ * @param <O> - {@link OntIndividual individual}, {@link OntClass class expression},
+ *            {@link OntObjectProperty object property expression} or {@link OntDataProperty data property}
  */
 public interface OntDisjoint<O extends OntObject> extends OntObject, HasRDFNodeList<O> {
 
@@ -43,7 +44,7 @@ public interface OntDisjoint<O extends OntObject> extends OntObject, HasRDFNodeL
      * @see <a href='https://www.w3.org/TR/owl2-syntax/#Disjoint_Classes'>9.1.3 Disjoint Classes</a>
      * @see OntModel#createDisjointClasses(Collection)
      */
-    interface Classes extends OntDisjoint<OntCE>, SetComponents<OntCE, Classes> {
+    interface Classes extends OntDisjoint<OntClass>, SetComponents<OntClass, Classes> {
     }
 
     /**
@@ -83,21 +84,21 @@ public interface OntDisjoint<O extends OntObject> extends OntObject, HasRDFNodeL
      * @see <a href='https://www.w3.org/TR/owl2-syntax/#Disjoint_Object_Properties'>9.2.3 Disjoint Object Properties</a>
      * @see OntModel#createDisjointObjectProperties(Collection)
      */
-    interface ObjectProperties extends Properties<OntOPE>, SetComponents<OntOPE, ObjectProperties> {
+    interface ObjectProperties extends Properties<OntObjectProperty>, SetComponents<OntObjectProperty, ObjectProperties> {
     }
 
     /**
      * @see <a href='https://www.w3.org/TR/owl2-syntax/#Disjoint_Data_Properties'>9.3.3 Disjoint Data Properties</a>
      * @see OntModel#createDisjointDataProperties(Collection)
      */
-    interface DataProperties extends Properties<OntNDP>, SetComponents<OntNDP, DataProperties> {
+    interface DataProperties extends Properties<OntDataProperty>, SetComponents<OntDataProperty, DataProperties> {
     }
 
     /**
      * Abstraction for Pairwise Disjoint Properties anonymous {@link OntObject Ontology Object}.
      *
-     * @param <P> either {@link OntOPE object property expression} or {@link OntNDP data property}
+     * @param <P> either {@link OntObjectProperty object property expression} or {@link OntDataProperty data property}
      */
-    interface Properties<P extends OntPE> extends OntDisjoint<P> {
+    interface Properties<P extends OntRealProperty> extends OntDisjoint<P> {
     }
 }

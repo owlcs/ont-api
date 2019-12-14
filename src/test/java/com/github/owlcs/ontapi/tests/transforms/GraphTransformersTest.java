@@ -21,7 +21,7 @@ import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.jena.OntModelFactory;
 import com.github.owlcs.ontapi.jena.UnionGraph;
 import com.github.owlcs.ontapi.jena.impl.conf.OntModelConfig;
-import com.github.owlcs.ontapi.jena.model.OntCE;
+import com.github.owlcs.ontapi.jena.model.OntClass;
 import com.github.owlcs.ontapi.jena.model.OntEntity;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.utils.Graphs;
@@ -247,7 +247,7 @@ public class GraphTransformersTest {
         o.axioms().map(String::valueOf).forEach(LOGGER::debug);
 
         Assert.assertNull("rdfs:Literal should not be class", o.asGraphModel().getOntClass(RDFS.Literal));
-        Assert.assertEquals("Should be DataAllValuesFrom", 1, o.asGraphModel().ontObjects(OntCE.DataAllValuesFrom.class).count());
+        Assert.assertEquals("Should be DataAllValuesFrom", 1, o.asGraphModel().ontObjects(OntClass.DataAllValuesFrom.class).count());
         Assert.assertNotNull(SWRL.argument2 + " should be data property", o.asGraphModel().getDataProperty(SWRL.argument2));
         Assert.assertNotNull(SWRL.argument2 + " should be object property", o.asGraphModel().getObjectProperty(SWRL.argument2));
     }

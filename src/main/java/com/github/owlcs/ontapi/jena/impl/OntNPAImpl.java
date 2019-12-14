@@ -37,7 +37,9 @@ import java.util.Optional;
  * Created by @szuev on 15.11.2016.
  */
 @SuppressWarnings("WeakerAccess")
-public abstract class OntNPAImpl<P extends OntPE, T extends RDFNode> extends OntObjectImpl implements OntNPA<P, T> {
+public abstract class OntNPAImpl<P extends OntRealProperty, T extends RDFNode>
+        extends OntObjectImpl implements OntNegativeAssertion<P, T> {
+
     private static OntFinder NPA_FINDER = new OntFinder.ByType(OWL.NegativePropertyAssertion);
     private static OntFilter NPA_FILTER = OntFilter.BLANK
             .and(new OntFilter.HasPredicate(OWL.sourceIndividual))
@@ -48,30 +50,30 @@ public abstract class OntNPAImpl<P extends OntPE, T extends RDFNode> extends Ont
     public static ObjectFactory dataNPAFactory = Factories.createCommon(DataAssertionImpl.class,
             NPA_FINDER, NPA_FILTER, new OntFilter.HasPredicate(OWL.targetValue));
     public static ObjectFactory abstractNPAFactory = Factories.createFrom(NPA_FINDER
-            , ObjectAssertion.class
-            , DataAssertion.class);
+            , WithObjectProperty.class
+            , WithDataProperty.class);
 
     public OntNPAImpl(Node n, EnhGraph m) {
         super(n, m);
     }
 
-    public static DataAssertion create(OntGraphModelImpl model,
-                                       OntIndividual source,
-                                       OntNDP property,
-                                       Literal target) {
+    public static WithDataProperty create(OntGraphModelImpl model,
+                                          OntIndividual source,
+                                          OntDataProperty property,
+                                          Literal target) {
         Resource res = create(model, source).addProperty(OWL.assertionProperty, property)
                 .addProperty(OWL.targetValue, target);
-        return model.getNodeAs(res.asNode(), DataAssertion.class);
+        return model.getNodeAs(res.asNode(), WithDataProperty.class);
     }
 
-    public static ObjectAssertion create(OntGraphModelImpl model,
-                                         OntIndividual source,
-                                         OntOPE property,
-                                         OntIndividual target) {
+    public static WithObjectProperty create(OntGraphModelImpl model,
+                                            OntIndividual source,
+                                            OntObjectProperty property,
+                                            OntIndividual target) {
         Resource res = create(model, source)
                 .addProperty(OWL.assertionProperty, property)
                 .addProperty(OWL.targetIndividual, target);
-        return model.getNodeAs(res.asNode(), ObjectAssertion.class);
+        return model.getNodeAs(res.asNode(), WithObjectProperty.class);
     }
 
     @Override
@@ -105,14 +107,14 @@ public abstract class OntNPAImpl<P extends OntPE, T extends RDFNode> extends Ont
         return res;
     }
 
-    public static class ObjectAssertionImpl extends OntNPAImpl<OntOPE, OntIndividual> implements ObjectAssertion {
+    public static class ObjectAssertionImpl extends OntNPAImpl<OntObjectProperty, OntIndividual> implements WithObjectProperty {
         public ObjectAssertionImpl(Node n, EnhGraph m) {
             super(n, m);
         }
 
         @Override
-        Class<OntOPE> propertyClass() {
-            return OntOPE.class;
+        Class<OntObjectProperty> propertyClass() {
+            return OntObjectProperty.class;
         }
 
         @Override
@@ -121,8 +123,8 @@ public abstract class OntNPAImpl<P extends OntPE, T extends RDFNode> extends Ont
         }
 
         @Override
-        public Class<ObjectAssertion> getActualClass() {
-            return ObjectAssertion.class;
+        public Class<WithObjectProperty> getActualClass() {
+            return WithObjectProperty.class;
         }
 
 
@@ -133,14 +135,14 @@ public abstract class OntNPAImpl<P extends OntPE, T extends RDFNode> extends Ont
 
     }
 
-    public static class DataAssertionImpl extends OntNPAImpl<OntNDP, Literal> implements DataAssertion {
+    public static class DataAssertionImpl extends OntNPAImpl<OntDataProperty, Literal> implements WithDataProperty {
         public DataAssertionImpl(Node n, EnhGraph m) {
             super(n, m);
         }
 
         @Override
-        Class<OntNDP> propertyClass() {
-            return OntNDP.class;
+        Class<OntDataProperty> propertyClass() {
+            return OntDataProperty.class;
         }
 
         @Override
@@ -149,8 +151,8 @@ public abstract class OntNPAImpl<P extends OntPE, T extends RDFNode> extends Ont
         }
 
         @Override
-        public Class<DataAssertion> getActualClass() {
-            return DataAssertion.class;
+        public Class<WithDataProperty> getActualClass() {
+            return WithDataProperty.class;
         }
 
 

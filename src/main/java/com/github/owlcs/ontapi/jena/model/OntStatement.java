@@ -50,26 +50,26 @@ public interface OntStatement extends Statement {
     OntModel getModel();
 
     /**
-     * Annotates the statement with the given {@link OntNAP annotation property} and {@link RDFNode RDF Node} value
+     * Annotates the statement with the given {@link OntAnnotationProperty annotation property} and {@link RDFNode RDF Node} value
      * and returns a newly added annotation assertion statement.
      * <p>
      * In the special case of a root statement (i.e. if this statement is a result of {@link OntObject#getRoot()})
      * the returned {@code OntStatement} has the same subject as this statement
      * and it is called a plain annotation assertion
-     * (in this case the method is equivalent to the {@link OntObject#addAnnotation(OntNAP, RDFNode)} method).
+     * (in this case the method is equivalent to the {@link OntObject#addAnnotation(OntAnnotationProperty, RDFNode)} method).
      * Otherwise the returned statement is a part of a fresh or existing {@link OntAnnotation bulk annotation resource}
      * and its subject is a blank node.
      *
-     * @param property {@link OntNAP} named annotation property, not {@code null}
+     * @param property {@link OntAnnotationProperty} named annotation property, not {@code null}
      * @param value    {@link RDFNode} uri-resource, literal or anonymous individual, not {@code null}
      * @return a <b>new</b> {@link OntStatement Ont-Statement} for newly added annotation
      * @throws OntJenaException in case input is incorrect
-     * @see #annotate(OntNAP, RDFNode)
-     * @see OntAnnotation#addAnnotation(OntNAP, RDFNode)
-     * @see OntObject#addAnnotation(OntNAP, RDFNode)
+     * @see #annotate(OntAnnotationProperty, RDFNode)
+     * @see OntAnnotation#addAnnotation(OntAnnotationProperty, RDFNode)
+     * @see OntObject#addAnnotation(OntAnnotationProperty, RDFNode)
      * @see OntObject#getRoot()
      */
-    OntStatement addAnnotation(OntNAP property, RDFNode value);
+    OntStatement addAnnotation(OntAnnotationProperty property, RDFNode value);
 
     /**
      * Lists all annotations related to this statement.
@@ -77,7 +77,7 @@ public interface OntStatement extends Statement {
      * plus plain annotation assertions in the special case of root statement.
      *
      * @return Stream (unordered) of {@link OntStatement annotation assertion statement}s
-     * with {@link OntNAP annotation property} as predicates, can be empty
+     * with {@link OntAnnotationProperty annotation property} as predicates, can be empty
      * @see #asAnnotationResource()
      */
     Stream<OntStatement> annotations();
@@ -89,14 +89,14 @@ public interface OntStatement extends Statement {
      * If this statement is not root and corresponding {@link OntAnnotation} resource has no assertions any more,
      * it deletes the whole OntAnnotation resource also.
      *
-     * @param property {@link OntNAP} named annotation property, not {@code null}
+     * @param property {@link OntAnnotationProperty} named annotation property, not {@code null}
      * @param value    {@link RDFNode} uri-resource, literal or anonymous individual, not {@code null}
      * @return <b>this</b> statement instance to allow cascading calls
      * @throws OntJenaException in case input is incorrect or deleted annotation has it is own annotations
-     * @see #deleteAnnotation(OntNAP)
+     * @see #deleteAnnotation(OntAnnotationProperty)
      * @see #clearAnnotations()
      */
-    OntStatement deleteAnnotation(OntNAP property, RDFNode value) throws OntJenaException;
+    OntStatement deleteAnnotation(OntAnnotationProperty property, RDFNode value) throws OntJenaException;
 
     /**
      * Returns the stream of the annotation objects attached to this statement.
@@ -169,22 +169,22 @@ public interface OntStatement extends Statement {
     /**
      * Lists all annotations by the property.
      *
-     * @param property {@link OntNAP} the property
+     * @param property {@link OntAnnotationProperty} the property
      * @return Stream of {@link OntStatement}s
      */
-    default Stream<OntStatement> annotations(OntNAP property) {
+    default Stream<OntStatement> annotations(OntAnnotationProperty property) {
         return annotations().filter(s -> Objects.equals(property, s.getPredicate()));
     }
 
     /**
      * Deletes all (sub-)annotations with the given predicate-property.
      *
-     * @param property {@link OntNAP}
+     * @param property {@link OntAnnotationProperty}
      * @return <b>this</b> statement to allow cascading calls
      * @see #clearAnnotations()
-     * @see #deleteAnnotation(OntNAP, RDFNode)
+     * @see #deleteAnnotation(OntAnnotationProperty, RDFNode)
      */
-    default OntStatement deleteAnnotation(OntNAP property) {
+    default OntStatement deleteAnnotation(OntAnnotationProperty property) {
         annotations(property).map(Statement::getObject)
                 .collect(Collectors.toSet())
                 .forEach(v -> deleteAnnotation(property, v));
@@ -225,10 +225,10 @@ public interface OntStatement extends Statement {
      * {@code t} is an IRI, anonymous individual, or literal,
      * and {@code A} is an annotation property.
      *
-     * @return {@code true} if the predicate is {@link OntNAP}
+     * @return {@code true} if the predicate is {@link OntAnnotationProperty}
      */
     default boolean isAnnotation() {
-        return getPredicate().canAs(OntNAP.class);
+        return getPredicate().canAs(OntAnnotationProperty.class);
     }
 
     /**
@@ -238,34 +238,34 @@ public interface OntStatement extends Statement {
      * where {@code a} is an individual (both named and anonymous),
      * {@code v} is a literal and {@code R} is a data property.
      *
-     * @return true if the predicate is {@link OntNDP}
+     * @return true if the predicate is {@link OntDataProperty}
      */
     default boolean isData() {
-        return getPredicate().canAs(OntNDP.class);
+        return getPredicate().canAs(OntDataProperty.class);
     }
 
     /**
      * Answers {@code true} iff there is an object property as a predicate and
      * therefore this statement is likely to be a positive object property assertion {@code a1 PN a2}.
      *
-     * @return {@code true} if the predicate is {@link OntNOP}
+     * @return {@code true} if the predicate is {@link OntObjectProperty.Named}
      */
     default boolean isObject() {
-        return getPredicate().canAs(OntNOP.class);
+        return getPredicate().canAs(OntObjectProperty.Named.class);
     }
 
     /**
      * Removes all sub-annotations including their children.
      *
      * @return <b>this</b> statement to allow cascading calls
-     * @see OntStatement#deleteAnnotation(OntNAP, RDFNode)
+     * @see OntStatement#deleteAnnotation(OntAnnotationProperty, RDFNode)
      * @see OntObject#clearAnnotations()
      */
     default OntStatement clearAnnotations() {
         annotations()
                 .peek(OntStatement::clearAnnotations)
                 .collect(Collectors.toSet())
-                .forEach(a -> deleteAnnotation(a.getPredicate().as(OntNAP.class), a.getObject()));
+                .forEach(a -> deleteAnnotation(a.getPredicate().as(OntAnnotationProperty.class), a.getObject()));
         return this;
     }
 
@@ -283,72 +283,72 @@ public interface OntStatement extends Statement {
     /**
      * Creates and returns a textual no-lang sub-annotation-assertion.
      *
-     * @param predicate {@link OntNAP}, not {@code null}
+     * @param predicate {@link OntAnnotationProperty}, not {@code null}
      * @param text      String, the text message, not {@code null}
      * @return {@link OntStatement}, <b>new</b> instance
-     * @see OntObject#addAnnotation(OntNAP, String, String)
+     * @see OntObject#addAnnotation(OntAnnotationProperty, String, String)
      */
-    default OntStatement addAnnotation(OntNAP predicate, String text) {
+    default OntStatement addAnnotation(OntAnnotationProperty predicate, String text) {
         return addAnnotation(predicate, text, null);
     }
 
     /**
      * Creates and returns a textual language-tagged sub-annotation-assertion.
      *
-     * @param predicate {@link OntNAP}, not {@code null}
+     * @param predicate {@link OntAnnotationProperty}, not {@code null}
      * @param text      String, the text message, not {@code null}
      * @param lang      String, language, optional
      * @return {@link OntStatement}, <b>new</b> instance
-     * @see OntObject#addAnnotation(OntNAP, String, String)
+     * @see OntObject#addAnnotation(OntAnnotationProperty, String, String)
      */
-    default OntStatement addAnnotation(OntNAP predicate, String text, String lang) {
+    default OntStatement addAnnotation(OntAnnotationProperty predicate, String text, String lang) {
         return addAnnotation(predicate, getModel().createLiteral(text, lang));
     }
 
     /**
      * Annotates the statement with the given predicate and textual message.
      *
-     * @param property {@link OntNAP} named annotation property, not {@code null}
+     * @param property {@link OntAnnotationProperty} named annotation property, not {@code null}
      * @param text     String, the text message, not {@code null}
      * @return <b>this</b> {@code OntStatement} to allow cascading calls
-     * @see OntStatement#addAnnotation(OntNAP, String)
+     * @see OntStatement#addAnnotation(OntAnnotationProperty, String)
      * @see OntModel#getRDFSComment()
      * @see OntModel#getRDFSLabel()
      * @since 1.4.0
      */
-    default OntStatement annotate(OntNAP property, String text) {
+    default OntStatement annotate(OntAnnotationProperty property, String text) {
         return annotate(property, text, null);
     }
 
     /**
      * Annotates the statement with the given predicate and language-tagged textual message.
      *
-     * @param property {@link OntNAP} named annotation property, not {@code null}
+     * @param property {@link OntAnnotationProperty} named annotation property, not {@code null}
      * @param text     String, the text message, not {@code null}
      * @param lang     String, language, optional
      * @return <b>this</b> {@code OntStatement} to allow cascading calls
-     * @see OntStatement#addAnnotation(OntNAP, String, String)
+     * @see OntStatement#addAnnotation(OntAnnotationProperty, String, String)
      * @see OntModel#getRDFSComment()
      * @see OntModel#getRDFSLabel()
      * @since 1.4.0
      */
-    default OntStatement annotate(OntNAP property, String text, String lang) {
+    default OntStatement annotate(OntAnnotationProperty property, String text, String lang) {
         return annotate(property, getModel().createLiteral(text, lang));
     }
 
     /**
      * Annotates the statement with the given predicate and value.
-     * The method differs from {@link #addAnnotation(OntNAP, RDFNode)} only in return object.
+     * The method differs from {@link #addAnnotation(OntAnnotationProperty, RDFNode)} only in return object.
      *
-     * @param property {@link OntNAP} named annotation property, not {@code null}
+     * @param property {@link OntAnnotationProperty} named annotation property, not {@code null}
      * @param value    {@link RDFNode} uri-resource, literal or anonymous individual, not {@code null}
      * @return <b>this</b> {@code OntStatement} to allow cascading calls
-     * @see OntStatement#addAnnotation(OntNAP, RDFNode)
+     * @see OntStatement#addAnnotation(OntAnnotationProperty, RDFNode)
      * @see OntModel#getRDFSComment()
      * @see OntModel#getRDFSLabel()
      * @since 1.4.0
      */
-    default OntStatement annotate(OntNAP property, RDFNode value) {
+    default OntStatement annotate(OntAnnotationProperty property, RDFNode value) {
         addAnnotation(property, value);
         return this;
     }

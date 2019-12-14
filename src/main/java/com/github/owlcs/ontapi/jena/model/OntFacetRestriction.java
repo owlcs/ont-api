@@ -17,7 +17,7 @@ package com.github.owlcs.ontapi.jena.model;
 import org.apache.jena.rdf.model.Literal;
 
 /**
- * Interface encapsulating an Ontology <b>F</b>acet <b>R</b>estriction abstraction.
+ * Interface encapsulating an Ontology Facet Restriction abstraction.
  * <p>
  * Created by @szuev on 02.11.2016.
  *
@@ -26,7 +26,7 @@ import org.apache.jena.rdf.model.Literal;
  * @see com.github.owlcs.ontapi.jena.vocabulary.XSD
  * @see OntModel#createFacetRestriction(Class, Literal)
  */
-public interface OntFR extends OntObject {
+public interface OntFacetRestriction extends OntObject {
     /**
      * Answers the value of this Facet Restriction.
      *
@@ -37,67 +37,67 @@ public interface OntFR extends OntObject {
     /**
      * @see <a href='https://www.w3.org/TR/xmlschema11-2/#rf-pattern'>4.3.4 pattern</a>
      */
-    interface Pattern extends OntFR {
+    interface Pattern extends OntFacetRestriction {
     }
 
     /**
      * @see <a href='https://www.w3.org/TR/xmlschema11-2/#rf-length'>4.3.1 length</a>
      */
-    interface Length extends OntFR {
+    interface Length extends OntFacetRestriction {
     }
 
     /**
      * @see <a href='https://www.w3.org/TR/xmlschema11-2/#rf-minLength'>4.3.2 minLength</a>
      */
-    interface MinLength extends OntFR {
+    interface MinLength extends OntFacetRestriction {
     }
 
     /**
      * @see <a href='https://www.w3.org/TR/xmlschema11-2/#rf-maxLength'>4.3.3 maxLength</a>
      */
-    interface MaxLength extends OntFR {
+    interface MaxLength extends OntFacetRestriction {
     }
 
     /**
      * @see <a href='https://www.w3.org/TR/xmlschema11-2/#rf-minInclusive'>4.3.10 minInclusive</a>
      */
-    interface MinInclusive extends OntFR {
+    interface MinInclusive extends OntFacetRestriction {
     }
 
     /**
      * @see <a href='https://www.w3.org/TR/xmlschema11-2/#rf-maxInclusive'>4.3.7 maxInclusive</a>
      */
-    interface MaxInclusive extends OntFR {
+    interface MaxInclusive extends OntFacetRestriction {
     }
 
     /**
      * @see <a href='https://www.w3.org/TR/xmlschema11-2/#rf-minExclusive'>4.3.9 minExclusive</a>
      */
-    interface MinExclusive extends OntFR {
+    interface MinExclusive extends OntFacetRestriction {
     }
 
     /**
      * @see <a href='https://www.w3.org/TR/xmlschema11-2/#rf-maxExclusive'>4.3.8 maxExclusive</a>
      */
-    interface MaxExclusive extends OntFR {
+    interface MaxExclusive extends OntFacetRestriction {
     }
 
     /**
      * @see <a href='https://www.w3.org/TR/xmlschema11-2/#rf-totalDigits'>4.3.11 totalDigits</a>
      */
-    interface TotalDigits extends OntFR {
+    interface TotalDigits extends OntFacetRestriction {
     }
 
     /**
      * @see <a href='https://www.w3.org/TR/xmlschema11-2/#rf-fractionDigits'>4.3.12 fractionDigits</a>
      */
-    interface FractionDigits extends OntFR {
+    interface FractionDigits extends OntFacetRestriction {
     }
 
     /**
      * @see <a href='https://www.w3.org/TR/rdf-plain-literal/#langRange'>Table 1. The Facet Space of rdf:PlainLiteral</a>
      */
-    interface LangRange extends OntFR {
+    interface LangRange extends OntFacetRestriction {
     }
 
 }

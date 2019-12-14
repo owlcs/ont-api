@@ -72,14 +72,14 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
     }
 
     /**
-     * Gets all uri-{@link Node}s that are reserved for a model and cannot represent a {@link OntClass}.
+     * Gets all uri-{@link Node}s that are reserved for a model and cannot represent a {@link OntClass.Named}.
      *
      * @param model {@link OntModel}, not {@code null}
      * @return a {@code Set} of {@link Node}s
      */
     protected static Set<Node> getSystemResources(OntModel model) {
         if (model instanceof PersonalityModel) {
-            return ((PersonalityModel) model).getSystemResources(OntClass.class);
+            return ((PersonalityModel) model).getSystemResources(OntClass.Named.class);
         }
         return Collections.emptySet();
     }

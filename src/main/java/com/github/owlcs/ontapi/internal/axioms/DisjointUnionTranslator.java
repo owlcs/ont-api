@@ -21,7 +21,10 @@ import com.github.owlcs.ontapi.internal.InternalObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTClassImpl;
-import com.github.owlcs.ontapi.jena.model.*;
+import com.github.owlcs.ontapi.jena.model.OntClass;
+import com.github.owlcs.ontapi.jena.model.OntList;
+import com.github.owlcs.ontapi.jena.model.OntModel;
+import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import org.apache.jena.graph.Triple;
@@ -48,8 +51,8 @@ import java.util.stream.Stream;
  *
  * @see <a href='https://www.w3.org/TR/owl2-syntax/#Disjoint_Union_of_Class_Expressions'>9.1.4 Disjoint Union of Class Expressions</a>
  */
-public class DisjointUnionTranslator extends AbstractListBasedTranslator<OWLDisjointUnionAxiom, OntClass,
-        OWLClassExpression, OntCE, OWLClassExpression> {
+public class DisjointUnionTranslator extends AbstractListBasedTranslator<OWLDisjointUnionAxiom, OntClass.Named,
+        OWLClassExpression, OntClass, OWLClassExpression> {
     @Override
     public OWLObject getSubject(OWLDisjointUnionAxiom axiom) {
         return axiom.getOWLClass();
@@ -66,8 +69,8 @@ public class DisjointUnionTranslator extends AbstractListBasedTranslator<OWLDisj
     }
 
     @Override
-    Class<OntClass> getView() {
-        return OntClass.class;
+    Class<OntClass.Named> getView() {
+        return OntClass.Named.class;
     }
 
     @Override
@@ -82,7 +85,7 @@ public class DisjointUnionTranslator extends AbstractListBasedTranslator<OWLDisj
     public ONTObject<OWLDisjointUnionAxiom> toAxiomWrap(OntStatement statement,
                                                         InternalObjectFactory factory,
                                                         InternalConfig config) {
-        return makeAxiom(statement, factory::getClass, OntClass::findDisjointUnion, factory::getClass, Collectors.toSet(),
+        return makeAxiom(statement, factory::getClass, OntClass.Named::findDisjointUnion, factory::getClass, Collectors.toSet(),
                 (s, m) -> factory.getOWLDataFactory().getOWLDisjointUnionAxiom(s.getOWLObject().asOWLClass(),
                         ONTObject.toSet(m),
                         ONTObject.toSet(factory.getAnnotations(statement, config))));
@@ -93,7 +96,7 @@ public class DisjointUnionTranslator extends AbstractListBasedTranslator<OWLDisj
      */
     @SuppressWarnings("WeakerAccess")
     public static class AxiomImpl
-            extends WithListImpl<OWLDisjointUnionAxiom, OntCE>
+            extends WithListImpl<OWLDisjointUnionAxiom, OntClass>
             implements WithList.Sorted<OWLDisjointUnionAxiom, OWLClass, OWLClassExpression>, OWLDisjointUnionAxiom {
 
         private static final BiFunction<Triple, Supplier<OntModel>, AxiomImpl> FACTORY = AxiomImpl::new;
@@ -123,8 +126,8 @@ public class DisjointUnionTranslator extends AbstractListBasedTranslator<OWLDisj
         }
 
         @Override
-        protected OntList<OntCE> findList(OntStatement statement) {
-            return statement.getSubject(OntClass.class).findDisjointUnion(statement.getObject(RDFList.class))
+        protected OntList<OntClass> findList(OntStatement statement) {
+            return statement.getSubject(OntClass.Named.class).findDisjointUnion(statement.getObject(RDFList.class))
                     .orElseThrow(() -> new OntApiException.IllegalState("Can't find []-list in " + statement));
         }
 

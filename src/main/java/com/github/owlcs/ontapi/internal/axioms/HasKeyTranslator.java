@@ -47,7 +47,7 @@ import java.util.stream.Stream;
  * @see <a href='https://www.w3.org/TR/owl2-syntax/#Keys'>9.5 Keys</a>
  */
 public class HasKeyTranslator
-        extends AbstractListBasedTranslator<OWLHasKeyAxiom, OntCE, OWLClassExpression, OntDOP, OWLPropertyExpression> {
+        extends AbstractListBasedTranslator<OWLHasKeyAxiom, OntClass, OWLClassExpression, OntRealProperty, OWLPropertyExpression> {
     @Override
     OWLObject getSubject(OWLHasKeyAxiom axiom) {
         return axiom.getClassExpression();
@@ -64,8 +64,8 @@ public class HasKeyTranslator
     }
 
     @Override
-    Class<OntCE> getView() {
-        return OntCE.class;
+    Class<OntClass> getView() {
+        return OntClass.class;
     }
 
     @Override
@@ -80,7 +80,7 @@ public class HasKeyTranslator
     public ONTObject<OWLHasKeyAxiom> toAxiomWrap(OntStatement statement,
                                                  InternalObjectFactory factory,
                                                  InternalConfig config) {
-        return makeAxiom(statement, factory::getClass, OntCE::findHasKey, factory::getProperty, Collectors.toSet(),
+        return makeAxiom(statement, factory::getClass, OntClass::findHasKey, factory::getProperty, Collectors.toSet(),
                 (s, m) -> factory.getOWLDataFactory().getOWLHasKeyAxiom(s.getOWLObject(),
                         ONTObject.toSet(m),
                         ONTObject.toSet(factory.getAnnotations(statement, config))));
@@ -90,7 +90,7 @@ public class HasKeyTranslator
      * @see com.github.owlcs.ontapi.owlapi.axioms.OWLHasKeyAxiomImpl
      */
     public static class AxiomImpl
-            extends WithListImpl<OWLHasKeyAxiom, OntDOP>
+            extends WithListImpl<OWLHasKeyAxiom, OntRealProperty>
             implements WithList.Sorted<OWLHasKeyAxiom, OWLClassExpression, OWLPropertyExpression>, OWLHasKeyAxiom {
 
         private static final BiFunction<Triple, Supplier<OntModel>, AxiomImpl> FACTORY = AxiomImpl::new;
@@ -120,8 +120,8 @@ public class HasKeyTranslator
         }
 
         @Override
-        protected OntList<OntDOP> findList(OntStatement statement) {
-            return statement.getSubject(OntCE.class).findHasKey(statement.getObject(RDFList.class))
+        protected OntList<OntRealProperty> findList(OntStatement statement) {
+            return statement.getSubject(OntClass.class).findHasKey(statement.getObject(RDFList.class))
                     .orElseThrow(() -> new OntApiException.IllegalState("Can't find []-list in " + statement));
         }
 
@@ -174,7 +174,7 @@ public class HasKeyTranslator
         @Override
         public ONTObject<? extends OWLClassExpression> fetchONTSubject(OntStatement statement,
                                                                        InternalObjectFactory factory) {
-            return factory.getClass(statement.getSubject(OntCE.class));
+            return factory.getClass(statement.getSubject(OntClass.class));
         }
 
         @Override

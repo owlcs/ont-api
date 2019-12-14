@@ -63,7 +63,7 @@ public class OntModelTest {
         Assert.assertEquals(expected, m.ontObjects(type).count());
     }
 
-    private static void testPizzaCEs(Model m, Property predicate, List<? extends OntCE> ces) {
+    private static void testPizzaCEs(Model m, Property predicate, List<? extends OntClass> ces) {
         String type = ces.isEmpty() ? null : ((OntCEImpl) ces.get(0)).getActualClass().getSimpleName();
         Assert.assertEquals("Incorrect count of " + type, m.listSubjectsWithProperty(predicate)
                 .toSet().size(), ces.size());
@@ -83,25 +83,25 @@ public class OntModelTest {
         Set<Statement> inverseStatements = jena.listStatements(null, OWL.inverseOf, (RDFNode) null)
                 .filterKeep(s -> s.getSubject().isURIResource()).filterKeep(s -> s.getObject().isURIResource()).toSet();
 
-        List<OntPE> actualPEs = ont.ontObjects(OntPE.class)
+        List<OntProperty> actualPEs = ont.ontObjects(OntProperty.class)
                 .peek(x -> LOGGER.debug("PE: {}", x)).collect(Collectors.toList());
 
         Set<Resource> expectedNamed = toUnmodifiableSet(annotationProperties, datatypeProperties, namedObjectProperties);
         Set<Resource> expectedPEs = toUnmodifiableSet(expectedNamed, inverseObjectProperties);
         Assert.assertEquals("Incorrect number of property expressions", expectedPEs.size(), actualPEs.size());
 
-        List<OntProperty> actualNamed = ont.ontObjects(OntProperty.class)
+        List<OntNamedProperty> actualNamed = ont.ontObjects(OntNamedProperty.class)
                 .peek(x -> LOGGER.debug("Named property: {}", x))
                 .collect(Collectors.toList());
         Assert.assertEquals("Incorrect number of named properties", expectedNamed.size(), actualNamed.size());
 
-        List<OntPE> actualDOs = ont.ontObjects(OntDOP.class).collect(Collectors.toList());
+        List<OntProperty> actualDOs = ont.ontObjects(OntRealProperty.class).collect(Collectors.toList());
         Set<Resource> expectedDOs = toUnmodifiableSet(datatypeProperties, namedObjectProperties, inverseObjectProperties);
         Assert.assertEquals("Incorrect number of data and object property expressions",
                 expectedDOs.size(), actualDOs.size());
 
         Assert.assertEquals("Incorrect number of owl:inverseOf for object properties", inverseStatements.size(),
-                ont.objectProperties().flatMap(OntOPE::inverseProperties).count());
+                ont.objectProperties().flatMap(OntObjectProperty::inverseProperties).count());
     }
 
     @SuppressWarnings("rawtypes")
@@ -111,7 +111,7 @@ public class OntModelTest {
         OntModel m = OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("ontapi/pizza.ttl").getGraph());
         LOGGER.debug("Ontology: {}", m.getID());
 
-        List<OntClass> classes = m.ontObjects(OntClass.class).collect(Collectors.toList());
+        List<OntClass.Named> classes = m.ontObjects(OntClass.Named.class).collect(Collectors.toList());
         int expectedClassesCount = m.listStatements(null, RDF.type, OWL.Class)
                 .mapWith(Statement::getSubject).filterKeep(RDFNode::isURIResource).toSet().size();
         int actualClassesCount = classes.size();
@@ -119,7 +119,7 @@ public class OntModelTest {
         Assert.assertEquals("Incorrect Classes count", expectedClassesCount, actualClassesCount);
 
         LOGGER.debug("Class Expressions:");
-        List<OntCE> ces = m.ontObjects(OntCE.class).collect(Collectors.toList());
+        List<OntClass> ces = m.ontObjects(OntClass.class).collect(Collectors.toList());
         ces.forEach(x -> LOGGER.debug("{}", x));
         int expectedCEsCount = m.listStatements(null, RDF.type, OWL.Class)
                 .andThen(m.listStatements(null, RDF.type, OWL.Restriction)).toSet().size();
@@ -127,22 +127,22 @@ public class OntModelTest {
         LOGGER.debug("Class Expressions Count = {}", actualCEsCount);
         Assert.assertEquals("Incorrect CE's count", expectedCEsCount, actualCEsCount);
 
-        List<OntCE.RestrictionCE> restrictionCEs = m.ontObjects(OntCE.RestrictionCE.class).collect(Collectors.toList());
+        List<OntClass.RestrictionCE> restrictionCEs = m.ontObjects(OntClass.RestrictionCE.class).collect(Collectors.toList());
         Assert.assertEquals("Incorrect count of restrictions ",
                 m.listStatements(null, RDF.type, OWL.Restriction).toSet().size(), restrictionCEs.size());
 
-        List<OntCE.ObjectSomeValuesFrom> objectSomeValuesFromCEs = m.ontObjects(OntCE.ObjectSomeValuesFrom.class)
+        List<OntClass.ObjectSomeValuesFrom> objectSomeValuesFromCEs = m.ontObjects(OntClass.ObjectSomeValuesFrom.class)
                 .collect(Collectors.toList());
-        List<OntCE.ObjectAllValuesFrom> objectAllValuesFromCEs = m.ontObjects(OntCE.ObjectAllValuesFrom.class)
+        List<OntClass.ObjectAllValuesFrom> objectAllValuesFromCEs = m.ontObjects(OntClass.ObjectAllValuesFrom.class)
                 .collect(Collectors.toList());
-        List<OntCE.ObjectHasValue> objectHasValueCEs = m.ontObjects(OntCE.ObjectHasValue.class)
+        List<OntClass.ObjectHasValue> objectHasValueCEs = m.ontObjects(OntClass.ObjectHasValue.class)
                 .collect(Collectors.toList());
-        List<OntCE.UnionOf> unionOfCEs = m.ontObjects(OntCE.UnionOf.class).collect(Collectors.toList());
-        List<OntCE.IntersectionOf> intersectionOfCEs = m.ontObjects(OntCE.IntersectionOf.class)
+        List<OntClass.UnionOf> unionOfCEs = m.ontObjects(OntClass.UnionOf.class).collect(Collectors.toList());
+        List<OntClass.IntersectionOf> intersectionOfCEs = m.ontObjects(OntClass.IntersectionOf.class)
                 .collect(Collectors.toList());
-        List<OntCE.ComplementOf> complementOfCEs = m.ontObjects(OntCE.ComplementOf.class).collect(Collectors.toList());
-        List<OntCE.OneOf> oneOfCEs = m.ontObjects(OntCE.OneOf.class).collect(Collectors.toList());
-        List<OntCE.ObjectMinCardinality> objectMinCardinalityCEs = m.ontObjects(OntCE.ObjectMinCardinality.class)
+        List<OntClass.ComplementOf> complementOfCEs = m.ontObjects(OntClass.ComplementOf.class).collect(Collectors.toList());
+        List<OntClass.OneOf> oneOfCEs = m.ontObjects(OntClass.OneOf.class).collect(Collectors.toList());
+        List<OntClass.ObjectMinCardinality> objectMinCardinalityCEs = m.ontObjects(OntClass.ObjectMinCardinality.class)
                 .collect(Collectors.toList());
 
         testPizzaCEs(m, OWL.someValuesFrom, objectSomeValuesFromCEs);
@@ -172,7 +172,7 @@ public class OntModelTest {
         LOGGER.debug("load pizza");
         OntModel m = OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("ontapi/pizza.ttl").getGraph());
         List<OntIndividual> individuals = m.ontObjects(OntIndividual.class).collect(Collectors.toList());
-        Map<OntIndividual, Set<OntCE>> classes = individuals.stream()
+        Map<OntIndividual, Set<OntClass>> classes = individuals.stream()
                 .collect(Collectors.toMap(Function.identity(), i -> i.classes().collect(Collectors.toSet())));
         classes.forEach((i, c) -> LOGGER.debug("Individual: {}, Classes: {}", i, c));
         classes.forEach((i, c) -> c.forEach(_c -> Assert.assertEquals(1, _c.individuals()
@@ -210,8 +210,8 @@ public class OntModelTest {
 
         long statementsCount = m.statements().count();
 
-        Map<OntCE, Set<OntPE>> props = new HashMap<>();
-        m.ontObjects(OntCE.class)
+        Map<OntClass, Set<OntProperty>> props = new HashMap<>();
+        m.ontObjects(OntClass.class)
                 .forEach(x -> props.computeIfAbsent(x, c -> new HashSet<>())
                         .addAll(x.properties().collect(Collectors.toSet())));
         props.forEach((c, ps) -> LOGGER.debug("{} => {}", c, ps));
@@ -220,16 +220,16 @@ public class OntModelTest {
         Assert.assertEquals(5, props.values().stream().mapToLong(Collection::size).sum());
 
         String ns = m.getID().getURI() + "#";
-        OntClass animal = m.getOntClass(ns + "Animal");
+        OntClass.Named animal = m.getOntClass(ns + "Animal");
         Assert.assertNotNull(animal);
         Assert.assertEquals("Wrong #Animal attached properties count", 3, animal.properties().count());
-        OntClass person = m.getOntClass(ns + "Person");
+        OntClass.Named person = m.getOntClass(ns + "Person");
         Assert.assertNotNull(person);
         Assert.assertEquals("Wrong #Person attached properties count", 2, person.properties().count());
 
-        OntNDP isHardWorking = m.getDataProperty(ns + "isHardWorking");
+        OntDataProperty isHardWorking = m.getDataProperty(ns + "isHardWorking");
         Assert.assertNotNull(isHardWorking);
-        Set<OntOPE> objProperties = m.ontObjects(OntNOP.class).collect(Collectors.toSet());
+        Set<OntObjectProperty> objProperties = m.ontObjects(OntObjectProperty.Named.class).collect(Collectors.toSet());
         Assert.assertEquals(4, objProperties.size());
 
         OntStatement statement = person.createHasKey(objProperties, Collections.singleton(isHardWorking)).getRoot();
@@ -238,7 +238,7 @@ public class OntModelTest {
         ReadWriteUtils.print(m);
 
         Assert.assertEquals(5, person.hasKeys().findFirst().orElseThrow(AssertionError::new).members().count());
-        Assert.assertEquals(numClasses, m.ontObjects(OntCE.class).distinct().count());
+        Assert.assertEquals(numClasses, m.ontObjects(OntClass.class).distinct().count());
         Assert.assertEquals(statementsCount + 16, m.statements().count());
         Assert.assertNotNull(statement.deleteAnnotation(m.getRDFSComment()));
 
@@ -246,7 +246,7 @@ public class OntModelTest {
         person.clearHasKeys();
         Assert.assertEquals(statementsCount, m.statements().count());
 
-        OntClass marsupials = m.getOntClass(ns + "Marsupials");
+        OntClass.Named marsupials = m.getOntClass(ns + "Marsupials");
         Assert.assertNotNull(marsupials);
         Assert.assertEquals(marsupials, person.disjointClasses().findFirst().orElse(null));
         Assert.assertEquals(person, marsupials.disjointClasses().findAny().orElse(null));
@@ -275,14 +275,14 @@ public class OntModelTest {
             m.read(in, null, Lang.RDFXML.getName());
         }
         simplePropertiesValidation(m);
-        OntOPE p1 = m.objectProperties().findFirst().orElseThrow(AssertionError::new);
+        OntObjectProperty p1 = m.objectProperties().findFirst().orElseThrow(AssertionError::new);
         Assert.assertFalse(p1.findInverseProperty().isPresent());
-        OntOPE p2 = m.createResource().addProperty(OWL.inverseOf, p1).as(OntOPE.class);
+        OntObjectProperty p2 = m.createResource().addProperty(OWL.inverseOf, p1).as(OntObjectProperty.class);
         Assert.assertTrue(p2.findInverseProperty().isPresent());
         Assert.assertEquals(1, p2.inverseProperties().count());
         Assert.assertEquals(p1.asProperty(), p2.asProperty());
         Assert.assertEquals(p1, p2.findInverseProperty().orElseThrow(AssertionError::new));
-        Assert.assertEquals(1, m.ontObjects(OntOPE.Inverse.class).count());
+        Assert.assertEquals(1, m.ontObjects(OntObjectProperty.Inverse.class).count());
     }
 
     @Test
@@ -291,14 +291,14 @@ public class OntModelTest {
         String baseNS = baseURI + "#";
         OntModel base = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD)
                 .setID(baseURI).getModel();
-        OntClass cl1 = base.createOntClass(baseNS + "Class1");
-        OntClass cl2 = base.createOntClass(baseNS + "Class2");
+        OntClass.Named cl1 = base.createOntClass(baseNS + "Class1");
+        OntClass.Named cl2 = base.createOntClass(baseNS + "Class2");
 
         String childURI = "http://test.com/graph/6";
         String childNS = childURI + "#";
         OntModel child = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD)
                 .setID(childURI).getModel().addImport(base);
-        OntClass cl3 = child.createOntClass(childNS + "Class3");
+        OntClass.Named cl3 = child.createOntClass(childNS + "Class3");
         cl3.addSuperClass(child.createIntersectionOf(cl1, cl2));
         cl3.createIndividual(childNS + "Individual1");
 
@@ -325,13 +325,13 @@ public class OntModelTest {
         String dataNS = m.getID().getURI() + "/data#";
         m.setNsPrefix("schema", schemaNS).setNsPrefix("data", dataNS);
 
-        OntDT email = m.createDatatype(schemaNS + "email");
-        OntDT phone = m.createDatatype(schemaNS + "phone");
-        OntDT skype = m.createDatatype(schemaNS + "skype");
-        OntNDP contactInfo = m.createDataProperty(schemaNS + "info");
-        OntClass contact = m.createOntClass(schemaNS + "Contact");
-        OntClass person = m.createOntClass(schemaNS + "Person");
-        OntNOP hasContact = m.createObjectProperty(schemaNS + "contact");
+        OntDataRange.Named email = m.createDatatype(schemaNS + "email");
+        OntDataRange.Named phone = m.createDatatype(schemaNS + "phone");
+        OntDataRange.Named skype = m.createDatatype(schemaNS + "skype");
+        OntDataProperty contactInfo = m.createDataProperty(schemaNS + "info");
+        OntClass.Named contact = m.createOntClass(schemaNS + "Contact");
+        OntClass.Named person = m.createOntClass(schemaNS + "Person");
+        OntObjectProperty.Named hasContact = m.createObjectProperty(schemaNS + "contact");
 
         hasContact.addDomain(person).addRange(contact);
 
@@ -365,11 +365,11 @@ public class OntModelTest {
     @Test
     public void testCreateEntities() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        createEntityTest(m, "a-p", OntNAP.class);
-        createEntityTest(m, "o-p", OntNOP.class);
-        createEntityTest(m, "d-p", OntNDP.class);
-        createEntityTest(m, "c", OntClass.class);
-        createEntityTest(m, "d", OntDT.class);
+        createEntityTest(m, "a-p", OntAnnotationProperty.class);
+        createEntityTest(m, "o-p", OntObjectProperty.Named.class);
+        createEntityTest(m, "d-p", OntDataProperty.class);
+        createEntityTest(m, "c", OntClass.Named.class);
+        createEntityTest(m, "d", OntDataRange.Named.class);
         createEntityTest(m, "I", OntIndividual.Named.class);
         ReadWriteUtils.print(m);
     }
@@ -390,31 +390,31 @@ public class OntModelTest {
     public void testObjectsContent() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         // properties:
-        OntNDP p1 = m.createDataProperty("p1");
-        OntNOP p2 = m.createObjectProperty("p2");
+        OntDataProperty p1 = m.createDataProperty("p1");
+        OntObjectProperty.Named p2 = m.createObjectProperty("p2");
         // classes:
-        OntClass class1 = m.createOntClass("c");
-        OntCE.UnionOf class2 = m.createUnionOf(m.createOntClass("c1"), m.createOntClass("c2"));
-        OntCE.DataHasValue class3 = m.createDataHasValue(p1, m.createLiteral("2"));
-        OntCE.DataMinCardinality class4 = m.createDataMinCardinality(p1, 2,
+        OntClass.Named class1 = m.createOntClass("c");
+        OntClass.UnionOf class2 = m.createUnionOf(m.createOntClass("c1"), m.createOntClass("c2"));
+        OntClass.DataHasValue class3 = m.createDataHasValue(p1, m.createLiteral("2"));
+        OntClass.DataMinCardinality class4 = m.createDataMinCardinality(p1, 2,
                 m.getDatatype(XSD.xdouble));
-        OntClass class5 = m.getOWLThing();
-        OntCE.ObjectCardinality class6 = m.createObjectCardinality(p2, 1234, class5);
-        OntCE.HasSelf class7 = m.createHasSelf(p2);
+        OntClass.Named class5 = m.getOWLThing();
+        OntClass.ObjectCardinality class6 = m.createObjectCardinality(p2, 1234, class5);
+        OntClass.HasSelf class7 = m.createHasSelf(p2);
         class3.addComment("The Restriction");
         class1.addSuperClass(class2).addSuperClass(class3).addDisjointClass(class4);
         class2.addSuperClass(m.createComplementOf(class5));
         class5.addEquivalentClass(m.getOWLNothing());
         // data-ranges:
-        OntDT dr1 = m.getDatatype(XSD.xint);
-        OntDR.IntersectionOf dr2 = m.createIntersectionOfDataRange(dr1, m.getDatatype(XSD.xdouble));
-        OntDR.ComplementOf dr3 = m.createComplementOfDataRange(dr2);
+        OntDataRange.Named dr1 = m.getDatatype(XSD.xint);
+        OntDataRange.IntersectionOf dr2 = m.createIntersectionOfDataRange(dr1, m.getDatatype(XSD.xdouble));
+        OntDataRange.ComplementOf dr3 = m.createComplementOfDataRange(dr2);
         dr3.addComment("Data range: complement of intersection int and double");
         // individuals:
         OntIndividual i1 = class5.createIndividual("i1");
         OntIndividual i2 = class6.createIndividual();
         // nap:
-        OntNPA<?, ?> npa1 = p1.addNegativeAssertion(i1, m.createLiteral("xxx"));
+        OntNegativeAssertion<?, ?> npa1 = p1.addNegativeAssertion(i1, m.createLiteral("xxx"));
 
         ReadWriteUtils.print(m);
 
@@ -488,14 +488,14 @@ public class OntModelTest {
     public void testRemoveObjects() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
 
-        OntCE class1 = m.createOntClass("C-1");
-        OntCE class2 = m.createOntClass("C-2");
-        OntCE class3 = m.createOntClass("C-3");
-        OntOPE p = m.createObjectProperty("P");
-        OntCE class4 = m.createComplementOf(class3);
-        OntCE class5 = m.createObjectSomeValuesFrom(p, class4);
-        OntCE class6 = m.createIntersectionOf(m.getOWLThing(), class2, class4, class5);
-        Assert.assertEquals(6, m.ontObjects(OntCE.class).count());
+        OntClass class1 = m.createOntClass("C-1");
+        OntClass class2 = m.createOntClass("C-2");
+        OntClass class3 = m.createOntClass("C-3");
+        OntObjectProperty p = m.createObjectProperty("P");
+        OntClass class4 = m.createComplementOf(class3);
+        OntClass class5 = m.createObjectSomeValuesFrom(p, class4);
+        OntClass class6 = m.createIntersectionOf(m.getOWLThing(), class2, class4, class5);
+        Assert.assertEquals(6, m.ontObjects(OntClass.class).count());
         long size = m.size();
         OntDisjoint<?> d = m.createDisjointClasses(m.getOWLNothing(), class1, class6);
         ReadWriteUtils.print(m);
@@ -657,7 +657,7 @@ public class OntModelTest {
     public void testOntPropertyOrdinal() {
         Graph g = ReadWriteUtils.loadResourceTTLFile("/ontapi/pizza.ttl").getGraph();
         OntModel m = OntModelFactory.createModel(g);
-        OntProperty<?> p = m.getOntEntity(OntProperty.class, m.expandPrefix(":isIngredientOf"));
+        OntNamedProperty<?> p = m.getOntEntity(OntNamedProperty.class, m.expandPrefix(":isIngredientOf"));
         Assert.assertNotNull(p);
         Assert.assertEquals(0, p.getOrdinal());
         Assert.assertEquals(0, m.getRDFSComment().getOrdinal());
@@ -669,19 +669,19 @@ public class OntModelTest {
         OntModel m = OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("ontapi/family.ttl").getGraph(),
                 OntModelConfig.ONT_PERSONALITY_LAX);
         assertOntObjectsCount(m, OntEntity.class, 656);
-        assertOntObjectsCount(m, OntProperty.class, 90);
+        assertOntObjectsCount(m, OntNamedProperty.class, 90);
 
-        assertOntObjectsCount(m, OntClass.class, 58);
-        assertOntObjectsCount(m, OntDT.class, 0);
+        assertOntObjectsCount(m, OntClass.Named.class, 58);
+        assertOntObjectsCount(m, OntDataRange.Named.class, 0);
         assertOntObjectsCount(m, OntIndividual.Named.class, 508);
-        assertOntObjectsCount(m, OntNOP.class, 80);
-        assertOntObjectsCount(m, OntNAP.class, 1);
-        assertOntObjectsCount(m, OntNDP.class, 9);
+        assertOntObjectsCount(m, OntObjectProperty.Named.class, 80);
+        assertOntObjectsCount(m, OntAnnotationProperty.class, 1);
+        assertOntObjectsCount(m, OntDataProperty.class, 9);
 
-        assertOntObjectsCount(m, OntOPE.class, 80);
-        assertOntObjectsCount(m, OntDOP.class, 89);
+        assertOntObjectsCount(m, OntObjectProperty.class, 80);
+        assertOntObjectsCount(m, OntRealProperty.class, 89);
 
-        assertOntObjectsCount(m, OntDR.class, 0);
+        assertOntObjectsCount(m, OntDataRange.class, 0);
 
         assertOntObjectsCount(m, OntDisjoint.class, 1);
         assertOntObjectsCount(m, OntDisjoint.Classes.class, 0);
@@ -696,14 +696,14 @@ public class OntModelTest {
     @Test
     public void testListIndividualTypes() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntClass a = m.createOntClass("A");
-        OntClass b = m.createOntClass("B");
-        OntClass c = m.createOntClass("C");
-        OntClass d = m.createOntClass("D");
-        OntClass e = m.createOntClass("E");
+        OntClass.Named a = m.createOntClass("A");
+        OntClass.Named b = m.createOntClass("B");
+        OntClass.Named c = m.createOntClass("C");
+        OntClass.Named d = m.createOntClass("D");
+        OntClass.Named e = m.createOntClass("E");
 
         b.addSuperClass(m.createComplementOf(c)).addSuperClass(a);
-        OntCE ae = m.createIntersectionOf(a, e);
+        OntClass ae = m.createIntersectionOf(a, e);
         d.addSuperClass(ae);
         a.addSuperClass(d);
         ae.addSuperClass(a).addSuperClass(b);
@@ -725,8 +725,8 @@ public class OntModelTest {
     @Test
     public void testRemoveStatement() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntClass c = m.createOntClass("c");
-        OntNDP d = m.createDataProperty("d");
+        OntClass.Named c = m.createOntClass("c");
+        OntDataProperty d = m.createDataProperty("d");
         OntStatement s = d.addDomainStatement(c);
         s.addAnnotation(m.getRDFSLabel(), "a1").addAnnotation(m.getRDFSComment(), "a2");
         s.addAnnotation(m.getRDFSComment(), "a3");
@@ -745,14 +745,14 @@ public class OntModelTest {
     @Test
     public void testDisjointComponents() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntClass c1 = m.createOntClass("C1");
-        OntClass c2 = m.createOntClass("C1");
-        OntNOP op1 = m.createObjectProperty("OP1");
-        OntNOP op2 = m.createObjectProperty("OP2");
-        OntNOP op3 = m.createObjectProperty("OP3");
-        OntNDP dp1 = m.createDataProperty("DP1");
-        OntNDP dp2 = m.createDataProperty("DP2");
-        OntNDP dp3 = m.createDataProperty("DP3");
+        OntClass.Named c1 = m.createOntClass("C1");
+        OntClass.Named c2 = m.createOntClass("C1");
+        OntObjectProperty.Named op1 = m.createObjectProperty("OP1");
+        OntObjectProperty.Named op2 = m.createObjectProperty("OP2");
+        OntObjectProperty.Named op3 = m.createObjectProperty("OP3");
+        OntDataProperty dp1 = m.createDataProperty("DP1");
+        OntDataProperty dp2 = m.createDataProperty("DP2");
+        OntDataProperty dp3 = m.createDataProperty("DP3");
         OntIndividual i1 = m.createIndividual("I1");
         OntIndividual i2 = c1.createIndividual("I2");
         OntIndividual i3 = c2.createIndividual();
@@ -794,27 +794,27 @@ public class OntModelTest {
                 .setID(uri)
                 .getModel();
 
-        OntNDP ndp1 = m.createDataProperty(ns + "dataProperty1");
-        OntDT dt1 = m.createOntEntity(OntDT.class, ns + "dataType1");
+        OntDataProperty ndp1 = m.createDataProperty(ns + "dataProperty1");
+        OntDataRange.Named dt1 = m.createOntEntity(OntDataRange.Named.class, ns + "dataType1");
         dt1.addEquivalentClass(m.getDatatype(XSD.dateTime));
 
-        OntDT dt2 = m.createOntEntity(OntDT.class, ns + "dataType2");
+        OntDataRange.Named dt2 = m.createOntEntity(OntDataRange.Named.class, ns + "dataType2");
 
-        OntFR fr1 = m.createFacetRestriction(OntFR.MaxExclusive.class, ResourceFactory.createTypedLiteral(12));
-        OntFR fr2 = m.createFacetRestriction(OntFR.LangRange.class, ResourceFactory.createTypedLiteral("\\d+"));
+        OntFacetRestriction fr1 = m.createFacetRestriction(OntFacetRestriction.MaxExclusive.class, ResourceFactory.createTypedLiteral(12));
+        OntFacetRestriction fr2 = m.createFacetRestriction(OntFacetRestriction.LangRange.class, ResourceFactory.createTypedLiteral("\\d+"));
 
-        OntDR dr1 = m.createRestrictionDataRange(dt1, fr1, fr2);
+        OntDataRange dr1 = m.createRestrictionDataRange(dt1, fr1, fr2);
 
-        OntCE ce1 = m.createDataSomeValuesFrom(ndp1, dr1);
+        OntClass ce1 = m.createDataSomeValuesFrom(ndp1, dr1);
 
-        OntDR dr2 = m.createIntersectionOfDataRange(dt1, dt2);
+        OntDataRange dr2 = m.createIntersectionOfDataRange(dt1, dt2);
         OntIndividual i1 = ce1.createIndividual(ns + "individual1");
-        OntCE ce2 = m.createDataMaxCardinality(ndp1, 343434, dr2);
+        OntClass ce2 = m.createDataMaxCardinality(ndp1, 343434, dr2);
         i1.attachClass(ce2).attachClass(m.createOntClass(ns + "Class1"));
 
-        OntDR dr3 = m.createOneOfDataRange(m.getDatatype(XSD.integer).createLiteral(1), dt1.createLiteral(2));
-        OntDR dr4 = m.createComplementOfDataRange(dr3);
-        m.createOntEntity(OntDT.class, ns + "dataType3")
+        OntDataRange dr3 = m.createOneOfDataRange(m.getDatatype(XSD.integer).createLiteral(1), dt1.createLiteral(2));
+        OntDataRange dr4 = m.createComplementOfDataRange(dr3);
+        m.createOntEntity(OntDataRange.Named.class, ns + "dataType3")
                 .addEquivalentClass(m.createUnionOfDataRange(dr1, dr2, m.createIntersectionOfDataRange(dr1, dr4)));
 
         OntIndividual i2 = ce2.createIndividual();
@@ -824,14 +824,14 @@ public class OntModelTest {
 
         ReadWriteUtils.print(m);
         Assert.assertEquals("Incorrect count of individuals", 3, m.ontObjects(OntIndividual.class).count());
-        Assert.assertEquals("Incorrect count of class expressions", 4, m.ontObjects(OntCE.class).count());
-        Assert.assertEquals("Incorrect count of restrictions", 2, m.ontObjects(OntCE.RestrictionCE.class).count());
+        Assert.assertEquals("Incorrect count of class expressions", 4, m.ontObjects(OntClass.class).count());
+        Assert.assertEquals("Incorrect count of restrictions", 2, m.ontObjects(OntClass.RestrictionCE.class).count());
         Assert.assertEquals("Incorrect count of cardinality restrictions", 1,
-                m.ontObjects(OntCE.CardinalityRestrictionCE.class).count());
-        Assert.assertEquals("Incorrect count of datatype entities", 3, m.ontObjects(OntDT.class).count());
-        Assert.assertEquals("Incorrect count of data properties", 1, m.ontObjects(OntNDP.class).count());
-        Assert.assertEquals("Incorrect count of facet restrictions", 2, m.ontObjects(OntFR.class).count());
-        Assert.assertEquals("Incorrect count of data ranges", 9, m.ontObjects(OntDR.class).count());
+                m.ontObjects(OntClass.CardinalityRestrictionCE.class).count());
+        Assert.assertEquals("Incorrect count of datatype entities", 3, m.ontObjects(OntDataRange.Named.class).count());
+        Assert.assertEquals("Incorrect count of data properties", 1, m.ontObjects(OntDataProperty.class).count());
+        Assert.assertEquals("Incorrect count of facet restrictions", 2, m.ontObjects(OntFacetRestriction.class).count());
+        Assert.assertEquals("Incorrect count of data ranges", 9, m.ontObjects(OntDataRange.class).count());
         Assert.assertEquals("Incorrect count of entities", 6, m.ontObjects(OntEntity.class).count());
     }
 }

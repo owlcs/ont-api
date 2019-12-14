@@ -16,7 +16,7 @@ package com.github.owlcs.ontapi.internal.objects;
 
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.jena.impl.PersonalityModel;
-import com.github.owlcs.ontapi.jena.model.OntDT;
+import com.github.owlcs.ontapi.jena.model.OntDataRange;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.owlapi.objects.OWLLiteralImpl;
 import org.apache.jena.graph.FrontsTriple;
@@ -100,15 +100,15 @@ public class ONTLiteralImpl extends OWLLiteralImpl
     }
 
     /**
-     * Returns a {@link OntDT} instance that corresponds datatype.
+     * Returns a {@link OntDataRange.Named} instance that corresponds datatype.
      *
-     * @return {@link OntDT}
+     * @return {@link OntDataRange.Named}
      * @see OWLLiteralImpl#getDatatype()
      * @see OntModel#getDatatype(Literal)
      */
-    public OntDT getDatatypeResource() {
+    public OntDataRange.Named getDatatypeResource() {
         return PersonalityModel.asPersonalityModel(getModel())
-                .getNodeAs(NodeFactory.createURI(getDatatypeURI()), OntDT.class);
+                .getNodeAs(NodeFactory.createURI(getDatatypeURI()), OntDataRange.Named.class);
     }
 
     @Override
@@ -126,7 +126,7 @@ public class ONTLiteralImpl extends OWLLiteralImpl
 
     @Override
     public Stream<Triple> triples() {
-        OntDT res = getDatatypeResource();
+        OntDataRange.Named res = getDatatypeResource();
         return res.isBuiltIn() ? Stream.empty() : res.spec().map(FrontsTriple::asTriple);
     }
 

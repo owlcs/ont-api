@@ -14,7 +14,7 @@
 
 package com.github.owlcs.ontapi.jena.impl;
 
-import com.github.owlcs.ontapi.jena.model.OntDT;
+import com.github.owlcs.ontapi.jena.model.OntDataRange;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import org.apache.jena.datatypes.BaseDatatype;
 import org.apache.jena.datatypes.RDFDatatype;
@@ -31,15 +31,15 @@ import java.util.Optional;
  * Created by szuev on 03.11.2016.
  */
 @SuppressWarnings("WeakerAccess")
-public class OntDatatypeImpl extends OntObjectImpl implements OntDT {
+public class OntDatatypeImpl extends OntObjectImpl implements OntDataRange.Named {
 
     public OntDatatypeImpl(Node n, EnhGraph g) {
         super(OntObjectImpl.checkNamed(n), g);
     }
 
     @Override
-    public Class<OntDT> getActualClass() {
-        return OntDT.class;
+    public Class<Named> getActualClass() {
+        return Named.class;
     }
 
     @Override

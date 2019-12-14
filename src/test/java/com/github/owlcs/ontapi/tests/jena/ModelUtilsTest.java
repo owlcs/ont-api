@@ -15,7 +15,10 @@
 package com.github.owlcs.ontapi.tests.jena;
 
 import com.github.owlcs.ontapi.jena.OntModelFactory;
-import com.github.owlcs.ontapi.jena.model.*;
+import com.github.owlcs.ontapi.jena.model.OntClass;
+import com.github.owlcs.ontapi.jena.model.OntID;
+import com.github.owlcs.ontapi.jena.model.OntModel;
+import com.github.owlcs.ontapi.jena.model.OntObject;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.utils.Models;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
@@ -72,7 +75,7 @@ public class ModelUtilsTest {
         Models.deleteAll(r);
         LOGGER.debug("Delete {}", d);
         Models.deleteAll(d);
-        List<OntCE> classes = m.classes()
+        List<OntClass> classes = m.classes()
                 .filter(s -> s.getLocalName().contains("CL"))
                 .collect(Collectors.toList());
         classes.forEach(c -> {
@@ -108,8 +111,8 @@ public class ModelUtilsTest {
     public void testInsertModel() {
         OntModel a1 = OntModelFactory.createModel().setID("http://a").getModel();
         OntModel a2 = OntModelFactory.createModel().setID("http://a").getModel();
-        OntClass c1 = a1.createOntClass("http://a#Class-a1");
-        OntClass c2 = a2.createOntClass("http://a#Class-a2");
+        OntClass.Named c1 = a1.createOntClass("http://a#Class-a1");
+        OntClass.Named c2 = a2.createOntClass("http://a#Class-a2");
 
         // collection depending on a1
         OntModel m1 = OntModelFactory.createModel().setID("http://m1").getModel().addImport(a1);
@@ -129,8 +132,8 @@ public class ModelUtilsTest {
     @Test
     public void testMiscModelsFunctionality() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntClass a = m.createOntClass("A");
-        OntClass b = m.createOntClass("B");
+        OntClass.Named a = m.createOntClass("A");
+        OntClass.Named b = m.createOntClass("B");
         Resource t = m.getResource("type");
         RDFList list = Models.createTypedList(m, t, Arrays.asList(a, b));
         Assert.assertNotNull(list);
@@ -151,8 +154,8 @@ public class ModelUtilsTest {
     @Test
     public void testStatementsComparators() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntClass a = m.createOntClass("A");
-        OntClass b = m.createOntClass("B");
+        OntClass.Named a = m.createOntClass("A");
+        OntClass.Named b = m.createOntClass("B");
         m.createObjectSomeValuesFrom(m.createObjectProperty("P"), m.createComplementOf(m.createUnionOf(a, b)));
 
         testStatementsComparator(m, Models.STATEMENT_COMPARATOR);

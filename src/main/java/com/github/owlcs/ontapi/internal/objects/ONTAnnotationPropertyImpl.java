@@ -18,8 +18,8 @@ import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.internal.InternalObjectFactory;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
+import com.github.owlcs.ontapi.jena.model.OntAnnotationProperty;
 import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntNAP;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
@@ -59,8 +59,8 @@ public class ONTAnnotationPropertyImpl extends ONTEntityImpl<OWLAnnotationProper
     }
 
     @Override
-    public OntNAP asRDFNode() {
-        return as(OntNAP.class);
+    public OntAnnotationProperty asRDFNode() {
+        return as(OntAnnotationProperty.class);
     }
 
     @Override

@@ -15,6 +15,7 @@
 package com.github.owlcs.ontapi.jena.impl.conf;
 
 import com.github.owlcs.ontapi.jena.OntJenaException;
+import com.github.owlcs.ontapi.jena.model.OntClass;
 import com.github.owlcs.ontapi.jena.model.OntEntity;
 import com.github.owlcs.ontapi.jena.model.OntObject;
 import org.apache.jena.enhanced.EnhGraph;
@@ -115,7 +116,7 @@ public class PersonalityBuilder {
      * {@link com.github.owlcs.ontapi.jena.impl.PersonalityModel#asPersonalityModel(EnhGraph)} method.
      * For example if you need a check, that some {@link Node node} is an OWL-Class inside your factory,
      * you can use {@link com.github.owlcs.ontapi.jena.impl.PersonalityModel#canAs(Class, Node, EnhGraph)}
-     * with the type {@link com.github.owlcs.ontapi.jena.model.OntClass}.
+     * with the type {@link OntClass.Named}.
      *
      * @param type    {@code Class}-type of the concrete {@link OntObject}.
      * @param factory {@link ObjectFactory} the factory to produce the instances of the {@code type},

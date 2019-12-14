@@ -43,27 +43,27 @@ public interface InternalObjectFactory {
 
     DataFactory getOWLDataFactory();
 
-    ONTObject<OWLClass> getClass(OntClass ce);
+    ONTObject<OWLClass> getClass(OntClass.Named ce);
 
-    ONTObject<? extends OWLClassExpression> getClass(OntCE ce);
+    ONTObject<? extends OWLClassExpression> getClass(OntClass ce);
 
-    ONTObject<OWLDatatype> getDatatype(OntDT dr);
+    ONTObject<OWLDatatype> getDatatype(OntDataRange.Named dr);
 
-    ONTObject<? extends OWLDataRange> getDatatype(OntDR dr);
+    ONTObject<? extends OWLDataRange> getDatatype(OntDataRange dr);
 
-    ONTObject<OWLObjectProperty> getProperty(OntNOP nop);
+    ONTObject<OWLObjectProperty> getProperty(OntObjectProperty.Named nop);
 
-    ONTObject<OWLAnnotationProperty> getProperty(OntNAP nap);
+    ONTObject<OWLAnnotationProperty> getProperty(OntAnnotationProperty nap);
 
-    ONTObject<OWLDataProperty> getProperty(OntNDP ndp);
+    ONTObject<OWLDataProperty> getProperty(OntDataProperty ndp);
 
-    ONTObject<? extends OWLObjectPropertyExpression> getProperty(OntOPE.Inverse iop);
+    ONTObject<? extends OWLObjectPropertyExpression> getProperty(OntObjectProperty.Inverse iop);
 
     ONTObject<OWLNamedIndividual> getIndividual(OntIndividual.Named i);
 
     ONTObject<OWLAnonymousIndividual> getIndividual(OntIndividual.Anonymous i);
 
-    ONTObject<OWLFacetRestriction> getFacetRestriction(OntFR fr);
+    ONTObject<OWLFacetRestriction> getFacetRestriction(OntFacetRestriction fr);
 
     ONTObject<OWLLiteral> getLiteral(Literal literal);
 
@@ -166,67 +166,68 @@ public interface InternalObjectFactory {
      */
     default ONTObject<? extends OWLEntity> getEntity(OntEntity entity) {
         Class<? extends OntEntity> type = OntModels.getOntType(OntApiException.notNull(entity, "Null entity"));
-        if (type == OntClass.class) {
-            return getClass((OntClass) entity);
+        if (type == OntClass.Named.class) {
+            return getClass((OntClass.Named) entity);
         }
-        if (type == OntDT.class) {
-            return getDatatype((OntDT) entity);
+        if (type == OntDataRange.Named.class) {
+            return getDatatype((OntDataRange.Named) entity);
         }
         if (type == OntIndividual.Named.class) {
             return getIndividual((OntIndividual.Named) entity);
         }
-        if (type == OntNAP.class) {
-            return getProperty((OntNAP) entity);
+        if (type == OntAnnotationProperty.class) {
+            return getProperty((OntAnnotationProperty) entity);
         }
-        if (type == OntNDP.class) {
-            return getProperty((OntNDP) entity);
+        if (type == OntDataProperty.class) {
+            return getProperty((OntDataProperty) entity);
         }
-        if (type == OntNOP.class) {
-            return getProperty((OntNOP) entity);
+        if (type == OntObjectProperty.Named.class) {
+            return getProperty((OntObjectProperty.Named) entity);
         }
         throw new OntApiException.IllegalArgument("Unsupported " + entity);
     }
 
     /**
      * Gets an {@link OWLPropertyExpression} as {@link ONTObject} from the property expression.
-     * @param property {@link OntPE}, not {@code null}
+     *
+     * @param property {@link OntProperty}, not {@code null}
      * @return {@link ONTObject} of {@link OWLPropertyExpression}
      */
-    default ONTObject<? extends OWLPropertyExpression> getProperty(OntPE property) {
-        if (OntApiException.notNull(property, "Null property expression.").canAs(OntNAP.class)) {
-            return getProperty(property.as(OntNAP.class));
+    default ONTObject<? extends OWLPropertyExpression> getProperty(OntProperty property) {
+        if (OntApiException.notNull(property, "Null property expression.").canAs(OntAnnotationProperty.class)) {
+            return getProperty(property.as(OntAnnotationProperty.class));
         }
-        return getProperty((OntDOP) property);
+        return getProperty((OntRealProperty) property);
     }
 
     /**
      * Gets an {@link OWLPropertyExpression} as {@link ONTObject} from the data or object property expression.
      *
-     * @param property {@link OntDOP}, not {@code null}
+     * @param property {@link OntRealProperty}, not {@code null}
      * @return {@link ONTObject} of {@link OWLPropertyExpression}
      */
-    default ONTObject<? extends OWLPropertyExpression> getProperty(OntDOP property) {
+    default ONTObject<? extends OWLPropertyExpression> getProperty(OntRealProperty property) {
         // process Object Properties first to match OWL-API-impl behaviour
-        if (OntApiException.notNull(property, "Null Data/Object property").canAs(OntOPE.class)) {
-            return getProperty(property.as(OntOPE.class));
+        if (OntApiException.notNull(property, "Null Data/Object property").canAs(OntObjectProperty.class)) {
+            return getProperty(property.as(OntObjectProperty.class));
         }
-        if (property.canAs(OntNDP.class)) {
-            return getProperty(property.as(OntNDP.class));
+        if (property.canAs(OntDataProperty.class)) {
+            return getProperty(property.as(OntDataProperty.class));
         }
         throw new OntApiException("Unsupported property " + property);
     }
 
     /**
-     * Gets an {@link OWLObjectPropertyExpression} as {@link ONTObject} from the {@link OntOPE}.
+     * Gets an {@link OWLObjectPropertyExpression} as {@link ONTObject} from the {@link OntObjectProperty}.
      *
-     * @param property {@link OntOPE}, not {@code null}
+     * @param property {@link OntObjectProperty}, not {@code null}
      * @return {@link ONTObject} of {@link OWLObjectPropertyExpression}
      */
-    default ONTObject<? extends OWLObjectPropertyExpression> getProperty(OntOPE property) {
+    default ONTObject<? extends OWLObjectPropertyExpression> getProperty(OntObjectProperty property) {
         if (OntApiException.notNull(property, "Null object property.").isAnon()) {
-            return getProperty(property.as(OntOPE.Inverse.class));
+            return getProperty(property.as(OntObjectProperty.Inverse.class));
         }
-        return getProperty(property.as(OntNOP.class));
+        return getProperty(property.as(OntObjectProperty.Named.class));
     }
 
 }

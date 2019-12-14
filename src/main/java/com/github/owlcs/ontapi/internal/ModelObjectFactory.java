@@ -59,32 +59,32 @@ public class ModelObjectFactory implements InternalObjectFactory {
 
     @SuppressWarnings("unchecked")
     @Override
-    public ONTObject<? extends OWLClassExpression> getClass(OntCE ce) {
+    public ONTObject<? extends OWLClassExpression> getClass(OntClass ce) {
         if (ce.isURIResource())
-            return getClass((OntClass) ce);
+            return getClass((OntClass.Named) ce);
         return (ONTObject<? extends OWLClassExpression>) ONTAnonymousClassExpressionImpl.create(ce, this, model);
     }
 
     @SuppressWarnings("unchecked")
     @Override
-    public ONTObject<? extends OWLDataRange> getDatatype(OntDR dr) {
+    public ONTObject<? extends OWLDataRange> getDatatype(OntDataRange dr) {
         if (dr.isURIResource())
-            return getDatatype((OntDT) dr);
+            return getDatatype((OntDataRange.Named) dr);
         return (ONTObject<? extends OWLDataRange>) ONTAnonymousDataRangeImpl.create(dr, this, model);
     }
 
     @Override
-    public ONTObject<OWLObjectInverseOf> getProperty(OntOPE.Inverse iop) {
+    public ONTObject<OWLObjectInverseOf> getProperty(OntObjectProperty.Inverse iop) {
         return ONTObjectInverseOfImpl.create(iop, this, model);
     }
 
     @Override
-    public ONTObject<OWLFacetRestriction> getFacetRestriction(OntFR fr) {
+    public ONTObject<OWLFacetRestriction> getFacetRestriction(OntFacetRestriction fr) {
         return ONTFacetRestrictionImpl.create(fr, this, model);
     }
 
     @Override
-    public ONTObject<OWLClass> getClass(OntClass ce) {
+    public ONTObject<OWLClass> getClass(OntClass.Named ce) {
         return getClass(ce.getURI());
     }
 
@@ -99,22 +99,22 @@ public class ModelObjectFactory implements InternalObjectFactory {
     }
 
     @Override
-    public ONTObject<OWLDatatype> getDatatype(OntDT dt) {
+    public ONTObject<OWLDatatype> getDatatype(OntDataRange.Named dt) {
         return getDatatype(dt.getURI());
     }
 
     @Override
-    public ONTObject<OWLAnnotationProperty> getProperty(OntNAP p) {
+    public ONTObject<OWLAnnotationProperty> getProperty(OntAnnotationProperty p) {
         return getAnnotationProperty(p.getURI());
     }
 
     @Override
-    public ONTObject<OWLObjectProperty> getProperty(OntNOP p) {
+    public ONTObject<OWLObjectProperty> getProperty(OntObjectProperty.Named p) {
         return getObjectProperty(p.getURI());
     }
 
     @Override
-    public ONTObject<OWLDataProperty> getProperty(OntNDP p) {
+    public ONTObject<OWLDataProperty> getProperty(OntDataProperty p) {
         return getDataProperty(p.getURI());
     }
 
@@ -226,9 +226,9 @@ public class ModelObjectFactory implements InternalObjectFactory {
     }
 
     @Override
-    public ONTObject<? extends OWLObjectPropertyExpression> getProperty(OntOPE property) {
+    public ONTObject<? extends OWLObjectPropertyExpression> getProperty(OntObjectProperty property) {
         if (OntApiException.notNull(property, "Null object property.").isAnon()) {
-            return getProperty((OntOPE.Inverse) property);
+            return getProperty((OntObjectProperty.Inverse) property);
         }
         return getObjectProperty(property.asNode().getURI());
     }

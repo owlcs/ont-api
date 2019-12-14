@@ -46,7 +46,7 @@ public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionA
 
     @Override
     public void write(OWLClassAssertionAxiom axiom, OntModel model) {
-        OntCE ce = WriteHelper.addClassExpression(model, axiom.getClassExpression());
+        OntClass ce = WriteHelper.addClassExpression(model, axiom.getClassExpression());
         OWLIndividual individual = axiom.getIndividual();
         OntObject subject = individual.isAnonymous() ?
                 WriteHelper.toResource(individual).inModel(model).as(OntObject.class) :
@@ -76,7 +76,7 @@ public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionA
     }
 
     protected boolean isClass(RDFNode n) {
-        return n.canAs(OntCE.class);
+        return n.canAs(OntClass.class);
     }
 
     protected boolean isIndividual(RDFNode n) {
@@ -96,7 +96,7 @@ public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionA
                                                          InternalObjectFactory factory,
                                                          InternalConfig config) {
         ONTObject<? extends OWLIndividual> i = factory.getIndividual(statement.getSubject(OntIndividual.class));
-        ONTObject<? extends OWLClassExpression> ce = factory.getClass(statement.getObject(OntCE.class));
+        ONTObject<? extends OWLClassExpression> ce = factory.getClass(statement.getObject(OntClass.class));
 
         Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);
         OWLClassAssertionAxiom res = factory.getOWLDataFactory()
@@ -310,7 +310,7 @@ public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionA
                             ONTClassImpl.find(statement.getObject().asNode().getURI(), factory, axiom.model).hashCode());
                 } else {
                     size++;
-                    object = factory.getClass(statement.getObject(OntCE.class));
+                    object = factory.getClass(statement.getObject(OntClass.class));
                     hash = OWLObject.hashIteration(hash, object.hashCode());
                 }
                 if (size == 0) {
@@ -337,7 +337,7 @@ public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionA
                 InternalObjectFactory factory = getObjectFactory();
                 List<ONTObject<?>> res = new ArrayList<>(1);
                 if (!statement.getObject().isURIResource()) {
-                    res.add(factory.getClass(statement.getObject(OntCE.class)));
+                    res.add(factory.getClass(statement.getObject(OntClass.class)));
                 }
                 res.addAll(ONTAxiomImpl.collectAnnotations(statement, factory, getConfig()));
                 return res.toArray();

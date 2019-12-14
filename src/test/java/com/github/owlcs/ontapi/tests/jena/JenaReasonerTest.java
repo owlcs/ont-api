@@ -16,8 +16,8 @@ package com.github.owlcs.ontapi.tests.jena;
 
 import com.github.owlcs.ontapi.OntFormat;
 import com.github.owlcs.ontapi.jena.OntModelFactory;
+import com.github.owlcs.ontapi.jena.model.OntDataProperty;
 import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntNDP;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.reasoner.Derivation;
@@ -58,8 +58,8 @@ public class JenaReasonerTest {
 
         // Build a trivial example data set
         OntModel example = OntModelFactory.createModel();
-        OntNDP p = example.createDataProperty(NS + "p");
-        OntNDP q = example.createDataProperty(NS + "q");
+        OntDataProperty p = example.createDataProperty(NS + "p");
+        OntDataProperty q = example.createDataProperty(NS + "q");
         p.addSuperProperty(q);
         example.createIndividual(NS + "a").addProperty(p, "foo");
         LOGGER.debug("Example model:");

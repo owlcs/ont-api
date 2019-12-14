@@ -70,7 +70,7 @@ public enum OWLComponentType {
         }
 
     },
-    ANNOTATION_PROPERTY(OWLAnnotationProperty.class, OntNAP.class, true, true) {
+    ANNOTATION_PROPERTY(OWLAnnotationProperty.class, OntAnnotationProperty.class, true, true) {
         @Override
         Stream<OWLAnnotationProperty> components(OWLObject o) {
             return o.annotationPropertiesInSignature();
@@ -78,10 +78,10 @@ public enum OWLComponentType {
 
         @Override
         ONTObject<? extends OWLObject> wrap(RDFNode n, InternalObjectFactory df) {
-            return df.getProperty(n.as(OntNAP.class));
+            return df.getProperty(n.as(OntAnnotationProperty.class));
         }
     },
-    DATATYPE_PROPERTY(OWLDataProperty.class, OntNDP.class, true, true) {
+    DATATYPE_PROPERTY(OWLDataProperty.class, OntDataProperty.class, true, true) {
         @Override
         Stream<OWLDataProperty> components(OWLObject o) {
             return o.dataPropertiesInSignature();
@@ -89,10 +89,10 @@ public enum OWLComponentType {
 
         @Override
         ONTObject<? extends OWLObject> wrap(RDFNode n, InternalObjectFactory df) {
-            return df.getProperty(n.as(OntNDP.class));
+            return df.getProperty(n.as(OntDataProperty.class));
         }
     },
-    NAMED_OBJECT_PROPERTY(OWLObjectProperty.class, OntNOP.class, true, true) {
+    NAMED_OBJECT_PROPERTY(OWLObjectProperty.class, OntObjectProperty.Named.class, true, true) {
         @Override
         Stream<OWLObjectProperty> components(OWLObject o) {
             return o.objectPropertiesInSignature();
@@ -100,7 +100,7 @@ public enum OWLComponentType {
 
         @Override
         ONTObject<? extends OWLObject> wrap(RDFNode n, InternalObjectFactory df) {
-            return df.getProperty(n.as(OntNOP.class));
+            return df.getProperty(n.as(OntObjectProperty.Named.class));
         }
     },
     NAMED_INDIVIDUAL(OWLNamedIndividual.class, OntIndividual.Named.class, true, true) {
@@ -114,7 +114,7 @@ public enum OWLComponentType {
             return df.getIndividual(n.as(OntIndividual.Named.class));
         }
     },
-    CLASS(OWLClass.class, OntClass.class, true, true) {
+    CLASS(OWLClass.class, OntClass.Named.class, true, true) {
         @Override
         Stream<OWLClass> components(OWLObject o) {
             return o.classesInSignature();
@@ -122,10 +122,10 @@ public enum OWLComponentType {
 
         @Override
         ONTObject<? extends OWLObject> wrap(RDFNode n, InternalObjectFactory df) {
-            return df.getClass(n.as(OntClass.class));
+            return df.getClass(n.as(OntClass.Named.class));
         }
     },
-    DATATYPE(OWLDatatype.class, OntDT.class, true, true) {
+    DATATYPE(OWLDatatype.class, OntDataRange.Named.class, true, true) {
         @Override
         Stream<OWLDatatype> components(OWLObject o) {
             return o.datatypesInSignature();
@@ -133,7 +133,7 @@ public enum OWLComponentType {
 
         @Override
         ONTObject<? extends OWLObject> wrap(RDFNode n, InternalObjectFactory df) {
-            return df.getDatatype(n.as(OntDT.class));
+            return df.getDatatype(n.as(OntDataRange.Named.class));
         }
     },
     ENTITY(OWLEntity.class, OntEntity.class, true, false) {
@@ -203,7 +203,7 @@ public enum OWLComponentType {
             return df.getIndividual(n.as(OntIndividual.Anonymous.class));
         }
     },
-    ANONYMOUS_DATA_RANGE(OWLDataRange.class, OntDR.class) {
+    ANONYMOUS_DATA_RANGE(OWLDataRange.class, OntDataRange.class) {
         /**
          * {@inheritDoc}
          * + literals ({@code DataOneOf}, {@code DatatypeRestriction})
@@ -222,16 +222,16 @@ public enum OWLComponentType {
 
         @SuppressWarnings("unchecked")
         @Override
-        ExtendedIterator<OntDR> listObjects(OntModel model) {
-            return (ExtendedIterator<OntDR>) super.listObjects(model).filterKeep(RDFNode::isAnon);
+        ExtendedIterator<OntDataRange> listObjects(OntModel model) {
+            return (ExtendedIterator<OntDataRange>) super.listObjects(model).filterKeep(RDFNode::isAnon);
         }
 
         @Override
         ONTObject<? extends OWLObject> wrap(RDFNode n, InternalObjectFactory df) {
-            return df.getDatatype(n.as(OntDR.class));
+            return df.getDatatype(n.as(OntDataRange.class));
         }
     },
-    DATA_RANGE(OWLDataRange.class, OntDR.class) {
+    DATA_RANGE(OWLDataRange.class, OntDataRange.class) {
         /**
          * {@inheritDoc}
          * + literals ({@code DataOneOf}, {@code DatatypeRestriction})
@@ -243,10 +243,10 @@ public enum OWLComponentType {
 
         @Override
         ONTObject<? extends OWLObject> wrap(RDFNode n, InternalObjectFactory df) {
-            return df.getDatatype(n.as(OntDR.class));
+            return df.getDatatype(n.as(OntDataRange.class));
         }
     },
-    ANONYMOUS_CLASS_EXPRESSION(OWLAnonymousClassExpression.class, OntCE.class) {
+    ANONYMOUS_CLASS_EXPRESSION(OWLAnonymousClassExpression.class, OntClass.class) {
         /**
          * {@inheritDoc}
          * This component may contain:
@@ -272,16 +272,16 @@ public enum OWLComponentType {
 
         @SuppressWarnings("unchecked")
         @Override
-        ExtendedIterator<OntCE> listObjects(OntModel model) {
-            return (ExtendedIterator<OntCE>) super.listObjects(model).filterKeep(RDFNode::isAnon);
+        ExtendedIterator<OntClass> listObjects(OntModel model) {
+            return (ExtendedIterator<OntClass>) super.listObjects(model).filterKeep(RDFNode::isAnon);
         }
 
         @Override
         ONTObject<? extends OWLObject> wrap(RDFNode n, InternalObjectFactory df) {
-            return df.getClass(n.as(OntCE.class));
+            return df.getClass(n.as(OntClass.class));
         }
     },
-    CLASS_EXPRESSION(OWLClassExpression.class, OntCE.class) {
+    CLASS_EXPRESSION(OWLClassExpression.class, OntClass.class) {
         @Override
         List<OWLComponentType> includes() {
             return Arrays.asList(CLASS, ANONYMOUS_CLASS_EXPRESSION);
@@ -294,10 +294,10 @@ public enum OWLComponentType {
 
         @Override
         ONTObject<? extends OWLObject> wrap(RDFNode n, InternalObjectFactory df) {
-            return df.getClass(n.as(OntCE.class));
+            return df.getClass(n.as(OntClass.class));
         }
     },
-    INVERSE_OBJECT_PROPERTY(OWLObjectInverseOf.class, OntOPE.Inverse.class) {
+    INVERSE_OBJECT_PROPERTY(OWLObjectInverseOf.class, OntObjectProperty.Inverse.class) {
         @Override
         List<OWLComponentType> includes() {
             return Collections.singletonList(NAMED_OBJECT_PROPERTY);
@@ -305,10 +305,10 @@ public enum OWLComponentType {
 
         @Override
         ONTObject<? extends OWLObject> wrap(RDFNode n, InternalObjectFactory df) {
-            return df.getProperty(n.as(OntOPE.Inverse.class));
+            return df.getProperty(n.as(OntObjectProperty.Inverse.class));
         }
     },
-    OBJECT_PROPERTY_EXPRESSION(OWLObjectPropertyExpression.class, OntOPE.class) {
+    OBJECT_PROPERTY_EXPRESSION(OWLObjectPropertyExpression.class, OntObjectProperty.class) {
         @Override
         List<OWLComponentType> includes() {
             return Arrays.asList(NAMED_OBJECT_PROPERTY, INVERSE_OBJECT_PROPERTY);
@@ -316,10 +316,10 @@ public enum OWLComponentType {
 
         @Override
         ONTObject<? extends OWLObject> wrap(RDFNode n, InternalObjectFactory df) {
-            return df.getProperty(n.as(OntOPE.class));
+            return df.getProperty(n.as(OntObjectProperty.class));
         }
     },
-    FACET_RESTRICTION(OWLFacetRestriction.class, OntFR.class) {
+    FACET_RESTRICTION(OWLFacetRestriction.class, OntFacetRestriction.class) {
         @Override
         List<OWLComponentType> includes() {
             return Collections.singletonList(LITERAL);
@@ -327,7 +327,7 @@ public enum OWLComponentType {
 
         @Override
         ONTObject<OWLFacetRestriction> wrap(RDFNode n, InternalObjectFactory df) {
-            return df.getFacetRestriction(n.as(OntFR.class));
+            return df.getFacetRestriction(n.as(OntFacetRestriction.class));
         }
 
     },

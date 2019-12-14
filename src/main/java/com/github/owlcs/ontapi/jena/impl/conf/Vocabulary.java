@@ -14,10 +14,10 @@
 
 package com.github.owlcs.ontapi.jena.impl.conf;
 
-import org.apache.jena.graph.Node;
-import org.apache.jena.rdf.model.Resource;
 import com.github.owlcs.ontapi.jena.OntJenaException;
 import com.github.owlcs.ontapi.jena.model.*;
+import org.apache.jena.graph.Node;
+import org.apache.jena.rdf.model.Resource;
 
 import java.util.Set;
 
@@ -54,23 +54,23 @@ public interface Vocabulary<T extends Resource> {
     interface Entities extends Vocabulary<OntObject> {
 
         default Set<Node> getClasses() {
-            return get(OntClass.class);
+            return get(OntClass.Named.class);
         }
 
         default Set<Node> getDatatypes() {
-            return get(OntDT.class);
+            return get(OntDataRange.Named.class);
         }
 
         default Set<Node> getObjectProperties() {
-            return get(OntNOP.class);
+            return get(OntObjectProperty.Named.class);
         }
 
         default Set<Node> getDatatypeProperties() {
-            return get(OntNDP.class);
+            return get(OntDataProperty.class);
         }
 
         default Set<Node> getAnnotationProperties() {
-            return get(OntNAP.class);
+            return get(OntAnnotationProperty.class);
         }
 
         default Set<Node> getIndividuals() {

@@ -20,9 +20,9 @@ import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTDataPropertyImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
-import com.github.owlcs.ontapi.jena.model.OntCE;
+import com.github.owlcs.ontapi.jena.model.OntClass;
+import com.github.owlcs.ontapi.jena.model.OntDataProperty;
 import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntNDP;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import org.apache.jena.graph.Triple;
 import org.semanticweb.owlapi.model.*;
@@ -40,16 +40,16 @@ import java.util.stream.Stream;
  * <p>
  * Created by @szuev on 28.09.2016.
  */
-public class DataPropertyDomainTranslator extends AbstractPropertyDomainTranslator<OWLDataPropertyDomainAxiom, OntNDP> {
+public class DataPropertyDomainTranslator extends AbstractPropertyDomainTranslator<OWLDataPropertyDomainAxiom, OntDataProperty> {
 
     @Override
-    Class<OntNDP> getView() {
-        return OntNDP.class;
+    Class<OntDataProperty> getView() {
+        return OntDataProperty.class;
     }
 
     @Override
     protected boolean filter(OntStatement statement, InternalConfig config) {
-        return super.filter(statement, config) && statement.getObject().canAs(OntCE.class);
+        return super.filter(statement, config) && statement.getObject().canAs(OntClass.class);
     }
 
     @Override
@@ -65,7 +65,7 @@ public class DataPropertyDomainTranslator extends AbstractPropertyDomainTranslat
                                                              InternalObjectFactory factory,
                                                              InternalConfig config) {
         ONTObject<OWLDataProperty> p = factory.getProperty(statement.getSubject(getView()));
-        ONTObject<? extends OWLClassExpression> ce = factory.getClass(statement.getObject(OntCE.class));
+        ONTObject<? extends OWLClassExpression> ce = factory.getClass(statement.getObject(OntClass.class));
         Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);
         OWLDataPropertyDomainAxiom res = factory.getOWLDataFactory().getOWLDataPropertyDomainAxiom(p.getOWLObject(),
                 ce.getOWLObject(), ONTObject.toSet(annotations));
@@ -112,7 +112,7 @@ public class DataPropertyDomainTranslator extends AbstractPropertyDomainTranslat
         @Override
         public ONTObject<? extends OWLDataPropertyExpression> subjectFromStatement(OntStatement statement,
                                                                                    InternalObjectFactory factory) {
-            return factory.getProperty(statement.getSubject(OntNDP.class));
+            return factory.getProperty(statement.getSubject(OntDataProperty.class));
         }
 
         @FactoryAccessor

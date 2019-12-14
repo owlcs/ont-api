@@ -100,10 +100,10 @@ public class MiscOntModelTest extends OntModelTestBase {
         Ontology o = man.createOntology();
 
         OntModel m = o.asGraphModel();
-        OntNDP p = m.createDataProperty("p");
-        OntDT d = m.getDatatype(XSD.xstring);
-        OntCE.NaryDataAllValuesFrom ce1 = m.createDataAllValuesFrom(Collections.singletonList(p), d);
-        OntCE.NaryDataSomeValuesFrom ce2 = m.createDataSomeValuesFrom(Collections.singletonList(p), d);
+        OntDataProperty p = m.createDataProperty("p");
+        OntDataRange.Named d = m.getDatatype(XSD.xstring);
+        OntClass.NaryDataAllValuesFrom ce1 = m.createDataAllValuesFrom(Collections.singletonList(p), d);
+        OntClass.NaryDataSomeValuesFrom ce2 = m.createDataSomeValuesFrom(Collections.singletonList(p), d);
         m.createOntClass("x").addSuperClass(ce1);
         m.createOntClass("y").addEquivalentClass(ce2);
         ReadWriteUtils.print(m);
@@ -274,7 +274,7 @@ public class MiscOntModelTest extends OntModelTestBase {
         Ontology o = man.createOntology(IRI.create("X"));
 
         OntModel m = o.asGraphModel();
-        OntCE ce = m.createUnionOf(m.createOntClass("y"), m.createOntClass("z"));
+        OntClass ce = m.createUnionOf(m.createOntClass("y"), m.createOntClass("z"));
         ce.createIndividual("i").attachClass(m.createOntClass("w"));
         m.createOntClass("z").addSuperClass(ce)
                 .addEquivalentClass(m.createObjectAllValuesFrom(m.createObjectProperty("p"), ce));

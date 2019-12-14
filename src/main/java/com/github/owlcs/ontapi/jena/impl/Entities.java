@@ -14,6 +14,10 @@
 
 package com.github.owlcs.ontapi.jena.impl;
 
+import com.github.owlcs.ontapi.jena.impl.conf.*;
+import com.github.owlcs.ontapi.jena.model.*;
+import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
@@ -21,10 +25,6 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDFS;
-import com.github.owlcs.ontapi.jena.impl.conf.*;
-import com.github.owlcs.ontapi.jena.model.*;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
-import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 
 import java.util.*;
 import java.util.function.Function;
@@ -37,11 +37,11 @@ import java.util.function.Function;
  * @see OntEntity
  */
 public enum Entities {
-    CLASS(OWL.Class, OntClass.class, OntClassImpl.class, Vocabulary.Entities::getClasses),
-    DATATYPE(RDFS.Datatype, OntDT.class, OntDatatypeImpl.class, Vocabulary.Entities::getDatatypes),
-    ANNOTATION_PROPERTY(OWL.AnnotationProperty, OntNAP.class, OntAPropertyImpl.class, Vocabulary.Entities::getAnnotationProperties),
-    DATA_PROPERTY(OWL.DatatypeProperty, OntNDP.class, OntDPropertyImpl.class, Vocabulary.Entities::getDatatypeProperties),
-    OBJECT_PROPERTY(OWL.ObjectProperty, OntNOP.class, OntOPEImpl.NamedPropertyImpl.class, Vocabulary.Entities::getObjectProperties),
+    CLASS(OWL.Class, OntClass.Named.class, OntClassImpl.class, Vocabulary.Entities::getClasses),
+    DATATYPE(RDFS.Datatype, OntDataRange.Named.class, OntDatatypeImpl.class, Vocabulary.Entities::getDatatypes),
+    ANNOTATION_PROPERTY(OWL.AnnotationProperty, OntAnnotationProperty.class, OntAPropertyImpl.class, Vocabulary.Entities::getAnnotationProperties),
+    DATA_PROPERTY(OWL.DatatypeProperty, OntDataProperty.class, OntDPropertyImpl.class, Vocabulary.Entities::getDatatypeProperties),
+    OBJECT_PROPERTY(OWL.ObjectProperty, OntObjectProperty.Named.class, OntOPEImpl.NamedPropertyImpl.class, Vocabulary.Entities::getObjectProperties),
     INDIVIDUAL(OWL.NamedIndividual, OntIndividual.Named.class, OntIndividualImpl.NamedImpl.class, Vocabulary.Entities::getIndividuals) {
         @Override
         OntFilter createPrimaryFilter() {
@@ -77,7 +77,7 @@ public enum Entities {
             // In general, owl:NamedIndividual declaration is optional,
             // see https://github.com/avicomp/ont-api/issues/73
             for (Node c : candidates) {
-                if (PersonalityModel.canAs(OntCE.class, c, g)) return true;
+                if (PersonalityModel.canAs(OntClass.class, c, g)) return true;
             }
             return false;
         }

@@ -18,7 +18,7 @@ import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
-import com.github.owlcs.ontapi.jena.model.OntCE;
+import com.github.owlcs.ontapi.jena.model.OntClass;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
@@ -45,7 +45,7 @@ import java.util.stream.Stream;
  * <p>
  * Created by @szuev on 29.09.2016.
  */
-public class EquivalentClassesTranslator extends AbstractNaryTranslator<OWLEquivalentClassesAxiom, OWLClassExpression, OntCE> {
+public class EquivalentClassesTranslator extends AbstractNaryTranslator<OWLEquivalentClassesAxiom, OWLClassExpression, OntClass> {
 
     @Override
     public Property getPredicate() {
@@ -53,8 +53,8 @@ public class EquivalentClassesTranslator extends AbstractNaryTranslator<OWLEquiv
     }
 
     @Override
-    Class<OntCE> getView() {
-        return OntCE.class;
+    Class<OntClass> getView() {
+        return OntClass.class;
     }
 
     @Override

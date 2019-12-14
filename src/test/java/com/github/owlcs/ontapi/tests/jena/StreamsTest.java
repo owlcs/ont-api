@@ -86,10 +86,10 @@ public class StreamsTest {
     @Test
     public void testSetBasedMethods() {
         OntModel m = OntModelFactory.createModel();
-        OntClass a = m.createOntClass("C1");
+        OntClass.Named a = m.createOntClass("C1");
         OntIndividual i = a.addSuperClass(m.createOntClass("C2").addSuperClass(m.getOWLThing()))
                 .createIndividual("I");
-        OntNDP p = m.createDataProperty("D1")
+        OntDataProperty p = m.createDataProperty("D1")
                 .addSuperProperty(m.createDataProperty("D2").addSuperProperty(m.getOWLBottomDataProperty()));
 
         Supplier<Stream<?>> s1 = () -> a.superClasses(false);
@@ -119,7 +119,7 @@ public class StreamsTest {
         OntModel m = OntModelFactory.createModel();
         OntObject o = m.getOWLThing();
 
-        Supplier<Stream<?>> s1 = () -> o.objects(RDFS.comment, OntNAP.class);
+        Supplier<Stream<?>> s1 = () -> o.objects(RDFS.comment, OntAnnotationProperty.class);
         Supplier<Stream<?>> s2 = () -> o.objects(RDFS.comment);
         Supplier<Stream<?>> s3 = o::spec;
         Supplier<Stream<?>> s4 = o::annotations;
@@ -185,15 +185,15 @@ public class StreamsTest {
         assertFalseConstant(a.statements(null, RDF.type, OWL.Class), Spliterator.DISTINCT);
         assertTrueConstant(a.localStatements(null, RDF.type, OWL.Class), Spliterator.DISTINCT);
 
-        assertFalseConstant(a.ontObjects(OntClass.class), Spliterator.DISTINCT);
+        assertFalseConstant(a.ontObjects(OntClass.Named.class), Spliterator.DISTINCT);
 
         Assert.assertEquals(2, a.classes().count());
-        Assert.assertEquals(2, a.ontObjects(OntClass.class).count());
+        Assert.assertEquals(2, a.ontObjects(OntClass.Named.class).count());
         Assert.assertEquals(2, a.ontEntities().count());
         Assert.assertEquals(2, a.statements(null, RDF.type, OWL.Class).count());
 
         Assert.assertEquals(1, a.classes().distinct().count());
-        Assert.assertEquals(1, a.ontObjects(OntClass.class).distinct().count());
+        Assert.assertEquals(1, a.ontObjects(OntClass.Named.class).distinct().count());
         Assert.assertEquals(1, a.ontEntities().distinct().count());
         Assert.assertEquals(1, a.statements(null, RDF.type, OWL.Class).distinct().count());
     }

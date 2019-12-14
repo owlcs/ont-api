@@ -250,7 +250,7 @@ public class ChangeIDOntModelTest extends OntModelTestBase {
                 .map(OWLDeclarationAxiom::getEntity)
                 .filter(AsOWLClass::isOWLClass).findFirst().orElseThrow(AssertionError::new);
         Assert.assertEquals("Incorrect owl-class uri", classIRI, entity.getIRI());
-        List<OntClass> classes = jena.ontEntities(OntClass.class).collect(Collectors.toList());
+        List<OntClass.Named> classes = jena.ontEntities(OntClass.Named.class).collect(Collectors.toList());
         Assert.assertFalse("Can't find any jena-class", classes.isEmpty());
         Assert.assertEquals("Incorrect jena-class uri", classIRI.getIRIString(), classes.get(0).getURI());
     }

@@ -18,8 +18,8 @@ import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.internal.InternalObjectFactory;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
+import com.github.owlcs.ontapi.jena.model.OntDataProperty;
 import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntNDP;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import org.semanticweb.owlapi.model.OWLDataProperty;
 
@@ -58,8 +58,8 @@ public class ONTDataPropertyImpl extends ONTEntityImpl<OWLDataProperty> implemen
     }
 
     @Override
-    public OntNDP asRDFNode() {
-        return as(OntNDP.class);
+    public OntDataProperty asRDFNode() {
+        return as(OntDataProperty.class);
     }
 
     @Override

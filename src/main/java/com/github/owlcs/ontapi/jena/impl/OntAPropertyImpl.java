@@ -14,6 +14,9 @@
 
 package com.github.owlcs.ontapi.jena.impl;
 
+import com.github.owlcs.ontapi.jena.model.OntAnnotationProperty;
+import com.github.owlcs.ontapi.jena.model.OntStatement;
+import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Model;
@@ -21,9 +24,6 @@ import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDFS;
-import com.github.owlcs.ontapi.jena.model.OntNAP;
-import com.github.owlcs.ontapi.jena.model.OntStatement;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -33,25 +33,25 @@ import java.util.stream.Stream;
  * <p>
  * Created by szuev on 03.11.2016.
  */
-public class OntAPropertyImpl extends OntPEImpl implements OntNAP {
+public class OntAPropertyImpl extends OntPEImpl implements OntAnnotationProperty {
 
     public OntAPropertyImpl(Node n, EnhGraph g) {
         super(n, g);
     }
 
     @Override
-    public Class<OntNAP> getActualClass() {
-        return OntNAP.class;
+    public Class<OntAnnotationProperty> getActualClass() {
+        return OntAnnotationProperty.class;
     }
 
     @Override
-    public Stream<OntNAP> superProperties(boolean direct) {
-        return hierarchy(this, OntNAP.class, RDFS.subPropertyOf, false, direct);
+    public Stream<OntAnnotationProperty> superProperties(boolean direct) {
+        return hierarchy(this, OntAnnotationProperty.class, RDFS.subPropertyOf, false, direct);
     }
 
     @Override
-    public Stream<OntNAP> subProperties(boolean direct) {
-        return hierarchy(this, OntNAP.class, RDFS.subPropertyOf, true, direct);
+    public Stream<OntAnnotationProperty> subProperties(boolean direct) {
+        return hierarchy(this, OntAnnotationProperty.class, RDFS.subPropertyOf, true, direct);
     }
 
     @Override

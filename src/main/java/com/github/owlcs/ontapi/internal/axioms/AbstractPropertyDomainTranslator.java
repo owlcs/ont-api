@@ -17,9 +17,9 @@ package com.github.owlcs.ontapi.internal.axioms;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.ONTAxiomImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTClassImpl;
-import com.github.owlcs.ontapi.jena.model.OntCE;
+import com.github.owlcs.ontapi.jena.model.OntClass;
 import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntPE;
+import com.github.owlcs.ontapi.jena.model.OntProperty;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
 import org.apache.jena.graph.Triple;
@@ -37,7 +37,7 @@ import java.util.function.Supplier;
  * Created by @szuev on 30.09.2016.
  */
 public abstract class AbstractPropertyDomainTranslator<Axiom extends OWLAxiom & HasDomain<?> & HasProperty<?>,
-        P extends OntPE> extends AxiomTranslator<Axiom> {
+        P extends OntProperty> extends AxiomTranslator<Axiom> {
     @Override
     public void write(Axiom axiom, OntModel model) {
         WriteHelper.writeTriple(model, axiom.getProperty(), RDFS.domain, axiom.getDomain(), axiom.annotationsAsList());
@@ -117,7 +117,7 @@ public abstract class AbstractPropertyDomainTranslator<Axiom extends OWLAxiom & 
         @Override
         public ONTObject<? extends OWLClassExpression> objectFromStatement(OntStatement statement,
                                                                            InternalObjectFactory factory) {
-            return factory.getClass(statement.getObject(OntCE.class));
+            return factory.getClass(statement.getObject(OntClass.class));
         }
     }
 }

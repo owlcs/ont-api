@@ -20,8 +20,8 @@ import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTObjectPropertyImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
 import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntOPE;
-import com.github.owlcs.ontapi.jena.model.OntPE;
+import com.github.owlcs.ontapi.jena.model.OntObjectProperty;
+import com.github.owlcs.ontapi.jena.model.OntProperty;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
@@ -48,7 +48,7 @@ import java.util.function.Supplier;
  * Created by @szuev on 28.09.2016.
  */
 public abstract class AbstractPropertyTypeTranslator<Axiom extends OWLAxiom & HasProperty<?>,
-        P extends OntPE> extends AxiomTranslator<Axiom> {
+        P extends OntProperty> extends AxiomTranslator<Axiom> {
 
     abstract Resource getType();
 
@@ -97,7 +97,7 @@ public abstract class AbstractPropertyTypeTranslator<Axiom extends OWLAxiom & Ha
         @Override
         public ONTObject<? extends OWLObjectPropertyExpression> fetchONTSubject(OntStatement statement,
                                                                                 InternalObjectFactory factory) {
-            return factory.getProperty(statement.getSubject(OntOPE.class));
+            return factory.getProperty(statement.getSubject(OntObjectProperty.class));
         }
 
         @Override

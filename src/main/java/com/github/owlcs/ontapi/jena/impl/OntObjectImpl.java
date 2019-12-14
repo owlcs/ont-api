@@ -14,6 +14,16 @@
 
 package com.github.owlcs.ontapi.jena.impl;
 
+import com.github.owlcs.ontapi.jena.OntJenaException;
+import com.github.owlcs.ontapi.jena.impl.conf.ObjectFactory;
+import com.github.owlcs.ontapi.jena.impl.conf.OntFilter;
+import com.github.owlcs.ontapi.jena.impl.conf.OntFinder;
+import com.github.owlcs.ontapi.jena.model.OntAnnotationProperty;
+import com.github.owlcs.ontapi.jena.model.OntEntity;
+import com.github.owlcs.ontapi.jena.model.OntObject;
+import com.github.owlcs.ontapi.jena.model.OntStatement;
+import com.github.owlcs.ontapi.jena.utils.Iter;
+import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
@@ -23,16 +33,6 @@ import org.apache.jena.shared.JenaException;
 import org.apache.jena.shared.PropertyNotFoundException;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.util.iterator.NullIterator;
-import com.github.owlcs.ontapi.jena.OntJenaException;
-import com.github.owlcs.ontapi.jena.impl.conf.ObjectFactory;
-import com.github.owlcs.ontapi.jena.impl.conf.OntFilter;
-import com.github.owlcs.ontapi.jena.impl.conf.OntFinder;
-import com.github.owlcs.ontapi.jena.model.OntEntity;
-import com.github.owlcs.ontapi.jena.model.OntNAP;
-import com.github.owlcs.ontapi.jena.model.OntObject;
-import com.github.owlcs.ontapi.jena.model.OntStatement;
-import com.github.owlcs.ontapi.jena.utils.Iter;
-import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 
 import java.util.*;
 import java.util.function.BooleanSupplier;
@@ -602,7 +602,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
 
     /**
      * Returns an iterator over object's annotation property assertions.
-     * The annotation assertion is a statements with an {@link OntNAP annotation property} as predicate.
+     * The annotation assertion is a statements with an {@link OntAnnotationProperty annotation property} as predicate.
      *
      * @return {@link ExtendedIterator} of {@link OntStatement}s
      * @see #assertions()
@@ -615,12 +615,12 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     /**
      * Returns an iterator over all literal's annotations.
      *
-     * @param predicate {@link OntNAP}, not {@code null}
+     * @param predicate {@link OntAnnotationProperty}, not {@code null}
      * @return {@link ExtendedIterator} of {@link Literal}s
      * @see #listAnnotations()
      * @since 1.3.2
      */
-    public ExtendedIterator<Literal> listAnnotationLiterals(OntNAP predicate) {
+    public ExtendedIterator<Literal> listAnnotationLiterals(OntAnnotationProperty predicate) {
         return listAnnotations()
                 .filterKeep(s -> Objects.equals(predicate, s.getPredicate()))
                 .mapWith(Statement::getObject)
@@ -629,7 +629,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     }
 
     @Override
-    public Stream<String> annotationValues(OntNAP p, String lang) {
+    public Stream<String> annotationValues(OntAnnotationProperty p, String lang) {
         if (lang == null) return Iter.asStream(listAnnotationLiterals(p).mapWith(Literal::getString));
         return Iter.asStream(listAnnotationLiterals(p))
                 .sorted(Comparator.comparing(Literal::getLanguage))
@@ -647,13 +647,13 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * Adds an annotation assertion.
      * It could be expanded to bulk form by adding sub-annotation.
      *
-     * @param property {@link OntNAP}, Named annotation property.
+     * @param property {@link OntAnnotationProperty}, Named annotation property.
      * @param value    {@link RDFNode} the value: uri-resource, literal or anonymous individual.
      * @return OntStatement for newly added annotation
      * @throws OntJenaException in case input is wrong
      */
     @Override
-    public OntStatement addAnnotation(OntNAP property, RDFNode value) {
+    public OntStatement addAnnotation(OntAnnotationProperty property, RDFNode value) {
         return findRootStatement().map(r -> r.addAnnotation(property, value))
                 .orElseGet(() -> getModel().createStatement(addProperty(property, value), property, value));
     }

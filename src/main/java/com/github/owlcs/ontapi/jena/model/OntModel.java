@@ -356,14 +356,14 @@ public interface OntModel extends Model, CreateClasses, CreateRanges, CreateDisj
      * Creates a facet restriction by the given type and literal value.
      * Each call to this method creates a fresh b-node within the graph.
      *
-     * @param type    {@link Class}, the type of {@link OntFR}, not {@code null}
+     * @param type    {@link Class}, the type of {@link OntFacetRestriction}, not {@code null}
      * @param literal {@link Literal}, not {@code null}
      * @param <F>     type of ont-facet-restriction
-     * @return {@link OntFR}
-     * @see OntDR.Restriction
-     * @see OntModel#createRestrictionDataRange(OntDT, Collection)
+     * @return {@link OntFacetRestriction}
+     * @see OntDataRange.Restriction
+     * @see OntModel#createRestrictionDataRange(OntDataRange.Named, Collection)
      */
-    <F extends OntFR> F createFacetRestriction(Class<F> type, Literal literal);
+    <F extends OntFacetRestriction> F createFacetRestriction(Class<F> type, Literal literal);
 
     /*
      * ================================================
@@ -431,59 +431,59 @@ public interface OntModel extends Model, CreateClasses, CreateRanges, CreateDisj
      * ===================================
      */
 
-    default OntClass createOntClass(String uri) {
-        return createOntEntity(OntClass.class, uri);
+    default OntClass.Named createOntClass(String uri) {
+        return createOntEntity(OntClass.Named.class, uri);
     }
 
-    default OntDT createDatatype(String uri) {
-        return createOntEntity(OntDT.class, uri);
+    default OntDataRange.Named createDatatype(String uri) {
+        return createOntEntity(OntDataRange.Named.class, uri);
     }
 
     default OntIndividual.Named createIndividual(String uri) {
         return createOntEntity(OntIndividual.Named.class, uri);
     }
 
-    default OntNAP createAnnotationProperty(String uri) {
-        return createOntEntity(OntNAP.class, uri);
+    default OntAnnotationProperty createAnnotationProperty(String uri) {
+        return createOntEntity(OntAnnotationProperty.class, uri);
     }
 
-    default OntNDP createDataProperty(String uri) {
-        return createOntEntity(OntNDP.class, uri);
+    default OntDataProperty createDataProperty(String uri) {
+        return createOntEntity(OntDataProperty.class, uri);
     }
 
-    default OntNOP createObjectProperty(String uri) {
-        return createOntEntity(OntNOP.class, uri);
+    default OntObjectProperty.Named createObjectProperty(String uri) {
+        return createOntEntity(OntObjectProperty.Named.class, uri);
     }
 
-    default OntClass getOntClass(String uri) {
-        return getOntEntity(OntClass.class, uri);
+    default OntClass.Named getOntClass(String uri) {
+        return getOntEntity(OntClass.Named.class, uri);
     }
 
-    default OntDT getDatatype(String uri) {
-        return getOntEntity(OntDT.class, uri);
+    default OntDataRange.Named getDatatype(String uri) {
+        return getOntEntity(OntDataRange.Named.class, uri);
     }
 
     default OntIndividual.Named getIndividual(String uri) {
         return getOntEntity(OntIndividual.Named.class, uri);
     }
 
-    default OntNAP getAnnotationProperty(String uri) {
-        return getOntEntity(OntNAP.class, uri);
+    default OntAnnotationProperty getAnnotationProperty(String uri) {
+        return getOntEntity(OntAnnotationProperty.class, uri);
     }
 
-    default OntNDP getDataProperty(String uri) {
-        return getOntEntity(OntNDP.class, uri);
+    default OntDataProperty getDataProperty(String uri) {
+        return getOntEntity(OntDataProperty.class, uri);
     }
 
-    default OntNOP getObjectProperty(String uri) {
-        return getOntEntity(OntNOP.class, uri);
+    default OntObjectProperty.Named getObjectProperty(String uri) {
+        return getOntEntity(OntObjectProperty.Named.class, uri);
     }
 
-    default OntClass getOntClass(Resource uri) {
+    default OntClass.Named getOntClass(Resource uri) {
         return getOntClass(uri.getURI());
     }
 
-    default OntDT getDatatype(Resource uri) {
+    default OntDataRange.Named getDatatype(Resource uri) {
         return getDatatype(uri.getURI());
     }
 
@@ -491,15 +491,15 @@ public interface OntModel extends Model, CreateClasses, CreateRanges, CreateDisj
         return getIndividual(uri.getURI());
     }
 
-    default OntNAP getAnnotationProperty(Resource uri) {
+    default OntAnnotationProperty getAnnotationProperty(Resource uri) {
         return getAnnotationProperty(uri.getURI());
     }
 
-    default OntNDP getDataProperty(Resource uri) {
+    default OntDataProperty getDataProperty(Resource uri) {
         return getDataProperty(uri.getURI());
     }
 
-    default OntNOP getObjectProperty(Resource uri) {
+    default OntObjectProperty.Named getObjectProperty(Resource uri) {
         return getObjectProperty(uri.getURI());
     }
 
@@ -512,12 +512,12 @@ public interface OntModel extends Model, CreateClasses, CreateRanges, CreateDisj
     }
 
     /**
-     * Retrieves a {@link OntDT datatype} from the given literal.
+     * Retrieves a {@link OntDataRange.Named datatype} from the given literal.
      *
      * @param literal {@link Literal}, not {@code null}
-     * @return {@link OntDT}
+     * @return {@link OntDataRange.Named}
      */
-    default OntDT getDatatype(Literal literal) {
+    default OntDataRange.Named getDatatype(Literal literal) {
         String uri = literal.getDatatypeURI();
         if (uri != null) {
             return getDatatype(uri);
@@ -545,51 +545,51 @@ public interface OntModel extends Model, CreateClasses, CreateRanges, CreateDisj
     /**
      * Lists all named class expressions (OWL classes).
      *
-     * @return {@code Stream} of {@link OntClass Ontology Class}es
+     * @return {@code Stream} of {@link OntClass.Named Ontology Class}es
      * @since 1.4.0
      */
-    default Stream<OntClass> classes() {
-        return ontEntities(OntClass.class);
+    default Stream<OntClass.Named> classes() {
+        return ontEntities(OntClass.Named.class);
     }
 
     /**
      * Lists all annotation properties.
      *
-     * @return {@code Stream} of {@link OntNAP Annotation Property}s
+     * @return {@code Stream} of {@link OntAnnotationProperty Annotation Property}s
      * @since 1.4.0
      */
-    default Stream<OntNAP> annotationProperties() {
-        return ontEntities(OntNAP.class);
+    default Stream<OntAnnotationProperty> annotationProperties() {
+        return ontEntities(OntAnnotationProperty.class);
     }
 
     /**
      * Lists all data properties.
      *
-     * @return {@code Stream} of {@link OntNDP Data Property}s
+     * @return {@code Stream} of {@link OntDataProperty Data Property}s
      * @since 1.4.0
      */
-    default Stream<OntNDP> dataProperties() {
-        return ontEntities(OntNDP.class);
+    default Stream<OntDataProperty> dataProperties() {
+        return ontEntities(OntDataProperty.class);
     }
 
     /**
      * Lists all named object property expressions (object properties in short).
      *
-     * @return {@code Stream} of {@link OntNOP Named Object Property}s
+     * @return {@code Stream} of {@link OntObjectProperty.Named Named Object Property}s
      * @since 1.4.0
      */
-    default Stream<OntNOP> objectProperties() {
-        return ontEntities(OntNOP.class);
+    default Stream<OntObjectProperty.Named> objectProperties() {
+        return ontEntities(OntObjectProperty.Named.class);
     }
 
     /**
      * Lists all datatypes (named data range expressions).
      *
-     * @return {@code Stream} of {@link OntDT Ontology Datatype}s
+     * @return {@code Stream} of {@link OntDataRange.Named Ontology Datatype}s
      * @since 1.4.0
      */
-    default Stream<OntDT> datatypes() {
-        return ontEntities(OntDT.class);
+    default Stream<OntDataRange.Named> datatypes() {
+        return ontEntities(OntDataRange.Named.class);
     }
 
     /**
@@ -598,7 +598,7 @@ public interface OntModel extends Model, CreateClasses, CreateRanges, CreateDisj
      *
      * @return {@code Stream} of {@link OntIndividual.Named Named Individual}s
      * @see #individuals()
-     * @see OntCE#individuals()
+     * @see OntClass#individuals()
      * @since 1.4.0
      */
     default Stream<OntIndividual.Named> namedIndividuals() {
@@ -623,39 +623,39 @@ public interface OntModel extends Model, CreateClasses, CreateRanges, CreateDisj
      * ===================================
      */
 
-    default OntNAP getRDFSComment() {
+    default OntAnnotationProperty getRDFSComment() {
         return getAnnotationProperty(RDFS.comment);
     }
 
-    default OntNAP getRDFSLabel() {
+    default OntAnnotationProperty getRDFSLabel() {
         return getAnnotationProperty(RDFS.label);
     }
 
-    default OntClass getOWLThing() {
+    default OntClass.Named getOWLThing() {
         return getOntClass(OWL.Thing);
     }
 
-    default OntClass getOWLNothing() {
+    default OntClass.Named getOWLNothing() {
         return getOntClass(OWL.Nothing);
     }
 
-    default OntDT getRDFSLiteral() {
+    default OntDataRange.Named getRDFSLiteral() {
         return getDatatype(RDFS.Literal);
     }
 
-    default OntNOP getOWLTopObjectProperty() {
+    default OntObjectProperty.Named getOWLTopObjectProperty() {
         return getObjectProperty(OWL.topObjectProperty);
     }
 
-    default OntNOP getOWLBottomObjectProperty() {
+    default OntObjectProperty.Named getOWLBottomObjectProperty() {
         return getObjectProperty(OWL.bottomObjectProperty);
     }
 
-    default OntNDP getOWLTopDataProperty() {
+    default OntDataProperty getOWLTopDataProperty() {
         return getDataProperty(OWL.topDataProperty);
     }
 
-    default OntNDP getOWLBottomDataProperty() {
+    default OntDataProperty getOWLBottomDataProperty() {
         return getDataProperty(OWL.bottomDataProperty);
     }
 }

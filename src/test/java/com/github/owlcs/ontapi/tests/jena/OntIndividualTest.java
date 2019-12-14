@@ -38,9 +38,9 @@ public class OntIndividualTest {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntIndividual i1 = m.createIndividual("I1");
         OntIndividual i2 = m.createIndividual("I2");
-        OntNDP d = m.createDataProperty("D");
-        OntNOP p = m.createObjectProperty("P");
-        OntNAP a = m.getRDFSComment();
+        OntDataProperty d = m.createDataProperty("D");
+        OntObjectProperty.Named p = m.createObjectProperty("P");
+        OntAnnotationProperty a = m.getRDFSComment();
 
         Assert.assertSame(i1, i1.addAssertion(d, m.createLiteral("1"))
                 .addAssertion(d, m.createLiteral("2")).addAssertion(p, i2).addAssertion(a, m.createLiteral("3")));
@@ -91,8 +91,8 @@ public class OntIndividualTest {
         OntIndividual i1 = m.createIndividual("I1");
         OntIndividual i2 = m.createIndividual("I2");
         OntIndividual i3 = m.createIndividual("I3");
-        OntNDP d = m.createDataProperty("D");
-        OntNOP p = m.createObjectProperty("P");
+        OntDataProperty d = m.createDataProperty("D");
+        OntObjectProperty.Named p = m.createObjectProperty("P");
 
         Assert.assertSame(i1, i1.addNegativeAssertion(d, m.createLiteral("1")));
         Assert.assertEquals(1, i1.negativeAssertions().count());
@@ -121,8 +121,8 @@ public class OntIndividualTest {
         OntIndividual i1 = m.createIndividual("I1");
         OntIndividual i2 = m.createIndividual("I2");
         OntIndividual i3 = m.createIndividual("I3");
-        OntNDP d = m.createDataProperty("D");
-        OntNOP p = m.createObjectProperty("P");
+        OntDataProperty d = m.createDataProperty("D");
+        OntObjectProperty.Named p = m.createObjectProperty("P");
 
         i1.addNegativeAssertion(p, i2)
                 .addAssertion(p, i3)
@@ -137,8 +137,8 @@ public class OntIndividualTest {
     public void testClassAssertions() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntIndividual i1 = m.createIndividual("I1");
-        OntClass c1 = m.createOntClass("C1");
-        OntClass c2 = m.createOntClass("C2");
+        OntClass.Named c1 = m.createOntClass("C1");
+        OntClass.Named c2 = m.createOntClass("C2");
         OntIndividual i2 = c2.createIndividual();
         long size = 4;
 
@@ -188,9 +188,9 @@ public class OntIndividualTest {
         String ns = "http://xx#";
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD).setNsPrefix("x", ns);
         m.getOWLThing().createIndividual(ns + "I1").addSameAsStatement(m.createIndividual(ns + "I2"));
-        OntClass c1 = m.createOntClass(ns + "C1");
-        OntClass c2 = m.createOntClass(ns + "C2");
-        OntClass c3 = m.createOntClass(ns + "C3");
+        OntClass.Named c1 = m.createOntClass(ns + "C1");
+        OntClass.Named c2 = m.createOntClass(ns + "C2");
+        OntClass.Named c3 = m.createOntClass(ns + "C3");
         m.createIndividual(ns + "I3")
                 .addDifferentIndividual(m.createIndividual(ns + "I4"))
                 .addDifferentIndividual(c3.createIndividual());
@@ -202,7 +202,7 @@ public class OntIndividualTest {
 
         // class-assertions:
         Assert.assertEquals(6, m.statements(null, RDF.type, null)
-                .filter(x -> x.getObject().canAs(OntCE.class)).count());
+                .filter(x -> x.getObject().canAs(OntClass.class)).count());
         // all individuals:
         Assert.assertEquals(6, m.ontObjects(OntIndividual.class).count());
         // distinct class asserted individuals:

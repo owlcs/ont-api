@@ -169,7 +169,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
                                                                       OntGraphModelImpl m) {
         return new OntStatementImpl(s, p, o, m) {
             @Override
-            public OntStatement addAnnotation(OntNAP property, RDFNode value) {
+            public OntStatement addAnnotation(OntAnnotationProperty property, RDFNode value) {
                 throw new OntJenaException.Unsupported("Sub-annotations are not supported (attempt to annotate " +
                         Models.toString(this) + " with predicate " + m.shortForm(property.getURI()) +
                         " and value " + value + ")");
@@ -269,7 +269,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
     }
 
     @Override
-    public OntStatement addAnnotation(OntNAP property, RDFNode value) {
+    public OntStatement addAnnotation(OntAnnotationProperty property, RDFNode value) {
         OntJenaException.notNull(property, "Null property.");
         OntJenaException.notNull(value, "Null value.");
         if (isRootStatement()) {
@@ -316,12 +316,12 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
     @Override
     public OntStatementImpl clearAnnotations() {
         Iter.peek(listAnnotations(), OntStatement::clearAnnotations).toSet()
-                .forEach(a -> deleteAnnotation(a.getPredicate().as(OntNAP.class), a.getObject()));
+                .forEach(a -> deleteAnnotation(a.getPredicate().as(OntAnnotationProperty.class), a.getObject()));
         return this;
     }
 
     @Override
-    public OntStatementImpl deleteAnnotation(OntNAP property, RDFNode value) {
+    public OntStatementImpl deleteAnnotation(OntAnnotationProperty property, RDFNode value) {
         OntJenaException.notNull(property, "Null property.");
         OntJenaException.notNull(value, "Null value.");
         OntGraphModelImpl model = getModel();

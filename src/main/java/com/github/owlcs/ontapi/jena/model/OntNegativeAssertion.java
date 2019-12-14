@@ -18,9 +18,9 @@ import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.RDFNode;
 
 /**
- * Interface representing the <b>N</b>egative <b>P</b>roperty <b>A</b>ssertion abstraction,
- * where predicate (property) is expected to be either ontology {@link OntNDP data property} ({@code R}) or
- * {@link OntOPE object property exception} ({@code P}).
+ * Interface representing the Negative Property Assertion abstraction,
+ * where predicate (property) is expected to be either ontology {@link OntDataProperty data property} ({@code R}) or
+ * {@link OntObjectProperty object property exception} ({@code P}).
  * Assuming {@code _:x} is a blank node, {@code ai} is an individual and {@code v} is literal,
  * a Negative Object Property Assertion in Turtle syntax looks like this:
  * <pre>{@code
@@ -39,8 +39,11 @@ import org.apache.jena.rdf.model.RDFNode;
  *
  * <p>
  * Created by @szuev on 15.11.2016.
+ *
+ * @param <P> - either {@link OntObjectProperty object property expression} or {@link OntDataProperty data property}
+ * @param <V> - either {@link OntIndividual} or {@link Literal}
  */
-public interface OntNPA<P extends OntPE, T extends RDFNode> extends OntObject {
+public interface OntNegativeAssertion<P extends OntRealProperty, V extends RDFNode> extends OntObject {
 
     /**
      * Returns the source individual.
@@ -52,7 +55,7 @@ public interface OntNPA<P extends OntPE, T extends RDFNode> extends OntObject {
     /**
      * Returns the assertion property.
      *
-     * @return either {@link OntOPE} or {@link OntNDP}
+     * @return either {@link OntObjectProperty} or {@link OntDataProperty}
      */
     P getProperty();
 
@@ -61,17 +64,17 @@ public interface OntNPA<P extends OntPE, T extends RDFNode> extends OntObject {
      *
      * @return either {@link OntIndividual} or {@link Literal}
      */
-    T getTarget();
+    V getTarget();
 
     /**
      * @see <a href='https://www.w3.org/TR/owl2-syntax/#Negative_Object_Property_Assertions'>9.6.5 Negative Object Property Assertions</a>
      */
-    interface ObjectAssertion extends OntNPA<OntOPE, OntIndividual> {
+    interface WithObjectProperty extends OntNegativeAssertion<OntObjectProperty, OntIndividual> {
     }
 
     /**
      * @see <a href='https://www.w3.org/TR/owl2-syntax/#Negative_Data_Property_Assertions'>9.6.7 Negative Data Property Assertions</a>
      */
-    interface DataAssertion extends OntNPA<OntNDP, Literal> {
+    interface WithDataProperty extends OntNegativeAssertion<OntDataProperty, Literal> {
     }
 }

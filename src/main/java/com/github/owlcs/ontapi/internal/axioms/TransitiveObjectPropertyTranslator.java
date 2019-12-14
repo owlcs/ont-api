@@ -18,7 +18,7 @@ import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
 import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntOPE;
+import com.github.owlcs.ontapi.jena.model.OntObjectProperty;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import org.apache.jena.graph.Triple;
@@ -42,7 +42,7 @@ import java.util.stream.Stream;
  * Created by @szuev on 28.09.2016.
  */
 public class TransitiveObjectPropertyTranslator
-        extends AbstractPropertyTypeTranslator<OWLTransitiveObjectPropertyAxiom, OntOPE> {
+        extends AbstractPropertyTypeTranslator<OWLTransitiveObjectPropertyAxiom, OntObjectProperty> {
 
     @Override
     Resource getType() {
@@ -50,8 +50,8 @@ public class TransitiveObjectPropertyTranslator
     }
 
     @Override
-    Class<OntOPE> getView() {
-        return OntOPE.class;
+    Class<OntObjectProperty> getView() {
+        return OntObjectProperty.class;
     }
 
     @Override

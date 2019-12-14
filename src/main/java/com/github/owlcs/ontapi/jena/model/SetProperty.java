@@ -15,17 +15,17 @@
 package com.github.owlcs.ontapi.jena.model;
 
 /**
- * A technical interface to provide a possibility to assign {@link OntDOP data or object} property
- * into {@link OntCE.RestrictionCE restriction class expression}.
+ * A technical interface to provide a possibility to assign {@link OntRealProperty data or object} property
+ * into {@link OntClass.RestrictionCE restriction class expression}.
  * <p>
  * Created by @ssz on 09.05.2019.
  *
- * @param <P> {@link OntDOP data or object} property expression
- * @param <R> - return type, a subtype of {@link OntCE.RestrictionCE}
+ * @param <P> {@link OntRealProperty data or object} property expression
+ * @param <R> - return type, a subtype of {@link OntClass.RestrictionCE}
  * @see HasProperty
  * @since 1.4.0
  */
-interface SetProperty<P extends OntDOP, R extends OntCE.RestrictionCE<?>> {
+interface SetProperty<P extends OntRealProperty, R extends OntClass.RestrictionCE<?>> {
 
     /**
      * Sets the given property into this Restriction

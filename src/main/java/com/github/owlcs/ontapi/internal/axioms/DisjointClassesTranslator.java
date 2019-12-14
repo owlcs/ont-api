@@ -21,7 +21,7 @@ import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
-import com.github.owlcs.ontapi.jena.model.OntCE;
+import com.github.owlcs.ontapi.jena.model.OntClass;
 import com.github.owlcs.ontapi.jena.model.OntDisjoint;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
@@ -53,7 +53,7 @@ import java.util.stream.Stream;
  * Created by @szuev on 28.09.2016.
  */
 public class DisjointClassesTranslator
-        extends AbstractTwoWayNaryTranslator<OWLDisjointClassesAxiom, OWLClassExpression, OntCE> {
+        extends AbstractTwoWayNaryTranslator<OWLDisjointClassesAxiom, OWLClassExpression, OntClass> {
 
     private static final Property PREDICATE = OWL.disjointWith;
 
@@ -63,8 +63,8 @@ public class DisjointClassesTranslator
     }
 
     @Override
-    Class<OntCE> getView() {
-        return OntCE.class;
+    Class<OntClass> getView() {
+        return OntClass.class;
     }
 
     @Override

@@ -19,9 +19,9 @@ import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.jena.OntModelFactory;
 import com.github.owlcs.ontapi.jena.model.OntClass;
+import com.github.owlcs.ontapi.jena.model.OntDataProperty;
 import com.github.owlcs.ontapi.jena.model.OntIndividual;
 import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntNDP;
 import com.github.owlcs.ontapi.jena.vocabulary.XSD;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import com.github.owlcs.ontapi.utils.SP;
@@ -104,8 +104,8 @@ public class SpinMappingTest {
 
     public void validate(OntModel source, OntModel target) {
         LOGGER.debug("Validate.");
-        OntClass targetClass = target.classes().findFirst().orElse(null);
-        OntNDP targetProperty = target.dataProperties().findFirst().orElse(null);
+        OntClass.Named targetClass = target.classes().findFirst().orElse(null);
+        OntDataProperty targetProperty = target.dataProperties().findFirst().orElse(null);
         List<OntIndividual> sourceIndividuals = source.namedIndividuals().collect(Collectors.toList());
         List<Resource> targetIndividuals = target.listSubjectsWithProperty(RDF.type, targetClass).toList();
         LOGGER.debug("Individuals count: {}", targetIndividuals.size());
@@ -131,10 +131,10 @@ public class SpinMappingTest {
      */
     public OntModel composeMapping(OntModel source, OntModel target) {
         LOGGER.debug("Compose mapping.");
-        OntClass sourceClass = source.classes().findFirst().orElseThrow(AssertionError::new);
-        OntClass targetClass = target.classes().findFirst().orElseThrow(AssertionError::new);
-        List<OntNDP> sourceProperties = source.dataProperties().collect(Collectors.toList());
-        OntNDP targetProperty = target.dataProperties().findFirst().orElse(null);
+        OntClass.Named sourceClass = source.classes().findFirst().orElseThrow(AssertionError::new);
+        OntClass.Named targetClass = target.classes().findFirst().orElseThrow(AssertionError::new);
+        List<OntDataProperty> sourceProperties = source.dataProperties().collect(Collectors.toList());
+        OntDataProperty targetProperty = target.dataProperties().findFirst().orElse(null);
 
         OntModel mapping = manager.createGraphModel("http://spin.owlcs.ru");
         OntModel spinmapl = manager.getGraphModel(SpinModels.SPINMAPL.getIRI().getIRIString());
@@ -182,9 +182,9 @@ public class SpinMappingTest {
         String uri = "http://source.owlcs.ru";
         String ns = uri + "#";
         OntModel res = manager.createGraphModel(uri).setNsPrefixes(OntModelFactory.STANDARD);
-        OntClass clazz = res.createOntClass(ns + "ClassSource");
-        OntNDP prop1 = res.createDataProperty(ns + "prop1").addRange(XSD.xstring).addDomain(clazz);
-        OntNDP prop2 = res.createDataProperty(ns + "prop2").addRange(XSD.integer).addDomain(clazz);
+        OntClass.Named clazz = res.createOntClass(ns + "ClassSource");
+        OntDataProperty prop1 = res.createDataProperty(ns + "prop1").addRange(XSD.xstring).addDomain(clazz);
+        OntDataProperty prop2 = res.createDataProperty(ns + "prop2").addRange(XSD.integer).addDomain(clazz);
         OntIndividual i1 = clazz.createIndividual(ns + "Inst1");
         OntIndividual i2 = clazz.createIndividual(ns + "Inst2");
         i1.addLiteral(prop1, "val1");
@@ -209,7 +209,7 @@ public class SpinMappingTest {
         String uri = "http://target.owlcs.ru";
         String ns = uri + "#";
         OntModel res = manager.createGraphModel(uri).setNsPrefixes(OntModelFactory.STANDARD);
-        OntClass clazz = res.createOntClass(ns + "ClassTarget");
+        OntClass.Named clazz = res.createOntClass(ns + "ClassTarget");
         res.createDataProperty(ns + "targetProperty").addRange(XSD.xstring).addDomain(clazz);
         Ontology o = manager.getOntology(IRI.create(uri));
         Assert.assertNotNull("Can't find ontology " + uri, o);

@@ -14,12 +14,12 @@
 
 package com.github.owlcs.ontapi.jena.impl.conf;
 
-import org.apache.jena.graph.Node;
-import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.Resource;
 import com.github.owlcs.ontapi.jena.OntJenaException;
 import com.github.owlcs.ontapi.jena.model.*;
 import com.github.owlcs.ontapi.jena.utils.Iter;
+import org.apache.jena.graph.Node;
+import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.Resource;
 
 import java.util.*;
 import java.util.function.Supplier;
@@ -68,27 +68,27 @@ abstract class VocabularyImpl<T extends Resource> implements Vocabulary<T> {
 
         @Override
         public Set<Node> getClasses() {
-            return classes == null ? classes = get(OntClass.class) : classes;
+            return classes == null ? classes = get(OntClass.Named.class) : classes;
         }
 
         @Override
         public Set<Node> getDatatypes() {
-            return datatypes == null ? datatypes = get(OntDT.class) : datatypes;
+            return datatypes == null ? datatypes = get(OntDataRange.Named.class) : datatypes;
         }
 
         @Override
         public Set<Node> getObjectProperties() {
-            return objectProperties == null ? objectProperties = get(OntNOP.class) : objectProperties;
+            return objectProperties == null ? objectProperties = get(OntObjectProperty.Named.class) : objectProperties;
         }
 
         @Override
         public Set<Node> getDatatypeProperties() {
-            return datatypeProperties == null ? datatypeProperties = get(OntNDP.class) : datatypeProperties;
+            return datatypeProperties == null ? datatypeProperties = get(OntDataProperty.class) : datatypeProperties;
         }
 
         @Override
         public Set<Node> getAnnotationProperties() {
-            return annotationProperties == null ? annotationProperties = get(OntNAP.class) : annotationProperties;
+            return annotationProperties == null ? annotationProperties = get(OntAnnotationProperty.class) : annotationProperties;
         }
 
         @Override

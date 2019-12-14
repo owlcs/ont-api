@@ -19,7 +19,7 @@ import com.github.owlcs.ontapi.internal.InternalObjectFactory;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntNOP;
+import com.github.owlcs.ontapi.jena.model.OntObjectProperty;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import org.semanticweb.owlapi.model.OWLObjectInverseOf;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
@@ -59,8 +59,8 @@ public class ONTObjectPropertyImpl extends ONTEntityImpl<OWLObjectProperty> impl
     }
 
     @Override
-    public OntNOP asRDFNode() {
-        return as(OntNOP.class);
+    public OntObjectProperty.Named asRDFNode() {
+        return as(OntObjectProperty.Named.class);
     }
 
     @Override

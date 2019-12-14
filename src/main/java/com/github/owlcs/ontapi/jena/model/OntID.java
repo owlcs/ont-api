@@ -178,7 +178,7 @@ public interface OntID extends OntObject {
      * {@inheritDoc}
      */
     @Override
-    default OntID annotate(OntNAP predicate, String txt, String lang) {
+    default OntID annotate(OntAnnotationProperty predicate, String txt, String lang) {
         return annotate(predicate, getModel().createLiteral(txt, lang));
     }
 
@@ -186,7 +186,7 @@ public interface OntID extends OntObject {
      * {@inheritDoc}
      */
     @Override
-    default OntID annotate(OntNAP predicate, RDFNode value) {
+    default OntID annotate(OntAnnotationProperty predicate, RDFNode value) {
         addAnnotation(predicate, value);
         return this;
     }

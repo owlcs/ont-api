@@ -20,7 +20,7 @@ import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTObjectPropertyImpl;
 import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntNPA;
+import com.github.owlcs.ontapi.jena.model.OntNegativeAssertion;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.graph.Triple;
@@ -41,18 +41,18 @@ import java.util.stream.Stream;
  * Created by szuev on 12.10.2016.
  */
 public class NegativeObjectPropertyAssertionTranslator
-        extends AbstractNegativePropertyAssertionTranslator<OWLNegativeObjectPropertyAssertionAxiom, OntNPA.ObjectAssertion> {
+        extends AbstractNegativePropertyAssertionTranslator<OWLNegativeObjectPropertyAssertionAxiom, OntNegativeAssertion.WithObjectProperty> {
 
     @Override
-    OntNPA.ObjectAssertion createNPA(OWLNegativeObjectPropertyAssertionAxiom axiom, OntModel model) {
+    OntNegativeAssertion.WithObjectProperty createNPA(OWLNegativeObjectPropertyAssertionAxiom axiom, OntModel model) {
         return WriteHelper.addObjectProperty(model, axiom.getProperty())
                 .addNegativeAssertion(WriteHelper.addIndividual(model, axiom.getSubject()),
                         WriteHelper.addIndividual(model, axiom.getObject()));
     }
 
     @Override
-    Class<OntNPA.ObjectAssertion> getView() {
-        return OntNPA.ObjectAssertion.class;
+    Class<OntNegativeAssertion.WithObjectProperty> getView() {
+        return OntNegativeAssertion.WithObjectProperty.class;
     }
 
     @Override
@@ -67,7 +67,7 @@ public class NegativeObjectPropertyAssertionTranslator
     public ONTObject<OWLNegativeObjectPropertyAssertionAxiom> toAxiomWrap(OntStatement statement,
                                                                           InternalObjectFactory factory,
                                                                           InternalConfig config) {
-        OntNPA.ObjectAssertion npa = statement.getSubject(getView());
+        OntNegativeAssertion.WithObjectProperty npa = statement.getSubject(getView());
         ONTObject<? extends OWLIndividual> s = factory.getIndividual(npa.getSource());
         ONTObject<? extends OWLObjectPropertyExpression> p = factory.getProperty(npa.getProperty());
         ONTObject<? extends OWLIndividual> o = factory.getIndividual(npa.getTarget());
@@ -82,7 +82,7 @@ public class NegativeObjectPropertyAssertionTranslator
      * @see com.github.owlcs.ontapi.owlapi.axioms.OWLNegativeObjectPropertyAssertionAxiomImpl
      */
     public static class AxiomImpl
-            extends NegativeAssertionImpl<OntNPA.ObjectAssertion, OWLNegativeObjectPropertyAssertionAxiom,
+            extends NegativeAssertionImpl<OntNegativeAssertion.WithObjectProperty, OWLNegativeObjectPropertyAssertionAxiom,
             OWLObjectPropertyExpression, OWLIndividual> implements OWLNegativeObjectPropertyAssertionAxiom {
 
         private static final BiFunction<Triple, Supplier<OntModel>, AxiomImpl> FACTORY = AxiomImpl::new;
@@ -112,8 +112,8 @@ public class NegativeObjectPropertyAssertionTranslator
         }
 
         @Override
-        public Class<OntNPA.ObjectAssertion> getType() {
-            return OntNPA.ObjectAssertion.class;
+        public Class<OntNegativeAssertion.WithObjectProperty> getType() {
+            return OntNegativeAssertion.WithObjectProperty.class;
         }
 
         @SuppressWarnings("rawtypes")

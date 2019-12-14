@@ -40,17 +40,17 @@ import java.util.stream.Stream;
  * <p>
  * Created by @ssz on 10.08.2019.
  *
- * @param <ONT> any subtype of {@link OntCE}
+ * @param <ONT> any subtype of {@link OntClass}
  * @param <OWL> subtype of {@link OWLAnonymousClassExpression}, which matches {@link ONT}
  * @see com.github.owlcs.ontapi.owlapi.objects.ce.OWLAnonymousClassExpressionImpl
  * @see ONTClassImpl
- * @see com.github.owlcs.ontapi.internal.ReadHelper#calcClassExpression(OntCE, InternalObjectFactory, Set)
- * @see OntCE
+ * @see com.github.owlcs.ontapi.internal.ReadHelper#calcClassExpression(OntClass, InternalObjectFactory, Set)
  * @see OntClass
+ * @see OntClass.Named
  * @since 2.0.0
  */
 @SuppressWarnings("WeakerAccess")
-public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL extends OWLAnonymousClassExpression>
+public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL extends OWLAnonymousClassExpression>
         extends ONTExpressionImpl<ONT>
         implements OWLAnonymousClassExpression, ModelObject<OWL> {
 
@@ -59,18 +59,18 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
     }
 
     /**
-     * Wraps the given {@link OntCE} as {@link OWLAnonymousClassExpression} and {@link ONTObject}.
+     * Wraps the given {@link OntClass} as {@link OWLAnonymousClassExpression} and {@link ONTObject}.
      *
-     * @param ce      {@link OntCE}, not {@code null}, must be anonymous
+     * @param ce      {@link OntClass}, not {@code null}, must be anonymous
      * @param factory {@link InternalObjectFactory}, not {@code null}
      * @param model   a provider of non-null {@link OntModel}, not {@code null}
      * @return {@link ONTAnonymousClassExpressionImpl} instance
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public static ONTAnonymousClassExpressionImpl create(OntCE ce,
+    public static ONTAnonymousClassExpressionImpl create(OntClass ce,
                                                          InternalObjectFactory factory,
                                                          Supplier<OntModel> model) {
-        Class<? extends OntCE> type = OntModels.getOntType(ce);
+        Class<? extends OntClass> type = OntModels.getOntType(ce);
         BlankNodeId id = ce.asNode().getBlankNodeId();
         ONTAnonymousClassExpressionImpl res = create(id, type, model);
         // since we have already type information
@@ -90,63 +90,63 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
      * @return {@link ONTAnonymousClassExpressionImpl} instance
      */
     public static ONTAnonymousClassExpressionImpl<?, ?> create(BlankNodeId id,
-                                                               Class<? extends OntCE> type,
+                                                               Class<? extends OntClass> type,
                                                                Supplier<OntModel> model) {
-        if (OntCE.ObjectSomeValuesFrom.class == type) {
+        if (OntClass.ObjectSomeValuesFrom.class == type) {
             return new OSVF(id, model);
         }
-        if (OntCE.DataSomeValuesFrom.class == type) {
+        if (OntClass.DataSomeValuesFrom.class == type) {
             return new DSVF(id, model);
         }
-        if (OntCE.ObjectAllValuesFrom.class == type) {
+        if (OntClass.ObjectAllValuesFrom.class == type) {
             return new OAVF(id, model);
         }
-        if (OntCE.DataAllValuesFrom.class == type) {
+        if (OntClass.DataAllValuesFrom.class == type) {
             return new DAVF(id, model);
         }
-        if (OntCE.ObjectHasValue.class == type) {
+        if (OntClass.ObjectHasValue.class == type) {
             return new OHV(id, model);
         }
-        if (OntCE.DataHasValue.class == type) {
+        if (OntClass.DataHasValue.class == type) {
             return new DHV(id, model);
         }
-        if (OntCE.HasSelf.class == type) {
+        if (OntClass.HasSelf.class == type) {
             return new OHS(id, model);
         }
-        if (OntCE.ObjectCardinality.class == type) {
+        if (OntClass.ObjectCardinality.class == type) {
             return new OEC(id, model);
         }
-        if (OntCE.DataCardinality.class == type) {
+        if (OntClass.DataCardinality.class == type) {
             return new DEC(id, model);
         }
-        if (OntCE.ObjectMinCardinality.class == type) {
+        if (OntClass.ObjectMinCardinality.class == type) {
             return new OMIC(id, model);
         }
-        if (OntCE.DataMinCardinality.class == type) {
+        if (OntClass.DataMinCardinality.class == type) {
             return new DMIC(id, model);
         }
-        if (OntCE.ObjectMaxCardinality.class == type) {
+        if (OntClass.ObjectMaxCardinality.class == type) {
             return new OMAC(id, model);
         }
-        if (OntCE.DataMaxCardinality.class == type) {
+        if (OntClass.DataMaxCardinality.class == type) {
             return new DMAC(id, model);
         }
-        if (OntCE.UnionOf.class == type) {
+        if (OntClass.UnionOf.class == type) {
             return new UF(id, model);
         }
-        if (OntCE.IntersectionOf.class == type) {
+        if (OntClass.IntersectionOf.class == type) {
             return new IF(id, model);
         }
-        if (OntCE.OneOf.class == type) {
+        if (OntClass.OneOf.class == type) {
             return new OF(id, model);
         }
-        if (OntCE.ComplementOf.class == type) {
+        if (OntClass.ComplementOf.class == type) {
             return new CF(id, model);
         }
-        if (OntCE.NaryDataSomeValuesFrom.class == type) {
+        if (OntClass.NaryDataSomeValuesFrom.class == type) {
             return new NDSVF(id, model);
         }
-        if (OntCE.NaryDataAllValuesFrom.class == type) {
+        if (OntClass.NaryDataAllValuesFrom.class == type) {
             return new NDAVF(id, model);
         }
         throw new OntApiException.IllegalState();
@@ -227,10 +227,10 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
 
     /**
      * @see com.github.owlcs.ontapi.owlapi.objects.ce.OWLObjectSomeValuesFromImpl
-     * @see OntCE.ObjectSomeValuesFrom
+     * @see OntClass.ObjectSomeValuesFrom
      */
     public static class OSVF
-            extends WithClassAndObjectProperty<OntCE.ObjectSomeValuesFrom, OWLObjectSomeValuesFrom>
+            extends WithClassAndObjectProperty<OntClass.ObjectSomeValuesFrom, OWLObjectSomeValuesFrom>
             implements OWLObjectSomeValuesFrom {
 
         public OSVF(BlankNodeId n, Supplier<OntModel> m) {
@@ -238,8 +238,8 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        public OntCE.ObjectSomeValuesFrom asRDFNode() {
-            return as(OntCE.ObjectSomeValuesFrom.class);
+        public OntClass.ObjectSomeValuesFrom asRDFNode() {
+            return as(OntClass.ObjectSomeValuesFrom.class);
         }
 
         @Override
@@ -250,10 +250,10 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
 
     /**
      * @see com.github.owlcs.ontapi.owlapi.objects.ce.OWLObjectAllValuesFromImpl
-     * @see OntCE.ObjectAllValuesFrom
+     * @see OntClass.ObjectAllValuesFrom
      */
     public static class OAVF
-            extends WithClassAndObjectProperty<OntCE.ObjectAllValuesFrom, OWLObjectAllValuesFrom>
+            extends WithClassAndObjectProperty<OntClass.ObjectAllValuesFrom, OWLObjectAllValuesFrom>
             implements OWLObjectAllValuesFrom {
 
         public OAVF(BlankNodeId n, Supplier<OntModel> m) {
@@ -261,8 +261,8 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        public OntCE.ObjectAllValuesFrom asRDFNode() {
-            return as(OntCE.ObjectAllValuesFrom.class);
+        public OntClass.ObjectAllValuesFrom asRDFNode() {
+            return as(OntClass.ObjectAllValuesFrom.class);
         }
 
         @Override
@@ -273,10 +273,10 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
 
     /**
      * @see com.github.owlcs.ontapi.owlapi.objects.ce.OWLDataSomeValuesFromImpl
-     * @see OntCE.DataSomeValuesFrom
+     * @see OntClass.DataSomeValuesFrom
      */
     public static class DSVF
-            extends WithDataRangeAndDataPropertyUnary<OntCE.DataSomeValuesFrom, OWLDataSomeValuesFrom>
+            extends WithDataRangeAndDataPropertyUnary<OntClass.DataSomeValuesFrom, OWLDataSomeValuesFrom>
             implements OWLDataSomeValuesFrom {
 
         public DSVF(BlankNodeId n, Supplier<OntModel> m) {
@@ -284,8 +284,8 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        public OntCE.DataSomeValuesFrom asRDFNode() {
-            return as(OntCE.DataSomeValuesFrom.class);
+        public OntClass.DataSomeValuesFrom asRDFNode() {
+            return as(OntClass.DataSomeValuesFrom.class);
         }
 
         @Override
@@ -296,10 +296,10 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
 
     /**
      * @see com.github.owlcs.ontapi.owlapi.objects.ce.OWLDataAllValuesFromImpl
-     * @see OntCE.DataAllValuesFrom
+     * @see OntClass.DataAllValuesFrom
      */
     public static class DAVF
-            extends WithDataRangeAndDataPropertyUnary<OntCE.DataAllValuesFrom, OWLDataAllValuesFrom>
+            extends WithDataRangeAndDataPropertyUnary<OntClass.DataAllValuesFrom, OWLDataAllValuesFrom>
             implements OWLDataAllValuesFrom {
 
         public DAVF(BlankNodeId n, Supplier<OntModel> m) {
@@ -307,8 +307,8 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        public OntCE.DataAllValuesFrom asRDFNode() {
-            return as(OntCE.DataAllValuesFrom.class);
+        public OntClass.DataAllValuesFrom asRDFNode() {
+            return as(OntClass.DataAllValuesFrom.class);
         }
 
         @Override
@@ -319,10 +319,10 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
 
     /**
      * @see com.github.owlcs.ontapi.owlapi.objects.ce.OWLDataSomeValuesFromImpl
-     * @see OntCE.NaryDataSomeValuesFrom
+     * @see OntClass.NaryDataSomeValuesFrom
      */
     public static class NDSVF
-            extends WithDataRangeAndDataPropertyNary<OntCE.NaryDataSomeValuesFrom, OWLDataSomeValuesFrom>
+            extends WithDataRangeAndDataPropertyNary<OntClass.NaryDataSomeValuesFrom, OWLDataSomeValuesFrom>
             implements OWLDataSomeValuesFrom {
 
         public NDSVF(BlankNodeId n, Supplier<OntModel> m) {
@@ -330,8 +330,8 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        public OntCE.NaryDataSomeValuesFrom asRDFNode() {
-            return as(OntCE.NaryDataSomeValuesFrom.class);
+        public OntClass.NaryDataSomeValuesFrom asRDFNode() {
+            return as(OntClass.NaryDataSomeValuesFrom.class);
         }
 
         @Override
@@ -342,10 +342,10 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
 
     /**
      * @see com.github.owlcs.ontapi.owlapi.objects.ce.OWLDataAllValuesFromImpl
-     * @see OntCE.NaryDataAllValuesFrom
+     * @see OntClass.NaryDataAllValuesFrom
      */
     public static class NDAVF
-            extends WithDataRangeAndDataPropertyNary<OntCE.NaryDataAllValuesFrom, OWLDataAllValuesFrom>
+            extends WithDataRangeAndDataPropertyNary<OntClass.NaryDataAllValuesFrom, OWLDataAllValuesFrom>
             implements OWLDataAllValuesFrom {
 
         public NDAVF(BlankNodeId n, Supplier<OntModel> m) {
@@ -353,8 +353,8 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        public OntCE.NaryDataAllValuesFrom asRDFNode() {
-            return as(OntCE.NaryDataAllValuesFrom.class);
+        public OntClass.NaryDataAllValuesFrom asRDFNode() {
+            return as(OntClass.NaryDataAllValuesFrom.class);
         }
 
         @Override
@@ -365,10 +365,10 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
 
     /**
      * @see com.github.owlcs.ontapi.owlapi.objects.ce.OWLObjectHasValueImpl
-     * @see OntCE.ObjectHasValue
+     * @see OntClass.ObjectHasValue
      */
     public static class OHV
-            extends WithObjectProperty<OntCE.ObjectHasValue, OWLObjectHasValue>
+            extends WithObjectProperty<OntClass.ObjectHasValue, OWLObjectHasValue>
             implements OWLObjectHasValue {
 
         protected OHV(BlankNodeId n, Supplier<OntModel> m) {
@@ -376,8 +376,8 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        public OntCE.ObjectHasValue asRDFNode() {
-            return as(OntCE.ObjectHasValue.class);
+        public OntClass.ObjectHasValue asRDFNode() {
+            return as(OntClass.ObjectHasValue.class);
         }
 
         @Override
@@ -409,14 +409,14 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        protected Object[] collectContent(OntCE.ObjectHasValue ce, InternalObjectFactory factory) {
+        protected Object[] collectContent(OntClass.ObjectHasValue ce, InternalObjectFactory factory) {
             // [property, filler]
             return new Object[]{toContentItem(ce.getProperty(), factory), toContentItem(ce.getValue())};
         }
 
         @Override
-        protected Object[] initContent(OntCE.ObjectHasValue ce, InternalObjectFactory factory) {
-            OntOPE p = ce.getProperty();
+        protected Object[] initContent(OntClass.ObjectHasValue ce, InternalObjectFactory factory) {
+            OntObjectProperty p = ce.getProperty();
             OntIndividual v = ce.getValue();
             return initContent(p.asNode(), v.asNode(), factory.getProperty(p), factory.getIndividual(v));
         }
@@ -495,10 +495,10 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
 
     /**
      * @see com.github.owlcs.ontapi.owlapi.objects.ce.OWLDataHasValueImpl
-     * @see OntCE.DataHasValue
+     * @see OntClass.DataHasValue
      */
     public static class DHV
-            extends WithDataProperty<OntCE.DataHasValue, OWLDataHasValue>
+            extends WithDataProperty<OntClass.DataHasValue, OWLDataHasValue>
             implements OWLDataHasValue {
 
         protected DHV(BlankNodeId n, Supplier<OntModel> m) {
@@ -506,8 +506,8 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        public OntCE.DataHasValue asRDFNode() {
-            return as(OntCE.DataHasValue.class);
+        public OntClass.DataHasValue asRDFNode() {
+            return as(OntClass.DataHasValue.class);
         }
 
         @Override
@@ -538,14 +538,14 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        protected Object[] collectContent(OntCE.DataHasValue ce, InternalObjectFactory factory) {
+        protected Object[] collectContent(OntClass.DataHasValue ce, InternalObjectFactory factory) {
             // [property, filler]
             return new Object[]{toContentItem(ce.getProperty()), toContentItem(ce.getValue())};
         }
 
         @Override
-        protected Object[] initContent(OntCE.DataHasValue ce, InternalObjectFactory factory) {
-            OntNDP p = ce.getProperty();
+        protected Object[] initContent(OntClass.DataHasValue ce, InternalObjectFactory factory) {
+            OntDataProperty p = ce.getProperty();
             Literal v = ce.getValue();
             return initContent(p.asNode(), v.asNode(), factory.getProperty(p), factory.getLiteral(v));
         }
@@ -565,11 +565,12 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
      * An {@code ObjectHasSelf} implementation.
      * It does not contain boolean datatype in signature -
      * see <a href='https://github.com/owlcs/owlapi/issues/783'>owlcs/owlapi##783</a>.
+     *
      * @see com.github.owlcs.ontapi.owlapi.objects.ce.OWLObjectHasSelfImpl
-     * @see OntCE.HasSelf
+     * @see OntClass.HasSelf
      */
     public static class OHS
-            extends WithObjectProperty<OntCE.HasSelf, OWLObjectHasSelf>
+            extends WithObjectProperty<OntClass.HasSelf, OWLObjectHasSelf>
             implements OWLObjectHasSelf {
 
         protected OHS(BlankNodeId n, Supplier<OntModel> m) {
@@ -577,8 +578,8 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        public OntCE.HasSelf asRDFNode() {
-            return as(OntCE.HasSelf.class);
+        public OntClass.HasSelf asRDFNode() {
+            return as(OntClass.HasSelf.class);
         }
 
         @Override
@@ -643,10 +644,10 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
 
     /**
      * @see com.github.owlcs.ontapi.owlapi.objects.ce.OWLObjectExactCardinalityImpl
-     * @see OntCE.ObjectCardinality
+     * @see OntClass.ObjectCardinality
      */
     public static class OEC
-            extends WithClassAndObjectPropertyAndCardinality<OntCE.ObjectCardinality, OWLObjectExactCardinality>
+            extends WithClassAndObjectPropertyAndCardinality<OntClass.ObjectCardinality, OWLObjectExactCardinality>
             implements OWLObjectExactCardinality {
 
         public OEC(BlankNodeId n, Supplier<OntModel> m) {
@@ -654,8 +655,8 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        public OntCE.ObjectCardinality asRDFNode() {
-            return as(OntCE.ObjectCardinality.class);
+        public OntClass.ObjectCardinality asRDFNode() {
+            return as(OntClass.ObjectCardinality.class);
         }
 
         @FactoryAccessor
@@ -677,10 +678,10 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
 
     /**
      * @see com.github.owlcs.ontapi.owlapi.objects.ce.OWLDataExactCardinalityImpl
-     * @see OntCE.DataCardinality
+     * @see OntClass.DataCardinality
      */
     public static class DEC
-            extends WithDataRangeAndDataPropertyAndCardinality<OntCE.DataCardinality, OWLDataExactCardinality>
+            extends WithDataRangeAndDataPropertyAndCardinality<OntClass.DataCardinality, OWLDataExactCardinality>
             implements OWLDataExactCardinality {
 
         public DEC(BlankNodeId n, Supplier<OntModel> m) {
@@ -688,8 +689,8 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        public OntCE.DataCardinality asRDFNode() {
-            return as(OntCE.DataCardinality.class);
+        public OntClass.DataCardinality asRDFNode() {
+            return as(OntClass.DataCardinality.class);
         }
 
         @FactoryAccessor
@@ -711,10 +712,10 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
 
     /**
      * @see com.github.owlcs.ontapi.owlapi.objects.ce.OWLObjectMinCardinalityImpl
-     * @see OntCE.ObjectMinCardinality
+     * @see OntClass.ObjectMinCardinality
      */
     public static class OMIC
-            extends WithClassAndObjectPropertyAndCardinality<OntCE.ObjectMinCardinality, OWLObjectMinCardinality>
+            extends WithClassAndObjectPropertyAndCardinality<OntClass.ObjectMinCardinality, OWLObjectMinCardinality>
             implements OWLObjectMinCardinality {
 
         public OMIC(BlankNodeId n, Supplier<OntModel> m) {
@@ -722,8 +723,8 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        public OntCE.ObjectMinCardinality asRDFNode() {
-            return as(OntCE.ObjectMinCardinality.class);
+        public OntClass.ObjectMinCardinality asRDFNode() {
+            return as(OntClass.ObjectMinCardinality.class);
         }
 
         @Override
@@ -734,10 +735,10 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
 
     /**
      * @see com.github.owlcs.ontapi.owlapi.objects.ce.OWLDataMinCardinalityImpl
-     * @see OntCE.DataMinCardinality
+     * @see OntClass.DataMinCardinality
      */
     public static class DMIC
-            extends WithDataRangeAndDataPropertyAndCardinality<OntCE.DataMinCardinality, OWLDataMinCardinality>
+            extends WithDataRangeAndDataPropertyAndCardinality<OntClass.DataMinCardinality, OWLDataMinCardinality>
             implements OWLDataMinCardinality {
 
         public DMIC(BlankNodeId n, Supplier<OntModel> m) {
@@ -745,8 +746,8 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        public OntCE.DataMinCardinality asRDFNode() {
-            return as(OntCE.DataMinCardinality.class);
+        public OntClass.DataMinCardinality asRDFNode() {
+            return as(OntClass.DataMinCardinality.class);
         }
 
         @Override
@@ -757,10 +758,10 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
 
     /**
      * @see com.github.owlcs.ontapi.owlapi.objects.ce.OWLObjectMaxCardinalityImpl
-     * @see OntCE.ObjectMaxCardinality
+     * @see OntClass.ObjectMaxCardinality
      */
     public static class OMAC
-            extends WithClassAndObjectPropertyAndCardinality<OntCE.ObjectMaxCardinality, OWLObjectMaxCardinality>
+            extends WithClassAndObjectPropertyAndCardinality<OntClass.ObjectMaxCardinality, OWLObjectMaxCardinality>
             implements OWLObjectMaxCardinality {
 
         public OMAC(BlankNodeId n, Supplier<OntModel> m) {
@@ -768,8 +769,8 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        public OntCE.ObjectMaxCardinality asRDFNode() {
-            return as(OntCE.ObjectMaxCardinality.class);
+        public OntClass.ObjectMaxCardinality asRDFNode() {
+            return as(OntClass.ObjectMaxCardinality.class);
         }
 
         @Override
@@ -780,10 +781,10 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
 
     /**
      * @see com.github.owlcs.ontapi.owlapi.objects.ce.OWLDataMaxCardinalityImpl
-     * @see OntCE.DataMaxCardinality
+     * @see OntClass.DataMaxCardinality
      */
     public static class DMAC
-            extends WithDataRangeAndDataPropertyAndCardinality<OntCE.DataMaxCardinality, OWLDataMaxCardinality>
+            extends WithDataRangeAndDataPropertyAndCardinality<OntClass.DataMaxCardinality, OWLDataMaxCardinality>
             implements OWLDataMaxCardinality {
 
         public DMAC(BlankNodeId n, Supplier<OntModel> m) {
@@ -791,8 +792,8 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        public OntCE.DataMaxCardinality asRDFNode() {
-            return as(OntCE.DataMaxCardinality.class);
+        public OntClass.DataMaxCardinality asRDFNode() {
+            return as(OntClass.DataMaxCardinality.class);
         }
 
         @Override
@@ -803,10 +804,10 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
 
     /**
      * @see com.github.owlcs.ontapi.owlapi.objects.ce.OWLObjectUnionOfImpl
-     * @see OntCE.UnionOf
+     * @see OntClass.UnionOf
      */
     public static class UF
-            extends WithClassMembers<OntCE.UnionOf, OWLObjectUnionOf>
+            extends WithClassMembers<OntClass.UnionOf, OWLObjectUnionOf>
             implements OWLObjectUnionOf {
 
         public UF(BlankNodeId n, Supplier<OntModel> m) {
@@ -814,8 +815,8 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        public OntCE.UnionOf asRDFNode() {
-            return as(OntCE.UnionOf.class);
+        public OntClass.UnionOf asRDFNode() {
+            return as(OntClass.UnionOf.class);
         }
 
         @Override
@@ -838,10 +839,10 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
 
     /**
      * @see com.github.owlcs.ontapi.owlapi.objects.ce.OWLObjectIntersectionOfImpl
-     * @see OntCE.IntersectionOf
+     * @see OntClass.IntersectionOf
      */
     public static class IF
-            extends WithClassMembers<OntCE.IntersectionOf, OWLObjectIntersectionOf>
+            extends WithClassMembers<OntClass.IntersectionOf, OWLObjectIntersectionOf>
             implements OWLObjectIntersectionOf {
 
         public IF(BlankNodeId n, Supplier<OntModel> m) {
@@ -849,8 +850,8 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        public OntCE.IntersectionOf asRDFNode() {
-            return as(OntCE.IntersectionOf.class);
+        public OntClass.IntersectionOf asRDFNode() {
+            return as(OntClass.IntersectionOf.class);
         }
 
         @Override
@@ -878,10 +879,10 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
 
     /**
      * @see com.github.owlcs.ontapi.owlapi.objects.ce.OWLObjectOneOfImpl
-     * @see OntCE.OneOf
+     * @see OntClass.OneOf
      */
     public static class OF
-            extends WithMembers<OntIndividual, OntCE.OneOf, OWLIndividual, OWLObjectOneOf>
+            extends WithMembers<OntIndividual, OntClass.OneOf, OWLIndividual, OWLObjectOneOf>
             implements OWLObjectOneOf {
 
         public OF(BlankNodeId n, Supplier<OntModel> m) {
@@ -907,8 +908,8 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        public OntCE.OneOf asRDFNode() {
-            return as(OntCE.OneOf.class);
+        public OntClass.OneOf asRDFNode() {
+            return as(OntClass.OneOf.class);
         }
 
         @Override
@@ -996,10 +997,10 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
 
     /**
      * @see com.github.owlcs.ontapi.owlapi.objects.ce.OWLObjectComplementOfImpl
-     * @see OntCE.ComplementOf
+     * @see OntClass.ComplementOf
      */
     public static class CF
-            extends Simple<OntCE.ComplementOf, OWLObjectComplementOf>
+            extends Simple<OntClass.ComplementOf, OWLObjectComplementOf>
             implements OWLObjectComplementOf {
 
         public CF(BlankNodeId n, Supplier<OntModel> m) {
@@ -1012,8 +1013,8 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        public OntCE.ComplementOf asRDFNode() {
-            return as(OntCE.ComplementOf.class);
+        public OntClass.ComplementOf asRDFNode() {
+            return as(OntClass.ComplementOf.class);
         }
 
         @Override
@@ -1035,13 +1036,13 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        protected Object[] collectContent(OntCE.ComplementOf ce, InternalObjectFactory factory) {
+        protected Object[] collectContent(OntClass.ComplementOf ce, InternalObjectFactory factory) {
             return new Object[]{toContentItem(ce.getValue(), factory)};
         }
 
         @Override
-        protected Object[] initContent(OntCE.ComplementOf ce, InternalObjectFactory factory) {
-            OntCE c = ce.getValue();
+        protected Object[] initContent(OntClass.ComplementOf ce, InternalObjectFactory factory) {
+            OntClass c = ce.getValue();
             return initContent(c.asNode(), factory.getClass(c));
         }
 
@@ -1051,9 +1052,9 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
     }
 
-    protected abstract static class WithClassMembers<ONT extends OntCE.ComponentsCE<OntCE>,
+    protected abstract static class WithClassMembers<ONT extends OntClass.ComponentsCE<OntClass>,
             OWL extends OWLAnonymousClassExpression>
-            extends WithMembers<OntCE, ONT, OWLClassExpression, OWL> {
+            extends WithMembers<OntClass, ONT, OWLClassExpression, OWL> {
 
         protected WithClassMembers(BlankNodeId n, Supplier<OntModel> m) {
             super(n, m);
@@ -1071,7 +1072,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        protected ONTObject<? extends OWLClassExpression> map(OntCE member, InternalObjectFactory factory) {
+        protected ONTObject<? extends OWLClassExpression> map(OntClass member, InternalObjectFactory factory) {
             return factory.getClass(member);
         }
     }
@@ -1080,12 +1081,12 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
      * Describes a class expression that is based on []-list.
      *
      * @param <ONT_M> subtype of {@link OntObject} - member of list
-     * @param <ONT_C> subtype of {@link OntCE.ComponentsCE} - the class expression
+     * @param <ONT_C> subtype of {@link OntClass.ComponentsCE} - the class expression
      * @param <OWL_M> subtype of {@link OWLObject} that matches {@link ONT_M}
      * @param <OWL_C> subtype of {@link OWLAnonymousClassExpression} that matches {@link ONT_C}
      */
     protected abstract static class WithMembers<ONT_M extends OntObject,
-            ONT_C extends OntCE.ComponentsCE<ONT_M>,
+            ONT_C extends OntClass.ComponentsCE<ONT_M>,
             OWL_M extends OWLObject,
             OWL_C extends OWLAnonymousClassExpression>
             extends ONTAnonymousClassExpressionImpl<ONT_C, OWL_C>
@@ -1186,10 +1187,10 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
     /**
      * Represents a data property restriction (class expression) with cardinality.
      *
-     * @param <ONT> - a subtype of {@link OntCE.CardinalityRestrictionCE}
+     * @param <ONT> - a subtype of {@link OntClass.CardinalityRestrictionCE}
      * @param <OWL> - a subtype of {@link OWLRestriction} that matches {@link ONT}
      */
-    protected abstract static class WithDataRangeAndDataPropertyAndCardinality<ONT extends OntCE.CardinalityRestrictionCE<OntDR, OntNDP>,
+    protected abstract static class WithDataRangeAndDataPropertyAndCardinality<ONT extends OntClass.CardinalityRestrictionCE<OntDataRange, OntDataProperty>,
             OWL extends OWLRestriction>
             extends WithDataRangeAndDataPropertyUnary<ONT, OWL> {
 
@@ -1216,8 +1217,8 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
 
         @Override
         protected Object[] initContent(ONT ce, InternalObjectFactory factory) {
-            OntNDP p = ce.getProperty();
-            OntDR v = ce.getValue();
+            OntDataProperty p = ce.getProperty();
+            OntDataRange v = ce.getValue();
             int c = ce.getCardinality();
             return initContent(p.asNode(), v.asNode(), factory.getProperty(p), c, factory.getDatatype(v));
         }
@@ -1226,10 +1227,10 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
     /**
      * Represents a n-ary universal or existential data property restriction.
      *
-     * @param <ONT> - a subtype of {@link OntCE.NaryRestrictionCE}
+     * @param <ONT> - a subtype of {@link OntClass.NaryRestrictionCE}
      * @param <OWL> - a subtype of {@link OWLRestriction} that matches {@link ONT}
      */
-    protected abstract static class WithDataRangeAndDataPropertyNary<ONT extends OntCE.NaryRestrictionCE<OntDR, OntNDP>,
+    protected abstract static class WithDataRangeAndDataPropertyNary<ONT extends OntClass.NaryRestrictionCE<OntDataRange, OntDataProperty>,
             OWL extends OWLRestriction>
             extends WithDataRangeAndDataProperty<ONT, OWL> {
 
@@ -1238,7 +1239,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        protected OntDR getValue(ONT ce) {
+        protected OntDataRange getValue(ONT ce) {
             return ce.getValue();
         }
     }
@@ -1246,10 +1247,10 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
     /**
      * Represents an unary data property restriction that has a reference to a data range.
      *
-     * @param <ONT> - a subtype of {@link OntCE.ComponentRestrictionCE}
+     * @param <ONT> - a subtype of {@link OntClass.ComponentRestrictionCE}
      * @param <OWL> - a subtype of {@link OWLRestriction} that matches {@link ONT}
      */
-    protected abstract static class WithDataRangeAndDataPropertyUnary<ONT extends OntCE.ComponentRestrictionCE<OntDR, OntNDP>,
+    protected abstract static class WithDataRangeAndDataPropertyUnary<ONT extends OntClass.ComponentRestrictionCE<OntDataRange, OntDataProperty>,
             OWL extends OWLRestriction>
             extends WithDataRangeAndDataProperty<ONT, OWL> {
 
@@ -1258,7 +1259,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         }
 
         @Override
-        protected OntDR getValue(ONT ce) {
+        protected OntDataRange getValue(ONT ce) {
             return ce.getValue();
         }
     }
@@ -1266,10 +1267,10 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
     /**
      * Represents a data property restriction that has a reference to a data range.
      *
-     * @param <ONT> - a subtype of {@link OntCE.RestrictionCE}
+     * @param <ONT> - a subtype of {@link OntClass.RestrictionCE}
      * @param <OWL> - a subtype of {@link OWLRestriction} that matches {@link ONT}
      */
-    protected abstract static class WithDataRangeAndDataProperty<ONT extends OntCE.RestrictionCE<OntNDP>,
+    protected abstract static class WithDataRangeAndDataProperty<ONT extends OntClass.RestrictionCE<OntDataProperty>,
             OWL extends OWLRestriction>
             extends WithDataProperty<ONT, OWL> {
 
@@ -1303,12 +1304,12 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             return new Object[]{toContentItem(ce.getProperty()), toContentItem(getValue(ce), factory)};
         }
 
-        protected abstract OntDR getValue(ONT ce);
+        protected abstract OntDataRange getValue(ONT ce);
 
         @Override
         protected Object[] initContent(ONT ce, InternalObjectFactory factory) {
-            OntNDP p = ce.getProperty();
-            OntDR v = getValue(ce);
+            OntDataProperty p = ce.getProperty();
+            OntDataRange v = getValue(ce);
             return initContent(p.asNode(), v.asNode(), factory.getProperty(p), factory.getDatatype(v));
         }
 
@@ -1326,10 +1327,10 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
      * Its signature also contains {@link OWLDatatype datatype} (explicitly or implicitly).
      * It cannot contain nested class expressions.
      *
-     * @param <ONT> - a subtype of {@link OntCE.RestrictionCE}
+     * @param <ONT> - a subtype of {@link OntClass.RestrictionCE}
      * @param <OWL> - a subtype of {@link OWLRestriction} that matches {@link ONT}
      */
-    protected abstract static class WithDataProperty<ONT extends OntCE.RestrictionCE<OntNDP>,
+    protected abstract static class WithDataProperty<ONT extends OntClass.RestrictionCE<OntDataProperty>,
             OWL extends OWLRestriction>
             extends Restriction<ONT, OWL> {
 
@@ -1363,7 +1364,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
 
         @Override
         protected Object[] initContent(ONT ce, InternalObjectFactory factory) {
-            OntNDP p = ce.getProperty();
+            OntDataProperty p = ce.getProperty();
             return initContent(p.asNode(), factory.getProperty(p));
         }
 
@@ -1396,10 +1397,10 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
     /**
      * Represents an object class expression with cardinality.
      *
-     * @param <ONT> - a subtype of {@link OntCE.CardinalityRestrictionCE}
+     * @param <ONT> - a subtype of {@link OntClass.CardinalityRestrictionCE}
      * @param <OWL> - a subtype of {@link OWLRestriction} that matches {@link ONT}
      */
-    protected abstract static class WithClassAndObjectPropertyAndCardinality<ONT extends OntCE.CardinalityRestrictionCE<OntCE, OntOPE>,
+    protected abstract static class WithClassAndObjectPropertyAndCardinality<ONT extends OntClass.CardinalityRestrictionCE<OntClass, OntObjectProperty>,
             OWL extends OWLRestriction>
             extends WithClassAndObjectProperty<ONT, OWL> {
         protected WithClassAndObjectPropertyAndCardinality(BlankNodeId n, Supplier<OntModel> m) {
@@ -1420,8 +1421,8 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
 
         @Override
         protected Object[] initContent(ONT ce, InternalObjectFactory factory) {
-            OntOPE p = ce.getProperty();
-            OntCE v = ce.getValue();
+            OntObjectProperty p = ce.getProperty();
+            OntClass v = ce.getValue();
             int c = ce.getCardinality();
             return initContent(p.asNode(), v.asNode(), factory.getProperty(p), c, factory.getClass(v));
         }
@@ -1430,10 +1431,11 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
     /**
      * Represents an object class expression,
      * that has reference to another class expression and object property expression.
-     * @param <ONT> - a subtype of {@link OntCE.ComponentRestrictionCE}
+     *
+     * @param <ONT> - a subtype of {@link OntClass.ComponentRestrictionCE}
      * @param <OWL> - a subtype of {@link OWLRestriction} that matches {@link ONT}
      */
-    protected abstract static class WithClassAndObjectProperty<ONT extends OntCE.ComponentRestrictionCE<OntCE, OntOPE>,
+    protected abstract static class WithClassAndObjectProperty<ONT extends OntClass.ComponentRestrictionCE<OntClass, OntObjectProperty>,
             OWL extends OWLRestriction>
             extends WithObjectProperty<ONT, OWL> {
 
@@ -1469,8 +1471,8 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
 
         @Override
         protected Object[] initContent(ONT ce, InternalObjectFactory factory) {
-            OntOPE p = ce.getProperty();
-            OntCE v = ce.getValue();
+            OntObjectProperty p = ce.getProperty();
+            OntClass v = ce.getValue();
             return initContent(p.asNode(), v.asNode(), factory.getProperty(p), factory.getClass(v));
         }
 
@@ -1484,10 +1486,11 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
 
     /**
      * Represents a class expression with a reference to an object property expression.
-     * @param <ONT> - a subtype of {@link OntCE.RestrictionCE}
+     *
+     * @param <ONT> - a subtype of {@link OntClass.RestrictionCE}
      * @param <OWL> - a subtype of {@link OWLRestriction} that matches {@link ONT}
      */
-    protected abstract static class WithObjectProperty<ONT extends OntCE.RestrictionCE<OntOPE>,
+    protected abstract static class WithObjectProperty<ONT extends OntClass.RestrictionCE<OntObjectProperty>,
             OWL extends OWLRestriction>
             extends Restriction<ONT, OWL> {
 
@@ -1521,7 +1524,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
 
         @Override
         protected Object[] initContent(ONT ce, InternalObjectFactory factory) {
-            OntOPE p = ce.getProperty();
+            OntObjectProperty p = ce.getProperty();
             return initContent(p.asNode(), factory.getProperty(p));
         }
     }
@@ -1530,10 +1533,10 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
      * A base for all {@code owl:Restriction} class expressions.
      * Contains helpers to calculate hashcode and to collect content cache.
      *
-     * @param <ONT> - subtype of {@link OntCE}
+     * @param <ONT> - subtype of {@link OntClass}
      * @param <OWL> - subtype of {@link OWLAnonymousClassExpression}
      */
-    protected abstract static class Restriction<ONT extends OntCE, OWL extends OWLAnonymousClassExpression>
+    protected abstract static class Restriction<ONT extends OntClass, OWL extends OWLAnonymousClassExpression>
             extends Simple<ONT, OWL> {
 
         protected Restriction(BlankNodeId n, Supplier<OntModel> m) {
@@ -1565,10 +1568,10 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
     /**
      * A base for all {@code owl:Restriction} class expressions and for {@code ObjectComplementOf} expression.
      *
-     * @param <ONT> - subtype of {@link OntCE}
+     * @param <ONT> - subtype of {@link OntClass}
      * @param <OWL> - subtype of {@link OWLAnonymousClassExpression}
      */
-    protected abstract static class Simple<ONT extends OntCE, OWL extends OWLAnonymousClassExpression>
+    protected abstract static class Simple<ONT extends OntClass, OWL extends OWLAnonymousClassExpression>
             extends ONTAnonymousClassExpressionImpl<ONT, OWL> {
 
         protected Simple(BlankNodeId n, Supplier<OntModel> m) {

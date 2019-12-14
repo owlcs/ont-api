@@ -140,21 +140,21 @@ public class CommonManagerTest {
         OntModel o1 = origin.getGraphModel(uri);
         OntModel o2 = copy.getGraphModel(uri);
 
-        List<OntClass> classes1 = o1.classes().collect(Collectors.toList());
+        List<OntClass.Named> classes1 = o1.classes().collect(Collectors.toList());
         // create two new classes inside original manager (in two models).
         o1.createOntClass("http://some/new#Class1");
         origin.getGraphModel("urn:iri.com#3").createOntClass("http://some/new#Class2");
-        List<OntClass> classes2 = o2.classes().collect(Collectors.toList());
+        List<OntClass.Named> classes2 = o2.classes().collect(Collectors.toList());
         // check that in the second (copied) manager there is no changes:
         Assert.assertEquals("incorrect classes", classes1, classes2);
 
         // create two new classes inside copied manager.
-        Set<OntClass> classes3 = o2.classes().collect(Collectors.toSet());
-        OntClass cl3 = o2.createOntClass("http://some/new#Class3");
-        OntClass cl4 = copy.getGraphModel("urn:iri.com#3").createOntClass("http://some/new#Class4");
-        List<OntClass> newClasses = Arrays.asList(cl3, cl4);
+        Set<OntClass.Named> classes3 = o2.classes().collect(Collectors.toSet());
+        OntClass.Named cl3 = o2.createOntClass("http://some/new#Class3");
+        OntClass.Named cl4 = copy.getGraphModel("urn:iri.com#3").createOntClass("http://some/new#Class4");
+        List<OntClass.Named> newClasses = Arrays.asList(cl3, cl4);
         classes3.addAll(newClasses);
-        Set<OntClass> classes4 = o2.classes().collect(Collectors.toSet());
+        Set<OntClass.Named> classes4 = o2.classes().collect(Collectors.toSet());
         Assert.assertEquals("incorrect classes", classes3, classes4);
         newClasses.forEach(c -> Assert.assertFalse("Found " + c + " inside original ontology", o1.containsResource(c)));
         Ontology ont = copy.getOntology(IRI.create(uri));

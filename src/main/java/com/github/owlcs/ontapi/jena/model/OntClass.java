@@ -14,290 +14,931 @@
 
 package com.github.owlcs.ontapi.jena.model;
 
+import com.github.owlcs.ontapi.jena.OntJenaException;
+import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import com.github.owlcs.ontapi.jena.vocabulary.RDF;
+import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.RDFList;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
-import com.github.owlcs.ontapi.jena.OntJenaException;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import org.apache.jena.vocabulary.RDFS;
 
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * An OWL Class Entity (i.e. named class expression).
- * This is an analogue of {@link org.apache.jena.ontology.OntClass}, but for OWL2.
+ * A base abstraction for any Class Expressions (both named and anonymous).
  * <p>
  * Created by szuev on 01.11.2016.
+ *
+ * @see Named - an OWL Class
+ * @see <a href='https://www.w3.org/TR/owl2-quick-reference/#Class_Expressions'>2.1 Class Expressions</a>
+ * @see <a href='https://www.w3.org/TR/owl2-syntax/#Class_Expressions'>8 Class Expressions</a>
  */
-public interface OntClass extends OntEntity, OntCE {
+public interface OntClass extends OntObject {
 
     /**
-     * Lists all {@code DisjointUnion} {@link OntList ontology list}s that are attached to this OWL Class
-     * on predicate {@link OWL#disjointUnionOf owl:disjointUnionOf}.
+     * Answers a {@code Stream} over the class-expressions
+     * for which this class expression is declared to be sub-class.
+     * The return {@code Stream} is distinct and this instance is not included into it.
+     * <p>
+     * The flag {@code direct} allows some selectivity over the classes that appear in the {@code Stream}.
+     * If it is {@code true} only direct sub-classes are returned,
+     * and the method is equivalent to the method {@link #superClasses()}
+     * with except of some boundary cases (e.g. {@code <A> rdfs:subClassOf <A>}).
+     * If it is {@code false}, the method returns all super classes recursively.
+     * Consider the following scenario:
+     * <pre>{@code
+     *   :A rdfs:subClassOf :B .
+     *   :B rdfs:subClassOf :C .
+     * }</pre>
+     * If the flag {@code direct} is {@code true},
+     * the listing super classes for the class {@code A} will return only {@code B}.
+     * And otherwise, if the flag {@code direct} is {@code false}, it will return {@code B} and also {@code C}.
      *
-     * @return {@code Stream} of {@link OntList}s with parameter-type {@code OntCE}
+     * @param direct boolean: if {@code true}, only answers the directly adjacent classes in the super-class relation,
+     *               otherwise answers all super-classes found in the {@code Graph} recursively
+     * @return <b>distinct</b> {@code Stream} of super {@link OntClass class expression}s
+     * @see #superClasses()
+     * @see #subClasses(boolean)
      * @since 1.4.0
      */
-    Stream<OntList<OntCE>> disjointUnions();
+    Stream<OntClass> superClasses(boolean direct);
 
     /**
-     * Creates a {@code DisjointUnion} as {@link OntList ontology []-list} of {@link OntCE Class Expression}s
-     * that is attached to this OWL Class using the predicate {@link OWL#disjointUnionOf owl:disjointUnionOf}.
+     * Answer a {@code Stream} over all of the class expressions
+     * that are declared to be sub-classes of this class expression.
+     * The return {@code Stream} is distinct and this instance is not included into it.
+     * The flag {@code direct} allows some selectivity over the classes that appear in the {@code Stream}.
+     * Consider the following scenario:
+     * <pre>{@code
+     *   :B rdfs:subClassOf :A .
+     *   :C rdfs:subClassOf :B .
+     * }</pre>
+     * If the flag {@code direct} is {@code true},
+     * the listing sub classes for the class {@code A} will return only {@code B}.
+     * And otherwise, if the flag {@code direct} is {@code false}, it will return {@code B} and also {@code C}.
+     *
+     * @param direct boolean: if {@code true}, only answers the directly adjacent classes in the sub-class relation,
+     *               otherwise answers all sub-classes found in the {@code Graph} recursively
+     * @return <b>distinct</b> {@code Stream} of sub {@link OntClass class expression}s
+     * @see #superClasses(boolean)
+     * @since 1.4.0
+     */
+    Stream<OntClass> subClasses(boolean direct);
+
+    /**
+     * Lists all {@code HasKey} {@link OntList ontology []-list}s
+     * that are attached to this class expression on predicate {@link OWL#hasKey owl:hasKey}.
+     *
+     * @return {@code Stream} of {@link OntList}s with parameter-type {@code OntDOP}
+     * @since 1.4.0
+     */
+    Stream<OntList<OntRealProperty>> hasKeys();
+
+    /**
+     * Creates an anonymous individual which is of this class-expression type.
+     *
+     * @return {@link OntIndividual.Anonymous}
+     * @see OntIndividual#attachClass(OntClass)
+     * @see #individuals()
+     */
+    OntIndividual.Anonymous createIndividual();
+
+    /**
+     * Creates a named individual which is of this class type.
+     *
+     * @param uri, String, not {@code null}
+     * @return {@link OntIndividual.Named}
+     * @see OntIndividual#attachClass(OntClass)
+     * @see #individuals()
+     */
+    OntIndividual.Named createIndividual(String uri);
+
+    /**
+     * Creates a {@code HasKey} logical construction as {@link OntList ontology []-list}
+     * of {@link OntRealProperty Object or Data Property Expression}s
+     * that is attached to this Class Expression using the predicate {@link OWL#hasKey owl:hasKey}.
      * The resulting rdf-list will consist of all the elements of the specified collection
      * in the same order but with exclusion of duplicates.
      * Note: {@code null}s in collection will cause {@link OntJenaException.IllegalArgument exception}.
-     * For additional information about {@code DisjointUnion} logical construction see
-     * <a href='https://www.w3.org/TR/owl2-syntax/#Disjoint_Union_of_Class_Expressions'>9.1.4 Disjoint Union of Class Expressions</a>.
+     * For additional information about {@code HasKey} logical construction see
+     * <a href='https://www.w3.org/TR/owl2-syntax/#Keys'>9.5 Keys</a> specification.
      *
-     * @param classes {@link Collection} (preferably {@link Set}) of {@link OntCE class expression}s
-     * @return {@link OntList} of {@link OntCE}s
-     * @since 1.3.0
-     * @see #addDisjointUnionOfStatement(OntCE...)
-     * @see #removeDisjointUnion(Resource)
-     */
-    OntList<OntCE> createDisjointUnion(Collection<OntCE> classes);
-
-    /**
-     * Finds a {@code DisjointUnion} logical construction
-     * attached to this class by the specified rdf-node in the form of {@link OntList}.
-     *
-     * @param list {@link RDFNode}
-     * @return Optional around {@link OntList} of {@link OntCE class expression}s
+     * @param objectProperties {@link Collection} (preferably {@link Set})of {@link OntObjectProperty object property expression}s
+     * @param dataProperties   {@link Collection} (preferably {@link Set})of {@link OntDataProperty data property expression}s
+     * @return {@link OntList} of {@link OntRealProperty}s
+     * @see #addHasKey(Collection, Collection)
      * @since 1.3.0
      */
-    default Optional<OntList<OntCE>> findDisjointUnion(RDFNode list) {
-        try (Stream<OntList<OntCE>> res = disjointUnions().filter(r -> Objects.equals(r, list))) {
-            return res.findFirst();
-        }
-    }
+    OntList<OntRealProperty> createHasKey(Collection<OntObjectProperty> objectProperties, Collection<OntDataProperty> dataProperties);
 
     /**
-     * Creates a {@code DisjointUnion} {@link OntList ontology list}
-     * and returns the statement {@code CN owl:disjointUnionOf ( C1 ... Cn )} to allow the addition of annotations.
+     * Creates a {@code HasKey} logical construction as {@link OntList ontology list}
+     * and returns the statement {@code C owl:hasKey ( P1 ... Pm R1 ... Rn )}
+     * to allow the subsequent addition of annotations.
      * About RDF Graph annotation specification see, for example,
      * <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Translation_of_Annotations'>2.3.1 Axioms that Generate a Main Triple</a>.
      *
-     * @param classes Array of {@link OntCE class expressions} without {@code null}s,
-     *                duplicates will be discarded and order will be saved
-     * @return {@link OntStatement} to allow the subsequent annotations addition
-     * @see #createDisjointUnion(Collection)
-     *
-     * @see #createDisjointUnion(Collection)
-     * @see #addDisjointUnion(OntCE...)
-     * @see #addDisjointUnionOfStatement(OntCE...)
-     * @see #removeDisjointUnion(Resource)
+     * @param properties Array of {@link OntRealProperty}s without {@code null}s
+     * @return {@link OntStatement} with a possibility to annotate
+     * @see #addHasKeyStatement(Collection, Collection)
+     * @see #addHasKey(OntRealProperty...)
+     * @see #removeHasKey(Resource)
+     * @see #clearHasKeys()
      * @since 1.4.0
      */
-    default OntStatement addDisjointUnionOfStatement(OntCE... classes) {
-        return addDisjointUnionOfStatement(Arrays.stream(classes).collect(Collectors.toCollection(LinkedHashSet::new)));
+    OntStatement addHasKeyStatement(OntRealProperty... properties);
+
+    /**
+     * Deletes the given {@code HasKey} list including its annotations.
+     *
+     * @param list {@link Resource} can be {@link OntList} or {@link RDFList}
+     * @return <b>this</b> instance to allow cascading calls
+     * @throws OntJenaException if the list is not found
+     * @since 1.3.0
+     */
+    OntClass removeHasKey(Resource list);
+
+    /**
+     * Lists all individuals,
+     * i.e. subjects from class-assertion statements {@code a rdf:type C}, where {@code C} is this class expression.
+     *
+     * @return {@code Stream} of {@link OntIndividual}s
+     */
+    default Stream<OntIndividual> individuals() {
+        return getModel().statements(null, RDF.type, this).map(s -> s.getSubject(OntIndividual.class));
     }
 
     /**
-     * Creates a disjoint-union section returning its root statement to allow adding annotations.
-     * The triple pattern: {@code CN owl:disjointUnionOf ( C1 ... Cn )}.
+     * Lists all properties attached to this class in a {@code rdfs:domain} statement.
+     * The property is considered as attached if
+     * the property and the class expression are both included in the property domain axiom statement:
+     * <ul>
+     * <li>{@code R rdfs:domain C} - {@code R} is a data property, {@code C} - this class expression</li>
+     * <li>{@code P rdfs:domain C} - {@code P} is an object property expression, {@code C} - this class expression</li>
+     * <li>{@code A rdfs:domain U} - {@code A} is annotation property, {@code U} is IRI (this class expression)</li>
+     * </ul>
      *
-     * @param classes a collection of {@link OntCE class expression}s without {@code null}s
+     * @return {@code Stream} of {@link OntProperty}s
+     * @see OntProperty#domains()
+     */
+    default Stream<OntProperty> properties() {
+        return getModel().statements(null, RDFS.domain, this)
+                .map(s -> s.getSubject().getAs(OntProperty.class))
+                .filter(Objects::nonNull);
+    }
+
+    /**
+     * Lists all super classes for this class expression.
+     * The search pattern is {@code C rdfs:subClassOf Ci},
+     * where {@code C} is this instance, and {@code Ci} is one of the returned.
+     *
+     * @return {@code Stream} of {@link OntClass}s
+     * @see #superClasses(boolean)
+     * @since 1.4.0
+     */
+    default Stream<OntClass> superClasses() {
+        return objects(RDFS.subClassOf, OntClass.class);
+    }
+
+    /**
+     * Returns all disjoint classes.
+     * The statement patter to search for is {@code C1 owl:disjointWith C2}.
+     *
+     * @return {@code Stream} of {@link OntClass}s
+     * @see OntDisjoint.Classes
+     */
+    default Stream<OntClass> disjointClasses() {
+        return objects(OWL.disjointWith, OntClass.class);
+    }
+
+    /**
+     * Lists all equivalent classes.
+     * The statement patter to search for is {@code C1 owl:equivalentClass C2}.
+     *
+     * @return {@code Stream} of {@link OntClass}s
+     * @see OntDataRange.Named#equivalentClasses()
+     * @since 1.4.0
+     */
+    default Stream<OntClass> equivalentClasses() {
+        return objects(OWL.equivalentClass, OntClass.class);
+    }
+
+    /**
+     * Adds the given class as a super class
+     * and returns the corresponding statement to provide the ability to add annotations.
+     *
+     * @param other {@link OntClass}, not {@code null}
      * @return {@link OntStatement} to allow the subsequent annotations addition
-     * @see #createDisjointUnion(Collection)
+     * @see #addSuperClass(OntClass)
+     * @see #removeSuperClass(Resource)
+     * @since 1.4.0
+     */
+    default OntStatement addSubClassOfStatement(OntClass other) {
+        return addStatement(RDFS.subClassOf, other);
+    }
+
+    /**
+     * Adds the given class as a disjoint class
+     * and returns the corresponding statement to provide the ability to add annotations.
+     *
+     * @param other {@link OntClass}, not {@code null}
+     * @return {@link OntStatement} to allow the subsequent annotations addition
+     * @see #addDisjointClass(OntClass)
+     * @see #removeDisjointClass(Resource)
+     * @see OntDisjoint.Classes
+     */
+    default OntStatement addDisjointWithStatement(OntClass other) {
+        return addStatement(OWL.disjointWith, other);
+    }
+
+    /**
+     * Adds the given class as a equivalent class
+     * and returns the corresponding statement to provide the ability to add annotations.
+     *
+     * @param other {@link OntClass}, not {@code null}
+     * @return {@link OntStatement} to allow the subsequent annotations addition
+     * @see #addEquivalentClass(OntClass)
+     * @see #removeEquivalentClass(Resource)
+     * @see OntDataRange.Named#addEquivalentClassStatement(OntDataRange)
+     * @since 1.4.0
+     */
+    default OntStatement addEquivalentClassStatement(OntClass other) {
+        return addStatement(OWL.equivalentClass, other);
+    }
+
+    /**
+     * Creates an {@code owl:hasKey} statement returning root statement to allow the subsequent annotations adding.
+     *
+     * @param objectProperties the collection of {@link OntObjectProperty}s, not {@code null} and cannot contain {@code null}s
+     * @param dataProperties   the collection of {@link OntDataProperty}s, not {@code null} and cannot contain {@code null}s
+     * @return {@link OntStatement} to allow the subsequent annotations addition
+     * @see #addHasKeyStatement(OntRealProperty...)
+     * @see #addHasKey(OntRealProperty...)
      * @see <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Translation_of_Annotations'>2.3.1 Axioms that Generate a Main Triple</a>
-     * @see #createDisjointUnion(Collection)
-     * @see #addDisjointUnion(Collection)
-     * @see #addDisjointUnionOfStatement(Collection)
-     * @see #removeDisjointUnion(Resource)
      * @since 1.4.0
      */
-    default OntStatement addDisjointUnionOfStatement(Collection<OntCE> classes) {
-        return createDisjointUnion(classes).getRoot();
+    default OntStatement addHasKeyStatement(Collection<OntObjectProperty> objectProperties, Collection<OntDataProperty> dataProperties) {
+        return createHasKey(objectProperties, dataProperties).getRoot();
     }
 
     /**
-     * {@inheritDoc}
+     * Adds the given class as a super class
+     * and returns this class expression instance to allow cascading calls.
+     *
+     * @param other {@link OntClass}, not {@code null}
+     * @return <b>this</b> instance to allow cascading calls
+     * @see #addSubClassOfStatement(OntClass)
+     * @see #removeSuperClass(Resource)
+     * @since 1.4.0
      */
-    @Override
-    default OntClass addSuperClass(OntCE other) {
+    default OntClass addSuperClass(OntClass other) {
         addSubClassOfStatement(other);
         return this;
     }
 
     /**
-     * {@inheritDoc}
+     * Adds the given class as a disjoint class
+     * and returns this class expression instance to allow cascading calls.
+     *
+     * @param other {@link OntClass}, not {@code null}
+     * @return <b>this</b> instance to allow cascading calls
+     * @see #addDisjointWithStatement(OntClass)
+     * @see #removeDisjointClass(Resource)
+     * @since 1.4.0
      */
-    @Override
-    default OntClass addDisjointClass(OntCE other) {
+    default OntClass addDisjointClass(OntClass other) {
         addDisjointWithStatement(other);
         return this;
     }
 
     /**
-     * {@inheritDoc}
+     * Adds a new equivalent class.
+     *
+     * @param other {@link OntClass}, not {@code null}
+     * @return <b>this</b> instance to allow cascading calls
+     * @see #addEquivalentClassStatement(OntClass)
+     * @see #removeDisjointClass(Resource)
      */
-    @Override
-    default OntClass addEquivalentClass(OntCE other) {
+    default OntClass addEquivalentClass(OntClass other) {
         addEquivalentClassStatement(other);
         return this;
     }
 
     /**
-     * {@inheritDoc}
+     * Creates an {@code owl:hasKey} statement returning this class to allow cascading calls.
+     *
+     * @param objectProperties the collection of {@link OntObjectProperty}s
+     * @param dataProperties   the collection of {@link OntDataProperty}s
+     * @return <b>this</b> instance to allow cascading calls
+     * @see #addHasKeyStatement(Collection, Collection)
+     * @see #addHasKey(OntRealProperty...)
      */
-    @Override
-    default OntClass addHasKey(Collection<OntOPE> objectProperties, Collection<OntNDP> dataProperties) {
+    default OntClass addHasKey(Collection<OntObjectProperty> objectProperties, Collection<OntDataProperty> dataProperties) {
         addHasKeyStatement(objectProperties, dataProperties);
         return this;
     }
 
     /**
-     * {@inheritDoc}
+     * Creates an {@code owl:hasKey} statement returning this class to allow cascading calls.
+     *
+     * @param properties Array of {@link OntRealProperty}s without {@code null}s
+     * @return <b>this</b> instance to allow cascading calls
+     * @see #addHasKeyStatement(OntRealProperty...)
+     * @see #addHasKey(Collection, Collection)
+     * @see #removeHasKey(Resource)
+     * @see #clearHasKeys()
+     * @since 1.3.0
      */
-    @Override
-    default OntClass addHasKey(OntDOP... properties) {
+    default OntClass addHasKey(OntRealProperty... properties) {
         addHasKeyStatement(properties);
         return this;
     }
 
     /**
-     * @param classes a collection of {@link OntCE class expression}s without {@code null}s
-     * @return <b>this</b> instance to allow cascading calls
-     * @since 1.4.0
-     */
-    default OntClass addDisjointUnion(Collection<OntCE> classes) {
-        addDisjointUnionOfStatement(classes);
-        return this;
-    }
-
-    /**
-     * @param classes Array of {@link OntCE class expressions} without {@code null}s,
-     *                duplicates will be discarded and order will be saved
-     * @return <b>this</b> instance to allow cascading calls
-     * @since 1.4.0
-     */
-    default OntClass addDisjointUnion(OntCE... classes) {
-        addDisjointUnionOfStatement(classes);
-        return this;
-    }
-
-    /**
-     * Deletes the given {@code DisjointUnion} list including its annotations.
+     * Removes a super-class relationship for the given resource including all possible annotations.
+     * No-op in case no match found.
+     * Removes all {@link RDFS#subClassOf rdfs:subClassOf} statements with all their annotations
+     * in case {@code null} is specified.
      *
-     * @param list {@link Resource} can be {@link OntList} or {@link RDFList}
+     * @param other {@link Resource} or {@code null} to remove all {@code rdfs:subClassOf} statements
      * @return <b>this</b> instance to allow cascading calls
-     * @throws OntJenaException if the list is not found
-     * @see #addDisjointUnion(Collection)
-     * @see #createDisjointUnion(Collection)
-     * @see #addDisjointUnionOfStatement(OntCE...)
-     * @see #createDisjointUnion(Collection)
-     * @since 1.3.0
-     */
-    OntClass removeDisjointUnion(Resource list);
-
-    /**
-     * {@inheritDoc}
+     * @see #addSubClassOfStatement(OntClass)
+     * @see #addSuperClass(OntClass)
+     * @since 1.4.0
      */
     default OntClass removeSuperClass(Resource other) {
-        OntCE.super.removeSuperClass(other);
+        remove(RDFS.subClassOf, other);
         return this;
     }
 
     /**
-     * {@inheritDoc}
+     * Removes the specified disjoint class resource.
+     * No-op in case no match found.
+     * Removes all {@link OWL#disjointWith owl:disjointWith} statements with all their annotations
+     * in case {@code null} is specified.
+     *
+     * @param other {@link Resource}, or {@code null} to remove all disjoint classes
+     * @return <b>this</b> instance to allow cascading calls
+     * @see #addDisjointWithStatement(OntClass)
+     * @see #addDisjointClass(OntClass)
+     * @see OntDisjoint.Classes
+     * @since 1.4.0
      */
     default OntClass removeDisjointClass(Resource other) {
-        OntCE.super.removeDisjointClass(other);
+        remove(OWL.disjointWith, other);
         return this;
     }
 
     /**
-     * {@inheritDoc}
+     * Removes the given equivalent class resource including the statement's annotations.
+     * No-op in case no match found.
+     * Removes all {@link OWL#equivalentClass owl:equivalentClass} statements with all their annotations
+     * in case {@code null} is specified.
+     *
+     * @param other {@link Resource}, or {@code null} to remove all equivalent classes
+     * @return <b>this</b> instance to allow cascading calls
+     * @see #addEquivalentClassStatement(OntClass)
+     * @see #addEquivalentClass(OntClass)
+     * @see OntDataRange.Named#removeEquivalentClass(Resource)
      */
     default OntClass removeEquivalentClass(Resource other) {
-        OntCE.super.removeEquivalentClass(other);
+        remove(OWL.equivalentClass, other);
         return this;
     }
 
     /**
-     * {@inheritDoc}
-     */
-    default OntClass clearHasKeys() {
-        OntCE.super.clearHasKeys();
-        return this;
-    }
-
-    /**
-     * Deletes all {@code DisjointUnion} []-lists including their annotations,
-     * i.e. all those statements with the predicate {@link OWL#disjointUnionOf owl:disjointUnionOf}
-     * for which this resource is a subject.
+     * Deletes all {@code HasKey} []-list including its annotations,
+     * i.e. all those statements with the predicate {@link OWL#hasKey owl:hasKey} for which this resource is a subject.
      *
      * @return <b>this</b> instance to allow cascading calls
-     * @see #removeDisjointUnion(Resource)
+     * @throws OntJenaException if the list is not found
      * @since 1.3.0
      */
-    default OntClass clearDisjointUnions() {
-        disjointUnions().collect(Collectors.toSet()).forEach(this::removeDisjointUnion);
+    default OntClass clearHasKeys() {
+        hasKeys().collect(Collectors.toList()).forEach(this::removeHasKey);
         return this;
     }
 
     /**
-     * Returns all class expressions from the right part of the statement with this class as a subject
-     * and {@link OWL#disjointUnionOf owl:disjointUnionOf} as a predicate
-     * (the triple pattern: {@code CN owl:disjointUnionOf ( C1 ... Cn )}).
+     * Finds a {@code HasKey} logical construction
+     * attached to this class expression by the specified rdf-node in the form of {@link OntList}.
+     *
+     * @param list {@link RDFNode}
+     * @return {@code Optional} around {@link OntList} of {@link OntRealProperty data and object property expression}s
+     * @since 1.3.0
+     */
+    default Optional<OntList<OntRealProperty>> findHasKey(RDFNode list) {
+        try (Stream<OntList<OntRealProperty>> res = hasKeys().filter(r -> Objects.equals(r, list))) {
+            return res.findFirst();
+        }
+    }
+
+    /**
+     * Lists all key properties.
+     * I.e. returns all object- and datatype- properties which belong to
+     * the {@code C owl:hasKey ( P1 ... Pm R1 ... Rn )} statements,
+     * where {@code C} is this class expression,
+     * {@code Pi} is a property expression, and {@code Ri} is a data(-type) property.
      * If there are several []-lists in the model that satisfy these conditions,
      * all their content will be merged into the one distinct stream.
      *
-     * @return <b>distinct</b> stream of {@link OntCE class expressions}s
-     * @see #disjointUnions()
+     * @return <b>distinct</b> {@code Stream} of {@link OntObjectProperty object} and {@link OntDataProperty data} properties
+     * @see #hasKeys()
      * @since 1.4.0
      */
-    default Stream<OntCE> fromDisjointUnionOf() {
-        return disjointUnions().flatMap(OntList::members).distinct();
+    default Stream<OntRealProperty> fromHasKey() {
+        return hasKeys().flatMap(OntList::members).distinct();
+    }
+
+    /*
+     * ============================
+     * All known Class Expressions:
+     * ============================
+     */
+
+    /**
+     * @see OntModel#createObjectSomeValuesFrom(OntObjectProperty, OntClass)
+     */
+    interface ObjectSomeValuesFrom extends ComponentRestrictionCE<OntClass, OntObjectProperty>,
+            SetValue<OntClass, ObjectSomeValuesFrom>, SetProperty<OntObjectProperty, ObjectSomeValuesFrom> {
     }
 
     /**
-     * {@inheritDoc}
+     * @see OntModel#createDataSomeValuesFrom(OntDataProperty, OntDataRange)
      */
-    @Override
-    default OntClass addComment(String txt) {
-        return addComment(txt, null);
+    interface DataSomeValuesFrom extends ComponentRestrictionCE<OntDataRange, OntDataProperty>,
+            SetValue<OntDataRange, DataSomeValuesFrom>, SetProperty<OntDataProperty, DataSomeValuesFrom> {
     }
 
     /**
-     * {@inheritDoc}
+     * @see OntModel#createObjectAllValuesFrom(OntObjectProperty, OntClass)
      */
-    @Override
-    default OntClass addComment(String txt, String lang) {
-        return annotate(getModel().getRDFSComment(), txt, lang);
+    interface ObjectAllValuesFrom extends ComponentRestrictionCE<OntClass, OntObjectProperty>,
+            SetValue<OntClass, ObjectAllValuesFrom>, SetProperty<OntObjectProperty, ObjectAllValuesFrom> {
     }
 
     /**
-     * {@inheritDoc}
+     * @see OntModel#createDataAllValuesFrom(OntDataProperty, OntDataRange)
      */
-    @Override
-    default OntClass addLabel(String txt) {
-        return addLabel(txt, null);
+    interface DataAllValuesFrom extends ComponentRestrictionCE<OntDataRange, OntDataProperty>,
+            SetValue<OntDataRange, DataAllValuesFrom>, SetProperty<OntDataProperty, DataAllValuesFrom> {
     }
 
     /**
-     * {@inheritDoc}
+     * @see OntModel#createObjectHasValue(OntObjectProperty, OntIndividual)
      */
-    @Override
-    default OntClass addLabel(String txt, String lang) {
-        return annotate(getModel().getRDFSLabel(), txt, lang);
+    interface ObjectHasValue extends ComponentRestrictionCE<OntIndividual, OntObjectProperty>,
+            SetValue<OntIndividual, ObjectHasValue>, SetProperty<OntObjectProperty, ObjectHasValue> {
     }
 
     /**
-     * {@inheritDoc}
+     * @see OntModel#createDataHasValue(OntDataProperty, Literal)
      */
-    @Override
-    default OntClass annotate(OntNAP predicate, String txt, String lang) {
-        return annotate(predicate, getModel().createLiteral(txt, lang));
+    interface DataHasValue extends ComponentRestrictionCE<Literal, OntDataProperty>,
+            SetValue<Literal, DataHasValue>, SetProperty<OntDataProperty, DataHasValue> {
     }
 
     /**
-     * {@inheritDoc}
+     * @see OntModel#createObjectMinCardinality(OntObjectProperty, int, OntClass)
      */
-    @Override
-    default OntClass annotate(OntNAP predicate, RDFNode value) {
-        addAnnotation(predicate, value);
-        return this;
+    interface ObjectMinCardinality extends CardinalityRestrictionCE<OntClass, OntObjectProperty>,
+            SetValue<OntClass, ObjectMinCardinality>,
+            SetProperty<OntObjectProperty, ObjectMinCardinality>,
+            SetCardinality<ObjectMinCardinality> {
+    }
+
+    /**
+     * @see OntModel#createDataMinCardinality(OntDataProperty, int, OntDataRange)
+     */
+    interface DataMinCardinality extends CardinalityRestrictionCE<OntDataRange, OntDataProperty>,
+            SetValue<OntDataRange, DataMinCardinality>,
+            SetProperty<OntDataProperty, DataMinCardinality>,
+            SetCardinality<DataMinCardinality> {
+    }
+
+    /**
+     * @see OntModel#createDataMaxCardinality(OntDataProperty, int, OntDataRange)
+     */
+    interface ObjectMaxCardinality extends CardinalityRestrictionCE<OntClass, OntObjectProperty>,
+            SetValue<OntClass, ObjectMaxCardinality>,
+            SetProperty<OntObjectProperty, ObjectMaxCardinality>,
+            SetCardinality<ObjectMaxCardinality> {
+    }
+
+    /**
+     * @see OntModel#createDataMaxCardinality(OntDataProperty, int, OntDataRange)
+     */
+    interface DataMaxCardinality extends CardinalityRestrictionCE<OntDataRange, OntDataProperty>,
+            SetValue<OntDataRange, DataMaxCardinality>,
+            SetProperty<OntDataProperty, DataMaxCardinality>,
+            SetCardinality<DataMaxCardinality> {
+    }
+
+    /**
+     * @see OntModel#createObjectCardinality(OntObjectProperty, int, OntClass)
+     */
+    interface ObjectCardinality extends CardinalityRestrictionCE<OntClass, OntObjectProperty>,
+            SetValue<OntClass, ObjectCardinality>,
+            SetProperty<OntObjectProperty, ObjectCardinality>,
+            SetCardinality<ObjectCardinality> {
+    }
+
+    /**
+     * @see OntModel#createDataCardinality(OntDataProperty, int, OntDataRange)
+     */
+    interface DataCardinality extends CardinalityRestrictionCE<OntDataRange, OntDataProperty>,
+            SetValue<OntDataRange, DataCardinality>,
+            SetProperty<OntDataProperty, DataCardinality>,
+            SetCardinality<DataCardinality> {
+    }
+
+    /**
+     * @see OntModel#createHasSelf(OntObjectProperty)
+     */
+    interface HasSelf extends UnaryRestrictionCE<OntObjectProperty>, SetProperty<OntObjectProperty, HasSelf> {
+    }
+
+    /**
+     * @see OntModel#createUnionOf(Collection)
+     */
+    interface UnionOf extends ComponentsCE<OntClass>, SetComponents<OntClass, UnionOf> {
+    }
+
+    /**
+     * @see OntModel#createOneOf(Collection)
+     */
+    interface OneOf extends ComponentsCE<OntIndividual>, SetComponents<OntIndividual, OneOf> {
+    }
+
+    /**
+     * @see OntModel#createIntersectionOf(Collection)
+     */
+    interface IntersectionOf extends ComponentsCE<OntClass>, SetComponents<OntClass, IntersectionOf> {
+    }
+
+    /**
+     * @see OntModel#createComplementOf(OntClass)
+     */
+    interface ComplementOf extends OntClass, HasValue<OntClass>, SetValue<OntClass, ComplementOf> {
+    }
+
+    /**
+     * @see OntModel#createDataAllValuesFrom(Collection, OntDataRange)
+     */
+    interface NaryDataAllValuesFrom extends NaryRestrictionCE<OntDataRange, OntDataProperty>,
+            SetValue<OntDataRange, NaryDataAllValuesFrom>, SetProperties<OntDataProperty, NaryDataAllValuesFrom> {
+    }
+
+    /**
+     * @see OntModel#createDataSomeValuesFrom(Collection, OntDataRange)
+     */
+    interface NaryDataSomeValuesFrom extends NaryRestrictionCE<OntDataRange, OntDataProperty>,
+            SetValue<OntDataRange, NaryDataSomeValuesFrom>, SetProperties<OntDataProperty, NaryDataSomeValuesFrom> {
+    }
+
+    /*
+     * ===========================
+     * Abstract class expressions:
+     * ===========================
+     */
+
+    /**
+     * An abstraction for Boolean Connectives (with exclude of {@link ComplementOf}) and Enumeration of Individuals.
+     *
+     * @param <O> a component type
+     */
+    interface ComponentsCE<O extends OntObject> extends OntClass, HasRDFNodeList<O> {
+    }
+
+    /**
+     * An abstraction for Cardinality Restrictions.
+     *
+     * @param <O> a value type
+     * @param <P> any subtype of {@link OntRealProperty}
+     */
+    interface CardinalityRestrictionCE<O extends OntObject, P extends OntRealProperty>
+            extends HasCardinality, ComponentRestrictionCE<O, P> {
+    }
+
+    /**
+     * An abstract class expression (Restriction) that has component (i.e. 'filler' in OWL-API terms):
+     * all Cardinality Restrictions, Existential/Universal Restrictions, Individual/Literal Value Restrictions.
+     *
+     * @param <O> a value type
+     * @param <P> any subtype of {@link OntRealProperty}
+     */
+    interface ComponentRestrictionCE<O extends RDFNode, P extends OntRealProperty>
+            extends UnaryRestrictionCE<P>, HasValue<O> {
+    }
+
+    /**
+     * An abstraction that unites all {@link RestrictionCE Restriction}s
+     * with the predicate {@link OWL#onProperties owl:onProperties}.
+     *
+     * @param <O> a value type
+     * @param <P> any subtype of {@link OntRealProperty}
+     */
+    interface NaryRestrictionCE<O extends OntObject, P extends OntRealProperty>
+            extends RestrictionCE<P>, HasProperties<P>, HasValue<O> {
+    }
+
+    /**
+     * An abstract class expression that unites all {@link RestrictionCE Restriction}s
+     * with the predicate {@link OWL#onProperty owl:onProperty}.
+     *
+     * @param <P> any subtype of {@link OntRealProperty}
+     * @since 1.4.0
+     */
+    interface UnaryRestrictionCE<P extends OntRealProperty> extends RestrictionCE<P> {
+    }
+
+    /**
+     * An abstract class expression that unites all class expressions with the type {@link OWL#Restriction}.
+     *
+     * @param <P> any subtype of {@link OntRealProperty}
+     */
+    interface RestrictionCE<P extends OntRealProperty> extends OntClass, HasProperty<P> {
+    }
+
+    /**
+     * An OWL Class {@link OntEntity Entity}, a named class expression.
+     * This is an analogue of {@link org.apache.jena.ontology.OntClass}, but for OWL2.
+     * <p>
+     * Created by szuev on 01.11.2016.
+     *
+     * @see <a href='https://www.w3.org/TR/owl2-syntax/#Classes'>5.1 Classes</a>
+     */
+    interface Named extends OntEntity, OntClass {
+
+        /**
+         * Lists all {@code DisjointUnion} {@link OntList ontology list}s that are attached to this OWL Class
+         * on predicate {@link OWL#disjointUnionOf owl:disjointUnionOf}.
+         *
+         * @return {@code Stream} of {@link OntList}s with parameter-type {@code OntCE}
+         * @since 1.4.0
+         */
+        Stream<OntList<OntClass>> disjointUnions();
+
+        /**
+         * Creates a {@code DisjointUnion} as {@link OntList ontology []-list} of {@link OntClass Class Expression}s
+         * that is attached to this OWL Class using the predicate {@link OWL#disjointUnionOf owl:disjointUnionOf}.
+         * The resulting rdf-list will consist of all the elements of the specified collection
+         * in the same order but with exclusion of duplicates.
+         * Note: {@code null}s in collection will cause {@link OntJenaException.IllegalArgument exception}.
+         * For additional information about {@code DisjointUnion} logical construction see
+         * <a href='https://www.w3.org/TR/owl2-syntax/#Disjoint_Union_of_Class_Expressions'>9.1.4 Disjoint Union of Class Expressions</a>.
+         *
+         * @param classes {@link Collection} (preferably {@link Set}) of {@link OntClass class expression}s
+         * @return {@link OntList} of {@link OntClass}s
+         * @see #addDisjointUnionOfStatement(OntClass...)
+         * @see #removeDisjointUnion(Resource)
+         * @since 1.3.0
+         */
+        OntList<OntClass> createDisjointUnion(Collection<OntClass> classes);
+
+        /**
+         * Finds a {@code DisjointUnion} logical construction
+         * attached to this class by the specified rdf-node in the form of {@link OntList}.
+         *
+         * @param list {@link RDFNode}
+         * @return Optional around {@link OntList} of {@link OntClass class expression}s
+         * @since 1.3.0
+         */
+        default Optional<OntList<OntClass>> findDisjointUnion(RDFNode list) {
+            try (Stream<OntList<OntClass>> res = disjointUnions().filter(r -> Objects.equals(r, list))) {
+                return res.findFirst();
+            }
+        }
+
+        /**
+         * Creates a {@code DisjointUnion} {@link OntList ontology list}
+         * and returns the statement {@code CN owl:disjointUnionOf ( C1 ... Cn )} to allow the addition of annotations.
+         * About RDF Graph annotation specification see, for example,
+         * <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Translation_of_Annotations'>2.3.1 Axioms that Generate a Main Triple</a>.
+         *
+         * @param classes Array of {@link OntClass class expressions} without {@code null}s,
+         *                duplicates will be discarded and order will be saved
+         * @return {@link OntStatement} to allow the subsequent annotations addition
+         * @see #createDisjointUnion(Collection)
+         * @see #createDisjointUnion(Collection)
+         * @see #addDisjointUnion(OntClass...)
+         * @see #addDisjointUnionOfStatement(OntClass...)
+         * @see #removeDisjointUnion(Resource)
+         * @since 1.4.0
+         */
+        default OntStatement addDisjointUnionOfStatement(OntClass... classes) {
+            return addDisjointUnionOfStatement(Arrays.stream(classes).collect(Collectors.toCollection(LinkedHashSet::new)));
+        }
+
+        /**
+         * Creates a disjoint-union section returning its root statement to allow adding annotations.
+         * The triple pattern: {@code CN owl:disjointUnionOf ( C1 ... Cn )}.
+         *
+         * @param classes a collection of {@link OntClass class expression}s without {@code null}s
+         * @return {@link OntStatement} to allow the subsequent annotations addition
+         * @see #createDisjointUnion(Collection)
+         * @see <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Translation_of_Annotations'>2.3.1 Axioms that Generate a Main Triple</a>
+         * @see #createDisjointUnion(Collection)
+         * @see #addDisjointUnion(Collection)
+         * @see #addDisjointUnionOfStatement(Collection)
+         * @see #removeDisjointUnion(Resource)
+         * @since 1.4.0
+         */
+        default OntStatement addDisjointUnionOfStatement(Collection<OntClass> classes) {
+            return createDisjointUnion(classes).getRoot();
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        default Named addSuperClass(OntClass other) {
+            addSubClassOfStatement(other);
+            return this;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        default Named addDisjointClass(OntClass other) {
+            addDisjointWithStatement(other);
+            return this;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        default Named addEquivalentClass(OntClass other) {
+            addEquivalentClassStatement(other);
+            return this;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        default Named addHasKey(Collection<OntObjectProperty> objectProperties, Collection<OntDataProperty> dataProperties) {
+            addHasKeyStatement(objectProperties, dataProperties);
+            return this;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        default Named addHasKey(OntRealProperty... properties) {
+            addHasKeyStatement(properties);
+            return this;
+        }
+
+        /**
+         * @param classes a collection of {@link OntClass class expression}s without {@code null}s
+         * @return <b>this</b> instance to allow cascading calls
+         * @since 1.4.0
+         */
+        default Named addDisjointUnion(Collection<OntClass> classes) {
+            addDisjointUnionOfStatement(classes);
+            return this;
+        }
+
+        /**
+         * @param classes Array of {@link OntClass class expressions} without {@code null}s,
+         *                duplicates will be discarded and order will be saved
+         * @return <b>this</b> instance to allow cascading calls
+         * @since 1.4.0
+         */
+        default Named addDisjointUnion(OntClass... classes) {
+            addDisjointUnionOfStatement(classes);
+            return this;
+        }
+
+        /**
+         * Deletes the given {@code DisjointUnion} list including its annotations.
+         *
+         * @param list {@link Resource} can be {@link OntList} or {@link RDFList}
+         * @return <b>this</b> instance to allow cascading calls
+         * @throws OntJenaException if the list is not found
+         * @see #addDisjointUnion(Collection)
+         * @see #createDisjointUnion(Collection)
+         * @see #addDisjointUnionOfStatement(OntClass...)
+         * @see #createDisjointUnion(Collection)
+         * @since 1.3.0
+         */
+        Named removeDisjointUnion(Resource list);
+
+        /**
+         * {@inheritDoc}
+         */
+        default Named removeSuperClass(Resource other) {
+            OntClass.super.removeSuperClass(other);
+            return this;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        default Named removeDisjointClass(Resource other) {
+            OntClass.super.removeDisjointClass(other);
+            return this;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        default Named removeEquivalentClass(Resource other) {
+            OntClass.super.removeEquivalentClass(other);
+            return this;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        default Named clearHasKeys() {
+            OntClass.super.clearHasKeys();
+            return this;
+        }
+
+        /**
+         * Deletes all {@code DisjointUnion} []-lists including their annotations,
+         * i.e. all those statements with the predicate {@link OWL#disjointUnionOf owl:disjointUnionOf}
+         * for which this resource is a subject.
+         *
+         * @return <b>this</b> instance to allow cascading calls
+         * @see #removeDisjointUnion(Resource)
+         * @since 1.3.0
+         */
+        default Named clearDisjointUnions() {
+            disjointUnions().collect(Collectors.toSet()).forEach(this::removeDisjointUnion);
+            return this;
+        }
+
+        /**
+         * Returns all class expressions from the right part of the statement with this class as a subject
+         * and {@link OWL#disjointUnionOf owl:disjointUnionOf} as a predicate
+         * (the triple pattern: {@code CN owl:disjointUnionOf ( C1 ... Cn )}).
+         * If there are several []-lists in the model that satisfy these conditions,
+         * all their content will be merged into the one distinct stream.
+         *
+         * @return <b>distinct</b> stream of {@link OntClass class expressions}s
+         * @see #disjointUnions()
+         * @since 1.4.0
+         */
+        default Stream<OntClass> fromDisjointUnionOf() {
+            return disjointUnions().flatMap(OntList::members).distinct();
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        default Named addComment(String txt) {
+            return addComment(txt, null);
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        default Named addComment(String txt, String lang) {
+            return annotate(getModel().getRDFSComment(), txt, lang);
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        default Named addLabel(String txt) {
+            return addLabel(txt, null);
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        default Named addLabel(String txt, String lang) {
+            return annotate(getModel().getRDFSLabel(), txt, lang);
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        default Named annotate(OntAnnotationProperty predicate, String txt, String lang) {
+            return annotate(predicate, getModel().createLiteral(txt, lang));
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        default Named annotate(OntAnnotationProperty predicate, RDFNode value) {
+            addAnnotation(predicate, value);
+            return this;
+        }
     }
 }

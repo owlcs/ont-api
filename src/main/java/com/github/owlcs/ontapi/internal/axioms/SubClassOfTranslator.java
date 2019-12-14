@@ -16,7 +16,7 @@ package com.github.owlcs.ontapi.internal.axioms;
 
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.*;
-import com.github.owlcs.ontapi.jena.model.OntCE;
+import com.github.owlcs.ontapi.jena.model.OntClass;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
@@ -68,7 +68,7 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
     }
 
     public boolean filter(Statement s) {
-        return s.getSubject().canAs(OntCE.class) && s.getObject().canAs(OntCE.class);
+        return s.getSubject().canAs(OntClass.class) && s.getObject().canAs(OntClass.class);
     }
 
     @Override
@@ -83,8 +83,8 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
     public ONTObject<OWLSubClassOfAxiom> toAxiomWrap(OntStatement statement,
                                                      InternalObjectFactory factory,
                                                      InternalConfig config) {
-        ONTObject<? extends OWLClassExpression> sub = factory.getClass(statement.getSubject(OntCE.class));
-        ONTObject<? extends OWLClassExpression> sup = factory.getClass(statement.getObject().as(OntCE.class));
+        ONTObject<? extends OWLClassExpression> sub = factory.getClass(statement.getSubject(OntClass.class));
+        ONTObject<? extends OWLClassExpression> sup = factory.getClass(statement.getObject().as(OntClass.class));
         Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);
         OWLSubClassOfAxiom res = factory.getOWLDataFactory()
                 .getOWLSubClassOfAxiom(sub.getOWLObject(), sup.getOWLObject(), ONTObject.toSet(annotations));
@@ -147,13 +147,13 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
         @Override
         public ONTObject<? extends OWLClassExpression> subjectFromStatement(OntStatement statement,
                                                                             InternalObjectFactory factory) {
-            return factory.getClass(statement.getSubject(OntCE.class));
+            return factory.getClass(statement.getSubject(OntClass.class));
         }
 
         @Override
         public ONTObject<? extends OWLClassExpression> objectFromStatement(OntStatement statement,
                                                                            InternalObjectFactory factory) {
-            return factory.getClass(statement.getObject(OntCE.class));
+            return factory.getClass(statement.getObject(OntClass.class));
         }
 
         @Override

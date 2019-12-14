@@ -19,23 +19,23 @@ import org.apache.jena.rdf.model.RDFNode;
 /**
  * A technical generic interface to provide a possibility to assign {@link RDFNode} value (so called filler)
  * into a class expression.
- * A value can be either {@link OntCE}, {@link OntDR}, {@link OntIndividual}
- * or {@link org.apache.jena.rdf.model.Literal}, depending on a concrete {@link OntCE} or {@link OntDR} type.
- * This interface is used to construct {@link OntCE class expression}s and {@link OntDR data range}s as a base.
+ * A value can be either {@link OntClass}, {@link OntDataRange}, {@link OntIndividual}
+ * or {@link org.apache.jena.rdf.model.Literal}, depending on a concrete {@link OntClass} or {@link OntDataRange} type.
+ * This interface is used to construct {@link OntClass class expression}s and {@link OntDataRange data range}s as a base.
  * <p>
  * Created by @ssz on 08.05.2019.
  *
- * @param <V> - any subtype of {@link RDFNode} ({@link OntCE}, {@link OntDR}, {@link OntIndividual}
+ * @param <V> - any subtype of {@link RDFNode} ({@link OntClass}, {@link OntDataRange}, {@link OntIndividual}
  *            or {@link org.apache.jena.rdf.model.Literal}).
- * @param <R> - return type, a subtype of {@link OntCE} or {@link OntDR}
+ * @param <R> - return type, a subtype of {@link OntClass} or {@link OntDataRange}
  * @see HasValue
  * @since 1.4.0
  */
 interface SetValue<V extends RDFNode, R extends OntObject> {
     /**
      * Sets the specified value (a filler in OWL-API terms)
-     * into this {@link OntCE class} or {@link OntDR data range} expression.
-     *
+     * into this {@link OntClass class} or {@link OntDataRange data range} expression.
+     * <p>
      * A {@code value} can be {@code null} if this is a Cardinality Restriction
      * (the null-filler is considered as {@link com.github.owlcs.ontapi.jena.vocabulary.OWL#Thing owl:Thing}
      * for an object restriction and as {@link org.apache.jena.vocabulary.RDFS#Literal} for a data restriction).

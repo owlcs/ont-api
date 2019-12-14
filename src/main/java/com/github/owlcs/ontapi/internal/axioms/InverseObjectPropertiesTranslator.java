@@ -18,7 +18,7 @@ import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.*;
 import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntOPE;
+import com.github.owlcs.ontapi.jena.model.OntObjectProperty;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
@@ -72,7 +72,7 @@ public class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInvers
         if (!OWL.inverseOf.equals(statement.getPredicate())) return false;
         // skip {@code _:x owl:inverseOf PN} (inverse object property expression):
         if (statement.getSubject().isAnon() && statement.getObject().isURIResource()) return false;
-        return statement.getSubject().canAs(OntOPE.class) && statement.getObject().canAs(OntOPE.class);
+        return statement.getSubject().canAs(OntObjectProperty.class) && statement.getObject().canAs(OntObjectProperty.class);
     }
 
     @Override
@@ -87,8 +87,8 @@ public class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInvers
     public ONTObject<OWLInverseObjectPropertiesAxiom> toAxiomWrap(OntStatement statement,
                                                                   InternalObjectFactory factory,
                                                                   InternalConfig config) {
-        ONTObject<? extends OWLObjectPropertyExpression> f = factory.getProperty(statement.getSubject(OntOPE.class));
-        ONTObject<? extends OWLObjectPropertyExpression> s = factory.getProperty(statement.getObject(OntOPE.class));
+        ONTObject<? extends OWLObjectPropertyExpression> f = factory.getProperty(statement.getSubject(OntObjectProperty.class));
+        ONTObject<? extends OWLObjectPropertyExpression> s = factory.getProperty(statement.getObject(OntObjectProperty.class));
         Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);
         OWLInverseObjectPropertiesAxiom res = factory.getOWLDataFactory()
                 .getOWLInverseObjectPropertiesAxiom(f.getOWLObject(), s.getOWLObject(), ONTObject.toSet(annotations));
@@ -150,8 +150,8 @@ public class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInvers
         @Override
         public ExtendedIterator<ONTObject<? extends OWLObjectPropertyExpression>> listONTComponents(OntStatement statement,
                                                                                                     InternalObjectFactory factory) {
-            return Iter.of(factory.getProperty(statement.getSubject(OntOPE.class)),
-                    factory.getProperty(statement.getObject(OntOPE.class)));
+            return Iter.of(factory.getProperty(statement.getSubject(OntObjectProperty.class)),
+                    factory.getProperty(statement.getObject(OntObjectProperty.class)));
         }
 
         @Override

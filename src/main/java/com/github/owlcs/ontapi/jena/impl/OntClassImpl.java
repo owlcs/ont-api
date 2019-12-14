@@ -34,7 +34,7 @@ import java.util.stream.Stream;
  * Created by szuev on 03.11.2016.
  */
 @SuppressWarnings("WeakerAccess")
-public class OntClassImpl extends OntObjectImpl implements OntClass {
+public class OntClassImpl extends OntObjectImpl implements OntClass.Named {
 
     public OntClassImpl(Node n, EnhGraph eg) {
         super(OntObjectImpl.checkNamed(n), eg);
@@ -51,8 +51,8 @@ public class OntClassImpl extends OntObjectImpl implements OntClass {
     }
 
     @Override
-    public Class<OntClass> getActualClass() {
-        return OntClass.class;
+    public Class<Named> getActualClass() {
+        return Named.class;
     }
 
     @Override
@@ -66,27 +66,27 @@ public class OntClassImpl extends OntObjectImpl implements OntClass {
     }
 
     @Override
-    public Stream<OntCE> superClasses(boolean direct) {
-        return hierarchy(this, OntCE.class, RDFS.subClassOf, false, direct);
+    public Stream<OntClass> superClasses(boolean direct) {
+        return hierarchy(this, OntClass.class, RDFS.subClassOf, false, direct);
     }
 
     @Override
-    public Stream<OntCE> subClasses(boolean direct) {
-        return hierarchy(this, OntCE.class, RDFS.subClassOf, true, direct);
+    public Stream<OntClass> subClasses(boolean direct) {
+        return hierarchy(this, OntClass.class, RDFS.subClassOf, true, direct);
     }
 
     @Override
-    public OntList<OntDOP> createHasKey(Collection<OntOPE> ope, Collection<OntNDP> dpe) {
+    public OntList<OntRealProperty> createHasKey(Collection<OntObjectProperty> ope, Collection<OntDataProperty> dpe) {
         return OntCEImpl.createHasKey(getModel(), this, Stream.of(ope, dpe).flatMap(Collection::stream));
     }
 
     @Override
-    public OntStatement addHasKeyStatement(OntDOP... properties) {
+    public OntStatement addHasKeyStatement(OntRealProperty... properties) {
         return OntCEImpl.createHasKey(getModel(), this, Arrays.stream(properties)).getRoot();
     }
 
     @Override
-    public Stream<OntList<OntDOP>> hasKeys() {
+    public Stream<OntList<OntRealProperty>> hasKeys() {
         return OntCEImpl.listHasKeys(getModel(), this);
     }
 
@@ -97,14 +97,14 @@ public class OntClassImpl extends OntObjectImpl implements OntClass {
     }
 
     @Override
-    public OntList<OntCE> createDisjointUnion(Collection<OntCE> classes) {
-        return OntListImpl.create(getModel(), this, OWL.disjointUnionOf, OntCE.class,
+    public OntList<OntClass> createDisjointUnion(Collection<OntClass> classes) {
+        return OntListImpl.create(getModel(), this, OWL.disjointUnionOf, OntClass.class,
                 Objects.requireNonNull(classes).stream().distinct().iterator());
     }
 
     @Override
-    public Stream<OntList<OntCE>> disjointUnions() {
-        return OntListImpl.stream(getModel(), this, OWL.disjointUnionOf, OntCE.class);
+    public Stream<OntList<OntClass>> disjointUnions() {
+        return OntListImpl.stream(getModel(), this, OWL.disjointUnionOf, OntClass.class);
     }
 
     @Override

@@ -22,18 +22,18 @@ import com.github.owlcs.ontapi.jena.OntJenaException;
  * <p>
  * Created by @ssz on 09.05.2019.
  *
- * @param <P> - any subtype of {@link OntDOP} in general case, but in the current model it can only be {@link OntNDP}
+ * @param <P> - any subtype of {@link OntRealProperty} in general case, but in the current model it can only be {@link OntDataProperty}
  * @see SetProperties
  * @since 1.4.0
  */
-interface HasProperties<P extends OntDOP> extends HasRDFNodeList<P>, HasProperty<P> {
+interface HasProperties<P extends OntRealProperty> extends HasRDFNodeList<P>, HasProperty<P> {
 
     /**
      * Gets the first property from {@code owl:onProperties} []-list.
      * Currently in OWL2, a []-list from n-ary Restrictions may contain one and only one (data) property.
      *
      * @return {@link P}
-     * @see OntDR#arity()
+     * @see OntDataRange#arity()
      */
     @Override
     default P getProperty() {

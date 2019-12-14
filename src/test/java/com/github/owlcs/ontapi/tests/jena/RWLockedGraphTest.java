@@ -103,7 +103,7 @@ public class RWLockedGraphTest {
             m.createOntClass("C" + i).addComment("X" + i);
         }
         for (int i = 0; i < num; i++) {
-            OntClass c = m.getOntClass("C" + i);
+            OntClass.Named c = m.getOntClass("C" + i);
             if (c != null) {
                 m.removeOntObject(c);
             }

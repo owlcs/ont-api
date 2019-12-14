@@ -20,14 +20,14 @@ package com.github.owlcs.ontapi.jena.model;
  * <p>
  * Created by @ssz on 09.05.2019.
  *
- * @param <P> - {@link OntDOP Data or Object} property expression
+ * @param <P> - {@link OntRealProperty Data or Object} property expression
  * @see SetProperty
  * @since 1.4.0
  */
-interface HasProperty<P extends OntDOP> {
+interface HasProperty<P extends OntRealProperty> {
     /**
      * Gets the property,
-     * that this {@link OntCE.UnaryRestrictionCE} has inside its RDF structure
+     * that this {@link OntClass.UnaryRestrictionCE} has inside its RDF structure
      * on predicate {@link com.github.owlcs.ontapi.jena.vocabulary.OWL#onProperty owl:onProperty}.
      *
      * @return {@link P}

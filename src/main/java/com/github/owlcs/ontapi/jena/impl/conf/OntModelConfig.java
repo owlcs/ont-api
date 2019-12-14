@@ -73,6 +73,9 @@ public class OntModelConfig {
      */
     private static final PersonalityBuilder ONT_PERSONALITY_BUILDER = new PersonalityBuilder()
             .addPersonality(STANDARD_PERSONALITY)
+            // the base ontology object:
+            .add(OntObject.class, OntObjectImpl.objectFactory)
+
             // ont-id:
             .add(OntID.class, OntIDImpl.idFactory)
 
@@ -80,57 +83,79 @@ public class OntModelConfig {
             .add(OntAnnotation.class, OntAnnotationImpl.annotationFactory)
 
             // entities:
-            .add(OntObject.class, OntObjectImpl.objectFactory)
-            .add(OntClass.class, Entities.CLASS.createFactory())
-            .add(OntNAP.class, Entities.ANNOTATION_PROPERTY.createFactory())
-            .add(OntNDP.class, Entities.DATA_PROPERTY.createFactory())
-            .add(OntNOP.class, Entities.OBJECT_PROPERTY.createFactory())
-            .add(OntDT.class, Entities.DATATYPE.createFactory())
+            .add(OntClass.Named.class, Entities.CLASS.createFactory())
+            .add(OntDataRange.Named.class, Entities.DATATYPE.createFactory())
             .add(OntIndividual.Named.class, Entities.INDIVIDUAL.createFactory())
+            .add(OntObjectProperty.Named.class, Entities.OBJECT_PROPERTY.createFactory())
+            .add(OntDataProperty.class, Entities.DATA_PROPERTY.createFactory())
+            .add(OntAnnotationProperty.class, Entities.ANNOTATION_PROPERTY.createFactory())
             .add(OntEntity.class, Entities.ALL)
-
-            // class expressions:
-            .add(OntCE.ObjectSomeValuesFrom.class, OntCEImpl.objectSomeValuesOfCEFactory)
-            .add(OntCE.DataSomeValuesFrom.class, OntCEImpl.dataSomeValuesOfCEFactory)
-            .add(OntCE.ObjectAllValuesFrom.class, OntCEImpl.objectAllValuesOfCEFactory)
-            .add(OntCE.DataAllValuesFrom.class, OntCEImpl.dataAllValuesOfCEFactory)
-            .add(OntCE.ObjectHasValue.class, OntCEImpl.objectHasValueCEFactory)
-            .add(OntCE.DataHasValue.class, OntCEImpl.dataHasValueCEFactory)
-            .add(OntCE.ObjectMinCardinality.class, OntCEImpl.objectMinCardinalityCEFactory)
-            .add(OntCE.DataMinCardinality.class, OntCEImpl.dataMinCardinalityCEFactory)
-            .add(OntCE.ObjectMaxCardinality.class, OntCEImpl.objectMaxCardinalityCEFactory)
-            .add(OntCE.DataMaxCardinality.class, OntCEImpl.dataMaxCardinalityCEFactory)
-            .add(OntCE.ObjectCardinality.class, OntCEImpl.objectCardinalityCEFactory)
-            .add(OntCE.DataCardinality.class, OntCEImpl.dataCardinalityCEFactory)
-            .add(OntCE.HasSelf.class, OntCEImpl.hasSelfCEFactory)
-            .add(OntCE.UnionOf.class, OntCEImpl.unionOfCEFactory)
-            .add(OntCE.OneOf.class, OntCEImpl.oneOfCEFactory)
-            .add(OntCE.IntersectionOf.class, OntCEImpl.intersectionOfCEFactory)
-            .add(OntCE.ComplementOf.class, OntCEImpl.complementOfCEFactory)
-            .add(OntCE.NaryDataAllValuesFrom.class, OntCEImpl.naryDataAllValuesFromCEFactory)
-            .add(OntCE.NaryDataSomeValuesFrom.class, OntCEImpl.naryDataSomeValuesFromCEFactory)
-            .add(OntCE.ComponentsCE.class, OntCEImpl.abstractComponentsCEFactory)
-            .add(OntCE.CardinalityRestrictionCE.class, OntCEImpl.abstractCardinalityRestrictionCEFactory)
-            .add(OntCE.ComponentRestrictionCE.class, OntCEImpl.abstractComponentRestrictionCEFactory)
-            .add(OntCE.UnaryRestrictionCE.class, OntCEImpl.abstractPropertyRestrictionCEFactory)
-            .add(OntCE.RestrictionCE.class, OntCEImpl.abstractRestrictionCEFactory)
-            .add(OntCE.class, OntCEImpl.abstractCEFactory)
-
-            // property expressions:
-            .add(OntOPE.Inverse.class, OntPEImpl.inversePropertyFactory)
-            .add(OntOPE.class, OntPEImpl.abstractOPEFactory)
-            .add(OntDOP.class, OntPEImpl.abstractDOPFactory)
-            .add(OntProperty.class, OntPEImpl.abstractNamedPropertyFactory)
-            .add(OntPE.class, OntPEImpl.abstractPEFactory)
 
             // individuals:
             .add(OntIndividual.Anonymous.class, OntIndividualImpl.anonymousIndividualFactory)
             .add(OntIndividual.class, OntIndividualImpl.abstractIndividualFactory)
 
+            // property expressions:
+            .add(OntObjectProperty.Inverse.class, OntPEImpl.inversePropertyFactory)
+            .add(OntObjectProperty.class, OntPEImpl.abstractOPEFactory)
+            .add(OntRealProperty.class, OntPEImpl.abstractDOPFactory)
+            .add(OntNamedProperty.class, OntPEImpl.abstractNamedPropertyFactory)
+            .add(OntProperty.class, OntPEImpl.abstractPEFactory)
+
+            // class expressions:
+            .add(OntClass.ObjectSomeValuesFrom.class, OntCEImpl.objectSomeValuesOfCEFactory)
+            .add(OntClass.DataSomeValuesFrom.class, OntCEImpl.dataSomeValuesOfCEFactory)
+            .add(OntClass.ObjectAllValuesFrom.class, OntCEImpl.objectAllValuesOfCEFactory)
+            .add(OntClass.DataAllValuesFrom.class, OntCEImpl.dataAllValuesOfCEFactory)
+            .add(OntClass.ObjectHasValue.class, OntCEImpl.objectHasValueCEFactory)
+            .add(OntClass.DataHasValue.class, OntCEImpl.dataHasValueCEFactory)
+            .add(OntClass.ObjectMinCardinality.class, OntCEImpl.objectMinCardinalityCEFactory)
+            .add(OntClass.DataMinCardinality.class, OntCEImpl.dataMinCardinalityCEFactory)
+            .add(OntClass.ObjectMaxCardinality.class, OntCEImpl.objectMaxCardinalityCEFactory)
+            .add(OntClass.DataMaxCardinality.class, OntCEImpl.dataMaxCardinalityCEFactory)
+            .add(OntClass.ObjectCardinality.class, OntCEImpl.objectCardinalityCEFactory)
+            .add(OntClass.DataCardinality.class, OntCEImpl.dataCardinalityCEFactory)
+            .add(OntClass.HasSelf.class, OntCEImpl.hasSelfCEFactory)
+            .add(OntClass.UnionOf.class, OntCEImpl.unionOfCEFactory)
+            .add(OntClass.OneOf.class, OntCEImpl.oneOfCEFactory)
+            .add(OntClass.IntersectionOf.class, OntCEImpl.intersectionOfCEFactory)
+            .add(OntClass.ComplementOf.class, OntCEImpl.complementOfCEFactory)
+            .add(OntClass.NaryDataAllValuesFrom.class, OntCEImpl.naryDataAllValuesFromCEFactory)
+            .add(OntClass.NaryDataSomeValuesFrom.class, OntCEImpl.naryDataSomeValuesFromCEFactory)
+            .add(OntClass.ComponentsCE.class, OntCEImpl.abstractComponentsCEFactory)
+            .add(OntClass.CardinalityRestrictionCE.class, OntCEImpl.abstractCardinalityRestrictionCEFactory)
+            .add(OntClass.ComponentRestrictionCE.class, OntCEImpl.abstractComponentRestrictionCEFactory)
+            .add(OntClass.UnaryRestrictionCE.class, OntCEImpl.abstractPropertyRestrictionCEFactory)
+            .add(OntClass.RestrictionCE.class, OntCEImpl.abstractRestrictionCEFactory)
+            .add(OntClass.class, OntCEImpl.abstractCEFactory)
+
+            // data ranges:
+            .add(OntDataRange.OneOf.class, OntDRImpl.oneOfDRFactory)
+            .add(OntDataRange.Restriction.class, OntDRImpl.restrictionDRFactory)
+            .add(OntDataRange.ComplementOf.class, OntDRImpl.complementOfDRFactory)
+            .add(OntDataRange.UnionOf.class, OntDRImpl.unionOfDRFactory)
+            .add(OntDataRange.IntersectionOf.class, OntDRImpl.intersectionOfDRFactory)
+            .add(OntDataRange.ComponentsDR.class, OntDRImpl.abstractComponentsDRFactory)
+            .add(OntDataRange.class, OntDRImpl.abstractDRFactory)
+
+            // facet restrictions:
+            .add(OntFacetRestriction.Length.class, OntFRImpl.lengthFRFactory)
+            .add(OntFacetRestriction.MinLength.class, OntFRImpl.minLengthFRFactory)
+            .add(OntFacetRestriction.MaxLength.class, OntFRImpl.maxLengthFRFactory)
+            .add(OntFacetRestriction.MinInclusive.class, OntFRImpl.minInclusiveFRFactory)
+            .add(OntFacetRestriction.MaxInclusive.class, OntFRImpl.maxInclusiveFRFactory)
+            .add(OntFacetRestriction.MinExclusive.class, OntFRImpl.minExclusiveFRFactory)
+            .add(OntFacetRestriction.MaxExclusive.class, OntFRImpl.maxExclusiveFRFactory)
+            .add(OntFacetRestriction.Pattern.class, OntFRImpl.patternFRFactory)
+            .add(OntFacetRestriction.TotalDigits.class, OntFRImpl.totalDigitsFRFactory)
+            .add(OntFacetRestriction.FractionDigits.class, OntFRImpl.fractionDigitsFRFactory)
+            .add(OntFacetRestriction.LangRange.class, OntFRImpl.langRangeFRFactory)
+            .add(OntFacetRestriction.class, OntFRImpl.abstractFRFactory)
+
             // negative property assertions:
-            .add(OntNPA.ObjectAssertion.class, OntNPAImpl.objectNPAFactory)
-            .add(OntNPA.DataAssertion.class, OntNPAImpl.dataNPAFactory)
-            .add(OntNPA.class, OntNPAImpl.abstractNPAFactory)
+            .add(OntNegativeAssertion.WithObjectProperty.class, OntNPAImpl.objectNPAFactory)
+            .add(OntNegativeAssertion.WithDataProperty.class, OntNPAImpl.dataNPAFactory)
+            .add(OntNegativeAssertion.class, OntNPAImpl.abstractNPAFactory)
 
             // disjoint anonymous collections:
             .add(OntDisjoint.Classes.class, OntDisjointImpl.disjointClassesFactory)
@@ -140,42 +165,19 @@ public class OntModelConfig {
             .add(OntDisjoint.Properties.class, OntDisjointImpl.abstractPropertiesFactory)
             .add(OntDisjoint.class, OntDisjointImpl.abstractDisjointFactory)
 
-            // facet restrictions:
-            .add(OntFR.Length.class, OntFRImpl.lengthFRFactory)
-            .add(OntFR.MinLength.class, OntFRImpl.minLengthFRFactory)
-            .add(OntFR.MaxLength.class, OntFRImpl.maxLengthFRFactory)
-            .add(OntFR.MinInclusive.class, OntFRImpl.minInclusiveFRFactory)
-            .add(OntFR.MaxInclusive.class, OntFRImpl.maxInclusiveFRFactory)
-            .add(OntFR.MinExclusive.class, OntFRImpl.minExclusiveFRFactory)
-            .add(OntFR.MaxExclusive.class, OntFRImpl.maxExclusiveFRFactory)
-            .add(OntFR.Pattern.class, OntFRImpl.patternFRFactory)
-            .add(OntFR.TotalDigits.class, OntFRImpl.totalDigitsFRFactory)
-            .add(OntFR.FractionDigits.class, OntFRImpl.fractionDigitsFRFactory)
-            .add(OntFR.LangRange.class, OntFRImpl.langRangeFRFactory)
-            .add(OntFR.class, OntFRImpl.abstractFRFactory)
-
-            // data ranges:
-            .add(OntDR.OneOf.class, OntDRImpl.oneOfDRFactory)
-            .add(OntDR.Restriction.class, OntDRImpl.restrictionDRFactory)
-            .add(OntDR.ComplementOf.class, OntDRImpl.complementOfDRFactory)
-            .add(OntDR.UnionOf.class, OntDRImpl.unionOfDRFactory)
-            .add(OntDR.IntersectionOf.class, OntDRImpl.intersectionOfDRFactory)
-            .add(OntDR.ComponentsDR.class, OntDRImpl.abstractComponentsDRFactory)
-            .add(OntDR.class, OntDRImpl.abstractDRFactory)
-
             // SWRL objects:
             .add(OntSWRL.Variable.class, OntSWRLImpl.variableSWRLFactory)
             .add(OntSWRL.Builtin.class, OntSWRLImpl.builtinWRLFactory)
             .add(OntSWRL.IArg.class, OntSWRLImpl.iArgSWRLFactory)
             .add(OntSWRL.DArg.class, OntSWRLImpl.dArgSWRLFactory)
             .add(OntSWRL.Arg.class, OntSWRLImpl.abstractArgSWRLFactory)
-            .add(OntSWRL.Atom.BuiltIn.class, OntSWRLImpl.builtInAtomSWRLFactory)
-            .add(OntSWRL.Atom.OntClass.class, OntSWRLImpl.classAtomSWRLFactory)
-            .add(OntSWRL.Atom.DataRange.class, OntSWRLImpl.dataRangeAtomSWRLFactory)
-            .add(OntSWRL.Atom.ObjectProperty.class, OntSWRLImpl.individualAtomSWRLFactory)
-            .add(OntSWRL.Atom.DataProperty.class, OntSWRLImpl.dataValuedAtomSWRLFactory)
-            .add(OntSWRL.Atom.DifferentIndividuals.class, OntSWRLImpl.differentIndividualsAtomSWRLFactory)
-            .add(OntSWRL.Atom.SameIndividuals.class, OntSWRLImpl.sameIndividualsAtomSWRLFactory)
+            .add(OntSWRL.Atom.WithBuiltin.class, OntSWRLImpl.builtInAtomSWRLFactory)
+            .add(OntSWRL.Atom.WithClass.class, OntSWRLImpl.classAtomSWRLFactory)
+            .add(OntSWRL.Atom.WithDataRange.class, OntSWRLImpl.dataRangeAtomSWRLFactory)
+            .add(OntSWRL.Atom.WithObjectProperty.class, OntSWRLImpl.individualAtomSWRLFactory)
+            .add(OntSWRL.Atom.WithDataProperty.class, OntSWRLImpl.dataValuedAtomSWRLFactory)
+            .add(OntSWRL.Atom.WithDifferentIndividuals.class, OntSWRLImpl.differentIndividualsAtomSWRLFactory)
+            .add(OntSWRL.Atom.WithSameIndividuals.class, OntSWRLImpl.sameIndividualsAtomSWRLFactory)
             .add(OntSWRL.Atom.Unary.class, OntSWRLImpl.abstractUnarySWRLFactory)
             .add(OntSWRL.Atom.Binary.class, OntSWRLImpl.abstractBinarySWRLFactory)
             .add(OntSWRL.Atom.class, OntSWRLImpl.abstractAtomSWRLFactory)
@@ -220,10 +222,10 @@ public class OntModelConfig {
     /**
      * Personality with four kinds of restriction on a {@code rdf:type} intersection (i.e. "illegal punnings"):
      * <ul>
-     * <li>{@link OntDT}  &lt;-&gt; {@link OntClass}</li>
-     * <li>{@link OntNAP} &lt;-&gt; {@link OntNOP}</li>
-     * <li>{@link OntNOP} &lt;-&gt; {@link OntNDP}</li>
-     * <li>{@link OntNDP} &lt;-&gt; {@link OntNAP}</li>
+     * <li>{@link OntDataRange.Named}  &lt;-&gt; {@link OntClass.Named}</li>
+     * <li>{@link OntAnnotationProperty} &lt;-&gt; {@link OntObjectProperty.Named}</li>
+     * <li>{@link OntObjectProperty.Named} &lt;-&gt; {@link OntDataProperty}</li>
+     * <li>{@link OntDataProperty} &lt;-&gt; {@link OntAnnotationProperty}</li>
      * </ul>
      * each of the pairs above can't exist in the form of OWL-Entity in the same model at the same time.
      * From specification: "OWL 2 DL imposes certain restrictions:
@@ -242,8 +244,8 @@ public class OntModelConfig {
     /**
      * The week variant of previous constant: there are two forbidden intersections:
      * <ul>
-     * <li>{@link OntDT}  &lt;-&gt; {@link OntClass}</li>
-     * <li>{@link OntNOP} &lt;-&gt; {@link OntNDP}</li>
+     * <li>{@link OntDataRange.Named}  &lt;-&gt; {@link OntClass.Named}</li>
+     * <li>{@link OntObjectProperty.Named} &lt;-&gt; {@link OntDataProperty}</li>
      * </ul>
      *
      * @see <a href='https://www.w3.org/TR/owl2-new-features/#F12:_Punning'>2.4.1 F12: Punning</a>
@@ -294,11 +296,11 @@ public class OntModelConfig {
     public static OntPersonality.Builtins createBuiltinsVocabulary(BuiltIn.Vocabulary voc) {
         Objects.requireNonNull(voc);
         Map<Class<? extends OntObject>, Set<Node>> res = new HashMap<>();
-        res.put(OntNAP.class, Iter.asUnmodifiableNodeSet(voc.annotationProperties()));
-        res.put(OntNDP.class, Iter.asUnmodifiableNodeSet(voc.datatypeProperties()));
-        res.put(OntNOP.class, Iter.asUnmodifiableNodeSet(voc.objectProperties()));
-        res.put(OntDT.class, Iter.asUnmodifiableNodeSet(voc.datatypes()));
-        res.put(OntClass.class, Iter.asUnmodifiableNodeSet(voc.classes()));
+        res.put(OntAnnotationProperty.class, Iter.asUnmodifiableNodeSet(voc.annotationProperties()));
+        res.put(OntDataProperty.class, Iter.asUnmodifiableNodeSet(voc.datatypeProperties()));
+        res.put(OntObjectProperty.Named.class, Iter.asUnmodifiableNodeSet(voc.objectProperties()));
+        res.put(OntDataRange.Named.class, Iter.asUnmodifiableNodeSet(voc.datatypes()));
+        res.put(OntClass.Named.class, Iter.asUnmodifiableNodeSet(voc.classes()));
         res.put(OntSWRL.Builtin.class, Iter.asUnmodifiableNodeSet(voc.swrlBuiltins()));
         res.put(OntIndividual.Named.class, Collections.emptySet());
         return new VocabularyImpl.EntitiesImpl(res);
@@ -328,17 +330,17 @@ public class OntModelConfig {
     private static OntPersonality.Punnings createPunningsVocabulary(OntModelConfig.StdMode mode) {
         Map<Class<? extends OntObject>, Set<Node>> res = new HashMap<>();
         if (!StdMode.LAX.equals(mode)) {
-            toMap(res, OntClass.class, RDFS.Datatype);
-            toMap(res, OntDT.class, OWL.Class);
+            toMap(res, OntClass.Named.class, RDFS.Datatype);
+            toMap(res, OntDataRange.Named.class, OWL.Class);
         }
         if (StdMode.STRICT.equals(mode)) {
-            toMap(res, OntNAP.class, OWL.ObjectProperty, OWL.DatatypeProperty);
-            toMap(res, OntNDP.class, OWL.ObjectProperty, OWL.AnnotationProperty);
-            toMap(res, OntNOP.class, OWL.DatatypeProperty, OWL.AnnotationProperty);
+            toMap(res, OntAnnotationProperty.class, OWL.ObjectProperty, OWL.DatatypeProperty);
+            toMap(res, OntDataProperty.class, OWL.ObjectProperty, OWL.AnnotationProperty);
+            toMap(res, OntObjectProperty.Named.class, OWL.DatatypeProperty, OWL.AnnotationProperty);
         }
         if (StdMode.MEDIUM.equals(mode)) {
-            toMap(res, OntNDP.class, OWL.ObjectProperty);
-            toMap(res, OntNOP.class, OWL.DatatypeProperty);
+            toMap(res, OntDataProperty.class, OWL.ObjectProperty);
+            toMap(res, OntObjectProperty.Named.class, OWL.DatatypeProperty);
         }
         OntEntity.entityTypes().forEach(t -> res.computeIfAbsent(t, k -> Collections.emptySet()));
         //return type -> fromMap(res, type);

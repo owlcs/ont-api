@@ -19,8 +19,8 @@ import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTAnnotationPropertyImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
+import com.github.owlcs.ontapi.jena.model.OntAnnotationProperty;
 import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntNAP;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.util.iterator.ExtendedIterator;
@@ -40,11 +40,11 @@ import java.util.function.Supplier;
  * Created by @szuev on 30.09.2016.
  */
 public class AnnotationPropertyRangeTranslator
-        extends AbstractPropertyRangeTranslator<OWLAnnotationPropertyRangeAxiom, OntNAP> {
+        extends AbstractPropertyRangeTranslator<OWLAnnotationPropertyRangeAxiom, OntAnnotationProperty> {
 
     @Override
-    Class<OntNAP> getView() {
-        return OntNAP.class;
+    Class<OntAnnotationProperty> getView() {
+        return OntAnnotationProperty.class;
     }
 
     /**
@@ -135,7 +135,7 @@ public class AnnotationPropertyRangeTranslator
         @Override
         public ONTObject<? extends OWLAnnotationProperty> subjectFromStatement(OntStatement statement,
                                                                                InternalObjectFactory factory) {
-            return factory.getProperty(statement.getSubject(OntNAP.class));
+            return factory.getProperty(statement.getSubject(OntAnnotationProperty.class));
         }
 
         @Override

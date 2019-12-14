@@ -22,7 +22,7 @@ import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTObjectPropertyImpl;
 import com.github.owlcs.ontapi.jena.model.OntList;
 import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntOPE;
+import com.github.owlcs.ontapi.jena.model.OntObjectProperty;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
@@ -51,8 +51,8 @@ import java.util.stream.Stream;
  * @see <a href='https://www.w3.org/TR/owl2-syntax/#Object_Subproperties'>9.2.1 Object Subproperties</a>
  */
 public class SubPropertyChainOfTranslator
-        extends AbstractListBasedTranslator<OWLSubPropertyChainOfAxiom, OntOPE,
-        OWLObjectPropertyExpression, OntOPE, OWLObjectPropertyExpression> {
+        extends AbstractListBasedTranslator<OWLSubPropertyChainOfAxiom, OntObjectProperty,
+        OWLObjectPropertyExpression, OntObjectProperty, OWLObjectPropertyExpression> {
     @Override
     OWLObject getSubject(OWLSubPropertyChainOfAxiom axiom) {
         return axiom.getSuperProperty();
@@ -69,8 +69,8 @@ public class SubPropertyChainOfTranslator
     }
 
     @Override
-    Class<OntOPE> getView() {
-        return OntOPE.class;
+    Class<OntObjectProperty> getView() {
+        return OntObjectProperty.class;
     }
 
     @Override
@@ -87,7 +87,7 @@ public class SubPropertyChainOfTranslator
                                                              InternalConfig config) {
         return makeAxiom(statement,
                 factory::getProperty,
-                OntOPE::findPropertyChain,
+                OntObjectProperty::findPropertyChain,
                 factory::getProperty,
                 Collectors.toList(),
                 (s, m) -> factory.getOWLDataFactory().getOWLSubPropertyChainOfAxiom(m.stream()
@@ -100,7 +100,7 @@ public class SubPropertyChainOfTranslator
      */
     @SuppressWarnings("WeakerAccess")
     public static class AxiomImpl
-            extends WithListImpl<OWLSubPropertyChainOfAxiom, OntOPE>
+            extends WithListImpl<OWLSubPropertyChainOfAxiom, OntObjectProperty>
             implements WithList.Sequent<OWLSubPropertyChainOfAxiom,
             OWLObjectPropertyExpression, OWLObjectPropertyExpression>, OWLSubPropertyChainOfAxiom {
 
@@ -115,8 +115,8 @@ public class SubPropertyChainOfTranslator
         }
 
         @Override
-        protected OntList<OntOPE> findList(OntStatement statement) {
-            return statement.getSubject(OntOPE.class).findPropertyChain(statement.getObject(RDFList.class))
+        protected OntList<OntObjectProperty> findList(OntStatement statement) {
+            return statement.getSubject(OntObjectProperty.class).findPropertyChain(statement.getObject(RDFList.class))
                     .orElseThrow(() -> new OntApiException.IllegalState("Can't find []-list in " + statement));
         }
 
@@ -172,7 +172,7 @@ public class SubPropertyChainOfTranslator
         @Override
         public ONTObject<? extends OWLObjectPropertyExpression> fetchONTSubject(OntStatement statement,
                                                                                 InternalObjectFactory factory) {
-            return factory.getProperty(statement.getSubject(OntOPE.class));
+            return factory.getProperty(statement.getSubject(OntObjectProperty.class));
         }
 
         @FactoryAccessor

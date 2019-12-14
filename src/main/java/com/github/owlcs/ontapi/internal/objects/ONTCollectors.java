@@ -15,6 +15,7 @@
 package com.github.owlcs.ontapi.internal.objects;
 
 import com.github.owlcs.ontapi.internal.ONTObject;
+import com.github.owlcs.ontapi.jena.model.OntClass;
 import org.semanticweb.owlapi.model.*;
 
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -439,7 +440,7 @@ public abstract class ONTCollectors {
      * A visitor to collect {@link OWLClassExpression Class Expressions} in the form of {@code Set}.
      *
      * @see org.semanticweb.owlapi.util.OWLClassExpressionCollector
-     * @see com.github.owlcs.ontapi.jena.model.OntCE
+     * @see OntClass
      */
     protected static class ForClassExpressions extends SetCollector<OWLClassExpression> {
 

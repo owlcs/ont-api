@@ -21,7 +21,7 @@ import com.github.owlcs.ontapi.internal.objects.ONTDataPropertyImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTLiteralImpl;
 import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntNPA;
+import com.github.owlcs.ontapi.jena.model.OntNegativeAssertion;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.owlapi.objects.OWLLiteralImpl;
 import org.apache.jena.graph.BlankNodeId;
@@ -44,18 +44,18 @@ import java.util.stream.Stream;
  * Created by szuev on 12.10.2016.
  */
 public class NegativeDataPropertyAssertionTranslator
-        extends AbstractNegativePropertyAssertionTranslator<OWLNegativeDataPropertyAssertionAxiom, OntNPA.DataAssertion> {
+        extends AbstractNegativePropertyAssertionTranslator<OWLNegativeDataPropertyAssertionAxiom, OntNegativeAssertion.WithDataProperty> {
 
     @Override
-    OntNPA.DataAssertion createNPA(OWLNegativeDataPropertyAssertionAxiom axiom, OntModel model) {
+    OntNegativeAssertion.WithDataProperty createNPA(OWLNegativeDataPropertyAssertionAxiom axiom, OntModel model) {
         return WriteHelper.addDataProperty(model, axiom.getProperty())
                 .addNegativeAssertion(WriteHelper.addIndividual(model, axiom.getSubject()),
                         WriteHelper.addLiteral(model, axiom.getObject()));
     }
 
     @Override
-    Class<OntNPA.DataAssertion> getView() {
-        return OntNPA.DataAssertion.class;
+    Class<OntNegativeAssertion.WithDataProperty> getView() {
+        return OntNegativeAssertion.WithDataProperty.class;
     }
 
     @Override
@@ -70,7 +70,7 @@ public class NegativeDataPropertyAssertionTranslator
     public ONTObject<OWLNegativeDataPropertyAssertionAxiom> toAxiomWrap(OntStatement statement,
                                                                         InternalObjectFactory factory,
                                                                         InternalConfig config) {
-        OntNPA.DataAssertion npa = statement.getSubject(getView());
+        OntNegativeAssertion.WithDataProperty npa = statement.getSubject(getView());
         ONTObject<? extends OWLIndividual> s = factory.getIndividual(npa.getSource());
         ONTObject<OWLDataProperty> p = factory.getProperty(npa.getProperty());
         ONTObject<OWLLiteral> o = factory.getLiteral(npa.getTarget());
@@ -85,7 +85,7 @@ public class NegativeDataPropertyAssertionTranslator
      * @see com.github.owlcs.ontapi.owlapi.axioms.OWLNegativeDataPropertyAssertionAxiomImpl
      */
     public static class AxiomImpl
-            extends NegativeAssertionImpl<OntNPA.DataAssertion, OWLNegativeDataPropertyAssertionAxiom,
+            extends NegativeAssertionImpl<OntNegativeAssertion.WithDataProperty, OWLNegativeDataPropertyAssertionAxiom,
             OWLDataPropertyExpression, OWLLiteral>
             implements OWLNegativeDataPropertyAssertionAxiom {
 
@@ -116,8 +116,8 @@ public class NegativeDataPropertyAssertionTranslator
         }
 
         @Override
-        public Class<OntNPA.DataAssertion> getType() {
-            return OntNPA.DataAssertion.class;
+        public Class<OntNegativeAssertion.WithDataProperty> getType() {
+            return OntNegativeAssertion.WithDataProperty.class;
         }
 
         @SuppressWarnings("rawtypes")

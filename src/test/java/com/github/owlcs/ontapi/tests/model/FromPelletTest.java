@@ -17,7 +17,7 @@ package com.github.owlcs.ontapi.tests.model;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
-import com.github.owlcs.ontapi.jena.model.OntOPE;
+import com.github.owlcs.ontapi.jena.model.OntObjectProperty;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -153,7 +153,7 @@ public class FromPelletTest {
         ReadWriteUtils.print(o);
         o.axioms().map(String::valueOf).forEach(LOGGER::debug);
         Assert.assertEquals("Incorrect count of property chains axioms", 4, o.axioms(AxiomType.SUB_PROPERTY_CHAIN_OF).count());
-        OntOPE p = o.asGraphModel().getObjectProperty("http://www.example.org/test#s");
+        OntObjectProperty p = o.asGraphModel().getObjectProperty("http://www.example.org/test#s");
         Assert.assertEquals("Incorrect count of property chains", 3, p.propertyChains().count());
     }
 

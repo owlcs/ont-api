@@ -18,12 +18,12 @@ import org.apache.jena.rdf.model.RDFNode;
 
 /**
  * A technical generic interface to provide {@link RDFNode} value,
- * which can be either {@link OntCE}, {@link OntDR}, {@link OntIndividual} or {@link org.apache.jena.rdf.model.Literal}.
- * This interface is used to construct {@link OntCE class expression}s and {@link OntDR data range}s as a base.
+ * which can be either {@link OntClass}, {@link OntDataRange}, {@link OntIndividual} or {@link org.apache.jena.rdf.model.Literal}.
+ * This interface is used to construct {@link OntClass class expression}s and {@link OntDataRange data range}s as a base.
  * <p>
  * Created by @ssz on 08.05.2019.
  *
- * @param <V> a subtype of {@link RDFNode}: {@link OntCE}, {@link OntDR}, {@link OntIndividual}
+ * @param <V> a subtype of {@link RDFNode}: {@link OntClass}, {@link OntDataRange}, {@link OntIndividual}
  *            or {@link org.apache.jena.rdf.model.Literal}
  * @see SetValue
  * @since 1.4.0
@@ -32,8 +32,8 @@ interface HasValue<V extends RDFNode> {
 
     /**
      * Gets a RDF-value (a filler in OWL-API terms) encapsulated by this expression
-     * (that can be either {@link OntCE class} or {@link OntDR data range} expression).
-     *
+     * (that can be either {@link OntClass class} or {@link OntDataRange data range} expression).
+     * <p>
      * The result is not {@code null} even if it is a Unqualified Cardinality Restriction,
      * that has no explicit filler in RDF
      * (the filler is expected to be either {@link com.github.owlcs.ontapi.jena.vocabulary.OWL#Thing owl:Thing}

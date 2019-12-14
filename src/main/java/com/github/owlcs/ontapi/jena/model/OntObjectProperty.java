@@ -14,29 +14,26 @@
 
 package com.github.owlcs.ontapi.jena.model;
 
-import org.apache.jena.rdf.model.Literal;
-import org.apache.jena.rdf.model.RDFList;
-import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.vocabulary.RDFS;
 import com.github.owlcs.ontapi.jena.OntJenaException;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
+import org.apache.jena.rdf.model.*;
+import org.apache.jena.vocabulary.RDFS;
 
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * A common interface for any Ontology <b>O</b>bject <b>P</b>roperty <b>E</b>xpression.
+ * A common interface for any Ontology Object Property Expression.
  * In OWL2 there are two types of object property expressions:
  * named object property (entity) and InverseOf anonymous property expression.
  * Range values for this property expression are restricted to individuals
- * (as distinct from datatype valued {@link OntNDP properties}).
+ * (as distinct from datatype valued {@link OntDataProperty properties}).
  * <p>
  * Created by @szuev on 08.11.2016.
  */
-public interface OntOPE extends OntDOP {
+public interface OntObjectProperty extends OntRealProperty {
 
     /**
      * {@inheritDoc}
@@ -49,7 +46,7 @@ public interface OntOPE extends OntDOP {
      * @since 1.4.0
      */
     @Override
-    Stream<OntOPE> superProperties(boolean direct);
+    Stream<OntObjectProperty> superProperties(boolean direct);
 
     /**
      * {@inheritDoc}
@@ -62,7 +59,7 @@ public interface OntOPE extends OntDOP {
      * @since 1.4.0
      */
     @Override
-    Stream<OntOPE> subProperties(boolean direct);
+    Stream<OntObjectProperty> subProperties(boolean direct);
 
     /**
      * Returns a {@code Stream} over all property chain {@link OntList ontology list}s
@@ -72,29 +69,29 @@ public interface OntOPE extends OntDOP {
      * @return {@code Stream} of {@link OntList}s with generic-parameter {@code OntOPE}
      * @since 1.3.0
      */
-    Stream<OntList<OntOPE>> propertyChains();
+    Stream<OntList<OntObjectProperty>> propertyChains();
 
     /**
      * Adds a negative property assertion ontology object.
      *
      * @param source {@link OntIndividual}
      * @param target {@link OntIndividual}
-     * @return {@link OntNPA.ObjectAssertion}
-     * @see OntNDP#addNegativeAssertion(OntIndividual, Literal)
+     * @return {@link OntNegativeAssertion.WithObjectProperty}
+     * @see OntDataProperty#addNegativeAssertion(OntIndividual, Literal)
      */
-    OntNPA.ObjectAssertion addNegativeAssertion(OntIndividual source, OntIndividual target);
+    OntNegativeAssertion.WithObjectProperty addNegativeAssertion(OntIndividual source, OntIndividual target);
 
     /**
      * Creates a property chain logical constructions
-     * as a {@link OntList ontology []-list} of {@link OntOPE Object Property Expression}s
+     * as a {@link OntList ontology []-list} of {@link OntObjectProperty Object Property Expression}s
      * that is attached to this Object Property Expression
      * at object positions with the predicate {@link OWL#propertyChainAxiom owl:propertyChainAxiom}.
      * The resulting rdf-list will consist of all the elements of the specified collection
      * in the given order with the possibility of duplication.
      * Note: Any {@code null}s in collection will cause {@link OntJenaException.IllegalArgument exception}.
      *
-     * @param properties {@link Collection} (preferably {@link List}) of {@link OntOPE object property expression}s
-     * @return {@link OntList} of {@link OntOPE}s
+     * @param properties {@link Collection} (preferably {@link List}) of {@link OntObjectProperty object property expression}s
+     * @return {@link OntList} of {@link OntObjectProperty}s
      * @see <a href='https://www.w3.org/TR/owl2-syntax/#a_SubObjectPropertyOfChain'>9.2.1 Object Subproperties</a>
      * @see #addPropertyChainAxiomStatement(Collection)
      * @see #addPropertyChain(Collection)
@@ -102,7 +99,7 @@ public interface OntOPE extends OntDOP {
      * @see #findPropertyChain(RDFNode)
      * @since 1.3.0
      */
-    OntList<OntOPE> createPropertyChain(Collection<OntOPE> properties);
+    OntList<OntObjectProperty> createPropertyChain(Collection<OntObjectProperty> properties);
 
     /**
      * Deletes the given property chain list including all its annotations.
@@ -114,95 +111,95 @@ public interface OntOPE extends OntDOP {
      * @see #createPropertyChain(Collection)
      * @since 1.3.0
      */
-    OntOPE removePropertyChain(Resource list) throws OntJenaException;
+    OntObjectProperty removePropertyChain(Resource list) throws OntJenaException;
 
     /**
      * Returns all ranges.
      * The statement pattern is {@code P rdfs:range C}, where {@code P} is this object property,
      * and {@code C} is one of the return class expressions.
      *
-     * @return {@code Stream} of {@link OntCE}s
+     * @return {@code Stream} of {@link OntClass}s
      * @since 1.4.0
      */
     @Override
-    default Stream<OntCE> ranges() {
-        return objects(RDFS.range, OntCE.class);
+    default Stream<OntClass> ranges() {
+        return objects(RDFS.range, OntClass.class);
     }
 
     /**
      * Lists all direct super properties, the pattern is {@code P1 rdfs:subPropertyOf P2}.
      *
-     * @return {@code Stream} of {@link OntOPE}s
-     * @see #addSuperProperty(OntOPE)
-     * @see OntPE#removeSuperProperty(Resource)
-     * @see OntPE#superProperties(boolean)
+     * @return {@code Stream} of {@link OntObjectProperty}s
+     * @see #addSuperProperty(OntObjectProperty)
+     * @see OntProperty#removeSuperProperty(Resource)
+     * @see OntProperty#superProperties(boolean)
      * @see #propertyChains()
      * @since 1.4.0
      */
     @Override
-    default Stream<OntOPE> superProperties() {
-        return objects(RDFS.subPropertyOf, OntOPE.class);
+    default Stream<OntObjectProperty> superProperties() {
+        return objects(RDFS.subPropertyOf, OntObjectProperty.class);
     }
 
     /**
      * Returns disjoint properties (statement: {@code P1 owl:propertyDisjointWith P2}).
      *
-     * @return {@code Stream} of {@link OntOPE}s
-     * @see OntNDP#disjointProperties()
+     * @return {@code Stream} of {@link OntObjectProperty}s
+     * @see OntDataProperty#disjointProperties()
      * @see OntDisjoint.ObjectProperties
      * @since 1.4.0
      */
     @Override
-    default Stream<OntOPE> disjointProperties() {
-        return objects(OWL.propertyDisjointWith, OntOPE.class);
+    default Stream<OntObjectProperty> disjointProperties() {
+        return objects(OWL.propertyDisjointWith, OntObjectProperty.class);
     }
 
     /**
      * Returns all equivalent object properties
      * (i.e. {@code Pi owl:equivalentProperty Pj}, where {@code Pi} - this property).
      *
-     * @return {@code Stream} of {@link OntOPE}s.
-     * @see OntNDP#equivalentProperties()
+     * @return {@code Stream} of {@link OntObjectProperty}s.
+     * @see OntDataProperty#equivalentProperties()
      * @since 1.4.0
      */
     @Override
-    default Stream<OntOPE> equivalentProperties() {
-        return objects(OWL.equivalentProperty, OntOPE.class);
+    default Stream<OntObjectProperty> equivalentProperties() {
+        return objects(OWL.equivalentProperty, OntObjectProperty.class);
     }
 
     /**
      * Lists all object properties from the right part of the statement {@code _:this owl:inverseOf P}.
      * Please note: the return list items are not required to be {@link Inverse Inverse Object Property Expression}s.
      *
-     * @return {@code Stream} of {@link OntOPE}s (either {@link Inverse} or {@link OntNOP})
-     * @see OntNOP#createInverse()
+     * @return {@code Stream} of {@link OntObjectProperty}s (either {@link Inverse} or {@link Named})
+     * @see Named#createInverse()
      * @since 1.4.0
      */
-    default Stream<OntOPE> inverseProperties() {
-        return objects(OWL.inverseOf, OntOPE.class);
+    default Stream<OntObjectProperty> inverseProperties() {
+        return objects(OWL.inverseOf, OntObjectProperty.class);
     }
 
     /**
      * Returns all associated negative object property assertions.
      *
-     * @return {@code Stream} of {@link OntNPA.ObjectAssertion}s
-     * @see OntNDP#negativeAssertions()
+     * @return {@code Stream} of {@link OntNegativeAssertion.WithObjectProperty}s
+     * @see OntDataProperty#negativeAssertions()
      * @see OntIndividual#negativeAssertions()
      */
     @Override
-    default Stream<OntNPA.ObjectAssertion> negativeAssertions() {
-        return getModel().ontObjects(OntNPA.ObjectAssertion.class).filter(a -> OntOPE.this.equals(a.getProperty()));
+    default Stream<OntNegativeAssertion.WithObjectProperty> negativeAssertions() {
+        return getModel().ontObjects(OntNegativeAssertion.WithObjectProperty.class).filter(a -> OntObjectProperty.this.equals(a.getProperty()));
     }
 
     /**
      * Returns all associated negative object property assertions for the specified source individual.
      *
      * @param source {@link OntIndividual}
-     * @return {@code Stream} of {@link OntNPA.ObjectAssertion}s
-     * @see OntNDP#negativeAssertions(OntIndividual)
-     * @see OntIndividual#negativeAssertions(OntProperty)
+     * @return {@code Stream} of {@link OntNegativeAssertion.WithObjectProperty}s
+     * @see OntDataProperty#negativeAssertions(OntIndividual)
+     * @see OntIndividual#negativeAssertions(OntNamedProperty)
      */
-    default Stream<OntNPA.ObjectAssertion> negativeAssertions(OntIndividual source) {
+    default Stream<OntNegativeAssertion.WithObjectProperty> negativeAssertions(OntIndividual source) {
         return negativeAssertions().filter(a -> a.getSource().equals(source));
     }
 
@@ -212,11 +209,11 @@ public interface OntOPE extends OntDOP {
      *
      * @param list {@link RDFNode}
      * @return {@code Optional} around the {@link OntList ontology []-list}
-     * with {@link OntOPE object property expression}s as items
+     * with {@link OntObjectProperty object property expression}s as items
      * @since 1.3.0
      */
-    default Optional<OntList<OntOPE>> findPropertyChain(RDFNode list) {
-        try (Stream<OntList<OntOPE>> res = propertyChains().filter(r -> Objects.equals(r, list))) {
+    default Optional<OntList<OntObjectProperty>> findPropertyChain(RDFNode list) {
+        try (Stream<OntList<OntObjectProperty>> res = propertyChains().filter(r -> Objects.equals(r, list))) {
             return res.findFirst();
         }
     }
@@ -229,7 +226,7 @@ public interface OntOPE extends OntDOP {
      * @see #createPropertyChain(Collection)
      * @since 1.3.0
      */
-    default OntOPE clearPropertyChains() {
+    default OntObjectProperty clearPropertyChains() {
         propertyChains().collect(Collectors.toList()).forEach(this::removePropertyChain);
         return this;
     }
@@ -241,12 +238,12 @@ public interface OntOPE extends OntDOP {
      * {@code SubObjectPropertyOf( ObjectPropertyChain( :hasParent :hasParent ) :hasGrandparent )},
      * it returns only {@code :hasParent} property.
      *
-     * @return <b>distinct</b> {@code Stream} of all sub-{@link OntOPE object properties},
+     * @return <b>distinct</b> {@code Stream} of all sub-{@link OntObjectProperty object properties},
      * possible empty in case of nil-list or if there is no property-chains at all
      * @see #propertyChains()
      * @since 1.4.0
      */
-    default Stream<OntOPE> fromPropertyChain() {
+    default Stream<OntObjectProperty> fromPropertyChain() {
         return propertyChains().flatMap(OntList::members).distinct();
     }
 
@@ -256,28 +253,28 @@ public interface OntOPE extends OntDOP {
      * About RDF Graph annotation specification see, for example,
      * <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Translation_of_Annotations'>2.3.1 Axioms that Generate a Main Triple</a>.
      *
-     * @param properties Array of {@link OntOPE}s without {@code null}s
+     * @param properties Array of {@link OntObjectProperty}s without {@code null}s
      * @return {@link OntStatement} to provide the ability to add annotations subsequently
      * @see #createPropertyChain(Collection)
      * @see #addPropertyChainAxiomStatement(Collection)
      * @since 1.4.0
      */
-    default OntStatement addPropertyChainAxiomStatement(OntOPE... properties) {
+    default OntStatement addPropertyChainAxiomStatement(OntObjectProperty... properties) {
         return addPropertyChainAxiomStatement(Arrays.asList(properties));
     }
 
     /**
      * Adds a new sub-property-of chain statement.
      *
-     * @param properties Collection of {@link OntOPE}s
+     * @param properties Collection of {@link OntObjectProperty}s
      * @return {@link OntStatement} (i.e. {@code _:this owl:propertyChainAxiom ( ... )})
      * to provide the ability to add annotations subsequently
      * @see #createPropertyChain(Collection)
-     * @see #addPropertyChainAxiomStatement(OntOPE...)
+     * @see #addPropertyChainAxiomStatement(OntObjectProperty...)
      * @see <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Translation_of_Annotations'>2.3.1 Axioms that Generate a Main Triple</a>
      * @since 1.4.0
      */
-    default OntStatement addPropertyChainAxiomStatement(Collection<OntOPE> properties) {
+    default OntStatement addPropertyChainAxiomStatement(Collection<OntObjectProperty> properties) {
         return createPropertyChain(properties).getRoot();
     }
 
@@ -356,11 +353,11 @@ public interface OntOPE extends OntDOP {
     /**
      * Adds a property range (i.e. {@code P rdfs:range C} statement).
      *
-     * @param range {@link OntCE}, not {@code null}
+     * @param range {@link OntClass}, not {@code null}
      * @return {@link OntStatement} to allow processing annotations
-     * @see #addRange(OntCE)
+     * @see #addRange(OntClass)
      */
-    default OntStatement addRangeStatement(OntCE range) {
+    default OntStatement addRangeStatement(OntClass range) {
         return addStatement(RDFS.range, range);
     }
 
@@ -368,23 +365,23 @@ public interface OntOPE extends OntDOP {
      * Adds the given property as super property returning a new statement to annotate.
      * The triple pattern is {@code this rdfs:subPropertyOf property}).
      *
-     * @param property {@link OntOPE}, not {@code null}
+     * @param property {@link OntObjectProperty}, not {@code null}
      * @return {@link OntStatement} to allow subsequent annotations adding
      */
-    default OntStatement addSubPropertyOfStatement(OntOPE property) {
+    default OntStatement addSubPropertyOfStatement(OntObjectProperty property) {
         return addStatement(RDFS.subPropertyOf, property);
     }
 
     /**
      * Adds a new inverse-of statement.
      *
-     * @param other {@link OntOPE}, not {@code null}
+     * @param other {@link OntObjectProperty}, not {@code null}
      * @return {@link OntStatement} to allow subsequent annotations adding
-     * @see #addInverseProperty(OntOPE)
+     * @see #addInverseProperty(OntObjectProperty)
      * @see #inverseProperties()
      * @since 1.4.0
      */
-    default OntStatement addInverseOfStatement(OntOPE other) {
+    default OntStatement addInverseOfStatement(OntObjectProperty other) {
         return addStatement(OWL.inverseOf, other);
     }
 
@@ -392,68 +389,68 @@ public interface OntOPE extends OntDOP {
      * Creates and returns a new {@link OWL#equivalentProperty owl:equivalentProperty} statement
      * with the given property as an object and this property as a subject.
      *
-     * @param other {@link OntOPE}, not {@code null}
+     * @param other {@link OntObjectProperty}, not {@code null}
      * @return {@link OntStatement} to allow subsequent annotations adding
-     * @see #addEquivalentProperty(OntOPE)
+     * @see #addEquivalentProperty(OntObjectProperty)
      * @see #removeEquivalentProperty(Resource)
-     * @see OntNDP#addEquivalentPropertyStatement(OntNDP)
+     * @see OntDataProperty#addEquivalentPropertyStatement(OntDataProperty)
      * @since 1.4.0
      */
-    default OntStatement addEquivalentPropertyStatement(OntOPE other) {
+    default OntStatement addEquivalentPropertyStatement(OntObjectProperty other) {
         return addStatement(OWL.equivalentProperty, other);
     }
 
     /**
      * Adds a disjoint object property (i.e. the {@code _:this owl:propertyDisjointWith @other} statement).
      *
-     * @param other {@link OntOPE}, not {@code null}
+     * @param other {@link OntObjectProperty}, not {@code null}
      * @return {@link OntStatement} to allow subsequent annotations adding
-     * @see #addDisjointProperty(OntOPE)
+     * @see #addDisjointProperty(OntObjectProperty)
      * @see #removeDisjointProperty(Resource)
-     * @see OntNDP#addPropertyDisjointWithStatement(OntNDP)
+     * @see OntDataProperty#addPropertyDisjointWithStatement(OntDataProperty)
      * @see OntDisjoint.ObjectProperties
      * @since 1.4.0
      */
-    default OntStatement addPropertyDisjointWithStatement(OntOPE other) {
+    default OntStatement addPropertyDisjointWithStatement(OntObjectProperty other) {
         return addStatement(OWL.propertyDisjointWith, other);
     }
 
     /**
      * Adds the given property as super property returning this property itself.
      *
-     * @param property {@link OntNDP}, not {@code null}
+     * @param property {@link OntDataProperty}, not {@code null}
      * @return <b>this</b> instance to allow cascading calls
-     * @see OntPE#removeSuperProperty(Resource)
+     * @see OntProperty#removeSuperProperty(Resource)
      * @since 1.4.0
      */
-    default OntOPE addSuperProperty(OntOPE property) {
+    default OntObjectProperty addSuperProperty(OntObjectProperty property) {
         addSubPropertyOfStatement(property);
         return this;
     }
 
     /**
      * Adds a statement with the {@link RDFS#range} as predicate
-     * and the specified {@link OntCE class expression} as an object.
+     * and the specified {@link OntClass class expression} as an object.
      *
-     * @param range {@link OntCE}, not {@code null}
+     * @param range {@link OntClass}, not {@code null}
      * @return <b>this</b> instance to allow cascading calls
-     * @see #addRangeStatement(OntCE)
+     * @see #addRangeStatement(OntClass)
      */
-    default OntOPE addRange(OntCE range) {
+    default OntObjectProperty addRange(OntClass range) {
         addRangeStatement(range);
         return this;
     }
 
     /**
      * Adds a statement with the {@link RDFS#domain} as predicate
-     * and the specified {@link OntCE class expression} as an object.
+     * and the specified {@link OntClass class expression} as an object.
      *
-     * @param ce {@link OntCE}, not {@code null}
+     * @param ce {@link OntClass}, not {@code null}
      * @return <b>this</b> instance to allow cascading calls
-     * @see #addDomainStatement(OntCE)
+     * @see #addDomainStatement(OntClass)
      */
     @Override
-    default OntOPE addDomain(OntCE ce) {
+    default OntObjectProperty addDomain(OntClass ce) {
         addDomainStatement(ce);
         return this;
     }
@@ -461,13 +458,13 @@ public interface OntOPE extends OntDOP {
     /**
      * Adds a new {@link OWL#equivalentProperty owl:equivalentProperty} statement.
      *
-     * @param other {@link OntOPE}, not {@code null}
+     * @param other {@link OntObjectProperty}, not {@code null}
      * @return <b>this</b> instance to allow cascading calls
-     * @see #addEquivalentPropertyStatement(OntOPE)
-     * @see OntDOP#removeEquivalentProperty(Resource)
-     * @see OntNDP#addEquivalentProperty(OntNDP)
+     * @see #addEquivalentPropertyStatement(OntObjectProperty)
+     * @see OntRealProperty#removeEquivalentProperty(Resource)
+     * @see OntDataProperty#addEquivalentProperty(OntDataProperty)
      */
-    default OntOPE addEquivalentProperty(OntOPE other) {
+    default OntObjectProperty addEquivalentProperty(OntObjectProperty other) {
         addEquivalentPropertyStatement(other);
         return this;
     }
@@ -476,15 +473,15 @@ public interface OntOPE extends OntDOP {
      * Adds a new {@link OWL#propertyDisjointWith owl:propertyDisjointWith} statement
      * for this and the specified property.
      *
-     * @param other {@link OntNDP}, not {@code null}
-     * @return {@link OntNDP} <b>this</b> instance to allow cascading calls
-     * @see #addPropertyDisjointWithStatement(OntOPE)
-     * @see OntNDP#addDisjointProperty(OntNDP)
-     * @see OntDOP#removeDisjointProperty(Resource)
+     * @param other {@link OntDataProperty}, not {@code null}
+     * @return {@link OntDataProperty} <b>this</b> instance to allow cascading calls
+     * @see #addPropertyDisjointWithStatement(OntObjectProperty)
+     * @see OntDataProperty#addDisjointProperty(OntDataProperty)
+     * @see OntRealProperty#removeDisjointProperty(Resource)
      * @see OntDisjoint.ObjectProperties
      * @since 1.4.0
      */
-    default OntOPE addDisjointProperty(OntOPE other) {
+    default OntObjectProperty addDisjointProperty(OntObjectProperty other) {
         addPropertyDisjointWithStatement(other);
         return this;
     }
@@ -492,13 +489,13 @@ public interface OntOPE extends OntDOP {
     /**
      * Adds a new inverse-of statement, returns this property instance.
      *
-     * @param other {@link OntOPE}, not {@code null}
+     * @param other {@link OntObjectProperty}, not {@code null}
      * @return <b>this</b> instance to allow cascading calls
-     * @see #addInverseOfStatement(OntOPE)
+     * @see #addInverseOfStatement(OntObjectProperty)
      * @see #removeInverseProperty(Resource)
      * @since 1.4.0
      */
-    default OntOPE addInverseProperty(OntOPE other) {
+    default OntObjectProperty addInverseProperty(OntObjectProperty other) {
         addInverseOfStatement(other);
         return this;
     }
@@ -507,13 +504,13 @@ public interface OntOPE extends OntDOP {
      * Adds a new sub-property-of chain statement and returns this object itself.
      * Note: the method saves a collection order with possible duplicates.
      *
-     * @param properties an {@code Array} of {@link OntOPE object properties}
+     * @param properties an {@code Array} of {@link OntObjectProperty object properties}
      * @return <b>this</b> instance to allow cascading calls
      * @see #addPropertyChainAxiomStatement(Collection)
      * @see #addPropertyChain(Collection)
      * @since 1.4.0
      */
-    default OntOPE addPropertyChain(OntOPE... properties) {
+    default OntObjectProperty addPropertyChain(OntObjectProperty... properties) {
         return addPropertyChain(Arrays.asList(properties));
     }
 
@@ -521,13 +518,13 @@ public interface OntOPE extends OntDOP {
      * Adds a new sub-property-of chain statement and returns this object itself.
      * Note: the method saves a collection order with possible duplicates.
      *
-     * @param properties a {@code Collection} of {@link OntOPE object properties}
+     * @param properties a {@code Collection} of {@link OntObjectProperty object properties}
      * @return <b>this</b> instance to allow cascading calls
      * @see #addPropertyChainAxiomStatement(Collection)
-     * @see #addPropertyChain(OntOPE...)
+     * @see #addPropertyChain(OntObjectProperty...)
      * @since 1.4.0
      */
-    default OntOPE addPropertyChain(Collection<OntOPE> properties) {
+    default OntObjectProperty addPropertyChain(Collection<OntObjectProperty> properties) {
         createPropertyChain(properties);
         return this;
     }
@@ -536,7 +533,7 @@ public interface OntOPE extends OntDOP {
      * {@inheritDoc}
      */
     @Override
-    default OntOPE removeSuperProperty(Resource property) {
+    default OntObjectProperty removeSuperProperty(Resource property) {
         remove(RDFS.subPropertyOf, property);
         return this;
     }
@@ -545,7 +542,7 @@ public interface OntOPE extends OntDOP {
      * {@inheritDoc}
      */
     @Override
-    default OntOPE removeEquivalentProperty(Resource property) {
+    default OntObjectProperty removeEquivalentProperty(Resource property) {
         remove(OWL.equivalentProperty, property);
         return this;
     }
@@ -554,7 +551,7 @@ public interface OntOPE extends OntDOP {
      * {@inheritDoc}
      */
     @Override
-    default OntOPE removeDisjointProperty(Resource property) {
+    default OntObjectProperty removeDisjointProperty(Resource property) {
         remove(OWL.propertyDisjointWith, property);
         return this;
     }
@@ -563,7 +560,7 @@ public interface OntOPE extends OntDOP {
      * {@inheritDoc}
      */
     @Override
-    default OntOPE removeDomain(Resource domain) {
+    default OntObjectProperty removeDomain(Resource domain) {
         remove(RDFS.domain, domain);
         return this;
     }
@@ -572,7 +569,7 @@ public interface OntOPE extends OntDOP {
      * {@inheritDoc}
      */
     @Override
-    default OntOPE removeRange(Resource range) {
+    default OntObjectProperty removeRange(Resource range) {
         remove(RDFS.range, range);
         return this;
     }
@@ -583,12 +580,12 @@ public interface OntOPE extends OntDOP {
      * If the argument is {@code null}, all {@code owl:inverseOf} statements will be removed for this object property.
      * No-op in case there is no {@code owl:inverseOf} statements.
      *
-     * @param other {@link OntOPE} or {@code null}  to remove all {@code owl:inverseOf} statements
+     * @param other {@link OntObjectProperty} or {@code null}  to remove all {@code owl:inverseOf} statements
      * @return <b>this</b> instance to allow cascading calls
-     * @see #addInverseProperty(OntOPE)
+     * @see #addInverseProperty(OntObjectProperty)
      * @since 1.4.0
      */
-    default OntOPE removeInverseProperty(Resource other) {
+    default OntObjectProperty removeInverseProperty(Resource other) {
         remove(OWL.inverseOf, other);
         return this;
     }
@@ -597,7 +594,7 @@ public interface OntOPE extends OntDOP {
      * {@inheritDoc}
      */
     @Override
-    default OntOPE setFunctional(boolean functional) {
+    default OntObjectProperty setFunctional(boolean functional) {
         if (functional) {
             addFunctionalDeclaration();
         } else {
@@ -615,7 +612,7 @@ public interface OntOPE extends OntDOP {
      * @return <b>this</b> instance to allow cascading calls
      * @see #addInverseFunctionalDeclaration()
      */
-    default OntOPE setInverseFunctional(boolean inverseFunctional) {
+    default OntObjectProperty setInverseFunctional(boolean inverseFunctional) {
         if (inverseFunctional) {
             addInverseFunctionalDeclaration();
         } else {
@@ -633,7 +630,7 @@ public interface OntOPE extends OntDOP {
      * @return <b>this</b> instance to allow cascading calls
      * @see #addTransitiveDeclaration()
      */
-    default OntOPE setTransitive(boolean transitive) {
+    default OntObjectProperty setTransitive(boolean transitive) {
         if (transitive) {
             addTransitiveDeclaration();
         } else {
@@ -651,7 +648,7 @@ public interface OntOPE extends OntDOP {
      * @return <b>this</b> instance to allow cascading calls
      * @see #addSymmetricDeclaration()
      */
-    default OntOPE setSymmetric(boolean symmetric) {
+    default OntObjectProperty setSymmetric(boolean symmetric) {
         if (symmetric) {
             addSymmetricDeclaration();
         } else {
@@ -669,7 +666,7 @@ public interface OntOPE extends OntDOP {
      * @return <b>this</b> instance to allow cascading calls
      * @see #addAsymmetricDeclaration()
      */
-    default OntOPE setAsymmetric(boolean asymmetric) {
+    default OntObjectProperty setAsymmetric(boolean asymmetric) {
         if (asymmetric) {
             addAsymmetricDeclaration();
         } else {
@@ -687,7 +684,7 @@ public interface OntOPE extends OntDOP {
      * @return <b>this</b> instance to allow cascading calls
      * @see #addReflexiveDeclaration()
      */
-    default OntOPE setReflexive(boolean reflexive) {
+    default OntObjectProperty setReflexive(boolean reflexive) {
         if (reflexive) {
             addReflexiveDeclaration();
         } else {
@@ -705,7 +702,7 @@ public interface OntOPE extends OntDOP {
      * @return <b>this</b> instance to allow cascading calls
      * @see #addIrreflexiveDeclaration()
      */
-    default OntOPE setIrreflexive(boolean irreflexive) {
+    default OntObjectProperty setIrreflexive(boolean irreflexive) {
         if (irreflexive) {
             addIrreflexiveDeclaration();
         } else {
@@ -718,17 +715,17 @@ public interface OntOPE extends OntDOP {
      * Finds the <b>first</b> object property
      * from the right part of the statements {@code _:x owl:inverseOf PN} or {@code P1 owl:inverseOf P2}.
      * Here {@code _:x} is an anonymous object property expression (i.e. {@link Inverse Inverse Object Property}),
-     * {@code PN} is a {@link OntNOP named object property}
+     * {@code PN} is a {@link Named named object property}
      * and {@code P1}, {@code P2} are any object property expressions.
      * What exactly is the first statement is defined at the level of model; in general it is unpredictable.
      *
-     * @return {@code Optional} of {@link OntOPE}
+     * @return {@code Optional} of {@link OntObjectProperty}
      * @see #inverseProperties()
      * @see Inverse#getDirect()
      * @since 1.4.0
      */
-    default Optional<OntOPE> findInverseProperty() {
-        try (Stream<OntOPE> res = inverseProperties()) {
+    default Optional<OntObjectProperty> findInverseProperty() {
+        try (Stream<OntObjectProperty> res = inverseProperties()) {
             return res.findFirst();
         }
     }
@@ -779,16 +776,39 @@ public interface OntOPE extends OntDOP {
      * Represents a <a href="http://www.w3.org/TR/owl2-syntax/#Inverse_Object_Properties">ObjectInverseOf</a>.
      * Anonymous triple {@code _:x owl:inverseOf PN} which is also object property expression.
      */
-    interface Inverse extends OntOPE {
+    interface Inverse extends OntObjectProperty {
 
         /**
          * Returns a named object property companion.
-         * Every {@link Inverse} property has its own {@link OntNOP} property.
+         * Every {@link Inverse} property has its own {@link Named} property.
          * The triple pattern is {@code _:x owl:inverseOf PN}.
          *
-         * @return {@link OntNDP}, not {@code null}
+         * @return {@link OntDataProperty}, not {@code null}
          */
-        OntNOP getDirect();
+        Named getDirect();
     }
 
+    /**
+     * Interface encapsulating an Ontology Named Object Property.
+     * It is an URI-{@link Resource Resource} and an extension to the standard jena {@link Property}.
+     * Also? it is an {@link OntEntity OWL Entity} and {@link OntRealProperty real ontology property}.
+     * <p>
+     * Created by szuev on 01.11.2016.
+     *
+     * @see <a href='https://www.w3.org/TR/owl2-syntax/#Object_Properties'>5.3 Object Properties</a>
+     */
+    interface Named extends OntObjectProperty, OntNamedProperty<Named> {
+
+        /**
+         * Creates or finds an inverse of this property.
+         * The searching is performed only in the base graph,
+         * so it is possible to have more than one anonymous object property expressions
+         * in case the named companion belongs to some sub-graph.
+         * For a single-graph model a named object property can be answered
+         * by one and only one {@code Inverse} object property expression.
+         *
+         * @return {@link Inverse} - an anonymous {@link OntObjectProperty} resource (fresh or existing)
+         */
+        Inverse createInverse();
+    }
 }

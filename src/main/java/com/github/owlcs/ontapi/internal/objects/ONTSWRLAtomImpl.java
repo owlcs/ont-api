@@ -82,25 +82,25 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
     public static ONTSWRLAtomImpl<?, ?> create(BlankNodeId id,
                                                Class<? extends OntSWRL.Atom<?>> type,
                                                Supplier<OntModel> model) {
-        if (type == OntSWRL.Atom.BuiltIn.class) {
+        if (type == OntSWRL.Atom.WithBuiltin.class) {
             return new BN(id, model);
         }
-        if (type == OntSWRL.Atom.OntClass.class) {
+        if (type == OntSWRL.Atom.WithClass.class) {
             return new CU(id, model);
         }
-        if (type == OntSWRL.Atom.DataRange.class) {
+        if (type == OntSWRL.Atom.WithDataRange.class) {
             return new DU(id, model);
         }
-        if (type == OntSWRL.Atom.ObjectProperty.class) {
+        if (type == OntSWRL.Atom.WithObjectProperty.class) {
             return new OPB(id, model);
         }
-        if (type == OntSWRL.Atom.DataProperty.class) {
+        if (type == OntSWRL.Atom.WithDataProperty.class) {
             return new DPB(id, model);
         }
-        if (type == OntSWRL.Atom.DifferentIndividuals.class) {
+        if (type == OntSWRL.Atom.WithDifferentIndividuals.class) {
             return new DIB(id, model);
         }
-        if (type == OntSWRL.Atom.SameIndividuals.class) {
+        if (type == OntSWRL.Atom.WithSameIndividuals.class) {
             return new SIB(id, model);
         }
         throw new OntApiException.IllegalState();
@@ -238,17 +238,17 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
 
     /**
      * @see com.github.owlcs.ontapi.owlapi.objects.swrl.SWRLBuiltInAtomImpl
-     * @see OntSWRL.Atom.BuiltIn
+     * @see OntSWRL.Atom.WithBuiltin
      */
-    public static class BN extends ONTSWRLAtomImpl<OntSWRL.Atom.BuiltIn, SWRLBuiltInAtom> implements SWRLBuiltInAtom {
+    public static class BN extends ONTSWRLAtomImpl<OntSWRL.Atom.WithBuiltin, SWRLBuiltInAtom> implements SWRLBuiltInAtom {
 
         protected BN(BlankNodeId n, Supplier<OntModel> m) {
             super(n, m);
         }
 
         @Override
-        public OntSWRL.Atom.BuiltIn asRDFNode() {
-            return as(OntSWRL.Atom.BuiltIn.class);
+        public OntSWRL.Atom.WithBuiltin asRDFNode() {
+            return as(OntSWRL.Atom.WithBuiltin.class);
         }
 
         @Override
@@ -289,7 +289,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
         }
 
         @Override
-        protected Object[] collectContent(OntSWRL.Atom.BuiltIn atom, InternalObjectFactory factory) {
+        protected Object[] collectContent(OntSWRL.Atom.WithBuiltin atom, InternalObjectFactory factory) {
             IRI predicate = factory.toIRI(atom.getPredicate().getURI());
             List<Object> res = new ArrayList<>();
             res.add(predicate);
@@ -300,7 +300,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
         }
 
         @Override
-        protected Object[] initContent(OntSWRL.Atom.BuiltIn atom, InternalObjectFactory factory) {
+        protected Object[] initContent(OntSWRL.Atom.WithBuiltin atom, InternalObjectFactory factory) {
             IRI predicate = factory.toIRI(atom.getPredicate().getURI());
             List<Object> res = new ArrayList<>();
             res.add(predicate);
@@ -364,10 +364,10 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
 
     /**
      * @see com.github.owlcs.ontapi.owlapi.objects.swrl.SWRLClassAtomImpl
-     * @see OntSWRL.Atom.OntClass
+     * @see OntSWRL.Atom.WithClass
      */
     public static class CU
-            extends Unary<OntCE, OntSWRL.IArg, OntSWRL.Atom.OntClass, OWLClassExpression, SWRLIArgument, SWRLClassAtom>
+            extends Unary<OntClass, OntSWRL.IArg, OntSWRL.Atom.WithClass, OWLClassExpression, SWRLIArgument, SWRLClassAtom>
             implements SWRLClassAtom {
 
         protected CU(BlankNodeId n, Supplier<OntModel> m) {
@@ -375,12 +375,12 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
         }
 
         @Override
-        public OntSWRL.Atom.OntClass asRDFNode() {
-            return as(OntSWRL.Atom.OntClass.class);
+        public OntSWRL.Atom.WithClass asRDFNode() {
+            return as(OntSWRL.Atom.WithClass.class);
         }
 
         @Override
-        ONTObject<? extends OWLClassExpression> mapPredicate(OntCE predicate, InternalObjectFactory factory) {
+        ONTObject<? extends OWLClassExpression> mapPredicate(OntClass predicate, InternalObjectFactory factory) {
             return factory.getClass(predicate);
         }
 
@@ -412,10 +412,10 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
 
     /**
      * @see com.github.owlcs.ontapi.owlapi.objects.swrl.SWRLDataRangeAtomImpl
-     * @see OntSWRL.Atom.DataRange
+     * @see OntSWRL.Atom.WithDataRange
      */
     public static class DU
-            extends Unary<OntDR, OntSWRL.DArg, OntSWRL.Atom.DataRange, OWLDataRange, SWRLDArgument, SWRLDataRangeAtom>
+            extends Unary<OntDataRange, OntSWRL.DArg, OntSWRL.Atom.WithDataRange, OWLDataRange, SWRLDArgument, SWRLDataRangeAtom>
             implements SWRLDataRangeAtom {
 
         protected DU(BlankNodeId n, Supplier<OntModel> m) {
@@ -423,12 +423,12 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
         }
 
         @Override
-        public OntSWRL.Atom.DataRange asRDFNode() {
-            return as(OntSWRL.Atom.DataRange.class);
+        public OntSWRL.Atom.WithDataRange asRDFNode() {
+            return as(OntSWRL.Atom.WithDataRange.class);
         }
 
         @Override
-        ONTObject<? extends OWLDataRange> mapPredicate(OntDR dr, InternalObjectFactory factory) {
+        ONTObject<? extends OWLDataRange> mapPredicate(OntDataRange dr, InternalObjectFactory factory) {
             return factory.getDatatype(dr);
         }
 
@@ -505,10 +505,10 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
 
     /**
      * @see com.github.owlcs.ontapi.owlapi.objects.swrl.SWRLSameIndividualAtomImpl
-     * @see OntSWRL.Atom.SameIndividuals
+     * @see OntSWRL.Atom.WithSameIndividuals
      */
     public static class SIB
-            extends ObjectBinary<OntNOP, OWLObjectProperty, OntSWRL.Atom.SameIndividuals, SWRLSameIndividualAtom>
+            extends ObjectBinary<OntObjectProperty.Named, OWLObjectProperty, OntSWRL.Atom.WithSameIndividuals, SWRLSameIndividualAtom>
             implements SWRLSameIndividualAtom {
 
         protected SIB(BlankNodeId n, Supplier<OntModel> m) {
@@ -516,12 +516,12 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
         }
 
         @Override
-        public OntSWRL.Atom.SameIndividuals asRDFNode() {
-            return as(OntSWRL.Atom.SameIndividuals.class);
+        public OntSWRL.Atom.WithSameIndividuals asRDFNode() {
+            return as(OntSWRL.Atom.WithSameIndividuals.class);
         }
 
         @Override
-        protected Object[] collectContent(OntSWRL.Atom.SameIndividuals obj, InternalObjectFactory factory) {
+        protected Object[] collectContent(OntSWRL.Atom.WithSameIndividuals obj, InternalObjectFactory factory) {
             return new Object[]{factory.getProperty(obj.getPredicate()),
                     factory.getSWRLArgument(obj.getFirstArg()), factory.getSWRLArgument(obj.getSecondArg())};
         }
@@ -539,10 +539,10 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
 
     /**
      * @see com.github.owlcs.ontapi.owlapi.objects.swrl.SWRLDifferentIndividualsAtomImpl
-     * @see OntSWRL.Atom.DifferentIndividuals
+     * @see OntSWRL.Atom.WithDifferentIndividuals
      */
     public static class DIB
-            extends ObjectBinary<OntNOP, OWLObjectProperty, OntSWRL.Atom.DifferentIndividuals, SWRLDifferentIndividualsAtom>
+            extends ObjectBinary<OntObjectProperty.Named, OWLObjectProperty, OntSWRL.Atom.WithDifferentIndividuals, SWRLDifferentIndividualsAtom>
             implements SWRLDifferentIndividualsAtom {
 
         protected DIB(BlankNodeId n, Supplier<OntModel> m) {
@@ -550,12 +550,12 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
         }
 
         @Override
-        public OntSWRL.Atom.DifferentIndividuals asRDFNode() {
-            return as(OntSWRL.Atom.DifferentIndividuals.class);
+        public OntSWRL.Atom.WithDifferentIndividuals asRDFNode() {
+            return as(OntSWRL.Atom.WithDifferentIndividuals.class);
         }
 
         @Override
-        protected Object[] collectContent(OntSWRL.Atom.DifferentIndividuals obj, InternalObjectFactory factory) {
+        protected Object[] collectContent(OntSWRL.Atom.WithDifferentIndividuals obj, InternalObjectFactory factory) {
             return new Object[]{factory.getProperty(obj.getPredicate()),
                     factory.getSWRLArgument(obj.getFirstArg()), factory.getSWRLArgument(obj.getSecondArg())};
         }
@@ -573,12 +573,12 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
 
     /**
      * @see com.github.owlcs.ontapi.owlapi.objects.swrl.SWRLDataPropertyAtomImpl
-     * @see OntSWRL.Atom.DataProperty
+     * @see OntSWRL.Atom.WithDataProperty
      */
-    public static class DPB extends Binary<OntNDP,
+    public static class DPB extends Binary<OntDataProperty,
             OntSWRL.IArg,
             OntSWRL.DArg,
-            OntSWRL.Atom.DataProperty,
+            OntSWRL.Atom.WithDataProperty,
             OWLDataProperty,
             SWRLIArgument,
             SWRLDArgument,
@@ -590,18 +590,18 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
         }
 
         @Override
-        public OntSWRL.Atom.DataProperty asRDFNode() {
-            return as(OntSWRL.Atom.DataProperty.class);
+        public OntSWRL.Atom.WithDataProperty asRDFNode() {
+            return as(OntSWRL.Atom.WithDataProperty.class);
         }
 
         @Override
-        protected Object[] collectContent(OntSWRL.Atom.DataProperty obj, InternalObjectFactory factory) {
+        protected Object[] collectContent(OntSWRL.Atom.WithDataProperty obj, InternalObjectFactory factory) {
             return new Object[]{factory.getProperty(obj.getPredicate()),
                     factory.getSWRLArgument(obj.getFirstArg()), factory.getSWRLArgument(obj.getSecondArg())};
         }
 
         @Override
-        ONTObject<? extends OWLDataProperty> mapPredicate(OntNDP p, InternalObjectFactory factory) {
+        ONTObject<? extends OWLDataProperty> mapPredicate(OntDataProperty p, InternalObjectFactory factory) {
             return factory.getProperty(p);
         }
 
@@ -663,10 +663,10 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
 
     /**
      * @see com.github.owlcs.ontapi.owlapi.objects.swrl.SWRLObjectPropertyAtomImpl
-     * @see OntSWRL.Atom.ObjectProperty
+     * @see OntSWRL.Atom.WithObjectProperty
      */
     public static class OPB
-            extends ObjectBinary<OntOPE, OWLObjectPropertyExpression, OntSWRL.Atom.ObjectProperty, SWRLObjectPropertyAtom>
+            extends ObjectBinary<OntObjectProperty, OWLObjectPropertyExpression, OntSWRL.Atom.WithObjectProperty, SWRLObjectPropertyAtom>
             implements SWRLObjectPropertyAtom {
 
         protected OPB(BlankNodeId n, Supplier<OntModel> m) {
@@ -674,8 +674,8 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
         }
 
         @Override
-        public OntSWRL.Atom.ObjectProperty asRDFNode() {
-            return as(OntSWRL.Atom.ObjectProperty.class);
+        public OntSWRL.Atom.WithObjectProperty asRDFNode() {
+            return as(OntSWRL.Atom.WithObjectProperty.class);
         }
 
         @FactoryAccessor
@@ -698,7 +698,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
         }
 
         @Override
-        protected Object[] collectContent(OntSWRL.Atom.ObjectProperty obj, InternalObjectFactory factory) {
+        protected Object[] collectContent(OntSWRL.Atom.WithObjectProperty obj, InternalObjectFactory factory) {
             return new Object[]{factory.getProperty(obj.getPredicate()),
                     factory.getSWRLArgument(obj.getFirstArg()), factory.getSWRLArgument(obj.getSecondArg())};
         }
@@ -712,12 +712,12 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
     /**
      * An abstract object binary atom.
      *
-     * @param <ONT_P> - subtype of {@link OntOPE}
+     * @param <ONT_P> - subtype of {@link OntObjectProperty}
      * @param <OWL_P> - subtype of {@link OWLObjectPropertyExpression} that matches {@link ONT_P}
      * @param <ONT_R> - subtype of {@link OntSWRL.Atom.Binary}
      * @param <OWL_R> - subtype of {@link SWRLBinaryAtom} that matches {@link ONT_R}
      */
-    protected abstract static class ObjectBinary<ONT_P extends OntOPE,
+    protected abstract static class ObjectBinary<ONT_P extends OntObjectProperty,
             OWL_P extends OWLObjectPropertyExpression,
             ONT_R extends OntSWRL.Atom.Binary<ONT_P, OntSWRL.IArg, OntSWRL.IArg>,
             OWL_R extends SWRLBinaryAtom<SWRLIArgument, SWRLIArgument>>

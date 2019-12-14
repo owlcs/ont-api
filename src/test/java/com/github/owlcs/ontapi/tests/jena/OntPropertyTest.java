@@ -28,7 +28,7 @@ import java.util.Arrays;
 
 /**
  * To test properties:
- * {@link OntProperty}, {@link OntPE} ({@link OntOPE}, {@link OntNOP}, {@link OntNDP}, {@link OntDOP}, {@link OntNAP}).
+ * {@link OntNamedProperty}, {@link OntProperty} ({@link OntObjectProperty}, {@link OntObjectProperty.Named}, {@link OntDataProperty}, {@link OntRealProperty}, {@link OntAnnotationProperty}).
  * <p>
  * Created by @ssz on 08.05.2019.
  */
@@ -40,8 +40,8 @@ public class OntPropertyTest {
         String ns = "http://test.com/graph/7#";
 
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD).setNsPrefix("test", ns);
-        OntNAP a1 = m.createAnnotationProperty(ns + "a-p-1");
-        OntNAP a2 = m.createAnnotationProperty(ns + "a-p-2");
+        OntAnnotationProperty a1 = m.createAnnotationProperty(ns + "a-p-1");
+        OntAnnotationProperty a2 = m.createAnnotationProperty(ns + "a-p-2");
         m.createObjectProperty(ns + "o-p-1");
         m.createObjectProperty(ns + "o-p-2").createInverse();
         m.createObjectProperty(ns + "o-p-3").createInverse().addComment("Anonymous property expression");
@@ -53,24 +53,24 @@ public class OntPropertyTest {
 
         ReadWriteUtils.print(m);
         OntModelTest.simplePropertiesValidation(m);
-        Assert.assertEquals(9, m.ontObjects(OntProperty.class).count());
-        Assert.assertEquals(11, m.ontObjects(OntPE.class).count());
-        Assert.assertEquals(9, m.ontObjects(OntDOP.class).count());
+        Assert.assertEquals(9, m.ontObjects(OntNamedProperty.class).count());
+        Assert.assertEquals(11, m.ontObjects(OntProperty.class).count());
+        Assert.assertEquals(9, m.ontObjects(OntRealProperty.class).count());
     }
 
     @Test
     public void testListPropertyHierarchy() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntNDP da = m.createDataProperty("dA");
-        OntNDP db = m.createDataProperty("dB");
+        OntDataProperty da = m.createDataProperty("dA");
+        OntDataProperty db = m.createDataProperty("dB");
 
-        OntNOP oa = m.createObjectProperty("oA");
-        OntOPE.Inverse iob = m.createObjectProperty("oB").createInverse();
-        OntNOP oc = m.createObjectProperty("oC");
+        OntObjectProperty.Named oa = m.createObjectProperty("oA");
+        OntObjectProperty.Inverse iob = m.createObjectProperty("oB").createInverse();
+        OntObjectProperty.Named oc = m.createObjectProperty("oC");
 
-        OntNAP aa = m.createAnnotationProperty("aA");
-        OntNAP ab = m.createAnnotationProperty("aB");
-        OntNAP ac = m.createAnnotationProperty("aC");
+        OntAnnotationProperty aa = m.createAnnotationProperty("aA");
+        OntAnnotationProperty ab = m.createAnnotationProperty("aB");
+        OntAnnotationProperty ac = m.createAnnotationProperty("aC");
 
         da.addSuperProperty(db);
         db.addSuperProperty(m.getOWLBottomDataProperty());
@@ -109,7 +109,7 @@ public class OntPropertyTest {
     @Test
     public void testAnnotationPropertyDomainsAndRanges() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntNAP p = m.createAnnotationProperty("A");
+        OntAnnotationProperty p = m.createAnnotationProperty("A");
         Assert.assertNotNull(p.addRangeStatement(m.getRDFSComment()));
         Assert.assertNotNull(p.addDomainStatement(m.getRDFSComment()));
         Assert.assertSame(p, p.addDomain(m.getOWLThing()).addRange(m.getOWLNothing()).addDomain(m.getRDFSLabel()));
@@ -124,9 +124,9 @@ public class OntPropertyTest {
     @Test
     public void testDataPropertyDomainsAndRanges() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntClass c = m.createOntClass("C");
-        OntDT d = m.getDatatype(XSD.xstring);
-        OntNDP p = m.createDataProperty("D");
+        OntClass.Named c = m.createOntClass("C");
+        OntDataRange.Named d = m.getDatatype(XSD.xstring);
+        OntDataProperty p = m.createDataProperty("D");
         Assert.assertNotNull(p.addRangeStatement(m.getRDFSLiteral()));
         Assert.assertNotNull(p.addDomainStatement(m.getOWLNothing()));
         Assert.assertSame(p, p.addDomain(m.getOWLThing()).addRange(d).addDomain(c));
@@ -144,8 +144,8 @@ public class OntPropertyTest {
     @Test
     public void testObjectPropertyDomainsAndRanges() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntClass c = m.createOntClass("C");
-        OntNOP p = m.createObjectProperty("O");
+        OntClass.Named c = m.createOntClass("C");
+        OntObjectProperty.Named p = m.createObjectProperty("O");
         Assert.assertNotNull(p.addRangeStatement(m.getOWLThing()));
         Assert.assertNotNull(p.addDomainStatement(m.getOWLNothing()));
         Assert.assertSame(p, p.addDomain(m.getOWLThing()).addRange(m.getOWLNothing()).addDomain(c));
@@ -163,7 +163,7 @@ public class OntPropertyTest {
     @Test
     public void testAnnotationSuperProperties() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntNAP p = m.createAnnotationProperty("A");
+        OntAnnotationProperty p = m.createAnnotationProperty("A");
         Assert.assertNotNull(p.addSubPropertyOfStatement(m.getRDFSComment()));
         Assert.assertSame(p, p.addSuperProperty(m.getRDFSLabel())
                 .addSuperProperty(m.getAnnotationProperty(RDFS.seeAlso)));
@@ -178,8 +178,8 @@ public class OntPropertyTest {
     @Test
     public void testDataSuperProperties() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntNDP p1 = m.createDataProperty("D");
-        OntNDP p2 = m.createDataProperty("P");
+        OntDataProperty p1 = m.createDataProperty("D");
+        OntDataProperty p2 = m.createDataProperty("P");
         Assert.assertNotNull(p1.addSubPropertyOfStatement(m.getOWLBottomDataProperty()));
         Assert.assertSame(p1, p1.addSuperProperty(m.getOWLTopDataProperty())
                 .addSuperProperty(p2));
@@ -194,8 +194,8 @@ public class OntPropertyTest {
     @Test
     public void testObjectSuperProperties() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntNOP p1 = m.createObjectProperty("O");
-        OntNOP p2 = m.createObjectProperty("P");
+        OntObjectProperty.Named p1 = m.createObjectProperty("O");
+        OntObjectProperty.Named p2 = m.createObjectProperty("P");
         Assert.assertNotNull(p1.addSubPropertyOfStatement(m.getOWLBottomObjectProperty()));
         Assert.assertSame(p1, p1.addSuperProperty(m.getOWLTopObjectProperty())
                 .addSuperProperty(p2));
@@ -210,7 +210,7 @@ public class OntPropertyTest {
     @Test
     public void testDataPropertyAdditionalDeclarations() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntNDP p = m.createDataProperty("P");
+        OntDataProperty p = m.createDataProperty("P");
         Assert.assertNotNull(p.addFunctionalDeclaration());
         Assert.assertTrue(p.isFunctional());
         Assert.assertSame(p, p.setFunctional(false));
@@ -220,14 +220,14 @@ public class OntPropertyTest {
     @Test
     public void testObjectPropertyAdditionalDeclarations() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntNOP p = m.createObjectProperty("P");
-        Assert.assertNotNull(p.addFunctionalDeclaration().getSubject(OntOPE.class)
-                .addInverseFunctionalDeclaration().getSubject(OntOPE.class)
-                .addAsymmetricDeclaration().getSubject(OntOPE.class)
-                .addSymmetricDeclaration().getSubject(OntOPE.class)
-                .addReflexiveDeclaration().getSubject(OntOPE.class)
-                .addIrreflexiveDeclaration().getSubject(OntOPE.class)
-                .addTransitiveDeclaration().getSubject(OntOPE.class));
+        OntObjectProperty.Named p = m.createObjectProperty("P");
+        Assert.assertNotNull(p.addFunctionalDeclaration().getSubject(OntObjectProperty.class)
+                .addInverseFunctionalDeclaration().getSubject(OntObjectProperty.class)
+                .addAsymmetricDeclaration().getSubject(OntObjectProperty.class)
+                .addSymmetricDeclaration().getSubject(OntObjectProperty.class)
+                .addReflexiveDeclaration().getSubject(OntObjectProperty.class)
+                .addIrreflexiveDeclaration().getSubject(OntObjectProperty.class)
+                .addTransitiveDeclaration().getSubject(OntObjectProperty.class));
 
         Assert.assertTrue(p.isFunctional());
         Assert.assertTrue(p.isInverseFunctional());
@@ -259,9 +259,9 @@ public class OntPropertyTest {
     @Test
     public void testPropertyChains() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntNOP p = m.createObjectProperty("P");
-        OntNOP p1 = m.createObjectProperty("P1");
-        OntNOP p2 = m.createObjectProperty("P2");
+        OntObjectProperty.Named p = m.createObjectProperty("P");
+        OntObjectProperty.Named p1 = m.createObjectProperty("P1");
+        OntObjectProperty.Named p2 = m.createObjectProperty("P2");
         Assert.assertNotNull(p.addPropertyChainAxiomStatement());
         Assert.assertSame(p, p.addPropertyChain());
         Assert.assertEquals(0, p.fromPropertyChain().count());
@@ -272,9 +272,9 @@ public class OntPropertyTest {
     @Test
     public void testObjectPropertyInverseOf() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntNOP a = m.createObjectProperty("A");
-        OntNOP b = m.createObjectProperty("B");
-        OntNOP c = m.createObjectProperty("C");
+        OntObjectProperty.Named a = m.createObjectProperty("A");
+        OntObjectProperty.Named b = m.createObjectProperty("B");
+        OntObjectProperty.Named c = m.createObjectProperty("C");
         Assert.assertNotNull(a.addInverseOfStatement(b));
         Assert.assertEquals(b, a.findInverseProperty().orElseThrow(AssertionError::new));
         Assert.assertEquals(1, a.inverseProperties().count());
@@ -289,9 +289,9 @@ public class OntPropertyTest {
     @Test
     public void testDataPropertyEquivalentProperties() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntNDP a = m.createDataProperty("A");
-        OntNDP b = m.createDataProperty("B");
-        OntNDP c = m.createDataProperty("C");
+        OntDataProperty a = m.createDataProperty("A");
+        OntDataProperty b = m.createDataProperty("B");
+        OntDataProperty c = m.createDataProperty("C");
         Assert.assertNotNull(a.addEquivalentPropertyStatement(b));
         Assert.assertSame(a, a.addEquivalentProperty(c).addEquivalentProperty(m.getOWLBottomDataProperty()));
         Assert.assertEquals(3, a.equivalentProperties().count());
@@ -304,9 +304,9 @@ public class OntPropertyTest {
     @Test
     public void testObjectPropertyEquivalentProperties() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntNOP a = m.createObjectProperty("A");
-        OntNOP b = m.createObjectProperty("B");
-        OntNOP c = m.createObjectProperty("C");
+        OntObjectProperty.Named a = m.createObjectProperty("A");
+        OntObjectProperty.Named b = m.createObjectProperty("B");
+        OntObjectProperty.Named c = m.createObjectProperty("C");
         Assert.assertNotNull(a.addEquivalentPropertyStatement(b));
         Assert.assertSame(a, a.addEquivalentProperty(c).addEquivalentProperty(m.getOWLTopObjectProperty()));
         Assert.assertEquals(3, a.equivalentProperties().count());
@@ -319,9 +319,9 @@ public class OntPropertyTest {
     @Test
     public void testDataPropertyDisjointProperties() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntNDP a = m.createDataProperty("A");
-        OntNDP b = m.createDataProperty("B");
-        OntNDP c = m.createDataProperty("C");
+        OntDataProperty a = m.createDataProperty("A");
+        OntDataProperty b = m.createDataProperty("B");
+        OntDataProperty c = m.createDataProperty("C");
         Assert.assertNotNull(a.addPropertyDisjointWithStatement(b));
         Assert.assertSame(a, a.addDisjointProperty(c).addDisjointProperty(m.getOWLBottomDataProperty()));
         Assert.assertEquals(3, a.disjointProperties().count());
@@ -334,9 +334,9 @@ public class OntPropertyTest {
     @Test
     public void testObjectPropertyDisjointProperties() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntNOP a = m.createObjectProperty("A");
-        OntNOP b = m.createObjectProperty("B");
-        OntNOP c = m.createObjectProperty("C");
+        OntObjectProperty.Named a = m.createObjectProperty("A");
+        OntObjectProperty.Named b = m.createObjectProperty("B");
+        OntObjectProperty.Named c = m.createObjectProperty("C");
         Assert.assertNotNull(a.addPropertyDisjointWithStatement(b));
         Assert.assertSame(a, a.addDisjointProperty(c).addDisjointProperty(m.getOWLTopObjectProperty()));
         Assert.assertEquals(3, a.disjointProperties().count());

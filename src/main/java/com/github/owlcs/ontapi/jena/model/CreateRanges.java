@@ -20,7 +20,7 @@ import java.util.Arrays;
 import java.util.Collection;
 
 /**
- * A technical interface to generate {@link OntDR Data Range Expression}s.
+ * A technical interface to generate {@link OntDataRange Data Range Expression}s.
  * Created by @szz on 14.05.2019.
  *
  * @since 1.4.0
@@ -36,10 +36,10 @@ interface CreateRanges {
      * }</pre>
      *
      * @param values {@code Collection} of {@link Literal literal}s, without {@code null}s
-     * @return {@link OntDR.OneOf}
+     * @return {@link OntDataRange.OneOf}
      * @see <a href='https://www.w3.org/TR/owl-syntax/#Enumeration_of_Literals'>7.4 Enumeration of Literals</a>
      */
-    OntDR.OneOf createOneOfDataRange(Collection<Literal> values);
+    OntDataRange.OneOf createOneOfDataRange(Collection<Literal> values);
 
     /**
      * Creates a Datatype Restriction.
@@ -51,14 +51,14 @@ interface CreateRanges {
      * _:xj fj vj .
      * }</pre>
      *
-     * @param other  {@link OntDT}, not {@code null}
-     * @param values {@code Collection} of {@link OntFR facet restriction}s, without {@code null}s
-     * @return {@link OntDR.Restriction}
+     * @param other  {@link OntDataRange.Named}, not {@code null}
+     * @param values {@code Collection} of {@link OntFacetRestriction facet restriction}s, without {@code null}s
+     * @return {@link OntDataRange.Restriction}
      * @see <a href='https://www.w3.org/TR/owl-syntax/#Datatype_Restrictions'>7.5 Datatype Restrictions</a>
-     * @see OntFR
+     * @see OntFacetRestriction
      * @see OntModel#createFacetRestriction(Class, Literal)
      */
-    OntDR.Restriction createRestrictionDataRange(OntDT other, Collection<OntFR> values);
+    OntDataRange.Restriction createRestrictionDataRange(OntDataRange.Named other, Collection<OntFacetRestriction> values);
 
     /**
      * Creates a Complement of Data Ranges.
@@ -68,11 +68,11 @@ interface CreateRanges {
      * _:x owl:datatypeComplementOf D .
      * }</pre>
      *
-     * @param other {@link OntDR}, not {@code null}
-     * @return {@link OntDR.ComplementOf}
+     * @param other {@link OntDataRange}, not {@code null}
+     * @return {@link OntDataRange.ComplementOf}
      * @see <a href='https://www.w3.org/TR/owl-syntax/#Complement_of_Data_Ranges'>7.3 Complement of Data Ranges</a>
      */
-    OntDR.ComplementOf createComplementOfDataRange(OntDR other);
+    OntDataRange.ComplementOf createComplementOfDataRange(OntDataRange other);
 
     /**
      * Creates an Union of Data Ranges.
@@ -82,11 +82,11 @@ interface CreateRanges {
      * _:x owl:unionOf ( D1 ... Dn ) .
      * }</pre>
      *
-     * @param values {@code Collection} of {@link OntDR data range}s, without {@code null}s
-     * @return {@link OntDR.UnionOf}
+     * @param values {@code Collection} of {@link OntDataRange data range}s, without {@code null}s
+     * @return {@link OntDataRange.UnionOf}
      * @see <a href='https://www.w3.org/TR/owl-syntax/#Union_of_Data_Ranges'>7.2 Union of Data Ranges</a>
      */
-    OntDR.UnionOf createUnionOfDataRange(Collection<OntDR> values);
+    OntDataRange.UnionOf createUnionOfDataRange(Collection<OntDataRange> values);
 
     /**
      * Creates an Intersection of Data Ranges.
@@ -96,58 +96,58 @@ interface CreateRanges {
      * _:x owl:intersectionOf ( D1 ... Dn ) .
      * }</pre>
      *
-     * @param values {@code Collection} of {@link OntDR data range}s, without {@code null}s
-     * @return {@link OntDR.IntersectionOf}
+     * @param values {@code Collection} of {@link OntDataRange data range}s, without {@code null}s
+     * @return {@link OntDataRange.IntersectionOf}
      * @see <a href='https://www.w3.org/TR/owl-syntax/#Intersection_of_Data_Ranges'>7.1 Intersection of Data Ranges</a>
      */
-    OntDR.IntersectionOf createIntersectionOfDataRange(Collection<OntDR> values);
+    OntDataRange.IntersectionOf createIntersectionOfDataRange(Collection<OntDataRange> values);
 
     /**
      * Creates an Enumeration of Literals.
      *
      * @param values Array of {@link Literal literal}s, without {@code null}-elements
-     * @return {@link OntDR.OneOf}
+     * @return {@link OntDataRange.OneOf}
      * @see #createOneOfDataRange(Collection)
      * @since 1.4.0
      */
-    default OntDR.OneOf createOneOfDataRange(Literal... values) {
+    default OntDataRange.OneOf createOneOfDataRange(Literal... values) {
         return createOneOfDataRange(Arrays.asList(values));
     }
 
     /**
      * Creates a Datatype Restriction.
      *
-     * @param other  {@link OntDT Named Data Range}, not {@code null}
-     * @param values Array of {@link OntFR facet restriction}s, without {@code null}s
-     * @return {@link OntDR.Restriction}
-     * @see #createRestrictionDataRange(OntDT, Collection)
+     * @param other  {@link OntDataRange.Named Named Data Range}, not {@code null}
+     * @param values Array of {@link OntFacetRestriction facet restriction}s, without {@code null}s
+     * @return {@link OntDataRange.Restriction}
+     * @see #createRestrictionDataRange(OntDataRange.Named, Collection)
      * @since 1.4.0
      */
-    default OntDR.Restriction createRestrictionDataRange(OntDT other, OntFR... values) {
+    default OntDataRange.Restriction createRestrictionDataRange(OntDataRange.Named other, OntFacetRestriction... values) {
         return createRestrictionDataRange(other, Arrays.asList(values));
     }
 
     /**
      * Creates an Union of Data Ranges.
      *
-     * @param values {@code Collection} of {@link OntDR data range}s, without {@code null}-elements
-     * @return {@link OntDR.UnionOf}
+     * @param values {@code Collection} of {@link OntDataRange data range}s, without {@code null}-elements
+     * @return {@link OntDataRange.UnionOf}
      * @see #createUnionOfDataRange(Collection)
      * @since 1.4.0
      */
-    default OntDR.UnionOf createUnionOfDataRange(OntDR... values) {
+    default OntDataRange.UnionOf createUnionOfDataRange(OntDataRange... values) {
         return createUnionOfDataRange(Arrays.asList(values));
     }
 
     /**
      * Creates an Intersection of Data Ranges.
      *
-     * @param values Array of {@link OntDR data range}s, without {@code null}-elements
-     * @return {@link OntDR.IntersectionOf}
+     * @param values Array of {@link OntDataRange data range}s, without {@code null}-elements
+     * @return {@link OntDataRange.IntersectionOf}
      * @see #createIntersectionOfDataRange(Collection)
      * @since 1.4.0
      */
-    default OntDR.IntersectionOf createIntersectionOfDataRange(OntDR... values) {
+    default OntDataRange.IntersectionOf createIntersectionOfDataRange(OntDataRange... values) {
         return createIntersectionOfDataRange(Arrays.asList(values));
     }
 }

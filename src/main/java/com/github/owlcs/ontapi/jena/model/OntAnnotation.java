@@ -55,7 +55,7 @@ public interface OntAnnotation extends OntObject {
 
     /**
      * Returns the annotations assertions attached to this annotation resource.
-     * The annotation assertion is a statements with an {@link OntNAP annotation property} as predicate.
+     * The annotation assertion is a statements with an {@link OntAnnotationProperty annotation property} as predicate.
      * The example above contains two such statements:
      * {@code _:x rdfs:comment "some comment 1"} and {@code _:x rdfs:comment "some comment 2"@fr}.
      *
@@ -99,13 +99,12 @@ public interface OntAnnotation extends OntObject {
      * If this annotation object already has a sub-annotation for the statement {@code this x y},
      * the new triple will be added to the existing anonymous resource.
      *
-     * @param property {@link OntNAP}
+     * @param property {@link OntAnnotationProperty}
      * @param value    {@link RDFNode}
      * @return {@link OntStatement} - an annotation assertion belonging to this object
-     * @see OntStatement#addAnnotation(OntNAP, RDFNode)
-     * @see OntObject#addAnnotation(OntNAP, RDFNode)
+     * @see OntStatement#addAnnotation(OntAnnotationProperty, RDFNode)
+     * @see OntObject#addAnnotation(OntAnnotationProperty, RDFNode)
      */
     @Override
-    OntStatement addAnnotation(OntNAP property, RDFNode value);
-
+    OntStatement addAnnotation(OntAnnotationProperty property, RDFNode value);
 }

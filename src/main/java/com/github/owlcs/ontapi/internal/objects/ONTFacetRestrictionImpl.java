@@ -17,7 +17,7 @@ package com.github.owlcs.ontapi.internal.objects;
 import com.github.owlcs.ontapi.internal.InternalObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.ReadHelper;
-import com.github.owlcs.ontapi.jena.model.OntFR;
+import com.github.owlcs.ontapi.jena.model.OntFacetRestriction;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
 import org.apache.jena.graph.BlankNodeId;
@@ -35,26 +35,26 @@ import java.util.stream.Stream;
  * Created by @ssz on 20.08.2019.
  *
  * @see com.github.owlcs.ontapi.owlapi.objects.OWLFacetRestrictionImpl
- * @see OntFR
+ * @see OntFacetRestriction
  * @since 2.0.0
  */
 @SuppressWarnings("WeakerAccess")
 public class ONTFacetRestrictionImpl
-        extends ONTExpressionImpl<OntFR> implements OWLFacetRestriction, ModelObject<OWLFacetRestriction> {
+        extends ONTExpressionImpl<OntFacetRestriction> implements OWLFacetRestriction, ModelObject<OWLFacetRestriction> {
 
     public ONTFacetRestrictionImpl(BlankNodeId n, Supplier<OntModel> m) {
         super(n, m);
     }
 
     /**
-     * Wraps the given {@link OntFR} as {@link OWLFacetRestriction} and {@link ONTObject}.
+     * Wraps the given {@link OntFacetRestriction} as {@link OWLFacetRestriction} and {@link ONTObject}.
      *
-     * @param fr      {@link OntFR}, not {@code null}
+     * @param fr      {@link OntFacetRestriction}, not {@code null}
      * @param factory {@link InternalObjectFactory}, not {@code null}
      * @param model   a provider of non-null {@link OntModel}, cannot be {@code null}
      * @return {@link ONTFacetRestrictionImpl}
      */
-    public static ONTFacetRestrictionImpl create(OntFR fr,
+    public static ONTFacetRestrictionImpl create(OntFacetRestriction fr,
                                                  InternalObjectFactory factory,
                                                  Supplier<OntModel> model) {
         ONTFacetRestrictionImpl res = new ONTFacetRestrictionImpl(fr.asNode().getBlankNodeId(), model);
@@ -63,8 +63,8 @@ public class ONTFacetRestrictionImpl
     }
 
     @Override
-    public OntFR asRDFNode() {
-        return as(OntFR.class);
+    public OntFacetRestriction asRDFNode() {
+        return as(OntFacetRestriction.class);
     }
 
     @Override
@@ -73,13 +73,13 @@ public class ONTFacetRestrictionImpl
     }
 
     @Override
-    protected Object[] collectContent(OntFR fr, InternalObjectFactory factory) {
-        Class<? extends OntFR> type = OntModels.getOntType(fr);
+    protected Object[] collectContent(OntFacetRestriction fr, InternalObjectFactory factory) {
+        Class<? extends OntFacetRestriction> type = OntModels.getOntType(fr);
         return new Object[]{ReadHelper.getFacet(type), fr.getValue().asNode().getLiteral()};
     }
 
     @Override
-    protected Object[] initContent(OntFR fr, InternalObjectFactory factory) {
+    protected Object[] initContent(OntFacetRestriction fr, InternalObjectFactory factory) {
         OWLFacet facet = ReadHelper.getFacet(OntModels.getOntType(fr));
         Literal value = fr.getValue();
         int hash = OWLObject.hashIteration(hashIndex(), facet.hashCode());

@@ -69,7 +69,7 @@ public class IndividualsOntModelTest extends OntModelTestBase {
         debug(owl);
 
         Assert.assertEquals("OWL: incorrect classes count", classesCount + individualsCount, owl.axioms(AxiomType.DECLARATION).count());
-        Assert.assertEquals("Jena: incorrect classes count.", classesCount, jena.ontEntities(OntClass.class).count());
+        Assert.assertEquals("Jena: incorrect classes count.", classesCount, jena.ontEntities(OntClass.Named.class).count());
         Assert.assertEquals("OWL: incorrect individuals count", individualsCount, owl.axioms(AxiomType.CLASS_ASSERTION).count());
         Assert.assertEquals("Jena: incorrect individuals count.", individualsCount, jena.ontObjects(OntIndividual.class).count());
 

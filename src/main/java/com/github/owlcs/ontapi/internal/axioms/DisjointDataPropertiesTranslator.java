@@ -21,9 +21,9 @@ import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
+import com.github.owlcs.ontapi.jena.model.OntDataProperty;
 import com.github.owlcs.ontapi.jena.model.OntDisjoint;
 import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntNDP;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
@@ -51,7 +51,7 @@ import java.util.stream.Stream;
  * Created by szuev on 12.10.2016.
  */
 public class DisjointDataPropertiesTranslator
-        extends AbstractTwoWayNaryTranslator<OWLDisjointDataPropertiesAxiom, OWLDataPropertyExpression, OntNDP> {
+        extends AbstractTwoWayNaryTranslator<OWLDisjointDataPropertiesAxiom, OWLDataPropertyExpression, OntDataProperty> {
 
     private static final Property PREDICATE = OWL.propertyDisjointWith;
 
@@ -61,8 +61,8 @@ public class DisjointDataPropertiesTranslator
     }
 
     @Override
-    Class<OntNDP> getView() {
-        return OntNDP.class;
+    Class<OntDataProperty> getView() {
+        return OntDataProperty.class;
     }
 
     @Override

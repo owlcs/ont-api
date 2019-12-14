@@ -18,8 +18,8 @@ import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTDataPropertyImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
+import com.github.owlcs.ontapi.jena.model.OntDataProperty;
 import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntNDP;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import org.apache.jena.graph.Triple;
 import org.semanticweb.owlapi.model.*;
@@ -35,7 +35,7 @@ import java.util.function.Supplier;
  * <p>
  * Created by @szuev on 30.09.2016.
  */
-public class SubDataPropertyOfTranslator extends AbstractSubPropertyTranslator<OWLSubDataPropertyOfAxiom, OntNDP> {
+public class SubDataPropertyOfTranslator extends AbstractSubPropertyTranslator<OWLSubDataPropertyOfAxiom, OntDataProperty> {
 
     @Override
     OWLPropertyExpression getSubProperty(OWLSubDataPropertyOfAxiom axiom) {
@@ -48,8 +48,8 @@ public class SubDataPropertyOfTranslator extends AbstractSubPropertyTranslator<O
     }
 
     @Override
-    Class<OntNDP> getView() {
-        return OntNDP.class;
+    Class<OntDataProperty> getView() {
+        return OntDataProperty.class;
     }
 
     @Override
@@ -64,8 +64,8 @@ public class SubDataPropertyOfTranslator extends AbstractSubPropertyTranslator<O
     public ONTObject<OWLSubDataPropertyOfAxiom> toAxiomWrap(OntStatement statement,
                                                             InternalObjectFactory factory,
                                                             InternalConfig config) {
-        ONTObject<OWLDataProperty> sub = factory.getProperty(statement.getSubject(OntNDP.class));
-        ONTObject<OWLDataProperty> sup = factory.getProperty(statement.getObject().as(OntNDP.class));
+        ONTObject<OWLDataProperty> sub = factory.getProperty(statement.getSubject(OntDataProperty.class));
+        ONTObject<OWLDataProperty> sup = factory.getProperty(statement.getObject().as(OntDataProperty.class));
         Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);
         OWLSubDataPropertyOfAxiom res = factory.getOWLDataFactory()
                 .getOWLSubDataPropertyOfAxiom(sub.getOWLObject(), sup.getOWLObject(), ONTObject.toSet(annotations));
@@ -103,13 +103,13 @@ public class SubDataPropertyOfTranslator extends AbstractSubPropertyTranslator<O
         @Override
         public ONTObject<? extends OWLDataPropertyExpression> subjectFromStatement(OntStatement statement,
                                                                                    InternalObjectFactory factory) {
-            return factory.getProperty(statement.getSubject(OntNDP.class));
+            return factory.getProperty(statement.getSubject(OntDataProperty.class));
         }
 
         @Override
         public ONTObject<? extends OWLDataPropertyExpression> objectFromStatement(OntStatement statement,
                                                                                   InternalObjectFactory factory) {
-            return factory.getProperty(statement.getObject(OntNDP.class));
+            return factory.getProperty(statement.getObject(OntDataProperty.class));
         }
 
         @Override

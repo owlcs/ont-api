@@ -17,7 +17,7 @@ package com.github.owlcs.ontapi.internal.axioms;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.*;
 import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntNPA;
+import com.github.owlcs.ontapi.jena.model.OntNegativeAssertion;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
@@ -43,7 +43,7 @@ import java.util.stream.Stream;
  * Created by szuev on 29.11.2016.
  */
 public abstract class AbstractNegativePropertyAssertionTranslator<Axiom extends OWLPropertyAssertionAxiom<?, ?>,
-        NPA extends OntNPA<?, ?>> extends AxiomTranslator<Axiom> {
+        NPA extends OntNegativeAssertion<?, ?>> extends AxiomTranslator<Axiom> {
 
     abstract NPA createNPA(Axiom axiom, OntModel model);
 
@@ -73,14 +73,14 @@ public abstract class AbstractNegativePropertyAssertionTranslator<Axiom extends 
     /**
      * A base for data or object negative assertions
      *
-     * @param <R> - either {@link OntNPA.ObjectAssertion} or {@link OntNPA.DataAssertion}
+     * @param <R> - either {@link OntNegativeAssertion.WithObjectProperty} or {@link OntNegativeAssertion.WithDataProperty}
      * @param <A> - either {@link OWLNegativeObjectPropertyAssertionAxiom}
      *            or {@link OWLNegativeDataPropertyAssertionAxiom}, that matches {@link R}
      * @param <P> - either {@link OWLObjectPropertyExpression} or {@link OWLDataProperty}
      * @param <O> - either {@link OWLIndividual} or {@link OWLLiteral}
      */
     @SuppressWarnings({"WeakerAccess", "rawtypes"})
-    protected static abstract class NegativeAssertionImpl<R extends OntNPA<?, ?>,
+    protected static abstract class NegativeAssertionImpl<R extends OntNegativeAssertion<?, ?>,
             A extends OWLPropertyAssertionAxiom<?, ?>,
             P extends OWLPropertyExpression, O extends OWLObject> extends ONTAxiomImpl<A>
             implements WithAssertion.Complex<NegativeAssertionImpl<?, ?, ?, ?>, OWLIndividual, P, O> {
@@ -108,7 +108,7 @@ public abstract class AbstractNegativePropertyAssertionTranslator<Axiom extends 
         }
 
         /**
-         * Gets the {@link OntNPA} type (object or data).
+         * Gets the {@link OntNegativeAssertion} type (object or data).
          *
          * @return {@code Class} - a type of {@link R}
          */

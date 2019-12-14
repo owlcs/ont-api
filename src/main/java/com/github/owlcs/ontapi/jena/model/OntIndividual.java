@@ -43,10 +43,10 @@ public interface OntIndividual extends OntObject {
      * To delete the individual with its content
      * the the method {@link OntModel#removeOntObject(OntObject)} can be used.
      *
-     * @param clazz {@link OntCE} or {@code null} to remove all class assertions
+     * @param clazz {@link OntClass} or {@code null} to remove all class assertions
      * @return <b>this</b> instance to allow cascading calls
-     * @see #attachClass(OntCE)
-     * @see #addClassAssertion(OntCE)
+     * @see #attachClass(OntClass)
+     * @see #addClassAssertion(OntClass)
      * @see OntModel#removeOntObject(OntObject)
      */
     OntIndividual detachClass(Resource clazz);
@@ -56,16 +56,16 @@ public interface OntIndividual extends OntObject {
      * including super-classes if the flag {@code direct} is {@code false}.
      * If the flag {@code direct} is {@code true}, then only direct types are returned,
      * and the method is effectively equivalent to the method {@link #classes()}.
-     * See also {@link OntCE#superClasses(boolean)}.
+     * See also {@link OntClass#superClasses(boolean)}.
      *
-     * @param direct if {@code true}, only answers those {@link OntCE}s that are direct types of this individual,
+     * @param direct if {@code true}, only answers those {@link OntClass}s that are direct types of this individual,
      *               not the super-classes of the class etc
-     * @return <b>distinct</b> {@code Stream} of {@link OntCE class expressions}
+     * @return <b>distinct</b> {@code Stream} of {@link OntClass class expressions}
      * @see #classes()
-     * @see OntCE#superClasses(boolean)
+     * @see OntClass#superClasses(boolean)
      * @since 1.4.0
      */
-    Stream<OntCE> classes(boolean direct);
+    Stream<OntClass> classes(boolean direct);
 
     /**
      * {@inheritDoc}
@@ -79,11 +79,11 @@ public interface OntIndividual extends OntObject {
     /**
      * Returns all direct class types.
      *
-     * @return {@code Stream} of {@link OntCE}s
+     * @return {@code Stream} of {@link OntClass}s
      * @since 1.4.0
      */
-    default Stream<OntCE> classes() {
-        return objects(RDF.type, OntCE.class);
+    default Stream<OntClass> classes() {
+        return objects(RDF.type, OntClass.class);
     }
 
     /**
@@ -116,52 +116,52 @@ public interface OntIndividual extends OntObject {
      * @return {@code Stream} of {@link OntStatement}s
      */
     default Stream<OntStatement> positiveAssertions() {
-        return statements().filter(s -> s.getPredicate().canAs(OntProperty.class));
+        return statements().filter(s -> s.getPredicate().canAs(OntNamedProperty.class));
     }
 
     /**
      * Lists all positive property assertions for this individual and the given predicate.
      *
-     * @param predicate {@link OntProperty} or {@code null}
+     * @param predicate {@link OntNamedProperty} or {@code null}
      * @return {@code Stream} of {@link OntStatement}s
      * @since 1.4.0
      */
-    default Stream<OntStatement> positiveAssertions(OntProperty predicate) {
+    default Stream<OntStatement> positiveAssertions(OntNamedProperty predicate) {
         return statements(predicate);
     }
 
     /**
      * Lists all negative property assertions for this individual.
      *
-     * @return {@code Stream} of {@link OntNPA negative property assertion}s
+     * @return {@code Stream} of {@link OntNegativeAssertion negative property assertion}s
      */
-    default Stream<OntNPA> negativeAssertions() {
+    default Stream<OntNegativeAssertion> negativeAssertions() {
         return getModel().statements(null, OWL.sourceIndividual, this)
-                .map(x -> x.getSubject().getAs(OntNPA.class))
+                .map(x -> x.getSubject().getAs(OntNegativeAssertion.class))
                 .filter(Objects::nonNull);
     }
 
     /**
      * Lists all negative property assertions for this individual and the given property.
      *
-     * @param property {@link OntProperty} or {@code null}
-     * @return {@code Stream} of {@link OntNPA negative property assertion}s
+     * @param property {@link OntNamedProperty} or {@code null}
+     * @return {@code Stream} of {@link OntNegativeAssertion negative property assertion}s
      * @since 1.4.0
      */
-    default Stream<OntNPA> negativeAssertions(OntProperty property) {
+    default Stream<OntNegativeAssertion> negativeAssertions(OntNamedProperty property) {
         return negativeAssertions().filter(x -> property == null || x.getProperty().equals(property));
     }
 
     /**
      * Creates and returns a class-assertion statement {@code a rdf:type C}, where {@code a} is this individual.
      *
-     * @param clazz {@link OntCE}, not {@code null}
+     * @param clazz {@link OntClass}, not {@code null}
      * @return {@link OntStatement} to allow subsequent annotations adding
-     * @see #attachClass(OntCE)
+     * @see #attachClass(OntClass)
      * @see #detachClass(Resource)
      * @since 1.4.0
      */
-    default OntStatement addClassAssertion(OntCE clazz) {
+    default OntStatement addClassAssertion(OntClass clazz) {
         return addStatement(RDF.type, clazz);
     }
 
@@ -196,12 +196,12 @@ public interface OntIndividual extends OntObject {
     /**
      * Adds a type (class expression) to this individual.
      *
-     * @param clazz {@link OntCE}
+     * @param clazz {@link OntClass}
      * @return <b>this</b> instance to allow cascading calls
-     * @see #addClassAssertion(OntCE)
+     * @see #addClassAssertion(OntClass)
      * @see #detachClass(Resource)
      */
-    default OntIndividual attachClass(OntCE clazz) {
+    default OntIndividual attachClass(OntClass clazz) {
         addClassAssertion(clazz);
         return this;
     }
@@ -243,54 +243,54 @@ public interface OntIndividual extends OntObject {
      * In general case it is {@code s A t}, where {@code s} is IRI or anonymous individual,
      * {@code A} - annotation property, and {@code t} - IRI, anonymous individual, or literal.
      *
-     * @param property {@link OntNAP}
+     * @param property {@link OntAnnotationProperty}
      * @param value    {@link RDFNode} (IRI, anonymous individual, or literal)
      * @return this individual to allow cascading calls
-     * @see #addAnnotation(OntNAP, RDFNode)
-     * @see #removeAssertion(OntProperty, RDFNode)
+     * @see #addAnnotation(OntAnnotationProperty, RDFNode)
+     * @see #removeAssertion(OntNamedProperty, RDFNode)
      */
-    default OntIndividual addAssertion(OntNAP property, RDFNode value) {
+    default OntIndividual addAssertion(OntAnnotationProperty property, RDFNode value) {
         return addProperty(property, value);
     }
 
     /**
      * Adds a positive data property assertion {@code a R v}.
      *
-     * @param property {@link OntNDP}
+     * @param property {@link OntDataProperty}
      * @param value    {@link Literal}
      * @return this individual to allow cascading calls
-     * @see #removeAssertion(OntProperty, RDFNode)
+     * @see #removeAssertion(OntNamedProperty, RDFNode)
      */
-    default OntIndividual addAssertion(OntNDP property, Literal value) {
+    default OntIndividual addAssertion(OntDataProperty property, Literal value) {
         return addProperty(property, value);
     }
 
     /**
      * Adds a positive object property assertion {@code a1 PN a2}.
      *
-     * @param property {@link OntNOP} named object property
+     * @param property {@link OntObjectProperty.Named} named object property
      * @param value    {@link OntIndividual} other individual
      * @return this individual to allow cascading calls
-     * @see #removeAssertion(OntProperty, RDFNode)
+     * @see #removeAssertion(OntNamedProperty, RDFNode)
      */
-    default OntIndividual addAssertion(OntNOP property, OntIndividual value) {
+    default OntIndividual addAssertion(OntObjectProperty.Named property, OntIndividual value) {
         return addProperty(property, value);
     }
 
     /**
      * Adds a property assertion statement.
      * <b>Caution</b>: this method offers a way to add a statement that is contrary to the OWL2 specification.
-     * For example, it is possible to add {@link OntNOP object property}-{@link Literal literal} pair,
+     * For example, it is possible to add {@link OntObjectProperty.Named object property}-{@link Literal literal} pair,
      * that is not object property assertion.
      *
-     * @param property {@link OntProperty}, not {@code null}
+     * @param property {@link OntNamedProperty}, not {@code null}
      * @param value    {@link RDFNode}, not {@code null}
      * @return <b>this</b> instance to allow cascading calls
      * @see Resource#addProperty(Property, RDFNode)
-     * @see #removeAssertion(OntProperty, RDFNode)
+     * @see #removeAssertion(OntNamedProperty, RDFNode)
      * @since 1.4.0
      */
-    default OntIndividual addProperty(OntProperty property, RDFNode value) {
+    default OntIndividual addProperty(OntNamedProperty property, RDFNode value) {
         addStatement(property, value);
         return this;
     }
@@ -308,11 +308,11 @@ public interface OntIndividual extends OntObject {
      * }
      * </pre>
      *
-     * @param property {@link OntOPE}
+     * @param property {@link OntObjectProperty}
      * @param value    {@link OntIndividual} other individual
      * @return <b>this</b> individual to allow cascading calls
      */
-    default OntIndividual addNegativeAssertion(OntOPE property, OntIndividual value) {
+    default OntIndividual addNegativeAssertion(OntObjectProperty property, OntIndividual value) {
         property.addNegativeAssertion(this, value);
         return this;
     }
@@ -330,11 +330,11 @@ public interface OntIndividual extends OntObject {
      * }
      * </pre>
      *
-     * @param property {@link OntNDP}
+     * @param property {@link OntDataProperty}
      * @param value    {@link Literal}
      * @return <b>this</b> individual to allow cascading calls
      */
-    default OntIndividual addNegativeAssertion(OntNDP property, Literal value) {
+    default OntIndividual addNegativeAssertion(OntDataProperty property, Literal value) {
         property.addNegativeAssertion(this, value);
         return this;
     }
@@ -342,17 +342,17 @@ public interface OntIndividual extends OntObject {
     /**
      * Removes a positive property assertion including its annotation.
      *
-     * @param property {@link OntProperty}, can be {@code null} to remove all positive property assertions
+     * @param property {@link OntNamedProperty}, can be {@code null} to remove all positive property assertions
      * @param value    {@link RDFNode} (either {@link OntIndividual} or {@link Literal}),
      *                 can be {@code null} to remove all assertions for the predicate {@code property}
      * @return <b>this</b> instance to allow cascading calls
      * @see OntObject#remove(Property, RDFNode)
-     * @see #addProperty(OntProperty, RDFNode)
+     * @see #addProperty(OntNamedProperty, RDFNode)
      * @since 1.4.0
      */
-    default OntIndividual removeAssertion(OntProperty property, RDFNode value) {
+    default OntIndividual removeAssertion(OntNamedProperty property, RDFNode value) {
         statements(property)
-                .filter(x -> x.getPredicate().canAs(OntProperty.class)
+                .filter(x -> x.getPredicate().canAs(OntNamedProperty.class)
                         && (value == null || value.equals(x.getObject())))
                 .collect(Collectors.toList()).forEach(x -> x.getModel().remove(x.clearAnnotations()));
         return this;
@@ -361,13 +361,13 @@ public interface OntIndividual extends OntObject {
     /**
      * Removes a negative property assertion including its annotation.
      *
-     * @param property {@link OntProperty}, can be {@code null} to remove all negative property assertions
+     * @param property {@link OntNamedProperty}, can be {@code null} to remove all negative property assertions
      * @param value    {@link RDFNode} (either {@link OntIndividual} or {@link Literal}),
      *                 can be {@code null} to remove all assertions for the predicate {@code property}
      * @return <b>this</b> instance to allow cascading calls
      * @since 1.4.0
      */
-    default OntIndividual removeNegativeAssertion(OntProperty property, RDFNode value) {
+    default OntIndividual removeNegativeAssertion(OntNamedProperty property, RDFNode value) {
         negativeAssertions(property)
                 .filter(x -> value == null || value.equals(x.getTarget()))
                 .collect(Collectors.toList())
@@ -446,7 +446,7 @@ public interface OntIndividual extends OntObject {
      * {@inheritDoc}
      */
     @Override
-    default OntIndividual annotate(OntNAP predicate, String txt, String lang) {
+    default OntIndividual annotate(OntAnnotationProperty predicate, String txt, String lang) {
         return annotate(predicate, getModel().createLiteral(txt, lang));
     }
 
@@ -454,7 +454,7 @@ public interface OntIndividual extends OntObject {
      * {@inheritDoc}
      */
     @Override
-    default OntIndividual annotate(OntNAP predicate, RDFNode value) {
+    default OntIndividual annotate(OntAnnotationProperty predicate, RDFNode value) {
         addAnnotation(predicate, value);
         return this;
     }
@@ -463,6 +463,8 @@ public interface OntIndividual extends OntObject {
      * An interface for <b>Named</b> Individual which is an {@link OWL Entity OntEntity}.
      * <p>
      * Created by szuev on 01.11.2016.
+     *
+     * @see <a href='https://www.w3.org/TR/owl2-syntax/#Named_Individuals'>5.6.1 Named Individuals</a>
      */
     interface Named extends OntIndividual, OntEntity {
     }
@@ -472,27 +474,28 @@ public interface OntIndividual extends OntObject {
      * The anonymous individual is a blank node ({@code _:a}) which satisfies one of the following conditions:
      * <ul>
      * <li>it has a class declaration (i.e. there is a triple {@code _:a rdf:type C},
-     * where {@code C} is a {@link OntCE class expression})</li>
+     * where {@code C} is a {@link OntClass class expression})</li>
      * <li>it is a subject or an object in a statement with predicate
      * {@link OWL#sameAs owl:sameAs} or {@link OWL#differentFrom owl:differentFrom}</li>
      * <li>it is contained in a {@code rdf:List} with predicate {@code owl:distinctMembers} or {@code owl:members}
      * in a blank node with {@code rdf:type = owl:AllDifferent}, see {@link OntDisjoint.Individuals}</li>
      * <li>it is contained in a {@code rdf:List} with predicate {@code owl:oneOf}
-     * in a blank node with {@code rdf:type = owl:Class}, see {@link OntCE.OneOf}</li>
-     * <li>it is a part of {@link OntNPA owl:NegativePropertyAssertion} section with predicates
+     * in a blank node with {@code rdf:type = owl:Class}, see {@link OntClass.OneOf}</li>
+     * <li>it is a part of {@link OntNegativeAssertion owl:NegativePropertyAssertion} section with predicates
      * {@link OWL#sourceIndividual owl:sourceIndividual} or {@link OWL#targetIndividual owl:targetIndividual}</li>
      * <li>it is an object with predicate {@code owl:hasValue} inside {@code _:x rdf:type owl:Restriction}
-     * (see {@link OntCE.ObjectHasValue Object Property HasValue Restriction})</li>
+     * (see {@link OntClass.ObjectHasValue Object Property HasValue Restriction})</li>
      * <li>it is a subject or an object in a statement where predicate is
      * an uri-resource with {@code rdf:type = owl:AnnotationProperty}
-     * (i.e. {@link OntNAP annotation property} assertion {@code s A t})</li>
+     * (i.e. {@link OntAnnotationProperty annotation property} assertion {@code s A t})</li>
      * <li>it is a subject in a triple which corresponds data property assertion {@code _:a R v}
-     * (where {@code R} is a {@link OntNDP datatype property}, {@code v} is a {@link Literal literal})</li>
+     * (where {@code R} is a {@link OntDataProperty datatype property}, {@code v} is a {@link Literal literal})</li>
      * <li>it is a subject or an object in a triple which corresponds object property assertion {@code _:a1 PN _:a2}
-     * (where {@code PN} is a {@link OntNOP named object property}, and {@code _:ai} are individuals)</li>
+     * (where {@code PN} is a {@link OntObjectProperty.Named named object property}, and {@code _:ai} are individuals)</li>
      * </ul>
      * <p>
      * Created by szuev on 10.11.2016.
+     * @see <a href='https://www.w3.org/TR/owl2-syntax/#Anonymous_Individuals'>5.6.2 Anonymous Individuals</a>
      */
     interface Anonymous extends OntIndividual {
 
@@ -500,7 +503,7 @@ public interface OntIndividual extends OntObject {
          * {@inheritDoc}
          * For an anonymous individual a primary class assertion is also a definition, so its deletion is prohibited.
          *
-         * @param clazz {@link OntCE}, not {@code null}
+         * @param clazz {@link OntClass}, not {@code null}
          * @return <b>this</b> instance to allow cascading calls
          * @throws OntJenaException in case the individual has only one class assertion and it is for the given class
          */

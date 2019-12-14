@@ -17,7 +17,7 @@ package com.github.owlcs.ontapi.jena.impl;
 import com.github.owlcs.ontapi.jena.OntJenaException;
 import com.github.owlcs.ontapi.jena.impl.conf.ObjectFactory;
 import com.github.owlcs.ontapi.jena.model.OntAnnotation;
-import com.github.owlcs.ontapi.jena.model.OntNAP;
+import com.github.owlcs.ontapi.jena.model.OntAnnotationProperty;
 import com.github.owlcs.ontapi.jena.model.OntObject;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
@@ -157,7 +157,7 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
     }
 
     @Override
-    public OntStatement addAnnotation(OntNAP property, RDFNode value) {
+    public OntStatement addAnnotation(OntAnnotationProperty property, RDFNode value) {
         return getModel().add(this, property, value).createStatement(this, property, value);
     }
 

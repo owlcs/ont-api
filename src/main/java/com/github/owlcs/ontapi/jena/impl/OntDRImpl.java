@@ -14,21 +14,24 @@
 
 package com.github.owlcs.ontapi.jena.impl;
 
+import com.github.owlcs.ontapi.jena.OntJenaException;
+import com.github.owlcs.ontapi.jena.impl.conf.BaseFactoryImpl;
+import com.github.owlcs.ontapi.jena.impl.conf.ObjectFactory;
+import com.github.owlcs.ontapi.jena.impl.conf.OntFilter;
+import com.github.owlcs.ontapi.jena.impl.conf.OntFinder;
+import com.github.owlcs.ontapi.jena.model.OntDataRange;
+import com.github.owlcs.ontapi.jena.model.OntFacetRestriction;
+import com.github.owlcs.ontapi.jena.model.OntObject;
+import com.github.owlcs.ontapi.jena.model.OntStatement;
+import com.github.owlcs.ontapi.jena.utils.Iter;
+import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDFS;
-import com.github.owlcs.ontapi.jena.OntJenaException;
-import com.github.owlcs.ontapi.jena.impl.conf.BaseFactoryImpl;
-import com.github.owlcs.ontapi.jena.impl.conf.ObjectFactory;
-import com.github.owlcs.ontapi.jena.impl.conf.OntFilter;
-import com.github.owlcs.ontapi.jena.impl.conf.OntFinder;
-import com.github.owlcs.ontapi.jena.model.*;
-import com.github.owlcs.ontapi.jena.utils.Iter;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
-import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 
 import java.util.List;
 import java.util.Objects;
@@ -44,7 +47,7 @@ import static com.github.owlcs.ontapi.jena.impl.WrappedFactoryImpl.of;
  * Created by @szuev on 16.11.2016.
  */
 @SuppressWarnings("WeakerAccess")
-public class OntDRImpl extends OntObjectImpl implements OntDR {
+public class OntDRImpl extends OntObjectImpl implements OntDataRange {
 
     private static final OntFinder DR_FINDER = new OntFinder.ByType(RDFS.Datatype);
     private static final OntFilter DR_FILTER = OntFilter.BLANK.and(new OntFilter.HasType(RDFS.Datatype));
@@ -85,7 +88,7 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
         return model.getNodeAs(res.asNode(), OneOf.class);
     }
 
-    public static Restriction createRestriction(OntGraphModelImpl model, OntDT dataType, Stream<OntFR> values) {
+    public static Restriction createRestriction(OntGraphModelImpl model, Named dataType, Stream<OntFacetRestriction> values) {
         OntJenaException.notNull(dataType, "Null data-type.");
         OntJenaException.notNull(values, "Null values stream.");
         Resource res = create(model)
@@ -96,13 +99,13 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
         return model.getNodeAs(res.asNode(), Restriction.class);
     }
 
-    public static ComplementOf createComplementOf(OntGraphModelImpl model, OntDR other) {
+    public static ComplementOf createComplementOf(OntGraphModelImpl model, OntDataRange other) {
         OntJenaException.notNull(other, "Null data range.");
         Resource res = create(model).addProperty(OWL.datatypeComplementOf, other);
         return model.getNodeAs(res.asNode(), ComplementOf.class);
     }
 
-    public static UnionOf createUnionOf(OntGraphModelImpl model, Stream<OntDR> values) {
+    public static UnionOf createUnionOf(OntGraphModelImpl model, Stream<OntDataRange> values) {
         OntJenaException.notNull(values, "Null values stream.");
         Resource res = create(model)
                 .addProperty(OWL.unionOf, model.createList(values
@@ -111,7 +114,7 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
         return model.getNodeAs(res.asNode(), UnionOf.class);
     }
 
-    public static IntersectionOf createIntersectionOf(OntGraphModelImpl model, Stream<OntDR> values) {
+    public static IntersectionOf createIntersectionOf(OntGraphModelImpl model, Stream<OntDataRange> values) {
         OntJenaException.notNull(values, "Null values stream.");
         Resource res = create(model).addProperty(OWL.intersectionOf, model.createList(values
                 .peek(f -> OntJenaException.notNull(f, "OntDR: null data range."))
@@ -130,8 +133,8 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
         }
 
         @Override
-        public OntDR getValue() {
-            return getRequiredObject(OWL.datatypeComplementOf, OntDR.class);
+        public OntDataRange getValue() {
+            return getRequiredObject(OWL.datatypeComplementOf, OntDataRange.class);
         }
 
         @Override
@@ -145,7 +148,7 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
         }
 
         @Override
-        public ComplementOf setValue(OntDR value) {
+        public ComplementOf setValue(OntDataRange value) {
             Objects.requireNonNull(value);
             removeAll(OWL.datatypeComplementOf).addProperty(OWL.datatypeComplementOf, value);
             return this;
@@ -163,9 +166,9 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
         }
     }
 
-    public static class RestrictionImpl extends ComponentsDRImpl<OntFR> implements Restriction {
+    public static class RestrictionImpl extends ComponentsDRImpl<OntFacetRestriction> implements Restriction {
         public RestrictionImpl(Node n, EnhGraph m) {
-            super(n, m, OWL.withRestrictions, OntFR.class);
+            super(n, m, OWL.withRestrictions, OntFacetRestriction.class);
         }
 
         @Override
@@ -174,12 +177,12 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
         }
 
         @Override
-        public OntDT getValue() {
-            return getRequiredObject(OWL.onDatatype, OntDT.class);
+        public Named getValue() {
+            return getRequiredObject(OWL.onDatatype, Named.class);
         }
 
         @Override
-        public RestrictionImpl setValue(OntDT value) {
+        public RestrictionImpl setValue(Named value) {
             Objects.requireNonNull(value);
             removeAll(OWL.onDatatype).addProperty(OWL.onDatatype, value);
             return this;
@@ -192,18 +195,18 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
 
         public ExtendedIterator<OntStatement> withRestrictionsSpec() {
             return Iter.flatMap(getList().listContent(), s -> {
-                if (!s.getObject().canAs(OntFR.class)) {
+                if (!s.getObject().canAs(OntFacetRestriction.class)) {
                     return Iter.of(s);
                 }
-                return Iter.of(s, s.getObject().as(OntFR.class).getRoot());
+                return Iter.of(s, s.getObject().as(OntFacetRestriction.class).getRoot());
             });
         }
 
     }
 
-    public static class UnionOfImpl extends ComponentsDRImpl<OntDR> implements UnionOf {
+    public static class UnionOfImpl extends ComponentsDRImpl<OntDataRange> implements UnionOf {
         public UnionOfImpl(Node n, EnhGraph m) {
-            super(n, m, OWL.unionOf, OntDR.class);
+            super(n, m, OWL.unionOf, OntDataRange.class);
         }
 
         @Override
@@ -212,10 +215,10 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
         }
     }
 
-    public static class IntersectionOfImpl extends ComponentsDRImpl<OntDR> implements IntersectionOf {
+    public static class IntersectionOfImpl extends ComponentsDRImpl<OntDataRange> implements IntersectionOf {
 
         public IntersectionOfImpl(Node n, EnhGraph m) {
-            super(n, m, OWL.intersectionOf, OntDR.class);
+            super(n, m, OWL.intersectionOf, OntDataRange.class);
         }
 
         @Override
@@ -255,7 +258,7 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
     }
 
     /**
-     * A factory to produce {@link OntDR}s.
+     * A factory to produce {@link OntDataRange}s.
      * <p>
      * Although it would be easy to produce this factory using {@link Factories#createFrom(OntFinder, Class[])},
      * this variant with explicit methods must be a little bit faster,
@@ -269,7 +272,7 @@ public class OntDRImpl extends OntObjectImpl implements OntDR {
         private static final Node ANY = Node.ANY;
         private static final Node DATATYPE = RDFS.Datatype.asNode();
 
-        private final ObjectFactory named = of(OntDT.class);
+        private final ObjectFactory named = of(Named.class);
         private final ObjectFactory oneOf = of(OneOf.class);
         private final ObjectFactory complementOf = of(ComplementOf.class);
         private final ObjectFactory unionOf = of(UnionOf.class);

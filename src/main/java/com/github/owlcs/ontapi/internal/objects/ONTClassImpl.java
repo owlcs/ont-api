@@ -63,8 +63,8 @@ public class ONTClassImpl extends ONTEntityImpl<OWLClass> implements OWLClass {
     }
 
     @Override
-    public OntClass asRDFNode() {
-        return as(OntClass.class);
+    public OntClass.Named asRDFNode() {
+        return as(OntClass.Named.class);
     }
 
     @Override

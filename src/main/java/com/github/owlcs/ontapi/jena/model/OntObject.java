@@ -53,7 +53,7 @@ public interface OntObject extends OntResource {
      *
      * @return {@link OntStatement} or {@code null} in some boundary cases (e.g. for builtins)
      * @see OntModel#asStatement(Triple)
-     * @see OntStatement#addAnnotation(OntNAP, RDFNode)
+     * @see OntStatement#addAnnotation(OntAnnotationProperty, RDFNode)
      */
     @Override
     OntStatement getRoot();
@@ -162,18 +162,18 @@ public interface OntObject extends OntResource {
     Stream<RDFNode> objects(Property predicate);
 
     /**
-     * Adds an annotation assertion with the given {@link OntNAP annotation property} as predicate
+     * Adds an annotation assertion with the given {@link OntAnnotationProperty annotation property} as predicate
      * and {@link RDFNode RDF Node} as value.
      * The method is equivalent to the expression {@code getRoot().addAnnotation(property, value)}.
      *
-     * @param property {@link OntNAP} - named annotation property
+     * @param property {@link OntAnnotationProperty} - named annotation property
      * @param value    {@link RDFNode} - the value: uri-resource, literal or anonymous individual
      * @return {@link OntStatement} for newly added annotation
      * to provide the possibility of adding subsequent sub-annotations
      * @throws OntJenaException in case input is wrong
-     * @see OntStatement#addAnnotation(OntNAP, RDFNode)
+     * @see OntStatement#addAnnotation(OntAnnotationProperty, RDFNode)
      */
-    OntStatement addAnnotation(OntNAP property, RDFNode value);
+    OntStatement addAnnotation(OntAnnotationProperty property, RDFNode value);
 
     /**
      * Lists all top-level annotations attached to the root statement of this object.
@@ -182,7 +182,7 @@ public interface OntObject extends OntResource {
      * Sub-annotations are not included into the returned stream.
      * For non-built-in ontology objects this is equivalent to the expression {@code getRoot().annotations()}.
      *
-     * @return {@code Stream} of {@link OntStatement}s that have an {@link OntNAP annotation property} as predicate
+     * @return {@code Stream} of {@link OntStatement}s that have an {@link OntAnnotationProperty annotation property} as predicate
      * @see OntStatement#annotations()
      * @see OntAnnotation#assertions()
      */
@@ -195,14 +195,14 @@ public interface OntObject extends OntResource {
      * a literal with the tag {@code en-GB} will listed also if the input language tag is {@code en}.
      * An empty string as language tag means searching for plain no-language literals.
      *
-     * @param predicate {@link OntNAP}, not {@code null}
+     * @param predicate {@link OntAnnotationProperty}, not {@code null}
      * @param lang      String, the language tag to restrict the listed literals to,
      *                  or {@code null} to select all literals
      * @return {@code Stream} of String's, i.e. literal lexical forms
-     * @see #annotationValues(OntNAP)
+     * @see #annotationValues(OntAnnotationProperty)
      * @since 1.3.2
      */
-    Stream<String> annotationValues(OntNAP predicate, String lang);
+    Stream<String> annotationValues(OntAnnotationProperty predicate, String lang);
 
     /**
      * Removes all root annotations including their sub-annotations hierarchy.
@@ -256,12 +256,12 @@ public interface OntObject extends OntResource {
     /**
      * Lists all annotation values for the given predicate.
      *
-     * @param predicate {@link OntNAP}, not {@code null}
+     * @param predicate {@link OntAnnotationProperty}, not {@code null}
      * @return {@code Stream} of {@link RDFNode}s
      * @see #annotations()
      * @since 1.3.2
      */
-    default Stream<RDFNode> annotationValues(OntNAP predicate) {
+    default Stream<RDFNode> annotationValues(OntAnnotationProperty predicate) {
         return annotations()
                 .filter(s -> Objects.equals(predicate, s.getPredicate()))
                 .map(Statement::getObject);
@@ -270,36 +270,36 @@ public interface OntObject extends OntResource {
     /**
      * Adds no-lang annotation assertion.
      *
-     * @param predicate   {@link OntNAP} predicate
+     * @param predicate   {@link OntAnnotationProperty} predicate
      * @param lexicalForm String, the literal lexical form, not {@code null}
      * @return {@link OntStatement}
      */
-    default OntStatement addAnnotation(OntNAP predicate, String lexicalForm) {
+    default OntStatement addAnnotation(OntAnnotationProperty predicate, String lexicalForm) {
         return addAnnotation(predicate, lexicalForm, null);
     }
 
     /**
      * Adds lang annotation assertion.
      *
-     * @param predicate {@link OntNAP} predicate
+     * @param predicate {@link OntAnnotationProperty} predicate
      * @param txt       String, the literal lexical form, not {@code null}
      * @param lang      String, the language tag, nullable
      * @return {@link OntStatement} - new statement: {@code @subject @predicate "txt"@lang}
      */
-    default OntStatement addAnnotation(OntNAP predicate, String txt, String lang) {
+    default OntStatement addAnnotation(OntAnnotationProperty predicate, String txt, String lang) {
         return addAnnotation(predicate, getModel().createLiteral(txt, lang));
     }
 
     /**
      * Annotates the object with the given {@code predicate} and {@code value}.
      *
-     * @param predicate {@link OntNAP} - named annotation property, not {@code null}
+     * @param predicate {@link OntAnnotationProperty} - named annotation property, not {@code null}
      * @param value     {@link RDFNode} - the value: uri-resource, literal or anonymous individual, not {@code null}
      * @return this object to allow cascading calls
-     * @see OntObject#addAnnotation(OntNAP, RDFNode)
+     * @see OntObject#addAnnotation(OntAnnotationProperty, RDFNode)
      * @since 1.4.2
      */
-    default OntObject annotate(OntNAP predicate, RDFNode value) {
+    default OntObject annotate(OntAnnotationProperty predicate, RDFNode value) {
         addAnnotation(predicate, value);
         return this;
     }
@@ -307,13 +307,13 @@ public interface OntObject extends OntResource {
     /**
      * Adds a language-tagged text for this object and the given {@code predicate}
      *
-     * @param predicate {@link OntNAP} - named annotation property, not {@code null}
+     * @param predicate {@link OntAnnotationProperty} - named annotation property, not {@code null}
      * @param txt       String, the literal lexical form, cannot be {@code null}
      * @param lang      String, the language tag, can be {@code null}
      * @return this object to allow cascading calls
      * @since 1.4.2
      */
-    default OntObject annotate(OntNAP predicate, String txt, String lang) {
+    default OntObject annotate(OntAnnotationProperty predicate, String txt, String lang) {
         return annotate(predicate, getModel().createLiteral(txt, lang));
     }
 

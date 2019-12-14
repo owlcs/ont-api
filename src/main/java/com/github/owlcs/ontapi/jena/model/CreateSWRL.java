@@ -48,10 +48,10 @@ interface CreateSWRL {
      *
      * @param predicate an <b>URI</b>, {@link Resource}, not {@code null}
      * @param arguments {@code Collection} of {@link OntSWRL.DArg}s
-     * @return {@link OntSWRL.Atom.BuiltIn}
+     * @return {@link OntSWRL.Atom.WithBuiltin}
      * @see com.github.owlcs.ontapi.jena.vocabulary.SWRLB
      */
-    OntSWRL.Atom.BuiltIn createBuiltInSWRLAtom(Resource predicate, Collection<OntSWRL.DArg> arguments);
+    OntSWRL.Atom.WithBuiltin createBuiltInSWRLAtom(Resource predicate, Collection<OntSWRL.DArg> arguments);
 
     /**
      * Creates a Class Atom.
@@ -62,11 +62,11 @@ interface CreateSWRL {
      * _:x swrl:classPredicate C .
      * }</pre>
      *
-     * @param clazz {@link OntCE}, not {@code null}
+     * @param clazz {@link OntClass}, not {@code null}
      * @param arg   {@link OntSWRL.IArg} (either {@link OntIndividual} or {@link OntSWRL.Variable}), not {@code null}
-     * @return {@link OntSWRL.Atom.OntClass}
+     * @return {@link OntSWRL.Atom.WithClass}
      */
-    OntSWRL.Atom.OntClass createClassSWRLAtom(OntCE clazz, OntSWRL.IArg arg);
+    OntSWRL.Atom.WithClass createClassSWRLAtom(OntClass clazz, OntSWRL.IArg arg);
 
     /**
      * Creates a Data Range Atom.
@@ -77,12 +77,12 @@ interface CreateSWRL {
      * _:x swrl:dataRange D .
      * }</pre>
      *
-     * @param range {@link OntDR}, not {@code null}
+     * @param range {@link OntDataRange}, not {@code null}
      * @param arg   {@link OntSWRL.DArg} (either {@link OntSWRL.Variable}
      *              or {@link org.apache.jena.rdf.model.Literal}), not {@code null}
-     * @return {@link OntSWRL.Atom.DataRange}
+     * @return {@link OntSWRL.Atom.WithDataRange}
      */
-    OntSWRL.Atom.DataRange createDataRangeSWRLAtom(OntDR range, OntSWRL.DArg arg);
+    OntSWRL.Atom.WithDataRange createDataRangeSWRLAtom(OntDataRange range, OntSWRL.DArg arg);
 
     /**
      * Creates a Data Property Atom.
@@ -94,13 +94,13 @@ interface CreateSWRL {
      * _:x swrl:propertyPredicate R .
      * }</pre>
      *
-     * @param property {@link OntNDP}, not {@code null}
+     * @param property {@link OntDataProperty}, not {@code null}
      * @param first    {@link OntSWRL.IArg} (either {@link OntIndividual} or {@link OntSWRL.Variable}), not {@code null}
      * @param second   {@link OntSWRL.DArg} (either {@link OntSWRL.Variable}
      *                 or {@link org.apache.jena.rdf.model.Literal}), not {@code null}
-     * @return {@link OntSWRL.Atom.DataProperty}
+     * @return {@link OntSWRL.Atom.WithDataProperty}
      */
-    OntSWRL.Atom.DataProperty createDataPropertySWRLAtom(OntNDP property, OntSWRL.IArg first, OntSWRL.DArg second);
+    OntSWRL.Atom.WithDataProperty createDataPropertySWRLAtom(OntDataProperty property, OntSWRL.IArg first, OntSWRL.DArg second);
 
     /**
      * Creates an Object Property Atom.
@@ -112,12 +112,12 @@ interface CreateSWRL {
      * _:x swrl:propertyPredicate P .
      * }</pre>
      *
-     * @param property {@link OntOPE}, not {@code null}
+     * @param property {@link OntObjectProperty}, not {@code null}
      * @param first    {@link OntSWRL.IArg} (either {@link OntIndividual} or {@link OntSWRL.Variable}), not {@code null}
      * @param second   {@link OntSWRL.IArg} (either {@link OntIndividual} or {@link OntSWRL.Variable}), not {@code null}
-     * @return {@link OntSWRL.Atom.ObjectProperty}
+     * @return {@link OntSWRL.Atom.WithObjectProperty}
      */
-    OntSWRL.Atom.ObjectProperty createObjectPropertySWRLAtom(OntOPE property, OntSWRL.IArg first, OntSWRL.IArg second);
+    OntSWRL.Atom.WithObjectProperty createObjectPropertySWRLAtom(OntObjectProperty property, OntSWRL.IArg first, OntSWRL.IArg second);
 
     /**
      * Creates a Different Individuals Atom.
@@ -130,9 +130,9 @@ interface CreateSWRL {
      *
      * @param first  {@link OntSWRL.IArg} (either {@link OntIndividual} or {@link OntSWRL.Variable}), not {@code null}
      * @param second {@link OntSWRL.IArg} (either {@link OntIndividual} or {@link OntSWRL.Variable}), not {@code null}
-     * @return {@link OntSWRL.Atom.DifferentIndividuals}
+     * @return {@link OntSWRL.Atom.WithDifferentIndividuals}
      */
-    OntSWRL.Atom.DifferentIndividuals createDifferentIndividualsSWRLAtom(OntSWRL.IArg first, OntSWRL.IArg second);
+    OntSWRL.Atom.WithDifferentIndividuals createDifferentIndividualsSWRLAtom(OntSWRL.IArg first, OntSWRL.IArg second);
 
     /**
      * Creates a Same Individuals Atom.
@@ -145,9 +145,9 @@ interface CreateSWRL {
      *
      * @param first  {@link OntSWRL.IArg} (either {@link OntIndividual} or {@link OntSWRL.Variable}), not {@code null}
      * @param second {@link OntSWRL.IArg} (either {@link OntIndividual} or {@link OntSWRL.Variable}), not {@code null}
-     * @return {@link OntSWRL.Atom.SameIndividuals}
+     * @return {@link OntSWRL.Atom.WithSameIndividuals}
      */
-    OntSWRL.Atom.SameIndividuals createSameIndividualsSWRLAtom(OntSWRL.IArg first, OntSWRL.IArg second);
+    OntSWRL.Atom.WithSameIndividuals createSameIndividualsSWRLAtom(OntSWRL.IArg first, OntSWRL.IArg second);
 
     /**
      * Creates a SWRL Rule.

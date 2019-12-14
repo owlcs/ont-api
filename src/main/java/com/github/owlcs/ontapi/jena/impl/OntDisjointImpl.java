@@ -47,16 +47,16 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
     public static final OntFinder PROPERTIES_FINDER = new OntFinder.ByType(OWL.AllDisjointProperties);
 
     public static ObjectFactory disjointClassesFactory = createFactory(ClassesImpl.class,
-            OWL.AllDisjointClasses, OntCE.class, true, OWL.members);
+            OWL.AllDisjointClasses, OntClass.class, true, OWL.members);
 
     public static ObjectFactory differentIndividualsFactory = createFactory(IndividualsImpl.class,
             OWL.AllDifferent, OntIndividual.class, true, OWL.members, OWL.distinctMembers);
 
     public static ObjectFactory objectPropertiesFactory =
-            createFactory(ObjectPropertiesImpl.class, OWL.AllDisjointProperties, OntOPE.class, false, OWL.members);
+            createFactory(ObjectPropertiesImpl.class, OWL.AllDisjointProperties, OntObjectProperty.class, false, OWL.members);
 
     public static ObjectFactory dataPropertiesFactory = createFactory(DataPropertiesImpl.class,
-            OWL.AllDisjointProperties, OntNDP.class, false, OWL.members);
+            OWL.AllDisjointProperties, OntDataProperty.class, false, OWL.members);
 
     public static ObjectFactory abstractPropertiesFactory = Factories.createFrom(PROPERTIES_FINDER
             , ObjectProperties.class
@@ -157,8 +157,8 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
                 Iter.anyMatch(list.iterator().mapWith(RDFNode::asNode), n -> PersonalityModel.canAs(view, n, graph));
     }
 
-    public static Classes createDisjointClasses(OntGraphModelImpl model, Stream<OntCE> classes) {
-        return create(model, OWL.AllDisjointClasses, Classes.class, OntCE.class, classes);
+    public static Classes createDisjointClasses(OntGraphModelImpl model, Stream<OntClass> classes) {
+        return create(model, OWL.AllDisjointClasses, Classes.class, OntClass.class, classes);
     }
 
     /**
@@ -177,12 +177,12 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
         return create(model, OWL.AllDifferent, Individuals.class, OntIndividual.class, individuals);
     }
 
-    public static ObjectProperties createDisjointObjectProperties(OntGraphModelImpl model, Stream<OntOPE> properties) {
-        return create(model, OWL.AllDisjointProperties, ObjectProperties.class, OntOPE.class, properties);
+    public static ObjectProperties createDisjointObjectProperties(OntGraphModelImpl model, Stream<OntObjectProperty> properties) {
+        return create(model, OWL.AllDisjointProperties, ObjectProperties.class, OntObjectProperty.class, properties);
     }
 
-    public static DataProperties createDisjointDataProperties(OntGraphModelImpl model, Stream<OntNDP> properties) {
-        return create(model, OWL.AllDisjointProperties, DataProperties.class, OntNDP.class, properties);
+    public static DataProperties createDisjointDataProperties(OntGraphModelImpl model, Stream<OntDataProperty> properties) {
+        return create(model, OWL.AllDisjointProperties, DataProperties.class, OntDataProperty.class, properties);
     }
 
     public static <R extends OntDisjoint<?>, E extends OntObject> R create(OntGraphModelImpl model,
@@ -200,7 +200,7 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
         return model.getNodeAs(res.asNode(), resultType);
     }
 
-    public static class ClassesImpl extends OntDisjointImpl<OntCE> implements Classes {
+    public static class ClassesImpl extends OntDisjointImpl<OntClass> implements Classes {
         public ClassesImpl(Node n, EnhGraph m) {
             super(n, m);
         }
@@ -211,8 +211,8 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
         }
 
         @Override
-        protected Class<OntCE> getComponentType() {
-            return OntCE.class;
+        protected Class<OntClass> getComponentType() {
+            return OntClass.class;
         }
 
         @Override
@@ -290,7 +290,8 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
         }
     }
 
-    public abstract static class PropertiesImpl<P extends OntPE> extends OntDisjointImpl<P> implements Properties<P> {
+    public abstract static class PropertiesImpl<P extends OntRealProperty>
+            extends OntDisjointImpl<P> implements Properties<P> {
 
         public PropertiesImpl(Node n, EnhGraph m) {
             super(n, m);
@@ -302,7 +303,7 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
         }
     }
 
-    public static class ObjectPropertiesImpl extends PropertiesImpl<OntOPE> implements ObjectProperties {
+    public static class ObjectPropertiesImpl extends PropertiesImpl<OntObjectProperty> implements ObjectProperties {
         public ObjectPropertiesImpl(Node n, EnhGraph m) {
             super(n, m);
         }
@@ -313,12 +314,12 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
         }
 
         @Override
-        protected Class<OntOPE> getComponentType() {
-            return OntOPE.class;
+        protected Class<OntObjectProperty> getComponentType() {
+            return OntObjectProperty.class;
         }
     }
 
-    public static class DataPropertiesImpl extends PropertiesImpl<OntNDP> implements DataProperties {
+    public static class DataPropertiesImpl extends PropertiesImpl<OntDataProperty> implements DataProperties {
         public DataPropertiesImpl(Node n, EnhGraph m) {
             super(n, m);
         }
@@ -329,8 +330,8 @@ public abstract class OntDisjointImpl<O extends OntObject> extends OntObjectImpl
         }
 
         @Override
-        protected Class<OntNDP> getComponentType() {
-            return OntNDP.class;
+        protected Class<OntDataProperty> getComponentType() {
+            return OntDataProperty.class;
         }
     }
 }

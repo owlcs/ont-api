@@ -19,7 +19,7 @@ import com.github.owlcs.ontapi.internal.InternalConfig;
 import com.github.owlcs.ontapi.internal.WriteHelper;
 import com.github.owlcs.ontapi.internal.objects.ONTAxiomImpl;
 import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntPE;
+import com.github.owlcs.ontapi.jena.model.OntProperty;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
 import org.apache.jena.graph.Triple;
@@ -37,7 +37,7 @@ import java.util.function.Supplier;
  * <p>
  * Created by @szuev on 30.09.2016.
  */
-public abstract class AbstractPropertyRangeTranslator<Axiom extends OWLAxiom & HasProperty<?> & HasRange<?>, P extends OntPE>
+public abstract class AbstractPropertyRangeTranslator<Axiom extends OWLAxiom & HasProperty<?> & HasRange<?>, P extends OntProperty>
         extends AxiomTranslator<Axiom> {
     @Override
     public void write(Axiom axiom, OntModel graph) {

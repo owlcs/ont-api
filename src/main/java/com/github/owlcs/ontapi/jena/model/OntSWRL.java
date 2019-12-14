@@ -21,7 +21,7 @@ import java.util.Collection;
 import java.util.stream.Stream;
 
 /**
- * For SWRL addition.
+ * A base for SWRL addition.
  * <p>
  * Created by @szuev on 02.11.2016.
  *
@@ -68,7 +68,6 @@ public interface OntSWRL extends OntObject {
     /**
      * Represents {@link com.github.owlcs.ontapi.jena.vocabulary.SWRL#Builtin} entity.
      * Must be an URI {@link Resource}.
-     * Do not confuse with {@link Atom.BuiltIn BuiltIn Atom}!
      *
      * @since 1.4.0
      */
@@ -112,7 +111,7 @@ public interface OntSWRL extends OntObject {
 
         /**
          * Returns the atom predicate, which can be one of the following:
-         * {@link OntDR}, {@link OntOPE}, {@link OntNDP}, {@link OntCE}, URI-{@link Resource}, {@link Property}.
+         * {@link OntDataRange}, {@link OntObjectProperty}, {@link OntDataProperty}, {@link OntClass}, URI-{@link Resource}, {@link Property}.
          *
          * @return RDFNode
          */
@@ -128,14 +127,14 @@ public interface OntSWRL extends OntObject {
         /**
          * @see OntModel#createBuiltInSWRLAtom(Resource, Collection)
          */
-        interface BuiltIn extends Atom<Builtin> {
+        interface WithBuiltin extends Atom<Builtin> {
             /**
              * Gets the argument's ONT-List.
              * Note that the returned list is <b>not</b> expected to be typed,
              * i.e. there is neither {@code _:x rdf:type rdf:List}
              * or {@code _:x rdf:type swrl:AtomList} statements for each its items.
              *
-             * @return {@link OntList} of {@link DArg}
+             * @return {@link OntList} of {@link DArg}s
              * @since 1.3.0
              */
             OntList<DArg> getArgList();
@@ -147,41 +146,48 @@ public interface OntSWRL extends OntObject {
         }
 
         /**
-         * @see OntModel#createClassSWRLAtom(OntCE, OntSWRL.IArg)
+         * @see OntModel#createClassSWRLAtom(OntClass, OntSWRL.IArg)
          */
-        interface OntClass extends Unary<OntCE, IArg> {
+        interface WithClass extends Unary<OntClass, IArg> {
         }
 
         /**
-         * @see OntModel#createDataRangeSWRLAtom(OntDR, OntSWRL.DArg)
+         * @see OntModel#createDataRangeSWRLAtom(OntDataRange, OntSWRL.DArg)
          */
-        interface DataRange extends Unary<OntDR, DArg> {
+        interface WithDataRange extends Unary<OntDataRange, DArg> {
         }
 
         /**
-         * @see OntModel#createDataPropertySWRLAtom(OntNDP, OntSWRL.IArg, OntSWRL.DArg)
+         * @see OntModel#createDataPropertySWRLAtom(OntDataProperty, OntSWRL.IArg, OntSWRL.DArg)
          */
-        interface DataProperty extends Binary<OntNDP, IArg, DArg> {
+        interface WithDataProperty extends Binary<OntDataProperty, IArg, DArg> {
         }
 
         /**
-         * @see OntModel#createObjectPropertySWRLAtom(OntOPE, OntSWRL.IArg, OntSWRL.IArg)
+         * @see OntModel#createObjectPropertySWRLAtom(OntObjectProperty, OntSWRL.IArg, OntSWRL.IArg)
          */
-        interface ObjectProperty extends Binary<OntOPE, IArg, IArg> {
+        interface WithObjectProperty extends Binary<OntObjectProperty, IArg, IArg> {
         }
 
         /**
          * @see CreateSWRL#createDifferentIndividualsSWRLAtom(OntSWRL.IArg, OntSWRL.IArg)
          */
-        interface DifferentIndividuals extends Binary<OntNOP, IArg, IArg> {
+        interface WithDifferentIndividuals extends Binary<OntObjectProperty.Named, IArg, IArg> {
         }
 
         /**
          * @see CreateSWRL#createSameIndividualsSWRLAtom(OntSWRL.IArg, OntSWRL.IArg)
          */
-        interface SameIndividuals extends Binary<OntNOP, IArg, IArg> {
+        interface WithSameIndividuals extends Binary<OntObjectProperty.Named, IArg, IArg> {
         }
 
+        /**
+         * A binary atom abstraction.
+         *
+         * @param <P> the predicate - either {@link Arg} or {@link OntRealProperty}
+         * @param <F> {@link Arg} the first argument
+         * @param <S> {@link Arg} the second argument
+         */
         interface Binary<P extends OntObject, F extends Arg, S extends Arg> extends Atom<P> {
             F getFirstArg();
 
@@ -193,6 +199,12 @@ public interface OntSWRL extends OntObject {
             }
         }
 
+        /**
+         * An unary atom abstraction.
+         *
+         * @param <P> the predicate, either {@link OntClass} or {@link OntDataRange}
+         * @param <A> {@link Arg}, the argument
+         */
         interface Unary<P extends OntObject, A extends Arg> extends Atom<P> {
             A getArg();
 
@@ -201,6 +213,5 @@ public interface OntSWRL extends OntObject {
                 return Stream.of(getArg());
             }
         }
-
     }
 }

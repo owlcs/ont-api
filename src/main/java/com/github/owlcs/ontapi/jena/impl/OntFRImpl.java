@@ -14,20 +14,20 @@
 
 package com.github.owlcs.ontapi.jena.impl;
 
+import com.github.owlcs.ontapi.jena.OntJenaException;
+import com.github.owlcs.ontapi.jena.impl.conf.ObjectFactory;
+import com.github.owlcs.ontapi.jena.impl.conf.OntFilter;
+import com.github.owlcs.ontapi.jena.impl.conf.OntFinder;
+import com.github.owlcs.ontapi.jena.model.OntFacetRestriction;
+import com.github.owlcs.ontapi.jena.model.OntStatement;
+import com.github.owlcs.ontapi.jena.vocabulary.RDF;
+import com.github.owlcs.ontapi.jena.vocabulary.XSD;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
-import com.github.owlcs.ontapi.jena.OntJenaException;
-import com.github.owlcs.ontapi.jena.impl.conf.ObjectFactory;
-import com.github.owlcs.ontapi.jena.impl.conf.OntFilter;
-import com.github.owlcs.ontapi.jena.impl.conf.OntFinder;
-import com.github.owlcs.ontapi.jena.model.OntFR;
-import com.github.owlcs.ontapi.jena.model.OntStatement;
-import com.github.owlcs.ontapi.jena.vocabulary.RDF;
-import com.github.owlcs.ontapi.jena.vocabulary.XSD;
 
 import java.util.Optional;
 
@@ -37,7 +37,7 @@ import java.util.Optional;
  * Created by @szuev on 16.11.2016.
  */
 @SuppressWarnings("WeakerAccess")
-public abstract class OntFRImpl extends OntObjectImpl implements OntFR {
+public abstract class OntFRImpl extends OntObjectImpl implements OntFacetRestriction {
     public static ObjectFactory lengthFRFactory = Factories.createCommon(LengthImpl.class,
             makeFinder(XSD.length), makeFilter(XSD.length));
     public static ObjectFactory minLengthFRFactory = Factories.createCommon(MinLengthImpl.class,
@@ -111,7 +111,7 @@ public abstract class OntFRImpl extends OntObjectImpl implements OntFR {
         throw new OntJenaException.Unsupported("Unsupported facet restriction " + view);
     }
 
-    public static <T extends OntFR> T create(OntGraphModelImpl model, Class<T> view, Literal literal) {
+    public static <T extends OntFacetRestriction> T create(OntGraphModelImpl model, Class<T> view, Literal literal) {
         Resource res = model.createResource();
         res.addProperty(predicate(view), literal);
         return model.getNodeAs(res.asNode(), view);

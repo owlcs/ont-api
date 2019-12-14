@@ -17,7 +17,7 @@ package com.github.owlcs.ontapi.tests.managers;
 import com.github.owlcs.ontapi.*;
 import com.github.owlcs.ontapi.jena.OntJenaException;
 import com.github.owlcs.ontapi.jena.OntModelFactory;
-import com.github.owlcs.ontapi.jena.model.OntCE;
+import com.github.owlcs.ontapi.jena.model.OntClass;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
@@ -94,7 +94,7 @@ public class MiscOntologyTest {
         Graph g = makeGraphWithRecursion();
         OntModel o = OntModelFactory.createModel(g);
         ReadWriteUtils.print(o);
-        List<OntCE> ces = o.ontObjects(OntCE.class).collect(Collectors.toList());
+        List<OntClass> ces = o.ontObjects(OntClass.class).collect(Collectors.toList());
         ces.forEach(x -> LOGGER.error("{}", x));
     }
 
@@ -105,8 +105,8 @@ public class MiscOntologyTest {
         Graph g = makeGraphWithRecursion();
         OntModel o = m.addOntology(g).asGraphModel();
         ReadWriteUtils.print(o);
-        Assert.assertEquals(0, o.ontObjects(OntCE.ComplementOf.class).count());
-        Assert.assertEquals(0, o.ontObjects(OntCE.class).count());
+        Assert.assertEquals(0, o.ontObjects(OntClass.ComplementOf.class).count());
+        Assert.assertEquals(0, o.ontObjects(OntClass.class).count());
     }
 
     @Test

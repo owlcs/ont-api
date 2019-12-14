@@ -19,11 +19,11 @@ package com.github.owlcs.ontapi.jena.model;
  * <p>
  * Created by @ssz on 09.05.2019.
  *
- * @param <R> - return type, a subtype of {@link OntCE.CardinalityRestrictionCE}
+ * @param <R> - return type, a subtype of {@link OntClass.CardinalityRestrictionCE}
  * @see HasCardinality
  * @since 1.4.0
  */
-interface SetCardinality<R extends OntCE.CardinalityRestrictionCE<?, ?>> {
+interface SetCardinality<R extends OntClass.CardinalityRestrictionCE<?, ?>> {
 
     /**
      * Sets a new cardinality value.

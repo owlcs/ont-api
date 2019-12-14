@@ -14,6 +14,7 @@
 
 package com.github.owlcs.ontapi.jena;
 
+import com.github.owlcs.ontapi.jena.model.OntClass;
 import com.github.owlcs.ontapi.jena.utils.Graphs;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import org.apache.jena.graph.*;
@@ -48,7 +49,7 @@ import java.util.stream.Collectors;
  * it does not mean that a model, that wraps this graph, is also will be safe in multithreading:
  * it is possible to receive the data that will be invalid in the next moment,
  * which may lead to an exception during the construction of the final {@link org.apache.jena.rdf.model.Resource}.
- * For example, constructing an {@link com.github.owlcs.ontapi.jena.model.OntClass OWL Class} may be failed,
+ * For example, constructing an {@link OntClass.Named OWL Class} may be failed,
  * since the root triple {@code _:x rdf:type owl:Class} may be deleted by another thread
  * immediately after retrieving it.
  * <p>

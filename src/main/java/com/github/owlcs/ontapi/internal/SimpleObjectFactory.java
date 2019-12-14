@@ -43,46 +43,46 @@ public class SimpleObjectFactory implements InternalObjectFactory {
     }
 
     @Override
-    public ONTObject<? extends OWLClassExpression> getClass(OntCE ce) {
+    public ONTObject<? extends OWLClassExpression> getClass(OntClass ce) {
         return ReadHelper.calcClassExpression(ce, this, new HashSet<>());
     }
 
     @Override
-    public ONTObject<? extends OWLDataRange> getDatatype(OntDR dr) {
+    public ONTObject<? extends OWLDataRange> getDatatype(OntDataRange dr) {
         return ReadHelper.calcDataRange(dr, this, new HashSet<>());
     }
 
     @Override
-    public ONTObject<OWLFacetRestriction> getFacetRestriction(OntFR fr) {
+    public ONTObject<OWLFacetRestriction> getFacetRestriction(OntFacetRestriction fr) {
         return ReadHelper.getFacetRestriction(fr, this);
     }
 
     @Override
-    public ONTObject<OWLClass> getClass(OntClass ce) {
+    public ONTObject<OWLClass> getClass(OntClass.Named ce) {
         IRI iri = toIRI(OntApiException.notNull(ce, "Null class."));
         return ONTWrapperImpl.create(getOWLDataFactory().getOWLClass(iri), ce);
     }
 
     @Override
-    public ONTObject<OWLDatatype> getDatatype(OntDT dr) {
+    public ONTObject<OWLDatatype> getDatatype(OntDataRange.Named dr) {
         IRI iri = toIRI(OntApiException.notNull(dr, "Null datatype."));
         return ONTWrapperImpl.create(getOWLDataFactory().getOWLDatatype(iri), dr);
     }
 
     @Override
-    public ONTObject<OWLObjectProperty> getProperty(OntNOP nop) {
+    public ONTObject<OWLObjectProperty> getProperty(OntObjectProperty.Named nop) {
         IRI iri = toIRI(OntApiException.notNull(nop, "Null object property."));
         return ONTWrapperImpl.create(getOWLDataFactory().getOWLObjectProperty(iri), nop);
     }
 
     @Override
-    public ONTObject<OWLAnnotationProperty> getProperty(OntNAP nap) {
+    public ONTObject<OWLAnnotationProperty> getProperty(OntAnnotationProperty nap) {
         IRI iri = toIRI(OntApiException.notNull(nap, "Null annotation property."));
         return ONTWrapperImpl.create(getOWLDataFactory().getOWLAnnotationProperty(iri), nap);
     }
 
     @Override
-    public ONTObject<OWLDataProperty> getProperty(OntNDP ndp) {
+    public ONTObject<OWLDataProperty> getProperty(OntDataProperty ndp) {
         IRI iri = toIRI(OntApiException.notNull(ndp, "Null data property."));
         return ONTWrapperImpl.create(getOWLDataFactory().getOWLDataProperty(iri), ndp);
     }
@@ -99,7 +99,7 @@ public class SimpleObjectFactory implements InternalObjectFactory {
     }
 
     @Override
-    public ONTObject<? extends OWLObjectPropertyExpression> getProperty(OntOPE.Inverse iop) {
+    public ONTObject<? extends OWLObjectPropertyExpression> getProperty(OntObjectProperty.Inverse iop) {
         OWLObjectProperty op = getOWLDataFactory().getOWLObjectProperty(toIRI(iop.getDirect()));
         return ONTWrapperImpl.create(op.getInverseProperty(), iop);
     }
@@ -110,7 +110,7 @@ public class SimpleObjectFactory implements InternalObjectFactory {
         OWLLiteral owl = df.getOWLLiteral(literal.asNode().getLiteral());
         ONTWrapperImpl<OWLLiteral> res = ONTWrapperImpl.create(owl);
         OntModel m = (OntModel) literal.getModel();
-        OntDT jdt = m.getDatatype(literal);
+        OntDataRange.Named jdt = m.getDatatype(literal);
         if (!jdt.isBuiltIn()) {
             return res.append(getDatatype(jdt));
         }

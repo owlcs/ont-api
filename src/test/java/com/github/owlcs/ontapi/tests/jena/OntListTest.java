@@ -77,13 +77,13 @@ public class OntListTest {
     @Test
     public void testCommonFunctionality1() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntNOP p1 = m.createObjectProperty("p1");
-        OntNOP p2 = m.createObjectProperty("p2");
-        OntNOP p3 = m.createObjectProperty("p3");
+        OntObjectProperty.Named p1 = m.createObjectProperty("p1");
+        OntObjectProperty.Named p2 = m.createObjectProperty("p2");
+        OntObjectProperty.Named p3 = m.createObjectProperty("p3");
         p1.addPropertyChainAxiomStatement();
-        check(m, 1, OntNOP.class);
+        check(m, 1, OntObjectProperty.Named.class);
 
-        OntList<OntOPE> list = p2.createPropertyChain(Collections.emptyList());
+        OntList<OntObjectProperty> list = p2.createPropertyChain(Collections.emptyList());
         Assert.assertTrue(list.canAs(RDFList.class));
         RDFList r_list = list.as(RDFList.class);
         LOGGER.debug("{} & {}", r_list.isEmpty(), r_list.isValid());
@@ -92,8 +92,8 @@ public class OntListTest {
         Assert.assertEquals(3, list.as(RDFList.class).size());
         Assert.assertEquals(1, p2.propertyChains().count());
         Assert.assertEquals(0, p3.propertyChains().count());
-        Assert.assertEquals(2, m.objectProperties().flatMap(OntOPE::propertyChains).count());
-        check(m, 2, OntNOP.class);
+        Assert.assertEquals(2, m.objectProperties().flatMap(OntObjectProperty::propertyChains).count());
+        check(m, 2, OntObjectProperty.Named.class);
 
         list.remove();
         Assert.assertEquals(2, list.members().count());
@@ -102,55 +102,55 @@ public class OntListTest {
         Assert.assertFalse(list.members().anyMatch(p -> p.equals(p1)));
         Assert.assertEquals(p3, list.last().orElseThrow(AssertionError::new));
         Assert.assertEquals(p3, list.first().orElseThrow(AssertionError::new));
-        check(m, 2, OntNOP.class);
+        check(m, 2, OntObjectProperty.Named.class);
 
         Assert.assertEquals(1, (list = list.remove()).members().count());
         Assert.assertEquals(1, list.as(RDFList.class).size());
         Assert.assertFalse(list.isNil());
-        check(m, 2, OntOPE.class);
+        check(m, 2, OntObjectProperty.class);
 
         list = list.remove();
         Assert.assertEquals(0, list.members().count());
         Assert.assertEquals(0, list.as(RDFList.class).size());
         Assert.assertTrue(list.isNil());
-        check(m, 2, OntOPE.class);
+        check(m, 2, OntObjectProperty.class);
     }
 
     @Test
     public void testCommonFunctionality2() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntNOP p1 = m.createObjectProperty("p1");
-        OntNOP p2 = m.createObjectProperty("p2");
-        OntNOP p3 = m.createObjectProperty("p3");
-        OntNOP p4 = m.createObjectProperty("p4");
+        OntObjectProperty.Named p1 = m.createObjectProperty("p1");
+        OntObjectProperty.Named p2 = m.createObjectProperty("p2");
+        OntObjectProperty.Named p3 = m.createObjectProperty("p3");
+        OntObjectProperty.Named p4 = m.createObjectProperty("p4");
         p1.createPropertyChain(Collections.singletonList(p2)).add(p3);
-        check(m, 1, OntOPE.class);
+        check(m, 1, OntObjectProperty.class);
 
         Assert.assertEquals(1, p1.propertyChains().count());
-        OntList<OntOPE> list = p1.propertyChains().findFirst().orElseThrow(AssertionError::new);
+        OntList<OntObjectProperty> list = p1.propertyChains().findFirst().orElseThrow(AssertionError::new);
         Assert.assertEquals(3, list.addFirst(p4).members().count());
         Assert.assertTrue(list.first().filter(p4::equals).isPresent());
         Assert.assertTrue(list.last().filter(p3::equals).isPresent());
-        check(m, 1, OntOPE.class);
+        check(m, 1, OntObjectProperty.class);
 
         Assert.assertEquals(1, p1.propertyChains().count());
         Assert.assertEquals(2, list.removeFirst().members().count());
         Assert.assertTrue(list.first().filter(p2::equals).isPresent());
         Assert.assertTrue(list.last().filter(p3::equals).isPresent());
-        check(m, 1, OntNOP.class);
+        check(m, 1, OntObjectProperty.Named.class);
 
         Assert.assertTrue(list.removeFirst().removeFirst().isNil());
-        check(m, 1, OntPE.class);
+        check(m, 1, OntProperty.class);
         Assert.assertEquals(1, list.addFirst(p4).members().count());
         Assert.assertTrue(list.first().filter(p4::equals).isPresent());
         Assert.assertEquals(1, p1.propertyChains().count());
         list = p1.propertyChains().findFirst().orElseThrow(AssertionError::new);
         Assert.assertEquals(1, list.members().count());
         Assert.assertTrue(list.last().filter(p4::equals).isPresent());
-        check(m, 1, OntOPE.class);
+        check(m, 1, OntObjectProperty.class);
 
         Assert.assertEquals(3, p1.propertyChains().findFirst().orElseThrow(AssertionError::new).addLast(p3).addFirst(p2).size());
-        check(m, 1, OntNOP.class);
+        check(m, 1, OntObjectProperty.Named.class);
         list = p1.propertyChains().findFirst().orElseThrow(AssertionError::new);
         Assert.assertEquals(3, list.size());
         list.removeLast().removeLast();
@@ -168,42 +168,42 @@ public class OntListTest {
     @Test
     public void testGetAndClear1() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntNOP p1 = m.createObjectProperty("p1");
-        OntNOP p2 = m.createObjectProperty("p2");
-        OntNOP p3 = m.createObjectProperty("p3");
-        OntNOP p4 = m.createObjectProperty("p4");
+        OntObjectProperty.Named p1 = m.createObjectProperty("p1");
+        OntObjectProperty.Named p2 = m.createObjectProperty("p2");
+        OntObjectProperty.Named p3 = m.createObjectProperty("p3");
+        OntObjectProperty.Named p4 = m.createObjectProperty("p4");
 
-        OntList<OntOPE> list = p1.createPropertyChain(Arrays.asList(p2, p3)).add(p4);
-        check(m, 1, OntOPE.class);
+        OntList<OntObjectProperty> list = p1.createPropertyChain(Arrays.asList(p2, p3)).add(p4);
+        check(m, 1, OntObjectProperty.class);
 
         Assert.assertEquals(3, list.get(0).size());
         Assert.assertEquals(2, list.get(1).size());
         Assert.assertEquals(1, list.get(2).size());
         Assert.assertEquals(0, list.get(3).size());
         try {
-            OntList<OntOPE> n = list.get(4);
+            OntList<OntObjectProperty> n = list.get(4);
             Assert.fail("Found out of bound list: " + n);
         } catch (OntJenaException.IllegalArgument j) {
             LOGGER.debug("Expected: {}", j.getMessage());
         }
 
         Assert.assertTrue(list.get(2).clear().isNil());
-        check(m, 1, OntOPE.class);
+        check(m, 1, OntObjectProperty.class);
         Assert.assertEquals(2, list.size());
     }
 
     @Test
     public void testGetAndClear2() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntNOP p1 = m.createObjectProperty("p1");
-        OntNOP p2 = m.createObjectProperty("p2");
-        OntNOP p3 = m.createObjectProperty("p3");
-        OntNOP p4 = m.createObjectProperty("p4");
+        OntObjectProperty.Named p1 = m.createObjectProperty("p1");
+        OntObjectProperty.Named p2 = m.createObjectProperty("p2");
+        OntObjectProperty.Named p3 = m.createObjectProperty("p3");
+        OntObjectProperty.Named p4 = m.createObjectProperty("p4");
 
-        OntList<OntOPE> list = p1.createPropertyChain(Collections.emptyList()).add(p2).add(p3).add(p4);
-        check(m, 1, OntOPE.class);
+        OntList<OntObjectProperty> list = p1.createPropertyChain(Collections.emptyList()).add(p2).add(p3).add(p4);
+        check(m, 1, OntObjectProperty.class);
         Assert.assertEquals(2, list.get(2).addFirst(p2).get(1).addLast(p2).size());
-        check(m, 1, OntOPE.class);
+        check(m, 1, OntObjectProperty.class);
         // p2, p3, p2, p4, p2
         Assert.assertEquals(Arrays.asList(p2, p3, p2, p4, p2), list.as(RDFList.class).asJavaList());
         // link expired:
@@ -219,11 +219,11 @@ public class OntListTest {
     @Test
     public void testMixedList() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntNOP p1 = m.createObjectProperty("p1");
-        OntNOP p2 = m.createObjectProperty("p2");
-        OntNOP p3 = m.createObjectProperty("p3");
-        OntNOP p4 = m.createObjectProperty("p4");
-        OntList<OntOPE> list = p1.createPropertyChain(Arrays.asList(p4, p3, p2));
+        OntObjectProperty.Named p1 = m.createObjectProperty("p1");
+        OntObjectProperty.Named p2 = m.createObjectProperty("p2");
+        OntObjectProperty.Named p3 = m.createObjectProperty("p3");
+        OntObjectProperty.Named p4 = m.createObjectProperty("p4");
+        OntList<OntObjectProperty> list = p1.createPropertyChain(Arrays.asList(p4, p3, p2));
         list.get(1).as(RDFList.class).replace(0, m.createTypedLiteral("Not a property"));
         check(m, 1, RDFNode.class);
         Assert.assertEquals(3, list.size());
@@ -246,11 +246,11 @@ public class OntListTest {
     @Test
     public void testListAnnotations() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntNOP p1 = m.createObjectProperty("p1");
-        OntNOP p2 = m.createObjectProperty("p2");
-        OntNOP p3 = m.createObjectProperty("p3");
-        OntNOP p4 = m.createObjectProperty("p4");
-        OntNAP p5 = m.createAnnotationProperty("p5");
+        OntObjectProperty.Named p1 = m.createObjectProperty("p1");
+        OntObjectProperty.Named p2 = m.createObjectProperty("p2");
+        OntObjectProperty.Named p3 = m.createObjectProperty("p3");
+        OntObjectProperty.Named p4 = m.createObjectProperty("p4");
+        OntAnnotationProperty p5 = m.createAnnotationProperty("p5");
         Literal literal_x = m.createLiteral("x");
         Literal literal_y = m.createLiteral("y", "y");
         Literal literal_z = m.createTypedLiteral(2.2);
@@ -259,7 +259,7 @@ public class OntListTest {
 
         p1.addPropertyChainAxiomStatement(p4, p4, p3, p2).annotate(m.getRDFSLabel(), literal_x);
         debug(m);
-        OntList<OntOPE> list = p1.propertyChains().findFirst().orElseThrow(AssertionError::new);
+        OntList<OntObjectProperty> list = p1.propertyChains().findFirst().orElseThrow(AssertionError::new);
         Assert.assertEquals(literal_x, getSingleAnnotation(list).getLiteral());
         list.clear();
         debug(m);
@@ -305,11 +305,11 @@ public class OntListTest {
     @Test
     public void testListSpec() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntNOP p1 = m.createObjectProperty("p1");
-        OntNOP p2 = m.createObjectProperty("p2");
-        OntNOP p3 = m.createObjectProperty("p3");
-        OntNOP p4 = m.createObjectProperty("p4");
-        OntList<OntOPE> list = p1.createPropertyChain(Collections.emptyList());
+        OntObjectProperty.Named p1 = m.createObjectProperty("p1");
+        OntObjectProperty.Named p2 = m.createObjectProperty("p2");
+        OntObjectProperty.Named p3 = m.createObjectProperty("p3");
+        OntObjectProperty.Named p4 = m.createObjectProperty("p4");
+        OntList<OntObjectProperty> list = p1.createPropertyChain(Collections.emptyList());
         debug(m);
         Assert.assertEquals(0, list.spec().count());
 
@@ -404,20 +404,20 @@ public class OntListTest {
     @Test
     public void testPropertyChain() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntNOP p1 = m.createObjectProperty("p1");
-        OntNOP p2 = m.createObjectProperty("p2");
-        OntNOP p3 = m.createObjectProperty("p3");
-        OntNOP p4 = m.createObjectProperty("p4");
+        OntObjectProperty.Named p1 = m.createObjectProperty("p1");
+        OntObjectProperty.Named p2 = m.createObjectProperty("p2");
+        OntObjectProperty.Named p3 = m.createObjectProperty("p3");
+        OntObjectProperty.Named p4 = m.createObjectProperty("p4");
         p1.addPropertyChain(p2, p3).addPropertyChain(p3, p3, p4).addPropertyChain(p4, p4);
         debug(m);
         Assert.assertEquals(3, p1.fromPropertyChain().count());
-        Assert.assertEquals(3, m.objectProperties().flatMap(OntOPE::propertyChains).count());
-        OntList<OntOPE> p334 = p1.propertyChains()
+        Assert.assertEquals(3, m.objectProperties().flatMap(OntObjectProperty::propertyChains).count());
+        OntList<OntObjectProperty> p334 = p1.propertyChains()
                 .filter(c -> c.first().filter(p3::equals).isPresent())
                 .findFirst()
                 .orElseThrow(AssertionError::new);
         Assert.assertEquals(Arrays.asList(p3, p3, p4), p334.members().collect(Collectors.toList()));
-        OntList<OntOPE> p23 = p1.propertyChains()
+        OntList<OntObjectProperty> p23 = p1.propertyChains()
                 .filter(c -> c.last().filter(p3::equals).isPresent())
                 .findFirst()
                 .orElseThrow(AssertionError::new);
@@ -428,7 +428,7 @@ public class OntListTest {
         Assert.assertEquals(2, m.statements(null, RDF.type, OWL.Axiom).count());
         Assert.assertSame(p1, p1.removePropertyChain(p334));
         debug(m);
-        Assert.assertEquals(2, m.objectProperties().flatMap(OntOPE::propertyChains).count());
+        Assert.assertEquals(2, m.objectProperties().flatMap(OntObjectProperty::propertyChains).count());
         Assert.assertEquals(1, m.statements(null, RDF.type, OWL.Axiom).count());
         Assert.assertSame(p1, p1.clearPropertyChains());
         debug(m);
@@ -438,27 +438,27 @@ public class OntListTest {
     @Test
     public void testDisjointUnion() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntClass clazz = m.createOntClass("c");
-        OntCE ce1, ce3, ce4;
-        OntCE ce2 = m.createComplementOf(ce1 = m.createOntClass("c1"));
-        OntCE ce5 = m.createUnionOf(ce3 = m.createOntClass("c3"), ce4 = m.createOntClass("c4"));
+        OntClass.Named clazz = m.createOntClass("c");
+        OntClass ce1, ce3, ce4;
+        OntClass ce2 = m.createComplementOf(ce1 = m.createOntClass("c1"));
+        OntClass ce5 = m.createUnionOf(ce3 = m.createOntClass("c3"), ce4 = m.createOntClass("c4"));
         Assert.assertEquals(2, clazz.addDisjointUnionOfStatement(ce2, ce3).getObject(RDFList.class).size());
         Assert.assertEquals(2, clazz.addDisjointUnionOfStatement(ce3, ce3, ce4).getObject(RDFList.class).size());
         Assert.assertEquals(3, clazz.addDisjointUnionOfStatement(ce4, ce4, ce5, ce1, ce1)
                 .getObject(RDFList.class).size());
         debug(m);
         Assert.assertEquals(3, clazz.disjointUnions().count());
-        Assert.assertEquals(3, m.classes().flatMap(OntClass::disjointUnions).count());
+        Assert.assertEquals(3, m.classes().flatMap(OntClass.Named::disjointUnions).count());
 
-        OntList<OntCE> d23 = clazz.disjointUnions()
+        OntList<OntClass> d23 = clazz.disjointUnions()
                 .filter(c -> c.first().filter(ce2::equals).isPresent())
                 .findFirst()
                 .orElseThrow(AssertionError::new);
-        OntList<OntCE> d34 = clazz.disjointUnions()
+        OntList<OntClass> d34 = clazz.disjointUnions()
                 .filter(c -> c.last().filter(ce4::equals).isPresent())
                 .findFirst()
                 .orElseThrow(AssertionError::new);
-        OntList<OntCE> d451 = clazz.disjointUnions()
+        OntList<OntClass> d451 = clazz.disjointUnions()
                 .filter(c -> c.last().filter(ce1::equals).isPresent())
                 .findFirst()
                 .orElseThrow(AssertionError::new);
@@ -473,7 +473,7 @@ public class OntListTest {
         clazz.removeDisjointUnion(d451);
 
         debug(m);
-        Assert.assertEquals(2, m.classes().flatMap(OntClass::disjointUnions).count());
+        Assert.assertEquals(2, m.classes().flatMap(OntClass.Named::disjointUnions).count());
         Assert.assertEquals(1, m.statements(null, RDF.type, OWL.Axiom).count());
         clazz.clearDisjointUnions();
         debug(m);
@@ -483,29 +483,29 @@ public class OntListTest {
     @Test
     public void testHasKey() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntClass clazz = m.createOntClass("c");
-        OntNOP p1 = m.createObjectProperty("p1");
-        OntNOP p2 = m.createObjectProperty("p2");
-        OntNDP p3 = m.createDataProperty("p3");
-        OntNDP p4 = m.createDataProperty("p4");
-        OntOPE p5 = m.createObjectProperty("p5").createInverse();
+        OntClass.Named clazz = m.createOntClass("c");
+        OntObjectProperty.Named p1 = m.createObjectProperty("p1");
+        OntObjectProperty.Named p2 = m.createObjectProperty("p2");
+        OntDataProperty p3 = m.createDataProperty("p3");
+        OntDataProperty p4 = m.createDataProperty("p4");
+        OntObjectProperty p5 = m.createObjectProperty("p5").createInverse();
 
         Assert.assertEquals(2, clazz.addHasKeyStatement(p2, p3).getObject(RDFList.class).size());
         Assert.assertEquals(2, clazz.addHasKeyStatement(p3, p3, p4).getObject(RDFList.class).size());
         Assert.assertEquals(3, clazz.addHasKeyStatement(p4, p4, p5, p1, p1).getObject(RDFList.class).size());
         debug(m);
         Assert.assertEquals(3, clazz.hasKeys().count());
-        Assert.assertEquals(3, m.classes().flatMap(OntClass::hasKeys).count());
+        Assert.assertEquals(3, m.classes().flatMap(OntClass.Named::hasKeys).count());
 
-        OntList<OntDOP> h23 = clazz.hasKeys()
+        OntList<OntRealProperty> h23 = clazz.hasKeys()
                 .filter(c -> c.first().filter(p2::equals).isPresent())
                 .findFirst()
                 .orElseThrow(AssertionError::new);
-        OntList<OntDOP> h34 = clazz.hasKeys()
+        OntList<OntRealProperty> h34 = clazz.hasKeys()
                 .filter(c -> c.last().filter(p4::equals).isPresent())
                 .findFirst()
                 .orElseThrow(AssertionError::new);
-        OntList<OntDOP> h451 = clazz.hasKeys()
+        OntList<OntRealProperty> h451 = clazz.hasKeys()
                 .filter(c -> c.last().filter(p1::equals).isPresent())
                 .findFirst()
                 .orElseThrow(AssertionError::new);
@@ -520,7 +520,7 @@ public class OntListTest {
         Assert.assertSame(clazz, clazz.removeHasKey(h451));
 
         debug(m);
-        Assert.assertEquals(2, m.classes().flatMap(OntClass::hasKeys).count());
+        Assert.assertEquals(2, m.classes().flatMap(OntClass.Named::hasKeys).count());
         Assert.assertEquals(1, m.statements(null, RDF.type, OWL.Axiom).count());
         Assert.assertSame(clazz, clazz.clearHasKeys());
         debug(m);
@@ -530,14 +530,14 @@ public class OntListTest {
     @Test
     public void testDisjointPropertiesOntList() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntNOP p1 = m.createObjectProperty("p1");
-        OntNOP p2 = m.createObjectProperty("p2");
-        OntNOP p3 = m.createObjectProperty("p3");
-        OntNOP p4 = m.createObjectProperty("p4");
+        OntObjectProperty.Named p1 = m.createObjectProperty("p1");
+        OntObjectProperty.Named p2 = m.createObjectProperty("p2");
+        OntObjectProperty.Named p3 = m.createObjectProperty("p3");
+        OntObjectProperty.Named p4 = m.createObjectProperty("p4");
 
-        OntNDP p5 = m.createDataProperty("p5");
-        OntNDP p6 = m.createDataProperty("p6");
-        OntNDP p7 = m.createDataProperty("p7");
+        OntDataProperty p5 = m.createDataProperty("p5");
+        OntDataProperty p6 = m.createDataProperty("p6");
+        OntDataProperty p7 = m.createDataProperty("p7");
 
         OntDisjoint.ObjectProperties d1 = m.createDisjointObjectProperties(p1, p2);
         OntDisjoint.DataProperties d2 = m.createDisjointDataProperties(p5, p7);
@@ -556,9 +556,9 @@ public class OntListTest {
     public void testDisjointClassIndividualsOntList() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
 
-        OntCE ce1 = m.createOntClass("c1");
-        OntCE ce3 = m.createHasSelf(m.createObjectProperty("p1"));
-        OntCE ce2 = m.createDataHasValue(m.createDataProperty("p2"), m.createLiteral("2"));
+        OntClass ce1 = m.createOntClass("c1");
+        OntClass ce3 = m.createHasSelf(m.createObjectProperty("p1"));
+        OntClass ce2 = m.createDataHasValue(m.createDataProperty("p2"), m.createLiteral("2"));
 
         OntDisjoint.Classes d1 = m.createDisjointClasses(m.getOWLNothing(), ce1, ce3);
         OntDisjoint.Individuals d2 = m.createDifferentIndividuals(ce2.createIndividual(), ce3.createIndividual("I"));
@@ -578,7 +578,7 @@ public class OntListTest {
     @Test
     public void testOntListWithIncompatibleTypes() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntList<OntCE> list = m.createUnionOf(m.createOntClass("C1"), m.getOWLThing(), m.createOntClass("C2")).getList();
+        OntList<OntClass> list = m.createUnionOf(m.createOntClass("C1"), m.getOWLThing(), m.createOntClass("C2")).getList();
         Assert.assertFalse(list.isEmpty());
         Assert.assertFalse(list.isNil());
         Assert.assertEquals(3, list.size());

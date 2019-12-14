@@ -20,9 +20,9 @@ import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTDataPropertyImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTLiteralImpl;
+import com.github.owlcs.ontapi.jena.model.OntDataProperty;
 import com.github.owlcs.ontapi.jena.model.OntIndividual;
 import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntNDP;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.graph.impl.LiteralLabel;
@@ -82,7 +82,7 @@ public class DataPropertyAssertionTranslator
                                                                 InternalObjectFactory factory,
                                                                 InternalConfig config) {
         ONTObject<? extends OWLIndividual> i = factory.getIndividual(statement.getSubject(OntIndividual.class));
-        ONTObject<OWLDataProperty> p = factory.getProperty(statement.getPredicate().as(OntNDP.class));
+        ONTObject<OWLDataProperty> p = factory.getProperty(statement.getPredicate().as(OntDataProperty.class));
         ONTObject<OWLLiteral> literal = factory.getLiteral(statement.getLiteral());
         Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);
         OWLDataPropertyAssertionAxiom res = factory.getOWLDataFactory()

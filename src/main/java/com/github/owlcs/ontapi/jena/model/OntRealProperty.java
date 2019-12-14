@@ -22,28 +22,28 @@ import org.apache.jena.vocabulary.RDFS;
 import java.util.stream.Stream;
 
 /**
- * A common (abstract) interface for any Ontology <b>D</b>ata and <b>O</b>bject <b>P</b>roperty expressions.
- * In OWL2 terms it is any {@link OntPE Property Expression} minus {@link OntNAP Annotation Property}.
+ * A common (abstract) interface for any Ontology Data and Object Property expressions.
+ * In OWL2 terms it is any {@link OntProperty Property Expression} minus {@link OntAnnotationProperty Annotation Property}.
  * <p>
  * Created by @szuev on 21.07.2018.
  *
  * @since 1.3.0
  */
-public interface OntDOP extends OntPE {
+public interface OntRealProperty extends OntProperty {
 
     /**
      * {@inheritDoc}
      *
      * @return <b>distinct</b> {@code Stream} of data <b>or</b> object properties
      */
-    Stream<? extends OntDOP> superProperties(boolean direct);
+    Stream<? extends OntRealProperty> superProperties(boolean direct);
 
     /**
      * {@inheritDoc}
      *
      * @return <b>distinct</b> {@code Stream} of data <b>or</b> object properties
      */
-    Stream<? extends OntDOP> subProperties(boolean direct);
+    Stream<? extends OntRealProperty> subProperties(boolean direct);
 
     /**
      * Lists all property ranges,
@@ -59,31 +59,31 @@ public interface OntDOP extends OntPE {
      * In other words, returns all objects {@code R} from statements like {@code P rdfs:subPropertyOf R},
      * where {@code P} is this property.
      *
-     * @return {@code Stream} of {@link OntDOP}s - object <b>or</b> data properties
+     * @return {@code Stream} of {@link OntRealProperty}s - object <b>or</b> data properties
      * @since 1.4.0
      */
-    Stream<? extends OntDOP> superProperties();
+    Stream<? extends OntRealProperty> superProperties();
 
     /**
      * Lists all properties that are disjoint with this property.
      * In other words, returns all objects from statements of the form {@code P owl:propertyDisjointWith R},
      * where {@code P} is this property and {@code R} is a returned property of the same type.
      *
-     * @return {@code Stream} of {@link OntDOP}s - object <b>or</b> data properties
+     * @return {@code Stream} of {@link OntRealProperty}s - object <b>or</b> data properties
      * @see OntDisjoint.Properties
      * @since 1.4.0
      */
-    Stream<? extends OntDOP> disjointProperties();
+    Stream<? extends OntRealProperty> disjointProperties();
 
     /**
      * Lists all properties that equivalent to this one.
      * In other words, returns all objects from statements of the form {@code P owl:equivalentProperty R},
      * where {@code P} is this property and {@code R} is a returned property of the same type.
      *
-     * @return {@code Stream} of {@link OntDOP}s - object <b>or</b> data properties
+     * @return {@code Stream} of {@link OntRealProperty}s - object <b>or</b> data properties
      * @since 1.4.0
      */
-    Stream<? extends OntDOP> equivalentProperties();
+    Stream<? extends OntRealProperty> equivalentProperties();
 
     /**
      * Lists all negative property assertions.
@@ -92,9 +92,9 @@ public interface OntDOP extends OntPE {
      * that has a data or object property expression as an object
      * on the predicate {@link OWL#assertionProperty owl:assertionProperty}.
      *
-     * @return {@code Stream} of {@link OntNPA}
+     * @return {@code Stream} of {@link OntNegativeAssertion}
      */
-    Stream<? extends OntNPA<?, ?>> negativeAssertions();
+    Stream<? extends OntNegativeAssertion<?, ?>> negativeAssertions();
 
     /**
      * Adds or removes {@link OWL#FunctionalProperty owl:FunctionalProperty} declaration
@@ -105,35 +105,35 @@ public interface OntDOP extends OntPE {
      * @return <b>this</b> instance to allow cascading calls
      * @see #addFunctionalDeclaration()
      */
-    OntDOP setFunctional(boolean functional);
+    OntRealProperty setFunctional(boolean functional);
 
     /**
      * Adds a statement with the {@link RDFS#domain} as predicate,
-     * this property as a subject, and the specified {@link OntCE class expression} as an object.
+     * this property as a subject, and the specified {@link OntClass class expression} as an object.
      *
-     * @param ce {@link OntCE}, not {@code null}
+     * @param ce {@link OntClass}, not {@code null}
      * @return <b>this</b> instance to allow cascading calls
-     * @see #addDomainStatement(OntCE)
+     * @see #addDomainStatement(OntClass)
      */
-    OntDOP addDomain(OntCE ce);
+    OntRealProperty addDomain(OntClass ce);
 
     /**
      * {@inheritDoc}
      */
     @Override
-    OntDOP removeDomain(Resource domain);
+    OntRealProperty removeDomain(Resource domain);
 
     /**
      * {@inheritDoc}
      */
     @Override
-    OntDOP removeRange(Resource range);
+    OntRealProperty removeRange(Resource range);
 
     /**
      * {@inheritDoc}
      */
     @Override
-    OntDOP removeSuperProperty(Resource property);
+    OntRealProperty removeSuperProperty(Resource property);
 
     /**
      * Removes the equivalent property statement
@@ -147,7 +147,7 @@ public interface OntDOP extends OntPE {
      * @return <b>this</b> instance to allow cascading calls
      * @since 1.4.0
      */
-    OntDOP removeEquivalentProperty(Resource property);
+    OntRealProperty removeEquivalentProperty(Resource property);
 
     /**
      * Removes the {@code owl:propertyDisjointWith} statement
@@ -162,19 +162,19 @@ public interface OntDOP extends OntPE {
      * @see OntDisjoint.Properties
      * @since 1.4.0
      */
-    OntDOP removeDisjointProperty(Resource property);
+    OntRealProperty removeDisjointProperty(Resource property);
 
     /**
      * Lists all of the declared domain class expressions of this property expression.
      * In other words, returns the right-hand sides of statement {@code P rdfs:domain C},
      * where {@code P} is this property expression.
      *
-     * @return {@code Stream} of {@link OntCE class expression}s
+     * @return {@code Stream} of {@link OntClass class expression}s
      * @since 1.4.0
      */
     @Override
-    default Stream<OntCE> domains() {
-        return objects(RDFS.domain, OntCE.class);
+    default Stream<OntClass> domains() {
+        return objects(RDFS.domain, OntClass.class);
     }
 
     /**
@@ -193,12 +193,12 @@ public interface OntDOP extends OntPE {
      * Adds a statement {@code P rdfs:domain C},
      * where {@code P} is this property expression and {@code C} is the specified class expression.
      *
-     * @param ce {@link OntCE class expression}, not null
+     * @param ce {@link OntClass class expression}, not null
      * @return {@link OntStatement} to allow the subsequent addition of annotations
-     * @see #addDomain(OntCE)
+     * @see #addDomain(OntClass)
      * @since 1.4.0
      */
-    default OntStatement addDomainStatement(OntCE ce) {
+    default OntStatement addDomainStatement(OntClass ce) {
         return addStatement(RDFS.domain, ce);
     }
 

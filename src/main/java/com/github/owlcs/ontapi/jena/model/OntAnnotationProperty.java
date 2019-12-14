@@ -21,15 +21,16 @@ import org.apache.jena.vocabulary.RDFS;
 import java.util.stream.Stream;
 
 /**
- * Interface encapsulating a <b>N</b>amed <b>A</b>nnotation <b>P</b>roperty.
- * The first word in this abbreviation means that it is an URI-{@link Resource Resource}.
+ * Interface encapsulating a {named} Annotation Property.
  * This is an extension to the standard jena {@link Property},
- * the {@link OntEntity OWL Entity} and the {@link OntPE abstract property expression} interfaces.
+ * the {@link OntEntity OWL Entity} and the {@link OntProperty abstract property expression} interfaces.
  * In OWL2 an Annotation Property cannot be anonymous.
  * <p>
  * Created by szuev on 01.11.2016.
+ *
+ * @see <a href='https://www.w3.org/TR/owl2-syntax/#Annotation_Properties'>5.5 Annotation Properties</a>
  */
-public interface OntNAP extends OntPE, OntProperty<OntNAP> {
+public interface OntAnnotationProperty extends OntProperty, OntNamedProperty<OntAnnotationProperty> {
 
     /**
      * {@inheritDoc}
@@ -37,7 +38,7 @@ public interface OntNAP extends OntPE, OntProperty<OntNAP> {
      * @return <b>distinct</b> {@code Stream} of annotation properties
      * @since 1.4.0
      */
-    Stream<OntNAP> superProperties(boolean direct);
+    Stream<OntAnnotationProperty> superProperties(boolean direct);
 
     /**
      * {@inheritDoc}
@@ -45,7 +46,7 @@ public interface OntNAP extends OntPE, OntProperty<OntNAP> {
      * @return <b>distinct</b> {@code Stream} of annotation properties
      * @since 1.4.0
      */
-    Stream<OntNAP> subProperties(boolean direct);
+    Stream<OntAnnotationProperty> subProperties(boolean direct);
 
     /**
      * Lists all valid annotation property domains in the form of java {@code Stream}.
@@ -99,15 +100,15 @@ public interface OntNAP extends OntPE, OntProperty<OntNAP> {
      * The pattern is {@code A1 rdfs:subPropertyOf A2},
      * where {@code A1} is this property and {@code A2} is what needs to be returned.
      *
-     * @return {@code Stream} of {@link OntNAP}s
-     * @see #addSubPropertyOfStatement(OntNAP)
-     * @see #addSuperProperty(OntNAP)
+     * @return {@code Stream} of {@link OntAnnotationProperty}s
+     * @see #addSubPropertyOfStatement(OntAnnotationProperty)
+     * @see #addSuperProperty(OntAnnotationProperty)
      * @see #removeSuperProperty(Resource)
      * @see #superProperties(boolean)
      */
     @Override
-    default Stream<OntNAP> superProperties() {
-        return objects(RDFS.subPropertyOf, OntNAP.class);
+    default Stream<OntAnnotationProperty> superProperties() {
+        return objects(RDFS.subPropertyOf, OntAnnotationProperty.class);
     }
 
     /**
@@ -117,7 +118,7 @@ public interface OntNAP extends OntPE, OntProperty<OntNAP> {
      * @return <b>this</b> instance to allow cascading calls
      * @see #addRangeStatement(Resource)
      */
-    default OntNAP addRange(Resource uri) {
+    default OntAnnotationProperty addRange(Resource uri) {
         addRangeStatement(uri);
         return this;
     }
@@ -129,7 +130,7 @@ public interface OntNAP extends OntPE, OntProperty<OntNAP> {
      * @return <b>this</b> instance to allow cascading calls
      * @see #addDomainStatement(Resource)
      */
-    default OntNAP addDomain(Resource uri) {
+    default OntAnnotationProperty addDomain(Resource uri) {
         addDomainStatement(uri);
         return this;
     }
@@ -137,7 +138,7 @@ public interface OntNAP extends OntPE, OntProperty<OntNAP> {
     /**
      * {@inheritDoc}
      */
-    default OntNAP removeDomain(Resource domain) {
+    default OntAnnotationProperty removeDomain(Resource domain) {
         remove(RDFS.domain, domain);
         return this;
     }
@@ -145,7 +146,7 @@ public interface OntNAP extends OntPE, OntProperty<OntNAP> {
     /**
      * {@inheritDoc}
      */
-    default OntNAP removeRange(Resource range) {
+    default OntAnnotationProperty removeRange(Resource range) {
         remove(RDFS.range, range);
         return this;
     }
@@ -153,12 +154,12 @@ public interface OntNAP extends OntPE, OntProperty<OntNAP> {
     /**
      * Adds the given property as super property returning this property itself.
      *
-     * @param property {@link OntNAP}, not {@code null}
+     * @param property {@link OntAnnotationProperty}, not {@code null}
      * @return <b>this</b> instance to allow cascading calls
      * @see #removeSuperProperty(Resource)
      * @since 1.4.0
      */
-    default OntNAP addSuperProperty(OntNAP property) {
+    default OntAnnotationProperty addSuperProperty(OntAnnotationProperty property) {
         addSubPropertyOfStatement(property);
         return this;
     }
@@ -167,7 +168,7 @@ public interface OntNAP extends OntPE, OntProperty<OntNAP> {
      * {@inheritDoc}
      */
     @Override
-    default OntNAP removeSuperProperty(Resource property) {
+    default OntAnnotationProperty removeSuperProperty(Resource property) {
         remove(RDFS.subPropertyOf, property);
         return this;
     }
@@ -176,11 +177,11 @@ public interface OntNAP extends OntPE, OntProperty<OntNAP> {
      * Adds the given property as super property returning a new statement to annotate.
      * The triple pattern is {@code this rdfs:subPropertyOf property}).
      *
-     * @param property {@link OntNAP}, not {@code null}
+     * @param property {@link OntAnnotationProperty}, not {@code null}
      * @return {@link OntStatement} to allow subsequent annotations adding
      * @since 1.4.0
      */
-    default OntStatement addSubPropertyOfStatement(OntNAP property) {
+    default OntStatement addSubPropertyOfStatement(OntAnnotationProperty property) {
         return addStatement(RDFS.subPropertyOf, property);
     }
 

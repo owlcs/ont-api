@@ -17,8 +17,7 @@ package com.github.owlcs.ontapi.internal.objects;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.internal.InternalObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
-import com.github.owlcs.ontapi.jena.model.OntDR;
-import com.github.owlcs.ontapi.jena.model.OntDT;
+import com.github.owlcs.ontapi.jena.model.OntDataRange;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
 import com.github.owlcs.ontapi.owlapi.objects.OWLLiteralImpl;
@@ -41,12 +40,12 @@ import java.util.stream.Stream;
  * Created by @ssz on 20.08.2019.
  *
  * @see com.github.owlcs.ontapi.owlapi.objects.dr.OWLAnonymousDataRangeImpl
- * @see com.github.owlcs.ontapi.internal.ReadHelper#calcDataRange(OntDR, InternalObjectFactory, Set)
- * @see OntDR
+ * @see com.github.owlcs.ontapi.internal.ReadHelper#calcDataRange(OntDataRange, InternalObjectFactory, Set)
+ * @see OntDataRange
  * @since 2.0.0
  */
 @SuppressWarnings("WeakerAccess")
-public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends OWLDataRange>
+public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDataRange, OWL extends OWLDataRange>
         extends ONTExpressionImpl<ONT>
         implements OWLDataRange, ModelObject<OWL> {
 
@@ -55,18 +54,18 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
     }
 
     /**
-     * Wraps the given {@link OntDR} as {@link OWLDataRange} and {@link ONTObject}.
+     * Wraps the given {@link OntDataRange} as {@link OWLDataRange} and {@link ONTObject}.
      *
-     * @param dr      {@link OntDR}, not {@code null}, must be anonymous
+     * @param dr      {@link OntDataRange}, not {@code null}, must be anonymous
      * @param factory {@link InternalObjectFactory}, not {@code null}
      * @param model   a provider of non-null {@link OntModel}, not {@code null}
      * @return {@link ONTAnonymousDataRangeImpl} instance
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
-    public static ONTAnonymousDataRangeImpl create(OntDR dr,
+    public static ONTAnonymousDataRangeImpl create(OntDataRange dr,
                                                    InternalObjectFactory factory,
                                                    Supplier<OntModel> model) {
-        Class<? extends OntDR> type = OntModels.getOntType(dr);
+        Class<? extends OntDataRange> type = OntModels.getOntType(dr);
         BlankNodeId id = dr.asNode().getBlankNodeId();
         ONTAnonymousDataRangeImpl res = create(id, type, model);
         res.putContent(res.initContent(dr, factory));
@@ -83,21 +82,21 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
      * @return {@link ONTAnonymousDataRangeImpl} instance
      */
     public static ONTAnonymousDataRangeImpl<?, ?> create(BlankNodeId id,
-                                                         Class<? extends OntDR> type,
+                                                         Class<? extends OntDataRange> type,
                                                          Supplier<OntModel> model) {
-        if (OntDR.UnionOf.class == type) {
+        if (OntDataRange.UnionOf.class == type) {
             return new UF(id, model);
         }
-        if (OntDR.IntersectionOf.class == type) {
+        if (OntDataRange.IntersectionOf.class == type) {
             return new IF(id, model);
         }
-        if (OntDR.OneOf.class == type) {
+        if (OntDataRange.OneOf.class == type) {
             return new OF(id, model);
         }
-        if (OntDR.Restriction.class == type) {
+        if (OntDataRange.Restriction.class == type) {
             return new R(id, model);
         }
-        if (OntDR.ComplementOf.class == type) {
+        if (OntDataRange.ComplementOf.class == type) {
             return new CF(id, model);
         }
         throw new OntApiException.IllegalState();
@@ -146,18 +145,18 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
 
     /**
      * @see com.github.owlcs.ontapi.owlapi.objects.dr.OWLDataUnionOfImpl
-     * @see OntDR.UnionOf
+     * @see OntDataRange.UnionOf
      */
     public static class UF
-            extends WithDRMembers<OntDR.UnionOf, OWLDataUnionOf> implements OWLDataUnionOf {
+            extends WithDRMembers<OntDataRange.UnionOf, OWLDataUnionOf> implements OWLDataUnionOf {
 
         protected UF(BlankNodeId id, Supplier<OntModel> m) {
             super(id, m);
         }
 
         @Override
-        public OntDR.UnionOf asRDFNode() {
-            return as(OntDR.UnionOf.class);
+        public OntDataRange.UnionOf asRDFNode() {
+            return as(OntDataRange.UnionOf.class);
         }
 
         @Override
@@ -168,10 +167,10 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
 
     /**
      * @see com.github.owlcs.ontapi.owlapi.objects.dr.OWLDataIntersectionOfImpl
-     * @see OntDR.IntersectionOf
+     * @see OntDataRange.IntersectionOf
      */
     public static class IF
-            extends WithDRMembers<OntDR.IntersectionOf, OWLDataIntersectionOf>
+            extends WithDRMembers<OntDataRange.IntersectionOf, OWLDataIntersectionOf>
             implements OWLDataIntersectionOf {
 
         protected IF(BlankNodeId id, Supplier<OntModel> m) {
@@ -179,8 +178,8 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
         }
 
         @Override
-        public OntDR.IntersectionOf asRDFNode() {
-            return as(OntDR.IntersectionOf.class);
+        public OntDataRange.IntersectionOf asRDFNode() {
+            return as(OntDataRange.IntersectionOf.class);
         }
 
         @Override
@@ -191,18 +190,18 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
 
     /**
      * @see com.github.owlcs.ontapi.owlapi.objects.dr.OWLDataOneOfImpl
-     * @see OntDR.OneOf
+     * @see OntDataRange.OneOf
      */
     public static class OF
-            extends WithMembers<Literal, OntDR.OneOf, OWLLiteral, OWLDataOneOf> implements OWLDataOneOf {
+            extends WithMembers<Literal, OntDataRange.OneOf, OWLLiteral, OWLDataOneOf> implements OWLDataOneOf {
 
         protected OF(BlankNodeId id, Supplier<OntModel> m) {
             super(id, m);
         }
 
         @Override
-        public OntDR.OneOf asRDFNode() {
-            return as(OntDR.OneOf.class);
+        public OntDataRange.OneOf asRDFNode() {
+            return as(OntDataRange.OneOf.class);
         }
 
         @Override
@@ -233,10 +232,10 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
 
     /**
      * @see com.github.owlcs.ontapi.owlapi.objects.dr.OWLDatatypeRestrictionImpl
-     * @see OntDR.Restriction
+     * @see OntDataRange.Restriction
      */
     public static class R
-            extends ONTAnonymousDataRangeImpl<OntDR.Restriction, OWLDatatypeRestriction>
+            extends ONTAnonymousDataRangeImpl<OntDataRange.Restriction, OWLDatatypeRestriction>
             implements OWLDatatypeRestriction {
 
         protected R(BlankNodeId id, Supplier<OntModel> m) {
@@ -244,8 +243,8 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
         }
 
         @Override
-        public OntDR.Restriction asRDFNode() {
-            return as(OntDR.Restriction.class);
+        public OntDataRange.Restriction asRDFNode() {
+            return as(OntDataRange.Restriction.class);
         }
 
         @Override
@@ -288,10 +287,10 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
         }
 
         @Override
-        protected Object[] collectContent(OntDR.Restriction dr, InternalObjectFactory factory) {
+        protected Object[] collectContent(OntDataRange.Restriction dr, InternalObjectFactory factory) {
             Set<ONTObject<OWLFacetRestriction>> members = facetRestrictions(dr, factory);
             Object[] res = new Object[members.size() + 1];
-            OntDT dt = dr.getValue();
+            OntDataRange.Named dt = dr.getValue();
             res[0] = dt.getURI();
             int index = 1;
             for (ONTObject<OWLFacetRestriction> op : members) {
@@ -301,10 +300,10 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
         }
 
         @Override
-        protected Object[] initContent(OntDR.Restriction dr, InternalObjectFactory factory) {
+        protected Object[] initContent(OntDataRange.Restriction dr, InternalObjectFactory factory) {
             Set<ONTObject<OWLFacetRestriction>> members = facetRestrictions(dr, factory);
             Object[] res = new Object[members.size() + 1];
-            OntDT dt = dr.getValue();
+            OntDataRange.Named dt = dr.getValue();
             res[0] = dt.getURI();
             int hash = OWLObject.hashIteration(hashIndex(), factory.getDatatype(dt).hashCode());
             int index = 1;
@@ -317,7 +316,7 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
             return res;
         }
 
-        protected Set<ONTObject<OWLFacetRestriction>> facetRestrictions(OntDR.Restriction dr,
+        protected Set<ONTObject<OWLFacetRestriction>> facetRestrictions(OntDataRange.Restriction dr,
                                                                         InternalObjectFactory factory) {
             Set<ONTObject<OWLFacetRestriction>> res = createContentSet();
             OntModels.listMembers(dr.getList()).mapWith(factory::getFacetRestriction).forEachRemaining(res::add);
@@ -333,10 +332,10 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
 
     /**
      * @see com.github.owlcs.ontapi.owlapi.objects.dr.OWLDataComplementOfImpl
-     * @see OntDR.ComplementOf
+     * @see OntDataRange.ComplementOf
      */
     public static class CF
-            extends ONTAnonymousDataRangeImpl<OntDR.ComplementOf, OWLDataComplementOf> implements OWLDataComplementOf {
+            extends ONTAnonymousDataRangeImpl<OntDataRange.ComplementOf, OWLDataComplementOf> implements OWLDataComplementOf {
 
         public CF(BlankNodeId id, Supplier<OntModel> m) {
             super(id, m);
@@ -348,8 +347,8 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
         }
 
         @Override
-        public OntDR.ComplementOf asRDFNode() {
-            return as(OntDR.ComplementOf.class);
+        public OntDataRange.ComplementOf asRDFNode() {
+            return as(OntDataRange.ComplementOf.class);
         }
 
         @Override
@@ -362,13 +361,13 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
         }
 
         @Override
-        protected Object[] collectContent(OntDR.ComplementOf dr, InternalObjectFactory factory) {
+        protected Object[] collectContent(OntDataRange.ComplementOf dr, InternalObjectFactory factory) {
             return new Object[]{toContentItem(dr.getValue(), factory)};
         }
 
         @Override
-        protected Object[] initContent(OntDR.ComplementOf dr, InternalObjectFactory factory) {
-            OntDR value = dr.getValue();
+        protected Object[] initContent(OntDataRange.ComplementOf dr, InternalObjectFactory factory) {
+            OntDataRange value = dr.getValue();
             Object item = factory.getDatatype(value);
             this.hashCode = OWLObject.hashIteration(hashIndex(), item.hashCode());
             if (value.isURIResource()) {
@@ -383,15 +382,15 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
         }
     }
 
-    protected abstract static class WithDRMembers<ONT extends OntDR.ComponentsDR<OntDR>, OWL extends OWLDataRange>
-            extends WithMembers<OntDR, ONT, OWLDataRange, OWL> {
+    protected abstract static class WithDRMembers<ONT extends OntDataRange.ComponentsDR<OntDataRange>, OWL extends OWLDataRange>
+            extends WithMembers<OntDataRange, ONT, OWLDataRange, OWL> {
 
         protected WithDRMembers(BlankNodeId id, Supplier<OntModel> m) {
             super(id, m);
         }
 
         @Override
-        protected ONTObject<? extends OWLDataRange> map(OntDR dr, InternalObjectFactory factory) {
+        protected ONTObject<? extends OWLDataRange> map(OntDataRange dr, InternalObjectFactory factory) {
             return factory.getDatatype(dr);
         }
 
@@ -408,7 +407,7 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
     }
 
     protected abstract static class WithMembers<ONT_M extends RDFNode,
-            ONT_D extends OntDR.ComponentsDR<ONT_M>,
+            ONT_D extends OntDataRange.ComponentsDR<ONT_M>,
             OWL_M extends OWLObject,
             OWL_D extends OWLDataRange>
             extends ONTAnonymousDataRangeImpl<ONT_D, OWL_D>

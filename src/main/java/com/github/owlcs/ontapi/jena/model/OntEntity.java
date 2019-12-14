@@ -14,8 +14,8 @@
 
 package com.github.owlcs.ontapi.jena.model;
 
-import org.apache.jena.util.iterator.ExtendedIterator;
 import com.github.owlcs.ontapi.jena.utils.Iter;
+import org.apache.jena.util.iterator.ExtendedIterator;
 
 import java.util.stream.Stream;
 
@@ -25,12 +25,12 @@ import java.util.stream.Stream;
  * <p>
  * Created by szuev on 01.11.2016.
  *
- * @see OntClass
- * @see OntDT
+ * @see OntClass.Named
+ * @see OntDataRange.Named
  * @see OntIndividual.Named
- * @see OntNAP
- * @see OntNOP
- * @see OntNDP
+ * @see OntAnnotationProperty
+ * @see OntObjectProperty.Named
+ * @see OntDataProperty
  */
 public interface OntEntity extends OntObject {
 
@@ -50,22 +50,27 @@ public interface OntEntity extends OntObject {
      * @since 1.3.0
      */
     static ExtendedIterator<Class<? extends OntEntity>> listEntityTypes() {
-        return Iter.of(OntClass.class, OntDT.class, OntIndividual.Named.class, OntNOP.class, OntNAP.class, OntNDP.class);
+        return Iter.of(OntClass.Named.class,
+                OntDataRange.Named.class,
+                OntIndividual.Named.class,
+                OntObjectProperty.Named.class,
+                OntAnnotationProperty.class,
+                OntDataProperty.class);
     }
 
     /**
      * Determines if this is a builtin entity.
      * In a standard (default) OWL vocabulary an entity is builtin if it is:
      * <ul>
-     * <li>a {@link OntClass class} and its IRI is either {@code owl:Thing} or {@code owl:Nothing}</li>
-     * <li>an {@link OntNOP object property} and its IRI is either {@code owl:topObjectProperty}
+     * <li>a {@link OntClass.Named class} and its IRI is either {@code owl:Thing} or {@code owl:Nothing}</li>
+     * <li>an {@link OntObjectProperty.Named object property} and its IRI is either {@code owl:topObjectProperty}
      * or {@code owl:bottomObjectProperty}</li>
-     * <li>a {@link OntNDP data property} and its IRI is either {@code owl:topDataProperty}
+     * <li>a {@link OntDataProperty data property} and its IRI is either {@code owl:topDataProperty}
      * or {@code owl:bottomDataProperty}</li>
-     * <li>a {@link OntDT datatype} and its IRI is either {@code rdfs:Literal},
+     * <li>a {@link OntDataRange.Named datatype} and its IRI is either {@code rdfs:Literal},
      * or {@code rdf:PlainLiteral},
      * or it is from the OWL 2 datatype map</li>
-     * <li>an {@link OntNAP annotation property} and its IRI is one of the following:
+     * <li>an {@link OntAnnotationProperty annotation property} and its IRI is one of the following:
      * <ul>
      * <li>{@code rdfs:label}</li>
      * <li>{@code rdfs:comment}</li>

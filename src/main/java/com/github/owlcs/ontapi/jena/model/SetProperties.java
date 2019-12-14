@@ -15,18 +15,18 @@
 package com.github.owlcs.ontapi.jena.model;
 
 /**
- * A technical interface to provide a possibility to assign {@link OntNDP} properties
- * into {@link OntCE.NaryRestrictionCE n-ary restriction class expression}
+ * A technical interface to provide a possibility to assign {@link OntDataProperty} properties
+ * into {@link OntClass.NaryRestrictionCE n-ary restriction class expression}
  * on predicate {@link com.github.owlcs.ontapi.jena.vocabulary.OWL#onProperties owl:onProperties}.
  * <p>
  * Created by @ssz on 09.05.2019.
  *
- * @param <P> - any subtype of {@link OntDOP} in general case, but in the current model it can only be {@link OntNDP}
- * @param <R> - return type, a subtype of {@link OntCE.NaryRestrictionCE}
+ * @param <P> - any subtype of {@link OntRealProperty} in general case, but in the current model it can only be {@link OntDataProperty}
+ * @param <R> - return type, a subtype of {@link OntClass.NaryRestrictionCE}
  * @see HasProperties
  * @since 1.4.0
  */
-interface SetProperties<P extends OntDOP, R extends OntCE.NaryRestrictionCE<?, ?>>
+interface SetProperties<P extends OntRealProperty, R extends OntClass.NaryRestrictionCE<?, ?>>
         extends SetComponents<P, R>, SetProperty<P, R> {
 
     /**

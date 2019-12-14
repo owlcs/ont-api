@@ -17,9 +17,9 @@ package com.github.owlcs.ontapi.internal.axioms;
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.*;
-import com.github.owlcs.ontapi.jena.model.OntDR;
+import com.github.owlcs.ontapi.jena.model.OntDataProperty;
+import com.github.owlcs.ontapi.jena.model.OntDataRange;
 import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntNDP;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import org.apache.jena.graph.Triple;
 import org.semanticweb.owlapi.model.*;
@@ -37,15 +37,15 @@ import java.util.stream.Stream;
  * <p>
  * Created by @szuev on 28.09.2016.
  */
-public class DataPropertyRangeTranslator extends AbstractPropertyRangeTranslator<OWLDataPropertyRangeAxiom, OntNDP> {
+public class DataPropertyRangeTranslator extends AbstractPropertyRangeTranslator<OWLDataPropertyRangeAxiom, OntDataProperty> {
 
     @Override
-    Class<OntNDP> getView() {
-        return OntNDP.class;
+    Class<OntDataProperty> getView() {
+        return OntDataProperty.class;
     }
 
     protected boolean filter(OntStatement statement, InternalConfig config) {
-        return super.filter(statement, config) && statement.getObject().canAs(OntDR.class);
+        return super.filter(statement, config) && statement.getObject().canAs(OntDataRange.class);
     }
 
     @Override
@@ -61,7 +61,7 @@ public class DataPropertyRangeTranslator extends AbstractPropertyRangeTranslator
                                                             InternalObjectFactory factory,
                                                             InternalConfig config) {
         ONTObject<OWLDataProperty> p = factory.getProperty(statement.getSubject(getView()));
-        ONTObject<? extends OWLDataRange> d = factory.getDatatype(statement.getObject(OntDR.class));
+        ONTObject<? extends OWLDataRange> d = factory.getDatatype(statement.getObject(OntDataRange.class));
         Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);
         OWLDataPropertyRangeAxiom res = factory.getOWLDataFactory()
                 .getOWLDataPropertyRangeAxiom(p.getOWLObject(), d.getOWLObject(), ONTObject.toSet(annotations));
@@ -108,7 +108,7 @@ public class DataPropertyRangeTranslator extends AbstractPropertyRangeTranslator
         @Override
         public ONTObject<? extends OWLDataPropertyExpression> subjectFromStatement(OntStatement statement,
                                                                                    InternalObjectFactory factory) {
-            return factory.getProperty(statement.getSubject(OntNDP.class));
+            return factory.getProperty(statement.getSubject(OntDataProperty.class));
         }
 
         @Override
@@ -119,7 +119,7 @@ public class DataPropertyRangeTranslator extends AbstractPropertyRangeTranslator
         @Override
         public ONTObject<? extends OWLDataRange> objectFromStatement(OntStatement statement,
                                                                      InternalObjectFactory factory) {
-            return factory.getDatatype(statement.getObject(OntDR.class));
+            return factory.getDatatype(statement.getObject(OntDataRange.class));
         }
 
         @FactoryAccessor

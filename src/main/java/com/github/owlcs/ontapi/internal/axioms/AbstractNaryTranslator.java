@@ -262,8 +262,8 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
         @Override
         public ExtendedIterator<ONTObject<? extends OWLClassExpression>> listONTComponents(OntStatement statement,
                                                                                            InternalObjectFactory factory) {
-            return Iter.of(factory.getClass(statement.getSubject(OntCE.class)),
-                    factory.getClass(statement.getObject(OntCE.class)));
+            return Iter.of(factory.getClass(statement.getSubject(OntClass.class)),
+                    factory.getClass(statement.getObject(OntClass.class)));
         }
 
         @Override
@@ -374,8 +374,8 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
         @Override
         public ExtendedIterator<ONTObject<? extends OWLObjectPropertyExpression>> listONTComponents(OntStatement statement,
                                                                                                     InternalObjectFactory factory) {
-            return Iter.of(factory.getProperty(statement.getSubject(OntOPE.class)),
-                    factory.getProperty(statement.getObject(OntOPE.class)));
+            return Iter.of(factory.getProperty(statement.getSubject(OntObjectProperty.class)),
+                    factory.getProperty(statement.getObject(OntObjectProperty.class)));
         }
 
         @Override
@@ -405,8 +405,8 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
         @Override
         public ExtendedIterator<ONTObject<? extends OWLDataPropertyExpression>> listONTComponents(OntStatement statement,
                                                                                                   InternalObjectFactory factory) {
-            return Iter.of(factory.getProperty(statement.getSubject(OntNDP.class)),
-                    factory.getProperty(statement.getObject(OntNDP.class)));
+            return Iter.of(factory.getProperty(statement.getSubject(OntDataProperty.class)),
+                    factory.getProperty(statement.getObject(OntDataProperty.class)));
         }
 
         @Override

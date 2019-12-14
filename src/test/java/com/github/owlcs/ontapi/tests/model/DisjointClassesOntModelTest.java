@@ -17,10 +17,9 @@ package com.github.owlcs.ontapi.tests.model;
 import com.github.owlcs.ontapi.OntFormat;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.Ontology;
-import com.github.owlcs.ontapi.jena.model.OntCE;
 import com.github.owlcs.ontapi.jena.model.OntClass;
 import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntOPE;
+import com.github.owlcs.ontapi.jena.model.OntObjectProperty;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import com.github.owlcs.ontapi.utils.OntIRI;
@@ -81,14 +80,14 @@ public class DisjointClassesOntModelTest extends OntModelTestBase {
         OWLClass owlSimple2 = factory.getOWLClass(iri.addFragment("Simple2"));
         OWLClass owlComplex1 = factory.getOWLClass(iri.addFragment("Complex1"));
         OWLClass owlComplex2 = factory.getOWLClass(iri.addFragment("Complex2"));
-        OntClass ontSimple1 = jena.createOntClass(owlSimple1.getIRI().getIRIString());
-        OntClass ontSimple2 = jena.createOntClass(owlSimple2.getIRI().getIRIString());
-        OntClass ontComplex1 = jena.createOntClass(owlComplex1.getIRI().getIRIString());
-        OntClass ontComplex2 = jena.createOntClass(owlComplex2.getIRI().getIRIString());
+        OntClass.Named ontSimple1 = jena.createOntClass(owlSimple1.getIRI().getIRIString());
+        OntClass.Named ontSimple2 = jena.createOntClass(owlSimple2.getIRI().getIRIString());
+        OntClass.Named ontComplex1 = jena.createOntClass(owlComplex1.getIRI().getIRIString());
+        OntClass.Named ontComplex2 = jena.createOntClass(owlComplex2.getIRI().getIRIString());
 
-        OntOPE property = jena.createObjectProperty(iri.addFragment("hasSimple1").getIRIString())
+        OntObjectProperty property = jena.createObjectProperty(iri.addFragment("hasSimple1").getIRIString())
                 .setFunctional(true).addRange(ontSimple1);
-        OntCE.ObjectSomeValuesFrom restriction = jena.createObjectSomeValuesFrom(property, ontSimple2);
+        OntClass.ObjectSomeValuesFrom restriction = jena.createObjectSomeValuesFrom(property, ontSimple2);
         ontComplex2.addSuperClass(restriction).addSuperClass(ontComplex1);
         ontComplex2.addComment("comment1", "es");
         Assert.assertEquals("comment1", ontComplex2.getComment("es"));

@@ -16,8 +16,7 @@ package com.github.owlcs.ontapi.internal.axioms;
 
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.*;
-import com.github.owlcs.ontapi.jena.model.OntDR;
-import com.github.owlcs.ontapi.jena.model.OntDT;
+import com.github.owlcs.ontapi.jena.model.OntDataRange;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
@@ -55,15 +54,15 @@ public class DatatypeDefinitionTranslator extends AxiomTranslator<OWLDatatypeDef
     @Override
     public ExtendedIterator<OntStatement> listStatements(OntModel model, InternalConfig config) {
         return OntModels.listLocalStatements(model, null, OWL.equivalentClass, null)
-                .filterKeep(s -> s.getSubject().canAs(OntDT.class)
-                        && s.getObject().canAs(OntDR.class));
+                .filterKeep(s -> s.getSubject().canAs(OntDataRange.Named.class)
+                        && s.getObject().canAs(OntDataRange.class));
     }
 
     @Override
     public boolean testStatement(OntStatement statement, InternalConfig config) {
         return statement.getPredicate().equals(OWL.equivalentClass)
-                && statement.getSubject().canAs(OntDT.class)
-                && statement.getObject().canAs(OntDR.class);
+                && statement.getSubject().canAs(OntDataRange.Named.class)
+                && statement.getObject().canAs(OntDataRange.class);
     }
 
     @Override
@@ -78,8 +77,8 @@ public class DatatypeDefinitionTranslator extends AxiomTranslator<OWLDatatypeDef
     public ONTObject<OWLDatatypeDefinitionAxiom> toAxiomWrap(OntStatement statement,
                                                              InternalObjectFactory factory,
                                                              InternalConfig config) {
-        ONTObject<OWLDatatype> dt = factory.getDatatype(statement.getSubject(OntDT.class));
-        ONTObject<? extends OWLDataRange> dr = factory.getDatatype(statement.getObject(OntDR.class));
+        ONTObject<OWLDatatype> dt = factory.getDatatype(statement.getSubject(OntDataRange.Named.class));
+        ONTObject<? extends OWLDataRange> dr = factory.getDatatype(statement.getObject(OntDataRange.class));
         Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);
         OWLDatatypeDefinitionAxiom res = factory.getOWLDataFactory()
                 .getOWLDatatypeDefinitionAxiom(dt.getOWLObject(), dr.getOWLObject(), ONTObject.toSet(annotations));
@@ -135,7 +134,7 @@ public class DatatypeDefinitionTranslator extends AxiomTranslator<OWLDatatypeDef
         @Override
         public ONTObject<? extends OWLDatatype> subjectFromStatement(OntStatement statement,
                                                                      InternalObjectFactory factory) {
-            return factory.getDatatype(statement.getSubject(OntDT.class));
+            return factory.getDatatype(statement.getSubject(OntDataRange.Named.class));
         }
 
         @Override
@@ -146,7 +145,7 @@ public class DatatypeDefinitionTranslator extends AxiomTranslator<OWLDatatypeDef
         @Override
         public ONTObject<? extends OWLDataRange> objectFromStatement(OntStatement statement,
                                                                      InternalObjectFactory factory) {
-            return factory.getDatatype(statement.getObject(OntDR.class));
+            return factory.getDatatype(statement.getObject(OntDataRange.class));
         }
 
         @FactoryAccessor

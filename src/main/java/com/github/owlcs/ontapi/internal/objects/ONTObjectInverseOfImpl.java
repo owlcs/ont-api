@@ -17,8 +17,7 @@ package com.github.owlcs.ontapi.internal.objects;
 import com.github.owlcs.ontapi.internal.InternalObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntNOP;
-import com.github.owlcs.ontapi.jena.model.OntOPE;
+import com.github.owlcs.ontapi.jena.model.OntObjectProperty;
 import org.apache.jena.graph.BlankNodeId;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLObject;
@@ -34,26 +33,26 @@ import java.util.stream.Stream;
  * Created by @ssz on 19.08.2019.
  *
  * @see com.github.owlcs.ontapi.owlapi.objects.OWLObjectInverseOfImpl
- * @see OntOPE.Inverse
+ * @see OntObjectProperty.Inverse
  * @since 2.0.0
  */
 @SuppressWarnings("WeakerAccess")
 public class ONTObjectInverseOfImpl
-        extends ONTExpressionImpl<OntOPE.Inverse> implements OWLObjectInverseOf, ModelObject<OWLObjectInverseOf> {
+        extends ONTExpressionImpl<OntObjectProperty.Inverse> implements OWLObjectInverseOf, ModelObject<OWLObjectInverseOf> {
 
     public ONTObjectInverseOfImpl(BlankNodeId n, Supplier<OntModel> m) {
         super(n, m);
     }
 
     /**
-     * Wraps the given {@link OntOPE.Inverse} as {@link OWLObjectInverseOf} and {@link ONTObject}.
+     * Wraps the given {@link OntObjectProperty.Inverse} as {@link OWLObjectInverseOf} and {@link ONTObject}.
      *
-     * @param iop     {@link OntOPE.Inverse}, not {@code null}
+     * @param iop     {@link OntObjectProperty.Inverse}, not {@code null}
      * @param factory {@link InternalObjectFactory}, not {@code null}
      * @param model   a provider of non-null {@link OntModel}, cannot be {@code null}
      * @return {@link ONTObjectInverseOfImpl}
      */
-    public static ONTObjectInverseOfImpl create(OntOPE.Inverse iop,
+    public static ONTObjectInverseOfImpl create(OntObjectProperty.Inverse iop,
                                                 InternalObjectFactory factory,
                                                 Supplier<OntModel> model) {
         ONTObjectInverseOfImpl res = new ONTObjectInverseOfImpl(iop.asNode().getBlankNodeId(), model);
@@ -62,8 +61,8 @@ public class ONTObjectInverseOfImpl
     }
 
     @Override
-    public OntOPE.Inverse asRDFNode() {
-        return as(OntOPE.Inverse.class);
+    public OntObjectProperty.Inverse asRDFNode() {
+        return as(OntObjectProperty.Inverse.class);
     }
 
     @Override
@@ -72,13 +71,13 @@ public class ONTObjectInverseOfImpl
     }
 
     @Override
-    protected Object[] collectContent(OntOPE.Inverse pe, InternalObjectFactory factory) {
+    protected Object[] collectContent(OntObjectProperty.Inverse pe, InternalObjectFactory factory) {
         return new Object[]{pe.getDirect().getURI()};
     }
 
     @Override
-    protected Object[] initContent(OntOPE.Inverse pe, InternalObjectFactory factory) {
-        OntNOP p = pe.getDirect();
+    protected Object[] initContent(OntObjectProperty.Inverse pe, InternalObjectFactory factory) {
+        OntObjectProperty.Named p = pe.getDirect();
         this.hashCode = OWLObject.hashIteration(hashIndex(), factory.getProperty(p).hashCode());
         return new Object[]{p.getURI()};
     }

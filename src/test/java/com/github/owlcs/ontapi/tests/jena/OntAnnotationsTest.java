@@ -57,7 +57,7 @@ public class OntAnnotationsTest {
                 .peek(a -> LOGGER.debug("Annotation: '{}'", a)).count());
 
         LOGGER.debug("2) Create class with two labels.");
-        OntClass cl = m.createOntClass(ns + "ClassN1").addLabel("some label");
+        OntClass.Named cl = m.createOntClass(ns + "ClassN1").addLabel("some label");
         OntStatement label2 = cl.addAnnotation(m.getRDFSLabel(), "another label", "de");
         ReadWriteUtils.print(m);
         Assert.assertEquals("some label", cl.getLabel(""));
@@ -76,7 +76,7 @@ public class OntAnnotationsTest {
         Assert.assertFalse("There is owl:Annotation section.", m.contains(null, RDF.type, OWL.Annotation));
 
         LOGGER.debug("4) Create annotation property and annotate {} and {}", seeAlsoForLabel2, labelForLabel2);
-        OntNAP nap1 = m.createAnnotationProperty(ns + "annotation-prop-1");
+        OntAnnotationProperty nap1 = m.createAnnotationProperty(ns + "annotation-prop-1");
         seeAlsoForLabel2.addAnnotation(nap1, ResourceFactory.createPlainLiteral("comment to see also"));
         OntStatement annotationForLabelForLabel2 = labelForLabel2.addAnnotation(nap1,
                 ResourceFactory.createPlainLiteral("comment to see label"));
@@ -91,7 +91,7 @@ public class OntAnnotationsTest {
                 m.listStatements(null, RDF.type, OWL.Axiom).toList().size());
 
         LOGGER.debug("5) Delete annotations for {}", labelForLabel2);
-        labelForLabel2.deleteAnnotation(annotationForLabelForLabel2.getPredicate().as(OntNAP.class),
+        labelForLabel2.deleteAnnotation(annotationForLabelForLabel2.getPredicate().as(OntAnnotationProperty.class),
                 annotationForLabelForLabel2.getObject());
         ReadWriteUtils.print(m);
         Assert.assertEquals("Expected one root with owl:Annotation.", 1,
@@ -149,10 +149,10 @@ public class OntAnnotationsTest {
                 .setID(uri)
                 .getModel();
 
-        OntClass cl1 = m.createOntClass(ns + "Class1");
-        OntClass cl2 = m.createOntClass(ns + "Class2");
-        OntClass cl3 = m.createOntClass(ns + "Class3");
-        OntNAP nap1 = m.createAnnotationProperty(ns + "AnnotationProperty1");
+        OntClass.Named cl1 = m.createOntClass(ns + "Class1");
+        OntClass.Named cl2 = m.createOntClass(ns + "Class2");
+        OntClass.Named cl3 = m.createOntClass(ns + "Class3");
+        OntAnnotationProperty nap1 = m.createAnnotationProperty(ns + "AnnotationProperty1");
 
         OntDisjoint.Classes disjointClasses = m.createDisjointClasses(cl1, cl2, cl3);
         Assert.assertEquals("Incorrect owl:AllDisjointClasses number", 1,
@@ -172,12 +172,12 @@ public class OntAnnotationsTest {
         Assert.assertEquals("Should be single owl:Annotation", 1,
                 m.listStatements(null, RDF.type, OWL.Annotation).toList().size());
 
-        OntNOP nop1 = m.createObjectProperty(ns + "ObjectProperty1");
+        OntObjectProperty.Named nop1 = m.createObjectProperty(ns + "ObjectProperty1");
         OntIndividual.Named ind1 = cl1.createIndividual(ns + "Individual1");
         OntIndividual.Anonymous ind2 = cl2.createIndividual();
         ind2.addComment("anonymous individual", "ru");
         Assert.assertEquals("anonymous individual", ind2.getComment("ru"));
-        OntNPA.ObjectAssertion nopa = nop1.addNegativeAssertion(ind1, ind2);
+        OntNegativeAssertion.WithObjectProperty nopa = nop1.addNegativeAssertion(ind1, ind2);
         Assert.assertEquals("Incorrect owl:NegativePropertyAssertion number", 1, nop1.negativeAssertions().count());
         nopa.addAnnotation(m.getRDFSLabel(), "label1")
                 .addAnnotation(m.getRDFSLabel(), ResourceFactory.createTypedLiteral("label2"))
@@ -204,9 +204,9 @@ public class OntAnnotationsTest {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         m.getID().addAnnotation(m.getAnnotationProperty(OWL.versionInfo), "anonymous ontology", "en");
 
-        OntNDP p = m.createDataProperty("x");
-        OntClass c = m.createOntClass("c");
-        OntDT dt = m.getDatatype(RDFS.Literal);
+        OntDataProperty p = m.createDataProperty("x");
+        OntClass.Named c = m.createOntClass("c");
+        OntDataRange.Named dt = m.getDatatype(RDFS.Literal);
         p.addRangeStatement(dt).addAnnotation(m.getRDFSComment(), "This is a range", null);
         p.addDomainStatement(c).addAnnotation(m.getRDFSLabel(), "This is a domain", null)
                 .addAnnotation(m.getRDFSLabel(), "label", "hg");
@@ -218,7 +218,7 @@ public class OntAnnotationsTest {
         ReadWriteUtils.print(m);
 
         LOGGER.debug("Remove annotated components");
-        OntNPA.DataAssertion assertion = p.negativeAssertions(i).findFirst().orElseThrow(AssertionError::new);
+        OntNegativeAssertion.WithDataProperty assertion = p.negativeAssertions(i).findFirst().orElseThrow(AssertionError::new);
         OntStatement domain = m.statements(null, RDFS.domain, null).findFirst().orElseThrow(AssertionError::new);
         OntStatement range = m.statements(null, RDFS.range, null).findFirst().orElseThrow(AssertionError::new);
 
@@ -275,7 +275,7 @@ public class OntAnnotationsTest {
     @Test
     public void testListObjectAnnotations() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntClass clazz = m.createOntClass("C").addComment("xxx");
+        OntClass.Named clazz = m.createOntClass("C").addComment("xxx");
         Assert.assertEquals("xxx", clazz.getComment());
         ReadWriteUtils.print(m);
 
@@ -310,13 +310,13 @@ public class OntAnnotationsTest {
     @Test
     public void testClearAnnotations() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntNAP nap = m.createAnnotationProperty("nap");
+        OntAnnotationProperty nap = m.createAnnotationProperty("nap");
         nap.addAnnotation(m.getRDFSComment(), "test1").addAnnotation(nap, "sub-test1");
         m.asStatement(nap.getRoot().asTriple()).addAnnotation(m.getRDFSComment(), "test2")
                 .addAnnotation(m.getRDFSLabel(), "sub-test2");
 
         OntStatement subPropertyOf = nap.addSubPropertyOfStatement(m.getOWLBottomDataProperty()
-                .addProperty(RDF.type, OWL.AnnotationProperty).as(OntNAP.class));
+                .addProperty(RDF.type, OWL.AnnotationProperty).as(OntAnnotationProperty.class));
         subPropertyOf.addAnnotation(m.getRDFSLabel(), "test3")
                 .addAnnotation(m.getRDFSLabel(), "sub-test3")
                 .addAnnotation(m.getRDFSLabel(), "sub-sub-test3");
@@ -343,14 +343,14 @@ public class OntAnnotationsTest {
     public void testRemoveAnnotatedObject() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
 
-        OntCE class1 = m.createOntClass("C-1");
+        OntClass class1 = m.createOntClass("C-1");
         m.asStatement(class1.getRoot().asTriple()).addAnnotation(m.getRDFSComment(), "Class1::1")
                 .getSubject(OntAnnotation.class).getBase()
-                .getSubject(OntClass.class)
+                .getSubject(OntClass.Named.class)
                 .addAnnotation(m.getRDFSComment(), "Class1::2");
         long size1 = m.size();
 
-        OntCE class2 = m.createComplementOf(class1);
+        OntClass class2 = m.createComplementOf(class1);
         class2.addAnnotation(m.getRDFSComment(), "Class2::1")
                 .addAnnotation(m.getRDFSComment(), "Class2::1::1")
                 .addAnnotation(m.getRDFSComment(), "Class2::1::1::1");
@@ -359,7 +359,7 @@ public class OntAnnotationsTest {
                 .addAnnotation(m.getRDFSComment(), "Class2::2::1::1");
         long size2 = m.size();
 
-        OntCE class3 = m.createIntersectionOf(class2, m.getOWLNothing());
+        OntClass class3 = m.createIntersectionOf(class2, m.getOWLNothing());
         class3.addAnnotation(m.getRDFSComment(), "Class3::1").addAnnotation(m.getRDFSComment(), "Class3::1::1");
         class3.statements().filter(OntStatement::isAnnotation).findFirst().orElseThrow(AssertionError::new)
                 .addAnnotation(m.getRDFSComment(), "Class3::2").addAnnotation(m.getRDFSComment(), "Class3::2::1");
@@ -419,7 +419,7 @@ public class OntAnnotationsTest {
         Assert.assertEquals(size, m.statements().count());
 
         // success deletion 'annotation-1':
-        Assert.assertEquals("C", base.deleteAnnotation(s1.getPredicate().as(OntNAP.class),
+        Assert.assertEquals("C", base.deleteAnnotation(s1.getPredicate().as(OntAnnotationProperty.class),
                 s1.getObject()).getObject().asLiteral().getLexicalForm());
         ReadWriteUtils.print(m);
         Assert.assertEquals(1, base.annotations().count());
@@ -428,14 +428,14 @@ public class OntAnnotationsTest {
         size = m.size();
 
         // no deletion, no error
-        base.deleteAnnotation(s3.getPredicate().as(OntNAP.class), literal_3);
+        base.deleteAnnotation(s3.getPredicate().as(OntAnnotationProperty.class), literal_3);
         ReadWriteUtils.print(m);
         Assert.assertEquals(1, base.annotations().count());
         Assert.assertEquals(size, m.statements().count());
 
         // attempt to delete assertions from annotation object
         try {
-            annotation.getRoot().deleteAnnotation(s3.getPredicate().as(OntNAP.class));
+            annotation.getRoot().deleteAnnotation(s3.getPredicate().as(OntAnnotationProperty.class));
             Assert.fail("Expected error");
         } catch (OntJenaException j) {
             LOGGER.debug("Expected: {}", j.getMessage());
@@ -494,7 +494,7 @@ public class OntAnnotationsTest {
     @Test
     public void testAnnotationSplitting() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntClass clazz = m.createOntClass("A");
+        OntClass.Named clazz = m.createOntClass("A");
         OntStatement subClassOf = clazz.addSubClassOfStatement(m.getOWLThing());
 
         Assert.assertEquals(0, subClassOf.annotations().count());
@@ -567,7 +567,7 @@ public class OntAnnotationsTest {
     @Test
     public void testListAnnotationValues() {
         OntModel m = OntModelFactory.createModel();
-        OntClass c = m.createOntClass("http://clazz")
+        OntClass.Named c = m.createOntClass("http://clazz")
                 .addComment("c1", "en")
                 .addComment("c2", "EN-GB")
                 .addComment("c3", "pt")
@@ -595,7 +595,7 @@ public class OntAnnotationsTest {
     @Test
     public void testAddAnnotations() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntClass c = m.createOntClass("C");
+        OntClass.Named c = m.createOntClass("C");
         OntStatement s2 = c.addSubClassOfStatement(m.getOWLNothing());
         OntStatement s1 = c.getRoot();
 

@@ -19,8 +19,8 @@ import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
+import com.github.owlcs.ontapi.jena.model.OntDataProperty;
 import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntNDP;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import org.apache.jena.graph.Triple;
@@ -43,7 +43,7 @@ import java.util.stream.Stream;
  * Created by @szuev on 01.10.2016.
  */
 public class EquivalentDataPropertiesTranslator
-        extends AbstractNaryTranslator<OWLEquivalentDataPropertiesAxiom, OWLDataPropertyExpression, OntNDP> {
+        extends AbstractNaryTranslator<OWLEquivalentDataPropertiesAxiom, OWLDataPropertyExpression, OntDataProperty> {
 
     @Override
     Property getPredicate() {
@@ -51,8 +51,8 @@ public class EquivalentDataPropertiesTranslator
     }
 
     @Override
-    Class<OntNDP> getView() {
-        return OntNDP.class;
+    Class<OntDataProperty> getView() {
+        return OntDataProperty.class;
     }
 
     @Override

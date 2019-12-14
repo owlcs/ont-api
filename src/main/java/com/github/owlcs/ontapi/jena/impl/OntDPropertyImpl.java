@@ -14,17 +14,17 @@
 
 package com.github.owlcs.ontapi.jena.impl;
 
+import com.github.owlcs.ontapi.jena.model.OntDataProperty;
+import com.github.owlcs.ontapi.jena.model.OntIndividual;
+import com.github.owlcs.ontapi.jena.model.OntNegativeAssertion;
+import com.github.owlcs.ontapi.jena.model.OntStatement;
+import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.vocabulary.RDFS;
-import com.github.owlcs.ontapi.jena.model.OntIndividual;
-import com.github.owlcs.ontapi.jena.model.OntNDP;
-import com.github.owlcs.ontapi.jena.model.OntNPA;
-import com.github.owlcs.ontapi.jena.model.OntStatement;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -34,29 +34,29 @@ import java.util.stream.Stream;
  * <p>
  * Created by szuev on 03.11.2016.
  */
-public class OntDPropertyImpl extends OntPEImpl implements OntNDP {
+public class OntDPropertyImpl extends OntPEImpl implements OntDataProperty {
 
     public OntDPropertyImpl(Node n, EnhGraph g) {
         super(n, g);
     }
 
     @Override
-    public Class<OntNDP> getActualClass() {
-        return OntNDP.class;
+    public Class<OntDataProperty> getActualClass() {
+        return OntDataProperty.class;
     }
 
     @Override
-    public Stream<OntNDP> superProperties(boolean direct) {
-        return hierarchy(this, OntNDP.class, RDFS.subPropertyOf, false, direct);
+    public Stream<OntDataProperty> superProperties(boolean direct) {
+        return hierarchy(this, OntDataProperty.class, RDFS.subPropertyOf, false, direct);
     }
 
     @Override
-    public Stream<OntNDP> subProperties(boolean direct) {
-        return hierarchy(this, OntNDP.class, RDFS.subPropertyOf, true, direct);
+    public Stream<OntDataProperty> subProperties(boolean direct) {
+        return hierarchy(this, OntDataProperty.class, RDFS.subPropertyOf, true, direct);
     }
 
     @Override
-    public OntNPA.DataAssertion addNegativeAssertion(OntIndividual source, Literal target) {
+    public OntNegativeAssertion.WithDataProperty addNegativeAssertion(OntIndividual source, Literal target) {
         return OntNPAImpl.create(getModel(), source, this, target);
     }
 

@@ -18,7 +18,7 @@ import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.internal.InternalObjectFactory;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
-import com.github.owlcs.ontapi.jena.model.OntDT;
+import com.github.owlcs.ontapi.jena.model.OntDataRange;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import com.github.owlcs.ontapi.jena.vocabulary.XSD;
@@ -62,8 +62,8 @@ public class ONTDatatypeImpl extends ONTEntityImpl<OWLDatatype> implements OWLDa
     }
 
     @Override
-    public OntDT asRDFNode() {
-        return as(OntDT.class);
+    public OntDataRange.Named asRDFNode() {
+        return as(OntDataRange.Named.class);
     }
 
     @Override

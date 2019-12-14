@@ -20,8 +20,8 @@ import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTDataPropertyImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
+import com.github.owlcs.ontapi.jena.model.OntDataProperty;
 import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntNDP;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import org.apache.jena.graph.Triple;
@@ -43,7 +43,7 @@ import java.util.function.Supplier;
  * Created by @szuev on 30.09.2016.
  */
 public class FunctionalDataPropertyTranslator
-        extends AbstractPropertyTypeTranslator<OWLFunctionalDataPropertyAxiom, OntNDP> {
+        extends AbstractPropertyTypeTranslator<OWLFunctionalDataPropertyAxiom, OntDataProperty> {
 
     @Override
     Resource getType() {
@@ -51,8 +51,8 @@ public class FunctionalDataPropertyTranslator
     }
 
     @Override
-    Class<OntNDP> getView() {
-        return OntNDP.class;
+    Class<OntDataProperty> getView() {
+        return OntDataProperty.class;
     }
 
     @Override
@@ -129,7 +129,7 @@ public class FunctionalDataPropertyTranslator
         @Override
         public ONTObject<? extends OWLDataPropertyExpression> fetchONTSubject(OntStatement statement,
                                                                               InternalObjectFactory factory) {
-            return factory.getProperty(statement.getSubject(OntNDP.class));
+            return factory.getProperty(statement.getSubject(OntDataProperty.class));
         }
 
         @Override

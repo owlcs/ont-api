@@ -57,26 +57,26 @@ public class SWRLModelTest {
                 .setNsPrefix("SWRL", SWRL.NS)
                 .setNsPrefixes(OntModelFactory.STANDARD);
 
-        OntClass cl1 = m.createOntClass(ns + "Class1");
-        OntClass cl2 = m.createOntClass(ns + "Class2");
-        OntNDP d = m.createDataProperty(ns + "DP");
-        OntNOP p = m.createObjectProperty(ns + "OP");
+        OntClass.Named cl1 = m.createOntClass(ns + "Class1");
+        OntClass.Named cl2 = m.createOntClass(ns + "Class2");
+        OntDataProperty d = m.createDataProperty(ns + "DP");
+        OntObjectProperty.Named p = m.createObjectProperty(ns + "OP");
         OntIndividual i1 = cl1.createIndividual(ns + "Individual1");
 
-        OntCE.OneOf cl3 = m.createOneOf(i1);
+        OntClass.OneOf cl3 = m.createOneOf(i1);
         OntIndividual i2 = cl3.createIndividual();
 
         OntSWRL.Variable var1 = m.createSWRLVariable(ns + "Variable1");
         OntSWRL.DArg dArg1 = m.createTypedLiteral(12).inModel(m).as(OntSWRL.DArg.class);
         OntSWRL.DArg dArg2 = var1.as(OntSWRL.DArg.class);
 
-        OntSWRL.Atom.BuiltIn atom1 = m.createBuiltInSWRLAtom(m.createResource(ns + "AtomPredicate1"),
+        OntSWRL.Atom.WithBuiltin atom1 = m.createBuiltInSWRLAtom(m.createResource(ns + "AtomPredicate1"),
                 Arrays.asList(dArg1, dArg2));
-        OntSWRL.Atom.OntClass atom2 = m.createClassSWRLAtom(cl2, i2.as(OntSWRL.IArg.class));
-        OntSWRL.Atom.SameIndividuals atom3 = m.createSameIndividualsSWRLAtom(i1.as(OntSWRL.IArg.class),
+        OntSWRL.Atom.WithClass atom2 = m.createClassSWRLAtom(cl2, i2.as(OntSWRL.IArg.class));
+        OntSWRL.Atom.WithSameIndividuals atom3 = m.createSameIndividualsSWRLAtom(i1.as(OntSWRL.IArg.class),
                 var1.as(OntSWRL.IArg.class));
-        OntSWRL.Atom.DataProperty atom4 = m.createDataPropertySWRLAtom(d, i2.as(OntSWRL.IArg.class), dArg2);
-        OntSWRL.Atom.ObjectProperty atom5 = m.createObjectPropertySWRLAtom(p, var1, i1.as(OntSWRL.IArg.class));
+        OntSWRL.Atom.WithDataProperty atom4 = m.createDataPropertySWRLAtom(d, i2.as(OntSWRL.IArg.class), dArg2);
+        OntSWRL.Atom.WithObjectProperty atom5 = m.createObjectPropertySWRLAtom(p, var1, i1.as(OntSWRL.IArg.class));
 
         OntSWRL.Imp imp = m.createSWRLImp(Collections.singletonList(atom1), Arrays.asList(atom2, atom3, atom4, atom5));
         imp.addAnnotation(m.getRDFSComment(), "This is SWRL Imp").annotate(m.getRDFSLabel(), cl1.createIndividual());
@@ -130,11 +130,11 @@ public class SWRLModelTest {
         ReadWriteUtils.print(m);
 
         Assert.assertEquals(1, m.ontObjects(OntSWRL.Imp.class).count());
-        Assert.assertEquals(3, m.ontObjects(OntSWRL.Atom.ObjectProperty.class).count());
-        Assert.assertEquals(0, m.ontObjects(OntSWRL.Atom.DifferentIndividuals.class).count());
-        Assert.assertEquals(0, m.ontObjects(OntSWRL.Atom.DataRange.class).count());
+        Assert.assertEquals(3, m.ontObjects(OntSWRL.Atom.WithObjectProperty.class).count());
+        Assert.assertEquals(0, m.ontObjects(OntSWRL.Atom.WithDifferentIndividuals.class).count());
+        Assert.assertEquals(0, m.ontObjects(OntSWRL.Atom.WithDataRange.class).count());
         Assert.assertEquals(3, m.ontObjects(OntSWRL.Atom.class).count());
-        Assert.assertEquals(0, m.ontObjects(OntSWRL.Atom.BuiltIn.class).count());
+        Assert.assertEquals(0, m.ontObjects(OntSWRL.Atom.WithBuiltin.class).count());
         Assert.assertEquals(0, m.ontObjects(OntSWRL.Atom.Unary.class).count());
         Assert.assertEquals(3, m.ontObjects(OntSWRL.Atom.Binary.class).count());
         Assert.assertEquals(3, m.ontObjects(OntSWRL.Variable.class).count());
@@ -155,15 +155,15 @@ public class SWRLModelTest {
         // modify:
         imp.getBodyList().addFirst(m.createDifferentIndividualsSWRLAtom(x, y));
         m.createSWRLImp(Collections.emptyList(),
-                Collections.singletonList(m.createDataRangeSWRLAtom(XSD.xdouble.inModel(m).as(OntDT.class), z)));
+                Collections.singletonList(m.createDataRangeSWRLAtom(XSD.xdouble.inModel(m).as(OntDataRange.Named.class), z)));
         ReadWriteUtils.print(m);
 
         Assert.assertEquals(2, m.ontObjects(OntSWRL.Imp.class).count());
-        Assert.assertEquals(3, m.ontObjects(OntSWRL.Atom.ObjectProperty.class).count());
-        Assert.assertEquals(1, m.ontObjects(OntSWRL.Atom.DifferentIndividuals.class).count());
-        Assert.assertEquals(1, m.ontObjects(OntSWRL.Atom.DataRange.class).count());
+        Assert.assertEquals(3, m.ontObjects(OntSWRL.Atom.WithObjectProperty.class).count());
+        Assert.assertEquals(1, m.ontObjects(OntSWRL.Atom.WithDifferentIndividuals.class).count());
+        Assert.assertEquals(1, m.ontObjects(OntSWRL.Atom.WithDataRange.class).count());
         Assert.assertEquals(5, m.ontObjects(OntSWRL.Atom.class).count());
-        Assert.assertEquals(0, m.ontObjects(OntSWRL.Atom.BuiltIn.class).count());
+        Assert.assertEquals(0, m.ontObjects(OntSWRL.Atom.WithBuiltin.class).count());
         Assert.assertEquals(1, m.ontObjects(OntSWRL.Atom.Unary.class).count());
         Assert.assertEquals(4, m.ontObjects(OntSWRL.Atom.Binary.class).count());
         Assert.assertEquals(3, m.ontObjects(OntSWRL.Variable.class).count());
@@ -197,7 +197,7 @@ public class SWRLModelTest {
 
         ReadWriteUtils.print(m);
 
-        Assert.assertEquals(3, m.ontObjects(OntSWRL.Atom.BuiltIn.class).count());
+        Assert.assertEquals(3, m.ontObjects(OntSWRL.Atom.WithBuiltin.class).count());
         Assert.assertEquals(1, m.ontObjects(OntSWRL.Builtin.class).count());
 
         Assert.assertEquals(7, a.spec().peek(x -> LOGGER.debug("1)Spec: {}", x)).count());
@@ -215,44 +215,44 @@ public class SWRLModelTest {
                 .setNsPrefix("swrl", SWRL.NS)
                 .setNsPrefixes(OntModelFactory.STANDARD);
 
-        OntClass c = m.createOntClass("C");
-        OntNOP p1 = m.createObjectProperty("P1");
-        OntNDP p2 = m.createDataProperty("P2");
+        OntClass.Named c = m.createOntClass("C");
+        OntObjectProperty.Named p1 = m.createObjectProperty("P1");
+        OntDataProperty p2 = m.createDataProperty("P2");
         Resource i1 = m.createResource();
         Resource i2 = m.createResource();
         Resource i3 = m.createResource();
         Literal v = m.createLiteral("v");
 
-        OntSWRL.Atom.OntClass a1 = m.createResource(SWRL.ClassAtom)
+        OntSWRL.Atom.WithClass a1 = m.createResource(SWRL.ClassAtom)
                 .addProperty(SWRL.argument1, i1)
                 .addProperty(SWRL.classPredicate, c)
-                .as(OntSWRL.Atom.OntClass.class);
+                .as(OntSWRL.Atom.WithClass.class);
 
         Assert.assertEquals(c, a1.getPredicate());
         Assert.assertEquals(i1, a1.getArg());
 
-        OntSWRL.Atom.SameIndividuals a2 = m.createResource(SWRL.SameIndividualAtom)
+        OntSWRL.Atom.WithSameIndividuals a2 = m.createResource(SWRL.SameIndividualAtom)
                 .addProperty(SWRL.argument1, i1)
                 .addProperty(SWRL.argument2, i2)
-                .as(OntSWRL.Atom.SameIndividuals.class);
+                .as(OntSWRL.Atom.WithSameIndividuals.class);
         Assert.assertEquals(i1, a2.getFirstArg());
         Assert.assertEquals(i2, a2.getSecondArg());
         Assert.assertEquals(OWL.sameAs, a2.getPredicate());
 
-        OntSWRL.Atom.ObjectProperty a3 = m.createResource(SWRL.IndividualPropertyAtom)
+        OntSWRL.Atom.WithObjectProperty a3 = m.createResource(SWRL.IndividualPropertyAtom)
                 .addProperty(SWRL.argument1, i1)
                 .addProperty(SWRL.argument2, i3)
                 .addProperty(SWRL.propertyPredicate, p1)
-                .as(OntSWRL.Atom.ObjectProperty.class);
+                .as(OntSWRL.Atom.WithObjectProperty.class);
         Assert.assertEquals(i1, a3.getFirstArg());
         Assert.assertEquals(i3, a3.getSecondArg());
         Assert.assertEquals(p1, a3.getPredicate());
 
-        OntSWRL.Atom.DataProperty a4 = m.createResource(SWRL.DatavaluedPropertyAtom)
+        OntSWRL.Atom.WithDataProperty a4 = m.createResource(SWRL.DatavaluedPropertyAtom)
                 .addProperty(SWRL.argument1, i1)
                 .addProperty(SWRL.argument2, v)
                 .addProperty(SWRL.propertyPredicate, p2)
-                .as(OntSWRL.Atom.DataProperty.class);
+                .as(OntSWRL.Atom.WithDataProperty.class);
         Assert.assertEquals(i1, a4.getFirstArg());
         //noinspection AssertEqualsBetweenInconvertibleTypes
         Assert.assertEquals(v, a4.getSecondArg());

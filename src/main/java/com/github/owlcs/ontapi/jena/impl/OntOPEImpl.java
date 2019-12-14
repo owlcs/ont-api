@@ -14,6 +14,10 @@
 
 package com.github.owlcs.ontapi.jena.impl;
 
+import com.github.owlcs.ontapi.jena.OntJenaException;
+import com.github.owlcs.ontapi.jena.model.*;
+import com.github.owlcs.ontapi.jena.utils.Iter;
+import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.FrontsNode;
 import org.apache.jena.graph.Node;
@@ -22,10 +26,6 @@ import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDFS;
-import com.github.owlcs.ontapi.jena.OntJenaException;
-import com.github.owlcs.ontapi.jena.model.*;
-import com.github.owlcs.ontapi.jena.utils.Iter;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 
 import java.util.Collection;
 import java.util.List;
@@ -41,13 +41,13 @@ import java.util.stream.Stream;
  * Created by szuev on 03.11.2016.
  */
 @SuppressWarnings("WeakerAccess")
-public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
+public abstract class OntOPEImpl extends OntPEImpl implements OntObjectProperty {
 
     public OntOPEImpl(Node n, EnhGraph g) {
         super(n, g);
     }
 
-    public static class NamedPropertyImpl extends OntOPEImpl implements OntNOP {
+    public static class NamedPropertyImpl extends OntOPEImpl implements Named {
 
         public NamedPropertyImpl(Node n, EnhGraph g) {
             super(n, g);
@@ -78,8 +78,8 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
         }
 
         @Override
-        public Class<OntNOP> getActualClass() {
-            return OntNOP.class;
+        public Class<Named> getActualClass() {
+            return Named.class;
         }
 
         @Override
@@ -98,7 +98,7 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
         }
     }
 
-    public static class InversePropertyImpl extends OntOPEImpl implements OntOPE.Inverse {
+    public static class InversePropertyImpl extends OntOPEImpl implements OntObjectProperty.Inverse {
 
         public InversePropertyImpl(Node n, EnhGraph g) {
             super(n, g);
@@ -111,18 +111,18 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
 
         @Override
         public Class<? extends OntObject> getActualClass() {
-            return OntOPE.Inverse.class;
+            return OntObjectProperty.Inverse.class;
         }
 
         @Override
-        public OntNOP getDirect() {
+        public Named getDirect() {
             OntGraphModelImpl m = getModel();
             List<Resource> res = Iter.distinct(listObjects(OWL.inverseOf, Resource.class)
                     .filterKeep(RDFNode::isURIResource)).toList();
             if (res.size() != 1)
                 throw new OntJenaException.IllegalState("Expected one and only one owl:inverseOf statement, but found: [" +
                         this + " owl:inverseOf " + res + "]");
-            return m.getNodeAs(res.get(0).asNode(), OntNOP.class);
+            return m.getNodeAs(res.get(0).asNode(), Named.class);
         }
 
         @Override
@@ -132,28 +132,28 @@ public abstract class OntOPEImpl extends OntPEImpl implements OntOPE {
     }
 
     @Override
-    public Stream<OntOPE> superProperties(boolean direct) {
-        return hierarchy(this, OntOPE.class, RDFS.subPropertyOf, false, direct);
+    public Stream<OntObjectProperty> superProperties(boolean direct) {
+        return hierarchy(this, OntObjectProperty.class, RDFS.subPropertyOf, false, direct);
     }
 
     @Override
-    public Stream<OntOPE> subProperties(boolean direct) {
-        return hierarchy(this, OntOPE.class, RDFS.subPropertyOf, true, direct);
+    public Stream<OntObjectProperty> subProperties(boolean direct) {
+        return hierarchy(this, OntObjectProperty.class, RDFS.subPropertyOf, true, direct);
     }
 
     @Override
-    public OntNPA.ObjectAssertion addNegativeAssertion(OntIndividual source, OntIndividual target) {
+    public OntNegativeAssertion.WithObjectProperty addNegativeAssertion(OntIndividual source, OntIndividual target) {
         return OntNPAImpl.create(getModel(), source, this, target);
     }
 
     @Override
-    public OntList<OntOPE> createPropertyChain(Collection<OntOPE> properties) {
-        return OntListImpl.create(getModel(), this, OWL.propertyChainAxiom, OntOPE.class, properties.iterator());
+    public OntList<OntObjectProperty> createPropertyChain(Collection<OntObjectProperty> properties) {
+        return OntListImpl.create(getModel(), this, OWL.propertyChainAxiom, OntObjectProperty.class, properties.iterator());
     }
 
     @Override
-    public Stream<OntList<OntOPE>> propertyChains() {
-        return OntListImpl.stream(getModel(), this, OWL.propertyChainAxiom, OntOPE.class);
+    public Stream<OntList<OntObjectProperty>> propertyChains() {
+        return OntListImpl.stream(getModel(), this, OWL.propertyChainAxiom, OntObjectProperty.class);
     }
 
     @Override
