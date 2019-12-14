@@ -232,7 +232,7 @@ public class OntModelTest {
         Set<OntObjectProperty> objProperties = m.ontObjects(OntObjectProperty.Named.class).collect(Collectors.toSet());
         Assert.assertEquals(4, objProperties.size());
 
-        OntStatement statement = person.createHasKey(objProperties, Collections.singleton(isHardWorking)).getRoot();
+        OntStatement statement = person.createHasKey(objProperties, Collections.singleton(isHardWorking)).getMainStatement();
         Assert.assertTrue(statement.getObject().canAs(RDFList.class));
         statement.addAnnotation(m.getRDFSComment(), "These are keys", "xz");
         ReadWriteUtils.print(m);
@@ -299,7 +299,7 @@ public class OntModelTest {
         OntModel child = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD)
                 .setID(childURI).getModel().addImport(base);
         OntClass.Named cl3 = child.createOntClass(childNS + "Class3");
-        cl3.addSuperClass(child.createIntersectionOf(cl1, cl2));
+        cl3.addSuperClass(child.createObjectIntersectionOf(cl1, cl2));
         cl3.createIndividual(childNS + "Individual1");
 
         LOGGER.debug("Base:");
@@ -379,7 +379,7 @@ public class OntModelTest {
         E e = m.createOntEntity(type, uri);
         e.addAnnotation(m.getRDFSComment(), pref + "entity of type " + type.getSimpleName())
                 .addAnnotation(m.getRDFSLabel(), pref + "label");
-        m.asStatement(e.getRoot().asTriple()).addAnnotation(m.getRDFSComment(), pref + "comment");
+        m.asStatement(e.getMainStatement().asTriple()).addAnnotation(m.getRDFSComment(), pref + "comment");
         Assert.assertEquals(2, e.annotations().count());
         Assert.assertEquals(2, e.statements().count());
         Assert.assertSame(e, e.as(type));
@@ -394,7 +394,7 @@ public class OntModelTest {
         OntObjectProperty.Named p2 = m.createObjectProperty("p2");
         // classes:
         OntClass.Named class1 = m.createOntClass("c");
-        OntClass.UnionOf class2 = m.createUnionOf(m.createOntClass("c1"), m.createOntClass("c2"));
+        OntClass.UnionOf class2 = m.createObjectUnionOf(m.createOntClass("c1"), m.createOntClass("c2"));
         OntClass.DataHasValue class3 = m.createDataHasValue(p1, m.createLiteral("2"));
         OntClass.DataMinCardinality class4 = m.createDataMinCardinality(p1, 2,
                 m.getDatatype(XSD.xdouble));
@@ -403,12 +403,12 @@ public class OntModelTest {
         OntClass.HasSelf class7 = m.createHasSelf(p2);
         class3.addComment("The Restriction");
         class1.addSuperClass(class2).addSuperClass(class3).addDisjointClass(class4);
-        class2.addSuperClass(m.createComplementOf(class5));
+        class2.addSuperClass(m.createObjectComplementOf(class5));
         class5.addEquivalentClass(m.getOWLNothing());
         // data-ranges:
         OntDataRange.Named dr1 = m.getDatatype(XSD.xint);
-        OntDataRange.IntersectionOf dr2 = m.createIntersectionOfDataRange(dr1, m.getDatatype(XSD.xdouble));
-        OntDataRange.ComplementOf dr3 = m.createComplementOfDataRange(dr2);
+        OntDataRange.IntersectionOf dr2 = m.createDataIntersectionOf(dr1, m.getDatatype(XSD.xdouble));
+        OntDataRange.ComplementOf dr3 = m.createDataComplementOf(dr2);
         dr3.addComment("Data range: complement of intersection int and double");
         // individuals:
         OntIndividual i1 = class5.createIndividual("i1");
@@ -492,9 +492,9 @@ public class OntModelTest {
         OntClass class2 = m.createOntClass("C-2");
         OntClass class3 = m.createOntClass("C-3");
         OntObjectProperty p = m.createObjectProperty("P");
-        OntClass class4 = m.createComplementOf(class3);
+        OntClass class4 = m.createObjectComplementOf(class3);
         OntClass class5 = m.createObjectSomeValuesFrom(p, class4);
-        OntClass class6 = m.createIntersectionOf(m.getOWLThing(), class2, class4, class5);
+        OntClass class6 = m.createObjectIntersectionOf(m.getOWLThing(), class2, class4, class5);
         Assert.assertEquals(6, m.ontObjects(OntClass.class).count());
         long size = m.size();
         OntDisjoint<?> d = m.createDisjointClasses(m.getOWLNothing(), class1, class6);
@@ -702,8 +702,8 @@ public class OntModelTest {
         OntClass.Named d = m.createOntClass("D");
         OntClass.Named e = m.createOntClass("E");
 
-        b.addSuperClass(m.createComplementOf(c)).addSuperClass(a);
-        OntClass ae = m.createIntersectionOf(a, e);
+        b.addSuperClass(m.createObjectComplementOf(c)).addSuperClass(a);
+        OntClass ae = m.createObjectIntersectionOf(a, e);
         d.addSuperClass(ae);
         a.addSuperClass(d);
         ae.addSuperClass(a).addSuperClass(b);
@@ -803,24 +803,24 @@ public class OntModelTest {
         OntFacetRestriction fr1 = m.createFacetRestriction(OntFacetRestriction.MaxExclusive.class, ResourceFactory.createTypedLiteral(12));
         OntFacetRestriction fr2 = m.createFacetRestriction(OntFacetRestriction.LangRange.class, ResourceFactory.createTypedLiteral("\\d+"));
 
-        OntDataRange dr1 = m.createRestrictionDataRange(dt1, fr1, fr2);
+        OntDataRange dr1 = m.createDataRestriction(dt1, fr1, fr2);
 
         OntClass ce1 = m.createDataSomeValuesFrom(ndp1, dr1);
 
-        OntDataRange dr2 = m.createIntersectionOfDataRange(dt1, dt2);
+        OntDataRange dr2 = m.createDataIntersectionOf(dt1, dt2);
         OntIndividual i1 = ce1.createIndividual(ns + "individual1");
         OntClass ce2 = m.createDataMaxCardinality(ndp1, 343434, dr2);
         i1.attachClass(ce2).attachClass(m.createOntClass(ns + "Class1"));
 
-        OntDataRange dr3 = m.createOneOfDataRange(m.getDatatype(XSD.integer).createLiteral(1), dt1.createLiteral(2));
-        OntDataRange dr4 = m.createComplementOfDataRange(dr3);
+        OntDataRange dr3 = m.createDataOneOf(m.getDatatype(XSD.integer).createLiteral(1), dt1.createLiteral(2));
+        OntDataRange dr4 = m.createDataComplementOf(dr3);
         m.createOntEntity(OntDataRange.Named.class, ns + "dataType3")
-                .addEquivalentClass(m.createUnionOfDataRange(dr1, dr2, m.createIntersectionOfDataRange(dr1, dr4)));
+                .addEquivalentClass(m.createDataUnionOf(dr1, dr2, m.createDataIntersectionOf(dr1, dr4)));
 
         OntIndividual i2 = ce2.createIndividual();
         i2.addStatement(ndp1, ResourceFactory.createPlainLiteral("individual value"));
 
-        m.createOneOf(i1, i2, ce2.createIndividual());
+        m.createObjectOneOf(i1, i2, ce2.createIndividual());
 
         ReadWriteUtils.print(m);
         Assert.assertEquals("Incorrect count of individuals", 3, m.ontObjects(OntIndividual.class).count());

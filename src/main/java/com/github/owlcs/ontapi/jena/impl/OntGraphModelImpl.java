@@ -681,7 +681,7 @@ public class OntGraphModelImpl extends UnionModel implements OntModel, Personali
         Objects.requireNonNull(predicate);
         OntJenaException.notNull(object, "Null list for subject " + subject + " and predicate " + predicate);
         boolean hasNil = !object.isNil() && contains(subject, predicate, RDF.nil);
-        object.getRoot().clearAnnotations();
+        object.getMainStatement().clearAnnotations();
         object.clear(); // now it is nil-list
         if (!hasNil) {
             return remove(subject, predicate, object);
@@ -780,27 +780,27 @@ public class OntGraphModelImpl extends UnionModel implements OntModel, Personali
     }
 
     @Override
-    public OntDataRange.OneOf createOneOfDataRange(Collection<Literal> values) {
+    public OntDataRange.OneOf createDataOneOf(Collection<Literal> values) {
         return OntDRImpl.createOneOf(this, values.stream());
     }
 
     @Override
-    public OntDataRange.Restriction createRestrictionDataRange(OntDataRange.Named datatype, Collection<OntFacetRestriction> values) {
+    public OntDataRange.Restriction createDataRestriction(OntDataRange.Named datatype, Collection<OntFacetRestriction> values) {
         return OntDRImpl.createRestriction(this, datatype, values.stream());
     }
 
     @Override
-    public OntDataRange.ComplementOf createComplementOfDataRange(OntDataRange other) {
+    public OntDataRange.ComplementOf createDataComplementOf(OntDataRange other) {
         return OntDRImpl.createComplementOf(this, other);
     }
 
     @Override
-    public OntDataRange.UnionOf createUnionOfDataRange(Collection<OntDataRange> values) {
+    public OntDataRange.UnionOf createDataUnionOf(Collection<OntDataRange> values) {
         return OntDRImpl.createUnionOf(this, values.stream());
     }
 
     @Override
-    public OntDataRange.IntersectionOf createIntersectionOfDataRange(Collection<OntDataRange> values) {
+    public OntDataRange.IntersectionOf createDataIntersectionOf(Collection<OntDataRange> values) {
         return OntDRImpl.createIntersectionOf(this, values.stream());
     }
 
@@ -876,18 +876,18 @@ public class OntGraphModelImpl extends UnionModel implements OntModel, Personali
     }
 
     @Override
-    public OntClass.UnionOf createUnionOf(Collection<OntClass> classes) {
+    public OntClass.UnionOf createObjectUnionOf(Collection<OntClass> classes) {
         return OntCEImpl.createComponentsCE(this, OntClass.UnionOf.class, OntClass.class, OWL.unionOf, classes.stream());
     }
 
     @Override
-    public OntClass.IntersectionOf createIntersectionOf(Collection<OntClass> classes) {
+    public OntClass.IntersectionOf createObjectIntersectionOf(Collection<OntClass> classes) {
         return OntCEImpl.createComponentsCE(this,
                 OntClass.IntersectionOf.class, OntClass.class, OWL.intersectionOf, classes.stream());
     }
 
     @Override
-    public OntClass.OneOf createOneOf(Collection<OntIndividual> individuals) {
+    public OntClass.OneOf createObjectOneOf(Collection<OntIndividual> individuals) {
         return OntCEImpl.createComponentsCE(this,
                 OntClass.OneOf.class, OntIndividual.class, OWL.oneOf, individuals.stream());
     }
@@ -908,7 +908,7 @@ public class OntGraphModelImpl extends UnionModel implements OntModel, Personali
     }
 
     @Override
-    public OntClass.ComplementOf createComplementOf(OntClass ce) {
+    public OntClass.ComplementOf createObjectComplementOf(OntClass ce) {
         return OntCEImpl.createComplementOf(this, ce);
     }
 

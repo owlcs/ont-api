@@ -77,7 +77,7 @@ public class ObjectPropertyAssertionTranslator
 
     @Override
     public boolean testStatement(OntStatement statement, InternalConfig config) {
-        return statement.isObject()
+        return statement.getPredicate().canAs(OntObjectProperty.Named.class)
                 && statement.getSubject().canAs(OntIndividual.class)
                 && statement.getObject().canAs(OntIndividual.class);
     }

@@ -51,28 +51,28 @@ public interface OntDataRange extends OntObject {
 
     /**
      * @see <a href='https://www.w3.org/TR/owl2-syntax/#Complement_of_Data_Ranges'>7.3 Complement of Data Ranges</a>
-     * @see OntModel#createComplementOfDataRange(OntDataRange)
+     * @see OntModel#createDataComplementOf(OntDataRange)
      */
     interface ComplementOf extends OntDataRange, SetValue<OntDataRange, ComplementOf>, HasValue<OntDataRange> {
     }
 
     /**
      * @see <a href='https://www.w3.org/TR/owl2-syntax/#Intersection_of_Data_Ranges'>7.1 Intersection of Data Ranges</a>
-     * @see OntModel#createIntersectionOfDataRange(Collection)
+     * @see OntModel#createDataIntersectionOf(Collection)
      */
     interface IntersectionOf extends ComponentsDR<OntDataRange>, SetComponents<OntDataRange, IntersectionOf> {
     }
 
     /**
      * @see <a href='https://www.w3.org/TR/owl2-syntax/#Union_of_Data_Ranges'>7.2 Union of Data Ranges</a>
-     * @see OntModel#createUnionOfDataRange(Collection)
+     * @see OntModel#createDataUnionOf(Collection)
      */
     interface UnionOf extends ComponentsDR<OntDataRange>, SetComponents<OntDataRange, UnionOf> {
     }
 
     /**
      * @see <a href='https://www.w3.org/TR/owl2-syntax/#Enumeration_of_Literals'>7.4 Enumeration of Literals</a>
-     * @see OntModel#createOneOfDataRange(Collection)
+     * @see OntModel#createDataOneOf(Collection)
      */
     interface OneOf extends ComponentsDR<Literal>, SetComponents<Literal, OneOf> {
     }
@@ -81,7 +81,7 @@ public interface OntDataRange extends OntObject {
      * @see <a href='https://www.w3.org/TR/owl2-syntax/#Datatype_Restrictions'>7.5 Datatype Restrictions</a>
      * @see OntFacetRestriction
      * @see OntModel#createFacetRestriction(Class, Literal)
-     * @see OntModel#createRestrictionDataRange(OntDataRange.Named, Collection)
+     * @see OntModel#createDataRestriction(OntDataRange.Named, Collection)
      */
     interface Restriction extends ComponentsDR<OntFacetRestriction>,
             SetComponents<OntFacetRestriction, Restriction>, SetValue<Named, Restriction>, HasValue<Named> {

@@ -48,8 +48,8 @@ public class OntDatatypeTest {
         OntFacetRestriction f3 = m.createFacetRestriction(OntFacetRestriction.LangRange.class, m.createTypedLiteral("^r.*"));
 
         OntDataRange.Named d1 = m.getDatatype(XSD.xstring);
-        OntDataRange d2 = m.createComplementOfDataRange(d1);
-        OntDataRange d3 = m.createRestrictionDataRange(d1, f1, f2, f3);
+        OntDataRange d2 = m.createDataComplementOf(d1);
+        OntDataRange d3 = m.createDataRestriction(d1, f1, f2, f3);
 
         ReadWriteUtils.print(m);
         Assert.assertEquals(3, m.ontObjects(OntFacetRestriction.class).count());
@@ -93,16 +93,16 @@ public class OntDatatypeTest {
         OntFacetRestriction fr3 = m.createFacetRestriction(OntFacetRestriction.TotalDigits.class, l4);
 
         List<Literal> list1 = Arrays.asList(l1, l2);
-        OntDataRange.OneOf dr1 = m.createOneOfDataRange(list1);
+        OntDataRange.OneOf dr1 = m.createDataOneOf(list1);
         Assert.assertEquals(list1, dr1.getList().members().collect(Collectors.toList()));
         Assert.assertSame(dr1, dr1.setComponents(l2, l3));
         Assert.assertEquals(Arrays.asList(l2, l3), dr1.getList().members().collect(Collectors.toList()));
 
-        OntDataRange.IntersectionOf dr2 = m.createIntersectionOfDataRange(dt2, dt3, dt4);
+        OntDataRange.IntersectionOf dr2 = m.createDataIntersectionOf(dt2, dt3, dt4);
         Assert.assertEquals(3, dr2.getList().members().count());
         Assert.assertTrue(dr2.setComponents().getList().isEmpty());
 
-        OntDataRange.Restriction dr3 = m.createRestrictionDataRange(dt3, fr1, fr2);
+        OntDataRange.Restriction dr3 = m.createDataRestriction(dt3, fr1, fr2);
         Assert.assertEquals(3, dr3.setComponents(Arrays.asList(fr3, fr1, fr2)).getList().members().count());
 
         ReadWriteUtils.print(m);
@@ -123,12 +123,12 @@ public class OntDatatypeTest {
         OntDataRange.Named d1 = m.getDatatype(XSD.xstring);
         OntDataRange.Named d2 = m.createDatatype("x");
 
-        OntDataRange.ComplementOf dr1 = m.createComplementOfDataRange(d2);
+        OntDataRange.ComplementOf dr1 = m.createDataComplementOf(d2);
         Assert.assertEquals(d2, dr1.getValue());
         Assert.assertSame(dr1, dr1.setValue(d1));
         Assert.assertEquals(d1, dr1.getValue());
 
-        OntDataRange.Restriction dr2 = m.createRestrictionDataRange(d1, Collections.emptySet());
+        OntDataRange.Restriction dr2 = m.createDataRestriction(d1, Collections.emptySet());
         Assert.assertEquals(d1, dr2.getValue());
         Assert.assertSame(dr2, dr2.setValue(d2));
         Assert.assertEquals(d2, dr2.getValue());
@@ -140,7 +140,7 @@ public class OntDatatypeTest {
         OntDataRange.Named d1 = m.getDatatype(XSD.xstring);
         OntDataRange.Named d2 = m.getDatatype(XSD.positiveInteger);
 
-        OntDataRange.Restriction dr = m.createRestrictionDataRange(d1);
+        OntDataRange.Restriction dr = m.createDataRestriction(d1);
         Assert.assertTrue(dr.getList().isEmpty());
         dr.addFacet(OntFacetRestriction.Pattern.class, d1.createLiteral(".*")).addFacet(OntFacetRestriction.Length.class, d2.createLiteral(21));
 

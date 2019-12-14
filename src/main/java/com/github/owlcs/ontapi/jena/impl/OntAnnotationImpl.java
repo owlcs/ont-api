@@ -109,7 +109,7 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
     @Override
     public ExtendedIterator<OntStatement> listSpec() {
         //return SPEC.stream().map(this::getRequiredProperty);
-        return listStatements().filterKeep(s -> SPEC.contains(s.getPredicate()) || s.isAnnotation());
+        return listStatements().filterKeep(s -> SPEC.contains(s.getPredicate()) || s.isAnnotationAssertion());
     }
 
     @Override
@@ -124,7 +124,7 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
 
     @Override
     public ExtendedIterator<OntStatement> listAssertions() {
-        return listStatements().filterKeep(s -> !SPEC.contains(s.getPredicate()) && s.isAnnotation());
+        return listStatements().filterKeep(s -> !SPEC.contains(s.getPredicate()) && s.isAnnotationAssertion());
     }
 
     @Override
@@ -226,7 +226,7 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
      */
     public static ExtendedIterator<OntStatement> listRelatedStatements(OntAnnotation annotation) {
         OntAnnotationImpl a = (OntAnnotationImpl) annotation;
-        return a.listAssertions().andThen(a.listDescendants().mapWith(OntObject::getRoot));
+        return a.listAssertions().andThen(a.listDescendants().mapWith(OntObject::getMainStatement));
     }
 
 }

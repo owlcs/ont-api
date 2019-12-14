@@ -93,7 +93,7 @@ public class ModifyAxiomsTest {
         Ontology o = man.createOntology(IRI.create("X"));
 
         OntModel m = o.asGraphModel();
-        OntClass ce = m.createUnionOf(m.createOntClass("y"), m.createOntClass("z"));
+        OntClass ce = m.createObjectUnionOf(m.createOntClass("y"), m.createOntClass("z"));
         m.createOntClass("x").addSuperClass(ce);
         m.createOntClass("y").addSuperClass(ce);
         ReadWriteUtils.print(m);
@@ -126,8 +126,8 @@ public class ModifyAxiomsTest {
         Ontology o = man.createOntology(IRI.create("X"));
 
         OntModel m = o.asGraphModel();
-        OntClass ce1 = m.createUnionOf(m.createOntClass("y"), m.createOntClass("z"));
-        OntClass ce2 = m.createObjectAllValuesFrom(m.getOWLTopObjectProperty(), m.createComplementOf(ce1));
+        OntClass ce1 = m.createObjectUnionOf(m.createOntClass("y"), m.createOntClass("z"));
+        OntClass ce2 = m.createObjectAllValuesFrom(m.getOWLTopObjectProperty(), m.createObjectComplementOf(ce1));
         m.createOntClass("x").addSuperClass(ce2);
         m.createOntClass("y").addSuperClass(ce1);
         ReadWriteUtils.print(m);
@@ -160,8 +160,8 @@ public class ModifyAxiomsTest {
         Ontology o = man.createOntology(IRI.create("X"));
 
         OntModel m = o.asGraphModel();
-        m.createOntClass("x").addSuperClass(m.createUnionOf(m.createOntClass("y"), m.createOntClass("z")));
-        m.createOntClass("y").addSuperClass(m.createUnionOf(m.createOntClass("y"), m.createOntClass("z")));
+        m.createOntClass("x").addSuperClass(m.createObjectUnionOf(m.createOntClass("y"), m.createOntClass("z")));
+        m.createOntClass("y").addSuperClass(m.createObjectUnionOf(m.createOntClass("y"), m.createOntClass("z")));
         ReadWriteUtils.print(m);
         Assert.assertEquals(5, o.axioms().peek(a -> LOGGER.debug("1:{}", a)).count());
         Assert.assertEquals(18, m.size());
@@ -240,8 +240,8 @@ public class ModifyAxiomsTest {
 
         OntModel m = o.asGraphModel();
         OntFacetRestriction fr = m.createFacetRestriction(OntFacetRestriction.TotalDigits.class, m.createTypedLiteral(2));
-        OntDataRange dr1 = m.createRestrictionDataRange(m.getDatatype(XSD.positiveInteger), fr);
-        OntDataRange dr2 = m.createRestrictionDataRange(m.getDatatype(XSD.integer),
+        OntDataRange dr1 = m.createDataRestriction(m.getDatatype(XSD.positiveInteger), fr);
+        OntDataRange dr2 = m.createDataRestriction(m.getDatatype(XSD.integer),
                 fr, m.createFacetRestriction(OntFacetRestriction.MaxInclusive.class, m.createTypedLiteral(23)));
 
         m.createOntClass("C1").addDisjointClass(m.createDataSomeValuesFrom(m.createDataProperty("P1").addRange(dr1), dr2));
@@ -355,7 +355,7 @@ public class ModifyAxiomsTest {
         Ontology o = man.createOntology(IRI.create("http://test1"));
         OntModel m = o.asGraphModel();
         OntDataRange.Named dt = m.createDatatype("X");
-        OntDataRange dr = m.createOneOfDataRange(m.createLiteral("l"));
+        OntDataRange dr = m.createDataOneOf(m.createLiteral("l"));
         dt.addEquivalentClass(dr);
         OntClass ce = dr.addProperty(RDF.type, OWL.Class).addProperty(OWL.complementOf, OWL.Thing).as(OntClass.class);
         OntClass.Named c = m.createOntClass("X");

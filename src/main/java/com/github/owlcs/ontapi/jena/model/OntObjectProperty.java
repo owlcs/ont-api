@@ -275,7 +275,7 @@ public interface OntObjectProperty extends OntRealProperty {
      * @since 1.4.0
      */
     default OntStatement addPropertyChainAxiomStatement(Collection<OntObjectProperty> properties) {
-        return createPropertyChain(properties).getRoot();
+        return createPropertyChain(properties).getMainStatement();
     }
 
     /**

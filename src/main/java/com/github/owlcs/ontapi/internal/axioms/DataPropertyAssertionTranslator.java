@@ -65,7 +65,7 @@ public class DataPropertyAssertionTranslator
     @Override
     public boolean testStatement(OntStatement statement, InternalConfig config) {
         return statement.getObject().isLiteral()
-                && statement.isData()
+                && statement.getPredicate().canAs(OntDataProperty.class)
                 && statement.getSubject().canAs(OntIndividual.class);
     }
 

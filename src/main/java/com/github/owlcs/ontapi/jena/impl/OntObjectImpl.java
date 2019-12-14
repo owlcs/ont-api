@@ -314,7 +314,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @return {@link OntStatement}
      */
     @Override
-    public final OntStatement getRoot() {
+    public final OntStatement getMainStatement() {
         return findRootStatement().orElse(null);
     }
 
@@ -385,7 +385,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      */
     protected Set<OntStatement> getContent() {
         Set<OntStatement> res = listSpec().toSet();
-        listStatements().filterDrop(OntStatement::isAnnotation).forEachRemaining(res::add);
+        listStatements().filterDrop(OntStatement::isAnnotationAssertion).forEachRemaining(res::add);
         return res;
     }
 
@@ -609,7 +609,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @since 1.3.0
      */
     public ExtendedIterator<OntStatement> listAssertions() {
-        return listStatements().filterKeep(OntStatement::isAnnotation);
+        return listStatements().filterKeep(OntStatement::isAnnotationAssertion);
     }
 
     /**

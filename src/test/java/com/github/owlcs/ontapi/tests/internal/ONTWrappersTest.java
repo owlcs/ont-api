@@ -40,10 +40,10 @@ public class ONTWrappersTest {
     @Test
     public void testDisjoint() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntClass.Named c1 = m.createOntClass("C1");
+        OntClass c1 = m.createOntClass("C1");
         OntDisjoint.Classes c = m.createDisjointClasses(Arrays.asList(c1,
                 m.createOntClass("C2"),
-                m.createUnionOf(Arrays.asList(m.createOntClass("C3"), m.getOWLThing()))));
+                m.createObjectUnionOf(Arrays.asList(m.createOntClass("C3"), m.getOWLThing()))));
 
         ReadWriteUtils.print(m);
         ONTObject<OWLDisjointClassesAxiom> ax =

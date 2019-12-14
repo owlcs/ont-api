@@ -99,8 +99,8 @@ public class ReadHelper {
      * @return {@code true} if the specified statement is annotation property assertion
      */
     public static boolean isAnnotationAssertionStatement(OntStatement s, InternalConfig config) {
-        return s.isAnnotation()
-                && !s.isBulkAnnotation()
+        return s.isAnnotationAssertion()
+                && !s.belongsToAnnotation()
                 && (config.isAllowBulkAnnotationAssertions() || !s.hasAnnotations());
     }
 

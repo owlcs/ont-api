@@ -77,7 +77,7 @@ public abstract class AbstractTwoWayNaryTranslator<Axiom extends OWLAxiom & OWLN
     @Override
     public ExtendedIterator<OntStatement> listStatements(OntModel model, InternalConfig config) {
         return super.listStatements(model, config)
-                .andThen(OntModels.listLocalObjects(model, getDisjointView()).mapWith(OntObject::getRoot));
+                .andThen(OntModels.listLocalObjects(model, getDisjointView()).mapWith(OntObject::getMainStatement));
     }
 
     @Override

@@ -291,7 +291,7 @@ public class DifferentIndividualsTranslator
                 if (isSimple()) {
                     return super.asStatement();
                 }
-                return asResource().getRoot();
+                return asResource().getMainStatement();
             }
 
             @Override

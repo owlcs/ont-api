@@ -135,7 +135,7 @@ public class ONTObjectMergeTest {
                 OntModel g = o.asGraphModel();
                 // two identical annotations, but one is assertion, and the second one is bulk
                 g.getID().addComment("x");
-                g.asStatement(g.getID().getRoot().asTriple()).annotate(g.getRDFSComment(), "x");
+                g.asStatement(g.getID().getMainStatement().asTriple()).annotate(g.getRDFSComment(), "x");
                 ReadWriteUtils.print(g);
 
                 // in OWL-view must be one (merged) annotation:
@@ -159,9 +159,9 @@ public class ONTObjectMergeTest {
                 Ontology o = m.createOntology();
                 OntModel g = o.asGraphModel();
 
-                OntClass.Named x = g.createOntClass("X");
-                OntClass.Named y = g.createOntClass("Y");
-                OntClass.Named z = g.createOntClass("Z");
+                OntClass x = g.createOntClass("X");
+                OntClass y = g.createOntClass("Y");
+                OntClass z = g.createOntClass("Z");
                 x.addEquivalentClass(y.addEquivalentClass(x)).addEquivalentClass(z);
                 ReadWriteUtils.print(g);
 
@@ -199,10 +199,10 @@ public class ONTObjectMergeTest {
             @Override
             void doTest() {
                 test(g -> {
-                    OntClass.Named x = g.createOntClass("X");
-                    OntClass.Named y = g.createOntClass("Y");
-                    x.addSuperClass(g.createComplementOf(y));
-                    x.addSuperClass(g.createComplementOf(y));
+                    OntClass x = g.createOntClass("X");
+                    OntClass y = g.createOntClass("Y");
+                    x.addSuperClass(g.createObjectComplementOf(y));
+                    x.addSuperClass(g.createObjectComplementOf(y));
                 }, 9, AxiomType.SUBCLASS_OF, 3, 3);
             }
         },
@@ -305,9 +305,9 @@ public class ONTObjectMergeTest {
             @Override
             void doTest() {
                 test(g -> {
-                    OntClass.Named c = g.createOntClass("C");
-                    OntObjectProperty.Named x = g.createObjectProperty("P");
-                    OntObjectProperty.Named y = g.createObjectProperty("Y");
+                    OntClass c = g.createOntClass("C");
+                    OntObjectProperty x = g.createObjectProperty("P");
+                    OntObjectProperty y = g.createObjectProperty("Y");
                     OntDataProperty z = g.createDataProperty("Z");
                     c.addHasKey(x, y, z).addHasKey(x, z, y, x);
                 }, 19, AxiomType.HAS_KEY, 5, 5);
@@ -319,9 +319,9 @@ public class ONTObjectMergeTest {
             void doTest() {
                 test(g -> {
                     OntClass.Named c1 = g.createOntClass("C1");
-                    OntClass.Named c2 = g.createOntClass("C2");
-                    OntClass.Named c3 = g.createOntClass("C3");
-                    c1.addDisjointUnion(g.createComplementOf(c2), c3).addDisjointUnion(c3, g.createComplementOf(c2));
+                    OntClass c2 = g.createOntClass("C2");
+                    OntClass c3 = g.createOntClass("C3");
+                    c1.addDisjointUnion(g.createObjectComplementOf(c2), c3).addDisjointUnion(c3, g.createObjectComplementOf(c2));
                 }, 18, AxiomType.DISJOINT_UNION, 4, 4);
             }
         },
@@ -392,8 +392,8 @@ public class ONTObjectMergeTest {
             void doTest() {
                 test(g -> {
                     OntDataProperty p = g.createDataProperty("X");
-                    p.addDomain(g.createUnionOf(g.getOWLThing(), g.createDataHasValue(p, g.createLiteral("x"))))
-                            .addDomain(g.createUnionOf(g.getOWLThing(), g.createDataHasValue(p, g.createLiteral("x"))));
+                    p.addDomain(g.createObjectUnionOf(g.getOWLThing(), g.createDataHasValue(p, g.createLiteral("x"))))
+                            .addDomain(g.createObjectUnionOf(g.getOWLThing(), g.createDataHasValue(p, g.createLiteral("x"))));
 
                 }, 22, AxiomType.DATA_PROPERTY_DOMAIN, 2, 2);
             }
@@ -404,8 +404,8 @@ public class ONTObjectMergeTest {
             void doTest() {
                 test(g -> {
                     OntObjectProperty.Named p = g.createObjectProperty("X");
-                    createInverse(p).addDomain(g.createUnionOf(g.getOWLThing(), g.createComplementOf(g.getOWLThing())));
-                    createInverse(p).addDomain(g.createUnionOf(g.getOWLThing(), g.createComplementOf(g.getOWLThing())));
+                    createInverse(p).addDomain(g.createObjectUnionOf(g.getOWLThing(), g.createObjectComplementOf(g.getOWLThing())));
+                    createInverse(p).addDomain(g.createObjectUnionOf(g.getOWLThing(), g.createObjectComplementOf(g.getOWLThing())));
                 }, 22, AxiomType.OBJECT_PROPERTY_DOMAIN, 2, 2);
             }
         },
@@ -415,8 +415,8 @@ public class ONTObjectMergeTest {
             void doTest() {
                 test(g -> {
                     OntDataProperty p = g.createDataProperty("X");
-                    p.addRange(g.createComplementOfDataRange(g.getDatatype(XSD.xboolean)))
-                            .addRange(g.createComplementOfDataRange(g.getDatatype(XSD.xboolean)));
+                    p.addRange(g.createDataComplementOf(g.getDatatype(XSD.xboolean)))
+                            .addRange(g.createDataComplementOf(g.getDatatype(XSD.xboolean)));
 
                 }, 8, AxiomType.DATA_PROPERTY_RANGE, 2, 2);
             }
@@ -427,8 +427,8 @@ public class ONTObjectMergeTest {
             void doTest() {
                 test(g -> {
                     OntObjectProperty.Named p = g.createObjectProperty("X");
-                    createInverse(p).addRange(g.createIntersectionOf(g.getOWLThing(), g.createComplementOf(g.getOWLThing())));
-                    createInverse(p).addRange(g.createIntersectionOf(g.getOWLThing(), g.createComplementOf(g.getOWLThing())));
+                    createInverse(p).addRange(g.createObjectIntersectionOf(g.getOWLThing(), g.createObjectComplementOf(g.getOWLThing())));
+                    createInverse(p).addRange(g.createObjectIntersectionOf(g.getOWLThing(), g.createObjectComplementOf(g.getOWLThing())));
                 }, 22, AxiomType.OBJECT_PROPERTY_RANGE, 2, 2);
             }
         },
@@ -487,8 +487,8 @@ public class ONTObjectMergeTest {
             void doTest() {
                 test(g -> {
                     OntDataRange.Named dt = g.createDatatype("X");
-                    dt.addEquivalentClass(g.createComplementOfDataRange(g.getDatatype(XSD.xlong)));
-                    dt.addEquivalentClass(g.createComplementOfDataRange(g.getDatatype(XSD.xlong)));
+                    dt.addEquivalentClass(g.createDataComplementOf(g.getDatatype(XSD.xlong)));
+                    dt.addEquivalentClass(g.createDataComplementOf(g.getDatatype(XSD.xlong)));
                 }, 8, AxiomType.DATATYPE_DEFINITION, 2, 2);
             }
         },
@@ -498,8 +498,8 @@ public class ONTObjectMergeTest {
             void doTest() {
                 test(g -> {
                     OntIndividual i = g.createIndividual("X");
-                    i.addClassAssertion(g.createComplementOf(g.getOWLThing()));
-                    i.addClassAssertion(g.createComplementOf(g.getOWLThing()));
+                    i.addClassAssertion(g.createObjectComplementOf(g.getOWLThing()));
+                    i.addClassAssertion(g.createObjectComplementOf(g.getOWLThing()));
                 }, 8, AxiomType.CLASS_ASSERTION, 2, 2);
             }
         },

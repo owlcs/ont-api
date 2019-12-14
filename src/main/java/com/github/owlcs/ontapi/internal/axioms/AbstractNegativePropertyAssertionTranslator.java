@@ -59,7 +59,7 @@ public abstract class AbstractNegativePropertyAssertionTranslator<Axiom extends 
         return OntModels.listLocalStatements(model, null, RDF.type, OWL.NegativePropertyAssertion)
                 .mapWith(s -> {
                     NPA res = s.getSubject().getAs(getView());
-                    return res != null ? res.getRoot() : null;
+                    return res != null ? res.getMainStatement() : null;
                 }).filterDrop(Objects::isNull);
     }
 
@@ -116,7 +116,7 @@ public abstract class AbstractNegativePropertyAssertionTranslator<Axiom extends 
 
         @Override
         public OntStatement asStatement() {
-            return asResource().getRoot();
+            return asResource().getMainStatement();
         }
 
         /**

@@ -14,10 +14,10 @@
 
 package com.github.owlcs.ontapi.jena.model;
 
+import com.github.owlcs.ontapi.jena.OntJenaException;
 import org.apache.jena.rdf.model.RDFList;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
-import com.github.owlcs.ontapi.jena.OntJenaException;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -50,7 +50,7 @@ import java.util.stream.Stream;
  * }</pre>
  * Note, that an empty []-list (i.e. {@link com.github.owlcs.ontapi.jena.vocabulary.RDF#nil nil}-list) cannot be typed.
  * <p>
- * Using the method {@link #getRoot()} it is possible to add annotations with any nesting depth.
+ * Using the method {@link #getMainStatement()} it is possible to add annotations with any nesting depth.
  * <p>
  * Created by @szuev on 10.07.2018.
  *
@@ -157,7 +157,7 @@ public interface OntList<E extends RDFNode> extends RDFNodeList<E>, OntResource 
      * @return {@code Stream} of {@link OntStatement Ontology Statement}s
      */
     default Stream<OntStatement> content() {
-        return Stream.concat(Stream.of(getRoot()), spec());
+        return Stream.concat(Stream.of(getMainStatement()), spec());
     }
 
     /**
@@ -200,7 +200,7 @@ public interface OntList<E extends RDFNode> extends RDFNodeList<E>, OntResource 
      */
     @Override
     default boolean isLocal() {
-        return getRoot().isLocal();
+        return getMainStatement().isLocal();
     }
 
 }

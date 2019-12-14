@@ -274,7 +274,7 @@ public class MiscOntModelTest extends OntModelTestBase {
         Ontology o = man.createOntology(IRI.create("X"));
 
         OntModel m = o.asGraphModel();
-        OntClass ce = m.createUnionOf(m.createOntClass("y"), m.createOntClass("z"));
+        OntClass ce = m.createObjectUnionOf(m.createOntClass("y"), m.createOntClass("z"));
         ce.createIndividual("i").attachClass(m.createOntClass("w"));
         m.createOntClass("z").addSuperClass(ce)
                 .addEquivalentClass(m.createObjectAllValuesFrom(m.createObjectProperty("p"), ce));

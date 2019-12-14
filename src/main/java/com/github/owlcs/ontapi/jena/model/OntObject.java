@@ -37,14 +37,16 @@ import java.util.stream.Stream;
 public interface OntObject extends OntResource {
 
     /**
-     * Returns the ontology object root statement.
+     * Returns the main {@link OntStatement}
+     * which determines the nature of this ontological resource.
      * In most cases it is a declaration and wraps a triple with predicate {@code rdf:type}.
-     * The returned ont-statement differs from that
-     * which could be obtained directly from the model using one of its {@code statement(..)} methods:
-     * an statement's annotations
-     * are added in the form of annotation property assertions (so-called 'plain annotations'),
-     * not as typed anonymous resources (so-called 'bulk annotations').
-     * In ONT-API it is legal for a root statement to have both plain and bulk annotations.
+     * <p>
+     * The returned {@link OntStatement} differs from that
+     * which could be obtained directly from the model using one of model's {@code statement(..)} methods:
+     * the main statement annotations are added
+     * in the form of annotation property assertions (so-called 'plain annotations'),
+     * not as typed anonymous resources (so-called 'bulk annotations', {@link OntAnnotation}).
+     * In ONT-API it is legal for a main statement to have both plain and bulk annotations.
      * Note: for anonymous ontology objects (i.e. not for OWL Entities) this behaviour may not fully meet
      * OWL2 specification: the specification describes only bulk annotations
      * for all anonymous OWL2 components with except of an individual.
@@ -56,11 +58,11 @@ public interface OntObject extends OntResource {
      * @see OntStatement#addAnnotation(OntAnnotationProperty, RDFNode)
      */
     @Override
-    OntStatement getRoot();
+    OntStatement getMainStatement();
 
     /**
      * {@inheritDoc}
-     * For OWL Entities the returned stream will contain only single root statement (i.e. {@link #getRoot()}),
+     * For OWL Entities the returned stream will contain only single main statement (i.e. {@link #getMainStatement()}),
      * or even will be empty for built-in entities and individuals.
      *
      * @return {@code Stream} of {@link OntStatement Ontology Statement}s
@@ -210,7 +212,7 @@ public interface OntObject extends OntResource {
      * For example, in case of deleting an OWL class,
      * if it is present on the left side of the {@code rdfs:subClassOf} statement,
      * all the annotations of that statement will remain in the graph,
-     * but all root annotations (which belongs to the statement with the predicate {@code rdf:type})
+     * but all main annotations (which belongs to the statement with the predicate {@code rdf:type})
      * will be deleted from the graph.
      * For non-built-in ontology objects this is equivalent to the expression {@code getRoot().clearAnnotations()}.
      *

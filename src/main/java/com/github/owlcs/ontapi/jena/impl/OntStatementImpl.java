@@ -213,11 +213,16 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
         return (OntGraphModelImpl) super.getModel();
     }
 
-    @Override
-    public boolean isRoot() {
-        return isRootStatement();
-    }
-
+    /**
+     * Answers {@code true} iff this statement is a main (i.e. it is a definition of some {@code OntObject}).
+     * For any other {@link OntStatement} (i.e. for those obtained from the model level)
+     * the method returns {@code false}.
+     * A main statement can have annotation assertions attached,
+     * while a regular statement is always annotated with {@link OntAnnotation bulk annotation object}s.
+     *
+     * @return {@code true} if it is a main object statement
+     * @see OntObject#getMainStatement()
+     */
     public boolean isRootStatement() {
         return false;
     }
@@ -263,7 +268,7 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
      * @return boolean
      */
     @Override
-    public boolean isBulkAnnotation() {
+    public boolean belongsToAnnotation() {
         //return subject.isAnon() && getModel().findNodeAs(subject.asNode(), OntAnnotation.class) != null;
         return subject.canAs(OntAnnotation.class);
     }

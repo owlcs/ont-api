@@ -357,7 +357,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
     }
 
     @Override
-    public OntStatement getRoot() {
+    public OntStatement getMainStatement() {
         return getModel().createStatement(subject, predicate, getRDFList());
     }
 
@@ -452,7 +452,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
     }
 
     public ExtendedIterator<OntStatement> listContent() {
-        return Iter.of(getRoot()).andThen(listSpec());
+        return Iter.of(getMainStatement()).andThen(listSpec());
     }
 
     @Override
@@ -509,7 +509,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
     public OntList<E> addLast(E e) {
         return setRDFList(list -> {
             Statement last = getLastRestStatement();
-            Statement s = last == null ? getRoot() : last;
+            Statement s = last == null ? getMainStatement() : last;
             Model m = getModel();
             Resource r = m.createResource();
             if (listType != null) {
@@ -524,7 +524,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
     public OntList<E> addFirst(E e) throws PropertyNotFoundException {
         return setRDFList(list -> {
             Statement first = getFirstRestStatement();
-            Statement root = getRoot();
+            Statement root = getMainStatement();
             Statement s = first == null ? root : first;
             Model m = getModel();
             Resource r = m.createResource();
@@ -545,7 +545,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
             if (stmps == null) return list;
             OntModel m = getModel();
             Resource last = stmps.get(stmps.size() - 1).getSubject();
-            Statement prev = stmps.size() == 1 ? getRoot() : stmps.get(0);
+            Statement prev = stmps.size() == 1 ? getMainStatement() : stmps.get(0);
             m.add(prev.getSubject(), prev.getPredicate(), RDF.nil).removeAll(last, null, null).remove(prev);
             return stmps.size() == 1 ? RDF.nil.inModel(m).as(RDFList.class) : list;
         });
@@ -557,7 +557,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
             List<Statement> stmps = getFirstTwoRestStatements();
             if (stmps == null) return list;
             OntModel m = getModel();
-            Statement root = getRoot();
+            Statement root = getMainStatement();
             Resource first = stmps.get(0).getSubject();
             Resource next = stmps.size() == 1 ? RDF.nil.inModel(m) : stmps.get(1).getSubject();
             m.add(root.getSubject(), root.getPredicate(), next).removeAll(first, null, null).remove(root);
@@ -572,7 +572,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
             RDFList res = RDF.nil.inModel(m).as(RDFList.class);
             Iterator<List<Triple>> it = createRDFListIterator();
             if (it == null) return res;
-            Statement root = getRoot();
+            Statement root = getMainStatement();
             if (!it.hasNext())
                 throw new OntJenaException.IllegalState("The list " + this + " does not contain any items.");
             Graph g = m.getGraph();
@@ -669,7 +669,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
             }
             return new OntListImpl<E>(rest.getSubject(), rest.getPredicate(), list, listType, m, elementType) {
                 @Override
-                public OntStatement getRoot() {
+                public OntStatement getMainStatement() {
                     return OntStatementImpl.createNotAnnotatedOntStatementImpl(subject, predicate, getRDFList(), getModel());
                 }
 

@@ -62,7 +62,7 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
         // 1) performance (union of several find operation for the pattern [ANY,rdf:type,Resource] is faster
         // then single find operation [ANY,rdf:type,ANY] and subsequent filter)
         // 2) to filter out punnings using standard entity factories
-        return OntModels.listLocalEntities(model).mapWith(OntObject::getRoot).filterDrop(Objects::isNull);
+        return OntModels.listLocalEntities(model).mapWith(OntObject::getMainStatement).filterDrop(Objects::isNull);
     }
 
     @Override
@@ -153,7 +153,7 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
 
         @Override
         public OntStatement asStatement() {
-            return OntApiException.mustNotBeNull(getResource().getRoot());
+            return OntApiException.mustNotBeNull(getResource().getMainStatement());
         }
 
         @Override

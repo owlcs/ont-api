@@ -340,7 +340,7 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
 
         public ExtendedIterator<OntStatement> listPredicateStatements() {
             OntStatement p = getRequiredProperty(SWRL.builtin);
-            OntStatement b = getPredicate().getRoot();
+            OntStatement b = getPredicate().getMainStatement();
             return b == null ? Iter.of(p) : Iter.of(p, b);
         }
 
@@ -510,7 +510,7 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
 
         @Override
         protected ExtendedIterator<OntStatement> listPredicateSpec() {
-            OntStatement s = getPredicate().getRoot();
+            OntStatement s = getPredicate().getMainStatement();
             return s == null ? NullIterator.instance() : Iter.of(s);
         }
     }

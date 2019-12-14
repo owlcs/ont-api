@@ -40,18 +40,23 @@ interface OntResource extends Resource {
     OntModel getModel();
 
     /**
-     * Returns the root declaration in the form of an ontology statement with supporting adding/removing OWL annotations.
-     * It is the main triple in the model which determines the ontology resource.
-     * Usually it is type-declaration (i.e. the triple with predicate {@code rdf:type} and with this resource as subject).
-     * The result may be null in case of built-in OWL entities.
+     * Returns the main triple (wrapped as {@link OntStatement})
+     * which determines the nature of this ontological resource.
+     * Usually it is a type-declaration
+     * (i.e. a triple with predicate {@code rdf:type} and with this resource as a subject).
+     * The result may be {@code null} in several boundary cases (e.g. for built-in OWL entities).
+     * <p>
+     * Note that a main statement differs from the others:
+     * for a common {@link OntStatement}, its annotations go in the form of {@link OntAnnotation Annotation},
+     * but a main-statement can have annotation assertions.
      *
      * @return {@link OntStatement} or {@code null}
      */
-    OntStatement getRoot();
+    OntStatement getMainStatement();
 
     /**
      * Determines if this Ontology Resource is local defined.
-     * This means that the resource definition (i.e. a the {@link #getRoot() root statement})
+     * This means that the resource definition (i.e. a the {@link #getMainStatement() root statement})
      * belongs to the base ontology graph.
      * If the ontology contains sub-graphs (which should match {@code owl:imports} in OWL)
      * and the resource is defined in one of them,
@@ -64,7 +69,7 @@ interface OntResource extends Resource {
     /**
      * Lists all characteristic statements of the ontology resource,
      * i.e. all those statements which completely determine this object nature according to the OWL2 specification.
-     * For non-composite objects the result might contain only the {@link #getRoot() root statement}.
+     * For non-composite objects the result might contain only the {@link #getMainStatement() root statement}.
      * For composite objects (usually anonymous resources: disjoint sections, class expression, etc)
      * the result would contain all statements in the graph directly related to the object
      * but without statements that relate to the object components.

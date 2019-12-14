@@ -82,7 +82,7 @@ public class OntClassImpl extends OntObjectImpl implements OntClass.Named {
 
     @Override
     public OntStatement addHasKeyStatement(OntRealProperty... properties) {
-        return OntCEImpl.createHasKey(getModel(), this, Arrays.stream(properties)).getRoot();
+        return OntCEImpl.createHasKey(getModel(), this, Arrays.stream(properties)).getMainStatement();
     }
 
     @Override

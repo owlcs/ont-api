@@ -115,7 +115,7 @@ public class RWLockedGraphTest {
         String name = Thread.currentThread().getName();
         int num = 10;
         for (int i = 0; i < num; i++) {
-            m.createOntClass(name + "a" + i).addSuperClass(m.createComplementOf(m.createOntClass(name + "b" + i)));
+            m.createOntClass(name + "a" + i).addSuperClass(m.createObjectComplementOf(m.createOntClass(name + "b" + i)));
         }
         for (int i = 0; i < num; i++) {
             m.getOntClass(name + "a" + i).listProperties().toSet().forEach(m::remove);

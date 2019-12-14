@@ -291,7 +291,7 @@ interface CreateClasses {
      * @return {@link OntClass.UnionOf}
      * @see <a href='https://www.w3.org/TR/owl-syntax/#Union_of_Class_Expressions'>8.1.2 Union of Class Expressions</a>
      */
-    OntClass.UnionOf createUnionOf(Collection<OntClass> classes);
+    OntClass.UnionOf createObjectUnionOf(Collection<OntClass> classes);
 
     /**
      * Creates an Intersection of Class Expressions.
@@ -305,7 +305,7 @@ interface CreateClasses {
      * @return {@link OntClass.IntersectionOf}
      * @see <a href='https://www.w3.org/TR/owl-syntax/#Intersection_of_Class_Expressions'>8.1.1 Intersection of Class Expressions</a>
      */
-    OntClass.IntersectionOf createIntersectionOf(Collection<OntClass> classes);
+    OntClass.IntersectionOf createObjectIntersectionOf(Collection<OntClass> classes);
 
     /**
      * Creates an Enumeration of Individuals.
@@ -319,7 +319,7 @@ interface CreateClasses {
      * @return {@link OntClass.OneOf}
      * @see <a href='https://www.w3.org/TR/owl-syntax/#Enumeration_of_Individuals'>8.1.4 Enumeration of Individuals</a>
      */
-    OntClass.OneOf createOneOf(Collection<OntIndividual> individuals);
+    OntClass.OneOf createObjectOneOf(Collection<OntIndividual> individuals);
 
     /**
      * Create a Complement of Class Expressions.
@@ -333,7 +333,7 @@ interface CreateClasses {
      * @return {@link OntClass.ComplementOf}
      * @see <a href='https://www.w3.org/TR/owl-syntax/#Complement_of_Class_Expressions'>8.1.3 Complement of Class Expressions</a>
      */
-    OntClass.ComplementOf createComplementOf(OntClass ce);
+    OntClass.ComplementOf createObjectComplementOf(OntClass ce);
 
     /**
      * Creates a N-Ary Data Universal Quantification N-Ary Restriction.
@@ -378,11 +378,11 @@ interface CreateClasses {
      *
      * @param classes Array of {@link OntClass class expression}s without {@code null}s
      * @return {@link OntClass.IntersectionOf}
-     * @see #createIntersectionOf(Collection)
+     * @see #createObjectIntersectionOf(Collection)
      * @since 1.4.0
      */
-    default OntClass.IntersectionOf createIntersectionOf(OntClass... classes) {
-        return createIntersectionOf(Arrays.asList(classes));
+    default OntClass.IntersectionOf createObjectIntersectionOf(OntClass... classes) {
+        return createObjectIntersectionOf(Arrays.asList(classes));
     }
 
     /**
@@ -390,11 +390,11 @@ interface CreateClasses {
      *
      * @param classes Array of {@link OntClass class expression}s without {@code null}s
      * @return {@link OntClass.UnionOf}
-     * @see #createUnionOf(Collection)
+     * @see #createObjectUnionOf(Collection)
      * @since 1.4.0
      */
-    default OntClass.UnionOf createUnionOf(OntClass... classes) {
-        return createUnionOf(Arrays.asList(classes));
+    default OntClass.UnionOf createObjectUnionOf(OntClass... classes) {
+        return createObjectUnionOf(Arrays.asList(classes));
     }
 
     /**
@@ -402,10 +402,10 @@ interface CreateClasses {
      *
      * @param individuals Array of {@link OntIndividual individual}s without {@code null}s
      * @return {@link OntClass.OneOf}
-     * @see #createOneOf(Collection)
+     * @see #createObjectOneOf(Collection)
      * @since 1.4.0
      */
-    default OntClass.OneOf createOneOf(OntIndividual... individuals) {
-        return createOneOf(Arrays.asList(individuals));
+    default OntClass.OneOf createObjectOneOf(OntIndividual... individuals) {
+        return createObjectOneOf(Arrays.asList(individuals));
     }
 }

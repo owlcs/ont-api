@@ -234,7 +234,7 @@ public abstract class OntIndividualImpl extends OntObjectImpl implements OntIndi
 
     /**
      * Represents a named individual.
-     * Note: it may not have {@link OntObject#getRoot()} statement.
+     * Note: it may not have {@link OntObject#getMainStatement()} statement.
      */
     public static class NamedImpl extends OntIndividualImpl implements OntIndividual.Named {
         public NamedImpl(Node n, EnhGraph m) {

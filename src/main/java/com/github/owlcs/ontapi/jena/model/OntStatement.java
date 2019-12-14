@@ -15,6 +15,7 @@
 package com.github.owlcs.ontapi.jena.model;
 
 import com.github.owlcs.ontapi.jena.OntJenaException;
+import com.github.owlcs.ontapi.jena.utils.Models;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
@@ -53,7 +54,7 @@ public interface OntStatement extends Statement {
      * Annotates the statement with the given {@link OntAnnotationProperty annotation property} and {@link RDFNode RDF Node} value
      * and returns a newly added annotation assertion statement.
      * <p>
-     * In the special case of a root statement (i.e. if this statement is a result of {@link OntObject#getRoot()})
+     * In the special case of a main statement (i.e. if this statement is a result of {@link OntObject#getMainStatement()})
      * the returned {@code OntStatement} has the same subject as this statement
      * and it is called a plain annotation assertion
      * (in this case the method is equivalent to the {@link OntObject#addAnnotation(OntAnnotationProperty, RDFNode)} method).
@@ -67,14 +68,14 @@ public interface OntStatement extends Statement {
      * @see #annotate(OntAnnotationProperty, RDFNode)
      * @see OntAnnotation#addAnnotation(OntAnnotationProperty, RDFNode)
      * @see OntObject#addAnnotation(OntAnnotationProperty, RDFNode)
-     * @see OntObject#getRoot()
+     * @see OntObject#getMainStatement()
      */
     OntStatement addAnnotation(OntAnnotationProperty property, RDFNode value);
 
     /**
      * Lists all annotations related to this statement.
      * The returned stream consists of annotation assertions listed from the top-level bulk annotations
-     * plus plain annotation assertions in the special case of root statement.
+     * plus plain annotation assertions in the special case of main statement.
      *
      * @return Stream (unordered) of {@link OntStatement annotation assertion statement}s
      * with {@link OntAnnotationProperty annotation property} as predicates, can be empty
@@ -118,33 +119,6 @@ public interface OntStatement extends Statement {
     Stream<OntAnnotation> annotationResources();
 
     /**
-     * Returns the list of the annotation objects attached to this statement
-     * in the form of {@link List} with a fixed order.
-     *
-     * @return {@link List} of {@link OntAnnotation Ontology Annotation}s
-     * @see #annotationResources()
-     * @since 1.3.0
-     */
-    List<OntAnnotation> getAnnotationList();
-
-    /**
-     * Answers {@code true} iff this statement is a root (i.e. it is a main definition of some {@code OntObject}).
-     *
-     * @return {@code true} if it is a root object statement
-     * @see OntResource#getRoot()
-     */
-    boolean isRoot();
-
-    /**
-     * Answers {@code true} iff this statement is in the base graph.
-     * The method is equivalent to the expression {@code this.getModel().getBaseGraph().contains(this.asTriple())}.
-     *
-     * @return {@code true} if it is local statement
-     * @see OntResource#isLocal()
-     */
-    boolean isLocal();
-
-    /**
      * An accessor method to return the subject of the statements in form of {@link OntObject Ontology Object}.
      *
      * @return {@link OntObject}
@@ -154,11 +128,34 @@ public interface OntStatement extends Statement {
     OntObject getSubject();
 
     /**
+     * Answers {@code true} iff this statement is in the base graph.
+     * The method is equivalent to the expression {@code this.getModel().getBaseGraph().contains(this.asTriple())}.
+     *
+     * @return {@code true} if it is local statement
+     * @see OntResource#isLocal()
+     */
+    default boolean isLocal() {
+        return getModel().getBaseGraph().contains(asTriple());
+    }
+
+    /**
+     * Returns the annotation objects attached to this statement
+     * in the form of {@link List} with a fixed order.
+     *
+     * @return {@link List} of {@link OntAnnotation Ontology Annotation}s
+     * @see #annotationResources()
+     * @since 1.3.0
+     */
+    default List<OntAnnotation> getAnnotationList() {
+        return annotationResources().sorted(Models.RDF_NODE_COMPARATOR).collect(Collectors.toList());
+    }
+
+    /**
      * Returns the primary annotation object (resource) which is related to this statement.
      * It is assumed that this method always returns the same result if no changes in graph is made,
      * even after graph reloading.
      *
-     * @return Optional around of {@link OntAnnotation}, can be empty
+     * @return {@code Optional} around of {@link OntAnnotation}, can be empty
      * @see #getAnnotationList()
      */
     default Optional<OntAnnotation> asAnnotationResource() {
@@ -214,7 +211,7 @@ public interface OntStatement extends Statement {
      * @return {@code true} if it is a part of bulk annotation object
      * @see OntAnnotation
      */
-    default boolean isBulkAnnotation() {
+    default boolean belongsToAnnotation() {
         return getSubject().canAs(OntAnnotation.class);
     }
 
@@ -227,31 +224,8 @@ public interface OntStatement extends Statement {
      *
      * @return {@code true} if the predicate is {@link OntAnnotationProperty}
      */
-    default boolean isAnnotation() {
+    default boolean isAnnotationAssertion() {
         return getPredicate().canAs(OntAnnotationProperty.class);
-    }
-
-    /**
-     * Answers {@code true} iff the predicate is a data(-type) property and
-     * therefore this statement is likely a positive data property assertion.
-     * A positive data property assertion is a statement {@code a R v},
-     * where {@code a} is an individual (both named and anonymous),
-     * {@code v} is a literal and {@code R} is a data property.
-     *
-     * @return true if the predicate is {@link OntDataProperty}
-     */
-    default boolean isData() {
-        return getPredicate().canAs(OntDataProperty.class);
-    }
-
-    /**
-     * Answers {@code true} iff there is an object property as a predicate and
-     * therefore this statement is likely to be a positive object property assertion {@code a1 PN a2}.
-     *
-     * @return {@code true} if the predicate is {@link OntObjectProperty.Named}
-     */
-    default boolean isObject() {
-        return getPredicate().canAs(OntObjectProperty.Named.class);
     }
 
     /**

@@ -281,7 +281,7 @@ public interface OntClass extends OntObject {
      * @since 1.4.0
      */
     default OntStatement addHasKeyStatement(Collection<OntObjectProperty> objectProperties, Collection<OntDataProperty> dataProperties) {
-        return createHasKey(objectProperties, dataProperties).getRoot();
+        return createHasKey(objectProperties, dataProperties).getMainStatement();
     }
 
     /**
@@ -562,25 +562,25 @@ public interface OntClass extends OntObject {
     }
 
     /**
-     * @see OntModel#createUnionOf(Collection)
+     * @see OntModel#createObjectUnionOf(Collection)
      */
     interface UnionOf extends ComponentsCE<OntClass>, SetComponents<OntClass, UnionOf> {
     }
 
     /**
-     * @see OntModel#createOneOf(Collection)
+     * @see OntModel#createObjectOneOf(Collection)
      */
     interface OneOf extends ComponentsCE<OntIndividual>, SetComponents<OntIndividual, OneOf> {
     }
 
     /**
-     * @see OntModel#createIntersectionOf(Collection)
+     * @see OntModel#createObjectIntersectionOf(Collection)
      */
     interface IntersectionOf extends ComponentsCE<OntClass>, SetComponents<OntClass, IntersectionOf> {
     }
 
     /**
-     * @see OntModel#createComplementOf(OntClass)
+     * @see OntModel#createObjectComplementOf(OntClass)
      */
     interface ComplementOf extends OntClass, HasValue<OntClass>, SetValue<OntClass, ComplementOf> {
     }
@@ -748,7 +748,7 @@ public interface OntClass extends OntObject {
          * @since 1.4.0
          */
         default OntStatement addDisjointUnionOfStatement(Collection<OntClass> classes) {
-            return createDisjointUnion(classes).getRoot();
+            return createDisjointUnion(classes).getMainStatement();
         }
 
         /**

@@ -365,7 +365,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntClass {
 
     @Override
     public OntStatement addHasKeyStatement(OntRealProperty... properties) {
-        return createHasKey(getModel(), this, Arrays.stream(properties)).getRoot();
+        return createHasKey(getModel(), this, Arrays.stream(properties)).getMainStatement();
     }
 
     @Override

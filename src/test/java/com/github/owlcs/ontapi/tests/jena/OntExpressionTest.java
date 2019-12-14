@@ -44,8 +44,8 @@ public class OntExpressionTest {
     @Test
     public void testCreateCardinalityRestrictions() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntClass.Named c = m.createOntClass("C");
-        OntObjectProperty.Named op = m.createObjectProperty("OP");
+        OntClass c = m.createOntClass("C");
+        OntObjectProperty op = m.createObjectProperty("OP");
         OntDataProperty dp = m.createDataProperty("DP");
 
         OntClass.ObjectCardinality r1 = m.createObjectCardinality(op, 12, c);
@@ -74,14 +74,14 @@ public class OntExpressionTest {
     @Test
     public void testListClassHierarchy() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntClass.Named a = m.createOntClass("A");
-        OntClass.Named b = m.createOntClass("B");
-        OntClass.Named c = m.createOntClass("C");
-        OntClass.Named d = m.createOntClass("D");
-        OntClass.Named e = m.createOntClass("E");
+        OntClass a = m.createOntClass("A");
+        OntClass b = m.createOntClass("B");
+        OntClass c = m.createOntClass("C");
+        OntClass d = m.createOntClass("D");
+        OntClass e = m.createOntClass("E");
         e.addSuperClass(d);
         a.addSuperClass(b).addSuperClass(c);
-        b.addSuperClass(m.createComplementOf(b)).addSuperClass(d);
+        b.addSuperClass(m.createObjectComplementOf(b)).addSuperClass(d);
         ReadWriteUtils.print(m);
 
         Assert.assertEquals(2, a.superClasses(true)
@@ -137,8 +137,8 @@ public class OntExpressionTest {
     @Test
     public void testHasKeys() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntObjectProperty.Named o1 = m.createObjectProperty("O1");
-        OntObjectProperty.Named o2 = m.createObjectProperty("O2");
+        OntObjectProperty o1 = m.createObjectProperty("O1");
+        OntObjectProperty o2 = m.createObjectProperty("O2");
         OntDataProperty d1 = m.createDataProperty("D1");
         OntDataProperty d2 = m.createDataProperty("D2");
         OntClass.Named c = m.getOWLThing();
@@ -204,7 +204,7 @@ public class OntExpressionTest {
         OntDataRange.Named dt3 = m.createDatatype("DT3");
         OntDataRange.Named dt4 = m.createDatatype("DT4");
 
-        OntDataRange.UnionOf u = m.createUnionOfDataRange(dt1, dt2, dt3);
+        OntDataRange.UnionOf u = m.createDataUnionOf(dt1, dt2, dt3);
         try {
             u.setComponents(u, dt4);
             Assert.fail("Possible to set itself inside a []-list");
@@ -227,17 +227,17 @@ public class OntExpressionTest {
         OntIndividual i4 = c4.createIndividual("I4");
 
         List<OntIndividual> list1 = Arrays.asList(i1, i2, i3);
-        OntClass.OneOf e1 = m.createOneOf(list1);
+        OntClass.OneOf e1 = m.createObjectOneOf(list1);
         Assert.assertEquals(list1, e1.getList().members().collect(Collectors.toList()));
         Assert.assertSame(e1, e1.setComponents(i1, i4));
         Assert.assertEquals(Arrays.asList(i1, i4), e1.getList().members().collect(Collectors.toList()));
 
         List<OntClass> list2 = Arrays.asList(c3, c4);
-        OntClass.UnionOf e2 = m.createUnionOf(list2);
+        OntClass.UnionOf e2 = m.createObjectUnionOf(list2);
         Assert.assertEquals(2, e2.getList().members().count());
         Assert.assertTrue(e2.setComponents().getList().isEmpty());
 
-        OntClass.IntersectionOf e3 = m.createIntersectionOf(list2);
+        OntClass.IntersectionOf e3 = m.createObjectIntersectionOf(list2);
         Assert.assertEquals(3, e3.setComponents(Arrays.asList(c1, c2, m.getOWLThing())).getList().members().count());
 
         Set<RDFNode> expected = new HashSet<>(Arrays.asList(i1, i4, c1, c2, m.getOWLThing()));
@@ -285,7 +285,7 @@ public class OntExpressionTest {
     public void testRestrictionCardinality() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntDataProperty dp1 = m.createDataProperty("DP1");
-        OntObjectProperty.Named op2 = m.createObjectProperty("OP2");
+        OntObjectProperty op2 = m.createObjectProperty("OP2");
 
         OntClass.DataMinCardinality r1 = m.createDataMinCardinality(dp1, 5, null);
         Assert.assertEquals(5, r1.getCardinality());
@@ -376,7 +376,7 @@ public class OntExpressionTest {
         OntClass.Named c1 = m.createOntClass("C1");
         OntClass.Named c2 = m.createOntClass("C2");
         OntClass.Named c3 = m.createOntClass("C3");
-        OntClass c4 = m.createComplementOf(c3);
+        OntClass c4 = m.createObjectComplementOf(c3);
         long s = m.size();
         OntClass.Named c0 = m.getOWLThing();
         Assert.assertNotNull(c0.addDisjointUnionOfStatement());

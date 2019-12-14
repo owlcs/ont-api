@@ -198,7 +198,7 @@ public class OntDRImpl extends OntObjectImpl implements OntDataRange {
                 if (!s.getObject().canAs(OntFacetRestriction.class)) {
                     return Iter.of(s);
                 }
-                return Iter.of(s, s.getObject().as(OntFacetRestriction.class).getRoot());
+                return Iter.of(s, s.getObject().as(OntFacetRestriction.class).getMainStatement());
             });
         }
 

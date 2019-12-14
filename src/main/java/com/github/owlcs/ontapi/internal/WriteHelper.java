@@ -199,7 +199,7 @@ public class WriteHelper {
                                               RDFNode object,
                                               Collection<OWLAnnotation> annotations) {
         addAnnotations(toResource(subject)
-                .inModel(model).addProperty(predicate, object).as(getEntityType(subject)).getRoot(), annotations);
+                .inModel(model).addProperty(predicate, object).as(getEntityType(subject)).getMainStatement(), annotations);
     }
 
     public static void writeTriple(OntModel model,
@@ -400,7 +400,7 @@ public class WriteHelper {
      * @param annotations a {@code Collection} of {@link OWLAnnotation annotation}s
      */
     public static void addAnnotations(OntObject object, Collection<OWLAnnotation> annotations) {
-        addAnnotations(OntApiException.notNull(object.getRoot(), "Can't determine the root statement for " + object),
+        addAnnotations(OntApiException.notNull(object.getMainStatement(), "Can't determine the root statement for " + object),
                 annotations);
     }
 
@@ -542,14 +542,14 @@ public class WriteHelper {
         ONE_OF(DataRangeType.DATA_ONE_OF, new Translator<OWLDataOneOf, OntDataRange.OneOf>() {
             @Override
             OntDataRange.OneOf translate(OntModel model, OWLDataOneOf expression) {
-                return model.createOneOfDataRange(expression.values()
+                return model.createDataOneOf(expression.values()
                         .map(l -> addLiteral(model, l)).collect(Collectors.toList()));
             }
         }),
         RESTRICTION(DataRangeType.DATATYPE_RESTRICTION, new Translator<OWLDatatypeRestriction, OntDataRange.Restriction>() {
             @Override
             OntDataRange.Restriction translate(OntModel model, OWLDatatypeRestriction expression) {
-                return model.createRestrictionDataRange(addRDFNode(model, expression.getDatatype()).as(OntDataRange.Named.class),
+                return model.createDataRestriction(addRDFNode(model, expression.getDatatype()).as(OntDataRange.Named.class),
                         expression.facetRestrictions()
                                 .map(f -> addFacetRestriction(model, f)).collect(Collectors.toList()));
             }
@@ -557,20 +557,20 @@ public class WriteHelper {
         COMPLEMENT_OF(DataRangeType.DATA_COMPLEMENT_OF, new Translator<OWLDataComplementOf, OntDataRange.ComplementOf>() {
             @Override
             OntDataRange.ComplementOf translate(OntModel model, OWLDataComplementOf expression) {
-                return model.createComplementOfDataRange(addRDFNode(model, expression.getDataRange()).as(OntDataRange.class));
+                return model.createDataComplementOf(addRDFNode(model, expression.getDataRange()).as(OntDataRange.class));
             }
         }),
         UNION_OF(DataRangeType.DATA_UNION_OF, new Translator<OWLDataUnionOf, OntDataRange.UnionOf>() {
             @Override
             OntDataRange.UnionOf translate(OntModel model, OWLDataUnionOf expression) {
-                return model.createUnionOfDataRange(expression.operands()
+                return model.createDataUnionOf(expression.operands()
                         .map(dr -> addRDFNode(model, dr).as(OntDataRange.class)).collect(Collectors.toList()));
             }
         }),
         INTERSECTION_OF(DataRangeType.DATA_INTERSECTION_OF, new Translator<OWLDataIntersectionOf, OntDataRange.IntersectionOf>() {
             @Override
             OntDataRange.IntersectionOf translate(OntModel model, OWLDataIntersectionOf expression) {
-                return model.createIntersectionOfDataRange(expression.operands()
+                return model.createDataIntersectionOf(expression.operands()
                         .map(dr -> addRDFNode(model, dr).as(OntDataRange.class)).collect(Collectors.toList()));
             }
         }),
@@ -715,28 +715,28 @@ public class WriteHelper {
         UNION_OF(ClassExpressionType.OBJECT_UNION_OF, new Translator<OWLObjectUnionOf, OntClass.UnionOf>() {
             @Override
             OntClass.UnionOf translate(OntModel model, OWLObjectUnionOf expression) {
-                return model.createUnionOf(expression.operands()
+                return model.createObjectUnionOf(expression.operands()
                         .map(ce -> addRDFNode(model, ce).as(OntClass.class)).collect(Collectors.toList()));
             }
         }),
         INTERSECTION_OF(ClassExpressionType.OBJECT_INTERSECTION_OF, new Translator<OWLObjectIntersectionOf, OntClass.IntersectionOf>() {
             @Override
             OntClass.IntersectionOf translate(OntModel model, OWLObjectIntersectionOf expression) {
-                return model.createIntersectionOf(expression.operands()
+                return model.createObjectIntersectionOf(expression.operands()
                         .map(ce -> addRDFNode(model, ce).as(OntClass.class)).collect(Collectors.toList()));
             }
         }),
         ONE_OF(ClassExpressionType.OBJECT_ONE_OF, new Translator<OWLObjectOneOf, OntClass.OneOf>() {
             @Override
             OntClass.OneOf translate(OntModel model, OWLObjectOneOf expression) {
-                return model.createOneOf(expression.operands()
+                return model.createObjectOneOf(expression.operands()
                         .map(i -> addIndividual(model, i)).collect(Collectors.toList()));
             }
         }),
         COMPLEMENT_OF(ClassExpressionType.OBJECT_COMPLEMENT_OF, new Translator<OWLObjectComplementOf, OntClass.ComplementOf>() {
             @Override
             OntClass.ComplementOf translate(OntModel model, OWLObjectComplementOf expression) {
-                return model.createComplementOf(addRDFNode(model, expression.getOperand()).as(OntClass.class));
+                return model.createObjectComplementOf(addRDFNode(model, expression.getOperand()).as(OntClass.class));
             }
         }),
         ;

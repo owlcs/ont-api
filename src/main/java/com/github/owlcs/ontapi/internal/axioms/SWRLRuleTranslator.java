@@ -49,7 +49,7 @@ public class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
 
     @Override
     public ExtendedIterator<OntStatement> listStatements(OntModel model, InternalConfig config) {
-        return OntModels.listLocalObjects(model, OntSWRL.Imp.class).mapWith(OntObject::getRoot);
+        return OntModels.listLocalObjects(model, OntSWRL.Imp.class).mapWith(OntObject::getMainStatement);
     }
 
     @Override
@@ -146,14 +146,14 @@ public class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
 
         @Override
         public OntStatement asStatement() {
-            return asResource().getRoot();
+            return asResource().getMainStatement();
         }
 
         @Override
         public Object[] collectContent() {
             OntSWRL.Imp imp = asResource();
             InternalObjectFactory factory = getObjectFactory();
-            Collection<ONTObject<OWLAnnotation>> annotations = collectAnnotations(imp.getRoot(), factory, getConfig());
+            Collection<ONTObject<OWLAnnotation>> annotations = collectAnnotations(imp.getMainStatement(), factory, getConfig());
             Object[] res;
             if (annotations.isEmpty()) {
                 res = new Object[2];

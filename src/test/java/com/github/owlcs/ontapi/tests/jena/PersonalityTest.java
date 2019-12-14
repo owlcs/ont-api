@@ -170,7 +170,7 @@ public class PersonalityTest {
         OntClass c1 = m.createOntClass(ns + "class1");
         OntClass c2 = m.createOntClass(ns + "class2");
         OntIndividual i1 = c1.createIndividual(ns + "indi1");
-        OntIndividual i2 = m.createComplementOf(c1).createIndividual(ns + "indi2");
+        OntIndividual i2 = m.createObjectComplementOf(c1).createIndividual(ns + "indi2");
         OntIndividual i3 = c2.createIndividual(ns + "indi3");
         m.createDifferentIndividuals(i1, i2, i3);
         ReadWriteUtils.print(m);
@@ -216,7 +216,7 @@ public class PersonalityTest {
         OntObjectProperty p2 = m.createObjectProperty(ns + "prop2").createInverse();
 
         OntIndividual i1 = c1.createIndividual(ns + "indi1");
-        OntIndividual i2 = m.createComplementOf(c1).createIndividual(ns + "indi2");
+        OntIndividual i2 = m.createObjectComplementOf(c1).createIndividual(ns + "indi2");
         OntIndividual i3 = m.createObjectSomeValuesFrom(p1, c1).createIndividual(ns + "indi3");
         OntIndividual i4 = m.createObjectCardinality(p2, 1, c1).createIndividual(ns + "indi4");
         m.createDifferentIndividuals(i1, i2, i3, i4);

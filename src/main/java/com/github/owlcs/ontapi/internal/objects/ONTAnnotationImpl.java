@@ -51,16 +51,16 @@ public abstract class ONTAnnotationImpl extends ONTStatementImpl
 
     /**
      * Wraps the given annotation ({@link OntStatement}) as {@link OWLAnnotation} and {@link ONTObject}.
-     *
+     * <p>
      * Impl notes:
      * If the annotation does not contain sub-annotations,
      * then a simplified instance of {@link SimpleImpl} is returned.
      * Otherwise the instance is {@link WithAnnotationsImpl} with a cache inside.
      *
-     * @param statement {@link OntStatement}, must be annotation (i.e. {@link OntStatement#isAnnotation()}
-     *                   must be {@code true}), not {@code null}
-     * @param factory {@link InternalObjectFactory}, not {@code null}
-     * @param model      a provider of non-null {@link OntModel}, not {@code null}
+     * @param statement {@link OntStatement}, must be annotation (i.e. {@link OntStatement#isAnnotationAssertion()}
+     *                  must be {@code true}), not {@code null}
+     * @param factory   {@link InternalObjectFactory}, not {@code null}
+     * @param model     a provider of non-null {@link OntModel}, not {@code null}
      * @return {@link ONTAnnotationImpl}
      */
     public static ONTAnnotationImpl create(OntStatement statement,
@@ -101,7 +101,7 @@ public abstract class ONTAnnotationImpl extends ONTStatementImpl
 
     /**
      * Collects all annotations for the given root {@link OntStatement},
-     * that expected to be an annotation assertion (i.e. {@link OntStatement#isAnnotation()} must return {@code true}).
+     * that expected to be an annotation assertion (i.e. {@link OntStatement#isAnnotationAssertion()} must return {@code true}).
      *
      * @param root    {@link OntStatement} the root annotation statement or plain annotation assertion, not {@code null}
      * @param factory {@link InternalObjectFactory} to retrieve {@link ONTObject}s, not {@code null}

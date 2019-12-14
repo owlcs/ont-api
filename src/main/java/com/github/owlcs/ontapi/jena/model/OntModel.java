@@ -361,7 +361,7 @@ public interface OntModel extends Model, CreateClasses, CreateRanges, CreateDisj
      * @param <F>     type of ont-facet-restriction
      * @return {@link OntFacetRestriction}
      * @see OntDataRange.Restriction
-     * @see OntModel#createRestrictionDataRange(OntDataRange.Named, Collection)
+     * @see OntModel#createDataRestriction(OntDataRange.Named, Collection)
      */
     <F extends OntFacetRestriction> F createFacetRestriction(Class<F> type, Literal literal);
 

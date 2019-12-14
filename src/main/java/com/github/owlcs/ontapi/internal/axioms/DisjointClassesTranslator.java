@@ -300,7 +300,7 @@ public class DisjointClassesTranslator
                 if (isSimple()) {
                     return super.asStatement();
                 }
-                return asResource().getRoot();
+                return asResource().getMainStatement();
             }
 
             @Override

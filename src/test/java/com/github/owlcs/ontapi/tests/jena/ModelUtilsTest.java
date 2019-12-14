@@ -55,7 +55,7 @@ public class ModelUtilsTest {
         OntObject d = m.createDisjointClasses(
                 m.createOntClass(ns + "CL1"),
                 m.createOntClass(ns + "CL2"),
-                m.createUnionOf(Arrays.asList(
+                m.createObjectUnionOf(Arrays.asList(
                         m.createOntClass(ns + "CL4"),
                         m.createOntClass(ns + "CL5"),
                         m.createOntClass(ns + "CL6"))),
@@ -111,8 +111,8 @@ public class ModelUtilsTest {
     public void testInsertModel() {
         OntModel a1 = OntModelFactory.createModel().setID("http://a").getModel();
         OntModel a2 = OntModelFactory.createModel().setID("http://a").getModel();
-        OntClass.Named c1 = a1.createOntClass("http://a#Class-a1");
-        OntClass.Named c2 = a2.createOntClass("http://a#Class-a2");
+        OntClass c1 = a1.createOntClass("http://a#Class-a1");
+        OntClass c2 = a2.createOntClass("http://a#Class-a2");
 
         // collection depending on a1
         OntModel m1 = OntModelFactory.createModel().setID("http://m1").getModel().addImport(a1);
@@ -132,8 +132,8 @@ public class ModelUtilsTest {
     @Test
     public void testMiscModelsFunctionality() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntClass.Named a = m.createOntClass("A");
-        OntClass.Named b = m.createOntClass("B");
+        OntClass a = m.createOntClass("A");
+        OntClass b = m.createOntClass("B");
         Resource t = m.getResource("type");
         RDFList list = Models.createTypedList(m, t, Arrays.asList(a, b));
         Assert.assertNotNull(list);
@@ -154,9 +154,9 @@ public class ModelUtilsTest {
     @Test
     public void testStatementsComparators() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntClass.Named a = m.createOntClass("A");
-        OntClass.Named b = m.createOntClass("B");
-        m.createObjectSomeValuesFrom(m.createObjectProperty("P"), m.createComplementOf(m.createUnionOf(a, b)));
+        OntClass a = m.createOntClass("A");
+        OntClass b = m.createOntClass("B");
+        m.createObjectSomeValuesFrom(m.createObjectProperty("P"), m.createObjectComplementOf(m.createObjectUnionOf(a, b)));
 
         testStatementsComparator(m, Models.STATEMENT_COMPARATOR);
     }

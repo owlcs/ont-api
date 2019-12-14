@@ -104,7 +104,7 @@ public class SpinMappingTest {
 
     public void validate(OntModel source, OntModel target) {
         LOGGER.debug("Validate.");
-        OntClass.Named targetClass = target.classes().findFirst().orElse(null);
+        OntClass targetClass = target.classes().findFirst().orElse(null);
         OntDataProperty targetProperty = target.dataProperties().findFirst().orElse(null);
         List<OntIndividual> sourceIndividuals = source.namedIndividuals().collect(Collectors.toList());
         List<Resource> targetIndividuals = target.listSubjectsWithProperty(RDF.type, targetClass).toList();
@@ -131,8 +131,8 @@ public class SpinMappingTest {
      */
     public OntModel composeMapping(OntModel source, OntModel target) {
         LOGGER.debug("Compose mapping.");
-        OntClass.Named sourceClass = source.classes().findFirst().orElseThrow(AssertionError::new);
-        OntClass.Named targetClass = target.classes().findFirst().orElseThrow(AssertionError::new);
+        OntClass sourceClass = source.classes().findFirst().orElseThrow(AssertionError::new);
+        OntClass targetClass = target.classes().findFirst().orElseThrow(AssertionError::new);
         List<OntDataProperty> sourceProperties = source.dataProperties().collect(Collectors.toList());
         OntDataProperty targetProperty = target.dataProperties().findFirst().orElse(null);
 
@@ -182,7 +182,7 @@ public class SpinMappingTest {
         String uri = "http://source.owlcs.ru";
         String ns = uri + "#";
         OntModel res = manager.createGraphModel(uri).setNsPrefixes(OntModelFactory.STANDARD);
-        OntClass.Named clazz = res.createOntClass(ns + "ClassSource");
+        OntClass clazz = res.createOntClass(ns + "ClassSource");
         OntDataProperty prop1 = res.createDataProperty(ns + "prop1").addRange(XSD.xstring).addDomain(clazz);
         OntDataProperty prop2 = res.createDataProperty(ns + "prop2").addRange(XSD.integer).addDomain(clazz);
         OntIndividual i1 = clazz.createIndividual(ns + "Inst1");
@@ -209,7 +209,7 @@ public class SpinMappingTest {
         String uri = "http://target.owlcs.ru";
         String ns = uri + "#";
         OntModel res = manager.createGraphModel(uri).setNsPrefixes(OntModelFactory.STANDARD);
-        OntClass.Named clazz = res.createOntClass(ns + "ClassTarget");
+        OntClass clazz = res.createOntClass(ns + "ClassTarget");
         res.createDataProperty(ns + "targetProperty").addRange(XSD.xstring).addDomain(clazz);
         Ontology o = manager.getOntology(IRI.create(uri));
         Assert.assertNotNull("Can't find ontology " + uri, o);
