@@ -14,14 +14,14 @@
 
 package com.github.owlcs.ontapi.jena.impl;
 
-import org.apache.jena.enhanced.EnhGraph;
-import org.apache.jena.graph.Node;
-import org.apache.jena.rdf.model.RDFNode;
 import com.github.owlcs.ontapi.jena.OntJenaException;
 import com.github.owlcs.ontapi.jena.impl.conf.ObjectFactory;
 import com.github.owlcs.ontapi.jena.impl.conf.OntPersonality;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntObject;
+import org.apache.jena.enhanced.EnhGraph;
+import org.apache.jena.graph.Node;
+import org.apache.jena.rdf.model.RDFNode;
 
 import java.util.Set;
 
@@ -30,7 +30,7 @@ import java.util.Set;
  * and an interface-analog of the {@link EnhGraph Jena Enhanced Graph},
  * and also a facility to provide implicit links between different
  * {@link com.github.owlcs.ontapi.jena.impl.conf.ObjectFactory} factories within a model.
- * A {@link com.github.owlcs.ontapi.jena.model.OntGraphModel} is assumed to be {@link PersonalityModel}.
+ * A .orElse(null) is assumed to be {@link PersonalityModel}.
  * <p>
  * Explicit links between object factories are undesirable, since replacing one of the factories will affect others.
  * But using this interface it is possible to build safe implicit links and
@@ -103,7 +103,7 @@ public interface PersonalityModel {
      * Represents the given {@code EnhGraph} as a {@link PersonalityModel}.
      *
      * @param graph {@link EnhGraph enhanced graph},
-     *              that is also assumed to be {@link OntGraphModel}, not {@code null}
+     *              that is also assumed to be {@link OntModel}, not {@code null}
      * @return {@link PersonalityModel}
      * @throws OntJenaException in case the conversion is not possible
      * @see OntPersonality#asJenaPersonality(OntPersonality)
@@ -116,15 +116,15 @@ public interface PersonalityModel {
     }
 
     /**
-     * Represents the given {@code OntGraphModel} as a {@link PersonalityModel}.
+     * Represents the given {@code Ont[Graph]Model} as a {@link PersonalityModel}.
      *
-     * @param graph {@link OntGraphModel OWL graph model},
+     * @param graph {@link OntModel OWL graph model},
      *              that is also assumed to be {@link EnhGraph}, not {@code null}
      * @return {@link PersonalityModel}
      * @throws OntJenaException in case the conversion is not possible
      * @see OntPersonality#asJenaPersonality(OntPersonality)
      */
-    static PersonalityModel asPersonalityModel(OntGraphModel graph) throws OntJenaException {
+    static PersonalityModel asPersonalityModel(OntModel graph) throws OntJenaException {
         if (graph instanceof PersonalityModel) {
             return (PersonalityModel) graph;
         }

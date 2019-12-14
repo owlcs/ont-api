@@ -14,6 +14,13 @@
 
 package com.github.owlcs.ontapi.tests.transforms;
 
+import com.github.owlcs.ontapi.OntFormat;
+import com.github.owlcs.ontapi.jena.OntModelFactory;
+import com.github.owlcs.ontapi.jena.model.OntModel;
+import com.github.owlcs.ontapi.jena.utils.Graphs;
+import com.github.owlcs.ontapi.transforms.OWLRecursiveTransform;
+import com.github.owlcs.ontapi.transforms.Transform;
+import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.util.graph.GraphListenerBase;
@@ -22,13 +29,6 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import com.github.owlcs.ontapi.OntFormat;
-import com.github.owlcs.ontapi.jena.OntModelFactory;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
-import com.github.owlcs.ontapi.jena.utils.Graphs;
-import com.github.owlcs.ontapi.transforms.OWLRecursiveTransform;
-import com.github.owlcs.ontapi.transforms.Transform;
-import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -62,7 +62,7 @@ public class RecursionTransformTest {
      */
     @Test
     public void testOWLTrasform() throws IOException {
-        OntGraphModel m = OntModelFactory.createModel();
+        OntModel m = OntModelFactory.createModel();
         try (InputStream in = Files.newInputStream(data.file)) {
             m.read(in, null, data.format.getID());
         }

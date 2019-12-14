@@ -14,17 +14,17 @@
 
 package com.github.owlcs.ontapi.internal.objects;
 
+import com.github.owlcs.ontapi.internal.InternalObjectFactory;
+import com.github.owlcs.ontapi.internal.ONTObject;
+import com.github.owlcs.ontapi.internal.ReadHelper;
+import com.github.owlcs.ontapi.jena.model.OntFR;
+import com.github.owlcs.ontapi.jena.model.OntModel;
+import com.github.owlcs.ontapi.jena.utils.OntModels;
 import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.graph.impl.LiteralLabel;
 import org.apache.jena.rdf.model.Literal;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.OWLFacet;
-import com.github.owlcs.ontapi.internal.InternalObjectFactory;
-import com.github.owlcs.ontapi.internal.ONTObject;
-import com.github.owlcs.ontapi.internal.ReadHelper;
-import com.github.owlcs.ontapi.jena.model.OntFR;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
-import com.github.owlcs.ontapi.jena.utils.OntModels;
 
 import java.util.Set;
 import java.util.function.Supplier;
@@ -42,21 +42,21 @@ import java.util.stream.Stream;
 public class ONTFacetRestrictionImpl
         extends ONTExpressionImpl<OntFR> implements OWLFacetRestriction, ModelObject<OWLFacetRestriction> {
 
-    public ONTFacetRestrictionImpl(BlankNodeId n, Supplier<OntGraphModel> m) {
+    public ONTFacetRestrictionImpl(BlankNodeId n, Supplier<OntModel> m) {
         super(n, m);
     }
 
     /**
      * Wraps the given {@link OntFR} as {@link OWLFacetRestriction} and {@link ONTObject}.
      *
-     * @param fr    {@link OntFR}, not {@code null}
+     * @param fr      {@link OntFR}, not {@code null}
      * @param factory {@link InternalObjectFactory}, not {@code null}
-     * @param model a provider of non-null {@link OntGraphModel}, cannot be {@code null}
+     * @param model   a provider of non-null {@link OntModel}, cannot be {@code null}
      * @return {@link ONTFacetRestrictionImpl}
      */
     public static ONTFacetRestrictionImpl create(OntFR fr,
                                                  InternalObjectFactory factory,
-                                                 Supplier<OntGraphModel> model) {
+                                                 Supplier<OntModel> model) {
         ONTFacetRestrictionImpl res = new ONTFacetRestrictionImpl(fr.asNode().getBlankNodeId(), model);
         res.putContent(res.initContent(fr, factory));
         return res;

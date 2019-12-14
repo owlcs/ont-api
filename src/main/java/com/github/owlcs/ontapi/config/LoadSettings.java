@@ -16,6 +16,7 @@ package com.github.owlcs.ontapi.config;
 
 import com.github.owlcs.ontapi.*;
 import com.github.owlcs.ontapi.jena.impl.conf.OntPersonality;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.transforms.GraphTransformers;
 import org.apache.jena.graph.Graph;
 import org.semanticweb.owlapi.model.IRI;
@@ -40,7 +41,7 @@ public interface LoadSettings {
     /**
      * Gets {@link OntPersonality} configuration object, that is responsible for mapping between raw data (i.e.
      * {@link org.apache.jena.graph.Graph RDF Graph}) to its enhanced view
-     * (see {@link com.github.owlcs.ontapi.jena.model.OntGraphModel RDF Model}).
+     * (see {@link OntModel RDF Model}).
      * Note: {@code OntPersonality} is not {@link Serializable}, so, after restoring a default value is expected.
      *
      * @return {@link OntPersonality}
@@ -56,7 +57,7 @@ public interface LoadSettings {
      * it enters into the main system.
      * One of the goals of this mechanism is data transformation in accordance with OWL2 specification.
      * Any {@link org.apache.jena.graph.Graph RDF Graph} can be presented by the system
-     * in the form of {@link com.github.owlcs.ontapi.jena.model.OntGraphModel RDF Model}
+     * in the form of {@link OntModel RDF Model}
      * or {@link Ontology Axiomatic Model}, but without a proper transformation
      * you might not found valid {@link org.semanticweb.owlapi.model.OWLAxiom Axiom}s inside that data.
      * Transformations can be simply disabled through

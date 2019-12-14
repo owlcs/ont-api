@@ -19,7 +19,7 @@ import com.github.owlcs.ontapi.internal.InternalConfig;
 import com.github.owlcs.ontapi.internal.WriteHelper;
 import com.github.owlcs.ontapi.internal.objects.ONTAxiomImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntPE;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
@@ -49,7 +49,7 @@ public abstract class AbstractSubPropertyTranslator<Axiom extends OWLAxiom, P ex
     abstract Class<P> getView();
 
     @Override
-    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
+    public ExtendedIterator<OntStatement> listStatements(OntModel model, InternalConfig config) {
         return OntModels.listLocalStatements(model, null, RDFS.subPropertyOf, null).filterKeep(s -> filter(s, config));
     }
 
@@ -63,7 +63,7 @@ public abstract class AbstractSubPropertyTranslator<Axiom extends OWLAxiom, P ex
     }
 
     @Override
-    public void write(Axiom axiom, OntGraphModel model) {
+    public void write(Axiom axiom, OntModel model) {
         WriteHelper.writeTriple(model, getSubProperty(axiom), RDFS.subPropertyOf, getSuperProperty(axiom),
                 axiom.annotationsAsList());
     }
@@ -80,11 +80,11 @@ public abstract class AbstractSubPropertyTranslator<Axiom extends OWLAxiom, P ex
     public abstract static class SubPropertyAxiomImpl<A extends OWLAxiom, P extends OWLPropertyExpression>
             extends ONTAxiomImpl<A> implements WithTwoObjects.Unary<P> {
 
-        protected SubPropertyAxiomImpl(Triple t, Supplier<OntGraphModel> m) {
+        protected SubPropertyAxiomImpl(Triple t, Supplier<OntModel> m) {
             super(t, m);
         }
 
-        protected SubPropertyAxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+        protected SubPropertyAxiomImpl(Object subject, String predicate, Object object, Supplier<OntModel> m) {
             super(subject, predicate, object, m);
         }
 

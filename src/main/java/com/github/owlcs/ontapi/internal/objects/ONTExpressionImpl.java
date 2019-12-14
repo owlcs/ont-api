@@ -55,7 +55,7 @@ public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResource
      *          to find the rest {@code OWLObject}'s components from a model (graph)
      * @param m the model-provider, neither {@code null} nor deriving {@code null}
      */
-    protected ONTExpressionImpl(BlankNodeId n, Supplier<OntGraphModel> m) {
+    protected ONTExpressionImpl(BlankNodeId n, Supplier<OntModel> m) {
         super(n, m);
         this.content = createContentCache();
     }

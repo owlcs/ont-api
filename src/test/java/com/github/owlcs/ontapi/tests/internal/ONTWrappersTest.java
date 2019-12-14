@@ -14,19 +14,19 @@
 
 package com.github.owlcs.ontapi.tests.internal;
 
-import org.junit.Assert;
-import org.junit.Test;
-import org.semanticweb.owlapi.model.OWLDisjointClassesAxiom;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.ONTWrapperImpl;
 import com.github.owlcs.ontapi.jena.OntModelFactory;
 import com.github.owlcs.ontapi.jena.model.OntClass;
 import com.github.owlcs.ontapi.jena.model.OntDisjoint;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.owlapi.axioms.OWLDisjointClassesAxiomImpl;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
+import org.junit.Assert;
+import org.junit.Test;
+import org.semanticweb.owlapi.model.OWLDisjointClassesAxiom;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -39,7 +39,7 @@ public class ONTWrappersTest {
 
     @Test
     public void testDisjoint() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntClass c1 = m.createOntClass("C1");
         OntDisjoint.Classes c = m.createDisjointClasses(Arrays.asList(c1,
                 m.createOntClass("C2"),

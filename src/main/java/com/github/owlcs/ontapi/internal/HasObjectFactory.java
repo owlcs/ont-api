@@ -16,7 +16,7 @@ package com.github.owlcs.ontapi.internal;
 
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.OntApiException;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 
 /**
  * An abstract {@link InternalObjectFactory} holder.
@@ -46,11 +46,11 @@ public interface HasObjectFactory {
     /**
      * Gets the ONT-API Object Factory from the model's internals if possible, otherwise throws an exception.
      *
-     * @param model {@link OntGraphModel}, not {@code null}
+     * @param model {@link OntModel}, not {@code null}
      * @return {@link InternalObjectFactory}
      * @throws OntApiException.IllegalArgument in case the model does not provide the object factory
      */
-    static InternalObjectFactory getObjectFactory(OntGraphModel model) {
+    static InternalObjectFactory getObjectFactory(OntModel model) {
         if (model instanceof HasObjectFactory) {
             return ((HasObjectFactory) model).getObjectFactory();
         }

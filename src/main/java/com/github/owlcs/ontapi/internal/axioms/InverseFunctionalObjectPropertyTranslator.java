@@ -18,7 +18,7 @@ import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntOPE;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
@@ -57,7 +57,7 @@ public class InverseFunctionalObjectPropertyTranslator
 
     @Override
     public ONTObject<OWLInverseFunctionalObjectPropertyAxiom> toAxiomImpl(OntStatement statement,
-                                                                          Supplier<OntGraphModel> model,
+                                                                          Supplier<OntModel> model,
                                                                           InternalObjectFactory factory,
                                                                           InternalConfig config) {
         return AxiomImpl.create(statement, model, factory, config);
@@ -80,7 +80,7 @@ public class InverseFunctionalObjectPropertyTranslator
     public static abstract class AxiomImpl extends ObjectAxiomImpl<OWLInverseFunctionalObjectPropertyAxiom>
             implements OWLInverseFunctionalObjectPropertyAxiom {
 
-        protected AxiomImpl(Triple t, Supplier<OntGraphModel> m) {
+        protected AxiomImpl(Triple t, Supplier<OntModel> m) {
             super(t, m);
         }
 
@@ -88,13 +88,13 @@ public class InverseFunctionalObjectPropertyTranslator
          * Creates an {@link ONTObject} container, that is also {@link OWLInverseFunctionalObjectPropertyAxiom}.
          *
          * @param statement {@link OntStatement}, not {@code null}
-         * @param model     {@link OntGraphModel} provider, not {@code null}
+         * @param model     {@link OntModel} provider, not {@code null}
          * @param factory   {@link InternalObjectFactory}, not {@code null}
          * @param config    {@link InternalConfig}, not {@code null}
          * @return {@link AxiomImpl}
          */
         public static AxiomImpl create(OntStatement statement,
-                                       Supplier<OntGraphModel> model,
+                                       Supplier<OntModel> model,
                                        InternalObjectFactory factory,
                                        InternalConfig config) {
             return WithOneObject.create(statement, model,
@@ -122,9 +122,9 @@ public class InverseFunctionalObjectPropertyTranslator
          */
         public static class SimpleImpl extends AxiomImpl implements Simple<OWLObjectPropertyExpression> {
 
-            private static final BiFunction<Triple, Supplier<OntGraphModel>, SimpleImpl> FACTORY = SimpleImpl::new;
+            private static final BiFunction<Triple, Supplier<OntModel>, SimpleImpl> FACTORY = SimpleImpl::new;
 
-            protected SimpleImpl(Triple t, Supplier<OntGraphModel> m) {
+            protected SimpleImpl(Triple t, Supplier<OntModel> m) {
                 super(t, m);
             }
 
@@ -152,10 +152,10 @@ public class InverseFunctionalObjectPropertyTranslator
          */
         public static class ComplexImpl extends AxiomImpl implements Complex<ComplexImpl, OWLObjectPropertyExpression> {
 
-            private static final BiFunction<Triple, Supplier<OntGraphModel>, ComplexImpl> FACTORY = ComplexImpl::new;
+            private static final BiFunction<Triple, Supplier<OntModel>, ComplexImpl> FACTORY = ComplexImpl::new;
             protected final InternalCache.Loading<ComplexImpl, Object[]> content;
 
-            public ComplexImpl(Triple t, Supplier<OntGraphModel> m) {
+            public ComplexImpl(Triple t, Supplier<OntModel> m) {
                 super(t, m);
                 this.content = createContentCache();
             }

@@ -14,13 +14,6 @@
 
 package com.github.owlcs.ontapi.tests.jena;
 
-import org.apache.jena.rdf.model.*;
-import org.apache.jena.vocabulary.RDF;
-import org.apache.jena.vocabulary.RDFS;
-import org.junit.Assert;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.github.owlcs.ontapi.jena.OntModelFactory;
 import com.github.owlcs.ontapi.jena.model.*;
 import com.github.owlcs.ontapi.jena.utils.Iter;
@@ -28,6 +21,13 @@ import com.github.owlcs.ontapi.jena.utils.Models;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
+import org.apache.jena.rdf.model.*;
+import org.apache.jena.vocabulary.RDF;
+import org.apache.jena.vocabulary.RDFS;
+import org.junit.Assert;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -46,7 +46,7 @@ public class ModelUtilsTest {
 
     @Test
     public void testDeleteResources() {
-        OntGraphModel m = OntModelFactory.createModel();
+        OntModel m = OntModelFactory.createModel();
         m.read(ModelUtilsTest.class.getResourceAsStream("/ontapi/recursive-graph.ttl"), null, "ttl");
         String ns = m.getID().getURI() + "#";
         OntObject d = m.createDisjointClasses(
@@ -87,7 +87,7 @@ public class ModelUtilsTest {
 
     @Test
     public void testListLangValues() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntID id = m.getID()
                 .addVersionInfo("lab1")
                 .addVersionInfo("lab1", "e1")
@@ -106,14 +106,14 @@ public class ModelUtilsTest {
 
     @Test
     public void testInsertModel() {
-        OntGraphModel a1 = OntModelFactory.createModel().setID("http://a").getModel();
-        OntGraphModel a2 = OntModelFactory.createModel().setID("http://a").getModel();
+        OntModel a1 = OntModelFactory.createModel().setID("http://a").getModel();
+        OntModel a2 = OntModelFactory.createModel().setID("http://a").getModel();
         OntClass c1 = a1.createOntClass("http://a#Class-a1");
         OntClass c2 = a2.createOntClass("http://a#Class-a2");
 
         // collection depending on a1
-        OntGraphModel m1 = OntModelFactory.createModel().setID("http://m1").getModel().addImport(a1);
-        OntGraphModel m2 = OntModelFactory.createModel().setID("http://m2").getModel().addImport(a1);
+        OntModel m1 = OntModelFactory.createModel().setID("http://m1").getModel().addImport(a1);
+        OntModel m2 = OntModelFactory.createModel().setID("http://m2").getModel().addImport(a1);
         Assert.assertTrue(ModelFactory.createModelForGraph(m1.getGraph()).containsResource(c1));
         Assert.assertFalse(ModelFactory.createModelForGraph(m1.getGraph()).containsResource(c2));
         Assert.assertTrue(ModelFactory.createModelForGraph(m2.getGraph()).containsResource(c1));
@@ -128,7 +128,7 @@ public class ModelUtilsTest {
 
     @Test
     public void testMiscModelsFunctionality() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntClass a = m.createOntClass("A");
         OntClass b = m.createOntClass("B");
         Resource t = m.getResource("type");
@@ -150,7 +150,7 @@ public class ModelUtilsTest {
 
     @Test
     public void testStatementsComparators() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntClass a = m.createOntClass("A");
         OntClass b = m.createOntClass("B");
         m.createObjectSomeValuesFrom(m.createObjectProperty("P"), m.createComplementOf(m.createUnionOf(a, b)));

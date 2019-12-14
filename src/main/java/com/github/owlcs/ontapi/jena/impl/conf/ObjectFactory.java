@@ -14,14 +14,15 @@
 
 package com.github.owlcs.ontapi.jena.impl.conf;
 
+import com.github.owlcs.ontapi.jena.OntJenaException;
+import com.github.owlcs.ontapi.jena.model.OntModel;
+import com.github.owlcs.ontapi.jena.utils.Iter;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.enhanced.Implementation;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import com.github.owlcs.ontapi.jena.OntJenaException;
-import com.github.owlcs.ontapi.jena.utils.Iter;
 
 import java.util.stream.Stream;
 
@@ -31,7 +32,7 @@ import java.util.stream.Stream;
  * Used to bind a concrete implementation (i.e. {@link EnhNode enhanced node}) and
  * an interface ({@link com.github.owlcs.ontapi.jena.model.OntObject OWL Object}) with a {@link Node Graph Node}.
  * It is a part of {@link OntPersonality} mechanism to manipulate
- * {@link com.github.owlcs.ontapi.jena.model.OntGraphModel OWL2 RDF-model} objects (which happens
+ * {@link OntModel OWL2 RDF-model} objects (which happens
  * through {@link com.github.owlcs.ontapi.jena.impl.PersonalityModel}).
  * Also note, explicit links between different {@link ObjectFactory} factories are undesirable
  * (for more details see {@link PersonalityBuilder#add(Class, ObjectFactory)} and

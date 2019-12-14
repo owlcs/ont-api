@@ -14,12 +14,12 @@
 
 package com.github.owlcs.ontapi.internal.objects;
 
+import com.github.owlcs.ontapi.internal.ONTObject;
+import com.github.owlcs.ontapi.jena.model.OntModel;
+import com.github.owlcs.ontapi.jena.model.OntSWRL;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.semanticweb.owlapi.model.*;
-import com.github.owlcs.ontapi.internal.ONTObject;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
-import com.github.owlcs.ontapi.jena.model.OntSWRL;
 
 import java.util.Set;
 import java.util.function.Supplier;
@@ -35,7 +35,7 @@ import java.util.function.Supplier;
 public class ONTSWRLVariable extends ONTResourceImpl
         implements SWRLVariable, ONTSimple, ModelObject<SWRLVariable> {
 
-    public ONTSWRLVariable(String uri, Supplier<OntGraphModel> m) {
+    public ONTSWRLVariable(String uri, Supplier<OntModel> m) {
         super(uri, m);
     }
 

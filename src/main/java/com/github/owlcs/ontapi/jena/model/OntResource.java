@@ -23,7 +23,7 @@ import java.util.stream.Stream;
 /**
  * A common super-type for all of the abstractions in this ontology representation package.
  * This is an analogue of the {@link org.apache.jena.ontology.OntResource Jena OntResource} interface,
- * but for {@link OntGraphModel OWL2 Ontology RDF Graph Model}.
+ * but for {@link OntModel OWL2 Ontology RDF Graph Model}.
  * <p>
  * Created by @szuev on 24.07.2018.
  *
@@ -35,9 +35,9 @@ interface OntResource extends Resource {
      * Returns the ontology model associated with this resource.
      * If the Resource was not created by a Model, the result may be null.
      *
-     * @return {@link OntGraphModel}
+     * @return {@link OntModel}
      */
-    OntGraphModel getModel();
+    OntModel getModel();
 
     /**
      * Returns the root declaration in the form of an ontology statement with supporting adding/removing OWL annotations.

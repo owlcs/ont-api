@@ -14,11 +14,11 @@
 
 package com.github.owlcs.ontapi.jena.model;
 
+import com.github.owlcs.ontapi.jena.OntJenaException;
+import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
-import com.github.owlcs.ontapi.jena.OntJenaException;
-import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 
 import java.util.List;
 import java.util.Objects;
@@ -42,12 +42,12 @@ import java.util.stream.Stream;
 public interface OntStatement extends Statement {
 
     /**
-     * Gets the {@link OntGraphModel Ontology RDF Model} this {@link OntStatement Statement} was created in.
+     * Gets the {@link OntModel Ontology RDF Model} this {@link OntStatement Statement} was created in.
      *
-     * @return {@link OntGraphModel}
+     * @return {@link OntModel}
      */
     @Override
-    OntGraphModel getModel();
+    OntModel getModel();
 
     /**
      * Annotates the statement with the given {@link OntNAP annotation property} and {@link RDFNode RDF Node} value
@@ -312,8 +312,8 @@ public interface OntStatement extends Statement {
      * @param text     String, the text message, not {@code null}
      * @return <b>this</b> {@code OntStatement} to allow cascading calls
      * @see OntStatement#addAnnotation(OntNAP, String)
-     * @see OntGraphModel#getRDFSComment()
-     * @see OntGraphModel#getRDFSLabel()
+     * @see OntModel#getRDFSComment()
+     * @see OntModel#getRDFSLabel()
      * @since 1.4.0
      */
     default OntStatement annotate(OntNAP property, String text) {
@@ -328,8 +328,8 @@ public interface OntStatement extends Statement {
      * @param lang     String, language, optional
      * @return <b>this</b> {@code OntStatement} to allow cascading calls
      * @see OntStatement#addAnnotation(OntNAP, String, String)
-     * @see OntGraphModel#getRDFSComment()
-     * @see OntGraphModel#getRDFSLabel()
+     * @see OntModel#getRDFSComment()
+     * @see OntModel#getRDFSLabel()
      * @since 1.4.0
      */
     default OntStatement annotate(OntNAP property, String text, String lang) {
@@ -344,8 +344,8 @@ public interface OntStatement extends Statement {
      * @param value    {@link RDFNode} uri-resource, literal or anonymous individual, not {@code null}
      * @return <b>this</b> {@code OntStatement} to allow cascading calls
      * @see OntStatement#addAnnotation(OntNAP, RDFNode)
-     * @see OntGraphModel#getRDFSComment()
-     * @see OntGraphModel#getRDFSLabel()
+     * @see OntModel#getRDFSComment()
+     * @see OntModel#getRDFSLabel()
      * @since 1.4.0
      */
     default OntStatement annotate(OntNAP property, RDFNode value) {

@@ -18,7 +18,7 @@ import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import org.junit.Assert;
 import org.junit.Test;
@@ -45,7 +45,7 @@ public class ModifyOntologyTest {
         OntologyManager m = OntManagers.createONT();
 
         Ontology o = m.createOntology();
-        OntGraphModel g = o.asGraphModel();
+        OntModel g = o.asGraphModel();
         g.createOntClass(ns + "X").addSuperClass(g.createOntClass(ns + "Y"));
         ReadWriteUtils.print(g);
         Assert.assertEquals(3, o.axioms().peek(x -> LOGGER.debug("(1): {}", x)).count());

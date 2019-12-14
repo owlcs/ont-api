@@ -68,7 +68,7 @@ public class ID extends OWLOntologyID implements AsNode {
     /**
      * Constructs an ontology identifier from the given {@link OntID Ontology Graph Model ID}.
      * The difference between these two IDs ( {@link OntID} and {@link ID this classs}) is
-     * that the former is used in the RDF representation (i.e. in {@link com.github.owlcs.ontapi.jena.model.OntGraphModel}),
+     * that the former is used in the RDF representation (i.e. in {@link com.github.owlcs.ontapi.jena.model.OntModel}),
      * while the other is in the axiomatic view (i.e. in {@link org.semanticweb.owlapi.model.OWLOntology}).
      *
      * @param id {@link OntID}, not {@code null}
@@ -88,8 +88,7 @@ public class ID extends OWLOntologyID implements AsNode {
      *                               but we have not yet learned about it
      * @throws NullPointerException  if {@code id} is {@code null}
      */
-    protected ID(Node id, String version) throws OntApiException,
-            IllegalStateException, UnsupportedOperationException, NullPointerException {
+    protected ID(Node id, String version) throws OntApiException, IllegalStateException, NullPointerException {
         Optional<String> internalID;
         Optional<IRI> ontologyIRI, versionIRI;
         if (Objects.requireNonNull(id, "Null id node").isBlank()) {

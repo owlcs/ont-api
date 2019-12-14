@@ -17,8 +17,8 @@ package com.github.owlcs.ontapi.tests.managers;
 import com.github.owlcs.ontapi.*;
 import com.github.owlcs.ontapi.jena.OntModelFactory;
 import com.github.owlcs.ontapi.jena.UnionGraph;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
 import com.github.owlcs.ontapi.jena.model.OntIndividual;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.transforms.GraphTransformers;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import org.apache.jena.graph.Graph;
@@ -59,7 +59,7 @@ public class GraphDocumentSourceTest {
 
     @Test
     public void testCommonValidateOGDS() {
-        OntGraphModel m = OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("/ontapi/pizza.ttl").getGraph());
+        OntModel m = OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("/ontapi/pizza.ttl").getGraph());
         OntGraphDocumentSource s = OntGraphDocumentSource.wrap(m.getGraph());
         URI u1 = s.getDocumentIRI().toURI();
         Assert.assertFalse(s.hasAlredyFailedOnStreams());
@@ -95,7 +95,7 @@ public class GraphDocumentSourceTest {
         OntologyManager m = OntManagers.createONT();
         m.createGraphModel(iris.get(0));
         m.createGraphModel(iris.get(1));
-        OntGraphModel c = OntModelFactory.createModel();
+        OntModel c = OntModelFactory.createModel();
         c.setID(iris.get(2)).addImport(iris.get(0)).addImport(iris.get(1));
         ReadWriteUtils.print(c);
         OntGraphDocumentSource src = OntGraphDocumentSource.wrap(c.getGraph());
@@ -107,7 +107,7 @@ public class GraphDocumentSourceTest {
 
     @Test
     public void testUnsupportedFormatInOGDS() throws IOException {
-        OntGraphModel m = OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("/ontapi/pizza.ttl").getGraph());
+        OntModel m = OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("/ontapi/pizza.ttl").getGraph());
         String uri = m.getID().getURI();
         OntGraphDocumentSource unsupported = new OntGraphDocumentSource() {
             @Override
@@ -167,7 +167,7 @@ public class GraphDocumentSourceTest {
 
     @Test
     public void testAddCompositeGraph() {
-        OntGraphModel m1 = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m1 = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         m1.setID("http://xxxxxx");
         m1.createOntClass("x");
 
@@ -210,7 +210,7 @@ public class GraphDocumentSourceTest {
                     throw new IllegalStateException("TEST");
                 })));
 
-        OntGraphModel g = OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("/ontapi/pizza.ttl").getGraph());
+        OntModel g = OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("/ontapi/pizza.ttl").getGraph());
         OntGraphDocumentSource s1 = OntGraphDocumentSource.wrap(g.getBaseGraph());
         try {
             m.loadOntologyFromOntologyDocument(s1);

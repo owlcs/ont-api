@@ -14,6 +14,11 @@
 
 package com.github.owlcs.ontapi.tests.jena;
 
+import com.github.owlcs.ontapi.OntFormat;
+import com.github.owlcs.ontapi.jena.OntModelFactory;
+import com.github.owlcs.ontapi.jena.model.OntModel;
+import com.github.owlcs.ontapi.jena.model.OntNDP;
+import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.reasoner.Derivation;
 import org.apache.jena.reasoner.Reasoner;
@@ -27,11 +32,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.github.owlcs.ontapi.OntFormat;
-import com.github.owlcs.ontapi.jena.OntModelFactory;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
-import com.github.owlcs.ontapi.jena.model.OntNDP;
-import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -57,7 +57,7 @@ public class JenaReasonerTest {
         String NS = "urn:example/";
 
         // Build a trivial example data set
-        OntGraphModel example = OntModelFactory.createModel();
+        OntModel example = OntModelFactory.createModel();
         OntNDP p = example.createDataProperty(NS + "p");
         OntNDP q = example.createDataProperty(NS + "q");
         p.addSuperProperty(q);
@@ -102,7 +102,7 @@ public class JenaReasonerTest {
     private void validationTest(String file, boolean result) {
         URI uri = ReadWriteUtils.getResourceURI(file);
         LOGGER.debug("Testing {}", uri);
-        OntGraphModel data = OntModelFactory.createModel(ReadWriteUtils.load(uri, OntFormat.NTRIPLES).getGraph());
+        OntModel data = OntModelFactory.createModel(ReadWriteUtils.load(uri, OntFormat.NTRIPLES).getGraph());
         InfModel inf = data.getInferenceModel(ReasonerRegistry.getRDFSReasoner());
         ValidityReport validity = inf.validate();
         if (validity.isValid()) {
@@ -124,7 +124,7 @@ public class JenaReasonerTest {
     public void testDerivation() {
         // Test data
         String egNS = "urn:x-hp:eg/";
-        OntGraphModel rawData = OntModelFactory.createModel();
+        OntModel rawData = OntModelFactory.createModel();
         Property p = rawData.createProperty(egNS, "p");
         Resource A = rawData.createResource(egNS + "A");
         Resource B = rawData.createResource(egNS + "B");
@@ -165,7 +165,7 @@ public class JenaReasonerTest {
     public void testGenericRules() {
         // Test data
         String egNS = "urn:x-hp:eg/";
-        OntGraphModel rawData = OntModelFactory.createModel();
+        OntModel rawData = OntModelFactory.createModel();
         Property first = rawData.createProperty(egNS, "concatFirst");
         Property second = rawData.createProperty(egNS, "concatSecond");
         Property p = rawData.createProperty(egNS, "p");

@@ -16,7 +16,7 @@ package com.github.owlcs.ontapi.internal.objects;
 
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.internal.*;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.graph.Triple;
@@ -51,11 +51,11 @@ public abstract class ONTAxiomImpl<X extends OWLAxiom> extends ONTStatementImpl
      */
     protected static final ObjIntConsumer<OWLAxiom> SET_HASH_CODE = (a, h) -> ((ONTAxiomImpl<?>) a).setHashCode(h);
 
-    protected ONTAxiomImpl(Triple t, Supplier<OntGraphModel> m) {
+    protected ONTAxiomImpl(Triple t, Supplier<OntModel> m) {
         this(strip(t.getSubject()), t.getPredicate().getURI(), strip(t.getObject()), m);
     }
 
-    protected ONTAxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+    protected ONTAxiomImpl(Object subject, String predicate, Object object, Supplier<OntModel> m) {
         super(subject, predicate, object, m);
     }
 

@@ -19,7 +19,7 @@ import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntNDP;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
@@ -57,7 +57,7 @@ public class EquivalentDataPropertiesTranslator
 
     @Override
     public ONTObject<OWLEquivalentDataPropertiesAxiom> toAxiomImpl(OntStatement statement,
-                                                                   Supplier<OntGraphModel> model,
+                                                                   Supplier<OntModel> model,
                                                                    InternalObjectFactory factory,
                                                                    InternalConfig config) {
         return AxiomImpl.create(statement, model, factory, config);
@@ -82,11 +82,11 @@ public class EquivalentDataPropertiesTranslator
     public abstract static class AxiomImpl extends DataPropertyNaryAxiomImpl<OWLEquivalentDataPropertiesAxiom>
             implements OWLEquivalentDataPropertiesAxiom {
 
-        protected AxiomImpl(Triple t, Supplier<OntGraphModel> m) {
+        protected AxiomImpl(Triple t, Supplier<OntModel> m) {
             this(strip(t.getSubject()), t.getPredicate().getURI(), strip(t.getObject()), m);
         }
 
-        protected AxiomImpl(Object s, String p, Object o, Supplier<OntGraphModel> m) {
+        protected AxiomImpl(Object s, String p, Object o, Supplier<OntModel> m) {
             super(s, p, o, m);
         }
 
@@ -94,13 +94,13 @@ public class EquivalentDataPropertiesTranslator
          * Creates an {@link ONTObject} container, that is also {@link OWLEquivalentDataPropertiesAxiom}.
          *
          * @param statement {@link OntStatement}, not {@code null}
-         * @param model     {@link OntGraphModel} provider, not {@code null}
+         * @param model     {@link OntModel} provider, not {@code null}
          * @param factory   {@link InternalObjectFactory}, not {@code null}
          * @param config    {@link InternalConfig}, not {@code null}
          * @return {@link AxiomImpl}
          */
         public static AxiomImpl create(OntStatement statement,
-                                       Supplier<OntGraphModel> model,
+                                       Supplier<OntModel> model,
                                        InternalObjectFactory factory,
                                        InternalConfig config) {
             return WithManyObjects.create(statement, model,
@@ -137,13 +137,13 @@ public class EquivalentDataPropertiesTranslator
          */
         protected static class SimpleImpl extends AxiomImpl implements Simple<OWLDataPropertyExpression> {
 
-            private static final BiFunction<Triple, Supplier<OntGraphModel>, SimpleImpl> FACTORY = SimpleImpl::new;
+            private static final BiFunction<Triple, Supplier<OntModel>, SimpleImpl> FACTORY = SimpleImpl::new;
 
-            protected SimpleImpl(Triple t, Supplier<OntGraphModel> m) {
+            protected SimpleImpl(Triple t, Supplier<OntModel> m) {
                 super(t, m);
             }
 
-            protected SimpleImpl(Object s, String p, Object o, Supplier<OntGraphModel> m) {
+            protected SimpleImpl(Object s, String p, Object o, Supplier<OntModel> m) {
                 super(s, p, o, m);
             }
 
@@ -197,15 +197,15 @@ public class EquivalentDataPropertiesTranslator
         public static class WithAnnotationsImpl extends AxiomImpl
                 implements Complex<WithAnnotationsImpl, OWLDataPropertyExpression> {
 
-            private static final BiFunction<Triple, Supplier<OntGraphModel>, WithAnnotationsImpl> FACTORY =
+            private static final BiFunction<Triple, Supplier<OntModel>, WithAnnotationsImpl> FACTORY =
                     WithAnnotationsImpl::new;
             protected final InternalCache.Loading<WithAnnotationsImpl, Object[]> content;
 
-            public WithAnnotationsImpl(Triple t, Supplier<OntGraphModel> m) {
+            public WithAnnotationsImpl(Triple t, Supplier<OntModel> m) {
                 this(strip(t.getSubject()), t.getPredicate().getURI(), strip(t.getObject()), m);
             }
 
-            protected WithAnnotationsImpl(Object s, String p, Object o, Supplier<OntGraphModel> m) {
+            protected WithAnnotationsImpl(Object s, String p, Object o, Supplier<OntModel> m) {
                 super(s, p, o, m);
                 this.content = createContentCache();
             }

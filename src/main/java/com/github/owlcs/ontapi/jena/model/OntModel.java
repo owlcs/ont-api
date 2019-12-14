@@ -47,7 +47,7 @@ import java.util.stream.Stream;
  * is delegated directly to the {@link com.github.owlcs.ontapi.jena.impl.conf.OntPersonality Ontology Personality}.
  * <p>
  * Note: it does not extends {@link InfModel} interface, although
- * encapsulated graph can always be wrapped as {@link InfModel} (see {@link OntGraphModel#getInferenceModel(Reasoner)}).
+ * encapsulated graph can always be wrapped as {@link InfModel} (see {@link OntModel#getInferenceModel(Reasoner)}).
  * <p>
  * Note: in additional to native Jena {@link org.apache.jena.util.iterator.ExtendedIterator Extended Iterator}s,
  * this model also provides access to RDF in the from of {@link Stream}s, that obey the same rules:
@@ -63,7 +63,7 @@ import java.util.stream.Stream;
  * @see <a href='https://www.w3.org/TR/owl2-syntax/'>OWL 2 Web Ontology Language Structural Specification and Functional-Style Syntax (Second Edition)</a>
  * @see <a href='https://www.w3.org/Submission/SWRL/'>SWRL: A Semantic Web Rule Language Combining OWL and RuleML</a>
  */
-public interface OntGraphModel extends Model, CreateClasses, CreateRanges, CreateDisjoint, CreateSWRL {
+public interface OntModel extends Model, CreateClasses, CreateRanges, CreateDisjoint, CreateSWRL {
 
     /**
      * Returns the base {@code Graph},
@@ -119,7 +119,7 @@ public interface OntGraphModel extends Model, CreateClasses, CreateRanges, Creat
      * Removes all extra ontology objects if they are present and moves their content to the new one,
      * as it is required by OWL2 specification.
      *
-     * @param uri String, can be null to make anonymous ontology
+     * @param uri String, can be {@code null} to make this ontology to be anonymous
      * @return the new {@link OntID} instance
      * @throws OntJenaException if ontology can't be added (e.g. due to collision with imports)
      */
@@ -128,25 +128,25 @@ public interface OntGraphModel extends Model, CreateClasses, CreateRanges, Creat
     /**
      * Adds a sub model both to the {@code owl:import} section and to the graph hierarchy.
      *
-     * @param m {@link OntGraphModel ont jena model} to add, not {@code null}
+     * @param m {@link OntModel ont jena model} to add, not {@code null}
      * @return this model to allow cascading calls
      * @throws OntJenaException if specified ontology is anonymous
      *                          or already present in the imports (both as graph and in owl-declaration)
      * @see OntID#addImport(String)
      */
-    OntGraphModel addImport(OntGraphModel m) throws OntJenaException;
+    OntModel addImport(OntModel m) throws OntJenaException;
 
     /**
      * Removes a sub-model from {@code owl:import} and from the graph hierarchy.
      * Does nothing, if the specified model does not belong to this ontology.
-     * Matching is performed by graph, not uri (see {@link #hasImport(OntGraphModel)} description).
+     * Matching is performed by graph, not uri (see {@link #hasImport(OntModel)} description).
      *
-     * @param m {@link OntGraphModel ont jena model} to remove, not {@code null}
+     * @param m {@link OntModel ont jena model} to remove, not {@code null}
      * @return <b>this</b> model to allow cascading calls
      * @see OntID#removeImport(String)
-     * @see #hasImport(OntGraphModel)
+     * @see #hasImport(OntModel)
      */
-    OntGraphModel removeImport(OntGraphModel m);
+    OntModel removeImport(OntModel m);
 
     /**
      * Removes the import (both {@code owl:import} declaration and the corresponding graph)
@@ -157,7 +157,7 @@ public interface OntGraphModel extends Model, CreateClasses, CreateRanges, Creat
      * @see OntID#getImportsIRI()
      * @see #hasImport(String)
      */
-    OntGraphModel removeImport(String uri);
+    OntModel removeImport(String uri);
 
     /**
      * Lists all sub-models
@@ -165,10 +165,10 @@ public interface OntGraphModel extends Model, CreateClasses, CreateRanges, Creat
      * Caution: since recursive hierarchies are not prohibited,
      * the rectilinear usage of this method may cause a StackOverflow Error.
      *
-     * @return {@code Stream} of {@link OntGraphModel}s
+     * @return {@code Stream} of {@link OntModel}s
      * @see OntID#imports()
      */
-    Stream<OntGraphModel> imports();
+    Stream<OntModel> imports();
 
     /**
      * Answers {@code true} if the given model is present in the {@link OWL#imports owl:imports} of this model.
@@ -177,11 +177,11 @@ public interface OntGraphModel extends Model, CreateClasses, CreateRanges, Creat
      * i.e. if the method {@link #hasImport(String)} returns {@code true},
      * it does not mean this method also returns {@code true}.
      *
-     * @param other {@link OntGraphModel} to test, not {@code null}
+     * @param other {@link OntModel} to test, not {@code null}
      * @return {@code true} if the model is in imports
      * @since 1.4.0
      */
-    boolean hasImport(OntGraphModel other);
+    boolean hasImport(OntModel other);
 
     /**
      * Answers {@code true} if the model has a graph with the given uri both in {@code owl:imports} and graph-hierarchy.
@@ -223,7 +223,7 @@ public interface OntGraphModel extends Model, CreateClasses, CreateRanges, Creat
      * <p>
      * A class assertion axiom is a statement {@code a rdf:type C},
      * where {@code a} is a retrieving individual (named or anonymous) and {@code C} is any class expression.
-     * Notice, that the method {@link OntGraphModel#ontObjects(Class)}
+     * Notice, that the method {@link OntModel#ontObjects(Class)}
      * called with the parameter {@code OntIndividual.class}
      * (i.e. {@code model.ontObject(OntIndividual.class)}) must return all individuals from a model,
      * even those which have no explicit declarations (e.g. any part of {@code owl:sameAs} is an individual),
@@ -237,7 +237,7 @@ public interface OntGraphModel extends Model, CreateClasses, CreateRanges, Creat
      * which means an individual that has more than one class assertions, must appear in the stream only once.
      *
      * @return {@code Stream} of {@link OntIndividual}s
-     * @see OntGraphModel#namedIndividuals()
+     * @see OntModel#namedIndividuals()
      * @since 1.4.1
      */
     Stream<OntIndividual> individuals();
@@ -278,7 +278,7 @@ public interface OntGraphModel extends Model, CreateClasses, CreateRanges, Creat
     Stream<OntStatement> statements(Resource s, Property p, RDFNode o);
 
     /**
-     * Lists all statements from the {@link OntGraphModel#getBaseGraph() base graph}
+     * Lists all statements from the {@link OntModel#getBaseGraph() base graph}
      * for the specified subject, predicate and object.
      * Effectively equivalent to the {@code model.statements(s, p, o).filter(OntStatement::isLocal)} expression.
      *
@@ -286,7 +286,7 @@ public interface OntGraphModel extends Model, CreateClasses, CreateRanges, Creat
      * @param p {@link Property}, the predicate
      * @param o {@link RDFNode}, the object
      * @return {@code Stream} of {@link OntStatement}
-     * @see OntGraphModel#statements(Resource, Property, RDFNode)
+     * @see OntModel#statements(Resource, Property, RDFNode)
      * @see OntStatement#isLocal()
      * @since 1.3.0
      */
@@ -308,7 +308,7 @@ public interface OntGraphModel extends Model, CreateClasses, CreateRanges, Creat
      * @return true if statement is local.
      * @see OntStatement#isLocal()
      * @see OntObject#isLocal()
-     * @see OntGraphModel#localStatements(Resource, Property, RDFNode)
+     * @see OntModel#localStatements(Resource, Property, RDFNode)
      */
     boolean isLocal(Statement statement);
 
@@ -329,7 +329,7 @@ public interface OntGraphModel extends Model, CreateClasses, CreateRanges, Creat
      * @return <b>this</b> model
      * @see OntObject#content()
      */
-    OntGraphModel removeOntObject(OntObject obj);
+    OntModel removeOntObject(OntObject obj);
 
     /**
      * Removes the statement from the graph-model including its annotations with sub-annotations hierarchy.
@@ -338,7 +338,7 @@ public interface OntGraphModel extends Model, CreateClasses, CreateRanges, Creat
      * @return <b>this</b> model
      * @see #remove(Statement)
      */
-    OntGraphModel removeOntStatement(OntStatement statement);
+    OntModel removeOntStatement(OntStatement statement);
 
     /**
      * Creates an owl-entity by the {@code type} and {@code iri}.
@@ -361,7 +361,7 @@ public interface OntGraphModel extends Model, CreateClasses, CreateRanges, Creat
      * @param <F>     type of ont-facet-restriction
      * @return {@link OntFR}
      * @see OntDR.Restriction
-     * @see OntGraphModel#createRestrictionDataRange(OntDT, Collection)
+     * @see OntModel#createRestrictionDataRange(OntDT, Collection)
      */
     <F extends OntFR> F createFacetRestriction(Class<F> type, Literal literal);
 
@@ -372,22 +372,22 @@ public interface OntGraphModel extends Model, CreateClasses, CreateRanges, Creat
      */
 
     @Override
-    OntGraphModel setNsPrefix(String prefix, String uri);
+    OntModel setNsPrefix(String prefix, String uri);
 
     @Override
-    OntGraphModel removeNsPrefix(String prefix);
+    OntModel removeNsPrefix(String prefix);
 
     @Override
-    OntGraphModel clearNsPrefixMap();
+    OntModel clearNsPrefixMap();
 
     @Override
-    OntGraphModel setNsPrefixes(PrefixMapping other);
+    OntModel setNsPrefixes(PrefixMapping other);
 
     @Override
-    OntGraphModel setNsPrefixes(Map<String, String> map);
+    OntModel setNsPrefixes(Map<String, String> map);
 
     @Override
-    OntGraphModel withDefaultMappings(PrefixMapping map);
+    OntModel withDefaultMappings(PrefixMapping map);
 
     /*
      * =====================================================
@@ -396,34 +396,34 @@ public interface OntGraphModel extends Model, CreateClasses, CreateRanges, Creat
      */
 
     @Override
-    OntGraphModel add(Statement s);
+    OntModel add(Statement s);
 
     @Override
-    OntGraphModel remove(Statement s);
+    OntModel remove(Statement s);
 
     @Override
-    OntGraphModel add(Resource s, Property p, RDFNode o);
+    OntModel add(Resource s, Property p, RDFNode o);
 
     @Override
-    OntGraphModel remove(Resource s, Property p, RDFNode o);
+    OntModel remove(Resource s, Property p, RDFNode o);
 
     @Override
-    OntGraphModel add(Model m);
+    OntModel add(Model m);
 
     @Override
-    OntGraphModel remove(Model m);
+    OntModel remove(Model m);
 
     @Override
-    OntGraphModel add(StmtIterator i);
+    OntModel add(StmtIterator i);
 
     @Override
-    OntGraphModel remove(StmtIterator i);
+    OntModel remove(StmtIterator i);
 
     @Override
-    OntGraphModel removeAll(Resource s, Property p, RDFNode o);
+    OntModel removeAll(Resource s, Property p, RDFNode o);
 
     @Override
-    OntGraphModel removeAll();
+    OntModel removeAll();
 
     /*
      * ===================================

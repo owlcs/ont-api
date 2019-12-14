@@ -47,28 +47,28 @@ public interface OntDR extends OntObject {
 
     /**
      * @see <a href='https://www.w3.org/TR/owl2-syntax/#Complement_of_Data_Ranges'>7.3 Complement of Data Ranges</a>
-     * @see OntGraphModel#createComplementOfDataRange(OntDR)
+     * @see OntModel#createComplementOfDataRange(OntDR)
      */
     interface ComplementOf extends OntDR, SetValue<OntDR, ComplementOf>, HasValue<OntDR> {
     }
 
     /**
      * @see <a href='https://www.w3.org/TR/owl2-syntax/#Intersection_of_Data_Ranges'>7.1 Intersection of Data Ranges</a>
-     * @see OntGraphModel#createIntersectionOfDataRange(Collection)
+     * @see OntModel#createIntersectionOfDataRange(Collection)
      */
     interface IntersectionOf extends ComponentsDR<OntDR>, SetComponents<OntDR, IntersectionOf> {
     }
 
     /**
      * @see <a href='https://www.w3.org/TR/owl2-syntax/#Union_of_Data_Ranges'>7.2 Union of Data Ranges</a>
-     * @see OntGraphModel#createUnionOfDataRange(Collection)
+     * @see OntModel#createUnionOfDataRange(Collection)
      */
     interface UnionOf extends ComponentsDR<OntDR>, SetComponents<OntDR, UnionOf> {
     }
 
     /**
      * @see <a href='https://www.w3.org/TR/owl2-syntax/#Enumeration_of_Literals'>7.4 Enumeration of Literals</a>
-     * @see OntGraphModel#createOneOfDataRange(Collection)
+     * @see OntModel#createOneOfDataRange(Collection)
      */
     interface OneOf extends ComponentsDR<Literal>, SetComponents<Literal, OneOf> {
     }
@@ -76,8 +76,8 @@ public interface OntDR extends OntObject {
     /**
      * @see <a href='https://www.w3.org/TR/owl2-syntax/#Datatype_Restrictions'>7.5 Datatype Restrictions</a>
      * @see OntFR
-     * @see OntGraphModel#createFacetRestriction(Class, Literal)
-     * @see OntGraphModel#createRestrictionDataRange(OntDT, Collection)
+     * @see OntModel#createFacetRestriction(Class, Literal)
+     * @see OntModel#createRestrictionDataRange(OntDT, Collection)
      */
     interface Restriction extends ComponentsDR<OntFR>,
             SetComponents<OntFR, Restriction>, SetValue<OntDT, Restriction>, HasValue<OntDT> {

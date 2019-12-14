@@ -16,7 +16,7 @@ package com.github.owlcs.ontapi.internal.axioms;
 
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.*;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntNPA;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
@@ -45,17 +45,17 @@ import java.util.stream.Stream;
 public abstract class AbstractNegativePropertyAssertionTranslator<Axiom extends OWLPropertyAssertionAxiom<?, ?>,
         NPA extends OntNPA<?, ?>> extends AxiomTranslator<Axiom> {
 
-    abstract NPA createNPA(Axiom axiom, OntGraphModel model);
+    abstract NPA createNPA(Axiom axiom, OntModel model);
 
     abstract Class<NPA> getView();
 
     @Override
-    public void write(Axiom axiom, OntGraphModel model) {
+    public void write(Axiom axiom, OntModel model) {
         WriteHelper.addAnnotations(createNPA(axiom, model), axiom.annotationsAsList());
     }
 
     @Override
-    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
+    public ExtendedIterator<OntStatement> listStatements(OntModel model, InternalConfig config) {
         return OntModels.listLocalStatements(model, null, RDF.type, OWL.NegativePropertyAssertion)
                 .mapWith(s -> {
                     NPA res = s.getSubject().getAs(getView());
@@ -87,11 +87,11 @@ public abstract class AbstractNegativePropertyAssertionTranslator<Axiom extends 
 
         protected final InternalCache.Loading<NegativeAssertionImpl<?, ?, ?, ?>, Object[]> content;
 
-        protected NegativeAssertionImpl(Triple t, Supplier<OntGraphModel> m) {
+        protected NegativeAssertionImpl(Triple t, Supplier<OntModel> m) {
             this(strip(t.getSubject()), t.getPredicate().getURI(), strip(t.getObject()), m);
         }
 
-        protected NegativeAssertionImpl(Object s, String p, Object o, Supplier<OntGraphModel> m) {
+        protected NegativeAssertionImpl(Object s, String p, Object o, Supplier<OntModel> m) {
             super(s, p, o, m);
             this.content = createContentCache();
         }

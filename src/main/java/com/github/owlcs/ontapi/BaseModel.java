@@ -19,13 +19,14 @@ import com.github.owlcs.ontapi.internal.InternalConfig;
 import com.github.owlcs.ontapi.internal.InternalModel;
 import com.github.owlcs.ontapi.jena.impl.conf.OntModelConfig;
 import com.github.owlcs.ontapi.jena.impl.conf.OntPersonality;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import org.apache.jena.graph.Graph;
 import org.semanticweb.owlapi.model.OWLPrimitive;
 
 import java.util.Map;
 
 /**
- * A technical interface-helper that serves as a bridge between {@link com.github.owlcs.ontapi.jena.model.OntGraphModel Jena RDF model} and
+ * A technical interface-helper that serves as a bridge between {@link OntModel Jena RDF model} and
  * {@link org.semanticweb.owlapi.model.OWLOntology OWLAPI ontology} through the {@link InternalModel} on the one hand,
  * and between all these things and {@link org.semanticweb.owlapi.model.OWLOntologyManager OWLAPI manager}
  * through the {@link ModelConfig} on the other hand.

@@ -20,8 +20,8 @@ import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTAxiomImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
 import com.github.owlcs.ontapi.internal.objects.WithContent;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
 import com.github.owlcs.ontapi.jena.model.OntList;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntObject;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Models;
@@ -68,12 +68,12 @@ public abstract class AbstractListBasedTranslator<Axiom extends OWLLogicalAxiom,
     abstract Class<ONT_SUBJECT> getView();
 
     @Override
-    public void write(Axiom axiom, OntGraphModel model) {
+    public void write(Axiom axiom, OntModel model) {
         WriteHelper.writeList(model, getSubject(axiom), getPredicate(), getObjects(axiom), axiom.annotationsAsList());
     }
 
     @Override
-    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
+    public ExtendedIterator<OntStatement> listStatements(OntModel model, InternalConfig config) {
         return OntModels.listLocalStatements(model, null, getPredicate(), null)
                 .filterKeep(this::filter);
     }
@@ -118,11 +118,11 @@ public abstract class AbstractListBasedTranslator<Axiom extends OWLLogicalAxiom,
             extends ONTAxiomImpl<A> implements WithContent<A> {
         protected final InternalCache.Loading<A, Object[]> content;
 
-        protected WithListImpl(Triple t, Supplier<OntGraphModel> m) {
+        protected WithListImpl(Triple t, Supplier<OntModel> m) {
             this(strip(t.getSubject()), t.getPredicate().getURI(), strip(t.getObject()), m);
         }
 
-        protected WithListImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+        protected WithListImpl(Object subject, String predicate, Object object, Supplier<OntModel> m) {
             super(subject, predicate, object, m);
             this.content = createContentCache();
         }

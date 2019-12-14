@@ -147,7 +147,7 @@ public interface CacheSettings {
      * </ul>
      * But non-modifiability concerns only the top-level {@link Ontology OWL Model} interface.
      * If it is not restricted in some other place, a graph is editable.
-     * So it is possible to modify model using {@link com.github.owlcs.ontapi.jena.model.OntGraphModel} interface
+     * So it is possible to modify model using {@link com.github.owlcs.ontapi.jena.model.OntModel} interface
      * (see the method {@link Ontology#asGraphModel()}).
      * Also, to add axiom a {@link com.github.owlcs.ontapi.internal.AxiomTranslator} mechanism can be used,
      * e.g. to add the axiom {@code A} into the RDF Model {@code m},

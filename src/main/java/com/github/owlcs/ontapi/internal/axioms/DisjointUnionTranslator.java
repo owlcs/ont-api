@@ -72,7 +72,7 @@ public class DisjointUnionTranslator extends AbstractListBasedTranslator<OWLDisj
 
     @Override
     public ONTObject<OWLDisjointUnionAxiom> toAxiomImpl(OntStatement statement,
-                                                        Supplier<OntGraphModel> model,
+                                                        Supplier<OntModel> model,
                                                         InternalObjectFactory factory,
                                                         InternalConfig config) {
         return AxiomImpl.create(statement, model, factory, config);
@@ -96,13 +96,13 @@ public class DisjointUnionTranslator extends AbstractListBasedTranslator<OWLDisj
             extends WithListImpl<OWLDisjointUnionAxiom, OntCE>
             implements WithList.Sorted<OWLDisjointUnionAxiom, OWLClass, OWLClassExpression>, OWLDisjointUnionAxiom {
 
-        private static final BiFunction<Triple, Supplier<OntGraphModel>, AxiomImpl> FACTORY = AxiomImpl::new;
+        private static final BiFunction<Triple, Supplier<OntModel>, AxiomImpl> FACTORY = AxiomImpl::new;
 
-        protected AxiomImpl(Triple t, Supplier<OntGraphModel> m) {
+        protected AxiomImpl(Triple t, Supplier<OntModel> m) {
             super(t, m);
         }
 
-        protected AxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+        protected AxiomImpl(Object subject, String predicate, Object object, Supplier<OntModel> m) {
             super(subject, predicate, object, m);
         }
 
@@ -110,13 +110,13 @@ public class DisjointUnionTranslator extends AbstractListBasedTranslator<OWLDisj
          * Creates an {@link ONTObject} container that is also {@link  OWLDisjointUnionAxiom}.
          *
          * @param statement {@link OntStatement}, not {@code null}
-         * @param model     {@link OntGraphModel} provider, not {@code null}
+         * @param model     {@link OntModel} provider, not {@code null}
          * @param factory   {@link InternalObjectFactory}, not {@code null}
          * @param config    {@link InternalConfig}, not {@code null}
          * @return {@link AxiomImpl}
          */
         public static AxiomImpl create(OntStatement statement,
-                                       Supplier<OntGraphModel> model,
+                                       Supplier<OntModel> model,
                                        InternalObjectFactory factory,
                                        InternalConfig config) {
             return WithList.Sorted.create(statement, model, FACTORY, SET_HASH_CODE, factory, config);

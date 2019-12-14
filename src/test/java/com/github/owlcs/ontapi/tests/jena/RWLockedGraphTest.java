@@ -20,7 +20,7 @@ import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.jena.OntModelFactory;
 import com.github.owlcs.ontapi.jena.RWLockedGraph;
 import com.github.owlcs.ontapi.jena.model.OntClass;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
@@ -64,7 +64,7 @@ public class RWLockedGraphTest {
     private static Set<AxiomType<? extends OWLAxiom>> CONSIDERED_TYPES = AxiomType.AXIOM_TYPES.stream()
             .filter(x -> !EXCLUDED_TYPES.contains(x)).collect(Iter.toUnmodifiableSet()); // 453
 
-    private static void testRace(OntGraphModel m) throws ExecutionException, InterruptedException {
+    private static void testRace(OntModel m) throws ExecutionException, InterruptedException {
         AtomicBoolean process = new AtomicBoolean(true);
         int threads = THREADS_NUM_1 + THREADS_NUM_2 + 1;
         ScheduledExecutorService service = Executors.newScheduledThreadPool(threads);
@@ -82,7 +82,7 @@ public class RWLockedGraphTest {
         LOGGER.debug("Fin.");
     }
 
-    private static Runnable toTask(OntGraphModel m, AtomicBoolean ready, Consumer<OntGraphModel> action) {
+    private static Runnable toTask(OntModel m, AtomicBoolean ready, Consumer<OntModel> action) {
         return () -> {
             while (ready.get()) {
                 try {
@@ -95,7 +95,7 @@ public class RWLockedGraphTest {
         };
     }
 
-    private static void listAxiomsAndModifyClasses(OntGraphModel m) {
+    private static void listAxiomsAndModifyClasses(OntModel m) {
         LOGGER.debug("[{}]:::listAxiomsAndModifyClasses", Thread.currentThread().getName());
         Assert.assertEquals(453, listAxioms(CONSIDERED_TYPES, m).count());
         int num = 10;
@@ -110,7 +110,7 @@ public class RWLockedGraphTest {
         }
     }
 
-    private static void modifyClassesAndListClasses(OntGraphModel m) {
+    private static void modifyClassesAndListClasses(OntModel m) {
         LOGGER.debug("[{}]:::modifyClassesAndListClasses", Thread.currentThread().getName());
         String name = Thread.currentThread().getName();
         int num = 10;
@@ -125,7 +125,7 @@ public class RWLockedGraphTest {
         Assert.assertTrue("Count: " + count, count >= 100);
     }
 
-    private static Stream<OWLAxiom> listAxioms(Collection<AxiomType<? extends OWLAxiom>> types, OntGraphModel m) {
+    private static Stream<OWLAxiom> listAxioms(Collection<AxiomType<? extends OWLAxiom>> types, OntModel m) {
         return types.stream()
                 .map(AxiomParserProvider::get)
                 .flatMap(x -> x.axioms(m)).map(ONTObject::getOWLObject);
@@ -139,7 +139,7 @@ public class RWLockedGraphTest {
     public void testRaceModifyAndList() throws Exception {
         Graph g = loadPizza();
         Graph gg = new RWLockedGraph(g, new ReentrantReadWriteLock());
-        OntGraphModel m = OntModelFactory.createModel(gg);
+        OntModel m = OntModelFactory.createModel(gg);
         Instant s = Instant.now();
         testRace(m);
         Instant e = Instant.now();

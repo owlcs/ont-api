@@ -20,8 +20,8 @@ import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.jena.OntModelFactory;
 import com.github.owlcs.ontapi.jena.model.OntClass;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
 import com.github.owlcs.ontapi.jena.model.OntID;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.utils.Models;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
@@ -47,21 +47,21 @@ public class ChangeIDOntModelTest extends OntModelTestBase {
 
     @Test
     public void testIDIsChangedExternally() {
-        OntGraphModel g1 = OntModelFactory.createModel();
+        OntModel g1 = OntModelFactory.createModel();
         OntologyManager m = OntManagers.createONT();
         m.addOntology(g1.getGraph());
         String iri1 = "http://x.com";
         g1.setID(iri1);
         Assert.assertNotNull(m.getOntology(IRI.create(iri1)));
 
-        OntGraphModel g2 = m.createOntology().asGraphModel();
+        OntModel g2 = m.createOntology().asGraphModel();
         String iri2 = "http://y.com";
         g2.setID(iri2);
         Assert.assertNotNull(m.getOntology(IRI.create(iri2)));
 
         OntologyManager m2 = OntManagers.createConcurrentONT();
         Ontology o3 = m2.createOntology();
-        OntGraphModel g3 = o3.asGraphModel();
+        OntModel g3 = o3.asGraphModel();
         String iri3 = "http://z.com";
         g3.setID(iri3);
         Assert.assertNotNull(m2.getOntology(IRI.create(iri3)));
@@ -141,7 +141,7 @@ public class ChangeIDOntModelTest extends OntModelTestBase {
         OWLAnnotation a1 = df.getOWLAnnotation(ap1, df.getOWLLiteral("tess-annotation-1"));
         manager.applyChange(new AddAxiom(owl, df.getOWLDeclarationAxiom(df.getOWLClass(clazz),
                 Collections.singletonList(a1))));
-        OntGraphModel jena = owl.asGraphModel();
+        OntModel jena = owl.asGraphModel();
         debug(owl);
 
         long numOfOnt = manager.ontologies().count();
@@ -195,7 +195,7 @@ public class ChangeIDOntModelTest extends OntModelTestBase {
 
     private static void testIRIChanged(OntologyManager manager,
                                        Ontology owl,
-                                       OntGraphModel jena,
+                                       OntModel jena,
                                        OWLOntologyID id,
                                        List<Resource> imports,
                                        Map<Property,
@@ -245,7 +245,7 @@ public class ChangeIDOntModelTest extends OntModelTestBase {
         }
     }
 
-    private static void testHasClass(Ontology owl, OntGraphModel jena, IRI classIRI) {
+    private static void testHasClass(Ontology owl, OntModel jena, IRI classIRI) {
         OWLEntity entity = owl.axioms(AxiomType.DECLARATION)
                 .map(OWLDeclarationAxiom::getEntity)
                 .filter(AsOWLClass::isOWLClass).findFirst().orElseThrow(AssertionError::new);

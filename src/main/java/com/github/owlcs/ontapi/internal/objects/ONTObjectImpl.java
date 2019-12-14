@@ -18,7 +18,7 @@ import com.github.owlcs.ontapi.internal.HasObjectFactory;
 import com.github.owlcs.ontapi.internal.InternalObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.jena.impl.PersonalityModel;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.owlapi.OWLObjectImpl;
 import org.semanticweb.owlapi.model.*;
 
@@ -36,8 +36,8 @@ import java.util.function.Supplier;
 /**
  * A base for {@link ONTResourceImpl ONT Resource} (a {@link org.apache.jena.graph.Node node} based object)
  * and for {@link ONTStatementImpl ONT Triple} (a {@link org.apache.jena.graph.Triple triple} based object).
- * Has a reference to a {@link OntGraphModel} inside.
- *
+ * Has a reference to a {@link OntModel} inside.
+ * <p>
  * Created by @ssz on 31.08.2019.
  *
  * @since 2.0.0
@@ -45,14 +45,14 @@ import java.util.function.Supplier;
 @SuppressWarnings("WeakerAccess")
 public abstract class ONTObjectImpl extends OWLObjectImpl implements ONTComposite, HasObjectFactory {
     // reference to a model
-    protected final Supplier<OntGraphModel> model;
+    protected final Supplier<OntModel> model;
 
     /**
      * Constructs the base object.
      *
-     * @param model - a facility (as {@link Supplier}) to provide nonnull {@link OntGraphModel}, not {@code null}
+     * @param model - a facility (as {@link Supplier}) to provide nonnull {@link OntModel}, not {@code null}
      */
-    protected ONTObjectImpl(Supplier<OntGraphModel> model) {
+    protected ONTObjectImpl(Supplier<OntModel> model) {
         this.model = Objects.requireNonNull(model, "Null model.");
     }
 
@@ -84,7 +84,7 @@ public abstract class ONTObjectImpl extends OWLObjectImpl implements ONTComposit
         return object;
     }
 
-    public OntGraphModel getModel() {
+    public OntModel getModel() {
         return model.get();
     }
 

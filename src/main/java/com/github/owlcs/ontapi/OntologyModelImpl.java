@@ -18,7 +18,7 @@ import com.github.owlcs.ontapi.internal.InternalModel;
 import com.github.owlcs.ontapi.jena.UnionGraph;
 import com.github.owlcs.ontapi.jena.impl.OntGraphModelImpl;
 import com.github.owlcs.ontapi.jena.impl.conf.OntPersonality;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.utils.Graphs;
 import org.apache.jena.graph.Graph;
 import org.semanticweb.owlapi.model.*;
@@ -36,7 +36,7 @@ import java.util.stream.Stream;
 
 /**
  * The main ontology model implementation. Not concurrent. Editable.
- * Provides access to {@link OntGraphModel}.
+ * Provides access to {@link OntModel}.
  * <p>
  * Created by @szuev on 27.09.2016.
  *
@@ -83,10 +83,10 @@ public class OntologyModelImpl extends OntBaseModelImpl implements Ontology, OWL
     /**
      * Returns the jena model shadow.
      *
-     * @return {@link OntGraphModel}
+     * @return {@link OntModel}
      */
     @Override
-    public OntGraphModel asGraphModel() {
+    public OntModel asGraphModel() {
         return getBase();
     }
 
@@ -265,10 +265,10 @@ public class OntologyModelImpl extends OntBaseModelImpl implements Ontology, OWL
          * This is due to the danger of deadlock or livelock,
          * which are possible when working with a (caffeine) cache and a locked graph simultaneously.
          *
-         * @return {@link OntGraphModel RDF Model} with a R/W lock inside
+         * @return {@link OntModel RDF Model} with a R/W lock inside
          */
         @Override
-        public OntGraphModel asGraphModel() {
+        public OntModel asGraphModel() {
             lock.readLock().lock();
             try {
                 OntGraphModelImpl base = getBase();
@@ -318,7 +318,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements Ontology, OWL
         }
 
         /**
-         * Assembles a concurrent version of the {@link OntGraphModel Ontology RDF Model}.
+         * Assembles a concurrent version of the {@link OntModel Ontology RDF Model}.
          * Safety of RDF read/write operations is ensured
          * by the {@link com.github.owlcs.ontapi.jena.RWLockedGraph R/W-Locked Graph}.
          * Safety of changes in hierarchy is ensured in the model level, by the returned instance itself.
@@ -360,12 +360,12 @@ public class OntologyModelImpl extends OntBaseModelImpl implements Ontology, OWL
                 }
 
                 @Override
-                public Stream<OntGraphModel> imports() {
+                public Stream<OntModel> imports() {
                     lock.readLock().lock();
                     try {
                         OntPersonality p = getOntPersonality();
-                        List<OntGraphModel> res = listImportGraphs()
-                                .mapWith(x -> (OntGraphModel) asConcurrent(x, p, lock))
+                        List<OntModel> res = listImportGraphs()
+                                .mapWith(x -> (OntModel) asConcurrent(x, p, lock))
                                 .toList();
                         return res.stream();
                     } finally {

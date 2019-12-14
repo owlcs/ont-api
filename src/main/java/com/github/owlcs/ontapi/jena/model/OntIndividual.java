@@ -41,13 +41,13 @@ public interface OntIndividual extends OntObject {
      * and in case {@code null} is specified
      * it removes all class assertion statements including all their annotations.
      * To delete the individual with its content
-     * the the method {@link OntGraphModel#removeOntObject(OntObject)} can be used.
+     * the the method {@link OntModel#removeOntObject(OntObject)} can be used.
      *
      * @param clazz {@link OntCE} or {@code null} to remove all class assertions
      * @return <b>this</b> instance to allow cascading calls
      * @see #attachClass(OntCE)
      * @see #addClassAssertion(OntCE)
-     * @see OntGraphModel#removeOntObject(OntObject)
+     * @see OntModel#removeOntObject(OntObject)
      */
     OntIndividual detachClass(Resource clazz);
 

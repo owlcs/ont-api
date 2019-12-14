@@ -14,15 +14,15 @@
 
 package com.github.owlcs.ontapi.internal.objects;
 
-import org.apache.jena.vocabulary.RDFS;
-import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.internal.InternalObjectFactory;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntNAP;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import org.apache.jena.vocabulary.RDFS;
+import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 
 import java.util.Set;
 import java.util.function.Supplier;
@@ -36,7 +36,7 @@ import java.util.function.Supplier;
  */
 public class ONTAnnotationPropertyImpl extends ONTEntityImpl<OWLAnnotationProperty> implements OWLAnnotationProperty {
 
-    public ONTAnnotationPropertyImpl(String uri, Supplier<OntGraphModel> m) {
+    public ONTAnnotationPropertyImpl(String uri, Supplier<OntModel> m) {
         super(uri, m);
     }
 
@@ -45,13 +45,13 @@ public class ONTAnnotationPropertyImpl extends ONTEntityImpl<OWLAnnotationProper
      *
      * @param uri     {@code String}, not {@code null}
      * @param factory {@link InternalObjectFactory}, not {@code null}
-     * @param model   a {@code Supplier} with a {@link OntGraphModel},
+     * @param model   a {@code Supplier} with a {@link OntModel},
      *                which is only used in case the {@code factory} has no reference to a model
      * @return an {@link ONTObject} that is {@link OWLAnnotationProperty}
      */
     public static ONTObject<OWLAnnotationProperty> find(String uri,
                                                         InternalObjectFactory factory,
-                                                        Supplier<OntGraphModel> model) {
+                                                        Supplier<OntModel> model) {
         if (factory instanceof ModelObjectFactory) {
             return ((ModelObjectFactory) factory).getAnnotationProperty(uri);
         }

@@ -57,7 +57,7 @@ import java.util.stream.Stream;
 
 /**
  * A Buffer Graph OWL model, which supports both listing OWL-API objects (OWL Axioms, Entities and Annotations)
- * and Jena interfaces (through the {@link OntGraphModel} view of RDF Graph).
+ * and Jena interfaces (through the {@link OntModel} view of RDF Graph).
  * <p>
  * It is an analogue of <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/Internals.java'>uk.ac.manchester.cs.owl.owlapi.Internals</a>.
  * This model is used by the facade model (i.e. by {@link Ontology}) while reading and writing
@@ -86,7 +86,7 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings({"WeakerAccess", "unchecked"})
 public class InternalModel extends OntGraphModelImpl
-        implements OntGraphModel, HasOntologyID, HasObjectFactory, HasConfig {
+        implements OntModel, HasOntologyID, HasObjectFactory, HasConfig {
     private static final Logger LOGGER = LoggerFactory.getLogger(InternalModel.class);
 
     /**
@@ -256,7 +256,7 @@ public class InternalModel extends OntGraphModelImpl
     protected InternalObjectFactory createObjectFactory(DataFactory df,
                                                         Map<Class<? extends OWLPrimitive>, InternalCache<?, ?>> external) {
         InternalConfig conf = getConfig();
-        Supplier<OntGraphModel> model = this::getSearchModel;
+        Supplier<OntModel> model = this::getSearchModel;
         if (!conf.useLoadObjectsCache()) {
             return new ModelObjectFactory(df, model);
         }
@@ -286,7 +286,7 @@ public class InternalModel extends OntGraphModelImpl
      * otherwise this same {@link InternalModel} instance with no optimizations will be returned.
      * A {@code SearchModel} contains a {@link Node}s cache inside and, therefore, may take up a lot of memory.
      *
-     * @return {@link OntGraphModel}
+     * @return {@link OntModel}
      * @see com.github.owlcs.ontapi.config.CacheSettings#getLoadNodesCacheSize()
      */
     protected OntGraphModelImpl createSearchModel() {
@@ -674,7 +674,7 @@ public class InternalModel extends OntGraphModelImpl
      *
      * @param c {@link OWLClass}, not {@code null}
      * @return {@code Stream} of {@link OWLEquivalentClassesAxiom}s
-     * @see AbstractNaryTranslator#axioms(OntGraphModel)
+     * @see AbstractNaryTranslator#axioms(OntModel)
      */
     public Stream<OWLEquivalentClassesAxiom> listOWLEquivalentClassesAxioms(OWLClass c) {
         if (hasManuallyAddedAxioms()) {
@@ -987,7 +987,7 @@ public class InternalModel extends OntGraphModelImpl
             }
             map.remove(container);
             container = value.getOWLObject();
-            OntGraphModel m = toModel(value);
+            OntModel m = toModel(value);
             // triples that are used by other content objects:
             Set<Triple> used = getUsedTriples(m, container);
             // remove related components from the objects cache
@@ -1025,13 +1025,13 @@ public class InternalModel extends OntGraphModelImpl
      * would have identical sets of triples for class expression {@code _:x}.</li>
      * </ul>
      *
-     * @param model {@link OntGraphModel} the model to traverse over,
+     * @param model {@link OntModel} the model to traverse over,
      *                                   must correspond to the {@code container}, not {@code null}
      * @param container {@link OWLObject} - a content-container,
      *                                   for which this operation is performed, not {@code null}
      * @return {@code Set} of {@code Triple}s in intersection
      */
-    protected Set<Triple> getUsedTriples(OntGraphModel model, OWLObject container) {
+    protected Set<Triple> getUsedTriples(OntModel model, OWLObject container) {
         InternalObjectFactory f = HasObjectFactory.getObjectFactory(model);
         InternalConfig c = HasConfig.getConfig(model);
         Set<Triple> res = new HashSet<>();
@@ -1097,12 +1097,12 @@ public class InternalModel extends OntGraphModelImpl
     }
 
     /**
-     * Represents the given container as a {@link OntGraphModel OWL Graph Model}.
+     * Represents the given container as a {@link OntModel OWL Graph Model}.
      *
      * @param o {@link ONTObject}-wrapper
-     * @return {@link OntGraphModel}
+     * @return {@link OntModel}
      */
-    protected OntGraphModel toModel(ONTObject<? extends OWLObject> o) {
+    protected OntModel toModel(ONTObject<? extends OWLObject> o) {
         Graph g = o.toGraph();
         if (LOGGER.isDebugEnabled()) {
             g.getPrefixMapping().setNsPrefixes(getNsPrefixMap());
@@ -1290,7 +1290,7 @@ public class InternalModel extends OntGraphModelImpl
     protected ObjectMap<OWLObject> createComponentObjectMap(OWLComponentType key) {
         // todo: replace parsing the content cache with the direct graph reading
         InternalObjectFactory df = getObjectFactory();
-        OntGraphModel m = getSearchModel();
+        OntModel m = getSearchModel();
         Supplier<Iterator<ONTObject<OWLObject>>> loader = () -> selectContentObjects(key)
                 .flatMap(x -> key.select(x, m, df)).iterator();
         InternalConfig conf = getConfig();
@@ -1398,7 +1398,7 @@ public class InternalModel extends OntGraphModelImpl
         if (components.isEmpty()) return;
         Map<OWLComponentType, ObjectMap<OWLObject>> cache = components.get(this);
         InternalObjectFactory df = getObjectFactory();
-        OntGraphModel m = getSearchModel();
+        OntModel m = getSearchModel();
         OWLComponentType.keys().forEach(type -> {
             ObjectMap<OWLObject> map = cache.get(type);
             if (!map.isLoaded()) {
@@ -1487,7 +1487,7 @@ public class InternalModel extends OntGraphModelImpl
      */
     protected ObjectMap<OWLObject> createContentObjectMap(OWLContentType key) {
         InternalObjectFactory df = getObjectFactory();
-        Supplier<OntGraphModel> m = this::getSearchModel;
+        Supplier<OntModel> m = this::getSearchModel;
         Supplier<Iterator<ONTObject<OWLObject>>> loader =
                 () -> (Iterator<ONTObject<OWLObject>>) key.read(m, df, getConfig());
         InternalConfig conf = getConfig();

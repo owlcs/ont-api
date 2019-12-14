@@ -61,14 +61,14 @@ public class ONTObjectMergeTest {
         return Data.values();
     }
 
-    private static <ONT extends OntObject, OWL extends OWLNaryAxiom<?>> void test(BiFunction<OntGraphModel, String, ONT> addDeclaration,
+    private static <ONT extends OntObject, OWL extends OWLNaryAxiom<?>> void test(BiFunction<OntModel, String, ONT> addDeclaration,
                                                                                   BiConsumer<ONT, ONT> addAxioms,
                                                                                   int initModelSize,
                                                                                   AxiomType<OWL> type) {
         test(addDeclaration, addAxioms, initModelSize, type, 3, 3);
     }
 
-    private static <ONT extends OntObject, OWL extends OWLAxiom> void test(BiFunction<OntGraphModel, String, ONT> addDeclaration,
+    private static <ONT extends OntObject, OWL extends OWLAxiom> void test(BiFunction<OntModel, String, ONT> addDeclaration,
                                                                            BiConsumer<ONT, ONT> addAxioms,
                                                                            int initModelSize,
                                                                            AxiomType<OWL> type,
@@ -91,14 +91,14 @@ public class ONTObjectMergeTest {
         }, 6, type, 2, 2);
     }
 
-    private static <OWL extends OWLAxiom> void test(Consumer<OntGraphModel> contentMaker,
+    private static <OWL extends OWLAxiom> void test(Consumer<OntModel> contentMaker,
                                                     int initModelSize,
                                                     AxiomType<OWL> type,
                                                     int initAxiomsSize,
                                                     int afterRemoveModelSize) {
         OntologyManager m = OntManagers.createONT();
         Ontology o = m.createOntology();
-        OntGraphModel g = o.asGraphModel();
+        OntModel g = o.asGraphModel();
 
         contentMaker.accept(g);
         ReadWriteUtils.print(g);
@@ -132,7 +132,7 @@ public class ONTObjectMergeTest {
                 OntologyManager m = OntManagers.createONT();
                 m.getOntologyConfigurator().setLoadAnnotationAxioms(false);
                 Ontology o = m.createOntology();
-                OntGraphModel g = o.asGraphModel();
+                OntModel g = o.asGraphModel();
                 // two identical annotations, but one is assertion, and the second one is bulk
                 g.getID().addComment("x");
                 g.asStatement(g.getID().getRoot().asTriple()).annotate(g.getRDFSComment(), "x");
@@ -157,7 +157,7 @@ public class ONTObjectMergeTest {
             void doTest() {
                 OntologyManager m = OntManagers.createONT();
                 Ontology o = m.createOntology();
-                OntGraphModel g = o.asGraphModel();
+                OntModel g = o.asGraphModel();
 
                 OntClass x = g.createOntClass("X");
                 OntClass y = g.createOntClass("Y");
@@ -235,7 +235,7 @@ public class ONTObjectMergeTest {
             void doTest() {
                 OntologyManager m = OntManagers.createONT();
                 Ontology o = m.createOntology();
-                OntGraphModel g = o.asGraphModel();
+                OntModel g = o.asGraphModel();
 
                 OntOPE op = g.createObjectProperty("OP");
                 OntNAP ap = g.createAnnotationProperty("AP");
@@ -282,7 +282,7 @@ public class ONTObjectMergeTest {
         DISJOINT_CLASSES {
             @Override
             void doTest() {
-                test(OntGraphModel::createOntClass,
+                test(OntModel::createOntClass,
                         (x, y) -> x.addDisjointClass(y.addDisjointClass(x)).getModel().createDisjointClasses(x, y),
                         11, AxiomType.DISJOINT_CLASSES);
             }
@@ -348,7 +348,7 @@ public class ONTObjectMergeTest {
         DISJOINT_OBJECT_PROPERTIES {
             @Override
             void doTest() {
-                test(OntGraphModel::createObjectProperty,
+                test(OntModel::createObjectProperty,
                         (x, y) -> x.addDisjointProperty(y.addDisjointProperty(x)).getModel().createDisjointObjectProperties(x, y),
                         11, AxiomType.DISJOINT_OBJECT_PROPERTIES);
             }
@@ -357,9 +357,9 @@ public class ONTObjectMergeTest {
         EQUIVALENT_OBJECT_PROPERTIES {
             @Override
             void doTest() {
-                test(OntGraphModel::createObjectProperty,
+                test(OntModel::createObjectProperty,
                         (x, y) -> {
-                            OntGraphModel g = x.getModel();
+                            OntModel g = x.getModel();
                             x.addEquivalentPropertyStatement(y).addAnnotation(g.getRDFSComment(), "x");
                             y.addEquivalentPropertyStatement(x).addAnnotation(g.getRDFSComment(), "x");
                         }, 15, AxiomType.EQUIVALENT_OBJECT_PROPERTIES);
@@ -369,7 +369,7 @@ public class ONTObjectMergeTest {
         DISJOINT_DATA_PROPERTIES {
             @Override
             void doTest() {
-                test(OntGraphModel::createDataProperty,
+                test(OntModel::createDataProperty,
                         (x, y) -> x.addDisjointProperty(y.addDisjointProperty(x)).getModel().createDisjointDataProperties(x, y),
                         11, AxiomType.DISJOINT_DATA_PROPERTIES);
             }
@@ -378,9 +378,9 @@ public class ONTObjectMergeTest {
         EQUIVALENT_DATA_PROPERTIES {
             @Override
             void doTest() {
-                test(OntGraphModel::createDataProperty,
+                test(OntModel::createDataProperty,
                         (x, y) -> {
-                            OntGraphModel g = x.getModel();
+                            OntModel g = x.getModel();
                             x.addEquivalentPropertyStatement(y).addAnnotation(g.getRDFSComment(), "x");
                             y.addEquivalentPropertyStatement(x).addAnnotation(g.getRDFSComment(), "x");
                         }, 15, AxiomType.EQUIVALENT_DATA_PROPERTIES);

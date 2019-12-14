@@ -20,7 +20,7 @@ import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
 import com.github.owlcs.ontapi.jena.impl.conf.OntModelConfig;
 import com.github.owlcs.ontapi.jena.model.OntEntity;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import com.github.owlcs.ontapi.utils.TestUtils;
 import org.apache.jena.rdf.model.Resource;
@@ -60,7 +60,7 @@ public class SimpleLoadTest {
         IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI(fileName));
         LOGGER.debug("The source document file {}", fileIRI);
         Ontology ont = manager.loadOntologyFromOntologyDocument(fileIRI);
-        OntGraphModel model = ont.asGraphModel();
+        OntModel model = ont.asGraphModel();
         ReadWriteUtils.print(model);
 
         Set<Resource> illegalPunningURIs = TestUtils.getIllegalPunnings(model, OntModelConfig.StdMode.STRICT);

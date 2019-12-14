@@ -47,7 +47,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * To test {@link OntGraphModel} and all its related functionality.
+ * To test {@link OntModel} and all its related functionality.
  * <p>
  * Created by szuev on 07.11.2016.
  */
@@ -59,7 +59,7 @@ public class OntModelTest {
         return Arrays.stream(lists).flatMap(Collection::stream).collect(Iter.toUnmodifiableSet());
     }
 
-    private static void assertOntObjectsCount(OntGraphModel m, Class<? extends OntObject> type, long expected) {
+    private static void assertOntObjectsCount(OntModel m, Class<? extends OntObject> type, long expected) {
         Assert.assertEquals(expected, m.ontObjects(type).count());
     }
 
@@ -70,7 +70,7 @@ public class OntModelTest {
     }
 
     @SuppressWarnings("rawtypes")
-    static void simplePropertiesValidation(OntGraphModel ont) {
+    static void simplePropertiesValidation(OntModel ont) {
         Model jena = ModelFactory.createModelForGraph(ont.getGraph());
         Set<Resource> annotationProperties = jena.listStatements(null, RDF.type, OWL.AnnotationProperty)
                 .mapWith(Statement::getSubject).toSet();
@@ -108,7 +108,7 @@ public class OntModelTest {
     @Test
     public void testPizzaLoadCE() {
         LOGGER.debug("load pizza");
-        OntGraphModel m = OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("ontapi/pizza.ttl").getGraph());
+        OntModel m = OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("ontapi/pizza.ttl").getGraph());
         LOGGER.debug("Ontology: {}", m.getID());
 
         List<OntClass> classes = m.ontObjects(OntClass.class).collect(Collectors.toList());
@@ -170,7 +170,7 @@ public class OntModelTest {
     @Test
     public void testPizzaLoadIndividuals() {
         LOGGER.debug("load pizza");
-        OntGraphModel m = OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("ontapi/pizza.ttl").getGraph());
+        OntModel m = OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("ontapi/pizza.ttl").getGraph());
         List<OntIndividual> individuals = m.ontObjects(OntIndividual.class).collect(Collectors.toList());
         Map<OntIndividual, Set<OntCE>> classes = individuals.stream()
                 .collect(Collectors.toMap(Function.identity(), i -> i.classes().collect(Collectors.toSet())));
@@ -202,7 +202,7 @@ public class OntModelTest {
         // OntCE$DataHasValue => 3
         long numClasses = 36;
 
-        OntGraphModel m = OntModelFactory.createModel();
+        OntModel m = OntModelFactory.createModel();
         try (InputStream in = OntModelTest.class.getResourceAsStream("/owlapi/koala.owl")) {
             m.read(in, null, Lang.RDFXML.getName());
         }
@@ -270,7 +270,7 @@ public class OntModelTest {
 
     @Test
     public void testKoalaProperties() throws IOException {
-        OntGraphModel m = OntModelFactory.createModel();
+        OntModel m = OntModelFactory.createModel();
         try (InputStream in = OntModelTest.class.getResourceAsStream("/owlapi/koala.owl")) {
             m.read(in, null, Lang.RDFXML.getName());
         }
@@ -289,14 +289,14 @@ public class OntModelTest {
     public void testCreateImports() {
         String baseURI = "http://test.com/graph/5";
         String baseNS = baseURI + "#";
-        OntGraphModel base = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD)
+        OntModel base = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD)
                 .setID(baseURI).getModel();
         OntClass cl1 = base.createOntClass(baseNS + "Class1");
         OntClass cl2 = base.createOntClass(baseNS + "Class2");
 
         String childURI = "http://test.com/graph/6";
         String childNS = childURI + "#";
-        OntGraphModel child = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD)
+        OntModel child = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD)
                 .setID(childURI).getModel().addImport(base);
         OntClass cl3 = child.createOntClass(childNS + "Class3");
         cl3.addSuperClass(child.createIntersectionOf(cl1, cl2));
@@ -318,7 +318,7 @@ public class OntModelTest {
 
     @Test
     public void testAssemblySimplestOntology() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         m.setID("http://example.com/xxx");
 
         String schemaNS = m.getID().getURI() + "#";
@@ -364,7 +364,7 @@ public class OntModelTest {
 
     @Test
     public void testCreateEntities() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         createEntityTest(m, "a-p", OntNAP.class);
         createEntityTest(m, "o-p", OntNOP.class);
         createEntityTest(m, "d-p", OntNDP.class);
@@ -374,7 +374,7 @@ public class OntModelTest {
         ReadWriteUtils.print(m);
     }
 
-    private <E extends OntEntity> void createEntityTest(OntGraphModel m, String uri, Class<E> type) {
+    private <E extends OntEntity> void createEntityTest(OntModel m, String uri, Class<E> type) {
         String pref = "Annotation[" + uri + "]:::";
         E e = m.createOntEntity(type, uri);
         e.addAnnotation(m.getRDFSComment(), pref + "entity of type " + type.getSimpleName())
@@ -388,7 +388,7 @@ public class OntModelTest {
 
     @Test
     public void testObjectsContent() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         // properties:
         OntNDP p1 = m.createDataProperty("p1");
         OntNOP p2 = m.createObjectProperty("p2");
@@ -486,7 +486,7 @@ public class OntModelTest {
 
     @Test
     public void testRemoveObjects() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
 
         OntCE class1 = m.createOntClass("C-1");
         OntCE class2 = m.createOntClass("C-2");
@@ -512,7 +512,7 @@ public class OntModelTest {
 
     @Test
     public void testModelPrefixes() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         m.setID("http://x");
         Assert.assertEquals(4, m.numPrefixes());
         Assert.assertEquals(4, m.getBaseGraph().getPrefixMapping().numPrefixes());
@@ -537,13 +537,13 @@ public class OntModelTest {
 
     @Test
     public void testAdvancedModelImports() {
-        OntGraphModel av1 = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD)
+        OntModel av1 = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD)
                 .setID("a").setVersionIRI("v1").getModel();
-        OntGraphModel av2 = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD)
+        OntModel av2 = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD)
                 .setID("a").setVersionIRI("v2").getModel();
-        OntGraphModel b = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD)
+        OntModel b = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD)
                 .setID("b").getModel();
-        OntGraphModel c = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD)
+        OntModel c = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD)
                 .setID("c").getModel();
 
         try {
@@ -601,9 +601,9 @@ public class OntModelTest {
 
     @Test
     public void testCycleModelImports() {
-        OntGraphModel a = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntGraphModel b = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntGraphModel c = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel a = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel b = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel c = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         a.createOntClass("A");
         b.createOntClass("B");
         c.createOntClass("C");
@@ -656,7 +656,7 @@ public class OntModelTest {
     @Test
     public void testOntPropertyOrdinal() {
         Graph g = ReadWriteUtils.loadResourceTTLFile("/ontapi/pizza.ttl").getGraph();
-        OntGraphModel m = OntModelFactory.createModel(g);
+        OntModel m = OntModelFactory.createModel(g);
         OntProperty<?> p = m.getOntEntity(OntProperty.class, m.expandPrefix(":isIngredientOf"));
         Assert.assertNotNull(p);
         Assert.assertEquals(0, p.getOrdinal());
@@ -666,7 +666,7 @@ public class OntModelTest {
 
     @Test
     public void testFamilyListObjects() {
-        OntGraphModel m = OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("ontapi/family.ttl").getGraph(),
+        OntModel m = OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("ontapi/family.ttl").getGraph(),
                 OntModelConfig.ONT_PERSONALITY_LAX);
         assertOntObjectsCount(m, OntEntity.class, 656);
         assertOntObjectsCount(m, OntProperty.class, 90);
@@ -695,7 +695,7 @@ public class OntModelTest {
 
     @Test
     public void testListIndividualTypes() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntClass a = m.createOntClass("A");
         OntClass b = m.createOntClass("B");
         OntClass c = m.createOntClass("C");
@@ -724,7 +724,7 @@ public class OntModelTest {
 
     @Test
     public void testRemoveStatement() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntClass c = m.createOntClass("c");
         OntNDP d = m.createDataProperty("d");
         OntStatement s = d.addDomainStatement(c);
@@ -744,7 +744,7 @@ public class OntModelTest {
 
     @Test
     public void testDisjointComponents() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntClass c1 = m.createOntClass("C1");
         OntClass c2 = m.createOntClass("C1");
         OntNOP op1 = m.createObjectProperty("OP1");
@@ -788,7 +788,7 @@ public class OntModelTest {
         String uri = "http://test.com/graph/3";
         String ns = uri + "#";
 
-        OntGraphModel m = OntModelFactory.createModel()
+        OntModel m = OntModelFactory.createModel()
                 .setNsPrefix("test", ns)
                 .setNsPrefixes(OntModelFactory.STANDARD)
                 .setID(uri)

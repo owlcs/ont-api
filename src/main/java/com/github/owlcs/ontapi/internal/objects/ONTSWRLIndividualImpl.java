@@ -14,17 +14,17 @@
 
 package com.github.owlcs.ontapi.internal.objects;
 
-import org.apache.jena.graph.BlankNodeId;
-import org.apache.jena.graph.Node;
-import org.apache.jena.graph.NodeFactory;
-import org.semanticweb.owlapi.model.*;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.internal.InternalObjectFactory;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
 import com.github.owlcs.ontapi.jena.model.OntIndividual;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntSWRL;
+import org.apache.jena.graph.BlankNodeId;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
+import org.semanticweb.owlapi.model.*;
 
 import java.util.Set;
 import java.util.function.Supplier;
@@ -44,11 +44,11 @@ import java.util.stream.Stream;
 public class ONTSWRLIndividualImpl extends ONTResourceImpl
         implements SWRLIndividualArgument, ModelObject<SWRLIndividualArgument> {
 
-    public ONTSWRLIndividualImpl(String uri, Supplier<OntGraphModel> m) {
+    public ONTSWRLIndividualImpl(String uri, Supplier<OntModel> m) {
         super(uri, m);
     }
 
-    public ONTSWRLIndividualImpl(BlankNodeId id, Supplier<OntGraphModel> m) {
+    public ONTSWRLIndividualImpl(BlankNodeId id, Supplier<OntModel> m) {
         super(id, m);
     }
 
@@ -56,14 +56,14 @@ public class ONTSWRLIndividualImpl extends ONTResourceImpl
      * Wraps the given {@link OntIndividual} as {@link SWRLIndividualArgument} and {@link ONTObject}.
      *
      * @param i {@link OntIndividual}, not {@code null}, must be anonymous
-     * @param m a provider of non-null {@link OntGraphModel}, not {@code null}
+     * @param m a provider of non-null {@link OntModel}, not {@code null}
      * @return {@link ONTSWRLIndividualImpl} instance
      */
-    public static ONTSWRLIndividualImpl create(OntIndividual i, Supplier<OntGraphModel> m) {
+    public static ONTSWRLIndividualImpl create(OntIndividual i, Supplier<OntModel> m) {
         return create(i.asNode(), m);
     }
 
-    protected static ONTSWRLIndividualImpl create(Node i, Supplier<OntGraphModel> m) {
+    protected static ONTSWRLIndividualImpl create(Node i, Supplier<OntModel> m) {
         if (i.isURI()) {
             return new ONTSWRLIndividualImpl(i.getURI(), m);
         }

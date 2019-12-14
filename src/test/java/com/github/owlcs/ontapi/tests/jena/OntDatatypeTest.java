@@ -14,6 +14,14 @@
 
 package com.github.owlcs.ontapi.tests.jena;
 
+import com.github.owlcs.ontapi.jena.OntModelFactory;
+import com.github.owlcs.ontapi.jena.model.OntDR;
+import com.github.owlcs.ontapi.jena.model.OntDT;
+import com.github.owlcs.ontapi.jena.model.OntFR;
+import com.github.owlcs.ontapi.jena.model.OntModel;
+import com.github.owlcs.ontapi.jena.utils.Models;
+import com.github.owlcs.ontapi.jena.vocabulary.XSD;
+import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.RDFList;
 import org.apache.jena.rdf.model.RDFNode;
@@ -21,14 +29,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.github.owlcs.ontapi.jena.OntModelFactory;
-import com.github.owlcs.ontapi.jena.model.OntDR;
-import com.github.owlcs.ontapi.jena.model.OntDT;
-import com.github.owlcs.ontapi.jena.model.OntFR;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
-import com.github.owlcs.ontapi.jena.utils.Models;
-import com.github.owlcs.ontapi.jena.vocabulary.XSD;
-import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -43,7 +43,7 @@ public class OntDatatypeTest {
 
     @Test
     public void testListDataRanges() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntFR f1 = m.createFacetRestriction(OntFR.MaxExclusive.class, m.createTypedLiteral(12));
         OntFR f2 = m.createFacetRestriction(OntFR.Pattern.class, m.createTypedLiteral("\\d+"));
         OntFR f3 = m.createFacetRestriction(OntFR.LangRange.class, m.createTypedLiteral("^r.*"));
@@ -67,7 +67,7 @@ public class OntDatatypeTest {
 
     @Test
     public void testDatatypeEquivalentClass() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntDT a = m.createDatatype("A");
         OntDT b = m.createDatatype("B");
         OntDT c = m.createDatatype("C");
@@ -80,7 +80,7 @@ public class OntDatatypeTest {
 
     @Test
     public void testDataRangeComponents() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntDT dt1 = m.createDatatype("DT1");
         OntDT dt2 = m.createDatatype("DT2");
         OntDT dt3 = m.createDatatype("DT3");
@@ -120,7 +120,7 @@ public class OntDatatypeTest {
 
     @Test
     public void testDataRangeValues() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntDT d1 = m.getDatatype(XSD.xstring);
         OntDT d2 = m.createDatatype("x");
 
@@ -137,7 +137,7 @@ public class OntDatatypeTest {
 
     @Test
     public void testFacetRestriction() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntDT d1 = m.getDatatype(XSD.xstring);
         OntDT d2 = m.getDatatype(XSD.positiveInteger);
 

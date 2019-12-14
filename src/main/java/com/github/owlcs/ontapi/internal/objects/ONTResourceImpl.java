@@ -14,17 +14,17 @@
 
 package com.github.owlcs.ontapi.internal.objects;
 
+import com.github.owlcs.ontapi.AsNode;
+import com.github.owlcs.ontapi.OntApiException;
+import com.github.owlcs.ontapi.internal.AsRDFNode;
+import com.github.owlcs.ontapi.jena.model.OntModel;
+import com.github.owlcs.ontapi.jena.model.OntObject;
 import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.graph.FrontsTriple;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.graph.impl.LiteralLabel;
 import org.semanticweb.owlapi.model.OWLObject;
-import com.github.owlcs.ontapi.AsNode;
-import com.github.owlcs.ontapi.OntApiException;
-import com.github.owlcs.ontapi.internal.AsRDFNode;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
-import com.github.owlcs.ontapi.jena.model.OntObject;
 
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -49,9 +49,9 @@ public abstract class ONTResourceImpl extends ONTObjectImpl implements OWLObject
      * Constructs the base object.
      *
      * @param n - either {@code String} (URI) or {@link BlankNodeId} or {@link LiteralLabel}, not {@code null}
-     * @param m - a facility (as {@link Supplier}) to provide nonnull {@link OntGraphModel}, not {@code null}
+     * @param m - a facility (as {@link Supplier}) to provide nonnull {@link OntModel}, not {@code null}
      */
-    protected ONTResourceImpl(Object n, Supplier<OntGraphModel> m) {
+    protected ONTResourceImpl(Object n, Supplier<OntModel> m) {
         super(m);
         this.node = Objects.requireNonNull(n);
     }

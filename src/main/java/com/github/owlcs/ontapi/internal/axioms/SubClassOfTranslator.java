@@ -17,7 +17,7 @@ package com.github.owlcs.ontapi.internal.axioms;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.*;
 import com.github.owlcs.ontapi.jena.model.OntCE;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
 import org.apache.jena.graph.Triple;
@@ -52,13 +52,13 @@ import java.util.stream.Stream;
 public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
 
     @Override
-    public void write(OWLSubClassOfAxiom axiom, OntGraphModel model) {
+    public void write(OWLSubClassOfAxiom axiom, OntModel model) {
         WriteHelper.writeTriple(model, axiom.getSubClass(), RDFS.subClassOf, axiom.getSuperClass(),
                 axiom.annotationsAsList());
     }
 
     @Override
-    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
+    public ExtendedIterator<OntStatement> listStatements(OntModel model, InternalConfig config) {
         return OntModels.listLocalStatements(model, null, RDFS.subClassOf, null).filterKeep(this::filter);
     }
 
@@ -73,7 +73,7 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
 
     @Override
     public ONTObject<OWLSubClassOfAxiom> toAxiomImpl(OntStatement statement,
-                                                     Supplier<OntGraphModel> model,
+                                                     Supplier<OntModel> model,
                                                      InternalObjectFactory factory,
                                                      InternalConfig config) {
         return AxiomImpl.create(statement, model, factory, config);
@@ -97,25 +97,25 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
     public abstract static class AxiomImpl extends ONTAxiomImpl<OWLSubClassOfAxiom>
             implements WithTwoObjects.Unary<OWLClassExpression>, OWLSubClassOfAxiom {
 
-        protected AxiomImpl(Triple t, Supplier<OntGraphModel> m) {
+        protected AxiomImpl(Triple t, Supplier<OntModel> m) {
             super(t, m);
         }
 
-        protected AxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+        protected AxiomImpl(Object subject, String predicate, Object object, Supplier<OntModel> m) {
             super(subject, predicate, object, m);
         }
 
         /**
          * Creates an {@link ONTObject} container, that is also {@link OWLSubClassOfAxiom}.
          *
-         * @param statement  {@link OntStatement}, not {@code null}
-         * @param model  {@link OntGraphModel} provider, not {@code null}
-         * @param factory {@link InternalObjectFactory}, not {@code null}
-         * @param config  {@link InternalConfig}, not {@code null}
+         * @param statement {@link OntStatement}, not {@code null}
+         * @param model     {@link OntModel} provider, not {@code null}
+         * @param factory   {@link InternalObjectFactory}, not {@code null}
+         * @param config    {@link InternalConfig}, not {@code null}
          * @return {@link AxiomImpl}
          */
         public static AxiomImpl create(OntStatement statement,
-                                       Supplier<OntGraphModel> model,
+                                       Supplier<OntModel> model,
                                        InternalObjectFactory factory,
                                        InternalConfig config) {
             return WithTwoObjects.create(statement, model,
@@ -171,9 +171,9 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
          */
         public static class SimpleImpl extends AxiomImpl implements UnarySimple<OWLClassExpression> {
 
-            private static final BiFunction<Triple, Supplier<OntGraphModel>, SimpleImpl> FACTORY = SimpleImpl::new;
+            private static final BiFunction<Triple, Supplier<OntModel>, SimpleImpl> FACTORY = SimpleImpl::new;
 
-            protected SimpleImpl(Triple t, Supplier<OntGraphModel> m) {
+            protected SimpleImpl(Triple t, Supplier<OntModel> m) {
                 super(t, m);
             }
 
@@ -243,14 +243,14 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
          */
         public static class ComplexImpl extends AxiomImpl implements UnaryWithContent<ComplexImpl, OWLClassExpression> {
 
-            private static final BiFunction<Triple, Supplier<OntGraphModel>, ComplexImpl> FACTORY = ComplexImpl::new;
+            private static final BiFunction<Triple, Supplier<OntModel>, ComplexImpl> FACTORY = ComplexImpl::new;
             protected final InternalCache.Loading<ComplexImpl, Object[]> content;
 
-            public ComplexImpl(Triple t, Supplier<OntGraphModel> m) {
+            public ComplexImpl(Triple t, Supplier<OntModel> m) {
                 this(strip(t.getSubject()), t.getPredicate().getURI(), strip(t.getObject()), m);
             }
 
-            protected ComplexImpl(Object s, String p, Object o, Supplier<OntGraphModel> m) {
+            protected ComplexImpl(Object s, String p, Object o, Supplier<OntModel> m) {
                 super(s, p, o, m);
                 this.content = createContentCache();
             }

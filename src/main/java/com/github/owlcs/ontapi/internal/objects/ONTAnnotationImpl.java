@@ -17,7 +17,7 @@ package com.github.owlcs.ontapi.internal.objects;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.jena.model.OntAnnotation;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Models;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
@@ -45,7 +45,7 @@ import java.util.stream.Stream;
 public abstract class ONTAnnotationImpl extends ONTStatementImpl
         implements OWLAnnotation, ModelObject<OWLAnnotation>, WithMerge<ONTObject<OWLAnnotation>> {
 
-    protected ONTAnnotationImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+    protected ONTAnnotationImpl(Object subject, String predicate, Object object, Supplier<OntModel> m) {
         super(subject, predicate, object, m);
     }
 
@@ -60,12 +60,12 @@ public abstract class ONTAnnotationImpl extends ONTStatementImpl
      * @param statement {@link OntStatement}, must be annotation (i.e. {@link OntStatement#isAnnotation()}
      *                   must be {@code true}), not {@code null}
      * @param factory {@link InternalObjectFactory}, not {@code null}
-     * @param model      a provider of non-null {@link OntGraphModel}, not {@code null}
+     * @param model      a provider of non-null {@link OntModel}, not {@code null}
      * @return {@link ONTAnnotationImpl}
      */
     public static ONTAnnotationImpl create(OntStatement statement,
                                            InternalObjectFactory factory,
-                                           Supplier<OntGraphModel> model) {
+                                           Supplier<OntModel> model) {
         Collection<?> annotations = collectAnnotations(statement, factory);
         if (annotations.isEmpty()) {
             SimpleImpl res = new SimpleImpl(statement.asTriple(), model);
@@ -398,11 +398,11 @@ public abstract class ONTAnnotationImpl extends ONTStatementImpl
      */
     public static class SimpleImpl extends ONTAnnotationImpl implements WithoutAnnotations {
 
-        protected SimpleImpl(Triple t, Supplier<OntGraphModel> m) {
+        protected SimpleImpl(Triple t, Supplier<OntModel> m) {
             this(strip(t.getSubject()), t.getPredicate().getURI(), strip(t.getObject()), m);
         }
 
-        protected SimpleImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+        protected SimpleImpl(Object subject, String predicate, Object object, Supplier<OntModel> m) {
             super(subject, predicate, object, m);
         }
 
@@ -487,11 +487,11 @@ public abstract class ONTAnnotationImpl extends ONTStatementImpl
     public static class WithAnnotationsImpl extends ONTAnnotationImpl implements WithContent<WithAnnotationsImpl> {
         protected final InternalCache.Loading<WithAnnotationsImpl, Object[]> content;
 
-        public WithAnnotationsImpl(Triple t, Supplier<OntGraphModel> m) {
+        public WithAnnotationsImpl(Triple t, Supplier<OntModel> m) {
             this(strip(t.getSubject()), t.getPredicate().getURI(), strip(t.getObject()), m);
         }
 
-        protected WithAnnotationsImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+        protected WithAnnotationsImpl(Object subject, String predicate, Object object, Supplier<OntModel> m) {
             super(subject, predicate, object, m);
             this.content = createContentCache();
         }

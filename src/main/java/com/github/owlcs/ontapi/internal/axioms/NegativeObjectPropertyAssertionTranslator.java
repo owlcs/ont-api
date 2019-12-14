@@ -19,7 +19,7 @@ import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTObjectPropertyImpl;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntNPA;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import org.apache.jena.graph.BlankNodeId;
@@ -44,7 +44,7 @@ public class NegativeObjectPropertyAssertionTranslator
         extends AbstractNegativePropertyAssertionTranslator<OWLNegativeObjectPropertyAssertionAxiom, OntNPA.ObjectAssertion> {
 
     @Override
-    OntNPA.ObjectAssertion createNPA(OWLNegativeObjectPropertyAssertionAxiom axiom, OntGraphModel model) {
+    OntNPA.ObjectAssertion createNPA(OWLNegativeObjectPropertyAssertionAxiom axiom, OntModel model) {
         return WriteHelper.addObjectProperty(model, axiom.getProperty())
                 .addNegativeAssertion(WriteHelper.addIndividual(model, axiom.getSubject()),
                         WriteHelper.addIndividual(model, axiom.getObject()));
@@ -57,7 +57,7 @@ public class NegativeObjectPropertyAssertionTranslator
 
     @Override
     public ONTObject<OWLNegativeObjectPropertyAssertionAxiom> toAxiomImpl(OntStatement statement,
-                                                                          Supplier<OntGraphModel> model,
+                                                                          Supplier<OntModel> model,
                                                                           InternalObjectFactory factory,
                                                                           InternalConfig config) {
         return AxiomImpl.create(statement, model, factory, config);
@@ -85,9 +85,9 @@ public class NegativeObjectPropertyAssertionTranslator
             extends NegativeAssertionImpl<OntNPA.ObjectAssertion, OWLNegativeObjectPropertyAssertionAxiom,
             OWLObjectPropertyExpression, OWLIndividual> implements OWLNegativeObjectPropertyAssertionAxiom {
 
-        private static final BiFunction<Triple, Supplier<OntGraphModel>, AxiomImpl> FACTORY = AxiomImpl::new;
+        private static final BiFunction<Triple, Supplier<OntModel>, AxiomImpl> FACTORY = AxiomImpl::new;
 
-        public AxiomImpl(Triple t, Supplier<OntGraphModel> m) {
+        public AxiomImpl(Triple t, Supplier<OntModel> m) {
             super(t, m);
         }
 
@@ -95,19 +95,19 @@ public class NegativeObjectPropertyAssertionTranslator
          * Creates an {@link OWLNegativeObjectPropertyAssertionAxiom} that is also {@link ONTObject}.
          *
          * @param statement {@link OntStatement}, the source, not {@code null}
-         * @param model     {@link OntGraphModel}-provider, not {@code null}
+         * @param model     {@link OntModel}-provider, not {@code null}
          * @param factory   {@link InternalObjectFactory}, not {@code null}
          * @param config    {@link InternalConfig}, not {@code null}
          * @return {@link AxiomImpl}
          */
         public static AxiomImpl create(OntStatement statement,
-                                       Supplier<OntGraphModel> model,
+                                       Supplier<OntModel> model,
                                        InternalObjectFactory factory,
                                        InternalConfig config) {
             return WithAssertion.create(statement, model, FACTORY, SET_HASH_CODE, factory, config);
         }
 
-        protected AxiomImpl(Object s, String p, Object o, Supplier<OntGraphModel> m) {
+        protected AxiomImpl(Object s, String p, Object o, Supplier<OntModel> m) {
             super(s, p, o, m);
         }
 

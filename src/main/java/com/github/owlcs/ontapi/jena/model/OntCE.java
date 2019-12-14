@@ -14,14 +14,14 @@
 
 package com.github.owlcs.ontapi.jena.model;
 
+import com.github.owlcs.ontapi.jena.OntJenaException;
+import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.RDFList;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDFS;
-import com.github.owlcs.ontapi.jena.OntJenaException;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
-import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 
 import java.util.Collection;
 import java.util.Objects;
@@ -464,49 +464,49 @@ public interface OntCE extends OntObject {
      */
 
     /**
-     * @see OntGraphModel#createObjectSomeValuesFrom(OntOPE, OntCE)
+     * @see OntModel#createObjectSomeValuesFrom(OntOPE, OntCE)
      */
     interface ObjectSomeValuesFrom extends ComponentRestrictionCE<OntCE, OntOPE>,
             SetValue<OntCE, ObjectSomeValuesFrom>, SetProperty<OntOPE, ObjectSomeValuesFrom> {
     }
 
     /**
-     * @see OntGraphModel#createDataSomeValuesFrom(OntNDP, OntDR)
+     * @see OntModel#createDataSomeValuesFrom(OntNDP, OntDR)
      */
     interface DataSomeValuesFrom extends ComponentRestrictionCE<OntDR, OntNDP>,
             SetValue<OntDR, DataSomeValuesFrom>, SetProperty<OntNDP, DataSomeValuesFrom> {
     }
 
     /**
-     * @see OntGraphModel#createObjectAllValuesFrom(OntOPE, OntCE)
+     * @see OntModel#createObjectAllValuesFrom(OntOPE, OntCE)
      */
     interface ObjectAllValuesFrom extends ComponentRestrictionCE<OntCE, OntOPE>,
             SetValue<OntCE, ObjectAllValuesFrom>, SetProperty<OntOPE, ObjectAllValuesFrom> {
     }
 
     /**
-     * @see OntGraphModel#createDataAllValuesFrom(OntNDP, OntDR)
+     * @see OntModel#createDataAllValuesFrom(OntNDP, OntDR)
      */
     interface DataAllValuesFrom extends ComponentRestrictionCE<OntDR, OntNDP>,
             SetValue<OntDR, DataAllValuesFrom>, SetProperty<OntNDP, DataAllValuesFrom> {
     }
 
     /**
-     * @see OntGraphModel#createObjectHasValue(OntOPE, OntIndividual)
+     * @see OntModel#createObjectHasValue(OntOPE, OntIndividual)
      */
     interface ObjectHasValue extends ComponentRestrictionCE<OntIndividual, OntOPE>,
             SetValue<OntIndividual, ObjectHasValue>, SetProperty<OntOPE, ObjectHasValue> {
     }
 
     /**
-     * @see OntGraphModel#createDataHasValue(OntNDP, Literal)
+     * @see OntModel#createDataHasValue(OntNDP, Literal)
      */
     interface DataHasValue extends ComponentRestrictionCE<Literal, OntNDP>,
             SetValue<Literal, DataHasValue>, SetProperty<OntNDP, DataHasValue> {
     }
 
     /**
-     * @see OntGraphModel#createObjectMinCardinality(OntOPE, int, OntCE)
+     * @see OntModel#createObjectMinCardinality(OntOPE, int, OntCE)
      */
     interface ObjectMinCardinality extends CardinalityRestrictionCE<OntCE, OntOPE>,
             SetValue<OntCE, ObjectMinCardinality>,
@@ -515,7 +515,7 @@ public interface OntCE extends OntObject {
     }
 
     /**
-     * @see OntGraphModel#createDataMinCardinality(OntNDP, int, OntDR)
+     * @see OntModel#createDataMinCardinality(OntNDP, int, OntDR)
      */
     interface DataMinCardinality extends CardinalityRestrictionCE<OntDR, OntNDP>,
             SetValue<OntDR, DataMinCardinality>,
@@ -524,7 +524,7 @@ public interface OntCE extends OntObject {
     }
 
     /**
-     * @see OntGraphModel#createDataMaxCardinality(OntNDP, int, OntDR)
+     * @see OntModel#createDataMaxCardinality(OntNDP, int, OntDR)
      */
     interface ObjectMaxCardinality extends CardinalityRestrictionCE<OntCE, OntOPE>,
             SetValue<OntCE, ObjectMaxCardinality>,
@@ -533,7 +533,7 @@ public interface OntCE extends OntObject {
     }
 
     /**
-     * @see OntGraphModel#createDataMaxCardinality(OntNDP, int, OntDR)
+     * @see OntModel#createDataMaxCardinality(OntNDP, int, OntDR)
      */
     interface DataMaxCardinality extends CardinalityRestrictionCE<OntDR, OntNDP>,
             SetValue<OntDR, DataMaxCardinality>,
@@ -542,7 +542,7 @@ public interface OntCE extends OntObject {
     }
 
     /**
-     * @see OntGraphModel#createObjectCardinality(OntOPE, int, OntCE)
+     * @see OntModel#createObjectCardinality(OntOPE, int, OntCE)
      */
     interface ObjectCardinality extends CardinalityRestrictionCE<OntCE, OntOPE>,
             SetValue<OntCE, ObjectCardinality>,
@@ -551,7 +551,7 @@ public interface OntCE extends OntObject {
     }
 
     /**
-     * @see OntGraphModel#createDataCardinality(OntNDP, int, OntDR)
+     * @see OntModel#createDataCardinality(OntNDP, int, OntDR)
      */
     interface DataCardinality extends CardinalityRestrictionCE<OntDR, OntNDP>,
             SetValue<OntDR, DataCardinality>,
@@ -560,44 +560,44 @@ public interface OntCE extends OntObject {
     }
 
     /**
-     * @see OntGraphModel#createHasSelf(OntOPE)
+     * @see OntModel#createHasSelf(OntOPE)
      */
     interface HasSelf extends UnaryRestrictionCE<OntOPE>, SetProperty<OntOPE, HasSelf> {
     }
 
     /**
-     * @see OntGraphModel#createUnionOf(Collection)
+     * @see OntModel#createUnionOf(Collection)
      */
     interface UnionOf extends ComponentsCE<OntCE>, SetComponents<OntCE, UnionOf> {
     }
 
     /**
-     * @see OntGraphModel#createOneOf(Collection)
+     * @see OntModel#createOneOf(Collection)
      */
     interface OneOf extends ComponentsCE<OntIndividual>, SetComponents<OntIndividual, OneOf> {
     }
 
     /**
-     * @see OntGraphModel#createIntersectionOf(Collection)
+     * @see OntModel#createIntersectionOf(Collection)
      */
     interface IntersectionOf extends ComponentsCE<OntCE>, SetComponents<OntCE, IntersectionOf> {
     }
 
     /**
-     * @see OntGraphModel#createComplementOf(OntCE)
+     * @see OntModel#createComplementOf(OntCE)
      */
     interface ComplementOf extends OntCE, HasValue<OntCE>, SetValue<OntCE, ComplementOf> {
     }
 
     /**
-     * @see OntGraphModel#createDataAllValuesFrom(Collection, OntDR)
+     * @see OntModel#createDataAllValuesFrom(Collection, OntDR)
      */
     interface NaryDataAllValuesFrom extends NaryRestrictionCE<OntDR, OntNDP>,
             SetValue<OntDR, NaryDataAllValuesFrom>, SetProperties<OntNDP, NaryDataAllValuesFrom> {
     }
 
     /**
-     * @see OntGraphModel#createDataSomeValuesFrom(Collection, OntDR)
+     * @see OntModel#createDataSomeValuesFrom(Collection, OntDR)
      */
     interface NaryDataSomeValuesFrom extends NaryRestrictionCE<OntDR, OntNDP>,
             SetValue<OntDR, NaryDataSomeValuesFrom>, SetProperties<OntNDP, NaryDataSomeValuesFrom> {

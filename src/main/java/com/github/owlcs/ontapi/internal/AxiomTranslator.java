@@ -17,7 +17,7 @@ package com.github.owlcs.ontapi.internal;
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.jena.impl.PersonalityModel;
 import com.github.owlcs.ontapi.jena.model.OntClass;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
@@ -34,7 +34,7 @@ import java.util.stream.Stream;
 /**
  * The base abstract class that intended to perform Axiom Graph Translator (operator {@code T}) in both directions:
  * for reading and writing.
- * It is designed to work with any {@link OntGraphModel}, but it is optimized to use {@link InternalModel}.
+ * It is designed to work with any {@link OntModel}, but it is optimized to use {@link InternalModel}.
  * See the specification about operator {@code T} and about annotations translation (operator 'TANN'):
  * <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Mapping_from_the_Structural_Specification_to_RDF_Graphs'>2.1 Translation of Axioms without Annotations</a>,
  * <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Axioms_that_are_Translated_to_Multiple_Triples'>2.3.2 Axioms that are Translated to Multiple Triples</a>.
@@ -52,10 +52,10 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * If possible, gets the {@code model}'s {@link InternalConfig Config},
      * otherwise returns the default one.
      *
-     * @param model {@link OntGraphModel}
+     * @param model {@link OntModel}
      * @return {@link InternalConfig}
      */
-    public static InternalConfig getConfig(OntGraphModel model) {
+    public static InternalConfig getConfig(OntModel model) {
         return model instanceof HasConfig ? ((HasConfig) model).getConfig().snapshot() : InternalConfig.DEFAULT;
     }
 
@@ -63,10 +63,10 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * If possible, gets the {@code model}'s {@link InternalObjectFactory Object Factory},
      * otherwise returns the default one.
      *
-     * @param model {@link OntGraphModel}
+     * @param model {@link OntModel}
      * @return {@link InternalObjectFactory}
      */
-    public static InternalObjectFactory getObjectFactory(OntGraphModel model) {
+    public static InternalObjectFactory getObjectFactory(OntModel model) {
         return model instanceof HasObjectFactory ?
                 ((HasObjectFactory) model).getObjectFactory() : InternalObjectFactory.DEFAULT;
     }
@@ -74,10 +74,10 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
     /**
      * Gets all uri-{@link Node}s that are reserved for a model and cannot represent a {@link OntClass}.
      *
-     * @param model {@link OntGraphModel}, not {@code null}
+     * @param model {@link OntModel}, not {@code null}
      * @return a {@code Set} of {@link Node}s
      */
-    protected static Set<Node> getSystemResources(OntGraphModel model) {
+    protected static Set<Node> getSystemResources(OntModel model) {
         if (model instanceof PersonalityModel) {
             return ((PersonalityModel) model).getSystemResources(OntClass.class);
         }
@@ -87,23 +87,23 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
     /**
      * Reads all model's axioms in the form of stream.
      *
-     * @param model {@link OntGraphModel ONT-API Jena Model}, not {@code null}
+     * @param model {@link OntModel ONT-API Jena Model}, not {@code null}
      * @return a {@code Stream} of {@link ONTObject}s that wrap {@link Axiom}s
      * @throws JenaException if unable to read axioms of this type
      */
-    public final Stream<ONTObject<Axiom>> axioms(OntGraphModel model) throws JenaException {
+    public final Stream<ONTObject<Axiom>> axioms(OntModel model) throws JenaException {
         return Iter.asStream(listAxioms(model));
     }
 
     /**
      * Reads all model's axioms in the form of iterator.
      *
-     * @param model {@link OntGraphModel ONT-API Jena Model}, not {@code null}
+     * @param model {@link OntModel ONT-API Jena Model}, not {@code null}
      * @return an {@code ExtendedIterator} of {@link ONTObject}s that wrap {@link Axiom}s
      * @throws JenaException if unable to read axioms of this type
      * @since 2.0.0
      */
-    public final ExtendedIterator<ONTObject<Axiom>> listAxioms(OntGraphModel model) throws JenaException {
+    public final ExtendedIterator<ONTObject<Axiom>> listAxioms(OntModel model) throws JenaException {
         Objects.requireNonNull(model, "Null model.");
         InternalObjectFactory factory = getObjectFactory(model);
         InternalConfig config = getConfig(model);
@@ -113,10 +113,10 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
     /**
      * Returns a stream of statements defining the axiom in the base graph of the specified model.
      *
-     * @param model {@link OntGraphModel ONT-API Jena Model}
+     * @param model {@link OntModel ONT-API Jena Model}
      * @return a {@code Stream} of {@link OntStatement}s, always local (not from imports)
      */
-    public final Stream<OntStatement> statements(OntGraphModel model) {
+    public final Stream<OntStatement> statements(OntModel model) {
         return Iter.asStream(listStatements(model, getConfig(model)));
     }
 
@@ -139,7 +139,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * @throws JenaException if no possible to translate statement to axiom
      */
     public final ONTObject<Axiom> toAxiom(OntStatement statement) throws JenaException {
-        OntGraphModel m = statement.getModel();
+        OntModel m = statement.getModel();
         if (m instanceof HasConfig && m instanceof HasObjectFactory) {
             // use ONTObject implementations:
             return toAxiomImpl(statement, () -> m,
@@ -152,13 +152,13 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
     /**
      * Returns an {@link ExtendedIterator Extended Iterator} of all model {@link Axiom}s.
      *
-     * @param model   a facility (as {@link Supplier}) to provide nonnull {@link OntGraphModel}
+     * @param model   a facility (as {@link Supplier}) to provide nonnull {@link OntModel}
      * @param factory {@link InternalObjectFactory} to produce OWL-API Objects, not {@code null}
      * @param config  {@link InternalConfig} to control process, not {@code null}
      * @return {@link ExtendedIterator} of {@link ONTObject}s that wrap {@link Axiom}s
      * @throws JenaException unable to read axioms of this type
      */
-    protected ExtendedIterator<ONTObject<Axiom>> listAxioms(Supplier<OntGraphModel> model,
+    protected ExtendedIterator<ONTObject<Axiom>> listAxioms(Supplier<OntModel> model,
                                                             InternalObjectFactory factory,
                                                             InternalConfig config) throws JenaException {
         return translate(listStatements(model.get(), config), model, factory, config);
@@ -177,14 +177,14 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * This method is for internal usage only,
      *
      * @param statements an {@link ExtendedIterator} of {@link OntStatement}s, not {@code null}
-     * @param model a facility (as {@link Supplier}) to provide nonnull {@link OntGraphModel}, not {@code null}
+     * @param model a facility (as {@link Supplier}) to provide nonnull {@link OntModel}, not {@code null}
      * @param factory    a {@link InternalObjectFactory} to produce OWL-API Objects, not {@code null}
      * @param config     a {@link InternalConfig} to control the process, not {@code null}
      * @return {@link ExtendedIterator} of {@link ONTObject}s that wrap {@link Axiom}s
      * @throws JenaException unable to read axioms of this type
      */
     protected ExtendedIterator<ONTObject<Axiom>> translate(ExtendedIterator<OntStatement> statements,
-                                                           Supplier<OntGraphModel> model,
+                                                           Supplier<OntModel> model,
                                                            InternalObjectFactory factory,
                                                            InternalConfig config) {
         boolean hasDefault = factory == InternalObjectFactory.DEFAULT || config == InternalConfig.DEFAULT;
@@ -210,14 +210,14 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
     /**
      * Answers {@code true} iff the given axiom ({@code key}) is present in the base graph.
      *
-     * @param model   a facility (as a {@link Supplier}) to get nonnull {@link OntGraphModel}, not {@code null}
+     * @param model   a facility (as a {@link Supplier}) to get nonnull {@link OntModel}, not {@code null}
      * @param factory {@link InternalObjectFactory} to produce ONT-API Objects, not {@code null}
      * @param config  {@link InternalConfig} to configure the process, not {@code null}
      * @param key     {@link Axiom}, not {@code null}
      * @return boolean
      * @since 2.0.0
      */
-    protected boolean containsAxiom(Supplier<OntGraphModel> model,
+    protected boolean containsAxiom(Supplier<OntModel> model,
                                     InternalObjectFactory factory,
                                     InternalConfig config,
                                     Axiom key) {
@@ -228,7 +228,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
     /**
      * Finds the {@link ONTObject} axiom representation by the formal {@link Axiom} declaration.
      *
-     * @param model   a facility (as a {@link Supplier}) to get nonnull {@link OntGraphModel}, not {@code null}
+     * @param model   a facility (as a {@link Supplier}) to get nonnull {@link OntModel}, not {@code null}
      * @param factory {@link InternalObjectFactory} to produce ONT-API Objects, not {@code null}
      * @param config  {@link InternalConfig} to configure the process, not {@code null}
      * @param key     {@link Axiom}, not {@code null}
@@ -236,7 +236,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * @since 2.0.0
      */
     @SuppressWarnings("unchecked")
-    protected Optional<ONTObject<Axiom>> findAxiom(Supplier<OntGraphModel> model,
+    protected Optional<ONTObject<Axiom>> findAxiom(Supplier<OntModel> model,
                                                    InternalObjectFactory factory,
                                                    InternalConfig config,
                                                    Axiom key) {
@@ -257,18 +257,18 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * Writes the given axiom to the model.
      *
      * @param axiom {@link OWLAxiom OWL-API axiom object}
-     * @param model {@link OntGraphModel ONT-API Jena Model}
+     * @param model {@link OntModel ONT-API Jena Model}
      */
-    public abstract void write(Axiom axiom, OntGraphModel model);
+    public abstract void write(Axiom axiom, OntModel model);
 
     /**
      * Lists all statements from the base graph of the given model that match this axiom definition.
      *
-     * @param model  {@link OntGraphModel Ontology Jena Model}, not {@code null}
+     * @param model  {@link OntModel Ontology Jena Model}, not {@code null}
      * @param config {@link InternalConfig} control settings, not {@code null}
      * @return {@link ExtendedIterator} of {@link OntStatement}s
      */
-    public abstract ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config);
+    public abstract ExtendedIterator<OntStatement> listStatements(OntModel model, InternalConfig config);
 
     /**
      * Tests if the specified statement answers the axiom definition.
@@ -301,7 +301,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * that is attached to the model.
      *
      * @param statement {@link OntStatement} the statement which determines the axiom
-     * @param model     a facility (as {@link Supplier}) to provide nonnull {@link OntGraphModel}
+     * @param model     a facility (as {@link Supplier}) to provide nonnull {@link OntModel}
      * @param factory   {@link InternalObjectFactory} the data factory to create OWL-API objects
      * @param config    {@link InternalConfig} to control process
      * @return {@link ONTObject} around {@link OWLAxiom}
@@ -309,7 +309,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
      * @since 2.0.0
      */
     protected abstract ONTObject<Axiom> toAxiomImpl(OntStatement statement,
-                                                    Supplier<OntGraphModel> model,
+                                                    Supplier<OntModel> model,
                                                     InternalObjectFactory factory,
                                                     InternalConfig config) throws JenaException;
 

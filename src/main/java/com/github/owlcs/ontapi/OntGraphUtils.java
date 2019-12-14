@@ -16,7 +16,7 @@ package com.github.owlcs.ontapi;
 
 import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
 import com.github.owlcs.ontapi.jena.impl.OntIDImpl;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.utils.Graphs;
 import com.github.owlcs.ontapi.jena.utils.Models;
 import com.github.owlcs.ontapi.transforms.GraphTransformers;
@@ -63,7 +63,7 @@ import static com.github.owlcs.ontapi.OntologyFactoryImpl.UnsupportedFormatExcep
  */
 @SuppressWarnings("WeakerAccess")
 public class OntGraphUtils {
-    private static final Logger LOGGER = LoggerFactory.getLogger(OntGraphModel.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(OntModel.class);
 
     // following constants are copy-pasted from org.semanticweb.owlapi.io.DocumentSource:
     public static final String TEXT_PLAIN_REQUEST_TYPE = ", text/plain; q=0.1";

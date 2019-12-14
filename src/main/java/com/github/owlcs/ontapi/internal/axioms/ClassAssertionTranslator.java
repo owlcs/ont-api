@@ -38,14 +38,14 @@ import java.util.stream.Stream;
  * <p>
  * Created by @szuev on 28.09.2016.
  *
- * @see OntGraphModel#individuals()
+ * @see OntModel#individuals()
  * @see com.github.owlcs.ontapi.jena.impl.OntGraphModelImpl#listIndividuals()
  */
 @SuppressWarnings("WeakerAccess")
 public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionAxiom> {
 
     @Override
-    public void write(OWLClassAssertionAxiom axiom, OntGraphModel model) {
+    public void write(OWLClassAssertionAxiom axiom, OntModel model) {
         OntCE ce = WriteHelper.addClassExpression(model, axiom.getClassExpression());
         OWLIndividual individual = axiom.getIndividual();
         OntObject subject = individual.isAnonymous() ?
@@ -56,7 +56,7 @@ public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionA
     }
 
     @Override
-    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
+    public ExtendedIterator<OntStatement> listStatements(OntModel model, InternalConfig config) {
         Set<Node> forbidden = getSystemResources(model);
         return model.getBaseGraph().find(Node.ANY, RDF.Nodes.type, Node.ANY)
                 .filterDrop(t -> forbidden.contains(t.getObject()))
@@ -85,7 +85,7 @@ public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionA
 
     @Override
     public ONTObject<OWLClassAssertionAxiom> toAxiomImpl(OntStatement statement,
-                                                         Supplier<OntGraphModel> model,
+                                                         Supplier<OntModel> model,
                                                          InternalObjectFactory factory,
                                                          InternalConfig config) {
         return AxiomImpl.create(statement, model, factory, config);
@@ -110,11 +110,11 @@ public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionA
     public abstract static class AxiomImpl extends ONTAxiomImpl<OWLClassAssertionAxiom>
             implements OWLClassAssertionAxiom {
 
-        protected AxiomImpl(Triple t, Supplier<OntGraphModel> m) {
+        protected AxiomImpl(Triple t, Supplier<OntModel> m) {
             super(t, m);
         }
 
-        protected AxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+        protected AxiomImpl(Object subject, String predicate, Object object, Supplier<OntModel> m) {
             super(subject, predicate, object, m);
         }
 
@@ -122,13 +122,13 @@ public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionA
          * Creates an {@link ONTObject} container that is also {@link OWLClassAssertionAxiom}.
          *
          * @param statement {@link OntStatement}, not {@code null}
-         * @param model     {@link OntGraphModel} provider, not {@code null}
+         * @param model     {@link OntModel} provider, not {@code null}
          * @param factory   {@link InternalObjectFactory}, not {@code null}
          * @param config    {@link InternalConfig}, not {@code null}
          * @return {@link AxiomImpl}
          */
         public static AxiomImpl create(OntStatement statement,
-                                       Supplier<OntGraphModel> model,
+                                       Supplier<OntModel> model,
                                        InternalObjectFactory factory,
                                        InternalConfig config) {
             AxiomImpl s = new SimpleImpl(statement.asTriple(), model);
@@ -191,7 +191,7 @@ public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionA
          */
         public static class SimpleImpl extends AxiomImpl implements WithoutAnnotations {
 
-            protected SimpleImpl(Triple t, Supplier<OntGraphModel> m) {
+            protected SimpleImpl(Triple t, Supplier<OntModel> m) {
                 super(t, m);
             }
 
@@ -288,11 +288,11 @@ public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionA
 
             protected final InternalCache.Loading<ComplexImpl, Object[]> content;
 
-            public ComplexImpl(Triple t, Supplier<OntGraphModel> m) {
+            public ComplexImpl(Triple t, Supplier<OntModel> m) {
                 this(strip(t.getSubject()), t.getPredicate().getURI(), strip(t.getObject()), m);
             }
 
-            protected ComplexImpl(Object s, String p, Object o, Supplier<OntGraphModel> m) {
+            protected ComplexImpl(Object s, String p, Object o, Supplier<OntModel> m) {
                 super(s, p, o, m);
                 this.content = createContentCache();
             }

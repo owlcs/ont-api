@@ -18,7 +18,7 @@ import com.github.owlcs.ontapi.internal.InternalConfig;
 import com.github.owlcs.ontapi.internal.InternalObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.objects.*;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.owlapi.OWLObjectImpl;
@@ -210,7 +210,7 @@ interface WithList<A extends OWLAxiom, E extends OWLObject> extends WithTriple, 
          * the returned object is also {@link R}.
          *
          * @param statement {@link OntStatement}, the source to parse, not {@code null}
-         * @param model     {@link OntGraphModel}-provider, not {@code null}
+         * @param model     {@link OntModel}-provider, not {@code null}
          * @param getAxiom  factory (as {@link BiFunction}) to provide {@link R} instance, not {@code null}
          * @param setHash   {@code ObjIntConsumer<OWLAxiom>}, facility to assign {@code hashCode}, not {@code null}
          * @param factory   {@link InternalObjectFactory} (singleton), not {@code null}
@@ -220,8 +220,8 @@ interface WithList<A extends OWLAxiom, E extends OWLObject> extends WithTriple, 
          */
         @SuppressWarnings("unchecked")
         static <R extends ONTObject & Sequent> R create(OntStatement statement,
-                                                        Supplier<OntGraphModel> model,
-                                                        BiFunction<Triple, Supplier<OntGraphModel>, ? extends R> getAxiom,
+                                                        Supplier<OntModel> model,
+                                                        BiFunction<Triple, Supplier<OntModel>, ? extends R> getAxiom,
                                                         ObjIntConsumer<OWLAxiom> setHash,
                                                         InternalObjectFactory factory,
                                                         InternalConfig config) {
@@ -278,7 +278,7 @@ interface WithList<A extends OWLAxiom, E extends OWLObject> extends WithTriple, 
          * the returned object is also {@link R}.
          *
          * @param statement {@link OntStatement}, the source to parse, not {@code null}
-         * @param model     {@link OntGraphModel}-provider, not {@code null}
+         * @param model     {@link OntModel}-provider, not {@code null}
          * @param getAxiom  factory (as {@link BiFunction}) to provide {@link R} instance, not {@code null}
          * @param setHash   {@code ObjIntConsumer<OWLAxiom>}, facility to assign {@code hashCode}, not {@code null}
          * @param factory   {@link InternalObjectFactory} (singleton), not {@code null}
@@ -288,8 +288,8 @@ interface WithList<A extends OWLAxiom, E extends OWLObject> extends WithTriple, 
          */
         @SuppressWarnings("unchecked")
         static <R extends ONTObject & Sorted> R create(OntStatement statement,
-                                                       Supplier<OntGraphModel> model,
-                                                       BiFunction<Triple, Supplier<OntGraphModel>, ? extends R> getAxiom,
+                                                       Supplier<OntModel> model,
+                                                       BiFunction<Triple, Supplier<OntModel>, ? extends R> getAxiom,
                                                        ObjIntConsumer<OWLAxiom> setHash,
                                                        InternalObjectFactory factory,
                                                        InternalConfig config) {

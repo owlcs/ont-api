@@ -15,7 +15,7 @@
 package com.github.owlcs.ontapi.internal;
 
 import com.github.owlcs.ontapi.OntApiException;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.*;
@@ -49,14 +49,14 @@ public enum OWLContentType {
         }
 
         @Override
-        ExtendedIterator<? extends ONTObject<? extends OWLObject>> read(Supplier<OntGraphModel> m,
+        ExtendedIterator<? extends ONTObject<? extends OWLObject>> read(Supplier<OntModel> m,
                                                                         InternalObjectFactory f,
                                                                         InternalConfig c) {
             return ReadHelper.listOWLAnnotations(m.get().getID(), f);
         }
 
         @Override
-        Optional<? extends ONTObject<? extends OWLObject>> find(Supplier<OntGraphModel> m,
+        Optional<? extends ONTObject<? extends OWLObject>> find(Supplier<OntModel> m,
                                                                 InternalObjectFactory f,
                                                                 InternalConfig c,
                                                                 OWLObject key) {
@@ -64,12 +64,12 @@ public enum OWLContentType {
         }
 
         @Override
-        boolean has(Supplier<OntGraphModel> m, InternalObjectFactory f, InternalConfig c, OWLObject key) {
+        boolean has(Supplier<OntModel> m, InternalObjectFactory f, InternalConfig c, OWLObject key) {
             return find(m, f, c, key).isPresent();
         }
 
         @Override
-        void write(OntGraphModel m, OWLObject v) {
+        void write(OntModel m, OWLObject v) {
             WriteHelper.addAnnotations(m.getID(), Collections.singleton(((OWLAnnotation) v)));
         }
     },
@@ -306,12 +306,12 @@ public enum OWLContentType {
     /**
      * Reads content-objects from the graph.
      *
-     * @param m {@link OntGraphModel ONT-API Jena Model}, to search over
+     * @param m {@link OntModel ONT-API Jena Model}, to search over
      * @param f {@link InternalObjectFactory} to construct OWL-API Objects (wrapped as {@link ONTObject})
      * @param c {@link InternalConfig} to control process
      * @return {@link ExtendedIterator} over all content objects, found in modelr for this type
      */
-    ExtendedIterator<? extends ONTObject<? extends OWLObject>> read(Supplier<OntGraphModel> m,
+    ExtendedIterator<? extends ONTObject<? extends OWLObject>> read(Supplier<OntModel> m,
                                                                     InternalObjectFactory f,
                                                                     InternalConfig c) {
         return getRawTranslator().listAxioms(m, f, c);
@@ -320,13 +320,13 @@ public enum OWLContentType {
     /**
      * Answers an {@code Optional} {@link ONTObject}, that corresponds to the given {@code OWLObject}-key.
      *
-     * @param m   a facility to get {@link OntGraphModel Model}, to search over, not {@code null}
+     * @param m   a facility to get {@link OntModel Model}, to search over, not {@code null}
      * @param f   {@link InternalObjectFactory} to construct OWL-API Objects, not {@code null}
      * @param c   {@link InternalConfig} to configure and control the process, not {@code null}
      * @param key - an {@link OWLObject}, must correspond to this enum-type, not {@code null}
      * @return {@link Optional}, possible empty
      */
-    Optional<? extends ONTObject<? extends OWLObject>> find(Supplier<OntGraphModel> m,
+    Optional<? extends ONTObject<? extends OWLObject>> find(Supplier<OntModel> m,
                                                             InternalObjectFactory f,
                                                             InternalConfig c,
                                                             OWLObject key) {
@@ -337,13 +337,13 @@ public enum OWLContentType {
     /**
      * Answers {@code true} iff the given {@code OWLObject} is present in the graph.
      *
-     * @param m   a facility to get {@link OntGraphModel Model}, to search over, not {@code null}
+     * @param m   a facility to get {@link OntModel Model}, to search over, not {@code null}
      * @param f   {@link InternalObjectFactory} to construct OWL-API Objects, not {@code null}
      * @param c   {@link InternalConfig} to configure and control the process, not {@code null}
      * @param key - an {@link OWLObject}, must correspond to this enum-type, not {@code null}
      * @return boolean
      */
-    boolean has(Supplier<OntGraphModel> m, InternalObjectFactory f, InternalConfig c, OWLObject key) {
+    boolean has(Supplier<OntModel> m, InternalObjectFactory f, InternalConfig c, OWLObject key) {
         OWLAxiom k = (OWLAxiom) key;
         return getRawTranslator().containsAxiom(m, f, c, k);
     }
@@ -351,10 +351,10 @@ public enum OWLContentType {
     /**
      * Writes the content-object into the graph.
      *
-     * @param m     {@link OntGraphModel ONT-API Jena Model}, to modify
+     * @param m     {@link OntModel ONT-API Jena Model}, to modify
      * @param value {@link OWLObject} - either {@link OWLAxiom} or {@link OWLAnnotation}, to write
      */
-    void write(OntGraphModel m, OWLObject value) {
+    void write(OntModel m, OWLObject value) {
         getRawTranslator().write((OWLAxiom) value, m);
     }
 

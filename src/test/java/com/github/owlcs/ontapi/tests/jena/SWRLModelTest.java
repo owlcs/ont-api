@@ -41,7 +41,7 @@ import java.util.Collections;
 public class SWRLModelTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(SWRLModelTest.class);
 
-    private static OntSWRL.Variable getVariable(OntGraphModel m, String localName) {
+    private static OntSWRL.Variable getVariable(OntModel m, String localName) {
         return m.ontObjects(OntSWRL.Variable.class)
                 .filter(r -> localName.equals(r.getLocalName())).findFirst().orElseThrow(AssertionError::new);
     }
@@ -51,7 +51,7 @@ public class SWRLModelTest {
         String uri = "http://test.com/swrl-1";
         String ns = uri + "#";
 
-        OntGraphModel m = OntModelFactory.createModel()
+        OntModel m = OntModelFactory.createModel()
                 .setID(uri).getModel()
                 .setNsPrefix("test", ns)
                 .setNsPrefix("SWRL", SWRL.NS)
@@ -125,7 +125,7 @@ public class SWRLModelTest {
     @Test
     public void testSWRLObjectsOnLoadOntology() {
         Graph g = ReadWriteUtils.loadResourceAsModel("/owlapi/owlapi/SWRLTest.owl", OntFormat.RDF_XML).getGraph();
-        OntGraphModel m = OntModelFactory.createModel(g);
+        OntModel m = OntModelFactory.createModel(g);
 
         ReadWriteUtils.print(m);
 
@@ -179,7 +179,7 @@ public class SWRLModelTest {
         String uri = "http://test.com/swrl-2";
         String ns = uri + "#";
 
-        OntGraphModel m = OntModelFactory.createModel()
+        OntModel m = OntModelFactory.createModel()
                 .setID(uri).getModel()
                 .setNsPrefix("test", ns)
                 .setNsPrefix("swrl", SWRL.NS)
@@ -211,7 +211,7 @@ public class SWRLModelTest {
 
     @Test
     public void testAssembleSWRLAtomsWithAnonymousIndividuals() {
-        OntGraphModel m = OntModelFactory.createModel()
+        OntModel m = OntModelFactory.createModel()
                 .setNsPrefix("swrl", SWRL.NS)
                 .setNsPrefixes(OntModelFactory.STANDARD);
 

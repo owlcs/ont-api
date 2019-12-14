@@ -23,7 +23,7 @@ import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.jena.OntModelFactory;
 import com.github.owlcs.ontapi.jena.impl.conf.OntModelConfig;
 import com.github.owlcs.ontapi.jena.impl.conf.OntPersonality;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import com.github.owlcs.ontapi.transforms.GraphTransformers;
@@ -62,7 +62,7 @@ public class InternalModelTest {
 
     @Test
     public void testSimpleAxiomTranslator() {
-        OntGraphModel model = OntModelFactory.createModel(loadResourceTTLFile("ontapi/pizza.ttl").getGraph());
+        OntModel model = OntModelFactory.createModel(loadResourceTTLFile("ontapi/pizza.ttl").getGraph());
         Assert.assertEquals(945, model.statements()
                 .flatMap(s -> AxiomType.AXIOM_TYPES.stream().map(AxiomParserProvider::get)
                         .filter(x -> x.testStatement(s))
@@ -72,7 +72,7 @@ public class InternalModelTest {
     @Test
     public void testAxiomRead() {
         Model m = loadResourceTTLFile("ontapi/pizza.ttl");
-        OntGraphModel model = OntModelFactory.createModel(m.getGraph());
+        OntModel model = OntModelFactory.createModel(m.getGraph());
         // 39 axiom types:
         Set<Class<? extends OWLAxiom>> types = AxiomType.AXIOM_TYPES.stream()
                 .map(AxiomType::getActualClass).collect(Collectors.toSet());
@@ -196,7 +196,7 @@ public class InternalModelTest {
         testEntities("ontapi/goodrelations.rdf", OntFormat.RDF_XML);
     }
 
-    private static <Axiom extends OWLAxiom> void check(OntGraphModel model, Class<Axiom> view) {
+    private static <Axiom extends OWLAxiom> void check(OntModel model, Class<Axiom> view) {
         LOGGER.debug("=========================");
         LOGGER.debug("{}:", view.getSimpleName());
         AxiomParserProvider.get(view).axioms(model).forEach(e -> {

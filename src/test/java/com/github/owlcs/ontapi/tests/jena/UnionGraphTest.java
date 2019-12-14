@@ -14,6 +14,13 @@
 
 package com.github.owlcs.ontapi.tests.jena;
 
+import com.github.owlcs.ontapi.jena.OntModelFactory;
+import com.github.owlcs.ontapi.jena.UnionGraph;
+import com.github.owlcs.ontapi.jena.model.OntModel;
+import com.github.owlcs.ontapi.jena.utils.Graphs;
+import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import com.github.owlcs.ontapi.jena.vocabulary.RDF;
+import com.github.owlcs.ontapi.utils.UnmodifiableGraph;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.graph.Factory;
 import org.apache.jena.graph.Graph;
@@ -28,13 +35,6 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.github.owlcs.ontapi.jena.OntModelFactory;
-import com.github.owlcs.ontapi.jena.UnionGraph;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
-import com.github.owlcs.ontapi.jena.utils.Graphs;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
-import com.github.owlcs.ontapi.jena.vocabulary.RDF;
-import com.github.owlcs.ontapi.utils.UnmodifiableGraph;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -49,7 +49,7 @@ public class UnionGraphTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(UnionGraphTest.class);
 
     static Graph createNamedGraph(String uri) {
-        OntGraphModel m = OntModelFactory.createModel();
+        OntModel m = OntModelFactory.createModel();
         m.setID(uri);
         return m.getBaseGraph();
     }

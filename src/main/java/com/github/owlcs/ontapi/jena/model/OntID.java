@@ -14,16 +14,16 @@
 
 package com.github.owlcs.ontapi.jena.model;
 
-import org.apache.jena.rdf.model.RDFNode;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import org.apache.jena.rdf.model.RDFNode;
 
 import java.util.Objects;
 import java.util.stream.Stream;
 
 /**
  * Interface encapsulating an Ontology Identifier.
- * Each {@link OntGraphModel OWL2 Obtology} must have one and only one {@link OntID Ontology ID} inside.
+ * Each {@link OntModel OWL2 Obtology} must have one and only one {@link OntID Ontology ID} inside.
  * <p>
  * Please note: the methods of this interface do not affect the hierarchical structure of the graph
  * to which this resource is attached, they only affect the structure of the graph itself.

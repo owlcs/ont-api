@@ -14,16 +14,16 @@
 
 package com.github.owlcs.ontapi.internal.objects;
 
+import com.github.owlcs.ontapi.internal.InternalObjectFactory;
+import com.github.owlcs.ontapi.internal.ONTObject;
+import com.github.owlcs.ontapi.jena.model.OntModel;
+import com.github.owlcs.ontapi.jena.model.OntNOP;
+import com.github.owlcs.ontapi.jena.model.OntOPE;
 import org.apache.jena.graph.BlankNodeId;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectInverseOf;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
-import com.github.owlcs.ontapi.internal.InternalObjectFactory;
-import com.github.owlcs.ontapi.internal.ONTObject;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
-import com.github.owlcs.ontapi.jena.model.OntNOP;
-import com.github.owlcs.ontapi.jena.model.OntOPE;
 
 import java.util.Set;
 import java.util.function.Supplier;
@@ -41,21 +41,21 @@ import java.util.stream.Stream;
 public class ONTObjectInverseOfImpl
         extends ONTExpressionImpl<OntOPE.Inverse> implements OWLObjectInverseOf, ModelObject<OWLObjectInverseOf> {
 
-    public ONTObjectInverseOfImpl(BlankNodeId n, Supplier<OntGraphModel> m) {
+    public ONTObjectInverseOfImpl(BlankNodeId n, Supplier<OntModel> m) {
         super(n, m);
     }
 
     /**
      * Wraps the given {@link OntOPE.Inverse} as {@link OWLObjectInverseOf} and {@link ONTObject}.
      *
-     * @param iop   {@link OntOPE.Inverse}, not {@code null}
+     * @param iop     {@link OntOPE.Inverse}, not {@code null}
      * @param factory {@link InternalObjectFactory}, not {@code null}
-     * @param model a provider of non-null {@link OntGraphModel}, cannot be {@code null}
+     * @param model   a provider of non-null {@link OntModel}, cannot be {@code null}
      * @return {@link ONTObjectInverseOfImpl}
      */
     public static ONTObjectInverseOfImpl create(OntOPE.Inverse iop,
                                                 InternalObjectFactory factory,
-                                                Supplier<OntGraphModel> model) {
+                                                Supplier<OntModel> model) {
         ONTObjectInverseOfImpl res = new ONTObjectInverseOfImpl(iop.asNode().getBlankNodeId(), model);
         res.putContent(res.initContent(iop, factory));
         return res;

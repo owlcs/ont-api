@@ -14,13 +14,13 @@
 
 package com.github.owlcs.ontapi.internal.objects;
 
-import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.internal.InternalObjectFactory;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
 import com.github.owlcs.ontapi.jena.model.OntIndividual;
+import com.github.owlcs.ontapi.jena.model.OntModel;
+import org.semanticweb.owlapi.model.OWLNamedIndividual;
 
 import java.util.Set;
 import java.util.function.Supplier;
@@ -34,7 +34,7 @@ import java.util.function.Supplier;
  */
 public class ONTNamedIndividualImpl extends ONTEntityImpl<OWLNamedIndividual> implements OWLNamedIndividual {
 
-    public ONTNamedIndividualImpl(String uri, Supplier<OntGraphModel> m) {
+    public ONTNamedIndividualImpl(String uri, Supplier<OntModel> m) {
         super(uri, m);
     }
 
@@ -43,13 +43,13 @@ public class ONTNamedIndividualImpl extends ONTEntityImpl<OWLNamedIndividual> im
      *
      * @param uri     {@code String}, not {@code null}
      * @param factory {@link InternalObjectFactory}, not {@code null}
-     * @param model   a {@code Supplier} with a {@link OntGraphModel},
+     * @param model   a {@code Supplier} with a {@link OntModel},
      *                which is only used in case the {@code factory} has no reference to a model
      * @return an {@link ONTObject} which is {@link OWLNamedIndividual}
      */
     public static ONTObject<OWLNamedIndividual> find(String uri,
                                                      InternalObjectFactory factory,
-                                                     Supplier<OntGraphModel> model) {
+                                                     Supplier<OntModel> model) {
         if (factory instanceof ModelObjectFactory) {
             return ((ModelObjectFactory) factory).getNamedIndividual(uri);
         }

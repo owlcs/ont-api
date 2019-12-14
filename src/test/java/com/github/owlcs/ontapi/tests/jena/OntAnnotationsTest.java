@@ -45,7 +45,7 @@ public class OntAnnotationsTest {
         String uri = "http://test.com/graph/1";
         String ns = uri + "#";
 
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefix("test", ns).setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefix("test", ns).setNsPrefixes(OntModelFactory.STANDARD);
 
         LOGGER.debug("1) Assign version-iri and ontology comment.");
         m.setID(uri).setVersionIRI(ns + "1.0.1");
@@ -143,7 +143,7 @@ public class OntAnnotationsTest {
         String uri = "http://test.com/graph/2";
         String ns = uri + "#";
 
-        OntGraphModel m = OntModelFactory.createModel()
+        OntModel m = OntModelFactory.createModel()
                 .setNsPrefix("test", ns)
                 .setNsPrefixes(OntModelFactory.STANDARD)
                 .setID(uri)
@@ -201,7 +201,7 @@ public class OntAnnotationsTest {
     @Test
     public void testRemoveAnnotations() {
         LOGGER.debug("Create a model");
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         m.getID().addAnnotation(m.getAnnotationProperty(OWL.versionInfo), "anonymous ontology", "en");
 
         OntNDP p = m.createDataProperty("x");
@@ -229,7 +229,7 @@ public class OntAnnotationsTest {
 
     @Test
     public void testBuiltInsAnnotations() {
-        OntGraphModel m = OntModelFactory.createModel();
+        OntModel m = OntModelFactory.createModel();
         String comment = "This is the Thing";
         m.getOWLThing().addComment(comment);
         Assert.assertEquals(comment, m.getOWLThing().getComment());
@@ -274,7 +274,7 @@ public class OntAnnotationsTest {
 
     @Test
     public void testListObjectAnnotations() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntClass clazz = m.createOntClass("C").addComment("xxx");
         Assert.assertEquals("xxx", clazz.getComment());
         ReadWriteUtils.print(m);
@@ -309,7 +309,7 @@ public class OntAnnotationsTest {
 
     @Test
     public void testClearAnnotations() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntNAP nap = m.createAnnotationProperty("nap");
         nap.addAnnotation(m.getRDFSComment(), "test1").addAnnotation(nap, "sub-test1");
         m.asStatement(nap.getRoot().asTriple()).addAnnotation(m.getRDFSComment(), "test2")
@@ -341,7 +341,7 @@ public class OntAnnotationsTest {
 
     @Test
     public void testRemoveAnnotatedObject() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
 
         OntCE class1 = m.createOntClass("C-1");
         m.asStatement(class1.getRoot().asTriple()).addAnnotation(m.getRDFSComment(), "Class1::1")
@@ -383,7 +383,7 @@ public class OntAnnotationsTest {
 
     @Test
     public void testAnnotationFunctionality() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         Resource r = m.createResource("A").addProperty(m.createProperty("B"), "C");
         OntStatement base = m.statements(r, null, null).findFirst().orElseThrow(AssertionError::new);
 
@@ -475,7 +475,7 @@ public class OntAnnotationsTest {
                 .addProperty(OWL.annotatedTarget, m.listObjectsOfProperty(an1, RDFS.comment).toList().get(0));
         ReadWriteUtils.print(m);
 
-        OntGraphModel model = OntModelFactory.createModel(m.getGraph());
+        OntModel model = OntModelFactory.createModel(m.getGraph());
         Assert.assertEquals(2, model.ontObjects(OntAnnotation.class).count());
         OntStatement base = model.statements(a, b, c).findFirst().orElseThrow(AssertionError::new);
         Assert.assertEquals(2, base.annotations().count());
@@ -493,7 +493,7 @@ public class OntAnnotationsTest {
 
     @Test
     public void testAnnotationSplitting() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntClass clazz = m.createOntClass("A");
         OntStatement subClassOf = clazz.addSubClassOfStatement(m.getOWLThing());
 
@@ -566,7 +566,7 @@ public class OntAnnotationsTest {
 
     @Test
     public void testListAnnotationValues() {
-        OntGraphModel m = OntModelFactory.createModel();
+        OntModel m = OntModelFactory.createModel();
         OntClass c = m.createOntClass("http://clazz")
                 .addComment("c1", "en")
                 .addComment("c2", "EN-GB")
@@ -594,7 +594,7 @@ public class OntAnnotationsTest {
 
     @Test
     public void testAddAnnotations() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntClass c = m.createOntClass("C");
         OntStatement s2 = c.addSubClassOfStatement(m.getOWLNothing());
         OntStatement s1 = c.getRoot();
@@ -618,7 +618,7 @@ public class OntAnnotationsTest {
 
     @Test
     public void testHeaderAnnotations() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntID id = m.getID().addVersionInfo("v1", "e").addVersionInfo("v2").addComment("com1", "e").addComment("com2");
         Assert.assertEquals("v2", id.getVersionInfo(""));
         Assert.assertEquals("v1", id.getVersionInfo("e"));

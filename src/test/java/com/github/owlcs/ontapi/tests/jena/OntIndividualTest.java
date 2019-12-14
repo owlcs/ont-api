@@ -14,16 +14,16 @@
 
 package com.github.owlcs.ontapi.tests.jena;
 
-import org.junit.Assert;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.github.owlcs.ontapi.jena.OntJenaException;
 import com.github.owlcs.ontapi.jena.OntModelFactory;
 import com.github.owlcs.ontapi.jena.model.*;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
+import org.junit.Assert;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * To test {@link OntIndividual}.
@@ -35,7 +35,7 @@ public class OntIndividualTest {
 
     @Test
     public void testPositiveAssertions() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntIndividual i1 = m.createIndividual("I1");
         OntIndividual i2 = m.createIndividual("I2");
         OntNDP d = m.createDataProperty("D");
@@ -57,7 +57,7 @@ public class OntIndividualTest {
 
     @Test
     public void testDifferentIndividuals() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntIndividual a = m.createIndividual("A");
         OntIndividual b = m.createOntClass("C1").createIndividual("B");
         OntIndividual c = m.createOntClass("C2").createIndividual();
@@ -72,7 +72,7 @@ public class OntIndividualTest {
 
     @Test
     public void testSameIndividuals() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntIndividual a = m.createIndividual("A");
         OntIndividual b = m.createOntClass("C1").createIndividual("B");
         OntIndividual c = m.createOntClass("C2").createIndividual();
@@ -87,7 +87,7 @@ public class OntIndividualTest {
 
     @Test
     public void testNegativeAssertions() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntIndividual i1 = m.createIndividual("I1");
         OntIndividual i2 = m.createIndividual("I2");
         OntIndividual i3 = m.createIndividual("I3");
@@ -117,7 +117,7 @@ public class OntIndividualTest {
 
     @Test
     public void testRemoveIndividual() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntIndividual i1 = m.createIndividual("I1");
         OntIndividual i2 = m.createIndividual("I2");
         OntIndividual i3 = m.createIndividual("I3");
@@ -135,7 +135,7 @@ public class OntIndividualTest {
 
     @Test
     public void testClassAssertions() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntIndividual i1 = m.createIndividual("I1");
         OntClass c1 = m.createOntClass("C1");
         OntClass c2 = m.createOntClass("C2");
@@ -186,7 +186,7 @@ public class OntIndividualTest {
     @Test
     public void testListIndividuals() {
         String ns = "http://xx#";
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD).setNsPrefix("x", ns);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD).setNsPrefix("x", ns);
         m.getOWLThing().createIndividual(ns + "I1").addSameAsStatement(m.createIndividual(ns + "I2"));
         OntClass c1 = m.createOntClass(ns + "C1");
         OntClass c2 = m.createOntClass(ns + "C2");

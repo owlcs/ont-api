@@ -17,9 +17,9 @@ package com.github.owlcs.ontapi.tests.model;
 import com.github.owlcs.ontapi.*;
 import com.github.owlcs.ontapi.jena.OntModelFactory;
 import com.github.owlcs.ontapi.jena.impl.UnionModel;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
 import com.github.owlcs.ontapi.jena.model.OntID;
 import com.github.owlcs.ontapi.jena.model.OntIndividual;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.utils.Graphs;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
@@ -49,9 +49,9 @@ import java.util.stream.Stream;
 public class ImportsOntModelTest extends OntModelTestBase {
 
     private static void testGraphModelCycleImports(OntologyManager m) {
-        OntGraphModel a = m.createGraphModel("a");
-        OntGraphModel b = m.createGraphModel("b");
-        OntGraphModel c = m.createGraphModel("c");
+        OntModel a = m.createGraphModel("a");
+        OntModel b = m.createGraphModel("b");
+        OntModel c = m.createGraphModel("c");
 
         a.addImport(b);
         Assert.assertEquals(2, UnionModel.asUnionGraph(a.getGraph()).listBaseGraphs().toList().size());
@@ -122,7 +122,7 @@ public class ImportsOntModelTest extends OntModelTestBase {
     }
 
     private static Graph createGraph(String ontologyURI, String importURI, String classURI) {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         m.setID(ontologyURI).addImport(importURI);
         m.createOntClass(classURI);
         return m.getBaseGraph();
@@ -207,20 +207,20 @@ public class ImportsOntModelTest extends OntModelTestBase {
         Assert.assertEquals(10, a.asGraphModel().classes().count());
     }
 
-    private static void assertDeclarationInModels(OntGraphModel mustHave,
-                                                  OntGraphModel mustNotHave,
+    private static void assertDeclarationInModels(OntModel mustHave,
+                                                  OntModel mustNotHave,
                                                   Resource subject,
                                                   Resource type) {
         assertHasDeclaration(mustHave, subject, type);
         assertHasNoDeclaration(mustNotHave, subject, type);
     }
 
-    private static void assertHasDeclaration(OntGraphModel model, Resource subject, Resource object) {
+    private static void assertHasDeclaration(OntModel model, Resource subject, Resource object) {
         Triple t = createDeclaration(subject, object);
         Assert.assertTrue("Can't find the triple " + t, model.getBaseGraph().contains(t));
     }
 
-    private static void assertHasNoDeclaration(OntGraphModel model, Resource subject, Resource object) {
+    private static void assertHasNoDeclaration(OntModel model, Resource subject, Resource object) {
         Triple t = createDeclaration(subject, object);
         Assert.assertFalse("There is the triple " + t, model.getBaseGraph().contains(t));
     }
@@ -230,9 +230,9 @@ public class ImportsOntModelTest extends OntModelTestBase {
     }
 
     private static void testGraphModelImports(OntologyManager m) {
-        OntGraphModel a = m.createGraphModel("a");
-        OntGraphModel b = m.createGraphModel("b");
-        OntGraphModel c = m.createGraphModel("c");
+        OntModel a = m.createGraphModel("a");
+        OntModel b = m.createGraphModel("b");
+        OntModel c = m.createGraphModel("c");
 
         a.addImport(b);
         Assert.assertEquals(1, a.imports().count());
@@ -262,9 +262,9 @@ public class ImportsOntModelTest extends OntModelTestBase {
         Assert.assertFalse(c.hasImport(b.getID().getURI()));
         Assert.assertFalse(c.hasImport(b));
 
-        OntGraphModel x = m.createGraphModel("x");
-        OntGraphModel y = m.createGraphModel("y");
-        OntGraphModel z = m.createGraphModel("z");
+        OntModel x = m.createGraphModel("x");
+        OntModel y = m.createGraphModel("y");
+        OntModel z = m.createGraphModel("z");
 
         m.getGraphModel("x").addImport(y).addImport(z);
         Assert.assertEquals(2, x.imports().count());
@@ -363,7 +363,7 @@ public class ImportsOntModelTest extends OntModelTestBase {
         Assert.assertEquals(1, dec.size());
         Assert.assertEquals(ver1, dec.get(0).getIRI());
         // check graph references and graph imports:
-        OntGraphModel g = b.asGraphModel();
+        OntModel g = b.asGraphModel();
         Assert.assertEquals(1, g.imports().count());
         Assert.assertEquals(ver1, g.getID().imports().findFirst().map(IRI::create).orElseThrow(AssertionError::new));
 
@@ -387,7 +387,7 @@ public class ImportsOntModelTest extends OntModelTestBase {
         Ontology owl = TestUtils.createModel(iri);
         OntologyManager manager = owl.getOWLOntologyManager();
         OWLDataFactory factory = manager.getOWLDataFactory();
-        OntGraphModel jena = owl.asGraphModel();
+        OntModel jena = owl.asGraphModel();
         int importsCount = 4;
         OntID jenaOnt = jena.setID(iri.getIRIString());
         Assert.assertNotNull(jenaOnt);
@@ -529,9 +529,9 @@ public class ImportsOntModelTest extends OntModelTestBase {
         Ontology a_owl = m.createOntology(IRI.create(a_uri));
         Ontology b_owl = m.createOntology(IRI.create(b_uri));
 
-        OntGraphModel a = m.getGraphModel(a_uri);
+        OntModel a = m.getGraphModel(a_uri);
         Assert.assertNotNull(a);
-        OntGraphModel b = m.getGraphModel(b_uri);
+        OntModel b = m.getGraphModel(b_uri);
         Assert.assertNotNull(b);
         a.addImport(b);
 

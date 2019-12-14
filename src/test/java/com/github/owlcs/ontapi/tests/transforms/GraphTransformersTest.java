@@ -23,7 +23,7 @@ import com.github.owlcs.ontapi.jena.UnionGraph;
 import com.github.owlcs.ontapi.jena.impl.conf.OntModelConfig;
 import com.github.owlcs.ontapi.jena.model.OntCE;
 import com.github.owlcs.ontapi.jena.model.OntEntity;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.utils.Graphs;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
@@ -191,7 +191,7 @@ public class GraphTransformersTest {
         OWLOntologyManager manager = OntManagers.createOWL();
         OWLOntologyManager testManager = OntManagers.createOWL();
 
-        OntGraphModel jenaSP = OntModelFactory.createModel(
+        OntModel jenaSP = OntModelFactory.createModel(
                 GraphTransformers.convert(ReadWriteUtils.loadResourceTTLFile("etc/sp.ttl").getGraph()),
                 OntModelConfig.ONT_PERSONALITY_LAX);
         OWLOntology owlSP = load(manager, "etc/sp.ttl");
@@ -211,7 +211,7 @@ public class GraphTransformersTest {
         // spin:Modules is treated as NamedIndividual by OWL-API and as Class by ONT-API.
         UnionGraph spinGraph = new UnionGraph(ReadWriteUtils.loadResourceTTLFile("etc/spin.ttl").getGraph());
         spinGraph.addGraph(jenaSP.getBaseGraph());
-        OntGraphModel jenaSPIN = OntModelFactory.createModel(GraphTransformers.convert(spinGraph));
+        OntModel jenaSPIN = OntModelFactory.createModel(GraphTransformers.convert(spinGraph));
         OWLOntology owlSPIN = load(manager, "etc/spin.ttl");
         LOGGER.debug("SPIN(Jena): ");
         ReadWriteUtils.print(jenaSPIN);
@@ -227,7 +227,7 @@ public class GraphTransformersTest {
 
         UnionGraph splGraph = new UnionGraph(ReadWriteUtils.loadResourceTTLFile("etc/spl.spin.ttl").getGraph());
         splGraph.addGraph(jenaSPIN.getBaseGraph());
-        OntGraphModel jenaSPL = OntModelFactory.createModel(GraphTransformers.convert(splGraph));
+        OntModel jenaSPL = OntModelFactory.createModel(GraphTransformers.convert(splGraph));
         LOGGER.debug("SPL-SPIN(Jena): ");
         ReadWriteUtils.print(jenaSPL);
         LOGGER.debug("SPL-SPIN(Jena) All entities: ");
@@ -306,7 +306,7 @@ public class GraphTransformersTest {
 
         Assert.assertEquals(num - 2, store4.ids().peek(s -> LOGGER.debug("Store4::::{}", s)).count());
         Model m1 = ModelFactory.createDefaultModel();
-        OntGraphModel m2 = OntModelFactory.createModel().setID("http://x").getModel();
+        OntModel m2 = OntModelFactory.createModel().setID("http://x").getModel();
         store4.transform(m2.getGraph());
         store4.transform(m1.getGraph());
 
@@ -349,10 +349,10 @@ public class GraphTransformersTest {
             processed.add(Graphs.getName(m.createOntology(iri).asGraphModel().getGraph()));
         });
 
-        OntGraphModel c = OntModelFactory.createModel();
+        OntModel c = OntModelFactory.createModel();
         c.setID(iris.get(2)).addImport(iris.get(0)).addImport(iris.get(1));
         String c_txt = ReadWriteUtils.toString(c, OntFormat.TURTLE);
-        OntGraphModel d = OntModelFactory.createModel();
+        OntModel d = OntModelFactory.createModel();
         d.setID(iris.get(3)).addImport(c.getID().getURI());
         String d_txt = ReadWriteUtils.toString(d, OntFormat.TURTLE);
 
@@ -365,7 +365,7 @@ public class GraphTransformersTest {
         iris.forEach(i -> Assert.assertNotNull(m.getGraphModel(i)));
     }
 
-    private static void signatureTest(OWLOntology owl, OntGraphModel jena) {
+    private static void signatureTest(OWLOntology owl, OntModel jena) {
         List<String> expectedClasses = owlToList(owl.classesInSignature(Imports.INCLUDED));
         List<String> actualClasses = jenaToList(jena.classes());
         Assert.assertTrue("Classes", actualClasses.containsAll(expectedClasses));

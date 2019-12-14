@@ -19,7 +19,7 @@ import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTObjectPropertyImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntOPE;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import org.apache.jena.graph.Triple;
@@ -57,7 +57,7 @@ public class SubObjectPropertyOfTranslator extends AbstractSubPropertyTranslator
 
     @Override
     public ONTObject<OWLSubObjectPropertyOfAxiom> toAxiomImpl(OntStatement statement,
-                                                              Supplier<OntGraphModel> model,
+                                                              Supplier<OntModel> model,
                                                               InternalObjectFactory factory,
                                                               InternalConfig config) {
         return AxiomImpl.create(statement, model, factory, config);
@@ -82,11 +82,11 @@ public class SubObjectPropertyOfTranslator extends AbstractSubPropertyTranslator
             extends SubPropertyAxiomImpl<OWLSubObjectPropertyOfAxiom, OWLObjectPropertyExpression>
             implements OWLSubObjectPropertyOfAxiom {
 
-        protected AxiomImpl(Triple t, Supplier<OntGraphModel> m) {
+        protected AxiomImpl(Triple t, Supplier<OntModel> m) {
             super(t, m);
         }
 
-        protected AxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+        protected AxiomImpl(Object subject, String predicate, Object object, Supplier<OntModel> m) {
             super(subject, predicate, object, m);
         }
 
@@ -94,13 +94,13 @@ public class SubObjectPropertyOfTranslator extends AbstractSubPropertyTranslator
          * Creates an {@link ONTObject} container that is also {@link OWLSubObjectPropertyOfAxiom}.
          *
          * @param statement {@link OntStatement}, not {@code null}
-         * @param model     {@link OntGraphModel} provider, not {@code null}
+         * @param model     {@link OntModel} provider, not {@code null}
          * @param factory   {@link InternalObjectFactory}, not {@code null}
          * @param config    {@link InternalConfig}, not {@code null}
          * @return {@link AxiomImpl}
          */
         public static AxiomImpl create(OntStatement statement,
-                                       Supplier<OntGraphModel> model,
+                                       Supplier<OntModel> model,
                                        InternalObjectFactory factory,
                                        InternalConfig config) {
             return WithTwoObjects.create(statement, model,
@@ -147,9 +147,9 @@ public class SubObjectPropertyOfTranslator extends AbstractSubPropertyTranslator
          */
         protected static class SimpleImpl extends AxiomImpl implements UnarySimple<OWLObjectPropertyExpression> {
 
-            private static final BiFunction<Triple, Supplier<OntGraphModel>, SimpleImpl> FACTORY = SimpleImpl::new;
+            private static final BiFunction<Triple, Supplier<OntModel>, SimpleImpl> FACTORY = SimpleImpl::new;
 
-            protected SimpleImpl(Triple t, Supplier<OntGraphModel> m) {
+            protected SimpleImpl(Triple t, Supplier<OntModel> m) {
                 super(t, m);
             }
 
@@ -180,14 +180,14 @@ public class SubObjectPropertyOfTranslator extends AbstractSubPropertyTranslator
         public static class ComplexImpl extends AxiomImpl
                 implements UnaryWithContent<ComplexImpl, OWLObjectPropertyExpression> {
 
-            private static final BiFunction<Triple, Supplier<OntGraphModel>, ComplexImpl> FACTORY = ComplexImpl::new;
+            private static final BiFunction<Triple, Supplier<OntModel>, ComplexImpl> FACTORY = ComplexImpl::new;
             protected final InternalCache.Loading<ComplexImpl, Object[]> content;
 
-            public ComplexImpl(Triple t, Supplier<OntGraphModel> m) {
+            public ComplexImpl(Triple t, Supplier<OntModel> m) {
                 this(strip(t.getSubject()), t.getPredicate().getURI(), strip(t.getObject()), m);
             }
 
-            protected ComplexImpl(Object s, String p, Object o, Supplier<OntGraphModel> m) {
+            protected ComplexImpl(Object s, String p, Object o, Supplier<OntModel> m) {
                 super(s, p, o, m);
                 this.content = createContentCache();
             }

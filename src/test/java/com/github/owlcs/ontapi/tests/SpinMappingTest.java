@@ -19,8 +19,8 @@ import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.jena.OntModelFactory;
 import com.github.owlcs.ontapi.jena.model.OntClass;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
 import com.github.owlcs.ontapi.jena.model.OntIndividual;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntNDP;
 import com.github.owlcs.ontapi.jena.vocabulary.XSD;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
@@ -88,9 +88,9 @@ public class SpinMappingTest {
     public void main() throws Exception {
         loadSpinModels();
 
-        OntGraphModel source = createSourceModel();
-        OntGraphModel target = createTargetModel();
-        OntGraphModel mapping = composeMapping(source, target);
+        OntModel source = createSourceModel();
+        OntModel target = createTargetModel();
+        OntModel mapping = composeMapping(source, target);
         Assert.assertEquals("Incorrect ontologies count", SpinModels.values().length + 3, manager.ontologies().count());
 
         ReadWriteUtils.print(mapping);
@@ -102,7 +102,7 @@ public class SpinMappingTest {
         validate(source, target);
     }
 
-    public void validate(OntGraphModel source, OntGraphModel target) {
+    public void validate(OntModel source, OntModel target) {
         LOGGER.debug("Validate.");
         OntClass targetClass = target.classes().findFirst().orElse(null);
         OntNDP targetProperty = target.dataProperties().findFirst().orElse(null);
@@ -125,19 +125,19 @@ public class SpinMappingTest {
      * The <a href='http://topbraid.org/spin/spinmapl#self'>spinmapl:self</a> is used as target function.
      * To make new DataProperty Assertion there is <a href='http://topbraid.org/spin/spinmapl#concatWithSeparator'>spinmapl:concatWithSeparator</a>
      *
-     * @param source {@link OntGraphModel} the model which contains one class, two datatype properties, several individuals and DataProperty Sssertions for them.
-     * @param target {@link OntGraphModel} the model which contains one class and one datatype property
-     * @return {@link OntGraphModel} mapping model.
+     * @param source {@link OntModel} the model which contains one class, two datatype properties, several individuals and DataProperty Sssertions for them.
+     * @param target {@link OntModel} the model which contains one class and one datatype property
+     * @return {@link OntModel} mapping model.
      */
-    public OntGraphModel composeMapping(OntGraphModel source, OntGraphModel target) {
+    public OntModel composeMapping(OntModel source, OntModel target) {
         LOGGER.debug("Compose mapping.");
         OntClass sourceClass = source.classes().findFirst().orElseThrow(AssertionError::new);
         OntClass targetClass = target.classes().findFirst().orElseThrow(AssertionError::new);
         List<OntNDP> sourceProperties = source.dataProperties().collect(Collectors.toList());
         OntNDP targetProperty = target.dataProperties().findFirst().orElse(null);
 
-        OntGraphModel mapping = manager.createGraphModel("http://spin.owlcs.ru");
-        OntGraphModel spinmapl = manager.getGraphModel(SpinModels.SPINMAPL.getIRI().getIRIString());
+        OntModel mapping = manager.createGraphModel("http://spin.owlcs.ru");
+        OntModel spinmapl = manager.getGraphModel(SpinModels.SPINMAPL.getIRI().getIRIString());
 
         mapping.addImport(spinmapl).addImport(source).addImport(target).setNsPrefixes(OntModelFactory.STANDARD);
 
@@ -175,13 +175,13 @@ public class SpinMappingTest {
      * result model must contain one owl:Class, two owl:DatatypeProperty
      * and several individuals (owl:NamedIndividual) with DataProperty assertions.
      *
-     * @return {@link OntGraphModel} the model.
+     * @return {@link OntModel} the model.
      */
-    public OntGraphModel createSourceModel() {
+    public OntModel createSourceModel() {
         LOGGER.debug("Create the source model.");
         String uri = "http://source.owlcs.ru";
         String ns = uri + "#";
-        OntGraphModel res = manager.createGraphModel(uri).setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel res = manager.createGraphModel(uri).setNsPrefixes(OntModelFactory.STANDARD);
         OntClass clazz = res.createOntClass(ns + "ClassSource");
         OntNDP prop1 = res.createDataProperty(ns + "prop1").addRange(XSD.xstring).addDomain(clazz);
         OntNDP prop2 = res.createDataProperty(ns + "prop2").addRange(XSD.integer).addDomain(clazz);
@@ -202,13 +202,13 @@ public class SpinMappingTest {
     /**
      * result model must contain one owl:Class and one owl:DatatypeProperty.
      *
-     * @return {@link OntGraphModel} the model.
+     * @return {@link OntModel} the model.
      */
-    public OntGraphModel createTargetModel() {
+    public OntModel createTargetModel() {
         LOGGER.debug("Create the target model.");
         String uri = "http://target.owlcs.ru";
         String ns = uri + "#";
-        OntGraphModel res = manager.createGraphModel(uri).setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel res = manager.createGraphModel(uri).setNsPrefixes(OntModelFactory.STANDARD);
         OntClass clazz = res.createOntClass(ns + "ClassTarget");
         res.createDataProperty(ns + "targetProperty").addRange(XSD.xstring).addDomain(clazz);
         Ontology o = manager.getOntology(IRI.create(uri));

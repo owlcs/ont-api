@@ -21,7 +21,7 @@ import com.github.owlcs.ontapi.internal.objects.ONTAxiomImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTObjectImpl;
 import com.github.owlcs.ontapi.internal.objects.WithContent;
 import com.github.owlcs.ontapi.internal.objects.WithoutAnnotations;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.owlapi.OWLObjectImpl;
@@ -169,7 +169,7 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
      * Note: this is an auxiliary method as shortcut to reduce copy-pasting, it is for internal usage only.
      *
      * @param statement {@link OntStatement}, the source to parse, not {@code null}
-     * @param model     {@link OntGraphModel}-provider, not {@code null}
+     * @param model     {@link OntModel}-provider, not {@code null}
      * @param simple    factory (as {@link BiFunction}) to provide {@link Simple} instance, not {@code null}
      * @param complex   factory (as {@link BiFunction}) to provide {@link Complex} instance, not {@code null}
      * @param setHash   {@code ObjIntConsumer<OWLAxiom>}, facility to assign {@code hashCode}, not {@code null}
@@ -179,9 +179,9 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
      * @return {@link R}
      */
     static <R extends ONTObject & WithManyObjects> R create(OntStatement statement,
-                                                            Supplier<OntGraphModel> model,
-                                                            BiFunction<Triple, Supplier<OntGraphModel>, ? extends R> simple,
-                                                            BiFunction<Triple, Supplier<OntGraphModel>, ? extends R> complex,
+                                                            Supplier<OntModel> model,
+                                                            BiFunction<Triple, Supplier<OntModel>, ? extends R> simple,
+                                                            BiFunction<Triple, Supplier<OntModel>, ? extends R> complex,
                                                             ObjIntConsumer<OWLAxiom> setHash,
                                                             InternalObjectFactory factory,
                                                             InternalConfig config) {
@@ -203,7 +203,7 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
      * that are mapped from {@link com.github.owlcs.ontapi.jena.model.OntDisjoint} list-based anonymous resources.
      *
      * @param statement {@link OntStatement}, the source to parse, not {@code null}
-     * @param model     {@link OntGraphModel}-provider, not {@code null}
+     * @param model     {@link OntModel}-provider, not {@code null}
      * @param maker     factory (as {@link BiFunction}) to provide {@link Complex} instance, not {@code null}
      * @param setHash   {@code ObjIntConsumer<OWLAxiom>}, facility to assign {@code hashCode}, not {@code null}
      * @param factory   {@link InternalObjectFactory} (singleton), not {@code null}
@@ -212,8 +212,8 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
      * @return {@link R}
      */
     static <R extends ONTObject & Complex> R create(OntStatement statement,
-                                                    Supplier<OntGraphModel> model,
-                                                    BiFunction<Triple, Supplier<OntGraphModel>, ? extends R> maker,
+                                                    Supplier<OntModel> model,
+                                                    BiFunction<Triple, Supplier<OntModel>, ? extends R> maker,
                                                     ObjIntConsumer<OWLAxiom> setHash,
                                                     InternalObjectFactory factory,
                                                     InternalConfig config) {

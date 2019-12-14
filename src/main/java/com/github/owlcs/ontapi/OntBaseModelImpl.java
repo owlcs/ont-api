@@ -15,7 +15,7 @@
 package com.github.owlcs.ontapi;
 
 import com.github.owlcs.ontapi.internal.InternalModel;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.owlapi.OWLObjectImpl;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.mem.GraphMem;
@@ -1107,8 +1107,8 @@ public abstract class OntBaseModelImpl implements OWLOntology, BaseModel {
         if (!(obj instanceof Ontology)) {
             return false;
         }
-        OntGraphModel right = ((Ontology) obj).asGraphModel();
-        OntGraphModel left = getBase();
+        OntModel right = ((Ontology) obj).asGraphModel();
+        OntModel left = getBase();
         return left.getID().sameAs(right.getID());
     }
 }

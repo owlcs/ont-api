@@ -19,7 +19,7 @@ import com.github.owlcs.ontapi.internal.InternalObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.jena.model.OntDR;
 import com.github.owlcs.ontapi.jena.model.OntDT;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
 import com.github.owlcs.ontapi.owlapi.objects.OWLLiteralImpl;
 import org.apache.jena.graph.BlankNodeId;
@@ -50,22 +50,22 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
         extends ONTExpressionImpl<ONT>
         implements OWLDataRange, ModelObject<OWL> {
 
-    protected ONTAnonymousDataRangeImpl(BlankNodeId id, Supplier<OntGraphModel> m) {
+    protected ONTAnonymousDataRangeImpl(BlankNodeId id, Supplier<OntModel> m) {
         super(id, m);
     }
 
     /**
      * Wraps the given {@link OntDR} as {@link OWLDataRange} and {@link ONTObject}.
      *
-     * @param dr    {@link OntDR}, not {@code null}, must be anonymous
+     * @param dr      {@link OntDR}, not {@code null}, must be anonymous
      * @param factory {@link InternalObjectFactory}, not {@code null}
-     * @param model a provider of non-null {@link OntGraphModel}, not {@code null}
+     * @param model   a provider of non-null {@link OntModel}, not {@code null}
      * @return {@link ONTAnonymousDataRangeImpl} instance
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static ONTAnonymousDataRangeImpl create(OntDR dr,
                                                    InternalObjectFactory factory,
-                                                   Supplier<OntGraphModel> model) {
+                                                   Supplier<OntModel> model) {
         Class<? extends OntDR> type = OntModels.getOntType(dr);
         BlankNodeId id = dr.asNode().getBlankNodeId();
         ONTAnonymousDataRangeImpl res = create(id, type, model);
@@ -79,12 +79,12 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
      *
      * @param id    {@link BlankNodeId}, not {@code null}
      * @param type  {@code Class}, not {@code null}
-     * @param model a provider of non-null {@link OntGraphModel}, not {@code null}
+     * @param model a provider of non-null {@link OntModel}, not {@code null}
      * @return {@link ONTAnonymousDataRangeImpl} instance
      */
     public static ONTAnonymousDataRangeImpl<?, ?> create(BlankNodeId id,
                                                          Class<? extends OntDR> type,
-                                                         Supplier<OntGraphModel> model) {
+                                                         Supplier<OntModel> model) {
         if (OntDR.UnionOf.class == type) {
             return new UF(id, model);
         }
@@ -151,7 +151,7 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
     public static class UF
             extends WithDRMembers<OntDR.UnionOf, OWLDataUnionOf> implements OWLDataUnionOf {
 
-        protected UF(BlankNodeId id, Supplier<OntGraphModel> m) {
+        protected UF(BlankNodeId id, Supplier<OntModel> m) {
             super(id, m);
         }
 
@@ -174,7 +174,7 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
             extends WithDRMembers<OntDR.IntersectionOf, OWLDataIntersectionOf>
             implements OWLDataIntersectionOf {
 
-        protected IF(BlankNodeId id, Supplier<OntGraphModel> m) {
+        protected IF(BlankNodeId id, Supplier<OntModel> m) {
             super(id, m);
         }
 
@@ -196,7 +196,7 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
     public static class OF
             extends WithMembers<Literal, OntDR.OneOf, OWLLiteral, OWLDataOneOf> implements OWLDataOneOf {
 
-        protected OF(BlankNodeId id, Supplier<OntGraphModel> m) {
+        protected OF(BlankNodeId id, Supplier<OntModel> m) {
             super(id, m);
         }
 
@@ -239,7 +239,7 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
             extends ONTAnonymousDataRangeImpl<OntDR.Restriction, OWLDatatypeRestriction>
             implements OWLDatatypeRestriction {
 
-        protected R(BlankNodeId id, Supplier<OntGraphModel> m) {
+        protected R(BlankNodeId id, Supplier<OntModel> m) {
             super(id, m);
         }
 
@@ -338,7 +338,7 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
     public static class CF
             extends ONTAnonymousDataRangeImpl<OntDR.ComplementOf, OWLDataComplementOf> implements OWLDataComplementOf {
 
-        public CF(BlankNodeId id, Supplier<OntGraphModel> m) {
+        public CF(BlankNodeId id, Supplier<OntModel> m) {
             super(id, m);
         }
 
@@ -386,7 +386,7 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
     protected abstract static class WithDRMembers<ONT extends OntDR.ComponentsDR<OntDR>, OWL extends OWLDataRange>
             extends WithMembers<OntDR, ONT, OWLDataRange, OWL> {
 
-        protected WithDRMembers(BlankNodeId id, Supplier<OntGraphModel> m) {
+        protected WithDRMembers(BlankNodeId id, Supplier<OntModel> m) {
             super(id, m);
         }
 
@@ -414,7 +414,7 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDR, OWL extends O
             extends ONTAnonymousDataRangeImpl<ONT_D, OWL_D>
             implements HasOperands<OWL_M>, HasComponents {
 
-        protected WithMembers(BlankNodeId id, Supplier<OntGraphModel> m) {
+        protected WithMembers(BlankNodeId id, Supplier<OntModel> m) {
             super(id, m);
         }
 

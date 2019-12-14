@@ -19,7 +19,7 @@ import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.jena.model.OntCE;
 import com.github.owlcs.ontapi.jena.model.OntClass;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntOPE;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
@@ -72,7 +72,7 @@ public class DisjointClassesOntModelTest extends OntModelTestBase {
         OntIRI iri = OntIRI.create("http://test.test/complex");
         OntIRI ver = OntIRI.create("http://test.test/complex/version-iri/1.0");
         Ontology result = OntManagers.createONT().createOntology(iri.toOwlOntologyID());
-        OntGraphModel jena = result.asGraphModel()
+        OntModel jena = result.asGraphModel()
                 .setNsPrefix("", iri.getIRIString() + "#")
                 .getID().setVersionIRI(ver.getIRIString())
                 .getModel();

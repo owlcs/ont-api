@@ -18,7 +18,7 @@ import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.ONTAxiomImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTClassImpl;
 import com.github.owlcs.ontapi.jena.model.OntCE;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntPE;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
@@ -39,14 +39,14 @@ import java.util.function.Supplier;
 public abstract class AbstractPropertyDomainTranslator<Axiom extends OWLAxiom & HasDomain<?> & HasProperty<?>,
         P extends OntPE> extends AxiomTranslator<Axiom> {
     @Override
-    public void write(Axiom axiom, OntGraphModel model) {
+    public void write(Axiom axiom, OntModel model) {
         WriteHelper.writeTriple(model, axiom.getProperty(), RDFS.domain, axiom.getDomain(), axiom.annotationsAsList());
     }
 
     abstract Class<P> getView();
 
     @Override
-    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
+    public ExtendedIterator<OntStatement> listStatements(OntModel model, InternalConfig config) {
         return OntModels.listLocalStatements(model, null, RDFS.domain, null).filterKeep(s -> filter(s, config));
     }
 
@@ -71,11 +71,11 @@ public abstract class AbstractPropertyDomainTranslator<Axiom extends OWLAxiom & 
             P extends OWLPropertyExpression, D extends OWLObject>
             extends ONTAxiomImpl<A> implements WithTwoObjects<P, D> {
 
-        protected DomainAxiomImpl(Triple t, Supplier<OntGraphModel> m) {
+        protected DomainAxiomImpl(Triple t, Supplier<OntModel> m) {
             super(t, m);
         }
 
-        protected DomainAxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+        protected DomainAxiomImpl(Object subject, String predicate, Object object, Supplier<OntModel> m) {
             super(subject, predicate, object, m);
         }
 
@@ -96,11 +96,11 @@ public abstract class AbstractPropertyDomainTranslator<Axiom extends OWLAxiom & 
     protected abstract static class ClassDomainAxiomImpl<A extends OWLAxiom & HasProperty<P> & HasDomain<OWLClassExpression>,
             P extends OWLPropertyExpression> extends DomainAxiomImpl<A, P, OWLClassExpression> {
 
-        protected ClassDomainAxiomImpl(Triple t, Supplier<OntGraphModel> m) {
+        protected ClassDomainAxiomImpl(Triple t, Supplier<OntModel> m) {
             super(t, m);
         }
 
-        protected ClassDomainAxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+        protected ClassDomainAxiomImpl(Object subject, String predicate, Object object, Supplier<OntModel> m) {
             super(subject, predicate, object, m);
         }
 

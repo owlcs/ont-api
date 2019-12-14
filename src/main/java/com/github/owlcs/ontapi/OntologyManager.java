@@ -17,7 +17,7 @@ package com.github.owlcs.ontapi;
 import com.github.owlcs.ontapi.config.OntConfig;
 import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
 import com.github.owlcs.ontapi.config.OntWriterConfiguration;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import org.apache.jena.graph.Graph;
 import org.semanticweb.owlapi.io.*;
 import org.semanticweb.owlapi.model.*;
@@ -30,7 +30,6 @@ import java.io.InputStream;
 import java.io.Serializable;
 import java.util.Set;
 import java.util.stream.Stream;
-
 
 /**
  * An ONT-API Ontology manager, which is an extended {@link OWLOntologyManager OWL-API manager}.
@@ -47,9 +46,6 @@ import java.util.stream.Stream;
  * <li>{@link #models()}</li>
  * <li>{@link #getGraphModel(String)}</li>
  * <li>{@link #getGraphModel(String, String)}</li>
- * <li>{@code addDocumentSourceMapper(mapping)} - since 1.0.1, now deprecated</li>
- * <li>{@code removeDocumentSourceMapper(mapping)} - since 1.0.1, now deprecated</li>
- * <li>{@code documentSourceMappers()} - since 1.0.1, now deprecated</li>
  * <li>{@link #getDocumentSourceMappers()} - since 1.3.0</li>
  * </ul>
  * <p>
@@ -163,6 +159,24 @@ public interface OntologyManager extends OWLOntologyManager {
     RWLockedCollection<OWLOntologyFactory> getOntologyFactories();
 
     /**
+     * Sets the collection of ontology factories.
+     * Warning: if the given collection ({@code factories})
+     * contains an instance that does not implement {@link OntologyFactory}, then an exception is expected.
+     * This method also takes into account {@link org.semanticweb.owlapi.annotations.HasPriority} annotation.
+     * But I don't think anyone uses that ordering mechanism, at least with ONT-API.
+     *
+     * @param factories the factories to be injected
+     * @throws OntApiException in case input Set contains a not {@link OntologyFactory} implementation
+     * @see #getOntologyFactories()
+     * @deprecated use {@code getOntologyFactories().set(factories)} instead
+     */
+    @Deprecated
+    @Override
+    default void setOntologyFactories(Set<OWLOntologyFactory> factories) throws OntApiException {
+        getOntologyFactories().set(factories);
+    }
+
+    /**
      * Gets an {@link RWLockedCollection extended OWL-API PriorityCollection} of {@link OWLOntologyIRIMapper IRI Mappers}
      * The mappers are used to obtain ontology document IRIs for ontology IRIs.
      * If their type is annotated with a {@link org.semanticweb.owlapi.annotations.HasPriority HasPriority} type,
@@ -174,6 +188,23 @@ public interface OntologyManager extends OWLOntologyManager {
      */
     @Override
     RWLockedCollection<OWLOntologyIRIMapper> getIRIMappers();
+
+    /**
+     * Sets the collection of IRI mappers.
+     * The mappers are used to obtain ontology document IRIs for ontology IRIs.
+     * If their type is annotated with a {@link org.semanticweb.owlapi.annotations.HasPriority HasPriority} type,
+     * this will be used to decide the order they are used.
+     * Otherwise, the order in which the collection is iterated will determine the order in which the mappers are used.
+     *
+     * @param mappers Set of {@link OWLOntologyIRIMapper IRI mappers} to be injected
+     * @see #getIRIMappers()
+     * @deprecated use {@code getIRIMappers().set(mappers)} instead
+     */
+    @Deprecated
+    @Override
+    default void setIRIMappers(Set<OWLOntologyIRIMapper> mappers) {
+        getIRIMappers().set(mappers);
+    }
 
     /**
      * Gets an {@link RWLockedCollection extended OWL-API PriorityCollection}
@@ -198,6 +229,19 @@ public interface OntologyManager extends OWLOntologyManager {
     RWLockedCollection<OWLParserFactory> getOntologyParsers();
 
     /**
+     * Sets the java.util.Set of OWL parsers into the manager.
+     *
+     * @param parsers Set of {@link OWLParserFactory}s
+     * @see #getOntologyParsers()
+     * @deprecated use {@code getOntologyParsers().set(parsers)} instead
+     */
+    @Deprecated
+    @Override
+    default void setOntologyParsers(Set<OWLParserFactory> parsers) {
+        getOntologyParsers().set(parsers);
+    }
+
+    /**
      * Gets an {@link RWLockedCollection extended OWL-API PriorityCollection} of {@link OWLStorerFactory OWL Storers}.
      * About ordering see {@link org.semanticweb.owlapi.annotations.HasPriority HasPriority} annotation.
      *
@@ -205,6 +249,19 @@ public interface OntologyManager extends OWLOntologyManager {
      */
     @Override
     RWLockedCollection<OWLStorerFactory> getOntologyStorers();
+
+    /**
+     * Sets the java.util.Set of OWL storers into the manager.
+     *
+     * @param storers Set of {@link OWLStorerFactory}s
+     * @see #getOntologyStorers()
+     * @deprecated use {@code getOntologyStorers().set(storers)} instead
+     */
+    @Deprecated
+    @Override
+    default void setOntologyStorers(Set<OWLStorerFactory> storers) {
+        getOntologyStorers().set(storers);
+    }
 
     /**
      * Gets the ontology by the given {@code iri}.
@@ -427,41 +484,6 @@ public interface OntologyManager extends OWLOntologyManager {
     }
 
     /**
-     * Sets the collection of ontology factories.
-     * Warning: if the given collection ({@code factories})
-     * contains an instance that does not implement {@link OntologyFactory}, then an exception is expected.
-     * This method also takes into account {@link org.semanticweb.owlapi.annotations.HasPriority} annotation.
-     * But I don't think anyone uses that ordering mechanism, at least with ONT-API.
-     *
-     * @param factories the factories to be injected
-     * @throws OntApiException in case input Set contains a not {@link OntologyFactory} implementation
-     * @see #getOntologyFactories()
-     * @deprecated use {@code getOntologyFactories().set(factories)} instead
-     */
-    @Deprecated
-    @Override
-    default void setOntologyFactories(Set<OWLOntologyFactory> factories) throws OntApiException {
-        getOntologyFactories().set(factories);
-    }
-
-    /**
-     * Sets the collection of IRI mappers.
-     * The mappers are used to obtain ontology document IRIs for ontology IRIs.
-     * If their type is annotated with a {@link org.semanticweb.owlapi.annotations.HasPriority HasPriority} type,
-     * this will be used to decide the order they are used.
-     * Otherwise, the order in which the collection is iterated will determine the order in which the mappers are used.
-     *
-     * @param mappers Set of {@link OWLOntologyIRIMapper IRI mappers} to be injected
-     * @see #getIRIMappers()
-     * @deprecated use {@code getIRIMappers().set(mappers)} instead
-     */
-    @Deprecated
-    @Override
-    default void setIRIMappers(Set<OWLOntologyIRIMapper> mappers) {
-        getIRIMappers().set(mappers);
-    }
-
-    /**
      * Adds an IRI mapper to the manager.
      *
      * @param mapper {@link OWLOntologyIRIMapper}, not {@code null}
@@ -497,32 +519,6 @@ public interface OntologyManager extends OWLOntologyManager {
     @Override
     default void clearIRIMappers() {
         getIRIMappers().clear();
-    }
-
-    /**
-     * Sets the java.util.Set of OWL parsers into the manager.
-     *
-     * @param parsers Set of {@link OWLParserFactory}s
-     * @see #getOntologyParsers()
-     * @deprecated use {@code getOntologyParsers().set(parsers)} instead
-     */
-    @Deprecated
-    @Override
-    default void setOntologyParsers(Set<OWLParserFactory> parsers) {
-        getOntologyParsers().set(parsers);
-    }
-
-    /**
-     * Sets the java.util.Set of OWL storers into the manager.
-     *
-     * @param storers Set of {@link OWLStorerFactory}s
-     * @see #getOntologyStorers()
-     * @deprecated use {@code getOntologyStorers().set(storers)} instead
-     */
-    @Deprecated
-    @Override
-    default void setOntologyStorers(Set<OWLStorerFactory> storers) {
-        getOntologyStorers().set(storers);
     }
 
     /**
@@ -686,56 +682,56 @@ public interface OntologyManager extends OWLOntologyManager {
     }
 
     /**
-     * Gets {@link OntGraphModel Ontology Graph Model} by the ontology and version IRIs passed as strings.
+     * Gets {@link OntModel Ontology Graph Model} by the ontology and version IRIs passed as strings.
      *
      * @param iri     String, can be {@code null} to find anonymous ontology
      * @param version String, must be {@code null} if {@code iri} is {@code null}
-     * @return {@link OntGraphModel} or {@code null} if no ontology found
+     * @return {@link OntModel} or {@code null} if no ontology found
      */
-    default OntGraphModel getGraphModel(@Nullable String iri, @Nullable String version) {
+    default OntModel getGraphModel(@Nullable String iri, @Nullable String version) {
         ID id = ID.create(iri, version);
         Ontology res = getOntology(id);
         return res == null ? null : res.asGraphModel();
     }
 
     /**
-     * Gets {@link OntGraphModel Ontology Graph Model} by the ontology IRI.
+     * Gets {@link OntModel Ontology Graph Model} by the ontology IRI.
      *
      * @param iri String, can be {@code null} to find anonymous ontology
-     * @return {@link OntGraphModel} or {@code null} if no ontology found
+     * @return {@link OntModel} or {@code null} if no ontology found
      */
-    default OntGraphModel getGraphModel(@Nullable String iri) {
+    default OntModel getGraphModel(@Nullable String iri) {
         return getGraphModel(iri, null);
     }
 
     /**
-     * Creates an {@link OntGraphModel Ontology Graph Model} with specified ontology and version IRIs.
+     * Creates an {@link OntModel Ontology Graph Model} with specified ontology and version IRIs.
      *
      * @param iri     String, can be {@code null} to create anonymous ontology
      * @param version String, must be {@code null} if {@code iri} is {@code null}
-     * @return {@link OntGraphModel}
+     * @return {@link OntModel}
      */
-    default OntGraphModel createGraphModel(@Nullable String iri, @Nullable String version) {
+    default OntModel createGraphModel(@Nullable String iri, @Nullable String version) {
         return createOntology(ID.create(iri, version)).asGraphModel();
     }
 
     /**
-     * Creates an {@link OntGraphModel Ontology Graph Model} with specified IRI.
+     * Creates an {@link OntModel Ontology Graph Model} with specified IRI.
      *
      * @param iri String, can be {@code null} to create anonymous ontology
-     * @return {@link OntGraphModel}
+     * @return {@link OntModel}
      */
-    default OntGraphModel createGraphModel(@Nullable String iri) {
+    default OntModel createGraphModel(@Nullable String iri) {
         return createGraphModel(iri, null);
     }
 
     /**
-     * Lists all {@link OntGraphModel Ontology Graph Model}s from the manager.
+     * Lists all {@link OntModel Ontology Graph Model}s from the manager.
      *
-     * @return {@code Stream} of {@link OntGraphModel}
+     * @return {@code Stream} of {@link OntModel}
      * @see #ontologies()
      */
-    default Stream<OntGraphModel> models() {
+    default Stream<OntModel> models() {
         return ontologies().map(Ontology.class::cast).map(Ontology::asGraphModel);
     }
 

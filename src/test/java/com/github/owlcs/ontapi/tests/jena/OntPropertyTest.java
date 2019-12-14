@@ -14,15 +14,15 @@
 
 package com.github.owlcs.ontapi.tests.jena;
 
+import com.github.owlcs.ontapi.jena.OntModelFactory;
+import com.github.owlcs.ontapi.jena.model.*;
+import com.github.owlcs.ontapi.jena.vocabulary.XSD;
+import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import org.apache.jena.vocabulary.RDFS;
 import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.github.owlcs.ontapi.jena.OntModelFactory;
-import com.github.owlcs.ontapi.jena.model.*;
-import com.github.owlcs.ontapi.jena.vocabulary.XSD;
-import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 
 import java.util.Arrays;
 
@@ -39,7 +39,7 @@ public class OntPropertyTest {
     public void testCreateProperties() {
         String ns = "http://test.com/graph/7#";
 
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD).setNsPrefix("test", ns);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD).setNsPrefix("test", ns);
         OntNAP a1 = m.createAnnotationProperty(ns + "a-p-1");
         OntNAP a2 = m.createAnnotationProperty(ns + "a-p-2");
         m.createObjectProperty(ns + "o-p-1");
@@ -60,7 +60,7 @@ public class OntPropertyTest {
 
     @Test
     public void testListPropertyHierarchy() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntNDP da = m.createDataProperty("dA");
         OntNDP db = m.createDataProperty("dB");
 
@@ -108,7 +108,7 @@ public class OntPropertyTest {
 
     @Test
     public void testAnnotationPropertyDomainsAndRanges() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntNAP p = m.createAnnotationProperty("A");
         Assert.assertNotNull(p.addRangeStatement(m.getRDFSComment()));
         Assert.assertNotNull(p.addDomainStatement(m.getRDFSComment()));
@@ -123,7 +123,7 @@ public class OntPropertyTest {
 
     @Test
     public void testDataPropertyDomainsAndRanges() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntClass c = m.createOntClass("C");
         OntDT d = m.getDatatype(XSD.xstring);
         OntNDP p = m.createDataProperty("D");
@@ -143,7 +143,7 @@ public class OntPropertyTest {
 
     @Test
     public void testObjectPropertyDomainsAndRanges() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntClass c = m.createOntClass("C");
         OntNOP p = m.createObjectProperty("O");
         Assert.assertNotNull(p.addRangeStatement(m.getOWLThing()));
@@ -162,7 +162,7 @@ public class OntPropertyTest {
 
     @Test
     public void testAnnotationSuperProperties() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntNAP p = m.createAnnotationProperty("A");
         Assert.assertNotNull(p.addSubPropertyOfStatement(m.getRDFSComment()));
         Assert.assertSame(p, p.addSuperProperty(m.getRDFSLabel())
@@ -177,7 +177,7 @@ public class OntPropertyTest {
 
     @Test
     public void testDataSuperProperties() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntNDP p1 = m.createDataProperty("D");
         OntNDP p2 = m.createDataProperty("P");
         Assert.assertNotNull(p1.addSubPropertyOfStatement(m.getOWLBottomDataProperty()));
@@ -193,7 +193,7 @@ public class OntPropertyTest {
 
     @Test
     public void testObjectSuperProperties() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntNOP p1 = m.createObjectProperty("O");
         OntNOP p2 = m.createObjectProperty("P");
         Assert.assertNotNull(p1.addSubPropertyOfStatement(m.getOWLBottomObjectProperty()));
@@ -209,7 +209,7 @@ public class OntPropertyTest {
 
     @Test
     public void testDataPropertyAdditionalDeclarations() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntNDP p = m.createDataProperty("P");
         Assert.assertNotNull(p.addFunctionalDeclaration());
         Assert.assertTrue(p.isFunctional());
@@ -219,7 +219,7 @@ public class OntPropertyTest {
 
     @Test
     public void testObjectPropertyAdditionalDeclarations() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntNOP p = m.createObjectProperty("P");
         Assert.assertNotNull(p.addFunctionalDeclaration().getSubject(OntOPE.class)
                 .addInverseFunctionalDeclaration().getSubject(OntOPE.class)
@@ -258,7 +258,7 @@ public class OntPropertyTest {
 
     @Test
     public void testPropertyChains() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntNOP p = m.createObjectProperty("P");
         OntNOP p1 = m.createObjectProperty("P1");
         OntNOP p2 = m.createObjectProperty("P2");
@@ -271,7 +271,7 @@ public class OntPropertyTest {
 
     @Test
     public void testObjectPropertyInverseOf() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntNOP a = m.createObjectProperty("A");
         OntNOP b = m.createObjectProperty("B");
         OntNOP c = m.createObjectProperty("C");
@@ -288,7 +288,7 @@ public class OntPropertyTest {
 
     @Test
     public void testDataPropertyEquivalentProperties() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntNDP a = m.createDataProperty("A");
         OntNDP b = m.createDataProperty("B");
         OntNDP c = m.createDataProperty("C");
@@ -303,7 +303,7 @@ public class OntPropertyTest {
 
     @Test
     public void testObjectPropertyEquivalentProperties() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntNOP a = m.createObjectProperty("A");
         OntNOP b = m.createObjectProperty("B");
         OntNOP c = m.createObjectProperty("C");
@@ -318,7 +318,7 @@ public class OntPropertyTest {
 
     @Test
     public void testDataPropertyDisjointProperties() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntNDP a = m.createDataProperty("A");
         OntNDP b = m.createDataProperty("B");
         OntNDP c = m.createDataProperty("C");
@@ -333,7 +333,7 @@ public class OntPropertyTest {
 
     @Test
     public void testObjectPropertyDisjointProperties() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntNOP a = m.createObjectProperty("A");
         OntNOP b = m.createObjectProperty("B");
         OntNOP c = m.createObjectProperty("C");

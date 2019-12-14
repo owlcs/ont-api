@@ -19,7 +19,7 @@ import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.ONTWrapperImpl;
 import com.github.owlcs.ontapi.internal.WriteHelper;
 import com.github.owlcs.ontapi.jena.model.OntDisjoint;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntObject;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
@@ -56,7 +56,7 @@ public abstract class AbstractTwoWayNaryTranslator<Axiom extends OWLAxiom & OWLN
         OWL extends OWLObject & IsAnonymous, ONT extends OntObject> extends AbstractNaryTranslator<Axiom, OWL, ONT> {
 
     @Override
-    public void write(Axiom axiom, OntGraphModel model) {
+    public void write(Axiom axiom, OntModel model) {
         List<OWL> operands = axiom.getOperandsAsList();
         List<OWLAnnotation> annotations = axiom.annotationsAsList();
         if (operands.isEmpty() && annotations.isEmpty()) { // nothing to write, skip
@@ -75,7 +75,7 @@ public abstract class AbstractTwoWayNaryTranslator<Axiom extends OWLAxiom & OWLN
     }
 
     @Override
-    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
+    public ExtendedIterator<OntStatement> listStatements(OntModel model, InternalConfig config) {
         return super.listStatements(model, config)
                 .andThen(OntModels.listLocalObjects(model, getDisjointView()).mapWith(OntObject::getRoot));
     }

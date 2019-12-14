@@ -244,7 +244,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
         return ResourceFactory.createTypedLiteral(String.valueOf(n), CardinalityType.NON_NEGATIVE_INTEGER);
     }
 
-    private static Resource createRestriction(OntGraphModel model) {
+    private static Resource createRestriction(OntModel model) {
         return model.createResource(OWL.Restriction);
     }
 
@@ -948,7 +948,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntCE {
 
         @SuppressWarnings("unchecked")
         private O getUnqualifiedValue() {
-            OntGraphModel m = getModel();
+            OntModel m = getModel();
             return (O) (OntCE.class.isAssignableFrom(objectView) ? m.getOWLThing() : m.getRDFSLiteral());
         }
 

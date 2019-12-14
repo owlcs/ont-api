@@ -47,7 +47,7 @@ public class AnnotationAssertionTranslator
         extends AbstractPropertyAssertionTranslator<OWLAnnotationProperty, OWLAnnotationAssertionAxiom> {
 
     @Override
-    public void write(OWLAnnotationAssertionAxiom axiom, OntGraphModel model) {
+    public void write(OWLAnnotationAssertionAxiom axiom, OntModel model) {
         WriteHelper.writeAssertionTriple(model, axiom.getSubject(),
                 axiom.getProperty(), axiom.getValue(), axiom.annotationsAsList());
     }
@@ -61,13 +61,13 @@ public class AnnotationAssertionTranslator
      * but comes as annotation of some other axiom.
      * Also it is skipped if load annotations is disabled in the configuration.
      *
-     * @param model  {@link OntGraphModel} the model
+     * @param model  {@link OntModel} the model
      * @param config {@link InternalConfig}
      * @return {@link ExtendedIterator} of {@link OntStatement}s
      * @see <a href='https://www.w3.org/TR/owl2-quick-reference/'>Annotations</a>
      */
     @Override
-    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
+    public ExtendedIterator<OntStatement> listStatements(OntModel model, InternalConfig config) {
         if (!config.isLoadAnnotationAxioms()) return NullIterator.instance();
         OntID id = model.getID();
         return listStatements(model).filterKeep(s -> !id.equals(s.getSubject()) && filter(s, config));
@@ -87,7 +87,7 @@ public class AnnotationAssertionTranslator
 
     @Override
     public ONTObject<OWLAnnotationAssertionAxiom> toAxiomImpl(OntStatement statement,
-                                                              Supplier<OntGraphModel> model,
+                                                              Supplier<OntModel> model,
                                                               InternalObjectFactory factory,
                                                               InternalConfig config) {
         return AxiomImpl.create(statement, model, factory, config);
@@ -116,7 +116,7 @@ public class AnnotationAssertionTranslator
             OWLAnnotationSubject, OWLAnnotationProperty, OWLAnnotationValue>
             implements OWLAnnotationAssertionAxiom {
 
-        protected AxiomImpl(Triple t, Supplier<OntGraphModel> m) {
+        protected AxiomImpl(Triple t, Supplier<OntModel> m) {
             super(t, m);
         }
 
@@ -124,13 +124,13 @@ public class AnnotationAssertionTranslator
          * Creates an {@link OWLAnnotationAssertionAxiom} that is also {@link ONTObject}.
          *
          * @param statement {@link OntStatement}, the source, not {@code null}
-         * @param model     {@link OntGraphModel}-provider, not {@code null}
+         * @param model     {@link OntModel}-provider, not {@code null}
          * @param factory   {@link InternalObjectFactory}, not {@code null}
          * @param config    {@link InternalConfig}, not {@code null}
          * @return {@link AxiomImpl}
          */
         public static AxiomImpl create(OntStatement statement,
-                                       Supplier<OntGraphModel> model,
+                                       Supplier<OntModel> model,
                                        InternalObjectFactory factory,
                                        InternalConfig config) {
             return WithAssertion.create(statement, model,
@@ -191,9 +191,9 @@ public class AnnotationAssertionTranslator
         public static class SimpleImpl extends AxiomImpl
                 implements Simple<OWLAnnotationSubject, OWLAnnotationProperty, OWLAnnotationValue> {
 
-            private static final BiFunction<Triple, Supplier<OntGraphModel>, SimpleImpl> FACTORY = SimpleImpl::new;
+            private static final BiFunction<Triple, Supplier<OntModel>, SimpleImpl> FACTORY = SimpleImpl::new;
 
-            protected SimpleImpl(Triple t, Supplier<OntGraphModel> m) {
+            protected SimpleImpl(Triple t, Supplier<OntModel> m) {
                 super(t, m);
             }
 
@@ -266,11 +266,11 @@ public class AnnotationAssertionTranslator
                 implements WithAnnotations<WithAnnotationsImpl,
                 OWLAnnotationSubject, OWLAnnotationProperty, OWLAnnotationValue> {
 
-            private static final BiFunction<Triple, Supplier<OntGraphModel>, WithAnnotationsImpl> FACTORY =
+            private static final BiFunction<Triple, Supplier<OntModel>, WithAnnotationsImpl> FACTORY =
                     AxiomImpl.WithAnnotationsImpl::new;
             protected final InternalCache.Loading<WithAnnotationsImpl, Object[]> content;
 
-            public WithAnnotationsImpl(Triple t, Supplier<OntGraphModel> m) {
+            public WithAnnotationsImpl(Triple t, Supplier<OntModel> m) {
                 super(t, m);
                 this.content = createContentCache();
             }

@@ -85,7 +85,7 @@ public class StreamsTest {
 
     @Test
     public void testSetBasedMethods() {
-        OntGraphModel m = OntModelFactory.createModel();
+        OntModel m = OntModelFactory.createModel();
         OntClass a = m.createOntClass("C1");
         OntIndividual i = a.addSuperClass(m.createOntClass("C2").addSuperClass(m.getOWLThing()))
                 .createIndividual("I");
@@ -116,7 +116,7 @@ public class StreamsTest {
 
     @Test
     public void testObjectsMethods() {
-        OntGraphModel m = OntModelFactory.createModel();
+        OntModel m = OntModelFactory.createModel();
         OntObject o = m.getOWLThing();
 
         Supplier<Stream<?>> s1 = () -> o.objects(RDFS.comment, OntNAP.class);
@@ -135,7 +135,7 @@ public class StreamsTest {
 
     @Test
     public void testSimpleModelStreams() {
-        OntGraphModel m = OntModelFactory.createModel();
+        OntModel m = OntModelFactory.createModel();
 
         assertTrueConstant(m.statements(), Spliterator.NONNULL);
         assertTrueConstant(m.statements(), Spliterator.SIZED);
@@ -162,7 +162,7 @@ public class StreamsTest {
 
     @Test
     public void testNonSizedModelStreams() {
-        OntGraphModel m = OntModelFactory.createModel().addImport(OntModelFactory.createModel().setID("base").getModel());
+        OntModel m = OntModelFactory.createModel().addImport(OntModelFactory.createModel().setID("base").getModel());
         assertTrueConstant(m.localStatements(), Spliterator.SIZED);
         assertFalseConstant(m.statements(), Spliterator.SIZED);
         assertFalseConstant(m.statements(null, RDF.type, OWL.Class), Spliterator.SIZED);
@@ -173,8 +173,8 @@ public class StreamsTest {
     public void testNonDistinctModelStreams() {
         String ns = "http://ex#";
         UnionGraph g = new UnionGraph(new GraphMem(), null, null, false);
-        OntGraphModel a = OntModelFactory.createModel(g).setNsPrefixes(OntModelFactory.STANDARD).setNsPrefix("x", ns);
-        OntGraphModel b = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD).setNsPrefix("x", ns);
+        OntModel a = OntModelFactory.createModel(g).setNsPrefixes(OntModelFactory.STANDARD).setNsPrefix("x", ns);
+        OntModel b = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD).setNsPrefix("x", ns);
         a.setID(ns + "a");
         b.setID(ns + "b");
         a.addImport(b);

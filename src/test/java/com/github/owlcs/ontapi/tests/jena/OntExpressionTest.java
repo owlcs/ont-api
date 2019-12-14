@@ -43,7 +43,7 @@ public class OntExpressionTest {
 
     @Test
     public void testCreateCardinalityRestrictions() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntClass c = m.createOntClass("C");
         OntNOP op = m.createObjectProperty("OP");
         OntNDP dp = m.createDataProperty("DP");
@@ -73,7 +73,7 @@ public class OntExpressionTest {
 
     @Test
     public void testListClassHierarchy() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntClass a = m.createOntClass("A");
         OntClass b = m.createOntClass("B");
         OntClass c = m.createOntClass("C");
@@ -97,7 +97,7 @@ public class OntExpressionTest {
 
     @Test
     public void testClassExpressionSubClassOf() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntClass a = m.createOntClass("A");
         OntClass b = m.createOntClass("B");
         OntClass c = m.createOntClass("C");
@@ -110,7 +110,7 @@ public class OntExpressionTest {
 
     @Test
     public void testClassExpressionDisjointWith() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntClass a = m.createOntClass("A");
         OntClass b = m.createOntClass("B");
         OntClass c = m.createOntClass("C");
@@ -123,7 +123,7 @@ public class OntExpressionTest {
 
     @Test
     public void testClassExpressionEquivalentClass() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntClass a = m.createOntClass("A");
         OntClass b = m.createOntClass("B");
         OntClass c = m.createOntClass("C");
@@ -136,7 +136,7 @@ public class OntExpressionTest {
 
     @Test
     public void testHasKeys() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntNOP o1 = m.createObjectProperty("O1");
         OntNOP o2 = m.createObjectProperty("O2");
         OntNDP d1 = m.createDataProperty("D1");
@@ -156,7 +156,7 @@ public class OntExpressionTest {
 
     @Test
     public void testComponentRestrictionValues() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntNOP po1 = m.createObjectProperty("PO1");
         OntNOP po2 = m.createObjectProperty("PO2");
         OntNDP pd1 = m.createDataProperty("PD1");
@@ -198,7 +198,7 @@ public class OntExpressionTest {
 
     @Test
     public void testExpressionSetWrongComponents() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntDT dt1 = m.createDatatype("DT1");
         OntDT dt2 = m.createDatatype("DT2");
         OntDT dt3 = m.createDatatype("DT3");
@@ -216,7 +216,7 @@ public class OntExpressionTest {
 
     @Test
     public void testClassExpressionComponents() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntClass c1 = m.createOntClass("C1");
         OntClass c2 = m.createOntClass("C2");
         OntClass c3 = m.createOntClass("C3");
@@ -252,7 +252,7 @@ public class OntExpressionTest {
 
     @Test
     public void testRestrictionOnProperties() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntClass c1 = m.createOntClass("C1");
         OntDT dt1 = m.createDatatype("DT1");
         OntNDP dp1 = m.createDataProperty("DP1");
@@ -283,7 +283,7 @@ public class OntExpressionTest {
 
     @Test
     public void testRestrictionCardinality() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntNDP dp1 = m.createDataProperty("DP1");
         OntNOP op2 = m.createObjectProperty("OP2");
 
@@ -304,7 +304,7 @@ public class OntExpressionTest {
 
     @Test
     public void testChangeCardinalityQualification() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntNDP dp1 = m.createDataProperty("DP1");
         OntNOP op2 = m.createObjectProperty("OP2");
         OntClass c1 = m.createOntClass("C1");
@@ -331,7 +331,7 @@ public class OntExpressionTest {
 
     @Test
     public void testNaryDataRestrictions() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntNDP dp1 = m.createDataProperty("DP1");
         OntNDP dp2 = m.createDataProperty("DP2");
         OntDT d1 = m.getDatatype(XSD.xstring);
@@ -372,7 +372,7 @@ public class OntExpressionTest {
 
     @Test
     public void testDisjointUnion() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntClass c1 = m.createOntClass("C1");
         OntClass c2 = m.createOntClass("C2");
         OntClass c3 = m.createOntClass("C3");

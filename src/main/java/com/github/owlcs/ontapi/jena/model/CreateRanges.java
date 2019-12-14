@@ -56,7 +56,7 @@ interface CreateRanges {
      * @return {@link OntDR.Restriction}
      * @see <a href='https://www.w3.org/TR/owl-syntax/#Datatype_Restrictions'>7.5 Datatype Restrictions</a>
      * @see OntFR
-     * @see OntGraphModel#createFacetRestriction(Class, Literal)
+     * @see OntModel#createFacetRestriction(Class, Literal)
      */
     OntDR.Restriction createRestrictionDataRange(OntDT other, Collection<OntFR> values);
 

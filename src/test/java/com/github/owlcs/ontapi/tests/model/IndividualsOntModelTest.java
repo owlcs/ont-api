@@ -18,8 +18,8 @@ import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.jena.model.OntClass;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
 import com.github.owlcs.ontapi.jena.model.OntIndividual;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import com.github.owlcs.ontapi.utils.OntIRI;
@@ -44,7 +44,7 @@ public class IndividualsOntModelTest extends OntModelTestBase {
         OWLDataFactory factory = manager.getOWLDataFactory();
 
         Ontology owl = manager.createOntology(iri.toOwlOntologyID());
-        OntGraphModel jena = owl.asGraphModel();
+        OntModel jena = owl.asGraphModel();
 
         OntIRI class1 = iri.addFragment("ClassN1");
         OntIRI class2 = iri.addFragment("ClassN2");

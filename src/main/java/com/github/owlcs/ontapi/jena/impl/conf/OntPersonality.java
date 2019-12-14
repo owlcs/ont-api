@@ -16,6 +16,7 @@ package com.github.owlcs.ontapi.jena.impl.conf;
 
 import com.github.owlcs.ontapi.jena.OntJenaException;
 import com.github.owlcs.ontapi.jena.model.OntEntity;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntObject;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import org.apache.jena.enhanced.EnhGraph;
@@ -33,7 +34,7 @@ import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
- * A {@link com.github.owlcs.ontapi.jena.model.OntGraphModel Ontology RDF Model} configuration object,
+ * A {@link OntModel Ontology RDF Model} configuration object,
  * that serves for the following purposes:
  * <ul>
  * <li>Defines a set of permitted mappings from [interface] Class objects
@@ -48,7 +49,7 @@ import java.util.stream.Stream;
  * Unfortunately, the Jena {@code Personality} is a concrete and mutable class,
  * this fact makes it unacceptable to use it directly within the ONT-API.
  * Also, there is one more related restriction: the RDF model must implement not only
- * the main interface {@link com.github.owlcs.ontapi.jena.model.OntGraphModel OntGraphModel}
+ * the main interface {@link OntModel Ont[Graph]Model}
  * (that provides high-level access to ontological objects) but also
  * the interface {@link com.github.owlcs.ontapi.jena.impl.PersonalityModel PersonalityModel} (enhanced view of graph)
  * in order to have access to this class.
@@ -124,7 +125,7 @@ public interface OntPersonality {
 
     /**
      * A vocabulary of built-in {@link OntEntity OWL Entities}.
-     * A {@link com.github.owlcs.ontapi.jena.model.OntGraphModel model}, that holds this configuration,
+     * A {@link OntModel model}, that holds this configuration,
      * can contain entities without explicit declarations, if their IRIs are determined by this vocabulary.
      * <p>
      * For example, the OWL standard vocabulary determines
@@ -155,7 +156,7 @@ public interface OntPersonality {
      * A punnings vocabulary.
      * For a given {@link OntEntity} type it returns a {@code Set} of forbidden types
      * (the right part of SPO with the (@code rdf:type) predicate).
-     * A {@link com.github.owlcs.ontapi.jena.model.OntGraphModel model}, that holds this configuration,
+     * A {@link OntModel model}, that holds this configuration,
      * cannot contain entities which have intersection in {@link com.github.owlcs.ontapi.jena.vocabulary.RDF#type rdf:type}
      * that are determined by this vocabulary.
      * <p>
@@ -176,13 +177,13 @@ public interface OntPersonality {
 
     /**
      * A vocabulary of reserved IRIs.
-     * A {@link com.github.owlcs.ontapi.jena.model.OntGraphModel model}, that holds this configuration,
+     * A {@link OntModel model}, that holds this configuration,
      * cannot contain entities with the IRIs from this vocabulary.
      * <p>
      * Example of such a forbidden {@link Property} returned by this vocabulary is
      * {@link com.github.owlcs.ontapi.jena.vocabulary.OWL#sameAs owl:sameAs},
      * since it is used by a model to build individual equality and, therefore, it cannot be used in other cases.
-     * An {@link com.github.owlcs.ontapi.jena.model.OntGraphModel ontology model} cannot contain an OWL entity with this IRI.
+     * An {@link OntModel ontology model} cannot contain an OWL entity with this IRI.
      * But, of course, all these things are customizable, and vocabularies may contain more or less restrictions.
      * <p>
      * Each node obtained from this class must be IRI (i.e. {@code node.isURI() = true}).

@@ -65,7 +65,7 @@ public class OntManagers implements OWLOntologyManagerFactory {
      * derived from the {@link DataFactory OWL Data Factory}.
      * <p>
      * Alternative way to assembly ontology is direct working with the {@link org.apache.jena.graph.Graph Graph}
-     * through the {@link com.github.owlcs.ontapi.jena.model.OntGraphModel} view of the ontology,
+     * through the {@link com.github.owlcs.ontapi.jena.model.OntModel} view of the ontology,
      * that can be obtained using the method {@link Ontology#asGraphModel()}.
      * The first way of ontology editing is native for OWL-API,
      * the second way is native for Apache Jena and provided by ONT-API as a feature,

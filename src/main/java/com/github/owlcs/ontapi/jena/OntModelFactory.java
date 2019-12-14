@@ -14,6 +14,12 @@
 
 package com.github.owlcs.ontapi.jena;
 
+import com.github.owlcs.ontapi.jena.impl.OntGraphModelImpl;
+import com.github.owlcs.ontapi.jena.impl.conf.OntModelConfig;
+import com.github.owlcs.ontapi.jena.impl.conf.OntPersonality;
+import com.github.owlcs.ontapi.jena.model.OntModel;
+import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.mem.GraphMem;
 import org.apache.jena.rdf.model.Model;
@@ -22,15 +28,9 @@ import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sys.JenaSystem;
 import org.apache.jena.vocabulary.RDFS;
 import org.apache.jena.vocabulary.XSD;
-import com.github.owlcs.ontapi.jena.impl.OntGraphModelImpl;
-import com.github.owlcs.ontapi.jena.impl.conf.OntModelConfig;
-import com.github.owlcs.ontapi.jena.impl.conf.OntPersonality;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
-import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 
 /**
- * A factory to produce different kinds of {@link OntGraphModel OWL2 model}s, {@link Model Common model}s and {@link Graph graph}s.
+ * A factory to produce different kinds of {@link OntModel OWL2 model}s, {@link Model Common model}s and {@link Graph graph}s.
  * It is an ONT-API analogue of {@link org.apache.jena.rdf.model.ModelFactory}.
  * <p>
  * Created by szuev on 14.02.2017.
@@ -81,10 +81,10 @@ public class OntModelFactory {
     /**
      * Creates a fresh in-memory Ontology RDF Model with default personalities.
      *
-     * @return {@link OntGraphModel}
+     * @return {@link OntModel}
      * @see OntModelConfig#getPersonality()
      */
-    public static OntGraphModel createModel() {
+    public static OntModel createModel() {
         return createModel(createDefaultGraph());
     }
 
@@ -92,9 +92,9 @@ public class OntModelFactory {
      * Creates an Ontology RDF Model wrapper around the given graph with default personalities.
      *
      * @param graph {@link Graph}
-     * @return {@link OntGraphModel}
+     * @return {@link OntModel}
      */
-    public static OntGraphModel createModel(Graph graph) {
+    public static OntModel createModel(Graph graph) {
         return createModel(graph, OntModelConfig.getPersonality());
     }
 
@@ -103,9 +103,9 @@ public class OntModelFactory {
      *
      * @param graph       {@link Graph}
      * @param personality {@link OntPersonality}
-     * @return {@link OntGraphModel}
+     * @return {@link OntModel}
      */
-    public static OntGraphModel createModel(Graph graph, OntPersonality personality) {
+    public static OntModel createModel(Graph graph, OntPersonality personality) {
         return new OntGraphModelImpl(graph, personality);
     }
 

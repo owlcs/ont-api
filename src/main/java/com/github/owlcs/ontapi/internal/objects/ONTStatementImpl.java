@@ -15,7 +15,7 @@
 package com.github.owlcs.ontapi.internal.objects;
 
 import com.github.owlcs.ontapi.OntApiException;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import org.apache.jena.graph.*;
@@ -62,9 +62,9 @@ public abstract class ONTStatementImpl extends ONTObjectImpl implements WithAnno
      * @param subject   - must be either {@link BlankNodeId} or {@code String}, not {@code null}
      * @param predicate - {@code String} (URI), not {@code null}
      * @param object    - must be either {@link BlankNodeId}, {@link LiteralLabel} or {@code String}, not {@code null}
-     * @param m         - a facility (as {@link Supplier}) to provide nonnull {@link OntGraphModel}, not {@code null}
+     * @param m         - a facility (as {@link Supplier}) to provide nonnull {@link OntModel}, not {@code null}
      */
-    protected ONTStatementImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+    protected ONTStatementImpl(Object subject, String predicate, Object object, Supplier<OntModel> m) {
         super(m);
         this.subject = Objects.requireNonNull(subject);
         this.predicate = Objects.requireNonNull(predicate);
@@ -115,7 +115,7 @@ public abstract class ONTStatementImpl extends ONTObjectImpl implements WithAnno
      */
     @Override
     public OntStatement asStatement() {
-        OntGraphModel m = getModel();
+        OntModel m = getModel();
         Triple t = asTriple();
         return m.asStatement(Iter.findFirst(m.getGraph().find(t))
                 .orElseThrow(() -> new OntApiException.IllegalState("Can't find triple " + t)));

@@ -39,10 +39,10 @@ import java.util.function.Supplier;
  * @since 2.0.0
  */
 public class ModelObjectFactory implements InternalObjectFactory {
-    protected final Supplier<OntGraphModel> model;
+    protected final Supplier<OntModel> model;
     protected final DataFactory factory;
 
-    public ModelObjectFactory(DataFactory factory, Supplier<OntGraphModel> model) {
+    public ModelObjectFactory(DataFactory factory, Supplier<OntModel> model) {
         this.factory = Objects.requireNonNull(factory);
         this.model = Objects.requireNonNull(model);
     }

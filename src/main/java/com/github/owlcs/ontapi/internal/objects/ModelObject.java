@@ -14,12 +14,12 @@
 
 package com.github.owlcs.ontapi.internal.objects;
 
-import org.semanticweb.owlapi.model.OWLObject;
 import com.github.owlcs.ontapi.internal.ONTObject;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
+import org.semanticweb.owlapi.model.OWLObject;
 
 /**
- * Represents an {@link ONTObject} attached to the {@link OntGraphModel model}.
+ * Represents an {@link ONTObject} attached to the {@link OntModel model}.
  * Created by @ssz on 23.09.2019.
  *
  * @param <X> subtype of {@link OWLObject}
@@ -29,9 +29,9 @@ public interface ModelObject<X extends OWLObject> extends ONTObject<X> {
     /**
      * Returns the model to which this object is attached.
      *
-     * @return {@link OntGraphModel}
+     * @return {@link OntModel}
      */
-    OntGraphModel getModel();
+    OntModel getModel();
 
     /**
      * Answers with an object that equals to the {@link #getOWLObject()},

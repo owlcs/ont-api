@@ -41,14 +41,14 @@ public interface OntDisjoint<O extends OntObject> extends OntObject, HasRDFNodeL
 
     /**
      * @see <a href='https://www.w3.org/TR/owl2-syntax/#Disjoint_Classes'>9.1.3 Disjoint Classes</a>
-     * @see OntGraphModel#createDisjointClasses(Collection)
+     * @see OntModel#createDisjointClasses(Collection)
      */
     interface Classes extends OntDisjoint<OntCE>, SetComponents<OntCE, Classes> {
     }
 
     /**
      * @see <a href='https://www.w3.org/TR/owl2-syntax/#Individual_Inequality'>9.6.2 Individual Inequality</a>
-     * @see OntGraphModel#createDifferentIndividuals(Collection)
+     * @see OntModel#createDifferentIndividuals(Collection)
      */
     interface Individuals extends OntDisjoint<OntIndividual>, SetComponents<OntIndividual, Individuals> {
 
@@ -58,11 +58,11 @@ public interface OntDisjoint<O extends OntObject> extends OntObject, HasRDFNodeL
          * {@link com.github.owlcs.ontapi.jena.vocabulary.OWL#distinctMembers owl:distinctMembers} are allowed by specification,
          * this method returns most bulky list.
          * In case both lists have the same dimension, the method choose one that is on predicate {@code owl:members}.
-         * The method {@link OntGraphModel#createDifferentIndividuals(Collection)} also prefers {@code owl:members} predicate.
+         * The method {@link OntModel#createDifferentIndividuals(Collection)} also prefers {@code owl:members} predicate.
          * This was done for reasons of uniformity.
          *
          * @return {@link OntList ONT-List} of {@link OntIndividual individual}s
-         * @see OntGraphModel#createDifferentIndividuals(Collection)
+         * @see OntModel#createDifferentIndividuals(Collection)
          * @since 1.3.0
          */
         @Override
@@ -81,14 +81,14 @@ public interface OntDisjoint<O extends OntObject> extends OntObject, HasRDFNodeL
 
     /**
      * @see <a href='https://www.w3.org/TR/owl2-syntax/#Disjoint_Object_Properties'>9.2.3 Disjoint Object Properties</a>
-     * @see OntGraphModel#createDisjointObjectProperties(Collection)
+     * @see OntModel#createDisjointObjectProperties(Collection)
      */
     interface ObjectProperties extends Properties<OntOPE>, SetComponents<OntOPE, ObjectProperties> {
     }
 
     /**
      * @see <a href='https://www.w3.org/TR/owl2-syntax/#Disjoint_Data_Properties'>9.3.3 Disjoint Data Properties</a>
-     * @see OntGraphModel#createDisjointDataProperties(Collection)
+     * @see OntModel#createDisjointDataProperties(Collection)
      */
     interface DataProperties extends Properties<OntNDP>, SetComponents<OntNDP, DataProperties> {
     }

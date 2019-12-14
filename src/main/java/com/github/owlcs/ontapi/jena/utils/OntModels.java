@@ -14,24 +14,24 @@
 
 package com.github.owlcs.ontapi.jena.utils;
 
+import com.github.owlcs.ontapi.jena.OntJenaException;
+import com.github.owlcs.ontapi.jena.UnionGraph;
+import com.github.owlcs.ontapi.jena.impl.*;
+import com.github.owlcs.ontapi.jena.model.*;
+import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.impl.ModelCom;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import com.github.owlcs.ontapi.jena.OntJenaException;
-import com.github.owlcs.ontapi.jena.UnionGraph;
-import com.github.owlcs.ontapi.jena.impl.*;
-import com.github.owlcs.ontapi.jena.model.*;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 
 import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
- * A collection of utilitarian methods to work with {@link OntGraphModel OWL Model} and all its related stuff:
+ * A collection of utilitarian methods to work with {@link OntModel OWL Model} and all its related stuff:
  * {@link OntObject Ontology Object},
  * {@link OntEntity Ontology Entity},
  * {@link RDFNodeList Node List},
@@ -81,7 +81,7 @@ public class OntModels {
      * to replace existing dependency with the new one in case {@code replace} is {@code true}.
      *
      * @param manager the collection of other ontologies in form of {@link Supplier} that answers a {@code Stream}
-     * @param ont     {@link OntGraphModel} the ontology to insert, must be named
+     * @param ont     {@link OntModel} the ontology to insert, must be named
      * @param replace if {@code true} then any existing graph,
      *                that is linked through the {@code owl:import} declaration,
      *                will be replaced with the given graph,
@@ -89,7 +89,7 @@ public class OntModels {
      *                there is a declaration {@code owl:import} without any graph associated
      * @see OntID#getImportsIRI()
      */
-    public static void insert(Supplier<Stream<OntGraphModel>> manager, OntGraphModel ont, boolean replace) {
+    public static void insert(Supplier<Stream<OntModel>> manager, OntModel ont, boolean replace) {
         String uri = Objects.requireNonNull(ont.getID().getImportsIRI(), "Must be named ontology");
         manager.get()
                 .filter(m -> {
@@ -106,7 +106,7 @@ public class OntModels {
                             .findFirst()
                             .ifPresent(i -> ((UnionGraph) m.getGraph()).removeGraph(i.getGraph()));
                 })
-                .filter(m -> m.imports().map(OntGraphModel::getID).map(OntID::getImportsIRI).noneMatch(uri::equals))
+                .filter(m -> m.imports().map(OntModel::getID).map(OntID::getImportsIRI).noneMatch(uri::equals))
                 .forEach(m -> m.addImport(ont));
     }
 
@@ -115,16 +115,16 @@ public class OntModels {
      * Underling graph tree may content named graphs which are not included to the {@code owl:imports} declaration.
      * This method tries to fix such situation by modifying base graph.
      *
-     * @param m {@link OntGraphModel}, not {@code null}
+     * @param m {@link OntModel}, not {@code null}
      * @throws StackOverflowError in case the given model has a recursion in the hierarchy
      * @see Graphs#importsTreeAsString(Graph)
      */
-    public static void syncImports(OntGraphModel m) {
+    public static void syncImports(OntModel m) {
         OntID id = m.getID();
         id.removeAll(OWL.imports);
         m.imports()
                 .peek(OntModels::syncImports)
-                .map(OntGraphModel::getID)
+                .map(OntModel::getID)
                 .filter(Resource::isURIResource)
                 .map(OntID::getImportsIRI)
                 .forEach(id::addImport);
@@ -135,27 +135,27 @@ public class OntModels {
      * In normal situation, each of the models must have {@code owl:imports} statement in the overlying graph.
      * In this case the returned stream must correspond the result of the {@link Graphs#baseGraphs(Graph)} method.
      *
-     * @param m {@link OntGraphModel}, not {@code null}
+     * @param m {@link OntModel}, not {@code null}
      * @return {@code Stream} of models, cannot be empty: must contains at least the input (root) model
      * @throws StackOverflowError in case the given model has a recursion in the hierarchy
      * @see Graphs#baseGraphs(Graph)
      * @see OntID#getImportsIRI()
      */
-    public static Stream<OntGraphModel> importsClosure(OntGraphModel m) {
+    public static Stream<OntModel> importsClosure(OntModel m) {
         return Stream.concat(Stream.of(m), m.imports().flatMap(OntModels::importsClosure));
     }
 
     /**
      * Lists all ontology objects with the given {@code type} that are defined in the base graph.
-     * See also {@link OntModels#listLocalStatements(OntGraphModel, Resource, Property, RDFNode)} description.
+     * See also {@link OntModels#listLocalStatements(OntModel, Resource, Property, RDFNode)} description.
      *
-     * @param model {@link OntGraphModel}
+     * @param model {@link OntModel}
      * @param type  {@link Class}-type
      * @param <O>   subclass of {@link OntObject}
      * @return {@link ExtendedIterator} of ontology objects of the type {@link O} that are local to the base graph
-     * @see OntGraphModel#ontObjects(Class)
+     * @see OntModel#ontObjects(Class)
      */
-    public static <O extends OntObject> ExtendedIterator<O> listLocalObjects(OntGraphModel model,
+    public static <O extends OntObject> ExtendedIterator<O> listLocalObjects(OntModel model,
                                                                              Class<? extends O> type) {
         if (model instanceof OntGraphModelImpl) {
             return ((OntGraphModelImpl) model).listLocalOntObjects(type);
@@ -166,13 +166,13 @@ public class OntModels {
 
     /**
      * Lists all OWL entities that are defined in the base graph.
-     * See also {@link OntModels#listLocalStatements(OntGraphModel, Resource, Property, RDFNode)} description.
+     * See also {@link OntModels#listLocalStatements(OntModel, Resource, Property, RDFNode)} description.
      *
-     * @param model {@link OntGraphModel}
+     * @param model {@link OntModel}
      * @return {@link ExtendedIterator} of {@link OntEntity}s that are local to the base graph
-     * @see OntGraphModel#ontEntities()
+     * @see OntModel#ontEntities()
      */
-    public static ExtendedIterator<OntEntity> listLocalEntities(OntGraphModel model) {
+    public static ExtendedIterator<OntEntity> listLocalEntities(OntModel model) {
         if (model instanceof OntGraphModelImpl) {
             return ((OntGraphModelImpl) model).listLocalOntEntities();
         }
@@ -203,14 +203,14 @@ public class OntModels {
      * But the ability to work with {@code ExtendedIterator} is sometimes needed,
      * since it is more lightweight and works a bit faster than Stream-API.
      *
-     * @param model {@link OntGraphModel}, not {@code null}
+     * @param model {@link OntModel}, not {@code null}
      * @param s     {@link Resource}, can be {@code null} for any
      * @param p     {@link Property}, can be {@code null} for any
      * @param o     {@link RDFNode}, can be {@code null} for any
      * @return {@link ExtendedIterator} of {@link OntStatement}s local to the base model graph
-     * @see OntGraphModel#localStatements(Resource, Property, RDFNode)
+     * @see OntModel#localStatements(Resource, Property, RDFNode)
      */
-    public static ExtendedIterator<OntStatement> listLocalStatements(OntGraphModel model,
+    public static ExtendedIterator<OntStatement> listLocalStatements(OntModel model,
                                                                      Resource s,
                                                                      Property p,
                                                                      RDFNode o) {

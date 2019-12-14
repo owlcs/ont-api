@@ -18,7 +18,7 @@ import com.github.owlcs.ontapi.internal.AxiomTranslator;
 import com.github.owlcs.ontapi.internal.InternalConfig;
 import com.github.owlcs.ontapi.internal.WriteHelper;
 import com.github.owlcs.ontapi.internal.objects.ONTAxiomImpl;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntPE;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
@@ -40,14 +40,14 @@ import java.util.function.Supplier;
 public abstract class AbstractPropertyRangeTranslator<Axiom extends OWLAxiom & HasProperty<?> & HasRange<?>, P extends OntPE>
         extends AxiomTranslator<Axiom> {
     @Override
-    public void write(Axiom axiom, OntGraphModel graph) {
+    public void write(Axiom axiom, OntModel graph) {
         WriteHelper.writeTriple(graph, axiom.getProperty(), RDFS.range, axiom.getRange(), axiom.annotationsAsList());
     }
 
     abstract Class<P> getView();
 
     @Override
-    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
+    public ExtendedIterator<OntStatement> listStatements(OntModel model, InternalConfig config) {
         return OntModels.listLocalStatements(model, null, RDFS.range, null).filterKeep(s -> filter(s, config));
     }
 
@@ -76,11 +76,11 @@ public abstract class AbstractPropertyRangeTranslator<Axiom extends OWLAxiom & H
             P extends OWLPropertyExpression, R extends OWLObject>
             extends ONTAxiomImpl<A> implements WithTwoObjects<P, R> {
 
-        protected RangeAxiomImpl(Triple t, Supplier<OntGraphModel> m) {
+        protected RangeAxiomImpl(Triple t, Supplier<OntModel> m) {
             super(t, m);
         }
 
-        protected RangeAxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+        protected RangeAxiomImpl(Object subject, String predicate, Object object, Supplier<OntModel> m) {
             super(subject, predicate, object, m);
         }
 

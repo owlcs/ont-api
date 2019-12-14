@@ -14,13 +14,6 @@
 
 package com.github.owlcs.ontapi.jena.impl;
 
-import org.apache.jena.enhanced.EnhGraph;
-import org.apache.jena.graph.Node;
-import org.apache.jena.rdf.model.Literal;
-import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.util.iterator.ExtendedIterator;
 import com.github.owlcs.ontapi.jena.impl.conf.ObjectFactory;
 import com.github.owlcs.ontapi.jena.impl.conf.OntFilter;
 import com.github.owlcs.ontapi.jena.impl.conf.OntFinder;
@@ -28,6 +21,13 @@ import com.github.owlcs.ontapi.jena.model.*;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
+import org.apache.jena.enhanced.EnhGraph;
+import org.apache.jena.graph.Node;
+import org.apache.jena.rdf.model.Literal;
+import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.util.iterator.ExtendedIterator;
 
 import java.util.Optional;
 
@@ -98,7 +98,7 @@ public abstract class OntNPAImpl<P extends OntPE, T extends RDFNode> extends Ont
         return getRequiredObject(OWL.assertionProperty, propertyClass());
     }
 
-    private static Resource create(OntGraphModel model, OntIndividual source) {
+    private static Resource create(OntModel model, OntIndividual source) {
         Resource res = model.createResource();
         res.addProperty(RDF.type, OWL.NegativePropertyAssertion);
         res.addProperty(OWL.sourceIndividual, source);

@@ -109,7 +109,7 @@ public class SimpleObjectFactory implements InternalObjectFactory {
         DataFactory df = getOWLDataFactory();
         OWLLiteral owl = df.getOWLLiteral(literal.asNode().getLiteral());
         ONTWrapperImpl<OWLLiteral> res = ONTWrapperImpl.create(owl);
-        OntGraphModel m = (OntGraphModel) literal.getModel();
+        OntModel m = (OntModel) literal.getModel();
         OntDT jdt = m.getDatatype(literal);
         if (!jdt.isBuiltIn()) {
             return res.append(getDatatype(jdt));

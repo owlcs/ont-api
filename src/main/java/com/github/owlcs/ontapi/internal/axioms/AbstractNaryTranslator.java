@@ -65,7 +65,7 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
     private static final Comparator<OWLObject> URI_FIRST_COMPARATOR = (a, b) ->
             a.isAnonymous() == b.isAnonymous() ? 0 : a.isAnonymous() ? -1 : 1;
 
-    void write(OWLNaryAxiom<OWL> thisAxiom, Collection<OWLAnnotation> annotations, OntGraphModel model) {
+    void write(OWLNaryAxiom<OWL> thisAxiom, Collection<OWLAnnotation> annotations, OntModel model) {
         List<OWL> operands = thisAxiom.operands().sorted(URI_FIRST_COMPARATOR).collect(Collectors.toList());
         if (operands.isEmpty() && annotations.isEmpty()) { // nothing to write, skip
             return;
@@ -77,7 +77,7 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
     }
 
     @Override
-    public void write(Axiom axiom, OntGraphModel model) {
+    public void write(Axiom axiom, OntModel model) {
         Collection<? extends OWLNaryAxiom<OWL>> axioms = axiom.asPairwiseAxioms();
         if (axioms.isEmpty()) {
             LOGGER.warn("Nothing to write, wrong axiom is given: {}", axiom);
@@ -91,7 +91,7 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
     abstract Class<ONT> getView();
 
     @Override
-    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
+    public ExtendedIterator<OntStatement> listStatements(OntModel model, InternalConfig config) {
         return OntModels.listLocalStatements(model, null, getPredicate(), null).filterKeep(this::filter);
     }
 
@@ -115,7 +115,7 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
             extends ONTAxiomImpl<A>
             implements WithManyObjects<M>, OWLNaryAxiom<M> {
 
-        protected NaryAxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+        protected NaryAxiomImpl(Object subject, String predicate, Object object, Supplier<OntModel> m) {
             super(subject, predicate, object, m);
         }
 
@@ -255,7 +255,7 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
     protected abstract static class ClassNaryAxiomImpl<A extends OWLNaryClassAxiom>
             extends ClassOrIndividualNaryAxiomImpl<A, OWLClassExpression> implements OWLNaryClassAxiom {
 
-        protected ClassNaryAxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+        protected ClassNaryAxiomImpl(Object subject, String predicate, Object object, Supplier<OntModel> m) {
             super(subject, predicate, object, m);
         }
 
@@ -296,7 +296,7 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
     protected abstract static class IndividualNaryAxiomImpl<A extends OWLNaryIndividualAxiom>
             extends ClassOrIndividualNaryAxiomImpl<A, OWLIndividual> implements OWLNaryIndividualAxiom {
 
-        protected IndividualNaryAxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+        protected IndividualNaryAxiomImpl(Object subject, String predicate, Object object, Supplier<OntModel> m) {
             super(subject, predicate, object, m);
         }
 
@@ -367,7 +367,7 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
     protected abstract static class ObjectPropertyNaryAxiomImpl<A extends OWLNaryPropertyAxiom<OWLObjectPropertyExpression>>
             extends PropertyNaryAxiomImpl<A, OWLObjectPropertyExpression> {
 
-        protected ObjectPropertyNaryAxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+        protected ObjectPropertyNaryAxiomImpl(Object subject, String predicate, Object object, Supplier<OntModel> m) {
             super(subject, predicate, object, m);
         }
 
@@ -398,7 +398,7 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
     protected abstract static class DataPropertyNaryAxiomImpl<A extends OWLNaryPropertyAxiom<OWLDataPropertyExpression>>
             extends PropertyNaryAxiomImpl<A, OWLDataPropertyExpression> {
 
-        protected DataPropertyNaryAxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+        protected DataPropertyNaryAxiomImpl(Object subject, String predicate, Object object, Supplier<OntModel> m) {
             super(subject, predicate, object, m);
         }
 
@@ -428,7 +428,7 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
     abstract static class ClassOrIndividualNaryAxiomImpl<A extends OWLNaryAxiom<M>, M extends OWLObject>
             extends NaryAxiomImpl<A, M> implements OWLSubClassOfAxiomSetShortCut {
 
-        ClassOrIndividualNaryAxiomImpl(Object s, String p, Object o, Supplier<OntGraphModel> m) {
+        ClassOrIndividualNaryAxiomImpl(Object s, String p, Object o, Supplier<OntModel> m) {
             super(s, p, o, m);
         }
 
@@ -459,7 +459,7 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
     abstract static class PropertyNaryAxiomImpl<A extends OWLNaryPropertyAxiom<P>, P extends OWLPropertyExpression>
             extends NaryAxiomImpl<A, P> implements OWLNaryPropertyAxiom<P> {
 
-        PropertyNaryAxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+        PropertyNaryAxiomImpl(Object subject, String predicate, Object object, Supplier<OntModel> m) {
             super(subject, predicate, object, m);
         }
 

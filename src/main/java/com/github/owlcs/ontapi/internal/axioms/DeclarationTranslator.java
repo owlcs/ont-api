@@ -20,7 +20,7 @@ import com.github.owlcs.ontapi.internal.objects.*;
 import com.github.owlcs.ontapi.jena.OntJenaException;
 import com.github.owlcs.ontapi.jena.impl.Entities;
 import com.github.owlcs.ontapi.jena.model.OntEntity;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntObject;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
@@ -50,13 +50,13 @@ import java.util.stream.Stream;
 public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> {
 
     @Override
-    public void write(OWLDeclarationAxiom axiom, OntGraphModel model) {
+    public void write(OWLDeclarationAxiom axiom, OntModel model) {
         WriteHelper.writeDeclarationTriple(model, axiom.getEntity(), RDF.type,
                 WriteHelper.getRDFType(axiom.getEntity()), axiom.annotationsAsList());
     }
 
     @Override
-    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
+    public ExtendedIterator<OntStatement> listStatements(OntModel model, InternalConfig config) {
         if (!config.isAllowReadDeclarations()) return NullIterator.instance();
         // this way is used for two reasons:
         // 1) performance (union of several find operation for the pattern [ANY,rdf:type,Resource] is faster
@@ -79,7 +79,7 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
 
     @Override
     public ONTObject<OWLDeclarationAxiom> toAxiomImpl(OntStatement statement,
-                                                      Supplier<OntGraphModel> model,
+                                                      Supplier<OntModel> model,
                                                       InternalObjectFactory factory,
                                                       InternalConfig config) {
         return AxiomImpl.create(statement, model, factory, config);
@@ -105,25 +105,25 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
      */
     public abstract static class AxiomImpl extends ONTAxiomImpl<OWLDeclarationAxiom> implements OWLDeclarationAxiom {
 
-        protected AxiomImpl(Triple t, Supplier<OntGraphModel> m) {
+        protected AxiomImpl(Triple t, Supplier<OntModel> m) {
             super(t, m);
         }
 
         /**
          * Creates an {@link OWLDeclarationAxiom} that is also {@link ONTObject}.
-         *
+         * <p>
          * Impl notes: if there is no annotations associated with the given {@link OntStatement},
          * then a {@link SimpleImpl} instance is returned.
          * Otherwise the method returns a {@link WithAnnotationsImpl} instance with a cache inside.
          *
-         * @param statement  {@link OntStatement}, the source
-         * @param model  {@link OntGraphModel}-provider
-         * @param factory {@link InternalObjectFactory}
-         * @param config  {@link InternalConfig}
+         * @param statement {@link OntStatement}, the source
+         * @param model     {@link OntModel}-provider
+         * @param factory   {@link InternalObjectFactory}
+         * @param config    {@link InternalConfig}
          * @return {@link AxiomImpl}
          */
         public static AxiomImpl create(OntStatement statement,
-                                       Supplier<OntGraphModel> model,
+                                       Supplier<OntModel> model,
                                        InternalObjectFactory factory,
                                        InternalConfig config) {
             Collection<?> annotations = ONTAxiomImpl.collectAnnotations(statement, factory, config);
@@ -246,7 +246,7 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
          */
         public static class SimpleImpl extends AxiomImpl implements WithoutAnnotations {
 
-            protected SimpleImpl(Triple t, Supplier<OntGraphModel> m) {
+            protected SimpleImpl(Triple t, Supplier<OntModel> m) {
                 super(t, m);
             }
 
@@ -293,7 +293,7 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
         public static class WithAnnotationsImpl extends AxiomImpl implements WithContent<WithAnnotationsImpl> {
             protected final InternalCache.Loading<WithAnnotationsImpl, Object[]> content;
 
-            public WithAnnotationsImpl(Triple t, Supplier<OntGraphModel> m) {
+            public WithAnnotationsImpl(Triple t, Supplier<OntModel> m) {
                 super(t, m);
                 this.content = createContentCache();
             }

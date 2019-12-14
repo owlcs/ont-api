@@ -53,7 +53,7 @@ public enum OWLComponentType {
         }
 
         @Override
-        ExtendedIterator<Resource> listObjects(OntGraphModel model) {
+        ExtendedIterator<Resource> listObjects(OntModel model) {
             return Iter.create(() -> {
                 Set<Resource> res = new HashSet<>();
                 model.getBaseModel().listStatements().forEachRemaining(s -> {
@@ -160,7 +160,7 @@ public enum OWLComponentType {
         }
 
         @Override
-        ExtendedIterator<? extends RDFNode> listObjects(OntGraphModel model) {
+        ExtendedIterator<? extends RDFNode> listObjects(OntModel model) {
             return model.getBaseModel().listObjects()
                     .filterKeep(RDFNode::isLiteral)
                     .mapWith(x -> x.asLiteral().inModel(model));
@@ -222,7 +222,7 @@ public enum OWLComponentType {
 
         @SuppressWarnings("unchecked")
         @Override
-        ExtendedIterator<OntDR> listObjects(OntGraphModel model) {
+        ExtendedIterator<OntDR> listObjects(OntModel model) {
             return (ExtendedIterator<OntDR>) super.listObjects(model).filterKeep(RDFNode::isAnon);
         }
 
@@ -272,7 +272,7 @@ public enum OWLComponentType {
 
         @SuppressWarnings("unchecked")
         @Override
-        ExtendedIterator<OntCE> listObjects(OntGraphModel model) {
+        ExtendedIterator<OntCE> listObjects(OntModel model) {
             return (ExtendedIterator<OntCE>) super.listObjects(model).filterKeep(RDFNode::isAnon);
         }
 
@@ -421,7 +421,7 @@ public enum OWLComponentType {
      * Lists non-primitive components that can be shared.
      *
      * @return {@code Stream} of {@link OWLContentType}s
-     * @see InternalModel#getUsedTriples(OntGraphModel, OWLObject)
+     * @see InternalModel#getUsedTriples(OntModel, OWLObject)
      */
     static Stream<OWLComponentType> sharedComponents() {
         return COMPLEX_COMPONENTS.stream();
@@ -464,7 +464,7 @@ public enum OWLComponentType {
     }
 
     @SuppressWarnings("unchecked")
-    ExtendedIterator<? extends RDFNode> listObjects(OntGraphModel model) {
+    ExtendedIterator<? extends RDFNode> listObjects(OntModel model) {
         return OntModels.listLocalObjects(model, (Class<? extends OntObject>) jena);
     }
 
@@ -482,12 +482,12 @@ public enum OWLComponentType {
      * Note: currently it does not work for anonymous expressions, although it must work for anonymous individuals.
      *
      * @param object {@link OWLObject}, not {@code null}
-     * @param model  {@link OntGraphModel}, not {@code null}
+     * @param model  {@link OntModel}, not {@code null}
      * @param df     {@link InternalObjectFactory}, not {@code null}
      * @return {@link ONTObject}
      */
     @SuppressWarnings("unchecked")
-    ONTObject<OWLObject> wrap(OWLObject object, OntGraphModel model, InternalObjectFactory df) {
+    ONTObject<OWLObject> wrap(OWLObject object, OntModel model, InternalObjectFactory df) {
         if (object instanceof ONTObject) {
             return (ONTObject<OWLObject>) object;
         }
@@ -545,20 +545,20 @@ public enum OWLComponentType {
      * @param df        {@link InternalObjectFactory}, not {@code null}
      * @return {@code Stream} of {@link ONTObject} encapsulating {@link OWLObject}s of this type
      */
-    Stream<ONTObject<OWLObject>> select(OWLObject container, OntGraphModel model, InternalObjectFactory df) {
+    Stream<ONTObject<OWLObject>> select(OWLObject container, OntModel model, InternalObjectFactory df) {
         return select(container).map(x -> wrap(x, model, df));
     }
 
     /**
-     * Returns all components of this type from the specified {@link OntGraphModel model}-container
+     * Returns all components of this type from the specified {@link OntModel model}-container
      * in the form of {@code Stream} of {@link ONTObject}s.
      *
-     * @param model {@link OntGraphModel}, not {@code null}
+     * @param model {@link OntModel}, not {@code null}
      * @param df    {@link InternalObjectFactory}, not {@code null}
      * @return {@link Stream} of {@link ONTObject}s of this type
      */
     @SuppressWarnings("unchecked")
-    public Stream<ONTObject<OWLObject>> select(OntGraphModel model, InternalObjectFactory df) {
+    public Stream<ONTObject<OWLObject>> select(OntModel model, InternalObjectFactory df) {
         return Iter.asStream(listObjects(model).mapWith(x -> (ONTObject<OWLObject>) wrap(x, df)));
     }
 

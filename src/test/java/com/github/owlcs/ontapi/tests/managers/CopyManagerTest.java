@@ -15,7 +15,7 @@
 package com.github.owlcs.ontapi.tests.managers;
 
 import com.github.owlcs.ontapi.*;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.utils.FileMap;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import org.junit.Assert;
@@ -246,9 +246,9 @@ public class CopyManagerTest {
         String uri_b = "urn:b";
         String uri_c = "urn:c";
         OntologyManager m1 = OntManagers.createONT();
-        OntGraphModel a = m1.createGraphModel(uri_a);
-        OntGraphModel b = m1.createGraphModel(uri_b);
-        OntGraphModel c = m1.createGraphModel(uri_c);
+        OntModel a = m1.createGraphModel(uri_a);
+        OntModel b = m1.createGraphModel(uri_b);
+        OntModel c = m1.createGraphModel(uri_c);
         a.addImport(b).addImport(c);
 
         OntologyManager m2 = OntManagers.createONT();
@@ -283,10 +283,10 @@ public class CopyManagerTest {
         String uri_c = "urn:c";
         String uri_d = "urn:d";
         OntologyManager m1 = OntManagers.createONT();
-        OntGraphModel a = m1.createGraphModel(uri_a);
-        OntGraphModel b = m1.createGraphModel(uri_b);
-        OntGraphModel c = m1.createGraphModel(uri_c);
-        OntGraphModel d = m1.createGraphModel(uri_d);
+        OntModel a = m1.createGraphModel(uri_a);
+        OntModel b = m1.createGraphModel(uri_b);
+        OntModel c = m1.createGraphModel(uri_c);
+        OntModel d = m1.createGraphModel(uri_d);
         a.addImport(b.addImport(d)).addImport(c.addImport(d));
 
         OntologyManager m2 = OntManagers.createONT();

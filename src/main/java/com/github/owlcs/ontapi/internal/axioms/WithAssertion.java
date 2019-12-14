@@ -18,7 +18,7 @@ import com.github.owlcs.ontapi.internal.InternalConfig;
 import com.github.owlcs.ontapi.internal.InternalObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.objects.*;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.owlapi.OWLObjectImpl;
 import org.apache.jena.graph.Triple;
@@ -156,7 +156,7 @@ interface WithAssertion<S extends OWLObject, P extends OWLObject, O extends OWLO
      * Note: this is an auxiliary method as shortcut to reduce copy-pasting, it is for internal usage only.
      *
      * @param statement {@link OntStatement}, the source to parse, not {@code null}
-     * @param model     {@link OntGraphModel}-provider, not {@code null}
+     * @param model     {@link OntModel}-provider, not {@code null}
      * @param simple    factory (as {@link BiFunction}) to provide {@link Simple} instance, not {@code null}
      * @param complex   factory (as {@link BiFunction}) to provide {@link WithAnnotations} instance, not {@code null}
      * @param setHash   {@code ObjIntConsumer<OWLAxiom>}, facility to assign {@code hashCode}, not {@code null}
@@ -166,9 +166,9 @@ interface WithAssertion<S extends OWLObject, P extends OWLObject, O extends OWLO
      * @return {@link R}
      */
     static <R extends ONTObject & WithAssertion> R create(OntStatement statement,
-                                                          Supplier<OntGraphModel> model,
-                                                          BiFunction<Triple, Supplier<OntGraphModel>, ? extends R> simple,
-                                                          BiFunction<Triple, Supplier<OntGraphModel>, ? extends R> complex,
+                                                          Supplier<OntModel> model,
+                                                          BiFunction<Triple, Supplier<OntModel>, ? extends R> simple,
+                                                          BiFunction<Triple, Supplier<OntModel>, ? extends R> complex,
                                                           ObjIntConsumer<OWLAxiom> setHash,
                                                           InternalObjectFactory factory,
                                                           InternalConfig config) {
@@ -190,7 +190,7 @@ interface WithAssertion<S extends OWLObject, P extends OWLObject, O extends OWLO
      * For internal usage only.
      *
      * @param statement {@link OntStatement}, the source to parse, not {@code null}
-     * @param model     {@link OntGraphModel}-provider, not {@code null}
+     * @param model     {@link OntModel}-provider, not {@code null}
      * @param maker     a factory (as {@link BiFunction}) to provide {@link Complex} instance, not {@code null}
      * @param setHash   {@code ObjIntConsumer<OWLAxiom>}, facility to assign {@code hashCode}, not {@code null}
      * @param factory   {@link InternalObjectFactory} (singleton), not {@code null}
@@ -199,8 +199,8 @@ interface WithAssertion<S extends OWLObject, P extends OWLObject, O extends OWLO
      * @return {@link R}
      */
     static <R extends ONTObject & Complex> R create(OntStatement statement,
-                                                    Supplier<OntGraphModel> model,
-                                                    BiFunction<Triple, Supplier<OntGraphModel>, ? extends R> maker,
+                                                    Supplier<OntModel> model,
+                                                    BiFunction<Triple, Supplier<OntModel>, ? extends R> maker,
                                                     ObjIntConsumer<OWLAxiom> setHash,
                                                     InternalObjectFactory factory,
                                                     InternalConfig config) {

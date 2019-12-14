@@ -15,15 +15,16 @@
 package com.github.owlcs.ontapi.internal.objects;
 
 import com.github.owlcs.ontapi.AsNode;
+import com.github.owlcs.ontapi.jena.model.OntModel;
+import com.github.owlcs.ontapi.jena.model.OntStatement;
 import org.apache.jena.graph.FrontsTriple;
 import org.apache.jena.graph.Triple;
-import com.github.owlcs.ontapi.jena.model.OntStatement;
 
 /**
  * The generic interface for things that can be seen as wrappers round {@link OntStatement Ontology Statement},
  * which is an extended {@link org.apache.jena.rdf.model.Statement Jena Statement},
  * which, in turn, is a {@link Triple} within {@link org.apache.jena.rdf.model.Model Jena Model}
- * (in our case {@link com.github.owlcs.ontapi.jena.model.OntGraphModel Ontology Model}).
+ * (in our case {@link OntModel Ontology Model}).
  * <p>
  * Created by @szz on 01.10.2019.
  *

@@ -16,7 +16,7 @@ package com.github.owlcs.ontapi.tests;
 
 import com.github.owlcs.ontapi.ID;
 import com.github.owlcs.ontapi.jena.OntModelFactory;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.IRI;
@@ -31,7 +31,7 @@ public class OntologyIDTest {
 
     @Test
     public void testAnonymousID() {
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OWLOntologyID id = new ID(m.getID());
         Assert.assertTrue(id.isAnonymous());
         Assert.assertFalse(id.getOntologyIRI().isPresent());
@@ -42,7 +42,7 @@ public class OntologyIDTest {
     @Test
     public void testOntologyIRI() {
         String uri = "http://ex";
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OWLOntologyID id = new ID(m.setID(uri));
         Assert.assertFalse(id.isAnonymous());
         Assert.assertTrue(id.getOntologyIRI().isPresent());
@@ -58,7 +58,7 @@ public class OntologyIDTest {
     public void testVersionIRI() {
         String uri = "http://ex";
         String ver = "http://v";
-        OntGraphModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD)
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD)
                 .setID(uri).setVersionIRI(ver).getModel();
         OWLOntologyID id = new ID(m.getID());
         Assert.assertFalse(id.isAnonymous());

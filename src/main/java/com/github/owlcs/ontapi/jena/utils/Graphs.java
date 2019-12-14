@@ -16,7 +16,7 @@ package com.github.owlcs.ontapi.jena.utils;
 
 import com.github.owlcs.ontapi.jena.RWLockedGraph;
 import com.github.owlcs.ontapi.jena.UnionGraph;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import org.apache.jena.graph.*;
@@ -124,14 +124,14 @@ public class Graphs {
      * but for any other composite graph there is a dangerous of {@code StackOverflowError} method
      * in case a considered graph has a recursion somewhere in its hierarchy.
      * For a well-formed ontological {@code Graph} the returned stream must
-     * correspond the result of the method {@link OntModels#importsClosure(OntGraphModel)}.
+     * correspond the result of the method {@link OntModels#importsClosure(OntModel)}.
      *
      * @param graph {@link Graph}
      * @return {@code Stream} of {@link Graph}s
      * @throws StackOverflowError in case the given graph is not {@link UnionGraph} from a system
      *                            and has a recursion in its hierarchy
      * @see UnionGraph#listBaseGraphs()
-     * @see OntModels#importsClosure(com.github.owlcs.ontapi.jena.model.OntGraphModel)
+     * @see OntModels#importsClosure(OntModel)
      * @since 1.4.2
      */
     public static Stream<Graph> baseGraphs(Graph graph) {

@@ -16,7 +16,7 @@ package com.github.owlcs.ontapi.internal;
 
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.internal.objects.ONTIRI;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import org.semanticweb.owlapi.model.*;
 
 import java.util.Collections;
@@ -55,10 +55,10 @@ public class CacheObjectFactory extends ModelObjectFactory {
      * For testing and debugging.
      *
      * @param factory {@link DataFactory}, not {@code null}
-     * @param model {@link OntGraphModel}, not {@code null}
+     * @param model   {@link OntModel}, not {@code null}
      */
     @SuppressWarnings("unused")
-    public CacheObjectFactory(DataFactory factory, OntGraphModel model) {
+    public CacheObjectFactory(DataFactory factory, OntModel model) {
         this(factory, model, CACHE_SIZE);
     }
 
@@ -67,10 +67,10 @@ public class CacheObjectFactory extends ModelObjectFactory {
      * Each of them will be bounded with {@code size} limit
      *
      * @param factory {@link DataFactory}, not {@code null}
-     * @param model {@link OntGraphModel}, not {@code null}
+     * @param model   {@link OntModel}, not {@code null}
      * @param size    int, caches size, a negative for unlimited
      */
-    public CacheObjectFactory(DataFactory factory, OntGraphModel model, int size) {
+    public CacheObjectFactory(DataFactory factory, OntModel model, int size) {
         this(factory, () -> model, Collections.emptyMap(), () -> InternalCache.createBounded(true, size));
     }
 
@@ -78,13 +78,13 @@ public class CacheObjectFactory extends ModelObjectFactory {
      * The primary constructor.
      * Provides an instance, that contain both shared (outer) and fresh (inner) caches.
      *
-     * @param dataFactory {@link DataFactory}, not {@code null}
-     * @param model a facility (as {@code Supplier}) to provide nonnull {@link OntGraphModel} instance, not {@code null}
-     * @param external a {@code Map} containing existing outer caches, not {@code null}
+     * @param dataFactory  {@link DataFactory}, not {@code null}
+     * @param model        a facility (as {@code Supplier}) to provide nonnull {@link OntModel} instance, not {@code null}
+     * @param external     a {@code Map} containing existing outer caches, not {@code null}
      * @param cacheFactory a facility ({@code Supplier}) to produce new cache instances, not {@code null}
      */
     protected CacheObjectFactory(DataFactory dataFactory,
-                                 Supplier<OntGraphModel> model,
+                                 Supplier<OntModel> model,
                                  Map<Class<? extends OWLPrimitive>, InternalCache<?, ?>> external,
                                  Supplier<InternalCache<?, ?>> cacheFactory) {
         super(dataFactory, model);

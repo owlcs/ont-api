@@ -15,8 +15,8 @@
 package com.github.owlcs.ontapi.jena.impl;
 
 import com.github.owlcs.ontapi.jena.OntJenaException;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
 import com.github.owlcs.ontapi.jena.model.OntList;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntObject;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
@@ -60,7 +60,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
                           Property predicate,
                           RDFList object,
                           Resource listType,
-                          OntGraphModel model,
+                          OntModel model,
                           Class<E> elementType) {
         super(object.asNode(), (EnhGraph) model);
         this.objectRDFList = object;
@@ -543,7 +543,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
         return setRDFList(list -> {
             List<Statement> stmps = getLastTwoRestStatements();
             if (stmps == null) return list;
-            OntGraphModel m = getModel();
+            OntModel m = getModel();
             Resource last = stmps.get(stmps.size() - 1).getSubject();
             Statement prev = stmps.size() == 1 ? getRoot() : stmps.get(0);
             m.add(prev.getSubject(), prev.getPredicate(), RDF.nil).removeAll(last, null, null).remove(prev);
@@ -556,7 +556,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
         return setRDFList(list -> {
             List<Statement> stmps = getFirstTwoRestStatements();
             if (stmps == null) return list;
-            OntGraphModel m = getModel();
+            OntModel m = getModel();
             Statement root = getRoot();
             Resource first = stmps.get(0).getSubject();
             Resource next = stmps.size() == 1 ? RDF.nil.inModel(m) : stmps.get(1).getSubject();
@@ -648,7 +648,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
     }
 
     private Statement getRestStatement(List<Triple> triples) {
-        OntGraphModel m = getModel();
+        OntModel m = getModel();
         return triples.stream().filter(s -> RDF.rest.asNode().equals(s.getPredicate()))
                 .map(m::asStatement).findFirst()
                 .orElseThrow(() -> new OntJenaException.IllegalState("Can't find rdf:rest in the batch " + triples));

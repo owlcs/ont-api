@@ -24,7 +24,7 @@ import org.apache.jena.rdf.model.Literal;
  * @see <a href='https://www.w3.org/TR/owl2-quick-reference/#Facets'>3.2 Facets</a>
  * @see <a href='https://www.w3.org/TR/xmlschema11-2/#rf-facets'>4.3 Constraining Facets</a>
  * @see com.github.owlcs.ontapi.jena.vocabulary.XSD
- * @see OntGraphModel#createFacetRestriction(Class, Literal)
+ * @see OntModel#createFacetRestriction(Class, Literal)
  */
 public interface OntFR extends OntObject {
     /**

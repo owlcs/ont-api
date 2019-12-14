@@ -19,7 +19,7 @@ import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.jena.OntModelFactory;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -38,7 +38,7 @@ public class ONTObjectContentTest {
     @Test
     public void testAnnotatedSubClassOf() {
         Ontology o = OntManagers.createONT().createOntology();
-        OntGraphModel g = o.asGraphModel();
+        OntModel g = o.asGraphModel();
         g.createOntClass("X").addSubClassOfStatement(g.createOntClass("Y")).annotate(g.getRDFSComment(), "XY");
         ReadWriteUtils.print(g);
 
@@ -60,7 +60,7 @@ public class ONTObjectContentTest {
         OntologyManager m = OntManagers.createONT();
         m.getOntologyConfigurator().setLoadAnnotationAxioms(false);
         Ontology o = m.createOntology();
-        OntGraphModel g = o.asGraphModel();
+        OntModel g = o.asGraphModel();
         g.createOntClass("X").addComment("X");
         ReadWriteUtils.print(g);
 

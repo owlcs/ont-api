@@ -14,6 +14,11 @@
 
 package com.github.owlcs.ontapi.internal.objects;
 
+import com.github.owlcs.ontapi.internal.InternalObjectFactory;
+import com.github.owlcs.ontapi.internal.ModelObjectFactory;
+import com.github.owlcs.ontapi.internal.ONTObject;
+import com.github.owlcs.ontapi.jena.model.OntModel;
+import com.github.owlcs.ontapi.jena.model.OntSWRL;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.impl.LiteralLabel;
@@ -21,11 +26,6 @@ import org.semanticweb.owlapi.model.OWLDatatype;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.SWRLLiteralArgument;
-import com.github.owlcs.ontapi.internal.InternalObjectFactory;
-import com.github.owlcs.ontapi.internal.ModelObjectFactory;
-import com.github.owlcs.ontapi.internal.ONTObject;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
-import com.github.owlcs.ontapi.jena.model.OntSWRL;
 
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -44,7 +44,7 @@ import java.util.stream.Stream;
 public class ONTSWRLLiteralImpl extends ONTResourceImpl
         implements SWRLLiteralArgument, ModelObject<SWRLLiteralArgument> {
 
-    public ONTSWRLLiteralImpl(LiteralLabel n, Supplier<OntGraphModel> m) {
+    public ONTSWRLLiteralImpl(LiteralLabel n, Supplier<OntModel> m) {
         super(n, m);
     }
 

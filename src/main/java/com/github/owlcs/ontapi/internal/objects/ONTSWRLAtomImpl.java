@@ -47,7 +47,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
         extends ONTExpressionImpl<ONT>
         implements SWRLAtom, ModelObject<OWL> {
 
-    protected ONTSWRLAtomImpl(BlankNodeId n, Supplier<OntGraphModel> m) {
+    protected ONTSWRLAtomImpl(BlankNodeId n, Supplier<OntModel> m) {
         super(n, m);
     }
 
@@ -57,13 +57,13 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
      *
      * @param atom    {@link OntSWRL.Atom}, not {@code null}, must be anonymous
      * @param factory {@link InternalObjectFactory}, not {@code null}
-     * @param model   a provider of non-null {@link OntGraphModel}, not {@code null}
+     * @param model   a provider of non-null {@link OntModel}, not {@code null}
      * @return {@link ONTSWRLAtomImpl} instance
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static ONTSWRLAtomImpl create(OntSWRL.Atom<?> atom,
                                          InternalObjectFactory factory,
-                                         Supplier<OntGraphModel> model) {
+                                         Supplier<OntModel> model) {
         Class<? extends OntSWRL.Atom<?>> type = OntModels.getOntType(atom);
         BlankNodeId id = atom.asNode().getBlankNodeId();
         ONTSWRLAtomImpl res = create(id, type, model);
@@ -76,12 +76,12 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
      *
      * @param id    {@link BlankNodeId}, not {@code null}
      * @param type  {@code Class}-type of {@link OntSWRL.Atom}, not {@code null}
-     * @param model {@link OntGraphModel}-provider, not {@code null}
+     * @param model {@link OntModel}-provider, not {@code null}
      * @return {@link ONTSWRLAtomImpl}
      */
     public static ONTSWRLAtomImpl<?, ?> create(BlankNodeId id,
                                                Class<? extends OntSWRL.Atom<?>> type,
-                                               Supplier<OntGraphModel> model) {
+                                               Supplier<OntModel> model) {
         if (type == OntSWRL.Atom.BuiltIn.class) {
             return new BN(id, model);
         }
@@ -242,7 +242,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
      */
     public static class BN extends ONTSWRLAtomImpl<OntSWRL.Atom.BuiltIn, SWRLBuiltInAtom> implements SWRLBuiltInAtom {
 
-        protected BN(BlankNodeId n, Supplier<OntGraphModel> m) {
+        protected BN(BlankNodeId n, Supplier<OntModel> m) {
             super(n, m);
         }
 
@@ -370,7 +370,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
             extends Unary<OntCE, OntSWRL.IArg, OntSWRL.Atom.OntClass, OWLClassExpression, SWRLIArgument, SWRLClassAtom>
             implements SWRLClassAtom {
 
-        protected CU(BlankNodeId n, Supplier<OntGraphModel> m) {
+        protected CU(BlankNodeId n, Supplier<OntModel> m) {
             super(n, m);
         }
 
@@ -418,7 +418,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
             extends Unary<OntDR, OntSWRL.DArg, OntSWRL.Atom.DataRange, OWLDataRange, SWRLDArgument, SWRLDataRangeAtom>
             implements SWRLDataRangeAtom {
 
-        protected DU(BlankNodeId n, Supplier<OntGraphModel> m) {
+        protected DU(BlankNodeId n, Supplier<OntModel> m) {
             super(n, m);
         }
 
@@ -511,7 +511,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
             extends ObjectBinary<OntNOP, OWLObjectProperty, OntSWRL.Atom.SameIndividuals, SWRLSameIndividualAtom>
             implements SWRLSameIndividualAtom {
 
-        protected SIB(BlankNodeId n, Supplier<OntGraphModel> m) {
+        protected SIB(BlankNodeId n, Supplier<OntModel> m) {
             super(n, m);
         }
 
@@ -545,7 +545,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
             extends ObjectBinary<OntNOP, OWLObjectProperty, OntSWRL.Atom.DifferentIndividuals, SWRLDifferentIndividualsAtom>
             implements SWRLDifferentIndividualsAtom {
 
-        protected DIB(BlankNodeId n, Supplier<OntGraphModel> m) {
+        protected DIB(BlankNodeId n, Supplier<OntModel> m) {
             super(n, m);
         }
 
@@ -585,7 +585,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
             SWRLDataPropertyAtom>
             implements SWRLDataPropertyAtom {
 
-        protected DPB(BlankNodeId n, Supplier<OntGraphModel> m) {
+        protected DPB(BlankNodeId n, Supplier<OntModel> m) {
             super(n, m);
         }
 
@@ -669,7 +669,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
             extends ObjectBinary<OntOPE, OWLObjectPropertyExpression, OntSWRL.Atom.ObjectProperty, SWRLObjectPropertyAtom>
             implements SWRLObjectPropertyAtom {
 
-        protected OPB(BlankNodeId n, Supplier<OntGraphModel> m) {
+        protected OPB(BlankNodeId n, Supplier<OntModel> m) {
             super(n, m);
         }
 
@@ -723,7 +723,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
             OWL_R extends SWRLBinaryAtom<SWRLIArgument, SWRLIArgument>>
             extends Binary<ONT_P, OntSWRL.IArg, OntSWRL.IArg, ONT_R, OWL_P, SWRLIArgument, SWRLIArgument, OWL_R> {
 
-        protected ObjectBinary(BlankNodeId n, Supplier<OntGraphModel> m) {
+        protected ObjectBinary(BlankNodeId n, Supplier<OntModel> m) {
             super(n, m);
         }
 
@@ -859,7 +859,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
             OWL_R extends SWRLBinaryAtom<OWL_F, OWL_S>>
             extends ONTSWRLAtomImpl<ONT_R, OWL_R> {
 
-        protected Binary(BlankNodeId n, Supplier<OntGraphModel> m) {
+        protected Binary(BlankNodeId n, Supplier<OntModel> m) {
             super(n, m);
         }
 
@@ -986,7 +986,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
             OWL_A extends SWRLArgument,
             OWL_R extends SWRLUnaryAtom<OWL_A>> extends ONTSWRLAtomImpl<ONT_R, SWRLUnaryAtom<OWL_A>> {
 
-        protected Unary(BlankNodeId n, Supplier<OntGraphModel> m) {
+        protected Unary(BlankNodeId n, Supplier<OntModel> m) {
             super(n, m);
         }
 

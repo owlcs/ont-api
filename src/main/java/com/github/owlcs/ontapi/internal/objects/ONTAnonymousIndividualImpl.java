@@ -14,16 +14,16 @@
 
 package com.github.owlcs.ontapi.internal.objects;
 
+import com.github.owlcs.ontapi.internal.*;
+import com.github.owlcs.ontapi.jena.impl.PersonalityModel;
+import com.github.owlcs.ontapi.jena.model.OntIndividual;
+import com.github.owlcs.ontapi.jena.model.OntModel;
+import com.github.owlcs.ontapi.owlapi.objects.OWLAnonymousIndividualImpl;
 import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.RDFNode;
 import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
-import com.github.owlcs.ontapi.internal.*;
-import com.github.owlcs.ontapi.jena.impl.PersonalityModel;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
-import com.github.owlcs.ontapi.jena.model.OntIndividual;
-import com.github.owlcs.ontapi.owlapi.objects.OWLAnonymousIndividualImpl;
 
 import java.io.IOException;
 import java.io.NotSerializableException;
@@ -44,9 +44,9 @@ import java.util.stream.Stream;
 public class ONTAnonymousIndividualImpl extends OWLAnonymousIndividualImpl
         implements OWLAnonymousIndividual, HasObjectFactory, ONTSimple, ModelObject<OWLAnonymousIndividual>, AsRDFNode {
 
-    protected final Supplier<OntGraphModel> model;
+    protected final Supplier<OntModel> model;
 
-    public ONTAnonymousIndividualImpl(BlankNodeId n, Supplier<OntGraphModel> m) {
+    public ONTAnonymousIndividualImpl(BlankNodeId n, Supplier<OntModel> m) {
         super(n);
         this.model = Objects.requireNonNull(m);
     }
@@ -56,13 +56,13 @@ public class ONTAnonymousIndividualImpl extends OWLAnonymousIndividualImpl
      *
      * @param id      {@link BlankNodeId}, not {@code null}
      * @param factory {@link InternalObjectFactory}, not {@code null}
-     * @param model   a {@code Supplier} with a {@link OntGraphModel},
+     * @param model   a {@code Supplier} with a {@link OntModel},
      *                which is only used in case the {@code factory} has no reference to a model
      * @return an {@link ONTObject} that is {@link OWLAnonymousIndividual}
      */
     public static ONTObject<OWLAnonymousIndividual> find(BlankNodeId id,
                                                          InternalObjectFactory factory,
-                                                         Supplier<OntGraphModel> model) {
+                                                         Supplier<OntModel> model) {
         if (factory instanceof ModelObjectFactory) {
             return ((ModelObjectFactory) factory).getAnonymousIndividual(id);
         }
@@ -86,7 +86,7 @@ public class ONTAnonymousIndividualImpl extends OWLAnonymousIndividualImpl
     }
 
     @Override
-    public OntGraphModel getModel() {
+    public OntModel getModel() {
         return model.get();
     }
 

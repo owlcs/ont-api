@@ -14,16 +14,16 @@
 
 package com.github.owlcs.ontapi.internal.objects;
 
-import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLClassExpression;
-import org.semanticweb.owlapi.model.OWLObjectComplementOf;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.internal.InternalObjectFactory;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.jena.model.OntClass;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLObjectComplementOf;
 
 import javax.annotation.Nullable;
 import java.util.Set;
@@ -40,7 +40,7 @@ import java.util.stream.Stream;
  */
 public class ONTClassImpl extends ONTEntityImpl<OWLClass> implements OWLClass {
 
-    public ONTClassImpl(String uri, Supplier<OntGraphModel> m) {
+    public ONTClassImpl(String uri, Supplier<OntModel> m) {
         super(uri, m);
     }
 
@@ -49,13 +49,13 @@ public class ONTClassImpl extends ONTEntityImpl<OWLClass> implements OWLClass {
      *
      * @param uri     {@code String}, not {@code null}
      * @param factory {@link InternalObjectFactory}, not {@code null}
-     * @param model   a {@code Supplier} with a {@link OntGraphModel},
+     * @param model   a {@code Supplier} with a {@link OntModel},
      *                which is only used in case the {@code factory} has no reference to a model
      * @return an {@link ONTObject} which is {@link OWLClass}
      */
     public static ONTObject<OWLClass> find(String uri,
                                            InternalObjectFactory factory,
-                                           Supplier<OntGraphModel> model) {
+                                           Supplier<OntModel> model) {
         if (factory instanceof ModelObjectFactory) {
             return ((ModelObjectFactory) factory).getClass(uri);
         }

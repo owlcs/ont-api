@@ -56,10 +56,10 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
 
     public OntStatementImpl(Statement statement) throws ClassCastException, NullPointerException {
         this(statement.getSubject(), statement.getPredicate(), statement.getObject(),
-                (OntGraphModel) statement.getModel());
+                (OntModel) statement.getModel());
     }
 
-    public OntStatementImpl(Resource subject, Property predicate, RDFNode object, OntGraphModel model) {
+    public OntStatementImpl(Resource subject, Property predicate, RDFNode object, OntModel model) {
         super(subject, predicate, object, (ModelCom) model);
     }
 

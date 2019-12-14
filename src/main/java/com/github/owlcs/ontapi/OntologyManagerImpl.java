@@ -22,7 +22,7 @@ import com.github.owlcs.ontapi.internal.InternalConfig;
 import com.github.owlcs.ontapi.internal.InternalModel;
 import com.github.owlcs.ontapi.jena.UnionGraph;
 import com.github.owlcs.ontapi.jena.impl.OntGraphModelImpl;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.utils.Graphs;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
 import org.apache.commons.io.output.WriterOutputStream;
@@ -1407,7 +1407,7 @@ public class OntologyManagerImpl implements OntologyManager,
             }
             if (source instanceof Ontology) {
                 Graph src = ((Ontology) source).asGraphModel().getBaseGraph();
-                OntGraphModel dst = res.asGraphModel();
+                OntModel dst = res.asGraphModel();
                 // copy the whole graph
                 GraphUtil.addInto(dst.getBaseGraph(), src);
                 dst.getID().imports().forEach(u -> importedOntology(IRI.create(u))

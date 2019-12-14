@@ -15,7 +15,7 @@
 package com.github.owlcs.ontapi.internal;
 
 import com.github.owlcs.ontapi.OntApiException;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 
 /**
  * An abstract {@link InternalConfig} holder.
@@ -35,11 +35,11 @@ public interface HasConfig {
     /**
      * Gets the ONT-API Config from the model's internals if possible, otherwise throws an exception.
      *
-     * @param model {@link OntGraphModel}, not {@code null}
+     * @param model {@link OntModel}, not {@code null}
      * @return {@link InternalConfig}
      * @throws OntApiException.IllegalArgument in case the model does not provide the config
      */
-    static InternalConfig getConfig(OntGraphModel model) {
+    static InternalConfig getConfig(OntModel model) {
         if (model instanceof HasConfig) {
             return ((HasConfig) model).getConfig();
         }

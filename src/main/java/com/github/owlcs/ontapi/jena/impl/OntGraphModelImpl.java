@@ -52,7 +52,7 @@ import java.util.stream.Stream;
  * @see UnionGraph
  */
 @SuppressWarnings({"WeakerAccess", "SameParameterValue"})
-public class OntGraphModelImpl extends UnionModel implements OntGraphModel, PersonalityModel {
+public class OntGraphModelImpl extends UnionModel implements OntModel, PersonalityModel {
 
     // the model's types mapper
     protected final Map<String, RDFDatatype> dtTypes = new HashMap<>();
@@ -129,13 +129,13 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
      *                   that cannot be treated as {@link OntCE Ontology Class}es, not {@code null}
      * @param assertions {@link ExtendedIterator} of {@link Triple}s
      *                   with the {@link RDF#type rdf:type} as predicate, not {@code null}
-     * @param <M>        a subtype of {@link OntGraphModel} and {@link PersonalityModel}
+     * @param <M>        a subtype of {@link OntModel} and {@link PersonalityModel}
      * @return {@link ExtendedIterator} of {@link OntIndividual}s that are attached to the {@code model}
      * @since 1.4.2
      */
-    public static <M extends OntGraphModel & PersonalityModel> ExtendedIterator<OntIndividual> listIndividuals(M model,
-                                                                                                               Set<Node> system,
-                                                                                                               ExtendedIterator<Triple> assertions) {
+    public static <M extends OntModel & PersonalityModel> ExtendedIterator<OntIndividual> listIndividuals(M model,
+                                                                                                          Set<Node> system,
+                                                                                                          ExtendedIterator<Triple> assertions) {
         Set<Triple> seen = new HashSet<>();
         return assertions
                 .mapWith(t -> {
@@ -249,7 +249,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
     }
 
     @Override
-    public OntGraphModelImpl addImport(OntGraphModel m) {
+    public OntGraphModelImpl addImport(OntModel m) {
         if (Objects.requireNonNull(m, "Null model specified.").getID().isAnon()) {
             throw new OntJenaException.IllegalArgument("Anonymous sub models are not allowed.");
         }
@@ -265,7 +265,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
     }
 
     @Override
-    public boolean hasImport(OntGraphModel m) {
+    public boolean hasImport(OntModel m) {
         Objects.requireNonNull(m);
         return findImport(x -> Graphs.isSameBase(x.getGraph(), m.getGraph())).isPresent();
     }
@@ -276,7 +276,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
     }
 
     @Override
-    public OntGraphModelImpl removeImport(OntGraphModel m) {
+    public OntGraphModelImpl removeImport(OntModel m) {
         Objects.requireNonNull(m);
         findImport(x -> Graphs.isSameBase(x.getGraph(), m.getGraph()))
                 .ifPresent(x -> removeImportModel(x.getGraph(), x.getID().getImportsIRI()));
@@ -291,7 +291,7 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
     }
 
     @Override
-    public Stream<OntGraphModel> imports() {
+    public Stream<OntModel> imports() {
         return imports(getOntPersonality());
     }
 
@@ -299,9 +299,9 @@ public class OntGraphModelImpl extends UnionModel implements OntGraphModel, Pers
      * Lists all top-level sub-models built with the the given {@code personality}.
      *
      * @param personality {@link OntPersonality}, not {@code null}
-     * @return {@code Stream} of {@link OntGraphModel}s
+     * @return {@code Stream} of {@link OntModel}s
      */
-    public Stream<OntGraphModel> imports(OntPersonality personality) {
+    public Stream<OntModel> imports(OntPersonality personality) {
         return Iter.asStream(listImportModels(personality));
     }
 

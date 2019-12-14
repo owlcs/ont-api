@@ -54,22 +54,22 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
         extends ONTExpressionImpl<ONT>
         implements OWLAnonymousClassExpression, ModelObject<OWL> {
 
-    protected ONTAnonymousClassExpressionImpl(BlankNodeId n, Supplier<OntGraphModel> m) {
+    protected ONTAnonymousClassExpressionImpl(BlankNodeId n, Supplier<OntModel> m) {
         super(n, m);
     }
 
     /**
      * Wraps the given {@link OntCE} as {@link OWLAnonymousClassExpression} and {@link ONTObject}.
      *
-     * @param ce    {@link OntCE}, not {@code null}, must be anonymous
+     * @param ce      {@link OntCE}, not {@code null}, must be anonymous
      * @param factory {@link InternalObjectFactory}, not {@code null}
-     * @param model a provider of non-null {@link OntGraphModel}, not {@code null}
+     * @param model   a provider of non-null {@link OntModel}, not {@code null}
      * @return {@link ONTAnonymousClassExpressionImpl} instance
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static ONTAnonymousClassExpressionImpl create(OntCE ce,
                                                          InternalObjectFactory factory,
-                                                         Supplier<OntGraphModel> model) {
+                                                         Supplier<OntModel> model) {
         Class<? extends OntCE> type = OntModels.getOntType(ce);
         BlankNodeId id = ce.asNode().getBlankNodeId();
         ONTAnonymousClassExpressionImpl res = create(id, type, model);
@@ -86,12 +86,12 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
      *
      * @param id    {@link BlankNodeId}, not {@code null}
      * @param type  {@code Class}, not {@code null}
-     * @param model a provider of non-null {@link OntGraphModel}, not {@code null}
+     * @param model a provider of non-null {@link OntModel}, not {@code null}
      * @return {@link ONTAnonymousClassExpressionImpl} instance
      */
     public static ONTAnonymousClassExpressionImpl<?, ?> create(BlankNodeId id,
                                                                Class<? extends OntCE> type,
-                                                               Supplier<OntGraphModel> model) {
+                                                               Supplier<OntModel> model) {
         if (OntCE.ObjectSomeValuesFrom.class == type) {
             return new OSVF(id, model);
         }
@@ -233,7 +233,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             extends WithClassAndObjectProperty<OntCE.ObjectSomeValuesFrom, OWLObjectSomeValuesFrom>
             implements OWLObjectSomeValuesFrom {
 
-        public OSVF(BlankNodeId n, Supplier<OntGraphModel> m) {
+        public OSVF(BlankNodeId n, Supplier<OntModel> m) {
             super(n, m);
         }
 
@@ -256,7 +256,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             extends WithClassAndObjectProperty<OntCE.ObjectAllValuesFrom, OWLObjectAllValuesFrom>
             implements OWLObjectAllValuesFrom {
 
-        public OAVF(BlankNodeId n, Supplier<OntGraphModel> m) {
+        public OAVF(BlankNodeId n, Supplier<OntModel> m) {
             super(n, m);
         }
 
@@ -279,7 +279,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             extends WithDataRangeAndDataPropertyUnary<OntCE.DataSomeValuesFrom, OWLDataSomeValuesFrom>
             implements OWLDataSomeValuesFrom {
 
-        public DSVF(BlankNodeId n, Supplier<OntGraphModel> m) {
+        public DSVF(BlankNodeId n, Supplier<OntModel> m) {
             super(n, m);
         }
 
@@ -302,7 +302,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             extends WithDataRangeAndDataPropertyUnary<OntCE.DataAllValuesFrom, OWLDataAllValuesFrom>
             implements OWLDataAllValuesFrom {
 
-        public DAVF(BlankNodeId n, Supplier<OntGraphModel> m) {
+        public DAVF(BlankNodeId n, Supplier<OntModel> m) {
             super(n, m);
         }
 
@@ -325,7 +325,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             extends WithDataRangeAndDataPropertyNary<OntCE.NaryDataSomeValuesFrom, OWLDataSomeValuesFrom>
             implements OWLDataSomeValuesFrom {
 
-        public NDSVF(BlankNodeId n, Supplier<OntGraphModel> m) {
+        public NDSVF(BlankNodeId n, Supplier<OntModel> m) {
             super(n, m);
         }
 
@@ -348,7 +348,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             extends WithDataRangeAndDataPropertyNary<OntCE.NaryDataAllValuesFrom, OWLDataAllValuesFrom>
             implements OWLDataAllValuesFrom {
 
-        public NDAVF(BlankNodeId n, Supplier<OntGraphModel> m) {
+        public NDAVF(BlankNodeId n, Supplier<OntModel> m) {
             super(n, m);
         }
 
@@ -371,7 +371,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             extends WithObjectProperty<OntCE.ObjectHasValue, OWLObjectHasValue>
             implements OWLObjectHasValue {
 
-        protected OHV(BlankNodeId n, Supplier<OntGraphModel> m) {
+        protected OHV(BlankNodeId n, Supplier<OntModel> m) {
             super(n, m);
         }
 
@@ -501,7 +501,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             extends WithDataProperty<OntCE.DataHasValue, OWLDataHasValue>
             implements OWLDataHasValue {
 
-        protected DHV(BlankNodeId n, Supplier<OntGraphModel> m) {
+        protected DHV(BlankNodeId n, Supplier<OntModel> m) {
             super(n, m);
         }
 
@@ -572,7 +572,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             extends WithObjectProperty<OntCE.HasSelf, OWLObjectHasSelf>
             implements OWLObjectHasSelf {
 
-        protected OHS(BlankNodeId n, Supplier<OntGraphModel> m) {
+        protected OHS(BlankNodeId n, Supplier<OntModel> m) {
             super(n, m);
         }
 
@@ -649,7 +649,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             extends WithClassAndObjectPropertyAndCardinality<OntCE.ObjectCardinality, OWLObjectExactCardinality>
             implements OWLObjectExactCardinality {
 
-        public OEC(BlankNodeId n, Supplier<OntGraphModel> m) {
+        public OEC(BlankNodeId n, Supplier<OntModel> m) {
             super(n, m);
         }
 
@@ -683,7 +683,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             extends WithDataRangeAndDataPropertyAndCardinality<OntCE.DataCardinality, OWLDataExactCardinality>
             implements OWLDataExactCardinality {
 
-        public DEC(BlankNodeId n, Supplier<OntGraphModel> m) {
+        public DEC(BlankNodeId n, Supplier<OntModel> m) {
             super(n, m);
         }
 
@@ -717,7 +717,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             extends WithClassAndObjectPropertyAndCardinality<OntCE.ObjectMinCardinality, OWLObjectMinCardinality>
             implements OWLObjectMinCardinality {
 
-        public OMIC(BlankNodeId n, Supplier<OntGraphModel> m) {
+        public OMIC(BlankNodeId n, Supplier<OntModel> m) {
             super(n, m);
         }
 
@@ -740,7 +740,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             extends WithDataRangeAndDataPropertyAndCardinality<OntCE.DataMinCardinality, OWLDataMinCardinality>
             implements OWLDataMinCardinality {
 
-        public DMIC(BlankNodeId n, Supplier<OntGraphModel> m) {
+        public DMIC(BlankNodeId n, Supplier<OntModel> m) {
             super(n, m);
         }
 
@@ -763,7 +763,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             extends WithClassAndObjectPropertyAndCardinality<OntCE.ObjectMaxCardinality, OWLObjectMaxCardinality>
             implements OWLObjectMaxCardinality {
 
-        public OMAC(BlankNodeId n, Supplier<OntGraphModel> m) {
+        public OMAC(BlankNodeId n, Supplier<OntModel> m) {
             super(n, m);
         }
 
@@ -786,7 +786,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             extends WithDataRangeAndDataPropertyAndCardinality<OntCE.DataMaxCardinality, OWLDataMaxCardinality>
             implements OWLDataMaxCardinality {
 
-        public DMAC(BlankNodeId n, Supplier<OntGraphModel> m) {
+        public DMAC(BlankNodeId n, Supplier<OntModel> m) {
             super(n, m);
         }
 
@@ -809,7 +809,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             extends WithClassMembers<OntCE.UnionOf, OWLObjectUnionOf>
             implements OWLObjectUnionOf {
 
-        public UF(BlankNodeId n, Supplier<OntGraphModel> m) {
+        public UF(BlankNodeId n, Supplier<OntModel> m) {
             super(n, m);
         }
 
@@ -844,7 +844,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             extends WithClassMembers<OntCE.IntersectionOf, OWLObjectIntersectionOf>
             implements OWLObjectIntersectionOf {
 
-        public IF(BlankNodeId n, Supplier<OntGraphModel> m) {
+        public IF(BlankNodeId n, Supplier<OntModel> m) {
             super(n, m);
         }
 
@@ -884,7 +884,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             extends WithMembers<OntIndividual, OntCE.OneOf, OWLIndividual, OWLObjectOneOf>
             implements OWLObjectOneOf {
 
-        public OF(BlankNodeId n, Supplier<OntGraphModel> m) {
+        public OF(BlankNodeId n, Supplier<OntModel> m) {
             super(n, m);
         }
 
@@ -1002,7 +1002,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             extends Simple<OntCE.ComplementOf, OWLObjectComplementOf>
             implements OWLObjectComplementOf {
 
-        public CF(BlankNodeId n, Supplier<OntGraphModel> m) {
+        public CF(BlankNodeId n, Supplier<OntModel> m) {
             super(n, m);
         }
 
@@ -1055,7 +1055,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             OWL extends OWLAnonymousClassExpression>
             extends WithMembers<OntCE, ONT, OWLClassExpression, OWL> {
 
-        protected WithClassMembers(BlankNodeId n, Supplier<OntGraphModel> m) {
+        protected WithClassMembers(BlankNodeId n, Supplier<OntModel> m) {
             super(n, m);
         }
 
@@ -1091,7 +1091,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             extends ONTAnonymousClassExpressionImpl<ONT_C, OWL_C>
             implements HasOperands<OWL_M>, HasComponents {
 
-        protected WithMembers(BlankNodeId n, Supplier<OntGraphModel> m) {
+        protected WithMembers(BlankNodeId n, Supplier<OntModel> m) {
             super(n, m);
         }
 
@@ -1193,7 +1193,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             OWL extends OWLRestriction>
             extends WithDataRangeAndDataPropertyUnary<ONT, OWL> {
 
-        protected WithDataRangeAndDataPropertyAndCardinality(BlankNodeId n, Supplier<OntGraphModel> m) {
+        protected WithDataRangeAndDataPropertyAndCardinality(BlankNodeId n, Supplier<OntModel> m) {
             super(n, m);
         }
 
@@ -1233,7 +1233,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             OWL extends OWLRestriction>
             extends WithDataRangeAndDataProperty<ONT, OWL> {
 
-        protected WithDataRangeAndDataPropertyNary(BlankNodeId n, Supplier<OntGraphModel> m) {
+        protected WithDataRangeAndDataPropertyNary(BlankNodeId n, Supplier<OntModel> m) {
             super(n, m);
         }
 
@@ -1253,7 +1253,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             OWL extends OWLRestriction>
             extends WithDataRangeAndDataProperty<ONT, OWL> {
 
-        protected WithDataRangeAndDataPropertyUnary(BlankNodeId n, Supplier<OntGraphModel> m) {
+        protected WithDataRangeAndDataPropertyUnary(BlankNodeId n, Supplier<OntModel> m) {
             super(n, m);
         }
 
@@ -1273,7 +1273,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             OWL extends OWLRestriction>
             extends WithDataProperty<ONT, OWL> {
 
-        protected WithDataRangeAndDataProperty(BlankNodeId n, Supplier<OntGraphModel> m) {
+        protected WithDataRangeAndDataProperty(BlankNodeId n, Supplier<OntModel> m) {
             super(n, m);
         }
 
@@ -1333,7 +1333,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             OWL extends OWLRestriction>
             extends Restriction<ONT, OWL> {
 
-        protected WithDataProperty(BlankNodeId n, Supplier<OntGraphModel> m) {
+        protected WithDataProperty(BlankNodeId n, Supplier<OntModel> m) {
             super(n, m);
         }
 
@@ -1402,7 +1402,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
     protected abstract static class WithClassAndObjectPropertyAndCardinality<ONT extends OntCE.CardinalityRestrictionCE<OntCE, OntOPE>,
             OWL extends OWLRestriction>
             extends WithClassAndObjectProperty<ONT, OWL> {
-        protected WithClassAndObjectPropertyAndCardinality(BlankNodeId n, Supplier<OntGraphModel> m) {
+        protected WithClassAndObjectPropertyAndCardinality(BlankNodeId n, Supplier<OntModel> m) {
             super(n, m);
         }
 
@@ -1437,7 +1437,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             OWL extends OWLRestriction>
             extends WithObjectProperty<ONT, OWL> {
 
-        protected WithClassAndObjectProperty(BlankNodeId n, Supplier<OntGraphModel> m) {
+        protected WithClassAndObjectProperty(BlankNodeId n, Supplier<OntModel> m) {
             super(n, m);
         }
 
@@ -1491,7 +1491,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
             OWL extends OWLRestriction>
             extends Restriction<ONT, OWL> {
 
-        protected WithObjectProperty(BlankNodeId n, Supplier<OntGraphModel> m) {
+        protected WithObjectProperty(BlankNodeId n, Supplier<OntModel> m) {
             super(n, m);
         }
 
@@ -1536,7 +1536,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
     protected abstract static class Restriction<ONT extends OntCE, OWL extends OWLAnonymousClassExpression>
             extends Simple<ONT, OWL> {
 
-        protected Restriction(BlankNodeId n, Supplier<OntGraphModel> m) {
+        protected Restriction(BlankNodeId n, Supplier<OntModel> m) {
             super(n, m);
         }
 
@@ -1571,7 +1571,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntCE, OWL ext
     protected abstract static class Simple<ONT extends OntCE, OWL extends OWLAnonymousClassExpression>
             extends ONTAnonymousClassExpressionImpl<ONT, OWL> {
 
-        protected Simple(BlankNodeId n, Supplier<OntGraphModel> m) {
+        protected Simple(BlankNodeId n, Supplier<OntModel> m) {
             super(n, m);
         }
 

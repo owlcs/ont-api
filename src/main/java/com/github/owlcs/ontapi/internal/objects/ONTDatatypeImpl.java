@@ -19,7 +19,7 @@ import com.github.owlcs.ontapi.internal.InternalObjectFactory;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.jena.model.OntDT;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import com.github.owlcs.ontapi.jena.vocabulary.XSD;
 import org.apache.jena.vocabulary.RDFS;
@@ -39,7 +39,7 @@ import java.util.function.Supplier;
  */
 public class ONTDatatypeImpl extends ONTEntityImpl<OWLDatatype> implements OWLDatatype {
 
-    public ONTDatatypeImpl(String uri, Supplier<OntGraphModel> m) {
+    public ONTDatatypeImpl(String uri, Supplier<OntModel> m) {
         super(uri, m);
     }
 
@@ -48,13 +48,13 @@ public class ONTDatatypeImpl extends ONTEntityImpl<OWLDatatype> implements OWLDa
      *
      * @param uri     {@code String}, not {@code null}
      * @param factory {@link InternalObjectFactory}, not {@code null}
-     * @param model   a {@code Supplier} with a {@link OntGraphModel},
+     * @param model   a {@code Supplier} with a {@link OntModel},
      *                which is only used in case the {@code factory} has no reference to a model
      * @return an {@link ONTObject} which is {@link OWLDatatype}
      */
     public static ONTObject<OWLDatatype> find(String uri,
                                               InternalObjectFactory factory,
-                                              Supplier<OntGraphModel> model) {
+                                              Supplier<OntModel> model) {
         if (factory instanceof ModelObjectFactory) {
             return ((ModelObjectFactory) factory).getDatatype(uri);
         }

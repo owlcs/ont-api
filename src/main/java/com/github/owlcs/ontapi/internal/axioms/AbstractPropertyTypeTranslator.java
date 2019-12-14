@@ -19,7 +19,7 @@ import com.github.owlcs.ontapi.internal.objects.ONTAxiomImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTObjectPropertyImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntOPE;
 import com.github.owlcs.ontapi.jena.model.OntPE;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
@@ -59,7 +59,7 @@ public abstract class AbstractPropertyTypeTranslator<Axiom extends OWLAxiom & Ha
     }
 
     @Override
-    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
+    public ExtendedIterator<OntStatement> listStatements(OntModel model, InternalConfig config) {
         return OntModels.listLocalStatements(model, null, RDF.type, getType())
                 .filterKeep(s -> s.getSubject().canAs(getView()));
     }
@@ -72,7 +72,7 @@ public abstract class AbstractPropertyTypeTranslator<Axiom extends OWLAxiom & Ha
     }
 
     @Override
-    public void write(Axiom axiom, OntGraphModel model) {
+    public void write(Axiom axiom, OntModel model) {
         WriteHelper.writeTriple(model, axiom.getProperty(), RDF.type, getType(), axiom.annotationsAsList());
     }
 
@@ -85,7 +85,7 @@ public abstract class AbstractPropertyTypeTranslator<Axiom extends OWLAxiom & Ha
     protected static abstract class ObjectAxiomImpl<A extends OWLObjectPropertyCharacteristicAxiom>
             extends UnaryAxiomImpl<A, OWLObjectPropertyExpression> {
 
-        protected ObjectAxiomImpl(Triple t, Supplier<OntGraphModel> m) {
+        protected ObjectAxiomImpl(Triple t, Supplier<OntModel> m) {
             super(t, m);
         }
 
@@ -137,7 +137,7 @@ public abstract class AbstractPropertyTypeTranslator<Axiom extends OWLAxiom & Ha
             P extends OWLPropertyExpression> extends ONTAxiomImpl<A>
             implements WithOneObject<P> {
 
-        protected UnaryAxiomImpl(Triple t, Supplier<OntGraphModel> m) {
+        protected UnaryAxiomImpl(Triple t, Supplier<OntModel> m) {
             super(t, m);
         }
 

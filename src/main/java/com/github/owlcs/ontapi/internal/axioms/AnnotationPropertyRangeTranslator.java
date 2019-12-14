@@ -19,7 +19,7 @@ import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTAnnotationPropertyImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntNAP;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import org.apache.jena.graph.Triple;
@@ -50,12 +50,12 @@ public class AnnotationPropertyRangeTranslator
     /**
      * Returns {@link OntStatement}s defining the {@link OWLAnnotationPropertyRangeAxiom} axiom.
      *
-     * @param model  {@link OntGraphModel}
+     * @param model  {@link OntModel}
      * @param config {@link InternalConfig}
      * @return {@link ExtendedIterator} of {@link OntStatement}s
      */
     @Override
-    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
+    public ExtendedIterator<OntStatement> listStatements(OntModel model, InternalConfig config) {
         if (!config.isLoadAnnotationAxioms()) return NullIterator.instance();
         return super.listStatements(model, config);
     }
@@ -75,7 +75,7 @@ public class AnnotationPropertyRangeTranslator
 
     @Override
     public ONTObject<OWLAnnotationPropertyRangeAxiom> toAxiomImpl(OntStatement statement,
-                                                                  Supplier<OntGraphModel> model,
+                                                                  Supplier<OntModel> model,
                                                                   InternalObjectFactory factory,
                                                                   InternalConfig config) {
         return AxiomImpl.create(statement, model, factory, config);
@@ -101,7 +101,7 @@ public class AnnotationPropertyRangeTranslator
             extends RangeAxiomImpl<OWLAnnotationPropertyRangeAxiom, OWLAnnotationProperty, IRI>
             implements OWLAnnotationPropertyRangeAxiom {
 
-        protected AxiomImpl(Triple t, Supplier<OntGraphModel> m) {
+        protected AxiomImpl(Triple t, Supplier<OntModel> m) {
             super(t, m);
         }
 
@@ -109,13 +109,13 @@ public class AnnotationPropertyRangeTranslator
          * Creates an {@link ONTObject} container that is also {@link OWLAnnotationPropertyRangeAxiom}.
          *
          * @param statement {@link OntStatement}, not {@code null}
-         * @param model     {@link OntGraphModel} provider, not {@code null}
+         * @param model     {@link OntModel} provider, not {@code null}
          * @param factory   {@link InternalObjectFactory}, not {@code null}
          * @param config    {@link InternalConfig}, not {@code null}
          * @return {@link AxiomImpl}
          */
         public static AxiomImpl create(OntStatement statement,
-                                       Supplier<OntGraphModel> model,
+                                       Supplier<OntModel> model,
                                        InternalObjectFactory factory,
                                        InternalConfig config) {
             return WithTwoObjects.create(statement, model,
@@ -180,9 +180,9 @@ public class AnnotationPropertyRangeTranslator
          */
         public static class SimpleImpl extends AxiomImpl implements Simple<OWLAnnotationProperty, IRI> {
 
-            private static final BiFunction<Triple, Supplier<OntGraphModel>, SimpleImpl> FACTORY = SimpleImpl::new;
+            private static final BiFunction<Triple, Supplier<OntModel>, SimpleImpl> FACTORY = SimpleImpl::new;
 
-            protected SimpleImpl(Triple t, Supplier<OntGraphModel> m) {
+            protected SimpleImpl(Triple t, Supplier<OntModel> m) {
                 super(t, m);
             }
 
@@ -224,12 +224,12 @@ public class AnnotationPropertyRangeTranslator
         public static class WithAnnotationsImpl extends AxiomImpl
                 implements Complex<WithAnnotationsImpl, OWLAnnotationProperty, IRI> {
 
-            private static final BiFunction<Triple, Supplier<OntGraphModel>, WithAnnotationsImpl> FACTORY =
+            private static final BiFunction<Triple, Supplier<OntModel>, WithAnnotationsImpl> FACTORY =
                     WithAnnotationsImpl::new;
 
             protected final InternalCache.Loading<WithAnnotationsImpl, Object[]> content;
 
-            public WithAnnotationsImpl(Triple t, Supplier<OntGraphModel> m) {
+            public WithAnnotationsImpl(Triple t, Supplier<OntModel> m) {
                 super(t, m);
                 this.content = createContentCache();
             }

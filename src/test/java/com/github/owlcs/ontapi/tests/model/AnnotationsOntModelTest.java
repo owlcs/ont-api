@@ -22,7 +22,7 @@ import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
 import com.github.owlcs.ontapi.internal.AxiomParserProvider;
 import com.github.owlcs.ontapi.internal.WriteHelper;
 import com.github.owlcs.ontapi.jena.model.OntClass;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import com.github.owlcs.ontapi.utils.OntIRI;
@@ -57,7 +57,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
     public void testNegativeAssertionAnnotations() {
         OntologyManager m = OntManagers.createONT();
         Ontology o = m.createOntology();
-        OntGraphModel g = o.asGraphModel();
+        OntModel g = o.asGraphModel();
 
         g.createObjectProperty("OP").createInverse()
                 .addNegativeAssertion(g.createIndividual("A"), g.createIndividual("B"))
@@ -97,7 +97,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
         OWLDataFactory factory = manager.getOWLDataFactory();
         Ontology owl = manager.createOntology(iri);
 
-        OntGraphModel jena = owl.asGraphModel();
+        OntModel jena = owl.asGraphModel();
 
         OntClass ontClass = jena.createOntClass(clazzIRI.getIRIString());
 
@@ -222,8 +222,8 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
         Assert.assertEquals("Incorrect number of ontologies.", count + 2, manager.ontologies().count());
 
         LOGGER.debug("Pass all content from {} to {} using jena.", id1, id2);
-        OntGraphModel source = owl1.asGraphModel();
-        OntGraphModel target = owl2.asGraphModel();
+        OntModel source = owl1.asGraphModel();
+        OntModel target = owl2.asGraphModel();
         Iterator<Statement> toCopy = source.getBaseModel()
                 .listStatements().filterDrop(statement -> iri.toResource().equals(statement.getSubject()));
         toCopy.forEachRemaining(target::add);
@@ -629,7 +629,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
         o1.annotations().map(String::valueOf).forEach(LOGGER::debug);
         // checking jena shadow
         if (manager instanceof OntologyManager) {
-            OntGraphModel jena = ((Ontology) o1).asGraphModel();
+            OntModel jena = ((Ontology) o1).asGraphModel();
             // test annotation see-also:
             Assert.assertTrue("Can't find rdfs:comment " + comment, jena.contains(null, RDFS.comment,
                     WriteHelper.toRDFNode(comment)));
@@ -663,7 +663,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
 
         // test jena annotation1:
         if (manager instanceof OntologyManager) {
-            OntGraphModel jena = ((Ontology) o1).asGraphModel();
+            OntModel jena = ((Ontology) o1).asGraphModel();
             Assert.assertFalse("There is rdfs:comment " + comment,
                     jena.contains(null, RDFS.comment, WriteHelper.toRDFNode(comment)));
             Assert.assertFalse("There is owl:annotatedTarget " + comment,
@@ -686,7 +686,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
         o1.remove(df.getOWLDeclarationAxiom(annotationProperty));
         debug(o1);
         if (manager instanceof OntologyManager) {
-            OntGraphModel jena = ((Ontology) o1).asGraphModel();
+            OntModel jena = ((Ontology) o1).asGraphModel();
             List<Statement> rest = jena.listStatements().toList();
             LOGGER.debug("Rest statements : ");
             rest.stream().map(String::valueOf).forEach(LOGGER::debug);

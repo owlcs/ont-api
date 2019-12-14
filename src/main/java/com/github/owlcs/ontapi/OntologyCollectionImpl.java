@@ -14,9 +14,9 @@
 
 package com.github.owlcs.ontapi;
 
+import com.github.owlcs.ontapi.jena.utils.Iter;
 import org.semanticweb.owlapi.model.HasOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyID;
-import com.github.owlcs.ontapi.jena.utils.Iter;
 
 import java.io.Serializable;
 import java.util.*;
@@ -33,7 +33,7 @@ import java.util.stream.Stream;
  * Currently it is not possible to use directly different {@code Map}s with {@link OWLOntologyID Ontology ID} as keys
  * like in the original OWL-API implementation,
  * since anything, including that ID, can be changed externally (e.g. directly from the jena graph
- * using shadow {@link com.github.owlcs.ontapi.jena.model.OntGraphModel} interface or something else).
+ * using shadow {@link com.github.owlcs.ontapi.jena.model.OntModel} interface or something else).
  * On the other hand, it is not expected that this collection will hold a large number of elements,
  * so using reordering operation in every method is OK.
  * <p>

@@ -14,6 +14,19 @@
 
 package com.github.owlcs.ontapi.internal;
 
+import com.github.owlcs.ontapi.OntApiException;
+import com.github.owlcs.ontapi.jena.OntJenaException;
+import com.github.owlcs.ontapi.jena.impl.OntGraphModelImpl;
+import com.github.owlcs.ontapi.jena.impl.OntObjectImpl;
+import com.github.owlcs.ontapi.jena.impl.conf.BaseFactoryImpl;
+import com.github.owlcs.ontapi.jena.impl.conf.ObjectFactory;
+import com.github.owlcs.ontapi.jena.impl.conf.OntPersonality;
+import com.github.owlcs.ontapi.jena.impl.conf.PersonalityBuilder;
+import com.github.owlcs.ontapi.jena.model.OntModel;
+import com.github.owlcs.ontapi.jena.model.OntObject;
+import com.github.owlcs.ontapi.jena.model.OntSWRL;
+import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
 import org.apache.jena.graph.Graph;
@@ -25,19 +38,6 @@ import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.util.iterator.NullIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.github.owlcs.ontapi.OntApiException;
-import com.github.owlcs.ontapi.jena.OntJenaException;
-import com.github.owlcs.ontapi.jena.impl.OntGraphModelImpl;
-import com.github.owlcs.ontapi.jena.impl.OntObjectImpl;
-import com.github.owlcs.ontapi.jena.impl.conf.BaseFactoryImpl;
-import com.github.owlcs.ontapi.jena.impl.conf.ObjectFactory;
-import com.github.owlcs.ontapi.jena.impl.conf.OntPersonality;
-import com.github.owlcs.ontapi.jena.impl.conf.PersonalityBuilder;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
-import com.github.owlcs.ontapi.jena.model.OntObject;
-import com.github.owlcs.ontapi.jena.model.OntSWRL;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
-import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -87,7 +87,7 @@ public abstract class SearchModel extends OntGraphModelImpl implements HasObject
     static <X> X handleFetchNodeAsException(OntJenaException error,
                                             Node node,
                                             Class<? extends RDFNode> type,
-                                            OntGraphModel m,
+                                            OntModel m,
                                             InternalConfig conf) throws OntApiException {
         if (!conf.isIgnoreAxiomsReadErrors()) {
             throw new OntApiException(error);

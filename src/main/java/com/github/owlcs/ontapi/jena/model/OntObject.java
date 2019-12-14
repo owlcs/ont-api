@@ -14,13 +14,13 @@
 
 package com.github.owlcs.ontapi.jena.model;
 
+import com.github.owlcs.ontapi.jena.OntJenaException;
+import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
-import com.github.owlcs.ontapi.jena.OntJenaException;
-import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -28,7 +28,7 @@ import java.util.stream.Stream;
 
 /**
  * A base {@link OntResource Ontology Object RDF Resource}.
- * A common super-type for all of the abstractions in the {@link OntGraphModel Ontology RDF Model},
+ * A common super-type for all of the abstractions in the {@link OntModel Ontology RDF Model},
  * which support Jena Polymorphism,
  * can be annotated and have a structure that is strictly defined according to the OWL2 specification.
  * <p>
@@ -52,7 +52,7 @@ public interface OntObject extends OntResource {
      * the expression {@code getModel().asStatement(this.getRoot().asTriple())} can be used.
      *
      * @return {@link OntStatement} or {@code null} in some boundary cases (e.g. for builtins)
-     * @see OntGraphModel#asStatement(Triple)
+     * @see OntModel#asStatement(Triple)
      * @see OntStatement#addAnnotation(OntNAP, RDFNode)
      */
     @Override
@@ -322,7 +322,7 @@ public interface OntObject extends OntResource {
      *
      * @param txt String, not {@code null}
      * @return this object to allow cascading calls
-     * @see OntGraphModel#getRDFSComment()
+     * @see OntModel#getRDFSComment()
      */
     default OntObject addComment(String txt) {
         return addComment(txt, null);
@@ -334,7 +334,7 @@ public interface OntObject extends OntResource {
      * @param txt  String, the literal lexical form, not {@code null}
      * @param lang String, the language tag, nullable
      * @return this object to allow cascading calls
-     * @see OntGraphModel#getRDFSComment()
+     * @see OntModel#getRDFSComment()
      */
     default OntObject addComment(String txt, String lang) {
         addAnnotation(getModel().getRDFSComment(), txt, lang);
@@ -346,7 +346,7 @@ public interface OntObject extends OntResource {
      *
      * @param txt String, the literal lexical form, not {@code null}
      * @return this object to allow cascading calls
-     * @see OntGraphModel#getRDFSLabel()
+     * @see OntModel#getRDFSLabel()
      */
     default OntObject addLabel(String txt) {
         return addLabel(txt, null);
@@ -358,7 +358,7 @@ public interface OntObject extends OntResource {
      * @param txt  String, the literal lexical form, not {@code null}
      * @param lang String, the language tag, nullable
      * @return this object to allow cascading calls
-     * @see OntGraphModel#getRDFSLabel()
+     * @see OntModel#getRDFSLabel()
      */
     default OntObject addLabel(String txt, String lang) {
         addAnnotation(getModel().getRDFSLabel(), txt, lang);
@@ -370,7 +370,7 @@ public interface OntObject extends OntResource {
      * If there is more than one such resource, an arbitrary selection is made.
      *
      * @return a {@code rdfs:comment} string or {@code null} if there is no comments
-     * @see OntGraphModel#getRDFSComment()
+     * @see OntModel#getRDFSComment()
      */
     default String getComment() {
         return getComment(null);
@@ -385,7 +385,7 @@ public interface OntObject extends OntResource {
      *             to get no-lang literal string an empty string can be used
      * @return a {@code rdfs:comment} string matching the given language,
      * or {@code null} if there is no matching comment
-     * @see OntGraphModel#getRDFSComment()
+     * @see OntModel#getRDFSComment()
      */
     default String getComment(String lang) {
         try (Stream<String> res = annotationValues(getModel().getRDFSComment(), lang)) {
@@ -398,7 +398,7 @@ public interface OntObject extends OntResource {
      * If there is more than one such resource, an arbitrary selection is made.
      *
      * @return a {@code rdfs:label} string or {@code null} if there is no comments
-     * @see OntGraphModel#getRDFSLabel()
+     * @see OntModel#getRDFSLabel()
      */
     default String getLabel() {
         return getLabel(null);
@@ -412,7 +412,7 @@ public interface OntObject extends OntResource {
      *             will attempt to retrieve the most specific comment matching the given language;
      *             to get no-lang literal string an empty string can be used
      * @return a {@code rdfs:label} string matching the given language, or {@code null}  if there is no matching label
-     * @see OntGraphModel#getRDFSLabel()
+     * @see OntModel#getRDFSLabel()
      */
     default String getLabel(String lang) {
         try (Stream<String> res = annotationValues(getModel().getRDFSLabel(), lang)) {

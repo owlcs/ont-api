@@ -18,7 +18,7 @@ import com.github.owlcs.ontapi.*;
 import com.github.owlcs.ontapi.jena.OntJenaException;
 import com.github.owlcs.ontapi.jena.OntModelFactory;
 import com.github.owlcs.ontapi.jena.model.OntCE;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import org.apache.jena.graph.Graph;
@@ -92,7 +92,7 @@ public class MiscOntologyTest {
     @Test(expected = OntJenaException.class) // not a StackOverflowError
     public void testRecursionOnComplementOf() {
         Graph g = makeGraphWithRecursion();
-        OntGraphModel o = OntModelFactory.createModel(g);
+        OntModel o = OntModelFactory.createModel(g);
         ReadWriteUtils.print(o);
         List<OntCE> ces = o.ontObjects(OntCE.class).collect(Collectors.toList());
         ces.forEach(x -> LOGGER.error("{}", x));
@@ -103,7 +103,7 @@ public class MiscOntologyTest {
         OntologyManager m = OntManagers.createONT();
         m.getOntologyConfigurator().setIgnoreAxiomsReadErrors(true);
         Graph g = makeGraphWithRecursion();
-        OntGraphModel o = m.addOntology(g).asGraphModel();
+        OntModel o = m.addOntology(g).asGraphModel();
         ReadWriteUtils.print(o);
         Assert.assertEquals(0, o.ontObjects(OntCE.ComplementOf.class).count());
         Assert.assertEquals(0, o.ontObjects(OntCE.class).count());
@@ -113,7 +113,7 @@ public class MiscOntologyTest {
     public void testPrefixesOnReload() throws IOException, OWLOntologyStorageException, OWLOntologyCreationException {
         LOGGER.debug("Create");
         String prefName = "argh";
-        OntGraphModel model = OntModelFactory.createModel();
+        OntModel model = OntModelFactory.createModel();
         model.setID("http://test.com/ont").setVersionIRI("http://test.com/ver/1.0");
         LOGGER.debug("{} has been created", model);
         model.setNsPrefix(prefName, model.getID().getURI() + "#");

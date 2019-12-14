@@ -25,13 +25,12 @@ import com.github.owlcs.ontapi.jena.UnionGraph;
 import com.github.owlcs.ontapi.jena.impl.conf.OntModelConfig;
 import com.github.owlcs.ontapi.jena.model.OntClass;
 import com.github.owlcs.ontapi.jena.model.OntEntity;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.transforms.GraphTransformers;
 import com.github.owlcs.ontapi.utils.OntIRI;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import com.github.owlcs.ontapi.utils.SpinModels;
 import org.apache.jena.mem.GraphMem;
-import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.util.FileManager;
@@ -138,8 +137,8 @@ public class CommonManagerTest {
 
     private static void editManagerTest(OntologyManager origin, OntologyManager copy) {
         String uri = "urn:iri.com#1";
-        OntGraphModel o1 = origin.getGraphModel(uri);
-        OntGraphModel o2 = copy.getGraphModel(uri);
+        OntModel o1 = origin.getGraphModel(uri);
+        OntModel o2 = copy.getGraphModel(uri);
 
         List<OntClass> classes1 = o1.classes().collect(Collectors.toList());
         // create two new classes inside original manager (in two models).
@@ -212,8 +211,8 @@ public class CommonManagerTest {
             Assert.assertEquals("Incorrect owl entities", expectedEntities, actualEntities);
         }
         if (actualOnt instanceof Ontology && expectedOnt instanceof Ontology) {  // ont
-            OntGraphModel a = ((Ontology) actualOnt).asGraphModel();
-            OntGraphModel e = ((Ontology) expectedOnt).asGraphModel();
+            OntModel a = ((Ontology) actualOnt).asGraphModel();
+            OntModel e = ((Ontology) expectedOnt).asGraphModel();
             List<OntEntity> actualEntities = a.ontEntities().collect(Collectors.toList());
             List<OntEntity> expectedEntities = e.ontEntities().collect(Collectors.toList());
             LOGGER.debug("ONT entities: {}", actualEntities);
@@ -334,7 +333,7 @@ public class CommonManagerTest {
         OntModelSpec spec = OntModelSpec.OWL_DL_MEM;
         FileManager jenaFileManager = spec.getDocumentManager().getFileManager();
         SpinModels.addMappings(jenaFileManager);
-        OntModel ontologyModel = ModelFactory.createOntologyModel(spec);
+        org.apache.jena.ontology.OntModel ontologyModel = ModelFactory.createOntologyModel(spec);
         ontologyModel.read(SpinModels.SPINMAPL.getIRI().getIRIString(), "ttl");
 
         LOGGER.debug("Load spin-rdf ontology family using file-iri-mappings");
@@ -352,7 +351,7 @@ public class CommonManagerTest {
 
         LOGGER.debug("Add several additional ontologies");
         m2.addOntology(OntModelFactory.createDefaultGraph());
-        OntGraphModel o2 = OntModelFactory.createModel();
+        OntModel o2 = OntModelFactory.createModel();
         o2.setID("http://example.org/test");
         m2.addOntology(o2.getGraph());
         Assert.assertEquals("Counts of ontologies does not match", expected + 2, m2.ontologies().count());
@@ -369,10 +368,10 @@ public class CommonManagerTest {
     }
 
     private void testPassingOntGraphModel(OntologyManager m, Consumer<OWLOntology> tester) {
-        OntGraphModel a = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD).setID("a").getModel();
-        OntGraphModel b = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD).setID("b").getModel();
-        OntGraphModel c = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD).setID("c").getModel();
-        OntGraphModel d = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD).setID("d").getModel();
+        OntModel a = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD).setID("a").getModel();
+        OntModel b = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD).setID("b").getModel();
+        OntModel c = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD).setID("c").getModel();
+        OntModel d = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD).setID("d").getModel();
         a.addImport(b.addImport(c).addImport(d));
 
         m.addOntology(a.getGraph());
@@ -380,7 +379,7 @@ public class CommonManagerTest {
     }
 
     private void assertOntology(OWLOntology ont, boolean isConcurrent) {
-        OntGraphModel m = ((Ontology) ont).asGraphModel();
+        OntModel m = ((Ontology) ont).asGraphModel();
         LOGGER.debug("Test {}", m);
         Assert.assertNotNull(m);
         if (isConcurrent) {

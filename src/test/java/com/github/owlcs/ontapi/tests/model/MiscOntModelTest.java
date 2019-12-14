@@ -56,7 +56,7 @@ public class MiscOntModelTest extends OntModelTestBase {
     @Test
     public void testRemoveAxiomWithDuplicatedAnnotations() {
         Ontology o = OntManagers.createONT().createOntology();
-        OntGraphModel g = o.asGraphModel();
+        OntModel g = o.asGraphModel();
         OntStatement s = g.createOntClass("X").addSubClassOfStatement(g.createOntClass("Y"));
         int duplicates = 2;
         for (int i = 0; i < duplicates; i++) {
@@ -99,7 +99,7 @@ public class MiscOntModelTest extends OntModelTestBase {
         OntologyManager man = OntManagers.createONT();
         Ontology o = man.createOntology();
 
-        OntGraphModel m = o.asGraphModel();
+        OntModel m = o.asGraphModel();
         OntNDP p = m.createDataProperty("p");
         OntDT d = m.getDatatype(XSD.xstring);
         OntCE.NaryDataAllValuesFrom ce1 = m.createDataAllValuesFrom(Collections.singletonList(p), d);
@@ -251,7 +251,7 @@ public class MiscOntModelTest extends OntModelTestBase {
         OWLDataFactory df = manager.getOWLDataFactory();
         Ontology o = manager.createOntology();
 
-        OntGraphModel m = o.asGraphModel();
+        OntModel m = o.asGraphModel();
         OntIndividual ti1 = m.getOWLThing().createIndividual();
         OWLAnonymousIndividual ni1 = df.getOWLAnonymousIndividual();
         o.add(df.getOWLClassAssertionAxiom(df.getOWLNothing(), ni1));
@@ -273,7 +273,7 @@ public class MiscOntModelTest extends OntModelTestBase {
         OntologyManager man = OntManagers.createONT();
         Ontology o = man.createOntology(IRI.create("X"));
 
-        OntGraphModel m = o.asGraphModel();
+        OntModel m = o.asGraphModel();
         OntCE ce = m.createUnionOf(m.createOntClass("y"), m.createOntClass("z"));
         ce.createIndividual("i").attachClass(m.createOntClass("w"));
         m.createOntClass("z").addSuperClass(ce)

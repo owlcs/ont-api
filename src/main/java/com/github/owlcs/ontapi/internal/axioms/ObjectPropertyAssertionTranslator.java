@@ -19,8 +19,8 @@ import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTObjectPropertyImpl;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
 import com.github.owlcs.ontapi.jena.model.OntIndividual;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntOPE;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import org.apache.jena.graph.BlankNodeId;
@@ -48,10 +48,10 @@ public class ObjectPropertyAssertionTranslator
      * Note: ObjectPropertyAssertion(ObjectInverseOf(P) S O) = ObjectPropertyAssertion(P O S)
      *
      * @param axiom {@link OWLObjectPropertyAssertionAxiom}
-     * @param model {@link OntGraphModel}
+     * @param model {@link OntModel}
      */
     @Override
-    public void write(OWLObjectPropertyAssertionAxiom axiom, OntGraphModel model) {
+    public void write(OWLObjectPropertyAssertionAxiom axiom, OntModel model) {
         OWLIndividual s = axiom.getSubject();
         OWLObjectPropertyExpression p = axiom.getProperty();
         OWLIndividual o = axiom.getObject();
@@ -66,12 +66,12 @@ public class ObjectPropertyAssertionTranslator
      * Lists positive object property assertion: {@code a1 PN a2}.
      * See <a href='https://www.w3.org/TR/owl2-quick-reference/'>Assertions</a>
      *
-     * @param model  {@link OntGraphModel} the model
+     * @param model  {@link OntModel} the model
      * @param config {@link InternalConfig}
      * @return {@link ExtendedIterator} of {@link OntStatement}s
      */
     @Override
-    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
+    public ExtendedIterator<OntStatement> listStatements(OntModel model, InternalConfig config) {
         return listStatements(model).filterKeep(s -> testStatement(s, config));
     }
 
@@ -84,7 +84,7 @@ public class ObjectPropertyAssertionTranslator
 
     @Override
     public ONTObject<OWLObjectPropertyAssertionAxiom> toAxiomImpl(OntStatement statement,
-                                                                  Supplier<OntGraphModel> model,
+                                                                  Supplier<OntModel> model,
                                                                   InternalObjectFactory factory,
                                                                   InternalConfig config) {
         return AxiomImpl.create(statement, model, factory, config);
@@ -115,7 +115,7 @@ public class ObjectPropertyAssertionTranslator
             OWLIndividual, OWLObjectPropertyExpression, OWLIndividual>
             implements OWLObjectPropertyAssertionAxiom {
 
-        protected AxiomImpl(Triple t, Supplier<OntGraphModel> m) {
+        protected AxiomImpl(Triple t, Supplier<OntModel> m) {
             super(t, m);
         }
 
@@ -123,13 +123,13 @@ public class ObjectPropertyAssertionTranslator
          * Creates an {@link OWLObjectPropertyAssertionAxiom} that is also {@link ONTObject}.
          *
          * @param statement {@link OntStatement}, the source, not {@code null}
-         * @param model     {@link OntGraphModel}-provider, not {@code null}
+         * @param model     {@link OntModel}-provider, not {@code null}
          * @param factory   {@link InternalObjectFactory}, not {@code null}
          * @param config    {@link InternalConfig}, not {@code null}
          * @return {@link AxiomImpl}
          */
         public static AxiomImpl create(OntStatement statement,
-                                       Supplier<OntGraphModel> model,
+                                       Supplier<OntModel> model,
                                        InternalObjectFactory factory,
                                        InternalConfig config) {
             return WithAssertion.create(statement, model,
@@ -236,9 +236,9 @@ public class ObjectPropertyAssertionTranslator
         public static class SimpleImpl extends AxiomImpl
                 implements Simple<OWLIndividual, OWLObjectPropertyExpression, OWLIndividual> {
 
-            private static final BiFunction<Triple, Supplier<OntGraphModel>, SimpleImpl> FACTORY = SimpleImpl::new;
+            private static final BiFunction<Triple, Supplier<OntModel>, SimpleImpl> FACTORY = SimpleImpl::new;
 
-            protected SimpleImpl(Triple t, Supplier<OntGraphModel> m) {
+            protected SimpleImpl(Triple t, Supplier<OntModel> m) {
                 super(t, m);
             }
 
@@ -281,11 +281,11 @@ public class ObjectPropertyAssertionTranslator
         public static class WithAnnotationsImpl extends AxiomImpl
                 implements WithAnnotations<WithAnnotationsImpl, OWLIndividual, OWLObjectPropertyExpression, OWLIndividual> {
 
-            private static final BiFunction<Triple, Supplier<OntGraphModel>, WithAnnotationsImpl> FACTORY =
+            private static final BiFunction<Triple, Supplier<OntModel>, WithAnnotationsImpl> FACTORY =
                     WithAnnotationsImpl::new;
             protected final InternalCache.Loading<WithAnnotationsImpl, Object[]> content;
 
-            public WithAnnotationsImpl(Triple t, Supplier<OntGraphModel> m) {
+            public WithAnnotationsImpl(Triple t, Supplier<OntModel> m) {
                 super(t, m);
                 this.content = createContentCache();
             }

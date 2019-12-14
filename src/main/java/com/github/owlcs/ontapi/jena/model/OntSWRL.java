@@ -31,7 +31,7 @@ import java.util.stream.Stream;
 public interface OntSWRL extends OntObject {
 
     /**
-     * @see OntGraphModel#createSWRLImp(Collection, Collection)
+     * @see OntModel#createSWRLImp(Collection, Collection)
      */
     @SuppressWarnings("rawtypes")
     interface Imp extends OntSWRL {
@@ -77,7 +77,8 @@ public interface OntSWRL extends OntObject {
 
     /**
      * Represents {@link com.github.owlcs.ontapi.jena.vocabulary.SWRL#Variable} entity.
-     * @see OntGraphModel#createSWRLVariable(String)
+     *
+     * @see OntModel#createSWRLVariable(String)
      */
     interface Variable extends OntSWRL, DArg, IArg {
     }
@@ -125,7 +126,7 @@ public interface OntSWRL extends OntObject {
         Stream<? extends Arg> arguments();
 
         /**
-         * @see OntGraphModel#createBuiltInSWRLAtom(Resource, Collection)
+         * @see OntModel#createBuiltInSWRLAtom(Resource, Collection)
          */
         interface BuiltIn extends Atom<Builtin> {
             /**
@@ -146,25 +147,25 @@ public interface OntSWRL extends OntObject {
         }
 
         /**
-         * @see OntGraphModel#createClassSWRLAtom(OntCE, OntSWRL.IArg)
+         * @see OntModel#createClassSWRLAtom(OntCE, OntSWRL.IArg)
          */
         interface OntClass extends Unary<OntCE, IArg> {
         }
 
         /**
-         * @see OntGraphModel#createDataRangeSWRLAtom(OntDR, OntSWRL.DArg)
+         * @see OntModel#createDataRangeSWRLAtom(OntDR, OntSWRL.DArg)
          */
         interface DataRange extends Unary<OntDR, DArg> {
         }
 
         /**
-         * @see OntGraphModel#createDataPropertySWRLAtom(OntNDP, OntSWRL.IArg, OntSWRL.DArg)
+         * @see OntModel#createDataPropertySWRLAtom(OntNDP, OntSWRL.IArg, OntSWRL.DArg)
          */
         interface DataProperty extends Binary<OntNDP, IArg, DArg> {
         }
 
         /**
-         * @see OntGraphModel#createObjectPropertySWRLAtom(OntOPE, OntSWRL.IArg, OntSWRL.IArg)
+         * @see OntModel#createObjectPropertySWRLAtom(OntOPE, OntSWRL.IArg, OntSWRL.IArg)
          */
         interface ObjectProperty extends Binary<OntOPE, IArg, IArg> {
         }

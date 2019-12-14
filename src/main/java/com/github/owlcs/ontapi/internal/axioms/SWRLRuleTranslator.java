@@ -40,7 +40,7 @@ import java.util.stream.Stream;
 public class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
 
     @Override
-    public void write(SWRLRule axiom, OntGraphModel model) {
+    public void write(SWRLRule axiom, OntModel model) {
         Stream<OntSWRL.Atom<?>> head = axiom.head().map(atom -> WriteHelper.addSWRLAtom(model, atom));
         Stream<OntSWRL.Atom<?>> body = axiom.body().map(atom -> WriteHelper.addSWRLAtom(model, atom));
         WriteHelper.addAnnotations(model.createSWRLImp(head.collect(Collectors.toList()),
@@ -48,7 +48,7 @@ public class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
     }
 
     @Override
-    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
+    public ExtendedIterator<OntStatement> listStatements(OntModel model, InternalConfig config) {
         return OntModels.listLocalObjects(model, OntSWRL.Imp.class).mapWith(OntObject::getRoot);
     }
 
@@ -59,7 +59,7 @@ public class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
 
     @Override
     public ONTObject<SWRLRule> toAxiomImpl(OntStatement statement,
-                                           Supplier<OntGraphModel> model,
+                                           Supplier<OntModel> model,
                                            InternalObjectFactory factory,
                                            InternalConfig config) {
         return AxiomImpl.create(statement, model, factory, config);
@@ -88,7 +88,7 @@ public class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
     public static class AxiomImpl extends ONTAxiomImpl<SWRLRule> implements WithContent<AxiomImpl>, SWRLRule {
         protected final InternalCache.Loading<AxiomImpl, Object[]> content;
 
-        public AxiomImpl(Triple t, Supplier<OntGraphModel> m) {
+        public AxiomImpl(Triple t, Supplier<OntModel> m) {
             super(t, m);
             this.content = createContentCache();
         }
@@ -97,14 +97,14 @@ public class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
          * Creates an {@link ONTObject} container that is also {@link SWRLRule}.
          *
          * @param statement {@link OntStatement}, not {@code null}
-         * @param model     {@link OntGraphModel} provider, not {@code null}
+         * @param model     {@link OntModel} provider, not {@code null}
          * @param factory   {@link InternalObjectFactory}, not {@code null}
          * @param config    {@link InternalConfig}, not {@code null}
          * @return {@link AxiomImpl}
          */
         @SuppressWarnings("unused")
         public static AxiomImpl create(OntStatement statement,
-                                       Supplier<OntGraphModel> model,
+                                       Supplier<OntModel> model,
                                        InternalObjectFactory factory,
                                        InternalConfig config) {
             return new AxiomImpl(statement.asTriple(), model);

@@ -15,7 +15,7 @@
 package com.github.owlcs.ontapi.internal.objects;
 
 import com.github.owlcs.ontapi.jena.model.OntEntity;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.rdf.model.Resource;
@@ -36,7 +36,7 @@ import java.util.function.Supplier;
 public abstract class ONTEntityImpl<X extends OWLEntity>
         extends ONTResourceImpl implements OWLEntity, ModelObject<X>, ONTSimple {
 
-    protected ONTEntityImpl(String uri, Supplier<OntGraphModel> m) {
+    protected ONTEntityImpl(String uri, Supplier<OntModel> m) {
         super(uri, m);
     }
 

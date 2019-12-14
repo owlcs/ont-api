@@ -14,15 +14,15 @@
 
 package com.github.owlcs.ontapi.internal.objects;
 
-import org.semanticweb.owlapi.model.OWLObjectInverseOf;
-import org.semanticweb.owlapi.model.OWLObjectProperty;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.internal.InternalObjectFactory;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntNOP;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import org.semanticweb.owlapi.model.OWLObjectInverseOf;
+import org.semanticweb.owlapi.model.OWLObjectProperty;
 
 import java.util.Set;
 import java.util.function.Supplier;
@@ -36,7 +36,7 @@ import java.util.function.Supplier;
  */
 public class ONTObjectPropertyImpl extends ONTEntityImpl<OWLObjectProperty> implements OWLObjectProperty {
 
-    public ONTObjectPropertyImpl(String uri, Supplier<OntGraphModel> m) {
+    public ONTObjectPropertyImpl(String uri, Supplier<OntModel> m) {
         super(uri, m);
     }
 
@@ -45,13 +45,13 @@ public class ONTObjectPropertyImpl extends ONTEntityImpl<OWLObjectProperty> impl
      *
      * @param uri     {@code String}, not {@code null}
      * @param factory {@link InternalObjectFactory}, not {@code null}
-     * @param model   a {@code Supplier} with a {@link OntGraphModel},
+     * @param model   a {@code Supplier} with a {@link OntModel},
      *                which is only used in case the {@code factory} has no reference to a model
      * @return an {@link ONTObject} which is {@link OWLObjectProperty}
      */
     public static ONTObject<OWLObjectProperty> find(String uri,
                                                     InternalObjectFactory factory,
-                                                    Supplier<OntGraphModel> model) {
+                                                    Supplier<OntModel> model) {
         if (factory instanceof ModelObjectFactory) {
             return ((ModelObjectFactory) factory).getObjectProperty(uri);
         }

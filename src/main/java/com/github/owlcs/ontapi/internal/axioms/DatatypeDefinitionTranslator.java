@@ -18,7 +18,7 @@ import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.*;
 import com.github.owlcs.ontapi.jena.model.OntDR;
 import com.github.owlcs.ontapi.jena.model.OntDT;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
@@ -47,13 +47,13 @@ import java.util.stream.Stream;
 public class DatatypeDefinitionTranslator extends AxiomTranslator<OWLDatatypeDefinitionAxiom> {
 
     @Override
-    public void write(OWLDatatypeDefinitionAxiom axiom, OntGraphModel model) {
+    public void write(OWLDatatypeDefinitionAxiom axiom, OntModel model) {
         WriteHelper.writeTriple(model, axiom.getDatatype(), OWL.equivalentClass, axiom.getDataRange(),
                 axiom.annotationsAsList());
     }
 
     @Override
-    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model, InternalConfig config) {
+    public ExtendedIterator<OntStatement> listStatements(OntModel model, InternalConfig config) {
         return OntModels.listLocalStatements(model, null, OWL.equivalentClass, null)
                 .filterKeep(s -> s.getSubject().canAs(OntDT.class)
                         && s.getObject().canAs(OntDR.class));
@@ -68,7 +68,7 @@ public class DatatypeDefinitionTranslator extends AxiomTranslator<OWLDatatypeDef
 
     @Override
     public ONTObject<OWLDatatypeDefinitionAxiom> toAxiomImpl(OntStatement statement,
-                                                             Supplier<OntGraphModel> model,
+                                                             Supplier<OntModel> model,
                                                              InternalObjectFactory factory,
                                                              InternalConfig config) {
         return AxiomImpl.create(statement, model, factory, config);
@@ -92,11 +92,11 @@ public class DatatypeDefinitionTranslator extends AxiomTranslator<OWLDatatypeDef
     public abstract static class AxiomImpl extends ONTAxiomImpl<OWLDatatypeDefinitionAxiom>
             implements WithTwoObjects<OWLDatatype, OWLDataRange>, OWLDatatypeDefinitionAxiom {
 
-        protected AxiomImpl(Triple t, Supplier<OntGraphModel> m) {
+        protected AxiomImpl(Triple t, Supplier<OntModel> m) {
             super(t, m);
         }
 
-        protected AxiomImpl(Object subject, String predicate, Object object, Supplier<OntGraphModel> m) {
+        protected AxiomImpl(Object subject, String predicate, Object object, Supplier<OntModel> m) {
             super(subject, predicate, object, m);
         }
 
@@ -104,13 +104,13 @@ public class DatatypeDefinitionTranslator extends AxiomTranslator<OWLDatatypeDef
          * Creates an {@link ONTObject} container that is also {@link OWLDatatypeDefinitionAxiom}.
          *
          * @param statement {@link OntStatement}, not {@code null}
-         * @param model     {@link OntGraphModel} provider, not {@code null}
+         * @param model     {@link OntModel} provider, not {@code null}
          * @param factory   {@link InternalObjectFactory}, not {@code null}
          * @param config    {@link InternalConfig}, not {@code null}
          * @return {@link AxiomImpl}
          */
         public static AxiomImpl create(OntStatement statement,
-                                       Supplier<OntGraphModel> model,
+                                       Supplier<OntModel> model,
                                        InternalObjectFactory factory,
                                        InternalConfig config) {
             return WithTwoObjects.create(statement, model,
@@ -198,9 +198,9 @@ public class DatatypeDefinitionTranslator extends AxiomTranslator<OWLDatatypeDef
          */
         public static class SimpleImpl extends AxiomImpl implements Simple<OWLDatatype, OWLDataRange> {
 
-            private static final BiFunction<Triple, Supplier<OntGraphModel>, SimpleImpl> FACTORY = SimpleImpl::new;
+            private static final BiFunction<Triple, Supplier<OntModel>, SimpleImpl> FACTORY = SimpleImpl::new;
 
-            protected SimpleImpl(Triple t, Supplier<OntGraphModel> m) {
+            protected SimpleImpl(Triple t, Supplier<OntModel> m) {
                 super(t, m);
             }
 
@@ -235,15 +235,15 @@ public class DatatypeDefinitionTranslator extends AxiomTranslator<OWLDatatypeDef
         public static class ComplexImpl extends AxiomImpl
                 implements Complex<ComplexImpl, OWLDatatype, OWLDataRange> {
 
-            private static final BiFunction<Triple, Supplier<OntGraphModel>, ComplexImpl> FACTORY = ComplexImpl::new;
+            private static final BiFunction<Triple, Supplier<OntModel>, ComplexImpl> FACTORY = ComplexImpl::new;
 
             protected final InternalCache.Loading<ComplexImpl, Object[]> content;
 
-            public ComplexImpl(Triple t, Supplier<OntGraphModel> m) {
+            public ComplexImpl(Triple t, Supplier<OntModel> m) {
                 this(strip(t.getSubject()), t.getPredicate().getURI(), strip(t.getObject()), m);
             }
 
-            protected ComplexImpl(Object s, String p, Object o, Supplier<OntGraphModel> m) {
+            protected ComplexImpl(Object s, String p, Object o, Supplier<OntModel> m) {
                 super(s, p, o, m);
                 this.content = createContentCache();
             }

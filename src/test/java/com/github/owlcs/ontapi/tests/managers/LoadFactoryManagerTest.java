@@ -19,7 +19,7 @@ import com.github.owlcs.ontapi.config.OntConfig;
 import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
 import com.github.owlcs.ontapi.jena.OntModelFactory;
 import com.github.owlcs.ontapi.jena.UnionGraph;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
@@ -208,8 +208,8 @@ public class LoadFactoryManagerTest {
     @Test
     public void testLoadUnmodifiableGraph() throws OWLOntologyCreationException {
         OntologyManager m = OntManagers.createONT();
-        OntGraphModel b = OntModelFactory.createModel().setID("http://b").getModel();
-        OntGraphModel a = OntModelFactory.createModel().setID("http://a").getModel().addImport(b);
+        OntModel b = OntModelFactory.createModel().setID("http://b").getModel();
+        OntModel a = OntModelFactory.createModel().setID("http://a").getModel().addImport(b);
 
         String str = ReadWriteUtils.toString(a, OntFormat.TURTLE);
         LOGGER.debug("{}", str);
@@ -497,10 +497,10 @@ public class LoadFactoryManagerTest {
         final String a_uri = "urn:a";
         final String b_uri = "urn:b";
         // create data:
-        OntGraphModel a = OntModelFactory.createModel();
+        OntModel a = OntModelFactory.createModel();
         a.setID(a_uri);
         a.setNsPrefixes(OntModelFactory.STANDARD);
-        OntGraphModel b = OntModelFactory.createModel();
+        OntModel b = OntModelFactory.createModel();
         b.setID(b_uri);
         b.setNsPrefixes(OntModelFactory.STANDARD);
         a.createOntClass("urn:a#A");
@@ -551,8 +551,8 @@ public class LoadFactoryManagerTest {
 
     @Test
     public void testAddGraphWithVersionIRI() {
-        OntGraphModel a = OntModelFactory.createModel();
-        OntGraphModel b = OntModelFactory.createModel();
+        OntModel a = OntModelFactory.createModel();
+        OntModel b = OntModelFactory.createModel();
         b.setID("http://b").setVersionIRI("http://ver1");
         a.addImport(b);
 

@@ -49,7 +49,7 @@ public class ModifyAxiomsTest {
         DataFactory df = m.getOWLDataFactory();
 
         Ontology o = m.createOntology();
-        OntGraphModel g = o.asGraphModel();
+        OntModel g = o.asGraphModel();
         g.createOntClass(ns + "X").addSuperClass(g.createOntClass(ns + "Y"));
         ReadWriteUtils.print(g);
         Assert.assertEquals(4, g.size());
@@ -92,7 +92,7 @@ public class ModifyAxiomsTest {
         OWLDataFactory df = man.getOWLDataFactory();
         Ontology o = man.createOntology(IRI.create("X"));
 
-        OntGraphModel m = o.asGraphModel();
+        OntModel m = o.asGraphModel();
         OntCE ce = m.createUnionOf(m.createOntClass("y"), m.createOntClass("z"));
         m.createOntClass("x").addSuperClass(ce);
         m.createOntClass("y").addSuperClass(ce);
@@ -125,7 +125,7 @@ public class ModifyAxiomsTest {
         OWLDataFactory df = man.getOWLDataFactory();
         Ontology o = man.createOntology(IRI.create("X"));
 
-        OntGraphModel m = o.asGraphModel();
+        OntModel m = o.asGraphModel();
         OntCE ce1 = m.createUnionOf(m.createOntClass("y"), m.createOntClass("z"));
         OntCE ce2 = m.createObjectAllValuesFrom(m.getOWLTopObjectProperty(), m.createComplementOf(ce1));
         m.createOntClass("x").addSuperClass(ce2);
@@ -159,7 +159,7 @@ public class ModifyAxiomsTest {
         OWLDataFactory df = man.getOWLDataFactory();
         Ontology o = man.createOntology(IRI.create("X"));
 
-        OntGraphModel m = o.asGraphModel();
+        OntModel m = o.asGraphModel();
         m.createOntClass("x").addSuperClass(m.createUnionOf(m.createOntClass("y"), m.createOntClass("z")));
         m.createOntClass("y").addSuperClass(m.createUnionOf(m.createOntClass("y"), m.createOntClass("z")));
         ReadWriteUtils.print(m);
@@ -190,7 +190,7 @@ public class ModifyAxiomsTest {
         OntologyManager man = OntManagers.createONT();
         Ontology o = man.createOntology(IRI.create("http://swrl-test"));
 
-        OntGraphModel m = o.asGraphModel().setNsPrefix("swrl", SWRL.NS);
+        OntModel m = o.asGraphModel().setNsPrefix("swrl", SWRL.NS);
 
         OntSWRL.Variable v = m.createSWRLVariable("v");
         OntSWRL.DArg id1 = v.as(OntSWRL.DArg.class);
@@ -238,7 +238,7 @@ public class ModifyAxiomsTest {
         OntologyManager man = OntManagers.createONT();
         Ontology o = man.createOntology(IRI.create("http://dr-test"));
 
-        OntGraphModel m = o.asGraphModel();
+        OntModel m = o.asGraphModel();
         OntFR fr = m.createFacetRestriction(OntFR.TotalDigits.class, m.createTypedLiteral(2));
         OntDR dr1 = m.createRestrictionDataRange(m.getDatatype(XSD.positiveInteger), fr);
         OntDR dr2 = m.createRestrictionDataRange(m.getDatatype(XSD.integer),
@@ -353,7 +353,7 @@ public class ModifyAxiomsTest {
         man.getOntologyConfigurator().setPersonality(OntModelConfig.ONT_PERSONALITY_LAX);
 
         Ontology o = man.createOntology(IRI.create("http://test1"));
-        OntGraphModel m = o.asGraphModel();
+        OntModel m = o.asGraphModel();
         OntDT dt = m.createDatatype("X");
         OntDR dr = m.createOneOfDataRange(m.createLiteral("l"));
         dt.addEquivalentClass(dr);
@@ -393,7 +393,7 @@ public class ModifyAxiomsTest {
 
         Ontology o = man.createOntology(IRI.create("http://test2"));
         int system = ad.asBaseModel(o).getBase().getSystemResources(OntClass.class).size();
-        OntGraphModel m = o.asGraphModel();
+        OntModel m = o.asGraphModel();
         m.createOntClass(OWL.NegativePropertyAssertion.getURI());
         m.createDataProperty(OWL.targetValue.getURI());
         m.createIndividual("I").addNegativeAssertion(m.createDataProperty("P"), m.createLiteral("x"));

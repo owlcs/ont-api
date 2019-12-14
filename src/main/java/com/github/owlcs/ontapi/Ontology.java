@@ -15,16 +15,26 @@
 package com.github.owlcs.ontapi;
 
 import com.github.owlcs.ontapi.config.AxiomsSettings;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import org.semanticweb.owlapi.model.OWLOntology;
 
 /**
  * A Structural Ontological Model, that is an extended {@link OWLOntology OWL-API Ontology}.
  * It represents an <a href="http://www.w3.org/TR/owl2-syntax/#Ontologies">Ontology</a> in the OWL2 specification.
- * This interface provides a wide range of methods inherited from OWL-API
- * for working with structural (OWL Axioms and Annotations) representation of data
- * stored in the form of {@link org.apache.jena.graph.Graph RDF Graph}.
- * In addition to this range, there are also two new methods: {@link #asGraphModel()} and {@link #clearCache()}.
+ * <p>
+ * This interface provides access to a wide range of methods inherited from OWL-API
+ * to work with the structural representation of data
+ * (i.e. with OWL {@link org.semanticweb.owlapi.model.OWLAxiom Axiom}s
+ * and Ontology Header {@link org.semanticweb.owlapi.model.OWLAnnotation Annotation}s).
+ * Please note, in ONT-API all data is actually stored in the very {@link org.apache.jena.graph.Graph RDF Graph},
+ * and any {@link org.semanticweb.owlapi.model.OWLAxiom Axiom} returned by this interface
+ * is really just a special reading of the same {@link org.apache.jena.graph.Triple RDF Triple}s.
+ * To work directly with triples-view there is the method {@link #asGraphModel()}
+ * returning the {@link OntModel Ont[Graph]Model} view,
+ * that is a {@link org.apache.jena.rdf.model.Model Jena Model} for OWL2.
+ * Also, please note that although ONT-API supports the ability to change data simultaneously through both interfaces,
+ * this is not always correct: an {@link Ontology} impls use caches,
+ * and switching back and forth could flush these caches, which may degrade performance.
  * <p>
  * Created by szuev on 24.10.2016.
  */
@@ -33,7 +43,7 @@ public interface Ontology extends OWLOntology {
     /**
      * Returns the jena model shadow,
      * that is an interface to work with the {@link org.apache.jena.graph.Graph RDF Graph} directly.
-     * The {@code OntGraphModel} is backed by the {@code OntologyModel},
+     * The {@code OntModel} is backed by the {@code Ontology},
      * so changes to the graph model are reflected in the structural model, and vice-versa.
      * <p>
      * Note: synchronisation is performed via different caches and graphs listeners
@@ -46,10 +56,10 @@ public interface Ontology extends OWLOntology {
      * Also note: any changes in the RDF-view will reset the internal cache,
      * that means next attempt to retrieve data from axiomatic view (i.e. list axioms) will take the same time as the very first one.
      *
-     * @return {@link OntGraphModel Ontology RDF Graph Model}, not {@code null}
+     * @return {@link OntModel Ontology RDF Graph Model}, not {@code null}
      * @see org.apache.jena.graph.Graph
      */
-    OntGraphModel asGraphModel();
+    OntModel asGraphModel();
 
     /**
      * Clears the axioms and entities cache.
@@ -79,5 +89,4 @@ public interface Ontology extends OWLOntology {
      * @return {@link OntologyManager} the manager for this ontology
      */
     OntologyManager getOWLOntologyManager();
-
 }

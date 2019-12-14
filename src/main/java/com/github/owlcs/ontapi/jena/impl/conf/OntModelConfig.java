@@ -14,23 +14,23 @@
 
 package com.github.owlcs.ontapi.jena.impl.conf;
 
-import org.apache.jena.enhanced.Personality;
-import org.apache.jena.graph.FrontsNode;
-import org.apache.jena.graph.Node;
-import org.apache.jena.rdf.model.*;
-import org.apache.jena.rdf.model.impl.*;
-import org.apache.jena.vocabulary.RDFS;
 import com.github.owlcs.ontapi.jena.OntJenaException;
 import com.github.owlcs.ontapi.jena.impl.*;
 import com.github.owlcs.ontapi.jena.model.*;
 import com.github.owlcs.ontapi.jena.utils.BuiltIn;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import org.apache.jena.enhanced.Personality;
+import org.apache.jena.graph.FrontsNode;
+import org.apache.jena.graph.Node;
+import org.apache.jena.rdf.model.*;
+import org.apache.jena.rdf.model.impl.*;
+import org.apache.jena.vocabulary.RDFS;
 
 import java.util.*;
 
 /**
- * Settings and personalities that are used for constructing {@link OntGraphModel}.
+ * Settings and personalities that are used for constructing {@link OntModel}.
  * An access point to several predefined {@link OntPersonality Ontology Personality} constants.
  * <p>
  * Created by @szuev on 04.11.2016.

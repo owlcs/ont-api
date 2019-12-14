@@ -14,10 +14,6 @@
 
 package com.github.owlcs.ontapi.internal.axioms;
 
-import org.apache.jena.graph.BlankNodeId;
-import org.apache.jena.graph.Triple;
-import org.apache.jena.util.iterator.ExtendedIterator;
-import org.semanticweb.owlapi.model.*;
 import com.github.owlcs.ontapi.internal.AxiomTranslator;
 import com.github.owlcs.ontapi.internal.InternalObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
@@ -25,9 +21,13 @@ import com.github.owlcs.ontapi.internal.objects.ONTAnonymousIndividualImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTAxiomImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTNamedIndividualImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
-import com.github.owlcs.ontapi.jena.model.OntGraphModel;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
+import org.apache.jena.graph.BlankNodeId;
+import org.apache.jena.graph.Triple;
+import org.apache.jena.util.iterator.ExtendedIterator;
+import org.semanticweb.owlapi.model.*;
 
 import java.util.function.Supplier;
 
@@ -61,10 +61,10 @@ public abstract class AbstractPropertyAssertionTranslator<P extends OWLPropertyE
     /**
      * Returns iterator over all local model's statements.
      *
-     * @param model {@link OntGraphModel}, not {@code null}
+     * @param model {@link OntModel}, not {@code null}
      * @return {@link ExtendedIterator} of {@link OntStatement}s
      */
-    public ExtendedIterator<OntStatement> listStatements(OntGraphModel model) {
+    public ExtendedIterator<OntStatement> listStatements(OntModel model) {
         return OntModels.listLocalStatements(model, null, null, null);
     }
 
@@ -81,7 +81,7 @@ public abstract class AbstractPropertyAssertionTranslator<P extends OWLPropertyE
             S extends OWLObject, P extends OWLObject, O extends OWLObject>
             extends ONTAxiomImpl<A> implements WithAssertion<S, P, O> {
 
-        protected AssertionImpl(Triple t, Supplier<OntGraphModel> m) {
+        protected AssertionImpl(Triple t, Supplier<OntModel> m) {
             super(t, m);
         }
 
