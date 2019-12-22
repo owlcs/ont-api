@@ -16,17 +16,15 @@ package com.github.owlcs.ontapi.tests.jena;
 
 import com.github.owlcs.ontapi.jena.OntJenaException;
 import com.github.owlcs.ontapi.jena.OntModelFactory;
+import com.github.owlcs.ontapi.jena.OntVocabulary;
 import com.github.owlcs.ontapi.jena.impl.OntIndividualImpl;
 import com.github.owlcs.ontapi.jena.impl.conf.*;
 import com.github.owlcs.ontapi.jena.model.*;
-import com.github.owlcs.ontapi.jena.utils.BuiltIn;
-import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
-import org.apache.jena.graph.Factory;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.sparql.vocabulary.FOAF;
@@ -38,7 +36,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * Created by @szuev on 27.03.2018.
@@ -61,20 +58,15 @@ public class PersonalityTest {
         ReadWriteUtils.print(g);
 
         OntPersonality p1 = PersonalityBuilder.from(OntModelConfig.ONT_PERSONALITY_STRICT)
-                .setBuiltins(OntModelConfig.createBuiltinsVocabulary(BuiltIn.OWL_VOCABULARY)).build();
+                .setBuiltins(OntModelConfig.createBuiltinsVocabulary(OntVocabulary.Factory.OWL_VOCABULARY)).build();
         OntModel m1 = OntModelFactory.createModel(g.getGraph(), p1);
         Assert.assertEquals(1, m1.classes().peek(x -> LOGGER.debug("Class::{}", x)).count());
         Assert.assertNull(m1.getOntClass(agent));
         Assert.assertNull(m1.getOntClass(document));
         Assert.assertEquals(0, m1.getOntClass(clazz).superClasses().count());
 
-        BuiltIn.Vocabulary SIMPLE_FOAF_VOC = new BuiltIn.Empty() {
-            @Override
-            public Set<Resource> classes() {
-                return Stream.of(agent, document).collect(Iter.toUnmodifiableSet());
-            }
-        };
-        BuiltIn.Vocabulary voc = BuiltIn.MultiVocabulary.create(BuiltIn.OWL_VOCABULARY, SIMPLE_FOAF_VOC);
+        OntVocabulary SIMPLE_FOAF_VOC = OntVocabulary.Factory.create(OWL.Class, agent, document);
+        OntVocabulary voc = OntVocabulary.Factory.create(OntVocabulary.Factory.OWL_VOCABULARY, SIMPLE_FOAF_VOC);
         OntPersonality p2 = PersonalityBuilder.from(OntModelConfig.ONT_PERSONALITY_STRICT)
                 .setBuiltins(OntModelConfig.createBuiltinsVocabulary(voc)).build();
         OntModel m2 = OntModelFactory.createModel(g.getGraph(), p2);
@@ -102,12 +94,7 @@ public class PersonalityTest {
         Assert.assertEquals(2, m1.ontObjects(OntIndividual.class)
                 .peek(x -> LOGGER.debug("1)Individual: {}", x)).count());
 
-        BuiltIn.Vocabulary voc = new BuiltIn.Empty() {
-            @Override
-            public Set<Property> reservedProperties() {
-                return Collections.singleton(p);
-            }
-        };
+        OntVocabulary voc = OntVocabulary.Factory.create(RDF.Property, p);
         OntPersonality p2 = PersonalityBuilder.from(OntModelConfig.ONT_PERSONALITY_STRICT)
                 .setReserved(OntModelConfig.createReservedVocabulary(voc)).build();
         OntModel m2 = OntModelFactory.createModel(g.getGraph(), p2);
@@ -118,7 +105,7 @@ public class PersonalityTest {
     @Test
     public void testPersonalityPunnings() {
         String ns = "http://x#";
-        OntModel m1 = OntModelFactory.createModel(Factory.createGraphMem(), OntModelConfig.ONT_PERSONALITY_STRICT)
+        OntModel m1 = OntModelFactory.createModel(org.apache.jena.graph.Factory.createGraphMem(), OntModelConfig.ONT_PERSONALITY_STRICT)
                 .setNsPrefixes(OntModelFactory.STANDARD)
                 .setNsPrefix("x", ns);
         OntClass.Named c1 = m1.createOntClass(ns + "C1");

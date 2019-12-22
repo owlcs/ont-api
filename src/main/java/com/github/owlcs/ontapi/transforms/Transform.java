@@ -15,6 +15,11 @@
 package com.github.owlcs.ontapi.transforms;
 
 import com.github.owlcs.ontapi.OntologyManager;
+import com.github.owlcs.ontapi.jena.OntVocabulary;
+import com.github.owlcs.ontapi.jena.UnionGraph;
+import com.github.owlcs.ontapi.jena.utils.Graphs;
+import com.github.owlcs.ontapi.jena.utils.Iter;
+import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.graph.impl.WrappedGraph;
@@ -22,11 +27,6 @@ import org.apache.jena.rdf.model.*;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.github.owlcs.ontapi.jena.UnionGraph;
-import com.github.owlcs.ontapi.jena.utils.BuiltIn;
-import com.github.owlcs.ontapi.jena.utils.Graphs;
-import com.github.owlcs.ontapi.jena.utils.Iter;
-import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 
 import java.util.Collection;
 import java.util.Objects;
@@ -47,7 +47,7 @@ public abstract class Transform {
     protected static final Logger LOGGER = LoggerFactory.getLogger(Transform.class);
 
     protected final Graph graph;
-    protected final BuiltIn.Vocabulary builtins;
+    protected final OntVocabulary builtins;
 
     protected final Model queryModel;
     protected final Model workModel;
@@ -58,17 +58,17 @@ public abstract class Transform {
      * @param graph {@link Graph}, not {@code null}
      */
     public Transform(Graph graph) {
-        this(graph, BuiltIn.get());
+        this(graph, OntVocabulary.Factory.get());
     }
 
     /**
      * Creates an instance for the given {@code Graph} and {@code Vocabulary} with builtins.
      *
      * @param graph      {@link Graph}, not {@code null}
-     * @param vocabulary {@link BuiltIn.Vocabulary}, not {@code null}
+     * @param vocabulary {@link OntVocabulary}, not {@code null}
      * @throws NullPointerException some arguments are {@code null}
      */
-    public Transform(Graph graph, BuiltIn.Vocabulary vocabulary) throws NullPointerException {
+    public Transform(Graph graph, OntVocabulary vocabulary) throws NullPointerException {
         this.builtins = Objects.requireNonNull(vocabulary, "Null builtins vocabulary.");
         this.graph = Objects.requireNonNull(graph, "Null graph.");
         if (graph instanceof UnionGraph) {

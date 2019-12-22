@@ -15,6 +15,7 @@
 package com.github.owlcs.ontapi.jena.impl.conf;
 
 import com.github.owlcs.ontapi.jena.OntJenaException;
+import com.github.owlcs.ontapi.jena.OntVocabulary;
 import com.github.owlcs.ontapi.jena.model.*;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Resource;
@@ -29,7 +30,7 @@ import java.util.Set;
  * Created by @ssz on 16.01.2019.
  *
  * @param <T> any subtype of {@link Resource}
- * @see com.github.owlcs.ontapi.jena.utils.BuiltIn.Vocabulary
+ * @see OntVocabulary
  * @since 1.4.0
  */
 @FunctionalInterface

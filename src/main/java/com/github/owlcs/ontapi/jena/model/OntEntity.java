@@ -14,6 +14,7 @@
 
 package com.github.owlcs.ontapi.jena.model;
 
+import com.github.owlcs.ontapi.jena.OntVocabulary;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import org.apache.jena.util.iterator.ExtendedIterator;
 
@@ -92,7 +93,7 @@ public interface OntEntity extends OntObject {
      * @return {@code true} if it is a built-in entity
      * @see com.github.owlcs.ontapi.jena.vocabulary.OWL
      * @see com.github.owlcs.ontapi.jena.impl.conf.OntPersonality#getBuiltins()
-     * @see com.github.owlcs.ontapi.jena.utils.BuiltIn#get()
+     * @see OntVocabulary.Factory#get()
      */
     boolean isBuiltIn();
 

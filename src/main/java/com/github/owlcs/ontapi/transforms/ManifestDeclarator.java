@@ -14,16 +14,16 @@
 
 package com.github.owlcs.ontapi.transforms;
 
-import org.apache.jena.graph.Graph;
-import org.apache.jena.rdf.model.*;
-import org.apache.jena.util.iterator.ExtendedIterator;
-import org.apache.jena.vocabulary.RDFS;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.utils.Models;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import com.github.owlcs.ontapi.jena.vocabulary.SWRL;
 import com.github.owlcs.ontapi.transforms.vocabulary.AVC;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.rdf.model.*;
+import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.vocabulary.RDFS;
 
 import java.util.HashSet;
 import java.util.List;
@@ -293,9 +293,9 @@ public class ManifestDeclarator extends BaseDeclarator {
     }
 
     protected Set<Resource> collectForbiddenClassCandidates() {
-        Set<Resource> res = new HashSet<>(builtins.reservedResources());
+        Set<Resource> res = new HashSet<>(builtins.getSystemResources());
         res.add(AVC.AnonymousIndividual);
-        res.removeAll(builtins.classes());
+        res.removeAll(builtins.getBuiltinClasses());
         return res;
     }
 

@@ -14,12 +14,12 @@
 
 package com.github.owlcs.ontapi.transforms;
 
+import com.github.owlcs.ontapi.jena.OntVocabulary;
+import com.github.owlcs.ontapi.jena.utils.Iter;
+import com.github.owlcs.ontapi.transforms.vocabulary.AVC;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
-import com.github.owlcs.ontapi.jena.utils.BuiltIn;
-import com.github.owlcs.ontapi.jena.utils.Iter;
-import com.github.owlcs.ontapi.transforms.vocabulary.AVC;
 
 import java.util.HashSet;
 import java.util.Optional;
@@ -62,7 +62,7 @@ public class RecursiveTransform extends Transform {
      * @param startWithSubject if true starts search subjects first, otherwise - objects.
      */
     public RecursiveTransform(Graph graph, boolean replace, boolean startWithSubject) {
-        super(graph, BuiltIn.DUMMY);
+        super(graph, OntVocabulary.Factory.DUMMY);
         this.replace = replace;
         this.subject = startWithSubject;
     }

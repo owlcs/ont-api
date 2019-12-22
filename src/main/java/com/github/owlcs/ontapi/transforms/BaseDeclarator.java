@@ -14,13 +14,13 @@
 
 package com.github.owlcs.ontapi.transforms;
 
+import com.github.owlcs.ontapi.jena.utils.Iter;
+import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import com.github.owlcs.ontapi.transforms.vocabulary.AVC;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDFS;
-import com.github.owlcs.ontapi.jena.utils.Iter;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
-import com.github.owlcs.ontapi.transforms.vocabulary.AVC;
 
 import java.util.List;
 import java.util.Set;
@@ -80,32 +80,32 @@ public abstract class BaseDeclarator extends Transform {
     }
 
     protected boolean isClassExpression(Resource candidate) {
-        return builtins.classes().contains(candidate) || hasType(candidate, OWL.Class) || hasType(candidate, OWL.Restriction);
+        return builtins.getBuiltinClasses().contains(candidate) || hasType(candidate, OWL.Class) || hasType(candidate, OWL.Restriction);
     }
 
     protected boolean isClass(Resource candidate) {
-        return (candidate.isURIResource() && hasType(candidate, OWL.Class)) || builtins.classes().contains(candidate);
+        return (candidate.isURIResource() && hasType(candidate, OWL.Class)) || builtins.getBuiltinClasses().contains(candidate);
     }
 
     protected boolean isDataRange(Resource candidate) {
-        return builtins.datatypes().contains(candidate) || hasType(candidate, RDFS.Datatype);
+        return builtins.getBuiltinDatatypes().contains(candidate) || hasType(candidate, RDFS.Datatype);
     }
 
     @SuppressWarnings("SuspiciousMethodCalls")
     protected boolean isObjectPropertyExpression(Resource candidate) {
-        return builtins.objectProperties().contains(candidate)
+        return builtins.getBuiltinObjectProperties().contains(candidate)
                 || hasType(candidate, OWL.ObjectProperty)
                 || candidate.hasProperty(OWL.inverseOf);
     }
 
     @SuppressWarnings("SuspiciousMethodCalls")
     protected boolean isDataProperty(Resource candidate) {
-        return builtins.datatypeProperties().contains(candidate) || hasType(candidate, OWL.DatatypeProperty);
+        return builtins.getBuiltinDatatypeProperties().contains(candidate) || hasType(candidate, OWL.DatatypeProperty);
     }
 
     @SuppressWarnings("SuspiciousMethodCalls")
     protected boolean isAnnotationProperty(Resource candidate) {
-        return builtins.annotationProperties().contains(candidate) || hasType(candidate, OWL.AnnotationProperty);
+        return builtins.getBuiltinAnnotationProperties().contains(candidate) || hasType(candidate, OWL.AnnotationProperty);
     }
 
     protected boolean isIndividual(Resource candidate) {
@@ -113,18 +113,18 @@ public abstract class BaseDeclarator extends Transform {
     }
 
     protected BaseDeclarator declareObjectProperty(Resource resource) {
-        declareObjectProperty(resource, builtins.objectProperties());
+        declareObjectProperty(resource, builtins.getBuiltinObjectProperties());
         return this;
     }
 
     protected BaseDeclarator declareDataProperty(Resource resource) {
-        declareDataProperty(resource, builtins.datatypeProperties());
+        declareDataProperty(resource, builtins.getBuiltinDatatypeProperties());
         return this;
     }
 
     @SuppressWarnings("UnusedReturnValue")
     protected BaseDeclarator declareAnnotationProperty(Resource resource) {
-        declareAnnotationProperty(resource, builtins.annotationProperties());
+        declareAnnotationProperty(resource, builtins.getBuiltinAnnotationProperties());
         return this;
     }
 
@@ -157,7 +157,7 @@ public abstract class BaseDeclarator extends Transform {
     }
 
     protected BaseDeclarator declareDatatype(Resource resource) {
-        declare(resource, RDFS.Datatype, builtins.datatypes());
+        declare(resource, RDFS.Datatype, builtins.getBuiltinDatatypes());
         return this;
     }
 
@@ -171,15 +171,15 @@ public abstract class BaseDeclarator extends Transform {
 
     protected Set<String> getBuiltinDatatypeURIs() {
         return datatypes == null ?
-                datatypes = builtins.datatypes().stream().map(Resource::getURI).collect(Collectors.toSet()) :
+                datatypes = builtins.getBuiltinDatatypes().stream().map(Resource::getURI).collect(Collectors.toSet()) :
                 datatypes;
     }
 
     protected boolean declareClass(Resource resource) {
-        if (builtins.classes().contains(resource)) {
+        if (builtins.getBuiltinClasses().contains(resource)) {
             return true;
         }
-        if (builtins.datatypes().contains(resource)) {
+        if (builtins.getBuiltinDatatypes().contains(resource)) {
             return false;
         }
         Resource type = resource.isURIResource() ? OWL.Class :

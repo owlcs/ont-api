@@ -15,9 +15,9 @@
 package com.github.owlcs.ontapi.jena.impl.conf;
 
 import com.github.owlcs.ontapi.jena.OntJenaException;
+import com.github.owlcs.ontapi.jena.OntVocabulary;
 import com.github.owlcs.ontapi.jena.impl.*;
 import com.github.owlcs.ontapi.jena.model.*;
-import com.github.owlcs.ontapi.jena.utils.BuiltIn;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import org.apache.jena.enhanced.Personality;
@@ -41,7 +41,7 @@ public class OntModelConfig {
     /**
      * A system-wide vocabulary.
      */
-    private static final BuiltIn.Vocabulary VOCABULARY = BuiltIn.get();
+    private static final OntVocabulary VOCABULARY = OntVocabulary.Factory.get();
     /**
      * Default builtins vocabulary.
      */
@@ -288,36 +288,36 @@ public class OntModelConfig {
 
     /**
      * Creates a {@link OntPersonality.Builtins builtins personality vocabulary}
-     * from the given {@link BuiltIn.Vocabulary system vocabulary}.
+     * from the given {@link OntVocabulary system vocabulary}.
      *
-     * @param voc {@link BuiltIn.Vocabulary}, not {@code null}
+     * @param voc {@link OntVocabulary}, not {@code null}
      * @return {@link OntPersonality.Builtins}
      */
-    public static OntPersonality.Builtins createBuiltinsVocabulary(BuiltIn.Vocabulary voc) {
+    public static OntPersonality.Builtins createBuiltinsVocabulary(OntVocabulary voc) {
         Objects.requireNonNull(voc);
         Map<Class<? extends OntObject>, Set<Node>> res = new HashMap<>();
-        res.put(OntAnnotationProperty.class, Iter.asUnmodifiableNodeSet(voc.annotationProperties()));
-        res.put(OntDataProperty.class, Iter.asUnmodifiableNodeSet(voc.datatypeProperties()));
-        res.put(OntObjectProperty.Named.class, Iter.asUnmodifiableNodeSet(voc.objectProperties()));
-        res.put(OntDataRange.Named.class, Iter.asUnmodifiableNodeSet(voc.datatypes()));
-        res.put(OntClass.Named.class, Iter.asUnmodifiableNodeSet(voc.classes()));
-        res.put(OntSWRL.Builtin.class, Iter.asUnmodifiableNodeSet(voc.swrlBuiltins()));
+        res.put(OntAnnotationProperty.class, Iter.asUnmodifiableNodeSet(voc.getBuiltinAnnotationProperties()));
+        res.put(OntDataProperty.class, Iter.asUnmodifiableNodeSet(voc.getBuiltinDatatypeProperties()));
+        res.put(OntObjectProperty.Named.class, Iter.asUnmodifiableNodeSet(voc.getBuiltinObjectProperties()));
+        res.put(OntDataRange.Named.class, Iter.asUnmodifiableNodeSet(voc.getBuiltinDatatypes()));
+        res.put(OntClass.Named.class, Iter.asUnmodifiableNodeSet(voc.getBuiltinClasses()));
+        res.put(OntSWRL.Builtin.class, Iter.asUnmodifiableNodeSet(voc.getBuiltinSWRLs()));
         res.put(OntIndividual.Named.class, Collections.emptySet());
         return new VocabularyImpl.EntitiesImpl(res);
     }
 
     /**
      * Creates a {@link OntPersonality.Reserved reserved personality vocabulary}
-     * from the given {@link BuiltIn.Vocabulary system vocabulary}.
+     * from the given {@link OntVocabulary system vocabulary}.
      *
-     * @param voc {@link BuiltIn.Vocabulary}, not {@code null}
+     * @param voc {@link OntVocabulary}, not {@code null}
      * @return {@link OntPersonality.Reserved}
      */
-    public static OntPersonality.Reserved createReservedVocabulary(BuiltIn.Vocabulary voc) {
+    public static OntPersonality.Reserved createReservedVocabulary(OntVocabulary voc) {
         Objects.requireNonNull(voc);
         Map<Class<? extends Resource>, Set<Node>> res = new HashMap<>();
-        res.put(Resource.class, Iter.asUnmodifiableNodeSet(voc.reservedResources()));
-        res.put(Property.class, Iter.asUnmodifiableNodeSet(voc.reservedProperties()));
+        res.put(Resource.class, Iter.asUnmodifiableNodeSet(voc.getSystemResources()));
+        res.put(Property.class, Iter.asUnmodifiableNodeSet(voc.getSystemProperties()));
         return new VocabularyImpl.ReservedIml(res);
     }
 

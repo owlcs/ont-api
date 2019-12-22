@@ -14,6 +14,9 @@
 
 package com.github.owlcs.ontapi.transforms;
 
+import com.github.owlcs.ontapi.jena.utils.Iter;
+import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.graph.FrontsTriple;
 import org.apache.jena.graph.Graph;
@@ -21,9 +24,6 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDFS;
-import com.github.owlcs.ontapi.jena.utils.Iter;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
-import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 
 import java.util.*;
 import java.util.function.Function;
@@ -298,7 +298,7 @@ public class ReasonerDeclarator extends BaseDeclarator {
             @Override
             protected void parsePropertyAssertions() {
                 listStatements(null, null, null) // everything!
-                        .filterDrop(s -> builtins.reservedProperties().contains(s.getPredicate()))
+                        .filterDrop(s -> builtins.getSystemProperties().contains(s.getPredicate()))
                         .forEachRemaining(this::parse);
             }
         }.parsePropertyAssertions();
@@ -370,7 +370,7 @@ public class ReasonerDeclarator extends BaseDeclarator {
 
     protected boolean canBeIndividual(RDFNode candidate) {
         return candidate.isResource() && (candidate.isAnon() ? !candidate.canAs(RDFList.class) :
-                !builtins.reserved().contains(candidate.asResource()));
+                !builtins.getSystemALL().contains(candidate.asResource()));
     }
 
     protected boolean canBeDataPropertyInAssertion(Property candidate) {
@@ -383,11 +383,11 @@ public class ReasonerDeclarator extends BaseDeclarator {
     }
 
     protected boolean canBeClass(Resource resource) {
-        return builtins.classes().contains(resource) || !builtins.datatypes().contains(resource);
+        return builtins.getBuiltinClasses().contains(resource) || !builtins.getBuiltinDatatypes().contains(resource);
     }
 
     protected boolean canBeDatatype(Resource resource) {
-        return builtins.datatypes().contains(resource) || !builtins.classes().contains(resource);
+        return builtins.getBuiltinDatatypes().contains(resource) || !builtins.getBuiltinClasses().contains(resource);
     }
 
     protected void parseEquivalentClasses() {
@@ -453,13 +453,13 @@ public class ReasonerDeclarator extends BaseDeclarator {
         Resource a = statement.getSubject();
         Resource b = statement.getResource();
         if (Stream.of(a, b).anyMatch(this::isObjectPropertyExpression)) {
-            declareObjectProperty(a, builtins.properties());
-            declareObjectProperty(b, builtins.properties());
+            declareObjectProperty(a, builtins.getBuiltinOWLProperties());
+            declareObjectProperty(b, builtins.getBuiltinOWLProperties());
             return Res.TRUE;
         }
         if (Stream.of(a, b).anyMatch(this::isDataProperty)) {
-            declareDataProperty(a, builtins.properties());
-            declareDataProperty(b, builtins.properties());
+            declareDataProperty(a, builtins.getBuiltinOWLProperties());
+            declareDataProperty(b, builtins.getBuiltinOWLProperties());
             return Res.TRUE;
         }
         return Res.UNKNOWN;
@@ -499,19 +499,19 @@ public class ReasonerDeclarator extends BaseDeclarator {
         Resource b = statement.getResource();
         Res res = Res.UNKNOWN;
         if (Stream.of(a, b).anyMatch(this::isObjectPropertyExpression)) {
-            declareObjectProperty(a, builtins.properties());
-            declareObjectProperty(b, builtins.properties());
+            declareObjectProperty(a, builtins.getBuiltinOWLProperties());
+            declareObjectProperty(b, builtins.getBuiltinOWLProperties());
             res = Res.TRUE;
         }
         if (Stream.of(a, b).anyMatch(this::isDataProperty)) {
-            declareDataProperty(a, builtins.properties());
-            declareDataProperty(b, builtins.properties());
+            declareDataProperty(a, builtins.getBuiltinOWLProperties());
+            declareDataProperty(b, builtins.getBuiltinOWLProperties());
             res = Res.TRUE;
         }
         if (Stream.of(a, b).anyMatch(this::isAnnotationProperty) ||
                 (Res.UNKNOWN.equals(res) && decider.chooseAnnotationProperty())) {
-            declareAnnotationProperty(a, builtins.properties());
-            declareAnnotationProperty(b, builtins.properties());
+            declareAnnotationProperty(a, builtins.getBuiltinOWLProperties());
+            declareAnnotationProperty(b, builtins.getBuiltinOWLProperties());
             res = Res.TRUE;
         }
         return res;

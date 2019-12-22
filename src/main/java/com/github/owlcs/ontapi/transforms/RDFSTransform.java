@@ -14,14 +14,14 @@
 
 package com.github.owlcs.ontapi.transforms;
 
+import com.github.owlcs.ontapi.jena.OntVocabulary;
+import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.vocabulary.RDFS;
-import com.github.owlcs.ontapi.jena.utils.BuiltIn;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
-import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 
 import java.util.List;
 import java.util.Objects;
@@ -55,11 +55,11 @@ public class RDFSTransform extends Transform {
     protected final boolean useAnnotationPropertyInUnclearCase;
 
     public RDFSTransform(Graph graph) {
-        this(graph, BuiltIn.get(), true);
+        this(graph, OntVocabulary.Factory.get(), true);
     }
 
     public RDFSTransform(Graph graph,
-                         BuiltIn.Vocabulary vocabulary,
+                         OntVocabulary vocabulary,
                          boolean useAnnotationProperty) {
         super(graph, vocabulary);
         this.useAnnotationPropertyInUnclearCase = useAnnotationProperty;
@@ -134,25 +134,25 @@ public class RDFSTransform extends Transform {
 
     @SuppressWarnings("SuspiciousMethodCalls")
     public boolean isObjectProperty(Resource candidate) {
-        return builtins.objectProperties().contains(candidate) || hasType(candidate, OWL.ObjectProperty);
+        return builtins.getBuiltinObjectProperties().contains(candidate) || hasType(candidate, OWL.ObjectProperty);
     }
 
     @SuppressWarnings("SuspiciousMethodCalls")
     public boolean isDataProperty(Resource candidate) {
-        return builtins.datatypeProperties().contains(candidate) || hasType(candidate, OWL.DatatypeProperty);
+        return builtins.getBuiltinDatatypeProperties().contains(candidate) || hasType(candidate, OWL.DatatypeProperty);
     }
 
     @SuppressWarnings("SuspiciousMethodCalls")
     public boolean isAnnotationProperty(Resource candidate) {
-        return builtins.annotationProperties().contains(candidate) || hasType(candidate, OWL.AnnotationProperty);
+        return builtins.getBuiltinAnnotationProperties().contains(candidate) || hasType(candidate, OWL.AnnotationProperty);
     }
 
     protected boolean isDataRange(Resource candidate) {
-        return builtins.datatypes().contains(candidate) || hasType(candidate, RDFS.Datatype);
+        return builtins.getBuiltinDatatypes().contains(candidate) || hasType(candidate, RDFS.Datatype);
     }
 
     protected boolean isClass(Resource candidate) {
-        return builtins.classes().contains(candidate) || hasType(candidate, OWL.Class);
+        return builtins.getBuiltinClasses().contains(candidate) || hasType(candidate, OWL.Class);
     }
 
     /**

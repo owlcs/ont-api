@@ -14,16 +14,16 @@
 
 package com.github.owlcs.ontapi.transforms;
 
+import com.github.owlcs.ontapi.jena.OntVocabulary;
+import com.github.owlcs.ontapi.jena.utils.Iter;
+import com.github.owlcs.ontapi.jena.utils.Models;
+import com.github.owlcs.ontapi.jena.vocabulary.RDF;
+import com.github.owlcs.ontapi.jena.vocabulary.SWRL;
 import org.apache.jena.graph.FrontsTriple;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.*;
-import com.github.owlcs.ontapi.jena.utils.BuiltIn;
-import com.github.owlcs.ontapi.jena.utils.Iter;
-import com.github.owlcs.ontapi.jena.utils.Models;
-import com.github.owlcs.ontapi.jena.vocabulary.RDF;
-import com.github.owlcs.ontapi.jena.vocabulary.SWRL;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -41,7 +41,7 @@ public class SWRLTransform extends Transform {
     protected Set<Statement> unparsed = new HashSet<>();
 
     public SWRLTransform(Graph graph) {
-        super(graph, BuiltIn.get());
+        super(graph, OntVocabulary.Factory.get());
     }
 
     @Override

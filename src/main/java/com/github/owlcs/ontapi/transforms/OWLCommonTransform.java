@@ -14,11 +14,6 @@
 
 package com.github.owlcs.ontapi.transforms;
 
-import org.apache.jena.datatypes.RDFDatatype;
-import org.apache.jena.datatypes.xsd.XSDDatatype;
-import org.apache.jena.graph.Graph;
-import org.apache.jena.rdf.model.*;
-import org.apache.jena.vocabulary.RDFS;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.utils.Models;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
@@ -26,6 +21,11 @@ import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import com.github.owlcs.ontapi.jena.vocabulary.XSD;
 import com.github.owlcs.ontapi.transforms.vocabulary.AVC;
 import com.github.owlcs.ontapi.transforms.vocabulary.DEPRECATED;
+import org.apache.jena.datatypes.RDFDatatype;
+import org.apache.jena.datatypes.xsd.XSDDatatype;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.rdf.model.*;
+import org.apache.jena.vocabulary.RDFS;
 
 import java.util.*;
 import java.util.stream.Stream;
@@ -412,7 +412,7 @@ public class OWLCommonTransform extends Transform {
     }
 
     protected void fixNamedIndividuals() {
-        Set<Resource> forbidden = builtins.reservedResources();
+        Set<Resource> forbidden = builtins.getSystemResources();
         listStatements(null, RDF.type, null)
                 .filterKeep(s -> s.getSubject().isURIResource() && s.getObject().isResource())
                 .filterDrop(s -> forbidden.contains(s.getObject().asResource()))
