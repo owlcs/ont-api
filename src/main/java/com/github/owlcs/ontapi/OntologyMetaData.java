@@ -17,7 +17,7 @@ package com.github.owlcs.ontapi;
 import com.github.owlcs.ontapi.jena.utils.Graphs;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
-import com.github.owlcs.ontapi.transforms.GraphTransformers;
+import com.github.owlcs.ontapi.transforms.GraphStats;
 import com.github.owlcs.ontapi.transforms.OWLIDTransform;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
@@ -43,12 +43,12 @@ import java.util.stream.Stream;
 
 /**
  * Implementation of {@link OWLOntologyLoaderMetaData}.
- * A wrapper for {@link GraphTransformers.Stats Transformation Stats} to satisfy OWL-API.
+ * A wrapper for {@link GraphStats Transformation Stats} to satisfy OWL-API.
  * Constructed while loading to provide some additional information about runtime changes in the source.
  * <p>
  * Created by @szuev on 28.06.2018.
  *
- * @see GraphTransformers.Stats
+ * @see GraphStats
  */
 @SuppressWarnings("WeakerAccess")
 public class OntologyMetaData implements OWLOntologyLoaderMetaData {
@@ -94,26 +94,26 @@ public class OntologyMetaData implements OWLOntologyLoaderMetaData {
 
     /**
      * A factory method.
-     * Creates {@link OWLOntologyLoaderMetaData} from the given {@link GraphTransformers.Stats Transformation Stats}.
+     * Creates {@link OWLOntologyLoaderMetaData} from the given {@link GraphStats Transformation Stats}.
      *
      * @param stats not null
      * @return {@link OntologyMetaData} instance, not null
      */
-    public static OntologyMetaData createParserMetaData(GraphTransformers.Stats stats) {
+    public static OntologyMetaData createParserMetaData(GraphStats stats) {
         Graph graph = Graphs.getBase(Objects.requireNonNull(stats, "Null graph").getGraph());
         RDFOntologyHeaderStatus header = RDFOntologyHeaderStatus.PARSED_ONE_HEADER;
         String idKey = OWLIDTransform.class.getSimpleName();
-        if (stats.hasTriples(GraphTransformers.Stats.Type.ADDED, idKey)) {
+        if (stats.hasTriples(GraphStats.Type.ADDED, idKey)) {
             header = RDFOntologyHeaderStatus.PARSED_ZERO_HEADERS;
         }
-        if (stats.hasTriples(GraphTransformers.Stats.Type.DELETED, idKey)) {
+        if (stats.hasTriples(GraphStats.Type.DELETED, idKey)) {
             header = RDFOntologyHeaderStatus.PARSED_MULTIPLE_HEADERS;
         }
-        Set<RDFTriple> unparsed = stats.triples(GraphTransformers.Stats.Type.UNPARSED)
+        Set<RDFTriple> unparsed = stats.triples(GraphStats.Type.UNPARSED)
                 .map(OntGraphUtils::triple)
                 .collect(Collectors.toSet());
         ArrayListMultimap<IRI, Class<? extends OWLObject>> guessedDeclarations = ArrayListMultimap.create();
-        stats.triples(GraphTransformers.Stats.Type.ADDED)
+        stats.triples(GraphStats.Type.ADDED)
                 .collect(Collectors.toSet())
                 .forEach(t -> {
                     // note: anonymous subject also wrapped as iri

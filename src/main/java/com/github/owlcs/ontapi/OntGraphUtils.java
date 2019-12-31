@@ -19,7 +19,7 @@ import com.github.owlcs.ontapi.jena.impl.OntIDImpl;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.utils.Graphs;
 import com.github.owlcs.ontapi.jena.utils.Models;
-import com.github.owlcs.ontapi.transforms.GraphTransformers;
+import com.github.owlcs.ontapi.transforms.GraphStats;
 import org.apache.commons.io.input.ReaderInputStream;
 import org.apache.jena.graph.*;
 import org.apache.jena.rdf.model.impl.ModelCom;
@@ -225,11 +225,11 @@ public class OntGraphUtils {
      * Auxiliary method to produce {@link OWLOntologyLoaderMetaData} object.
      *
      * @param graph {@link Graph}
-     * @param stats {@link GraphTransformers.Stats} transformation outcome, can be null for fake meta-data
+     * @param stats {@link GraphStats} transformation outcome, can be null for fake meta-data
      * @return {@link OWLOntologyLoaderMetaData} object
      * @throws IllegalArgumentException in case {@code graph} and {@code stats} are incompatible
      */
-    protected static OWLOntologyLoaderMetaData makeParserMetaData(Graph graph, GraphTransformers.Stats stats) {
+    protected static OWLOntologyLoaderMetaData makeParserMetaData(Graph graph, GraphStats stats) {
         if (stats == null)
             return OntologyMetaData.createParserMetaData(graph);
         if (Graphs.getBase(graph) != stats.getGraph())

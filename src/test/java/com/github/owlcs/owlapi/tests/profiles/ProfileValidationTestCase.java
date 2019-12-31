@@ -14,6 +14,7 @@
 package com.github.owlcs.owlapi.tests.profiles;
 
 import com.github.owlcs.ontapi.OWLAdapter;
+import com.github.owlcs.ontapi.transforms.Transform;
 import com.github.owlcs.owlapi.OWLManager;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Assert;
@@ -138,9 +139,9 @@ public class ProfileValidationTestCase extends TestBase {
         com.github.owlcs.ontapi.config.OntLoaderConfiguration conf = OWLAdapter.get().asONT(m.getOntologyLoaderConfiguration());
         m.setOntologyLoaderConfiguration(
                 conf
-                //.setAllowReadDeclarations(false)
-                //.setPerformTransformation(false)
-                        .setGraphTransformers(conf.getGraphTransformers().addFirst(com.github.owlcs.ontapi.utils.WrongRDFListTransform::new))
+                        //.setAllowReadDeclarations(false)
+                        //.setPerformTransformation(false)
+                        .setGraphTransformers(conf.getGraphTransformers().addFirst(Transform.Factory.create(com.github.owlcs.ontapi.utils.WrongRDFListTransform.class)))
                 .setSupportedSchemes(Stream.of(com.github.owlcs.ontapi.config.OntConfig.DefaultScheme.FILE).collect(Collectors.toList()))
                         .setPersonality(com.github.owlcs.ontapi.jena.impl.conf.OntModelConfig.ONT_PERSONALITY_LAX));
         return m;

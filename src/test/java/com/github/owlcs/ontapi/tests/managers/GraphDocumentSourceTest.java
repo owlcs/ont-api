@@ -205,10 +205,10 @@ public class GraphDocumentSourceTest {
     @Test
     public void testDisableTransforms() throws OWLOntologyCreationException {
         OntologyManager m = OntManagers.createONT();
-        m.getOntologyConfigurator().setGraphTransformers(new GraphTransformers.Store()
-                .add(GraphTransformers.Maker.create("x", null, g -> {
+        m.getOntologyConfigurator().setGraphTransformers(new GraphTransformers()
+                .addLast(g -> {
                     throw new IllegalStateException("TEST");
-                })));
+                }));
 
         OntModel g = OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("/ontapi/pizza.ttl").getGraph());
         OntGraphDocumentSource s1 = OntGraphDocumentSource.wrap(g.getBaseGraph());

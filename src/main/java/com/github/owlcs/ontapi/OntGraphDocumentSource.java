@@ -15,6 +15,7 @@
 package com.github.owlcs.ontapi;
 
 import com.github.owlcs.ontapi.jena.utils.Graphs;
+import com.github.owlcs.ontapi.transforms.TransformationModel;
 import org.apache.jena.atlas.web.ContentType;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.riot.Lang;
@@ -67,7 +68,7 @@ public abstract class OntGraphDocumentSource implements OWLOntologyDocumentSourc
      * Answers if the graph must be put in order by the transformations mechanism.
      *
      * @return {@code true} if graph transformations is allowed
-     * @see com.github.owlcs.ontapi.transforms.Transform
+     * @see TransformationModel
      * @since 1.3.2
      */
     public boolean withTransforms() {

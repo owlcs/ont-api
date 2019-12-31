@@ -37,7 +37,7 @@ import java.util.stream.Stream;
  * also <a href='https://www.w3.org/TR/owl2-quick-reference/'>4.2 Additional Vocabulary in OWL 2 RDF Syntax</a>
  */
 @SuppressWarnings("WeakerAccess")
-public class OWLCommonTransform extends Transform {
+public class OWLCommonTransform extends TransformationModel {
     private static final RDFDatatype NON_NEGATIVE_INTEGER = XSDDatatype.XSDnonNegativeInteger;
     private static final Map<Property, Property> QUALIFIED_CARDINALITY_REPLACEMENT =
             Collections.unmodifiableMap(new HashMap<Property, Property>() {

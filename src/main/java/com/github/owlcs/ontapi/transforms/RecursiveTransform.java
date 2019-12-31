@@ -48,7 +48,7 @@ import java.util.stream.Stream;
  * @see AVC#error(String)
  */
 @SuppressWarnings("WeakerAccess")
-public class RecursiveTransform extends Transform {
+public class RecursiveTransform extends TransformationModel {
 
     protected static final int EMERGENCY_EXIT_LIMIT = 10_000;
     protected final boolean replace;

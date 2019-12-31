@@ -14,11 +14,11 @@
 
 package com.github.owlcs.ontapi.utils;
 
+import com.github.owlcs.ontapi.transforms.TransformationModel;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.vocabulary.RDF;
-import com.github.owlcs.ontapi.transforms.Transform;
 
 import java.util.List;
 import java.util.Objects;
@@ -53,7 +53,7 @@ import java.util.stream.Collectors;
  * }</pre>
  * Created by szuev on 26.04.2017.
  */
-public class WrongRDFListTransform extends Transform {
+public class WrongRDFListTransform extends TransformationModel {
 
     public WrongRDFListTransform(Graph graph) {
         super(graph);

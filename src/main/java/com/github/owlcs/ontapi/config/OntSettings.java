@@ -14,15 +14,15 @@
 
 package com.github.owlcs.ontapi.config;
 
+import com.github.owlcs.ontapi.OntApiException;
+import com.github.owlcs.ontapi.jena.impl.conf.OntModelConfig;
+import com.github.owlcs.ontapi.jena.vocabulary.*;
+import com.github.owlcs.ontapi.transforms.*;
 import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.MissingImportHandlingStrategy;
 import org.semanticweb.owlapi.model.MissingOntologyHeaderStrategy;
 import org.semanticweb.owlapi.model.PriorityCollectionSorting;
 import org.semanticweb.owlapi.model.parameters.ConfigurationOptions;
-import com.github.owlcs.ontapi.OntApiException;
-import com.github.owlcs.ontapi.jena.impl.conf.OntModelConfig;
-import com.github.owlcs.ontapi.jena.vocabulary.*;
-import com.github.owlcs.ontapi.transforms.*;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -133,20 +133,20 @@ public enum OntSettings {
             , SWRLTransform.class) {
         @Override
         public Object getDefaultValue() {
-            GraphTransformers.Store res = new GraphTransformers.Store();
-            for (Class<? extends Transform> c : getTransformTypes()) {
-                res = res.add(new GraphTransformers.DefaultMaker(c));
+            GraphTransformers res = new GraphTransformers();
+            for (Class<? extends TransformationModel> c : getTransformTypes()) {
+                res = res.addLast(Transform.Factory.create(c));
             }
             return res;
         }
 
         @SuppressWarnings("unchecked")
-        List<Class<? extends Transform>> getTransformTypes() {
+        List<Class<? extends TransformationModel>> getTransformTypes() {
             List<?> res = PROPERTIES.getListProperty(key);
             if (res == null) {
                 res = (List<?>) secondary;
             }
-            return (List<Class<? extends Transform>>) res;
+            return (List<Class<? extends TransformationModel>>) res;
         }
     };
 

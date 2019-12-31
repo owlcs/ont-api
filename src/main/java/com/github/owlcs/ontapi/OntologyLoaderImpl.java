@@ -20,7 +20,7 @@ import com.github.owlcs.ontapi.jena.UnionGraph;
 import com.github.owlcs.ontapi.jena.utils.Graphs;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
-import com.github.owlcs.ontapi.transforms.GraphTransformers;
+import com.github.owlcs.ontapi.transforms.GraphStats;
 import com.github.owlcs.ontapi.transforms.TransformException;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphUtil;
@@ -224,7 +224,7 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
             return graph;
         }
         // process transformations
-        GraphTransformers.Stats stats;
+        GraphStats stats;
         Set<Graph> transformed = graphs.values().stream()
                 .filter(g -> !g.isFresh() || g.noTransforms())
                 .map(GraphInfo::getGraph)
@@ -237,8 +237,8 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
             throw new OntologyFactoryImpl.OWLTransformException(t);
         }
         info.setStats(stats);
-        stats.listStats(true)
-                .filter(GraphTransformers.Stats::isNotEmpty)
+        stats.stats(true)
+                .filter(GraphStats::isNotEmpty)
                 .forEach(s -> {
                     String uri = Graphs.getURI(s.getGraph());
                     if (uri == null) {
@@ -697,7 +697,7 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
         private boolean fresh, transforms;
         private Node ontology;
         private Set<String> imports;
-        private GraphTransformers.Stats stats;
+        private GraphStats stats;
 
         protected GraphInfo(Graph graph, OntFormat format, IRI source, boolean withTransforms) {
             this.graph = graph;
@@ -755,11 +755,11 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
             return source;
         }
 
-        public GraphTransformers.Stats getStats() {
+        public GraphStats getStats() {
             return stats;
         }
 
-        protected void setStats(GraphTransformers.Stats stats) {
+        protected void setStats(GraphStats stats) {
             this.stats = Objects.requireNonNull(stats, "Null transform stats");
         }
     }

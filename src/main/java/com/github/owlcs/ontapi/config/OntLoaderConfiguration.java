@@ -14,12 +14,12 @@
 
 package com.github.owlcs.ontapi.config;
 
-import org.semanticweb.owlapi.model.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.jena.impl.conf.OntPersonality;
 import com.github.owlcs.ontapi.transforms.GraphTransformers;
+import org.semanticweb.owlapi.model.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -145,7 +145,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
      * {@inheritDoc}
      */
     @Override
-    public GraphTransformers.Store getGraphTransformers() {
+    public GraphTransformers getGraphTransformers() {
         return get(OntSettings.ONT_API_LOAD_CONF_TRANSFORMERS);
     }
 
@@ -153,11 +153,11 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
      * An ONT-API config setter.
      * {@inheritDoc}
      *
-     * @param t {@link GraphTransformers.Store} new graph transformers store
+     * @param t {@link GraphTransformers} new graph transformers store
      * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes is made
      */
     @Override
-    public OntLoaderConfiguration setGraphTransformers(GraphTransformers.Store t) {
+    public OntLoaderConfiguration setGraphTransformers(GraphTransformers t) {
         return set(OntSettings.ONT_API_LOAD_CONF_TRANSFORMERS, t);
     }
 

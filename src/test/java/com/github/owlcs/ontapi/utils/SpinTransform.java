@@ -14,14 +14,14 @@
 
 package com.github.owlcs.ontapi.utils;
 
-import org.apache.jena.graph.Graph;
-import org.apache.jena.rdf.model.*;
-import org.topbraid.spin.model.*;
 import com.github.owlcs.ontapi.jena.OntJenaException;
 import com.github.owlcs.ontapi.jena.utils.Graphs;
 import com.github.owlcs.ontapi.jena.utils.Models;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
-import com.github.owlcs.ontapi.transforms.Transform;
+import com.github.owlcs.ontapi.transforms.TransformationModel;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.rdf.model.*;
+import org.topbraid.spin.model.*;
 
 import java.util.List;
 import java.util.Set;
@@ -72,7 +72,7 @@ import java.util.stream.Stream;
  * <p>
  * Created by szuev on 21.04.2017.
  */
-public class SpinTransform extends Transform {
+public class SpinTransform extends TransformationModel {
 
     public SpinTransform(Graph graph) {
         super(graph);

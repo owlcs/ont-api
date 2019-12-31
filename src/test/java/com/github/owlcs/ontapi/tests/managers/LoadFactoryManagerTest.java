@@ -27,7 +27,6 @@ import com.github.owlcs.ontapi.jena.vocabulary.XSD;
 import com.github.owlcs.ontapi.transforms.GraphTransformers;
 import com.github.owlcs.ontapi.transforms.OWLRecursiveTransform;
 import com.github.owlcs.ontapi.transforms.Transform;
-import com.github.owlcs.ontapi.transforms.TransformException;
 import com.github.owlcs.ontapi.utils.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.graph.Graph;
@@ -301,9 +300,9 @@ public class LoadFactoryManagerTest {
         IRI iri = IRI.create(ReadWriteUtils.getResourceURI("ontapi/recursive-graph.ttl"));
         LOGGER.debug("The file: {}", iri);
         OntologyManager m = OntManagers.createONT();
-        GraphTransformers.Store store = m.getOntologyConfigurator().getGraphTransformers();
-        if (!store.contains(OWLRecursiveTransform.class.getName())) {
-            m.getOntologyConfigurator().setGraphTransformers(store.addFirst(OWLRecursiveTransform::new));
+        GraphTransformers store = m.getOntologyConfigurator().getGraphTransformers();
+        if (!store.get(OWLRecursiveTransform.class.getName()).isPresent()) {
+            m.getOntologyConfigurator().setGraphTransformers(store.addFirst(Transform.Factory.create(OWLRecursiveTransform.class)));
         }
         Ontology o = m.loadOntology(iri);
         ReadWriteUtils.print(o.asGraphModel());
@@ -316,11 +315,9 @@ public class LoadFactoryManagerTest {
     public void testNoTransformsForNativeOWLAPIFormats() throws Exception {
         OWLOntologyDocumentSource src = ReadWriteUtils.getFileDocumentSource("/owlapi/primer.owlxml.xml", OntFormat.OWL_XML);
         OntologyManager m = OntManagers.createONT();
-        m.getOntologyConfigurator().setGraphTransformers(new GraphTransformers.Store().add(g -> new Transform(g) {
-            @Override
-            public void perform() throws TransformException {
-                Assert.fail("No transforms are expected.");
-            }
+        m.getOntologyConfigurator().setGraphTransformers(new GraphTransformers().addLast(g -> {
+            Assert.fail("No transforms are expected.");
+            return null;
         }));
         Assert.assertNotNull(m.loadOntologyFromOntologyDocument(src));
     }

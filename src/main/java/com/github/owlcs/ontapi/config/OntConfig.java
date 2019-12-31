@@ -14,13 +14,13 @@
 
 package com.github.owlcs.ontapi.config;
 
-import org.semanticweb.owlapi.model.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import com.github.owlcs.ontapi.NoOpReadWriteLock;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.jena.impl.conf.OntPersonality;
 import com.github.owlcs.ontapi.transforms.GraphTransformers;
+import org.semanticweb.owlapi.model.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
@@ -44,7 +44,7 @@ import java.util.stream.Stream;
  * <li>{@link #setModelCacheLevel(int, boolean)} (<b>since 1.4.2</b>), {@link #setModelCacheLevel(int)} (<b>since 1.4.0</b>)</li>
  * <li>{@link #useContentCache()}, {@link #useComponentCache()}, {@link #useIteratorCache()} (<b>since 1.4.2</b>)</li>
  * <li>{@link #getPersonality()} and {@link #setPersonality(OntPersonality)}</li>
- * <li>{@link #getGraphTransformers()} amd {@link #setGraphTransformers(GraphTransformers.Store)}</li>
+ * <li>{@link #getGraphTransformers()} amd {@link #setGraphTransformers(GraphTransformers)}</li>
  * <li>{@link #isPerformTransformation()} and {@link #setPerformTransformation(boolean)}</li>
  * <li>{@link #isProcessImports()} and {@link #setProcessImports(boolean)} (<b>since 1.4.1</b>)</li>
  * <li>{@link #getSupportedSchemes()} and {@link #setSupportedSchemes(List)}</li>
@@ -253,7 +253,7 @@ public class OntConfig extends OntologyConfigurator implements
      * {@inheritDoc}
      */
     @Override
-    public GraphTransformers.Store getGraphTransformers() {
+    public GraphTransformers getGraphTransformers() {
         return get(OntSettings.ONT_API_LOAD_CONF_TRANSFORMERS);
     }
 
@@ -261,12 +261,12 @@ public class OntConfig extends OntologyConfigurator implements
      * An ONT-API manager's load config setter.
      * {@inheritDoc}
      *
-     * @param t {@link com.github.owlcs.ontapi.transforms.GraphTransformers.Store}
+     * @param t {@link GraphTransformers}
      * @return this instance
-     * @see OntLoaderConfiguration#setGraphTransformers(GraphTransformers.Store)
+     * @see OntLoaderConfiguration#setGraphTransformers(GraphTransformers)
      */
     @Override
-    public OntConfig setGraphTransformers(GraphTransformers.Store t) {
+    public OntConfig setGraphTransformers(GraphTransformers t) {
         return put(OntSettings.ONT_API_LOAD_CONF_TRANSFORMERS, t);
     }
 

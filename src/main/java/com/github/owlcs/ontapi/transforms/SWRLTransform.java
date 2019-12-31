@@ -31,12 +31,13 @@ import java.util.stream.Stream;
 
 /**
  * Class for performing transformations that fix known syntax errors in graphs containing SWRL.
- *
+ * <p>
  * Created by @szuev on 09.08.2018.
+ *
  * @see SWRL
  */
 @SuppressWarnings("WeakerAccess")
-public class SWRLTransform extends Transform {
+public class SWRLTransform extends TransformationModel {
 
     protected Set<Statement> unparsed = new HashSet<>();
 

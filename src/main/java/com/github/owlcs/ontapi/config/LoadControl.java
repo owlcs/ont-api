@@ -43,12 +43,12 @@ interface LoadControl<R> extends LoadSettings {
     /**
      * Sets {@code GraphTransformers.Store} collection.
      *
-     * @param t {@link GraphTransformers.Store}, not {@code null}
+     * @param t {@link GraphTransformers}, not {@code null}
      * @return {@link R} (this or copied instance)
      * @see LoadSettings#getGraphTransformers()
      * @see LoadSettings#isPerformTransformation()
      */
-    R setGraphTransformers(GraphTransformers.Store t);
+    R setGraphTransformers(GraphTransformers t);
 
     /**
      * Disables or enables the Graph Transformation mechanism depending on the given flag.

@@ -16,6 +16,7 @@ package com.github.owlcs.ontapi.jena;
 
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.vocabulary.*;
+import com.github.owlcs.ontapi.transforms.GraphTransformers;
 import org.apache.jena.datatypes.BaseDatatype;
 import org.apache.jena.datatypes.RDFDatatype;
 import org.apache.jena.datatypes.TypeMapper;
@@ -194,7 +195,7 @@ public interface OntVocabulary {
      * from the packages {@link com.github.owlcs.ontapi.jena.vocabulary} and {@link org.apache.jena.vocabulary}
      * (such as {@link OWL}).
      * In ONT-API, a {@link OntVocabulary} is used to build {@link com.github.owlcs.ontapi.jena.impl.conf.OntPersonality}
-     * and in {@link com.github.owlcs.ontapi.transforms.GraphTransformers} subsystem.
+     * and in {@link GraphTransformers} subsystem.
      * <p>
      * Created by @szuev on 21.12.2016.
      */
@@ -355,6 +356,7 @@ public interface OntVocabulary {
          */
         @SuppressWarnings("WeakerAccess")
         protected static class OWLImpl extends Impl {
+            private static final Class<?>[] VOCABULARIES = new Class<?>[]{XSD.class, RDF.class, RDFS.class, OWL.class};
             /**
              * The list of datatypes from owl-2 specification (35 types)
              * (see <a href='https://www.w3.org/TR/owl2-quick-reference/'>Quick References, 3.1 Built-in Datatypes</a>).
@@ -383,7 +385,6 @@ public interface OntVocabulary {
                     Stream.of(OWL.topDataProperty, OWL.bottomDataProperty).collect(Iter.toUnmodifiableSet());
             public static final Set<Property> OBJECT_PROPERTIES =
                     Stream.of(OWL.topObjectProperty, OWL.bottomObjectProperty).collect(Iter.toUnmodifiableSet());
-            private static final Class<?>[] VOCABULARIES = new Class<?>[]{XSD.class, RDF.class, RDFS.class, OWL.class};
             public static final Set<Property> PROPERTIES = getConstants(Property.class, VOCABULARIES);
             public static final Set<Resource> RESOURCES = getConstants(Resource.class, VOCABULARIES);
 
@@ -453,8 +454,8 @@ public interface OntVocabulary {
          * @see SWRLB
          */
         protected static class SWRLImpl extends Impl {
-            public static final Set<Resource> BUILTINS = getConstants(Property.class, SWRLB.class);
             private static final Class<?>[] VOCABULARIES = new Class<?>[]{SWRL.class, SWRLB.class};
+            public static final Set<Resource> BUILTINS = getConstants(Property.class, SWRLB.class);
             public static final Set<Property> PROPERTIES = getConstants(Property.class, VOCABULARIES);
             public static final Set<Resource> RESOURCES = getConstants(Resource.class, VOCABULARIES);
 

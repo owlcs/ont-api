@@ -31,7 +31,7 @@ import java.util.stream.Stream;
  * The collection of base methods for {@link ManifestDeclarator} and {@link ReasonerDeclarator}
  */
 @SuppressWarnings({"WeakerAccess", "UnusedReturnValue"})
-public abstract class BaseDeclarator extends Transform {
+public abstract class BaseDeclarator extends TransformationModel {
     private static final List<Property> RESTRICTION_PROPERTY_MARKERS = Stream.of(OWL.onProperty, OWL.allValuesFrom,
             OWL.someValuesFrom, OWL.hasValue, OWL.onClass,
             OWL.onDataRange, OWL.cardinality, OWL.qualifiedCardinality,

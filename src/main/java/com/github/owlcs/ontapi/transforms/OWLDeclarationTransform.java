@@ -14,16 +14,16 @@
 
 package com.github.owlcs.ontapi.transforms;
 
+import com.github.owlcs.ontapi.jena.utils.Iter;
+import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import com.github.owlcs.ontapi.jena.vocabulary.RDF;
+import com.github.owlcs.ontapi.transforms.vocabulary.AVC;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.vocabulary.RDFS;
-import com.github.owlcs.ontapi.jena.utils.Iter;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
-import com.github.owlcs.ontapi.jena.vocabulary.RDF;
-import com.github.owlcs.ontapi.transforms.vocabulary.AVC;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -59,7 +59,7 @@ import java.util.stream.Stream;
  * @see <a href='https://www.w3.org/TR/owl2-quick-reference/'>OWL2 Short Guide</a>
  */
 @SuppressWarnings("WeakerAccess")
-public class OWLDeclarationTransform extends Transform {
+public class OWLDeclarationTransform extends TransformationModel {
 
     private static final List<Resource> PROPERTY_TYPES = Stream.of(OWL.DatatypeProperty, OWL.ObjectProperty, OWL.AnnotationProperty)
             .collect(Iter.toUnmodifiableList());
@@ -67,8 +67,8 @@ public class OWLDeclarationTransform extends Transform {
             .collect(Iter.toUnmodifiableList());
 
 
-    protected final Transform manifestDeclarator;
-    protected final Transform reasonerDeclarator;
+    protected final TransformationModel manifestDeclarator;
+    protected final TransformationModel reasonerDeclarator;
 
     public OWLDeclarationTransform(Graph graph) {
         super(graph);

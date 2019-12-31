@@ -34,7 +34,7 @@ import java.util.List;
  * As primary chooses the one that has the largest number of triplets.
  * If there is no any owl:Ontology then new anonymous owl:Ontology will be added to the graph.
  */
-public class OWLIDTransform extends Transform {
+public class OWLIDTransform extends TransformationModel {
 
     public OWLIDTransform(Graph graph) {
         super(graph, OntVocabulary.Factory.DUMMY);

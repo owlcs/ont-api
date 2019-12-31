@@ -23,7 +23,6 @@ import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.XSD;
 import com.github.owlcs.ontapi.transforms.GraphTransformers;
 import com.github.owlcs.ontapi.transforms.Transform;
-import com.github.owlcs.ontapi.transforms.TransformException;
 import com.github.owlcs.ontapi.transforms.vocabulary.DEPRECATED;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import com.github.owlcs.ontapi.utils.TestUtils;
@@ -259,21 +258,15 @@ public class OWLTransformTest {
 
     @Test
     public void testUnparsableTriples() throws OWLOntologyCreationException {
-        class Empty extends Transform {
+        class Empty implements Transform {
             private final Triple[] unparseable;
 
-            private Empty(Graph graph, Triple... triples) {
-                super(graph);
+            private Empty(Triple... triples) {
                 unparseable = triples;
             }
 
             @Override
-            public void perform() throws TransformException {
-                // nothing
-            }
-
-            @Override
-            public Stream<Triple> uncertainTriples() {
+            public Stream<Triple> apply(Graph g) {
                 return Arrays.stream(unparseable);
             }
         }
@@ -282,8 +275,8 @@ public class OWLTransformTest {
         Triple t2 = Triple.create(NodeFactory.createURI("b"), NodeFactory.createURI("c"),
                 NodeFactory.createLiteral("v2"));
         OntologyManager manager = OntManagers.createONT();
-        GraphTransformers.Store transformers = manager.getOntologyConfigurator().getGraphTransformers()
-                .add(g -> new Empty(g, t1)).add(g -> new Empty(g, t2));
+        GraphTransformers transformers = manager.getOntologyConfigurator().getGraphTransformers()
+                .addLast(new Empty(t1)).addLast(new Empty(t2));
         manager.getOntologyConfigurator().setGraphTransformers(transformers);
 
         OWLOntologyDocumentSource src = ReadWriteUtils.getFileDocumentSource("/ontapi/pizza.ttl", OntFormat.TURTLE);

@@ -50,7 +50,7 @@ import java.util.stream.Collectors;
  * TODO: need to handle rdf:PlainLiteral
  */
 @SuppressWarnings("WeakerAccess")
-public class RDFSTransform extends Transform {
+public class RDFSTransform extends TransformationModel {
 
     protected final boolean useAnnotationPropertyInUnclearCase;
 

@@ -17,6 +17,7 @@ package com.github.owlcs.ontapi.config;
 import com.github.owlcs.ontapi.*;
 import com.github.owlcs.ontapi.jena.impl.conf.OntPersonality;
 import com.github.owlcs.ontapi.jena.model.OntModel;
+import com.github.owlcs.ontapi.transforms.GraphFilter;
 import com.github.owlcs.ontapi.transforms.GraphTransformers;
 import org.apache.jena.graph.Graph;
 import org.semanticweb.owlapi.model.IRI;
@@ -51,7 +52,7 @@ public interface LoadSettings {
     OntPersonality getPersonality();
 
     /**
-     * Gets {@link GraphTransformers.Store Transformers Store}.
+     * Gets {@link GraphTransformers Transformers Store}.
      * <p>
      * Transformers Store is a collection of actions that are performed on {@code Graph} before
      * it enters into the main system.
@@ -61,22 +62,22 @@ public interface LoadSettings {
      * or {@link Ontology Axiomatic Model}, but without a proper transformation
      * you might not found valid {@link org.semanticweb.owlapi.model.OWLAxiom Axiom}s inside that data.
      * Transformations can be simply disabled through
-     * the method {@link LoadControl#setGraphTransformers(GraphTransformers.Store)}.
+     * the method {@link LoadControl#setGraphTransformers(GraphTransformers)}.
      * It is recommended to do this in case there is confidence that the data is OWL2,
      * since transformations may take significant processor time.
-     * With the method {@link GraphTransformers.Store#setFilter(GraphTransformers.Filter)}
+     * With the method {@link GraphTransformers#setFilter(GraphFilter)}
      * a whole graph family may be skipped from transformation process.
      * And there is one more facility to selectively turn off transformations:
      * the method {@link OntGraphDocumentSource#withTransforms()},
      * which is used while passing externally loaded graph into the manager
      * (see {@link OntologyManager#addOntology(Graph)}.
      *
-     * @return {@link GraphTransformers.Store}
-     * @see LoadControl#setGraphTransformers(GraphTransformers.Store)
+     * @return {@link GraphTransformers}
+     * @see LoadControl#setGraphTransformers(GraphTransformers)
      * @see LoadControl#setPerformTransformation(boolean)
      * @see OntSettings#ONT_API_LOAD_CONF_TRANSFORMERS
      */
-    GraphTransformers.Store getGraphTransformers();
+    GraphTransformers getGraphTransformers();
 
     /**
      * Answers {@code true} if the mechanism of graph transformers is enabled, which is {@code true} by default.

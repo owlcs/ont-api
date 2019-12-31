@@ -19,7 +19,7 @@ import com.github.owlcs.ontapi.jena.OntModelFactory;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.utils.Graphs;
 import com.github.owlcs.ontapi.transforms.OWLRecursiveTransform;
-import com.github.owlcs.ontapi.transforms.Transform;
+import com.github.owlcs.ontapi.transforms.TransformationModel;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
@@ -68,7 +68,7 @@ public class RecursionTransformTest {
         }
         ReadWriteUtils.print(m);
         Graph g = m.getGraph();
-        Transform t = new OWLRecursiveTransform(g);
+        TransformationModel t = new OWLRecursiveTransform(g);
         TestListener l = new TestListener();
         Graphs.getBase(g).getEventManager().register(l);
         t.perform();

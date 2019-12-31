@@ -35,6 +35,7 @@ import com.github.owlcs.ontapi.utils.SP;
 import com.github.owlcs.ontapi.utils.SpinModels;
 import com.github.owlcs.ontapi.utils.SpinTransform;
 import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.RDFNode;
@@ -76,7 +77,7 @@ public class GraphTransformersTest {
         OntologyManager m = OntManagers.createONT();
         // Setup spin manager:
         m.getOntologyConfigurator()
-                .setGraphTransformers(GraphTransformers.getTransformers().addFirst(SpinTransform::new))
+                .setGraphTransformers(GraphTransformers.get().addFirst(Transform.Factory.create(SpinTransform.class)))
                 .setPersonality(SpinModels.ONT_SPIN_PERSONALITY)
                 .disableWebAccess();
         SpinModels.addMappings(m);
@@ -130,7 +131,7 @@ public class GraphTransformersTest {
     public void testLoadSpinLibraryWithoutTransforms() throws Exception {
         OntologyManager m = OntManagers.createONT();
         // Setup spin manager:
-        GraphTransformers.Store transformers = m.getOntologyConfigurator().getGraphTransformers()
+        GraphTransformers transformers = m.getOntologyConfigurator().getGraphTransformers()
                 .setFilter(g -> {
                     String uri = Graphs.getURI(g);
                     return uri == null || Arrays.stream(SpinModels.values()).map(SpinModels::uri).noneMatch(uri::equals);
@@ -181,11 +182,9 @@ public class GraphTransformersTest {
     @Test // todo: old test - seems to be irrelevant now. delete or fix
     public void testSPSignature() throws Exception {
         // global transforms:
-        GraphTransformers.getTransformers().add(g -> new Transform(g) {
-            @Override
-            public void perform() {
-                LOGGER.debug("Finish transformation ({}).", Graphs.getName(g));
-            }
+        GraphTransformers.get().addLast(g -> {
+            LOGGER.debug("Finish transformation ({}).", Graphs.getName(g));
+            return Stream.empty();
         });
 
         OWLOntologyManager manager = OntManagers.createOWL();
@@ -255,56 +254,53 @@ public class GraphTransformersTest {
     @Test
     public void testGeneralFunctionality() {
         int num = 6; //5;
-        Class<? extends Transform> first = OWLIDTransform.class;
-        Class<? extends Transform> last = SWRLTransform.class; //OWLDeclarationTransform.class;
+        Transform first = Transform.Factory.create(OWLIDTransform.class);
+        Transform last = Transform.Factory.create(SWRLTransform.class); //OWLDeclarationTransform.class;
 
-        GraphTransformers.Store store = GraphTransformers.getTransformers();
-        Assert.assertSame(store, GraphTransformers.getTransformers());
-        Assert.assertEquals(num, store.ids().peek(x -> LOGGER.debug("Store:::{}", x)).count());
-        Assert.assertTrue(store.get(first.getName()).isPresent());
-        List<String> ids = store.ids().collect(Collectors.toList());
-        Assert.assertEquals(first.getName(), ids.get(0));
-        Assert.assertEquals(last.getName(), ids.get(ids.size() - 1));
-        GraphTransformers.Maker maker = GraphTransformers.Maker.create("a", g -> new Transform(g) {
+        GraphTransformers store = GraphTransformers.get();
+        Assert.assertSame(store, GraphTransformers.get());
+        Assert.assertEquals(num, store.transforms().peek(x -> LOGGER.debug("Store:::{}", x.id())).count());
+        Assert.assertTrue(store.get(first.id()).isPresent());
+        List<String> ids = store.transforms().map(Transform::id).collect(Collectors.toList());
+        Assert.assertEquals(first.id(), ids.get(0));
+        Assert.assertEquals(last.id(), ids.get(ids.size() - 1));
+        Transform maker = Transform.Factory.create("a", g -> new TransformationModel(g) {
             @Override
             public void perform() throws TransformException {
                 getQueryModel().createResource("some", RDFS.Datatype);
             }
-
-            @Override
-            public String name() {
-                return "Test #1";
-            }
         });
-        GraphTransformers.Store store1 = store.insertAfter(first.getName(), maker);
-        store1.ids().forEach(x -> LOGGER.debug("Store1:::{}", x));
+        GraphTransformers store1 = store.insertAfter(first.id(), maker);
+        store1.transforms().map(Transform::id).forEach(x -> LOGGER.debug("Store1:::{}", x));
         Assert.assertNotEquals(store, store1);
-        Assert.assertEquals(num, store.ids().count());
-        List<String> ids1 = store1.ids().collect(Collectors.toList());
+        Assert.assertEquals(num, store.transforms().count());
+        List<String> ids1 = store1.transforms().map(Transform::id).collect(Collectors.toList());
         Assert.assertEquals(num + 1, ids1.size());
         Assert.assertEquals("a", ids1.get(1));
 
-        GraphTransformers.Store store2 = store1.removeFirst();
+        GraphTransformers store2 = store1.removeFirst();
         Assert.assertNotEquals(store1, store2);
-        Assert.assertEquals(num + 1, store1.ids().count());
-        Assert.assertEquals(num, store2.ids().count());
+        Assert.assertEquals(num + 1, store1.transforms().count());
+        Assert.assertEquals(num, store2.transforms().count());
 
-        GraphTransformers.Store store3 = store1.remove(OWLCommonTransform.class.getName());
+        GraphTransformers store3 = store1.remove(OWLCommonTransform.class.getSimpleName());
         Assert.assertNotEquals(store1, store3);
-        Assert.assertEquals(num + 1, store1.ids().count());
-        Assert.assertEquals(num, store3.ids().peek(x -> LOGGER.debug("Store3:::{}", x)).count());
+        Assert.assertEquals(num + 1, store1.transforms().count());
+        Assert.assertEquals(num, store3.transforms().peek(x -> LOGGER.debug("Store3:::{}", x.id())).count());
 
-        GraphTransformers.Store store4 = store3.removeLast().removeLast().removeLast()
-                .addLast(GraphTransformers.Maker.create("b", graph -> true, g -> {
+        GraphTransformers store4 = store3.removeLast().removeLast().removeLast()
+                .addLast(g -> {
                     Model m = ModelFactory.createModelForGraph(g);
                     Resource s = Iter.asStream(m
                             .listResourcesWithProperty(RDF.type, OWL.Ontology))
                             .findFirst()
                             .orElseThrow(AssertionError::new);
                     s.addProperty(OWL.versionIRI, m.createResource("http://ver"));
-                })).setFilter(Graph::isEmpty);
+                    return Stream.empty();
+                })
+                .setFilter(Graph::isEmpty);
 
-        Assert.assertEquals(num - 2, store4.ids().peek(s -> LOGGER.debug("Store4::::{}", s)).count());
+        Assert.assertEquals(num - 2, store4.transforms().peek(s -> LOGGER.debug("Store4::::{}", s.id())).count());
         Model m1 = ModelFactory.createDefaultModel();
         OntModel m2 = OntModelFactory.createModel().setID("http://x").getModel();
         store4.transform(m2.getGraph());
@@ -329,19 +325,21 @@ public class GraphTransformersTest {
         OntologyManager m = OntManagers.createONT();
 
         Set<String> processed = new HashSet<>();
-        GraphTransformers.Store st = m.getOntologyConfigurator().getGraphTransformers().addFirst(g -> new Transform(g) {
-            @Override
-            public void perform() throws TransformException {
-                String graph = Graphs.getName(g);
-                LOGGER.debug("Test {} on {}", name(), graph);
-                Assert.assertTrue("Already processed: " + graph, processed.add(graph));
-            }
+        GraphTransformers st = m.getOntologyConfigurator().getGraphTransformers()
+                .addFirst(new Transform() {
+                    @Override
+                    public Stream<Triple> apply(Graph g) {
+                        String n = Graphs.getName(g);
+                        LOGGER.debug("Test {} on {}", id(), n);
+                        Assert.assertTrue("Already processed: " + n, processed.add(n));
+                        return Stream.empty();
+                    }
 
-            @Override
-            public String name() {
-                return "Test Checker";
-            }
-        });
+                    @Override
+                    public String id() {
+                        return "Test Checker";
+                    }
+                });
         m.getOntologyConfigurator().setGraphTransformers(st);
 
         iris.stream().limit(2).map(IRI::create).forEach(iri -> {
@@ -365,6 +363,7 @@ public class GraphTransformersTest {
         iris.forEach(i -> Assert.assertNotNull(m.getGraphModel(i)));
     }
 
+    @SuppressWarnings("unused")
     private static void signatureTest(OWLOntology owl, OntModel jena) {
         List<String> expectedClasses = owlToList(owl.classesInSignature(Imports.INCLUDED));
         List<String> actualClasses = jenaToList(jena.classes());
