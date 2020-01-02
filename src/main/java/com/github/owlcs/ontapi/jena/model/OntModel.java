@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -179,7 +179,6 @@ public interface OntModel extends Model, CreateClasses, CreateRanges, CreateDisj
      *
      * @param other {@link OntModel} to test, not {@code null}
      * @return {@code true} if the model is in imports
-     * @since 1.4.0
      */
     boolean hasImport(OntModel other);
 
@@ -189,7 +188,6 @@ public interface OntModel extends Model, CreateClasses, CreateRanges, CreateDisj
      * @param uri String, not {@code null}
      * @return boolean
      * @see OntID#getImportsIRI()
-     * @since 1.4.0
      */
     boolean hasImport(String uri);
 
@@ -238,7 +236,6 @@ public interface OntModel extends Model, CreateClasses, CreateRanges, CreateDisj
      *
      * @return {@code Stream} of {@link OntIndividual}s
      * @see OntModel#namedIndividuals()
-     * @since 1.4.1
      */
     Stream<OntIndividual> individuals();
 
@@ -288,7 +285,6 @@ public interface OntModel extends Model, CreateClasses, CreateRanges, CreateDisj
      * @return {@code Stream} of {@link OntStatement}
      * @see OntModel#statements(Resource, Property, RDFNode)
      * @see OntStatement#isLocal()
-     * @since 1.3.0
      */
     Stream<OntStatement> localStatements(Resource s, Property p, RDFNode o);
 
@@ -546,7 +542,6 @@ public interface OntModel extends Model, CreateClasses, CreateRanges, CreateDisj
      * Lists all named class expressions (OWL classes).
      *
      * @return {@code Stream} of {@link OntClass.Named Ontology Class}es
-     * @since 1.4.0
      */
     default Stream<OntClass.Named> classes() {
         return ontEntities(OntClass.Named.class);
@@ -556,7 +551,6 @@ public interface OntModel extends Model, CreateClasses, CreateRanges, CreateDisj
      * Lists all annotation properties.
      *
      * @return {@code Stream} of {@link OntAnnotationProperty Annotation Property}s
-     * @since 1.4.0
      */
     default Stream<OntAnnotationProperty> annotationProperties() {
         return ontEntities(OntAnnotationProperty.class);
@@ -566,7 +560,6 @@ public interface OntModel extends Model, CreateClasses, CreateRanges, CreateDisj
      * Lists all data properties.
      *
      * @return {@code Stream} of {@link OntDataProperty Data Property}s
-     * @since 1.4.0
      */
     default Stream<OntDataProperty> dataProperties() {
         return ontEntities(OntDataProperty.class);
@@ -576,7 +569,6 @@ public interface OntModel extends Model, CreateClasses, CreateRanges, CreateDisj
      * Lists all named object property expressions (object properties in short).
      *
      * @return {@code Stream} of {@link OntObjectProperty.Named Named Object Property}s
-     * @since 1.4.0
      */
     default Stream<OntObjectProperty.Named> objectProperties() {
         return ontEntities(OntObjectProperty.Named.class);
@@ -586,7 +578,6 @@ public interface OntModel extends Model, CreateClasses, CreateRanges, CreateDisj
      * Lists all datatypes (named data range expressions).
      *
      * @return {@code Stream} of {@link OntDataRange.Named Ontology Datatype}s
-     * @since 1.4.0
      */
     default Stream<OntDataRange.Named> datatypes() {
         return ontEntities(OntDataRange.Named.class);
@@ -599,7 +590,6 @@ public interface OntModel extends Model, CreateClasses, CreateRanges, CreateDisj
      * @return {@code Stream} of {@link OntIndividual.Named Named Individual}s
      * @see #individuals()
      * @see OntClass#individuals()
-     * @since 1.4.0
      */
     default Stream<OntIndividual.Named> namedIndividuals() {
         return ontEntities(OntIndividual.Named.class);

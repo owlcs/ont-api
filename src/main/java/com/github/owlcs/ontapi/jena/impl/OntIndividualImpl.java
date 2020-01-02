@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -97,7 +97,6 @@ public abstract class OntIndividualImpl extends OntObjectImpl implements OntIndi
      * @param direct if {@code true} returns only direct types, just like {@link #listClasses()}
      * @return {@link ExtendedIterator} over all {@link OntClass class}-types
      * @see #listClasses()
-     * @since 1.4.2
      */
     @SuppressWarnings("unused")
     public ExtendedIterator<OntClass> listClasses(boolean direct) {
@@ -110,7 +109,6 @@ public abstract class OntIndividualImpl extends OntObjectImpl implements OntIndi
      *
      * @param direct if {@code true} returns only direct types, just like {@code #listClasses().toSet()}
      * @return a {@code Set} of all {@link OntClass class}-types
-     * @since 1.4.2
      */
     public Set<OntClass> getClasses(boolean direct) {
         if (direct) {

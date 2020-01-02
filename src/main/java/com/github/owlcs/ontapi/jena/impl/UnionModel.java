@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,6 +14,9 @@
 
 package com.github.owlcs.ontapi.jena.impl;
 
+import com.github.owlcs.ontapi.jena.OntJenaException;
+import com.github.owlcs.ontapi.jena.UnionGraph;
+import com.github.owlcs.ontapi.jena.utils.Graphs;
 import org.apache.jena.atlas.lib.Cache;
 import org.apache.jena.enhanced.Personality;
 import org.apache.jena.graph.Graph;
@@ -21,9 +24,6 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.rdf.model.impl.ModelCom;
 import org.apache.jena.shared.JenaException;
-import com.github.owlcs.ontapi.jena.OntJenaException;
-import com.github.owlcs.ontapi.jena.UnionGraph;
-import com.github.owlcs.ontapi.jena.utils.Graphs;
 
 import java.io.OutputStream;
 import java.io.Writer;
@@ -143,7 +143,6 @@ public class UnionModel extends ModelCom {
      * @return {@link RDFNode} or {@code null}
      * @throws RuntimeException unexpected misconfiguration (RDF recursion, wrong input, personality mismatch, etc)
      * @see #getNodeAs(Node, Class)
-     * @since 1.3.0
      */
     public <N extends RDFNode> N findNodeAs(Node node, Class<N> type) {
         try {

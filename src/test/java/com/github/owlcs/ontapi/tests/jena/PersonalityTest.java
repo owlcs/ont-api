@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -141,7 +141,7 @@ public class PersonalityTest {
             }
         };
         OntPersonality p2 = PersonalityBuilder.from(OntModelConfig.ONT_PERSONALITY_STRICT).setPunnings(punnings).build();
-        OntEntity.entityTypes().forEach(t -> Assert.assertEquals(2, p2.getPunnings().get(t).size()));
+        OntEntity.listEntityTypes().forEachRemaining(t -> Assert.assertEquals(2, p2.getPunnings().get(t).size()));
 
         OntModel m2 = OntModelFactory.createModel(m1.getGraph(), p2);
         Assert.assertEquals(1, m2.individuals().peek(x -> LOGGER.debug("2)Individuals: {}", x)).count());

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -24,7 +24,6 @@ import org.apache.jena.rdf.model.ResourceFactory;
  * @see <a href='https://www.w3.org/Submission/SWRL/#8'>8. Built-Ins</a>
  * @see org.semanticweb.owlapi.vocab.SWRLBuiltInsVocabulary
  * @see SWRL
- * @since 1.4.0
  */
 public class SWRLB {
     public final static String URI = "http://www.w3.org/2003/11/swrlb";

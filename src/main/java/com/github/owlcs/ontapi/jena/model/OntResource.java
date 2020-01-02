@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -26,8 +26,6 @@ import java.util.stream.Stream;
  * but for {@link OntModel OWL2 Ontology RDF Graph Model}.
  * <p>
  * Created by @szuev on 24.07.2018.
- *
- * @since 1.3.0
  */
 interface OntResource extends Resource {
 
@@ -92,7 +90,6 @@ interface OntResource extends Resource {
      * @return an instance of the type {@link X} or {@code null}
      * @see RDFNode#as(Class)
      * @see RDFNode#canAs(Class)
-     * @since 1.4.2
      */
     default <X extends RDFNode> X getAs(Class<X> type) {
         return canAs(type) ? as(type) : null;

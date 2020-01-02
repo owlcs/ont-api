@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -20,8 +20,6 @@ import java.util.Collection;
 /**
  * A technical interface to generate {@link OntDisjoint Disjoint Resource}s.
  * Created by @szz on 14.05.2019.
- *
- * @since 1.4.0
  */
 interface CreateDisjoint {
 
@@ -89,7 +87,6 @@ interface CreateDisjoint {
      * @param classes Array of {@link OntClass Class Expression}s without {@code null}-elements
      * @return {@link OntDisjoint.Classes}
      * @see #createDisjointClasses(Collection)
-     * @since 1.4.0
      */
     default OntDisjoint.Classes createDisjointClasses(OntClass... classes) {
         return createDisjointClasses(Arrays.asList(classes));
@@ -101,7 +98,6 @@ interface CreateDisjoint {
      * @param individuals Array of {@link OntIndividual individual}s without {@code null}-elements
      * @return {@link OntDisjoint.Individuals}
      * @see #createDifferentIndividuals(Collection)
-     * @since 1.4.0
      */
     default OntDisjoint.Individuals createDifferentIndividuals(OntIndividual... individuals) {
         return createDifferentIndividuals(Arrays.asList(individuals));
@@ -113,7 +109,6 @@ interface CreateDisjoint {
      * @param properties Array of {@link OntObjectProperty Object Property Expression}s without {@code null}-elements
      * @return {@link OntDisjoint.ObjectProperties}
      * @see #createDisjointObjectProperties(Collection)
-     * @since 1.4.0
      */
     default OntDisjoint.ObjectProperties createDisjointObjectProperties(OntObjectProperty... properties) {
         return createDisjointObjectProperties(Arrays.asList(properties));
@@ -125,7 +120,6 @@ interface CreateDisjoint {
      * @param properties Array of {@link OntDataProperty Data Properties} without {@code null}-elements
      * @return {@link OntDisjoint.DataProperties}
      * @see #createDisjointDataProperties(Collection)
-     * @since 1.4.0
      */
     default OntDisjoint.DataProperties createDisjointDataProperties(OntDataProperty... properties) {
         return createDisjointDataProperties(Arrays.asList(properties));

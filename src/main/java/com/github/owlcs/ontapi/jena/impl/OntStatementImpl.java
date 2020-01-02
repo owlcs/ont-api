@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -120,7 +120,6 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
      * @param n {@link Node}, not variable, not literal, not {@code null}
      * @param g {@link EnhGraph}, not {@code null}
      * @return {@link OntObject}
-     * @since 1.4.2
      */
     static OntObject createSubject(Node n, EnhGraph g) {
         return OntObjectImpl.wrapAsOntObject(n, g);
@@ -132,7 +131,6 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
      * @param n {@link Node}, an URI, not {@code null}
      * @param g {@link EnhGraph}, not {@code null}
      * @return {@link Property}
-     * @since 1.4.2
      */
     static Property createProperty(Node n, EnhGraph g) {
         return new PropertyImpl(n, g);
@@ -147,7 +145,6 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
      * @param g {@link EnhGraph}, not {@code null}
      * @return {@link RDFNode}
      * @see StatementImpl#createObject(Node, EnhGraph)
-     * @since 1.4.2
      */
     public static RDFNode createObject(Node n, EnhGraph g) {
         return n.isLiteral() ? new LiteralImpl(n, g) : OntObjectImpl.wrapAsOntObject(n, g);
@@ -303,7 +300,6 @@ public class OntStatementImpl extends StatementImpl implements OntStatement {
      *
      * @return {@link ExtendedIterator} of {@link OntStatement}s
      * @see #annotations()
-     * @since 1.3.0
      */
     public ExtendedIterator<OntStatement> listAnnotations() {
         ExtendedIterator<OntStatement> res = Iter.flatMap(listAnnotationResources(),

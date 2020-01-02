@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -22,8 +22,6 @@ import java.util.Collection;
 /**
  * A technical interface to generate {@link OntDataRange Data Range Expression}s.
  * Created by @szz on 14.05.2019.
- *
- * @since 1.4.0
  */
 interface CreateRanges {
 
@@ -108,7 +106,6 @@ interface CreateRanges {
      * @param values Array of {@link Literal literal}s, without {@code null}-elements
      * @return {@link OntDataRange.OneOf}
      * @see #createDataOneOf(Collection)
-     * @since 1.4.0
      */
     default OntDataRange.OneOf createDataOneOf(Literal... values) {
         return createDataOneOf(Arrays.asList(values));
@@ -121,7 +118,6 @@ interface CreateRanges {
      * @param values Array of {@link OntFacetRestriction facet restriction}s, without {@code null}s
      * @return {@link OntDataRange.Restriction}
      * @see #createDataRestriction(OntDataRange.Named, Collection)
-     * @since 1.4.0
      */
     default OntDataRange.Restriction createDataRestriction(OntDataRange.Named other, OntFacetRestriction... values) {
         return createDataRestriction(other, Arrays.asList(values));
@@ -133,7 +129,6 @@ interface CreateRanges {
      * @param values {@code Collection} of {@link OntDataRange data range}s, without {@code null}-elements
      * @return {@link OntDataRange.UnionOf}
      * @see #createDataUnionOf(Collection)
-     * @since 1.4.0
      */
     default OntDataRange.UnionOf createDataUnionOf(OntDataRange... values) {
         return createDataUnionOf(Arrays.asList(values));
@@ -145,7 +140,6 @@ interface CreateRanges {
      * @param values Array of {@link OntDataRange data range}s, without {@code null}-elements
      * @return {@link OntDataRange.IntersectionOf}
      * @see #createDataIntersectionOf(Collection)
-     * @since 1.4.0
      */
     default OntDataRange.IntersectionOf createDataIntersectionOf(OntDataRange... values) {
         return createDataIntersectionOf(Arrays.asList(values));

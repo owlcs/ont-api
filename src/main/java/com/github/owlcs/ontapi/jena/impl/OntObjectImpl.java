@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -19,7 +19,6 @@ import com.github.owlcs.ontapi.jena.impl.conf.ObjectFactory;
 import com.github.owlcs.ontapi.jena.impl.conf.OntFilter;
 import com.github.owlcs.ontapi.jena.impl.conf.OntFinder;
 import com.github.owlcs.ontapi.jena.model.OntAnnotationProperty;
-import com.github.owlcs.ontapi.jena.model.OntEntity;
 import com.github.owlcs.ontapi.jena.model.OntObject;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
@@ -35,7 +34,6 @@ import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.util.iterator.NullIterator;
 
 import java.util.*;
-import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -127,25 +125,6 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     }
 
     /**
-     * Filters the given extended iterator to contain only builtin entities of the specified type.
-     *
-     * @param type type of entity
-     * @param m    {@link OntGraphModelImpl}
-     * @param exit {@code BooleanSupplier}
-     * @param from {@link ExtendedIterator} of {@link RDFNode}s
-     * @param <E>  subclass of {@link OntEntity}
-     * @return {@link ExtendedIterator} of {@link E}s
-     */
-    static <E extends OntEntity> ExtendedIterator<E> filterBuiltin(Class<E> type,
-                                                                   OntGraphModelImpl m,
-                                                                   BooleanSupplier exit,
-                                                                   ExtendedIterator<? extends RDFNode> from) {
-        return from.filterDrop(x -> exit.getAsBoolean())
-                .mapWith(x -> m.findNodeAs(x.asNode(), type))
-                .filterKeep(x -> x != null && x.isBuiltIn());
-    }
-
-    /**
      * Lists all descendants for the specified object and the predicate.
      *
      * @param object    {@link X}
@@ -155,7 +134,6 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @param direct    if {@code true}, only returns the direct (adjacent) values
      * @param <X>       subtype of {@link OntObject}
      * @return <b>distinct</b> {@code Stream} of {@link X}s
-     * @since 1.4.2
      */
     public static <X extends OntObject> Stream<X> hierarchy(X object,
                                                             Class<X> type,
@@ -193,7 +171,6 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @param inverse   if {@code true}, use the inverse of {@code predicate} rather than {@code predicate}
      * @param <X>       subtype of {@link OntObject} (actually {@link OntObjectImpl})
      * @return a {@code Function} that responses a {@code ExtendedIterator} over direct listed {@link X}
-     * @since 1.4.2
      */
     private static <X extends OntObject> Function<X, ExtendedIterator<X>> getListDirect(Class<X> type,
                                                                                         Property predicate,
@@ -216,7 +193,6 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      *                     otherwise only direct descendants are included into  the result
      * @param <X>          subtype of {@link Resource}
      * @return {@code Set} of {@link X}
-     * @since 1.4.0
      */
     public static <X extends Resource> Set<X> getHierarchy(X object,
                                                            Function<X, ExtendedIterator<X>> listDirect,
@@ -238,7 +214,6 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @param listDirect a {@code Function} that returns {@code Iterator} for an object of type {@link X}
      * @param res          {@code Set} to store result
      * @param <X>          any subtype of {@link Resource}
-     * @since 1.4.0
      */
     static <X extends Resource> void collectIndirect(X object,
                                                      Function<X, ? extends Iterator<X>> listDirect,
@@ -272,7 +247,6 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @param <X>  any subtype of {@link RDFNode}
      * @return an instance of the type {@link X} or {@code null}
      * @see UnionModel#getNodeAs(Node, Class)
-     * @since 1.4.2
      */
     public static <X extends RDFNode> X getNodeAs(RDFNode node, Class<X> view) {
         try {
@@ -288,7 +262,6 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @param node  {@link Node}, not {@code null}
      * @param model {@link EnhGraph}, not {@code null}
      * @return {@link OntObject}
-     * @since 1.4.2
      */
     public static OntObject wrapAsOntObject(Node node, EnhGraph model) {
         return new OntObjectImpl(node, model);
@@ -345,7 +318,6 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * Lists all object's characteristic statements according to its OWL2 specification.
      *
      * @return {@code ExtendedIterator} of {@link OntStatement}s
-     * @since 1.4.0
      */
     public ExtendedIterator<OntStatement> listSpec() {
         return findRootStatement().map(Iter::of).orElseGet(NullIterator::instance);
@@ -368,7 +340,6 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * minus those of them whose predicate is an annotation property to any discard annotations.
      *
      * @return <b>distinct</b> {@code ExtendedIterator} of {@link OntStatement}s
-     * @since 1.4.2
      */
     @SuppressWarnings("unused")
     public ExtendedIterator<OntStatement> listContent() {
@@ -381,7 +352,6 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * excluding those of them whose predicate is an annotation property.
      *
      * @return {@code Set} of {@link OntStatement}s
-     * @since 1.4.0
      */
     protected Set<OntStatement> getContent() {
         Set<OntStatement> res = listSpec().toSet();
@@ -511,7 +481,6 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      *
      * @return {@link ExtendedIterator} over all the {@link OntStatement}s about this object
      * @see #listProperties()
-     * @since 1.3.0
      */
     public ExtendedIterator<OntStatement> listStatements() {
         return listStatements(null);
@@ -538,7 +507,6 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @param p {@link Property}, the predicate sought, can be {@code null}
      * @return {@link ExtendedIterator} over the {@link OntStatement}s
      * @see #listStatements(Property)
-     * @since 1.3.0
      */
     public ExtendedIterator<OntStatement> listStatements(Property p) {
         return Iter.create(getModel().getGraph().find(asNode(), OntGraphModelImpl.asNode(p), Node.ANY)
@@ -578,7 +546,6 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      *
      * @return {@link ExtendedIterator} of {@link OntStatement}s
      * @see #annotations()
-     * @since 1.3.0
      */
     public ExtendedIterator<OntStatement> listAnnotations() {
         ExtendedIterator<OntStatement> res = listAssertions();
@@ -606,7 +573,6 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      *
      * @return {@link ExtendedIterator} of {@link OntStatement}s
      * @see #assertions()
-     * @since 1.3.0
      */
     public ExtendedIterator<OntStatement> listAssertions() {
         return listStatements().filterKeep(OntStatement::isAnnotationAssertion);
@@ -618,7 +584,6 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @param predicate {@link OntAnnotationProperty}, not {@code null}
      * @return {@link ExtendedIterator} of {@link Literal}s
      * @see #listAnnotations()
-     * @since 1.3.2
      */
     public ExtendedIterator<Literal> listAnnotationLiterals(OntAnnotationProperty predicate) {
         return listAnnotations()
@@ -740,7 +705,6 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @return {@link ExtendedIterator} of {@link RDFNode node}s of the type {@link O}
      * @see #object(Property, Class)
      * @see #listSubjects(Property, Class)
-     * @since 1.3.0
      */
     public <O extends RDFNode> ExtendedIterator<O> listObjects(Property predicate, Class<O> type) {
         OntGraphModelImpl m = getModel();
@@ -757,7 +721,6 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @param <S>       subtype of {@link RDFNode rdf-node}
      * @return {@link ExtendedIterator} of {@link RDFNode node}s of the type {@link S}
      * @see #listObjects(Property, Class)
-     * @since 1.4.0
      */
     public <S extends RDFNode> ExtendedIterator<S> listSubjects(Property predicate, Class<S> type) {
         OntGraphModelImpl m = getModel();
@@ -784,7 +747,6 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      * @param predicate {@link Property}
      * @return {@link ExtendedIterator} of {@link RDFNode}s
      * @see #objects(Property)
-     * @since 1.3.0
      */
     public ExtendedIterator<RDFNode> listObjects(Property predicate) {
         return listProperties(predicate).mapWith(Statement::getObject);

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -22,8 +22,6 @@ import java.util.Collection;
 /**
  * A technical interface to generate {@link OntClass Class Expression}s.
  * Created by @ssz on 13.05.2019.
- *
- * @since 1.4.0
  */
 interface CreateClasses {
 
@@ -379,7 +377,6 @@ interface CreateClasses {
      * @param classes Array of {@link OntClass class expression}s without {@code null}s
      * @return {@link OntClass.IntersectionOf}
      * @see #createObjectIntersectionOf(Collection)
-     * @since 1.4.0
      */
     default OntClass.IntersectionOf createObjectIntersectionOf(OntClass... classes) {
         return createObjectIntersectionOf(Arrays.asList(classes));
@@ -391,7 +388,6 @@ interface CreateClasses {
      * @param classes Array of {@link OntClass class expression}s without {@code null}s
      * @return {@link OntClass.UnionOf}
      * @see #createObjectUnionOf(Collection)
-     * @since 1.4.0
      */
     default OntClass.UnionOf createObjectUnionOf(OntClass... classes) {
         return createObjectUnionOf(Arrays.asList(classes));
@@ -403,7 +399,6 @@ interface CreateClasses {
      * @param individuals Array of {@link OntIndividual individual}s without {@code null}s
      * @return {@link OntClass.OneOf}
      * @see #createObjectOneOf(Collection)
-     * @since 1.4.0
      */
     default OntClass.OneOf createObjectOneOf(OntIndividual... individuals) {
         return createObjectOneOf(Arrays.asList(individuals));

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -57,7 +57,6 @@ public interface OntProperty extends OntObject {
      * @return <b>distinct</b> {@code Stream} of properties with the same type as this property
      * @see #superProperties()
      * @see #subProperties(boolean)
-     * @since 1.4.0
      */
     Stream<? extends OntProperty> superProperties(boolean direct);
 
@@ -83,7 +82,6 @@ public interface OntProperty extends OntObject {
      *               to reach that child under the super-property relation
      * @return <b>distinct</b> {@code Stream} of properties with the same type as this property
      * @see #superProperties(boolean)
-     * @since 1.4.0
      */
     Stream<? extends OntProperty> subProperties(boolean direct);
 
@@ -95,7 +93,6 @@ public interface OntProperty extends OntObject {
      * @return {@code Stream} of {@link Resource jena resource}s
      * @see OntAnnotationProperty#superProperties()
      * @see OntRealProperty#superProperties()
-     * @since 1.4.0
      */
     Stream<? extends OntProperty> superProperties();
 
@@ -106,7 +103,6 @@ public interface OntProperty extends OntObject {
      * @see OntAnnotationProperty#domains()
      * @see OntObjectProperty#domains()
      * @see OntDataProperty#domains()
-     * @since 1.4.0
      */
     Stream<? extends Resource> domains();
 
@@ -116,7 +112,6 @@ public interface OntProperty extends OntObject {
      * @return {@code Stream} of {@link Resource}s
      * @see OntAnnotationProperty#ranges()
      * @see OntRealProperty#ranges()
-     * @since 1.4.0
      */
     Stream<? extends Resource> ranges();
 
@@ -157,7 +152,6 @@ public interface OntProperty extends OntObject {
      *
      * @param property {@link Resource} or {@code null} to remove all direct super properties
      * @return <b>this</b> instance to allow cascading calls
-     * @since 1.4.0
      */
     OntProperty removeSuperProperty(Resource property);
 

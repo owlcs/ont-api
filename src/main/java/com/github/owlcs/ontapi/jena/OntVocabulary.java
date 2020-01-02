@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -16,7 +16,6 @@ package com.github.owlcs.ontapi.jena;
 
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.vocabulary.*;
-import com.github.owlcs.ontapi.transforms.GraphTransformers;
 import org.apache.jena.datatypes.BaseDatatype;
 import org.apache.jena.datatypes.RDFDatatype;
 import org.apache.jena.datatypes.TypeMapper;
@@ -192,10 +191,12 @@ public interface OntVocabulary {
 
     /**
      * A factory-helper to work with {@link OntVocabulary} instances, that wrap constant-holders
-     * from the packages {@link com.github.owlcs.ontapi.jena.vocabulary} and {@link org.apache.jena.vocabulary}
-     * (such as {@link OWL}).
-     * In ONT-API, a {@link OntVocabulary} is used to build {@link com.github.owlcs.ontapi.jena.impl.conf.OntPersonality}
-     * and in {@link GraphTransformers} subsystem.
+     * from the packages {@link com.github.owlcs.ontapi.jena.vocabulary}
+     * and {@link org.apache.jena.vocabulary} (such as {@link OWL}).
+     * <p>
+     * In ONT-API, a {@link OntVocabulary} singleton is used
+     * to build {@link com.github.owlcs.ontapi.jena.impl.conf.OntPersonality}
+     * and, also, in {@link com.github.owlcs.ontapi.transforms} subsystem.
      * <p>
      * Created by @szuev on 21.12.2016.
      */

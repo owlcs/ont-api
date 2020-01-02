@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -85,7 +85,6 @@ public interface OntID extends OntObject {
      *
      * @param other {@link OntID}
      * @return {@code true} in case the IDs are the same, otherwise {@code false}
-     * @since 1.3.0
      */
     default boolean sameAs(OntID other) {
         return equals(other) && Objects.equals(getVersionIRI(), other.getVersionIRI());
@@ -98,7 +97,6 @@ public interface OntID extends OntObject {
      *
      * @return String or {@code null}
      * @see <a href='https://www.w3.org/TR/owl2-syntax/#Ontology_Documents'>3.2 Ontology Documents</a>
-     * @since 1.3.2
      */
     default String getImportsIRI() {
         String res = getVersionIRI();
@@ -127,7 +125,6 @@ public interface OntID extends OntObject {
      *
      * @param txt String, the literal lexical form, not {@code null}
      * @return this ID-object to allow cascading calls
-     * @since 1.4.2
      */
     default OntID addVersionInfo(String txt) {
         return addVersionInfo(txt, null);
@@ -140,7 +137,6 @@ public interface OntID extends OntObject {
      * @param txt  String, the literal lexical form, not {@code null}
      * @param lang String, the language tag, nullable
      * @return this ID-object to allow cascading calls
-     * @since 1.4.2
      */
     default OntID addVersionInfo(String txt, String lang) {
         return annotate(getModel().getAnnotationProperty(OWL.versionInfo), txt, lang);
@@ -151,7 +147,6 @@ public interface OntID extends OntObject {
      * If there is more than one such resource, an arbitrary selection is made.
      *
      * @return a {@code owl:versionInfo} string or {@code null} if nothing is found
-     * @since 1.4.2
      */
     default String getVersionInfo() {
         return getVersionInfo(null);
@@ -166,7 +161,6 @@ public interface OntID extends OntObject {
      *             to get no-lang literal string an empty string can be used
      * @return a {@code owl:versionInfo} string matching the given language,
      * or {@code null} if there is no version info
-     * @since 1.4.2
      */
     default String getVersionInfo(String lang) {
         try (Stream<String> res = annotationValues(getModel().getAnnotationProperty(OWL.versionInfo), lang)) {

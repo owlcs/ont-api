@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -63,7 +63,6 @@ public interface OntIndividual extends OntObject {
      * @return <b>distinct</b> {@code Stream} of {@link OntClass class expressions}
      * @see #classes()
      * @see OntClass#superClasses(boolean)
-     * @since 1.4.0
      */
     Stream<OntClass> classes(boolean direct);
 
@@ -80,7 +79,6 @@ public interface OntIndividual extends OntObject {
      * Returns all direct class types.
      *
      * @return {@code Stream} of {@link OntClass}s
-     * @since 1.4.0
      */
     default Stream<OntClass> classes() {
         return objects(RDF.type, OntClass.class);
@@ -91,7 +89,6 @@ public interface OntIndividual extends OntObject {
      * The pattern to search for is {@code ai owl:sameAs aj}, where {@code ai} is this individual.
      *
      * @return {@code Stream} of {@link OntIndividual}s
-     * @since 1.4.0
      */
     default Stream<OntIndividual> sameIndividuals() {
         return objects(OWL.sameAs, OntIndividual.class);
@@ -104,7 +101,6 @@ public interface OntIndividual extends OntObject {
      *
      * @return {@code Stream} of {@link OntIndividual}s
      * @see OntDisjoint.Individuals
-     * @since 1.4.0
      */
     default Stream<OntIndividual> differentIndividuals() {
         return objects(OWL.differentFrom, OntIndividual.class);
@@ -124,7 +120,6 @@ public interface OntIndividual extends OntObject {
      *
      * @param predicate {@link OntNamedProperty} or {@code null}
      * @return {@code Stream} of {@link OntStatement}s
-     * @since 1.4.0
      */
     default Stream<OntStatement> positiveAssertions(OntNamedProperty predicate) {
         return statements(predicate);
@@ -146,7 +141,6 @@ public interface OntIndividual extends OntObject {
      *
      * @param property {@link OntNamedProperty} or {@code null}
      * @return {@code Stream} of {@link OntNegativeAssertion negative property assertion}s
-     * @since 1.4.0
      */
     default Stream<OntNegativeAssertion> negativeAssertions(OntNamedProperty property) {
         return negativeAssertions().filter(x -> property == null || x.getProperty().equals(property));
@@ -159,7 +153,6 @@ public interface OntIndividual extends OntObject {
      * @return {@link OntStatement} to allow subsequent annotations adding
      * @see #attachClass(OntClass)
      * @see #detachClass(Resource)
-     * @since 1.4.0
      */
     default OntStatement addClassAssertion(OntClass clazz) {
         return addStatement(RDF.type, clazz);
@@ -173,7 +166,6 @@ public interface OntIndividual extends OntObject {
      * @see #addDifferentIndividual(OntIndividual)
      * @see #removeDifferentIndividual(Resource)
      * @see OntDisjoint.Individuals
-     * @since 1.4.0
      */
     default OntStatement addDifferentFromStatement(OntIndividual other) {
         return addStatement(OWL.differentFrom, other);
@@ -187,7 +179,6 @@ public interface OntIndividual extends OntObject {
      * @see #addSameIndividual(OntIndividual)
      * @see #removeSameIndividual(Resource)
      * @see <a href='https://www.w3.org/TR/owl2-syntax/#Individual_Equality'>9.6.1 Individual Equality</a>
-     * @since 1.4.0
      */
     default OntStatement addSameAsStatement(OntIndividual other) {
         return addStatement(OWL.sameAs, other);
@@ -216,7 +207,6 @@ public interface OntIndividual extends OntObject {
      * @see #removeDifferentIndividual(Resource)
      * @see OntDisjoint.Individuals
      * @see <a href='https://www.w3.org/TR/owl2-syntax/#Individual_Inequality'>9.6.2 Individual Inequality</a>
-     * @since 1.4.0
      */
     default OntIndividual addDifferentIndividual(OntIndividual other) {
         addDifferentFromStatement(other);
@@ -231,7 +221,6 @@ public interface OntIndividual extends OntObject {
      * @return <b>this</b> instance to allow cascading calls
      * @see #addSameAsStatement(OntIndividual)
      * @see #removeSameIndividual(Resource)
-     * @since 1.4.0
      */
     default OntIndividual addSameIndividual(OntIndividual other) {
         addSameAsStatement(other);
@@ -288,7 +277,6 @@ public interface OntIndividual extends OntObject {
      * @return <b>this</b> instance to allow cascading calls
      * @see Resource#addProperty(Property, RDFNode)
      * @see #removeAssertion(OntNamedProperty, RDFNode)
-     * @since 1.4.0
      */
     default OntIndividual addProperty(OntNamedProperty property, RDFNode value) {
         addStatement(property, value);
@@ -348,7 +336,6 @@ public interface OntIndividual extends OntObject {
      * @return <b>this</b> instance to allow cascading calls
      * @see OntObject#remove(Property, RDFNode)
      * @see #addProperty(OntNamedProperty, RDFNode)
-     * @since 1.4.0
      */
     default OntIndividual removeAssertion(OntNamedProperty property, RDFNode value) {
         statements(property)
@@ -365,7 +352,6 @@ public interface OntIndividual extends OntObject {
      * @param value    {@link RDFNode} (either {@link OntIndividual} or {@link Literal}),
      *                 can be {@code null} to remove all assertions for the predicate {@code property}
      * @return <b>this</b> instance to allow cascading calls
-     * @since 1.4.0
      */
     default OntIndividual removeNegativeAssertion(OntNamedProperty property, RDFNode value) {
         negativeAssertions(property)
@@ -386,7 +372,6 @@ public interface OntIndividual extends OntObject {
      * @see #addDifferentFromStatement(OntIndividual)
      * @see #addDifferentIndividual(OntIndividual)
      * @see OntDisjoint.Individuals
-     * @since 1.4.0
      */
     default OntIndividual removeDifferentIndividual(Resource other) {
         remove(OWL.differentFrom, other);
@@ -403,7 +388,6 @@ public interface OntIndividual extends OntObject {
      * @return <b>this</b> instance to allow cascading calls
      * @see #addSameAsStatement(OntIndividual)
      * @see #addSameIndividual(OntIndividual)
-     * @since 1.4.0
      */
     default OntIndividual removeSameIndividual(Resource other) {
         remove(OWL.sameAs, other);

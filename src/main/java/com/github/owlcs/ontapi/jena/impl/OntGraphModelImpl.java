@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -33,7 +33,6 @@ import org.apache.jena.rdf.model.impl.InfModelImpl;
 import org.apache.jena.reasoner.Reasoner;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import org.apache.jena.util.iterator.NullIterator;
 import org.apache.jena.vocabulary.RDFS;
 
 import java.io.OutputStream;
@@ -131,7 +130,6 @@ public class OntGraphModelImpl extends UnionModel implements OntModel, Personali
      *                   with the {@link RDF#type rdf:type} as predicate, not {@code null}
      * @param <M>        a subtype of {@link OntModel} and {@link PersonalityModel}
      * @return {@link ExtendedIterator} of {@link OntIndividual}s that are attached to the {@code model}
-     * @since 1.4.2
      */
     public static <M extends OntModel & PersonalityModel> ExtendedIterator<OntIndividual> listIndividuals(M model,
                                                                                                           Set<Node> system,
@@ -187,7 +185,6 @@ public class OntGraphModelImpl extends UnionModel implements OntModel, Personali
      * @param withSize if {@code true} attempts to include graph size as a estimated size of a future {@code Stream}
      * @param <X>      type of iterator's items
      * @return {@code Stream} of {@link X}s
-     * @since 1.4.2
      */
     private static <X> Stream<X> asStream(Graph graph,
                                           ExtendedIterator<X> it,
@@ -206,7 +203,6 @@ public class OntGraphModelImpl extends UnionModel implements OntModel, Personali
      *
      * @param graph {@link Graph}
      * @return int
-     * @since 1.4.2
      */
     protected static int getSpliteratorCharacteristics(Graph graph) {
         // a graph cannot return iterator with null-elements
@@ -224,7 +220,6 @@ public class OntGraphModelImpl extends UnionModel implements OntModel, Personali
      * @param p {@link Property}, the predicate
      * @param o {@link RDFNode}, the object
      * @return boolean
-     * @since 1.4.2
      */
     private static boolean isANY(Resource s, Property p, RDFNode o) {
         if (s != null) return false;
@@ -344,7 +339,6 @@ public class OntGraphModelImpl extends UnionModel implements OntModel, Personali
      *
      * @param personality {@link OntPersonality}, not {@code null}
      * @return <b>distinct</b> {@code ExtendedIterator} of {@link OntGraphModelImpl}s
-     * @since 1.4.2
      */
     @SuppressWarnings("unused")
     protected final ExtendedIterator<OntGraphModelImpl> listAllModels(OntPersonality personality) {
@@ -357,7 +351,6 @@ public class OntGraphModelImpl extends UnionModel implements OntModel, Personali
      *
      * @param personality {@link OntPersonality}, not {@code null}
      * @return <b>non-distinct</b> {@code ExtendedIterator} of {@link OntGraphModelImpl}s
-     * @since 1.4.2
      */
     protected final ExtendedIterator<OntGraphModelImpl> listImportModels(OntPersonality personality) {
         return listImportGraphs().mapWith(u -> new OntGraphModelImpl(u, personality));
@@ -368,7 +361,6 @@ public class OntGraphModelImpl extends UnionModel implements OntModel, Personali
      * This model graph is not included.
      *
      * @return <b>non-distinct</b> {@code ExtendedIterator} of {@link UnionGraph}
-     * @since 1.4.2
      */
     protected final ExtendedIterator<UnionGraph> listImportGraphs() {
         return getGraph().getUnderlying().listGraphs()
@@ -383,7 +375,6 @@ public class OntGraphModelImpl extends UnionModel implements OntModel, Personali
      *
      * @return {@link OntGraphModelImpl}
      * @see #getBaseModel()
-     * @since 1.3.0
      */
     public OntGraphModelImpl getTopModel() {
         if (independent()) {
@@ -617,7 +608,6 @@ public class OntGraphModelImpl extends UnionModel implements OntModel, Personali
      * @param o {@link RDFNode} the object sought, can be {@code null}
      * @return {@link ExtendedIterator} of {@link OntStatement}s
      * @see #listStatements(Resource, Property, RDFNode)
-     * @since 1.3.0
      */
     public ExtendedIterator<OntStatement> listOntStatements(Resource s, Property p, RDFNode o) {
         return Iter.create(getGraph().find(asNode(s), asNode(p), asNode(o)).mapWith(this::asStatement));
@@ -634,7 +624,6 @@ public class OntGraphModelImpl extends UnionModel implements OntModel, Personali
      * @param o {@link RDFNode} the object sought, can be {@code null}
      * @return {@link ExtendedIterator} of {@link OntStatement}s, which are local to the base graph
      * @see #listStatements(Resource, Property, RDFNode)
-     * @since 1.3.0
      */
     public ExtendedIterator<OntStatement> listLocalStatements(Resource s, Property p, RDFNode o) {
         return Iter.create(getBaseGraph().find(asNode(s), asNode(p), asNode(o)).mapWith(this::asStatement));
@@ -687,71 +676,6 @@ public class OntGraphModelImpl extends UnionModel implements OntModel, Personali
             return remove(subject, predicate, object);
         }
         return this;
-    }
-
-    /**
-     * Extracts all members from []-list, that is an object in a <b>local</b> SPO with the specified predicate.
-     * The returned iterator includes the subject of the []-list root statement, if it is specified.
-     *
-     * @param subject        {@code Class}-type of subject
-     * @param predicate      {@link Property}
-     * @param object         {@code Class}-type of object
-     * @param includeSubject if {@code true} then the subject of []-list root statement is also included
-     * @param <O>            subtype of {@link OntObject}, the []-list members type
-     * @param <S>            subtype of {@link OntObject} in the subject position of the SPO, where O is a []-list
-     * @return {@link ExtendedIterator} of {@link O}s
-     */
-    protected <O extends OntObject, S extends O> ExtendedIterator<O> fromLocalList(Class<S> subject,
-                                                                                   Property predicate,
-                                                                                   Class<O> object,
-                                                                                   boolean includeSubject) {
-        return Iter.flatMap(listLocalStatements(null, predicate, null), s -> {
-            S a = findNodeAs(s.getSubject().asNode(), subject);
-            if (a == null) return NullIterator.instance();
-            if (!s.getObject().canAs(RDFList.class)) return NullIterator.instance();
-            OntListImpl<O> list = OntListImpl.asOntList(s.getObject().as(RDFList.class),
-                    this, s.getSubject(), predicate, null, object);
-            if (!includeSubject) return list.listMembers();
-            return Iter.concat(Iter.of(a), list.listMembers());
-        });
-    }
-
-    /**
-     * Lists all <b>local</b> objects for the given predicate and types of subject and object.
-     *
-     * @param subject   {@code Class}-type of subject
-     * @param predicate {@link Property}
-     * @param object    {@code Class}-type of object
-     * @param <O>       subtype of {@link OntObject} in the object position of the found SPO
-     * @param <S>       subtype of {@link OntObject} in the subject position of the found SPO
-     * @return {@link ExtendedIterator} of {@link O}s
-     */
-    protected <O extends OntObject, S extends OntObject> ExtendedIterator<O> listLocalObjects(Class<S> subject,
-                                                                                              Property predicate,
-                                                                                              Class<O> object) {
-        return listLocalStatements(null, predicate, null).mapWith(s -> {
-            S left = findNodeAs(s.getSubject().asNode(), subject);
-            return left == null ? null : findNodeAs(s.getObject().asNode(), object);
-        }).filterDrop(Objects::isNull);
-    }
-
-    /**
-     * Lists <b>local</b> subjects and objects for the given predicate and the type of subject and object.
-     *
-     * @param predicate {@link Property}
-     * @param type      {@code Class}-type of subject and object
-     * @param <R>       subtype of {@link OntObject}, S and P from SPO must be of this type
-     * @return {@link ExtendedIterator} of {@link R}s
-     */
-    protected <R extends OntObject> ExtendedIterator<R> listLocalSubjectAndObjects(Property predicate,
-                                                                                   Class<R> type) {
-        return Iter.flatMap(listLocalStatements(null, predicate, null), s -> {
-            R a = findNodeAs(s.getSubject().asNode(), type);
-            if (a == null) return NullIterator.instance();
-            R b = findNodeAs(s.getObject().asNode(), type);
-            if (b == null) return NullIterator.instance();
-            return Iter.of(a, b);
-        });
     }
 
     @Override

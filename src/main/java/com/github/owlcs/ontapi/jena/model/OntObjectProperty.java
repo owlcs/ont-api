@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -43,7 +43,6 @@ public interface OntObjectProperty extends OntRealProperty {
      *
      * @return <b>distinct</b> {@code Stream} of object property expressions
      * @see #propertyChains()
-     * @since 1.4.0
      */
     @Override
     Stream<OntObjectProperty> superProperties(boolean direct);
@@ -56,7 +55,6 @@ public interface OntObjectProperty extends OntRealProperty {
      *
      * @return <b>distinct</b> {@code Stream} of object property expressions
      * @see #propertyChains()
-     * @since 1.4.0
      */
     @Override
     Stream<OntObjectProperty> subProperties(boolean direct);
@@ -67,7 +65,6 @@ public interface OntObjectProperty extends OntRealProperty {
      * on the predicate {@link OWL#propertyChainAxiom owl:propertyChainAxiom}.
      *
      * @return {@code Stream} of {@link OntList}s with generic-parameter {@code OntOPE}
-     * @since 1.3.0
      */
     Stream<OntList<OntObjectProperty>> propertyChains();
 
@@ -97,7 +94,6 @@ public interface OntObjectProperty extends OntRealProperty {
      * @see #addPropertyChain(Collection)
      * @see #propertyChains()
      * @see #findPropertyChain(RDFNode)
-     * @since 1.3.0
      */
     OntList<OntObjectProperty> createPropertyChain(Collection<OntObjectProperty> properties);
 
@@ -109,7 +105,6 @@ public interface OntObjectProperty extends OntRealProperty {
      * @throws OntJenaException if in the whole graph there is no property chain with the specified []-list
      * @see #clearPropertyChains()
      * @see #createPropertyChain(Collection)
-     * @since 1.3.0
      */
     OntObjectProperty removePropertyChain(Resource list) throws OntJenaException;
 
@@ -119,7 +114,6 @@ public interface OntObjectProperty extends OntRealProperty {
      * and {@code C} is one of the return class expressions.
      *
      * @return {@code Stream} of {@link OntClass}s
-     * @since 1.4.0
      */
     @Override
     default Stream<OntClass> ranges() {
@@ -134,7 +128,6 @@ public interface OntObjectProperty extends OntRealProperty {
      * @see OntProperty#removeSuperProperty(Resource)
      * @see OntProperty#superProperties(boolean)
      * @see #propertyChains()
-     * @since 1.4.0
      */
     @Override
     default Stream<OntObjectProperty> superProperties() {
@@ -147,7 +140,6 @@ public interface OntObjectProperty extends OntRealProperty {
      * @return {@code Stream} of {@link OntObjectProperty}s
      * @see OntDataProperty#disjointProperties()
      * @see OntDisjoint.ObjectProperties
-     * @since 1.4.0
      */
     @Override
     default Stream<OntObjectProperty> disjointProperties() {
@@ -160,7 +152,6 @@ public interface OntObjectProperty extends OntRealProperty {
      *
      * @return {@code Stream} of {@link OntObjectProperty}s.
      * @see OntDataProperty#equivalentProperties()
-     * @since 1.4.0
      */
     @Override
     default Stream<OntObjectProperty> equivalentProperties() {
@@ -173,7 +164,6 @@ public interface OntObjectProperty extends OntRealProperty {
      *
      * @return {@code Stream} of {@link OntObjectProperty}s (either {@link Inverse} or {@link Named})
      * @see Named#createInverse()
-     * @since 1.4.0
      */
     default Stream<OntObjectProperty> inverseProperties() {
         return objects(OWL.inverseOf, OntObjectProperty.class);
@@ -210,7 +200,6 @@ public interface OntObjectProperty extends OntRealProperty {
      * @param list {@link RDFNode}
      * @return {@code Optional} around the {@link OntList ontology []-list}
      * with {@link OntObjectProperty object property expression}s as items
-     * @since 1.3.0
      */
     default Optional<OntList<OntObjectProperty>> findPropertyChain(RDFNode list) {
         try (Stream<OntList<OntObjectProperty>> res = propertyChains().filter(r -> Objects.equals(r, list))) {
@@ -224,7 +213,6 @@ public interface OntObjectProperty extends OntRealProperty {
      * @return <b>this</b> instance to allow cascading calls
      * @see #removePropertyChain(Resource)
      * @see #createPropertyChain(Collection)
-     * @since 1.3.0
      */
     default OntObjectProperty clearPropertyChains() {
         propertyChains().collect(Collectors.toList()).forEach(this::removePropertyChain);
@@ -241,7 +229,6 @@ public interface OntObjectProperty extends OntRealProperty {
      * @return <b>distinct</b> {@code Stream} of all sub-{@link OntObjectProperty object properties},
      * possible empty in case of nil-list or if there is no property-chains at all
      * @see #propertyChains()
-     * @since 1.4.0
      */
     default Stream<OntObjectProperty> fromPropertyChain() {
         return propertyChains().flatMap(OntList::members).distinct();
@@ -257,7 +244,6 @@ public interface OntObjectProperty extends OntRealProperty {
      * @return {@link OntStatement} to provide the ability to add annotations subsequently
      * @see #createPropertyChain(Collection)
      * @see #addPropertyChainAxiomStatement(Collection)
-     * @since 1.4.0
      */
     default OntStatement addPropertyChainAxiomStatement(OntObjectProperty... properties) {
         return addPropertyChainAxiomStatement(Arrays.asList(properties));
@@ -272,7 +258,6 @@ public interface OntObjectProperty extends OntRealProperty {
      * @see #createPropertyChain(Collection)
      * @see #addPropertyChainAxiomStatement(OntObjectProperty...)
      * @see <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Translation_of_Annotations'>2.3.1 Axioms that Generate a Main Triple</a>
-     * @since 1.4.0
      */
     default OntStatement addPropertyChainAxiomStatement(Collection<OntObjectProperty> properties) {
         return createPropertyChain(properties).getMainStatement();
@@ -284,7 +269,6 @@ public interface OntObjectProperty extends OntRealProperty {
      *
      * @return {@link OntStatement} to allow the subsequent addition of annotations
      * @see #setInverseFunctional(boolean)
-     * @since 1.4.0
      */
     default OntStatement addInverseFunctionalDeclaration() {
         return addStatement(RDF.type, OWL.InverseFunctionalProperty);
@@ -296,7 +280,6 @@ public interface OntObjectProperty extends OntRealProperty {
      *
      * @return {@link OntStatement} to allow the subsequent addition of annotations
      * @see #setTransitive(boolean)
-     * @since 1.4.0
      */
     default OntStatement addTransitiveDeclaration() {
         return addStatement(RDF.type, OWL.TransitiveProperty);
@@ -308,7 +291,6 @@ public interface OntObjectProperty extends OntRealProperty {
      *
      * @return {@link OntStatement} to allow the subsequent addition of annotations
      * @see #setSymmetric(boolean)
-     * @since 1.4.0
      */
     default OntStatement addSymmetricDeclaration() {
         return addStatement(RDF.type, OWL.SymmetricProperty);
@@ -320,7 +302,6 @@ public interface OntObjectProperty extends OntRealProperty {
      *
      * @return {@link OntStatement} to allow the subsequent addition of annotations
      * @see #setAsymmetric(boolean)
-     * @since 1.4.0
      */
     default OntStatement addAsymmetricDeclaration() {
         return addStatement(RDF.type, OWL.AsymmetricProperty);
@@ -332,7 +313,6 @@ public interface OntObjectProperty extends OntRealProperty {
      *
      * @return {@link OntStatement} to allow the subsequent addition of annotations
      * @see #setReflexive(boolean)
-     * @since 1.4.0
      */
     default OntStatement addReflexiveDeclaration() {
         return addStatement(RDF.type, OWL.ReflexiveProperty);
@@ -344,7 +324,6 @@ public interface OntObjectProperty extends OntRealProperty {
      *
      * @return {@link OntStatement} to allow the subsequent addition of annotations
      * @see #setIrreflexive(boolean)
-     * @since 1.4.0
      */
     default OntStatement addIrreflexiveDeclaration() {
         return addStatement(RDF.type, OWL.IrreflexiveProperty);
@@ -379,7 +358,6 @@ public interface OntObjectProperty extends OntRealProperty {
      * @return {@link OntStatement} to allow subsequent annotations adding
      * @see #addInverseProperty(OntObjectProperty)
      * @see #inverseProperties()
-     * @since 1.4.0
      */
     default OntStatement addInverseOfStatement(OntObjectProperty other) {
         return addStatement(OWL.inverseOf, other);
@@ -394,7 +372,6 @@ public interface OntObjectProperty extends OntRealProperty {
      * @see #addEquivalentProperty(OntObjectProperty)
      * @see #removeEquivalentProperty(Resource)
      * @see OntDataProperty#addEquivalentPropertyStatement(OntDataProperty)
-     * @since 1.4.0
      */
     default OntStatement addEquivalentPropertyStatement(OntObjectProperty other) {
         return addStatement(OWL.equivalentProperty, other);
@@ -409,7 +386,6 @@ public interface OntObjectProperty extends OntRealProperty {
      * @see #removeDisjointProperty(Resource)
      * @see OntDataProperty#addPropertyDisjointWithStatement(OntDataProperty)
      * @see OntDisjoint.ObjectProperties
-     * @since 1.4.0
      */
     default OntStatement addPropertyDisjointWithStatement(OntObjectProperty other) {
         return addStatement(OWL.propertyDisjointWith, other);
@@ -421,7 +397,6 @@ public interface OntObjectProperty extends OntRealProperty {
      * @param property {@link OntDataProperty}, not {@code null}
      * @return <b>this</b> instance to allow cascading calls
      * @see OntProperty#removeSuperProperty(Resource)
-     * @since 1.4.0
      */
     default OntObjectProperty addSuperProperty(OntObjectProperty property) {
         addSubPropertyOfStatement(property);
@@ -479,7 +454,6 @@ public interface OntObjectProperty extends OntRealProperty {
      * @see OntDataProperty#addDisjointProperty(OntDataProperty)
      * @see OntRealProperty#removeDisjointProperty(Resource)
      * @see OntDisjoint.ObjectProperties
-     * @since 1.4.0
      */
     default OntObjectProperty addDisjointProperty(OntObjectProperty other) {
         addPropertyDisjointWithStatement(other);
@@ -493,7 +467,6 @@ public interface OntObjectProperty extends OntRealProperty {
      * @return <b>this</b> instance to allow cascading calls
      * @see #addInverseOfStatement(OntObjectProperty)
      * @see #removeInverseProperty(Resource)
-     * @since 1.4.0
      */
     default OntObjectProperty addInverseProperty(OntObjectProperty other) {
         addInverseOfStatement(other);
@@ -508,7 +481,6 @@ public interface OntObjectProperty extends OntRealProperty {
      * @return <b>this</b> instance to allow cascading calls
      * @see #addPropertyChainAxiomStatement(Collection)
      * @see #addPropertyChain(Collection)
-     * @since 1.4.0
      */
     default OntObjectProperty addPropertyChain(OntObjectProperty... properties) {
         return addPropertyChain(Arrays.asList(properties));
@@ -522,7 +494,6 @@ public interface OntObjectProperty extends OntRealProperty {
      * @return <b>this</b> instance to allow cascading calls
      * @see #addPropertyChainAxiomStatement(Collection)
      * @see #addPropertyChain(OntObjectProperty...)
-     * @since 1.4.0
      */
     default OntObjectProperty addPropertyChain(Collection<OntObjectProperty> properties) {
         createPropertyChain(properties);
@@ -583,7 +554,6 @@ public interface OntObjectProperty extends OntRealProperty {
      * @param other {@link OntObjectProperty} or {@code null}  to remove all {@code owl:inverseOf} statements
      * @return <b>this</b> instance to allow cascading calls
      * @see #addInverseProperty(OntObjectProperty)
-     * @since 1.4.0
      */
     default OntObjectProperty removeInverseProperty(Resource other) {
         remove(OWL.inverseOf, other);
@@ -722,7 +692,6 @@ public interface OntObjectProperty extends OntRealProperty {
      * @return {@code Optional} of {@link OntObjectProperty}
      * @see #inverseProperties()
      * @see Inverse#getDirect()
-     * @since 1.4.0
      */
     default Optional<OntObjectProperty> findInverseProperty() {
         try (Stream<OntObjectProperty> res = inverseProperties()) {

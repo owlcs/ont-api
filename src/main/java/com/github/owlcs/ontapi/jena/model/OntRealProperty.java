@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -26,8 +26,6 @@ import java.util.stream.Stream;
  * In OWL2 terms it is any {@link OntProperty Property Expression} minus {@link OntAnnotationProperty Annotation Property}.
  * <p>
  * Created by @szuev on 21.07.2018.
- *
- * @since 1.3.0
  */
 public interface OntRealProperty extends OntProperty {
 
@@ -50,7 +48,6 @@ public interface OntRealProperty extends OntProperty {
      * i.e. all objects from statements with this property as subject and {@code rdfs:range} as predicate.
      *
      * @return {@code Stream} of {@link OntObject ontology object}s
-     * @since 1.4.0
      */
     Stream<? extends OntObject> ranges();
 
@@ -60,7 +57,6 @@ public interface OntRealProperty extends OntProperty {
      * where {@code P} is this property.
      *
      * @return {@code Stream} of {@link OntRealProperty}s - object <b>or</b> data properties
-     * @since 1.4.0
      */
     Stream<? extends OntRealProperty> superProperties();
 
@@ -71,7 +67,6 @@ public interface OntRealProperty extends OntProperty {
      *
      * @return {@code Stream} of {@link OntRealProperty}s - object <b>or</b> data properties
      * @see OntDisjoint.Properties
-     * @since 1.4.0
      */
     Stream<? extends OntRealProperty> disjointProperties();
 
@@ -81,7 +76,6 @@ public interface OntRealProperty extends OntProperty {
      * where {@code P} is this property and {@code R} is a returned property of the same type.
      *
      * @return {@code Stream} of {@link OntRealProperty}s - object <b>or</b> data properties
-     * @since 1.4.0
      */
     Stream<? extends OntRealProperty> equivalentProperties();
 
@@ -145,7 +139,6 @@ public interface OntRealProperty extends OntProperty {
      *
      * @param property {@link Resource} or {@code null} to remove all equivalent properties
      * @return <b>this</b> instance to allow cascading calls
-     * @since 1.4.0
      */
     OntRealProperty removeEquivalentProperty(Resource property);
 
@@ -160,7 +153,6 @@ public interface OntRealProperty extends OntProperty {
      * @param property {@link Resource} or {@code null} to remove all disjoint properties
      * @return <b>this</b> instance to allow cascading calls
      * @see OntDisjoint.Properties
-     * @since 1.4.0
      */
     OntRealProperty removeDisjointProperty(Resource property);
 
@@ -170,7 +162,6 @@ public interface OntRealProperty extends OntProperty {
      * where {@code P} is this property expression.
      *
      * @return {@code Stream} of {@link OntClass class expression}s
-     * @since 1.4.0
      */
     @Override
     default Stream<OntClass> domains() {
@@ -183,7 +174,6 @@ public interface OntRealProperty extends OntProperty {
      *
      * @return {@link OntStatement} to allow the subsequent addition of annotations
      * @see #setFunctional(boolean)
-     * @since 1.4.0
      */
     default OntStatement addFunctionalDeclaration() {
         return addStatement(RDF.type, OWL.FunctionalProperty);
@@ -196,7 +186,6 @@ public interface OntRealProperty extends OntProperty {
      * @param ce {@link OntClass class expression}, not null
      * @return {@link OntStatement} to allow the subsequent addition of annotations
      * @see #addDomain(OntClass)
-     * @since 1.4.0
      */
     default OntStatement addDomainStatement(OntClass ce) {
         return addStatement(RDFS.domain, ce);

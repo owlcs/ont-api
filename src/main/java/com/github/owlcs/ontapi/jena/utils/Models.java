@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -97,11 +97,10 @@ public class Models {
     }
 
     /**
-     * Answers {@code true} if the given statement belongs to some []-list.
+     * Answers {@code true} iff the given statement belongs to some []-list.
      *
-     * @param s {@link Statement}, not null
+     * @param s {@link Statement}, not {@code null}
      * @return boolean
-     * @since 1.3.0
      */
     public static boolean isInList(Statement s) {
         return RDF.first.equals(s.getPredicate()) || RDF.rest.equals(s.getPredicate()) || RDF.nil.equals(s.getObject());
@@ -111,8 +110,7 @@ public class Models {
      * Answers a set of all of the RDF statements whose subject is one of the cells of the given list.
      *
      * @param list []-list, not {@code null}
-     * @return Set of {@link Statement}s
-     * @since 1.4.0
+     * @return a {@code Set} of {@link Statement}s
      */
     public static Set<Statement> getListStatements(RDFList list) {
         return ((RDFListImpl) list).collectStatements();
@@ -123,7 +121,7 @@ public class Models {
      *
      * @param mapping  {@link PrefixMapping Prefix Mapping} to modify
      * @param prefixes java Map of new prefixes to set
-     * @return java Map of previously associated prefixes
+     * @return a {@code Map} of previously associated prefixes
      */
     public static Map<String, String> setNsPrefixes(PrefixMapping mapping, Map<String, String> prefixes) {
         Map<String, String> init = mapping.getNsPrefixMap();
@@ -140,7 +138,6 @@ public class Models {
      * @param predicate {@link Property}, can be {@code null}
      * @param lang      String lang, maybe {@code null} or empty
      * @return {@code Stream} of {@code String}s
-     * @since 1.3.0
      */
     public static Stream<String> langValues(Resource subject, Property predicate, String lang) {
         return Iter.asStream(subject.listProperties(predicate)
@@ -162,7 +159,6 @@ public class Models {
      * @param literal {@link Literal}, not {@code null}
      * @param tag     String, possible {@code null}
      * @return {@code true} if the given literal has the given tag
-     * @since 1.4.1
      */
     public static boolean filterByLangTag(Literal literal, String tag) {
         String other = literal.getLanguage();
@@ -175,7 +171,6 @@ public class Models {
      * Recursively deletes all resource children.
      *
      * @param inModel Resource from a model
-     * @since 1.3.0
      */
     public static void deleteAll(Resource inModel) {
         deleteAll(inModel, new HashSet<>());
@@ -313,10 +308,9 @@ public class Models {
     /**
      * Returns a string representation of the given Jena statement taking into account PrefixMapping.
      *
-     * @param st {@link Statement}, not null
-     * @param pm {@link PrefixMapping}, not null
-     * @return String
-     * @since 1.3.0
+     * @param st {@link Statement}, not {@code null}
+     * @param pm {@link PrefixMapping}, not {@code null}
+     * @return {@code String}
      */
     public static String toString(Statement st, PrefixMapping pm) {
         return String.format("[%s, %s, %s]",
@@ -328,9 +322,8 @@ public class Models {
     /**
      * Returns a string representation of the given Jena statement.
      *
-     * @param inModel {@link Statement}, not null
+     * @param inModel {@link Statement}, not {@code null}
      * @return {@code String}
-     * @since 1.3.0
      */
     public static String toString(Statement inModel) {
         return toString(inModel, inModel.getModel());

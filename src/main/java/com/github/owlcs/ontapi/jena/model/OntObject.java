@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -159,7 +159,6 @@ public interface OntObject extends OntResource {
      *
      * @param predicate {@link Property} predicate, can be {@code null} for wildcard searching
      * @return {@code Stream} of {@link RDFNode RDF Node}s
-     * @since 1.4.2
      */
     Stream<RDFNode> objects(Property predicate);
 
@@ -202,7 +201,6 @@ public interface OntObject extends OntResource {
      *                  or {@code null} to select all literals
      * @return {@code Stream} of String's, i.e. literal lexical forms
      * @see #annotationValues(OntAnnotationProperty)
-     * @since 1.3.2
      */
     Stream<String> annotationValues(OntAnnotationProperty predicate, String lang);
 
@@ -261,7 +259,6 @@ public interface OntObject extends OntResource {
      * @param predicate {@link OntAnnotationProperty}, not {@code null}
      * @return {@code Stream} of {@link RDFNode}s
      * @see #annotations()
-     * @since 1.3.2
      */
     default Stream<RDFNode> annotationValues(OntAnnotationProperty predicate) {
         return annotations()
@@ -299,7 +296,6 @@ public interface OntObject extends OntResource {
      * @param value     {@link RDFNode} - the value: uri-resource, literal or anonymous individual, not {@code null}
      * @return this object to allow cascading calls
      * @see OntObject#addAnnotation(OntAnnotationProperty, RDFNode)
-     * @since 1.4.2
      */
     default OntObject annotate(OntAnnotationProperty predicate, RDFNode value) {
         addAnnotation(predicate, value);
@@ -313,7 +309,6 @@ public interface OntObject extends OntResource {
      * @param txt       String, the literal lexical form, cannot be {@code null}
      * @param lang      String, the language tag, can be {@code null}
      * @return this object to allow cascading calls
-     * @since 1.4.2
      */
     default OntObject annotate(OntAnnotationProperty predicate, String txt, String lang) {
         return annotate(predicate, getModel().createLiteral(txt, lang));

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -43,7 +43,6 @@ public interface OntDataRange extends OntObject {
      * So n-ary data ranges are not supported and, therefore, the method always returns {@code 1}.
      *
      * @return int, positive number
-     * @since 1.4.0
      */
     default int arity() {
         return 1;
@@ -101,7 +100,6 @@ public interface OntDataRange extends OntObject {
          * @param type    subclass of {@link OntFacetRestriction}, not {@code null}
          * @param literal value, not {@code null}
          * @return <b>this</b> instance to allow cascading calls
-         * @since 1.4.0
          */
         default Restriction addFacet(Class<? extends OntFacetRestriction> type, Literal literal) {
             getList().add(getModel().createFacetRestriction(type, literal));
@@ -134,7 +132,6 @@ public interface OntDataRange extends OntObject {
          *
          * @return {@code Stream} of {@link OntDataRange}s
          * @see OntClass#equivalentClasses()
-         * @since 1.4.2
          */
         default Stream<OntDataRange> equivalentClasses() {
             return objects(OWL.equivalentClass, OntDataRange.class);
@@ -148,7 +145,6 @@ public interface OntDataRange extends OntObject {
          * @see #addEquivalentClass(OntDataRange)
          * @see #removeEquivalentClass(Resource)
          * @see OntClass#addEquivalentClassStatement(OntClass)
-         * @since 1.4.0
          */
         default OntStatement addEquivalentClassStatement(OntDataRange other) {
             return addStatement(OWL.equivalentClass, other);
@@ -202,7 +198,6 @@ public interface OntDataRange extends OntObject {
          *
          * @param obj anything, not {@code null}
          * @return {@link Literal}
-         * @since 1.4.1
          */
         default Literal createLiteral(Object obj) {
             return createLiteral(String.valueOf(Objects.requireNonNull(obj)));

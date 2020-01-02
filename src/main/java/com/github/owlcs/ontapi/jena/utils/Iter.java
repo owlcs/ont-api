@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -76,7 +76,6 @@ public class Iter {
      * @param characteristics {@code int}, characteristics of the {@code Spliterator}'s source
      * @param <X>             the type of iterator-items
      * @return a non-parallel {@code Stream}, that wraps the {@code iterator} with the given characteristics
-     * @since 1.4.2
      */
     public static <X> Stream<X> asStream(Iterator<? extends X> iterator, int characteristics) {
         return asStream(iterator, -1, characteristics);
@@ -94,7 +93,6 @@ public class Iter {
      * @param characteristics {@code int}, characteristics of the {@code Spliterator}'s source
      * @param <X>             the type of iterator-items
      * @return a non-parallel {@code Stream}, that wraps the {@code iterator} with the given parameters
-     * @since 1.4.2
      */
     public static <X> Stream<X> asStream(Iterator<? extends X> iterator, long size, int characteristics) {
         Stream<X> res = StreamSupport.stream(asSpliterator(iterator, size, characteristics), false);
@@ -112,7 +110,6 @@ public class Iter {
      * @param <X>             the type of iterator-items
      * @return {@link Spliterator}
      * @throws NullPointerException if the given iterator is {@code null}
-     * @since 1.4.2
      */
     @SuppressWarnings("WeakerAccess")
     public static <X> Spliterator<X> asSpliterator(Iterator<? extends X> iterator, long size, int characteristics) {
@@ -130,7 +127,6 @@ public class Iter {
      * @param <X>      the type of items
      * @return <b>distinct</b> sequential {@code Stream}
      * @see Iter#create(Supplier)
-     * @since 1.4.2
      */
     public static <X> Stream<X> fromSet(Supplier<Set<X>> getAsSet) {
         int chs = Spliterator.NONNULL | Spliterator.DISTINCT | Spliterator.IMMUTABLE;
@@ -229,7 +225,6 @@ public class Iter {
      * @param <X>       the type of iterator elements
      * @return all input elements as a single {@link ExtendedIterator} of type {@link X}
      * @see Iter#concat(ExtendedIterator, ExtendedIterator)
-     * @since 1.4.0
      */
     @SafeVarargs
     public static <X> ExtendedIterator<X> concat(ExtendedIterator<? extends X>... iterators) {
@@ -321,7 +316,6 @@ public class Iter {
      * or the iterator is empty, otherwise {@code false}
      * @see Iter#anyMatch(Iterator, Predicate)
      * @see Iter#noneMatch(Iterator, Predicate)
-     * @since 1.4.2
      */
     public static <X> boolean allMatch(Iterator<X> iterator, Predicate<? super X> predicate) {
         if (iterator instanceof NullIterator) return true;
@@ -346,7 +340,6 @@ public class Iter {
      * or the iterator is empty, otherwise {@code false}
      * @see Iter#anyMatch(Iterator, Predicate)
      * @see Iter#allMatch(Iterator, Predicate)
-     * @since 1.4.2
      */
     public static <X> boolean noneMatch(Iterator<X> iterator, Predicate<? super X> predicate) {
         return allMatch(iterator, predicate.negate());
@@ -379,7 +372,6 @@ public class Iter {
      *
      * @param iterator {@link Iterator}, not {@code null}
      * @return long, the count of elements in the given {@code iterator}
-     * @since 1.4.2
      */
     public static long count(Iterator<?> iterator) {
         long res = 0;
@@ -400,7 +392,6 @@ public class Iter {
      * @param iterator   the {@code Iterator} with elements of type {@link X}
      * @param collection the collection of type {@link C}
      * @return {@link C}, the same instance as specified
-     * @since 2.0.0
      */
     public static <X, C extends Collection<X>> C addAll(Iterator<? extends X> iterator, C collection) {
         iterator.forEachRemaining(collection::add);
@@ -427,7 +418,6 @@ public class Iter {
      * and whose values are the result of applying a value mapping function to all input elements
      * equal to the key and combining them using the merge function
      * @see Collectors#toMap(Function, Function, BinaryOperator, Supplier)
-     * @since 1.4.0
      */
     public static <X, K, V, M extends Map<K, V>> M toMap(Iterator<X> iterator,
                                                          Function<? super X, ? extends K> keyMapper,
@@ -448,7 +438,6 @@ public class Iter {
      * Closes iterator if it is {@link ClosableIterator CloseableIterator}.
      *
      * @param iterator {@link Iterator}
-     * @since 1.4.2
      */
     public static void close(Iterator<?> iterator) {
         if (iterator instanceof ClosableIterator) {
@@ -473,7 +462,6 @@ public class Iter {
      *
      * @param <X> the element type of the new iterator
      * @return a fresh {@link ExtendedIterator} instance
-     * @since 2.0.0
      */
     public static <X> ExtendedIterator<X> of() {
         return NullIterator.instance();
@@ -485,7 +473,6 @@ public class Iter {
      * @param item - an object of type {@link X}
      * @param <X>  the element type of the new iterator
      * @return a fresh {@link ExtendedIterator} instance
-     * @since 2.0.0
      */
     public static <X> ExtendedIterator<X> of(X item) {
         return new SingletonIterator<>(item);
@@ -510,7 +497,6 @@ public class Iter {
      * @param iterator {@link Iterator}, not {@code null}
      * @param <X>      the element type of the iterator
      * @return {@link ExtendedIterator} instance
-     * @since 1.4.2
      */
     @SuppressWarnings("unchecked")
     public static <X> ExtendedIterator<X> create(Iterator<? extends X> iterator) {
@@ -537,7 +523,6 @@ public class Iter {
      * @param provider {@link Supplier} deriving nonnull {@link Iterator}, cannot be {@code null}
      * @param <X>      the element type of the new iterator
      * @return a fresh {@link ExtendedIterator} instance wrapping a feature iterator
-     * @since 1.4.2
      */
     public static <X> ExtendedIterator<X> create(Supplier<Iterator<? extends X>> provider) {
         Objects.requireNonNull(provider);

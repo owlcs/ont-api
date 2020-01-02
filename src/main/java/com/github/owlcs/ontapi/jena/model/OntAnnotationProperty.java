@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -36,7 +36,6 @@ public interface OntAnnotationProperty extends OntProperty, OntNamedProperty<Ont
      * {@inheritDoc}
      *
      * @return <b>distinct</b> {@code Stream} of annotation properties
-     * @since 1.4.0
      */
     Stream<OntAnnotationProperty> superProperties(boolean direct);
 
@@ -44,7 +43,6 @@ public interface OntAnnotationProperty extends OntProperty, OntNamedProperty<Ont
      * {@inheritDoc}
      *
      * @return <b>distinct</b> {@code Stream} of annotation properties
-     * @since 1.4.0
      */
     Stream<OntAnnotationProperty> subProperties(boolean direct);
 
@@ -52,7 +50,6 @@ public interface OntAnnotationProperty extends OntProperty, OntNamedProperty<Ont
      * Lists all valid annotation property domains in the form of java {@code Stream}.
      *
      * @return {@code Stream} of uri-{@link Resource}s
-     * @since 1.4.0
      */
     @Override
     Stream<Resource> domains();
@@ -61,7 +58,6 @@ public interface OntAnnotationProperty extends OntProperty, OntNamedProperty<Ont
      * Lists all valid annotation property ranges.
      *
      * @return {@code Stream} of uri-{@link Resource}s
-     * @since 1.4.0
      */
     @Override
     Stream<Resource> ranges();
@@ -77,7 +73,6 @@ public interface OntAnnotationProperty extends OntProperty, OntNamedProperty<Ont
      * @see #removeDomain(Resource)
      * @see #addDomain(Resource)
      * @see #addRangeStatement(Resource)
-     * @since 1.4.0
      */
     OntStatement addDomainStatement(Resource domain);
 
@@ -91,7 +86,6 @@ public interface OntAnnotationProperty extends OntProperty, OntNamedProperty<Ont
      * @see #removeRange(Resource)
      * @see #addRange(Resource)
      * @see #addDomainStatement(Resource)
-     * @since 1.4.0
      */
     OntStatement addRangeStatement(Resource range);
 
@@ -157,7 +151,6 @@ public interface OntAnnotationProperty extends OntProperty, OntNamedProperty<Ont
      * @param property {@link OntAnnotationProperty}, not {@code null}
      * @return <b>this</b> instance to allow cascading calls
      * @see #removeSuperProperty(Resource)
-     * @since 1.4.0
      */
     default OntAnnotationProperty addSuperProperty(OntAnnotationProperty property) {
         addSubPropertyOfStatement(property);
@@ -179,7 +172,6 @@ public interface OntAnnotationProperty extends OntProperty, OntNamedProperty<Ont
      *
      * @param property {@link OntAnnotationProperty}, not {@code null}
      * @return {@link OntStatement} to allow subsequent annotations adding
-     * @since 1.4.0
      */
     default OntStatement addSubPropertyOfStatement(OntAnnotationProperty property) {
         return addStatement(RDFS.subPropertyOf, property);

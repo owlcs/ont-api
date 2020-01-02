@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -132,7 +132,6 @@ public class Graphs {
      *                            and has a recursion in its hierarchy
      * @see UnionGraph#listBaseGraphs()
      * @see OntModels#importsClosure(OntModel)
-     * @since 1.4.2
      */
     public static Stream<Graph> baseGraphs(Graph graph) {
         if (graph == null) return Stream.empty();
@@ -162,7 +161,6 @@ public class Graphs {
      * @return boolean if {@code graph} is distinct
      * @see Spliterator#DISTINCT
      * @see UnionGraph#isDistinct()
-     * @since 1.4.2
      */
     public static boolean isDistinct(Graph graph) {
         if (graph instanceof GraphMem) {
@@ -185,7 +183,6 @@ public class Graphs {
      * @return boolean if {@code graph} is sized
      * @see Spliterator#SIZED
      * @see Graphs#size(Graph)
-     * @since 1.4.2
      */
     public static boolean isSized(Graph graph) {
         if (graph instanceof GraphMem) {
@@ -204,7 +201,6 @@ public class Graphs {
      * @param graph {@link Graph}, not {@code null}
      * @return long
      * @see Graphs#isSized(Graph)
-     * @since 1.4.2
      */
     public static long size(Graph graph) {
         if (graph instanceof GraphMem) {
@@ -230,7 +226,6 @@ public class Graphs {
      * @param g {@link Graph}
      * @return {@link UnionGraph}
      * @throws StackOverflowError in case there is a loop in imports (i.e. a recursion in the hierarchy)
-     * @since 1.0.1
      */
     public static UnionGraph toUnion(Graph g) {
         if (g instanceof UnionGraph) return (UnionGraph) g;
@@ -242,19 +237,18 @@ public class Graphs {
      * Builds an union-graph using the specified components.
      * Note: this is a recursive method.
      *
-     * @param graph     {@link Graph} the base graph (root)
-     * @param dependent a {@code Collection} of dependent {@link Graph graph}x to search in
+     * @param graph      {@link Graph} the base graph (root)
+     * @param repository a {@code Collection} of {@link Graph graph}s to search in for missed dependencies
      * @return {@link UnionGraph}
-     * @since 1.0.1
      */
-    public static UnionGraph toUnion(Graph graph, Collection<Graph> dependent) {
+    public static UnionGraph toUnion(Graph graph, Collection<Graph> repository) {
         Graph base = getBase(graph);
         Set<String> imports = getImports(base);
         UnionGraph res = new UnionGraph(base);
-        dependent.stream()
+        repository.stream()
                 .filter(x -> !isSameBase(base, x))
                 .filter(g -> imports.contains(getURI(g)))
-                .forEach(g -> res.addGraph(toUnion(g, dependent)));
+                .forEach(g -> res.addGraph(toUnion(g, repository)));
         return res;
     }
 
@@ -265,7 +259,6 @@ public class Graphs {
      * @param base  {@link Graph} new base, not {@code null}
      * @param union {@link UnionGraph} to inherit settings and hierarchy, not {@code null}
      * @return {@link UnionGraph}
-     * @since 1.4.0
      */
     public static UnionGraph withBase(Graph base, UnionGraph union) {
         return new UnionGraph(base, union.getUnderlying(), union.getEventManager(), union.isDistinct());
@@ -358,7 +351,6 @@ public class Graphs {
      * @param graph {@link Graph}, not {@code null}
      * @return {@link ExtendedIterator} of {@code String}-URIs
      * @see Graphs#getURI(Graph)
-     * @since 1.4.2
      */
     public static ExtendedIterator<String> listImports(Graph graph) {
         return graph.find(Node.ANY, OWL.imports.asNode(), Node.ANY).mapWith(t -> {
@@ -509,7 +501,6 @@ public class Graphs {
      * @param left  {@link Graph}
      * @param right {@link Graph}
      * @return {@code true} if the left argument graph is dependent on the right
-     * @since 1.4.0
      */
     public static boolean dependsOn(Graph left, Graph right) {
         return left == right || (left != null && left.dependsOn(right));
@@ -534,7 +525,6 @@ public class Graphs {
      * @throws OutOfMemoryError while iterating in case the graph is too large
      *                          so that all its subjects can be placed in memory as a {@code Set}
      * @see GraphUtil#listSubjects(Graph, Node, Node)
-     * @since 1.4.2
      */
     public static ExtendedIterator<Node> listSubjects(Graph g) {
         return Iter.create(() -> Collections.unmodifiableSet(g.find().mapWith(Triple::getSubject).toSet()).iterator());
@@ -549,7 +539,6 @@ public class Graphs {
      * @throws OutOfMemoryError while iterating in case the graph is too large
      *                          so that all its subjects and objects can be placed in memory as a {@code Set}
      * @see GraphUtils#allNodes(Graph)
-     * @since 1.4.2
      */
     public static ExtendedIterator<Node> listSubjectsAndObjects(Graph g) {
         return Iter.create(() -> Collections.unmodifiableSet(Iter.flatMap(g.find(),
@@ -563,7 +552,6 @@ public class Graphs {
      * @param g {@link Graph}, not {@code null}
      * @return an {@link ExtendedIterator ExtendedIterator} (<b>distinct</b>) of all nodes in the graph
      * @throws OutOfMemoryError while iterating in case the graph is too large to be placed in memory as a {@code Set}
-     * @since 1.4.2
      */
     public static ExtendedIterator<Node> listAllNodes(Graph g) {
         return Iter.create(() -> Collections.unmodifiableSet(Iter.flatMap(g.find(),

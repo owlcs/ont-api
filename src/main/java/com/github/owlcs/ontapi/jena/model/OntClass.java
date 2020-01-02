@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -62,7 +62,6 @@ public interface OntClass extends OntObject {
      * @return <b>distinct</b> {@code Stream} of super {@link OntClass class expression}s
      * @see #superClasses()
      * @see #subClasses(boolean)
-     * @since 1.4.0
      */
     Stream<OntClass> superClasses(boolean direct);
 
@@ -84,7 +83,6 @@ public interface OntClass extends OntObject {
      *               otherwise answers all sub-classes found in the {@code Graph} recursively
      * @return <b>distinct</b> {@code Stream} of sub {@link OntClass class expression}s
      * @see #superClasses(boolean)
-     * @since 1.4.0
      */
     Stream<OntClass> subClasses(boolean direct);
 
@@ -93,7 +91,6 @@ public interface OntClass extends OntObject {
      * that are attached to this class expression on predicate {@link OWL#hasKey owl:hasKey}.
      *
      * @return {@code Stream} of {@link OntList}s with parameter-type {@code OntDOP}
-     * @since 1.4.0
      */
     Stream<OntList<OntRealProperty>> hasKeys();
 
@@ -130,7 +127,6 @@ public interface OntClass extends OntObject {
      * @param dataProperties   {@link Collection} (preferably {@link Set})of {@link OntDataProperty data property expression}s
      * @return {@link OntList} of {@link OntRealProperty}s
      * @see #addHasKey(Collection, Collection)
-     * @since 1.3.0
      */
     OntList<OntRealProperty> createHasKey(Collection<OntObjectProperty> objectProperties, Collection<OntDataProperty> dataProperties);
 
@@ -147,7 +143,6 @@ public interface OntClass extends OntObject {
      * @see #addHasKey(OntRealProperty...)
      * @see #removeHasKey(Resource)
      * @see #clearHasKeys()
-     * @since 1.4.0
      */
     OntStatement addHasKeyStatement(OntRealProperty... properties);
 
@@ -157,7 +152,6 @@ public interface OntClass extends OntObject {
      * @param list {@link Resource} can be {@link OntList} or {@link RDFList}
      * @return <b>this</b> instance to allow cascading calls
      * @throws OntJenaException if the list is not found
-     * @since 1.3.0
      */
     OntClass removeHasKey(Resource list);
 
@@ -197,7 +191,6 @@ public interface OntClass extends OntObject {
      *
      * @return {@code Stream} of {@link OntClass}s
      * @see #superClasses(boolean)
-     * @since 1.4.0
      */
     default Stream<OntClass> superClasses() {
         return objects(RDFS.subClassOf, OntClass.class);
@@ -220,7 +213,6 @@ public interface OntClass extends OntObject {
      *
      * @return {@code Stream} of {@link OntClass}s
      * @see OntDataRange.Named#equivalentClasses()
-     * @since 1.4.0
      */
     default Stream<OntClass> equivalentClasses() {
         return objects(OWL.equivalentClass, OntClass.class);
@@ -234,7 +226,6 @@ public interface OntClass extends OntObject {
      * @return {@link OntStatement} to allow the subsequent annotations addition
      * @see #addSuperClass(OntClass)
      * @see #removeSuperClass(Resource)
-     * @since 1.4.0
      */
     default OntStatement addSubClassOfStatement(OntClass other) {
         return addStatement(RDFS.subClassOf, other);
@@ -263,7 +254,6 @@ public interface OntClass extends OntObject {
      * @see #addEquivalentClass(OntClass)
      * @see #removeEquivalentClass(Resource)
      * @see OntDataRange.Named#addEquivalentClassStatement(OntDataRange)
-     * @since 1.4.0
      */
     default OntStatement addEquivalentClassStatement(OntClass other) {
         return addStatement(OWL.equivalentClass, other);
@@ -278,7 +268,6 @@ public interface OntClass extends OntObject {
      * @see #addHasKeyStatement(OntRealProperty...)
      * @see #addHasKey(OntRealProperty...)
      * @see <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Translation_of_Annotations'>2.3.1 Axioms that Generate a Main Triple</a>
-     * @since 1.4.0
      */
     default OntStatement addHasKeyStatement(Collection<OntObjectProperty> objectProperties, Collection<OntDataProperty> dataProperties) {
         return createHasKey(objectProperties, dataProperties).getMainStatement();
@@ -292,7 +281,6 @@ public interface OntClass extends OntObject {
      * @return <b>this</b> instance to allow cascading calls
      * @see #addSubClassOfStatement(OntClass)
      * @see #removeSuperClass(Resource)
-     * @since 1.4.0
      */
     default OntClass addSuperClass(OntClass other) {
         addSubClassOfStatement(other);
@@ -307,7 +295,6 @@ public interface OntClass extends OntObject {
      * @return <b>this</b> instance to allow cascading calls
      * @see #addDisjointWithStatement(OntClass)
      * @see #removeDisjointClass(Resource)
-     * @since 1.4.0
      */
     default OntClass addDisjointClass(OntClass other) {
         addDisjointWithStatement(other);
@@ -350,7 +337,6 @@ public interface OntClass extends OntObject {
      * @see #addHasKey(Collection, Collection)
      * @see #removeHasKey(Resource)
      * @see #clearHasKeys()
-     * @since 1.3.0
      */
     default OntClass addHasKey(OntRealProperty... properties) {
         addHasKeyStatement(properties);
@@ -367,7 +353,6 @@ public interface OntClass extends OntObject {
      * @return <b>this</b> instance to allow cascading calls
      * @see #addSubClassOfStatement(OntClass)
      * @see #addSuperClass(OntClass)
-     * @since 1.4.0
      */
     default OntClass removeSuperClass(Resource other) {
         remove(RDFS.subClassOf, other);
@@ -385,7 +370,6 @@ public interface OntClass extends OntObject {
      * @see #addDisjointWithStatement(OntClass)
      * @see #addDisjointClass(OntClass)
      * @see OntDisjoint.Classes
-     * @since 1.4.0
      */
     default OntClass removeDisjointClass(Resource other) {
         remove(OWL.disjointWith, other);
@@ -415,7 +399,6 @@ public interface OntClass extends OntObject {
      *
      * @return <b>this</b> instance to allow cascading calls
      * @throws OntJenaException if the list is not found
-     * @since 1.3.0
      */
     default OntClass clearHasKeys() {
         hasKeys().collect(Collectors.toList()).forEach(this::removeHasKey);
@@ -428,7 +411,6 @@ public interface OntClass extends OntObject {
      *
      * @param list {@link RDFNode}
      * @return {@code Optional} around {@link OntList} of {@link OntRealProperty data and object property expression}s
-     * @since 1.3.0
      */
     default Optional<OntList<OntRealProperty>> findHasKey(RDFNode list) {
         try (Stream<OntList<OntRealProperty>> res = hasKeys().filter(r -> Objects.equals(r, list))) {
@@ -447,7 +429,6 @@ public interface OntClass extends OntObject {
      *
      * @return <b>distinct</b> {@code Stream} of {@link OntObjectProperty object} and {@link OntDataProperty data} properties
      * @see #hasKeys()
-     * @since 1.4.0
      */
     default Stream<OntRealProperty> fromHasKey() {
         return hasKeys().flatMap(OntList::members).distinct();
@@ -599,70 +580,6 @@ public interface OntClass extends OntObject {
             SetValue<OntDataRange, NaryDataSomeValuesFrom>, SetProperties<OntDataProperty, NaryDataSomeValuesFrom> {
     }
 
-    /*
-     * ===========================
-     * Abstract class expressions:
-     * ===========================
-     */
-
-    /**
-     * An abstraction for Boolean Connectives (with exclude of {@link ComplementOf}) and Enumeration of Individuals.
-     *
-     * @param <O> a component type
-     */
-    interface ComponentsCE<O extends OntObject> extends OntClass, HasRDFNodeList<O> {
-    }
-
-    /**
-     * An abstraction for Cardinality Restrictions.
-     *
-     * @param <O> a value type
-     * @param <P> any subtype of {@link OntRealProperty}
-     */
-    interface CardinalityRestrictionCE<O extends OntObject, P extends OntRealProperty>
-            extends HasCardinality, ComponentRestrictionCE<O, P> {
-    }
-
-    /**
-     * An abstract class expression (Restriction) that has component (i.e. 'filler' in OWL-API terms):
-     * all Cardinality Restrictions, Existential/Universal Restrictions, Individual/Literal Value Restrictions.
-     *
-     * @param <O> a value type
-     * @param <P> any subtype of {@link OntRealProperty}
-     */
-    interface ComponentRestrictionCE<O extends RDFNode, P extends OntRealProperty>
-            extends UnaryRestrictionCE<P>, HasValue<O> {
-    }
-
-    /**
-     * An abstraction that unites all {@link RestrictionCE Restriction}s
-     * with the predicate {@link OWL#onProperties owl:onProperties}.
-     *
-     * @param <O> a value type
-     * @param <P> any subtype of {@link OntRealProperty}
-     */
-    interface NaryRestrictionCE<O extends OntObject, P extends OntRealProperty>
-            extends RestrictionCE<P>, HasProperties<P>, HasValue<O> {
-    }
-
-    /**
-     * An abstract class expression that unites all {@link RestrictionCE Restriction}s
-     * with the predicate {@link OWL#onProperty owl:onProperty}.
-     *
-     * @param <P> any subtype of {@link OntRealProperty}
-     * @since 1.4.0
-     */
-    interface UnaryRestrictionCE<P extends OntRealProperty> extends RestrictionCE<P> {
-    }
-
-    /**
-     * An abstract class expression that unites all class expressions with the type {@link OWL#Restriction}.
-     *
-     * @param <P> any subtype of {@link OntRealProperty}
-     */
-    interface RestrictionCE<P extends OntRealProperty> extends OntClass, HasProperty<P> {
-    }
-
     /**
      * An OWL Class {@link OntEntity Entity}, a named class expression.
      * This is an analogue of {@link org.apache.jena.ontology.OntClass}, but for OWL2.
@@ -678,7 +595,6 @@ public interface OntClass extends OntObject {
          * on predicate {@link OWL#disjointUnionOf owl:disjointUnionOf}.
          *
          * @return {@code Stream} of {@link OntList}s with parameter-type {@code OntCE}
-         * @since 1.4.0
          */
         Stream<OntList<OntClass>> disjointUnions();
 
@@ -695,7 +611,6 @@ public interface OntClass extends OntObject {
          * @return {@link OntList} of {@link OntClass}s
          * @see #addDisjointUnionOfStatement(OntClass...)
          * @see #removeDisjointUnion(Resource)
-         * @since 1.3.0
          */
         OntList<OntClass> createDisjointUnion(Collection<OntClass> classes);
 
@@ -704,8 +619,7 @@ public interface OntClass extends OntObject {
          * attached to this class by the specified rdf-node in the form of {@link OntList}.
          *
          * @param list {@link RDFNode}
-         * @return Optional around {@link OntList} of {@link OntClass class expression}s
-         * @since 1.3.0
+         * @return {@code Optional} around {@link OntList} of {@link OntClass class expression}s
          */
         default Optional<OntList<OntClass>> findDisjointUnion(RDFNode list) {
             try (Stream<OntList<OntClass>> res = disjointUnions().filter(r -> Objects.equals(r, list))) {
@@ -727,7 +641,6 @@ public interface OntClass extends OntObject {
          * @see #addDisjointUnion(OntClass...)
          * @see #addDisjointUnionOfStatement(OntClass...)
          * @see #removeDisjointUnion(Resource)
-         * @since 1.4.0
          */
         default OntStatement addDisjointUnionOfStatement(OntClass... classes) {
             return addDisjointUnionOfStatement(Arrays.stream(classes).collect(Collectors.toCollection(LinkedHashSet::new)));
@@ -745,7 +658,6 @@ public interface OntClass extends OntObject {
          * @see #addDisjointUnion(Collection)
          * @see #addDisjointUnionOfStatement(Collection)
          * @see #removeDisjointUnion(Resource)
-         * @since 1.4.0
          */
         default OntStatement addDisjointUnionOfStatement(Collection<OntClass> classes) {
             return createDisjointUnion(classes).getMainStatement();
@@ -799,7 +711,6 @@ public interface OntClass extends OntObject {
         /**
          * @param classes a collection of {@link OntClass class expression}s without {@code null}s
          * @return <b>this</b> instance to allow cascading calls
-         * @since 1.4.0
          */
         default Named addDisjointUnion(Collection<OntClass> classes) {
             addDisjointUnionOfStatement(classes);
@@ -810,7 +721,6 @@ public interface OntClass extends OntObject {
          * @param classes Array of {@link OntClass class expressions} without {@code null}s,
          *                duplicates will be discarded and order will be saved
          * @return <b>this</b> instance to allow cascading calls
-         * @since 1.4.0
          */
         default Named addDisjointUnion(OntClass... classes) {
             addDisjointUnionOfStatement(classes);
@@ -827,7 +737,6 @@ public interface OntClass extends OntObject {
          * @see #createDisjointUnion(Collection)
          * @see #addDisjointUnionOfStatement(OntClass...)
          * @see #createDisjointUnion(Collection)
-         * @since 1.3.0
          */
         Named removeDisjointUnion(Resource list);
 
@@ -870,7 +779,6 @@ public interface OntClass extends OntObject {
          *
          * @return <b>this</b> instance to allow cascading calls
          * @see #removeDisjointUnion(Resource)
-         * @since 1.3.0
          */
         default Named clearDisjointUnions() {
             disjointUnions().collect(Collectors.toSet()).forEach(this::removeDisjointUnion);
@@ -886,7 +794,6 @@ public interface OntClass extends OntObject {
          *
          * @return <b>distinct</b> stream of {@link OntClass class expressions}s
          * @see #disjointUnions()
-         * @since 1.4.0
          */
         default Stream<OntClass> fromDisjointUnionOf() {
             return disjointUnions().flatMap(OntList::members).distinct();
@@ -940,5 +847,68 @@ public interface OntClass extends OntObject {
             addAnnotation(predicate, value);
             return this;
         }
+    }
+
+    /*
+     * ===========================
+     * Abstract class expressions:
+     * ===========================
+     */
+
+    /**
+     * An abstraction for Boolean Connectives (with exclude of {@link ComplementOf}) and Enumeration of Individuals.
+     *
+     * @param <O> a component type
+     */
+    interface ComponentsCE<O extends OntObject> extends OntClass, HasRDFNodeList<O> {
+    }
+
+    /**
+     * An abstraction for Cardinality Restrictions.
+     *
+     * @param <O> a value type
+     * @param <P> any subtype of {@link OntRealProperty}
+     */
+    interface CardinalityRestrictionCE<O extends OntObject, P extends OntRealProperty>
+            extends HasCardinality, ComponentRestrictionCE<O, P> {
+    }
+
+    /**
+     * An abstract class expression (Restriction) that has component (i.e. 'filler' in OWL-API terms):
+     * all Cardinality Restrictions, Existential/Universal Restrictions, Individual/Literal Value Restrictions.
+     *
+     * @param <O> a value type
+     * @param <P> any subtype of {@link OntRealProperty}
+     */
+    interface ComponentRestrictionCE<O extends RDFNode, P extends OntRealProperty>
+            extends UnaryRestrictionCE<P>, HasValue<O> {
+    }
+
+    /**
+     * An abstraction that unites all {@link RestrictionCE Restriction}s
+     * with the predicate {@link OWL#onProperties owl:onProperties}.
+     *
+     * @param <O> a value type
+     * @param <P> any subtype of {@link OntRealProperty}
+     */
+    interface NaryRestrictionCE<O extends OntObject, P extends OntRealProperty>
+            extends RestrictionCE<P>, HasProperties<P>, HasValue<O> {
+    }
+
+    /**
+     * An abstract class expression that unites all {@link RestrictionCE Restriction}s
+     * with the predicate {@link OWL#onProperty owl:onProperty}.
+     *
+     * @param <P> any subtype of {@link OntRealProperty}
+     */
+    interface UnaryRestrictionCE<P extends OntRealProperty> extends RestrictionCE<P> {
+    }
+
+    /**
+     * An abstract class expression that unites all class expressions with the type {@link OWL#Restriction}.
+     *
+     * @param <P> any subtype of {@link OntRealProperty}
+     */
+    interface RestrictionCE<P extends OntRealProperty> extends OntClass, HasProperty<P> {
     }
 }

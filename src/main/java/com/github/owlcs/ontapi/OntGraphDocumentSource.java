@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -15,7 +15,6 @@
 package com.github.owlcs.ontapi;
 
 import com.github.owlcs.ontapi.jena.utils.Graphs;
-import com.github.owlcs.ontapi.transforms.TransformationModel;
 import org.apache.jena.atlas.web.ContentType;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.riot.Lang;
@@ -65,10 +64,10 @@ public abstract class OntGraphDocumentSource implements OWLOntologyDocumentSourc
     public abstract Graph getGraph();
 
     /**
-     * Answers if the graph must be put in order by the transformations mechanism.
+     * Answers {@code true} iff the graph must be put in order by the transformations mechanism.
      *
-     * @return {@code true} if graph transformations is allowed
-     * @see TransformationModel
+     * @return boolean, {@code true} if the graph transformations for this source are allowed
+     * @see com.github.owlcs.ontapi.config.LoadSettings#isPerformTransformation()
      * @since 1.3.2
      */
     public boolean withTransforms() {

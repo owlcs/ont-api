@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -90,7 +90,6 @@ public interface OntDataProperty extends OntRealProperty, OntNamedProperty<OntDa
      * Returns all property ranges (the statement pattern: {@code R rdfs:range D}).
      *
      * @return {@code Stream} of {@link OntDataRange}s
-     * @since 1.4.0
      */
     @Override
     default Stream<OntDataRange> ranges() {
@@ -106,7 +105,6 @@ public interface OntDataProperty extends OntRealProperty, OntNamedProperty<OntDa
      * @see #addSuperProperty(OntDataProperty)
      * @see OntProperty#removeSuperProperty(Resource)
      * @see #addSubPropertyOfStatement(OntDataProperty)
-     * @since 1.4.0
      */
     @Override
     default Stream<OntDataProperty> superProperties() {
@@ -114,12 +112,13 @@ public interface OntDataProperty extends OntRealProperty, OntNamedProperty<OntDa
     }
 
     /**
-     * Returns disjoint properties (statement: {@code R1 owl:propertyDisjointWith R2}, where {@code Ri} - this property).
+     * Returns disjoint properties.
+     * The statement pattern is: {@code Ri owl:propertyDisjointWith Rj}, where {@code Ri} - this property,
+     * and {@code Rj} - the data property to return.
      *
      * @return {@code Stream} of {@link OntDataProperty}s
      * @see OntObjectProperty#disjointProperties()
      * @see OntDisjoint.DataProperties
-     * @since 1.4.0
      */
     @Override
     default Stream<OntDataProperty> disjointProperties() {
@@ -129,11 +128,10 @@ public interface OntDataProperty extends OntRealProperty, OntNamedProperty<OntDa
     /**
      * Returns all equivalent data properties
      * The statement pattern is {@code Ri owl:equivalentProperty Rj},
-     * where {@code Ri} - this property, {@code Rj} - the property of the same type to return.
+     * where {@code Ri} - this property, {@code Rj} - the data property to return.
      *
      * @return {@code Stream} of {@link OntDataProperty}s
      * @see OntObjectProperty#equivalentProperties()
-     * @since 1.4.0
      */
     @Override
     default Stream<OntDataProperty> equivalentProperties() {
@@ -147,7 +145,6 @@ public interface OntDataProperty extends OntRealProperty, OntNamedProperty<OntDa
      * @param range {@link OntDataRange}, not {@code null}
      * @return {@link OntStatement} to allow subsequent annotations adding
      * @see #addRange(OntDataRange)
-     * @since 1.4.0
      */
     default OntStatement addRangeStatement(OntDataRange range) {
         return addStatement(RDFS.range, range);
@@ -159,7 +156,6 @@ public interface OntDataProperty extends OntRealProperty, OntNamedProperty<OntDa
      *
      * @param property {@link OntDataProperty}, not {@code null}
      * @return {@link OntStatement} to allow subsequent annotations adding
-     * @since 1.4.0
      */
     default OntStatement addSubPropertyOfStatement(OntDataProperty property) {
         return addStatement(RDFS.subPropertyOf, property);
@@ -174,7 +170,6 @@ public interface OntDataProperty extends OntRealProperty, OntNamedProperty<OntDa
      * @see #addEquivalentProperty(OntDataProperty)
      * @see #removeEquivalentProperty(Resource)
      * @see OntObjectProperty#addEquivalentPropertyStatement(OntObjectProperty)
-     * @since 1.4.0
      */
     default OntStatement addEquivalentPropertyStatement(OntDataProperty other) {
         return addStatement(OWL.equivalentProperty, other);
@@ -189,7 +184,6 @@ public interface OntDataProperty extends OntRealProperty, OntNamedProperty<OntDa
      * @see #removeDisjointProperty(Resource)
      * @see OntObjectProperty#addPropertyDisjointWithStatement(OntObjectProperty)
      * @see OntDisjoint.ObjectProperties
-     * @since 1.4.0
      */
     default OntStatement addPropertyDisjointWithStatement(OntDataProperty other) {
         return addStatement(OWL.propertyDisjointWith, other);
@@ -201,7 +195,6 @@ public interface OntDataProperty extends OntRealProperty, OntNamedProperty<OntDa
      * @param property {@link OntDataProperty}, not {@code null}
      * @return <b>this</b> instance to allow cascading calls
      * @see #removeSuperProperty(Resource)
-     * @since 1.4.0
      */
     default OntDataProperty addSuperProperty(OntDataProperty property) {
         addSubPropertyOfStatement(property);
@@ -214,7 +207,6 @@ public interface OntDataProperty extends OntRealProperty, OntNamedProperty<OntDa
      * @param range {@link Resource}, that represents a {@link OntDataRange data range}, not {@code null}
      * @return <b>this</b> instance to allow cascading calls
      * @throws org.apache.jena.enhanced.UnsupportedPolymorphismException in case wrong resource is specified
-     * @since 1.4.1
      */
     default OntDataProperty addRange(Resource range) {
         return addRange(range.inModel(getModel()).as(OntDataRange.class));
@@ -266,7 +258,6 @@ public interface OntDataProperty extends OntRealProperty, OntNamedProperty<OntDa
      * @see OntObjectProperty#addDisjointProperty(OntObjectProperty)
      * @see OntRealProperty#removeDisjointProperty(Resource)
      * @see OntDisjoint.DataProperties
-     * @since 1.4.0
      */
     default OntDataProperty addDisjointProperty(OntDataProperty other) {
         addPropertyDisjointWithStatement(other);

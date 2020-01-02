@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -144,7 +144,6 @@ public interface OntStatement extends Statement {
      *
      * @return {@link List} of {@link OntAnnotation Ontology Annotation}s
      * @see #annotationResources()
-     * @since 1.3.0
      */
     default List<OntAnnotation> getAnnotationList() {
         return annotationResources().sorted(Models.RDF_NODE_COMPARATOR).collect(Collectors.toList());
@@ -288,7 +287,6 @@ public interface OntStatement extends Statement {
      * @see OntStatement#addAnnotation(OntAnnotationProperty, String)
      * @see OntModel#getRDFSComment()
      * @see OntModel#getRDFSLabel()
-     * @since 1.4.0
      */
     default OntStatement annotate(OntAnnotationProperty property, String text) {
         return annotate(property, text, null);
@@ -304,7 +302,6 @@ public interface OntStatement extends Statement {
      * @see OntStatement#addAnnotation(OntAnnotationProperty, String, String)
      * @see OntModel#getRDFSComment()
      * @see OntModel#getRDFSLabel()
-     * @since 1.4.0
      */
     default OntStatement annotate(OntAnnotationProperty property, String text, String lang) {
         return annotate(property, getModel().createLiteral(text, lang));
@@ -320,7 +317,6 @@ public interface OntStatement extends Statement {
      * @see OntStatement#addAnnotation(OntAnnotationProperty, RDFNode)
      * @see OntModel#getRDFSComment()
      * @see OntModel#getRDFSLabel()
-     * @since 1.4.0
      */
     default OntStatement annotate(OntAnnotationProperty property, RDFNode value) {
         addAnnotation(property, value);
@@ -336,7 +332,6 @@ public interface OntStatement extends Statement {
      * @throws org.apache.jena.enhanced.UnsupportedPolymorphismException if the subject node
      *                                                                   and the given type are incompatible
      * @see #getSubject()
-     * @since 1.3.0
      */
     default <S extends Resource> S getSubject(Class<S> type) {
         return getSubject().as(type);
@@ -351,7 +346,6 @@ public interface OntStatement extends Statement {
      * @throws org.apache.jena.enhanced.UnsupportedPolymorphismException if the object node
      *                                                                   and the given type are incompatible
      * @see #getObject()
-     * @since 1.4.0
      */
     default <O extends RDFNode> O getObject(Class<O> type) {
         return getObject().as(type);
