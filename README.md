@@ -1,12 +1,12 @@
-# ONT-API (ver. 1.4.2)
+# ONT-API (ver. 2.0.0)
 
 ## Summary
-ONT-API is an implementation of OWL-API over Apache Jena.
+ONT-API is a RDF-centric Java library to work with OWL.
 
-For more info see [wiki](https://github.com/avicomp/ont-api/wiki) page.
+For more info see [wiki](https://github.com/owlcs/ont-api/wiki).
  
 ## Dependencies
-- **[Apache Jena](https://github.com/apache/jena)**, version **3.12.0**
+- **[Apache Jena](https://github.com/apache/jena)**, version **3.13.1**
 - **[OWL-API](https://github.com/owlcs/owlapi)**, version **5.1.11**
 
 ## License
