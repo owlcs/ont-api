@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -16,6 +16,7 @@ package com.github.owlcs.ontapi.tests.managers;
 
 import com.github.owlcs.ontapi.*;
 import com.github.owlcs.ontapi.jena.model.OntModel;
+import com.github.owlcs.ontapi.jena.utils.Graphs;
 import com.github.owlcs.ontapi.utils.FileMap;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import org.junit.Assert;
@@ -116,6 +117,26 @@ public class CopyManagerTest {
                             .collect(Collectors.toList());
                     Assert.assertEquals("Axioms list differ for " + id, expectedAxioms.size(), actualAxioms.size());
                 });
+    }
+
+    private static OWLImportsDeclaration getImportsDeclaration(OWLOntology o) {
+        return o.getOWLOntologyManager().getOWLDataFactory()
+                .getOWLImportsDeclaration(o.getOntologyID()
+                        .getDefaultDocumentIRI().orElseThrow(AssertionError::new));
+    }
+
+    private static void setupManagerWithCyclicImports(OntologyManager m) {
+        Ontology a = m.createOntology(IRI.create("A"));
+        Ontology b = m.createOntology(IRI.create("B"));
+        a.asGraphModel().addImport(b.asGraphModel());
+        b.asGraphModel().addImport(a.asGraphModel());
+    }
+
+    private static void testManagerWithCyclicImports(OntologyManager m) {
+        Assert.assertEquals(2, m.ontologies().peek(x -> {
+            LOGGER.debug("TEST: {}", x);
+            Assert.assertEquals(2, Graphs.baseGraphs(((Ontology) x).asGraphModel().getGraph()).count());
+        }).count());
     }
 
     @Test
@@ -275,7 +296,6 @@ public class CopyManagerTest {
         Assert.assertEquals(OntGraphDocumentSource.wrap(a.getBaseGraph()).getDocumentIRI(), di);
     }
 
-
     @Test
     public void testDeepCopingIfSourceIsOntologyModel() {
         String uri_a = "urn:a";
@@ -391,10 +411,22 @@ public class CopyManagerTest {
         Assert.assertEquals(OntFormat.RDF_XML.createOwlFormat(), m2.getOntologyFormat(dst_c));
     }
 
-    private OWLImportsDeclaration getImportsDeclaration(OWLOntology o) {
-        return o.getOWLOntologyManager().getOWLDataFactory()
-                .getOWLImportsDeclaration(o.getOntologyID()
-                        .getDefaultDocumentIRI().orElseThrow(AssertionError::new));
+    @Test
+    public void testShallowCopingManagerWithCyclingImports() {
+        testCopingManagerWithCyclingImports(OntManagers.createONT(), OntManagers.createConcurrentONT(), OntologyCopy.SHALLOW);
+    }
+
+    @Test
+    public void testDeepCopingManagerWithCyclingImports() {
+        testCopingManagerWithCyclingImports(OntManagers.createConcurrentONT(), OntManagers.createONT(), OntologyCopy.DEEP);
+    }
+
+    private void testCopingManagerWithCyclingImports(OntologyManager m1, OntologyManager m2, OntologyCopy mode) {
+        setupManagerWithCyclicImports(m1);
+        testManagerWithCyclicImports(m1);
+
+        m1.ontologies().forEach(o -> m2.copyOntology(o, mode));
+        testManagerWithCyclicImports(m2);
     }
 
 }

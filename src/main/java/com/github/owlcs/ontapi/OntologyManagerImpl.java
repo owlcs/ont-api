@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -572,7 +572,7 @@ public class OntologyManagerImpl implements OntologyManager,
 
     /**
      * @param iri                   the IRI of Ontology
-     * @param ontologies            Stream of {@link OWLOntology}s
+     * @param ontologies            {@code Stream} of {@link OWLOntology}s
      * @param copyLogicalAxiomsOnly boolean
      * @return {@link Ontology}
      */
@@ -597,7 +597,7 @@ public class OntologyManagerImpl implements OntologyManager,
     }
 
     /**
-     * @param axioms Stream of {@link OWLAxiom}s
+     * @param axioms {@code Stream} of {@link OWLAxiom}s
      * @param iri    {@link IRI}
      * @return {@link Ontology}
      */
@@ -1049,7 +1049,7 @@ public class OntologyManagerImpl implements OntologyManager,
 
     /**
      * @param ontology {@link OWLOntology}
-     * @return Stream of {@link OWLOntology}
+     * @return {@code Stream} of {@link OWLOntology}
      */
     @Override
     public Stream<OWLOntology> directImports(@Nonnull OWLOntology ontology) {
@@ -1068,7 +1068,7 @@ public class OntologyManagerImpl implements OntologyManager,
 
     /**
      * @param ontology {@link OWLOntology}
-     * @return Stream of {@link OWLOntology}
+     * @return {@code Stream} of {@link OWLOntology}
      */
     @Override
     public Stream<OWLOntology> imports(@Nonnull OWLOntology ontology) {
@@ -1094,7 +1094,7 @@ public class OntologyManagerImpl implements OntologyManager,
 
     /**
      * @param ontology {@link OWLOntology}
-     * @return Stream of {@link OWLOntology}
+     * @return {@code Stream} of {@link OWLOntology}
      */
     @Override
     public Stream<OWLOntology> importsClosure(@Nonnull OWLOntology ontology) {
@@ -1119,7 +1119,7 @@ public class OntologyManagerImpl implements OntologyManager,
 
     /**
      * @param ontology {@link OWLOntology}
-     * @return List of {@link OWLOntology}
+     * @return {@code List} of {@link OWLOntology}
      */
     @Override
     public List<OWLOntology> getSortedImportsClosure(@Nonnull OWLOntology ontology) {
@@ -1132,7 +1132,18 @@ public class OntologyManagerImpl implements OntologyManager,
     }
 
     /**
-     * @return Stream of {@link OWLOntology}
+     * Synchronizes the import declarations with the graph hierarchy for all models in the manager.
+     * Note: the complexity is {@code O(N^2)}!
+     *
+     * @see OntModels#syncImports(OntModel)
+     */
+    public void syncImports() {
+        models().forEach(m -> OntModels.insert(() -> models()
+                .filter(x -> m != x && !Graphs.isSameBase(x.getBaseGraph(), m.getBaseGraph())), m, false));
+    }
+
+    /**
+     * @return {@code Stream} of {@link OWLOntology}
      */
     @Override
     public Stream<OWLOntology> ontologies() {
@@ -1146,7 +1157,7 @@ public class OntologyManagerImpl implements OntologyManager,
 
     /**
      * @param iri {@link IRI}
-     * @return Stream of {@link OWLOntologyID}
+     * @return {@code Stream} of {@link OWLOntologyID}
      */
     @Override
     public Stream<OWLOntologyID> ontologyIDsByVersion(@Nonnull IRI iri) {
@@ -1170,7 +1181,7 @@ public class OntologyManagerImpl implements OntologyManager,
 
     /**
      * @param ont    {@link OWLOntology}
-     * @param axioms Stream of {@link OWLAxiom}
+     * @param axioms {@code Stream} of {@link OWLAxiom}
      * @return {@link ChangeApplied}
      */
     @Override
@@ -1190,7 +1201,7 @@ public class OntologyManagerImpl implements OntologyManager,
 
     /**
      * @param ont    {@link OWLOntology}
-     * @param axioms Stream of {@link OWLAxiom}
+     * @param axioms {@code Stream} of {@link OWLAxiom}
      * @return {@link ChangeApplied}
      */
     @Override
@@ -1210,7 +1221,7 @@ public class OntologyManagerImpl implements OntologyManager,
     /**
      * Copy-paste from <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl#applyChangesAndGetDetails(List)</a>.
      *
-     * @param changes List of {@link OWLOntologyChange}s
+     * @param changes {@code List} of {@link OWLOntologyChange}s
      * @return {@link ChangeDetails}
      * @since owl-api 5.1.1
      * @since ont-api 1.1.0
@@ -1250,10 +1261,10 @@ public class OntologyManagerImpl implements OntologyManager,
     }
 
     /**
-     * @param changes           List of {@link OWLOntologyChange}
+     * @param changes           {@code List} of {@link OWLOntologyChange}
      * @param rollbackRequested boolean
      * @param allNoOps          boolean
-     * @param appliedChanges    List of {@link OWLOntologyChange}
+     * @param appliedChanges    {@code List} of {@link OWLOntologyChange}
      */
     protected void actuallyApply(List<? extends OWLOntologyChange> changes,
                                  AtomicBoolean rollbackRequested,
@@ -1278,7 +1289,7 @@ public class OntologyManagerImpl implements OntologyManager,
     }
 
     /**
-     * @param appliedChanges List of {@link OWLOntologyChange}
+     * @param appliedChanges {@code List} of {@link OWLOntologyChange}
      */
     protected void rollBack(List<OWLOntologyChange> appliedChanges) {
         for (OWLOntologyChange c : appliedChanges) {
@@ -1394,8 +1405,10 @@ public class OntologyManagerImpl implements OntologyManager,
 
             if (settings == OntologyCopy.SHALLOW && source instanceof Ontology) {
                 // copy only ref to the base graph, no transformations, no import processing
-                return addOntology(((Ontology) source).asGraphModel().getBaseGraph(),
+                Ontology res = addOntology(((Ontology) source).asGraphModel().getBaseGraph(),
                         getOntologyLoaderConfiguration().setPerformTransformation(false).setProcessImports(false));
+                syncImports();
+                return res;
             }
 
             OWLOntologyID id = source.getOntologyID();
@@ -2005,7 +2018,7 @@ public class OntologyManagerImpl implements OntologyManager,
         }
 
         /**
-         * @param changes List of {@link OWLOntologyChange}
+         * @param changes {@code List} of {@link OWLOntologyChange}
          * @param veto    {@link OWLOntologyChangeVetoException}
          */
         protected void broadcastOntologyChangesVetoed(List<? extends OWLOntologyChange> changes, OWLOntologyChangeVetoException veto) {
@@ -2013,7 +2026,7 @@ public class OntologyManagerImpl implements OntologyManager,
         }
 
         /**
-         * @param changes List of {@link OWLOntologyChange}
+         * @param changes {@code List} of {@link OWLOntologyChange}
          */
         protected void broadcastChanges(List<? extends OWLOntologyChange> changes) {
             if (!broadcastChanges.get()) {
@@ -2040,7 +2053,7 @@ public class OntologyManagerImpl implements OntologyManager,
         }
 
         /**
-         * @param changes List of {@link OWLOntologyChange}
+         * @param changes {@code List} of {@link OWLOntologyChange}
          */
         protected void broadcastImpendingChanges(List<? extends OWLOntologyChange> changes) {
             if (!broadcastChanges.get()) {

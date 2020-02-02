@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -382,38 +382,47 @@ public interface OntologyManager extends OWLOntologyManager {
     Ontology addOntology(Graph graph, OntLoaderConfiguration conf);
 
     /**
-     * Copies an ontology from another manager to this one.
-     * The returned {@code OntologyModel} will answer with this manager instance
-     * when the method {@link Ontology#getOWLOntologyManager()} is invoked.
+     * Copies the specified ontology from the original manager into this one.
+     * The returned {@code OntologyModel} will be linked to this manager instance, i.e.
+     * the method {@link Ontology#getOWLOntologyManager()} called for this ontology
+     * should return an instance of this manager.
+     * The {@code source} could be any {@link OWLOntology ontology} implementation,
+     * not necessarily provided by ONT-API.
      * <p>
      * Note: the axioms list, retrieved from the returned ontology, may differ with the source axioms
-     * due to different config settings (see {@link com.github.owlcs.ontapi.config.AxiomsSettings}).
+     * due to the different config settings (see {@link com.github.owlcs.ontapi.config.AxiomsSettings}).
      * <p>
-     * The second parameter is allowed to be either {@link OntologyCopy#SHALLOW SHALLOW}
-     * or {@link OntologyCopy#DEEP DEEP}.
-     * The moving operation (i.e. {@code settings} = {@link OntologyCopy#MOVE MOVE}) is not supported,
-     * since the original (base) OWL-API method requires the same instance returned.
+     * Note: the second parameter is allowed to be either
+     * {@link OntologyCopy#SHALLOW SHALLOW} or {@link OntologyCopy#DEEP DEEP}.
+     * In ONT-API the moving operation (i.e. {@code settings} = {@link OntologyCopy#MOVE MOVE}) is not supported,
+     * since the original (default-impl) OWL-API method requires the same instance returned.
      * This condition cannot be satisfied since we are dealing with different implementation.
-     * If you want to move, then just copy ontology using this method
+     * To perform moving it always possible just copy ontology using this method
      * and then delete the source ontology using the method {@link #removeOntology(OWLOntology)}.
      * <p>
-     * If the second parameter is {@link OntologyCopy#SHALLOW SHALLOW} and the source ontology is {@link Ontology},
-     * then the operation is effectively equivalent to calling the {@link #addOntology(Graph, OntLoaderConfiguration)}
-     * method with a configuration that has disabled transformations and import processing
-     * (see {@link com.github.owlcs.ontapi.config.LoadSettings#isPerformTransformation()
+     * If the {@code settings} parameter is {@link OntologyCopy#SHALLOW SHALLOW} and
+     * the source ontology is {@link Ontology}
+     * (i.e. not an {@link OWLOntology} instance produced by the default OWL-API impl),
+     * then this operation is almost effectively equivalent to calling
+     * the method {@link #addOntology(Graph, OntLoaderConfiguration)}
+     * with the parameter-configuration where transformations and import processing are disabled
+     * (for more info about these parameters see
+     * {@link com.github.owlcs.ontapi.config.LoadSettings#isPerformTransformation()
      * and {@link com.github.owlcs.ontapi.config.LoadSettings#isProcessImports()}}.
-     * In this case only a base graph reference is copied and,
-     * therefore, there is a possibility to share an ontology data between different managers.
+     * In this case only the base graph reference is copied, all actual data remains untouched.
+     * It results a possibility to share an ontology data between different managers.
      * <p>
      * If the second parameter is {@link OntologyCopy#DEEP DEEP},
-     * then the document format (see {@link #getOntologyFormat(OWLOntology)}) and
-     * the document source iri (see {@link #getOntologyDocumentIRI(OWLOntology)}) are also copied.
+     * then the ontology data is really copied, triple by triple.
+     * The document format (see {@link #getOntologyFormat(OWLOntology)}) and
+     * the document source iri (see {@link #getOntologyDocumentIRI(OWLOntology)}) are also copied -
+     * and this matches the OWL-API default behaviour.
      * <p>
-     * In any case, the method copies only the base graph data,
-     * but also it tries to restore any missed import ontology references.
-     * In case the source ontology has an import to another ontology,
+     * In all cases, the method not only works with the base graph,
+     * but also tries to restore all missed import references.
+     * I.e. if the source ontology has an import to another one,
      * the returned ontology would also have a reference to an ontology with the same import declaration IRI,
-     * if it is found in this manager.
+     * if it is found in the manager.
      *
      * @param source   {@link OWLOntology} the source, possible, not an {@link Ontology} instance
      * @param settings {@link OntologyCopy} the settings,
