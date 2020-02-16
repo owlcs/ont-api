@@ -57,6 +57,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -1132,9 +1133,10 @@ public class OntologyManagerImpl implements OntologyManager,
     }
 
     /**
-     * Synchronizes the import declarations with the graph hierarchy for all models in the manager.
-     * Note: the complexity is {@code O(N^2)}!
+     * Checks and restores import references between models in the manager.
+     * Note: the complexity of the method is {@code O(N^2)}!
      *
+     * @see OntModels#insert(Supplier, OntModel, boolean)
      * @see OntModels#syncImports(OntModel)
      */
     public void syncImports() {
@@ -1369,7 +1371,7 @@ public class OntologyManagerImpl implements OntologyManager,
         }
         DataFactory df = getOWLDataFactory();
         return importedOntology.signature(Imports.INCLUDED)
-                .filter(ont::containsReference)
+                .filter(ont::containsEntityInSignature)
                 .map(df::getOWLDeclarationAxiom)
                 .collect(Collectors.toSet())
                 .stream().map(func).collect(Collectors.toList());

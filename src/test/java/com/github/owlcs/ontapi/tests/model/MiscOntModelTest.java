@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -29,10 +29,25 @@ import java.util.Collections;
 
 /**
  * For testing miscellaneous general model functionality.
- *
+ * <p>
  * Created by @szuev on 20.07.2018.
  */
 public class MiscOntModelTest extends OntModelTestBase {
+
+    @Test
+    public void testWorkingWithUnattachedEntity() {
+        OntologyManager m = OntManagers.createONT();
+        DataFactory df = m.getOWLDataFactory();
+        Ontology o = m.createOntology();
+        OWLAxiom a = df.getOWLDeclarationAxiom(df.getOWLAnnotationProperty("a"));
+        o.add(a);
+        OWLEntity e1 = o.signature().filter(AsOWLAnnotationProperty::isOWLAnnotationProperty)
+                .findFirst().orElseThrow(AssertionError::new);
+        Assert.assertFalse(e1.isBuiltIn());
+
+        o.remove(a);
+        Assert.assertFalse(e1.isBuiltIn());
+    }
 
     @Test
     public void testAddAxiomWithAnonymousIndividualsInMainTripleAndAnnotation() {
