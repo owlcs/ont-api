@@ -57,7 +57,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -541,6 +540,7 @@ public class OntologyManagerImpl implements OntologyManager,
 
     /**
      * Creates a fresh empty ontology with the given id.
+     *
      * @param ontologyID {@link OWLOntologyID}
      * @return {@link OntInfo} the container with ontology
      * @throws OWLOntologyCreationException        if creation is not possible either because the
@@ -1133,15 +1133,17 @@ public class OntologyManagerImpl implements OntologyManager,
     }
 
     /**
-     * Checks and restores import references between models in the manager.
-     * Note: the complexity of the method is {@code O(N^2)}!
+     * Checks and restores the import references between models in the manager.
+     * Note: the complexity of the method is {@code O(N^2)}, where {@code N} is a number of ontologies.
+     * The method can be used to fix links while copying.
      *
-     * @see OntModels#insert(Supplier, OntModel, boolean)
+     * @see OntModels#insert(java.util.function.Supplier, OntModel, boolean)
      * @see OntModels#syncImports(OntModel)
      */
     public void syncImports() {
-        models().forEach(m -> OntModels.insert(() -> models()
-                .filter(x -> m != x && !Graphs.isSameBase(x.getBaseGraph(), m.getBaseGraph())), m, false));
+        models().filter(m -> m.getID().isURIResource())
+                .forEach(m -> OntModels.insert(() -> models()
+                        .filter(x -> m != x && !Graphs.isSameBase(x.getBaseGraph(), m.getBaseGraph())), m, false));
     }
 
     /**
@@ -1562,6 +1564,7 @@ public class OntologyManagerImpl implements OntologyManager,
 
     /**
      * Loads an ontology from the document source according to the config settings.
+     *
      * @param source {@link OWLOntologyDocumentSource}
      * @param conf   {@link OWLOntologyLoaderConfiguration}
      * @return {@link OntInfo}

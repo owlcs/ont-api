@@ -75,32 +75,6 @@ public class CopyManagerTest {
         }
     }
 
-    private static void simpleCopyTest(OWLOntologyManager from, OWLOntologyManager to, OntologyCopy mode) throws Exception {
-        LOGGER.debug("Copy ({}) {} -> {}", mode,
-                from.getClass().getInterfaces()[0].getSimpleName(), to.getClass().getInterfaces()[0].getSimpleName());
-        long fromCount = from.ontologies().count();
-        long toCount = to.ontologies().count();
-
-        OWLDataFactory df = from.getOWLDataFactory();
-        IRI iri = IRI.create("test" + System.currentTimeMillis());
-        LOGGER.debug("Create ontology " + iri);
-        OWLClass clazz = df.getOWLClass("x");
-        OWLOntology o1 = from.createOntology(iri);
-        o1.add(df.getOWLDeclarationAxiom(clazz));
-
-        to.copyOntology(o1, mode);
-        Assert.assertEquals("Incorrect ontologies count inside OWL-manager", fromCount + 1, from.ontologies().count());
-        Assert.assertEquals("Incorrect ontologies count inside ONT-manager", toCount + 1, to.ontologies().count());
-        Assert.assertTrue("Can't find " + iri, to.contains(iri));
-        OWLOntology o2 = to.getOntology(iri);
-        Assert.assertNotNull("Can't find " + to, o2);
-        Assert.assertNotSame("Should not be same", o1, o2);
-        Set<OWLClass> classes = o2.classesInSignature().collect(Collectors.toSet());
-        Assert.assertEquals("Should be single class inside", 1, classes.size());
-        Assert.assertTrue("Can't find " + clazz, classes.contains(clazz));
-    }
-
-
     private static void compareManagersContentTest(OWLOntologyManager left, OWLOntologyManager right) {
         Assert.assertEquals(left.ontologies().count(), right.ontologies().count());
         left.ontologies()
@@ -125,20 +99,6 @@ public class CopyManagerTest {
                         .getDefaultDocumentIRI().orElseThrow(AssertionError::new));
     }
 
-    private static void setupManagerWithCyclicImports(OntologyManager m) {
-        Ontology a = m.createOntology(IRI.create("A"));
-        Ontology b = m.createOntology(IRI.create("B"));
-        a.asGraphModel().addImport(b.asGraphModel());
-        b.asGraphModel().addImport(a.asGraphModel());
-    }
-
-    private static void testManagerWithCyclicImports(OntologyManager m) {
-        Assert.assertEquals(2, m.ontologies().peek(x -> {
-            LOGGER.debug("TEST: {}", x);
-            Assert.assertEquals(2, Graphs.baseGraphs(((Ontology) x).asGraphModel().getGraph()).count());
-        }).count());
-    }
-
     @Test
     public void testSimpleCoping() throws Exception {
         simpleCopyTest(OntManagers.createONT(), OntManagers.createOWL(), OntologyCopy.SHALLOW);
@@ -147,6 +107,31 @@ public class CopyManagerTest {
         simpleCopyTest(OntManagers.createOWL(), OntManagers.createONT(), OntologyCopy.DEEP);
         simpleCopyTest(OntManagers.createONT(), OntManagers.createONT(), OntologyCopy.SHALLOW);
         simpleCopyTest(OntManagers.createONT(), OntManagers.createONT(), OntologyCopy.DEEP);
+    }
+
+    private void simpleCopyTest(OWLOntologyManager from, OWLOntologyManager to, OntologyCopy mode) throws Exception {
+        LOGGER.debug("Copy ({}) {} -> {}", mode,
+                from.getClass().getInterfaces()[0].getSimpleName(), to.getClass().getInterfaces()[0].getSimpleName());
+        long fromCount = from.ontologies().count();
+        long toCount = to.ontologies().count();
+
+        OWLDataFactory df = from.getOWLDataFactory();
+        IRI iri = IRI.create("test" + System.currentTimeMillis());
+        LOGGER.debug("Create ontology " + iri);
+        OWLClass clazz = df.getOWLClass("x");
+        OWLOntology o1 = from.createOntology(iri);
+        o1.add(df.getOWLDeclarationAxiom(clazz));
+
+        to.copyOntology(o1, mode);
+        Assert.assertEquals("Incorrect ontologies count inside OWL-manager", fromCount + 1, from.ontologies().count());
+        Assert.assertEquals("Incorrect ontologies count inside ONT-manager", toCount + 1, to.ontologies().count());
+        Assert.assertTrue("Can't find " + iri, to.contains(iri));
+        OWLOntology o2 = to.getOntology(iri);
+        Assert.assertNotNull("Can't find " + to, o2);
+        Assert.assertNotSame("Should not be same", o1, o2);
+        Set<OWLClass> classes = o2.classesInSignature().collect(Collectors.toSet());
+        Assert.assertEquals("Should be single class inside", 1, classes.size());
+        Assert.assertTrue("Can't find " + clazz, classes.contains(clazz));
     }
 
     @Test(expected = OntApiException.Unsupported.class)
@@ -428,5 +413,56 @@ public class CopyManagerTest {
         m1.ontologies().forEach(o -> m2.copyOntology(o, mode));
         testManagerWithCyclicImports(m2);
     }
+
+    private void setupManagerWithCyclicImports(OntologyManager m) {
+        Ontology a = m.createOntology(IRI.create("A"));
+        Ontology b = m.createOntology(IRI.create("B"));
+        a.asGraphModel().addImport(b.asGraphModel());
+        b.asGraphModel().addImport(a.asGraphModel());
+    }
+
+    private void testManagerWithCyclicImports(OntologyManager m) {
+        Assert.assertEquals(2, m.ontologies().peek(x -> {
+            LOGGER.debug("TEST: {}", x);
+            Assert.assertEquals(2, Graphs.baseGraphs(((Ontology) x).asGraphModel().getGraph()).count());
+        }).count());
+    }
+
+    @Test
+    public void testShallowCopingManagerWithAnonymousOntologies() {
+        testCopingManagerWithAnonymousOntologies(OntManagers.createConcurrentONT(),
+                OntManagers.createONT(), OntologyCopy.SHALLOW);
+    }
+
+    @Test
+    public void testDeepCopingManagerWithAnonymousOntologies() {
+        testCopingManagerWithAnonymousOntologies(OntManagers.createONT(),
+                OntManagers.createConcurrentONT(), OntologyCopy.DEEP);
+    }
+
+    private void testCopingManagerWithAnonymousOntologies(OntologyManager m1, OntologyManager m2, OntologyCopy mode) {
+        setupManagerWithAnonymousOntologies(m1);
+        // validate
+        testManagerWithAnonymousOntologies(m1);
+        // copy
+        m1.ontologies().forEach(o -> m2.copyOntology(o, mode));
+        // test
+        testManagerWithAnonymousOntologies(m2);
+    }
+
+    private void setupManagerWithAnonymousOntologies(OntologyManager m) {
+        m.createGraphModel("A").addImport(m.createGraphModel("B"));
+        m.createGraphModel(null).addImport(m.createGraphModel("C"));
+        m.createOntology();
+    }
+
+    private void testManagerWithAnonymousOntologies(OntologyManager m) {
+        Assert.assertEquals(5, m.ontologies().count());
+        Assert.assertEquals(2, m.ontologies().filter(IsAnonymous::isAnonymous).count());
+        Assert.assertEquals(3, m.ontologies().filter(x -> !x.imports().findFirst().isPresent()).count());
+        Assert.assertEquals(1, m.ontologies().filter(IsAnonymous::isAnonymous)
+                .filter(x -> !x.imports().findFirst().isPresent()).count());
+    }
+
 
 }
