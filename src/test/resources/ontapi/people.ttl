@@ -1,0 +1,716 @@
+@prefix :      <http://owl.man.ac.uk/2006/07/sssw/people#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix ns0:   <http://owl.man.ac.uk/2006/07/sssw/people#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+
+ns0:lorry  a             owl:Class ;
+        rdfs:comment     "" ;
+        rdfs:label       "lorry" ;
+        rdfs:subClassOf  ns0:vehicle .
+
+ns0:Louie  a          owl:NamedIndividual , ns0:duck ;
+        rdfs:comment  "" ;
+        rdfs:label    "Louie" .
+
+ns0:has_mother  a           owl:ObjectProperty ;
+        rdfs:comment        "" ;
+        rdfs:label          "has_mother" ;
+        rdfs:range          ns0:woman ;
+        rdfs:subPropertyOf  ns0:has_parent .
+
+ns0:dog  a               owl:Class ;
+        rdfs:comment     "" ;
+        rdfs:label       "dog" ;
+        rdfs:subClassOf  [ a                   owl:Restriction ;
+                           owl:onProperty      ns0:eats ;
+                           owl:someValuesFrom  ns0:bone
+                         ] .
+
+ns0:brain  a          owl:Class ;
+        rdfs:comment  "" ;
+        rdfs:label    "brain" .
+
+ns0:animal_lover  a          owl:Class ;
+        rdfs:comment         "Someone who really likes animals" ;
+        rdfs:label           "animal lover" ;
+        owl:equivalentClass  [ a                   owl:Class ;
+                               owl:intersectionOf  ( ns0:person
+                                                     [ a                   owl:Restriction ;
+                                                       owl:minCardinality  "3"^^xsd:nonNegativeInteger ;
+                                                       owl:onProperty      ns0:has_pet
+                                                     ]
+                                                   )
+                             ] .
+
+ns0:Rex  a             owl:NamedIndividual , ns0:dog ;
+        rdfs:comment   "" ;
+        rdfs:label     "Rex" ;
+        ns0:is_pet_of  ns0:Mick .
+
+ns0:reads  a          owl:ObjectProperty ;
+        rdfs:comment  "" ;
+        rdfs:label    "reads" ;
+        rdfs:range    ns0:publication .
+
+ns0:Walt  a           owl:NamedIndividual , ns0:person ;
+        rdfs:comment  "" ;
+        rdfs:label    "Walt" ;
+        ns0:has_pet   ns0:Huey , ns0:Louie , ns0:Dewey .
+
+ns0:The_Times  a      owl:NamedIndividual , ns0:broadsheet ;
+        rdfs:comment  "" ;
+        rdfs:label    "The Times" .
+
+ns0:red_top  a           owl:Class ;
+        rdfs:comment     "" ;
+        rdfs:label       "red top" ;
+        rdfs:subClassOf  ns0:tabloid .
+
+ns0:The_Sun  a        owl:NamedIndividual , ns0:tabloid ;
+        rdfs:comment  "" ;
+        rdfs:label    "The Sun" .
+
+ns0:young  a              owl:Class ;
+        rdfs:comment      "" ;
+        rdfs:label        "young" ;
+        owl:disjointWith  ns0:adult .
+
+<http://owl.man.ac.uk/2006/07/sssw/people>
+        a       owl:Ontology .
+
+ns0:tabloid  a            owl:Class ;
+        rdfs:comment      "A newspaper. Tabloids are usually thought of as more \"down-market\" than broadsheets." ;
+        rdfs:label        "tabloid" ;
+        rdfs:subClassOf   ns0:newspaper ;
+        owl:disjointWith  ns0:broadsheet .
+
+ns0:leaf  a              owl:Class ;
+        rdfs:comment     "" ;
+        rdfs:label       "leaf" ;
+        rdfs:subClassOf  [ a                   owl:Restriction ;
+                           owl:onProperty      ns0:part_of ;
+                           owl:someValuesFrom  ns0:tree
+                         ] .
+
+ns0:cow  a               owl:Class ;
+        rdfs:comment     "Cows are naturally vegetarians." ;
+        rdfs:label       "cow" ;
+        rdfs:subClassOf  ns0:vegetarian .
+
+ns0:Fred  a           owl:NamedIndividual , ns0:person ;
+        rdfs:comment  "" ;
+        rdfs:label    "Fred" ;
+        ns0:has_pet   ns0:Tibbs .
+
+ns0:quality_broadsheet
+        a                owl:Class ;
+        rdfs:comment     "" ;
+        rdfs:label       "quality broadsheet" ;
+        rdfs:subClassOf  ns0:broadsheet .
+
+ns0:Spike  a           owl:NamedIndividual , owl:Thing ;
+        rdfs:comment   "" ;
+        rdfs:label     "Spike" ;
+        ns0:is_pet_of  ns0:Pete .
+
+ns0:has_part  a        owl:ObjectProperty ;
+        rdfs:comment   "" ;
+        rdfs:label     "has_part" ;
+        owl:inverseOf  ns0:part_of .
+
+ns0:grownup  a               owl:Class ;
+        rdfs:comment         "" ;
+        rdfs:label           "grownup" ;
+        owl:equivalentClass  [ a                   owl:Class ;
+                               owl:intersectionOf  ( ns0:adult ns0:person )
+                             ] .
+
+ns0:white_van_man  a         owl:Class ;
+        rdfs:comment         "A white van man is a man who drives a white van." ;
+        rdfs:label           "white van man" ;
+        rdfs:subClassOf      [ a                  owl:Restriction ;
+                               owl:allValuesFrom  ns0:tabloid ;
+                               owl:onProperty     ns0:reads
+                             ] ;
+        owl:equivalentClass  [ a                   owl:Class ;
+                               owl:intersectionOf  ( ns0:man
+                                                     [ a                   owl:Restriction ;
+                                                       owl:onProperty      ns0:drives ;
+                                                       owl:someValuesFrom  [ a                   owl:Class ;
+                                                                             owl:intersectionOf  ( ns0:van ns0:white_thing )
+                                                                           ]
+                                                     ]
+                                                   )
+                             ] .
+
+ns0:likes  a          owl:ObjectProperty ;
+        rdfs:comment  "" ;
+        rdfs:label    "likes" .
+
+ns0:male  a           owl:Class ;
+        rdfs:comment  "The class of all male things." ;
+        rdfs:label    "male" .
+
+ns0:dog_owner  a             owl:Class ;
+        rdfs:comment         "" ;
+        rdfs:label           "dog owner" ;
+        owl:equivalentClass  [ a                   owl:Class ;
+                               owl:intersectionOf  ( ns0:person
+                                                     [ a                   owl:Restriction ;
+                                                       owl:onProperty      ns0:has_pet ;
+                                                       owl:someValuesFrom  ns0:dog
+                                                     ]
+                                                   )
+                             ] .
+
+ns0:pet  a                   owl:Class ;
+        rdfs:comment         "" ;
+        rdfs:label           "pet" ;
+        owl:equivalentClass  [ a                   owl:Restriction ;
+                               owl:onProperty      ns0:is_pet_of ;
+                               owl:someValuesFrom  owl:Thing
+                             ] .
+
+ns0:vehicle  a        owl:Class ;
+        rdfs:comment  "" ;
+        rdfs:label    "vehicle" .
+
+ns0:The_Guardian  a   owl:NamedIndividual , ns0:broadsheet ;
+        rdfs:comment  "" ;
+        rdfs:label    "The Guardian" .
+
+ns0:Tibbs  a          owl:NamedIndividual , ns0:cat ;
+        rdfs:comment  "" ;
+        rdfs:label    "Tibbs" .
+
+ns0:kid  a                   owl:Class ;
+        rdfs:comment         "" ;
+        rdfs:label           "kid" ;
+        owl:equivalentClass  [ a                   owl:Class ;
+                               owl:intersectionOf  ( ns0:young ns0:person )
+                             ] .
+
+ns0:has_father  a           owl:ObjectProperty ;
+        rdfs:comment        "" ;
+        rdfs:label          "has_father" ;
+        rdfs:range          ns0:man ;
+        rdfs:subPropertyOf  ns0:has_parent .
+
+ns0:bus_company  a       owl:Class ;
+        rdfs:comment     "" ;
+        rdfs:label       "bus company" ;
+        rdfs:subClassOf  ns0:company .
+
+ns0:drives  a         owl:ObjectProperty ;
+        rdfs:comment  "" ;
+        rdfs:label    "drives" .
+
+ns0:plant  a          owl:Class ;
+        rdfs:comment  "" ;
+        rdfs:label    "plant" .
+
+ns0:woman  a                 owl:Class ;
+        rdfs:comment         "" ;
+        rdfs:label           "woman" ;
+        owl:equivalentClass  [ a                   owl:Class ;
+                               owl:intersectionOf  ( ns0:adult ns0:female ns0:person )
+                             ] .
+
+[ a                    owl:AllDifferent ;
+  owl:distinctMembers  ( ns0:Dewey ns0:Fido ns0:Flossie ns0:Fluffy ns0:Fred ns0:Huey ns0:Joe ns0:Kevin ns0:Louie ns0:Mick ns0:Minnie ns0:Q123_ABC ns0:Rex ns0:The_Guardian ns0:The_Sun ns0:The_Times ns0:Tibbs ns0:Walt )
+] .
+
+ns0:vegetarian  a            owl:Class ;
+        rdfs:comment         "A vegetarian is defined as an animal that eats no other animals, or parts of animals." ;
+        rdfs:label           "vegetarian" ;
+        ns0:is_annotation    false ;
+        ns0:short_name       "no" ;
+        owl:equivalentClass  [ a                   owl:Class ;
+                               owl:intersectionOf  ( ns0:animal
+                                                     [ a                  owl:Restriction ;
+                                                       owl:allValuesFrom  [ a                 owl:Class ;
+                                                                            owl:complementOf  [ a                   owl:Restriction ;
+                                                                                                owl:onProperty      ns0:part_of ;
+                                                                                                owl:someValuesFrom  ns0:animal
+                                                                                              ]
+                                                                          ] ;
+                                                       owl:onProperty     ns0:eats
+                                                     ]
+                                                     [ a                  owl:Restriction ;
+                                                       owl:allValuesFrom  [ a                 owl:Class ;
+                                                                            owl:complementOf  ns0:animal
+                                                                          ] ;
+                                                       owl:onProperty     ns0:eats
+                                                     ]
+                                                   )
+                             ] .
+
+ns0:duck  a              owl:Class ;
+        rdfs:comment     "" ;
+        rdfs:label       "duck" ;
+        rdfs:subClassOf  ns0:animal .
+
+ns0:eats  a            owl:ObjectProperty ;
+        rdfs:comment   "" ;
+        rdfs:domain    ns0:animal ;
+        rdfs:label     "eats" ;
+        owl:inverseOf  ns0:eaten_by .
+
+ns0:grass  a             owl:Class ;
+        rdfs:comment     "" ;
+        rdfs:label       "grass" ;
+        rdfs:subClassOf  ns0:plant .
+
+ns0:Fido  a           owl:NamedIndividual , ns0:dog ;
+        rdfs:comment  "" ;
+        rdfs:label    "Fido" .
+
+ns0:giraffe  a           owl:Class ;
+        rdfs:comment     "" ;
+        rdfs:label       "giraffe" ;
+        rdfs:subClassOf  ns0:animal ;
+        rdfs:subClassOf  [ a                  owl:Restriction ;
+                           owl:allValuesFrom  ns0:leaf ;
+                           owl:onProperty     ns0:eats
+                         ] .
+
+ns0:Kevin  a          owl:NamedIndividual , ns0:person ;
+        rdfs:comment  "" ;
+        rdfs:label    "Kevin" ;
+        ns0:has_pet   ns0:Fluffy , ns0:Flossie .
+
+[ a                      owl:Axiom ;
+  ns0:short_name         "yes" ;
+  owl:annotatedProperty  rdfs:label ;
+  owl:annotatedSource    ns0:mad_cow ;
+  owl:annotatedTarget    "mad cow"
+] .
+
+ns0:haulage_truck_driver
+        a                    owl:Class ;
+        rdfs:comment         "" ;
+        rdfs:label           "haulage truck driver" ;
+        owl:equivalentClass  [ a                   owl:Class ;
+                               owl:intersectionOf  ( ns0:person
+                                                     [ a                   owl:Restriction ;
+                                                       owl:onProperty      ns0:works_for ;
+                                                       owl:someValuesFrom  [ a                   owl:Restriction ;
+                                                                             owl:onProperty      ns0:part_of ;
+                                                                             owl:someValuesFrom  ns0:haulage_company
+                                                                           ]
+                                                     ]
+                                                     [ a                   owl:Restriction ;
+                                                       owl:onProperty      ns0:drives ;
+                                                       owl:someValuesFrom  ns0:truck
+                                                     ]
+                                                   )
+                             ] .
+
+[ a                      owl:Annotation ;
+  ns0:is_annotation      true ;
+  owl:annotatedProperty  ns0:short_name ;
+  owl:annotatedSource    [ a                      owl:Axiom ;
+                           ns0:short_name         "yes" ;
+                           owl:annotatedProperty  rdfs:label ;
+                           owl:annotatedSource    ns0:vegetarian ;
+                           owl:annotatedTarget    "vegetarian"
+                         ] ;
+  owl:annotatedTarget    "yes"
+] .
+
+ns0:works_for  a      owl:ObjectProperty ;
+        rdfs:comment  "" ;
+        rdfs:label    "works_for" .
+
+ns0:haulage_worker  a        owl:Class ;
+        rdfs:comment         "" ;
+        rdfs:label           "haulage worker" ;
+        owl:equivalentClass  [ a                   owl:Restriction ;
+                               owl:onProperty      ns0:works_for ;
+                               owl:someValuesFrom  [ a            owl:Class ;
+                                                     owl:unionOf  ( [ a                   owl:Restriction ;
+                                                                      owl:onProperty      ns0:part_of ;
+                                                                      owl:someValuesFrom  ns0:haulage_company
+                                                                    ]
+                                                                    ns0:haulage_company
+                                                                  )
+                                                   ]
+                             ] .
+
+ns0:bus  a               owl:Class ;
+        rdfs:comment     "" ;
+        rdfs:label       "bus" ;
+        rdfs:subClassOf  ns0:vehicle .
+
+[ a                 owl:Class ;
+  owl:disjointWith  [ a            owl:Class ;
+                      owl:unionOf  ( [ a                   owl:Restriction ;
+                                       owl:onProperty      ns0:part_of ;
+                                       owl:someValuesFrom  ns0:animal
+                                     ]
+                                     ns0:animal
+                                   )
+                    ] ;
+  owl:unionOf       ( ns0:plant
+                      [ a                   owl:Restriction ;
+                        owl:onProperty      ns0:part_of ;
+                        owl:someValuesFrom  ns0:plant
+                      ]
+                    )
+] .
+
+ns0:bone  a           owl:Class ;
+        rdfs:comment  "" ;
+        rdfs:label    "bone" .
+
+ns0:tree  a              owl:Class ;
+        rdfs:comment     "" ;
+        rdfs:label       "tree" ;
+        rdfs:subClassOf  ns0:plant .
+
+ns0:animal  a            owl:Class ;
+        rdfs:comment     "" ;
+        rdfs:label       "animal" ;
+        rdfs:subClassOf  [ a                   owl:Restriction ;
+                           owl:onProperty      ns0:eats ;
+                           owl:someValuesFrom  owl:Thing
+                         ] .
+
+ns0:Huey  a           owl:NamedIndividual , ns0:duck ;
+        rdfs:comment  "" ;
+        rdfs:label    "Huey" .
+
+ns0:haulage_company  a   owl:Class ;
+        rdfs:comment     "" ;
+        rdfs:label       "haulage company" ;
+        rdfs:subClassOf  ns0:company .
+
+ns0:pet_owner  a             owl:Class ;
+        rdfs:comment         "" ;
+        rdfs:label           "pet owner" ;
+        owl:equivalentClass  [ a                   owl:Class ;
+                               owl:intersectionOf  ( ns0:person
+                                                     [ a                   owl:Restriction ;
+                                                       owl:onProperty      ns0:has_pet ;
+                                                       owl:someValuesFrom  ns0:animal
+                                                     ]
+                                                   )
+                             ] .
+
+ns0:tiger  a             owl:Class ;
+        rdfs:comment     "" ;
+        rdfs:label       "tiger" ;
+        rdfs:subClassOf  ns0:animal .
+
+ns0:dog_liker  a             owl:Class ;
+        rdfs:comment         "" ;
+        rdfs:label           "dog liker" ;
+        owl:equivalentClass  [ a                   owl:Class ;
+                               owl:intersectionOf  ( ns0:person
+                                                     [ a                   owl:Restriction ;
+                                                       owl:onProperty      ns0:likes ;
+                                                       owl:someValuesFrom  ns0:dog
+                                                     ]
+                                                   )
+                             ] .
+
+ns0:short_name  a  owl:AnnotationProperty .
+
+ns0:Mick  a           owl:NamedIndividual , ns0:male ;
+        rdfs:comment  "Mick is male and drives a white van. " ;
+        rdfs:label    "Mick" ;
+        ns0:drives    ns0:Q123_ABC ;
+        ns0:reads     ns0:Daily_Mirror .
+
+ns0:Minnie  a         owl:NamedIndividual , ns0:elderly , ns0:female ;
+        rdfs:comment  "" ;
+        rdfs:label    "Minnie" ;
+        ns0:has_pet   ns0:Tom .
+
+ns0:publication  a    owl:Class ;
+        rdfs:comment  "" ;
+        rdfs:label    "publication" .
+
+ns0:female  a         owl:Class ;
+        rdfs:comment  "" ;
+        rdfs:label    "female" .
+
+ns0:cat_owner  a             owl:Class ;
+        rdfs:comment         "" ;
+        rdfs:label           "cat owner" ;
+        owl:equivalentClass  [ a                   owl:Class ;
+                               owl:intersectionOf  ( ns0:person
+                                                     [ a                   owl:Restriction ;
+                                                       owl:onProperty      ns0:has_pet ;
+                                                       owl:someValuesFrom  ns0:cat
+                                                     ]
+                                                   )
+                             ] .
+
+ns0:Fluffy  a         owl:NamedIndividual , ns0:tiger ;
+        rdfs:comment  "" ;
+        rdfs:label    "Fluffy" .
+
+ns0:bicycle  a           owl:Class ;
+        rdfs:comment     "A human propelled vehicle, with two wheels" ;
+        rdfs:label       "bicycle" ;
+        rdfs:subClassOf  ns0:vehicle .
+
+ns0:Q123_ABC  a       owl:NamedIndividual , ns0:van , ns0:white_thing ;
+        rdfs:comment  "A white van" ;
+        rdfs:label    "Q123 ABC" .
+
+ns0:man  a                   owl:Class ;
+        rdfs:comment         "" ;
+        rdfs:label           "man" ;
+        owl:equivalentClass  [ a                   owl:Class ;
+                               owl:intersectionOf  ( ns0:adult ns0:person ns0:male )
+                             ] .
+
+ns0:magazine  a          owl:Class ;
+        rdfs:comment     "" ;
+        rdfs:label       "magazine" ;
+        rdfs:subClassOf  ns0:publication .
+
+ns0:person  a            owl:Class ;
+        rdfs:comment     "" ;
+        rdfs:label       "person" ;
+        rdfs:subClassOf  ns0:animal .
+
+ns0:Daily_Mirror  a   owl:NamedIndividual , owl:Thing ;
+        rdfs:comment  "The paper read by Mick." ;
+        rdfs:label    "Daily Mirror" .
+
+ns0:Dewey  a          owl:NamedIndividual , ns0:duck ;
+        rdfs:comment  "" ;
+        rdfs:label    "Dewey" .
+
+owl:Thing  a    owl:Class .
+
+ns0:van_driver  a            owl:Class ;
+        rdfs:comment         "" ;
+        rdfs:label           "van driver" ;
+        owl:equivalentClass  [ a                   owl:Class ;
+                               owl:intersectionOf  ( ns0:person
+                                                     [ a                   owl:Restriction ;
+                                                       owl:onProperty      ns0:drives ;
+                                                       owl:someValuesFrom  ns0:van
+                                                     ]
+                                                   )
+                             ] .
+
+ns0:mad_cow  a               owl:Class ;
+        rdfs:comment         "A mad cow is a cow that has been eating the brains of sheep." ;
+        rdfs:label           "mad cow" ;
+        owl:equivalentClass  [ a                   owl:Class ;
+                               owl:intersectionOf  ( ns0:cow
+                                                     [ a                   owl:Restriction ;
+                                                       owl:onProperty      ns0:eats ;
+                                                       owl:someValuesFrom  [ a                   owl:Class ;
+                                                                             owl:intersectionOf  ( [ a                   owl:Restriction ;
+                                                                                                     owl:onProperty      ns0:part_of ;
+                                                                                                     owl:someValuesFrom  ns0:sheep
+                                                                                                   ]
+                                                                                                   ns0:brain
+                                                                                                 )
+                                                                           ]
+                                                     ]
+                                                   )
+                             ] .
+
+ns0:cat  a                owl:Class ;
+        rdfs:comment      "" ;
+        rdfs:label        "cat" ;
+        rdfs:subClassOf   ns0:animal ;
+        owl:disjointWith  ns0:dog .
+
+[ a                      owl:Axiom ;
+  ns0:short_name         "no" ;
+  owl:annotatedProperty  rdfs:comment ;
+  owl:annotatedSource    ns0:mad_cow ;
+  owl:annotatedTarget    "A mad cow is a cow that has been eating the brains of sheep."
+] .
+
+[ a                      owl:Axiom ;
+  ns0:short_name         "no" ;
+  owl:annotatedProperty  rdfs:comment ;
+  owl:annotatedSource    ns0:vegetarian ;
+  owl:annotatedTarget    "A vegetarian is defined as an animal that eats no other animals, or parts of animals."
+] .
+
+ns0:part_of  a         owl:ObjectProperty ;
+        rdfs:comment   "" ;
+        rdfs:label     "part_of" ;
+        owl:inverseOf  ns0:has_part .
+
+ns0:Joe  a            owl:NamedIndividual , ns0:person ;
+        a             [ a                   owl:Restriction ;
+                        owl:maxCardinality  "1"^^xsd:nonNegativeInteger ;
+                        owl:onProperty      ns0:has_pet
+                      ] ;
+        rdfs:comment  "" ;
+        rdfs:label    "Joe" ;
+        ns0:has_pet   ns0:Fido .
+
+ns0:is_pet_of  a       owl:ObjectProperty ;
+        rdfs:comment   "" ;
+        rdfs:label     "is_pet_of" ;
+        owl:inverseOf  ns0:has_pet .
+
+ns0:old_lady  a              owl:Class ;
+        rdfs:comment         "" ;
+        rdfs:label           "old lady" ;
+        rdfs:subClassOf      [ a                   owl:Class ;
+                               owl:intersectionOf  ( [ a                  owl:Restriction ;
+                                                       owl:allValuesFrom  ns0:cat ;
+                                                       owl:onProperty     ns0:has_pet
+                                                     ]
+                                                     [ a                   owl:Restriction ;
+                                                       owl:onProperty      ns0:has_pet ;
+                                                       owl:someValuesFrom  ns0:animal
+                                                     ]
+                                                   )
+                             ] ;
+        owl:equivalentClass  [ a                   owl:Class ;
+                               owl:intersectionOf  ( ns0:female ns0:person ns0:elderly )
+                             ] .
+
+ns0:van  a               owl:Class ;
+        rdfs:comment     "" ;
+        rdfs:label       "van" ;
+        rdfs:subClassOf  ns0:vehicle .
+
+ns0:lorry_driver  a          owl:Class ;
+        rdfs:comment         "" ;
+        rdfs:label           "lorry driver" ;
+        owl:equivalentClass  [ a                   owl:Class ;
+                               owl:intersectionOf  ( ns0:person
+                                                     [ a                   owl:Restriction ;
+                                                       owl:onProperty      ns0:drives ;
+                                                       owl:someValuesFrom  ns0:lorry
+                                                     ]
+                                                   )
+                             ] .
+
+ns0:eaten_by  a        owl:ObjectProperty ;
+        rdfs:comment   "" ;
+        rdfs:label     "eaten_by" ;
+        owl:inverseOf  ns0:eats .
+
+ns0:white_thing  a    owl:Class ;
+        rdfs:comment  "" ;
+        rdfs:label    "white thing" .
+
+ns0:driver  a                owl:Class ;
+        rdfs:comment         "" ;
+        rdfs:label           "driver" ;
+        rdfs:subClassOf      ns0:adult ;
+        owl:equivalentClass  [ a                   owl:Class ;
+                               owl:intersectionOf  ( ns0:person
+                                                     [ a                   owl:Restriction ;
+                                                       owl:onProperty      ns0:drives ;
+                                                       owl:someValuesFrom  ns0:vehicle
+                                                     ]
+                                                   )
+                             ] .
+
+ns0:has_child  a      owl:ObjectProperty ;
+        rdfs:comment  "" ;
+        rdfs:label    "has_child" .
+
+ns0:company  a        owl:Class ;
+        rdfs:comment  "" ;
+        rdfs:label    "company" .
+
+ns0:truck  a             owl:Class ;
+        rdfs:comment     "" ;
+        rdfs:label       "truck" ;
+        rdfs:subClassOf  ns0:vehicle .
+
+ns0:Pete  a           owl:NamedIndividual , owl:Thing ;
+        rdfs:comment  "" ;
+        rdfs:label    "Pete" .
+
+ns0:adult  a          owl:Class ;
+        rdfs:comment  "Things that are adult." ;
+        rdfs:label    "adult" .
+
+ns0:broadsheet  a        owl:Class ;
+        rdfs:comment     "A newspaper. Broadsheets are usually considered to be more \"high-brow\" than tabloids." ;
+        rdfs:label       "broadsheet" ;
+        rdfs:subClassOf  ns0:newspaper .
+
+ns0:bus_driver  a            owl:Class ;
+        rdfs:comment         "Someone who drives a bus." ;
+        rdfs:label           "bus driver" ;
+        owl:equivalentClass  [ a                   owl:Class ;
+                               owl:intersectionOf  ( ns0:person
+                                                     [ a                   owl:Restriction ;
+                                                       owl:onProperty      ns0:drives ;
+                                                       owl:someValuesFrom  ns0:bus
+                                                     ]
+                                                   )
+                             ] .
+
+ns0:car  a               owl:Class ;
+        rdfs:comment     "" ;
+        rdfs:label       "car" ;
+        rdfs:subClassOf  ns0:vehicle .
+
+ns0:sheep  a             owl:Class ;
+        rdfs:comment     "" ;
+        rdfs:label       "sheep" ;
+        rdfs:subClassOf  ns0:animal ;
+        rdfs:subClassOf  [ a                  owl:Restriction ;
+                           owl:allValuesFrom  ns0:grass ;
+                           owl:onProperty     ns0:eats
+                         ] .
+
+ns0:elderly  a           owl:Class ;
+        rdfs:comment     "" ;
+        rdfs:label       "elderly" ;
+        rdfs:subClassOf  ns0:adult .
+
+ns0:newspaper  a         owl:Class ;
+        rdfs:comment     "All newspapers are either broadsheets or tabloids." ;
+        rdfs:label       "newspaper" ;
+        rdfs:subClassOf  ns0:publication ;
+        rdfs:subClassOf  [ a            owl:Class ;
+                           owl:unionOf  ( ns0:tabloid ns0:broadsheet )
+                         ] .
+
+ns0:cat_liker  a             owl:Class ;
+        rdfs:comment         "" ;
+        rdfs:label           "cat liker" ;
+        owl:equivalentClass  [ a                   owl:Class ;
+                               owl:intersectionOf  ( ns0:person
+                                                     [ a                   owl:Restriction ;
+                                                       owl:onProperty      ns0:likes ;
+                                                       owl:someValuesFrom  ns0:cat
+                                                     ]
+                                                   )
+                             ] .
+
+ns0:Flossie  a        owl:NamedIndividual , ns0:cow ;
+        rdfs:comment  "" ;
+        rdfs:label    "Flossie" .
+
+ns0:has_pet  a              owl:ObjectProperty ;
+        rdfs:comment        "Anyone that has a pet must like that pet." ;
+        rdfs:domain         ns0:person ;
+        rdfs:label          "has_pet" ;
+        rdfs:range          ns0:animal ;
+        rdfs:subPropertyOf  ns0:likes ;
+        owl:inverseOf       ns0:is_pet_of .
+
+ns0:is_annotation  a  owl:AnnotationProperty .
+
+ns0:has_parent  a     owl:ObjectProperty ;
+        rdfs:comment  "" ;
+        rdfs:label    "has_parent" .
+
+ns0:Tom  a            owl:NamedIndividual , owl:Thing ;
+        rdfs:comment  "" ;
+        rdfs:label    "Tom" .
