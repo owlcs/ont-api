@@ -36,7 +36,7 @@ import java.util.stream.Stream;
  * @see <a href='https://www.w3.org/TR/owl2-quick-reference/#Class_Expressions'>2.1 Class Expressions</a>
  * @see <a href='https://www.w3.org/TR/owl2-syntax/#Class_Expressions'>8 Class Expressions</a>
  */
-public interface OntClass extends OntObject {
+public interface OntClass extends OntObject, AsNamed<OntClass.Named> {
 
     /**
      * Answers a {@code Stream} over the class-expressions
@@ -123,12 +123,15 @@ public interface OntClass extends OntObject {
      * For additional information about {@code HasKey} logical construction see
      * <a href='https://www.w3.org/TR/owl2-syntax/#Keys'>9.5 Keys</a> specification.
      *
-     * @param objectProperties {@link Collection} (preferably {@link Set})of {@link OntObjectProperty object property expression}s
-     * @param dataProperties   {@link Collection} (preferably {@link Set})of {@link OntDataProperty data property expression}s
+     * @param objectProperties {@link Collection} (preferably {@link Set})
+     *                         of {@link OntObjectProperty object property expression}s
+     * @param dataProperties   {@link Collection} (preferably {@link Set})
+     *                         of {@link OntDataProperty data property expression}s
      * @return {@link OntList} of {@link OntRealProperty}s
      * @see #addHasKey(Collection, Collection)
      */
-    OntList<OntRealProperty> createHasKey(Collection<OntObjectProperty> objectProperties, Collection<OntDataProperty> dataProperties);
+    OntList<OntRealProperty> createHasKey(Collection<OntObjectProperty> objectProperties,
+                                          Collection<OntDataProperty> dataProperties);
 
     /**
      * Creates a {@code HasKey} logical construction as {@link OntList ontology list}
@@ -154,6 +157,11 @@ public interface OntClass extends OntObject {
      * @throws OntJenaException if the list is not found
      */
     OntClass removeHasKey(Resource list);
+
+    @Override
+    default Named asNamed() {
+        return as(Named.class);
+    }
 
     /**
      * Lists all individuals,
@@ -613,6 +621,11 @@ public interface OntClass extends OntObject {
          * @see #removeDisjointUnion(Resource)
          */
         OntList<OntClass> createDisjointUnion(Collection<OntClass> classes);
+
+        @Override
+        default Named asNamed() {
+            return this;
+        }
 
         /**
          * Finds a {@code DisjointUnion} logical construction

@@ -32,7 +32,7 @@ import java.util.stream.Stream;
  * Created by @szuev on 02.11.2016.
  */
 @SuppressWarnings("rawtypes")
-public interface OntIndividual extends OntObject {
+public interface OntIndividual extends OntObject, AsNamed<OntIndividual.Named> {
 
     /**
      * Removes a class assertion statement for the given class.
@@ -74,6 +74,11 @@ public interface OntIndividual extends OntObject {
      */
     @Override
     Stream<OntStatement> content();
+
+    @Override
+    default Named asNamed() {
+        return as(Named.class);
+    }
 
     /**
      * Returns all direct class types.
@@ -451,6 +456,11 @@ public interface OntIndividual extends OntObject {
      * @see <a href='https://www.w3.org/TR/owl2-syntax/#Named_Individuals'>5.6.1 Named Individuals</a>
      */
     interface Named extends OntIndividual, OntEntity {
+
+        @Override
+        default Named asNamed() {
+            return this;
+        }
     }
 
     /**

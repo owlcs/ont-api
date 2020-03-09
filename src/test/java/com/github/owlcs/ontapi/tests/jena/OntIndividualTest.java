@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -39,16 +39,18 @@ public class OntIndividualTest {
         OntIndividual i1 = m.createIndividual("I1");
         OntIndividual i2 = m.createIndividual("I2");
         OntDataProperty d = m.createDataProperty("D");
-        OntObjectProperty.Named p = m.createObjectProperty("P");
+        OntObjectProperty p = m.createObjectProperty("P");
         OntAnnotationProperty a = m.getRDFSComment();
 
         Assert.assertSame(i1, i1.addAssertion(d, m.createLiteral("1"))
-                .addAssertion(d, m.createLiteral("2")).addAssertion(p, i2).addAssertion(a, m.createLiteral("3")));
+                .addAssertion(d, m.createLiteral("2"))
+                .addAssertion(p.asNamed(), i2)
+                .addAssertion(a, m.createLiteral("3")));
         Assert.assertEquals(4, i1.positiveAssertions().count());
         Assert.assertEquals(2, i1.positiveAssertions(d).count());
         Assert.assertEquals(8, m.size());
 
-        Assert.assertSame(i1, i1.removeAssertion(d, null).removeAssertion(p, i2));
+        Assert.assertSame(i1, i1.removeAssertion(d, null).removeAssertion(p.asNamed(), i2));
         Assert.assertEquals(1, i1.positiveAssertions().count());
         Assert.assertSame(i1, i1.removeAssertion(null, null));
         Assert.assertEquals(0, i1.positiveAssertions().count());
@@ -92,7 +94,7 @@ public class OntIndividualTest {
         OntIndividual i2 = m.createIndividual("I2");
         OntIndividual i3 = m.createIndividual("I3");
         OntDataProperty d = m.createDataProperty("D");
-        OntObjectProperty.Named p = m.createObjectProperty("P");
+        OntObjectProperty p = m.createObjectProperty("P");
 
         Assert.assertSame(i1, i1.addNegativeAssertion(d, m.createLiteral("1")));
         Assert.assertEquals(1, i1.negativeAssertions().count());
@@ -106,7 +108,7 @@ public class OntIndividualTest {
         Assert.assertEquals(2, m.statements(null, OWL.targetValue, null).count());
         Assert.assertEquals(21, m.size());
 
-        Assert.assertSame(i1, i1.removeNegativeAssertion(d, null).removeNegativeAssertion(p, i3));
+        Assert.assertSame(i1, i1.removeNegativeAssertion(d, null).removeNegativeAssertion(p.asNamed(), i3));
         Assert.assertEquals(1, i1.negativeAssertions().count());
         Assert.assertEquals(1, m.statements(null, OWL.targetIndividual, null).count());
         Assert.assertEquals(0, m.statements(null, OWL.targetValue, null).count());
@@ -122,10 +124,10 @@ public class OntIndividualTest {
         OntIndividual i2 = m.createIndividual("I2");
         OntIndividual i3 = m.createIndividual("I3");
         OntDataProperty d = m.createDataProperty("D");
-        OntObjectProperty.Named p = m.createObjectProperty("P");
+        OntObjectProperty p = m.createObjectProperty("P");
 
         i1.addNegativeAssertion(p, i2)
-                .addAssertion(p, i3)
+                .addAssertion(p.asNamed(), i3)
                 .addNegativeAssertion(d, m.createLiteral("1"))
                 .addAssertion(d, m.createLiteral("2")).addComment("The individual to test");
         Assert.assertEquals(16, m.size());
@@ -137,8 +139,8 @@ public class OntIndividualTest {
     public void testClassAssertions() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OntIndividual i1 = m.createIndividual("I1");
-        OntClass.Named c1 = m.createOntClass("C1");
-        OntClass.Named c2 = m.createOntClass("C2");
+        OntClass c1 = m.createOntClass("C1");
+        OntClass c2 = m.createOntClass("C2");
         OntIndividual i2 = c2.createIndividual();
         long size = 4;
 

@@ -33,7 +33,7 @@ import java.util.stream.Stream;
  * <p>
  * Created by @szuev on 08.11.2016.
  */
-public interface OntObjectProperty extends OntRealProperty {
+public interface OntObjectProperty extends OntRealProperty, AsNamed<OntObjectProperty.Named> {
 
     /**
      * {@inheritDoc}
@@ -107,6 +107,11 @@ public interface OntObjectProperty extends OntRealProperty {
      * @see #createPropertyChain(Collection)
      */
     OntObjectProperty removePropertyChain(Resource list) throws OntJenaException;
+
+    @Override
+    default Named asNamed() {
+        return as(Named.class);
+    }
 
     /**
      * Returns all ranges.
@@ -779,5 +784,10 @@ public interface OntObjectProperty extends OntRealProperty {
          * @return {@link Inverse} - an anonymous {@link OntObjectProperty} resource (fresh or existing)
          */
         Inverse createInverse();
+
+        @Override
+        default Named asNamed() {
+            return this;
+        }
     }
 }

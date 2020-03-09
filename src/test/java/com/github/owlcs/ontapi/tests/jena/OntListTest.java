@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -438,27 +438,27 @@ public class OntListTest {
     @Test
     public void testDisjointUnion() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntClass.Named clazz = m.createOntClass("c");
+        OntClass clazz = m.createOntClass("c");
         OntClass ce1, ce3, ce4;
         OntClass ce2 = m.createObjectComplementOf(ce1 = m.createOntClass("c1"));
         OntClass ce5 = m.createObjectUnionOf(ce3 = m.createOntClass("c3"), ce4 = m.createOntClass("c4"));
-        Assert.assertEquals(2, clazz.addDisjointUnionOfStatement(ce2, ce3).getObject(RDFList.class).size());
-        Assert.assertEquals(2, clazz.addDisjointUnionOfStatement(ce3, ce3, ce4).getObject(RDFList.class).size());
-        Assert.assertEquals(3, clazz.addDisjointUnionOfStatement(ce4, ce4, ce5, ce1, ce1)
+        Assert.assertEquals(2, clazz.asNamed().addDisjointUnionOfStatement(ce2, ce3).getObject(RDFList.class).size());
+        Assert.assertEquals(2, clazz.asNamed().addDisjointUnionOfStatement(ce3, ce3, ce4).getObject(RDFList.class).size());
+        Assert.assertEquals(3, clazz.asNamed().addDisjointUnionOfStatement(ce4, ce4, ce5, ce1, ce1)
                 .getObject(RDFList.class).size());
         debug(m);
-        Assert.assertEquals(3, clazz.disjointUnions().count());
+        Assert.assertEquals(3, clazz.asNamed().disjointUnions().count());
         Assert.assertEquals(3, m.classes().flatMap(OntClass.Named::disjointUnions).count());
 
-        OntList<OntClass> d23 = clazz.disjointUnions()
+        OntList<OntClass> d23 = clazz.asNamed().disjointUnions()
                 .filter(c -> c.first().filter(ce2::equals).isPresent())
                 .findFirst()
                 .orElseThrow(AssertionError::new);
-        OntList<OntClass> d34 = clazz.disjointUnions()
+        OntList<OntClass> d34 = clazz.asNamed().disjointUnions()
                 .filter(c -> c.last().filter(ce4::equals).isPresent())
                 .findFirst()
                 .orElseThrow(AssertionError::new);
-        OntList<OntClass> d451 = clazz.disjointUnions()
+        OntList<OntClass> d451 = clazz.asNamed().disjointUnions()
                 .filter(c -> c.last().filter(ce1::equals).isPresent())
                 .findFirst()
                 .orElseThrow(AssertionError::new);
@@ -470,12 +470,12 @@ public class OntListTest {
         d23.getMainStatement().addAnnotation(m.getRDFSLabel(), "ce2, ce3");
         debug(m);
         Assert.assertEquals(2, m.statements(null, RDF.type, OWL.Axiom).count());
-        clazz.removeDisjointUnion(d451);
+        clazz.asNamed().removeDisjointUnion(d451);
 
         debug(m);
         Assert.assertEquals(2, m.classes().flatMap(OntClass.Named::disjointUnions).count());
         Assert.assertEquals(1, m.statements(null, RDF.type, OWL.Axiom).count());
-        clazz.clearDisjointUnions();
+        clazz.asNamed().clearDisjointUnions();
         debug(m);
         Assert.assertEquals(12, m.size());
     }

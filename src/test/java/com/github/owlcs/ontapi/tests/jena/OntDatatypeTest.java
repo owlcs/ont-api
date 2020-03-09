@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -47,9 +47,9 @@ public class OntDatatypeTest {
         OntFacetRestriction f2 = m.createFacetRestriction(OntFacetRestriction.Pattern.class, m.createTypedLiteral("\\d+"));
         OntFacetRestriction f3 = m.createFacetRestriction(OntFacetRestriction.LangRange.class, m.createTypedLiteral("^r.*"));
 
-        OntDataRange.Named d1 = m.getDatatype(XSD.xstring);
+        OntDataRange d1 = m.getDatatype(XSD.xstring);
         OntDataRange d2 = m.createDataComplementOf(d1);
-        OntDataRange d3 = m.createDataRestriction(d1, f1, f2, f3);
+        OntDataRange d3 = m.createDataRestriction(d1.asNamed(), f1, f2, f3);
 
         ReadWriteUtils.print(m);
         Assert.assertEquals(3, m.ontObjects(OntFacetRestriction.class).count());
@@ -67,13 +67,15 @@ public class OntDatatypeTest {
     @Test
     public void testDatatypeEquivalentClass() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntDataRange.Named a = m.createDatatype("A");
-        OntDataRange.Named b = m.createDatatype("B");
-        OntDataRange.Named c = m.createDatatype("C");
-        Assert.assertNotNull(a.addEquivalentClassStatement(b));
-        Assert.assertSame(a, a.addEquivalentClass(c).addEquivalentClass(m.getRDFSLiteral()).removeEquivalentClass(b));
-        Assert.assertEquals(2, a.equivalentClasses().count());
-        Assert.assertSame(a, a.removeEquivalentClass(null));
+        OntDataRange a = m.createDatatype("A");
+        OntDataRange b = m.createDatatype("B");
+        OntDataRange c = m.createDatatype("C");
+        Assert.assertNotNull(a.asNamed().addEquivalentClassStatement(b));
+        Assert.assertSame(a, a.asNamed()
+                .addEquivalentClass(c)
+                .addEquivalentClass(m.getRDFSLiteral()).removeEquivalentClass(b));
+        Assert.assertEquals(2, a.asNamed().equivalentClasses().count());
+        Assert.assertSame(a, a.asNamed().removeEquivalentClass(null));
         Assert.assertEquals(3, m.size());
     }
 
@@ -137,12 +139,13 @@ public class OntDatatypeTest {
     @Test
     public void testFacetRestriction() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntDataRange.Named d1 = m.getDatatype(XSD.xstring);
-        OntDataRange.Named d2 = m.getDatatype(XSD.positiveInteger);
+        OntDataRange d1 = m.getDatatype(XSD.xstring);
+        OntDataRange d2 = m.getDatatype(XSD.positiveInteger);
 
-        OntDataRange.Restriction dr = m.createDataRestriction(d1);
+        OntDataRange.Restriction dr = m.createDataRestriction(d1.asNamed());
         Assert.assertTrue(dr.getList().isEmpty());
-        dr.addFacet(OntFacetRestriction.Pattern.class, d1.createLiteral(".*")).addFacet(OntFacetRestriction.Length.class, d2.createLiteral(21));
+        dr.addFacet(OntFacetRestriction.Pattern.class, d1.asNamed().createLiteral(".*"))
+                .addFacet(OntFacetRestriction.Length.class, d2.asNamed().createLiteral(21));
 
         Assert.assertEquals(2, dr.getList().size());
         Assert.assertEquals(9, m.size());

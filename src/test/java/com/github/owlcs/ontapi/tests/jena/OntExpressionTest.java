@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -98,9 +98,9 @@ public class OntExpressionTest {
     @Test
     public void testClassExpressionSubClassOf() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntClass.Named a = m.createOntClass("A");
-        OntClass.Named b = m.createOntClass("B");
-        OntClass.Named c = m.createOntClass("C");
+        OntClass a = m.createOntClass("A");
+        OntClass b = m.createOntClass("B");
+        OntClass c = m.createOntClass("C");
         Assert.assertNotNull(a.addSubClassOfStatement(b));
         Assert.assertSame(a, a.addSuperClass(c).addSuperClass(m.getOWLThing()).removeSuperClass(b));
         Assert.assertEquals(2, a.superClasses().count());
@@ -111,9 +111,9 @@ public class OntExpressionTest {
     @Test
     public void testClassExpressionDisjointWith() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntClass.Named a = m.createOntClass("A");
-        OntClass.Named b = m.createOntClass("B");
-        OntClass.Named c = m.createOntClass("C");
+        OntClass a = m.createOntClass("A");
+        OntClass b = m.createOntClass("B");
+        OntClass c = m.createOntClass("C");
         Assert.assertNotNull(a.addDisjointWithStatement(b));
         Assert.assertSame(a, a.addDisjointClass(c).addDisjointClass(m.getOWLThing()).removeDisjointClass(b));
         Assert.assertEquals(2, a.disjointClasses().count());
@@ -157,8 +157,8 @@ public class OntExpressionTest {
     @Test
     public void testComponentRestrictionValues() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntObjectProperty.Named po1 = m.createObjectProperty("PO1");
-        OntObjectProperty.Named po2 = m.createObjectProperty("PO2");
+        OntObjectProperty po1 = m.createObjectProperty("PO1");
+        OntObjectProperty po2 = m.createObjectProperty("PO2");
         OntDataProperty pd1 = m.createDataProperty("PD1");
         OntDataProperty pd2 = m.createDataProperty("PD2");
         OntDataRange.Named dt1 = m.createDatatype("DT1");
@@ -217,10 +217,10 @@ public class OntExpressionTest {
     @Test
     public void testClassExpressionComponents() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntClass.Named c1 = m.createOntClass("C1");
-        OntClass.Named c2 = m.createOntClass("C2");
-        OntClass.Named c3 = m.createOntClass("C3");
-        OntClass.Named c4 = m.createOntClass("C4");
+        OntClass c1 = m.createOntClass("C1");
+        OntClass c2 = m.createOntClass("C2");
+        OntClass c3 = m.createOntClass("C3");
+        OntClass c4 = m.createOntClass("C4");
         OntIndividual i1 = c1.createIndividual();
         OntIndividual i2 = c2.createIndividual("I2");
         OntIndividual i3 = c1.createIndividual();
@@ -258,7 +258,7 @@ public class OntExpressionTest {
         OntDataProperty dp1 = m.createDataProperty("DP1");
         OntDataProperty dp2 = m.createDataProperty("DP2");
         OntObjectProperty.Named op1 = m.createObjectProperty("OP1");
-        OntObjectProperty.Named op2 = m.createObjectProperty("OP2");
+        OntObjectProperty op2 = m.createObjectProperty("OP2");
 
         OntClass.DataAllValuesFrom r1 = m.createDataAllValuesFrom(dp1, dt1);
         Assert.assertEquals(dp1, r1.getProperty());

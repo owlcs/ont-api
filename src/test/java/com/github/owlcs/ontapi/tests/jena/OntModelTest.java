@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -795,15 +795,17 @@ public class OntModelTest {
                 .getModel();
 
         OntDataProperty ndp1 = m.createDataProperty(ns + "dataProperty1");
-        OntDataRange.Named dt1 = m.createOntEntity(OntDataRange.Named.class, ns + "dataType1");
-        dt1.addEquivalentClass(m.getDatatype(XSD.dateTime));
+        OntDataRange dt1 = m.createOntEntity(OntDataRange.Named.class, ns + "dataType1");
+        dt1.asNamed().addEquivalentClass(m.getDatatype(XSD.dateTime));
 
         OntDataRange.Named dt2 = m.createOntEntity(OntDataRange.Named.class, ns + "dataType2");
 
-        OntFacetRestriction fr1 = m.createFacetRestriction(OntFacetRestriction.MaxExclusive.class, ResourceFactory.createTypedLiteral(12));
-        OntFacetRestriction fr2 = m.createFacetRestriction(OntFacetRestriction.LangRange.class, ResourceFactory.createTypedLiteral("\\d+"));
+        OntFacetRestriction fr1 = m.createFacetRestriction(OntFacetRestriction.MaxExclusive.class,
+                ResourceFactory.createTypedLiteral(12));
+        OntFacetRestriction fr2 = m.createFacetRestriction(OntFacetRestriction.LangRange.class,
+                ResourceFactory.createTypedLiteral("\\d+"));
 
-        OntDataRange dr1 = m.createDataRestriction(dt1, fr1, fr2);
+        OntDataRange dr1 = m.createDataRestriction(dt1.asNamed(), fr1, fr2);
 
         OntClass ce1 = m.createDataSomeValuesFrom(ndp1, dr1);
 
@@ -812,7 +814,8 @@ public class OntModelTest {
         OntClass ce2 = m.createDataMaxCardinality(ndp1, 343434, dr2);
         i1.attachClass(ce2).attachClass(m.createOntClass(ns + "Class1"));
 
-        OntDataRange dr3 = m.createDataOneOf(m.getDatatype(XSD.integer).createLiteral(1), dt1.createLiteral(2));
+        OntDataRange dr3 = m.createDataOneOf(m.getDatatype(XSD.integer).createLiteral(1),
+                dt1.asNamed().createLiteral(2));
         OntDataRange dr4 = m.createDataComplementOf(dr3);
         m.createOntEntity(OntDataRange.Named.class, ns + "dataType3")
                 .addEquivalentClass(m.createDataUnionOf(dr1, dr2, m.createDataIntersectionOf(dr1, dr4)));

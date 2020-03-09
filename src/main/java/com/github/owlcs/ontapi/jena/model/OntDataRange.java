@@ -34,7 +34,12 @@ import java.util.stream.Stream;
  * @see <a href='https://www.w3.org/TR/owl2-quick-reference/#Data_Ranges'>2.4 Data Ranges</a>
  * @see <a href='https://www.w3.org/TR/owl2-syntax/#Data_Ranges'>7 Data Ranges</a>
  */
-public interface OntDataRange extends OntObject {
+public interface OntDataRange extends OntObject, AsNamed<OntDataRange.Named> {
+
+    @Override
+    default Named asNamed() {
+        return as(Named.class);
+    }
 
     /**
      * Returns a data range arity.
@@ -124,6 +129,11 @@ public interface OntDataRange extends OntObject {
      * @see <a href='https://www.w3.org/TR/owl2-syntax/#Datatypes'>5.2 Datatypes</a>
      */
     interface Named extends OntEntity, OntDataRange {
+
+        @Override
+        default Named asNamed() {
+            return this;
+        }
 
         /**
          * Lists all equivalent data ranges.
