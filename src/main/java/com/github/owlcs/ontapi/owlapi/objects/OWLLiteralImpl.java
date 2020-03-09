@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,6 +14,14 @@
 
 package com.github.owlcs.ontapi.owlapi.objects;
 
+import com.github.owlcs.ontapi.AsNode;
+import com.github.owlcs.ontapi.jena.utils.Iter;
+import com.github.owlcs.ontapi.jena.vocabulary.RDF;
+import com.github.owlcs.ontapi.jena.vocabulary.XSD;
+import com.github.owlcs.ontapi.owlapi.InternalizedEntities;
+import com.github.owlcs.ontapi.owlapi.OWLObjectImpl;
+import com.github.owlcs.ontapi.owlapi.objects.entity.OWLBuiltinDatatypeImpl;
+import com.github.owlcs.ontapi.owlapi.objects.entity.OWLDatatypeImpl;
 import org.apache.jena.datatypes.BaseDatatype;
 import org.apache.jena.datatypes.RDFDatatype;
 import org.apache.jena.datatypes.TypeMapper;
@@ -23,14 +31,8 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.impl.LiteralLabel;
 import org.apache.jena.graph.impl.LiteralLabelFactory;
+import org.apache.jena.rdf.model.Resource;
 import org.semanticweb.owlapi.model.*;
-import com.github.owlcs.ontapi.AsNode;
-import com.github.owlcs.ontapi.jena.vocabulary.RDF;
-import com.github.owlcs.ontapi.jena.vocabulary.XSD;
-import com.github.owlcs.ontapi.owlapi.InternalizedEntities;
-import com.github.owlcs.ontapi.owlapi.OWLObjectImpl;
-import com.github.owlcs.ontapi.owlapi.objects.entity.OWLBuiltinDatatypeImpl;
-import com.github.owlcs.ontapi.owlapi.objects.entity.OWLDatatypeImpl;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -40,6 +42,7 @@ import java.lang.reflect.Field;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * An ONT-API implementation of {@link OWLLiteral}, encapsulated {@link LiteralLabel Jena Literal Label}.
@@ -48,6 +51,9 @@ import java.util.Set;
  */
 @SuppressWarnings("WeakerAccess")
 public class OWLLiteralImpl extends OWLObjectImpl implements OWLLiteral, AsNode {
+
+    private static final Set<String> NUMBER_DATATYPES = Stream.of(XSD.integer, XSD.xfloat, XSD.xdouble)
+            .map(Resource::getURI).collect(Iter.toUnmodifiableSet());
 
     protected static TypeMapper typeMapper = TypeMapper.getInstance();
 
@@ -299,10 +305,10 @@ public class OWLLiteralImpl extends OWLObjectImpl implements OWLLiteral, AsNode 
     protected static int calcLiteralLabelHashCode(LiteralLabel label) {
         if (label.isWellFormedRaw()) {
             Object value = label.getValue();
-            if (value instanceof Number) {
+            String dtURI = label.getDatatypeURI();
+            if (value instanceof Number && NUMBER_DATATYPES.contains(dtURI)) {
                 return ((Number) value).intValue();
-            }
-            if (value instanceof Boolean) {
+            } else if (value instanceof Boolean && XSD.xboolean.getURI().equals(dtURI)) {
                 return (Boolean) value ? 1 : 0;
             }
         }

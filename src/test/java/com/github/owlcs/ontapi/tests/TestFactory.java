@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -1335,6 +1335,39 @@ public class TestFactory {
                     @Override
                     public String toString() {
                         return "df.getOWLLiteral(\"05\", OWL2Datatype.XSD_INTEGER)";
+                    }
+                }
+                , new LiteralData() {
+                    @Override
+                    public OWLLiteral create(OWLDataFactory df) {
+                        return df.getOWLLiteral("1998", OWL2Datatype.XSD_POSITIVE_INTEGER);
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLLiteral(\"1998\", OWL2Datatype.XSD_POSITIVE_INTEGER)";
+                    }
+                }
+                , new LiteralData() {
+                    @Override
+                    public OWLLiteral create(OWLDataFactory df) {
+                        return df.getOWLLiteral("test", OWL2Datatype.XSD_INT);
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLLiteral(\"test\", OWL2Datatype.XSD_INT)";
+                    }
+                }
+                , new LiteralData() {
+                    @Override
+                    public OWLLiteral create(OWLDataFactory df) {
+                        return df.getOWLLiteral("-1", df.getOWLDatatype("http://www.w3.org/2001/XMLSchema#short"));
+                    }
+
+                    @Override
+                    public String toString() {
+                        return "df.getOWLLiteral(\"-1\", df.getOWLDatatype(\"http://www.w3.org/2001/XMLSchema#short\"))";
                     }
                 }
                 , new LiteralData() {
