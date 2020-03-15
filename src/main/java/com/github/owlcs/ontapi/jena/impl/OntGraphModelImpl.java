@@ -35,7 +35,9 @@ import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDFS;
 
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Reader;
 import java.io.Writer;
 import java.util.*;
 import java.util.function.Predicate;
@@ -983,6 +985,30 @@ public class OntGraphModelImpl extends UnionModel implements OntModel, Personali
     }
 
     @Override
+    public OntGraphModelImpl add(Statement[] statements) {
+        super.add(statements);
+        return this;
+    }
+
+    @Override
+    public OntGraphModelImpl remove(Statement[] statements) {
+        super.remove(statements);
+        return this;
+    }
+
+    @Override
+    public OntGraphModelImpl add(List<Statement> statements) {
+        super.add(statements);
+        return this;
+    }
+
+    @Override
+    public OntGraphModelImpl remove(List<Statement> statements) {
+        super.remove(statements);
+        return this;
+    }
+
+    @Override
     public OntGraphModelImpl removeAll(Resource s, Property p, RDFNode o) {
         super.removeAll(s, p, o);
         return this;
@@ -991,6 +1017,115 @@ public class OntGraphModelImpl extends UnionModel implements OntModel, Personali
     @Override
     public OntGraphModelImpl removeAll() {
         super.removeAll();
+        return this;
+    }
+
+    @Override
+    public OntGraphModelImpl addLiteral(Resource s, Property p, boolean v) {
+        super.addLiteral(s, p, v);
+        return this;
+    }
+
+    @Override
+    public OntGraphModelImpl addLiteral(Resource s, Property p, long v) {
+        super.addLiteral(s, p, v);
+        return this;
+    }
+
+    @Override
+    public OntGraphModelImpl addLiteral(Resource s, Property p, int v) {
+        super.addLiteral(s, p, v);
+        return this;
+    }
+
+    @Override
+    public OntGraphModelImpl addLiteral(Resource s, Property p, char v) {
+        super.addLiteral(s, p, v);
+        return this;
+    }
+
+    @Override
+    public OntGraphModelImpl addLiteral(Resource s, Property p, float v) {
+        super.addLiteral(s, p, v);
+        return this;
+    }
+
+    @Override
+    public OntGraphModelImpl addLiteral(Resource s, Property p, double v) {
+        super.addLiteral(s, p, v);
+        return this;
+    }
+
+    @Override
+    public OntGraphModelImpl addLiteral(Resource s, Property p, Literal o) {
+        super.addLiteral(s, p, o);
+        return this;
+    }
+
+    @Override
+    public OntGraphModelImpl add(Resource s, Property p, String lex) {
+        super.add(s, p, lex);
+        return this;
+    }
+
+    @Override
+    public OntGraphModelImpl add(Resource s, Property p, String lex, RDFDatatype datatype) {
+        super.add(s, p, lex, datatype);
+        return this;
+    }
+
+    @Override
+    public OntGraphModelImpl add(Resource s, Property p, String lex, boolean wellFormed) {
+        super.add(s, p, lex, wellFormed);
+        return this;
+    }
+
+    @Override
+    public OntGraphModelImpl add(Resource s, Property p, String lex, String lang) {
+        super.add(s, p, lex, lang);
+        return this;
+    }
+
+
+    @Override
+    public OntGraphModelImpl read(String url) {
+        super.read(url);
+        return this;
+    }
+
+    @Override
+    public OntGraphModelImpl read(Reader reader, String base) {
+        super.read(reader, base);
+        return this;
+    }
+
+    @Override
+    public OntGraphModelImpl read(InputStream reader, String base) {
+        super.read(reader, base);
+        return this;
+    }
+
+    @Override
+    public OntGraphModelImpl read(String url, String lang) {
+        super.read(url, lang);
+        return this;
+    }
+
+    @Override
+    public OntGraphModelImpl read(String url, String base, String lang) {
+        super.read(url, base, lang);
+        return this;
+    }
+
+    @Override
+    public OntGraphModelImpl read(Reader reader, String base, String lang) {
+        super.read(reader, base, lang);
+        return this;
+    }
+
+    @Override
+    public OntGraphModelImpl read(InputStream reader, String base, String lang) {
+        super.read(reader, base, lang);
         return this;
     }
 

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -333,8 +333,8 @@ public class CommonManagerTest {
         OntModelSpec spec = OntModelSpec.OWL_DL_MEM;
         FileManager jenaFileManager = spec.getDocumentManager().getFileManager();
         SpinModels.addMappings(jenaFileManager);
-        org.apache.jena.ontology.OntModel ontologyModel = ModelFactory.createOntologyModel(spec);
-        ontologyModel.read(SpinModels.SPINMAPL.getIRI().getIRIString(), "ttl");
+        org.apache.jena.ontology.OntModel jenaModel = ModelFactory.createOntologyModel(spec);
+        jenaModel.read(SpinModels.SPINMAPL.getIRI().getIRIString(), "ttl");
 
         LOGGER.debug("Load spin-rdf ontology family using file-iri-mappings");
         OntologyManager m1 = OntManagers.createONT();
@@ -344,7 +344,7 @@ public class CommonManagerTest {
 
         LOGGER.debug("Pass ready composite graph to the manager as-is");
         OntologyManager m2 = OntManagers.createONT();
-        m2.addOntology(ontologyModel.getGraph());
+        m2.addOntology(jenaModel.getGraph());
         long actual = m2.ontologies().count();
 
         Assert.assertEquals("Counts of ontologies does not match", expected, actual);

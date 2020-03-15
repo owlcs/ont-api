@@ -22,11 +22,9 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.reasoner.Reasoner;
-import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.vocabulary.RDFS;
 
 import java.util.Collection;
-import java.util.Map;
 import java.util.stream.Stream;
 
 /**
@@ -63,7 +61,9 @@ import java.util.stream.Stream;
  * @see <a href='https://www.w3.org/TR/owl2-syntax/'>OWL 2 Web Ontology Language Structural Specification and Functional-Style Syntax (Second Edition)</a>
  * @see <a href='https://www.w3.org/Submission/SWRL/'>SWRL: A Semantic Web Rule Language Combining OWL and RuleML</a>
  */
-public interface OntModel extends Model, CreateClasses, CreateRanges, CreateDisjoint, CreateSWRL {
+public interface OntModel extends Model,
+        MutationModel<OntModel>, PrefixedModel<OntModel>, IOModel<OntModel>,
+        CreateClasses, CreateRanges, CreateDisjoint, CreateSWRL {
 
     /**
      * Returns the base {@code Graph},
@@ -75,29 +75,6 @@ public interface OntModel extends Model, CreateClasses, CreateRanges, CreateDisj
      * @see #getGraph()
      */
     Graph getBaseGraph();
-
-    /**
-     * Returns the {@link Model standard jena model} that corresponds to the {@link #getBaseGraph() base graph}.
-     * Note: there is the {@link org.apache.jena.enhanced.BuiltinPersonalities#model Jena Builtin Personality}
-     * within the returned model.
-     *
-     * @return {@link Model}
-     * @see #getBaseGraph()
-     */
-    Model getBaseModel();
-
-    /**
-     * Creates an inference model shadow using this model as data.
-     * Note(1): there is the {@link org.apache.jena.enhanced.BuiltinPersonalities#model Jena Builtin Personality}
-     * within the returned model.
-     * Note(2): any changes in the returned {@link InfModel Inference Model} do not affect on this model.
-     *
-     * @param reasoner {@link Reasoner}, not {@code null}
-     * @return {@link InfModel}
-     * @throws org.apache.jena.reasoner.ReasonerException if the data is ill-formed according to the
-     *                                                    constraints imposed by this reasoner.
-     */
-    InfModel getInferenceModel(Reasoner reasoner);
 
     /**
      * Gets an Ontology ID object.
@@ -361,65 +338,28 @@ public interface OntModel extends Model, CreateClasses, CreateRanges, CreateDisj
      */
     <F extends OntFacetRestriction> F createFacetRestriction(Class<F> type, Literal literal);
 
-    /*
-     * ================================================
-     * Overridden methods inherited from PrefixMapping:
-     * ================================================
+    /**
+     * Returns the {@link Model standard jena model} that corresponds to the {@link #getBaseGraph() base graph}.
+     * Note: there is the {@link org.apache.jena.enhanced.BuiltinPersonalities#model Jena Builtin Personality}
+     * within the returned model.
+     *
+     * @return {@link Model}
+     * @see #getBaseGraph()
      */
+    Model getBaseModel();
 
-    @Override
-    OntModel setNsPrefix(String prefix, String uri);
-
-    @Override
-    OntModel removeNsPrefix(String prefix);
-
-    @Override
-    OntModel clearNsPrefixMap();
-
-    @Override
-    OntModel setNsPrefixes(PrefixMapping other);
-
-    @Override
-    OntModel setNsPrefixes(Map<String, String> map);
-
-    @Override
-    OntModel withDefaultMappings(PrefixMapping map);
-
-    /*
-     * =====================================================
-     * Overridden methods inherited from Model and ModelCon:
-     * =====================================================
+    /**
+     * Creates an inference model shadow using this model as data.
+     * Note(1): there is the {@link org.apache.jena.enhanced.BuiltinPersonalities#model Jena Builtin Personality}
+     * within the returned model.
+     * Note(2): any changes in the returned {@link InfModel Inference Model} do not affect on this model.
+     *
+     * @param reasoner {@link Reasoner}, not {@code null}
+     * @return {@link InfModel}
+     * @throws org.apache.jena.reasoner.ReasonerException if the data is ill-formed according to the
+     *                                                    constraints imposed by this reasoner.
      */
-
-    @Override
-    OntModel add(Statement s);
-
-    @Override
-    OntModel remove(Statement s);
-
-    @Override
-    OntModel add(Resource s, Property p, RDFNode o);
-
-    @Override
-    OntModel remove(Resource s, Property p, RDFNode o);
-
-    @Override
-    OntModel add(Model m);
-
-    @Override
-    OntModel remove(Model m);
-
-    @Override
-    OntModel add(StmtIterator i);
-
-    @Override
-    OntModel remove(StmtIterator i);
-
-    @Override
-    OntModel removeAll(Resource s, Property p, RDFNode o);
-
-    @Override
-    OntModel removeAll();
+    InfModel getInferenceModel(Reasoner reasoner);
 
     /*
      * ===================================
