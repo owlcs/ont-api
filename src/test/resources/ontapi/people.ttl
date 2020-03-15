@@ -1,16 +1,16 @@
 @prefix :      <http://owl.man.ac.uk/2006/07/sssw/people#> .
-@prefix owl:   <http://www.w3.org/2002/07/owl#> .
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
-@prefix ns0:   <http://owl.man.ac.uk/2006/07/sssw/people#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix ns0:   <http://owl.man.ac.uk/2006/07/sssw/people#> .
 
 ns0:lorry  a             owl:Class ;
         rdfs:comment     "" ;
         rdfs:label       "lorry" ;
         rdfs:subClassOf  ns0:vehicle .
 
-ns0:Louie  a          owl:NamedIndividual , ns0:duck ;
+ns0:Louie  a          ns0:duck , owl:NamedIndividual ;
         rdfs:comment  "" ;
         rdfs:label    "Louie" .
 
@@ -44,7 +44,7 @@ ns0:animal_lover  a          owl:Class ;
                                                    )
                              ] .
 
-ns0:Rex  a             owl:NamedIndividual , ns0:dog ;
+ns0:Rex  a             ns0:dog , owl:NamedIndividual ;
         rdfs:comment   "" ;
         rdfs:label     "Rex" ;
         ns0:is_pet_of  ns0:Mick .
@@ -54,12 +54,12 @@ ns0:reads  a          owl:ObjectProperty ;
         rdfs:label    "reads" ;
         rdfs:range    ns0:publication .
 
-ns0:Walt  a           owl:NamedIndividual , ns0:person ;
+ns0:Walt  a           ns0:person , owl:NamedIndividual ;
         rdfs:comment  "" ;
         rdfs:label    "Walt" ;
-        ns0:has_pet   ns0:Huey , ns0:Louie , ns0:Dewey .
+        ns0:has_pet   ns0:Dewey , ns0:Louie , ns0:Huey .
 
-ns0:The_Times  a      owl:NamedIndividual , ns0:broadsheet ;
+ns0:The_Times  a      ns0:broadsheet , owl:NamedIndividual ;
         rdfs:comment  "" ;
         rdfs:label    "The Times" .
 
@@ -68,7 +68,7 @@ ns0:red_top  a           owl:Class ;
         rdfs:label       "red top" ;
         rdfs:subClassOf  ns0:tabloid .
 
-ns0:The_Sun  a        owl:NamedIndividual , ns0:tabloid ;
+ns0:The_Sun  a        ns0:tabloid , owl:NamedIndividual ;
         rdfs:comment  "" ;
         rdfs:label    "The Sun" .
 
@@ -99,7 +99,7 @@ ns0:cow  a               owl:Class ;
         rdfs:label       "cow" ;
         rdfs:subClassOf  ns0:vegetarian .
 
-ns0:Fred  a           owl:NamedIndividual , ns0:person ;
+ns0:Fred  a           ns0:person , owl:NamedIndividual ;
         rdfs:comment  "" ;
         rdfs:label    "Fred" ;
         ns0:has_pet   ns0:Tibbs .
@@ -110,7 +110,7 @@ ns0:quality_broadsheet
         rdfs:label       "quality broadsheet" ;
         rdfs:subClassOf  ns0:broadsheet .
 
-ns0:Spike  a           owl:NamedIndividual , owl:Thing ;
+ns0:Spike  a           owl:Thing , owl:NamedIndividual ;
         rdfs:comment   "" ;
         rdfs:label     "Spike" ;
         ns0:is_pet_of  ns0:Pete .
@@ -177,13 +177,30 @@ ns0:vehicle  a        owl:Class ;
         rdfs:comment  "" ;
         rdfs:label    "vehicle" .
 
-ns0:The_Guardian  a   owl:NamedIndividual , ns0:broadsheet ;
+ns0:The_Guardian  a   ns0:broadsheet , owl:NamedIndividual ;
         rdfs:comment  "" ;
         rdfs:label    "The Guardian" .
 
-ns0:Tibbs  a          owl:NamedIndividual , ns0:cat ;
+ns0:Tibbs  a          ns0:cat , owl:NamedIndividual ;
         rdfs:comment  "" ;
         rdfs:label    "Tibbs" .
+
+[ a                 owl:Class ;
+  owl:disjointWith  [ a            owl:Class ;
+                      owl:unionOf  ( [ a                   owl:Restriction ;
+                                       owl:onProperty      ns0:part_of ;
+                                       owl:someValuesFrom  ns0:animal
+                                     ]
+                                     ns0:animal
+                                   )
+                    ] ;
+  owl:unionOf       ( ns0:plant
+                      [ a                   owl:Restriction ;
+                        owl:onProperty      ns0:part_of ;
+                        owl:someValuesFrom  ns0:plant
+                      ]
+                    )
+] .
 
 ns0:kid  a                   owl:Class ;
         rdfs:comment         "" ;
@@ -207,6 +224,10 @@ ns0:drives  a         owl:ObjectProperty ;
         rdfs:comment  "" ;
         rdfs:label    "drives" .
 
+_:b0    a             ns0:cow ;
+        rdfs:comment  "An anonymous cow" ;
+        rdfs:label    "AnonymousCowN2" .
+
 ns0:plant  a          owl:Class ;
         rdfs:comment  "" ;
         rdfs:label    "plant" .
@@ -217,10 +238,6 @@ ns0:woman  a                 owl:Class ;
         owl:equivalentClass  [ a                   owl:Class ;
                                owl:intersectionOf  ( ns0:adult ns0:female ns0:person )
                              ] .
-
-[ a                    owl:AllDifferent ;
-  owl:distinctMembers  ( ns0:Dewey ns0:Fido ns0:Flossie ns0:Fluffy ns0:Fred ns0:Huey ns0:Joe ns0:Kevin ns0:Louie ns0:Mick ns0:Minnie ns0:Q123_ABC ns0:Rex ns0:The_Guardian ns0:The_Sun ns0:The_Times ns0:Tibbs ns0:Walt )
-] .
 
 ns0:vegetarian  a            owl:Class ;
         rdfs:comment         "A vegetarian is defined as an animal that eats no other animals, or parts of animals." ;
@@ -258,12 +275,15 @@ ns0:eats  a            owl:ObjectProperty ;
         rdfs:label     "eats" ;
         owl:inverseOf  ns0:eaten_by .
 
+ns0:with_anonymous_individuals
+        a       owl:AnnotationProperty .
+
 ns0:grass  a             owl:Class ;
         rdfs:comment     "" ;
         rdfs:label       "grass" ;
         rdfs:subClassOf  ns0:plant .
 
-ns0:Fido  a           owl:NamedIndividual , ns0:dog ;
+ns0:Fido  a           ns0:dog , owl:NamedIndividual ;
         rdfs:comment  "" ;
         rdfs:label    "Fido" .
 
@@ -276,17 +296,18 @@ ns0:giraffe  a           owl:Class ;
                            owl:onProperty     ns0:eats
                          ] .
 
-ns0:Kevin  a          owl:NamedIndividual , ns0:person ;
-        rdfs:comment  "" ;
-        rdfs:label    "Kevin" ;
-        ns0:has_pet   ns0:Fluffy , ns0:Flossie .
-
 [ a                      owl:Axiom ;
   ns0:short_name         "yes" ;
   owl:annotatedProperty  rdfs:label ;
   owl:annotatedSource    ns0:mad_cow ;
   owl:annotatedTarget    "mad cow"
 ] .
+
+ns0:Kevin  a                            owl:NamedIndividual , ns0:person ;
+        rdfs:comment                    "" ;
+        rdfs:label                      "Kevin" ;
+        ns0:has_pet                     _:b1 , _:b0 , ns0:Fluffy , ns0:Flossie ;
+        ns0:with_anonymous_individuals  _:b1 , _:b0 .
 
 ns0:haulage_truck_driver
         a                    owl:Class ;
@@ -344,23 +365,6 @@ ns0:bus  a               owl:Class ;
         rdfs:label       "bus" ;
         rdfs:subClassOf  ns0:vehicle .
 
-[ a                 owl:Class ;
-  owl:disjointWith  [ a            owl:Class ;
-                      owl:unionOf  ( [ a                   owl:Restriction ;
-                                       owl:onProperty      ns0:part_of ;
-                                       owl:someValuesFrom  ns0:animal
-                                     ]
-                                     ns0:animal
-                                   )
-                    ] ;
-  owl:unionOf       ( ns0:plant
-                      [ a                   owl:Restriction ;
-                        owl:onProperty      ns0:part_of ;
-                        owl:someValuesFrom  ns0:plant
-                      ]
-                    )
-] .
-
 ns0:bone  a           owl:Class ;
         rdfs:comment  "" ;
         rdfs:label    "bone" .
@@ -378,7 +382,7 @@ ns0:animal  a            owl:Class ;
                            owl:someValuesFrom  owl:Thing
                          ] .
 
-ns0:Huey  a           owl:NamedIndividual , ns0:duck ;
+ns0:Huey  a           ns0:duck , owl:NamedIndividual ;
         rdfs:comment  "" ;
         rdfs:label    "Huey" .
 
@@ -418,13 +422,13 @@ ns0:dog_liker  a             owl:Class ;
 
 ns0:short_name  a  owl:AnnotationProperty .
 
-ns0:Mick  a           owl:NamedIndividual , ns0:male ;
+ns0:Mick  a           ns0:male , owl:NamedIndividual ;
         rdfs:comment  "Mick is male and drives a white van. " ;
         rdfs:label    "Mick" ;
         ns0:drives    ns0:Q123_ABC ;
         ns0:reads     ns0:Daily_Mirror .
 
-ns0:Minnie  a         owl:NamedIndividual , ns0:elderly , ns0:female ;
+ns0:Minnie  a         ns0:female , ns0:elderly , owl:NamedIndividual ;
         rdfs:comment  "" ;
         rdfs:label    "Minnie" ;
         ns0:has_pet   ns0:Tom .
@@ -436,6 +440,10 @@ ns0:publication  a    owl:Class ;
 ns0:female  a         owl:Class ;
         rdfs:comment  "" ;
         rdfs:label    "female" .
+
+ns0:Fluffy  a         ns0:tiger , owl:NamedIndividual ;
+        rdfs:comment  "" ;
+        rdfs:label    "Fluffy" .
 
 ns0:cat_owner  a             owl:Class ;
         rdfs:comment         "" ;
@@ -449,16 +457,12 @@ ns0:cat_owner  a             owl:Class ;
                                                    )
                              ] .
 
-ns0:Fluffy  a         owl:NamedIndividual , ns0:tiger ;
-        rdfs:comment  "" ;
-        rdfs:label    "Fluffy" .
-
 ns0:bicycle  a           owl:Class ;
         rdfs:comment     "A human propelled vehicle, with two wheels" ;
         rdfs:label       "bicycle" ;
         rdfs:subClassOf  ns0:vehicle .
 
-ns0:Q123_ABC  a       owl:NamedIndividual , ns0:van , ns0:white_thing ;
+ns0:Q123_ABC  a       ns0:white_thing , ns0:van , owl:NamedIndividual ;
         rdfs:comment  "A white van" ;
         rdfs:label    "Q123 ABC" .
 
@@ -474,18 +478,22 @@ ns0:magazine  a          owl:Class ;
         rdfs:label       "magazine" ;
         rdfs:subClassOf  ns0:publication .
 
+_:b1    a             ns0:cow ;
+        rdfs:comment  "An anonymous cow" ;
+        rdfs:label    "AnonymousCowN1" .
+
+ns0:Daily_Mirror  a   owl:Thing , owl:NamedIndividual ;
+        rdfs:comment  "The paper read by Mick." ;
+        rdfs:label    "Daily Mirror" .
+
+ns0:Dewey  a          ns0:duck , owl:NamedIndividual ;
+        rdfs:comment  "" ;
+        rdfs:label    "Dewey" .
+
 ns0:person  a            owl:Class ;
         rdfs:comment     "" ;
         rdfs:label       "person" ;
         rdfs:subClassOf  ns0:animal .
-
-ns0:Daily_Mirror  a   owl:NamedIndividual , owl:Thing ;
-        rdfs:comment  "The paper read by Mick." ;
-        rdfs:label    "Daily Mirror" .
-
-ns0:Dewey  a          owl:NamedIndividual , ns0:duck ;
-        rdfs:comment  "" ;
-        rdfs:label    "Dewey" .
 
 owl:Thing  a    owl:Class .
 
@@ -526,26 +534,12 @@ ns0:cat  a                owl:Class ;
         rdfs:subClassOf   ns0:animal ;
         owl:disjointWith  ns0:dog .
 
-[ a                      owl:Axiom ;
-  ns0:short_name         "no" ;
-  owl:annotatedProperty  rdfs:comment ;
-  owl:annotatedSource    ns0:mad_cow ;
-  owl:annotatedTarget    "A mad cow is a cow that has been eating the brains of sheep."
-] .
-
-[ a                      owl:Axiom ;
-  ns0:short_name         "no" ;
-  owl:annotatedProperty  rdfs:comment ;
-  owl:annotatedSource    ns0:vegetarian ;
-  owl:annotatedTarget    "A vegetarian is defined as an animal that eats no other animals, or parts of animals."
-] .
-
 ns0:part_of  a         owl:ObjectProperty ;
         rdfs:comment   "" ;
         rdfs:label     "part_of" ;
         owl:inverseOf  ns0:has_part .
 
-ns0:Joe  a            owl:NamedIndividual , ns0:person ;
+ns0:Joe  a            ns0:person , owl:NamedIndividual ;
         a             [ a                   owl:Restriction ;
                         owl:maxCardinality  "1"^^xsd:nonNegativeInteger ;
                         owl:onProperty      ns0:has_pet
@@ -577,10 +571,12 @@ ns0:old_lady  a              owl:Class ;
                                owl:intersectionOf  ( ns0:female ns0:person ns0:elderly )
                              ] .
 
-ns0:van  a               owl:Class ;
-        rdfs:comment     "" ;
-        rdfs:label       "van" ;
-        rdfs:subClassOf  ns0:vehicle .
+[ a                      owl:Axiom ;
+  ns0:short_name         "no" ;
+  owl:annotatedProperty  rdfs:comment ;
+  owl:annotatedSource    ns0:vegetarian ;
+  owl:annotatedTarget    "A vegetarian is defined as an animal that eats no other animals, or parts of animals."
+] .
 
 ns0:lorry_driver  a          owl:Class ;
         rdfs:comment         "" ;
@@ -594,14 +590,27 @@ ns0:lorry_driver  a          owl:Class ;
                                                    )
                              ] .
 
+ns0:van  a               owl:Class ;
+        rdfs:comment     "" ;
+        rdfs:label       "van" ;
+        rdfs:subClassOf  ns0:vehicle .
+
+ns0:white_thing  a    owl:Class ;
+        rdfs:comment  "" ;
+        rdfs:label    "white thing" .
+
 ns0:eaten_by  a        owl:ObjectProperty ;
         rdfs:comment   "" ;
         rdfs:label     "eaten_by" ;
         owl:inverseOf  ns0:eats .
 
-ns0:white_thing  a    owl:Class ;
+ns0:company  a        owl:Class ;
         rdfs:comment  "" ;
-        rdfs:label    "white thing" .
+        rdfs:label    "company" .
+
+ns0:has_child  a      owl:ObjectProperty ;
+        rdfs:comment  "" ;
+        rdfs:label    "has_child" .
 
 ns0:driver  a                owl:Class ;
         rdfs:comment         "" ;
@@ -616,31 +625,30 @@ ns0:driver  a                owl:Class ;
                                                    )
                              ] .
 
-ns0:has_child  a      owl:ObjectProperty ;
-        rdfs:comment  "" ;
-        rdfs:label    "has_child" .
-
-ns0:company  a        owl:Class ;
-        rdfs:comment  "" ;
-        rdfs:label    "company" .
+[ a                      owl:Axiom ;
+  ns0:short_name         "no" ;
+  owl:annotatedProperty  rdfs:comment ;
+  owl:annotatedSource    ns0:mad_cow ;
+  owl:annotatedTarget    "A mad cow is a cow that has been eating the brains of sheep."
+] .
 
 ns0:truck  a             owl:Class ;
         rdfs:comment     "" ;
         rdfs:label       "truck" ;
         rdfs:subClassOf  ns0:vehicle .
 
-ns0:Pete  a           owl:NamedIndividual , owl:Thing ;
+ns0:Pete  a           owl:Thing , owl:NamedIndividual ;
         rdfs:comment  "" ;
         rdfs:label    "Pete" .
-
-ns0:adult  a          owl:Class ;
-        rdfs:comment  "Things that are adult." ;
-        rdfs:label    "adult" .
 
 ns0:broadsheet  a        owl:Class ;
         rdfs:comment     "A newspaper. Broadsheets are usually considered to be more \"high-brow\" than tabloids." ;
         rdfs:label       "broadsheet" ;
         rdfs:subClassOf  ns0:newspaper .
+
+ns0:adult  a          owl:Class ;
+        rdfs:comment  "Things that are adult." ;
+        rdfs:label    "adult" .
 
 ns0:bus_driver  a            owl:Class ;
         rdfs:comment         "Someone who drives a bus." ;
@@ -673,14 +681,6 @@ ns0:elderly  a           owl:Class ;
         rdfs:label       "elderly" ;
         rdfs:subClassOf  ns0:adult .
 
-ns0:newspaper  a         owl:Class ;
-        rdfs:comment     "All newspapers are either broadsheets or tabloids." ;
-        rdfs:label       "newspaper" ;
-        rdfs:subClassOf  ns0:publication ;
-        rdfs:subClassOf  [ a            owl:Class ;
-                           owl:unionOf  ( ns0:tabloid ns0:broadsheet )
-                         ] .
-
 ns0:cat_liker  a             owl:Class ;
         rdfs:comment         "" ;
         rdfs:label           "cat liker" ;
@@ -693,9 +693,24 @@ ns0:cat_liker  a             owl:Class ;
                                                    )
                              ] .
 
-ns0:Flossie  a        owl:NamedIndividual , ns0:cow ;
+ns0:newspaper  a         owl:Class ;
+        rdfs:comment     "All newspapers are either broadsheets or tabloids." ;
+        rdfs:label       "newspaper" ;
+        rdfs:subClassOf  ns0:publication ;
+        rdfs:subClassOf  [ a            owl:Class ;
+                           owl:unionOf  ( ns0:tabloid ns0:broadsheet )
+                         ] .
+
+ns0:Flossie  a        ns0:cow , owl:NamedIndividual ;
         rdfs:comment  "" ;
         rdfs:label    "Flossie" .
+
+[ a                    owl:AllDifferent ;
+  owl:distinctMembers  ( _:b0
+                         _:b1
+                         ns0:Dewey ns0:Fido ns0:Flossie ns0:Fluffy ns0:Fred ns0:Huey ns0:Joe ns0:Kevin ns0:Louie ns0:Mick ns0:Minnie ns0:Q123_ABC ns0:Rex ns0:The_Guardian ns0:The_Sun ns0:The_Times ns0:Tibbs ns0:Walt
+                       )
+] .
 
 ns0:has_pet  a              owl:ObjectProperty ;
         rdfs:comment        "Anyone that has a pet must like that pet." ;
@@ -711,6 +726,6 @@ ns0:has_parent  a     owl:ObjectProperty ;
         rdfs:comment  "" ;
         rdfs:label    "has_parent" .
 
-ns0:Tom  a            owl:NamedIndividual , owl:Thing ;
+ns0:Tom  a            owl:Thing , owl:NamedIndividual ;
         rdfs:comment  "" ;
         rdfs:label    "Tom" .

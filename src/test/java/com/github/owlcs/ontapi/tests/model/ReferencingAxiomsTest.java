@@ -14,10 +14,7 @@
 
 package com.github.owlcs.ontapi.tests.model;
 
-import com.github.owlcs.ontapi.OWLAdapter;
-import com.github.owlcs.ontapi.OntFormat;
-import com.github.owlcs.ontapi.OntManagers;
-import com.github.owlcs.ontapi.OntologyManager;
+import com.github.owlcs.ontapi.*;
 import com.github.owlcs.ontapi.utils.FileMap;
 import org.junit.Assert;
 import org.junit.Test;
@@ -33,6 +30,11 @@ import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Objects;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Created by @ssz on 08.03.2020.
@@ -52,21 +54,73 @@ public class ReferencingAxiomsTest {
 
     @Test
     public void testSearchByClass() {
-        OWLOntology ont = data.load(OntManagers.createONT());
-        long distinctCount = ont.classesInSignature().flatMap(ont::referencingAxioms).distinct().count();
-        Assert.assertEquals(data.byClassDistinctCount, distinctCount);
-        long nonDistinctCount = ont.classesInSignature().flatMap(ont::referencingAxioms).count();
-        Assert.assertEquals(data.byClassCount, nonDistinctCount);
+        data.doTest(T.CLS, HasClassesInSignature::classesInSignature);
+    }
+
+    @Test
+    public void testSearchByLiteral() {
+        OWLOntology ont = data.load(newManager());
+        Set<OWLLiteral> literals = ont.axioms().flatMap(x -> OwlObjects.objects(OWLLiteral.class, x))
+                .collect(Collectors.toSet());
+        data.getTester(T.LTL).testCounts(ont, x -> literals.stream());
+    }
+
+    @Test
+    public void testSearchByIRI() {
+        OWLOntology ont = data.load(newManager());
+        Set<IRI> iris = ont.signature().map(HasIRI::getIRI).collect(Collectors.toSet());
+        data.getTester(T.IRI).testCounts(ont, x -> iris.stream());
+    }
+
+    @Test
+    public void testSearchByAnonymousIndividuals() {
+        data.doTest(T.ANI, HasAnonymousIndividuals::anonymousIndividuals);
+    }
+
+    @Test
+    public void testSearchByNamedIndividuals() {
+        data.doTest(T.NMI, HasIndividualsInSignature::individualsInSignature);
+    }
+
+    @Test
+    public void testSearchByDatatypes() {
+        data.doTest(T.DTD, HasDatatypesInSignature::datatypesInSignature);
+    }
+
+    @Test
+    public void testSearchByObjectProperty() {
+        data.doTest(T.OBP, HasObjectPropertiesInSignature::objectPropertiesInSignature);
+    }
+
+    @Test
+    public void testSearchByDatatypeProperty() {
+        data.doTest(T.DTP, HasDatatypesInSignature::datatypesInSignature);
+    }
+
+    @Test
+    public void testSearchByAnnotationProperty() {
+        data.doTest(T.ANP, HasAnnotationPropertiesInSignature::annotationPropertiesInSignature);
+    }
+
+    private static OWLOntologyManager newManager() {
+        return OntManagers.createONT();
     }
 
     enum TestData {
-        PIZZA("/ontapi/pizza.ttl", 1577, 795),
-        FAMILY("/ontapi/family.ttl", 342, 236),
-        PEOPLE("/ontapi/people.ttl", 233, 149),
-        CAMERA("/ontapi/camera.ttl", 60, 47),
-        KOALA("/ontapi/koala.ttl", 82, 59),
-        TRAVEL("/ontapi/travel.ttl", 163, 111),
-        WINE("/ontapi/wine.ttl", 576, 462) {
+        PIZZA("/ontapi/pizza.ttl", T.CLS.of(1577, 795), T.LTL.of(120), T.IRI.of(2199, 945), T.ANI.of(),
+                T.NMI.of(31, 23), T.DTD.of(120), T.OBP.of(231, 223), T.DTP.of(120), T.ANP.of(120)),
+        FAMILY("/ontapi/family.ttl", T.CLS.of(342, 236), T.LTL.of(521), T.IRI.of(7543, 2845), T.ANI.of(),
+                T.NMI.of(4214, 2372), T.DTD.of(530), T.OBP.of(1891, 1709), T.DTP.of(530), T.ANP.of(4)),
+        PEOPLE("/ontapi/people.ttl", T.CLS.of(235, 151), T.LTL.of(201, 196), T.IRI.of(999, 409), T.ANI.of(12, 11),
+                T.NMI.of(91, 62), T.DTD.of(197, 196), T.OBP.of(76, 65), T.DTP.of(197, 196), T.ANP.of(206, 201)),
+        CAMERA("/ontapi/camera.ttl", T.CLS.of(60, 47), T.LTL.of(0), T.IRI.of(130, 77), T.ANI.of(),
+                T.NMI.of(7, 6), T.DTD.of(8), T.OBP.of(27, 25), T.DTP.of(8), T.ANP.of()),
+        KOALA("/ontapi/koala.ttl", T.CLS.of(82, 59), T.LTL.of(6), T.IRI.of(144, 76), T.ANI.of(),
+                T.NMI.of(18, 17), T.DTD.of(7), T.OBP.of(24, 23), T.DTP.of(7), T.ANP.of(3)),
+        TRAVEL("/ontapi/travel.ttl", T.CLS.of(167, 115), T.LTL.of(12), T.IRI.of(321, 177), T.ANI.of(12),
+                T.NMI.of(61, 51), T.DTD.of(16), T.OBP.of(41, 36), T.DTP.of(16), T.ANP.of(12)),
+        WINE("/ontapi/wine.ttl", T.CLS.of(576, 462), T.LTL.of(4), T.IRI.of(2127, 911), T.ANI.of(),
+                T.NMI.of(1080, 744), T.DTD.of(5), T.OBP.of(456, 449), T.DTP.of(5), T.ANP.of(3)) {
             @Override
             String getName() {
                 return "http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine";
@@ -77,7 +131,8 @@ public class ReferencingAxiomsTest {
                 return load(manager, FOOD, this);
             }
         },
-        FOOD("/ontapi/food.ttl", 415, 284) {
+        FOOD("/ontapi/food.ttl", T.CLS.of(415, 284), T.LTL.of(), T.IRI.of(772, 361), T.ANI.of(),
+                T.NMI.of(189, 175), T.DTD.of(), T.OBP.of(168, 107), T.DTP.of(), T.ANP.of()) {
             @Override
             String getName() {
                 return "http://www.w3.org/TR/2003/PR-owl-guide-20031209/food";
@@ -90,22 +145,31 @@ public class ReferencingAxiomsTest {
         };
         private final Path file;
         private final OntFormat format;
-        private final long byClassCount;
-        private final long byClassDistinctCount;
+        private final Tester[] expectations;
 
-        TestData(String file, long byClassCount, long byClassDistinctCount) {
-            this(file, OntFormat.TURTLE, byClassCount, byClassDistinctCount);
+        TestData(String file, Tester... expectations) {
+            this(file, OntFormat.TURTLE, expectations);
         }
 
-        TestData(String file, OntFormat format, long byClassCount, long byClassDistinctCount) {
+        TestData(String file, OntFormat format, Tester... expectations) {
             try {
                 this.file = Paths.get(TestData.class.getResource(file).toURI()).toRealPath();
             } catch (IOException | URISyntaxException e) {
                 throw new ExceptionInInitializerError(e);
             }
-            this.byClassCount = byClassCount;
-            this.byClassDistinctCount = byClassDistinctCount;
             this.format = format;
+            this.expectations = expectations;
+        }
+
+        public Tester getTester(T type) {
+            return Arrays.stream(expectations)
+                    .filter(x -> Objects.equals(x.type, type))
+                    .findFirst().orElseThrow(IllegalArgumentException::new);
+        }
+
+        void doTest(T type, Function<OWLOntology, Stream<? extends OWLPrimitive>> getPrimitives) {
+            OWLOntology ont = load(newManager());
+            getTester(type).testCounts(ont, getPrimitives);
         }
 
         public OWLOntology load(OWLOntologyManager manager) {
@@ -160,5 +224,64 @@ public class ReferencingAxiomsTest {
         String getName() {
             return name();
         }
+
     }
+
+    enum T {
+        CLS,
+        LTL,
+        IRI,
+        ANI,
+        NMI,
+        DTD,
+        OBP,
+        DTP,
+        ANP,
+        ;
+
+        private Tester of(long sum, long distinct) {
+            return new Tester(this, sum, distinct);
+        }
+
+        private Tester of(long count) {
+            return of(count, count);
+        }
+
+        private Tester of() {
+            return of(0, 0);
+        }
+    }
+
+    private static class Tester {
+        private final long distinct;
+        private final long sum;
+        private final T type;
+
+        private Tester(T type, long sum, long distinct) {
+            this.type = type;
+            this.sum = sum;
+            this.distinct = distinct;
+        }
+
+        long distinctCount(OWLOntology ont, Stream<? extends OWLPrimitive> stream) {
+            return referencingAxioms(ont, stream).distinct().count();
+        }
+
+        long nonDistinctCount(OWLOntology ont, Stream<? extends OWLPrimitive> stream) {
+            return referencingAxioms(ont, stream).count();
+        }
+
+        Stream<? extends OWLAxiom> referencingAxioms(OWLOntology ont, Stream<? extends OWLPrimitive> stream) {
+            return stream.flatMap(ont::referencingAxioms);
+        }
+
+        void testCounts(OWLOntology ont, Function<OWLOntology, Stream<? extends OWLPrimitive>> getPrimitives) {
+            long d = distinctCount(ont, getPrimitives.apply(ont));
+            long s = nonDistinctCount(ont, getPrimitives.apply(ont));
+            String msg = "(" + s + ", " + d + ")";
+            Assert.assertEquals(msg, distinct, d);
+            Assert.assertEquals(msg, sum, s);
+        }
+    }
+
 }

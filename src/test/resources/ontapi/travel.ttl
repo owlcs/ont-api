@@ -1,14 +1,21 @@
 @prefix :      <http://www.owl-ontologies.com/travel.owl#> .
 @prefix daml:  <http://www.daml.org/2001/03/daml+oil#> .
-@prefix owl:   <http://www.w3.org/2002/07/owl#> .
 @prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
 @prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
 @prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
 @prefix dc:    <http://purl.org/dc/elements/1.1/> .
 
-:Sydney  a                 owl:NamedIndividual , :Capital ;
+[ a                      owl:NegativePropertyAssertion ;
+  owl:assertionProperty  :hasPart ;
+  owl:sourceIndividual   :Sydney ;
+  owl:targetIndividual   _:b0
+] .
+
+:Sydney  a                 :Capital , owl:NamedIndividual ;
         :hasAccommodation  :FourSeasons ;
-        :hasPart           :BondiBeach , :CurrawongBeach .
+        :hasPart           :CurrawongBeach , :BondiBeach ;
+        owl:differentFrom  _:b1 , _:b0 .
 
 :BackpackersDestination
         a                    owl:Class ;
@@ -28,7 +35,10 @@
                                                    )
                              ] .
 
-:hasZipCode  a       owl:FunctionalProperty , owl:DatatypeProperty ;
+:NowhereBeach  a    :Beach , owl:NamedIndividual ;
+        owl:sameAs  _:b0 .
+
+:hasZipCode  a       owl:DatatypeProperty , owl:FunctionalProperty ;
         rdfs:domain  :Contact ;
         rdfs:range   xsd:int .
 
@@ -55,7 +65,7 @@
         rdfs:domain  :Destination ;
         rdfs:range   :Accommodation .
 
-:hasEMail  a         owl:DatatypeProperty , owl:FunctionalProperty ;
+:hasEMail  a         owl:FunctionalProperty , owl:DatatypeProperty ;
         rdfs:domain  :Contact ;
         rdfs:range   xsd:string .
 
@@ -64,15 +74,20 @@
 :Accommodation  a     owl:Class ;
         rdfs:comment  "A place to stay for tourists." .
 
+_:b0    a             :Beach ;
+        rdfs:comment  "Nowhere beach" ;
+        rdfs:label    "Nowhere1" ;
+        owl:sameAs    :NowhereBeach .
+
 :NationalPark  a         owl:Class ;
         rdfs:subClassOf  :RuralArea ;
         rdfs:subClassOf  [ a                   owl:Restriction ;
-                           owl:onProperty      :hasAccommodation ;
-                           owl:someValuesFrom  :Campground
-                         ] ;
-        rdfs:subClassOf  [ a                   owl:Restriction ;
                            owl:onProperty      :hasActivity ;
                            owl:someValuesFrom  :Hiking
+                         ] ;
+        rdfs:subClassOf  [ a                   owl:Restriction ;
+                           owl:onProperty      :hasAccommodation ;
+                           owl:someValuesFrom  :Campground
                          ] .
 
 :Capital  a              owl:Class ;
@@ -88,15 +103,15 @@
 :Beach  a                owl:Class ;
         rdfs:subClassOf  :Destination .
 
-:Cairns  a      owl:NamedIndividual , :City .
+:Cairns  a      :City , owl:NamedIndividual .
 
-:ThreeStarRating  a        owl:NamedIndividual , :AccommodationRating ;
-        owl:differentFrom  :TwoStarRating , :OneStarRating .
+:ThreeStarRating  a        :AccommodationRating , owl:NamedIndividual ;
+        owl:differentFrom  :OneStarRating , :TwoStarRating .
 
-:TwoStarRating  a          owl:NamedIndividual , :AccommodationRating ;
-        owl:differentFrom  :OneStarRating , :ThreeStarRating .
+:TwoStarRating  a          :AccommodationRating , owl:NamedIndividual ;
+        owl:differentFrom  :ThreeStarRating , :OneStarRating .
 
-:Warrumbungles  a  owl:NamedIndividual , :NationalPark .
+:Warrumbungles  a  :NationalPark , owl:NamedIndividual .
 
 :hasRating  a        owl:ObjectProperty ;
         rdfs:domain  :Accommodation ;
@@ -131,17 +146,28 @@
                                                    )
                              ] .
 
-:CurrawongBeach  a  owl:NamedIndividual , :Beach .
+_:b1    a             :City ;
+        rdfs:comment  "Nowhere city" ;
+        rdfs:label    "Nowhere2" ;
+        owl:sameAs    :NowhereCity .
+
+:CurrawongBeach  a  :Beach , owl:NamedIndividual .
+
+[ a                      owl:NegativePropertyAssertion ;
+  owl:assertionProperty  :hasPart ;
+  owl:sourceIndividual   :Sydney ;
+  owl:targetIndividual   :MaenamBeach
+] .
 
 :Sunbathing  a           owl:Class ;
         rdfs:subClassOf  :Relaxation .
 
-:hasStreet  a        owl:FunctionalProperty , owl:DatatypeProperty ;
+:hasStreet  a        owl:DatatypeProperty , owl:FunctionalProperty ;
         rdfs:domain  :Contact ;
         rdfs:range   xsd:string .
 
 :Safari  a               owl:Class ;
-        rdfs:subClassOf  :Adventure , :Sightseeing .
+        rdfs:subClassOf  :Sightseeing , :Adventure .
 
 :RetireeDestination  a       owl:Class ;
         rdfs:comment         "A destination with at least one three star accommodation and sightseeing opportunities." ;
@@ -163,22 +189,22 @@
 
 :BedAndBreakfast  a       owl:Class ;
         rdfs:subClassOf   :Accommodation ;
-        owl:disjointWith  :Hotel , :Campground .
+        owl:disjointWith  :Campground , :Hotel .
 
-:CapeYork  a    owl:NamedIndividual , :RuralArea .
+:CapeYork  a    :RuralArea , owl:NamedIndividual .
 
-:BlueMountains  a  owl:NamedIndividual , :NationalPark .
+:BlueMountains  a  :NationalPark , owl:NamedIndividual .
 
 :hasActivity  a        owl:ObjectProperty ;
         rdfs:domain    :Destination ;
         rdfs:range     :Activity ;
         owl:inverseOf  :isOfferedAt .
 
-:hasPart  a          owl:ObjectProperty , owl:TransitiveProperty ;
+:Contact  a     owl:Class .
+
+:hasPart  a          owl:TransitiveProperty , owl:ObjectProperty ;
         rdfs:domain  :Destination ;
         rdfs:range   :Destination .
-
-:Contact  a     owl:Class .
 
 :Campground  a            owl:Class ;
         rdfs:subClassOf   :Accommodation ;
@@ -186,39 +212,42 @@
                             owl:hasValue    :OneStarRating ;
                             owl:onProperty  :hasRating
                           ] ;
-        owl:disjointWith  :BedAndBreakfast , :Hotel .
+        owl:disjointWith  :Hotel , :BedAndBreakfast .
 
 :Yoga   a                owl:Class ;
         rdfs:subClassOf  :Relaxation .
 
 :Relaxation  a            owl:Class ;
         rdfs:subClassOf   :Activity ;
-        owl:disjointWith  :Sports , :Sightseeing , :Adventure .
+        owl:disjointWith  :Adventure , :Sightseeing , :Sports .
+
+:FourSeasons  a  :LuxuryHotel , owl:NamedIndividual .
 
 :Town   a                owl:Class ;
         rdfs:subClassOf  :UrbanArea .
 
-:FourSeasons  a  owl:NamedIndividual , :LuxuryHotel .
+:hasCity  a          owl:FunctionalProperty , owl:DatatypeProperty ;
+        rdfs:domain  :Contact ;
+        rdfs:range   xsd:string .
+
+:Canberra  a    :Capital , owl:NamedIndividual .
 
 :BunjeeJumping  a        owl:Class ;
         rdfs:subClassOf  :Adventure .
 
-:hasCity  a          owl:DatatypeProperty , owl:FunctionalProperty ;
-        rdfs:domain  :Contact ;
-        rdfs:range   xsd:string .
+:BondiBeach  a  :Beach , owl:NamedIndividual .
 
-:Canberra  a    owl:NamedIndividual , :Capital .
+:Coonabarabran  a  :Town , owl:NamedIndividual .
 
-:BondiBeach  a  owl:NamedIndividual , :Beach .
-
-:Coonabarabran  a  owl:NamedIndividual , :Town .
+:Woomera  a     :RuralArea , owl:NamedIndividual .
 
 :isOfferedAt  a        owl:ObjectProperty ;
         rdfs:domain    :Activity ;
         rdfs:range     :Destination ;
         owl:inverseOf  :hasActivity .
 
-:Woomera  a     owl:NamedIndividual , :RuralArea .
+:NowhereCity  a     :City , owl:NamedIndividual ;
+        owl:sameAs  _:b1 .
 
 :RuralArea  a             owl:Class ;
         rdfs:subClassOf   :Destination ;
@@ -241,13 +270,6 @@
         rdfs:domain  :Activity ;
         rdfs:range   :Contact .
 
-:OneStarRating  a          owl:NamedIndividual , :AccommodationRating ;
-        owl:differentFrom  :ThreeStarRating , :TwoStarRating .
-
-:Adventure  a             owl:Class ;
-        rdfs:subClassOf   :Activity ;
-        owl:disjointWith  :Sports , :Sightseeing , :Relaxation .
-
 :BudgetHotelDestination
         a                    owl:Class ;
         rdfs:comment         "A destination with a hotel that is also a budget accommodation." ;
@@ -262,12 +284,19 @@
                                                    )
                              ] .
 
-:Sightseeing  a           owl:Class ;
+:Adventure  a             owl:Class ;
         rdfs:subClassOf   :Activity ;
-        owl:disjointWith  :Sports , :Relaxation , :Adventure .
+        owl:disjointWith  :Relaxation , :Sightseeing , :Sports .
+
+:OneStarRating  a          :AccommodationRating , owl:NamedIndividual ;
+        owl:differentFrom  :TwoStarRating , :ThreeStarRating .
 
 :Museums  a              owl:Class ;
         rdfs:subClassOf  :Sightseeing .
+
+:Sightseeing  a           owl:Class ;
+        rdfs:subClassOf   :Activity ;
+        owl:disjointWith  :Adventure , :Relaxation , :Sports .
 
 <http://www.owl-ontologies.com/travel.owl>
         a                owl:Ontology ;
@@ -281,12 +310,15 @@
                            owl:onProperty  :hasRating
                          ] .
 
+:MaenamBeach  a            owl:NamedIndividual ;
+        owl:differentFrom  _:b0 .
+
 :Activity  a    owl:Class .
 
 :Sports  a                owl:Class ;
         rdfs:subClassOf   :Activity ;
-        owl:disjointWith  :Adventure , :Relaxation , :Sightseeing .
+        owl:disjointWith  :Sightseeing , :Relaxation , :Adventure .
 
 :Hotel  a                 owl:Class ;
         rdfs:subClassOf   :Accommodation ;
-        owl:disjointWith  :BedAndBreakfast , :Campground .
+        owl:disjointWith  :Campground , :BedAndBreakfast .
