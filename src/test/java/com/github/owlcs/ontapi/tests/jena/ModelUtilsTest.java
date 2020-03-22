@@ -15,10 +15,7 @@
 package com.github.owlcs.ontapi.tests.jena;
 
 import com.github.owlcs.ontapi.jena.OntModelFactory;
-import com.github.owlcs.ontapi.jena.model.OntClass;
-import com.github.owlcs.ontapi.jena.model.OntID;
-import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntObject;
+import com.github.owlcs.ontapi.jena.model.*;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.utils.Models;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
@@ -169,7 +166,7 @@ public class ModelUtilsTest {
 
     @Test
     public void testGetRoots() {
-        Model m = ReadWriteUtils.loadResourceTTLFile("/ontapi/pizza.ttl");
+        OntModel m = OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("/ontapi/pizza.ttl").getGraph());
         Statement a = getStatement(m, null, RDF.first, getResource(m, ":FourCheesesTopping"));
         Set<Statement> res1 = Models.getRootStatements(a);
         Assert.assertEquals(1, res1.size());
@@ -203,6 +200,17 @@ public class ModelUtilsTest {
                 .count());
         Assert.assertTrue(res4.stream().map(Statement::getSubject).anyMatch(soho::equals));
         Assert.assertTrue(res4.stream().map(Statement::getSubject).anyMatch(spiciness::equals));
+
+        OntDisjoint.Individuals disjoint = m.ontObjects(OntDisjoint.Individuals.class)
+                .findFirst().orElseThrow(AssertionError::new);
+        OntStatement d = disjoint.getMainStatement();
+        Assert.assertEquals(1, OntModels.listRootStatements(d).toSet().size());
+
+        OntIndividual i = m.getOntClass(soho).createIndividual();
+        OntStatement e = i.statement(RDF.type).orElseThrow(AssertionError::new);
+        Assert.assertEquals(1, OntModels.listRootStatements(e).toSet().size());
+        disjoint.getList().addFirst(i);
+        Assert.assertEquals(2, OntModels.listRootStatements(e).toSet().size());
     }
 
     private static Resource getResource(Model m, String shortName) {

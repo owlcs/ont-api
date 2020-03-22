@@ -294,6 +294,7 @@ public class Models {
     /**
      * Returns a {@code Set} of root statements.
      * Any statement has one or more roots or is a root itself.
+     * A statement with the predicate {@code rdf:type} is always a root.
      *
      * @param st {@link Statement}, not {@code null}
      * @return a {@code Set} of {@link Statement}s
@@ -313,10 +314,16 @@ public class Models {
             return Collections.singleton(st);
         }
         Set<Statement> res = new HashSet<>();
+        if (RDF.type.equals(st.getPredicate())) {
+            res.add(st);
+        }
         m.listStatements(null, null, subject)
                 .filterKeep(seen::add)
                 .forEachRemaining(x -> res.addAll(findRoots(m, x, seen)));
-        return res.isEmpty() ? Collections.singleton(st) : res;
+        if (res.isEmpty()) {
+            return Collections.singleton(st);
+        }
+        return res;
     }
 
     /**
