@@ -19,6 +19,7 @@ import com.github.owlcs.ontapi.ID;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.internal.axioms.*;
+import com.github.owlcs.ontapi.internal.searchers.ByAnnotationProperty;
 import com.github.owlcs.ontapi.internal.searchers.ByClass;
 import com.github.owlcs.ontapi.internal.searchers.ByObjectProperty;
 import com.github.owlcs.ontapi.internal.searchers.ByPrimitive;
@@ -148,6 +149,7 @@ public class InternalModel extends OntGraphModelImpl
     // Helpers to provide searching axioms by some objects (primitives).
     protected final ByPrimitive<OWLClass> byClass = new ByClass();
     protected final ByPrimitive<OWLObjectProperty> byObjectProperty = new ByObjectProperty();
+    protected final ByPrimitive<OWLAnnotationProperty> byAnnotationProperty = new ByAnnotationProperty();
 
     /**
      * Constructs a model instance.
@@ -741,6 +743,9 @@ public class InternalModel extends OntGraphModelImpl
             } else if (primitive instanceof OWLObjectProperty) {
                 res = byObjectProperty.listAxioms((OWLObjectProperty) primitive,
                         this::getSearchModel, getObjectFactory(), getConfig());
+            } else if (primitive instanceof OWLAnnotationProperty) {
+                res = byAnnotationProperty.listAxioms((OWLAnnotationProperty) primitive,
+                        this::getSearchModel, getObjectFactory(), getConfig());
             }
             if (res != null) {
                 return reduce(Iter.asStream(res.mapWith(ONTObject::getOWLObject)));
@@ -768,6 +773,10 @@ public class InternalModel extends OntGraphModelImpl
      * @return boolean
      */
     protected boolean useReferencingAxiomsGraphOptimization(OWLPrimitive type) {
+        if (!getConfig().useContentCache()) {
+            // no cache at all -> always use the graph way
+            return true;
+        }
         if (hasManuallyAddedAxioms()) {
             // manually added axioms cannot be derived from the graph
             return false;
@@ -781,7 +790,8 @@ public class InternalModel extends OntGraphModelImpl
             } else if (type instanceof OWLObjectProperty) {
                 threshold = 2000;
             }
-            // for small ontologies it is better to use cache traversing instead of graph searching.
+            // for annotation properties the graph way is faster no matter of ontology size;
+            // for other primitives, for small ontologies it is better to use cache traversing instead of graph searching
             return getOWLAxiomCount() >= threshold;
         }
         return true;

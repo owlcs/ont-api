@@ -14,25 +14,51 @@
 
 package com.github.owlcs.ontapi.internal.searchers;
 
+import com.github.owlcs.ontapi.internal.AxiomTranslator;
+import com.github.owlcs.ontapi.internal.OWLComponentType;
+import com.github.owlcs.ontapi.jena.model.OntAnnotation;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
-import com.github.owlcs.ontapi.jena.utils.OntModels;
+import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import org.semanticweb.owlapi.model.OWLProperty;
+import org.semanticweb.owlapi.model.OWLAnnotationProperty;
+import org.semanticweb.owlapi.model.OWLAxiom;
+
+import java.util.Set;
 
 /**
+ * A searcher for {@link OWLAnnotationProperty}.
  * Created by @ssz on 29.03.2020.
- *
- * @param <P> - subtype of {@link OWLProperty}
  */
-public abstract class ByProperty<P extends OWLProperty> extends ByEntity<P> {
+public class ByAnnotationProperty extends ByProperty<OWLAnnotationProperty> {
+    private static final Set<AxiomTranslator<? extends OWLAxiom>> TRANSLATORS =
+            selectTranslators(OWLComponentType.ANNOTATION_PROPERTY);
+
     @Override
-    public ExtendedIterator<OntStatement> listStatements(OntModel m, String uri) {
-        return Iter.concat(listAssertions(m, uri), super.listStatements(m, uri));
+    protected ExtendedIterator<AxiomTranslator<? extends OWLAxiom>> listTranslators() {
+        return Iter.create(TRANSLATORS);
     }
 
+    @Override
     protected ExtendedIterator<OntStatement> listAssertions(OntModel m, String uri) {
-        return OntModels.listLocalStatements(m, null, m.getProperty(uri), null);
+        return super.listAssertions(m, uri).mapWith(this::toRootStatement);
+    }
+
+    protected OntStatement toRootStatement(OntStatement statement) {
+        Resource subject = statement.getSubject();
+        if (!subject.isAnon() || !subject.canAs(OntAnnotation.class)) {
+            return statement;
+        }
+        OntStatement base = getRoot(subject.as(OntAnnotation.class)).getBase();
+        if (base != null) {
+            statement = base;
+        }
+        return statement;
+    }
+
+    public static OntAnnotation getRoot(OntAnnotation annotation) {
+        OntAnnotation parent = annotation.parent().orElse(null);
+        return parent == null ? annotation : getRoot(parent);
     }
 }

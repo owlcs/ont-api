@@ -38,7 +38,7 @@ import java.util.function.Supplier;
 public abstract class ByEntity<E extends OWLEntity> extends ByPrimitive<E> {
 
     static Set<AxiomTranslator<? extends OWLAxiom>> selectTranslators(OWLComponentType type) {
-        return OWLContentType.all().filter(x -> x.hasComponent(type))
+        return OWLContentType.all().filter(x -> x.isAxiom() && x.hasComponent(type))
                 .map(OWLContentType::getAxiomType)
                 .map(AxiomParserProvider::get)
                 .collect(Iter.toUnmodifiableSet());
