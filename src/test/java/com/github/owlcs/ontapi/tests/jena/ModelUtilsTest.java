@@ -204,13 +204,13 @@ public class ModelUtilsTest {
         OntDisjoint.Individuals disjoint = m.ontObjects(OntDisjoint.Individuals.class)
                 .findFirst().orElseThrow(AssertionError::new);
         OntStatement d = disjoint.getMainStatement();
-        Assert.assertEquals(1, OntModels.listRootStatements(d).toSet().size());
+        Assert.assertEquals(1, Models.getRootStatements(d).size());
 
         OntIndividual i = m.getOntClass(soho).createIndividual();
         OntStatement e = i.statement(RDF.type).orElseThrow(AssertionError::new);
-        Assert.assertEquals(1, OntModels.listRootStatements(e).toSet().size());
+        Assert.assertEquals(1, Models.getRootStatements(e).size());
         disjoint.getList().addFirst(i);
-        Assert.assertEquals(2, OntModels.listRootStatements(e).toSet().size());
+        Assert.assertEquals(2, Models.getRootStatements(e).size());
     }
 
     private static Resource getResource(Model m, String shortName) {

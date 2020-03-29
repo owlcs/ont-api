@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -20,7 +20,6 @@ import com.github.owlcs.ontapi.jena.model.OntClass;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
-import com.github.owlcs.ontapi.jena.utils.OntModels;
 import org.apache.jena.graph.Node;
 import org.apache.jena.shared.JenaException;
 import org.apache.jena.util.iterator.ExtendedIterator;
@@ -46,7 +45,7 @@ import java.util.stream.Stream;
  * @param <Axiom> generic type of {@link OWLAxiom}
  */
 @SuppressWarnings("WeakerAccess")
-public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
+public abstract class AxiomTranslator<Axiom extends OWLAxiom> extends BaseSearcher {
 
     /**
      * If possible, gets the {@code model}'s {@link InternalConfig Config},
@@ -187,24 +186,9 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> {
                                                            Supplier<OntModel> model,
                                                            InternalObjectFactory factory,
                                                            InternalConfig config) {
-        boolean hasDefault = factory == InternalObjectFactory.DEFAULT || config == InternalConfig.DEFAULT;
-        if (config.isSplitAxiomAnnotations()) {
-            // When the spit-setting is true, we cannot always provide an ONTStatement based axiom,
-            // because a mapping statement to axiom becomes ambiguous:
-            // the same triple may correspond different axiom-instances
-            // So, currently there is only one solution - need to use wrappers instead of model-impls
-            return Iter.flatMap(statements, s -> {
-                if (hasDefault) {
-                    return OntModels.listSplitStatements(s).mapWith(x -> toAxiomWrap(x, factory, config));
-                }
-                List<OntStatement> sts = OntModels.listSplitStatements(s).toList();
-                if (sts.size() == 1) { // unambiguous mapping
-                    return Iter.of(toAxiomImpl(s, model, factory, config));
-                }
-                return Iter.create(sts).mapWith(x -> toAxiomWrap(x, factory, config));
-            });
-        }
-        return statements.mapWith(s -> hasDefault ? toAxiomWrap(s, factory, config) : toAxiomImpl(s, model, factory, config));
+        return config.isSplitAxiomAnnotations() ?
+                Iter.flatMap(statements, s -> split(this, s, model, factory, config)) :
+                statements.mapWith(s -> toAxiom(this, s, model, factory, config));
     }
 
     /**

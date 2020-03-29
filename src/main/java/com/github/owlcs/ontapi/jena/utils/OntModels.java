@@ -23,11 +23,9 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.impl.ModelCom;
 import org.apache.jena.util.iterator.ExtendedIterator;
 
-import java.util.Iterator;
 import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -302,18 +300,5 @@ public class OntModels {
      */
     public static Stream<OntStatement> annotations(OntStatement statement) {
         return Stream.concat(statement.annotations(), statement.annotations().flatMap(OntModels::annotations));
-    }
-
-    /**
-     * Lists all root statements.
-     *
-     * @param statement {@link OntStatement}
-     * @return {@link ExtendedIterator} of {@code OntStatement}s
-     * @see Models#getRootStatements(Statement)
-     */
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    public static ExtendedIterator<OntStatement> listRootStatements(OntStatement statement) {
-        Iterator it = Models.getRootStatements(statement).iterator();
-        return Iter.create((Iterator<? extends OntStatement>) it);
     }
 }
