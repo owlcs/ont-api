@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -19,6 +19,9 @@ import com.github.owlcs.ontapi.ID;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.internal.axioms.*;
+import com.github.owlcs.ontapi.internal.searchers.ByClass;
+import com.github.owlcs.ontapi.internal.searchers.ByObjectProperty;
+import com.github.owlcs.ontapi.internal.searchers.ByPrimitive;
 import com.github.owlcs.ontapi.jena.OntJenaException;
 import com.github.owlcs.ontapi.jena.RWLockedGraph;
 import com.github.owlcs.ontapi.jena.UnionGraph;
@@ -141,6 +144,10 @@ public class InternalModel extends OntGraphModelImpl
      * The direct listener, it monitors changes that occur through the main (Jena) interface.
      */
     protected final DirectListener directListener;
+
+    // Helpers to provide searching axioms by some objects (primitives).
+    protected final ByPrimitive<OWLClass> byClass = new ByClass();
+    protected final ByPrimitive<OWLObjectProperty> byObjectProperty = new ByObjectProperty();
 
     /**
      * Constructs a model instance.
@@ -727,6 +734,19 @@ public class InternalModel extends OntGraphModelImpl
      * @return {@code Stream} of {@link OWLAxiom}s
      */
     public Stream<OWLAxiom> listOWLAxioms(OWLPrimitive primitive) {
+        if (useReferencingAxiomsGraphOptimization(primitive)) {
+            ExtendedIterator<ONTObject<? extends OWLAxiom>> res = null;
+            if (primitive instanceof OWLClass) {
+                res = byClass.listAxioms((OWLClass) primitive, this::getSearchModel, getObjectFactory(), getConfig());
+            } else if (primitive instanceof OWLObjectProperty) {
+                res = byObjectProperty.listAxioms((OWLObjectProperty) primitive,
+                        this::getSearchModel, getObjectFactory(), getConfig());
+            }
+            if (res != null) {
+                return reduce(Iter.asStream(res.mapWith(ONTObject::getOWLObject)));
+            }
+        }
+        // the default way:
         OWLComponentType filter = OWLComponentType.get(primitive);
         if (OWLContentType.ANNOTATION.hasComponent(filter)) {
             // is type of annotation -> any axiom may contain the primitive
@@ -739,6 +759,32 @@ public class InternalModel extends OntGraphModelImpl
         // select only those container-types, that are capable to contain the primitive
         return flatMap(filteredAxiomsCaches(OWLContentType.axioms().filter(x -> x.hasComponent(filter))),
                 k -> k.keys().filter(x -> filter.contains(x, primitive)));
+    }
+
+    /**
+     * Answers {@code true} if graph optimization for referencing axioms functionality is allowed and makes sense.
+     *
+     * @param type {@link OWLPrimitive}
+     * @return boolean
+     */
+    protected boolean useReferencingAxiomsGraphOptimization(OWLPrimitive type) {
+        if (hasManuallyAddedAxioms()) {
+            // manually added axioms cannot be derived from the graph
+            return false;
+        }
+        // is cache loaded ?
+        if (getContentStore().values().stream().allMatch(ObjectMap::isLoaded)) {
+            // yes, cache is loaded.
+            long threshold = -1; // empirical founded threshold
+            if (type instanceof OWLClass) {
+                threshold = 200;
+            } else if (type instanceof OWLObjectProperty) {
+                threshold = 2000;
+            }
+            // for small ontologies it is better to use cache traversing instead of graph searching.
+            return getOWLAxiomCount() >= threshold;
+        }
+        return true;
     }
 
     /**
