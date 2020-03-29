@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -168,6 +168,7 @@ public class OntAnnotationsTest {
                 .annotations().peek(a -> LOGGER.debug("1: {}", Models.toString(a))).count());
         Assert.assertEquals("Expected three flat annotations", 3, OntModels.annotations(disjointClasses.getMainStatement())
                 .peek(a -> LOGGER.debug("2: {}", Models.toString(a))).count());
+        Assert.assertNull(disjointClasses.as(OntAnnotation.class).getBase());
 
         Assert.assertFalse("There is owl:Axiom", m.contains(null, RDF.type, OWL.Axiom));
         Assert.assertEquals("Should be single owl:Annotation", 1,
@@ -400,8 +401,11 @@ public class OntAnnotationsTest {
                 .findFirst()
                 .orElseThrow(AssertionError::new);
         Assert.assertEquals(base, annotation.getBase());
+        Assert.assertFalse(annotation.parent().isPresent());
         Assert.assertEquals(2, annotation.annotations().count());
-        Assert.assertEquals(1, annotation.descendants().count());
+        Assert.assertEquals(1, annotation.descendants()
+                .peek(x -> Assert.assertEquals(annotation, x.parent().orElseThrow(AssertionError::new)))
+                .count());
         Assert.assertEquals(annotation, base.asAnnotationResource().orElseThrow(AbstractMethodError::new));
         long size = m.size();
         // has anonymous resources in the model cache:
@@ -486,7 +490,10 @@ public class OntAnnotationsTest {
         Assert.assertEquals(an1, base.asAnnotationResource().orElseThrow(AssertionError::new));
         Assert.assertEquals(3, an1.inModel(model).as(OntAnnotation.class).annotations()
                 .peek(x -> LOGGER.debug("{}", Models.toString(x))).count());
-        Assert.assertEquals(1, an1.inModel(model).as(OntAnnotation.class).descendants().count());
+        Assert.assertEquals(1, an1.inModel(model).as(OntAnnotation.class)
+                .descendants()
+                .peek(x -> Assert.assertEquals(an1, x.parent().orElseThrow(AssertionError::new)))
+                .count());
 
         Assert.assertEquals(2, model.statements(null, RDF.type, OWL.Axiom).count());
         Assert.assertEquals(1, model.statements(null, RDF.type, OWL.Annotation).count());

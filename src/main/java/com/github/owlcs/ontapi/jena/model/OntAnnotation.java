@@ -16,6 +16,7 @@ package com.github.owlcs.ontapi.jena.model;
 
 import org.apache.jena.rdf.model.RDFNode;
 
+import java.util.Optional;
 import java.util.stream.Stream;
 
 /**
@@ -24,7 +25,7 @@ import java.util.stream.Stream;
  * <ul>
  * <li>{@link com.github.owlcs.ontapi.jena.vocabulary.OWL#Axiom owl:Axiom} for root annotations, it is usually owned by axiomatic statements.</li>
  * <li>{@link com.github.owlcs.ontapi.jena.vocabulary.OWL#Annotation owl:Annotation} for sub-annotations,
- * and also for annotation of several specific axioms with main-statement {@code _:x rdf:type @type} where @type is
+ * and also for annotation of several specific axioms with main-statement {@code _:x rdf:type @type} where {@code @type} is
  * {@code owl:AllDisjointClasses}, {@code owl:AllDisjointProperties}, {@code owl:AllDifferent} or {@code owl:NegativePropertyAssertion}.</li>
  * </ul>
  * Example:
@@ -50,6 +51,8 @@ public interface OntAnnotation extends OntObject {
      * Note: starting v.{@code 2.0.0} the presence of this statement in the Graph does not required anymore.
      *
      * @return {@link OntStatement}
+     * (note: it could {@code null} in special case of anonymous resource,
+     * e.g. {@code owl:AllDisjointClasses})
      */
     OntStatement getBase();
 
@@ -68,6 +71,7 @@ public interface OntAnnotation extends OntObject {
      * Lists all descendants of this ont-annotation resource.
      * The resulting resources must have {@link com.github.owlcs.ontapi.jena.vocabulary.OWL#Annotation owl:Annotation} type
      * and this object on predicate {@link com.github.owlcs.ontapi.jena.vocabulary.OWL#annotatedSource owl:annotatedSource}.
+     * The method {@link #parent()} called on descendants must return the annotation equals to this.
      *
      * @return {@code Stream} of {@link OntAnnotation}s
      */
@@ -106,4 +110,15 @@ public interface OntAnnotation extends OntObject {
      */
     @Override
     OntStatement addAnnotation(OntAnnotationProperty property, RDFNode value);
+
+    /**
+     * Answers a parent {@code OntAnnotation}.
+     * For non-empty result the {@code rdf:type} must be {@code owl:Annotation}.
+     * For a root annotation an empty result is expected.
+     *
+     * @return {@code Optional} around of {@link OntAnnotation}
+     */
+    default Optional<OntAnnotation> parent() {
+        return Optional.ofNullable(getBase()).map(x -> x.getSubject().getAs(OntAnnotation.class));
+    }
 }

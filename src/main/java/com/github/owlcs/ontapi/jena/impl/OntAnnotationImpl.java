@@ -114,6 +114,9 @@ public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {
 
     @Override
     public OntStatement getBase() {
+        if (!hasType(OWL.Axiom) && !hasType(OWL.Annotation)) {
+            return null;
+        }
         Resource s = getRequiredObject(OWL.annotatedSource, Resource.class);
         Property p = getRequiredObject(OWL.annotatedProperty, Property.class);
         RDFNode o = getRequiredObject(OWL.annotatedTarget, RDFNode.class);
