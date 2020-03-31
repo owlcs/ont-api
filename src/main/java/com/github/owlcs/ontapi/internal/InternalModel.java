@@ -19,10 +19,7 @@ import com.github.owlcs.ontapi.ID;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.internal.axioms.*;
-import com.github.owlcs.ontapi.internal.searchers.ByAnnotationProperty;
-import com.github.owlcs.ontapi.internal.searchers.ByClass;
-import com.github.owlcs.ontapi.internal.searchers.ByObjectProperty;
-import com.github.owlcs.ontapi.internal.searchers.ByPrimitive;
+import com.github.owlcs.ontapi.internal.searchers.*;
 import com.github.owlcs.ontapi.jena.OntJenaException;
 import com.github.owlcs.ontapi.jena.RWLockedGraph;
 import com.github.owlcs.ontapi.jena.UnionGraph;
@@ -33,10 +30,7 @@ import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.GraphEventManager;
-import org.apache.jena.graph.Node;
-import org.apache.jena.graph.Triple;
+import org.apache.jena.graph.*;
 import org.apache.jena.mem.GraphMem;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.RDFNode;
@@ -149,6 +143,7 @@ public class InternalModel extends OntGraphModelImpl
     // Helpers to provide searching axioms by some objects (primitives).
     protected final ByPrimitive<OWLClass> byClass = new ByClass();
     protected final ByPrimitive<OWLObjectProperty> byObjectProperty = new ByObjectProperty();
+    protected final ByPrimitive<OWLDataProperty> byDataProperty = new ByDataProperty();
     protected final ByPrimitive<OWLAnnotationProperty> byAnnotationProperty = new ByAnnotationProperty();
 
     /**
@@ -465,12 +460,13 @@ public class InternalModel extends OntGraphModelImpl
      * @return boolean
      */
     public boolean containsOWLDeclaration(OWLEntity e) {
-        // do not use the commented out way since ontology can be manually assembled
-        /*
+        InternalConfig config = getConfig();
+        if (!config.isAllowReadDeclarations()) return false;
+        if (config.useContentCache() && hasManuallyAddedAxioms()) {
+            return listOWLAxioms(OWLDeclarationAxiom.class).anyMatch(x -> x.getEntity().equals(e));
+        }
         return getBaseGraph().contains(NodeFactory.createURI(e.getIRI().getIRIString()),
                 RDF.type.asNode(), WriteHelper.getRDFType(e).asNode());
-        */
-        return listOWLAxioms(OWLDeclarationAxiom.class).anyMatch(x -> x.getEntity().equals(e));
     }
 
     /**
@@ -746,6 +742,9 @@ public class InternalModel extends OntGraphModelImpl
             } else if (primitive instanceof OWLAnnotationProperty) {
                 res = byAnnotationProperty.listAxioms((OWLAnnotationProperty) primitive,
                         this::getSearchModel, getObjectFactory(), getConfig());
+            } else if (primitive instanceof OWLDataProperty) {
+                res = byDataProperty.listAxioms((OWLDataProperty) primitive,
+                        this::getSearchModel, getObjectFactory(), getConfig());
             }
             if (res != null) {
                 return reduce(Iter.asStream(res.mapWith(ONTObject::getOWLObject)));
@@ -783,12 +782,13 @@ public class InternalModel extends OntGraphModelImpl
         }
         // is cache loaded ?
         if (getContentStore().values().stream().allMatch(ObjectMap::isLoaded)) {
-            // yes, cache is loaded.
             long threshold = -1; // empirical founded threshold
             if (type instanceof OWLClass) {
                 threshold = 200;
             } else if (type instanceof OWLObjectProperty) {
                 threshold = 2000;
+            } else if (type instanceof OWLDataProperty) {
+                threshold = 100;
             }
             // for annotation properties the graph way is faster no matter of ontology size;
             // for other primitives, for small ontologies it is better to use cache traversing instead of graph searching
@@ -839,9 +839,9 @@ public class InternalModel extends OntGraphModelImpl
     }
 
     /**
-     * Returns the number of axioms in this ontology
+     * Returns the number of axioms in this ontology.
      *
-     * @return long
+     * @return {@code long}, the count
      */
     public long getOWLAxiomCount() {
         return getContentStore().entrySet().stream()
