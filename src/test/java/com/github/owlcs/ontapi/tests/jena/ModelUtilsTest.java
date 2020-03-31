@@ -15,7 +15,10 @@
 package com.github.owlcs.ontapi.tests.jena;
 
 import com.github.owlcs.ontapi.jena.OntModelFactory;
-import com.github.owlcs.ontapi.jena.model.*;
+import com.github.owlcs.ontapi.jena.model.OntClass;
+import com.github.owlcs.ontapi.jena.model.OntID;
+import com.github.owlcs.ontapi.jena.model.OntModel;
+import com.github.owlcs.ontapi.jena.model.OntObject;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.utils.Models;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
@@ -29,7 +32,10 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -163,65 +169,4 @@ public class ModelUtilsTest {
         List<Statement> second = tmp.stream().sorted(comp).collect(Collectors.toList());
         Assert.assertEquals(first, second);
     }
-
-    @Test
-    public void testGetRoots() {
-        OntModel m = OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("/ontapi/pizza.ttl").getGraph());
-        Statement a = getStatement(m, null, RDF.first, getResource(m, ":FourCheesesTopping"));
-        Set<Statement> res1 = Models.getRootStatements(a);
-        Assert.assertEquals(1, res1.size());
-        Assert.assertEquals(getResource(m, ":QuattroFormaggi"), res1.iterator().next().getSubject());
-        Assert.assertEquals(RDFS.subClassOf, res1.iterator().next().getPredicate());
-        Assert.assertTrue(res1.iterator().next().getObject().isAnon());
-
-        Literal x = m.createLiteral("CoberturaDeCaper", "pt");
-        Statement b = getStatement(m, null, RDFS.label, x);
-        Set<Statement> res2 = Models.getRootStatements(b);
-        Assert.assertEquals(1, res2.size());
-        Assert.assertEquals(getResource(m, ":CaperTopping"), res2.iterator().next().getSubject());
-        Assert.assertEquals(RDFS.label, res2.iterator().next().getPredicate());
-        Assert.assertEquals(x, res2.iterator().next().getObject());
-
-        Statement c = getStatement(m, null, OWL.someValuesFrom, getResource(m, ":RocketTopping"));
-        Set<Statement> res3 = Models.getRootStatements(c);
-        Assert.assertEquals(1, res3.size());
-        Resource soho = getResource(m, ":Soho");
-        Assert.assertEquals(soho, res3.iterator().next().getSubject());
-        Assert.assertEquals(RDFS.subClassOf, res3.iterator().next().getPredicate());
-        Assert.assertTrue(res3.iterator().next().getObject().isAnon());
-
-        Resource spiciness = getResource(m, ":Spiciness").addProperty(RDFS.subClassOf, c.getSubject());
-        Set<Statement> res4 = Models.getRootStatements(c);
-        Assert.assertEquals(2, res4.stream()
-                .peek(p -> {
-                    Assert.assertEquals(RDFS.subClassOf, p.getPredicate());
-                    Assert.assertEquals(c.getSubject(), p.getObject());
-                })
-                .count());
-        Assert.assertTrue(res4.stream().map(Statement::getSubject).anyMatch(soho::equals));
-        Assert.assertTrue(res4.stream().map(Statement::getSubject).anyMatch(spiciness::equals));
-
-        OntDisjoint.Individuals disjoint = m.ontObjects(OntDisjoint.Individuals.class)
-                .findFirst().orElseThrow(AssertionError::new);
-        OntStatement d = disjoint.getMainStatement();
-        Assert.assertEquals(1, Models.getRootStatements(d).size());
-
-        OntIndividual i = m.getOntClass(soho).createIndividual();
-        OntStatement e = i.statement(RDF.type).orElseThrow(AssertionError::new);
-        Assert.assertEquals(1, Models.getRootStatements(e).size());
-        disjoint.getList().addFirst(i);
-        Assert.assertEquals(2, Models.getRootStatements(e).size());
-    }
-
-    private static Resource getResource(Model m, String shortName) {
-        return m.createResource(m.expandPrefix(shortName));
-    }
-
-    @SuppressWarnings("SameParameterValue")
-    private static Statement getStatement(Model m, Resource s, Property p, RDFNode o) {
-        List<Statement> statements = m.listStatements(s, p, o).toList();
-        Assert.assertEquals(1, statements.size());
-        return statements.get(0);
-    }
-
 }

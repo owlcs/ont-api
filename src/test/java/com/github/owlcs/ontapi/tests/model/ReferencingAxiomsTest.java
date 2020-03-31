@@ -163,11 +163,11 @@ public class ReferencingAxiomsTest {
                 T.ANNOTATION_PROPERTY.of(2255627747L)
         ),
         TRAVEL("/ontapi/travel.ttl",
-                T.IRI.of(-9844999114L),
+                T.IRI.of(-10914071789L),
                 T.LITERAL.of(-3973926788L),
-                T.ANONYMOUS_INDIVIDUAL.of(1475303698L),
-                T.NAMED_INDIVIDUAL.of(-330824597L),
-                T.CLASS.of(9819903166L),
+                T.ANONYMOUS_INDIVIDUAL.of(1033568903L),
+                T.NAMED_INDIVIDUAL.of(-1214294187L),
+                T.CLASS.of(9634300081L),
                 T.DATATYPE.of(-5564259158L),
                 T.OBJECT_PROPERTY.of(-1128108216L),
                 T.DATA_PROPERTY.of(-5564259158L),
@@ -335,5 +335,4 @@ public class ReferencingAxiomsTest {
             Assert.assertEquals(count, res);
         }
     }
-
 }
