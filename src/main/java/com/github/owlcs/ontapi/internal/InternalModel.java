@@ -142,6 +142,7 @@ public class InternalModel extends OntGraphModelImpl
 
     // Helpers to provide searching axioms by some objects (primitives).
     protected final ByPrimitive<OWLClass> byClass = new ByClass();
+    protected final ByPrimitive<OWLNamedIndividual> byNamedIndividual = new ByNamedIndividual();
     protected final ByPrimitive<OWLObjectProperty> byObjectProperty = new ByObjectProperty();
     protected final ByPrimitive<OWLDataProperty> byDataProperty = new ByDataProperty();
     protected final ByPrimitive<OWLAnnotationProperty> byAnnotationProperty = new ByAnnotationProperty();
@@ -734,17 +735,19 @@ public class InternalModel extends OntGraphModelImpl
     public Stream<OWLAxiom> listOWLAxioms(OWLPrimitive primitive) {
         if (useReferencingAxiomsGraphOptimization(primitive)) {
             ExtendedIterator<ONTObject<? extends OWLAxiom>> res = null;
+            Supplier<OntModel> model = this::getSearchModel;
+            InternalObjectFactory factory = getObjectFactory();
+            InternalConfig config = getConfig();
             if (primitive instanceof OWLClass) {
-                res = byClass.listAxioms((OWLClass) primitive, this::getSearchModel, getObjectFactory(), getConfig());
+                res = byClass.listAxioms((OWLClass) primitive, model, factory, config);
             } else if (primitive instanceof OWLObjectProperty) {
-                res = byObjectProperty.listAxioms((OWLObjectProperty) primitive,
-                        this::getSearchModel, getObjectFactory(), getConfig());
+                res = byObjectProperty.listAxioms((OWLObjectProperty) primitive, model, factory, config);
             } else if (primitive instanceof OWLAnnotationProperty) {
-                res = byAnnotationProperty.listAxioms((OWLAnnotationProperty) primitive,
-                        this::getSearchModel, getObjectFactory(), getConfig());
+                res = byAnnotationProperty.listAxioms((OWLAnnotationProperty) primitive, model, factory, config);
             } else if (primitive instanceof OWLDataProperty) {
-                res = byDataProperty.listAxioms((OWLDataProperty) primitive,
-                        this::getSearchModel, getObjectFactory(), getConfig());
+                res = byDataProperty.listAxioms((OWLDataProperty) primitive, model, factory, config);
+            } else if (primitive instanceof OWLNamedIndividual) {
+                res = byNamedIndividual.listAxioms((OWLNamedIndividual) primitive, model, factory, config);
             }
             if (res != null) {
                 return reduce(Iter.asStream(res.mapWith(ONTObject::getOWLObject)));

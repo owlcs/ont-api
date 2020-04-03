@@ -15,21 +15,19 @@
 package com.github.owlcs.ontapi.internal.searchers;
 
 import com.github.owlcs.ontapi.internal.*;
-import com.github.owlcs.ontapi.jena.model.OntClass;
+import com.github.owlcs.ontapi.jena.model.OntIndividual;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
-import com.github.owlcs.ontapi.jena.vocabulary.RDF;
-import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
 
-import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -48,41 +46,43 @@ public abstract class ByEntity<E extends OWLEntity> extends ByPrimitive<E> {
                 .collect(Iter.toUnmodifiableSet());
     }
 
+    public ExtendedIterator<OntStatement> listRootStatements(OntModel model, OntStatement statement) {
+        return Iter.create(getRootStatements(model, statement));
+    }
+
     /**
      * Returns a {@code Set} of root statements.
      * Any statement has one or more roots or is a root itself.
      * A statement with the predicate {@code rdf:type} is always a root.
      *
-     * @param st {@link Statement}, not {@code null}
+     * @param model     {@link OntModel}, not {@code null}
+     * @param statement {@link Statement}, not {@code null}
      * @return a {@code Set} of {@link Statement}s
      */
-    public static Set<OntStatement> getRootStatements(OntStatement st) {
-        Resource subject = st.getSubject();
-        if (subject.isURIResource()) {
-            return Collections.singleton(st);
-        }
-        return findRoots(st.getModel(), st, new HashSet<>());
-    }
-
-    private static Set<OntStatement> findRoots(Model m, OntStatement st, Set<Statement> seen) {
-        Resource subject = st.getSubject();
-        if (subject.isURIResource()) {
-            return Collections.singleton(st);
-        }
-        Set<OntStatement> res = new HashSet<>();
-        if (RDF.type.equals(st.getPredicate())) {
-            if (st.getObject().canAs(OntClass.class)) { // skip anon individuals
-                return Collections.singleton(st);
+    public static Set<OntStatement> getRootStatements(OntModel model, OntStatement statement) {
+        Set<OntStatement> roots = new HashSet<>();
+        Set<Resource> seen = new HashSet<>();
+        Set<OntStatement> candidates = new LinkedHashSet<>();
+        candidates.add(statement);
+        while (!candidates.isEmpty()) {
+            OntStatement st = candidates.iterator().next();
+            candidates.remove(st);
+            Resource subject = st.getSubject();
+            if (subject.isURIResource() || subject.canAs(OntIndividual.Anonymous.class)) {
+                roots.add(st);
+                continue;
             }
-            res.add(st);
+            int count = candidates.size();
+            OntModels.listLocalStatements(model, null, null, subject)
+                    .filterKeep(s -> s.getSubject().isURIResource() || seen.add(s.getSubject()))
+                    .forEachRemaining(candidates::add);
+            if (count != candidates.size()) {
+                continue;
+            }
+            // no new candidates is found -> then it is root
+            OntModels.listLocalStatements(model, subject, null, null).forEachRemaining(roots::add);
         }
-        m.listStatements(null, null, subject)
-                .filterKeep(seen::add)
-                .forEachRemaining(x -> res.addAll(findRoots(m, (OntStatement) x, seen)));
-        if (res.isEmpty()) {
-            return Collections.singleton(st);
-        }
-        return res;
+        return roots;
     }
 
     @Override
@@ -114,19 +114,7 @@ public abstract class ByEntity<E extends OWLEntity> extends ByPrimitive<E> {
     protected ExtendedIterator<OntStatement> listStatements(OntModel m, String uri) {
         Resource res = m.getResource(uri);
         return Iter.concat(OntModels.listLocalStatements(m, res, null, null),
-                Iter.flatMap(OntModels.listLocalStatements(m, null, null, res), this::listRootStatements));
-    }
-
-    public ExtendedIterator<OntStatement> listRootStatements(OntStatement statement) {
-        Set<OntStatement> res = new HashSet<>();
-        getRootStatements(statement).forEach(s -> {
-            if (s.getSubject().isURIResource()) {
-                res.add(s);
-            } else {
-                s.getSubject().listProperties().forEachRemaining(x -> res.add((OntStatement) x));
-            }
-        });
-        return Iter.create(res);
+                Iter.flatMap(OntModels.listLocalStatements(m, null, null, res), s -> listRootStatements(m, s)));
     }
 
     protected ExtendedIterator<? extends AxiomTranslator<? extends OWLAxiom>> listTranslators(OntStatement statement,

@@ -16,48 +16,19 @@ package com.github.owlcs.ontapi.internal.searchers;
 
 import com.github.owlcs.ontapi.internal.AxiomTranslator;
 import com.github.owlcs.ontapi.internal.OWLComponentType;
-import com.github.owlcs.ontapi.jena.model.OntClass;
-import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
-import com.github.owlcs.ontapi.jena.utils.OntModels;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLNamedIndividual;
 
 import java.util.Set;
-import java.util.stream.Stream;
 
 /**
- * A searcher for {@link OWLClass}.
- * Created by @ssz on 19.03.2020.
+ * Created by @ssz on 31.03.2020.
  */
-public class ByClass extends ByEntity<OWLClass> {
-
-    private static final Set<Class<? extends OntClass.CardinalityRestrictionCE<?, ?>>> OBJECT_CARDINALITY_TYPES =
-            Stream.of(OntClass.ObjectMaxCardinality.class, OntClass.ObjectMinCardinality.class, OntClass.ObjectCardinality.class)
-                    .collect(Iter.toUnmodifiableSet());
-
-    private static final Set<AxiomTranslator<? extends OWLAxiom>> TRANSLATORS = selectTranslators(OWLComponentType.CLASS);
-
-    protected static ExtendedIterator<OntStatement> listImplicit(OntModel m) {
-        return Iter.flatMap(Iter.of(OWL.cardinality, OWL.maxCardinality, OWL.minCardinality),
-                p -> OntModels.listLocalStatements(m, null, p, null)).filterKeep(ByClass::isObjectRestriction);
-    }
-
-    private static boolean isObjectRestriction(OntStatement s) {
-        return OBJECT_CARDINALITY_TYPES.stream().anyMatch(t -> s.getSubject().canAs(t));
-    }
-
-    @Override
-    public ExtendedIterator<OntStatement> listStatements(OntModel m, String uri) {
-        ExtendedIterator<OntStatement> res = super.listStatements(m, uri);
-        if (OWL.Thing.getURI().equals(uri)) {
-            res = Iter.concat(res, Iter.flatMap(listImplicit(m), s -> listRootStatements(m, s)));
-        }
-        return res;
-    }
+public class ByNamedIndividual extends ByEntity<OWLNamedIndividual> {
+    private static final Set<AxiomTranslator<? extends OWLAxiom>> TRANSLATORS =
+            selectTranslators(OWLComponentType.NAMED_INDIVIDUAL);
 
     @Override
     protected ExtendedIterator<AxiomTranslator<? extends OWLAxiom>> listTranslators() {
