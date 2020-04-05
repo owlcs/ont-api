@@ -17,7 +17,6 @@ package com.github.owlcs.ontapi.tests.jena;
 import com.github.owlcs.ontapi.jena.OntJenaException;
 import com.github.owlcs.ontapi.jena.OntModelFactory;
 import com.github.owlcs.ontapi.jena.impl.OntGraphModelImpl;
-import com.github.owlcs.ontapi.jena.impl.OntListImpl;
 import com.github.owlcs.ontapi.jena.impl.conf.OntModelConfig;
 import com.github.owlcs.ontapi.jena.model.*;
 import com.github.owlcs.ontapi.jena.utils.Iter;
@@ -349,7 +348,7 @@ public class OntListTest {
 
         OntObject s = m.createResource("list").as(OntObject.class);
         Property p = m.createProperty("of");
-        OntList<RDFNode> list = OntListImpl.create(m, s, p, RDF.List, RDFNode.class, Iter.of(a, b, c, d, e));
+        OntList<RDFNode> list = m.createOntList(s, p, RDF.List, RDFNode.class, Iter.of(a, b, c, d, e));
         ReadWriteUtils.print(m);
         Assert.assertEquals(RDF.List, list.type().orElseThrow(AssertionError::new));
         Assert.assertEquals(16, m.size());
@@ -357,11 +356,11 @@ public class OntListTest {
         Assert.assertEquals(16, list.content().count());
         Assert.assertEquals(5, list.members().count());
 
-        OntList<Resource> tmp1 = OntListImpl.asOntList(list.as(RDFList.class), m, s, p, RDF.List, Resource.class);
+        OntList<Resource> tmp1 = m.asOntList(list.as(RDFList.class), s, p, false, RDF.List, Resource.class);
         Assert.assertEquals(RDF.List, tmp1.type().orElseThrow(AssertionError::new));
         Assert.assertEquals(15, tmp1.spec().count());
         Assert.assertEquals(3, tmp1.members().count());
-        OntList<Literal> tmp2 = OntListImpl.asOntList(list.as(RDFList.class), m, s, p, RDF.List, Literal.class);
+        OntList<Literal> tmp2 = m.asOntList(list.as(RDFList.class), s, p, false, RDF.List, Literal.class);
         Assert.assertEquals(RDF.List, tmp2.type().orElseThrow(AssertionError::new));
         Assert.assertEquals(15, tmp2.spec().count());
         Assert.assertEquals(2, tmp2.members().count());
@@ -391,7 +390,7 @@ public class OntListTest {
         Assert.assertEquals(1, m.size());
         ReadWriteUtils.print(m);
 
-        OntList<Resource> empty = OntListImpl.create(m, m.createResource("empty").as(OntObject.class), p, RDF.List,
+        OntList<Resource> empty = m.createOntList(m.createResource("empty").as(OntObject.class), p, RDF.List,
                 Resource.class,
                 NullIterator.instance());
         Assert.assertTrue(empty.isNil());

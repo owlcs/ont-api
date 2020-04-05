@@ -642,6 +642,84 @@ public class OntGraphModelImpl extends UnionModel implements OntModel, Personali
     }
 
     /**
+     * Wraps the existing given {@link RDFList []-list} as {@link OntList ONT-list}.
+     *
+     * @param list      {@link RDFList}, not {@code null}
+     * @param subject   {@link OntObject}, not {@code null}
+     * @param predicate {@link Property}, not {@code null}
+     * @param type      a {@code Class}-type for list element {@link E}, not {@code null}
+     * @param <E>       any {@link RDFNode}
+     * @return {@code OntList}
+     */
+    public <E extends RDFNode> OntListImpl<E> asOntList(RDFList list,
+                                                        OntObject subject,
+                                                        Property predicate,
+                                                        Class<E> type) {
+        return asOntList(list, subject, predicate, false, null, type);
+    }
+
+    /**
+     * Wraps the existing given {@link RDFList []-list} as {@link OntList ONT-list}.
+     *
+     * @param list            {@link RDFList}, not {@code null}
+     * @param subject         {@link OntObject}, not {@code null}
+     * @param predicate       {@link Property}, not {@code null}
+     * @param checkRecursions boolean, if {@code true} more careful and expensive checking for list content is performed
+     * @param listType        an uri-{@link Resource}, used as an archaic RDF-type, usually this parameter should be {@code null}
+     * @param elementType     a {@code Class}-type for list element {@link E}, not {@code null}
+     * @param <E>             any {@link RDFNode}
+     * @return {@code OntList}
+     */
+    public <E extends RDFNode> OntListImpl<E> asOntList(RDFList list,
+                                                        OntObject subject,
+                                                        Property predicate,
+                                                        boolean checkRecursions,
+                                                        Resource listType,
+                                                        Class<E> elementType) {
+        OntListImpl.checkRequiredInputs(subject, predicate, list, listType, elementType);
+        return checkRecursions ?
+                OntListImpl.asSafeOntList(list, this, subject, predicate, listType, elementType) :
+                OntListImpl.asOntList(list, this, subject, predicate, listType, elementType);
+    }
+
+    /**
+     * Creates ONT-List with given elements and other settings.
+     *
+     * @param subject   {@link OntObject}, not {@code null}
+     * @param predicate {@link Property}, not {@code null}
+     * @param type      a {@code Class}-type for element {@link E}, not {@code null}
+     * @param elements  and {@code Iterator} of {@link E}-elements (the order is preserved), not {@code null}
+     * @param <E>       any {@link RDFNode}
+     * @return {@code OntList}
+     */
+    public <E extends RDFNode> OntListImpl<E> createOntList(OntObject subject,
+                                                            Property predicate,
+                                                            Class<E> type,
+                                                            Iterator<E> elements) {
+        return createOntList(subject, predicate, null, type, elements);
+    }
+
+    /**
+     * Creates ONT-List with given elements and other settings.
+     *
+     * @param subject     {@link OntObject}, not {@code null}
+     * @param predicate   {@link Property}, not {@code null}
+     * @param listType    an uri-{@link Resource}, used as an archaic RDF-type, usually this parameter should be {@code null}
+     * @param elementType a {@code Class}-type for element {@link E}, not {@code null}
+     * @param elements    and {@code Iterator} of {@link E}-elements (the order is preserved), not {@code null}
+     * @param <E>         any {@link RDFNode}
+     * @return {@code OntList}
+     */
+    public <E extends RDFNode> OntListImpl<E> createOntList(OntObject subject,
+                                                            Property predicate,
+                                                            Resource listType,
+                                                            Class<E> elementType,
+                                                            Iterator<E> elements) {
+        OntListImpl.checkRequiredInputs(subject, predicate, listType, elementType);
+        return OntListImpl.create(this, subject, predicate, listType, elementType, Iter.create(elements));
+    }
+
+    /**
      * Lists all (bulk) annotation anonymous resources for the given {@code rdf:type} and SPO.
      *
      * @param t {@link Resource} either {@link OWL#Axiom owl:Axiom} or {@link OWL#Annotation owl:Annotation}

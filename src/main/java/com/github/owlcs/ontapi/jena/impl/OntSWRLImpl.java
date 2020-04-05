@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -159,7 +159,7 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
                                                      Collection<DArg> arguments) {
         Builtin property = fetchBuiltinEntity(model, predicate.getURI());
         OntObject res = model.createResource(SWRL.BuiltinAtom).addProperty(SWRL.builtin, property).as(OntObject.class);
-        OntListImpl.create(model, res, SWRL.arguments, null, DArg.class, Iter.create(arguments));
+        model.createOntList(res, SWRL.arguments, null, DArg.class, Iter.create(arguments));
         return model.getNodeAs(res.asNode(), Atom.WithBuiltin.class);
     }
 
@@ -239,8 +239,8 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
         OntJenaException.notNull(head, "Null head");
         OntJenaException.notNull(body, "Null body");
         OntObject res = model.createResource(SWRL.Imp).as(OntObject.class);
-        OntListImpl.create(model, res, SWRL.head, SWRL.AtomList, Atom.class, Iter.create(head));
-        OntListImpl.create(model, res, SWRL.body, SWRL.AtomList, Atom.class, Iter.create(body));
+        model.createOntList(res, SWRL.head, SWRL.AtomList, Atom.class, Iter.create(head));
+        model.createOntList(res, SWRL.body, SWRL.AtomList, Atom.class, Iter.create(body));
         return model.getNodeAs(res.asNode(), Imp.class);
     }
 
@@ -334,8 +334,8 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
 
         @Override
         public OntListImpl<DArg> getArgList() {
-            return OntListImpl.asOntList(getRequiredObject(SWRL.arguments, RDFList.class),
-                    getModel(), this, SWRL.arguments, null, DArg.class);
+            return getModel().asOntList(getRequiredObject(SWRL.arguments, RDFList.class),
+                    this, SWRL.arguments, DArg.class);
         }
 
         public ExtendedIterator<OntStatement> listPredicateStatements() {
@@ -566,7 +566,7 @@ public class OntSWRLImpl extends OntObjectImpl implements OntSWRL {
 
         protected OntListImpl<Atom> getList(Property predicate) {
             RDFList list = getRequiredObject(predicate, RDFList.class);
-            return OntListImpl.asOntList(list, getModel(), this, predicate, SWRL.AtomList, Atom.class);
+            return getModel().asOntList(list, this, predicate, false, SWRL.AtomList, Atom.class);
         }
 
         @Override

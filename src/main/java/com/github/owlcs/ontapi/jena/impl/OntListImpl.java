@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -72,27 +72,8 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
 
     /**
      * Creates a fresh {@link OntList} with the given {@code elementType} as a type constraint
-     * containing all content from the specified collection preserving the original order.
+     * containing all content from the specified {@code ExtendedIterator} preserving the original order.
      * The returned []-list will be attached to the model by the given {@code subject} and {@code predicate}.
-     *
-     * @param model       {@link OntGraphModelImpl}
-     * @param subject     {@link OntObject}
-     * @param predicate   {@link Property}
-     * @param elementType class-type of OntList elements
-     * @param elements    {@link Iterator} of elements to be added to the new rdf-list
-     * @param <N>         {@link RDFNode} subtype
-     * @return a fresh {@link OntList} instance
-     */
-    public static <N extends RDFNode> OntListImpl<N> create(OntGraphModelImpl model,
-                                                            OntObject subject,
-                                                            Property predicate,
-                                                            Class<N> elementType,
-                                                            Iterator<N> elements) {
-        return create(model, subject, predicate, null, elementType, Iter.create(elements));
-    }
-
-    /**
-     * Creates a fresh {@link OntList} using the given {@code Iterator} to fill content and other parameters.
      *
      * @param model       {@link OntGraphModelImpl Ontology RDF Model Impl}, not {@code null}
      * @param subject     {@link OntObject} a subject for new root statement, not {@code null}
@@ -109,7 +90,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
                                                             Resource listType,
                                                             Class<N> elementType,
                                                             ExtendedIterator<N> elements) {
-        checkRequiredInput(model, subject, predicate, listType, elementType);
+        checkRequiredInputs(subject, predicate, listType, elementType);
         elements = Iter.peek(elements, n -> OntJenaException.notNull(n, "OntList: null element is specified."));
         RDFList list = listType != null ? createTypedList(model, listType, elements) : model.createList(elements);
         model.add(subject, predicate, list);
@@ -139,14 +120,12 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
      * @return a fresh {@link OntList} instance which wraps an existing []-list within the model Graph
      * @see #asSafeOntList(RDFList, OntGraphModelImpl, OntObject, Property, Resource, Class)
      */
-    public static <N extends RDFNode> OntListImpl<N> asOntList(RDFList list,
-                                                               OntGraphModelImpl model,
-                                                               OntObject subject,
-                                                               Property predicate,
-                                                               Resource listType,
-                                                               Class<N> elementType) {
-        checkRequiredInput(model, subject, predicate, listType, elementType);
-        Objects.requireNonNull(list, "Null RDF-List");
+    protected static <N extends RDFNode> OntListImpl<N> asOntList(RDFList list,
+                                                                  OntGraphModelImpl model,
+                                                                  OntObject subject,
+                                                                  Property predicate,
+                                                                  Resource listType,
+                                                                  Class<N> elementType) {
         return new OntListImpl<N>(subject, predicate, list, listType, model, elementType) {
             @Override
             public boolean isValid(RDFNode n) { // n is already in cache
@@ -194,7 +173,6 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
             public N cast(RDFNode n) {
                 return model.getNodeAs(n.asNode(), elementType);
             }
-
         };
     }
 
@@ -231,9 +209,8 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
                                                                    Property predicate,
                                                                    Resource listType,
                                                                    Class<N> elementType) {
-        checkRequiredInput(model, subject, predicate, listType, elementType);
         return subject.objects(predicate, RDFList.class)
-                .map(list -> asOntList(list, model, subject, predicate, listType, elementType));
+                .map(list -> model.asOntList(list, subject, predicate, false, listType, elementType));
     }
 
 
@@ -278,12 +255,10 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
         }.copy();
     }
 
-    private static void checkRequiredInput(OntGraphModelImpl m,
-                                           OntObject s,
-                                           Property p,
-                                           Resource listType,
-                                           Class<?> elementType) throws IllegalArgumentException, NullPointerException {
-        Objects.requireNonNull(m, "Null model");
+    protected static void checkRequiredInputs(OntObject s,
+                                              Property p,
+                                              Resource listType,
+                                              Class<?> elementType) throws RuntimeException {
         Objects.requireNonNull(s, "Null subject");
         Objects.requireNonNull(p, "Null predicate");
         Objects.requireNonNull(elementType, "Null type");
@@ -291,6 +266,15 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
             return;
         }
         if (!listType.isURIResource()) throw new IllegalArgumentException("List type must have URI");
+    }
+
+    protected static void checkRequiredInputs(OntObject s,
+                                              Property p,
+                                              RDFNode o,
+                                              Resource listType,
+                                              Class<?> elementType) throws RuntimeException {
+        Objects.requireNonNull(o, "Null object");
+        checkRequiredInputs(s, p, listType, elementType);
     }
 
     private static ExtendedIterator<Resource> listAnnotations(OntGraphModelImpl m,

@@ -526,7 +526,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
         OntGraphModelImpl m = getModel();
         Property property = p == null ? m.getNodeAs(t.getPredicate(), Property.class) : p;
         RDFNode object = m.getNodeAs(t.getObject(), RDFNode.class);
-        return OntStatementImpl.createOntStatementImpl(this, property, object, getModel());
+        return m.createStatement(this, property, object);
     }
 
     /**

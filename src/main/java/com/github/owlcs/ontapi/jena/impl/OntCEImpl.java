@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -326,7 +326,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntClass {
     }
 
     public static OntList<OntRealProperty> createHasKey(OntGraphModelImpl m, OntClass clazz, Stream<? extends OntRealProperty> collection) {
-        return OntListImpl.create(m, clazz, OWL.hasKey, OntRealProperty.class,
+        return m.createOntList(clazz, OWL.hasKey, OntRealProperty.class,
                 collection.distinct().map(OntRealProperty.class::cast).iterator());
     }
 
@@ -800,8 +800,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntClass {
 
         @Override
         public OntListImpl<O> getList() {
-            return OntListImpl.asSafeOntList(getRequiredObject(predicate, RDFList.class),
-                    getModel(), this, predicate, null, type);
+            return getModel().asOntList(getRequiredObject(predicate, RDFList.class), this, predicate, true, null, type);
         }
     }
 
@@ -1056,8 +1055,8 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntClass {
 
         @Override
         public OntListImpl<P> getList() {
-            return OntListImpl.asOntList(getRequiredObject(OWL.onProperties, RDFList.class), getModel(),
-                    this, OWL.onProperties, null, propertyType);
+            return getModel().asOntList(getRequiredObject(OWL.onProperties, RDFList.class),
+                    this, OWL.onProperties, propertyType);
         }
 
         public static void validateArity(OntDataRange dr, Collection<OntDataProperty> properties) {
