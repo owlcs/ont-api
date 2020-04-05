@@ -92,9 +92,24 @@ public abstract class ByEntity<E extends OWLEntity> extends ByPrimitive<E> {
                                                                             InternalConfig config) {
         ExtendedIterator<OntStatement> res = listStatements(model.get(), entity.getIRI().getIRIString());
         if (config.isSplitAxiomAnnotations()) {
-            return Iter.flatMap(res, s -> Iter.flatMap(listTranslators(s, config), t -> split(t, s, model, factory, config)));
+            return Iter.flatMap(res, s -> Iter.flatMap(listTranslators(s, config),
+                    t -> split(t, s, model, factory, config)).filterKeep(x -> filter(x.getOWLObject(), entity)));
         }
-        return Iter.flatMap(res, s -> listTranslators(s, config).mapWith(t -> toAxiom(t, s, model, factory, config)));
+        return Iter.flatMap(res, s -> listTranslators(s, config).mapWith(t -> toAxiom(t, s, model, factory, config))
+                .filterKeep(x -> filter(x.getOWLObject(), entity)));
+    }
+
+    /**
+     * Answers {@code true} if the axiom contains the entity.
+     * It is for a case of punning. In normal circumstances no need to filter out.
+     *
+     * @param axiom  {@link A}, not {@code null}
+     * @param entity {@link E}, not {@code null}
+     * @param <A>    subtype of {@link OWLAxiom}
+     * @return boolean
+     */
+    protected <A extends OWLAxiom> boolean filter(A axiom, E entity) {
+        return axiom.containsEntityInSignature(entity);
     }
 
     /**

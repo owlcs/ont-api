@@ -785,6 +785,7 @@ public class InternalModel extends OntGraphModelImpl
         }
         // is cache loaded ?
         if (getContentStore().values().stream().allMatch(ObjectMap::isLoaded)) {
+            // TODO: more correct solution ?
             long threshold = -1; // empirical founded threshold
             if (type instanceof OWLClass) {
                 threshold = 200;

@@ -17,6 +17,7 @@ package com.github.owlcs.ontapi.tests.model;
 import com.github.owlcs.ontapi.*;
 import com.github.owlcs.ontapi.utils.FileMap;
 import org.junit.Assert;
+import org.junit.Assume;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -29,9 +30,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -212,6 +211,21 @@ public class ReferencingAxiomsTest {
             public OWLOntology load(OWLOntologyManager manager) {
                 return load(manager, WINE, this);
             }
+        },
+        NCBITAXON_CUT("/ontapi/ncbitaxon2.ttl",
+                T.IRI.of(501742172985L),
+                T.LITERAL.of(103003236956L),
+                T.ANONYMOUS_INDIVIDUAL.of(),
+                T.NAMED_INDIVIDUAL.of(99706485721L),
+                T.CLASS.of(103056848991L),
+                T.DATATYPE.of(103003236956L),
+                T.OBJECT_PROPERTY.of(-11121488227L),
+                T.DATA_PROPERTY.of(103003236956L),
+                T.ANNOTATION_PROPERTY.of(110212215610L)) {
+            @Override
+            Collection<T> ignore() { // temporary ignored since too slow
+                return Arrays.asList(T.IRI, T.LITERAL);
+            }
         };
         private final Path file;
         private final OntFormat format;
@@ -229,6 +243,10 @@ public class ReferencingAxiomsTest {
             }
             this.format = format;
             this.expectations = expectations;
+        }
+
+        Collection<T> ignore() {
+            return Collections.emptyList();
         }
 
         static OWLOntology load(OWLOntologyManager manager, TestData... data) {
@@ -261,6 +279,7 @@ public class ReferencingAxiomsTest {
         }
 
         public Tester getTester(T type) {
+            Assume.assumeFalse(ignore().contains(type));
             return Arrays.stream(expectations)
                     .filter(x -> Objects.equals(x.type, type))
                     .findFirst().orElseThrow(IllegalArgumentException::new);
