@@ -97,7 +97,7 @@ public class ReferencingAxiomsTest {
 
     @Test
     public void testSearchByDatatypeProperty() {
-        data.doTest(T.DATA_PROPERTY, HasDatatypesInSignature::datatypesInSignature);
+        data.doTest(T.DATA_PROPERTY, HasDataPropertiesInSignature::dataPropertiesInSignature);
     }
 
     @Test
@@ -114,7 +114,7 @@ public class ReferencingAxiomsTest {
                 T.CLASS.of(75129089786L),
                 T.DATATYPE.of(5847447319L),
                 T.OBJECT_PROPERTY.of(-5055137984L),
-                T.DATA_PROPERTY.of(5847447319L),
+                T.DATA_PROPERTY.of(),
                 T.ANNOTATION_PROPERTY.of(5847447319L)
         ),
         FAMILY("/ontapi/family.ttl",
@@ -125,7 +125,7 @@ public class ReferencingAxiomsTest {
                 T.CLASS.of(-7698608481L),
                 T.DATATYPE.of(-41855234952L),
                 T.OBJECT_PROPERTY.of(-40985808704L),
-                T.DATA_PROPERTY.of(-41855234952L),
+                T.DATA_PROPERTY.of(-40904863514L),
                 T.ANNOTATION_PROPERTY.of(83282971L)
         ),
         PEOPLE("/ontapi/people.ttl",
@@ -136,7 +136,7 @@ public class ReferencingAxiomsTest {
                 T.CLASS.of(-36032894329L),
                 T.DATATYPE.of(12391681305L),
                 T.OBJECT_PROPERTY.of(-16161584024L),
-                T.DATA_PROPERTY.of(12391681305L),
+                T.DATA_PROPERTY.of(),
                 T.ANNOTATION_PROPERTY.of(16238983895L)
         ),
         CAMERA("/ontapi/camera.ttl",
@@ -147,7 +147,7 @@ public class ReferencingAxiomsTest {
                 T.CLASS.of(16668417184L),
                 T.DATATYPE.of(6740474844L),
                 T.OBJECT_PROPERTY.of(-1389590202L),
-                T.DATA_PROPERTY.of(6740474844L),
+                T.DATA_PROPERTY.of(12529272927L),
                 T.ANNOTATION_PROPERTY.of()
         ),
         KOALA("/ontapi/koala.ttl",
@@ -158,7 +158,7 @@ public class ReferencingAxiomsTest {
                 T.CLASS.of(-3512598891L),
                 T.DATATYPE.of(1252041014L),
                 T.OBJECT_PROPERTY.of(5550952321L),
-                T.DATA_PROPERTY.of(1252041014L),
+                T.DATA_PROPERTY.of(-3263365120L),
                 T.ANNOTATION_PROPERTY.of(2255627747L)
         ),
         TRAVEL("/ontapi/travel.ttl",
@@ -169,7 +169,7 @@ public class ReferencingAxiomsTest {
                 T.CLASS.of(9634300081L),
                 T.DATATYPE.of(-5564259158L),
                 T.OBJECT_PROPERTY.of(-1128108216L),
-                T.DATA_PROPERTY.of(-5564259158L),
+                T.DATA_PROPERTY.of(-8004661834L),
                 T.ANNOTATION_PROPERTY.of(-3973926788L)
         ),
         WINE("/ontapi/wine.ttl",
@@ -180,7 +180,7 @@ public class ReferencingAxiomsTest {
                 T.CLASS.of(33981903885L),
                 T.DATATYPE.of(2653283947L),
                 T.OBJECT_PROPERTY.of(59036259728L),
-                T.DATA_PROPERTY.of(2653283947L),
+                T.DATA_PROPERTY.of(-507343578L),
                 T.ANNOTATION_PROPERTY.of(1282021579L)) {
             @Override
             String getName() {
@@ -220,7 +220,7 @@ public class ReferencingAxiomsTest {
                 T.CLASS.of(103056848991L),
                 T.DATATYPE.of(103003236956L),
                 T.OBJECT_PROPERTY.of(-11121488227L),
-                T.DATA_PROPERTY.of(103003236956L),
+                T.DATA_PROPERTY.of(-22057951323L),
                 T.ANNOTATION_PROPERTY.of(110212215610L)) {
             @Override
             Collection<T> ignore() { // temporary ignored since too slow
