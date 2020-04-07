@@ -945,7 +945,6 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntClass {
             return object(predicate, objectView).orElseGet(this::getUnqualifiedValue);
         }
 
-        @SuppressWarnings("unchecked")
         private O getUnqualifiedValue() {
             OntModel m = getModel();
             return (O) (OntClass.class.isAssignableFrom(objectView) ? m.getOWLThing() : m.getRDFSLiteral());

@@ -226,7 +226,17 @@ public class ReferencingAxiomsTest {
             Collection<T> ignore() { // temporary ignored since too slow
                 return Arrays.asList(T.IRI, T.LITERAL);
             }
-        };
+        },
+        HP_CUT("/ontapi/hp-cut.ttl",
+                T.IRI.of(-25728375951L),
+                T.LITERAL.of(4459800725L),
+                T.ANONYMOUS_INDIVIDUAL.of(),
+                T.NAMED_INDIVIDUAL.of(),
+                T.CLASS.of(-20822811452L),
+                T.DATATYPE.of(6174427199L),
+                T.OBJECT_PROPERTY.of(-9359730838L),
+                T.DATA_PROPERTY.of(),
+                T.ANNOTATION_PROPERTY.of(-418190290L));
         private final Path file;
         private final OntFormat format;
         private final Tester[] expectations;
@@ -348,9 +358,12 @@ public class ReferencingAxiomsTest {
             return ont.referencingAxioms(x).distinct();
         }
 
+        private long referencingAxiomsCount(OWLOntology ont, OWLPrimitive x) {
+            return referencingAxioms(ont, x).mapToLong(this::calc).sum();
+        }
+
         void testCounts(OWLOntology ont, Function<OWLOntology, Stream<? extends OWLPrimitive>> getPrimitives) {
-            long res = getPrimitives.apply(ont)
-                    .mapToLong(x -> referencingAxioms(ont, x).mapToLong(this::calc).sum()).sum();
+            long res = getPrimitives.apply(ont).mapToLong(x -> referencingAxiomsCount(ont, x)).sum();
             Assert.assertEquals(count, res);
         }
     }

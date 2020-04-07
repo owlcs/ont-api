@@ -15,12 +15,11 @@
 package com.github.owlcs.ontapi.internal.searchers;
 
 import com.github.owlcs.ontapi.internal.AxiomTranslator;
-import com.github.owlcs.ontapi.internal.OWLComponentType;
 import com.github.owlcs.ontapi.jena.model.OntAnnotation;
 import com.github.owlcs.ontapi.jena.model.OntModel;
+import com.github.owlcs.ontapi.jena.model.OntObject;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
-import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAxiom;
@@ -32,8 +31,7 @@ import java.util.Set;
  * Created by @ssz on 29.03.2020.
  */
 public class ByAnnotationProperty extends ByProperty<OWLAnnotationProperty> {
-    private static final Set<AxiomTranslator<? extends OWLAxiom>> TRANSLATORS =
-            selectTranslators(OWLComponentType.ANNOTATION_PROPERTY);
+    private static final Set<AxiomTranslator<? extends OWLAxiom>> TRANSLATORS = selectTranslators(null);
 
     @Override
     protected ExtendedIterator<AxiomTranslator<? extends OWLAxiom>> listTranslators() {
@@ -46,17 +44,25 @@ public class ByAnnotationProperty extends ByProperty<OWLAnnotationProperty> {
     }
 
     protected OntStatement toRootStatement(OntStatement statement) {
-        Resource subject = statement.getSubject();
-        if (!subject.isAnon() || !subject.canAs(OntAnnotation.class)) {
+        OntObject subject = statement.getSubject();
+        OntAnnotation a;
+        if (!subject.isAnon() || (a = subject.getAs(OntAnnotation.class)) == null) {
             return statement;
         }
-        OntStatement base = getRoot(subject.as(OntAnnotation.class)).getBase();
+        OntStatement base = getRoot(a).getBase();
         if (base != null) {
             statement = base;
         }
         return statement;
     }
 
+    /**
+     * Finds the root (top-level) annotation resource
+     * for the given sub-annotation (a resource with {@code owl:Annotation} as {@code rdf:type}).
+     *
+     * @param annotation {@link OntAnnotation} - sub annotation, not {@code null}
+     * @return root or the same input annotation - a resource with {@code owl:Axiom} as {@code rdf:type}
+     */
     public static OntAnnotation getRoot(OntAnnotation annotation) {
         OntAnnotation parent = annotation.parent().orElse(null);
         return parent == null ? annotation : getRoot(parent);

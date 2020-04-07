@@ -733,20 +733,21 @@ public class InternalModel extends OntGraphModelImpl
      * @return {@code Stream} of {@link OWLAxiom}s
      */
     public Stream<OWLAxiom> listOWLAxioms(OWLPrimitive primitive) {
-        if (useReferencingAxiomsGraphOptimization(primitive)) {
+        OWLComponentType filter = OWLComponentType.get(primitive);
+        if (useReferencingAxiomsGraphOptimization(filter)) {
             ExtendedIterator<ONTObject<? extends OWLAxiom>> res = null;
             Supplier<OntModel> model = this::getSearchModel;
             InternalObjectFactory factory = getObjectFactory();
             InternalConfig config = getConfig();
-            if (primitive instanceof OWLClass) {
+            if (filter == OWLComponentType.CLASS) {
                 res = byClass.listAxioms((OWLClass) primitive, model, factory, config);
-            } else if (primitive instanceof OWLObjectProperty) {
+            } else if (filter == OWLComponentType.NAMED_OBJECT_PROPERTY) {
                 res = byObjectProperty.listAxioms((OWLObjectProperty) primitive, model, factory, config);
-            } else if (primitive instanceof OWLAnnotationProperty) {
+            } else if (filter == OWLComponentType.ANNOTATION_PROPERTY) {
                 res = byAnnotationProperty.listAxioms((OWLAnnotationProperty) primitive, model, factory, config);
-            } else if (primitive instanceof OWLDataProperty) {
+            } else if (filter == OWLComponentType.DATATYPE_PROPERTY) {
                 res = byDataProperty.listAxioms((OWLDataProperty) primitive, model, factory, config);
-            } else if (primitive instanceof OWLNamedIndividual) {
+            } else if (filter == OWLComponentType.NAMED_INDIVIDUAL) {
                 res = byNamedIndividual.listAxioms((OWLNamedIndividual) primitive, model, factory, config);
             }
             if (res != null) {
@@ -754,7 +755,6 @@ public class InternalModel extends OntGraphModelImpl
             }
         }
         // the default way:
-        OWLComponentType filter = OWLComponentType.get(primitive);
         if (OWLContentType.ANNOTATION.hasComponent(filter)) {
             // is type of annotation -> any axiom may contain the primitive
             return reduce(OWLContentType.axioms().flatMap(k -> {
@@ -771,10 +771,10 @@ public class InternalModel extends OntGraphModelImpl
     /**
      * Answers {@code true} if graph optimization for referencing axioms functionality is allowed and makes sense.
      *
-     * @param type {@link OWLPrimitive}
+     * @param type {@link OWLComponentType}
      * @return boolean
      */
-    protected boolean useReferencingAxiomsGraphOptimization(OWLPrimitive type) {
+    protected boolean useReferencingAxiomsGraphOptimization(OWLComponentType type) {
         if (!getConfig().useContentCache()) {
             // no cache at all -> always use the graph way
             return true;
@@ -787,11 +787,11 @@ public class InternalModel extends OntGraphModelImpl
         if (getContentStore().values().stream().allMatch(ObjectMap::isLoaded)) {
             // TODO: more correct solution ?
             long threshold = -1; // empirical founded threshold
-            if (type instanceof OWLClass) {
+            if (type == OWLComponentType.CLASS) {
                 threshold = 200;
-            } else if (type instanceof OWLObjectProperty) {
+            } else if (type == OWLComponentType.NAMED_OBJECT_PROPERTY) {
                 threshold = 2000;
-            } else if (type instanceof OWLDataProperty) {
+            } else if (type == OWLComponentType.DATATYPE_PROPERTY) {
                 threshold = 100;
             }
             // for annotation properties the graph way is faster no matter of ontology size;

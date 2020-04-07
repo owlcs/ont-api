@@ -17,6 +17,7 @@ package com.github.owlcs.ontapi.internal.searchers;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.jena.model.OntIndividual;
 import com.github.owlcs.ontapi.jena.model.OntModel;
+import com.github.owlcs.ontapi.jena.model.OntObject;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
@@ -40,7 +41,7 @@ import java.util.function.Supplier;
 public abstract class ByEntity<E extends OWLEntity> extends ByPrimitive<E> {
 
     static Set<AxiomTranslator<? extends OWLAxiom>> selectTranslators(OWLComponentType type) {
-        return OWLContentType.all().filter(x -> x.isAxiom() && x.hasComponent(type))
+        return OWLContentType.axioms().filter(x -> type == null || x.hasComponent(type))
                 .map(OWLContentType::getAxiomType)
                 .map(AxiomParserProvider::get)
                 .collect(Iter.toUnmodifiableSet());
@@ -59,7 +60,7 @@ public abstract class ByEntity<E extends OWLEntity> extends ByPrimitive<E> {
      * @param statement {@link Statement}, not {@code null}
      * @return a {@code Set} of {@link Statement}s
      */
-    public static Set<OntStatement> getRootStatements(OntModel model, OntStatement statement) {
+    public Set<OntStatement> getRootStatements(OntModel model, OntStatement statement) {
         Set<OntStatement> roots = new HashSet<>();
         Set<Resource> seen = new HashSet<>();
         Set<OntStatement> candidates = new LinkedHashSet<>();
@@ -67,7 +68,7 @@ public abstract class ByEntity<E extends OWLEntity> extends ByPrimitive<E> {
         while (!candidates.isEmpty()) {
             OntStatement st = candidates.iterator().next();
             candidates.remove(st);
-            Resource subject = st.getSubject();
+            OntObject subject = st.getSubject();
             if (subject.isURIResource() || subject.canAs(OntIndividual.Anonymous.class)) {
                 roots.add(st);
                 continue;
@@ -80,9 +81,13 @@ public abstract class ByEntity<E extends OWLEntity> extends ByPrimitive<E> {
                 continue;
             }
             // no new candidates is found -> then it is root
-            OntModels.listLocalStatements(model, subject, null, null).forEachRemaining(roots::add);
+            listForSubject(model, subject).forEachRemaining(roots::add);
         }
         return roots;
+    }
+
+    protected ExtendedIterator<OntStatement> listForSubject(OntModel model, OntObject subject) {
+        return OntModels.listLocalStatements(model, subject, null, null);
     }
 
     @Override

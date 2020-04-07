@@ -1,0 +1,377 @@
+@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix owl:   <http://www.w3.org/2002/07/owl#> .
+@prefix hp:    <http://purl.obolibrary.org/obo/hp#> .
+@prefix xsd:   <http://www.w3.org/2001/XMLSchema#> .
+@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix purl:  <http://purl.obolibrary.org/obo/> .
+@prefix obo:   <http://www.geneontology.org/formats/oboInOwl#> .
+@prefix dc:    <http://purl.org/dc/elements/1.1/> .
+
+obo:creation_date  a  owl:AnnotationProperty .
+
+obo:created_by  a  owl:AnnotationProperty .
+
+purl:hp.owl  a                 owl:Ontology ;
+        rdfs:comment           "Please see license of HPO at http://www.human-phenotype-ontology.org" ;
+        dc:contributor         "Sandra Doelken" , "Joie Davis" , "Chris Mungall" , "Nicole Vasilevsky" , "Melissa Haendel" , "Courtney Hum" , "Mark Engelstad" ;
+        dc:creator             "The Human Phenotype Ontology Consortium" , "Peter N Robinson" , "Sebastian Koehler" , "The Monarch Initiative" ;
+        dc:license             "see http://www.human-phenotype-ontology.org" ;
+        dc:rights              "Peter Robinson, Sebastian Koehler, The Human Phenotype Ontology Consortium, and The Monarch Initiative" ;
+        dc:subject             "Phenotypic abnormalities encountered in human disease" ;
+        obo:default-namespace  "human_phenotype" ;
+        obo:logical-definition-view-relation
+                "has_part" ;
+        obo:saved-by           "Peter Robinson, Sebastian Koehler, Sandra Doelken, Chris Mungall, Melissa Haendel, Nicole Vasilevsky, Monarch Initiative, et al." .
+
+purl:RO_0000052  a          owl:ObjectProperty ;
+        rdfs:label          "inheres in" ;
+        rdfs:subPropertyOf  purl:RO_0002314 ;
+        obo:hasDbXref       "RO:0000052" ;
+        obo:id              "inheres_in" ;
+        obo:shorthand       "inheres_in" .
+
+[ a                      owl:Axiom ;
+  obo:created_by         "HPO:skoehler" ;
+  owl:annotatedProperty  owl:equivalentClass ;
+  owl:annotatedSource    purl:HP_0000871 ;
+  owl:annotatedTarget    _:b0
+] .
+
+rdfs:comment  a  owl:AnnotationProperty .
+
+purl:UBERON_0002196  a  owl:Class .
+
+obo:hasRelatedSynonym
+        a           owl:AnnotationProperty ;
+        rdfs:label  "has_related_synonym" .
+
+purl:HP_0012795  a           owl:Class ;
+        rdfs:comment         "The term 'optic disc' is frequently used to describe the portion of the optic nerve clinically visible on fundoscopic examination." ;
+        rdfs:label           "Abnormality of the optic disc" ;
+        rdfs:subClassOf      purl:HP_0000587 ;
+        purl:IAO_0000115     "A morphological abnormality of the optic disc, i.e., of the portion of the optic nerve clinically visible on fundoscopic examination." ;
+        obo:created_by       "peter" ;
+        obo:creation_date    "2014-05-24T04:37:10Z" ;
+        obo:hasDbXref        "UMLS:C3808249" ;
+        obo:hasOBONamespace  "human_phenotype" ;
+        obo:id               "HP:0012795" .
+
+purl:HP_0011747  a             owl:Class ;
+        rdfs:label             "Abnormality of the anterior pituitary" ;
+        rdfs:subClassOf        purl:HP_0012503 ;
+        purl:IAO_0000115       "An abnormality of the adenohypophysis, which is also known as the anterior lobe of the pituitary gland." ;
+        obo:created_by         "peter" ;
+        obo:creation_date      "2012-04-22T11:17:00Z" ;
+        obo:hasDbXref          "UMLS:C4023206" , "UMLS:C0032002" , "MSH:D010900" , "SNOMEDCT_US:399244003" ;
+        obo:hasOBONamespace    "human_phenotype" ;
+        obo:hasRelatedSynonym  "Pituitary disease" ;
+        obo:id                 "HP:0011747" .
+
+purl:UBERON_0000941  a  owl:Class .
+
+purl:BFO_0000051  a    owl:ObjectProperty ;
+        rdfs:label     "has part" ;
+        obo:hasDbXref  "BFO:0000051" ;
+        obo:id         "has_part" ;
+        obo:shorthand  "has_part" .
+
+purl:RO_0002314  a              owl:ObjectProperty ;
+        rdfs:label              "inheres in part of" ;
+        obo:hasDbXref           "RO:0002314" ;
+        obo:id                  "inheres_in_part_of" ;
+        obo:shorthand           "inheres_in_part_of" ;
+        owl:propertyChainAxiom  ( purl:RO_0000052 purl:BFO_0000050 ) .
+
+dc:subject  a   owl:AnnotationProperty .
+
+purl:UBERON_0000468  a  owl:Class .
+
+obo:SubsetProperty  a  owl:AnnotationProperty ;
+        rdfs:label  "subset_property" .
+
+purl:UBERON_0000007  a  owl:Class .
+
+[ a                      owl:Axiom ;
+  obo:hasDbXref          "ORCID:0000-0003-0986-4123" ;
+  owl:annotatedProperty  purl:IAO_0000115 ;
+  owl:annotatedSource    purl:HP_0025595 ;
+  owl:annotatedTarget    "Reduced ocular movement of the superior oblique muscle which improves on testing ductions, typically associated with neurogenic palsy."
+] .
+
+dc:license  a   owl:AnnotationProperty .
+
+[ a                      owl:Axiom ;
+  obo:hasDbXref          "pmid:12466332" , "HPO:probinson" ;
+  owl:annotatedProperty  purl:IAO_0000115 ;
+  owl:annotatedSource    purl:HP_0000871 ;
+  owl:annotatedTarget    "A pituitary functional deficit affecting all the anterior pituitary hormones (growth hormone, thyroid-stimulating hormone, follicle-stimulating hormone, luteinizing hormone, adrenocorticotropic hormone, and prolactin)."
+] .
+
+purl:BFO_0000050  a    owl:ObjectProperty ;
+        rdfs:label     "part of" ;
+        obo:hasDbXref  "BFO:0000050" ;
+        obo:id         "part_of" ;
+        obo:shorthand  "part_of" .
+
+purl:HP_0012374  a  owl:Class .
+
+obo:id  a       owl:AnnotationProperty .
+
+purl:IAO_0000115  a  owl:AnnotationProperty ;
+        rdfs:label  "definition" .
+
+dc:creator  a   owl:AnnotationProperty .
+
+obo:hasOBONamespace  a  owl:AnnotationProperty ;
+        rdfs:label  "has_obo_namespace" .
+
+purl:HP_0031739  a        owl:Class ;
+        rdfs:comment      "The superior oblique muscle is responsible for incyclotorsion (inward turning) or the eye. The inferior oblique muscle is responsible for excyclotorsion (outward turning) or the eye." ;
+        rdfs:label        "Abnormal oblique muscle physiology" ;
+        rdfs:subClassOf   purl:HP_0025590 ;
+        purl:IAO_0000115  "A functional anomaly of the inferior or superior oblique muscle." ;
+        dc:creator        "peter" ;
+        dc:date           "2018-01-21T13:53:14Z"^^xsd:dateTime .
+
+obo:inSubset  a     owl:AnnotationProperty ;
+        rdfs:label  "in_subset" .
+
+purl:HP_0000587  a           owl:Class ;
+        rdfs:comment         "The optic nerve, which is also known as cranial nerve II, transmits visual information from the retina to the brain. The term 'optic disc' is frequently used to describe the portion of the optic nerve clinically visible on fundoscopic examination." ;
+        rdfs:label           "Abnormality of the optic nerve" ;
+        rdfs:subClassOf      purl:HP_0001098 ;
+        purl:IAO_0000115     "Abnormality of the optic nerve." ;
+        obo:hasDbXref        "UMLS:C0029131" ;
+        obo:hasExactSynonym  "optic nerve abnormalities" , "Optic nerve issue" ;
+        obo:hasOBONamespace  "human_phenotype" ;
+        obo:id               "HP:0000587" ;
+        obo:inSubset         hp:hposlim_core ;
+        owl:equivalentClass  [ a                   owl:Restriction ;
+                               owl:onProperty      purl:BFO_0000051 ;
+                               owl:someValuesFrom  [ a                   owl:Class ;
+                                                     owl:intersectionOf  ( purl:PATO_0000001
+                                                                           [ a                   owl:Restriction ;
+                                                                             owl:onProperty      purl:RO_0002314 ;
+                                                                             owl:someValuesFrom  purl:UBERON_0000941
+                                                                           ]
+                                                                           [ a                   owl:Restriction ;
+                                                                             owl:onProperty      purl:RO_0002573 ;
+                                                                             owl:someValuesFrom  purl:PATO_0000460
+                                                                           ]
+                                                                         )
+                                                   ]
+                             ] .
+
+purl:GO_0003008  a  owl:Class .
+
+obo:default-namespace
+        a       owl:AnnotationProperty .
+
+rdfs:label  a   owl:AnnotationProperty .
+
+purl:HP_0025592  a           owl:Class ;
+        rdfs:label           "Superior oblique muscle weakness"@en ;
+        rdfs:subClassOf      purl:HP_0025591 ;
+        purl:IAO_0000115     "Decreased strength of the superior oblique muscle." ;
+        dc:creator           "HPO:probinson" ;
+        dc:date              "2018-01-13T20:17:49Z"^^xsd:dateTime ;
+        obo:hasExactSynonym  "Superior oblique palsy" .
+
+purl:HP_0040075  a           owl:Class ;
+        rdfs:label           "Hypopituitarism" ;
+        rdfs:subClassOf      purl:HP_0011747 ;
+        obo:created_by       "HPO:skoehler" ;
+        obo:hasDbXref        "UMLS:C0020635" , "SNOMEDCT_US:74728003" , "MSH:D007018" ;
+        owl:equivalentClass  [ a                   owl:Restriction ;
+                               owl:onProperty      purl:BFO_0000051 ;
+                               owl:someValuesFrom  [ a                   owl:Class ;
+                                                     owl:intersectionOf  ( purl:PATO_0000911
+                                                                           [ a                   owl:Restriction ;
+                                                                             owl:onProperty      purl:RO_0000052 ;
+                                                                             owl:someValuesFrom  [ a                   owl:Class ;
+                                                                                                   owl:intersectionOf  ( purl:GO_0046903
+                                                                                                                         [ a                   owl:Restriction ;
+                                                                                                                           owl:onProperty      purl:BFO_0000066 ;
+                                                                                                                           owl:someValuesFrom  purl:UBERON_0000007
+                                                                                                                         ]
+                                                                                                                       )
+                                                                                                 ]
+                                                                           ]
+                                                                           [ a                   owl:Restriction ;
+                                                                             owl:onProperty      purl:RO_0002573 ;
+                                                                             owl:someValuesFrom  purl:PATO_0000460
+                                                                           ]
+                                                                         )
+                                                   ]
+                             ] .
+
+_:b0    a                   owl:Restriction ;
+        owl:onProperty      purl:BFO_0000051 ;
+        owl:someValuesFrom  [ a                   owl:Class ;
+                              owl:intersectionOf  ( purl:PATO_0000462
+                                                    [ a                   owl:Restriction ;
+                                                      owl:onProperty      purl:RO_0000052 ;
+                                                      owl:someValuesFrom  [ a                   owl:Class ;
+                                                                            owl:intersectionOf  ( purl:GO_0003008
+                                                                                                  [ a                   owl:Restriction ;
+                                                                                                    owl:onProperty      purl:BFO_0000066 ;
+                                                                                                    owl:someValuesFrom  [ a                   owl:Class ;
+                                                                                                                          owl:intersectionOf  ( purl:UBERON_0002196
+                                                                                                                                                [ a                   owl:Restriction ;
+                                                                                                                                                  owl:onProperty      purl:BFO_0000050 ;
+                                                                                                                                                  owl:someValuesFrom  purl:UBERON_0000468
+                                                                                                                                                ]
+                                                                                                                                              )
+                                                                                                                        ]
+                                                                                                  ]
+                                                                                                )
+                                                                          ]
+                                                    ]
+                                                    [ a                   owl:Restriction ;
+                                                      owl:onProperty      purl:RO_0002573 ;
+                                                      owl:someValuesFrom  purl:PATO_0000460
+                                                    ]
+                                                  )
+                            ] .
+
+obo:hasExactSynonym  a  owl:AnnotationProperty ;
+        rdfs:label  "has_exact_synonym" .
+
+purl:HP_0000538  a           owl:Class ;
+        rdfs:comment         "Papilledema is disc edema secondary to increased intracranial pressure." ;
+        rdfs:label           "Pseudopapilledema" ;
+        rdfs:subClassOf      purl:HP_0012795 ;
+        purl:IAO_0000115     "Apparent optic disc swelling in the absence of increased intracranial pressure." ;
+        obo:hasDbXref        "SNOMEDCT_US:57138009" , "MSH:C562401" , "UMLS:C0155300" ;
+        obo:hasOBONamespace  "human_phenotype" ;
+        obo:id               "HP:0000538" ;
+        obo:inSubset         hp:hposlim_core .
+
+purl:HP_0012373  a  owl:Class .
+
+obo:saved-by  a  owl:AnnotationProperty .
+
+obo:hasDbXref  a    owl:AnnotationProperty ;
+        rdfs:label  "database_cross_reference" .
+
+purl:RO_0002573  a     owl:ObjectProperty ;
+        rdfs:comment   "placeholder relation to indicate normality/abnormality." ;
+        rdfs:label     "has modifier" ;
+        obo:hasDbXref  "RO:0002180" ;
+        obo:id         "qualifier" ;
+        obo:shorthand  "qualifier" .
+
+obo:shorthand  a    owl:AnnotationProperty ;
+        rdfs:label  "shorthand" .
+
+purl:HP_0012503  a           owl:Class ;
+        rdfs:label           "Abnormality of the pituitary gland" ;
+        rdfs:subClassOf      purl:HP_0012443 , purl:HP_0000864 ;
+        purl:IAO_0000115     "An anomaly of the pituitary gland." ;
+        obo:created_by       "peter" ;
+        obo:creation_date    "2013-11-30T09:34:21Z" ;
+        obo:hasDbXref        "MSH:D010900" , "SNOMEDCT_US:399244003" , "UMLS:C0032002" ;
+        obo:hasExactSynonym  "disorder of pituitary gland" ;
+        obo:hasOBONamespace  "human_phenotype" ;
+        obo:id               "HP:0012503" .
+
+purl:HP_0025591  a        owl:Class ;
+        rdfs:comment      "A neurological examination includes assessment of the trochlear nerve (CN IV) which innervates the superior oblique muscle. The test for CN IV function is for the patient to depress and adduct the eye (ie. to look down and in). This movement is impaired in the presence of a trochlear nerve palsy." ;
+        rdfs:label        "Abnormal superior oblique muscle physiology"@en ;
+        rdfs:subClassOf   purl:HP_0031739 ;
+        purl:IAO_0000115  "A functional anomaly of the superior oblique muscle, a fusiform muscle that originates in the upper, medial side of the orbit. The superior oblique muscle abducts, depresses and internally rotates the eye, and is the only extraocular muscle innervated by the fourth cranial nerve." ;
+        dc:creator        "HPO:probinson" ;
+        dc:date           "2018-01-13T20:12:43Z"^^xsd:dateTime .
+
+purl:PATO_0000462  a  owl:Class .
+
+purl:PATO_0000001  a  owl:Class .
+
+purl:HP_0004329  a           owl:Class ;
+        rdfs:comment         "The posterior segment comprises the anterior hyaloid membrane and all of the optical structures behind it: the vitreous humor, retina, choroid, and optic nerve." ;
+        rdfs:label           "Abnormal morphology of the posterior segment of the globe" ;
+        rdfs:subClassOf      purl:HP_0012374 ;
+        obo:created_by       "peter" ;
+        obo:creation_date    "2008-02-27T04:25:00Z" ;
+        obo:hasDbXref        "UMLS:C4025354" ;
+        obo:hasExactSynonym  "Abnormality of the posterior segment of the eyeball" , "Abnormality of the posterior segment of the eye" , "Abnormality of the posterior segment of the globe" ;
+        obo:hasOBONamespace  "human_phenotype" ;
+        obo:id               "HP:0004329" .
+
+dc:date  a      owl:AnnotationProperty .
+
+purl:GO_0046903  a  owl:Class .
+
+purl:HP_0000864  a  owl:Class .
+
+purl:BFO_0000066  a    owl:ObjectProperty ;
+        rdfs:label     "occurs in" ;
+        obo:hasDbXref  "BFO:0000066" ;
+        obo:id         "occurs_in" ;
+        obo:shorthand  "occurs_in" .
+
+purl:HP_0000830  a           owl:Class ;
+        rdfs:label           "Anterior hypopituitarism" ;
+        rdfs:subClassOf      purl:HP_0040075 ;
+        purl:IAO_0000115     "A condition of reduced function of the anterior pituitary gland characterized by decreased secretion of one or more of the pituitary hormones growth hormone, thyroid-stimulating hormone, adrenocorticotropic hormone, prolactin, luteinizing hormone, and follicle-stimulating hormone." ;
+        obo:hasDbXref        "UMLS:C4025821" ;
+        obo:hasOBONamespace  "human_phenotype" ;
+        obo:id               "HP:0000830" .
+
+purl:HP_0025590  a        owl:Class ;
+        rdfs:label        "Abnormal extraocular muscle physiology"@en ;
+        rdfs:subClassOf   purl:HP_0012373 ;
+        purl:IAO_0000115  "A functional anomaly of the muscles of the eye." ;
+        dc:creator        "HPO:probinson" ;
+        dc:date           "2018-01-13T20:11:20Z"^^xsd:dateTime .
+
+purl:HP_0000871  a           owl:Class ;
+        rdfs:label           "Panhypopituitarism" ;
+        rdfs:subClassOf      purl:HP_0000830 ;
+        purl:IAO_0000115     "A pituitary functional deficit affecting all the anterior pituitary hormones (growth hormone, thyroid-stimulating hormone, follicle-stimulating hormone, luteinizing hormone, adrenocorticotropic hormone, and prolactin)." ;
+        obo:hasDbXref        "MSH:C580003" , "UMLS:C0242343" , "SNOMEDCT_US:32390006" ;
+        obo:hasOBONamespace  "human_phenotype" ;
+        obo:id               "HP:0000871" ;
+        owl:equivalentClass  _:b0 .
+
+purl:HP_0012443  a  owl:Class .
+
+dc:contributor  a  owl:AnnotationProperty .
+
+purl:HP_0001098  a           owl:Class ;
+        rdfs:label           "Abnormal fundus morphology" ;
+        rdfs:subClassOf      purl:HP_0004329 ;
+        purl:IAO_0000115     "Any structural abnormality of the fundus of the eye." ;
+        obo:hasDbXref        "UMLS:C4025804" ;
+        obo:hasExactSynonym  "Abnormality of the fundus" ;
+        obo:hasOBONamespace  "human_phenotype" ;
+        obo:id               "HP:0001098" .
+
+purl:PATO_0000911  a  owl:Class .
+
+obo:logical-definition-view-relation
+        a           owl:AnnotationProperty ;
+        rdfs:label  "logical-definition-view-relation" .
+
+hp:hposlim_core  a          owl:AnnotationProperty ;
+        rdfs:comment        "Core clinical terminology" ;
+        rdfs:subPropertyOf  obo:SubsetProperty .
+
+purl:HP_0025595  a           owl:Class ;
+        rdfs:label           "Superior oblique muscle underaction"@en ;
+        rdfs:subClassOf      purl:HP_0025592 ;
+        purl:IAO_0000115     "Reduced ocular movement of the superior oblique muscle which improves on testing ductions, typically associated with neurogenic palsy." ;
+        dc:creator           "HPO:probinson" ;
+        dc:date              "2018-01-13T20:46:33Z"^^xsd:dateTime ;
+        obo:hasExactSynonym  "Under-depression in adduction" .
+
+dc:rights  a    owl:AnnotationProperty .
+
+[ a                      owl:Axiom ;
+  obo:hasDbXref          "HPO:probinson" ;
+  owl:annotatedProperty  purl:IAO_0000115 ;
+  owl:annotatedSource    purl:HP_0000538 ;
+  owl:annotatedTarget    "Apparent optic disc swelling in the absence of increased intracranial pressure."
+] .
+
+purl:PATO_0000460  a  owl:Class .

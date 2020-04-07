@@ -41,7 +41,7 @@ public class ByClass extends ByEntity<OWLClass> {
 
     private static final Set<AxiomTranslator<? extends OWLAxiom>> TRANSLATORS = selectTranslators(OWLComponentType.CLASS);
 
-    protected static ExtendedIterator<OntStatement> listImplicit(OntModel m) {
+    protected ExtendedIterator<OntStatement> listForTopEntity(OntModel m) {
         return Iter.flatMap(Iter.of(OWL.cardinality, OWL.maxCardinality, OWL.minCardinality),
                 p -> OntModels.listLocalStatements(m, null, p, null)).filterKeep(ByClass::isObjectRestriction);
     }
@@ -54,7 +54,7 @@ public class ByClass extends ByEntity<OWLClass> {
     public ExtendedIterator<OntStatement> listStatements(OntModel m, String uri) {
         ExtendedIterator<OntStatement> res = super.listStatements(m, uri);
         if (OWL.Thing.getURI().equals(uri)) {
-            res = Iter.concat(res, Iter.flatMap(listImplicit(m), s -> listRootStatements(m, s)));
+            res = Iter.concat(res, Iter.flatMap(listForTopEntity(m), s -> listRootStatements(m, s)));
         }
         return res;
     }
