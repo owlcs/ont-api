@@ -122,10 +122,10 @@ public class InternalModel extends OntGraphModelImpl
      * The main cache, which contains all axioms and the ontology header.
      * It contains {@code 40} key-value pairs, {@code 39} for kinds of axioms and one for the ontology header.
      *
-     * @see OWLContentType#all()
+     * @see OWLTopObjectType#all()
      * @see ObjectMap
      */
-    protected final InternalCache.Loading<InternalModel, Map<OWLContentType, ObjectMap<? extends OWLObject>>> content;
+    protected final InternalCache.Loading<InternalModel, Map<OWLTopObjectType, ObjectMap<? extends OWLObject>>> content;
     /**
      * OWL objects cache to work with OWL-API 'signature' methods.
      * Currently it is calculated from the {@link #content}.
@@ -623,7 +623,7 @@ public class InternalModel extends OntGraphModelImpl
             return listOWLAxioms(OWLDeclarationAxiom.class).filter(a -> e.equals(a.getEntity()));
         }
         // in the case of a large ontology, the direct traverse over the graph works significantly faster:
-        DeclarationTranslator t = OWLContentType.DECLARATION.getTranslator();
+        DeclarationTranslator t = OWLTopObjectType.DECLARATION.getTranslator();
         OntEntity res = getSearchModel().findNodeAs(WriteHelper.toResource(e).asNode(), WriteHelper.getEntityType(e));
         if (res == null) return Stream.empty();
         InternalObjectFactory df = getObjectFactory();
@@ -646,7 +646,7 @@ public class InternalModel extends OntGraphModelImpl
             return listOWLAxioms(OWLAnnotationAssertionAxiom.class).filter(a -> s.equals(a.getSubject()));
         }
         InternalObjectFactory df = getObjectFactory();
-        AnnotationAssertionTranslator t = OWLContentType.ANNOTATION_ASSERTION.getTranslator();
+        AnnotationAssertionTranslator t = OWLTopObjectType.ANNOTATION_ASSERTION.getTranslator();
         ExtendedIterator<OntStatement> res = getSearchModel()
                 .listLocalStatements(WriteHelper.toResource(s), null, null)
                 .filterKeep(x -> t.testStatement(x, getConfig()));
@@ -666,7 +666,7 @@ public class InternalModel extends OntGraphModelImpl
             return listOWLAxioms(OWLSubClassOfAxiom.class).filter(a -> Objects.equals(a.getSubClass(), sub));
         }
         InternalObjectFactory df = getObjectFactory();
-        SubClassOfTranslator t = OWLContentType.SUBCLASS_OF.getTranslator();
+        SubClassOfTranslator t = OWLTopObjectType.SUBCLASS_OF.getTranslator();
         ExtendedIterator<OntStatement> res = getSearchModel()
                 .listLocalStatements(WriteHelper.toResource(sub), RDFS.subClassOf, null)
                 .filterKeep(t::filter);
@@ -688,7 +688,7 @@ public class InternalModel extends OntGraphModelImpl
         }
         InternalObjectFactory df = getObjectFactory();
         OntGraphModelImpl m = getSearchModel();
-        EquivalentClassesTranslator t = OWLContentType.EQUIVALENT_CLASSES.getTranslator();
+        EquivalentClassesTranslator t = OWLTopObjectType.EQUIVALENT_CLASSES.getTranslator();
         Resource r = WriteHelper.toResource(c);
         ExtendedIterator<OntStatement> res = m.listLocalStatements(r, OWL.equivalentClass, null)
                 .andThen(m.listLocalStatements(null, OWL.equivalentClass, r))
@@ -704,7 +704,7 @@ public class InternalModel extends OntGraphModelImpl
      * @see #listOWLAnnotations()
      */
     public Stream<OWLAxiom> listOWLAxioms() {
-        return flatMap(filteredAxiomsCaches(OWLContentType.axioms()), ObjectMap::keys);
+        return flatMap(filteredAxiomsCaches(OWLTopObjectType.axioms()), ObjectMap::keys);
     }
 
     /**
@@ -713,7 +713,7 @@ public class InternalModel extends OntGraphModelImpl
      * @return {@code Stream} of {@link OWLAxiom}s
      */
     public Stream<OWLLogicalAxiom> listOWLLogicalAxioms() {
-        return flatMap(filteredAxiomsCaches(OWLContentType.logical()), m -> (Stream<OWLLogicalAxiom>) m.keys());
+        return flatMap(filteredAxiomsCaches(OWLTopObjectType.logical()), m -> (Stream<OWLLogicalAxiom>) m.keys());
     }
 
     /**
@@ -723,7 +723,7 @@ public class InternalModel extends OntGraphModelImpl
      * @return {@code Stream} of {@link OWLAxiom}s
      */
     public Stream<OWLAxiom> listOWLAxioms(Iterable<AxiomType<?>> filter) {
-        return flatMap(filteredAxiomsCaches(OWLContentType.axioms(filter)), ObjectMap::keys);
+        return flatMap(filteredAxiomsCaches(OWLTopObjectType.axioms(filter)), ObjectMap::keys);
     }
 
     /**
@@ -755,16 +755,16 @@ public class InternalModel extends OntGraphModelImpl
             }
         }
         // the default way:
-        if (OWLContentType.ANNOTATION.hasComponent(filter)) {
+        if (OWLTopObjectType.ANNOTATION.hasComponent(filter)) {
             // is type of annotation -> any axiom may contain the primitive
-            return reduce(OWLContentType.axioms().flatMap(k -> {
+            return reduce(OWLTopObjectType.axioms().flatMap(k -> {
                 ObjectMap<OWLAxiom> axioms = getContentCache(k);
                 Predicate<OWLAxiom> p = k.hasComponent(filter) ? a -> true : k::hasAnnotations;
                 return axioms.keys().filter(x -> p.test(x) && filter.contains(x, primitive));
             }));
         }
         // select only those container-types, that are capable to contain the primitive
-        return flatMap(filteredAxiomsCaches(OWLContentType.axioms().filter(x -> x.hasComponent(filter))),
+        return flatMap(filteredAxiomsCaches(OWLTopObjectType.axioms().filter(x -> x.hasComponent(filter))),
                 k -> k.keys().filter(x -> filter.contains(x, primitive)));
     }
 
@@ -810,7 +810,7 @@ public class InternalModel extends OntGraphModelImpl
      */
     @SuppressWarnings("unchecked")
     public <A extends OWLAxiom> Stream<A> listOWLAxioms(Class<A> type) {
-        return (Stream<A>) getAxiomsCache(OWLContentType.get(type)).keys();
+        return (Stream<A>) getAxiomsCache(OWLTopObjectType.get(type)).keys();
     }
 
     /**
@@ -822,9 +822,9 @@ public class InternalModel extends OntGraphModelImpl
      * @return {@code Stream} of {@link OWLAxiom}s
      */
     public <A extends OWLAxiom> Stream<A> listOWLAxioms(Class<A> type, OWLObject object) {
-        OWLContentType key = OWLContentType.get(type);
+        OWLTopObjectType key = OWLTopObjectType.get(type);
         OWLComponentType filter = OWLComponentType.get(object);
-        if (!OWLContentType.ANNOTATION.hasComponent(filter) && !key.hasComponent(filter)) {
+        if (!OWLTopObjectType.ANNOTATION.hasComponent(filter) && !key.hasComponent(filter)) {
             return Stream.empty();
         }
         return (Stream<A>) getAxiomsCache(key).keys().filter(x -> filter.contains(x, object));
@@ -839,7 +839,7 @@ public class InternalModel extends OntGraphModelImpl
      */
     @SuppressWarnings("unchecked")
     public <A extends OWLAxiom> Stream<A> listOWLAxioms(AxiomType<A> type) {
-        return (Stream<A>) getAxiomsCache(OWLContentType.get(type)).keys();
+        return (Stream<A>) getAxiomsCache(OWLTopObjectType.get(type)).keys();
     }
 
     /**
@@ -923,7 +923,7 @@ public class InternalModel extends OntGraphModelImpl
      * @see #contains(OWLAnnotation)
      */
     public boolean contains(OWLAxiom a) {
-        return getAxiomsCache(OWLContentType.get(a.getAxiomType())).contains(a);
+        return getAxiomsCache(OWLTopObjectType.get(a.getAxiomType())).contains(a);
     }
 
     /**
@@ -945,7 +945,7 @@ public class InternalModel extends OntGraphModelImpl
      * @see #add(OWLAnnotation)
      */
     public boolean add(OWLAxiom axiom) {
-        return add(OWLContentType.get(axiom.getAxiomType()), axiom);
+        return add(OWLTopObjectType.get(axiom.getAxiomType()), axiom);
     }
 
     /**
@@ -956,7 +956,7 @@ public class InternalModel extends OntGraphModelImpl
      * @see #add(OWLAxiom)
      */
     public boolean add(OWLAnnotation annotation) {
-        return add(OWLContentType.ANNOTATION, annotation);
+        return add(OWLTopObjectType.ANNOTATION, annotation);
     }
 
     /**
@@ -968,7 +968,7 @@ public class InternalModel extends OntGraphModelImpl
      * @see #remove(OWLAnnotation)
      */
     public boolean remove(OWLAxiom axiom) {
-        return remove(OWLContentType.get(axiom.getAxiomType()), axiom);
+        return remove(OWLTopObjectType.get(axiom.getAxiomType()), axiom);
     }
 
     /**
@@ -979,19 +979,19 @@ public class InternalModel extends OntGraphModelImpl
      * @see #remove(OWLAxiom)
      */
     public boolean remove(OWLAnnotation annotation) {
-        return remove(OWLContentType.ANNOTATION, annotation);
+        return remove(OWLTopObjectType.ANNOTATION, annotation);
     }
 
     /**
      * Adds the specified {@code OWLObject} into the model.
      *
-     * @param key       {@link OWLContentType}, not {@code null}
+     * @param key       {@link OWLTopObjectType}, not {@code null}
      * @param container either {@link OWLAxiom} or {@link OWLAnnotation},
      *                  that corresponds to the {@code key}, not {@code null}
      * @return {@code true} if the graph has been changed
      * @throws OntApiException in case the object cannot be added into model
      */
-    protected boolean add(OWLContentType key, OWLObject container) throws OntApiException {
+    protected boolean add(OWLTopObjectType key, OWLObject container) throws OntApiException {
         OWLTriples.Listener listener = OWLTriples.createListener();
         GraphEventManager evm = getGraph().getEventManager();
         ObjectMap<OWLObject> map = getContentCache(key);
@@ -1029,13 +1029,13 @@ public class InternalModel extends OntGraphModelImpl
      * {@code <A> rdfs:subClassOf _:b0} and {@code <B> rdfs:subClassOf _:b0}.
      * Also, OWL-Entity declaration root-triples are shared between different axioms.
      *
-     * @param key       {@link OWLContentType}, not {@code null}
+     * @param key       {@link OWLTopObjectType}, not {@code null}
      * @param container either {@link OWLAxiom} or {@link OWLAnnotation},
      *                  that corresponds to the {@code key}, not {@code null}
      * @return {@code true} if the graph has been changed
      * @see #clearComponentsCaches()
      */
-    protected boolean remove(OWLContentType key, OWLObject container) {
+    protected boolean remove(OWLTopObjectType key, OWLObject container) {
         try {
             disableDirectListening();
             ObjectMap<OWLObject> map = getContentCache(key);
@@ -1096,14 +1096,14 @@ public class InternalModel extends OntGraphModelImpl
         InternalConfig c = HasConfig.getConfig(model);
         Set<Triple> res = new HashSet<>();
         // shared declaration and punned axioms:
-        Iter.flatMap(OWLContentType.listAll(), type -> type.read(() -> model, f, c)
+        Iter.flatMap(OWLTopObjectType.listAll(), type -> type.read(() -> model, f, c)
                 .filterKeep(x -> {
                     OWLObject obj = x.getOWLObject();
-                    if (type != OWLContentType.DECLARATION && container.equals(obj)) return false;
+                    if (type != OWLTopObjectType.DECLARATION && container.equals(obj)) return false;
                     if (getContentCache(type).contains(obj)) {
                         return true;
                     }
-                    if (type == OWLContentType.DECLARATION) {
+                    if (type == OWLTopObjectType.DECLARATION) {
                         OWLEntity entity = ((OWLDeclarationAxiom) obj).getEntity();
                         return findUsedContentContainer(entity, obj).isPresent();
                     }
@@ -1332,7 +1332,7 @@ public class InternalModel extends OntGraphModelImpl
      * @param type {@link OWLComponentType}, not {@code null}
      * @param <O>  {@link OWLObject} class-type that corresponds the {@code type}
      * @return a {@link ObjectMap} of {@link O}s
-     * @see #getContentCache(OWLContentType)
+     * @see #getContentCache(OWLTopObjectType)
      * @see OWLComponentType
      */
     protected <O extends OWLObject> ObjectMap<O> getComponentCache(OWLComponentType type) {
@@ -1344,7 +1344,7 @@ public class InternalModel extends OntGraphModelImpl
      *
      * @param key {@link OWLComponentType}, not {@code null}
      * @return {@link ObjectMap}
-     * @see #createContentObjectMap(OWLContentType)
+     * @see #createContentObjectMap(OWLTopObjectType)
      * @see OWLComponentType
      */
     protected ObjectMap<OWLObject> createComponentObjectMap(OWLComponentType key) {
@@ -1392,7 +1392,7 @@ public class InternalModel extends OntGraphModelImpl
      * @return {@code Stream} of {@link OWLObject} - containers from the {@link #content} cache
      */
     protected Stream<OWLObject> selectContentObjects(OWLComponentType type) {
-        return selectContent(type, k -> getContentCache(k).keys(), OWLContentType::hasAnnotations);
+        return selectContent(type, k -> getContentCache(k).keys(), OWLTopObjectType::hasAnnotations);
     }
 
     /**
@@ -1400,22 +1400,22 @@ public class InternalModel extends OntGraphModelImpl
      *
      * @param type            {@link OWLComponentType}, not {@code null}
      * @param toStream        a {@code Function} to provide {@code Stream} of {@link R}
-     *                        for a given {@link OWLContentType}, not {@code null}
+     *                        for a given {@link OWLTopObjectType}, not {@code null}
      * @param withAnnotations a {@code BiPredicate} to select only those {@link R},
      *                        which have OWL annotations, not {@code null}
      * @param <R>             anything
      * @return {@code Stream} of {@link R} - containers from the {@link #content} cache
      */
     protected <R> Stream<R> selectContent(OWLComponentType type,
-                                          Function<OWLContentType, Stream<R>> toStream,
-                                          BiPredicate<OWLContentType, R> withAnnotations) {
+                                          Function<OWLTopObjectType, Stream<R>> toStream,
+                                          BiPredicate<OWLTopObjectType, R> withAnnotations) {
         // todo: consider the case when there is no bulk annotations at all ?
-        if (!OWLContentType.ANNOTATION.hasComponent(type)) {
+        if (!OWLTopObjectType.ANNOTATION.hasComponent(type)) {
             // select only those axiom types which are allowed to contain the component type
-            return OWLContentType.all().filter(k -> k.hasComponent(type)).flatMap(toStream);
+            return OWLTopObjectType.all().filter(k -> k.hasComponent(type)).flatMap(toStream);
         }
         // any axiom or header annotation may contain this component
-        return OWLContentType.all().flatMap(k -> {
+        return OWLTopObjectType.all().flatMap(k -> {
             if (k.hasComponent(type)) {
                 // the axiom-type (k) definitely contains the component type:
                 return toStream.apply(k);
@@ -1476,26 +1476,26 @@ public class InternalModel extends OntGraphModelImpl
     }
 
     /**
-     * Maps the given {@code Stream} of {@link OWLContentType} to {@link ObjectMap}.
+     * Maps the given {@code Stream} of {@link OWLTopObjectType} to {@link ObjectMap}.
      * The input must contain only those elements
-     * for which the {@link OWLContentType#isAxiom()} method returns {@code true}.
+     * for which the {@link OWLTopObjectType#isAxiom()} method returns {@code true}.
      *
-     * @param keys {@code Stream} of {@link OWLContentType}
+     * @param keys {@code Stream} of {@link OWLTopObjectType}
      * @return {@code Stream} of {@link ObjectMap} containing {@link OWLAxiom}s
      */
-    protected Stream<ObjectMap<? extends OWLAxiom>> filteredAxiomsCaches(Stream<OWLContentType> keys) {
-        Map<OWLContentType, ObjectMap<? extends OWLObject>> map = getContentStore();
+    protected Stream<ObjectMap<? extends OWLAxiom>> filteredAxiomsCaches(Stream<OWLTopObjectType> keys) {
+        Map<OWLTopObjectType, ObjectMap<? extends OWLObject>> map = getContentStore();
         return keys.map(x -> (ObjectMap<? extends OWLAxiom>) map.get(x));
     }
 
     /**
-     * Gets the {@link ObjectMap} for the given {@link OWLContentType}.
-     * The {@link OWLContentType#isAxiom()} method for the input must return {@code true}.
+     * Gets the {@link ObjectMap} for the given {@link OWLTopObjectType}.
+     * The {@link OWLTopObjectType#isAxiom()} method for the input must return {@code true}.
      *
-     * @param key {@link OWLContentType}, not {@code null}
+     * @param key {@link OWLTopObjectType}, not {@code null}
      * @return {@link ObjectMap}
      */
-    protected ObjectMap<OWLAxiom> getAxiomsCache(OWLContentType key) {
+    protected ObjectMap<OWLAxiom> getAxiomsCache(OWLTopObjectType key) {
         return getContentCache(key);
     }
 
@@ -1505,18 +1505,18 @@ public class InternalModel extends OntGraphModelImpl
      * @return {@link ObjectMap}
      */
     protected ObjectMap<OWLAnnotation> getHeaderCache() {
-        return getContentCache(OWLContentType.ANNOTATION);
+        return getContentCache(OWLTopObjectType.ANNOTATION);
     }
 
     /**
      * Gets an ontology content {@code ObjectMap}-cache.
      *
-     * @param key {@link OWLContentType}, not {@code null}
+     * @param key {@link OWLTopObjectType}, not {@code null}
      * @param <X> either {@link OWLAxiom} or {@link OWLAnnotation}
      * @return {@link ObjectMap}
      * @see #getComponentCache(OWLComponentType)
      */
-    protected <X extends OWLObject> ObjectMap<X> getContentCache(OWLContentType key) {
+    protected <X extends OWLObject> ObjectMap<X> getContentCache(OWLTopObjectType key) {
         return (ObjectMap<X>) getContentStore().get(key);
     }
 
@@ -1525,7 +1525,7 @@ public class InternalModel extends OntGraphModelImpl
      *
      * @return {@link Map}
      */
-    protected Map<OWLContentType, ObjectMap<? extends OWLObject>> getContentStore() {
+    protected Map<OWLTopObjectType, ObjectMap<? extends OWLObject>> getContentStore() {
         return content.get(this);
     }
 
@@ -1535,17 +1535,18 @@ public class InternalModel extends OntGraphModelImpl
      * @return {@link Map}
      * @see #createComponentStore()
      */
-    protected Map<OWLContentType, ObjectMap<? extends OWLObject>> createContentStore() {
-        return createMapStore(OWLContentType.class, OWLContentType.all(), this::createContentObjectMap);
+    protected Map<OWLTopObjectType, ObjectMap<? extends OWLObject>> createContentStore() {
+        return createMapStore(OWLTopObjectType.class, OWLTopObjectType.all(), this::createContentObjectMap);
     }
 
     /**
-     * Creates a {@link ObjectMap} container for the given {@link OWLContentType}.
-     * @param key {@link OWLContentType}
+     * Creates a {@link ObjectMap} container for the given {@link OWLTopObjectType}.
+     *
+     * @param key {@link OWLTopObjectType}
      * @return {@link ObjectMap}
      * @see #createComponentObjectMap(OWLComponentType)
      */
-    protected ObjectMap<OWLObject> createContentObjectMap(OWLContentType key) {
+    protected ObjectMap<OWLObject> createContentObjectMap(OWLTopObjectType key) {
         InternalObjectFactory df = getObjectFactory();
         Supplier<OntModel> m = this::getSearchModel;
         Supplier<Iterator<ONTObject<OWLObject>>> loader =

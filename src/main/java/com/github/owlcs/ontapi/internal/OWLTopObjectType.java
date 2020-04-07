@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -35,7 +35,7 @@ import static com.github.owlcs.ontapi.internal.OWLComponentType.*;
  * For axioms there is a natural {@link AxiomType}'s order to provide a little bit faster iterating:
  * the declarations and widely used axioms go first, which is good for the data-factory and other caching mechanisms.
  */
-public enum OWLContentType {
+public enum OWLTopObjectType {
     // an ontology header annotations
     ANNOTATION(null, false, ANNOTATION_PROPERTY, LITERAL, ANONYMOUS_INDIVIDUAL, IRI) {
         @Override
@@ -115,15 +115,15 @@ public enum OWLContentType {
     DATATYPE_DEFINITION(AxiomType.DATATYPE_DEFINITION, DATATYPE, DATA_RANGE),
     ;
 
-    private static final Set<OWLContentType> ALL_AXIOMS;
-    private static final Set<OWLContentType> LOGICAL_AXIOMS;
+    private static final Set<OWLTopObjectType> ALL_AXIOMS;
+    private static final Set<OWLTopObjectType> LOGICAL_AXIOMS;
 
     static {
-        Set<OWLContentType> axioms = EnumSet.noneOf(OWLContentType.class);
-        Set<OWLContentType> logical = EnumSet.noneOf(OWLContentType.class);
-        OWLContentType[] array = values();
+        Set<OWLTopObjectType> axioms = EnumSet.noneOf(OWLTopObjectType.class);
+        Set<OWLTopObjectType> logical = EnumSet.noneOf(OWLTopObjectType.class);
+        OWLTopObjectType[] array = values();
         for (int i = 1; i < array.length; i++) {
-            OWLContentType x = array[i];
+            OWLTopObjectType x = array[i];
             axioms.add(x);
             if (x.type.isLogical()) {
                 logical.add(x);
@@ -137,7 +137,7 @@ public enum OWLContentType {
     private final boolean distinct;
     private final Set<OWLComponentType> components;
 
-    OWLContentType(AxiomType<? extends OWLAxiom> type, OWLComponentType... types) {
+    OWLTopObjectType(AxiomType<? extends OWLAxiom> type, OWLComponentType... types) {
         this(type, false, types);
     }
 
@@ -147,33 +147,33 @@ public enum OWLContentType {
      * @param types    an {@code Array} of top-level components
      */
     @SuppressWarnings("unchecked")
-    OWLContentType(AxiomType<? extends OWLAxiom> type, boolean distinct, OWLComponentType... types) {
+    OWLTopObjectType(AxiomType<? extends OWLAxiom> type, boolean distinct, OWLComponentType... types) {
         this.type = (AxiomType<OWLAxiom>) type;
         this.distinct = distinct;
         this.components = OWLComponentType.toSet(types);
     }
 
     /**
-     * Returns a {@link OWLContentType} by the {@link AxiomType}.
+     * Returns a {@link OWLTopObjectType} by the {@link AxiomType}.
      *
      * @param type {@link AxiomType}, not {@code null}
-     * @return {@link OWLContentType}, not {@code null}
+     * @return {@link OWLTopObjectType}, not {@code null}
      */
-    public static OWLContentType get(AxiomType<?> type) throws IndexOutOfBoundsException {
+    public static OWLTopObjectType get(AxiomType<?> type) throws IndexOutOfBoundsException {
         return values()[type.getIndex() + 1];
     }
 
     /**
-     * Returns a {@link OWLContentType} by the {@link OWLAxiom}s {@code Class}-type.
+     * Returns a {@link OWLTopObjectType} by the {@link OWLAxiom}s {@code Class}-type.
      *
      * @param type {@link OWLAxiom} actual class-type
-     * @return {@link OWLContentType}, not {@code null}
+     * @return {@link OWLTopObjectType}, not {@code null}
      * @see AxiomType#getActualClass()
      */
-    public static OWLContentType get(Class<? extends OWLAxiom> type) {
-        OWLContentType[] array = values();
+    public static OWLTopObjectType get(Class<? extends OWLAxiom> type) {
+        OWLTopObjectType[] array = values();
         for (int i = 1; i < array.length; i++) {
-            OWLContentType res = array[i];
+            OWLTopObjectType res = array[i];
             if (type == res.type.getActualClass()) return res;
         }
         throw new OntApiException.IllegalState();
@@ -182,53 +182,53 @@ public enum OWLContentType {
     /**
      * Lists all values as {@code Stream}.
      *
-     * @return {@code Stream} of {@link OWLContentType}s
+     * @return {@code Stream} of {@link OWLTopObjectType}s
      */
-    public static Stream<OWLContentType> all() {
+    public static Stream<OWLTopObjectType> all() {
         return Arrays.stream(values());
     }
 
     /**
      * Answers an iterator over all {@code 40} content types.
      *
-     * @return {@link ExtendedIterator} of {@link OWLContentType}s
+     * @return {@link ExtendedIterator} of {@link OWLTopObjectType}s
      */
-    static ExtendedIterator<OWLContentType> listAll() {
+    static ExtendedIterator<OWLTopObjectType> listAll() {
         return Iter.of(values());
     }
 
     /**
-     * Lists all {@link OWLAxiom}s {@link OWLContentType Meta-info}s.
+     * Lists all {@link OWLAxiom}s {@link OWLTopObjectType Meta-info}s.
      *
-     * @return {@code Stream} of {@link OWLContentType}s
+     * @return {@code Stream} of {@link OWLTopObjectType}s
      */
-    public static Stream<OWLContentType> axioms() {
+    public static Stream<OWLTopObjectType> axioms() {
         return ALL_AXIOMS.stream();
     }
 
     /**
      * List all logical axiom types.
      *
-     * @return {@code Stream} of {@link OWLContentType}s
+     * @return {@code Stream} of {@link OWLTopObjectType}s
      */
-    public static Stream<OWLContentType> logical() {
+    public static Stream<OWLTopObjectType> logical() {
         return LOGICAL_AXIOMS.stream();
     }
 
     /**
-     * Lists all {@link OWLAxiom}s {@link OWLContentType Meta-info}s for the specified axioms {@code types}.
+     * Lists all {@link OWLAxiom}s {@link OWLTopObjectType Meta-info}s for the specified axioms {@code types}.
      *
      * @param types {@link Iterable}, not {@code null}
-     * @return {@code Stream} of {@link OWLContentType}s
+     * @return {@code Stream} of {@link OWLTopObjectType}s
      */
-    public static Stream<OWLContentType> axioms(Iterable<AxiomType<?>> types) {
+    public static Stream<OWLTopObjectType> axioms(Iterable<AxiomType<?>> types) {
         Stream<AxiomType<?>> res;
         if (types instanceof Collection) {
             res = ((Collection<AxiomType<?>>) types).stream();
         } else {
             res = StreamSupport.stream(types.spliterator(), false);
         }
-        return res.map(OWLContentType::get);
+        return res.map(OWLTopObjectType::get);
     }
 
     /**

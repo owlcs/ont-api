@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -244,21 +244,21 @@ public class CacheConfigTest {
         Ontology o1 = m1.loadOntologyFromOntologyDocument(src,
                 m1.getOntologyLoaderConfiguration().setModelCacheLevel(CacheSettings.CACHE_CONTENT, true));
         InternalModel im1 = adapter.asBaseModel(o1).getBase();
-        InternalCache.Loading c1 = getInternalCache(im1, OWLContentType.class);
+        InternalCache.Loading c1 = getInternalCache(im1, OWLTopObjectType.class);
         Assert.assertNotNull(c1);
         Map map1 = (Map) c1.get(im1);
         Assert.assertNotNull(map1);
-        OWLContentType.all().forEach(k -> {
+        OWLTopObjectType.all().forEach(k -> {
             ObjectMap v = (ObjectMap) map1.get(k);
             Assert.assertNotNull(v);
             Assert.assertFalse("Loaded: " + k, v.isLoaded());
         });
         // load axioms:
         Assert.assertEquals(axioms, o1.getAxiomCount());
-        OWLContentType.all().forEach(k -> {
+        OWLTopObjectType.all().forEach(k -> {
             ObjectMap v = (ObjectMap) map1.get(k);
             Assert.assertNotNull(v);
-            if (OWLContentType.ANNOTATION.equals(k)) {
+            if (OWLTopObjectType.ANNOTATION.equals(k)) {
                 Assert.assertFalse("Loaded: " + k, v.isLoaded());
             } else {
                 Assert.assertTrue("Not loaded: " + k, v.isLoaded());
@@ -269,13 +269,13 @@ public class CacheConfigTest {
         Ontology o2 = m2.loadOntologyFromOntologyDocument(src,
                 m2.getOntologyLoaderConfiguration().setModelCacheLevel(CacheSettings.CACHE_CONTENT, false));
         InternalModel im2 = adapter.asBaseModel(o2).getBase();
-        InternalCache.Loading c2 = getInternalCache(im2, OWLContentType.class);
+        InternalCache.Loading c2 = getInternalCache(im2, OWLTopObjectType.class);
         Assert.assertNotNull(c2);
         Map map2 = (Map) c2.get(im2);
         Assert.assertNotNull(map2);
         // load axioms:
         Assert.assertEquals(axioms, o2.getAxiomCount());
-        OWLContentType.all().forEach(k -> {
+        OWLTopObjectType.all().forEach(k -> {
             ObjectMap v = (ObjectMap) map2.get(k);
             Assert.assertNotNull(v);
             Assert.assertFalse("Loaded: " + k, v.isLoaded());
