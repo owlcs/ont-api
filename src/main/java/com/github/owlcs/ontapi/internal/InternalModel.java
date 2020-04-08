@@ -142,6 +142,7 @@ public class InternalModel extends OntGraphModelImpl
 
     // Helpers to provide searching axioms by some objects (primitives).
     protected final ByPrimitive<OWLClass> byClass = new ByClass();
+    protected final ByPrimitive<OWLDatatype> byDatatype = new ByDatatype();
     protected final ByPrimitive<OWLNamedIndividual> byNamedIndividual = new ByNamedIndividual();
     protected final ByPrimitive<OWLObjectProperty> byObjectProperty = new ByObjectProperty();
     protected final ByPrimitive<OWLDataProperty> byDataProperty = new ByDataProperty();
@@ -749,6 +750,8 @@ public class InternalModel extends OntGraphModelImpl
                 res = byDataProperty.listAxioms((OWLDataProperty) primitive, model, factory, config);
             } else if (filter == OWLComponentType.NAMED_INDIVIDUAL) {
                 res = byNamedIndividual.listAxioms((OWLNamedIndividual) primitive, model, factory, config);
+            } else if (filter == OWLComponentType.DATATYPE) {
+                res = byDatatype.listAxioms((OWLDatatype) primitive, model, factory, config);
             }
             if (res != null) {
                 return reduce(Iter.asStream(res.mapWith(ONTObject::getOWLObject)));
@@ -769,7 +772,7 @@ public class InternalModel extends OntGraphModelImpl
     }
 
     /**
-     * Answers {@code true} if graph optimization for referencing axioms functionality is allowed and makes sense.
+     * Answers {@code true} if the graph optimization for referencing axioms functionality is allowed and makes sense.
      *
      * @param type {@link OWLComponentType}
      * @return boolean
@@ -783,19 +786,29 @@ public class InternalModel extends OntGraphModelImpl
             // manually added axioms cannot be derived from the graph
             return false;
         }
-        // is cache loaded ?
+        // if cache is loaded - decide which way to use:
+        // either the graph-optimization way or straightforward cache parsing
         if (getContentStore().values().stream().allMatch(ObjectMap::isLoaded)) {
-            // TODO: more correct solution ?
-            long threshold = -1; // empirical founded threshold
-            if (type == OWLComponentType.CLASS) {
+            // Empirical founded threshold (TODO: not sure is this a correct solution)
+            // (for small ontologies it is better to use cache traversing instead of graph searching)
+            long threshold = -1;
+            if (type == OWLComponentType.DATATYPE) {
+                // the graph-optimized-way has usually worse performance in comparison with the classic cache parsing
+                // maybe it is because there are usually only a few owl-datatypes, but many theirs entrances;
+                return false;
+            } else if (type == OWLComponentType.CLASS) {
                 threshold = 200;
             } else if (type == OWLComponentType.NAMED_OBJECT_PROPERTY) {
                 threshold = 2000;
+            } else if (type == OWLComponentType.ANNOTATION_PROPERTY) {
+                threshold = 2000;
             } else if (type == OWLComponentType.DATATYPE_PROPERTY) {
                 threshold = 100;
+            } else if (type == OWLComponentType.NAMED_INDIVIDUAL) {
+                // the graph-way is usually faster, especially for big ontologies,
+                // but it may be not true in case of special complexity (e.g. with owl:AllDifferent)
+                threshold = 3000;
             }
-            // for annotation properties the graph way is faster no matter of ontology size;
-            // for other primitives, for small ontologies it is better to use cache traversing instead of graph searching
             return getOWLAxiomCount() >= threshold;
         }
         return true;

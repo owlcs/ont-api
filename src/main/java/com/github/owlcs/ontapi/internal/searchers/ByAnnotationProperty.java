@@ -40,7 +40,11 @@ public class ByAnnotationProperty extends ByProperty<OWLAnnotationProperty> {
 
     @Override
     protected ExtendedIterator<OntStatement> listAssertions(OntModel m, String uri) {
-        return super.listAssertions(m, uri).mapWith(this::toRootStatement);
+        ExtendedIterator<OntStatement> res = super.listAssertions(m, uri);
+        if (includeAnnotations(m)) {
+            res = res.mapWith(this::toRootStatement);
+        }
+        return res;
     }
 
     protected OntStatement toRootStatement(OntStatement statement) {
@@ -54,17 +58,5 @@ public class ByAnnotationProperty extends ByProperty<OWLAnnotationProperty> {
             statement = base;
         }
         return statement;
-    }
-
-    /**
-     * Finds the root (top-level) annotation resource
-     * for the given sub-annotation (a resource with {@code owl:Annotation} as {@code rdf:type}).
-     *
-     * @param annotation {@link OntAnnotation} - sub annotation, not {@code null}
-     * @return root or the same input annotation - a resource with {@code owl:Axiom} as {@code rdf:type}
-     */
-    public static OntAnnotation getRoot(OntAnnotation annotation) {
-        OntAnnotation parent = annotation.parent().orElse(null);
-        return parent == null ? annotation : getRoot(parent);
     }
 }

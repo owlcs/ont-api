@@ -261,9 +261,8 @@ public class ReferencingAxiomsTest {
 
         static OWLOntology load(OWLOntologyManager manager, TestData... data) {
             OWLOntology res = null;
-            OWLOntologyLoaderConfiguration conf = manager.getOntologyLoaderConfiguration();
+            OWLOntologyLoaderConfiguration conf = createConfig(manager);
             if (!(manager instanceof OntologyManager)) { // OWL-API
-                conf = conf.setMissingImportHandlingStrategy(MissingImportHandlingStrategy.SILENT);
                 manager.setOntologyLoaderConfiguration(conf);
                 PriorityCollection<OWLOntologyIRIMapper> maps = manager.getIRIMappers();
                 Arrays.stream(data)
@@ -275,7 +274,6 @@ public class ReferencingAxiomsTest {
                     throw new AssertionError(e);
                 }
             } else { // ONT-API
-                conf = OWLAdapter.get().asONT(conf).setProcessImports(false).setPerformTransformation(false);
                 for (TestData d : data) {
                     try {
                         res = manager.loadOntologyFromOntologyDocument(d.getDocumentSource(), conf);
@@ -302,15 +300,20 @@ public class ReferencingAxiomsTest {
 
         public OWLOntology load(OWLOntologyManager manager) {
             try {
-                OWLOntologyLoaderConfiguration conf = manager.getOntologyLoaderConfiguration();
-                if (manager instanceof OntologyManager) {
-                    // no transform
-                    conf = OWLAdapter.get().asONT(conf).setPerformTransformation(false);
-                }
-                return manager.loadOntologyFromOntologyDocument(getDocumentSource(), conf);
+                return manager.loadOntologyFromOntologyDocument(getDocumentSource(), createConfig(manager));
             } catch (OWLOntologyCreationException e) {
                 throw new AssertionError(e);
             }
+        }
+
+        static OWLOntologyLoaderConfiguration createConfig(OWLOntologyManager manager) {
+            OWLOntologyLoaderConfiguration conf = manager.getOntologyLoaderConfiguration();
+            if (manager instanceof OntologyManager) {
+                conf = OWLAdapter.get().asONT(conf).setProcessImports(false).setPerformTransformation(false);
+            } else {
+                conf = conf.setMissingImportHandlingStrategy(MissingImportHandlingStrategy.SILENT);
+            }
+            return conf;
         }
 
         public OWLOntologyDocumentSource getDocumentSource() {
@@ -363,7 +366,11 @@ public class ReferencingAxiomsTest {
         }
 
         void testCounts(OWLOntology ont, Function<OWLOntology, Stream<? extends OWLPrimitive>> getPrimitives) {
-            long res = getPrimitives.apply(ont).mapToLong(x -> referencingAxiomsCount(ont, x)).sum();
+            Set<OWLPrimitive> primitives = getPrimitives.apply(ont).collect(Collectors.toSet());
+            if (ont instanceof Ontology) { // to be sure that graph optimization is used
+                ((Ontology) ont).clearCache();
+            }
+            long res = primitives.stream().mapToLong(x -> referencingAxiomsCount(ont, x)).sum();
             Assert.assertEquals(count, res);
         }
     }
