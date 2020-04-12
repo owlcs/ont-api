@@ -20,8 +20,6 @@ import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
-import com.github.owlcs.ontapi.jena.utils.OntModels;
-import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
@@ -76,8 +74,7 @@ public abstract class ByEntity<E extends OWLEntity> extends ByPrimitive<E> {
      * @return an {@link ExtendedIterator} over {@link OntStatement}s
      */
     protected ExtendedIterator<OntStatement> listStatements(OntModel m, String uri) {
-        Resource res = m.getResource(uri);
-        return Iter.concat(OntModels.listLocalStatements(m, res, null, null),
-                Iter.flatMap(OntModels.listLocalStatements(m, null, null, res), s -> listRootStatements(m, s)));
+        return super.listStatements(m, m.getResource(uri));
     }
+
 }

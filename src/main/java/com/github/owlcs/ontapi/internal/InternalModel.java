@@ -148,6 +148,7 @@ public class InternalModel extends OntGraphModelImpl
     protected final ByPrimitive<OWLDataProperty> byDataProperty = new ByDataProperty();
     protected final ByPrimitive<OWLAnnotationProperty> byAnnotationProperty = new ByAnnotationProperty();
     protected final ByPrimitive<OWLLiteral> byLiteral = new ByLiteral();
+    protected final ByPrimitive<OWLAnonymousIndividual> byAnonymousIndividual = new ByAnonymousIndividual();
 
     /**
      * Constructs a model instance.
@@ -755,6 +756,8 @@ public class InternalModel extends OntGraphModelImpl
                 res = byDatatype.listAxioms((OWLDatatype) primitive, model, factory, config);
             } else if (filter == OWLComponentType.LITERAL) {
                 res = byLiteral.listAxioms((OWLLiteral) primitive, model, factory, config);
+            } else if (filter == OWLComponentType.ANONYMOUS_INDIVIDUAL) {
+                res = byAnonymousIndividual.listAxioms((OWLAnonymousIndividual) primitive, model, factory, config);
             }
             if (res != null) {
                 return reduce(Iter.asStream(res.mapWith(ONTObject::getOWLObject)));
@@ -813,6 +816,7 @@ public class InternalModel extends OntGraphModelImpl
                 threshold = 3000;
             }
             // for literals graph optimization is always faster
+            // for anonymous individuals too
             return getOWLAxiomCount() >= threshold;
         }
         return true;

@@ -73,6 +73,11 @@ public abstract class ByPrimitive<P extends OWLPrimitive> extends BaseSearcher {
         return parent == null ? annotation : getRoot(parent);
     }
 
+    final ExtendedIterator<OntStatement> listStatements(OntModel m, Resource resource) {
+        return Iter.concat(OntModels.listLocalStatements(m, resource, null, null),
+                Iter.flatMap(OntModels.listLocalStatements(m, null, null, resource), s -> listRootStatements(m, s)));
+    }
+
     /**
      * Lists all related statements (axiom-candidates) for the given {@code primitive}.
      *
