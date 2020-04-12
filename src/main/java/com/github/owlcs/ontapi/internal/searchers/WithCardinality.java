@@ -14,43 +14,38 @@
 
 package com.github.owlcs.ontapi.internal.searchers;
 
-import com.github.owlcs.ontapi.internal.AxiomTranslator;
-import com.github.owlcs.ontapi.internal.OWLComponentType;
-import com.github.owlcs.ontapi.jena.model.OntClass;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLClass;
-
-import java.util.Set;
-import java.util.stream.Stream;
+import org.semanticweb.owlapi.model.OWLEntity;
 
 /**
- * A searcher for {@link OWLClass}.
- * Created by @ssz on 19.03.2020.
+ * Created by @ssz on 12.04.2020.
  */
-public class ByClass extends WithCardinality<OWLClass> {
+abstract class WithCardinality<E extends OWLEntity> extends ByEntity<E> {
 
-    private static final Set<Class<? extends OntClass.CardinalityRestrictionCE<?, ?>>> OBJECT_CARDINALITY_TYPES =
-            Stream.of(OntClass.ObjectMaxCardinality.class, OntClass.ObjectMinCardinality.class, OntClass.ObjectCardinality.class)
-                    .collect(Iter.toUnmodifiableSet());
+    protected abstract String getTopEntityURI();
 
-    private static final Set<AxiomTranslator<? extends OWLAxiom>> TRANSLATORS = selectTranslators(OWLComponentType.CLASS);
+    protected abstract boolean isCardinalityRestriction(OntStatement s);
 
-    @Override
-    protected String getTopEntityURI() {
-        return OWL.Thing.getURI();
+    final ExtendedIterator<OntStatement> listImplicitStatements(OntModel m) {
+        return Iter.flatMap(Iter.of(OWL.cardinality, OWL.maxCardinality, OWL.minCardinality), p -> listByProperty(m, p))
+                .filterKeep(this::isCardinalityRestriction);
+    }
+
+    protected final ExtendedIterator<OntStatement> withImplicit(ExtendedIterator<OntStatement> res,
+                                                                OntModel m,
+                                                                String uri) {
+        if (!getTopEntityURI().equals(uri)) {
+            return res;
+        }
+        return Iter.concat(res, Iter.flatMap(listImplicitStatements(m), s -> listRootStatements(m, s)));
     }
 
     @Override
-    protected boolean isCardinalityRestriction(OntStatement s) {
-        return OBJECT_CARDINALITY_TYPES.stream().anyMatch(t -> s.getSubject().canAs(t));
-    }
-
-    @Override
-    protected ExtendedIterator<AxiomTranslator<? extends OWLAxiom>> listTranslators() {
-        return Iter.create(TRANSLATORS);
+    public ExtendedIterator<OntStatement> listStatements(OntModel m, String uri) {
+        return withImplicit(super.listStatements(m, uri), m, uri);
     }
 }

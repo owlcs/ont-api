@@ -19,7 +19,6 @@ import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntObject;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.XSD;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDFS;
@@ -32,28 +31,26 @@ import java.util.stream.Stream;
  * A searcher for {@link OWLDatatype}.
  * Created by @ssz on 06.04.2020.
  */
-public class ByDatatype extends ByEntity<OWLDatatype> {
+public class ByDatatype extends WithCardinality<OWLDatatype> {
 
     private static final Set<Class<? extends OntClass.CardinalityRestrictionCE<?, ?>>> DATA_CARDINALITY_TYPES =
             Stream.of(OntClass.DataMaxCardinality.class, OntClass.DataMinCardinality.class, OntClass.DataCardinality.class)
                     .collect(Iter.toUnmodifiableSet());
 
-    private static boolean isDataRestriction(OntStatement s) {
-        return DATA_CARDINALITY_TYPES.stream().anyMatch(t -> s.getSubject().canAs(t));
+    @Override
+    public ExtendedIterator<OntStatement> listStatements(OntModel m, String uri) {
+        return Iter.concat(super.listStatements(m, uri),
+                Iter.flatMap(listFromLiterals(m, uri), s -> listRootStatements(m, s)));
     }
 
     @Override
-    public ExtendedIterator<OntStatement> listStatements(OntModel m, String uri) {
-        ExtendedIterator<OntStatement> res = super.listStatements(m, uri);
-        if (RDFS.Literal.getURI().equals(uri)) {
-            res = Iter.concat(res, Iter.flatMap(listForTopEntity(m), s -> listRootStatements(m, s)));
-        }
-        return Iter.concat(res, Iter.flatMap(listFromLiterals(m, uri), s -> listRootStatements(m, s)));
+    protected String getTopEntityURI() {
+        return RDFS.Literal.getURI();
     }
 
-    protected ExtendedIterator<OntStatement> listForTopEntity(OntModel m) {
-        return Iter.flatMap(Iter.of(OWL.cardinality, OWL.maxCardinality, OWL.minCardinality),
-                p -> listByProperty(m, p)).filterKeep(ByDatatype::isDataRestriction);
+    @Override
+    protected boolean isCardinalityRestriction(OntStatement s) {
+        return DATA_CARDINALITY_TYPES.stream().anyMatch(t -> s.getSubject().canAs(t));
     }
 
     protected ExtendedIterator<OntStatement> listFromLiterals(OntModel m, String uri) {

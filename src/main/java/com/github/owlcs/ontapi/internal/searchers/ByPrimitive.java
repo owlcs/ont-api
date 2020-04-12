@@ -139,6 +139,9 @@ public abstract class ByPrimitive<P extends OWLPrimitive> extends BaseSearcher {
      * @return an {@code ExtendedIterator} of {@link Statement}s
      */
     protected final ExtendedIterator<OntStatement> listRootStatements(OntModel model, OntStatement statement) {
+        if (statement.getSubject().isURIResource()) {
+            return Iter.of(statement);
+        }
         return Iter.create(getRootStatements(model, statement));
     }
 
