@@ -15,12 +15,18 @@
 package com.github.owlcs.ontapi.internal.searchers;
 
 import com.github.owlcs.ontapi.internal.*;
-import com.github.owlcs.ontapi.jena.model.OntAnnotation;
-import com.github.owlcs.ontapi.jena.model.OntModel;
+import com.github.owlcs.ontapi.jena.model.*;
+import com.github.owlcs.ontapi.jena.utils.Iter;
+import com.github.owlcs.ontapi.jena.utils.OntModels;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLPrimitive;
 
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.function.Supplier;
 
 /**
@@ -32,6 +38,18 @@ import java.util.function.Supplier;
  *            {@link org.semanticweb.owlapi.model.IRI} or {@link org.semanticweb.owlapi.model.OWLLiteral}
  */
 public abstract class ByPrimitive<P extends OWLPrimitive> extends BaseSearcher {
+
+    /**
+     * All translators.
+     */
+    private static final Set<AxiomTranslator<? extends OWLAxiom>> TRANSLATORS = selectTranslators(null);
+
+    protected static Set<AxiomTranslator<? extends OWLAxiom>> selectTranslators(OWLComponentType type) {
+        return OWLTopObjectType.axioms().filter(x -> type == null || x.hasComponent(type))
+                .map(OWLTopObjectType::getAxiomType)
+                .map(AxiomParserProvider::get)
+                .collect(Iter.toUnmodifiableSet());
+    }
 
     /**
      * Answers {@code true} if need to check annotations also.
@@ -56,6 +74,15 @@ public abstract class ByPrimitive<P extends OWLPrimitive> extends BaseSearcher {
     }
 
     /**
+     * Lists all related statements (axiom-candidates) for the given {@code primitive}.
+     *
+     * @param model     {@link OntModel}
+     * @param primitive {@link P}
+     * @return an {@link ExtendedIterator} of {@link OntStatement}s
+     */
+    protected abstract ExtendedIterator<OntStatement> listStatements(OntModel model, P primitive);
+
+    /**
      * Lists all axioms that contain the given {@link P}.
      *
      * @param primitive a {@link P}, not {@code null}
@@ -64,9 +91,122 @@ public abstract class ByPrimitive<P extends OWLPrimitive> extends BaseSearcher {
      * @param config    {@link InternalConfig}, not {@code null}
      * @return an {@link ExtendedIterator} of {@link OWLAxiom}s wrapped with {@link ONTObject}
      */
-    public abstract ExtendedIterator<ONTObject<? extends OWLAxiom>> listAxioms(P primitive,
-                                                                               Supplier<OntModel> model,
-                                                                               InternalObjectFactory factory,
-                                                                               InternalConfig config);
+    public ExtendedIterator<ONTObject<? extends OWLAxiom>> listAxioms(P primitive,
+                                                                      Supplier<OntModel> model,
+                                                                      InternalObjectFactory factory,
+                                                                      InternalConfig config) {
+        ExtendedIterator<OntStatement> res = listStatements(model.get(), primitive);
+        if (config.isSplitAxiomAnnotations()) {
+            return Iter.flatMap(res,
+                    s -> Iter.flatMap(listTranslators(s, config), t -> split(t, s, model, factory, config)));
+        }
+        return Iter.flatMap(res, s -> listTranslators(s, config).mapWith(t -> toAxiom(t, s, model, factory, config)));
+    }
 
+    /**
+     * Lists all {@link AxiomTranslator}-candidates.
+     *
+     * @return {@link ExtendedIterator}
+     */
+    protected ExtendedIterator<AxiomTranslator<? extends OWLAxiom>> listTranslators() {
+        return Iter.create(TRANSLATORS);
+    }
+
+    /**
+     * Lists translators.
+     *
+     * @param statement {@link OntStatement}
+     * @param conf      {@link InternalConfig}
+     * @return an {@link ExtendedIterator} of {@link AxiomTranslator}s
+     */
+    protected ExtendedIterator<? extends AxiomTranslator<? extends OWLAxiom>> listTranslators(OntStatement statement,
+                                                                                              InternalConfig conf) {
+        return listTranslators().filterKeep(t -> t.testStatement(statement, conf));
+    }
+
+    /**
+     * Lists all roots for the given statement.
+     *
+     * @param model     {@link OntModel}, not {@code null}
+     * @param statement {@link Statement}, not {@code null}
+     * @return an {@code ExtendedIterator} of {@link Statement}s
+     */
+    protected final ExtendedIterator<OntStatement> listRootStatements(OntModel model, OntStatement statement) {
+        return Iter.create(getRootStatements(model, statement));
+    }
+
+    /**
+     * Returns a {@code Set} of root statements.
+     * Any statement has one or more roots or is a root itself.
+     * A statement with the predicate {@code rdf:type} is always a root.
+     *
+     * @param model     {@link OntModel}, not {@code null}
+     * @param statement {@link Statement}, not {@code null}
+     * @return a {@code Set} of {@link Statement}s
+     */
+    protected Set<OntStatement> getRootStatements(OntModel model, OntStatement statement) {
+        Set<OntStatement> roots = new HashSet<>();
+        Set<Resource> seen = new HashSet<>();
+        Set<OntStatement> candidates = new LinkedHashSet<>();
+        candidates.add(statement);
+        while (!candidates.isEmpty()) {
+            OntStatement st = candidates.iterator().next();
+            candidates.remove(st);
+            OntObject subject = st.getSubject();
+            if (subject.isURIResource() || subject.canAs(OntIndividual.Anonymous.class)) {
+                roots.add(st);
+                continue;
+            }
+            int count = candidates.size();
+            OntModels.listLocalStatements(model, null, null, subject)
+                    .filterKeep(s -> s.getSubject().isURIResource() || seen.add(s.getSubject()))
+                    .forEachRemaining(candidates::add);
+            if (count != candidates.size()) {
+                continue;
+            }
+            // no new candidates is found -> then it is root
+            listForSubject(model, subject).forEachRemaining(roots::add);
+        }
+        return roots;
+    }
+
+    /**
+     * Lists all related statements for the given root, which should be an anonymous resource.
+     * It is to find axiom-statement candidates,
+     * for example a statement with the predicate {@code owl:distinctMembers} is not an axiom-statement, but
+     * a statement with the same subject and {@code rdf:type} = {@code owl:AllDifferent} is an axiom-statement candidate.
+     *
+     * @param model {@link OntModel}
+     * @param root  {@link OntObject} - an anonymous resource
+     * @return an {@link ExtendedIterator} of {@link OntStatement}s
+     */
+    protected ExtendedIterator<OntStatement> listForSubject(OntModel model, OntObject root) {
+        return listProperties(model, root);
+    }
+
+    /**
+     * Lists all related statements for the given root, taking in account {@code owl:Axiom}s and {@code owl:Annotations}.
+     *
+     * @param model {@link OntModel}
+     * @param root  {@link OntObject}
+     * @return an {@link ExtendedIterator} of {@link OntStatement}s
+     */
+    protected ExtendedIterator<OntStatement> listForSubjectIncludeAnnotations(OntModel model, OntObject root) {
+        if (!includeAnnotations(model)) {
+            return listProperties(model, root);
+        }
+        OntAnnotation a = root.getAs(OntAnnotation.class);
+        if (a == null) {
+            return listProperties(model, root);
+        }
+        OntStatement base = ByPrimitive.getRoot(a).getBase();
+        if (base != null) {
+            return Iter.of(base);
+        }
+        return listProperties(model, root);
+    }
+
+    private ExtendedIterator<OntStatement> listProperties(OntModel model, OntObject root) {
+        return OntModels.listLocalStatements(model, root, null, null);
+    }
 }

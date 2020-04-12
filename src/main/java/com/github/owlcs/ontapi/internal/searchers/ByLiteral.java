@@ -14,23 +14,42 @@
 
 package com.github.owlcs.ontapi.internal.searchers;
 
-import com.github.owlcs.ontapi.internal.AxiomTranslator;
-import com.github.owlcs.ontapi.internal.OWLComponentType;
+import com.github.owlcs.ontapi.jena.model.OntClass;
+import com.github.owlcs.ontapi.jena.model.OntModel;
+import com.github.owlcs.ontapi.jena.model.OntObject;
+import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
+import com.github.owlcs.ontapi.jena.utils.Models;
+import com.github.owlcs.ontapi.jena.utils.OntModels;
+import com.github.owlcs.ontapi.jena.vocabulary.XSD;
+import com.github.owlcs.ontapi.owlapi.objects.OWLLiteralImpl;
+import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLNamedIndividual;
-
-import java.util.Set;
+import org.semanticweb.owlapi.model.OWLLiteral;
 
 /**
- * Created by @ssz on 31.03.2020.
+ * A searcher for {@link OWLLiteral}
+ * Created by @ssz on 11.04.2020.
  */
-public class ByNamedIndividual extends ByEntity<OWLNamedIndividual> {
-    private static final Set<AxiomTranslator<? extends OWLAxiom>> TRANSLATORS = selectTranslators(OWLComponentType.NAMED_INDIVIDUAL);
+public class ByLiteral extends ByPrimitive<OWLLiteral> {
 
     @Override
-    protected ExtendedIterator<AxiomTranslator<? extends OWLAxiom>> listTranslators() {
-        return Iter.create(TRANSLATORS);
+    public ExtendedIterator<OntStatement> listStatements(OntModel model, OWLLiteral literal) {
+        Literal object = model.asRDFNode(OWLLiteralImpl.asONT(literal).asNode()).asLiteral();
+        ExtendedIterator<OntStatement> res = OntModels.listLocalStatements(model, null, null, object);
+        // https://github.com/owlcs/owlapi/issues/783
+        if (XSD.nonNegativeInteger.getURI().equals(object.getDatatypeURI())) {
+            // cardinality restrictions
+            res = res.filterDrop(s -> s.getSubject().canAs(OntClass.CardinalityRestrictionCE.class));
+        } else if (Models.TRUE.equals(object)) {
+            // HasSelf
+            res = res.filterDrop(s -> s.getSubject().canAs(OntClass.HasSelf.class));
+        }
+        return Iter.flatMap(res, s -> listRootStatements(model, s));
+    }
+
+    @Override
+    protected ExtendedIterator<OntStatement> listForSubject(OntModel model, OntObject root) {
+        return listForSubjectIncludeAnnotations(model, root);
     }
 }

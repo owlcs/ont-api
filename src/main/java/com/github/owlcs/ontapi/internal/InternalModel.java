@@ -147,6 +147,7 @@ public class InternalModel extends OntGraphModelImpl
     protected final ByPrimitive<OWLObjectProperty> byObjectProperty = new ByObjectProperty();
     protected final ByPrimitive<OWLDataProperty> byDataProperty = new ByDataProperty();
     protected final ByPrimitive<OWLAnnotationProperty> byAnnotationProperty = new ByAnnotationProperty();
+    protected final ByPrimitive<OWLLiteral> byLiteral = new ByLiteral();
 
     /**
      * Constructs a model instance.
@@ -752,6 +753,8 @@ public class InternalModel extends OntGraphModelImpl
                 res = byNamedIndividual.listAxioms((OWLNamedIndividual) primitive, model, factory, config);
             } else if (filter == OWLComponentType.DATATYPE) {
                 res = byDatatype.listAxioms((OWLDatatype) primitive, model, factory, config);
+            } else if (filter == OWLComponentType.LITERAL) {
+                res = byLiteral.listAxioms((OWLLiteral) primitive, model, factory, config);
             }
             if (res != null) {
                 return reduce(Iter.asStream(res.mapWith(ONTObject::getOWLObject)));
@@ -789,7 +792,7 @@ public class InternalModel extends OntGraphModelImpl
         // if cache is loaded - decide which way to use:
         // either the graph-optimization way or straightforward cache parsing
         if (getContentStore().values().stream().allMatch(ObjectMap::isLoaded)) {
-            // Empirical founded threshold (TODO: not sure is this a correct solution)
+            // The empirical founded threshold (right now I do not see a better solution)
             // (for small ontologies it is better to use cache traversing instead of graph searching)
             long threshold = -1;
             if (type == OWLComponentType.DATATYPE) {
@@ -809,6 +812,7 @@ public class InternalModel extends OntGraphModelImpl
                 // but it may be not true in case of special complexity (e.g. with owl:AllDifferent)
                 threshold = 3000;
             }
+            // for literals graph optimization is always faster
             return getOWLAxiomCount() >= threshold;
         }
         return true;

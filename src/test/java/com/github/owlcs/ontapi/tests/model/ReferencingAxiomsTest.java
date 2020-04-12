@@ -25,6 +25,7 @@ import org.semanticweb.owlapi.io.FileDocumentSource;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.PriorityCollection;
+import org.semanticweb.owlapi.vocab.OWL2Datatype;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -63,8 +64,12 @@ public class ReferencingAxiomsTest {
     @Test
     public void testSearchByLiteral() {
         OWLOntology ont = data.load(newManager());
+        OWLDataFactory df = ont.getOWLOntologyManager().getOWLDataFactory();
         Set<OWLLiteral> literals = ont.axioms().flatMap(x -> OwlObjects.objects(OWLLiteral.class, x))
                 .collect(Collectors.toSet());
+        literals.add(df.getOWLLiteral(true));
+        for (int i = 0; i < 4; i++)
+            literals.add(df.getOWLLiteral(String.valueOf(i), OWL2Datatype.XSD_NON_NEGATIVE_INTEGER));
         data.getTester(T.LITERAL).testCounts(ont, x -> literals.stream());
     }
 
@@ -126,8 +131,12 @@ public class ReferencingAxiomsTest {
                 T.DATATYPE.of(-41855234952L),
                 T.OBJECT_PROPERTY.of(-40985808704L),
                 T.DATA_PROPERTY.of(-40904863514L),
-                T.ANNOTATION_PROPERTY.of(83282971L)
-        ),
+                T.ANNOTATION_PROPERTY.of(83282971L)) {
+            @Override
+            Collection<T> ignore() { // temporary ignored since too slow
+                return Collections.singletonList(T.IRI);
+            }
+        },
         PEOPLE("/ontapi/people.ttl",
                 T.IRI.of(-2052328542L),
                 T.LITERAL.of(14670462876L), // https://github.com/owlcs/owlapi/issues/912
@@ -224,7 +233,7 @@ public class ReferencingAxiomsTest {
                 T.ANNOTATION_PROPERTY.of(110212215610L)) {
             @Override
             Collection<T> ignore() { // temporary ignored since too slow
-                return Arrays.asList(T.IRI, T.LITERAL);
+                return Collections.singletonList(T.IRI);
             }
         },
         HP_CUT("/ontapi/hp-cut.ttl",

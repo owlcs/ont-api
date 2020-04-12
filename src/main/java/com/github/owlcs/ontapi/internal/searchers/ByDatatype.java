@@ -14,15 +14,16 @@
 
 package com.github.owlcs.ontapi.internal.searchers;
 
-import com.github.owlcs.ontapi.internal.AxiomTranslator;
-import com.github.owlcs.ontapi.jena.model.*;
+import com.github.owlcs.ontapi.jena.model.OntClass;
+import com.github.owlcs.ontapi.jena.model.OntModel;
+import com.github.owlcs.ontapi.jena.model.OntObject;
+import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.XSD;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDFS;
-import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLDatatype;
 
 import java.util.Set;
@@ -33,7 +34,7 @@ import java.util.stream.Stream;
  * Created by @ssz on 06.04.2020.
  */
 public class ByDatatype extends ByEntity<OWLDatatype> {
-    private static final Set<AxiomTranslator<? extends OWLAxiom>> TRANSLATORS = selectTranslators(null);
+
     private static final Set<Class<? extends OntClass.CardinalityRestrictionCE<?, ?>>> DATA_CARDINALITY_TYPES =
             Stream.of(OntClass.DataMaxCardinality.class, OntClass.DataMinCardinality.class, OntClass.DataCardinality.class)
                     .collect(Iter.toUnmodifiableSet());
@@ -71,23 +72,7 @@ public class ByDatatype extends ByEntity<OWLDatatype> {
     }
 
     @Override
-    protected ExtendedIterator<OntStatement> listForSubject(OntModel model, OntObject subject) {
-        if (!ByPrimitive.includeAnnotations(model)) {
-            return super.listForSubject(model, subject);
-        }
-        OntAnnotation a = subject.getAs(OntAnnotation.class);
-        if (a == null) {
-            return super.listForSubject(model, subject);
-        }
-        OntStatement base = ByPrimitive.getRoot(a).getBase();
-        if (base != null) {
-            return Iter.of(base);
-        }
-        return super.listForSubject(model, subject);
-    }
-
-    @Override
-    protected ExtendedIterator<AxiomTranslator<? extends OWLAxiom>> listTranslators() {
-        return Iter.create(TRANSLATORS);
+    protected ExtendedIterator<OntStatement> listForSubject(OntModel model, OntObject root) {
+        return listForSubjectIncludeAnnotations(model, root);
     }
 }

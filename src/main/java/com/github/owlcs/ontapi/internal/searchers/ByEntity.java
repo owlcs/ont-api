@@ -14,22 +14,18 @@
 
 package com.github.owlcs.ontapi.internal.searchers;
 
-import com.github.owlcs.ontapi.internal.*;
-import com.github.owlcs.ontapi.jena.model.OntIndividual;
+import com.github.owlcs.ontapi.internal.InternalConfig;
+import com.github.owlcs.ontapi.internal.InternalObjectFactory;
+import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntObject;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
 
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.Set;
 import java.util.function.Supplier;
 
 /**
@@ -40,68 +36,23 @@ import java.util.function.Supplier;
  */
 public abstract class ByEntity<E extends OWLEntity> extends ByPrimitive<E> {
 
-    static Set<AxiomTranslator<? extends OWLAxiom>> selectTranslators(OWLComponentType type) {
-        return OWLTopObjectType.axioms().filter(x -> type == null || x.hasComponent(type))
-                .map(OWLTopObjectType::getAxiomType)
-                .map(AxiomParserProvider::get)
-                .collect(Iter.toUnmodifiableSet());
-    }
-
-    public ExtendedIterator<OntStatement> listRootStatements(OntModel model, OntStatement statement) {
-        return Iter.create(getRootStatements(model, statement));
-    }
-
-    /**
-     * Returns a {@code Set} of root statements.
-     * Any statement has one or more roots or is a root itself.
-     * A statement with the predicate {@code rdf:type} is always a root.
-     *
-     * @param model     {@link OntModel}, not {@code null}
-     * @param statement {@link Statement}, not {@code null}
-     * @return a {@code Set} of {@link Statement}s
-     */
-    public Set<OntStatement> getRootStatements(OntModel model, OntStatement statement) {
-        Set<OntStatement> roots = new HashSet<>();
-        Set<Resource> seen = new HashSet<>();
-        Set<OntStatement> candidates = new LinkedHashSet<>();
-        candidates.add(statement);
-        while (!candidates.isEmpty()) {
-            OntStatement st = candidates.iterator().next();
-            candidates.remove(st);
-            OntObject subject = st.getSubject();
-            if (subject.isURIResource() || subject.canAs(OntIndividual.Anonymous.class)) {
-                roots.add(st);
-                continue;
-            }
-            int count = candidates.size();
-            OntModels.listLocalStatements(model, null, null, subject)
-                    .filterKeep(s -> s.getSubject().isURIResource() || seen.add(s.getSubject()))
-                    .forEachRemaining(candidates::add);
-            if (count != candidates.size()) {
-                continue;
-            }
-            // no new candidates is found -> then it is root
-            listForSubject(model, subject).forEachRemaining(roots::add);
-        }
-        return roots;
-    }
-
-    protected ExtendedIterator<OntStatement> listForSubject(OntModel model, OntObject subject) {
-        return OntModels.listLocalStatements(model, subject, null, null);
-    }
-
     @Override
     public final ExtendedIterator<ONTObject<? extends OWLAxiom>> listAxioms(E entity,
                                                                             Supplier<OntModel> model,
                                                                             InternalObjectFactory factory,
                                                                             InternalConfig config) {
-        ExtendedIterator<OntStatement> res = listStatements(model.get(), entity.getIRI().getIRIString());
+        ExtendedIterator<OntStatement> res = listStatements(model.get(), entity);
         if (config.isSplitAxiomAnnotations()) {
             return Iter.flatMap(res, s -> Iter.flatMap(listTranslators(s, config),
                     t -> split(t, s, model, factory, config)).filterKeep(x -> filter(x.getOWLObject(), entity)));
         }
         return Iter.flatMap(res, s -> listTranslators(s, config).mapWith(t -> toAxiom(t, s, model, factory, config))
                 .filterKeep(x -> filter(x.getOWLObject(), entity)));
+    }
+
+    @Override
+    public final ExtendedIterator<OntStatement> listStatements(OntModel model, E entity) {
+        return listStatements(model, entity.getIRI().getIRIString());
     }
 
     /**
@@ -118,13 +69,6 @@ public abstract class ByEntity<E extends OWLEntity> extends ByPrimitive<E> {
     }
 
     /**
-     * Lists all {@link AxiomTranslator}-candidates.
-     *
-     * @return {@link ExtendedIterator}
-     */
-    protected abstract ExtendedIterator<AxiomTranslator<? extends OWLAxiom>> listTranslators();
-
-    /**
      * Lists all statements-candidates
      *
      * @param m   {@link OntModel}
@@ -135,10 +79,5 @@ public abstract class ByEntity<E extends OWLEntity> extends ByPrimitive<E> {
         Resource res = m.getResource(uri);
         return Iter.concat(OntModels.listLocalStatements(m, res, null, null),
                 Iter.flatMap(OntModels.listLocalStatements(m, null, null, res), s -> listRootStatements(m, s)));
-    }
-
-    protected ExtendedIterator<? extends AxiomTranslator<? extends OWLAxiom>> listTranslators(OntStatement statement,
-                                                                                              InternalConfig conf) {
-        return listTranslators().filterKeep(t -> t.testStatement(statement, conf));
     }
 }

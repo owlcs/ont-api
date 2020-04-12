@@ -14,29 +14,18 @@
 
 package com.github.owlcs.ontapi.internal.searchers;
 
-import com.github.owlcs.ontapi.internal.AxiomTranslator;
 import com.github.owlcs.ontapi.jena.model.OntAnnotation;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntObject;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
-import com.github.owlcs.ontapi.jena.utils.Iter;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
-import org.semanticweb.owlapi.model.OWLAxiom;
-
-import java.util.Set;
 
 /**
  * A searcher for {@link OWLAnnotationProperty}.
  * Created by @ssz on 29.03.2020.
  */
 public class ByAnnotationProperty extends ByProperty<OWLAnnotationProperty> {
-    private static final Set<AxiomTranslator<? extends OWLAxiom>> TRANSLATORS = selectTranslators(null);
-
-    @Override
-    protected ExtendedIterator<AxiomTranslator<? extends OWLAxiom>> listTranslators() {
-        return Iter.create(TRANSLATORS);
-    }
 
     @Override
     protected ExtendedIterator<OntStatement> listAssertions(OntModel m, String uri) {
