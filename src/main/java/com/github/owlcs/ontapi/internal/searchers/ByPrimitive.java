@@ -18,6 +18,8 @@ import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.jena.model.*;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
+import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.util.iterator.ExtendedIterator;
@@ -73,9 +75,9 @@ public abstract class ByPrimitive<P extends OWLPrimitive> extends BaseSearcher {
         return parent == null ? annotation : getRoot(parent);
     }
 
-    final ExtendedIterator<OntStatement> listStatements(OntModel m, Resource resource) {
-        return Iter.concat(OntModels.listLocalStatements(m, resource, null, null),
-                Iter.flatMap(OntModels.listLocalStatements(m, null, null, resource), s -> listRootStatements(m, s)));
+    final ExtendedIterator<OntStatement> listStatements(OntModel model, Resource resource) {
+        return Iter.concat(listBySubject(model, resource),
+                Iter.flatMap(listByObject(model, resource), s -> listRootStatements(model, s)));
     }
 
     /**
@@ -163,14 +165,13 @@ public abstract class ByPrimitive<P extends OWLPrimitive> extends BaseSearcher {
                 continue;
             }
             int count = candidates.size();
-            OntModels.listLocalStatements(model, null, null, subject)
-                    .filterKeep(s -> s.getSubject().isURIResource() || seen.add(s.getSubject()))
+            listByObject(model, subject).filterKeep(s -> s.getSubject().isURIResource() || seen.add(s.getSubject()))
                     .forEachRemaining(candidates::add);
             if (count != candidates.size()) {
                 continue;
             }
             // no new candidates is found -> then it is root
-            listForSubject(model, subject).forEachRemaining(roots::add);
+            listProperties(model, subject).forEachRemaining(roots::add);
         }
         return roots;
     }
@@ -185,8 +186,8 @@ public abstract class ByPrimitive<P extends OWLPrimitive> extends BaseSearcher {
      * @param root  {@link OntObject} - an anonymous resource
      * @return an {@link ExtendedIterator} of {@link OntStatement}s
      */
-    protected ExtendedIterator<OntStatement> listForSubject(OntModel model, OntObject root) {
-        return listProperties(model, root);
+    protected ExtendedIterator<OntStatement> listProperties(OntModel model, OntObject root) {
+        return listBySubject(model, root);
     }
 
     /**
@@ -196,22 +197,34 @@ public abstract class ByPrimitive<P extends OWLPrimitive> extends BaseSearcher {
      * @param root  {@link OntObject}
      * @return an {@link ExtendedIterator} of {@link OntStatement}s
      */
-    protected ExtendedIterator<OntStatement> listForSubjectIncludeAnnotations(OntModel model, OntObject root) {
+    protected ExtendedIterator<OntStatement> listPropertiesIncludeAnnotations(OntModel model, OntObject root) {
         if (!includeAnnotations(model)) {
-            return listProperties(model, root);
+            return listBySubject(model, root);
         }
         OntAnnotation a = root.getAs(OntAnnotation.class);
         if (a == null) {
-            return listProperties(model, root);
+            return listBySubject(model, root);
         }
         OntStatement base = ByPrimitive.getRoot(a).getBase();
         if (base != null) {
             return Iter.of(base);
         }
-        return listProperties(model, root);
+        return listBySubject(model, root);
     }
 
-    private ExtendedIterator<OntStatement> listProperties(OntModel model, OntObject root) {
-        return OntModels.listLocalStatements(model, root, null, null);
+    final ExtendedIterator<OntStatement> listBySubject(OntModel model, Resource subject) {
+        return OntModels.listLocalStatements(model, subject, null, null);
+    }
+
+    final ExtendedIterator<OntStatement> listByProperty(OntModel m, Property uri) {
+        return OntModels.listLocalStatements(m, null, uri, null);
+    }
+
+    final ExtendedIterator<OntStatement> listByObject(OntModel model, RDFNode object) {
+        return OntModels.listLocalStatements(model, null, null, object);
+    }
+
+    final ExtendedIterator<OntStatement> listStatements(OntModel model) {
+        return OntModels.listLocalStatements(model, null, null, null);
     }
 }

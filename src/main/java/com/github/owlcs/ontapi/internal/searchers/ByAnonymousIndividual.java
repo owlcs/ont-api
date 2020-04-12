@@ -34,7 +34,7 @@ public class ByAnonymousIndividual extends ByPrimitive<OWLAnonymousIndividual> {
     }
 
     @Override
-    protected ExtendedIterator<OntStatement> listForSubject(OntModel model, OntObject root) {
-        return listForSubjectIncludeAnnotations(model, root);
+    protected ExtendedIterator<OntStatement> listProperties(OntModel model, OntObject root) {
+        return listPropertiesIncludeAnnotations(model, root);
     }
 }

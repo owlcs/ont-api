@@ -17,7 +17,6 @@ package com.github.owlcs.ontapi.internal.searchers;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
-import com.github.owlcs.ontapi.jena.utils.OntModels;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLProperty;
 
@@ -33,6 +32,6 @@ public abstract class ByProperty<P extends OWLProperty> extends ByEntity<P> {
     }
 
     protected ExtendedIterator<OntStatement> listAssertions(OntModel m, String uri) {
-        return OntModels.listLocalStatements(m, null, m.getProperty(uri), null);
+        return listByProperty(m, m.getProperty(uri));
     }
 }

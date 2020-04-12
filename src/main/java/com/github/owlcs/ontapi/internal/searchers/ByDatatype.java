@@ -19,7 +19,6 @@ import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntObject;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
-import com.github.owlcs.ontapi.jena.utils.OntModels;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.XSD;
 import org.apache.jena.util.iterator.ExtendedIterator;
@@ -54,11 +53,11 @@ public class ByDatatype extends ByEntity<OWLDatatype> {
 
     protected ExtendedIterator<OntStatement> listForTopEntity(OntModel m) {
         return Iter.flatMap(Iter.of(OWL.cardinality, OWL.maxCardinality, OWL.minCardinality),
-                p -> OntModels.listLocalStatements(m, null, p, null)).filterKeep(ByDatatype::isDataRestriction);
+                p -> listByProperty(m, p)).filterKeep(ByDatatype::isDataRestriction);
     }
 
     protected ExtendedIterator<OntStatement> listFromLiterals(OntModel m, String uri) {
-        ExtendedIterator<OntStatement> res = OntModels.listLocalStatements(m, null, null, null)
+        ExtendedIterator<OntStatement> res = listStatements(m)
                 .filterKeep(s -> s.getObject().isLiteral() && uri.equals(s.getLiteral().getDatatypeURI()));
         // https://github.com/owlcs/owlapi/issues/783
         if (XSD.xboolean.getURI().equals(uri)) {
@@ -72,7 +71,7 @@ public class ByDatatype extends ByEntity<OWLDatatype> {
     }
 
     @Override
-    protected ExtendedIterator<OntStatement> listForSubject(OntModel model, OntObject root) {
-        return listForSubjectIncludeAnnotations(model, root);
+    protected ExtendedIterator<OntStatement> listProperties(OntModel model, OntObject root) {
+        return listPropertiesIncludeAnnotations(model, root);
     }
 }

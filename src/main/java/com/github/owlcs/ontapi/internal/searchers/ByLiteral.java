@@ -20,7 +20,6 @@ import com.github.owlcs.ontapi.jena.model.OntObject;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.utils.Models;
-import com.github.owlcs.ontapi.jena.utils.OntModels;
 import com.github.owlcs.ontapi.jena.vocabulary.XSD;
 import com.github.owlcs.ontapi.owlapi.objects.OWLLiteralImpl;
 import org.apache.jena.rdf.model.Literal;
@@ -36,7 +35,7 @@ public class ByLiteral extends ByPrimitive<OWLLiteral> {
     @Override
     public ExtendedIterator<OntStatement> listStatements(OntModel model, OWLLiteral literal) {
         Literal object = model.asRDFNode(OWLLiteralImpl.asONT(literal).asNode()).asLiteral();
-        ExtendedIterator<OntStatement> res = OntModels.listLocalStatements(model, null, null, object);
+        ExtendedIterator<OntStatement> res = listByObject(model, object);
         // https://github.com/owlcs/owlapi/issues/783
         if (XSD.nonNegativeInteger.getURI().equals(object.getDatatypeURI())) {
             // cardinality restrictions
@@ -49,7 +48,7 @@ public class ByLiteral extends ByPrimitive<OWLLiteral> {
     }
 
     @Override
-    protected ExtendedIterator<OntStatement> listForSubject(OntModel model, OntObject root) {
-        return listForSubjectIncludeAnnotations(model, root);
+    protected ExtendedIterator<OntStatement> listProperties(OntModel model, OntObject root) {
+        return listPropertiesIncludeAnnotations(model, root);
     }
 }

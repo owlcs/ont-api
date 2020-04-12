@@ -20,7 +20,6 @@ import com.github.owlcs.ontapi.jena.model.OntClass;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
-import com.github.owlcs.ontapi.jena.utils.OntModels;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLAxiom;
@@ -42,8 +41,8 @@ public class ByClass extends ByEntity<OWLClass> {
     private static final Set<AxiomTranslator<? extends OWLAxiom>> TRANSLATORS = selectTranslators(OWLComponentType.CLASS);
 
     protected ExtendedIterator<OntStatement> listForTopEntity(OntModel m) {
-        return Iter.flatMap(Iter.of(OWL.cardinality, OWL.maxCardinality, OWL.minCardinality),
-                p -> OntModels.listLocalStatements(m, null, p, null)).filterKeep(ByClass::isObjectRestriction);
+        return Iter.flatMap(Iter.of(OWL.cardinality, OWL.maxCardinality, OWL.minCardinality), p -> listByProperty(m, p))
+                .filterKeep(ByClass::isObjectRestriction);
     }
 
     private static boolean isObjectRestriction(OntStatement s) {
