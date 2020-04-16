@@ -23,10 +23,7 @@ import com.github.owlcs.ontapi.jena.model.OntObject;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import org.semanticweb.owlapi.model.AxiomType;
-import org.semanticweb.owlapi.model.HasIRI;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLAxiom;
+import org.semanticweb.owlapi.model.*;
 
 import java.util.function.Supplier;
 
@@ -44,7 +41,7 @@ public class ByIRI extends ByPrimitive<IRI> {
                                                                             InternalConfig config) {
         ExtendedIterator<ONTObject<? extends OWLAxiom>> res = super.listAxioms(iri, model, factory, config);
         if (isSystem(model.get(), iri.getIRIString())) {
-            return res.filterKeep(x -> filter(x.getOWLObject(), iri));
+            return res.filterKeep(x -> filter(factory.getOWLDataFactory(), x.getOWLObject(), iri));
         }
         return res;
     }
@@ -76,15 +73,16 @@ public class ByIRI extends ByPrimitive<IRI> {
     /**
      * Answers {@code true} if the given {@code iri} is a part of the given {@code axiom}.
      *
-     * @param axiom {@link OWLAxiom}
-     * @param iri   {@link IRI}
+     * @param factory {@link OWLDataFactory}
+     * @param axiom   {@link OWLAxiom}
+     * @param iri     {@link IRI}
      * @return boolean
      */
-    protected boolean filter(OWLAxiom axiom, IRI iri) {
+    protected boolean filter(OWLDataFactory factory, OWLAxiom axiom, IRI iri) {
         if (axiom.isAnnotated() || AxiomType.ANNOTATION_ASSERTION.equals(axiom.getAxiomType())) {
             return OwlObjects.iris(axiom).anyMatch(iri::equals);
         }
-        return axiom.signature().map(HasIRI::getIRI).anyMatch(iri::equals);
+        return EntityType.values().stream().map(t -> factory.getOWLEntity(t, iri)).anyMatch(axiom::containsEntityInSignature);
     }
 
     @Override
