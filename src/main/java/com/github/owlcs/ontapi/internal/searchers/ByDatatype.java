@@ -38,9 +38,8 @@ public class ByDatatype extends WithCardinality<OWLDatatype> {
                     .collect(Iter.toUnmodifiableSet());
 
     @Override
-    public ExtendedIterator<OntStatement> listStatements(OntModel m, String uri) {
-        return Iter.concat(super.listStatements(m, uri),
-                Iter.flatMap(listFromLiterals(m, uri), s -> listRootStatements(m, s)));
+    protected ExtendedIterator<OntStatement> listExplicitStatements(OntModel m, String uri) {
+        return excludeImplicit(Iter.flatMap(listStatements(m).filterKeep(s -> filter(s, uri)), s -> listRootStatements(m, s)), uri);
     }
 
     @Override
@@ -53,9 +52,7 @@ public class ByDatatype extends WithCardinality<OWLDatatype> {
         return DATA_CARDINALITY_TYPES.stream().anyMatch(t -> s.getSubject().canAs(t));
     }
 
-    protected ExtendedIterator<OntStatement> listFromLiterals(OntModel m, String uri) {
-        ExtendedIterator<OntStatement> res = listStatements(m)
-                .filterKeep(s -> s.getObject().isLiteral() && uri.equals(s.getLiteral().getDatatypeURI()));
+    protected ExtendedIterator<OntStatement> excludeImplicit(ExtendedIterator<OntStatement> res, String uri) {
         // https://github.com/owlcs/owlapi/issues/783
         if (XSD.xboolean.getURI().equals(uri)) {
             // HasSelf
@@ -65,6 +62,11 @@ public class ByDatatype extends WithCardinality<OWLDatatype> {
             res = res.filterDrop(s -> s.getSubject().canAs(OntClass.CardinalityRestrictionCE.class));
         }
         return res;
+    }
+
+    protected boolean filter(OntStatement s, String uri) {
+        if (uri.equals(s.getSubject().getURI())) return true;
+        return hasURI(s.getObject(), uri);
     }
 
     @Override

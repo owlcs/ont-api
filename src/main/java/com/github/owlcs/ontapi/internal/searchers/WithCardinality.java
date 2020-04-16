@@ -35,9 +35,9 @@ abstract class WithCardinality<E extends OWLEntity> extends ByEntity<E> {
                 .filterKeep(this::isCardinalityRestriction);
     }
 
-    protected final ExtendedIterator<OntStatement> withImplicit(ExtendedIterator<OntStatement> res,
-                                                                OntModel m,
-                                                                String uri) {
+    protected final ExtendedIterator<OntStatement> includeImplicit(ExtendedIterator<OntStatement> res,
+                                                                   OntModel m,
+                                                                   String uri) {
         if (!getTopEntityURI().equals(uri)) {
             return res;
         }
@@ -45,7 +45,11 @@ abstract class WithCardinality<E extends OWLEntity> extends ByEntity<E> {
     }
 
     @Override
-    public ExtendedIterator<OntStatement> listStatements(OntModel m, String uri) {
-        return withImplicit(super.listStatements(m, uri), m, uri);
+    public final ExtendedIterator<OntStatement> listStatements(OntModel m, String uri) {
+        return includeImplicit(listExplicitStatements(m, uri), m, uri);
+    }
+
+    protected ExtendedIterator<OntStatement> listExplicitStatements(OntModel m, String uri) {
+        return super.listStatements(m, uri);
     }
 }

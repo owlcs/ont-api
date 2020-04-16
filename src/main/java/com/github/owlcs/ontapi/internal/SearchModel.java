@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -39,10 +39,9 @@ import org.apache.jena.util.iterator.NullIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Model with optimizations including nodes cache.
@@ -65,6 +64,8 @@ public abstract class SearchModel extends OntGraphModelImpl implements HasObject
     // optimization flags for annotations:
     private Boolean hasAnnotations;
     private Boolean hasSubAnnotations;
+    // all URIs
+    private Set<String> systemURIs;
     /**
      * A collection of reserved uri-{@link Node}s, that cannot be OWL-entities.
      * Used to speedup iteration in some cases (e.g. for class assertions).
@@ -148,6 +149,20 @@ public abstract class SearchModel extends OntGraphModelImpl implements HasObject
     @Override
     public Set<Node> getSystemResources(Class<? extends OntObject> type) {
         return systemResources.computeIfAbsent(type, x -> super.getSystemResources(type));
+    }
+
+    /**
+     * Get all system URIs.
+     *
+     * @return a {@code Set} of {@code String}s
+     */
+    public Set<String> getSystemURIs() {
+        if (systemURIs != null) {
+            return systemURIs;
+        }
+        OntPersonality.Reserved voc = getOntPersonality().getReserved();
+        return systemURIs = Stream.of(voc.getProperties(), voc.getResources()).flatMap(Collection::stream)
+                .map(Node::getURI).collect(Collectors.toSet());
     }
 
     /**

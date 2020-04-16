@@ -15,9 +15,11 @@
 package com.github.owlcs.ontapi.tests.model;
 
 import com.github.owlcs.ontapi.*;
+import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import com.github.owlcs.ontapi.utils.FileMap;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Assert;
-import org.junit.Assume;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -31,7 +33,9 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Objects;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -77,6 +81,9 @@ public class ReferencingAxiomsTest {
     public void testSearchByIRI() {
         OWLOntology ont = data.load(newManager());
         Set<IRI> iris = ont.signature().map(HasIRI::getIRI).collect(Collectors.toSet());
+        iris.add(IRI.create(OWL.intersectionOf.getURI()));
+        iris.add(IRI.create(RDF.langString.getURI()));
+        iris.add(IRI.create("http://" + RandomStringUtils.randomAlphabetic(12)));
         data.getTester(T.IRI).testCounts(ont, x -> iris.stream());
     }
 
@@ -131,12 +138,8 @@ public class ReferencingAxiomsTest {
                 T.DATATYPE.of(-41855234952L),
                 T.OBJECT_PROPERTY.of(-40985808704L),
                 T.DATA_PROPERTY.of(-40904863514L),
-                T.ANNOTATION_PROPERTY.of(83282971L)) {
-            @Override
-            Collection<T> ignore() { // temporary ignored since too slow
-                return Collections.singletonList(T.IRI);
-            }
-        },
+                T.ANNOTATION_PROPERTY.of(83282971L)
+        ),
         PEOPLE("/ontapi/people.ttl",
                 T.IRI.of(-2052328542L),
                 T.LITERAL.of(14670462876L), // https://github.com/owlcs/owlapi/issues/912
@@ -230,12 +233,8 @@ public class ReferencingAxiomsTest {
                 T.DATATYPE.of(103003236956L),
                 T.OBJECT_PROPERTY.of(-11121488227L),
                 T.DATA_PROPERTY.of(-22057951323L),
-                T.ANNOTATION_PROPERTY.of(110212215610L)) {
-            @Override
-            Collection<T> ignore() { // temporary ignored since too slow
-                return Collections.singletonList(T.IRI);
-            }
-        },
+                T.ANNOTATION_PROPERTY.of(110212215610L)
+        ),
         HP_CUT("/ontapi/hp-cut.ttl",
                 T.IRI.of(-25728375951L),
                 T.LITERAL.of(4459800725L),
@@ -262,10 +261,6 @@ public class ReferencingAxiomsTest {
             }
             this.format = format;
             this.expectations = expectations;
-        }
-
-        Collection<T> ignore() {
-            return Collections.emptyList();
         }
 
         static OWLOntology load(OWLOntologyManager manager, TestData... data) {
@@ -296,7 +291,6 @@ public class ReferencingAxiomsTest {
         }
 
         public Tester getTester(T type) {
-            Assume.assumeFalse(ignore().contains(type));
             return Arrays.stream(expectations)
                     .filter(x -> Objects.equals(x.type, type))
                     .findFirst().orElseThrow(IllegalArgumentException::new);

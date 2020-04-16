@@ -15,9 +15,13 @@
 package com.github.owlcs.ontapi.internal.searchers;
 
 import com.github.owlcs.ontapi.internal.*;
+import com.github.owlcs.ontapi.jena.impl.PersonalityModel;
+import com.github.owlcs.ontapi.jena.impl.conf.OntPersonality;
 import com.github.owlcs.ontapi.jena.model.*;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
@@ -73,6 +77,36 @@ public abstract class ByPrimitive<P extends OWLPrimitive> extends BaseSearcher {
     public static OntAnnotation getRoot(OntAnnotation annotation) {
         OntAnnotation parent = annotation.parent().orElse(null);
         return parent == null ? annotation : getRoot(parent);
+    }
+
+    /**
+     * Answers {@code true} if the given {@code node} contains the specified {@code uri}.
+     *
+     * @param node {@link RDFNode}
+     * @param uri  {@code String}
+     * @return boolean
+     */
+    protected static boolean hasURI(RDFNode node, String uri) {
+        if (node.isURIResource()) {
+            return uri.equals(node.asResource().getURI());
+        }
+        return node.isLiteral() && uri.equals(node.asLiteral().getDatatypeURI());
+    }
+
+    /**
+     * Answers {@code true} if the given {@code uri} is reserved.
+     *
+     * @param model {@link OntModel}, not {@code null}
+     * @param uri   {@code String} to test, not {@code null}
+     * @return boolean
+     */
+    protected static boolean isSystem(OntModel model, String uri) {
+        if (model instanceof SearchModel) {
+            return ((SearchModel) model).getSystemURIs().contains(uri);
+        }
+        OntPersonality.Reserved voc = PersonalityModel.asPersonalityModel(model).getOntPersonality().getReserved();
+        Node node = NodeFactory.createURI(uri);
+        return voc.getProperties().contains(node) || voc.getResources().contains(node);
     }
 
     final ExtendedIterator<OntStatement> listStatements(OntModel model, Resource resource) {

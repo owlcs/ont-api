@@ -149,6 +149,7 @@ public class InternalModel extends OntGraphModelImpl
     protected final ByPrimitive<OWLAnnotationProperty> byAnnotationProperty = new ByAnnotationProperty();
     protected final ByPrimitive<OWLLiteral> byLiteral = new ByLiteral();
     protected final ByPrimitive<OWLAnonymousIndividual> byAnonymousIndividual = new ByAnonymousIndividual();
+    protected final ByPrimitive<IRI> byIRI = new ByIRI();
 
     /**
      * Constructs a model instance.
@@ -738,11 +739,13 @@ public class InternalModel extends OntGraphModelImpl
     public Stream<OWLAxiom> listOWLAxioms(OWLPrimitive primitive) {
         OWLComponentType filter = OWLComponentType.get(primitive);
         if (useReferencingAxiomsGraphOptimization(filter)) {
-            ExtendedIterator<ONTObject<? extends OWLAxiom>> res = null;
+            ExtendedIterator<ONTObject<? extends OWLAxiom>> res;
             Supplier<OntModel> model = this::getSearchModel;
             InternalObjectFactory factory = getObjectFactory();
             InternalConfig config = getConfig();
-            if (filter == OWLComponentType.CLASS) {
+            if (filter == OWLComponentType.IRI) {
+                res = byIRI.listAxioms((IRI) primitive, model, factory, config);
+            } else if (filter == OWLComponentType.CLASS) {
                 res = byClass.listAxioms((OWLClass) primitive, model, factory, config);
             } else if (filter == OWLComponentType.NAMED_OBJECT_PROPERTY) {
                 res = byObjectProperty.listAxioms((OWLObjectProperty) primitive, model, factory, config);
@@ -758,10 +761,10 @@ public class InternalModel extends OntGraphModelImpl
                 res = byLiteral.listAxioms((OWLLiteral) primitive, model, factory, config);
             } else if (filter == OWLComponentType.ANONYMOUS_INDIVIDUAL) {
                 res = byAnonymousIndividual.listAxioms((OWLAnonymousIndividual) primitive, model, factory, config);
+            } else {
+                throw new OntApiException.IllegalArgument("Wrong type: " + filter);
             }
-            if (res != null) {
-                return reduce(Iter.asStream(res.mapWith(ONTObject::getOWLObject)));
-            }
+            return reduce(Iter.asStream(res.mapWith(ONTObject::getOWLObject)));
         }
         // the default way:
         if (OWLTopObjectType.ANNOTATION.hasComponent(filter)) {
@@ -815,8 +818,8 @@ public class InternalModel extends OntGraphModelImpl
                 // but it may be not true in case of special complexity (e.g. with owl:AllDifferent)
                 threshold = 3000;
             }
-            // for literals graph optimization is always faster
-            // for anonymous individuals too
+            // for IRI graph optimization is always faster
+            // for literals and anonymous individuals too
             return getOWLAxiomCount() >= threshold;
         }
         return true;
