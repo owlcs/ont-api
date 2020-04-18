@@ -27,10 +27,10 @@ import java.util.Set;
  * Created by @ssz on 31.03.2020.
  */
 public class ByNamedIndividual extends ByEntity<OWLNamedIndividual> {
-    private static final Set<AxiomTranslator<? extends OWLAxiom>> TRANSLATORS = selectTranslators(OWLComponentType.NAMED_INDIVIDUAL);
+    private static final Set<AxiomTranslator<OWLAxiom>> TRANSLATORS = selectTranslators(OWLComponentType.NAMED_INDIVIDUAL);
 
     @Override
-    protected ExtendedIterator<AxiomTranslator<? extends OWLAxiom>> listTranslators() {
+    protected ExtendedIterator<AxiomTranslator<OWLAxiom>> listTranslators() {
         return Iter.create(TRANSLATORS);
     }
 }

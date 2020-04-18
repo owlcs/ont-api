@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -478,6 +478,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, BaseModel {
      * @param property The property whose definition axioms are to be retrieved
      * @return A {@code Stream} of annotation axioms
      */
+    @Override
     public Stream<OWLAnnotationAxiom> axioms(OWLAnnotationProperty property) {
         return Stream.of(axioms(AxiomType.SUB_ANNOTATION_PROPERTY_OF).filter(a -> a.getSubProperty().equals(property)),
                 axioms(AxiomType.ANNOTATION_PROPERTY_RANGE).filter(a -> a.getProperty().equals(property)),
@@ -1032,13 +1033,6 @@ public abstract class OntBaseModelImpl implements OWLOntology, BaseModel {
         return axioms(OWLDifferentIndividualsAxiom.class, OWLIndividual.class,
                 individual, Navigation.IN_SUB_POSITION);
     }
-
-
-    /*
-     * ======================
-     * Serialization methods:
-     * ======================
-     */
 
     /**
      * Reads the object while serialization.

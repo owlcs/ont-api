@@ -106,7 +106,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> extends BaseSearch
         Objects.requireNonNull(model, "Null model.");
         InternalObjectFactory factory = getObjectFactory(model);
         InternalConfig config = getConfig(model);
-        return translate(listStatements(model, config), () -> model, factory, config);
+        return translate(this, listStatements(model, config), () -> model, factory, config);
     }
 
     /**
@@ -160,35 +160,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> extends BaseSearch
     protected ExtendedIterator<ONTObject<Axiom>> listAxioms(Supplier<OntModel> model,
                                                             InternalObjectFactory factory,
                                                             InternalConfig config) throws JenaException {
-        return translate(listStatements(model.get(), config), model, factory, config);
-    }
-
-    /**
-     * Maps each {@link OntStatement Ontology Statement} from the given iterator to the {@link Axiom} instance
-     * and returns a new iterator containing {@link Axiom}s.
-     *
-     * Impl notes: any item of the returned iterator can be either {@link ONTWrapperImpl ONTWrapper}
-     * with raw {@link Axiom} from the system-wide {@link DataFactory DataFactory}
-     * or {@link ONTObject} attached to the given model.
-     * If {@link com.github.owlcs.ontapi.config.AxiomsSettings#isSplitAxiomAnnotations()} is {@code true}
-     * and a processed statement is splittable, then the method returns {@link ONTWrapperImpl}s only.
-     *
-     * This method is for internal usage only,
-     *
-     * @param statements an {@link ExtendedIterator} of {@link OntStatement}s, not {@code null}
-     * @param model a facility (as {@link Supplier}) to provide nonnull {@link OntModel}, not {@code null}
-     * @param factory    a {@link InternalObjectFactory} to produce OWL-API Objects, not {@code null}
-     * @param config     a {@link InternalConfig} to control the process, not {@code null}
-     * @return {@link ExtendedIterator} of {@link ONTObject}s that wrap {@link Axiom}s
-     * @throws JenaException unable to read axioms of this type
-     */
-    protected ExtendedIterator<ONTObject<Axiom>> translate(ExtendedIterator<OntStatement> statements,
-                                                           Supplier<OntModel> model,
-                                                           InternalObjectFactory factory,
-                                                           InternalConfig config) {
-        return config.isSplitAxiomAnnotations() ?
-                Iter.flatMap(statements, s -> split(this, s, model, factory, config)) :
-                statements.mapWith(s -> toAxiom(this, s, model, factory, config));
+        return translate(this, listStatements(model.get(), config), model, factory, config);
     }
 
     /**

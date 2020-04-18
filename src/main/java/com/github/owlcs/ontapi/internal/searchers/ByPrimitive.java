@@ -19,10 +19,8 @@ import com.github.owlcs.ontapi.jena.impl.PersonalityModel;
 import com.github.owlcs.ontapi.jena.impl.conf.OntPersonality;
 import com.github.owlcs.ontapi.jena.model.*;
 import com.github.owlcs.ontapi.jena.utils.Iter;
-import com.github.owlcs.ontapi.jena.utils.OntModels;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
-import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
@@ -36,26 +34,19 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 /**
- * A base abstraction for any axioms-by-primitive helper (referencing-axioms functionality).
+ * A base abstraction for any axioms-by-primitive search helper (referencing-axioms functionality).
  * Created by @ssz on 19.03.2020.
  *
  * @param <P> - a subtype of {@link OWLPrimitive}:
  *            either {@link org.semanticweb.owlapi.model.OWLEntity},
  *            {@link org.semanticweb.owlapi.model.IRI} or {@link org.semanticweb.owlapi.model.OWLLiteral}
  */
-public abstract class ByPrimitive<P extends OWLPrimitive> extends BaseSearcher {
+public abstract class ByPrimitive<P extends OWLPrimitive> extends BaseByObject<OWLAxiom, P> {
 
     /**
      * All translators.
      */
-    private static final Set<AxiomTranslator<? extends OWLAxiom>> TRANSLATORS = selectTranslators(null);
-
-    protected static Set<AxiomTranslator<? extends OWLAxiom>> selectTranslators(OWLComponentType type) {
-        return OWLTopObjectType.axioms().filter(x -> type == null || x.hasComponent(type))
-                .map(OWLTopObjectType::getAxiomType)
-                .map(AxiomParserProvider::get)
-                .collect(Iter.toUnmodifiableSet());
-    }
+    private static final Set<AxiomTranslator<OWLAxiom>> TRANSLATORS = selectTranslators(null);
 
     /**
      * Answers {@code true} if need to check annotations also.
@@ -132,10 +123,11 @@ public abstract class ByPrimitive<P extends OWLPrimitive> extends BaseSearcher {
      * @param config    {@link InternalConfig}, not {@code null}
      * @return an {@link ExtendedIterator} of {@link OWLAxiom}s wrapped with {@link ONTObject}
      */
-    public ExtendedIterator<ONTObject<? extends OWLAxiom>> listAxioms(P primitive,
-                                                                      Supplier<OntModel> model,
-                                                                      InternalObjectFactory factory,
-                                                                      InternalConfig config) {
+    @Override
+    public ExtendedIterator<ONTObject<OWLAxiom>> listAxioms(P primitive,
+                                                            Supplier<OntModel> model,
+                                                            InternalObjectFactory factory,
+                                                            InternalConfig config) {
         ExtendedIterator<OntStatement> res = listStatements(model.get(), primitive);
         if (config.isSplitAxiomAnnotations()) {
             return Iter.flatMap(res,
@@ -149,7 +141,7 @@ public abstract class ByPrimitive<P extends OWLPrimitive> extends BaseSearcher {
      *
      * @return {@link ExtendedIterator}
      */
-    protected ExtendedIterator<AxiomTranslator<? extends OWLAxiom>> listTranslators() {
+    protected ExtendedIterator<AxiomTranslator<OWLAxiom>> listTranslators() {
         return Iter.create(TRANSLATORS);
     }
 
@@ -160,8 +152,8 @@ public abstract class ByPrimitive<P extends OWLPrimitive> extends BaseSearcher {
      * @param conf      {@link InternalConfig}
      * @return an {@link ExtendedIterator} of {@link AxiomTranslator}s
      */
-    protected ExtendedIterator<? extends AxiomTranslator<? extends OWLAxiom>> listTranslators(OntStatement statement,
-                                                                                              InternalConfig conf) {
+    protected ExtendedIterator<? extends AxiomTranslator<OWLAxiom>> listTranslators(OntStatement statement,
+                                                                                    InternalConfig conf) {
         return listTranslators().filterKeep(t -> t.testStatement(statement, conf));
     }
 
@@ -247,21 +239,5 @@ public abstract class ByPrimitive<P extends OWLPrimitive> extends BaseSearcher {
             return Iter.of(base);
         }
         return listBySubject(model, root);
-    }
-
-    final ExtendedIterator<OntStatement> listBySubject(OntModel model, Resource subject) {
-        return OntModels.listLocalStatements(model, subject, null, null);
-    }
-
-    final ExtendedIterator<OntStatement> listByProperty(OntModel m, Property uri) {
-        return OntModels.listLocalStatements(m, null, uri, null);
-    }
-
-    final ExtendedIterator<OntStatement> listByObject(OntModel model, RDFNode object) {
-        return OntModels.listLocalStatements(model, null, null, object);
-    }
-
-    final ExtendedIterator<OntStatement> listStatements(OntModel model) {
-        return OntModels.listLocalStatements(model, null, null, null);
     }
 }

@@ -14,23 +14,29 @@
 
 package com.github.owlcs.ontapi.internal.searchers;
 
-import com.github.owlcs.ontapi.internal.AxiomTranslator;
-import com.github.owlcs.ontapi.internal.OWLComponentType;
-import com.github.owlcs.ontapi.jena.utils.Iter;
+import com.github.owlcs.ontapi.internal.*;
+import com.github.owlcs.ontapi.internal.axioms.AnnotationAssertionTranslator;
+import com.github.owlcs.ontapi.jena.model.OntModel;
+import com.github.owlcs.ontapi.jena.model.OntStatement;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLDataProperty;
+import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
+import org.semanticweb.owlapi.model.OWLAnnotationSubject;
 
-import java.util.Set;
+import java.util.function.Supplier;
 
 /**
- * Created by @ssz on 31.03.2020.
+ * Created by @ssz on 18.04.2020.
  */
-public class ByDataProperty extends ByProperty<OWLDataProperty> {
-    private static final Set<AxiomTranslator<OWLAxiom>> TRANSLATORS = selectTranslators(OWLComponentType.DATATYPE_PROPERTY);
+public class AnnotationAssertionBySubject extends BaseByObject<OWLAnnotationAssertionAxiom, OWLAnnotationSubject> {
+    private static final AnnotationAssertionTranslator TRANSLATOR = toTranslator(OWLTopObjectType.ANNOTATION_ASSERTION);
 
     @Override
-    protected ExtendedIterator<AxiomTranslator<OWLAxiom>> listTranslators() {
-        return Iter.create(TRANSLATORS);
+    public ExtendedIterator<ONTObject<OWLAnnotationAssertionAxiom>> listAxioms(OWLAnnotationSubject subject,
+                                                                               Supplier<OntModel> model,
+                                                                               InternalObjectFactory factory,
+                                                                               InternalConfig config) {
+        ExtendedIterator<OntStatement> res = listBySubject(model.get(), WriteHelper.toResource(subject))
+                .filterKeep(x -> TRANSLATOR.testStatement(x, config));
+        return translate(TRANSLATOR, res, model, factory, config);
     }
 }

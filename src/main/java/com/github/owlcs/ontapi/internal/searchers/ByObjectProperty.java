@@ -29,10 +29,10 @@ import java.util.Set;
  */
 public class ByObjectProperty extends ByProperty<OWLObjectProperty> {
 
-    private static final Set<AxiomTranslator<? extends OWLAxiom>> TRANSLATORS = selectTranslators(OWLComponentType.NAMED_OBJECT_PROPERTY);
+    private static final Set<AxiomTranslator<OWLAxiom>> TRANSLATORS = selectTranslators(OWLComponentType.NAMED_OBJECT_PROPERTY);
 
     @Override
-    protected ExtendedIterator<AxiomTranslator<? extends OWLAxiom>> listTranslators() {
+    protected ExtendedIterator<AxiomTranslator<OWLAxiom>> listTranslators() {
         return Iter.create(TRANSLATORS);
     }
 }

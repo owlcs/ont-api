@@ -35,10 +35,10 @@ import java.util.function.Supplier;
 public abstract class ByEntity<E extends OWLEntity> extends ByPrimitive<E> {
 
     @Override
-    public final ExtendedIterator<ONTObject<? extends OWLAxiom>> listAxioms(E entity,
-                                                                            Supplier<OntModel> model,
-                                                                            InternalObjectFactory factory,
-                                                                            InternalConfig config) {
+    public final ExtendedIterator<ONTObject<OWLAxiom>> listAxioms(E entity,
+                                                                  Supplier<OntModel> model,
+                                                                  InternalObjectFactory factory,
+                                                                  InternalConfig config) {
         ExtendedIterator<OntStatement> res = listStatements(model.get(), entity);
         if (config.isSplitAxiomAnnotations()) {
             return Iter.flatMap(res, s -> Iter.flatMap(listTranslators(s, config),

@@ -12,25 +12,35 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.github.owlcs.ontapi.internal.searchers;
+package com.github.owlcs.ontapi.internal;
 
-import com.github.owlcs.ontapi.internal.AxiomTranslator;
-import com.github.owlcs.ontapi.internal.OWLComponentType;
-import com.github.owlcs.ontapi.jena.utils.Iter;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLDataProperty;
+import org.semanticweb.owlapi.model.OWLObject;
 
-import java.util.Set;
+import java.util.function.Supplier;
 
 /**
- * Created by @ssz on 31.03.2020.
+ * A searcher that lists axioms by object.
+ * Created by @ssz on 18.04.2020.
+ *
+ * @param <A> - subtype of {@link OWLAxiom}
+ * @param <O> - subtype of {@link OWLObject}
  */
-public class ByDataProperty extends ByProperty<OWLDataProperty> {
-    private static final Set<AxiomTranslator<OWLAxiom>> TRANSLATORS = selectTranslators(OWLComponentType.DATATYPE_PROPERTY);
+public interface ByObject<A extends OWLAxiom, O extends OWLObject> {
 
-    @Override
-    protected ExtendedIterator<AxiomTranslator<OWLAxiom>> listTranslators() {
-        return Iter.create(TRANSLATORS);
-    }
+    /**
+     * Lists all axioms that contain the given {@link O OWLObject}.
+     *
+     * @param object  a {@link O}, not {@code null}
+     * @param model   a {@link Supplier} to derive nonnull {@link OntModel}, cannot be {@code null}
+     * @param factory an {@link InternalObjectFactory}, cannot be {@code null}
+     * @param config  {@link InternalConfig}, cannot {@code null}
+     * @return an {@link ExtendedIterator} of {@link A OWLAxiom}s wrapped with {@link ONTObject}
+     */
+    ExtendedIterator<ONTObject<A>> listAxioms(O object,
+                                              Supplier<OntModel> model,
+                                              InternalObjectFactory factory,
+                                              InternalConfig config);
 }

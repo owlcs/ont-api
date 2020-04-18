@@ -14,43 +14,49 @@
 
 package com.github.owlcs.ontapi.internal.searchers;
 
-import com.github.owlcs.ontapi.internal.AxiomTranslator;
-import com.github.owlcs.ontapi.internal.OWLComponentType;
-import com.github.owlcs.ontapi.jena.model.OntClass;
+import com.github.owlcs.ontapi.internal.BaseSearcher;
+import com.github.owlcs.ontapi.internal.ByObject;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
-import com.github.owlcs.ontapi.jena.utils.Iter;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import com.github.owlcs.ontapi.jena.utils.OntModels;
+import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLClass;
-
-import java.util.Set;
-import java.util.stream.Stream;
+import org.semanticweb.owlapi.model.OWLObject;
 
 /**
- * A searcher for {@link OWLClass}.
- * Created by @ssz on 19.03.2020.
+ * Created by @ssz on 18.04.2020.
  */
-public class ByClass extends WithCardinality<OWLClass> {
+@SuppressWarnings("SameParameterValue")
+abstract class BaseByObject<A extends OWLAxiom, O extends OWLObject> extends BaseSearcher implements ByObject<A, O> {
 
-    private static final Set<Class<? extends OntClass.CardinalityRestrictionCE<?, ?>>> OBJECT_CARDINALITY_TYPES =
-            Stream.of(OntClass.ObjectMaxCardinality.class, OntClass.ObjectMinCardinality.class, OntClass.ObjectCardinality.class)
-                    .collect(Iter.toUnmodifiableSet());
-
-    private static final Set<AxiomTranslator<OWLAxiom>> TRANSLATORS = selectTranslators(OWLComponentType.CLASS);
-
-    @Override
-    protected String getTopEntityURI() {
-        return OWL.Thing.getURI();
+    final ExtendedIterator<OntStatement> listBySubject(OntModel model, Resource subject) {
+        return listStatements(model, subject, null, null);
     }
 
-    @Override
-    protected boolean isCardinalityRestriction(OntStatement s) {
-        return OBJECT_CARDINALITY_TYPES.stream().anyMatch(t -> s.getSubject().canAs(t));
+    final ExtendedIterator<OntStatement> listBySubjectAndProperty(OntModel m, Resource subject, Property uri) {
+        return listStatements(m, subject, uri, null);
     }
 
-    @Override
-    protected ExtendedIterator<AxiomTranslator<OWLAxiom>> listTranslators() {
-        return Iter.create(TRANSLATORS);
+    final ExtendedIterator<OntStatement> listByProperty(OntModel m, Property uri) {
+        return listStatements(m, null, uri, null);
+    }
+
+    final ExtendedIterator<OntStatement> listByPropertyAndObject(OntModel model, Property uri, RDFNode object) {
+        return listStatements(model, null, uri, object);
+    }
+
+    final ExtendedIterator<OntStatement> listByObject(OntModel model, RDFNode object) {
+        return listStatements(model, null, null, object);
+    }
+
+    final ExtendedIterator<OntStatement> listStatements(OntModel model) {
+        return listStatements(model, null, null, null);
+    }
+
+    private ExtendedIterator<OntStatement> listStatements(OntModel model, Resource s, Property p, RDFNode o) {
+        return OntModels.listLocalStatements(model, s, p, o);
     }
 }

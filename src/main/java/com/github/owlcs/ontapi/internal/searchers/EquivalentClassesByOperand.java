@@ -14,23 +14,34 @@
 
 package com.github.owlcs.ontapi.internal.searchers;
 
-import com.github.owlcs.ontapi.internal.AxiomTranslator;
-import com.github.owlcs.ontapi.internal.OWLComponentType;
-import com.github.owlcs.ontapi.jena.utils.Iter;
+import com.github.owlcs.ontapi.internal.*;
+import com.github.owlcs.ontapi.internal.axioms.EquivalentClassesTranslator;
+import com.github.owlcs.ontapi.jena.model.OntModel;
+import com.github.owlcs.ontapi.jena.model.OntStatement;
+import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLDataProperty;
+import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 
-import java.util.Set;
+import java.util.function.Supplier;
 
 /**
- * Created by @ssz on 31.03.2020.
+ * Created by @ssz on 18.04.2020.
  */
-public class ByDataProperty extends ByProperty<OWLDataProperty> {
-    private static final Set<AxiomTranslator<OWLAxiom>> TRANSLATORS = selectTranslators(OWLComponentType.DATATYPE_PROPERTY);
+public class EquivalentClassesByOperand extends BaseByObject<OWLEquivalentClassesAxiom, OWLClass> {
+    public static final EquivalentClassesTranslator TRANSLATOR = toTranslator(OWLTopObjectType.EQUIVALENT_CLASSES);
 
     @Override
-    protected ExtendedIterator<AxiomTranslator<OWLAxiom>> listTranslators() {
-        return Iter.create(TRANSLATORS);
+    public ExtendedIterator<ONTObject<OWLEquivalentClassesAxiom>> listAxioms(OWLClass clazz,
+                                                                             Supplier<OntModel> model,
+                                                                             InternalObjectFactory factory,
+                                                                             InternalConfig config) {
+        Resource c = WriteHelper.toResource(clazz.getIRI());
+        OntModel m = model.get();
+        ExtendedIterator<OntStatement> res = listBySubjectAndProperty(m, c, OWL.equivalentClass)
+                .andThen(listByPropertyAndObject(m, OWL.equivalentClass, c))
+                .filterKeep(s -> TRANSLATOR.testStatement(s, config));
+        return translate(TRANSLATOR, res, model, factory, config);
     }
 }

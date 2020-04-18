@@ -14,23 +14,34 @@
 
 package com.github.owlcs.ontapi.internal.searchers;
 
-import com.github.owlcs.ontapi.internal.AxiomTranslator;
-import com.github.owlcs.ontapi.internal.OWLComponentType;
+import com.github.owlcs.ontapi.internal.*;
+import com.github.owlcs.ontapi.internal.axioms.DeclarationTranslator;
+import com.github.owlcs.ontapi.jena.impl.PersonalityModel;
+import com.github.owlcs.ontapi.jena.model.OntEntity;
+import com.github.owlcs.ontapi.jena.model.OntModel;
+import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLDataProperty;
+import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
+import org.semanticweb.owlapi.model.OWLEntity;
 
-import java.util.Set;
+import java.util.function.Supplier;
 
 /**
- * Created by @ssz on 31.03.2020.
+ * Created by @ssz on 18.04.2020.
  */
-public class ByDataProperty extends ByProperty<OWLDataProperty> {
-    private static final Set<AxiomTranslator<OWLAxiom>> TRANSLATORS = selectTranslators(OWLComponentType.DATATYPE_PROPERTY);
+public class DeclarationByEntity extends BaseByObject<OWLDeclarationAxiom, OWLEntity> {
+    private static final DeclarationTranslator TRANSLATOR = toTranslator(OWLTopObjectType.DECLARATION);
 
     @Override
-    protected ExtendedIterator<AxiomTranslator<OWLAxiom>> listTranslators() {
-        return Iter.create(TRANSLATORS);
+    public ExtendedIterator<ONTObject<OWLDeclarationAxiom>> listAxioms(OWLEntity entity,
+                                                                       Supplier<OntModel> model,
+                                                                       InternalObjectFactory factory,
+                                                                       InternalConfig config) {
+        OntEntity res = PersonalityModel.asPersonalityModel(model.get())
+                .findNodeAs(WriteHelper.toNode(entity), WriteHelper.getEntityType(entity));
+        if (res == null) return Iter.of();
+        OntStatement statement = res.getMainStatement();
+        return statement == null ? Iter.of() : Iter.of(toAxiom(TRANSLATOR, statement, model, factory, config));
     }
 }

@@ -14,23 +14,32 @@
 
 package com.github.owlcs.ontapi.internal.searchers;
 
-import com.github.owlcs.ontapi.internal.AxiomTranslator;
-import com.github.owlcs.ontapi.internal.OWLComponentType;
-import com.github.owlcs.ontapi.jena.utils.Iter;
+import com.github.owlcs.ontapi.internal.*;
+import com.github.owlcs.ontapi.internal.axioms.SubClassOfTranslator;
+import com.github.owlcs.ontapi.jena.model.OntModel;
+import com.github.owlcs.ontapi.jena.model.OntStatement;
+import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLDataProperty;
+import org.apache.jena.vocabulary.RDFS;
+import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 
-import java.util.Set;
+import java.util.function.Supplier;
 
 /**
- * Created by @ssz on 31.03.2020.
+ * Created by @ssz on 18.04.2020.
  */
-public class ByDataProperty extends ByProperty<OWLDataProperty> {
-    private static final Set<AxiomTranslator<OWLAxiom>> TRANSLATORS = selectTranslators(OWLComponentType.DATATYPE_PROPERTY);
+public class SubClassOfBySubject extends BaseByObject<OWLSubClassOfAxiom, OWLClass> {
+    private static final SubClassOfTranslator TRANSLATOR = toTranslator(OWLTopObjectType.SUBCLASS_OF);
 
     @Override
-    protected ExtendedIterator<AxiomTranslator<OWLAxiom>> listTranslators() {
-        return Iter.create(TRANSLATORS);
+    public ExtendedIterator<ONTObject<OWLSubClassOfAxiom>> listAxioms(OWLClass clazz,
+                                                                      Supplier<OntModel> model,
+                                                                      InternalObjectFactory factory,
+                                                                      InternalConfig config) {
+        Resource s = WriteHelper.toResource(clazz.getIRI());
+        ExtendedIterator<OntStatement> res = listBySubjectAndProperty(model.get(), s, RDFS.subClassOf)
+                .filterKeep(TRANSLATOR::filter);
+        return translate(TRANSLATOR, res, model, factory, config);
     }
 }
