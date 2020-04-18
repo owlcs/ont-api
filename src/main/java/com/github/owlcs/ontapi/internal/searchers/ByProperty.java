@@ -32,6 +32,6 @@ public abstract class ByProperty<P extends OWLProperty> extends ByEntity<P> {
     }
 
     protected ExtendedIterator<OntStatement> listAssertions(OntModel m, String uri) {
-        return listByProperty(m, m.getProperty(uri));
+        return listByPredicate(m, m.getProperty(uri));
     }
 }

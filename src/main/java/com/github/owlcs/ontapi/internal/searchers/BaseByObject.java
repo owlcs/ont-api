@@ -16,13 +16,6 @@ package com.github.owlcs.ontapi.internal.searchers;
 
 import com.github.owlcs.ontapi.internal.BaseSearcher;
 import com.github.owlcs.ontapi.internal.ByObject;
-import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntStatement;
-import com.github.owlcs.ontapi.jena.utils.OntModels;
-import org.apache.jena.rdf.model.Property;
-import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
 
@@ -31,32 +24,4 @@ import org.semanticweb.owlapi.model.OWLObject;
  */
 @SuppressWarnings("SameParameterValue")
 abstract class BaseByObject<A extends OWLAxiom, O extends OWLObject> extends BaseSearcher implements ByObject<A, O> {
-
-    final ExtendedIterator<OntStatement> listBySubject(OntModel model, Resource subject) {
-        return listStatements(model, subject, null, null);
-    }
-
-    final ExtendedIterator<OntStatement> listBySubjectAndProperty(OntModel m, Resource subject, Property uri) {
-        return listStatements(m, subject, uri, null);
-    }
-
-    final ExtendedIterator<OntStatement> listByProperty(OntModel m, Property uri) {
-        return listStatements(m, null, uri, null);
-    }
-
-    final ExtendedIterator<OntStatement> listByPropertyAndObject(OntModel model, Property uri, RDFNode object) {
-        return listStatements(model, null, uri, object);
-    }
-
-    final ExtendedIterator<OntStatement> listByObject(OntModel model, RDFNode object) {
-        return listStatements(model, null, null, object);
-    }
-
-    final ExtendedIterator<OntStatement> listStatements(OntModel model) {
-        return listStatements(model, null, null, null);
-    }
-
-    private ExtendedIterator<OntStatement> listStatements(OntModel model, Resource s, Property p, RDFNode o) {
-        return OntModels.listLocalStatements(model, s, p, o);
-    }
 }

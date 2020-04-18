@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -22,11 +22,8 @@ import com.github.owlcs.ontapi.internal.objects.ONTAxiomImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTNamedIndividualImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
 import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntStatement;
-import com.github.owlcs.ontapi.jena.utils.OntModels;
 import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.*;
 
 import java.util.function.Supplier;
@@ -57,16 +54,6 @@ import java.util.function.Supplier;
  */
 public abstract class AbstractPropertyAssertionTranslator<P extends OWLPropertyExpression,
         A extends OWLAxiom & HasProperty<P>> extends AxiomTranslator<A> {
-
-    /**
-     * Returns iterator over all local model's statements.
-     *
-     * @param model {@link OntModel}, not {@code null}
-     * @return {@link ExtendedIterator} of {@link OntStatement}s
-     */
-    public ExtendedIterator<OntStatement> listStatements(OntModel model) {
-        return OntModels.listLocalStatements(model, null, null, null);
-    }
 
     /**
      * A base for annotation and positive property assertion axioms.

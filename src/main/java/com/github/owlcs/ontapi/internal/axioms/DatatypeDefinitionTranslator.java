@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -19,7 +19,6 @@ import com.github.owlcs.ontapi.internal.objects.*;
 import com.github.owlcs.ontapi.jena.model.OntDataRange;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
-import com.github.owlcs.ontapi.jena.utils.OntModels;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.util.iterator.ExtendedIterator;
@@ -53,9 +52,8 @@ public class DatatypeDefinitionTranslator extends AxiomTranslator<OWLDatatypeDef
 
     @Override
     public ExtendedIterator<OntStatement> listStatements(OntModel model, InternalConfig config) {
-        return OntModels.listLocalStatements(model, null, OWL.equivalentClass, null)
-                .filterKeep(s -> s.getSubject().canAs(OntDataRange.Named.class)
-                        && s.getObject().canAs(OntDataRange.class));
+        return listByPredicate(model, OWL.equivalentClass)
+                .filterKeep(s -> s.getSubject().canAs(OntDataRange.Named.class) && s.getObject().canAs(OntDataRange.class));
     }
 
     @Override

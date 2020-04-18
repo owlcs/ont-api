@@ -19,6 +19,9 @@ import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
+import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.shared.JenaException;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLAxiom;
@@ -123,5 +126,39 @@ public abstract class BaseSearcher {
                 .map(OWLTopObjectType::getAxiomType)
                 .map(AxiomParserProvider::get)
                 .collect(Iter.toUnmodifiableSet());
+    }
+
+    protected final ExtendedIterator<OntStatement> listBySubject(OntModel model, Resource subject) {
+        return listStatements(model, subject, null, null);
+    }
+
+    protected final ExtendedIterator<OntStatement> listBySubjectAndPredicate(OntModel m, Resource subject, Property uri) {
+        return listStatements(m, subject, uri, null);
+    }
+
+    protected final ExtendedIterator<OntStatement> listByPredicate(OntModel m, Property uri) {
+        return listStatements(m, null, uri, null);
+    }
+
+    protected final ExtendedIterator<OntStatement> listByPredicateAndObject(OntModel model, Property uri, RDFNode object) {
+        return listStatements(model, null, uri, object);
+    }
+
+    protected final ExtendedIterator<OntStatement> listByObject(OntModel model, RDFNode object) {
+        return listStatements(model, null, null, object);
+    }
+
+    /**
+     * Returns iterator over all local model's statements.
+     *
+     * @param model {@link OntModel}, not {@code null}
+     * @return {@link ExtendedIterator} of {@link OntStatement}s
+     */
+    protected final ExtendedIterator<OntStatement> listStatements(OntModel model) {
+        return listStatements(model, null, null, null);
+    }
+
+    private ExtendedIterator<OntStatement> listStatements(OntModel model, Resource s, Property p, RDFNode o) {
+        return OntModels.listLocalStatements(model, s, p, o);
     }
 }

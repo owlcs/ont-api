@@ -44,6 +44,25 @@ import java.util.stream.StreamSupport;
 public class Iter {
 
     /**
+     * Creates a new sequential {@code Stream} from the given {@code ExtendedIterator}.
+     * Takes care about degenerate cases empty and single-element iterator.
+     *
+     * @param iterator {@link ExtendedIterator} of {@link X}-elements
+     * @param <X>      anything
+     * @return a {@code Stream} of {@link X}
+     * @see #asStream(Iterator)
+     */
+    public static <X> Stream<X> asStream(ExtendedIterator<? extends X> iterator) {
+        if (iterator instanceof NullIterator) {
+            return Stream.empty();
+        }
+        if (iterator instanceof SingletonIterator) {
+            return Stream.of(iterator.next());
+        }
+        return asStream((Iterator<? extends X>) iterator);
+    }
+
+    /**
      * Creates a new sequential {@code Stream} from the given {@code Iterator},
      * which is expected to deliver nonnull items:
      * it is required that the operation {@link Iterator#next()} must not return {@code null}

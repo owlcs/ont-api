@@ -157,7 +157,7 @@ public class InternalModel extends OntGraphModelImpl
     protected final ByObject<OWLDeclarationAxiom, OWLEntity> declarationsByEntity = new DeclarationByEntity();
     protected final ByObject<OWLAnnotationAssertionAxiom, OWLAnnotationSubject> annotationAssertionBySubject = new AnnotationAssertionBySubject();
     protected final ByObject<OWLSubClassOfAxiom, OWLClass> subClassOfBySubject = new SubClassOfBySubject();
-    protected final ByObject<OWLEquivalentClassesAxiom, OWLClass> equivalentClassesByOperand = new EquivalentClassesByOperand();
+    protected final ByObject<OWLEquivalentClassesAxiom, OWLClass> equivalentClassesByOperand = new EquivalentClassesByClass();
 
     /**
      * Constructs a model instance.

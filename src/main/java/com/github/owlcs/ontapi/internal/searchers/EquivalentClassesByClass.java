@@ -29,7 +29,7 @@ import java.util.function.Supplier;
 /**
  * Created by @ssz on 18.04.2020.
  */
-public class EquivalentClassesByOperand extends BaseByObject<OWLEquivalentClassesAxiom, OWLClass> {
+public class EquivalentClassesByClass extends BaseByObject<OWLEquivalentClassesAxiom, OWLClass> {
     public static final EquivalentClassesTranslator TRANSLATOR = toTranslator(OWLTopObjectType.EQUIVALENT_CLASSES);
 
     @Override
@@ -39,8 +39,8 @@ public class EquivalentClassesByOperand extends BaseByObject<OWLEquivalentClasse
                                                                              InternalConfig config) {
         Resource c = WriteHelper.toResource(clazz.getIRI());
         OntModel m = model.get();
-        ExtendedIterator<OntStatement> res = listBySubjectAndProperty(m, c, OWL.equivalentClass)
-                .andThen(listByPropertyAndObject(m, OWL.equivalentClass, c))
+        ExtendedIterator<OntStatement> res = listBySubjectAndPredicate(m, c, OWL.equivalentClass)
+                .andThen(listByPredicateAndObject(m, OWL.equivalentClass, c))
                 .filterKeep(s -> TRANSLATOR.testStatement(s, config));
         return translate(TRANSLATOR, res, model, factory, config);
     }

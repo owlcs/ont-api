@@ -38,7 +38,7 @@ public class SubClassOfBySubject extends BaseByObject<OWLSubClassOfAxiom, OWLCla
                                                                       InternalObjectFactory factory,
                                                                       InternalConfig config) {
         Resource s = WriteHelper.toResource(clazz.getIRI());
-        ExtendedIterator<OntStatement> res = listBySubjectAndProperty(model.get(), s, RDFS.subClassOf)
+        ExtendedIterator<OntStatement> res = listBySubjectAndPredicate(model.get(), s, RDFS.subClassOf)
                 .filterKeep(TRANSLATOR::filter);
         return translate(TRANSLATOR, res, model, factory, config);
     }

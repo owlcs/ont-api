@@ -31,7 +31,7 @@ abstract class WithCardinality<E extends OWLEntity> extends ByEntity<E> {
     protected abstract boolean isCardinalityRestriction(OntStatement s);
 
     final ExtendedIterator<OntStatement> listImplicitStatements(OntModel m) {
-        return Iter.flatMap(Iter.of(OWL.cardinality, OWL.maxCardinality, OWL.minCardinality), p -> listByProperty(m, p))
+        return Iter.flatMap(Iter.of(OWL.cardinality, OWL.maxCardinality, OWL.minCardinality), p -> listByPredicate(m, p))
                 .filterKeep(this::isCardinalityRestriction);
     }
 
