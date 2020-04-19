@@ -24,8 +24,11 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.search.EntitySearcher;
 
 import java.util.Collections;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * For testing miscellaneous general model functionality.
@@ -33,6 +36,33 @@ import java.util.Collections;
  * Created by @szuev on 20.07.2018.
  */
 public class MiscOntModelTest extends OntModelTestBase {
+
+    /**
+     * Test for bug: "InternalModel add methods does not reset objects cache".
+     *
+     * @see <a href='https://github.com/avicomp/ont-api/issues/16'>avc#16</a>
+     */
+    @Test
+    public void testAddObjectPropertyAndEntitySearcher() throws Exception {
+        OWLOntologyManager m = OntManagers.createConcurrentONT();
+        OWLDataFactory df = m.getOWLDataFactory();
+        OWLOntology ont = m.createOntology();
+        OWLAnnotationProperty a = df.getOWLAnnotationProperty(IRI.create("http://the-a-p"));
+
+        // init objects cache here:
+        Assert.assertFalse(ont.containsEntityInSignature(a));
+
+        OWLObjectProperty o = df.getOWLObjectProperty(IRI.create("http://the-o-p"));
+        ont.addAxiom(df.getOWLDeclarationAxiom(a));
+        ont.addAxiom(df.getOWLSubObjectPropertyOfAxiom(o, df.getOWLTopObjectProperty()));
+        ReadWriteUtils.print(ont);
+        Set<?> props = EntitySearcher.getSuperProperties(o, ont).collect(Collectors.toSet());
+        Assert.assertEquals(1, props.size());
+        //noinspection deprecation
+        Assert.assertTrue(ont.containsReference(a));
+        Assert.assertTrue(ont.containsEntityInSignature(a));
+        Assert.assertTrue(ont.containsEntityInSignature(o));
+    }
 
     @Test
     public void testWorkingWithUnattachedEntity() {

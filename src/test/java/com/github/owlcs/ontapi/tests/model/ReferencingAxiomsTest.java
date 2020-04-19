@@ -14,25 +14,20 @@
 
 package com.github.owlcs.ontapi.tests.model;
 
-import com.github.owlcs.ontapi.*;
+import com.github.owlcs.ontapi.OntManagers;
+import com.github.owlcs.ontapi.Ontology;
+import com.github.owlcs.ontapi.OwlObjects;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
-import com.github.owlcs.ontapi.utils.FileMap;
+import com.github.owlcs.ontapi.tests.ModelData;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.semanticweb.owlapi.io.FileDocumentSource;
-import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.*;
-import org.semanticweb.owlapi.util.PriorityCollection;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Set;
@@ -118,7 +113,7 @@ public class ReferencingAxiomsTest {
     }
 
     enum TestData {
-        PIZZA("/ontapi/pizza.ttl",
+        PIZZA(ModelData.PIZZA,
                 T.IRI.of(92474991110L),
                 T.LITERAL.of(5847447319L),
                 T.ANONYMOUS_INDIVIDUAL.of(),
@@ -129,7 +124,7 @@ public class ReferencingAxiomsTest {
                 T.DATA_PROPERTY.of(),
                 T.ANNOTATION_PROPERTY.of(5847447319L)
         ),
-        FAMILY("/ontapi/family.ttl",
+        FAMILY(ModelData.FAMILY,
                 T.IRI.of(-7556502204L),
                 T.LITERAL.of(-45686983406L),
                 T.ANONYMOUS_INDIVIDUAL.of(),
@@ -140,7 +135,7 @@ public class ReferencingAxiomsTest {
                 T.DATA_PROPERTY.of(-40904863514L),
                 T.ANNOTATION_PROPERTY.of(83282971L)
         ),
-        PEOPLE("/ontapi/people.ttl",
+        PEOPLE(ModelData.PEOPLE,
                 T.IRI.of(-2052328542L),
                 T.LITERAL.of(14670462876L), // https://github.com/owlcs/owlapi/issues/912
                 T.ANONYMOUS_INDIVIDUAL.of(7259412151L),
@@ -151,7 +146,7 @@ public class ReferencingAxiomsTest {
                 T.DATA_PROPERTY.of(),
                 T.ANNOTATION_PROPERTY.of(16238983895L)
         ),
-        CAMERA("/ontapi/camera.ttl",
+        CAMERA(ModelData.CAMERA,
                 T.IRI.of(34678315922L),
                 T.LITERAL.of(),
                 T.ANONYMOUS_INDIVIDUAL.of(),
@@ -162,7 +157,7 @@ public class ReferencingAxiomsTest {
                 T.DATA_PROPERTY.of(12529272927L),
                 T.ANNOTATION_PROPERTY.of()
         ),
-        KOALA("/ontapi/koala.ttl",
+        KOALA(ModelData.KOALA,
                 T.IRI.of(4895124448L),
                 T.LITERAL.of(152056289L), // https://github.com/owlcs/owlapi/issues/912
                 T.ANONYMOUS_INDIVIDUAL.of(),
@@ -173,7 +168,7 @@ public class ReferencingAxiomsTest {
                 T.DATA_PROPERTY.of(-3263365120L),
                 T.ANNOTATION_PROPERTY.of(2255627747L)
         ),
-        TRAVEL("/ontapi/travel.ttl",
+        TRAVEL(ModelData.TRAVEL,
                 T.IRI.of(-10914071789L),
                 T.LITERAL.of(-3973926788L),
                 T.ANONYMOUS_INDIVIDUAL.of(1033568903L),
@@ -184,7 +179,7 @@ public class ReferencingAxiomsTest {
                 T.DATA_PROPERTY.of(-8004661834L),
                 T.ANNOTATION_PROPERTY.of(-3973926788L)
         ),
-        WINE("/ontapi/wine.ttl",
+        WINE(ModelData.WINE,
                 T.IRI.of(141385965517L),
                 T.LITERAL.of(3321372063L),
                 T.ANONYMOUS_INDIVIDUAL.of(),
@@ -193,18 +188,9 @@ public class ReferencingAxiomsTest {
                 T.DATATYPE.of(2653283947L),
                 T.OBJECT_PROPERTY.of(59036259728L),
                 T.DATA_PROPERTY.of(-507343578L),
-                T.ANNOTATION_PROPERTY.of(1282021579L)) {
-            @Override
-            String getName() {
-                return "http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine";
-            }
-
-            @Override
-            public OWLOntology load(OWLOntologyManager manager) {
-                return load(manager, FOOD, this);
-            }
-        },
-        FOOD("/ontapi/food.ttl",
+                T.ANNOTATION_PROPERTY.of(1282021579L)
+        ),
+        FOOD(ModelData.FOOD,
                 T.IRI.of(112980744315L),
                 T.LITERAL.of(),
                 T.ANONYMOUS_INDIVIDUAL.of(),
@@ -213,18 +199,9 @@ public class ReferencingAxiomsTest {
                 T.DATATYPE.of(),
                 T.OBJECT_PROPERTY.of(22297484987L),
                 T.DATA_PROPERTY.of(),
-                T.ANNOTATION_PROPERTY.of()) {
-            @Override
-            String getName() {
-                return "http://www.w3.org/TR/2003/PR-owl-guide-20031209/food";
-            }
-
-            @Override
-            public OWLOntology load(OWLOntologyManager manager) {
-                return load(manager, WINE, this);
-            }
-        },
-        NCBITAXON_CUT("/ontapi/ncbitaxon2.ttl",
+                T.ANNOTATION_PROPERTY.of()
+        ),
+        NCBITAXON_CUT(ModelData.NCBITAXON_CUT,
                 T.IRI.of(501742172985L),
                 T.LITERAL.of(103003236956L),
                 T.ANONYMOUS_INDIVIDUAL.of(),
@@ -235,7 +212,7 @@ public class ReferencingAxiomsTest {
                 T.DATA_PROPERTY.of(-22057951323L),
                 T.ANNOTATION_PROPERTY.of(110212215610L)
         ),
-        HP_CUT("/ontapi/hp-cut.ttl",
+        HP_CUT(ModelData.HP_CUT,
                 T.IRI.of(-25728375951L),
                 T.LITERAL.of(4459800725L),
                 T.ANONYMOUS_INDIVIDUAL.of(),
@@ -244,50 +221,15 @@ public class ReferencingAxiomsTest {
                 T.DATATYPE.of(6174427199L),
                 T.OBJECT_PROPERTY.of(-9359730838L),
                 T.DATA_PROPERTY.of(),
-                T.ANNOTATION_PROPERTY.of(-418190290L));
-        private final Path file;
-        private final OntFormat format;
+                T.ANNOTATION_PROPERTY.of(-418190290L)
+        ),
+        ;
+        private final ModelData resource;
         private final Tester[] expectations;
 
-        TestData(String file, Tester... expectations) {
-            this(file, OntFormat.TURTLE, expectations);
-        }
-
-        TestData(String file, OntFormat format, Tester... expectations) {
-            try {
-                this.file = Paths.get(TestData.class.getResource(file).toURI()).toRealPath();
-            } catch (IOException | URISyntaxException e) {
-                throw new ExceptionInInitializerError(e);
-            }
-            this.format = format;
+        TestData(ModelData data, Tester... expectations) {
+            this.resource = data;
             this.expectations = expectations;
-        }
-
-        static OWLOntology load(OWLOntologyManager manager, TestData... data) {
-            OWLOntology res = null;
-            OWLOntologyLoaderConfiguration conf = createConfig(manager);
-            if (!(manager instanceof OntologyManager)) { // OWL-API
-                manager.setOntologyLoaderConfiguration(conf);
-                PriorityCollection<OWLOntologyIRIMapper> maps = manager.getIRIMappers();
-                Arrays.stream(data)
-                        .map(d -> FileMap.create(IRI.create(d.getName()), d.getDocumentSource().getDocumentIRI()))
-                        .forEach(maps::add);
-                try {
-                    res = manager.loadOntology(IRI.create(data[data.length - 1].getName()));
-                } catch (OWLOntologyCreationException e) {
-                    throw new AssertionError(e);
-                }
-            } else { // ONT-API
-                for (TestData d : data) {
-                    try {
-                        res = manager.loadOntologyFromOntologyDocument(d.getDocumentSource(), conf);
-                    } catch (OWLOntologyCreationException e) {
-                        throw new AssertionError(e);
-                    }
-                }
-            }
-            Assert.assertEquals(data.length, manager.ontologies().count());
-            return res;
         }
 
         public Tester getTester(T type) {
@@ -302,35 +244,8 @@ public class ReferencingAxiomsTest {
         }
 
         public OWLOntology load(OWLOntologyManager manager) {
-            try {
-                return manager.loadOntologyFromOntologyDocument(getDocumentSource(), createConfig(manager));
-            } catch (OWLOntologyCreationException e) {
-                throw new AssertionError(e);
-            }
+            return resource.load(manager);
         }
-
-        static OWLOntologyLoaderConfiguration createConfig(OWLOntologyManager manager) {
-            OWLOntologyLoaderConfiguration conf = manager.getOntologyLoaderConfiguration();
-            if (manager instanceof OntologyManager) {
-                conf = OWLAdapter.get().asONT(conf).setProcessImports(false).setPerformTransformation(false);
-            } else {
-                conf = conf.setMissingImportHandlingStrategy(MissingImportHandlingStrategy.SILENT);
-            }
-            return conf;
-        }
-
-        public OWLOntologyDocumentSource getDocumentSource() {
-            return new FileDocumentSource(file.toFile(), getDocumentFormat());
-        }
-
-        public OWLDocumentFormat getDocumentFormat() {
-            return format.createOwlFormat();
-        }
-
-        String getName() {
-            return name();
-        }
-
     }
 
     enum T {
