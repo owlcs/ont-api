@@ -137,7 +137,7 @@ public class ReferencingAxiomsTest {
         ),
         PEOPLE(ModelData.PEOPLE,
                 T.IRI.of(-2052328542L),
-                T.LITERAL.of(14670462876L), // https://github.com/owlcs/owlapi/issues/912
+                T.LITERAL.of(14670462876L),
                 T.ANONYMOUS_INDIVIDUAL.of(7259412151L),
                 T.NAMED_INDIVIDUAL.of(10749291192L),
                 T.CLASS.of(-36032894329L),
@@ -159,7 +159,7 @@ public class ReferencingAxiomsTest {
         ),
         KOALA(ModelData.KOALA,
                 T.IRI.of(4895124448L),
-                T.LITERAL.of(152056289L), // https://github.com/owlcs/owlapi/issues/912
+                T.LITERAL.of(152056289L),
                 T.ANONYMOUS_INDIVIDUAL.of(),
                 T.NAMED_INDIVIDUAL.of(356839630L),
                 T.CLASS.of(-3512598891L),
@@ -223,6 +223,18 @@ public class ReferencingAxiomsTest {
                 T.DATA_PROPERTY.of(),
                 T.ANNOTATION_PROPERTY.of(-418190290L)
         ),
+
+        FAMILY_PEOPLE_UNION(ModelData.FAMILY_PEOPLE_UNION,
+                T.IRI.of(3404538845L),
+                T.LITERAL.of(),
+                T.ANONYMOUS_INDIVIDUAL.of(),
+                T.NAMED_INDIVIDUAL.of(),
+                T.CLASS.of(2295986292L),
+                T.DATATYPE.of(),
+                T.OBJECT_PROPERTY.of(1108552553L),
+                T.DATA_PROPERTY.of(),
+                T.ANNOTATION_PROPERTY.of()
+        ),
         ;
         private final ModelData resource;
         private final Tester[] expectations;
@@ -244,7 +256,7 @@ public class ReferencingAxiomsTest {
         }
 
         public OWLOntology load(OWLOntologyManager manager) {
-            return resource.load(manager);
+            return resource.fetch(manager);
         }
     }
 

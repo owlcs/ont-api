@@ -16,6 +16,7 @@ package com.github.owlcs.ontapi.tests;
 
 import com.github.owlcs.ontapi.OWLAdapter;
 import com.github.owlcs.ontapi.OntFormat;
+import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.utils.FileMap;
 import org.junit.Assert;
@@ -48,7 +49,7 @@ public enum ModelData {
         }
 
         @Override
-        public OWLOntology load(OWLOntologyManager manager) {
+        public OWLOntology fetch(OWLOntologyManager manager) {
             return load(manager, FOOD, this);
         }
     },
@@ -59,12 +60,51 @@ public enum ModelData {
         }
 
         @Override
-        public OWLOntology load(OWLOntologyManager manager) {
+        public OWLOntology fetch(OWLOntologyManager manager) {
             return load(manager, WINE, this);
         }
     },
     NCBITAXON_CUT("/ontapi/ncbitaxon2.ttl"),
     HP_CUT("/ontapi/hp-cut.ttl"),
+    FAMILY_PEOPLE_UNION(null) {
+        @Override
+        public OWLOntologyDocumentSource getDocumentSource() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public OWLOntology fetch(OWLOntologyManager manager) {
+            String ns = "http://www.ex.org/tribe#";
+            OWLOntology family = load(manager, FAMILY);
+            OWLOntology people = load(manager, PEOPLE);
+            OWLOntology res;
+            try {
+                res = manager.createOntology();
+            } catch (OWLOntologyCreationException e) {
+                throw new AssertionError(e);
+            }
+            IRI peopleIRI = getIRI(people);
+            IRI familyIRI = getIRI(family);
+            String familyNS = familyIRI.getIRIString() + "#";
+            String peopleNS = peopleIRI.getIRIString() + "#";
+
+            OWLDataFactory df = manager.getOWLDataFactory();
+            manager.applyChange(new AddImport(family, df.getOWLImportsDeclaration(peopleIRI)));
+            manager.applyChange(new AddImport(res, df.getOWLImportsDeclaration(familyIRI)));
+            res.add(df.getOWLDeclarationAxiom(df.getOWLClass(ns + "foremother")));
+            res.add(df.getOWLDeclarationAxiom(df.getOWLClass(ns + "super_bus_company")));
+            res.add(df.getOWLSubClassOfAxiom(df.getOWLClass(ns + "super_bus_company"),
+                    df.getOWLClass(peopleNS + "bus_company")));
+            res.add(df.getOWLEquivalentClassesAxiom(df.getOWLClass(ns + "foremother"),
+                    df.getOWLObjectIntersectionOf(df.getOWLClass(familyNS + "Woman"),
+                            df.getOWLObjectSomeValuesFrom(df.getOWLObjectProperty(familyNS + "isForemotherOf"),
+                                    df.getOWLClass(familyNS + "Person")))));
+            if (res instanceof Ontology) {
+                ((Ontology) res).asGraphModel().setNsPrefix("p", peopleNS).setNsPrefix("f", familyNS).setNsPrefix("t", ns);
+            }
+            return res;
+        }
+    },
     ;
     private final Path file;
     private final OntFormat format;
@@ -74,17 +114,22 @@ public enum ModelData {
     }
 
     ModelData(String file, OntFormat format) {
+        this.file = file == null ? null : toPath(file);
+        this.format = format;
+    }
+
+    private static Path toPath(String file) {
         try {
-            this.file = Paths.get(ModelData.class.getResource(file).toURI()).toRealPath();
+            return Paths.get(ModelData.class.getResource(file).toURI()).toRealPath();
         } catch (IOException | URISyntaxException e) {
             throw new ExceptionInInitializerError(e);
         }
-        this.format = format;
     }
 
     static OWLOntology load(OWLOntologyManager manager, ModelData... data) {
         OWLOntology res = null;
         OWLOntologyLoaderConfiguration conf = createConfig(manager);
+        long before = manager.ontologies().count();
         if (!(manager instanceof OntologyManager)) { // OWL-API
             manager.setOntologyLoaderConfiguration(conf);
             PriorityCollection<OWLOntologyIRIMapper> maps = manager.getIRIMappers();
@@ -105,16 +150,8 @@ public enum ModelData {
                 }
             }
         }
-        Assert.assertEquals(data.length, manager.ontologies().count());
+        Assert.assertEquals(data.length + before, manager.ontologies().count());
         return res;
-    }
-
-    public OWLOntology load(OWLOntologyManager manager) {
-        try {
-            return manager.loadOntologyFromOntologyDocument(getDocumentSource(), createConfig(manager));
-        } catch (OWLOntologyCreationException e) {
-            throw new AssertionError(e);
-        }
     }
 
     static OWLOntologyLoaderConfiguration createConfig(OWLOntologyManager manager) {
@@ -125,6 +162,18 @@ public enum ModelData {
             conf = conf.setMissingImportHandlingStrategy(MissingImportHandlingStrategy.SILENT);
         }
         return conf;
+    }
+
+    static IRI getIRI(OWLOntology ont) {
+        return ont.getOntologyID().getOntologyIRI().orElseThrow(AssertionError::new);
+    }
+
+    public OWLOntology fetch(OWLOntologyManager manager) {
+        try {
+            return manager.loadOntologyFromOntologyDocument(getDocumentSource(), createConfig(manager));
+        } catch (OWLOntologyCreationException e) {
+            throw new AssertionError(e);
+        }
     }
 
     public OWLOntologyDocumentSource getDocumentSource() {

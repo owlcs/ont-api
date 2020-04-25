@@ -99,6 +99,10 @@ public class SignatureTest {
                 T.CLASS.of(4720902778L),
                 T.NAMED_INDIVIDUAL.of()
         ),
+        FAMILY_PEOPLE_UNION(ModelData.FAMILY_PEOPLE_UNION,
+                T.CLASS.of(-2230472652L),
+                T.NAMED_INDIVIDUAL.of()
+        ),
         ;
         private final ModelData resource;
         private final Tester[] expectations;
@@ -120,7 +124,7 @@ public class SignatureTest {
         }
 
         public OWLOntology load(OWLOntologyManager manager) {
-            return resource.load(manager);
+            return resource.fetch(manager);
         }
     }
 
