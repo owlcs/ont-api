@@ -225,15 +225,15 @@ public class ReferencingAxiomsTest {
         ),
 
         FAMILY_PEOPLE_UNION(ModelData.FAMILY_PEOPLE_UNION,
-                T.IRI.of(3404538845L),
-                T.LITERAL.of(),
-                T.ANONYMOUS_INDIVIDUAL.of(),
-                T.NAMED_INDIVIDUAL.of(),
-                T.CLASS.of(2295986292L),
-                T.DATATYPE.of(),
+                T.IRI.of(-6160557032L),
+                T.LITERAL.of(-2908650024L),
+                T.ANONYMOUS_INDIVIDUAL.of(-281525676L),
+                T.NAMED_INDIVIDUAL.of(-3721888116L),
+                T.CLASS.of(2270078579L),
+                T.DATATYPE.of(-2908650024L),
                 T.OBJECT_PROPERTY.of(1108552553L),
-                T.DATA_PROPERTY.of(),
-                T.ANNOTATION_PROPERTY.of()
+                T.DATA_PROPERTY.of(-2596921457L),
+                T.ANNOTATION_PROPERTY.of(-311728567L)
         ),
         ;
         private final ModelData resource;
@@ -284,7 +284,7 @@ public class ReferencingAxiomsTest {
 
         private long calc(OWLAxiom ax) {
             return ax.anonymousIndividuals().findFirst().isPresent() ?
-                    ax.toString().replaceAll("\\s_:\\w+", " _:x").hashCode() : ax.hashCode();
+                    ax.toString().replaceAll("\\s_:[a-z\\d\\-]+", " _:x").hashCode() : ax.hashCode();
         }
 
         private Stream<OWLAxiom> referencingAxioms(OWLOntology ont, OWLPrimitive x) {
@@ -300,7 +300,7 @@ public class ReferencingAxiomsTest {
             if (ont instanceof Ontology) { // to be sure that graph optimization is used
                 ((Ontology) ont).clearCache();
             }
-            long res = primitives.stream().mapToLong(x -> referencingAxiomsCount(ont, x)).sum();
+            long res = primitives.stream().mapToLong(x1 -> Tester.this.referencingAxiomsCount(ont, x1)).sum();
             Assert.assertEquals(count, res);
         }
     }

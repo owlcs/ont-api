@@ -89,17 +89,30 @@ public enum ModelData {
             String peopleNS = peopleIRI.getIRIString() + "#";
 
             OWLDataFactory df = manager.getOWLDataFactory();
+            OWLClass foremother = df.getOWLClass(ns + "foremother");
+            OWLClass super_bus_company = df.getOWLClass(ns + "super_bus_company");
+            OWLNamedIndividual i1 = df.getOWLNamedIndividual(ns + "Eva");
+            OWLAnonymousIndividual i2 = df.getOWLAnonymousIndividual();
+            OWLDataProperty dp = df.getOWLDataProperty(familyNS + "alsoKnownAs");
+
             manager.applyChange(new AddImport(family, df.getOWLImportsDeclaration(peopleIRI)));
             manager.applyChange(new AddImport(res, df.getOWLImportsDeclaration(familyIRI)));
-            res.add(df.getOWLDeclarationAxiom(df.getOWLClass(ns + "foremother")));
-            res.add(df.getOWLDeclarationAxiom(df.getOWLClass(ns + "super_bus_company")));
-            res.add(df.getOWLSubClassOfAxiom(df.getOWLClass(ns + "super_bus_company"),
-                    df.getOWLClass(peopleNS + "bus_company")));
-            res.add(df.getOWLEquivalentClassesAxiom(df.getOWLClass(ns + "foremother"),
+
+            res.add(df.getOWLDeclarationAxiom(foremother));
+            res.add(df.getOWLDeclarationAxiom(super_bus_company));
+            res.add(df.getOWLSubClassOfAxiom(super_bus_company, df.getOWLClass(peopleNS + "bus_company")));
+            res.add(df.getOWLEquivalentClassesAxiom(foremother,
                     df.getOWLObjectIntersectionOf(df.getOWLClass(familyNS + "Woman"),
                             df.getOWLObjectSomeValuesFrom(df.getOWLObjectProperty(familyNS + "isForemotherOf"),
                                     df.getOWLClass(familyNS + "Person")))));
-            if (res instanceof Ontology) {
+            res.add(df.getOWLDeclarationAxiom(i1));
+            res.add(df.getOWLClassAssertionAxiom(df.getOWLClass(familyNS + "Foremother"), i1));
+            res.add(df.getOWLClassAssertionAxiom(foremother, i2));
+            res.add(df.getOWLAnnotationAssertionAxiom(i2, df.getRDFSComment("This is Eva")));
+            res.add(df.getOWLDataPropertyAssertionAxiom(dp, i1, df.getOWLLiteral("Eve")));
+            res.add(df.getOWLDataPropertyAssertionAxiom(dp, i2, df.getOWLLiteral("Eve")));
+
+            if (res instanceof Ontology) { // for debug
                 ((Ontology) res).asGraphModel().setNsPrefix("p", peopleNS).setNsPrefix("f", familyNS).setNsPrefix("t", ns);
             }
             return res;

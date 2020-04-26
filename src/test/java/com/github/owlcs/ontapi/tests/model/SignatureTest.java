@@ -100,8 +100,8 @@ public class SignatureTest {
                 T.NAMED_INDIVIDUAL.of()
         ),
         FAMILY_PEOPLE_UNION(ModelData.FAMILY_PEOPLE_UNION,
-                T.CLASS.of(-2230472652L),
-                T.NAMED_INDIVIDUAL.of()
+                T.CLASS.of(-1213682231L),
+                T.NAMED_INDIVIDUAL.of(899752725L)
         ),
         ;
         private final ModelData resource;
