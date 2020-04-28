@@ -300,7 +300,7 @@ public class ReferencingAxiomsTest {
             if (ont instanceof Ontology) { // to be sure that graph optimization is used
                 ((Ontology) ont).clearCache();
             }
-            long res = primitives.stream().mapToLong(x1 -> Tester.this.referencingAxiomsCount(ont, x1)).sum();
+            long res = primitives.stream().mapToLong(x -> referencingAxiomsCount(ont, x)).sum();
             Assert.assertEquals(count, res);
         }
     }

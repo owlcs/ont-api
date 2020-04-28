@@ -17,19 +17,19 @@ package com.github.owlcs.ontapi.internal.searchers;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.jena.impl.PersonalityModel;
 import com.github.owlcs.ontapi.jena.impl.conf.OntPersonality;
-import com.github.owlcs.ontapi.jena.model.*;
+import com.github.owlcs.ontapi.jena.model.OntAnnotation;
+import com.github.owlcs.ontapi.jena.model.OntModel;
+import com.github.owlcs.ontapi.jena.model.OntObject;
+import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLPrimitive;
 
-import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -155,68 +155,6 @@ public abstract class ByPrimitive<P extends OWLPrimitive> extends BaseByObject<O
     protected ExtendedIterator<? extends AxiomTranslator<OWLAxiom>> listTranslators(OntStatement statement,
                                                                                     InternalConfig conf) {
         return listTranslators().filterKeep(t -> t.testStatement(statement, conf));
-    }
-
-    /**
-     * Lists all roots for the given statement.
-     *
-     * @param model     {@link OntModel}, not {@code null}
-     * @param statement {@link Statement}, not {@code null}
-     * @return an {@code ExtendedIterator} of {@link Statement}s
-     */
-    protected final ExtendedIterator<OntStatement> listRootStatements(OntModel model, OntStatement statement) {
-        if (statement.getSubject().isURIResource()) {
-            return Iter.of(statement);
-        }
-        return Iter.create(getRootStatements(model, statement));
-    }
-
-    /**
-     * Returns a {@code Set} of root statements.
-     * Any statement has one or more roots or is a root itself.
-     * A statement with the predicate {@code rdf:type} is always a root.
-     *
-     * @param model     {@link OntModel}, not {@code null}
-     * @param statement {@link Statement}, not {@code null}
-     * @return a {@code Set} of {@link Statement}s
-     */
-    protected Set<OntStatement> getRootStatements(OntModel model, OntStatement statement) {
-        Set<OntStatement> roots = new HashSet<>();
-        Set<Resource> seen = new HashSet<>();
-        Set<OntStatement> candidates = new LinkedHashSet<>();
-        candidates.add(statement);
-        while (!candidates.isEmpty()) {
-            OntStatement st = candidates.iterator().next();
-            candidates.remove(st);
-            OntObject subject = st.getSubject();
-            if (subject.isURIResource() || subject.canAs(OntIndividual.Anonymous.class)) {
-                roots.add(st);
-                continue;
-            }
-            int count = candidates.size();
-            listByObject(model, subject).filterKeep(s -> s.getSubject().isURIResource() || seen.add(s.getSubject()))
-                    .forEachRemaining(candidates::add);
-            if (count != candidates.size()) {
-                continue;
-            }
-            // no new candidates is found -> then it is root
-            listProperties(model, subject).forEachRemaining(roots::add);
-        }
-        return roots;
-    }
-
-    /**
-     * Lists all related statements for the given root, which should be an anonymous resource.
-     * It is to find axiom-statement candidates,
-     * for example a statement with the predicate {@code owl:distinctMembers} is not an axiom-statement, but
-     * a statement with the same subject and {@code rdf:type} = {@code owl:AllDifferent} is an axiom-statement candidate.
-     *
-     * @param model {@link OntModel}
-     * @param root  {@link OntObject} - an anonymous resource
-     * @return an {@link ExtendedIterator} of {@link OntStatement}s
-     */
-    protected ExtendedIterator<OntStatement> listProperties(OntModel model, OntObject root) {
-        return listBySubject(model, root);
     }
 
     /**

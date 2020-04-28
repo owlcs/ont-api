@@ -12,15 +12,31 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.github.owlcs.ontapi.internal.searchers;
+package com.github.owlcs.ontapi.internal;
 
-import com.github.owlcs.ontapi.internal.ByObject;
-import org.semanticweb.owlapi.model.OWLAxiom;
+import com.github.owlcs.ontapi.jena.model.OntModel;
+import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLObject;
 
 /**
- * Created by @ssz on 18.04.2020.
+ * An objects searcher.
+ * TODO: add contains (see issue #15)
+ * Created by @ssz on 19.04.2020.
+ *
+ * @param <O> - {@link OWLObject} subtype
+ * @see AxiomTranslator
  */
-@SuppressWarnings("SameParameterValue")
-abstract class BaseByObject<A extends OWLAxiom, O extends OWLObject> extends WithRootSearcher implements ByObject<A, O> {
+public interface ObjectSearcher<O extends OWLObject> {
+
+    /**
+     * Lists all objects from the specified {@code model}
+     *
+     * @param model   {@link OntModel}, not {@code null}
+     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @param config  {@link InternalConfig}, not {@code null}
+     * @return an {@link ExtendedIterator} over {@link O} wrapped with {@link ONTObject}
+     */
+    ExtendedIterator<ONTObject<O>> listObjects(OntModel model,
+                                               InternalObjectFactory factory,
+                                               InternalConfig config);
 }

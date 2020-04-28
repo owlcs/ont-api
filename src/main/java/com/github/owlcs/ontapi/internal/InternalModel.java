@@ -155,9 +155,14 @@ public class InternalModel extends OntGraphModelImpl
     protected final ByObject<OWLAxiom, IRI> byIRI = new ByIRI();
     // Other searchers
     protected final ByObject<OWLDeclarationAxiom, OWLEntity> declarationsByEntity = new DeclarationByEntity();
-    protected final ByObject<OWLAnnotationAssertionAxiom, OWLAnnotationSubject> annotationAssertionBySubject = new AnnotationAssertionBySubject();
     protected final ByObject<OWLSubClassOfAxiom, OWLClass> subClassOfBySubject = new SubClassOfBySubject();
-    protected final ByObject<OWLEquivalentClassesAxiom, OWLClass> equivalentClassesByOperand = new EquivalentClassesByClass();
+    protected final ByObject<OWLAnnotationAssertionAxiom, OWLAnnotationSubject> annotationAssertionsBySubject
+            = new AnnotationAssertionBySubject();
+    protected final ByObject<OWLEquivalentClassesAxiom, OWLClass> equivalentClassesByOperand
+            = new EquivalentClassesByClass();
+
+    // To search OWLObjects
+    protected final ObjectSearcher<OWLClass> classSearcher = new ClassSearcher();
 
     /**
      * Constructs a model instance.
@@ -475,7 +480,7 @@ public class InternalModel extends OntGraphModelImpl
     public boolean containsOWLDeclaration(OWLEntity e) {
         InternalConfig config = getConfig();
         if (!config.isAllowReadDeclarations()) return false;
-        if (useSearchOptimization(config)) {
+        if (useAxiomsSearchOptimization(config)) {
             return getBaseGraph().contains(WriteHelper.toNode(e), RDF.type.asNode(), WriteHelper.getRDFType(e).asNode());
         }
         return listOWLAxioms(OWLDeclarationAxiom.class).anyMatch(x -> x.getEntity().equals(e));
@@ -631,7 +636,7 @@ public class InternalModel extends OntGraphModelImpl
         // since there a lot of ways how to write the same amount of information via axioms.
         // This differs from OWL-API expectations, so need to perform traversing over whole cache
         // to get an axiom in the exactly same form as it has been specified manually:
-        if (!useSearchOptimization(config)) {
+        if (!useAxiomsSearchOptimization(config)) {
             return listOWLAxioms(OWLDeclarationAxiom.class).filter(a -> e.equals(a.getEntity()));
         }
         // in the case of a large ontology, the direct traverse over the graph works significantly faster:
@@ -650,10 +655,10 @@ public class InternalModel extends OntGraphModelImpl
     public Stream<OWLAnnotationAssertionAxiom> listOWLAnnotationAssertionAxioms(OWLAnnotationSubject s) {
         InternalConfig config = getConfig();
         if (!config.isLoadAnnotationAxioms()) return Stream.empty();
-        if (!useSearchOptimization(config)) {
+        if (!useAxiomsSearchOptimization(config)) {
             return listOWLAxioms(OWLAnnotationAssertionAxiom.class).filter(a -> s.equals(a.getSubject()));
         }
-        return reduce(Iter.asStream(annotationAssertionBySubject.listAxioms(s, this::getSearchModel, getObjectFactory(), config)
+        return reduce(Iter.asStream(annotationAssertionsBySubject.listAxioms(s, this::getSearchModel, getObjectFactory(), config)
                 .mapWith(ONTObject::getOWLObject)));
     }
 
@@ -666,7 +671,7 @@ public class InternalModel extends OntGraphModelImpl
      */
     public Stream<OWLSubClassOfAxiom> listOWLSubClassOfAxioms(OWLClass sub) {
         InternalConfig config = getConfig();
-        if (!useSearchOptimization(config)) {
+        if (!useAxiomsSearchOptimization(config)) {
             return listOWLAxioms(OWLSubClassOfAxiom.class).filter(a -> Objects.equals(a.getSubClass(), sub));
         }
         return reduce(Iter.asStream(subClassOfBySubject.listAxioms(sub, this::getSearchModel, getObjectFactory(), config)
@@ -683,7 +688,7 @@ public class InternalModel extends OntGraphModelImpl
      */
     public Stream<OWLEquivalentClassesAxiom> listOWLEquivalentClassesAxioms(OWLClass c) {
         InternalConfig config = getConfig();
-        if (!useSearchOptimization(config)) {
+        if (!useAxiomsSearchOptimization(config)) {
             return listOWLAxioms(OWLEquivalentClassesAxiom.class).filter(a -> a.operands().anyMatch(c::equals));
         }
         return reduce(Iter.asStream(equivalentClassesByOperand.listAxioms(c, this::getSearchModel, getObjectFactory(), config)
@@ -746,6 +751,7 @@ public class InternalModel extends OntGraphModelImpl
      * @param type   {@link OWLComponentType}
      * @param config {@link InternalConfig}
      * @return boolean
+     * @see #useAxiomsSearchOptimization(InternalConfig)
      */
     protected boolean useReferencingAxiomsSearchOptimization(OWLComponentType type, InternalConfig config) {
         if (!config.useContentCache()) {
@@ -791,8 +797,10 @@ public class InternalModel extends OntGraphModelImpl
      *
      * @param config {@link InternalConfig}
      * @return boolean
+     * @see #useObjectsSearchOptimization(InternalConfig)
+     * @see #useReferencingAxiomsSearchOptimization(OWLComponentType, InternalConfig)
      */
-    protected boolean useSearchOptimization(InternalConfig config) {
+    protected boolean useAxiomsSearchOptimization(InternalConfig config) {
         return !config.useContentCache() || !hasManuallyAddedAxioms();
     }
 
@@ -1373,12 +1381,8 @@ public class InternalModel extends OntGraphModelImpl
      * @see OWLComponentType
      */
     protected ObjectMap<OWLObject> createComponentObjectMap(OWLComponentType key) {
-        // todo: replace parsing the content cache with the direct graph reading
-        InternalObjectFactory df = getObjectFactory();
-        OntModel m = getSearchModel();
-        Supplier<Iterator<ONTObject<OWLObject>>> loader = () -> selectContentObjects(key)
-                .flatMap(x -> key.select(x, m, df)).iterator();
         InternalConfig conf = getConfig();
+        Supplier<Iterator<ONTObject<OWLObject>>> loader = () -> listOWLObjects(key, conf);
         if (!conf.useComponentCache()) {
             // todo: need a straight way to find ONTObject that present in the graph,
             //  the default one is extremely inefficient
@@ -1387,6 +1391,36 @@ public class InternalModel extends OntGraphModelImpl
         boolean parallel = conf.parallel();
         boolean fastIterator = conf.useIteratorCache();
         return new CacheObjectMapImpl<>(loader, false, parallel, fastIterator);
+    }
+
+    /**
+     * Lists all objects of the specified {@code type}.
+     *
+     * @param type {@link OWLComponentType} - owl object type, that is used in the object's cache
+     * @param conf {@link InternalConfig}
+     * @return an {@code Iterator} of {@link ONTObject} with the given type
+     */
+    protected Iterator<ONTObject<OWLObject>> listOWLObjects(OWLComponentType type, InternalConfig conf) {
+        InternalObjectFactory factory = getObjectFactory();
+        OntModel model = getSearchModel();
+        if (OWLComponentType.CLASS == type && useObjectsSearchOptimization(conf)) {
+            //noinspection rawtypes
+            return ((Iterator) classSearcher.listObjects(model, factory, conf));
+        }
+        // if content cache is loaded its parsing is faster than graph-optimization
+        return selectContentObjects(type).flatMap(x -> type.select(x, model, factory)).iterator();
+    }
+
+    /**
+     * Answers {@code true} when need to use {@link ObjectSearcher} optimization.
+     *
+     * @param config {@link InternalConfig}, not {@code null}
+     * @return boolean
+     * @see #useAxiomsSearchOptimization(InternalConfig)
+     * @see #useReferencingAxiomsSearchOptimization(OWLComponentType, InternalConfig)
+     */
+    protected boolean useObjectsSearchOptimization(InternalConfig config) {
+        return !config.useContentCache() || getContentStore().values().stream().anyMatch(x -> !x.isLoaded());
     }
 
     /**

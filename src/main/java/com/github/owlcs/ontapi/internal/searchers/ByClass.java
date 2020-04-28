@@ -33,7 +33,7 @@ import java.util.stream.Stream;
  */
 public class ByClass extends WithCardinality<OWLClass> {
 
-    private static final Set<Class<? extends OntClass.CardinalityRestrictionCE<?, ?>>> OBJECT_CARDINALITY_TYPES =
+    public static final Set<Class<? extends OntClass.CardinalityRestrictionCE<?, ?>>> OBJECT_CARDINALITY_TYPES =
             Stream.of(OntClass.ObjectMaxCardinality.class, OntClass.ObjectMinCardinality.class, OntClass.ObjectCardinality.class)
                     .collect(Iter.toUnmodifiableSet());
 
