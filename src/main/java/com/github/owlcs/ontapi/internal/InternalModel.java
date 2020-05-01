@@ -764,7 +764,7 @@ public class InternalModel extends OntGraphModelImpl
         }
         // if cache is loaded - decide which way to use:
         // either the graph-optimization way or straightforward cache parsing
-        if (getContentStore().values().stream().allMatch(ObjectMap::isLoaded)) {
+        if (contentCaches().allMatch(ObjectMap::isLoaded)) {
             // The empirical founded threshold (right now I do not see a better solution)
             // (for small ontologies it is better to use cache traversing instead of graph searching)
             long threshold = -1;
@@ -1283,7 +1283,7 @@ public class InternalModel extends OntGraphModelImpl
      * @return boolean
      */
     public boolean hasManuallyAddedAxioms() {
-        return getContentStore().values().stream().anyMatch(ObjectMap::hasNew);
+        return contentCaches().anyMatch(ObjectMap::hasNew);
     }
 
     /**
@@ -1420,7 +1420,7 @@ public class InternalModel extends OntGraphModelImpl
      * @see #useReferencingAxiomsSearchOptimization(OWLComponentType, InternalConfig)
      */
     protected boolean useObjectsSearchOptimization(InternalConfig config) {
-        return !config.useContentCache() || getContentStore().values().stream().anyMatch(x -> !x.isLoaded());
+        return !config.useContentCache() || contentCaches().anyMatch(x -> !x.isLoaded());
     }
 
     /**
@@ -1531,7 +1531,7 @@ public class InternalModel extends OntGraphModelImpl
      * Forcibly loads the whole content cache.
      */
     public void forceLoad() {
-        getContentStore().values().forEach(ObjectMap::load);
+        contentCaches().forEach(ObjectMap::load);
     }
 
     /**
@@ -1586,6 +1586,13 @@ public class InternalModel extends OntGraphModelImpl
      */
     protected Map<OWLTopObjectType, ObjectMap<? extends OWLObject>> getContentStore() {
         return content.get(this);
+    }
+
+    /**
+     * @return a {@code Stream} of {@link ObjectMap}s
+     */
+    protected Stream<ObjectMap<?>> contentCaches() {
+        return getContentStore().values().stream();
     }
 
     /**
