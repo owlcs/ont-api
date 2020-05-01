@@ -182,8 +182,12 @@ public enum ModelData {
     }
 
     public OWLOntology fetch(OWLOntologyManager manager) {
+        return fetch(manager, createConfig(manager));
+    }
+
+    OWLOntology fetch(OWLOntologyManager manager, OWLOntologyLoaderConfiguration conf) {
         try {
-            return manager.loadOntologyFromOntologyDocument(getDocumentSource(), createConfig(manager));
+            return manager.loadOntologyFromOntologyDocument(getDocumentSource(), conf);
         } catch (OWLOntologyCreationException e) {
             throw new AssertionError(e);
         }
