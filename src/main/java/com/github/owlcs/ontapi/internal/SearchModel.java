@@ -39,6 +39,7 @@ import org.apache.jena.util.iterator.NullIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -140,7 +141,8 @@ public abstract class SearchModel extends OntGraphModelImpl implements HasObject
         return new SearchModel(getBaseGraph(), personality, conf, false) {
 
             @Override
-            public InternalObjectFactory getObjectFactory() {
+            @Nonnull
+            public ModelObjectFactory getObjectFactory() {
                 return SearchModel.this.getObjectFactory();
             }
         };

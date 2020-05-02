@@ -28,7 +28,6 @@ import org.semanticweb.owlapi.model.OWLAxiom;
 
 import java.util.List;
 import java.util.Set;
-import java.util.function.Supplier;
 
 /**
  * A base abstraction for {@link AxiomTranslator}s and searchers.
@@ -46,61 +45,55 @@ public abstract class BaseSearcher {
      * If {@link com.github.owlcs.ontapi.config.AxiomsSettings#isSplitAxiomAnnotations()} is {@code true}
      * and a processed statement is splittable, then the method returns {@link ONTWrapperImpl}s only.
      *
+     * @param <A>        a subtype of {@link OWLAxiom}
      * @param translator {@link AxiomTranslator} with generic type {@link A}, not {@code null}
      * @param statements an {@link ExtendedIterator} of {@link OntStatement}s, not {@code null}
-     * @param model      a facility (as {@link Supplier}) to provide nonnull {@link OntModel}, not {@code null}
      * @param factory    a {@link InternalObjectFactory} to produce OWL-API Objects, not {@code null}
      * @param config     a {@link InternalConfig} to control the process, not {@code null}
-     * @param <A>        a subtype of {@link OWLAxiom}
      * @return {@link ExtendedIterator} of {@link ONTObject}s that wrap {@link A}s
      * @throws JenaException unable to read axioms of this type
      */
     protected static <A extends OWLAxiom> ExtendedIterator<ONTObject<A>> translate(AxiomTranslator<A> translator,
                                                                                    ExtendedIterator<OntStatement> statements,
-                                                                                   Supplier<OntModel> model,
                                                                                    InternalObjectFactory factory,
                                                                                    InternalConfig config) {
         return config.isSplitAxiomAnnotations() ?
-                Iter.flatMap(statements, s -> split(translator, s, model, factory, config)) :
-                statements.mapWith(s -> toAxiom(translator, s, model, factory, config));
+                Iter.flatMap(statements, s -> split(translator, s, factory, config)) :
+                statements.mapWith(s -> toAxiom(translator, s, factory, config));
     }
 
     /**
      * Creates an axiom from the given statement.
      *
+     * @param <A>        a subtype of {@link OWLAxiom}
      * @param translator {@link AxiomTranslator} with generic type {@link A}, not {@code null}
      * @param statement  {@link OntStatement} to split, not {@code null}
-     * @param model      a {@link Supplier} to derive nonnull {@link OntModel}, not {@code null}
      * @param factory    an {@link InternalObjectFactory}, not {@code null}
      * @param config     {@link InternalConfig}, not {@code null}
-     * @param <A>        a subtype of {@link OWLAxiom}
      * @return an {@link ONTObject} with {@link A}
      */
     protected static <A extends OWLAxiom> ONTObject<A> toAxiom(AxiomTranslator<A> translator,
                                                                OntStatement statement,
-                                                               Supplier<OntModel> model,
                                                                InternalObjectFactory factory,
                                                                InternalConfig config) {
         return factory == InternalObjectFactory.DEFAULT || config == InternalConfig.DEFAULT ?
                 translator.toAxiomWrap(statement, factory, config) :
-                translator.toAxiomImpl(statement, model, factory, config);
+                translator.toAxiomImpl(statement, ((ModelObjectFactory) factory).model(), factory, config);
     }
 
     /**
      * Splits the statement into several axioms if it is possible.
      *
+     * @param <A>        a subtype of {@link OWLAxiom}
      * @param translator {@link AxiomTranslator} with generic type {@link A}, not {@code null}
      * @param statement  {@link OntStatement} to split, not {@code null}
-     * @param model      a {@link Supplier} to derive nonnull {@link OntModel}, not {@code null}
      * @param factory    an {@link InternalObjectFactory}, not {@code null}
      * @param config     {@link InternalConfig}, not {@code null}
-     * @param <A>        a subtype of {@link OWLAxiom}
      * @return a {@link ExtendedIterator} of {@link ONTObject}
      * @see com.github.owlcs.ontapi.config.AxiomsSettings#isSplitAxiomAnnotations()
      */
     protected static <A extends OWLAxiom> ExtendedIterator<ONTObject<A>> split(AxiomTranslator<A> translator,
                                                                                OntStatement statement,
-                                                                               Supplier<OntModel> model,
                                                                                InternalObjectFactory factory,
                                                                                InternalConfig config) {
         // When the spit-setting is true, we cannot always provide an ONTStatement based axiom,
@@ -112,7 +105,7 @@ public abstract class BaseSearcher {
         }
         List<OntStatement> statements = OntModels.listSplitStatements(statement).toList();
         if (statements.size() == 1) { // unambiguous mapping
-            return Iter.of(translator.toAxiomImpl(statement, model, factory, config));
+            return Iter.of(translator.toAxiomImpl(statement, ((ModelObjectFactory) factory).model(), factory, config));
         }
         return Iter.create(statements).mapWith(s -> translator.toAxiomWrap(s, factory, config));
     }

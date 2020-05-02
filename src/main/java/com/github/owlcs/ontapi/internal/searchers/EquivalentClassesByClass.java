@@ -24,8 +24,6 @@ import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 
-import java.util.function.Supplier;
-
 /**
  * Created by @ssz on 18.04.2020.
  */
@@ -34,14 +32,13 @@ public class EquivalentClassesByClass extends BaseByObject<OWLEquivalentClassesA
 
     @Override
     public ExtendedIterator<ONTObject<OWLEquivalentClassesAxiom>> listAxioms(OWLClass clazz,
-                                                                             Supplier<OntModel> model,
+                                                                             OntModel model,
                                                                              InternalObjectFactory factory,
                                                                              InternalConfig config) {
         Resource c = WriteHelper.toResource(clazz.getIRI());
-        OntModel m = model.get();
-        ExtendedIterator<OntStatement> res = listBySubjectAndPredicate(m, c, OWL.equivalentClass)
-                .andThen(listByPredicateAndObject(m, OWL.equivalentClass, c))
+        ExtendedIterator<OntStatement> res = listBySubjectAndPredicate(model, c, OWL.equivalentClass)
+                .andThen(listByPredicateAndObject(model, OWL.equivalentClass, c))
                 .filterKeep(s -> TRANSLATOR.testStatement(s, config));
-        return translate(TRANSLATOR, res, model, factory, config);
+        return translate(TRANSLATOR, res, factory, config);
     }
 }

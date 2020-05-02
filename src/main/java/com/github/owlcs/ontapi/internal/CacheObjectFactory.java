@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -28,11 +28,11 @@ import java.util.function.Supplier;
 /**
  * The internal cache holder which is using while reading owl-objects.
  * Currently it is based on caffeine cache since it is used widely by OWL-API.
- *
+ * <p>
  * Created by @ssz on 09.09.2018.
  */
 @SuppressWarnings("WeakerAccess")
-public class CacheObjectFactory extends ModelObjectFactory {
+public class CacheObjectFactory extends InternalObjectFactoryImpl {
     /**
      * This magic '2048' is taken from OWL-API DataFactory impl:
      *

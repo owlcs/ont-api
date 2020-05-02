@@ -19,8 +19,6 @@ import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
 
-import java.util.function.Supplier;
-
 /**
  * A searcher that lists axioms by object.
  * Created by @ssz on 18.04.2020.
@@ -34,13 +32,13 @@ public interface ByObject<A extends OWLAxiom, O extends OWLObject> {
      * Lists all axioms that contain the given {@link O OWLObject}.
      *
      * @param object  a {@link O}, not {@code null}
-     * @param model   a {@link Supplier} to derive nonnull {@link OntModel}, cannot be {@code null}
+     * @param model   a {@link OntModel}, cannot be {@code null}
      * @param factory an {@link InternalObjectFactory}, cannot be {@code null}
      * @param config  {@link InternalConfig}, cannot {@code null}
      * @return an {@link ExtendedIterator} of {@link A OWLAxiom}s wrapped with {@link ONTObject}
      */
     ExtendedIterator<ONTObject<A>> listAxioms(O object,
-                                              Supplier<OntModel> model,
+                                              OntModel model,
                                               InternalObjectFactory factory,
                                               InternalConfig config);
 }

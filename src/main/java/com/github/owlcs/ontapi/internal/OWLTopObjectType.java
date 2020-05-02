@@ -21,7 +21,6 @@ import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.*;
 
 import java.util.*;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -49,23 +48,20 @@ public enum OWLTopObjectType {
         }
 
         @Override
-        ExtendedIterator<? extends ONTObject<? extends OWLObject>> read(Supplier<OntModel> m,
-                                                                        InternalObjectFactory f,
-                                                                        InternalConfig c) {
-            return ReadHelper.listOWLAnnotations(m.get().getID(), f);
+        ExtendedIterator<? extends ONTObject<? extends OWLObject>> read(ModelObjectFactory f, InternalConfig c) {
+            return ReadHelper.listOWLAnnotations(f.getModel().getID(), f);
         }
 
         @Override
-        Optional<? extends ONTObject<? extends OWLObject>> find(Supplier<OntModel> m,
-                                                                InternalObjectFactory f,
+        Optional<? extends ONTObject<? extends OWLObject>> find(ModelObjectFactory f,
                                                                 InternalConfig c,
                                                                 OWLObject key) {
-            return Iter.findFirst(read(m, f, c).filterKeep(x -> x.getOWLObject().equals(key)));
+            return Iter.findFirst(read(f, c).filterKeep(x -> x.getOWLObject().equals(key)));
         }
 
         @Override
-        boolean has(Supplier<OntModel> m, InternalObjectFactory f, InternalConfig c, OWLObject key) {
-            return find(m, f, c, key).isPresent();
+        boolean has(ModelObjectFactory f, InternalConfig c, OWLObject key) {
+            return find(f, c, key).isPresent();
         }
 
         @Override
@@ -306,46 +302,40 @@ public enum OWLTopObjectType {
     /**
      * Reads content-objects from the graph.
      *
-     * @param m {@link OntModel ONT-API Jena Model}, to search over
      * @param f {@link InternalObjectFactory} to construct OWL-API Objects (wrapped as {@link ONTObject})
      * @param c {@link InternalConfig} to control process
      * @return {@link ExtendedIterator} over all content objects, found in modelr for this type
      */
-    ExtendedIterator<? extends ONTObject<? extends OWLObject>> read(Supplier<OntModel> m,
-                                                                    InternalObjectFactory f,
-                                                                    InternalConfig c) {
-        return getRawTranslator().listAxioms(m, f, c);
+    ExtendedIterator<? extends ONTObject<? extends OWLObject>> read(ModelObjectFactory f, InternalConfig c) {
+        return getRawTranslator().listAxioms(f.getModel(), f, c);
     }
 
     /**
      * Answers an {@code Optional} {@link ONTObject}, that corresponds to the given {@code OWLObject}-key.
      *
-     * @param m   a facility to get {@link OntModel Model}, to search over, not {@code null}
      * @param f   {@link InternalObjectFactory} to construct OWL-API Objects, not {@code null}
      * @param c   {@link InternalConfig} to configure and control the process, not {@code null}
      * @param key - an {@link OWLObject}, must correspond to this enum-type, not {@code null}
      * @return {@link Optional}, possible empty
      */
-    Optional<? extends ONTObject<? extends OWLObject>> find(Supplier<OntModel> m,
-                                                            InternalObjectFactory f,
+    Optional<? extends ONTObject<? extends OWLObject>> find(ModelObjectFactory f,
                                                             InternalConfig c,
                                                             OWLObject key) {
         OWLAxiom k = (OWLAxiom) key;
-        return getRawTranslator().findAxiom(m, f, c, k);
+        return getRawTranslator().findAxiom(f.getModel(), f, c, k);
     }
 
     /**
      * Answers {@code true} iff the given {@code OWLObject} is present in the graph.
      *
-     * @param m   a facility to get {@link OntModel Model}, to search over, not {@code null}
      * @param f   {@link InternalObjectFactory} to construct OWL-API Objects, not {@code null}
      * @param c   {@link InternalConfig} to configure and control the process, not {@code null}
      * @param key - an {@link OWLObject}, must correspond to this enum-type, not {@code null}
      * @return boolean
      */
-    boolean has(Supplier<OntModel> m, InternalObjectFactory f, InternalConfig c, OWLObject key) {
+    boolean has(ModelObjectFactory f, InternalConfig c, OWLObject key) {
         OWLAxiom k = (OWLAxiom) key;
-        return getRawTranslator().containsAxiom(m, f, c, k);
+        return getRawTranslator().containsAxiom(f.getModel(), f, c, k);
     }
 
     /**

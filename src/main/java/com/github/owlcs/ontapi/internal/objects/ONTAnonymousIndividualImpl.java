@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -25,6 +25,7 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.RDFNode;
 import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.NotSerializableException;
 import java.io.ObjectInputStream;
@@ -91,7 +92,8 @@ public class ONTAnonymousIndividualImpl extends OWLAnonymousIndividualImpl
     }
 
     @Override
-    public InternalObjectFactory getObjectFactory() {
+    @Nonnull
+    public ModelObjectFactory getObjectFactory() {
         return HasObjectFactory.getObjectFactory(getModel());
     }
 

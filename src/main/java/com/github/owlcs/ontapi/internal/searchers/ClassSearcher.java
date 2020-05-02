@@ -48,10 +48,10 @@ public class ClassSearcher extends WithRootSearcher implements ObjectSearcher<OW
     public ExtendedIterator<ONTObject<OWLClass>> listObjects(OntModel model,
                                                              InternalObjectFactory factory,
                                                              InternalConfig config) {
-        return listClasses(model, config).mapWith(x -> find(x, model, factory));
+        return listClasses(model, config).mapWith(u -> findClass(u, model, factory));
     }
 
-    protected ONTObject<OWLClass> find(String uri, OntModel model, InternalObjectFactory factory) {
+    protected static ONTObject<OWLClass> findClass(String uri, OntModel model, InternalObjectFactory factory) {
         if (factory instanceof ModelObjectFactory) {
             return ((ModelObjectFactory) factory).getClass(uri);
         }

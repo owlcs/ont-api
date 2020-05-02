@@ -25,8 +25,6 @@ import com.github.owlcs.ontapi.jena.utils.Iter;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.*;
 
-import java.util.function.Supplier;
-
 /**
  * Created by @ssz on 12.04.2020.
  */
@@ -36,11 +34,11 @@ public class ByIRI extends ByPrimitive<IRI> {
 
     @Override
     public final ExtendedIterator<ONTObject<OWLAxiom>> listAxioms(IRI iri,
-                                                                  Supplier<OntModel> model,
+                                                                  OntModel model,
                                                                   InternalObjectFactory factory,
                                                                   InternalConfig config) {
         ExtendedIterator<ONTObject<OWLAxiom>> res = super.listAxioms(iri, model, factory, config);
-        if (isSystem(model.get(), iri.getIRIString())) {
+        if (isSystem(model, iri.getIRIString())) {
             return res.filterKeep(x -> filter(factory.getOWLDataFactory(), x.getOWLObject(), iri));
         }
         return res;

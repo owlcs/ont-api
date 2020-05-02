@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -15,7 +15,6 @@
 package com.github.owlcs.ontapi.internal.objects;
 
 import com.github.owlcs.ontapi.OntApiException;
-import com.github.owlcs.ontapi.internal.InternalObjectFactory;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.jena.model.OntIndividual;
@@ -113,15 +112,12 @@ public class ONTSWRLIndividualImpl extends ONTResourceImpl
     }
 
     public ONTObject<? extends OWLIndividual> getONTIndividual() {
-        InternalObjectFactory factory = getObjectFactory();
-        if (factory instanceof ModelObjectFactory) {
-            if (node instanceof String)
-                return ((ModelObjectFactory) factory).getNamedIndividual((String) node);
-            if (node instanceof BlankNodeId)
-                return ((ModelObjectFactory) factory).getAnonymousIndividual((BlankNodeId) node);
-            return wrongState();
-        }
-        return factory.getIndividual(asIndividual());
+        ModelObjectFactory factory = getObjectFactory();
+        if (node instanceof String)
+            return factory.getNamedIndividual((String) node);
+        if (node instanceof BlankNodeId)
+            return factory.getAnonymousIndividual((BlankNodeId) node);
+        return wrongState();
     }
 
     @Override

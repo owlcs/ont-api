@@ -24,8 +24,6 @@ import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
 
-import java.util.function.Supplier;
-
 /**
  * A base searcher for {@link OWLEntity}.
  * Created by @ssz on 29.03.2020.
@@ -36,15 +34,15 @@ public abstract class ByEntity<E extends OWLEntity> extends ByPrimitive<E> {
 
     @Override
     public final ExtendedIterator<ONTObject<OWLAxiom>> listAxioms(E entity,
-                                                                  Supplier<OntModel> model,
+                                                                  OntModel model,
                                                                   InternalObjectFactory factory,
                                                                   InternalConfig config) {
-        ExtendedIterator<OntStatement> res = listStatements(model.get(), entity);
+        ExtendedIterator<OntStatement> res = listStatements(model, entity);
         if (config.isSplitAxiomAnnotations()) {
             return Iter.flatMap(res, s -> Iter.flatMap(listTranslators(s, config),
-                    t -> split(t, s, model, factory, config)).filterKeep(x -> filter(x.getOWLObject(), entity)));
+                    t -> split(t, s, factory, config)).filterKeep(x -> filter(x.getOWLObject(), entity)));
         }
-        return Iter.flatMap(res, s -> listTranslators(s, config).mapWith(t -> toAxiom(t, s, model, factory, config))
+        return Iter.flatMap(res, s -> listTranslators(s, config).mapWith(t -> toAxiom(t, s, factory, config))
                 .filterKeep(x -> filter(x.getOWLObject(), entity)));
     }
 

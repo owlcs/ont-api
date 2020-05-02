@@ -44,6 +44,7 @@ import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
@@ -110,7 +111,7 @@ public class InternalModel extends OntGraphModelImpl
      * @see InternalConfig#useLoadObjectsCache()
      * @see CacheObjectFactory
      */
-    protected final InternalCache.Loading<InternalModel, InternalObjectFactory> objectFactory;
+    protected final InternalCache.Loading<InternalModel, ModelObjectFactory> objectFactory;
     /**
      * A model for axiom/object's search optimizations, containing {@link Node node}s cache.
      * Any change in the base graph must also reset this cache.
@@ -255,15 +256,16 @@ public class InternalModel extends OntGraphModelImpl
     /**
      * Returns the {@code InternalDataFactory}, a helper (possibly, with cache) to read OWL-API objects.
      *
-     * @return {@link InternalObjectFactory}
+     * @return {@link ModelObjectFactory}
      */
     @Override
-    public InternalObjectFactory getObjectFactory() {
+    @Nonnull
+    public ModelObjectFactory getObjectFactory() {
         return objectFactory.get(this);
     }
 
     /**
-     * Creates a fresh {@link InternalObjectFactory Object Factory} instance,
+     * Creates a fresh {@link ModelObjectFactory Object Factory} instance,
      * which is responsible for mapping {@link Node} (and {@link OntObject}) to {@link OWLObject}.
      * If the load objects cache is enabled,
      * the method returns a {@link CacheObjectFactory} instance,
@@ -272,15 +274,15 @@ public class InternalModel extends OntGraphModelImpl
      *
      * @param df       {@link DataFactory}, not {@code null}
      * @param external a {@code Map} with shared outer caches, not {@code null}
-     * @return {@link InternalObjectFactory}
+     * @return {@link ModelObjectFactory}
      * @see com.github.owlcs.ontapi.config.CacheSettings#getLoadObjectsCacheSize()
      */
-    protected InternalObjectFactory createObjectFactory(DataFactory df,
-                                                        Map<Class<? extends OWLPrimitive>, InternalCache<?, ?>> external) {
+    protected ModelObjectFactory createObjectFactory(DataFactory df,
+                                                     Map<Class<? extends OWLPrimitive>, InternalCache<?, ?>> external) {
         InternalConfig conf = getConfig();
         Supplier<OntModel> model = this::getSearchModel;
         if (!conf.useLoadObjectsCache()) {
-            return new ModelObjectFactory(df, model);
+            return new InternalObjectFactoryImpl(df, model);
         }
         long size = conf.getLoadObjectsCacheSize();
         boolean parallel = conf.parallel();
@@ -323,7 +325,8 @@ public class InternalModel extends OntGraphModelImpl
             }
 
             @Override
-            public InternalObjectFactory getObjectFactory() {
+            @Nonnull
+            public ModelObjectFactory getObjectFactory() {
                 return InternalModel.this.getObjectFactory();
             }
         };
@@ -405,7 +408,7 @@ public class InternalModel extends OntGraphModelImpl
      * @return {@code Stream} of {@link OWLImportsDeclaration}s
      */
     public Stream<OWLImportsDeclaration> listOWLImportDeclarations() {
-        InternalObjectFactory of = getObjectFactory();
+        ModelObjectFactory of = getObjectFactory();
         DataFactory df = getDataFactory();
         return reduce(getID().imports().map(of::toIRI).map(df::getOWLImportsDeclaration));
     }
@@ -448,7 +451,7 @@ public class InternalModel extends OntGraphModelImpl
             return Stream.empty();
         }
         List<ONTObject<? extends OWLEntity>> res = new ArrayList<>();
-        InternalObjectFactory df = getObjectFactory();
+        ModelObjectFactory df = getObjectFactory();
         if (e.canAs(OntClass.Named.class)) {
             res.add(df.getClass(e.as(OntClass.Named.class)));
         }
@@ -640,7 +643,7 @@ public class InternalModel extends OntGraphModelImpl
             return listOWLAxioms(OWLDeclarationAxiom.class).filter(a -> e.equals(a.getEntity()));
         }
         // in the case of a large ontology, the direct traverse over the graph works significantly faster:
-        return Iter.asStream(declarationsByEntity.listAxioms(e, this::getSearchModel, getObjectFactory(), config)
+        return Iter.asStream(declarationsByEntity.listAxioms(e, getSearchModel(), getObjectFactory(), config)
                 .mapWith(ONTObject::getOWLObject));
     }
 
@@ -658,7 +661,7 @@ public class InternalModel extends OntGraphModelImpl
         if (!useAxiomsSearchOptimization(config)) {
             return listOWLAxioms(OWLAnnotationAssertionAxiom.class).filter(a -> s.equals(a.getSubject()));
         }
-        return reduce(Iter.asStream(annotationAssertionsBySubject.listAxioms(s, this::getSearchModel, getObjectFactory(), config)
+        return reduce(Iter.asStream(annotationAssertionsBySubject.listAxioms(s, getSearchModel(), getObjectFactory(), config)
                 .mapWith(ONTObject::getOWLObject)));
     }
 
@@ -674,7 +677,7 @@ public class InternalModel extends OntGraphModelImpl
         if (!useAxiomsSearchOptimization(config)) {
             return listOWLAxioms(OWLSubClassOfAxiom.class).filter(a -> Objects.equals(a.getSubClass(), sub));
         }
-        return reduce(Iter.asStream(subClassOfBySubject.listAxioms(sub, this::getSearchModel, getObjectFactory(), config)
+        return reduce(Iter.asStream(subClassOfBySubject.listAxioms(sub, getSearchModel(), getObjectFactory(), config)
                 .mapWith(ONTObject::getOWLObject)));
     }
 
@@ -691,7 +694,7 @@ public class InternalModel extends OntGraphModelImpl
         if (!useAxiomsSearchOptimization(config)) {
             return listOWLAxioms(OWLEquivalentClassesAxiom.class).filter(a -> a.operands().anyMatch(c::equals));
         }
-        return reduce(Iter.asStream(equivalentClassesByOperand.listAxioms(c, this::getSearchModel, getObjectFactory(), config)
+        return reduce(Iter.asStream(equivalentClassesByOperand.listAxioms(c, getSearchModel(), getObjectFactory(), config)
                 .mapWith(ONTObject::getOWLObject)));
     }
 
@@ -706,8 +709,8 @@ public class InternalModel extends OntGraphModelImpl
         InternalConfig config = getConfig();
         if (useReferencingAxiomsSearchOptimization(filter, config)) {
             ExtendedIterator<ONTObject<OWLAxiom>> res;
-            Supplier<OntModel> model = this::getSearchModel;
-            InternalObjectFactory factory = getObjectFactory();
+            OntModel model = getSearchModel();
+            ModelObjectFactory factory = getObjectFactory();
             if (filter == OWLComponentType.IRI) {
                 res = byIRI.listAxioms((IRI) primitive, model, factory, config);
             } else if (filter == OWLComponentType.CLASS) {
@@ -1124,11 +1127,11 @@ public class InternalModel extends OntGraphModelImpl
      * @return {@code Set} of {@code Triple}s in intersection
      */
     protected Set<Triple> getUsedTriples(OntModel model, OWLObject container) {
-        InternalObjectFactory f = HasObjectFactory.getObjectFactory(model);
+        ModelObjectFactory f = HasObjectFactory.getObjectFactory(model);
         InternalConfig c = HasConfig.getConfig(model);
         Set<Triple> res = new HashSet<>();
         // shared declaration and punned axioms:
-        Iter.flatMap(OWLTopObjectType.listAll(), type -> type.read(() -> model, f, c)
+        Iter.flatMap(OWLTopObjectType.listAll(), type -> type.read(f, c)
                 .filterKeep(x -> {
                     OWLObject obj = x.getOWLObject();
                     if (type != OWLTopObjectType.DECLARATION && container.equals(obj)) return false;
@@ -1222,8 +1225,9 @@ public class InternalModel extends OntGraphModelImpl
             }
 
             @Override
-            public InternalObjectFactory getObjectFactory() {
-                return new ModelObjectFactory(InternalModel.this.getDataFactory(), () -> this);
+            @Nonnull
+            public ModelObjectFactory getObjectFactory() {
+                return new InternalObjectFactoryImpl(InternalModel.this.getDataFactory(), () -> this);
             }
         }
         return new ObjectModel(u);
@@ -1401,7 +1405,7 @@ public class InternalModel extends OntGraphModelImpl
      * @return an {@code Iterator} of {@link ONTObject} with the given type
      */
     protected Iterator<ONTObject<OWLObject>> listOWLObjects(OWLComponentType type, InternalConfig conf) {
-        InternalObjectFactory factory = getObjectFactory();
+        ModelObjectFactory factory = getObjectFactory();
         OntModel model = getSearchModel();
         if (OWLComponentType.CLASS == type && useObjectsSearchOptimization(conf)) {
             //noinspection rawtypes
@@ -1516,7 +1520,7 @@ public class InternalModel extends OntGraphModelImpl
     protected void cacheComponents(OWLObject container) {
         if (components.isEmpty()) return;
         Map<OWLComponentType, ObjectMap<OWLObject>> cache = components.get(this);
-        InternalObjectFactory df = getObjectFactory();
+        ModelObjectFactory df = getObjectFactory();
         OntModel m = getSearchModel();
         OWLComponentType.keys().forEach(type -> {
             ObjectMap<OWLObject> map = cache.get(type);
@@ -1613,15 +1617,14 @@ public class InternalModel extends OntGraphModelImpl
      * @see #createComponentObjectMap(OWLComponentType)
      */
     protected ObjectMap<OWLObject> createContentObjectMap(OWLTopObjectType key) {
-        InternalObjectFactory df = getObjectFactory();
-        Supplier<OntModel> m = this::getSearchModel;
+        ModelObjectFactory factory = getObjectFactory();
         Supplier<Iterator<ONTObject<OWLObject>>> loader =
-                () -> (Iterator<ONTObject<OWLObject>>) key.read(m, df, getConfig());
+                () -> (Iterator<ONTObject<OWLObject>>) key.read(factory, getConfig());
         InternalConfig conf = getConfig();
         if (!conf.useContentCache()) {
             return new DirectObjectMapImpl<>(loader,
-                    k -> (Optional<ONTObject<OWLObject>>) key.find(m, df, getConfig(), k),
-                    k -> key.has(m, df, getConfig(), k));
+                    k -> (Optional<ONTObject<OWLObject>>) key.find(factory, getConfig(), k),
+                    k -> key.has(factory, getConfig(), k));
         }
         boolean parallel = conf.parallel();
         boolean fastIterator = conf.useIteratorCache();

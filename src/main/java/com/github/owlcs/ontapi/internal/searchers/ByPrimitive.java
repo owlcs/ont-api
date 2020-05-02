@@ -31,7 +31,6 @@ import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLPrimitive;
 
 import java.util.Set;
-import java.util.function.Supplier;
 
 /**
  * A base abstraction for any axioms-by-primitive search helper (referencing-axioms functionality).
@@ -118,22 +117,22 @@ public abstract class ByPrimitive<P extends OWLPrimitive> extends BaseByObject<O
      * Lists all axioms that contain the given {@link P}.
      *
      * @param primitive a {@link P}, not {@code null}
-     * @param model     a {@link Supplier} to derive nonnull {@link OntModel}, not {@code null}
+     * @param model     a {@link OntModel}, not {@code null}
      * @param factory   an {@link InternalObjectFactory}, not {@code null}
      * @param config    {@link InternalConfig}, not {@code null}
      * @return an {@link ExtendedIterator} of {@link OWLAxiom}s wrapped with {@link ONTObject}
      */
     @Override
     public ExtendedIterator<ONTObject<OWLAxiom>> listAxioms(P primitive,
-                                                            Supplier<OntModel> model,
+                                                            OntModel model,
                                                             InternalObjectFactory factory,
                                                             InternalConfig config) {
-        ExtendedIterator<OntStatement> res = listStatements(model.get(), primitive);
+        ExtendedIterator<OntStatement> res = listStatements(model, primitive);
         if (config.isSplitAxiomAnnotations()) {
             return Iter.flatMap(res,
-                    s -> Iter.flatMap(listTranslators(s, config), t -> split(t, s, model, factory, config)));
+                    s -> Iter.flatMap(listTranslators(s, config), t -> split(t, s, factory, config)));
         }
-        return Iter.flatMap(res, s -> listTranslators(s, config).mapWith(t -> toAxiom(t, s, model, factory, config)));
+        return Iter.flatMap(res, s -> listTranslators(s, config).mapWith(t -> toAxiom(t, s, factory, config)));
     }
 
     /**

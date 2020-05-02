@@ -24,8 +24,6 @@ import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 
-import java.util.function.Supplier;
-
 /**
  * Created by @ssz on 18.04.2020.
  */
@@ -34,12 +32,12 @@ public class SubClassOfBySubject extends BaseByObject<OWLSubClassOfAxiom, OWLCla
 
     @Override
     public ExtendedIterator<ONTObject<OWLSubClassOfAxiom>> listAxioms(OWLClass clazz,
-                                                                      Supplier<OntModel> model,
+                                                                      OntModel model,
                                                                       InternalObjectFactory factory,
                                                                       InternalConfig config) {
         Resource s = WriteHelper.toResource(clazz.getIRI());
-        ExtendedIterator<OntStatement> res = listBySubjectAndPredicate(model.get(), s, RDFS.subClassOf)
+        ExtendedIterator<OntStatement> res = listBySubjectAndPredicate(model, s, RDFS.subClassOf)
                 .filterKeep(TRANSLATOR::filter);
-        return translate(TRANSLATOR, res, model, factory, config);
+        return translate(TRANSLATOR, res, factory, config);
     }
 }

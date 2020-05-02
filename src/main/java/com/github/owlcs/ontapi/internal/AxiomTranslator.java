@@ -106,7 +106,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> extends BaseSearch
         Objects.requireNonNull(model, "Null model.");
         InternalObjectFactory factory = getObjectFactory(model);
         InternalConfig config = getConfig(model);
-        return translate(this, listStatements(model, config), () -> model, factory, config);
+        return translate(this, listStatements(model, config), factory, config);
     }
 
     /**
@@ -157,10 +157,10 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> extends BaseSearch
      * @return {@link ExtendedIterator} of {@link ONTObject}s that wrap {@link Axiom}s
      * @throws JenaException unable to read axioms of this type
      */
-    protected ExtendedIterator<ONTObject<Axiom>> listAxioms(Supplier<OntModel> model,
+    protected ExtendedIterator<ONTObject<Axiom>> listAxioms(OntModel model,
                                                             InternalObjectFactory factory,
                                                             InternalConfig config) throws JenaException {
-        return translate(this, listStatements(model.get(), config), model, factory, config);
+        return translate(this, listStatements(model, config), factory, config);
     }
 
     /**
@@ -173,10 +173,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> extends BaseSearch
      * @return boolean
      * @since 2.0.0
      */
-    protected boolean containsAxiom(Supplier<OntModel> model,
-                                    InternalObjectFactory factory,
-                                    InternalConfig config,
-                                    Axiom key) {
+    protected boolean containsAxiom(OntModel model, InternalObjectFactory factory, InternalConfig config, Axiom key) {
         Objects.requireNonNull(key);
         return Iter.anyMatch(listAxioms(model, factory, config), x -> x.getOWLObject().equals(key));
     }
@@ -192,7 +189,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> extends BaseSearch
      * @since 2.0.0
      */
     @SuppressWarnings("unchecked")
-    protected Optional<ONTObject<Axiom>> findAxiom(Supplier<OntModel> model,
+    protected Optional<ONTObject<Axiom>> findAxiom(OntModel model,
                                                    InternalObjectFactory factory,
                                                    InternalConfig config,
                                                    Axiom key) {

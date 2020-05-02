@@ -22,8 +22,6 @@ import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationSubject;
 
-import java.util.function.Supplier;
-
 /**
  * Created by @ssz on 18.04.2020.
  */
@@ -32,11 +30,11 @@ public class AnnotationAssertionBySubject extends BaseByObject<OWLAnnotationAsse
 
     @Override
     public ExtendedIterator<ONTObject<OWLAnnotationAssertionAxiom>> listAxioms(OWLAnnotationSubject subject,
-                                                                               Supplier<OntModel> model,
+                                                                               OntModel model,
                                                                                InternalObjectFactory factory,
                                                                                InternalConfig config) {
-        ExtendedIterator<OntStatement> res = listBySubject(model.get(), WriteHelper.toResource(subject))
+        ExtendedIterator<OntStatement> res = listBySubject(model, WriteHelper.toResource(subject))
                 .filterKeep(x -> TRANSLATOR.testStatement(x, config));
-        return translate(TRANSLATOR, res, model, factory, config);
+        return translate(TRANSLATOR, res, factory, config);
     }
 }

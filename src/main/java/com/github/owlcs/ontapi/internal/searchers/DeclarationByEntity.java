@@ -25,8 +25,6 @@ import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
 
-import java.util.function.Supplier;
-
 /**
  * Created by @ssz on 18.04.2020.
  */
@@ -35,13 +33,13 @@ public class DeclarationByEntity extends BaseByObject<OWLDeclarationAxiom, OWLEn
 
     @Override
     public ExtendedIterator<ONTObject<OWLDeclarationAxiom>> listAxioms(OWLEntity entity,
-                                                                       Supplier<OntModel> model,
+                                                                       OntModel model,
                                                                        InternalObjectFactory factory,
                                                                        InternalConfig config) {
-        OntEntity res = PersonalityModel.asPersonalityModel(model.get())
+        OntEntity res = PersonalityModel.asPersonalityModel(model)
                 .findNodeAs(WriteHelper.toNode(entity), WriteHelper.getEntityType(entity));
         if (res == null) return Iter.of();
         OntStatement statement = res.getMainStatement();
-        return statement == null ? Iter.of() : Iter.of(toAxiom(TRANSLATOR, statement, model, factory, config));
+        return statement == null ? Iter.of() : Iter.of(toAxiom(TRANSLATOR, statement, factory, config));
     }
 }
