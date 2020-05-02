@@ -89,13 +89,13 @@ public abstract class AbstractPropertyTypeTranslator<Axiom extends OWLAxiom & Ha
         }
 
         @Override
-        public ONTObject<? extends OWLObjectPropertyExpression> findURISubject(InternalObjectFactory factory) {
+        public ONTObject<? extends OWLObjectPropertyExpression> findURISubject(ModelObjectFactory factory) {
             return ONTObjectPropertyImpl.find((String) subject, factory, model);
         }
 
         @Override
         public ONTObject<? extends OWLObjectPropertyExpression> fetchONTSubject(OntStatement statement,
-                                                                                InternalObjectFactory factory) {
+                                                                                ModelObjectFactory factory) {
             return factory.getProperty(statement.getSubject(OntObjectProperty.class));
         }
 

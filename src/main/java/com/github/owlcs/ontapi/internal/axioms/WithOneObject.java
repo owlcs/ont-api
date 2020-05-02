@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -15,7 +15,7 @@
 package com.github.owlcs.ontapi.internal.axioms;
 
 import com.github.owlcs.ontapi.internal.InternalConfig;
-import com.github.owlcs.ontapi.internal.InternalObjectFactory;
+import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.objects.ONTAnnotationImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTAxiomImpl;
@@ -49,18 +49,18 @@ import java.util.stream.Stream;
 @SuppressWarnings("rawtypes")
 interface WithOneObject<S extends OWLObject> extends WithTriple {
 
-    ONTObject<? extends S> findURISubject(InternalObjectFactory factory);
+    ONTObject<? extends S> findURISubject(ModelObjectFactory factory);
 
-    ONTObject<? extends S> fetchONTSubject(OntStatement statement, InternalObjectFactory factory);
+    ONTObject<? extends S> fetchONTSubject(OntStatement statement, ModelObjectFactory factory);
 
-    ONTObject<? extends S> findONTValue(InternalObjectFactory factory);
+    ONTObject<? extends S> findONTValue(ModelObjectFactory factory);
 
     default ONTObject<? extends S> getONTValue() {
         return findONTValue(getObjectFactory());
     }
 
     @Override
-    default Set<? extends OWLObject> getOWLComponentsAsSet(InternalObjectFactory factory) {
+    default Set<? extends OWLObject> getOWLComponentsAsSet(ModelObjectFactory factory) {
         Set<OWLObject> res = OWLObjectImpl.createSortedSet();
         res.add(findONTValue(factory).getOWLObject());
         return res;
@@ -75,29 +75,27 @@ interface WithOneObject<S extends OWLObject> extends WithTriple {
      * Otherwise the instance is {@link Complex}, created by the factory {@code complex} and has a cache inside.
      * Note: this is an auxiliary method as shortcut to reduce copy-pasting, it is for internal usage only.
      *
+     * @param <R>       the desired {@link OWLAxiom axiom}-type
      * @param statement {@link OntStatement}, the source to parse, not {@code null}
-     * @param model     {@link OntModel}-provider, not {@code null}
      * @param simple    factory (as {@link BiFunction}) to provide {@link Simple} instance, not {@code null}
      * @param complex   factory (as {@link BiFunction}) to provide {@link Complex} instance, not {@code null}
      * @param setHash   {@code ObjIntConsumer<OWLAxiom>}, facility to assign {@code hashCode}, not {@code null}
-     * @param factory   {@link InternalObjectFactory} (singleton), not {@code null}
+     * @param factory   {@link ModelObjectFactory} (singleton), not {@code null}
      * @param config    {@link InternalConfig} (singleton), not {@code null}
-     * @param <R>       the desired {@link OWLAxiom axiom}-type
      * @return {@link R}
      */
     static <R extends ONTObject & WithOneObject> R create(OntStatement statement,
-                                                          Supplier<OntModel> model,
                                                           BiFunction<Triple, Supplier<OntModel>, ? extends R> simple,
                                                           BiFunction<Triple, Supplier<OntModel>, ? extends R> complex,
                                                           ObjIntConsumer<OWLAxiom> setHash,
-                                                          InternalObjectFactory factory,
+                                                          ModelObjectFactory factory,
                                                           InternalConfig config) {
-        R s = simple.apply(statement.asTriple(), model);
+        R s = simple.apply(statement.asTriple(), factory.model());
         Object[] content = Complex.initContent(s, statement, setHash, factory, config);
         if (content == null) {
             return s;
         }
-        R c = complex.apply(statement.asTriple(), model);
+        R c = complex.apply(statement.asTriple(), factory.model());
         setHash.accept(c, s.hashCode());
         ((WithContent<?>) c).putContent(content);
         return c;
@@ -111,7 +109,7 @@ interface WithOneObject<S extends OWLObject> extends WithTriple {
     interface Simple<X extends OWLObject> extends WithOneObject<X>, WithoutAnnotations {
 
         @Override
-        default ONTObject<? extends X> findONTValue(InternalObjectFactory factory) {
+        default ONTObject<? extends X> findONTValue(ModelObjectFactory factory) {
             return findURISubject(factory);
         }
 
@@ -143,14 +141,14 @@ interface WithOneObject<S extends OWLObject> extends WithTriple {
          * @param axiom     - a {@link WithOneObject} instance, the axiom, not {@code null}
          * @param statement - a {@link OntStatement}, the source statement, not {@code null}
          * @param setHash   - a {@code ObjIntConsumer<OWLAxiom>}, facility to assign {@code hashCode}, not {@code null}
-         * @param factory   - a {@link InternalObjectFactory} singleton, not {@code null}
+         * @param factory   - a {@link ModelObjectFactory} singleton, not {@code null}
          * @param config    - a {@link InternalConfig} singleton, not {@code null}
          * @return an {@code Array} with content or {@code null} if no content is needed
          */
         static Object[] initContent(WithOneObject axiom,
                                     OntStatement statement,
                                     ObjIntConsumer<OWLAxiom> setHash,
-                                    InternalObjectFactory factory,
+                                    ModelObjectFactory factory,
                                     InternalConfig config) {
             Collection annotations = ONTAxiomImpl.collectAnnotations(statement, factory, config);
             ONTObject value = axiom.fetchONTSubject(statement, factory);
@@ -175,7 +173,7 @@ interface WithOneObject<S extends OWLObject> extends WithTriple {
         @Override
         default Object[] collectContent() {
             OntStatement statement = asStatement();
-            InternalObjectFactory factory = getObjectFactory();
+            ModelObjectFactory factory = getObjectFactory();
             List<ONTObject> res = new ArrayList<>(1);
             ONTObject value = fetchONTSubject(statement, factory);
             if (!statement.getSubject().isURIResource()) {
@@ -187,7 +185,7 @@ interface WithOneObject<S extends OWLObject> extends WithTriple {
 
         @SuppressWarnings("unchecked")
         @Override
-        default ONTObject<? extends X> findONTValue(InternalObjectFactory factory) {
+        default ONTObject<? extends X> findONTValue(ModelObjectFactory factory) {
             return hasURISubject() ? findURISubject(factory) : (ONTObject<? extends X>) getContent()[0];
         }
 
@@ -197,7 +195,7 @@ interface WithOneObject<S extends OWLObject> extends WithTriple {
             Object[] content = getContent();
             Stream res = Arrays.stream(content);
             if (hasURISubject()) {
-                InternalObjectFactory factory = getObjectFactory();
+                ModelObjectFactory factory = getObjectFactory();
                 res = Stream.concat(Stream.of(findURISubject(factory)), res);
             }
             return (Stream<ONTObject<? extends OWLObject>>) res;

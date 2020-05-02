@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -84,10 +84,9 @@ public class ObjectPropertyAssertionTranslator
 
     @Override
     public ONTObject<OWLObjectPropertyAssertionAxiom> toAxiomImpl(OntStatement statement,
-                                                                  Supplier<OntModel> model,
-                                                                  InternalObjectFactory factory,
+                                                                  ModelObjectFactory factory,
                                                                   InternalConfig config) {
-        return AxiomImpl.create(statement, model, factory, config);
+        return AxiomImpl.create(statement, factory, config);
     }
 
     @Override
@@ -123,16 +122,14 @@ public class ObjectPropertyAssertionTranslator
          * Creates an {@link OWLObjectPropertyAssertionAxiom} that is also {@link ONTObject}.
          *
          * @param statement {@link OntStatement}, the source, not {@code null}
-         * @param model     {@link OntModel}-provider, not {@code null}
          * @param factory   {@link InternalObjectFactory}, not {@code null}
          * @param config    {@link InternalConfig}, not {@code null}
          * @return {@link AxiomImpl}
          */
         public static AxiomImpl create(OntStatement statement,
-                                       Supplier<OntModel> model,
-                                       InternalObjectFactory factory,
+                                       ModelObjectFactory factory,
                                        InternalConfig config) {
-            return WithAssertion.create(statement, model,
+            return WithAssertion.create(statement,
                     SimpleImpl.FACTORY, WithAnnotationsImpl.FACTORY, SET_HASH_CODE, factory, config);
         }
 
@@ -142,17 +139,17 @@ public class ObjectPropertyAssertionTranslator
         }
 
         @Override
-        public ONTObject<? extends OWLIndividual> findONTSubject(InternalObjectFactory factory) {
+        public ONTObject<? extends OWLIndividual> findONTSubject(ModelObjectFactory factory) {
             return findByURIOrBlankId(subject, factory);
         }
 
         @Override
-        public ONTObject<? extends OWLIndividual> findONTObject(InternalObjectFactory factory) {
+        public ONTObject<? extends OWLIndividual> findONTObject(ModelObjectFactory factory) {
             return findByURIOrBlankId(object, factory);
         }
 
         @Override
-        public ONTObject<? extends OWLObjectPropertyExpression> findONTPredicate(InternalObjectFactory factory) {
+        public ONTObject<? extends OWLObjectPropertyExpression> findONTPredicate(ModelObjectFactory factory) {
             return findONTProperty(factory);
         }
 

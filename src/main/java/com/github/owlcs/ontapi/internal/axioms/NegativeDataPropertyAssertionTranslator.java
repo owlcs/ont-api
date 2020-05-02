@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -60,10 +60,9 @@ public class NegativeDataPropertyAssertionTranslator
 
     @Override
     public ONTObject<OWLNegativeDataPropertyAssertionAxiom> toAxiomImpl(OntStatement statement,
-                                                                        Supplier<OntModel> model,
-                                                                        InternalObjectFactory factory,
+                                                                        ModelObjectFactory factory,
                                                                         InternalConfig config) {
-        return AxiomImpl.create(statement, model, factory, config);
+        return AxiomImpl.create(statement, factory, config);
     }
 
     @Override
@@ -99,16 +98,14 @@ public class NegativeDataPropertyAssertionTranslator
          * Creates an {@link OWLNegativeDataPropertyAssertionAxiom} that is also {@link ONTObject}.
          *
          * @param statement {@link OntStatement}, the source, not {@code null}
-         * @param model     {@link OntModel}-provider, not {@code null}
-         * @param factory   {@link InternalObjectFactory}, not {@code null}
+         * @param factory   {@link ModelObjectFactory}, not {@code null}
          * @param config    {@link InternalConfig}, not {@code null}
          * @return {@link AxiomImpl}
          */
         public static AxiomImpl create(OntStatement statement,
-                                       Supplier<OntModel> model,
-                                       InternalObjectFactory factory,
+                                       ModelObjectFactory factory,
                                        InternalConfig config) {
-            return WithAssertion.create(statement, model, FACTORY, SET_HASH_CODE, factory, config);
+            return WithAssertion.create(statement, FACTORY, SET_HASH_CODE, factory, config);
         }
 
         protected AxiomImpl(Object s, String p, Object o, Supplier<OntModel> m) {
@@ -127,7 +124,7 @@ public class NegativeDataPropertyAssertionTranslator
         }
 
         @Override
-        public ONTObject<? extends OWLLiteral> toObject(Object o, InternalObjectFactory factory) {
+        public ONTObject<? extends OWLLiteral> toObject(Object o, ModelObjectFactory factory) {
             return ONTLiteralImpl.find((LiteralLabel) o, factory, model);
         }
 
@@ -139,19 +136,19 @@ public class NegativeDataPropertyAssertionTranslator
         }
 
         @Override
-        public ONTObject<? extends OWLDataProperty> toPredicate(Object p, InternalObjectFactory factory) {
+        public ONTObject<? extends OWLDataProperty> toPredicate(Object p, ModelObjectFactory factory) {
             return ONTDataPropertyImpl.find((String) p, factory, model);
         }
 
         @Override
         public ONTObject<? extends OWLDataProperty> fetchONTPredicate(OntStatement statement,
-                                                                      InternalObjectFactory factory) {
+                                                                      ModelObjectFactory factory) {
             return factory.getProperty(getResource(statement).getProperty());
         }
 
         @Override
         public ONTObject<? extends OWLLiteral> fetchONTObject(OntStatement statement,
-                                                              InternalObjectFactory factory) {
+                                                              ModelObjectFactory factory) {
             return factory.getLiteral(getResource(statement).getTarget());
         }
 

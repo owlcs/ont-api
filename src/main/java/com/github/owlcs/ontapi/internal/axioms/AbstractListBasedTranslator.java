@@ -151,7 +151,7 @@ public abstract class AbstractListBasedTranslator<Axiom extends OWLLogicalAxiom,
          */
         @FactoryAccessor
         protected abstract A createAnnotatedAxiom(Object[] content,
-                                                  InternalObjectFactory factory,
+                                                  ModelObjectFactory factory,
                                                   Collection<OWLAnnotation> annotations);
 
         @Override

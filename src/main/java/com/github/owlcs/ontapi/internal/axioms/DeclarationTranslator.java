@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -79,10 +79,9 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
 
     @Override
     public ONTObject<OWLDeclarationAxiom> toAxiomImpl(OntStatement statement,
-                                                      Supplier<OntModel> model,
-                                                      InternalObjectFactory factory,
+                                                      ModelObjectFactory factory,
                                                       InternalConfig config) {
-        return AxiomImpl.create(statement, model, factory, config);
+        return AxiomImpl.create(statement, factory, config);
     }
 
     @Override
@@ -117,23 +116,21 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
          * Otherwise the method returns a {@link WithAnnotationsImpl} instance with a cache inside.
          *
          * @param statement {@link OntStatement}, the source
-         * @param model     {@link OntModel}-provider
          * @param factory   {@link InternalObjectFactory}
          * @param config    {@link InternalConfig}
          * @return {@link AxiomImpl}
          */
         public static AxiomImpl create(OntStatement statement,
-                                       Supplier<OntModel> model,
-                                       InternalObjectFactory factory,
+                                       ModelObjectFactory factory,
                                        InternalConfig config) {
             Collection<?> annotations = ONTAxiomImpl.collectAnnotations(statement, factory, config);
             if (annotations.isEmpty()) {
-                SimpleImpl res = new SimpleImpl(statement.asTriple(), model);
+                SimpleImpl res = new SimpleImpl(statement.asTriple(), factory.model());
                 int hash = OWLObject.hashIteration(res.hashIndex(), res.findONTEntity(factory).hashCode());
                 res.hashCode = OWLObject.hashIteration(hash, 1);
                 return res;
             }
-            WithAnnotationsImpl res = new WithAnnotationsImpl(statement.asTriple(), model);
+            WithAnnotationsImpl res = new WithAnnotationsImpl(statement.asTriple(), factory.model());
             int hash = OWLObject.hashIteration(res.hashIndex(), res.findONTEntity(factory).hashCode());
             if (annotations.isEmpty()) {
                 res.hashCode = OWLObject.hashIteration(hash, 1);

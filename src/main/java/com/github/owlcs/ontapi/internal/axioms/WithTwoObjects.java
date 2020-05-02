@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -15,7 +15,7 @@
 package com.github.owlcs.ontapi.internal.axioms;
 
 import com.github.owlcs.ontapi.internal.InternalConfig;
-import com.github.owlcs.ontapi.internal.InternalObjectFactory;
+import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.objects.ONTAnnotationImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTAxiomImpl;
@@ -56,54 +56,54 @@ interface WithTwoObjects<S extends OWLObject, O extends OWLObject> extends WithT
     /**
      * Finds the {@link ONTObject} that matches the triple's subject-uri using the given factory.
      *
-     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @param factory {@link ModelObjectFactory}, not {@code null}
      * @return an {@link ONTObject}
      * @throws ClassCastException in case the subject is not an URI resource
      */
-    ONTObject<? extends S> getURISubject(InternalObjectFactory factory);
+    ONTObject<? extends S> getURISubject(ModelObjectFactory factory);
 
     /**
      * Finds the {@link ONTObject} that matches the triple's object-uri using the given factory.
      *
-     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @param factory {@link ModelObjectFactory}, not {@code null}
      * @return an {@link ONTObject}
      * @throws ClassCastException in case the object is not an URI resource
      */
-    ONTObject<? extends O> getURIObject(InternalObjectFactory factory);
+    ONTObject<? extends O> getURIObject(ModelObjectFactory factory);
 
     /**
      * Picks the {@link ONTObject} that matches the subject of the given {@code statement} using the {@code factory}.
      *
      * @param statement {@link OntStatement}, the source to parse, not {@code null}
-     * @param factory   {@link InternalObjectFactory} to fetch an {@link ONTObject}, not {@code null}
+     * @param factory   {@link ModelObjectFactory} to fetch an {@link ONTObject}, not {@code null}
      * @return an {@link ONTObject} that can be seen as wrapper of {@link S}
      */
-    ONTObject<? extends S> subjectFromStatement(OntStatement statement, InternalObjectFactory factory);
+    ONTObject<? extends S> subjectFromStatement(OntStatement statement, ModelObjectFactory factory);
 
     /**
      * Picks the {@link ONTObject} that matches the object of the given {@code statement} using the {@code factory}.
      *
      * @param statement {@link OntStatement}, the source to parse, not {@code null}
-     * @param factory   {@link InternalObjectFactory} to fetch an {@link ONTObject}, not {@code null}
+     * @param factory   {@link ModelObjectFactory} to fetch an {@link ONTObject}, not {@code null}
      * @return an {@link ONTObject} that can be seen as wrapper of {@link O}
      */
-    ONTObject<? extends O> objectFromStatement(OntStatement statement, InternalObjectFactory factory);
+    ONTObject<? extends O> objectFromStatement(OntStatement statement, ModelObjectFactory factory);
 
     /**
      * Finds the {@link ONTObject} that matches the subject using the {@code factory}.
      *
-     * @param factory {@link InternalObjectFactory} to fetch an {@link ONTObject}, not {@code null}
+     * @param factory {@link ModelObjectFactory} to fetch an {@link ONTObject}, not {@code null}
      * @return an {@link ONTObject} that can be seen as wrapper of {@link S}
      */
-    ONTObject<? extends S> getONTSubject(InternalObjectFactory factory);
+    ONTObject<? extends S> getONTSubject(ModelObjectFactory factory);
 
     /**
      * Finds the {@link ONTObject} that matches the object using the {@code factory}.
      *
-     * @param factory {@link InternalObjectFactory} to fetch an {@link ONTObject}, not {@code null}
+     * @param factory {@link ModelObjectFactory} to fetch an {@link ONTObject}, not {@code null}
      * @return an {@link ONTObject} that can be seen as wrapper of {@link O}
      */
-    ONTObject<? extends O> getONTObject(InternalObjectFactory factory);
+    ONTObject<? extends O> getONTObject(ModelObjectFactory factory);
 
     /**
      * Gets the subject from the base triple of this axiom.
@@ -123,7 +123,7 @@ interface WithTwoObjects<S extends OWLObject, O extends OWLObject> extends WithT
         return getONTObject(getObjectFactory());
     }
 
-    default Set<? extends OWLObject> getOWLComponentsAsSet(InternalObjectFactory factory) {
+    default Set<? extends OWLObject> getOWLComponentsAsSet(ModelObjectFactory factory) {
         Set<OWLObject> res = OWLObjectImpl.createSortedSet();
         res.add(getONTSubject(factory).getOWLObject());
         res.add(getONTObject(factory).getOWLObject());
@@ -140,29 +140,27 @@ interface WithTwoObjects<S extends OWLObject, O extends OWLObject> extends WithT
      * (its type must be {@link Complex}).
      * Note: this is an auxiliary method as shortcut to reduce copy-pasting, it is for internal usage only.
      *
+     * @param <R>       the desired {@link OWLAxiom axiom}-type
      * @param statement {@link OntStatement}, the source to parse, not {@code null}
-     * @param model     {@link OntModel}-provider, not {@code null}
      * @param simple    factory (as {@link BiFunction}) to provide {@link Simple} instance, not {@code null}
      * @param complex   factory (as {@link BiFunction}) to provide {@link Complex} instance, not {@code null}
      * @param setHash   {@code ObjIntConsumer<OWLAxiom>}, facility to assign {@code hashCode}, not {@code null}
-     * @param factory   {@link InternalObjectFactory} (singleton), not {@code null}
+     * @param factory   {@link ModelObjectFactory} (singleton), not {@code null}
      * @param config    {@link InternalConfig} (singleton), not {@code null}
-     * @param <R>       the desired {@link OWLAxiom axiom}-type
      * @return {@link R}
      */
     static <R extends ONTObject & WithTwoObjects> R create(OntStatement statement,
-                                                           Supplier<OntModel> model,
                                                            BiFunction<Triple, Supplier<OntModel>, ? extends R> simple,
                                                            BiFunction<Triple, Supplier<OntModel>, ? extends R> complex,
                                                            ObjIntConsumer<OWLAxiom> setHash,
-                                                           InternalObjectFactory factory,
+                                                           ModelObjectFactory factory,
                                                            InternalConfig config) {
-        R s = simple.apply(statement.asTriple(), model);
+        R s = simple.apply(statement.asTriple(), factory.model());
         Object[] content = Complex.initContent(s, statement, setHash, factory, config);
         if (content == null) {
             return s;
         }
-        R c = complex.apply(statement.asTriple(), model);
+        R c = complex.apply(statement.asTriple(), factory.model());
         setHash.accept(c, s.hashCode());
         ((WithContent<?>) c).putContent(content);
         return c;
@@ -182,17 +180,17 @@ interface WithTwoObjects<S extends OWLObject, O extends OWLObject> extends WithT
 
         @Override
         default Stream<ONTObject<? extends OWLObject>> objects() {
-            InternalObjectFactory factory = getObjectFactory();
+            ModelObjectFactory factory = getObjectFactory();
             return Stream.of(getONTSubject(factory), getONTObject(factory));
         }
 
         @Override
-        default ONTObject<? extends S> getONTSubject(InternalObjectFactory factory) {
+        default ONTObject<? extends S> getONTSubject(ModelObjectFactory factory) {
             return getURISubject(factory);
         }
 
         @Override
-        default ONTObject<? extends O> getONTObject(InternalObjectFactory factory) {
+        default ONTObject<? extends O> getONTObject(ModelObjectFactory factory) {
             return getURIObject(factory);
         }
     }
@@ -216,14 +214,14 @@ interface WithTwoObjects<S extends OWLObject, O extends OWLObject> extends WithT
          * @param axiom     - a {@link WithTwoObjects} instance, the axiom, not {@code null}
          * @param statement - a {@link OntStatement}, the source statement, not {@code null}
          * @param setHash   - a {@code ObjIntConsumer<OWLAxiom>}, facility to assign {@code hashCode}, not {@code null}
-         * @param factory   - a {@link InternalObjectFactory} singleton, not {@code null}
+         * @param factory   - a {@link ModelObjectFactory} singleton, not {@code null}
          * @param config    - a {@link InternalConfig} singleton, not {@code null}
          * @return an {@code Array} with content or {@code null} if no content is needed
          */
         static Object[] initContent(WithTwoObjects axiom,
                                     OntStatement statement,
                                     ObjIntConsumer<OWLAxiom> setHash,
-                                    InternalObjectFactory factory,
+                                    ModelObjectFactory factory,
                                     InternalConfig config) {
             Collection annotations = ONTAxiomImpl.collectAnnotations(statement, factory, config);
             int size = annotations.size();
@@ -268,7 +266,7 @@ interface WithTwoObjects<S extends OWLObject, O extends OWLObject> extends WithT
         @Override
         default Object[] collectContent() {
             OntStatement statement = asStatement();
-            InternalObjectFactory factory = getObjectFactory();
+            ModelObjectFactory factory = getObjectFactory();
             List<ONTObject> res = new ArrayList<>(2);
             if (!statement.getSubject().isURIResource()) {
                 res.add(subjectFromStatement(statement, factory));
@@ -281,22 +279,22 @@ interface WithTwoObjects<S extends OWLObject, O extends OWLObject> extends WithT
         }
 
         @Override
-        default ONTObject<? extends S> getONTSubject(InternalObjectFactory factory) {
+        default ONTObject<? extends S> getONTSubject(ModelObjectFactory factory) {
             return findONTSubject(getContent(), factory);
         }
 
         @Override
-        default ONTObject<? extends O> getONTObject(InternalObjectFactory factory) {
+        default ONTObject<? extends O> getONTObject(ModelObjectFactory factory) {
             return findONTObject(getContent(), factory);
         }
 
         @SuppressWarnings("unchecked")
-        default ONTObject<? extends S> findONTSubject(Object[] content, InternalObjectFactory factory) {
+        default ONTObject<? extends S> findONTSubject(Object[] content, ModelObjectFactory factory) {
             return hasURISubject() ? getURISubject(factory) : (ONTObject<? extends S>) content[0];
         }
 
         @SuppressWarnings("unchecked")
-        default ONTObject<? extends O> findONTObject(Object[] content, InternalObjectFactory factory) {
+        default ONTObject<? extends O> findONTObject(Object[] content, ModelObjectFactory factory) {
             return hasURIObject() ? getURIObject(factory)
                     : (ONTObject<? extends O>) content[hasURISubject() ? 0 : 1];
         }
@@ -319,7 +317,7 @@ interface WithTwoObjects<S extends OWLObject, O extends OWLObject> extends WithT
             Stream objects = null;
             Stream res = Arrays.stream(content);
             if (hasURISubject()) {
-                InternalObjectFactory factory = getObjectFactory();
+                ModelObjectFactory factory = getObjectFactory();
                 objects = hasURIObject() ?
                         Stream.of(getURISubject(factory), getURIObject(factory)) :
                         Stream.of(getURISubject(factory));
@@ -331,7 +329,7 @@ interface WithTwoObjects<S extends OWLObject, O extends OWLObject> extends WithT
         }
 
         @Override
-        default Set<? extends OWLObject> getOWLComponentsAsSet(InternalObjectFactory factory) {
+        default Set<? extends OWLObject> getOWLComponentsAsSet(ModelObjectFactory factory) {
             Object[] content = getContent();
             Set<OWLObject> res = OWLObjectImpl.createSortedSet();
             res.add(findONTSubject(content, factory).getOWLObject());
@@ -362,15 +360,15 @@ interface WithTwoObjects<S extends OWLObject, O extends OWLObject> extends WithT
      */
     interface Unary<X extends OWLObject> extends WithTwoObjects<X, X> {
 
-        ONTObject<? extends X> findByURI(String uri, InternalObjectFactory factory);
+        ONTObject<? extends X> findByURI(String uri, ModelObjectFactory factory);
 
         @Override
-        default ONTObject<? extends X> getURISubject(InternalObjectFactory factory) {
+        default ONTObject<? extends X> getURISubject(ModelObjectFactory factory) {
             return findByURI(getSubjectURI(), factory);
         }
 
         @Override
-        default ONTObject<? extends X> getURIObject(InternalObjectFactory factory) {
+        default ONTObject<? extends X> getURIObject(ModelObjectFactory factory) {
             return findByURI(getObjectURI(), factory);
         }
     }

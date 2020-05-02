@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -15,10 +15,7 @@
 package com.github.owlcs.ontapi.internal.axioms;
 
 import com.github.owlcs.ontapi.DataFactory;
-import com.github.owlcs.ontapi.internal.InternalCache;
-import com.github.owlcs.ontapi.internal.InternalConfig;
-import com.github.owlcs.ontapi.internal.InternalObjectFactory;
-import com.github.owlcs.ontapi.internal.ONTObject;
+import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
@@ -86,10 +83,9 @@ public class DifferentIndividualsTranslator
 
     @Override
     public ONTObject<OWLDifferentIndividualsAxiom> toAxiomImpl(OntStatement statement,
-                                                               Supplier<OntModel> model,
-                                                               InternalObjectFactory factory,
+                                                               ModelObjectFactory factory,
                                                                InternalConfig config) {
-        return AxiomImpl.create(statement, model, factory, config);
+        return AxiomImpl.create(statement, factory, config);
     }
 
     @Override
@@ -120,25 +116,23 @@ public class DifferentIndividualsTranslator
          * Creates an {@link ONTObject} container, that is also {@link OWLDifferentIndividualsAxiom}.
          *
          * @param statement {@link OntStatement}, not {@code null}
-         * @param model     {@link OntModel} provider, not {@code null}
          * @param factory   {@link InternalObjectFactory}, not {@code null}
          * @param config    {@link InternalConfig}, not {@code null}
          * @return {@link AxiomImpl}
          */
         public static AxiomImpl create(OntStatement statement,
-                                       Supplier<OntModel> model,
-                                       InternalObjectFactory factory,
+                                       ModelObjectFactory factory,
                                        InternalConfig config) {
             if (PREDICATE.equals(statement.getPredicate())) {
-                return WithManyObjects.create(statement, model,
+                return WithManyObjects.create(statement,
                         SimpleImpl.FACTORY, ComplexImpl.FACTORY, SET_HASH_CODE, factory, config);
             }
-            return WithManyObjects.create(statement, model, ComplexImpl.FACTORY, SET_HASH_CODE, factory, config);
+            return WithManyObjects.create(statement, ComplexImpl.FACTORY, SET_HASH_CODE, factory, config);
         }
 
         @Override
         public ExtendedIterator<ONTObject<? extends OWLIndividual>> listONTComponents(OntStatement statement,
-                                                                                      InternalObjectFactory factory) {
+                                                                                      ModelObjectFactory factory) {
             if (PREDICATE.equals(statement.getPredicate())) {
                 return super.listONTComponents(statement, factory);
             }

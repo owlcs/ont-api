@@ -139,13 +139,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> extends BaseSearch
      */
     public final ONTObject<Axiom> toAxiom(OntStatement statement) throws JenaException {
         OntModel m = statement.getModel();
-        if (m instanceof HasConfig && m instanceof HasObjectFactory) {
-            // use ONTObject implementations:
-            return toAxiomImpl(statement, () -> m,
-                    ((HasObjectFactory) m).getObjectFactory(), ((HasConfig) m).getConfig());
-        }
-        // use ONTWrapper:
-        return toAxiomWrap(statement, getObjectFactory(statement.getModel()), getConfig(statement.getModel()));
+        return toAxiom(this, statement, getObjectFactory(m), getConfig(m));
     }
 
     /**
@@ -254,16 +248,14 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> extends BaseSearch
      * that is attached to the model.
      *
      * @param statement {@link OntStatement} the statement which determines the axiom
-     * @param model     a facility (as {@link Supplier}) to provide nonnull {@link OntModel}
-     * @param factory   {@link InternalObjectFactory} the data factory to create OWL-API objects
+     * @param factory   {@link ModelObjectFactory} the data factory to create OWL-API objects
      * @param config    {@link InternalConfig} to control process
      * @return {@link ONTObject} around {@link OWLAxiom}
      * @throws JenaException if no possible to get axiom from the statement
      * @since 2.0.0
      */
     protected abstract ONTObject<Axiom> toAxiomImpl(OntStatement statement,
-                                                    Supplier<OntModel> model,
-                                                    InternalObjectFactory factory,
+                                                    ModelObjectFactory factory,
                                                     InternalConfig config) throws JenaException;
 
 }

@@ -76,10 +76,9 @@ public class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInvers
 
     @Override
     public ONTObject<OWLInverseObjectPropertiesAxiom> toAxiomImpl(OntStatement statement,
-                                                                  Supplier<OntModel> model,
-                                                                  InternalObjectFactory factory,
+                                                                  ModelObjectFactory factory,
                                                                   InternalConfig config) {
-        return AxiomImpl.create(statement, model, factory, config);
+        return AxiomImpl.create(statement, factory, config);
     }
 
     @Override
@@ -114,16 +113,14 @@ public class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInvers
          * Creates an {@link ONTObject} container, that is also {@link OWLInverseObjectPropertiesAxiom}.
          *
          * @param statement {@link OntStatement}, not {@code null}
-         * @param model     {@link OntModel} provider, not {@code null}
-         * @param factory   {@link InternalObjectFactory}, not {@code null}
+         * @param factory   {@link ModelObjectFactory}, not {@code null}
          * @param config    {@link InternalConfig}, not {@code null}
          * @return {@link AxiomImpl}
          */
         public static AxiomImpl create(OntStatement statement,
-                                       Supplier<OntModel> model,
-                                       InternalObjectFactory factory,
+                                       ModelObjectFactory factory,
                                        InternalConfig config) {
-            return WithManyObjects.create(statement, model,
+            return WithManyObjects.create(statement,
                     SimpleImpl.FACTORY, ComplexImpl.FACTORY, SET_HASH_CODE, factory, config);
         }
 
@@ -142,13 +139,13 @@ public class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInvers
         }
 
         @Override
-        public ONTObject<? extends OWLObjectPropertyExpression> findByURI(String uri, InternalObjectFactory factory) {
+        public ONTObject<? extends OWLObjectPropertyExpression> findByURI(String uri, ModelObjectFactory factory) {
             return ONTObjectPropertyImpl.find(uri, factory, model);
         }
 
         @Override
         public ExtendedIterator<ONTObject<? extends OWLObjectPropertyExpression>> listONTComponents(OntStatement statement,
-                                                                                                    InternalObjectFactory factory) {
+                                                                                                    ModelObjectFactory factory) {
             return Iter.of(factory.getProperty(statement.getSubject(OntObjectProperty.class)),
                     factory.getProperty(statement.getObject(OntObjectProperty.class)));
         }

@@ -76,13 +76,18 @@ public abstract class BaseSearcher {
                                                                OntStatement statement,
                                                                InternalObjectFactory factory,
                                                                InternalConfig config) {
-        return factory == InternalObjectFactory.DEFAULT || config == InternalConfig.DEFAULT ?
-                translator.toAxiomWrap(statement, factory, config) :
-                translator.toAxiomImpl(statement, ((ModelObjectFactory) factory).model(), factory, config);
+        return factory instanceof ModelObjectFactory ?
+                translator.toAxiomImpl(statement, (ModelObjectFactory) factory, config) :
+                translator.toAxiomWrap(statement, factory, config);
     }
 
     /**
      * Splits the statement into several axioms if it is possible.
+     * Note:
+     * When the spit-setting is true, we cannot always provide an ONTStatement based axiom,
+     * because a mapping statement to axiom becomes ambiguous:
+     * the same triple may correspond different axiom-instances
+     * So, currently there is only one solution - need to use wrappers instead of model-impls
      *
      * @param <A>        a subtype of {@link OWLAxiom}
      * @param translator {@link AxiomTranslator} with generic type {@link A}, not {@code null}
@@ -96,16 +101,12 @@ public abstract class BaseSearcher {
                                                                                OntStatement statement,
                                                                                InternalObjectFactory factory,
                                                                                InternalConfig config) {
-        // When the spit-setting is true, we cannot always provide an ONTStatement based axiom,
-        // because a mapping statement to axiom becomes ambiguous:
-        // the same triple may correspond different axiom-instances
-        // So, currently there is only one solution - need to use wrappers instead of model-impls
-        if (factory == InternalObjectFactory.DEFAULT || config == InternalConfig.DEFAULT) {
+        if (!(factory instanceof ModelObjectFactory)) {
             return OntModels.listSplitStatements(statement).mapWith(s -> translator.toAxiomWrap(s, factory, config));
         }
         List<OntStatement> statements = OntModels.listSplitStatements(statement).toList();
         if (statements.size() == 1) { // unambiguous mapping
-            return Iter.of(translator.toAxiomImpl(statement, ((ModelObjectFactory) factory).model(), factory, config));
+            return Iter.of(translator.toAxiomImpl(statement, (ModelObjectFactory) factory, config));
         }
         return Iter.create(statements).mapWith(s -> translator.toAxiomWrap(s, factory, config));
     }

@@ -109,13 +109,13 @@ public abstract class AbstractPropertyDomainTranslator<Axiom extends OWLAxiom & 
         }
 
         @Override
-        public ONTObject<? extends OWLClassExpression> getURIObject(InternalObjectFactory factory) {
+        public ONTObject<? extends OWLClassExpression> getURIObject(ModelObjectFactory factory) {
             return ONTClassImpl.find(getObjectURI(), factory, model);
         }
 
         @Override
         public ONTObject<? extends OWLClassExpression> objectFromStatement(OntStatement statement,
-                                                                           InternalObjectFactory factory) {
+                                                                           ModelObjectFactory factory) {
             return factory.getClass(statement.getObject(OntClass.class));
         }
     }

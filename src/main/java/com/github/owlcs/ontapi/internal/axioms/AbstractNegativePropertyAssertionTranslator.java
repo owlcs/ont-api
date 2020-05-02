@@ -145,7 +145,7 @@ public abstract class AbstractNegativePropertyAssertionTranslator<Axiom extends 
 
         @Override
         public ONTObject<? extends OWLIndividual> fetchONTSubject(OntStatement statement,
-                                                                  InternalObjectFactory factory) {
+                                                                  ModelObjectFactory factory) {
             return factory.getIndividual(getResource(statement).getSource());
         }
 
@@ -169,7 +169,7 @@ public abstract class AbstractNegativePropertyAssertionTranslator<Axiom extends 
         }
 
         @Override
-        public ONTObject<? extends OWLIndividual> toSubject(Object s, InternalObjectFactory factory) {
+        public ONTObject<? extends OWLIndividual> toSubject(Object s, ModelObjectFactory factory) {
             return toIndividual(s, factory);
         }
 

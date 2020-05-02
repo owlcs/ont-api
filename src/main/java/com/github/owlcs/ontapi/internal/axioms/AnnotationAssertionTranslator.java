@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -87,10 +87,9 @@ public class AnnotationAssertionTranslator
 
     @Override
     public ONTObject<OWLAnnotationAssertionAxiom> toAxiomImpl(OntStatement statement,
-                                                              Supplier<OntModel> model,
-                                                              InternalObjectFactory factory,
+                                                              ModelObjectFactory factory,
                                                               InternalConfig config) {
-        return AxiomImpl.create(statement, model, factory, config);
+        return AxiomImpl.create(statement, factory, config);
     }
 
     @Override
@@ -124,31 +123,29 @@ public class AnnotationAssertionTranslator
          * Creates an {@link OWLAnnotationAssertionAxiom} that is also {@link ONTObject}.
          *
          * @param statement {@link OntStatement}, the source, not {@code null}
-         * @param model     {@link OntModel}-provider, not {@code null}
-         * @param factory   {@link InternalObjectFactory}, not {@code null}
+         * @param factory   {@link ModelObjectFactory}, not {@code null}
          * @param config    {@link InternalConfig}, not {@code null}
          * @return {@link AxiomImpl}
          */
         public static AxiomImpl create(OntStatement statement,
-                                       Supplier<OntModel> model,
-                                       InternalObjectFactory factory,
+                                       ModelObjectFactory factory,
                                        InternalConfig config) {
-            return WithAssertion.create(statement, model,
+            return WithAssertion.create(statement,
                     SimpleImpl.FACTORY, AxiomImpl.WithAnnotationsImpl.FACTORY, SET_HASH_CODE, factory, config);
         }
 
         @Override
-        public ONTObject<? extends OWLAnnotationSubject> findONTSubject(InternalObjectFactory factory) {
+        public ONTObject<? extends OWLAnnotationSubject> findONTSubject(ModelObjectFactory factory) {
             return ONTAnnotationImpl.findONTSubject(this, factory);
         }
 
         @Override
-        public ONTObject<? extends OWLAnnotationValue> findONTObject(InternalObjectFactory factory) {
+        public ONTObject<? extends OWLAnnotationValue> findONTObject(ModelObjectFactory factory) {
             return ONTAnnotationImpl.findONTObject(this, factory);
         }
 
         @Override
-        public ONTObject<? extends OWLAnnotationProperty> findONTPredicate(InternalObjectFactory factory) {
+        public ONTObject<? extends OWLAnnotationProperty> findONTPredicate(ModelObjectFactory factory) {
             return ONTAnnotationImpl.findONTPredicate(this, factory);
         }
 
@@ -211,7 +208,7 @@ public class AnnotationAssertionTranslator
             @Override
             public Set<OWLAnonymousIndividual> getAnonymousIndividualSet() {
                 Set<OWLAnonymousIndividual> res = createSortedSet();
-                InternalObjectFactory factory = null;
+                ModelObjectFactory factory = null;
                 if (subject instanceof BlankNodeId) {
                     res.add(findAnonymousSubject(factory = getObjectFactory()));
                 }
@@ -235,7 +232,7 @@ public class AnnotationAssertionTranslator
             @Override
             public Set<OWLEntity> getSignatureSet() {
                 Set<OWLEntity> res = createSortedSet();
-                InternalObjectFactory factory = getObjectFactory();
+                ModelObjectFactory factory = getObjectFactory();
                 res.add(findONTPredicate(factory).getOWLObject());
                 if (object instanceof LiteralLabel) {
                     res.add(findLiteral(factory).getDatatype());
@@ -243,15 +240,15 @@ public class AnnotationAssertionTranslator
                 return res;
             }
 
-            protected OWLLiteral findLiteral(InternalObjectFactory factory) {
+            protected OWLLiteral findLiteral(ModelObjectFactory factory) {
                 return ONTLiteralImpl.find((LiteralLabel) object, factory, model).getOWLObject();
             }
 
-            private OWLAnonymousIndividual findAnonymousSubject(InternalObjectFactory factory) {
+            private OWLAnonymousIndividual findAnonymousSubject(ModelObjectFactory factory) {
                 return findAnonymousIndividual((BlankNodeId) subject, factory).getOWLObject();
             }
 
-            private OWLAnonymousIndividual findAnonymousObject(InternalObjectFactory factory) {
+            private OWLAnonymousIndividual findAnonymousObject(ModelObjectFactory factory) {
                 return findAnonymousIndividual((BlankNodeId) object, factory).getOWLObject();
             }
         }

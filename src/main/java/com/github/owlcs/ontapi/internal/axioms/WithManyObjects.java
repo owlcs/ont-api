@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -15,7 +15,7 @@
 package com.github.owlcs.ontapi.internal.axioms;
 
 import com.github.owlcs.ontapi.internal.InternalConfig;
-import com.github.owlcs.ontapi.internal.InternalObjectFactory;
+import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.objects.ONTAxiomImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTObjectImpl;
@@ -57,52 +57,52 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
      * Gets the {@link ONTObject}-wrapper from the factory.
      *
      * @param uri     String, an entity URI, not {@code null}
-     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @param factory {@link ModelObjectFactory}, not {@code null}
      * @return {@link ONTObject} of {@link E}
      */
-    ONTObject<? extends E> findByURI(String uri, InternalObjectFactory factory);
+    ONTObject<? extends E> findByURI(String uri, ModelObjectFactory factory);
 
     /**
      * Extracts and lists all elements from the given statement.
      *
      * @param statement {@link OntStatement}, the source, not {@code null}
-     * @param factory   {@link InternalObjectFactory}, not {@code null}
+     * @param factory   {@link ModelObjectFactory}, not {@code null}
      * @return an {@link ExtendedIterator} of {@link ONTObject} with type {@link E}
      */
-    ExtendedIterator<ONTObject<? extends E>> listONTComponents(OntStatement statement, InternalObjectFactory factory);
+    ExtendedIterator<ONTObject<? extends E>> listONTComponents(OntStatement statement, ModelObjectFactory factory);
 
     /**
      * Returns a sorted and distinct {@code Stream} over all components (annotations are not included).
      *
-     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @param factory {@link ModelObjectFactory}, not {@code null}
      * @return a {@code Stream} of {@link ONTObject}s that wrap {@link E}s
      */
-    Stream<ONTObject<? extends E>> sorted(InternalObjectFactory factory);
+    Stream<ONTObject<? extends E>> sorted(ModelObjectFactory factory);
 
     /**
      * Lists all components of this axiom.
      *
-     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @param factory {@link ModelObjectFactory}, not {@code null}
      * @return a {@code Stream} of {@link ONTObject}s that wrap {@link E}s
      */
-    Stream<ONTObject<? extends E>> members(InternalObjectFactory factory);
+    Stream<ONTObject<? extends E>> members(ModelObjectFactory factory);
 
     /**
      * Lists all components and annotations of this axiom.
      *
-     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @param factory {@link ModelObjectFactory}, not {@code null}
      * @return a {@code Stream} of {@link ONTObject}s that wrap either {@link E}s or {@link OWLAnnotation}s
      */
-    Stream<ONTObject<? extends OWLObject>> objects(InternalObjectFactory factory);
+    Stream<ONTObject<? extends OWLObject>> objects(ModelObjectFactory factory);
 
     /**
      * Gets all components (as {@link ONTObject}s) in the form of sorted {@code Set}.
      *
      * @param statement {@link OntStatement}, the source, not {@code null}
-     * @param factory   {@link InternalObjectFactory}, not {@code null}
+     * @param factory   {@link ModelObjectFactory}, not {@code null}
      * @return a {@code Set} of {@link ONTObject} with type {@link E}
      */
-    default Set<ONTObject<? extends E>> fetchONTComponents(OntStatement statement, InternalObjectFactory factory) {
+    default Set<ONTObject<? extends E>> fetchONTComponents(OntStatement statement, ModelObjectFactory factory) {
         return Iter.addAll(listONTComponents(statement, factory), ONTObjectImpl.createContentSet());
     }
 
@@ -168,30 +168,28 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
      * Otherwise the instance is {@link Complex}, it is created by the factory {@code complex} and has a cache inside.
      * Note: this is an auxiliary method as shortcut to reduce copy-pasting, it is for internal usage only.
      *
+     * @param <R>       the desired {@link OWLAxiom axiom}-type
      * @param statement {@link OntStatement}, the source to parse, not {@code null}
-     * @param model     {@link OntModel}-provider, not {@code null}
      * @param simple    factory (as {@link BiFunction}) to provide {@link Simple} instance, not {@code null}
      * @param complex   factory (as {@link BiFunction}) to provide {@link Complex} instance, not {@code null}
      * @param setHash   {@code ObjIntConsumer<OWLAxiom>}, facility to assign {@code hashCode}, not {@code null}
-     * @param factory   {@link InternalObjectFactory} (singleton), not {@code null}
+     * @param factory   {@link ModelObjectFactory} (singleton), not {@code null}
      * @param config    {@link InternalConfig} (singleton), not {@code null}
-     * @param <R>       the desired {@link OWLAxiom axiom}-type
      * @return {@link R}
      */
     static <R extends ONTObject & WithManyObjects> R create(OntStatement statement,
-                                                            Supplier<OntModel> model,
                                                             BiFunction<Triple, Supplier<OntModel>, ? extends R> simple,
                                                             BiFunction<Triple, Supplier<OntModel>, ? extends R> complex,
                                                             ObjIntConsumer<OWLAxiom> setHash,
-                                                            InternalObjectFactory factory,
+                                                            ModelObjectFactory factory,
                                                             InternalConfig config) {
-        R c = complex.apply(statement.asTriple(), model);
+        R c = complex.apply(statement.asTriple(), factory.model());
         Object[] content = Complex.initContent((Complex) c, statement, setHash, true, factory, config);
         if (content != null) {
             ((WithContent<?>) c).putContent(content);
             return c;
         }
-        R s = simple.apply(statement.asTriple(), model);
+        R s = simple.apply(statement.asTriple(), factory.model());
         setHash.accept(s, c.hashCode());
         return s;
     }
@@ -202,22 +200,20 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
      * This method is intended to produce {@code n-ary} axioms
      * that are mapped from {@link com.github.owlcs.ontapi.jena.model.OntDisjoint} list-based anonymous resources.
      *
+     * @param <R>       the desired {@link OWLAxiom axiom}-type
      * @param statement {@link OntStatement}, the source to parse, not {@code null}
-     * @param model     {@link OntModel}-provider, not {@code null}
      * @param maker     factory (as {@link BiFunction}) to provide {@link Complex} instance, not {@code null}
      * @param setHash   {@code ObjIntConsumer<OWLAxiom>}, facility to assign {@code hashCode}, not {@code null}
-     * @param factory   {@link InternalObjectFactory} (singleton), not {@code null}
+     * @param factory   {@link ModelObjectFactory} (singleton), not {@code null}
      * @param config    {@link InternalConfig} (singleton), not {@code null}
-     * @param <R>       the desired {@link OWLAxiom axiom}-type
      * @return {@link R}
      */
     static <R extends ONTObject & Complex> R create(OntStatement statement,
-                                                    Supplier<OntModel> model,
                                                     BiFunction<Triple, Supplier<OntModel>, ? extends R> maker,
                                                     ObjIntConsumer<OWLAxiom> setHash,
-                                                    InternalObjectFactory factory,
+                                                    ModelObjectFactory factory,
                                                     InternalConfig config) {
-        R res = maker.apply(statement.asTriple(), model);
+        R res = maker.apply(statement.asTriple(), factory.model());
         res.putContent(Complex.initContent(res, statement, setHash, false, factory, config));
         return res;
     }
@@ -236,16 +232,16 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
 
         @SuppressWarnings({"unchecked", "RedundantCast"})
         @Override
-        default Stream<ONTObject<? extends E>> members(InternalObjectFactory factory) {
+        default Stream<ONTObject<? extends E>> members(ModelObjectFactory factory) {
             return (Stream<ONTObject<? extends E>>) ((Stream) objects(getObjectFactory()));
         }
 
-        default Stream<ONTObject<? extends OWLObject>> objects(InternalObjectFactory factory) {
+        default Stream<ONTObject<? extends OWLObject>> objects(ModelObjectFactory factory) {
             return Stream.of(findByURI(getSubjectURI(), factory), findByURI(getObjectURI(), factory));
         }
 
         @Override
-        default Stream<ONTObject<? extends E>> sorted(InternalObjectFactory factory) {
+        default Stream<ONTObject<? extends E>> sorted(ModelObjectFactory factory) {
             Set<ONTObject<? extends E>> res = ONTObjectImpl.createContentSet();
             res.add(findByURI(getSubjectURI(), factory));
             res.add(findByURI(getObjectURI(), factory));
@@ -253,7 +249,7 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
         }
 
         @Override
-        default Set<? extends OWLObject> getOWLComponentsAsSet(InternalObjectFactory factory) {
+        default Set<? extends OWLObject> getOWLComponentsAsSet(ModelObjectFactory factory) {
             Set<OWLObject> res = OWLObjectImpl.createSortedSet();
             res.add(findByURI(getSubjectURI(), factory).getOWLObject());
             res.add(findByURI(getObjectURI(), factory).getOWLObject());
@@ -279,7 +275,7 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
          * @param setHash   - a {@code ObjIntConsumer<OWLAxiom>}, facility to assign {@code hashCode}, not {@code null}
          * @param simplify  - boolean, if {@code true}, and the given statement is simple
          *                  (no annotations, uri subject and object), an {@code null} array is returned
-         * @param factory   - a {@link InternalObjectFactory} singleton, not {@code null}
+         * @param factory   - a {@link ModelObjectFactory} singleton, not {@code null}
          * @param config    - a {@link InternalConfig} singleton, not {@code null}
          * @return an {@code Array} with content or {@code null} if no content is needed
          */
@@ -288,7 +284,7 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
                                     OntStatement statement,
                                     ObjIntConsumer<OWLAxiom> setHash,
                                     boolean simplify,
-                                    InternalObjectFactory factory,
+                                    ModelObjectFactory factory,
                                     InternalConfig config) {
             Collection annotations = ONTAxiomImpl.collectAnnotations(statement, factory, config);
             Set<ONTObject> components = axiom.fetchONTComponents(statement, factory);
@@ -320,7 +316,7 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
         @Override
         default Object[] collectContent() {
             OntStatement statement = asStatement();
-            InternalObjectFactory factory = getObjectFactory();
+            ModelObjectFactory factory = getObjectFactory();
             List<Object> res = new ArrayList<>(2);
             fetchONTComponents(statement, factory).forEach(c -> res.add(toContentItem(c)));
             res.addAll(ONTAxiomImpl.collectAnnotations(statement, factory, getConfig()));
@@ -328,25 +324,25 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
         }
 
         @Override
-        default ONTObject fromContentItem(Object x, InternalObjectFactory factory) {
+        default ONTObject fromContentItem(Object x, ModelObjectFactory factory) {
             return x instanceof String ? findByURI((String) x, factory) : (ONTObject) x;
         }
 
         @SuppressWarnings("unchecked")
         @Override
-        default Stream<ONTObject<? extends OWLObject>> objects(InternalObjectFactory factory) {
+        default Stream<ONTObject<? extends OWLObject>> objects(ModelObjectFactory factory) {
             Stream res = Arrays.stream(getContent());
             return (Stream<ONTObject<? extends OWLObject>>) res.map(x -> fromContentItem(x, factory));
         }
 
         @Override
-        default Stream<ONTObject<? extends E>> members(InternalObjectFactory factory) {
+        default Stream<ONTObject<? extends E>> members(ModelObjectFactory factory) {
             return sorted(factory);
         }
 
         @SuppressWarnings("unchecked")
         @Override
-        default Stream<ONTObject<? extends E>> sorted(InternalObjectFactory factory) {
+        default Stream<ONTObject<? extends E>> sorted(ModelObjectFactory factory) {
             Stream res = Arrays.stream(getContent())
                     .map(x -> fromContentItem(x, factory))
                     .filter(x -> WithList.toOWLAnnotation(x) == null);
@@ -354,7 +350,7 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
         }
 
         @Override
-        default Set<? extends OWLObject> getOWLComponentsAsSet(InternalObjectFactory factory) {
+        default Set<? extends OWLObject> getOWLComponentsAsSet(ModelObjectFactory factory) {
             Set<OWLObject> res = OWLObjectImpl.createSortedSet();
             Arrays.stream(getContent())
                     .map(x -> fromContentItem(x, factory))

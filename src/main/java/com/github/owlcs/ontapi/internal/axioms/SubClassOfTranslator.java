@@ -72,10 +72,9 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
 
     @Override
     public ONTObject<OWLSubClassOfAxiom> toAxiomImpl(OntStatement statement,
-                                                     Supplier<OntModel> model,
-                                                     InternalObjectFactory factory,
+                                                     ModelObjectFactory factory,
                                                      InternalConfig config) {
-        return AxiomImpl.create(statement, model, factory, config);
+        return AxiomImpl.create(statement, factory, config);
     }
 
     @Override
@@ -108,16 +107,14 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
          * Creates an {@link ONTObject} container, that is also {@link OWLSubClassOfAxiom}.
          *
          * @param statement {@link OntStatement}, not {@code null}
-         * @param model     {@link OntModel} provider, not {@code null}
          * @param factory   {@link InternalObjectFactory}, not {@code null}
          * @param config    {@link InternalConfig}, not {@code null}
          * @return {@link AxiomImpl}
          */
         public static AxiomImpl create(OntStatement statement,
-                                       Supplier<OntModel> model,
-                                       InternalObjectFactory factory,
+                                       ModelObjectFactory factory,
                                        InternalConfig config) {
-            return WithTwoObjects.create(statement, model,
+            return WithTwoObjects.create(statement,
                     SimpleImpl.FACTORY, ComplexImpl.FACTORY, SET_HASH_CODE, factory, config);
         }
 
@@ -139,19 +136,19 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
         }
 
         @Override
-        public ONTObject<? extends OWLClassExpression> findByURI(String uri, InternalObjectFactory factory) {
+        public ONTObject<? extends OWLClassExpression> findByURI(String uri, ModelObjectFactory factory) {
             return ONTClassImpl.find(uri, factory, model);
         }
 
         @Override
         public ONTObject<? extends OWLClassExpression> subjectFromStatement(OntStatement statement,
-                                                                            InternalObjectFactory factory) {
+                                                                            ModelObjectFactory factory) {
             return factory.getClass(statement.getSubject(OntClass.class));
         }
 
         @Override
         public ONTObject<? extends OWLClassExpression> objectFromStatement(OntStatement statement,
-                                                                           InternalObjectFactory factory) {
+                                                                           ModelObjectFactory factory) {
             return factory.getClass(statement.getObject(OntClass.class));
         }
 

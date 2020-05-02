@@ -65,10 +65,9 @@ public class DatatypeDefinitionTranslator extends AxiomTranslator<OWLDatatypeDef
 
     @Override
     public ONTObject<OWLDatatypeDefinitionAxiom> toAxiomImpl(OntStatement statement,
-                                                             Supplier<OntModel> model,
-                                                             InternalObjectFactory factory,
+                                                             ModelObjectFactory factory,
                                                              InternalConfig config) {
-        return AxiomImpl.create(statement, model, factory, config);
+        return AxiomImpl.create(statement, factory, config);
     }
 
     @Override
@@ -101,16 +100,14 @@ public class DatatypeDefinitionTranslator extends AxiomTranslator<OWLDatatypeDef
          * Creates an {@link ONTObject} container that is also {@link OWLDatatypeDefinitionAxiom}.
          *
          * @param statement {@link OntStatement}, not {@code null}
-         * @param model     {@link OntModel} provider, not {@code null}
          * @param factory   {@link InternalObjectFactory}, not {@code null}
          * @param config    {@link InternalConfig}, not {@code null}
          * @return {@link AxiomImpl}
          */
         public static AxiomImpl create(OntStatement statement,
-                                       Supplier<OntModel> model,
-                                       InternalObjectFactory factory,
+                                       ModelObjectFactory factory,
                                        InternalConfig config) {
-            return WithTwoObjects.create(statement, model,
+            return WithTwoObjects.create(statement,
                     SimpleImpl.FACTORY, ComplexImpl.FACTORY, SET_HASH_CODE, factory, config);
         }
 
@@ -125,24 +122,24 @@ public class DatatypeDefinitionTranslator extends AxiomTranslator<OWLDatatypeDef
         }
 
         @Override
-        public ONTObject<? extends OWLDatatype> getURISubject(InternalObjectFactory factory) {
+        public ONTObject<? extends OWLDatatype> getURISubject(ModelObjectFactory factory) {
             return ONTDatatypeImpl.find(getSubjectURI(), factory, model);
         }
 
         @Override
         public ONTObject<? extends OWLDatatype> subjectFromStatement(OntStatement statement,
-                                                                     InternalObjectFactory factory) {
+                                                                     ModelObjectFactory factory) {
             return factory.getDatatype(statement.getSubject(OntDataRange.Named.class));
         }
 
         @Override
-        public ONTObject<? extends OWLDataRange> getURIObject(InternalObjectFactory factory) {
+        public ONTObject<? extends OWLDataRange> getURIObject(ModelObjectFactory factory) {
             return ONTDatatypeImpl.find(getObjectURI(), factory, model);
         }
 
         @Override
         public ONTObject<? extends OWLDataRange> objectFromStatement(OntStatement statement,
-                                                                     InternalObjectFactory factory) {
+                                                                     ModelObjectFactory factory) {
             return factory.getDatatype(statement.getObject(OntDataRange.class));
         }
 

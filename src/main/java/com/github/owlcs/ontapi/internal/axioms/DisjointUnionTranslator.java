@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -18,6 +18,7 @@ import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.internal.InternalConfig;
 import com.github.owlcs.ontapi.internal.InternalObjectFactory;
+import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTClassImpl;
@@ -75,10 +76,9 @@ public class DisjointUnionTranslator extends AbstractListBasedTranslator<OWLDisj
 
     @Override
     public ONTObject<OWLDisjointUnionAxiom> toAxiomImpl(OntStatement statement,
-                                                        Supplier<OntModel> model,
-                                                        InternalObjectFactory factory,
+                                                        ModelObjectFactory factory,
                                                         InternalConfig config) {
-        return AxiomImpl.create(statement, model, factory, config);
+        return AxiomImpl.create(statement, factory, config);
     }
 
     @Override
@@ -113,16 +113,14 @@ public class DisjointUnionTranslator extends AbstractListBasedTranslator<OWLDisj
          * Creates an {@link ONTObject} container that is also {@link  OWLDisjointUnionAxiom}.
          *
          * @param statement {@link OntStatement}, not {@code null}
-         * @param model     {@link OntModel} provider, not {@code null}
          * @param factory   {@link InternalObjectFactory}, not {@code null}
          * @param config    {@link InternalConfig}, not {@code null}
          * @return {@link AxiomImpl}
          */
         public static AxiomImpl create(OntStatement statement,
-                                       Supplier<OntModel> model,
-                                       InternalObjectFactory factory,
+                                       ModelObjectFactory factory,
                                        InternalConfig config) {
-            return WithList.Sorted.create(statement, model, FACTORY, SET_HASH_CODE, factory, config);
+            return WithList.Sorted.create(statement, FACTORY, SET_HASH_CODE, factory, config);
         }
 
         @Override
@@ -133,7 +131,7 @@ public class DisjointUnionTranslator extends AbstractListBasedTranslator<OWLDisj
 
         @Override
         public ExtendedIterator<ONTObject<? extends OWLClassExpression>> listONTComponents(OntStatement statement,
-                                                                                           InternalObjectFactory factory) {
+                                                                                           ModelObjectFactory factory) {
             return OntModels.listMembers(findList(statement)).mapWith(factory::getClass);
         }
 
@@ -154,18 +152,18 @@ public class DisjointUnionTranslator extends AbstractListBasedTranslator<OWLDisj
 
         @SuppressWarnings("rawtypes")
         @Override
-        public ONTObject fromContentItem(Object x, InternalObjectFactory factory) {
+        public ONTObject fromContentItem(Object x, ModelObjectFactory factory) {
             return x instanceof String ? findSubjectByURI((String) x, factory) : (ONTObject) x;
         }
 
         @Override
-        public ONTObject<OWLClass> findSubjectByURI(String uri, InternalObjectFactory factory) {
+        public ONTObject<OWLClass> findSubjectByURI(String uri, ModelObjectFactory factory) {
             return ONTClassImpl.find(uri, factory, model);
         }
 
         @Override
         public ONTObject<OWLClass> fetchONTSubject(OntStatement statement,
-                                                   InternalObjectFactory factory) {
+                                                   ModelObjectFactory factory) {
             return findSubjectByURI(statement.getSubject().getURI(), factory);
         }
 
@@ -182,7 +180,7 @@ public class DisjointUnionTranslator extends AbstractListBasedTranslator<OWLDisj
         @FactoryAccessor
         @Override
         protected OWLDisjointUnionAxiom createAnnotatedAxiom(Object[] content,
-                                                             InternalObjectFactory factory,
+                                                             ModelObjectFactory factory,
                                                              Collection<OWLAnnotation> annotations) {
             return getDataFactory().getOWLDisjointUnionAxiom(getFactoryClass(content, factory),
                     getFactoryMembers(content, factory), annotations);
@@ -192,7 +190,7 @@ public class DisjointUnionTranslator extends AbstractListBasedTranslator<OWLDisj
         @Override
         public OWLEquivalentClassesAxiom getOWLEquivalentClassesAxiom() {
             DataFactory df = getDataFactory();
-            InternalObjectFactory factory = getObjectFactory();
+            ModelObjectFactory factory = getObjectFactory();
             Object[] content = getContent();
             return df.getOWLEquivalentClassesAxiom(getFactoryClass(content, factory),
                     df.getOWLObjectUnionOf(getFactoryMembers(content, factory)));
@@ -205,12 +203,12 @@ public class DisjointUnionTranslator extends AbstractListBasedTranslator<OWLDisj
         }
 
         @FactoryAccessor
-        protected List<OWLClassExpression> getFactoryMembers(Object[] content, InternalObjectFactory factory) {
+        protected List<OWLClassExpression> getFactoryMembers(Object[] content, ModelObjectFactory factory) {
             return members(content, factory).map(x -> eraseModel(x.getOWLObject())).collect(Collectors.toList());
         }
 
         @FactoryAccessor
-        protected OWLClass getFactoryClass(Object[] content, InternalObjectFactory factory) {
+        protected OWLClass getFactoryClass(Object[] content, ModelObjectFactory factory) {
             return eraseModel(findONTSubject(content[0], factory).getOWLObject());
         }
     }

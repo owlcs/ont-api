@@ -219,7 +219,7 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
                 return Arrays.equals(((WithContent<?>) this).getContent(), ((WithContent<?>) other).getContent());
             }
             if (other instanceof WithManyObjects) {
-                InternalObjectFactory factory = getObjectFactory();
+                ModelObjectFactory factory = getObjectFactory();
                 return equalIterators(objects(factory).iterator(),
                         ((WithManyObjects<?>) other).objects(factory).iterator());
             }
@@ -260,13 +260,13 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
 
         @Override
         public ExtendedIterator<ONTObject<? extends OWLClassExpression>> listONTComponents(OntStatement statement,
-                                                                                           InternalObjectFactory factory) {
+                                                                                           ModelObjectFactory factory) {
             return Iter.of(factory.getClass(statement.getSubject(OntClass.class)),
                     factory.getClass(statement.getObject(OntClass.class)));
         }
 
         @Override
-        public ONTObject<? extends OWLClassExpression> findByURI(String uri, InternalObjectFactory factory) {
+        public ONTObject<? extends OWLClassExpression> findByURI(String uri, ModelObjectFactory factory) {
             return ONTClassImpl.find(uri, factory, model);
         }
 
@@ -301,13 +301,13 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
 
         @Override
         public ExtendedIterator<ONTObject<? extends OWLIndividual>> listONTComponents(OntStatement statement,
-                                                                                      InternalObjectFactory factory) {
+                                                                                      ModelObjectFactory factory) {
             return Iter.of(factory.getIndividual(statement.getSubject(OntIndividual.class)),
                     factory.getIndividual(statement.getObject(OntIndividual.class)));
         }
 
         @Override
-        public ONTObject<? extends OWLIndividual> findByURI(String uri, InternalObjectFactory factory) {
+        public ONTObject<? extends OWLIndividual> findByURI(String uri, ModelObjectFactory factory) {
             return ONTNamedIndividualImpl.find(uri, factory, model);
         }
 
@@ -342,7 +342,7 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
         }
 
         @SuppressWarnings("rawtypes")
-        public ONTObject fromContentItem(Object x, InternalObjectFactory factory) {
+        public ONTObject fromContentItem(Object x, ModelObjectFactory factory) {
             if (x instanceof String)
                 return findByURI((String) x, factory);
             if (x instanceof BlankNodeId)
@@ -372,13 +372,13 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
 
         @Override
         public ExtendedIterator<ONTObject<? extends OWLObjectPropertyExpression>> listONTComponents(OntStatement statement,
-                                                                                                    InternalObjectFactory factory) {
+                                                                                                    ModelObjectFactory factory) {
             return Iter.of(factory.getProperty(statement.getSubject(OntObjectProperty.class)),
                     factory.getProperty(statement.getObject(OntObjectProperty.class)));
         }
 
         @Override
-        public ONTObject<? extends OWLObjectPropertyExpression> findByURI(String uri, InternalObjectFactory factory) {
+        public ONTObject<? extends OWLObjectPropertyExpression> findByURI(String uri, ModelObjectFactory factory) {
             return ONTObjectPropertyImpl.find(uri, factory, model);
         }
 
@@ -403,13 +403,13 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
 
         @Override
         public ExtendedIterator<ONTObject<? extends OWLDataPropertyExpression>> listONTComponents(OntStatement statement,
-                                                                                                  InternalObjectFactory factory) {
+                                                                                                  ModelObjectFactory factory) {
             return Iter.of(factory.getProperty(statement.getSubject(OntDataProperty.class)),
                     factory.getProperty(statement.getObject(OntDataProperty.class)));
         }
 
         @Override
-        public ONTObject<? extends OWLDataPropertyExpression> findByURI(String uri, InternalObjectFactory factory) {
+        public ONTObject<? extends OWLDataPropertyExpression> findByURI(String uri, ModelObjectFactory factory) {
             return ONTDataPropertyImpl.find(uri, factory, model);
         }
 
