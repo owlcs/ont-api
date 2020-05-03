@@ -14,7 +14,7 @@
 
 package com.github.owlcs.ontapi.internal.axioms;
 
-import com.github.owlcs.ontapi.internal.InternalConfig;
+import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.objects.*;
@@ -161,7 +161,7 @@ interface WithAssertion<S extends OWLObject, P extends OWLObject, O extends OWLO
      * @param complex   factory (as {@link BiFunction}) to provide {@link WithAnnotations} instance, not {@code null}
      * @param setHash   {@code ObjIntConsumer<OWLAxiom>}, facility to assign {@code hashCode}, not {@code null}
      * @param factory   {@link ModelObjectFactory} (singleton), not {@code null}
-     * @param config    {@link InternalConfig} (singleton), not {@code null}
+     * @param config    {@link AxiomsSettings} (singleton), not {@code null}
      * @return {@link R}
      */
     static <R extends ONTObject & WithAssertion> R create(OntStatement statement,
@@ -169,7 +169,7 @@ interface WithAssertion<S extends OWLObject, P extends OWLObject, O extends OWLO
                                                           BiFunction<Triple, Supplier<OntModel>, ? extends R> complex,
                                                           ObjIntConsumer<OWLAxiom> setHash,
                                                           ModelObjectFactory factory,
-                                                          InternalConfig config) {
+                                                          AxiomsSettings config) {
         R s = simple.apply(statement.asTriple(), factory.model());
         Object[] content = WithAnnotations.initContent(s, statement, setHash, factory, config);
         if (content == null) {
@@ -192,14 +192,14 @@ interface WithAssertion<S extends OWLObject, P extends OWLObject, O extends OWLO
      * @param maker     a factory (as {@link BiFunction}) to provide {@link Complex} instance, not {@code null}
      * @param setHash   {@code ObjIntConsumer<OWLAxiom>}, facility to assign {@code hashCode}, not {@code null}
      * @param factory   {@link ModelObjectFactory} (singleton), not {@code null}
-     * @param config    {@link InternalConfig} (singleton), not {@code null}
+     * @param config    {@link AxiomsSettings} (singleton), not {@code null}
      * @return {@link R}
      */
     static <R extends ONTObject & Complex> R create(OntStatement statement,
                                                     BiFunction<Triple, Supplier<OntModel>, ? extends R> maker,
                                                     ObjIntConsumer<OWLAxiom> setHash,
                                                     ModelObjectFactory factory,
-                                                    InternalConfig config) {
+                                                    AxiomsSettings config) {
         R res = maker.apply(statement.asTriple(), factory.model());
         Object[] content = Complex.initContent(res, statement, setHash, factory, config);
         res.putContent(content);
@@ -243,14 +243,14 @@ interface WithAssertion<S extends OWLObject, P extends OWLObject, O extends OWLO
          * @param setHash   - a {@code ObjIntConsumer<OWLAxiom>}, facility to assign {@code hashCode}, not {@code null}
          *                  (no annotations, uri subject and object), an empty array is returned
          * @param factory   - a {@link ModelObjectFactory} singleton, not {@code null}
-         * @param config    - a {@link InternalConfig} singleton, not {@code null}
+         * @param config    - a {@link AxiomsSettings} singleton, not {@code null}
          * @return an {@code Array} with content or {@code null} if no content is needed
          */
         static Object[] initContent(WithAssertion axiom,
                                     OntStatement statement,
                                     ObjIntConsumer<OWLAxiom> setHash,
                                     ModelObjectFactory factory,
-                                    InternalConfig config) {
+                                    AxiomsSettings config) {
             int hash = OWLObject.hashIteration(axiom.hashIndex(), axiom.fetchONTSubject(statement, factory).hashCode());
             hash = OWLObject.hashIteration(hash, axiom.fetchONTPredicate(statement, factory).hashCode());
             hash = OWLObject.hashIteration(hash, axiom.fetchONTObject(statement, factory).hashCode());
@@ -269,7 +269,7 @@ interface WithAssertion<S extends OWLObject, P extends OWLObject, O extends OWLO
         default Object[] collectContent() {
             OntStatement statement = asStatement();
             ModelObjectFactory factory = getObjectFactory();
-            InternalConfig config = getConfig();
+            AxiomsSettings config = getConfig();
             return ONTAxiomImpl.collectAnnotations(statement, factory, config).toArray();
         }
 
@@ -317,14 +317,14 @@ interface WithAssertion<S extends OWLObject, P extends OWLObject, O extends OWLO
          * @param setHash   - a {@code ObjIntConsumer<OWLAxiom>}, facility to assign {@code hashCode}, not {@code null}
          *                  (no annotations, uri subject and object), an empty array is returned
          * @param factory   - a {@link ModelObjectFactory} singleton, not {@code null}
-         * @param config    - a {@link InternalConfig} singleton, not {@code null}
+         * @param config    - a {@link AxiomsSettings} singleton, not {@code null}
          * @return an {@code Array} with content
          */
         static Object[] initContent(Complex axiom,
                                     OntStatement statement,
                                     ObjIntConsumer<OWLAxiom> setHash,
                                     ModelObjectFactory factory,
-                                    InternalConfig config) {
+                                    AxiomsSettings config) {
             Collection annotations = ONTAxiomImpl.collectAnnotations(statement, factory, config);
             Object[] res = new Object[annotations.size() + 3];
             int hash = axiom.hashIndex();
@@ -351,7 +351,7 @@ interface WithAssertion<S extends OWLObject, P extends OWLObject, O extends OWLO
         default Object[] collectContent() {
             OntStatement statement = asStatement();
             ModelObjectFactory factory = getObjectFactory();
-            InternalConfig config = getConfig();
+            AxiomsSettings config = getConfig();
             Collection annotations = ONTAxiomImpl.collectAnnotations(statement, factory, config);
             Object[] res = new Object[annotations.size() + 3];
             int i = 0;

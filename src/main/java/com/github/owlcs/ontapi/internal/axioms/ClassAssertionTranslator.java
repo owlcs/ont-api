@@ -15,6 +15,7 @@
 package com.github.owlcs.ontapi.internal.axioms;
 
 import com.github.owlcs.ontapi.DataFactory;
+import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.*;
 import com.github.owlcs.ontapi.jena.model.*;
@@ -56,7 +57,7 @@ public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionA
     }
 
     @Override
-    public ExtendedIterator<OntStatement> listStatements(OntModel model, InternalConfig config) {
+    public ExtendedIterator<OntStatement> listStatements(OntModel model, AxiomsSettings config) {
         Set<Node> forbidden = getSystemResources(model);
         return model.getBaseGraph().find(Node.ANY, RDF.Nodes.type, Node.ANY)
                 .filterDrop(t -> forbidden.contains(t.getObject()))
@@ -65,7 +66,7 @@ public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionA
     }
 
     @Override
-    public boolean testStatement(OntStatement statement, InternalConfig config) {
+    public boolean testStatement(OntStatement statement, AxiomsSettings config) {
         return statement.isDeclaration() && filterSO(statement);
     }
 
@@ -86,14 +87,14 @@ public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionA
     @Override
     public ONTObject<OWLClassAssertionAxiom> toAxiomImpl(OntStatement statement,
                                                          ModelObjectFactory factory,
-                                                         InternalConfig config) {
+                                                         AxiomsSettings config) {
         return AxiomImpl.create(statement, factory, config);
     }
 
     @Override
     public ONTObject<OWLClassAssertionAxiom> toAxiomWrap(OntStatement statement,
                                                          InternalObjectFactory factory,
-                                                         InternalConfig config) {
+                                                         AxiomsSettings config) {
         ONTObject<? extends OWLIndividual> i = factory.getIndividual(statement.getSubject(OntIndividual.class));
         ONTObject<? extends OWLClassExpression> ce = factory.getClass(statement.getObject(OntClass.class));
 
@@ -122,12 +123,12 @@ public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionA
          *
          * @param statement {@link OntStatement}, not {@code null}
          * @param factory   {@link InternalObjectFactory}, not {@code null}
-         * @param config    {@link InternalConfig}, not {@code null}
+         * @param config    {@link AxiomsSettings}, not {@code null}
          * @return {@link AxiomImpl}
          */
         public static AxiomImpl create(OntStatement statement,
                                        ModelObjectFactory factory,
-                                       InternalConfig config) {
+                                       AxiomsSettings config) {
             AxiomImpl s = new SimpleImpl(statement.asTriple(), factory.model());
             Object[] content = ComplexImpl.initContent(s, statement, factory, config);
             if (content == null) return s;
@@ -297,7 +298,7 @@ public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionA
             static Object[] initContent(AxiomImpl axiom,
                                         OntStatement statement,
                                         ModelObjectFactory factory,
-                                        InternalConfig config) {
+                                        AxiomsSettings config) {
                 Collection<?> annotations = ONTAxiomImpl.collectAnnotations(statement, factory, config);
                 int size = annotations.size();
                 int hash = OWLObject.hashIteration(axiom.hashIndex(), axiom.getONTSubject(factory).hashCode());

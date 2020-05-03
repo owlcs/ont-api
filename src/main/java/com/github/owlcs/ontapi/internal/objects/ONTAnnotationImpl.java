@@ -107,7 +107,7 @@ public abstract class ONTAnnotationImpl extends ONTStatementImpl
      * @param factory {@link InternalObjectFactory} to retrieve {@link ONTObject}s, not {@code null}
      * @return a sorted nonnull distinct {@code Collection} {@code Collection}
      * of {@link ONTObject}s with {@link OWLAnnotation}s (can be empty if no annotations)
-     * @see ONTAxiomImpl#collectAnnotations(OntStatement, InternalObjectFactory, InternalConfig)
+     * @see ONTAxiomImpl#collectAnnotations(OntStatement, InternalObjectFactory, com.github.owlcs.ontapi.config.AxiomsSettings)
      */
     protected static Collection<ONTObject<OWLAnnotation>> collectAnnotations(OntStatement root,
                                                                              InternalObjectFactory factory) {

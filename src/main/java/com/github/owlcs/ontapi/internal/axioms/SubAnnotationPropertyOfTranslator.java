@@ -14,6 +14,7 @@
 
 package com.github.owlcs.ontapi.internal.axioms;
 
+import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
@@ -58,38 +59,38 @@ public class SubAnnotationPropertyOfTranslator
      * Returns {@link OntStatement}s defining the {@link OWLSubAnnotationPropertyOfAxiom} axiom.
      *
      * @param model  {@link OntModel}
-     * @param config {@link InternalConfig}
+     * @param config {@link AxiomsSettings}
      * @return {@link ExtendedIterator} of {@link OntStatement}s
      */
     @Override
-    public ExtendedIterator<OntStatement> listStatements(OntModel model, InternalConfig config) {
+    public ExtendedIterator<OntStatement> listStatements(OntModel model, AxiomsSettings config) {
         if (!config.isLoadAnnotationAxioms()) return NullIterator.instance();
         return super.listStatements(model, config);
     }
 
     @Override
-    protected boolean filter(OntStatement statement, InternalConfig config) {
+    protected boolean filter(OntStatement statement, AxiomsSettings config) {
         return super.filter(statement, config)
                 && ReadHelper.testAnnotationAxiomOverlaps(statement, config,
                 AxiomType.SUB_OBJECT_PROPERTY, AxiomType.SUB_DATA_PROPERTY);
     }
 
     @Override
-    public boolean testStatement(OntStatement statement, InternalConfig config) {
+    public boolean testStatement(OntStatement statement, AxiomsSettings config) {
         return config.isLoadAnnotationAxioms() && super.testStatement(statement, config);
     }
 
     @Override
     public ONTObject<OWLSubAnnotationPropertyOfAxiom> toAxiomImpl(OntStatement statement,
                                                                   ModelObjectFactory factory,
-                                                                  InternalConfig config) {
+                                                                  AxiomsSettings config) {
         return AxiomImpl.create(statement, factory, config);
     }
 
     @Override
     public ONTObject<OWLSubAnnotationPropertyOfAxiom> toAxiomWrap(OntStatement statement,
                                                                   InternalObjectFactory factory,
-                                                                  InternalConfig config) {
+                                                                  AxiomsSettings config) {
         ONTObject<OWLAnnotationProperty> sub = factory.getProperty(statement.getSubject(OntAnnotationProperty.class));
         ONTObject<OWLAnnotationProperty> sup = factory.getProperty(statement.getObject().as(OntAnnotationProperty.class));
         Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);
@@ -114,12 +115,12 @@ public class SubAnnotationPropertyOfTranslator
          *
          * @param statement {@link OntStatement}, not {@code null}
          * @param factory   {@link InternalObjectFactory}, not {@code null}
-         * @param config    {@link InternalConfig}, not {@code null}
+         * @param config    {@link AxiomsSettings}, not {@code null}
          * @return {@link AxiomImpl}
          */
         public static AxiomImpl create(OntStatement statement,
                                        ModelObjectFactory factory,
-                                       InternalConfig config) {
+                                       AxiomsSettings config) {
             return WithTwoObjects.create(statement,
                     SimpleImpl.FACTORY, ComplexImpl.FACTORY, SET_HASH_CODE, factory, config);
         }

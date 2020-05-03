@@ -14,6 +14,7 @@
 
 package com.github.owlcs.ontapi.internal.axioms;
 
+import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTAxiomImpl;
@@ -54,13 +55,13 @@ public class DatatypeDefinitionTranslator extends AxiomTranslator<OWLDatatypeDef
     }
 
     @Override
-    public ExtendedIterator<OntStatement> listStatements(OntModel model, InternalConfig config) {
+    public ExtendedIterator<OntStatement> listStatements(OntModel model, AxiomsSettings config) {
         return listByPredicate(model, OWL.equivalentClass)
                 .filterKeep(s -> s.getSubject().canAs(OntDataRange.Named.class) && s.getObject().canAs(OntDataRange.class));
     }
 
     @Override
-    public boolean testStatement(OntStatement statement, InternalConfig config) {
+    public boolean testStatement(OntStatement statement, AxiomsSettings config) {
         return statement.getPredicate().equals(OWL.equivalentClass)
                 && statement.getSubject().canAs(OntDataRange.Named.class)
                 && statement.getObject().canAs(OntDataRange.class);
@@ -69,14 +70,14 @@ public class DatatypeDefinitionTranslator extends AxiomTranslator<OWLDatatypeDef
     @Override
     public ONTObject<OWLDatatypeDefinitionAxiom> toAxiomImpl(OntStatement statement,
                                                              ModelObjectFactory factory,
-                                                             InternalConfig config) {
+                                                             AxiomsSettings config) {
         return AxiomImpl.create(statement, factory, config);
     }
 
     @Override
     public ONTObject<OWLDatatypeDefinitionAxiom> toAxiomWrap(OntStatement statement,
                                                              InternalObjectFactory factory,
-                                                             InternalConfig config) {
+                                                             AxiomsSettings config) {
         ONTObject<OWLDatatype> dt = factory.getDatatype(statement.getSubject(OntDataRange.Named.class));
         ONTObject<? extends OWLDataRange> dr = factory.getDatatype(statement.getObject(OntDataRange.class));
         Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);
@@ -104,12 +105,12 @@ public class DatatypeDefinitionTranslator extends AxiomTranslator<OWLDatatypeDef
          *
          * @param statement {@link OntStatement}, not {@code null}
          * @param factory   {@link InternalObjectFactory}, not {@code null}
-         * @param config    {@link InternalConfig}, not {@code null}
+         * @param config    {@link AxiomsSettings}, not {@code null}
          * @return {@link AxiomImpl}
          */
         public static AxiomImpl create(OntStatement statement,
                                        ModelObjectFactory factory,
-                                       InternalConfig config) {
+                                       AxiomsSettings config) {
             return WithTwoObjects.create(statement,
                     SimpleImpl.FACTORY, ComplexImpl.FACTORY, SET_HASH_CODE, factory, config);
         }

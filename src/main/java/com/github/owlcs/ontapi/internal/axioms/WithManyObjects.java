@@ -14,7 +14,7 @@
 
 package com.github.owlcs.ontapi.internal.axioms;
 
-import com.github.owlcs.ontapi.internal.InternalConfig;
+import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.objects.ONTAxiomImpl;
@@ -174,7 +174,7 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
      * @param complex   factory (as {@link BiFunction}) to provide {@link Complex} instance, not {@code null}
      * @param setHash   {@code ObjIntConsumer<OWLAxiom>}, facility to assign {@code hashCode}, not {@code null}
      * @param factory   {@link ModelObjectFactory} (singleton), not {@code null}
-     * @param config    {@link InternalConfig} (singleton), not {@code null}
+     * @param config    {@link AxiomsSettings} (singleton), not {@code null}
      * @return {@link R}
      */
     static <R extends ONTObject & WithManyObjects> R create(OntStatement statement,
@@ -182,7 +182,7 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
                                                             BiFunction<Triple, Supplier<OntModel>, ? extends R> complex,
                                                             ObjIntConsumer<OWLAxiom> setHash,
                                                             ModelObjectFactory factory,
-                                                            InternalConfig config) {
+                                                            AxiomsSettings config) {
         R c = complex.apply(statement.asTriple(), factory.model());
         Object[] content = Complex.initContent((Complex) c, statement, setHash, true, factory, config);
         if (content != null) {
@@ -205,14 +205,14 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
      * @param maker     factory (as {@link BiFunction}) to provide {@link Complex} instance, not {@code null}
      * @param setHash   {@code ObjIntConsumer<OWLAxiom>}, facility to assign {@code hashCode}, not {@code null}
      * @param factory   {@link ModelObjectFactory} (singleton), not {@code null}
-     * @param config    {@link InternalConfig} (singleton), not {@code null}
+     * @param config    {@link AxiomsSettings} (singleton), not {@code null}
      * @return {@link R}
      */
     static <R extends ONTObject & Complex> R create(OntStatement statement,
                                                     BiFunction<Triple, Supplier<OntModel>, ? extends R> maker,
                                                     ObjIntConsumer<OWLAxiom> setHash,
                                                     ModelObjectFactory factory,
-                                                    InternalConfig config) {
+                                                    AxiomsSettings config) {
         R res = maker.apply(statement.asTriple(), factory.model());
         res.putContent(Complex.initContent(res, statement, setHash, false, factory, config));
         return res;
@@ -276,7 +276,7 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
          * @param simplify  - boolean, if {@code true}, and the given statement is simple
          *                  (no annotations, uri subject and object), an {@code null} array is returned
          * @param factory   - a {@link ModelObjectFactory} singleton, not {@code null}
-         * @param config    - a {@link InternalConfig} singleton, not {@code null}
+         * @param config    - a {@link AxiomsSettings} singleton, not {@code null}
          * @return an {@code Array} with content or {@code null} if no content is needed
          */
         @SuppressWarnings("unchecked")
@@ -285,7 +285,7 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
                                     ObjIntConsumer<OWLAxiom> setHash,
                                     boolean simplify,
                                     ModelObjectFactory factory,
-                                    InternalConfig config) {
+                                    AxiomsSettings config) {
             Collection annotations = ONTAxiomImpl.collectAnnotations(statement, factory, config);
             Set<ONTObject> components = axiom.fetchONTComponents(statement, factory);
             Object[] res = new Object[components.size() + annotations.size()];

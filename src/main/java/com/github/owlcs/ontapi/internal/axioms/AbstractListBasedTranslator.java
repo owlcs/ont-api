@@ -15,6 +15,7 @@
 package com.github.owlcs.ontapi.internal.axioms;
 
 import com.github.owlcs.ontapi.OntApiException;
+import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTAxiomImpl;
@@ -72,7 +73,7 @@ public abstract class AbstractListBasedTranslator<Axiom extends OWLLogicalAxiom,
     }
 
     @Override
-    public ExtendedIterator<OntStatement> listStatements(OntModel model, InternalConfig config) {
+    public ExtendedIterator<OntStatement> listStatements(OntModel model, AxiomsSettings config) {
         return listByPredicate(model, getPredicate()).filterKeep(this::filter);
     }
 
@@ -82,7 +83,7 @@ public abstract class AbstractListBasedTranslator<Axiom extends OWLLogicalAxiom,
     }
 
     @Override
-    public boolean testStatement(OntStatement statement, InternalConfig config) {
+    public boolean testStatement(OntStatement statement, AxiomsSettings config) {
         return getPredicate().equals(statement.getPredicate()) && filter(statement);
     }
 

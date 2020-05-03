@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -16,6 +16,7 @@ package com.github.owlcs.ontapi.internal;
 
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.OntApiException;
+import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.jena.model.*;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
@@ -52,8 +53,8 @@ public class ReadHelper {
      * Each of them is wider than the analogous statement for object or data property,
      * e.g. {@code P rdfs:range C} could be treated as {@code A rdfs:range U}, but not vice versa.
      *
-     * @param statement {@link OntStatement} to test
-     * @param conf      {@link InternalConfig}
+     * @param statement {@link OntStatement} to test, not {@code null}
+     * @param conf      {@link AxiomsSettings}, not {@code null}
      * @param o         {@link AxiomType#SUB_OBJECT_PROPERTY}
      *                                                       or {@link AxiomType#OBJECT_PROPERTY_DOMAIN}
      *                                                       or {@link AxiomType#OBJECT_PROPERTY_RANGE}
@@ -63,7 +64,7 @@ public class ReadHelper {
      * @return {@code true} if the statement is good to be represented in the form of annotation axiom
      */
     public static boolean testAnnotationAxiomOverlaps(OntStatement statement,
-                                                      InternalConfig conf,
+                                                      AxiomsSettings conf,
                                                       AxiomType<? extends OWLObjectPropertyAxiom> o,
                                                       AxiomType<? extends OWLDataPropertyAxiom> d) {
         return !conf.isIgnoreAnnotationAxiomOverlaps() ||
@@ -95,10 +96,10 @@ public class ReadHelper {
      * Answers if the given {@link OntStatement} can be considered as annotation property assertion.
      *
      * @param s      {@link OntStatement}, not {@code null}
-     * @param config {@link InternalConfig}, not {@code null}
+     * @param config {@link AxiomsSettings}, not {@code null}
      * @return {@code true} if the specified statement is annotation property assertion
      */
-    public static boolean isAnnotationAssertionStatement(OntStatement s, InternalConfig config) {
+    public static boolean isAnnotationAssertionStatement(OntStatement s, AxiomsSettings config) {
         return s.isAnnotationAssertion()
                 && !s.belongsToAnnotation()
                 && (config.isAllowBulkAnnotationAssertions() || !s.hasAnnotations());
@@ -109,20 +110,20 @@ public class ReadHelper {
      * All {@code OWLAnnotation}s are provided in the form of {@link ONTObject}-wrappers.
      *
      * @param statement {@link OntStatement}, axiom root statement, not {@code null}
-     * @param conf      {@link InternalConfig}
-     * @param of        {@link InternalObjectFactory}
+     * @param conf      {@link AxiomsSettings}, not {@code null}
+     * @param factory   {@link InternalObjectFactory}
      * @return a set of wraps {@link ONTObject} around {@link OWLAnnotation}
      */
     public static ExtendedIterator<ONTObject<OWLAnnotation>> listAnnotations(OntStatement statement,
-                                                                             InternalConfig conf,
-                                                                             InternalObjectFactory of) {
+                                                                             AxiomsSettings conf,
+                                                                             InternalObjectFactory factory) {
         ExtendedIterator<OntStatement> res = OntModels.listAnnotations(statement);
         if (conf.isLoadAnnotationAxioms() && isDeclarationStatement(statement)) {
             // for compatibility with OWL-API skip all plain annotations attached to an entity (or anonymous individual)
             // they would go separately as annotation-assertions.
             res = res.filterDrop(s -> isAnnotationAssertionStatement(s, conf));
         }
-        return res.mapWith(of::getAnnotation);
+        return res.mapWith(factory::getAnnotation);
     }
 
     /**

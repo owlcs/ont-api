@@ -15,6 +15,7 @@
 package com.github.owlcs.ontapi.internal.axioms;
 
 import com.github.owlcs.ontapi.DataFactory;
+import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTAxiomImpl;
@@ -57,7 +58,7 @@ public class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInvers
     }
 
     @Override
-    public ExtendedIterator<OntStatement> listStatements(OntModel model, InternalConfig config) {
+    public ExtendedIterator<OntStatement> listStatements(OntModel model, AxiomsSettings config) {
         // NOTE as a precaution: the first (commented) way is not correct
         // since it includes anonymous object property expressions (based on owl:inverseOf),
         // which might be treat as separated axioms, but OWL-API doesn't think so.
@@ -70,7 +71,7 @@ public class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInvers
     }
 
     @Override
-    public boolean testStatement(OntStatement statement, InternalConfig config) {
+    public boolean testStatement(OntStatement statement, AxiomsSettings config) {
         if (!OWL.inverseOf.equals(statement.getPredicate())) return false;
         // skip {@code _:x owl:inverseOf PN} (inverse object property expression):
         if (statement.getSubject().isAnon() && statement.getObject().isURIResource()) return false;
@@ -80,14 +81,14 @@ public class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInvers
     @Override
     public ONTObject<OWLInverseObjectPropertiesAxiom> toAxiomImpl(OntStatement statement,
                                                                   ModelObjectFactory factory,
-                                                                  InternalConfig config) {
+                                                                  AxiomsSettings config) {
         return AxiomImpl.create(statement, factory, config);
     }
 
     @Override
     public ONTObject<OWLInverseObjectPropertiesAxiom> toAxiomWrap(OntStatement statement,
                                                                   InternalObjectFactory factory,
-                                                                  InternalConfig config) {
+                                                                  AxiomsSettings config) {
         ONTObject<? extends OWLObjectPropertyExpression> f = factory.getProperty(statement.getSubject(OntObjectProperty.class));
         ONTObject<? extends OWLObjectPropertyExpression> s = factory.getProperty(statement.getObject(OntObjectProperty.class));
         Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);
@@ -117,12 +118,12 @@ public class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInvers
          *
          * @param statement {@link OntStatement}, not {@code null}
          * @param factory   {@link ModelObjectFactory}, not {@code null}
-         * @param config    {@link InternalConfig}, not {@code null}
+         * @param config    {@link AxiomsSettings}, not {@code null}
          * @return {@link AxiomImpl}
          */
         public static AxiomImpl create(OntStatement statement,
                                        ModelObjectFactory factory,
-                                       InternalConfig config) {
+                                       AxiomsSettings config) {
             return WithManyObjects.create(statement,
                     SimpleImpl.FACTORY, ComplexImpl.FACTORY, SET_HASH_CODE, factory, config);
         }

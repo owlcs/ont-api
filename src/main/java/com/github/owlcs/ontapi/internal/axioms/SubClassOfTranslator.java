@@ -14,6 +14,7 @@
 
 package com.github.owlcs.ontapi.internal.axioms;
 
+import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTAxiomImpl;
@@ -60,12 +61,12 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
     }
 
     @Override
-    public ExtendedIterator<OntStatement> listStatements(OntModel model, InternalConfig config) {
+    public ExtendedIterator<OntStatement> listStatements(OntModel model, AxiomsSettings config) {
         return listByPredicate(model, RDFS.subClassOf).filterKeep(this::filter);
     }
 
     @Override
-    public boolean testStatement(OntStatement statement, InternalConfig config) {
+    public boolean testStatement(OntStatement statement, AxiomsSettings config) {
         return statement.getPredicate().equals(RDFS.subClassOf) && filter(statement);
     }
 
@@ -76,14 +77,14 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
     @Override
     public ONTObject<OWLSubClassOfAxiom> toAxiomImpl(OntStatement statement,
                                                      ModelObjectFactory factory,
-                                                     InternalConfig config) {
+                                                     AxiomsSettings config) {
         return AxiomImpl.create(statement, factory, config);
     }
 
     @Override
     public ONTObject<OWLSubClassOfAxiom> toAxiomWrap(OntStatement statement,
                                                      InternalObjectFactory factory,
-                                                     InternalConfig config) {
+                                                     AxiomsSettings config) {
         ONTObject<? extends OWLClassExpression> sub = factory.getClass(statement.getSubject(OntClass.class));
         ONTObject<? extends OWLClassExpression> sup = factory.getClass(statement.getObject().as(OntClass.class));
         Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);
@@ -111,12 +112,12 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
          *
          * @param statement {@link OntStatement}, not {@code null}
          * @param factory   {@link InternalObjectFactory}, not {@code null}
-         * @param config    {@link InternalConfig}, not {@code null}
+         * @param config    {@link AxiomsSettings}, not {@code null}
          * @return {@link AxiomImpl}
          */
         public static AxiomImpl create(OntStatement statement,
                                        ModelObjectFactory factory,
-                                       InternalConfig config) {
+                                       AxiomsSettings config) {
             return WithTwoObjects.create(statement,
                     SimpleImpl.FACTORY, ComplexImpl.FACTORY, SET_HASH_CODE, factory, config);
         }

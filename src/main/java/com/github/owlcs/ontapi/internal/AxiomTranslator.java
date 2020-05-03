@@ -15,6 +15,7 @@
 package com.github.owlcs.ontapi.internal;
 
 import com.github.owlcs.ontapi.DataFactory;
+import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.jena.impl.PersonalityModel;
 import com.github.owlcs.ontapi.jena.model.OntClass;
 import com.github.owlcs.ontapi.jena.model.OntModel;
@@ -147,13 +148,13 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> extends BaseSearch
      *
      * @param model   a facility (as {@link Supplier}) to provide nonnull {@link OntModel}
      * @param factory {@link InternalObjectFactory} to produce OWL-API Objects, not {@code null}
-     * @param config  {@link InternalConfig} to control process, not {@code null}
+     * @param config  {@link AxiomsSettings} to control process, not {@code null}
      * @return {@link ExtendedIterator} of {@link ONTObject}s that wrap {@link Axiom}s
      * @throws JenaException unable to read axioms of this type
      */
     protected ExtendedIterator<ONTObject<Axiom>> listAxioms(OntModel model,
                                                             InternalObjectFactory factory,
-                                                            InternalConfig config) throws JenaException {
+                                                            AxiomsSettings config) throws JenaException {
         return translate(this, listStatements(model, config), factory, config);
     }
 
@@ -162,12 +163,12 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> extends BaseSearch
      *
      * @param model   a facility (as a {@link Supplier}) to get nonnull {@link OntModel}, not {@code null}
      * @param factory {@link InternalObjectFactory} to produce ONT-API Objects, not {@code null}
-     * @param config  {@link InternalConfig} to configure the process, not {@code null}
+     * @param config  {@link AxiomsSettings} to configure the process, not {@code null}
      * @param key     {@link Axiom}, not {@code null}
      * @return boolean
      * @since 2.0.0
      */
-    protected boolean containsAxiom(OntModel model, InternalObjectFactory factory, InternalConfig config, Axiom key) {
+    protected boolean containsAxiom(OntModel model, InternalObjectFactory factory, AxiomsSettings config, Axiom key) {
         Objects.requireNonNull(key);
         return Iter.anyMatch(listAxioms(model, factory, config), x -> x.getOWLObject().equals(key));
     }
@@ -177,7 +178,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> extends BaseSearch
      *
      * @param model   a facility (as a {@link Supplier}) to get nonnull {@link OntModel}, not {@code null}
      * @param factory {@link InternalObjectFactory} to produce ONT-API Objects, not {@code null}
-     * @param config  {@link InternalConfig} to configure the process, not {@code null}
+     * @param config  {@link AxiomsSettings} to configure the process, not {@code null}
      * @param key     {@link Axiom}, not {@code null}
      * @return an {@code Optional} that wraps an {@code ONTObject}-container with a desired {@link Axiom}-instance
      * @since 2.0.0
@@ -185,7 +186,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> extends BaseSearch
     @SuppressWarnings("unchecked")
     protected Optional<ONTObject<Axiom>> findAxiom(OntModel model,
                                                    InternalObjectFactory factory,
-                                                   InternalConfig config,
+                                                   AxiomsSettings config,
                                                    Axiom key) {
         Objects.requireNonNull(key);
         List<ONTObject<Axiom>> list = listAxioms(model, factory, config)
@@ -212,19 +213,19 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> extends BaseSearch
      * Lists all statements from the base graph of the given model that match this axiom definition.
      *
      * @param model  {@link OntModel Ontology Jena Model}, not {@code null}
-     * @param config {@link InternalConfig} control settings, not {@code null}
+     * @param config {@link AxiomsSettings} control settings, not {@code null}
      * @return {@link ExtendedIterator} of {@link OntStatement}s
      */
-    public abstract ExtendedIterator<OntStatement> listStatements(OntModel model, InternalConfig config);
+    public abstract ExtendedIterator<OntStatement> listStatements(OntModel model, AxiomsSettings config);
 
     /**
      * Tests if the specified statement answers the axiom definition.
      *
      * @param statement {@link OntStatement} any statement, not necessarily local
-     * @param config    {@link InternalConfig} control settings
+     * @param config    {@link AxiomsSettings} control settings
      * @return {@code true} if the statement corresponds axiom type
      */
-    public abstract boolean testStatement(OntStatement statement, InternalConfig config);
+    public abstract boolean testStatement(OntStatement statement, AxiomsSettings config);
 
     /**
      * Creates an OWL Axiom wrapper from a statement.
@@ -234,13 +235,13 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> extends BaseSearch
      *
      * @param statement {@link OntStatement} the statement which determines the axiom
      * @param factory   {@link InternalObjectFactory} the data factory to create OWL-API objects
-     * @param config    {@link InternalConfig} to control process
+     * @param config    {@link AxiomsSettings} to control process
      * @return {@link ONTObject} around {@link OWLAxiom}
      * @throws JenaException if no possible to get an axiom from the statement
      */
     protected abstract ONTObject<Axiom> toAxiomWrap(OntStatement statement,
                                                     InternalObjectFactory factory,
-                                                    InternalConfig config) throws JenaException;
+                                                    AxiomsSettings config) throws JenaException;
 
     /**
      * Creates an OWL Axiom impl from a statement.
@@ -249,13 +250,13 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> extends BaseSearch
      *
      * @param statement {@link OntStatement} the statement which determines the axiom
      * @param factory   {@link ModelObjectFactory} the data factory to create OWL-API objects
-     * @param config    {@link InternalConfig} to control process
+     * @param config    {@link AxiomsSettings} to control process
      * @return {@link ONTObject} around {@link OWLAxiom}
      * @throws JenaException if no possible to get axiom from the statement
      * @since 2.0.0
      */
     protected abstract ONTObject<Axiom> toAxiomImpl(OntStatement statement,
                                                     ModelObjectFactory factory,
-                                                    InternalConfig config) throws JenaException;
+                                                    AxiomsSettings config) throws JenaException;
 
 }

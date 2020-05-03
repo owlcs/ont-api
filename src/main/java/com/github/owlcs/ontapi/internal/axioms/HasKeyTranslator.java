@@ -15,7 +15,7 @@
 package com.github.owlcs.ontapi.internal.axioms;
 
 import com.github.owlcs.ontapi.OntApiException;
-import com.github.owlcs.ontapi.internal.InternalConfig;
+import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.InternalObjectFactory;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
@@ -71,14 +71,14 @@ public class HasKeyTranslator
     @Override
     public ONTObject<OWLHasKeyAxiom> toAxiomImpl(OntStatement statement,
                                                  ModelObjectFactory factory,
-                                                 InternalConfig config) {
+                                                 AxiomsSettings config) {
         return AxiomImpl.create(statement, factory, config);
     }
 
     @Override
     public ONTObject<OWLHasKeyAxiom> toAxiomWrap(OntStatement statement,
                                                  InternalObjectFactory factory,
-                                                 InternalConfig config) {
+                                                 AxiomsSettings config) {
         return makeAxiom(statement, factory::getClass, OntClass::findHasKey, factory::getProperty, Collectors.toSet(),
                 (s, m) -> factory.getOWLDataFactory().getOWLHasKeyAxiom(s.getOWLObject(),
                         ONTObject.toSet(m),
@@ -107,12 +107,12 @@ public class HasKeyTranslator
          *
          * @param statement {@link OntStatement}, not {@code null}
          * @param factory   {@link InternalObjectFactory}, not {@code null}
-         * @param config    {@link InternalConfig}, not {@code null}
+         * @param config    {@link AxiomsSettings}, not {@code null}
          * @return {@link AxiomImpl}
          */
         public static AxiomImpl create(OntStatement statement,
                                        ModelObjectFactory factory,
-                                       InternalConfig config) {
+                                       AxiomsSettings config) {
             return WithList.Sorted.create(statement, FACTORY, SET_HASH_CODE, factory, config);
         }
 

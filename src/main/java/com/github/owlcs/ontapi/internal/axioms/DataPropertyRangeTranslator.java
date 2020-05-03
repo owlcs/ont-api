@@ -15,6 +15,7 @@
 package com.github.owlcs.ontapi.internal.axioms;
 
 import com.github.owlcs.ontapi.DataFactory;
+import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
@@ -46,21 +47,21 @@ public class DataPropertyRangeTranslator extends AbstractPropertyRangeTranslator
         return OntDataProperty.class;
     }
 
-    protected boolean filter(OntStatement statement, InternalConfig config) {
+    protected boolean filter(OntStatement statement, AxiomsSettings config) {
         return super.filter(statement, config) && statement.getObject().canAs(OntDataRange.class);
     }
 
     @Override
     public ONTObject<OWLDataPropertyRangeAxiom> toAxiomImpl(OntStatement statement,
                                                             ModelObjectFactory factory,
-                                                            InternalConfig config) {
+                                                            AxiomsSettings config) {
         return AxiomImpl.create(statement, factory, config);
     }
 
     @Override
     public ONTObject<OWLDataPropertyRangeAxiom> toAxiomWrap(OntStatement statement,
                                                             InternalObjectFactory factory,
-                                                            InternalConfig config) {
+                                                            AxiomsSettings config) {
         ONTObject<OWLDataProperty> p = factory.getProperty(statement.getSubject(getView()));
         ONTObject<? extends OWLDataRange> d = factory.getDatatype(statement.getObject(OntDataRange.class));
         Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);
@@ -89,10 +90,10 @@ public class DataPropertyRangeTranslator extends AbstractPropertyRangeTranslator
          *
          * @param statement {@link OntStatement}, not {@code null}
          * @param factory   {@link InternalObjectFactory}, not {@code null}
-         * @param config    {@link InternalConfig}, not {@code null}
+         * @param config    {@link AxiomsSettings}, not {@code null}
          * @return {@link AxiomImpl}
          */
-        public static AxiomImpl create(OntStatement statement, ModelObjectFactory factory, InternalConfig config) {
+        public static AxiomImpl create(OntStatement statement, ModelObjectFactory factory, AxiomsSettings config) {
             return WithTwoObjects.create(statement,
                     SimpleImpl.FACTORY, ComplexImpl.FACTORY, SET_HASH_CODE, factory, config);
         }

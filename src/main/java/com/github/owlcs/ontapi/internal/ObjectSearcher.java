@@ -14,6 +14,7 @@
 
 package com.github.owlcs.ontapi.internal;
 
+import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLObject;
@@ -33,10 +34,10 @@ public interface ObjectSearcher<O extends OWLObject> {
      *
      * @param model   {@link OntModel}, not {@code null}
      * @param factory {@link InternalObjectFactory}, not {@code null}
-     * @param config  {@link InternalConfig}, not {@code null}
+     * @param config  {@link AxiomsSettings}, not {@code null}
      * @return an {@link ExtendedIterator} over {@link O} wrapped with {@link ONTObject}
      */
     ExtendedIterator<ONTObject<O>> listObjects(OntModel model,
                                                InternalObjectFactory factory,
-                                               InternalConfig config);
+                                               AxiomsSettings config);
 }

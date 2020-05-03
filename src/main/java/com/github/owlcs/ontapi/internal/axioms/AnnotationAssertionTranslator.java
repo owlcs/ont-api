@@ -14,6 +14,7 @@
 
 package com.github.owlcs.ontapi.internal.axioms;
 
+import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTAnnotationImpl;
@@ -61,25 +62,25 @@ public class AnnotationAssertionTranslator
      * Also it is skipped if load annotations is disabled in the configuration.
      *
      * @param model  {@link OntModel} the model
-     * @param config {@link InternalConfig}
+     * @param config {@link AxiomsSettings}
      * @return {@link ExtendedIterator} of {@link OntStatement}s
      * @see <a href='https://www.w3.org/TR/owl2-quick-reference/'>Annotations</a>
      */
     @Override
-    public ExtendedIterator<OntStatement> listStatements(OntModel model, InternalConfig config) {
+    public ExtendedIterator<OntStatement> listStatements(OntModel model, AxiomsSettings config) {
         if (!config.isLoadAnnotationAxioms()) return NullIterator.instance();
         OntID id = model.getID();
         return listStatements(model).filterKeep(s -> !id.equals(s.getSubject()) && filter(s, config));
     }
 
     @Override
-    public boolean testStatement(OntStatement statement, InternalConfig config) {
+    public boolean testStatement(OntStatement statement, AxiomsSettings config) {
         if (!config.isLoadAnnotationAxioms()) return false;
         if (statement.getSubject().canAs(OntID.class)) return false;
         return filter(statement, config);
     }
 
-    public boolean filter(OntStatement s, InternalConfig c) {
+    public boolean filter(OntStatement s, AxiomsSettings c) {
         return ReadHelper.isAnnotationAssertionStatement(s, c)
                 && ReadHelper.isEntityOrAnonymousIndividual(s.getSubject());
     }
@@ -87,14 +88,14 @@ public class AnnotationAssertionTranslator
     @Override
     public ONTObject<OWLAnnotationAssertionAxiom> toAxiomImpl(OntStatement statement,
                                                               ModelObjectFactory factory,
-                                                              InternalConfig config) {
+                                                              AxiomsSettings config) {
         return AxiomImpl.create(statement, factory, config);
     }
 
     @Override
     public ONTObject<OWLAnnotationAssertionAxiom> toAxiomWrap(OntStatement statement,
                                                               InternalObjectFactory factory,
-                                                              InternalConfig config) {
+                                                              AxiomsSettings config) {
         ONTObject<? extends OWLAnnotationSubject> s = factory.getSubject(statement.getSubject(OntObject.class));
         ONTObject<OWLAnnotationProperty> p = factory.getProperty(statement.getPredicate().as(OntAnnotationProperty.class));
         ONTObject<? extends OWLAnnotationValue> v = factory.getValue(statement.getObject());
@@ -123,12 +124,12 @@ public class AnnotationAssertionTranslator
          *
          * @param statement {@link OntStatement}, the source, not {@code null}
          * @param factory   {@link ModelObjectFactory}, not {@code null}
-         * @param config    {@link InternalConfig}, not {@code null}
+         * @param config    {@link AxiomsSettings}, not {@code null}
          * @return {@link AxiomImpl}
          */
         public static AxiomImpl create(OntStatement statement,
                                        ModelObjectFactory factory,
-                                       InternalConfig config) {
+                                       AxiomsSettings config) {
             return WithAssertion.create(statement,
                     SimpleImpl.FACTORY, AxiomImpl.WithAnnotationsImpl.FACTORY, SET_HASH_CODE, factory, config);
         }

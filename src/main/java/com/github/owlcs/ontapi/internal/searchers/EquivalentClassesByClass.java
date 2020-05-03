@@ -14,7 +14,11 @@
 
 package com.github.owlcs.ontapi.internal.searchers;
 
-import com.github.owlcs.ontapi.internal.*;
+import com.github.owlcs.ontapi.config.AxiomsSettings;
+import com.github.owlcs.ontapi.internal.InternalObjectFactory;
+import com.github.owlcs.ontapi.internal.ONTObject;
+import com.github.owlcs.ontapi.internal.OWLTopObjectType;
+import com.github.owlcs.ontapi.internal.WriteHelper;
 import com.github.owlcs.ontapi.internal.axioms.EquivalentClassesTranslator;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
@@ -34,7 +38,7 @@ public class EquivalentClassesByClass extends BaseByObject<OWLEquivalentClassesA
     public ExtendedIterator<ONTObject<OWLEquivalentClassesAxiom>> listAxioms(OWLClass clazz,
                                                                              OntModel model,
                                                                              InternalObjectFactory factory,
-                                                                             InternalConfig config) {
+                                                                             AxiomsSettings config) {
         Resource c = WriteHelper.toResource(clazz.getIRI());
         ExtendedIterator<OntStatement> res = listBySubjectAndPredicate(model, c, OWL.equivalentClass)
                 .andThen(listByPredicateAndObject(model, OWL.equivalentClass, c))

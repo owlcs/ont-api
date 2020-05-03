@@ -15,6 +15,7 @@
 package com.github.owlcs.ontapi.internal.axioms;
 
 import com.github.owlcs.ontapi.DataFactory;
+import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
@@ -66,16 +67,16 @@ public class ObjectPropertyAssertionTranslator
      * See <a href='https://www.w3.org/TR/owl2-quick-reference/'>Assertions</a>
      *
      * @param model  {@link OntModel} the model
-     * @param config {@link InternalConfig}
+     * @param config {@link AxiomsSettings}
      * @return {@link ExtendedIterator} of {@link OntStatement}s
      */
     @Override
-    public ExtendedIterator<OntStatement> listStatements(OntModel model, InternalConfig config) {
+    public ExtendedIterator<OntStatement> listStatements(OntModel model, AxiomsSettings config) {
         return listStatements(model).filterKeep(s -> testStatement(s, config));
     }
 
     @Override
-    public boolean testStatement(OntStatement statement, InternalConfig config) {
+    public boolean testStatement(OntStatement statement, AxiomsSettings config) {
         return statement.getPredicate().canAs(OntObjectProperty.Named.class)
                 && statement.getSubject().canAs(OntIndividual.class)
                 && statement.getObject().canAs(OntIndividual.class);
@@ -84,14 +85,14 @@ public class ObjectPropertyAssertionTranslator
     @Override
     public ONTObject<OWLObjectPropertyAssertionAxiom> toAxiomImpl(OntStatement statement,
                                                                   ModelObjectFactory factory,
-                                                                  InternalConfig config) {
+                                                                  AxiomsSettings config) {
         return AxiomImpl.create(statement, factory, config);
     }
 
     @Override
     public ONTObject<OWLObjectPropertyAssertionAxiom> toAxiomWrap(OntStatement statement,
                                                                   InternalObjectFactory factory,
-                                                                  InternalConfig config) {
+                                                                  AxiomsSettings config) {
         ONTObject<? extends OWLIndividual> subject = factory.getIndividual(statement.getSubject(OntIndividual.class));
         ONTObject<? extends OWLObjectPropertyExpression> property = factory.getProperty(statement.getPredicate()
                 .as(OntObjectProperty.class));
@@ -122,12 +123,12 @@ public class ObjectPropertyAssertionTranslator
          *
          * @param statement {@link OntStatement}, the source, not {@code null}
          * @param factory   {@link InternalObjectFactory}, not {@code null}
-         * @param config    {@link InternalConfig}, not {@code null}
+         * @param config    {@link AxiomsSettings}, not {@code null}
          * @return {@link AxiomImpl}
          */
         public static AxiomImpl create(OntStatement statement,
                                        ModelObjectFactory factory,
-                                       InternalConfig config) {
+                                       AxiomsSettings config) {
             return WithAssertion.create(statement,
                     SimpleImpl.FACTORY, WithAnnotationsImpl.FACTORY, SET_HASH_CODE, factory, config);
         }

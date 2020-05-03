@@ -15,6 +15,7 @@
 package com.github.owlcs.ontapi.internal;
 
 import com.github.owlcs.ontapi.DataFactory;
+import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
@@ -49,14 +50,14 @@ public abstract class BaseSearcher {
      * @param translator {@link AxiomTranslator} with generic type {@link A}, not {@code null}
      * @param statements an {@link ExtendedIterator} of {@link OntStatement}s, not {@code null}
      * @param factory    a {@link InternalObjectFactory} to produce OWL-API Objects, not {@code null}
-     * @param config     a {@link InternalConfig} to control the process, not {@code null}
+     * @param config     a {@link AxiomsSettings} to control the process, not {@code null}
      * @return {@link ExtendedIterator} of {@link ONTObject}s that wrap {@link A}s
      * @throws JenaException unable to read axioms of this type
      */
     protected static <A extends OWLAxiom> ExtendedIterator<ONTObject<A>> translate(AxiomTranslator<A> translator,
                                                                                    ExtendedIterator<OntStatement> statements,
                                                                                    InternalObjectFactory factory,
-                                                                                   InternalConfig config) {
+                                                                                   AxiomsSettings config) {
         return config.isSplitAxiomAnnotations() ?
                 Iter.flatMap(statements, s -> split(translator, s, factory, config)) :
                 statements.mapWith(s -> toAxiom(translator, s, factory, config));
@@ -69,13 +70,13 @@ public abstract class BaseSearcher {
      * @param translator {@link AxiomTranslator} with generic type {@link A}, not {@code null}
      * @param statement  {@link OntStatement} to split, not {@code null}
      * @param factory    an {@link InternalObjectFactory}, not {@code null}
-     * @param config     {@link InternalConfig}, not {@code null}
+     * @param config     {@link AxiomsSettings}, not {@code null}
      * @return an {@link ONTObject} with {@link A}
      */
     protected static <A extends OWLAxiom> ONTObject<A> toAxiom(AxiomTranslator<A> translator,
                                                                OntStatement statement,
                                                                InternalObjectFactory factory,
-                                                               InternalConfig config) {
+                                                               AxiomsSettings config) {
         return factory instanceof ModelObjectFactory ?
                 translator.toAxiomImpl(statement, (ModelObjectFactory) factory, config) :
                 translator.toAxiomWrap(statement, factory, config);
@@ -93,14 +94,14 @@ public abstract class BaseSearcher {
      * @param translator {@link AxiomTranslator} with generic type {@link A}, not {@code null}
      * @param statement  {@link OntStatement} to split, not {@code null}
      * @param factory    an {@link InternalObjectFactory}, not {@code null}
-     * @param config     {@link InternalConfig}, not {@code null}
+     * @param config     {@link AxiomsSettings}, not {@code null}
      * @return a {@link ExtendedIterator} of {@link ONTObject}
      * @see com.github.owlcs.ontapi.config.AxiomsSettings#isSplitAxiomAnnotations()
      */
     protected static <A extends OWLAxiom> ExtendedIterator<ONTObject<A>> split(AxiomTranslator<A> translator,
                                                                                OntStatement statement,
                                                                                InternalObjectFactory factory,
-                                                                               InternalConfig config) {
+                                                                               AxiomsSettings config) {
         if (!(factory instanceof ModelObjectFactory)) {
             return OntModels.listSplitStatements(statement).mapWith(s -> translator.toAxiomWrap(s, factory, config));
         }

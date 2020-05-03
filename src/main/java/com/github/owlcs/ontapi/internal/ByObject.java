@@ -14,6 +14,7 @@
 
 package com.github.owlcs.ontapi.internal;
 
+import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLAxiom;
@@ -31,14 +32,14 @@ public interface ByObject<A extends OWLAxiom, O extends OWLObject> {
     /**
      * Lists all axioms that contain the given {@link O OWLObject}.
      *
-     * @param object  a {@link O}, not {@code null}
-     * @param model   a {@link OntModel}, cannot be {@code null}
-     * @param factory an {@link InternalObjectFactory}, cannot be {@code null}
-     * @param config  {@link InternalConfig}, cannot {@code null}
+     * @param object  - {@link O}, not {@code null}
+     * @param model   - {@link OntModel}, cannot be {@code null}
+     * @param factory - {@link InternalObjectFactory}, cannot be {@code null}
+     * @param config  - {@link AxiomsSettings configuration}, cannot {@code null}
      * @return an {@link ExtendedIterator} of {@link A OWLAxiom}s wrapped with {@link ONTObject}
      */
     ExtendedIterator<ONTObject<A>> listAxioms(O object,
                                               OntModel model,
                                               InternalObjectFactory factory,
-                                              InternalConfig config);
+                                              AxiomsSettings config);
 }

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,7 +14,7 @@
 
 package com.github.owlcs.ontapi.internal.axioms;
 
-import com.github.owlcs.ontapi.internal.InternalConfig;
+import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.ONTWrapperImpl;
 import com.github.owlcs.ontapi.internal.WriteHelper;
@@ -75,13 +75,13 @@ public abstract class AbstractTwoWayNaryTranslator<Axiom extends OWLAxiom & OWLN
     }
 
     @Override
-    public ExtendedIterator<OntStatement> listStatements(OntModel model, InternalConfig config) {
+    public ExtendedIterator<OntStatement> listStatements(OntModel model, AxiomsSettings config) {
         return super.listStatements(model, config)
                 .andThen(OntModels.listLocalObjects(model, getDisjointView()).mapWith(OntObject::getMainStatement));
     }
 
     @Override
-    public boolean testStatement(OntStatement statement, InternalConfig config) {
+    public boolean testStatement(OntStatement statement, AxiomsSettings config) {
         return super.testStatement(statement, config)
                 || (RDF.type.equals(statement.getPredicate()) && statement.getSubject().canAs(getDisjointView()));
     }

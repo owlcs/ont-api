@@ -17,6 +17,7 @@ package com.github.owlcs.ontapi.internal;
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.OntManagers;
+import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.jena.model.*;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
 import org.apache.jena.rdf.model.Literal;
@@ -103,10 +104,10 @@ public interface InternalObjectFactory {
      * Gets a {@code Collection} of axiom's {@link OWLAnnotation}s which are wrapped as {@link ONTObject}-containers.
      *
      * @param axiom  {@link OntStatement} - the root statement of an axiom, not {@code null}
-     * @param config {@link InternalConfig} the configuration, to
+     * @param config {@link AxiomsSettings} the configuration, to
      * @return a {@code Collection} of {@link OWLAnnotation}s as {@link ONTObject}s
      */
-    default Collection<ONTObject<OWLAnnotation>> getAnnotations(OntStatement axiom, InternalConfig config) {
+    default Collection<ONTObject<OWLAnnotation>> getAnnotations(OntStatement axiom, AxiomsSettings config) {
         Map<OWLAnnotation, ONTObject<OWLAnnotation>> res = new HashMap<>();
         ReadHelper.listAnnotations(axiom, config, this).forEachRemaining(x -> WithMerge.add(res, x));
         return res.values();

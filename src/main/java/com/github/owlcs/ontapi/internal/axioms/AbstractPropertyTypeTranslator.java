@@ -14,7 +14,11 @@
 
 package com.github.owlcs.ontapi.internal.axioms;
 
-import com.github.owlcs.ontapi.internal.*;
+import com.github.owlcs.ontapi.config.AxiomsSettings;
+import com.github.owlcs.ontapi.internal.AxiomTranslator;
+import com.github.owlcs.ontapi.internal.ModelObjectFactory;
+import com.github.owlcs.ontapi.internal.ONTObject;
+import com.github.owlcs.ontapi.internal.WriteHelper;
 import com.github.owlcs.ontapi.internal.objects.ONTAxiomImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
@@ -57,13 +61,13 @@ public abstract class AbstractPropertyTypeTranslator<Axiom extends OWLAxiom & Ha
     }
 
     @Override
-    public ExtendedIterator<OntStatement> listStatements(OntModel model, InternalConfig config) {
+    public ExtendedIterator<OntStatement> listStatements(OntModel model, AxiomsSettings config) {
         return listByPredicateAndObject(model, RDF.type, getType())
                 .filterKeep(s -> s.getSubject().canAs(getView()));
     }
 
     @Override
-    public boolean testStatement(OntStatement statement, InternalConfig config) {
+    public boolean testStatement(OntStatement statement, AxiomsSettings config) {
         return statement.getObject().equals(getType())
                 && statement.isDeclaration()
                 && statement.getSubject().canAs(getView());

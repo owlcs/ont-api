@@ -14,6 +14,7 @@
 
 package com.github.owlcs.ontapi.internal.axioms;
 
+import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
@@ -57,14 +58,14 @@ public class TransitiveObjectPropertyTranslator
     @Override
     public ONTObject<OWLTransitiveObjectPropertyAxiom> toAxiomImpl(OntStatement statement,
                                                                    ModelObjectFactory factory,
-                                                                   InternalConfig config) {
+                                                                   AxiomsSettings config) {
         return AxiomImpl.create(statement, factory, config);
     }
 
     @Override
     public ONTObject<OWLTransitiveObjectPropertyAxiom> toAxiomWrap(OntStatement statement,
                                                                    InternalObjectFactory factory,
-                                                                   InternalConfig config) {
+                                                                   AxiomsSettings config) {
         ONTObject<? extends OWLObjectPropertyExpression> p = factory.getProperty(getSubject(statement));
         Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);
         OWLTransitiveObjectPropertyAxiom res = factory.getOWLDataFactory()
@@ -87,12 +88,12 @@ public class TransitiveObjectPropertyTranslator
          *
          * @param statement {@link OntStatement}, not {@code null}
          * @param factory   {@link InternalObjectFactory}, not {@code null}
-         * @param config    {@link InternalConfig}, not {@code null}
+         * @param config    {@link AxiomsSettings}, not {@code null}
          * @return {@link AxiomImpl}
          */
         public static AxiomImpl create(OntStatement statement,
                                        ModelObjectFactory factory,
-                                       InternalConfig config) {
+                                       AxiomsSettings config) {
             return WithOneObject.create(statement,
                     SimpleImpl.FACTORY, ComplexImpl.FACTORY, SET_HASH_CODE, factory, config);
         }

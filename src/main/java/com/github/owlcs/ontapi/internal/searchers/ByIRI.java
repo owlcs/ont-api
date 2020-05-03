@@ -15,7 +15,7 @@
 package com.github.owlcs.ontapi.internal.searchers;
 
 import com.github.owlcs.ontapi.OwlObjects;
-import com.github.owlcs.ontapi.internal.InternalConfig;
+import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.InternalObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.jena.model.OntModel;
@@ -36,7 +36,7 @@ public class ByIRI extends ByPrimitive<IRI> {
     public final ExtendedIterator<ONTObject<OWLAxiom>> listAxioms(IRI iri,
                                                                   OntModel model,
                                                                   InternalObjectFactory factory,
-                                                                  InternalConfig config) {
+                                                                  AxiomsSettings config) {
         ExtendedIterator<ONTObject<OWLAxiom>> res = super.listAxioms(iri, model, factory, config);
         if (isSystem(model, iri.getIRIString())) {
             return res.filterKeep(x -> filter(factory.getOWLDataFactory(), x.getOWLObject(), iri));

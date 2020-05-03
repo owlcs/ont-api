@@ -14,6 +14,7 @@
 
 package com.github.owlcs.ontapi.internal.searchers;
 
+import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.jena.impl.PersonalityModel;
 import com.github.owlcs.ontapi.jena.impl.conf.OntPersonality;
@@ -126,7 +127,7 @@ public abstract class ByPrimitive<P extends OWLPrimitive> extends BaseByObject<O
     public ExtendedIterator<ONTObject<OWLAxiom>> listAxioms(P primitive,
                                                             OntModel model,
                                                             InternalObjectFactory factory,
-                                                            InternalConfig config) {
+                                                            AxiomsSettings config) {
         ExtendedIterator<OntStatement> res = listStatements(model, primitive);
         if (config.isSplitAxiomAnnotations()) {
             return Iter.flatMap(res,
@@ -148,11 +149,11 @@ public abstract class ByPrimitive<P extends OWLPrimitive> extends BaseByObject<O
      * Lists translators.
      *
      * @param statement {@link OntStatement}
-     * @param conf      {@link InternalConfig}
+     * @param conf      {@link AxiomsSettings}
      * @return an {@link ExtendedIterator} of {@link AxiomTranslator}s
      */
     protected ExtendedIterator<? extends AxiomTranslator<OWLAxiom>> listTranslators(OntStatement statement,
-                                                                                    InternalConfig conf) {
+                                                                                    AxiomsSettings conf) {
         return listTranslators().filterKeep(t -> t.testStatement(statement, conf));
     }
 

@@ -15,6 +15,7 @@
 package com.github.owlcs.ontapi.internal.searchers;
 
 import com.github.owlcs.ontapi.OntApiException;
+import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.jena.impl.PersonalityModel;
 import com.github.owlcs.ontapi.jena.impl.conf.OntPersonality;
@@ -47,7 +48,7 @@ public class ClassSearcher extends WithRootSearcher implements ObjectSearcher<OW
     @Override
     public ExtendedIterator<ONTObject<OWLClass>> listObjects(OntModel model,
                                                              InternalObjectFactory factory,
-                                                             InternalConfig config) {
+                                                             AxiomsSettings config) {
         return listClasses(model, config).mapWith(u -> findClass(u, model, factory));
     }
 
@@ -58,7 +59,7 @@ public class ClassSearcher extends WithRootSearcher implements ObjectSearcher<OW
         return factory.getClass(OntApiException.mustNotBeNull(model.getOntClass(uri)));
     }
 
-    protected ExtendedIterator<String> listClasses(OntModel m, InternalConfig conf) {
+    protected ExtendedIterator<String> listClasses(OntModel m, AxiomsSettings conf) {
         Set<String> builtins = new HashSet<>();
         getBuiltins(m).getClasses()
                 .forEach(x -> {
@@ -102,12 +103,12 @@ public class ClassSearcher extends WithRootSearcher implements ObjectSearcher<OW
         return ByClass.OBJECT_CARDINALITY_TYPES.stream().anyMatch(t -> s.getSubject().canAs(t));
     }
 
-    protected boolean containAxiom(ExtendedIterator<OntStatement> top, InternalConfig conf) {
+    protected boolean containAxiom(ExtendedIterator<OntStatement> top, AxiomsSettings conf) {
         return Iter.anyMatch(top, s -> Iter.findFirst(listTranslators(s, conf)).isPresent());
     }
 
     protected ExtendedIterator<? extends AxiomTranslator<OWLAxiom>> listTranslators(OntStatement statement,
-                                                                                    InternalConfig conf) {
+                                                                                    AxiomsSettings conf) {
         return Iter.create(TRANSLATORS).filterKeep(t -> t.testStatement(statement, conf));
     }
 }

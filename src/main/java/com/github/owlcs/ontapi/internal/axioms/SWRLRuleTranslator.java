@@ -14,6 +14,7 @@
 
 package com.github.owlcs.ontapi.internal.axioms;
 
+import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.*;
 import com.github.owlcs.ontapi.jena.model.*;
@@ -48,24 +49,24 @@ public class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
     }
 
     @Override
-    public ExtendedIterator<OntStatement> listStatements(OntModel model, InternalConfig config) {
+    public ExtendedIterator<OntStatement> listStatements(OntModel model, AxiomsSettings config) {
         return OntModels.listLocalObjects(model, OntSWRL.Imp.class).mapWith(OntObject::getMainStatement);
     }
 
     @Override
-    public boolean testStatement(OntStatement statement, InternalConfig config) {
+    public boolean testStatement(OntStatement statement, AxiomsSettings config) {
         return statement.getSubject().canAs(OntSWRL.Imp.class);
     }
 
     @Override
     public ONTObject<SWRLRule> toAxiomImpl(OntStatement statement,
                                            ModelObjectFactory factory,
-                                           InternalConfig config) {
+                                           AxiomsSettings config) {
         return AxiomImpl.create(statement, factory, config);
     }
 
     @Override
-    public ONTObject<SWRLRule> toAxiomWrap(OntStatement statement, InternalObjectFactory factory, InternalConfig config) {
+    public ONTObject<SWRLRule> toAxiomWrap(OntStatement statement, InternalObjectFactory factory, AxiomsSettings config) {
         OntSWRL.Imp imp = statement.getSubject(OntSWRL.Imp.class);
 
         Collection<ONTObject<? extends SWRLAtom>> head = imp.head()
@@ -97,13 +98,13 @@ public class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
          *
          * @param statement {@link OntStatement}, not {@code null}
          * @param factory   {@link InternalObjectFactory}, not {@code null}
-         * @param config    {@link InternalConfig}, not {@code null}
+         * @param config    {@link AxiomsSettings}, not {@code null}
          * @return {@link AxiomImpl}
          */
         @SuppressWarnings("unused")
         public static AxiomImpl create(OntStatement statement,
                                        ModelObjectFactory factory,
-                                       InternalConfig config) {
+                                       AxiomsSettings config) {
             return new AxiomImpl(statement.asTriple(), factory.model());
         }
 

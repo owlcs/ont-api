@@ -15,6 +15,7 @@
 package com.github.owlcs.ontapi.internal.axioms;
 
 import com.github.owlcs.ontapi.DataFactory;
+import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
@@ -58,14 +59,14 @@ public class EquivalentDataPropertiesTranslator
     @Override
     public ONTObject<OWLEquivalentDataPropertiesAxiom> toAxiomImpl(OntStatement statement,
                                                                    ModelObjectFactory factory,
-                                                                   InternalConfig config) {
+                                                                   AxiomsSettings config) {
         return AxiomImpl.create(statement, factory, config);
     }
 
     @Override
     public ONTObject<OWLEquivalentDataPropertiesAxiom> toAxiomWrap(OntStatement statement,
                                                                    InternalObjectFactory factory,
-                                                                   InternalConfig config) {
+                                                                   AxiomsSettings config) {
         ONTObject<OWLDataProperty> a = factory.getProperty(statement.getSubject(getView()));
         ONTObject<OWLDataProperty> b = factory.getProperty(statement.getObject().as(getView()));
         Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);
@@ -94,12 +95,12 @@ public class EquivalentDataPropertiesTranslator
          *
          * @param statement {@link OntStatement}, not {@code null}
          * @param factory   {@link InternalObjectFactory}, not {@code null}
-         * @param config    {@link InternalConfig}, not {@code null}
+         * @param config    {@link AxiomsSettings}, not {@code null}
          * @return {@link AxiomImpl}
          */
         public static AxiomImpl create(OntStatement statement,
                                        ModelObjectFactory factory,
-                                       InternalConfig config) {
+                                       AxiomsSettings config) {
             return WithManyObjects.create(statement,
                     SimpleImpl.FACTORY, WithAnnotationsImpl.FACTORY, SET_HASH_CODE, factory, config);
         }

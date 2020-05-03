@@ -14,8 +14,8 @@
 
 package com.github.owlcs.ontapi.internal.axioms;
 
+import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.AxiomTranslator;
-import com.github.owlcs.ontapi.internal.InternalConfig;
 import com.github.owlcs.ontapi.internal.WriteHelper;
 import com.github.owlcs.ontapi.internal.objects.ONTAxiomImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
@@ -48,16 +48,16 @@ public abstract class AbstractSubPropertyTranslator<Axiom extends OWLAxiom, P ex
     abstract Class<P> getView();
 
     @Override
-    public ExtendedIterator<OntStatement> listStatements(OntModel model, InternalConfig config) {
+    public ExtendedIterator<OntStatement> listStatements(OntModel model, AxiomsSettings config) {
         return listByPredicate(model, RDFS.subPropertyOf).filterKeep(s -> filter(s, config));
     }
 
-    protected boolean filter(OntStatement statement, InternalConfig config) {
+    protected boolean filter(OntStatement statement, AxiomsSettings config) {
         return statement.getSubject().canAs(getView()) && statement.getObject().canAs(getView());
     }
 
     @Override
-    public boolean testStatement(OntStatement statement, InternalConfig config) {
+    public boolean testStatement(OntStatement statement, AxiomsSettings config) {
         return RDFS.subPropertyOf.equals(statement.getPredicate()) && filter(statement, config);
     }
 

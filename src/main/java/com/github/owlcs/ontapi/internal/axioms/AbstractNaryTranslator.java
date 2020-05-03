@@ -15,7 +15,11 @@
 package com.github.owlcs.ontapi.internal.axioms;
 
 import com.github.owlcs.ontapi.OntApiException;
-import com.github.owlcs.ontapi.internal.*;
+import com.github.owlcs.ontapi.config.AxiomsSettings;
+import com.github.owlcs.ontapi.internal.AxiomTranslator;
+import com.github.owlcs.ontapi.internal.ModelObjectFactory;
+import com.github.owlcs.ontapi.internal.ONTObject;
+import com.github.owlcs.ontapi.internal.WriteHelper;
 import com.github.owlcs.ontapi.internal.objects.*;
 import com.github.owlcs.ontapi.jena.model.*;
 import com.github.owlcs.ontapi.jena.utils.Iter;
@@ -90,12 +94,12 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
     abstract Class<ONT> getView();
 
     @Override
-    public ExtendedIterator<OntStatement> listStatements(OntModel model, InternalConfig config) {
+    public ExtendedIterator<OntStatement> listStatements(OntModel model, AxiomsSettings config) {
         return listByPredicate(model, getPredicate()).filterKeep(this::filter);
     }
 
     @Override
-    public boolean testStatement(OntStatement statement, InternalConfig config) {
+    public boolean testStatement(OntStatement statement, AxiomsSettings config) {
         return getPredicate().equals(statement.getPredicate()) && filter(statement);
     }
 

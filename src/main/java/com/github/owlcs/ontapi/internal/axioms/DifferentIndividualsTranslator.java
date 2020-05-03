@@ -15,7 +15,11 @@
 package com.github.owlcs.ontapi.internal.axioms;
 
 import com.github.owlcs.ontapi.DataFactory;
-import com.github.owlcs.ontapi.internal.*;
+import com.github.owlcs.ontapi.config.AxiomsSettings;
+import com.github.owlcs.ontapi.internal.InternalCache;
+import com.github.owlcs.ontapi.internal.InternalObjectFactory;
+import com.github.owlcs.ontapi.internal.ModelObjectFactory;
+import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
@@ -84,14 +88,14 @@ public class DifferentIndividualsTranslator
     @Override
     public ONTObject<OWLDifferentIndividualsAxiom> toAxiomImpl(OntStatement statement,
                                                                ModelObjectFactory factory,
-                                                               InternalConfig config) {
+                                                               AxiomsSettings config) {
         return AxiomImpl.create(statement, factory, config);
     }
 
     @Override
     public ONTObject<OWLDifferentIndividualsAxiom> toAxiomWrap(OntStatement statement,
                                                                InternalObjectFactory factory,
-                                                               InternalConfig config) {
+                                                               AxiomsSettings config) {
         return makeAxiom(statement, factory.getAnnotations(statement, config),
                 factory::getIndividual,
                 (members, annotations) -> factory.getOWLDataFactory()
@@ -117,12 +121,12 @@ public class DifferentIndividualsTranslator
          *
          * @param statement {@link OntStatement}, not {@code null}
          * @param factory   {@link InternalObjectFactory}, not {@code null}
-         * @param config    {@link InternalConfig}, not {@code null}
+         * @param config    {@link AxiomsSettings}, not {@code null}
          * @return {@link AxiomImpl}
          */
         public static AxiomImpl create(OntStatement statement,
                                        ModelObjectFactory factory,
-                                       InternalConfig config) {
+                                       AxiomsSettings config) {
             if (PREDICATE.equals(statement.getPredicate())) {
                 return WithManyObjects.create(statement,
                         SimpleImpl.FACTORY, ComplexImpl.FACTORY, SET_HASH_CODE, factory, config);

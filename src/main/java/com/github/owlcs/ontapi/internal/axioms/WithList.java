@@ -14,7 +14,7 @@
 
 package com.github.owlcs.ontapi.internal.axioms;
 
-import com.github.owlcs.ontapi.internal.InternalConfig;
+import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.objects.*;
@@ -214,7 +214,7 @@ interface WithList<A extends OWLAxiom, E extends OWLObject> extends WithTriple, 
          * @param getAxiom  factory (as {@link BiFunction}) to provide {@link R} instance, not {@code null}
          * @param setHash   {@code ObjIntConsumer<OWLAxiom>}, facility to assign {@code hashCode}, not {@code null}
          * @param factory   {@link ModelObjectFactory} (singleton), not {@code null}
-         * @param config    {@link InternalConfig} (singleton), not {@code null}
+         * @param config    {@link AxiomsSettings} (singleton), not {@code null}
          * @return {@link R}
          */
         @SuppressWarnings("unchecked")
@@ -222,7 +222,7 @@ interface WithList<A extends OWLAxiom, E extends OWLObject> extends WithTriple, 
                                                         BiFunction<Triple, Supplier<OntModel>, ? extends R> getAxiom,
                                                         ObjIntConsumer<OWLAxiom> setHash,
                                                         ModelObjectFactory factory,
-                                                        InternalConfig config) {
+                                                        AxiomsSettings config) {
             R res = getAxiom.apply(statement.asTriple(), factory.model());
             List content = new ArrayList();
             ONTObject<? extends OWLObject> s = res.fetchONTSubject(statement, factory);
@@ -251,7 +251,7 @@ interface WithList<A extends OWLAxiom, E extends OWLObject> extends WithTriple, 
         default Object[] collectContent() {
             OntStatement statement = asStatement();
             ModelObjectFactory factory = getObjectFactory();
-            InternalConfig config = getConfig();
+            AxiomsSettings config = getConfig();
             List<Object> content = new ArrayList<>();
             content.add(toContentItem(fetchONTSubject(statement, factory)));
             Iterator<ONTObject<? extends E>> it = listONTComponents(statement, factory);
@@ -280,7 +280,7 @@ interface WithList<A extends OWLAxiom, E extends OWLObject> extends WithTriple, 
          * @param getAxiom  factory (as {@link BiFunction}) to provide {@link R} instance, not {@code null}
          * @param setHash   {@code ObjIntConsumer<OWLAxiom>}, facility to assign {@code hashCode}, not {@code null}
          * @param factory   {@link ModelObjectFactory} (singleton), not {@code null}
-         * @param config    {@link InternalConfig} (singleton), not {@code null}
+         * @param config    {@link AxiomsSettings} (singleton), not {@code null}
          * @return {@link R}
          */
         @SuppressWarnings("unchecked")
@@ -288,7 +288,7 @@ interface WithList<A extends OWLAxiom, E extends OWLObject> extends WithTriple, 
                                                        BiFunction<Triple, Supplier<OntModel>, ? extends R> getAxiom,
                                                        ObjIntConsumer<OWLAxiom> setHash,
                                                        ModelObjectFactory factory,
-                                                       InternalConfig config) {
+                                                       AxiomsSettings config) {
             R res = getAxiom.apply(statement.asTriple(), factory.model());
             ONTObject<? extends OWLObject> s = res.fetchONTSubject(statement, factory);
             int hash = OWLObject.hashIteration(res.hashIndex(), s.hashCode());
@@ -322,7 +322,7 @@ interface WithList<A extends OWLAxiom, E extends OWLObject> extends WithTriple, 
         default Object[] collectContent() {
             OntStatement statement = asStatement();
             ModelObjectFactory factory = getObjectFactory();
-            InternalConfig config = getConfig();
+            AxiomsSettings config = getConfig();
             List<Object> content = new ArrayList<>();
             content.add(toContentItem(fetchONTSubject(statement, factory)));
             for (ONTObject x : fetchONTComponents(statement, factory)) {

@@ -14,7 +14,7 @@
 
 package com.github.owlcs.ontapi.internal.axioms;
 
-import com.github.owlcs.ontapi.internal.InternalConfig;
+import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.objects.ONTAnnotationImpl;
@@ -146,7 +146,7 @@ interface WithTwoObjects<S extends OWLObject, O extends OWLObject> extends WithT
      * @param complex   factory (as {@link BiFunction}) to provide {@link Complex} instance, not {@code null}
      * @param setHash   {@code ObjIntConsumer<OWLAxiom>}, facility to assign {@code hashCode}, not {@code null}
      * @param factory   {@link ModelObjectFactory} (singleton), not {@code null}
-     * @param config    {@link InternalConfig} (singleton), not {@code null}
+     * @param config    {@link AxiomsSettings} (singleton), not {@code null}
      * @return {@link R}
      */
     static <R extends ONTObject & WithTwoObjects> R create(OntStatement statement,
@@ -154,7 +154,7 @@ interface WithTwoObjects<S extends OWLObject, O extends OWLObject> extends WithT
                                                            BiFunction<Triple, Supplier<OntModel>, ? extends R> complex,
                                                            ObjIntConsumer<OWLAxiom> setHash,
                                                            ModelObjectFactory factory,
-                                                           InternalConfig config) {
+                                                           AxiomsSettings config) {
         R s = simple.apply(statement.asTriple(), factory.model());
         Object[] content = Complex.initContent(s, statement, setHash, factory, config);
         if (content == null) {
@@ -215,14 +215,14 @@ interface WithTwoObjects<S extends OWLObject, O extends OWLObject> extends WithT
          * @param statement - a {@link OntStatement}, the source statement, not {@code null}
          * @param setHash   - a {@code ObjIntConsumer<OWLAxiom>}, facility to assign {@code hashCode}, not {@code null}
          * @param factory   - a {@link ModelObjectFactory} singleton, not {@code null}
-         * @param config    - a {@link InternalConfig} singleton, not {@code null}
+         * @param config    - a {@link AxiomsSettings} singleton, not {@code null}
          * @return an {@code Array} with content or {@code null} if no content is needed
          */
         static Object[] initContent(WithTwoObjects axiom,
                                     OntStatement statement,
                                     ObjIntConsumer<OWLAxiom> setHash,
                                     ModelObjectFactory factory,
-                                    InternalConfig config) {
+                                    AxiomsSettings config) {
             Collection annotations = ONTAxiomImpl.collectAnnotations(statement, factory, config);
             int size = annotations.size();
             Object subject = null;

@@ -15,6 +15,7 @@
 package com.github.owlcs.ontapi.internal.axioms;
 
 import com.github.owlcs.ontapi.DataFactory;
+import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
@@ -57,14 +58,14 @@ public class NegativeObjectPropertyAssertionTranslator
     @Override
     public ONTObject<OWLNegativeObjectPropertyAssertionAxiom> toAxiomImpl(OntStatement statement,
                                                                           ModelObjectFactory factory,
-                                                                          InternalConfig config) {
+                                                                          AxiomsSettings config) {
         return AxiomImpl.create(statement, factory, config);
     }
 
     @Override
     public ONTObject<OWLNegativeObjectPropertyAssertionAxiom> toAxiomWrap(OntStatement statement,
                                                                           InternalObjectFactory factory,
-                                                                          InternalConfig config) {
+                                                                          AxiomsSettings config) {
         OntNegativeAssertion.WithObjectProperty npa = statement.getSubject(getView());
         ONTObject<? extends OWLIndividual> s = factory.getIndividual(npa.getSource());
         ONTObject<? extends OWLObjectPropertyExpression> p = factory.getProperty(npa.getProperty());
@@ -94,12 +95,12 @@ public class NegativeObjectPropertyAssertionTranslator
          *
          * @param statement {@link OntStatement}, the source, not {@code null}
          * @param factory   {@link InternalObjectFactory}, not {@code null}
-         * @param config    {@link InternalConfig}, not {@code null}
+         * @param config    {@link AxiomsSettings}, not {@code null}
          * @return {@link AxiomImpl}
          */
         public static AxiomImpl create(OntStatement statement,
                                        ModelObjectFactory factory,
-                                       InternalConfig config) {
+                                       AxiomsSettings config) {
             return WithAssertion.create(statement, FACTORY, SET_HASH_CODE, factory, config);
         }
 

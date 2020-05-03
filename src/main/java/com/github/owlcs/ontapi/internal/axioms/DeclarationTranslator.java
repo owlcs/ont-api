@@ -15,6 +15,7 @@
 package com.github.owlcs.ontapi.internal.axioms;
 
 import com.github.owlcs.ontapi.OntApiException;
+import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.*;
 import com.github.owlcs.ontapi.jena.OntJenaException;
@@ -56,7 +57,7 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
     }
 
     @Override
-    public ExtendedIterator<OntStatement> listStatements(OntModel model, InternalConfig config) {
+    public ExtendedIterator<OntStatement> listStatements(OntModel model, AxiomsSettings config) {
         if (!config.isAllowReadDeclarations()) return NullIterator.instance();
         // this way is used for two reasons:
         // 1) performance (union of several find operation for the pattern [ANY,rdf:type,Resource] is faster
@@ -66,7 +67,7 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
     }
 
     @Override
-    public boolean testStatement(OntStatement statement, InternalConfig config) {
+    public boolean testStatement(OntStatement statement, AxiomsSettings config) {
         if (!statement.getSubject().isURIResource()) return false;
         if (!statement.getObject().isURIResource()) return false;
         if (!statement.isDeclaration()) return false;
@@ -80,14 +81,14 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
     @Override
     public ONTObject<OWLDeclarationAxiom> toAxiomImpl(OntStatement statement,
                                                       ModelObjectFactory factory,
-                                                      InternalConfig config) {
+                                                      AxiomsSettings config) {
         return AxiomImpl.create(statement, factory, config);
     }
 
     @Override
     public ONTObject<OWLDeclarationAxiom> toAxiomWrap(OntStatement statement,
                                                       InternalObjectFactory factory,
-                                                      InternalConfig config) {
+                                                      AxiomsSettings config) {
         OntEntity e = Entities.find(statement.getResource())
                 .map(Entities::getActualType)
                 .map(t -> statement.getModel().getOntEntity(t, statement.getSubject()))
@@ -117,12 +118,12 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
          *
          * @param statement {@link OntStatement}, the source
          * @param factory   {@link InternalObjectFactory}
-         * @param config    {@link InternalConfig}
+         * @param config    {@link AxiomsSettings}
          * @return {@link AxiomImpl}
          */
         public static AxiomImpl create(OntStatement statement,
                                        ModelObjectFactory factory,
-                                       InternalConfig config) {
+                                       AxiomsSettings config) {
             Collection<?> annotations = ONTAxiomImpl.collectAnnotations(statement, factory, config);
             if (annotations.isEmpty()) {
                 SimpleImpl res = new SimpleImpl(statement.asTriple(), factory.model());

@@ -14,6 +14,7 @@
 
 package com.github.owlcs.ontapi.internal.axioms;
 
+import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.ONTAxiomImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
@@ -56,7 +57,7 @@ public abstract class AbstractNegativePropertyAssertionTranslator<Axiom extends 
     }
 
     @Override
-    public ExtendedIterator<OntStatement> listStatements(OntModel model, InternalConfig config) {
+    public ExtendedIterator<OntStatement> listStatements(OntModel model, AxiomsSettings config) {
         return listByPredicateAndObject(model, RDF.type, OWL.NegativePropertyAssertion)
                 .mapWith(s -> {
                     NPA res = s.getSubject().getAs(getView());
@@ -65,7 +66,7 @@ public abstract class AbstractNegativePropertyAssertionTranslator<Axiom extends 
     }
 
     @Override
-    public boolean testStatement(OntStatement statement, InternalConfig config) {
+    public boolean testStatement(OntStatement statement, AxiomsSettings config) {
         return statement.getObject().equals(OWL.NegativePropertyAssertion)
                 && statement.isDeclaration()
                 && statement.getSubject().canAs(getView());

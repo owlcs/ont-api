@@ -15,7 +15,7 @@
 package com.github.owlcs.ontapi.internal.axioms;
 
 import com.github.owlcs.ontapi.OntApiException;
-import com.github.owlcs.ontapi.internal.InternalConfig;
+import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.InternalObjectFactory;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
@@ -76,14 +76,14 @@ public class SubPropertyChainOfTranslator
     @Override
     public ONTObject<OWLSubPropertyChainOfAxiom> toAxiomImpl(OntStatement statement,
                                                              ModelObjectFactory factory,
-                                                             InternalConfig config) {
+                                                             AxiomsSettings config) {
         return AxiomImpl.create(statement, factory, config);
     }
 
     @Override
     public ONTObject<OWLSubPropertyChainOfAxiom> toAxiomWrap(OntStatement statement,
                                                              InternalObjectFactory factory,
-                                                             InternalConfig config) {
+                                                             AxiomsSettings config) {
         return makeAxiom(statement,
                 factory::getProperty,
                 OntObjectProperty::findPropertyChain,
@@ -130,12 +130,12 @@ public class SubPropertyChainOfTranslator
          *
          * @param statement {@link OntStatement}, not {@code null}
          * @param factory   {@link InternalObjectFactory}, not {@code null}
-         * @param config    {@link InternalConfig}, not {@code null}
+         * @param config    {@link AxiomsSettings}, not {@code null}
          * @return {@link AxiomImpl}
          */
         public static AxiomImpl create(OntStatement statement,
                                        ModelObjectFactory factory,
-                                       InternalConfig config) {
+                                       AxiomsSettings config) {
             return WithList.Sequent.create(statement, FACTORY, SET_HASH_CODE, factory, config);
         }
 
