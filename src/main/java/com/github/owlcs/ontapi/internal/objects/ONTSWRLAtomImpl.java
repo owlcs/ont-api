@@ -16,9 +16,9 @@ package com.github.owlcs.ontapi.internal.objects;
 
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.OntApiException;
-import com.github.owlcs.ontapi.internal.InternalObjectFactory;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
+import com.github.owlcs.ontapi.internal.ONTObjectFactory;
 import com.github.owlcs.ontapi.jena.model.*;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
 import com.github.owlcs.ontapi.owlapi.OWLObjectImpl;
@@ -56,13 +56,13 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
      * which is an {@link ONTObject} at the same time.
      *
      * @param atom    {@link OntSWRL.Atom}, not {@code null}, must be anonymous
-     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @param factory {@link ONTObjectFactory}, not {@code null}
      * @param model   a provider of non-null {@link OntModel}, not {@code null}
      * @return {@link ONTSWRLAtomImpl} instance
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static ONTSWRLAtomImpl create(OntSWRL.Atom<?> atom,
-                                         InternalObjectFactory factory,
+                                         ONTObjectFactory factory,
                                          Supplier<OntModel> model) {
         Class<? extends OntSWRL.Atom<?>> type = OntModels.getOntType(atom);
         BlankNodeId id = atom.asNode().getBlankNodeId();
@@ -113,7 +113,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
      * @param argument - {@link OntSWRL.IArg}, not {@code null}
      * @param object   - a {@code Object} - the default value
      * @return a content item
-     * @see #toIArgument(Object, InternalObjectFactory)
+     * @see #toIArgument(Object, ONTObjectFactory)
      */
     protected static Object fromIArgument(OntSWRL.IArg argument, Object object) {
         if (argument.isAnon()) {
@@ -132,7 +132,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
      * @param argument - {@link OntSWRL.DArg}, not {@code null}
      * @param object   - a {@code Object} - the default value
      * @return a content item
-     * @see #toDArgument(Object, InternalObjectFactory)
+     * @see #toDArgument(Object, ONTObjectFactory)
      */
     protected static Object fromDArgument(OntSWRL.DArg argument, Object object) {
         if (argument.isLiteral()) {
@@ -195,12 +195,12 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
      * @param item    {@code Object} - either {@code String} (an uri for {@link SWRLIndividualArgument})
      *                or {@link BlankNodeId} (id for {@link SWRLIndividualArgument})
      *                or {@link SWRLVariable} (as {@link ONTObject}), not {@code null}
-     * @param factory - {@link InternalObjectFactory}, not {@code null}
+     * @param factory - {@link ONTObjectFactory}, not {@code null}
      * @return an {@link ONTObject} with {@link SWRLIArgument}
      * @see #fromIArgument(OntSWRL.IArg, Object)
      */
     @SuppressWarnings("unchecked")
-    protected ONTObject<? extends SWRLIArgument> toIArgument(Object item, InternalObjectFactory factory) {
+    protected ONTObject<? extends SWRLIArgument> toIArgument(Object item, ONTObjectFactory factory) {
         if (!(item instanceof String) && !(item instanceof BlankNodeId)) {
             return (ONTObject<? extends SWRLIArgument>) item;
         }
@@ -219,12 +219,12 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
      *
      * @param item    {@code Object} - either {@link LiteralLabel} (for {@link SWRLLiteralArgument})
      *                or {@link SWRLVariable} (as {@link ONTObject}), not {@code null}
-     * @param factory - {@link InternalObjectFactory}, not {@code null}
+     * @param factory - {@link ONTObjectFactory}, not {@code null}
      * @return an {@link ONTObject} with {@link SWRLDArgument}
      * @see #fromDArgument(OntSWRL.DArg, Object)
      */
     @SuppressWarnings("unchecked")
-    protected ONTObject<? extends SWRLDArgument> toDArgument(Object item, InternalObjectFactory factory) {
+    protected ONTObject<? extends SWRLDArgument> toDArgument(Object item, ONTObjectFactory factory) {
         if (!(item instanceof LiteralLabel)) {
             return (ONTObject<? extends SWRLDArgument>) item;
         }
@@ -276,7 +276,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
             return objects(getObjectFactory());
         }
 
-        protected Stream<ONTObject<? extends OWLObject>> objects(InternalObjectFactory factory) {
+        protected Stream<ONTObject<? extends OWLObject>> objects(ONTObjectFactory factory) {
             // skip predicate (builtin) -- its spec is already included
             List<Object> res = Arrays.asList(getContent());
             return res.stream().skip(1).map(x -> toDArgument(x, factory));
@@ -289,7 +289,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
         }
 
         @Override
-        protected Object[] collectContent(OntSWRL.Atom.WithBuiltin atom, InternalObjectFactory factory) {
+        protected Object[] collectContent(OntSWRL.Atom.WithBuiltin atom, ONTObjectFactory factory) {
             IRI predicate = factory.toIRI(atom.getPredicate().getURI());
             List<Object> res = new ArrayList<>();
             res.add(predicate);
@@ -300,7 +300,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
         }
 
         @Override
-        protected Object[] initContent(OntSWRL.Atom.WithBuiltin atom, InternalObjectFactory factory) {
+        protected Object[] initContent(OntSWRL.Atom.WithBuiltin atom, ONTObjectFactory factory) {
             IRI predicate = factory.toIRI(atom.getPredicate().getURI());
             List<Object> res = new ArrayList<>();
             res.add(predicate);
@@ -380,12 +380,12 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
         }
 
         @Override
-        ONTObject<? extends OWLClassExpression> mapPredicate(OntClass predicate, InternalObjectFactory factory) {
+        ONTObject<? extends OWLClassExpression> mapPredicate(OntClass predicate, ONTObjectFactory factory) {
             return factory.getClass(predicate);
         }
 
         @Override
-        ONTObject<? extends SWRLIArgument> mapArgument(OntSWRL.IArg arg, InternalObjectFactory factory) {
+        ONTObject<? extends SWRLIArgument> mapArgument(OntSWRL.IArg arg, ONTObjectFactory factory) {
             return factory.getSWRLArgument(arg);
         }
 
@@ -395,7 +395,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
         }
 
         @Override
-        ONTObject<? extends SWRLIArgument> toArgument(Object item, InternalObjectFactory factory) {
+        ONTObject<? extends SWRLIArgument> toArgument(Object item, ONTObjectFactory factory) {
             return toIArgument(item, factory);
         }
 
@@ -428,12 +428,12 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
         }
 
         @Override
-        ONTObject<? extends OWLDataRange> mapPredicate(OntDataRange dr, InternalObjectFactory factory) {
+        ONTObject<? extends OWLDataRange> mapPredicate(OntDataRange dr, ONTObjectFactory factory) {
             return factory.getDatatype(dr);
         }
 
         @Override
-        ONTObject<? extends SWRLDArgument> mapArgument(OntSWRL.DArg arg, InternalObjectFactory factory) {
+        ONTObject<? extends SWRLDArgument> mapArgument(OntSWRL.DArg arg, ONTObjectFactory factory) {
             return factory.getSWRLArgument(arg);
         }
 
@@ -443,7 +443,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
         }
 
         @Override
-        ONTObject<? extends SWRLDArgument> toArgument(Object item, InternalObjectFactory factory) {
+        ONTObject<? extends SWRLDArgument> toArgument(Object item, ONTObjectFactory factory) {
             return toDArgument(item, factory);
         }
 
@@ -521,7 +521,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
         }
 
         @Override
-        protected Object[] collectContent(OntSWRL.Atom.WithSameIndividuals obj, InternalObjectFactory factory) {
+        protected Object[] collectContent(OntSWRL.Atom.WithSameIndividuals obj, ONTObjectFactory factory) {
             return new Object[]{factory.getProperty(obj.getPredicate()),
                     factory.getSWRLArgument(obj.getFirstArg()), factory.getSWRLArgument(obj.getSecondArg())};
         }
@@ -555,7 +555,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
         }
 
         @Override
-        protected Object[] collectContent(OntSWRL.Atom.WithDifferentIndividuals obj, InternalObjectFactory factory) {
+        protected Object[] collectContent(OntSWRL.Atom.WithDifferentIndividuals obj, ONTObjectFactory factory) {
             return new Object[]{factory.getProperty(obj.getPredicate()),
                     factory.getSWRLArgument(obj.getFirstArg()), factory.getSWRLArgument(obj.getSecondArg())};
         }
@@ -595,23 +595,23 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
         }
 
         @Override
-        protected Object[] collectContent(OntSWRL.Atom.WithDataProperty obj, InternalObjectFactory factory) {
+        protected Object[] collectContent(OntSWRL.Atom.WithDataProperty obj, ONTObjectFactory factory) {
             return new Object[]{factory.getProperty(obj.getPredicate()),
                     factory.getSWRLArgument(obj.getFirstArg()), factory.getSWRLArgument(obj.getSecondArg())};
         }
 
         @Override
-        ONTObject<? extends OWLDataProperty> mapPredicate(OntDataProperty p, InternalObjectFactory factory) {
+        ONTObject<? extends OWLDataProperty> mapPredicate(OntDataProperty p, ONTObjectFactory factory) {
             return factory.getProperty(p);
         }
 
         @Override
-        ONTObject<? extends SWRLIArgument> mapFirstArgument(OntSWRL.IArg a, InternalObjectFactory factory) {
+        ONTObject<? extends SWRLIArgument> mapFirstArgument(OntSWRL.IArg a, ONTObjectFactory factory) {
             return factory.getSWRLArgument(a);
         }
 
         @Override
-        ONTObject<? extends SWRLDArgument> mapSecondArgument(OntSWRL.DArg a, InternalObjectFactory factory) {
+        ONTObject<? extends SWRLDArgument> mapSecondArgument(OntSWRL.DArg a, ONTObjectFactory factory) {
             return factory.getSWRLArgument(a);
         }
 
@@ -621,12 +621,12 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
         }
 
         @Override
-        ONTObject<? extends SWRLIArgument> toFirstArgument(Object item, InternalObjectFactory factory) {
+        ONTObject<? extends SWRLIArgument> toFirstArgument(Object item, ONTObjectFactory factory) {
             return toIArgument(item, factory);
         }
 
         @Override
-        ONTObject<? extends SWRLDArgument> toSecondArgument(Object item, InternalObjectFactory factory) {
+        ONTObject<? extends SWRLDArgument> toSecondArgument(Object item, ONTObjectFactory factory) {
             return toDArgument(item, factory);
         }
 
@@ -698,7 +698,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
         }
 
         @Override
-        protected Object[] collectContent(OntSWRL.Atom.WithObjectProperty obj, InternalObjectFactory factory) {
+        protected Object[] collectContent(OntSWRL.Atom.WithObjectProperty obj, ONTObjectFactory factory) {
             return new Object[]{factory.getProperty(obj.getPredicate()),
                     factory.getSWRLArgument(obj.getFirstArg()), factory.getSWRLArgument(obj.getSecondArg())};
         }
@@ -729,17 +729,17 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
 
         @SuppressWarnings("unchecked")
         @Override
-        ONTObject<? extends OWL_P> mapPredicate(ONT_P p, InternalObjectFactory factory) {
+        ONTObject<? extends OWL_P> mapPredicate(ONT_P p, ONTObjectFactory factory) {
             return (ONTObject<? extends OWL_P>) factory.getProperty(p);
         }
 
         @Override
-        ONTObject<? extends SWRLIArgument> mapFirstArgument(OntSWRL.IArg a, InternalObjectFactory factory) {
+        ONTObject<? extends SWRLIArgument> mapFirstArgument(OntSWRL.IArg a, ONTObjectFactory factory) {
             return factory.getSWRLArgument(a);
         }
 
         @Override
-        ONTObject<? extends SWRLIArgument> mapSecondArgument(OntSWRL.IArg a, InternalObjectFactory factory) {
+        ONTObject<? extends SWRLIArgument> mapSecondArgument(OntSWRL.IArg a, ONTObjectFactory factory) {
             return factory.getSWRLArgument(a);
         }
 
@@ -750,12 +750,12 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
         }
 
         @Override
-        ONTObject<? extends SWRLIArgument> toFirstArgument(Object item, InternalObjectFactory factory) {
+        ONTObject<? extends SWRLIArgument> toFirstArgument(Object item, ONTObjectFactory factory) {
             return toIArgument(item, factory);
         }
 
         @Override
-        ONTObject<? extends SWRLIArgument> toSecondArgument(Object item, InternalObjectFactory factory) {
+        ONTObject<? extends SWRLIArgument> toSecondArgument(Object item, ONTObjectFactory factory) {
             return toIArgument(item, factory);
         }
 
@@ -771,7 +771,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
 
         @Override
         protected Stream<OWLIndividual> individuals() {
-            InternalObjectFactory factory = getObjectFactory();
+            ONTObjectFactory factory = getObjectFactory();
             return Stream.of(findONTFirstArgument(factory), findONTSecondArgument(factory))
                     .map(ONTObject::getOWLObject)
                     .filter(x -> x instanceof SWRLIndividualArgument)
@@ -893,11 +893,11 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
             return findONTSecondArgument(getObjectFactory());
         }
 
-        protected ONTObject<? extends OWL_F> findONTFirstArgument(InternalObjectFactory factory) {
+        protected ONTObject<? extends OWL_F> findONTFirstArgument(ONTObjectFactory factory) {
             return toFirstArgument(getContent()[1], factory);
         }
 
-        protected ONTObject<? extends OWL_S> findONTSecondArgument(InternalObjectFactory factory) {
+        protected ONTObject<? extends OWL_S> findONTSecondArgument(ONTObjectFactory factory) {
             return toSecondArgument(getContent()[2], factory);
         }
 
@@ -923,7 +923,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
         abstract OWL_R fromFactory(OWL_P p, OWL_F f, OWL_S s);
 
         @Override
-        protected Object[] collectContent(ONT_R obj, InternalObjectFactory factory) {
+        protected Object[] collectContent(ONT_R obj, ONTObjectFactory factory) {
             ONT_P p = obj.getPredicate();
             ONT_F f = obj.getFirstArg();
             ONT_S s = obj.getSecondArg();
@@ -934,7 +934,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
         }
 
         @Override
-        protected Object[] initContent(ONT_R obj, InternalObjectFactory factory) {
+        protected Object[] initContent(ONT_R obj, ONTObjectFactory factory) {
             ONT_P p = obj.getPredicate();
             ONT_F f = obj.getFirstArg();
             ONT_S s = obj.getSecondArg();
@@ -956,17 +956,17 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
 
         abstract Object fromSecondArgument(ONT_S arg, ONTObject<? extends OWL_S> object);
 
-        abstract ONTObject<? extends OWL_P> mapPredicate(ONT_P p, InternalObjectFactory factory);
+        abstract ONTObject<? extends OWL_P> mapPredicate(ONT_P p, ONTObjectFactory factory);
 
-        abstract ONTObject<? extends OWL_F> mapFirstArgument(ONT_F a, InternalObjectFactory factory);
+        abstract ONTObject<? extends OWL_F> mapFirstArgument(ONT_F a, ONTObjectFactory factory);
 
-        abstract ONTObject<? extends OWL_S> mapSecondArgument(ONT_S a, InternalObjectFactory factory);
+        abstract ONTObject<? extends OWL_S> mapSecondArgument(ONT_S a, ONTObjectFactory factory);
 
         abstract ONTObject<? extends OWL_P> toPredicate(Object item, ModelObjectFactory factory);
 
-        abstract ONTObject<? extends OWL_F> toFirstArgument(Object item, InternalObjectFactory factory);
+        abstract ONTObject<? extends OWL_F> toFirstArgument(Object item, ONTObjectFactory factory);
 
-        abstract ONTObject<? extends OWL_S> toSecondArgument(Object item, InternalObjectFactory factory);
+        abstract ONTObject<? extends OWL_S> toSecondArgument(Object item, ONTObjectFactory factory);
     }
 
     /**
@@ -1012,7 +1012,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
             return findONTPredicate(getObjectFactory());
         }
 
-        protected ONTObject<? extends OWL_A> findONTArgument(InternalObjectFactory factory) {
+        protected ONTObject<? extends OWL_A> findONTArgument(ONTObjectFactory factory) {
             return toArgument(getContent()[1], factory);
         }
 
@@ -1034,7 +1034,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
         abstract OWL_R fromFactory(OWL_P p, OWL_A a);
 
         @Override
-        protected Object[] collectContent(ONT_R obj, InternalObjectFactory factory) {
+        protected Object[] collectContent(ONT_R obj, ONTObjectFactory factory) {
             ONT_P p = obj.getPredicate();
             ONT_A a = obj.getArg();
             ONTObject<? extends OWL_P> predicate = mapPredicate(p, factory);
@@ -1043,7 +1043,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
         }
 
         @Override
-        protected Object[] initContent(ONT_R obj, InternalObjectFactory factory) {
+        protected Object[] initContent(ONT_R obj, ONTObjectFactory factory) {
             ONT_P p = obj.getPredicate();
             ONT_A a = obj.getArg();
             ONTObject<? extends OWL_A> argument = mapArgument(a, factory);
@@ -1060,13 +1060,13 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
 
         abstract Object fromArgument(ONT_A arg, ONTObject<? extends OWL_A> object);
 
-        abstract ONTObject<? extends OWL_P> mapPredicate(ONT_P p, InternalObjectFactory factory);
+        abstract ONTObject<? extends OWL_P> mapPredicate(ONT_P p, ONTObjectFactory factory);
 
-        abstract ONTObject<? extends OWL_A> mapArgument(ONT_A a, InternalObjectFactory factory);
+        abstract ONTObject<? extends OWL_A> mapArgument(ONT_A a, ONTObjectFactory factory);
 
         abstract ONTObject<? extends OWL_P> toPredicate(Object item, ModelObjectFactory factory);
 
-        abstract ONTObject<? extends OWL_A> toArgument(Object item, InternalObjectFactory factory);
+        abstract ONTObject<? extends OWL_A> toArgument(Object item, ONTObjectFactory factory);
 
     }
 

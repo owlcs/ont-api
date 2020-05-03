@@ -61,7 +61,7 @@ public class DataPropertyDomainTranslator extends AbstractPropertyDomainTranslat
 
     @Override
     public ONTObject<OWLDataPropertyDomainAxiom> toAxiomWrap(OntStatement statement,
-                                                             InternalObjectFactory factory,
+                                                             ONTObjectFactory factory,
                                                              AxiomsSettings config) {
         ONTObject<OWLDataProperty> p = factory.getProperty(statement.getSubject(getView()));
         ONTObject<? extends OWLClassExpression> ce = factory.getClass(statement.getObject(OntClass.class));
@@ -90,7 +90,7 @@ public class DataPropertyDomainTranslator extends AbstractPropertyDomainTranslat
          * Creates an {@link ONTObject} container that is also {@link OWLDataPropertyDomainAxiom}.
          *
          * @param statement {@link OntStatement}, not {@code null}
-         * @param factory   {@link InternalObjectFactory}, not {@code null}
+         * @param factory   {@link ONTObjectFactory}, not {@code null}
          * @param config    {@link AxiomsSettings}, not {@code null}
          * @return {@link AxiomImpl}
          */

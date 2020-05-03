@@ -82,7 +82,7 @@ public class AnnotationPropertyDomainTranslator
 
     @Override
     public ONTObject<OWLAnnotationPropertyDomainAxiom> toAxiomWrap(OntStatement statement,
-                                                                   InternalObjectFactory factory,
+                                                                   ONTObjectFactory factory,
                                                                    AxiomsSettings config) {
         ONTObject<OWLAnnotationProperty> p = factory.getProperty(statement.getSubject(getView()));
         ONTObject<IRI> d = factory.getIRI(statement.getResource().getURI());
@@ -108,7 +108,7 @@ public class AnnotationPropertyDomainTranslator
          * Creates an {@link ONTObject} container that is also {@link OWLAnnotationPropertyDomainAxiom}.
          *
          * @param statement {@link OntStatement}, not {@code null}
-         * @param factory   {@link InternalObjectFactory}, not {@code null}
+         * @param factory   {@link ONTObjectFactory}, not {@code null}
          * @param config    {@link AxiomsSettings}, not {@code null}
          * @return {@link AxiomImpl}
          */

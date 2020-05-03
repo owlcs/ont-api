@@ -65,7 +65,7 @@ public class EquivalentObjectPropertiesTranslator
 
     @Override
     public ONTObject<OWLEquivalentObjectPropertiesAxiom> toAxiomWrap(OntStatement statement,
-                                                                     InternalObjectFactory factory,
+                                                                     ONTObjectFactory factory,
                                                                      AxiomsSettings config) {
         ONTObject<? extends OWLObjectPropertyExpression> a = factory.getProperty(statement.getSubject(getView()));
         ONTObject<? extends OWLObjectPropertyExpression> b = factory.getProperty(statement.getObject().as(getView()));
@@ -94,7 +94,7 @@ public class EquivalentObjectPropertiesTranslator
          * Creates an {@link ONTObject} container, that is also {@link OWLEquivalentObjectPropertiesAxiom}.
          *
          * @param statement {@link OntStatement}, not {@code null}
-         * @param factory   {@link InternalObjectFactory}, not {@code null}
+         * @param factory   {@link ONTObjectFactory}, not {@code null}
          * @param config    {@link AxiomsSettings}, not {@code null}
          * @return {@link AxiomImpl}
          */

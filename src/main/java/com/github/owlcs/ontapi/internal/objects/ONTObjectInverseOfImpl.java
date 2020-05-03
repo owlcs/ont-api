@@ -14,9 +14,9 @@
 
 package com.github.owlcs.ontapi.internal.objects;
 
-import com.github.owlcs.ontapi.internal.InternalObjectFactory;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
+import com.github.owlcs.ontapi.internal.ONTObjectFactory;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntObjectProperty;
 import org.apache.jena.graph.BlankNodeId;
@@ -49,12 +49,12 @@ public class ONTObjectInverseOfImpl
      * Wraps the given {@link OntObjectProperty.Inverse} as {@link OWLObjectInverseOf} and {@link ONTObject}.
      *
      * @param iop     {@link OntObjectProperty.Inverse}, not {@code null}
-     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @param factory {@link ONTObjectFactory}, not {@code null}
      * @param model   a provider of non-null {@link OntModel}, cannot be {@code null}
      * @return {@link ONTObjectInverseOfImpl}
      */
     public static ONTObjectInverseOfImpl create(OntObjectProperty.Inverse iop,
-                                                InternalObjectFactory factory,
+                                                ONTObjectFactory factory,
                                                 Supplier<OntModel> model) {
         ONTObjectInverseOfImpl res = new ONTObjectInverseOfImpl(iop.asNode().getBlankNodeId(), model);
         res.putContent(res.initContent(iop, factory));
@@ -72,12 +72,12 @@ public class ONTObjectInverseOfImpl
     }
 
     @Override
-    protected Object[] collectContent(OntObjectProperty.Inverse pe, InternalObjectFactory factory) {
+    protected Object[] collectContent(OntObjectProperty.Inverse pe, ONTObjectFactory factory) {
         return new Object[]{pe.getDirect().getURI()};
     }
 
     @Override
-    protected Object[] initContent(OntObjectProperty.Inverse pe, InternalObjectFactory factory) {
+    protected Object[] initContent(OntObjectProperty.Inverse pe, ONTObjectFactory factory) {
         OntObjectProperty.Named p = pe.getDirect();
         this.hashCode = OWLObject.hashIteration(hashIndex(), factory.getProperty(p).hashCode());
         return new Object[]{p.getURI()};

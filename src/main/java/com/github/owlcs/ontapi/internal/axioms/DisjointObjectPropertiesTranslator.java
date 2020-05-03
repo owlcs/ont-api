@@ -16,9 +16,9 @@ package com.github.owlcs.ontapi.internal.axioms;
 
 import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.InternalCache;
-import com.github.owlcs.ontapi.internal.InternalObjectFactory;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
+import com.github.owlcs.ontapi.internal.ONTObjectFactory;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
@@ -90,7 +90,7 @@ public class DisjointObjectPropertiesTranslator
 
     @Override
     public ONTObject<OWLDisjointObjectPropertiesAxiom> toAxiomWrap(OntStatement statement,
-                                                                   InternalObjectFactory factory,
+                                                                   ONTObjectFactory factory,
                                                                    AxiomsSettings config) {
         return makeAxiom(statement, factory.getAnnotations(statement, config),
                 factory::getProperty,
@@ -116,7 +116,7 @@ public class DisjointObjectPropertiesTranslator
          * Creates an {@link ONTObject} container, that is also {@link OWLDisjointObjectPropertiesAxiom}.
          *
          * @param statement {@link OntStatement}, not {@code null}
-         * @param factory   {@link InternalObjectFactory}, not {@code null}
+         * @param factory   {@link ONTObjectFactory}, not {@code null}
          * @param config    {@link AxiomsSettings}, not {@code null}
          * @return {@link AxiomImpl}
          */

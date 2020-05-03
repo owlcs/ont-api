@@ -94,7 +94,7 @@ public class AnnotationAssertionTranslator
 
     @Override
     public ONTObject<OWLAnnotationAssertionAxiom> toAxiomWrap(OntStatement statement,
-                                                              InternalObjectFactory factory,
+                                                              ONTObjectFactory factory,
                                                               AxiomsSettings config) {
         ONTObject<? extends OWLAnnotationSubject> s = factory.getSubject(statement.getSubject(OntObject.class));
         ONTObject<OWLAnnotationProperty> p = factory.getProperty(statement.getPredicate().as(OntAnnotationProperty.class));

@@ -34,10 +34,10 @@ import java.util.stream.Stream;
 
 /**
  * An {@link OWLAnnotation} implementation that is also an instance of {@link ONTObject}.
- *
+ * <p>
  * Created by @ssz on 17.08.2019.
  *
- * @see ReadHelper#getAnnotation(OntStatement, InternalObjectFactory)
+ * @see ReadHelper#getAnnotation(OntStatement, ONTObjectFactory)
  * @see com.github.owlcs.ontapi.owlapi.objects.OWLAnnotationImpl
  * @since 2.0.0
  */
@@ -104,13 +104,13 @@ public abstract class ONTAnnotationImpl extends ONTStatementImpl
      * that expected to be an annotation assertion (i.e. {@link OntStatement#isAnnotationAssertion()} must return {@code true}).
      *
      * @param root    {@link OntStatement} the root annotation statement or plain annotation assertion, not {@code null}
-     * @param factory {@link InternalObjectFactory} to retrieve {@link ONTObject}s, not {@code null}
+     * @param factory {@link ONTObjectFactory} to retrieve {@link ONTObject}s, not {@code null}
      * @return a sorted nonnull distinct {@code Collection} {@code Collection}
      * of {@link ONTObject}s with {@link OWLAnnotation}s (can be empty if no annotations)
-     * @see ONTAxiomImpl#collectAnnotations(OntStatement, InternalObjectFactory, com.github.owlcs.ontapi.config.AxiomsSettings)
+     * @see ONTAxiomImpl#collectAnnotations(OntStatement, ONTObjectFactory, com.github.owlcs.ontapi.config.AxiomsSettings)
      */
     protected static Collection<ONTObject<OWLAnnotation>> collectAnnotations(OntStatement root,
-                                                                             InternalObjectFactory factory) {
+                                                                             ONTObjectFactory factory) {
         Map<OWLAnnotation, ONTObject<OWLAnnotation>> res = new TreeMap<>();
         OntModels.listAnnotations(root).mapWith(factory::getAnnotation).forEachRemaining(x -> WithMerge.add(res, x));
         return res.values();

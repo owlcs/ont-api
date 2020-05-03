@@ -77,7 +77,7 @@ public class DataPropertyAssertionTranslator
 
     @Override
     public ONTObject<OWLDataPropertyAssertionAxiom> toAxiomWrap(OntStatement statement,
-                                                                InternalObjectFactory factory,
+                                                                ONTObjectFactory factory,
                                                                 AxiomsSettings config) {
         ONTObject<? extends OWLIndividual> i = factory.getIndividual(statement.getSubject(OntIndividual.class));
         ONTObject<OWLDataProperty> p = factory.getProperty(statement.getPredicate().as(OntDataProperty.class));

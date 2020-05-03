@@ -142,14 +142,14 @@ public class CacheConfigTest {
                 OntFormat.TURTLE));
         Assert.assertNotNull(o);
         Assert.assertEquals(axioms, o.axioms().count());
-        InternalObjectFactory of1 = ((BaseModel) o).getBase().getObjectFactory();
-        Assert.assertTrue(of1 instanceof ModelObjectFactory);
+        ONTObjectFactory of1 = ((BaseModel) o).getBase().getObjectFactory();
+        Assert.assertTrue(of1 instanceof InternalObjectFactoryImpl);
         Assert.assertFalse(of1 instanceof CacheObjectFactory);
 
         int size1 = 52;
         m.setOntologyLoaderConfiguration(conf.setLoadObjectsCacheSize(size1));
         Assert.assertEquals(axioms, o.axioms().count());
-        InternalObjectFactory of2 = ((BaseModel) o).getBase().getObjectFactory();
+        ONTObjectFactory of2 = ((BaseModel) o).getBase().getObjectFactory();
         Assert.assertTrue(of2 instanceof CacheObjectFactory);
         CacheObjectFactory cof1 = (CacheObjectFactory) of2;
 
@@ -163,7 +163,7 @@ public class CacheConfigTest {
         int size2 = 2;
         m.setOntologyLoaderConfiguration(conf.setLoadObjectsCacheSize(size2));
         Assert.assertEquals(axioms, o.axioms().count());
-        InternalObjectFactory of3 = ((BaseModel) o).getBase().getObjectFactory();
+        ONTObjectFactory of3 = ((BaseModel) o).getBase().getObjectFactory();
         Assert.assertTrue(of3 instanceof CacheObjectFactory);
         CacheObjectFactory cof2 = (CacheObjectFactory) of3;
 

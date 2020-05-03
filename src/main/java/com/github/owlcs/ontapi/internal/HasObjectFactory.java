@@ -31,7 +31,7 @@ public interface HasObjectFactory {
     /**
      * Returns the {@code InternalDataFactory}, that is a helper (possibly, with cache) to read OWL-API objects.
      *
-     * @return {@link InternalObjectFactory}
+     * @return {@link ONTObjectFactory}
      */
     @Nonnull
     ModelObjectFactory getObjectFactory();
@@ -51,7 +51,7 @@ public interface HasObjectFactory {
      * Gets the ONT-API Object Factory from the model's internals if possible, otherwise throws an exception.
      *
      * @param model {@link OntModel}, not {@code null}
-     * @return {@link InternalObjectFactory}
+     * @return {@link ONTObjectFactory}
      * @throws OntApiException.IllegalArgument in case the model does not provide the object factory
      */
     @Nonnull

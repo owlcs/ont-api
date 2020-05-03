@@ -89,7 +89,7 @@ public class SubAnnotationPropertyOfTranslator
 
     @Override
     public ONTObject<OWLSubAnnotationPropertyOfAxiom> toAxiomWrap(OntStatement statement,
-                                                                  InternalObjectFactory factory,
+                                                                  ONTObjectFactory factory,
                                                                   AxiomsSettings config) {
         ONTObject<OWLAnnotationProperty> sub = factory.getProperty(statement.getSubject(OntAnnotationProperty.class));
         ONTObject<OWLAnnotationProperty> sup = factory.getProperty(statement.getObject().as(OntAnnotationProperty.class));
@@ -114,7 +114,7 @@ public class SubAnnotationPropertyOfTranslator
          * Creates an {@link ONTObject} container that is also {@link OWLSubAnnotationPropertyOfAxiom}.
          *
          * @param statement {@link OntStatement}, not {@code null}
-         * @param factory   {@link InternalObjectFactory}, not {@code null}
+         * @param factory   {@link ONTObjectFactory}, not {@code null}
          * @param config    {@link AxiomsSettings}, not {@code null}
          * @return {@link AxiomImpl}
          */

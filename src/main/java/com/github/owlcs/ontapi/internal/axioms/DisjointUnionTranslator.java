@@ -17,9 +17,9 @@ package com.github.owlcs.ontapi.internal.axioms;
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.config.AxiomsSettings;
-import com.github.owlcs.ontapi.internal.InternalObjectFactory;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
+import com.github.owlcs.ontapi.internal.ONTObjectFactory;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.jena.model.OntClass;
 import com.github.owlcs.ontapi.jena.model.OntList;
@@ -82,7 +82,7 @@ public class DisjointUnionTranslator extends AbstractListBasedTranslator<OWLDisj
 
     @Override
     public ONTObject<OWLDisjointUnionAxiom> toAxiomWrap(OntStatement statement,
-                                                        InternalObjectFactory factory,
+                                                        ONTObjectFactory factory,
                                                         AxiomsSettings config) {
         return makeAxiom(statement, factory::getClass, OntClass.Named::findDisjointUnion, factory::getClass, Collectors.toSet(),
                 (s, m) -> factory.getOWLDataFactory().getOWLDisjointUnionAxiom(s.getOWLObject().asOWLClass(),
@@ -112,7 +112,7 @@ public class DisjointUnionTranslator extends AbstractListBasedTranslator<OWLDisj
          * Creates an {@link ONTObject} container that is also {@link  OWLDisjointUnionAxiom}.
          *
          * @param statement {@link OntStatement}, not {@code null}
-         * @param factory   {@link InternalObjectFactory}, not {@code null}
+         * @param factory   {@link ONTObjectFactory}, not {@code null}
          * @param config    {@link AxiomsSettings}, not {@code null}
          * @return {@link AxiomImpl}
          */

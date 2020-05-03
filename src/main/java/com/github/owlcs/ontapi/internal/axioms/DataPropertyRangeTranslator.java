@@ -60,7 +60,7 @@ public class DataPropertyRangeTranslator extends AbstractPropertyRangeTranslator
 
     @Override
     public ONTObject<OWLDataPropertyRangeAxiom> toAxiomWrap(OntStatement statement,
-                                                            InternalObjectFactory factory,
+                                                            ONTObjectFactory factory,
                                                             AxiomsSettings config) {
         ONTObject<OWLDataProperty> p = factory.getProperty(statement.getSubject(getView()));
         ONTObject<? extends OWLDataRange> d = factory.getDatatype(statement.getObject(OntDataRange.class));
@@ -89,7 +89,7 @@ public class DataPropertyRangeTranslator extends AbstractPropertyRangeTranslator
          * Creates an {@link ONTObject} container that is also {@link OWLDataPropertyRangeAxiom}.
          *
          * @param statement {@link OntStatement}, not {@code null}
-         * @param factory   {@link InternalObjectFactory}, not {@code null}
+         * @param factory   {@link ONTObjectFactory}, not {@code null}
          * @param config    {@link AxiomsSettings}, not {@code null}
          * @return {@link AxiomImpl}
          */

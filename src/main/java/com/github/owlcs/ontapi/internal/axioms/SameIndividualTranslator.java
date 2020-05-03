@@ -69,7 +69,7 @@ public class SameIndividualTranslator
 
     @Override
     public ONTObject<OWLSameIndividualAxiom> toAxiomWrap(OntStatement statement,
-                                                         InternalObjectFactory factory,
+                                                         ONTObjectFactory factory,
                                                          AxiomsSettings config) {
         ONTObject<? extends OWLIndividual> a = factory.getIndividual(statement.getSubject(getView()));
         ONTObject<? extends OWLIndividual> b = factory.getIndividual(statement.getObject().as(getView()));
@@ -97,7 +97,7 @@ public class SameIndividualTranslator
          * Creates an {@link ONTObject} container, that is also {@link OWLSameIndividualAxiom}.
          *
          * @param statement {@link OntStatement}, not {@code null}
-         * @param factory   {@link InternalObjectFactory}, not {@code null}
+         * @param factory   {@link ONTObjectFactory}, not {@code null}
          * @param config    {@link AxiomsSettings}, not {@code null}
          * @return {@link AxiomImpl}
          */

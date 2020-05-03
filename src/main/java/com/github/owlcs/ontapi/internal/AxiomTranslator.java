@@ -60,15 +60,15 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> extends BaseSearch
     }
 
     /**
-     * If possible, gets the {@code model}'s {@link InternalObjectFactory Object Factory},
+     * If possible, gets the {@code model}'s {@link ONTObjectFactory Object Factory},
      * otherwise returns the default one.
      *
      * @param model {@link OntModel}
-     * @return {@link InternalObjectFactory}
+     * @return {@link ONTObjectFactory}
      */
-    public static InternalObjectFactory getObjectFactory(OntModel model) {
+    public static ONTObjectFactory getObjectFactory(OntModel model) {
         return model instanceof HasObjectFactory ?
-                ((HasObjectFactory) model).getObjectFactory() : InternalObjectFactory.DEFAULT;
+                ((HasObjectFactory) model).getObjectFactory() : ONTObjectFactory.DEFAULT;
     }
 
     /**
@@ -105,7 +105,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> extends BaseSearch
      */
     public final ExtendedIterator<ONTObject<Axiom>> listAxioms(OntModel model) throws JenaException {
         Objects.requireNonNull(model, "Null model.");
-        InternalObjectFactory factory = getObjectFactory(model);
+        ONTObjectFactory factory = getObjectFactory(model);
         InternalConfig config = getConfig(model);
         return translate(this, listStatements(model, config), factory, config);
     }
@@ -147,13 +147,13 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> extends BaseSearch
      * Returns an {@link ExtendedIterator Extended Iterator} of all model {@link Axiom}s.
      *
      * @param model   a facility (as {@link Supplier}) to provide nonnull {@link OntModel}
-     * @param factory {@link InternalObjectFactory} to produce OWL-API Objects, not {@code null}
+     * @param factory {@link ONTObjectFactory} to produce OWL-API Objects, not {@code null}
      * @param config  {@link AxiomsSettings} to control process, not {@code null}
      * @return {@link ExtendedIterator} of {@link ONTObject}s that wrap {@link Axiom}s
      * @throws JenaException unable to read axioms of this type
      */
     protected ExtendedIterator<ONTObject<Axiom>> listAxioms(OntModel model,
-                                                            InternalObjectFactory factory,
+                                                            ONTObjectFactory factory,
                                                             AxiomsSettings config) throws JenaException {
         return translate(this, listStatements(model, config), factory, config);
     }
@@ -162,13 +162,13 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> extends BaseSearch
      * Answers {@code true} iff the given axiom ({@code key}) is present in the base graph.
      *
      * @param model   a facility (as a {@link Supplier}) to get nonnull {@link OntModel}, not {@code null}
-     * @param factory {@link InternalObjectFactory} to produce ONT-API Objects, not {@code null}
+     * @param factory {@link ONTObjectFactory} to produce ONT-API Objects, not {@code null}
      * @param config  {@link AxiomsSettings} to configure the process, not {@code null}
      * @param key     {@link Axiom}, not {@code null}
      * @return boolean
      * @since 2.0.0
      */
-    protected boolean containsAxiom(OntModel model, InternalObjectFactory factory, AxiomsSettings config, Axiom key) {
+    protected boolean containsAxiom(OntModel model, ONTObjectFactory factory, AxiomsSettings config, Axiom key) {
         Objects.requireNonNull(key);
         return Iter.anyMatch(listAxioms(model, factory, config), x -> x.getOWLObject().equals(key));
     }
@@ -177,7 +177,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> extends BaseSearch
      * Finds the {@link ONTObject} axiom representation by the formal {@link Axiom} declaration.
      *
      * @param model   a facility (as a {@link Supplier}) to get nonnull {@link OntModel}, not {@code null}
-     * @param factory {@link InternalObjectFactory} to produce ONT-API Objects, not {@code null}
+     * @param factory {@link ONTObjectFactory} to produce ONT-API Objects, not {@code null}
      * @param config  {@link AxiomsSettings} to configure the process, not {@code null}
      * @param key     {@link Axiom}, not {@code null}
      * @return an {@code Optional} that wraps an {@code ONTObject}-container with a desired {@link Axiom}-instance
@@ -185,7 +185,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> extends BaseSearch
      */
     @SuppressWarnings("unchecked")
     protected Optional<ONTObject<Axiom>> findAxiom(OntModel model,
-                                                   InternalObjectFactory factory,
+                                                   ONTObjectFactory factory,
                                                    AxiomsSettings config,
                                                    Axiom key) {
         Objects.requireNonNull(key);
@@ -234,13 +234,13 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> extends BaseSearch
      * that is created by the system-wide {@link DataFactory Data Factory}.
      *
      * @param statement {@link OntStatement} the statement which determines the axiom
-     * @param factory   {@link InternalObjectFactory} the data factory to create OWL-API objects
+     * @param factory   {@link ONTObjectFactory} the data factory to create OWL-API objects
      * @param config    {@link AxiomsSettings} to control process
      * @return {@link ONTObject} around {@link OWLAxiom}
      * @throws JenaException if no possible to get an axiom from the statement
      */
     protected abstract ONTObject<Axiom> toAxiomWrap(OntStatement statement,
-                                                    InternalObjectFactory factory,
+                                                    ONTObjectFactory factory,
                                                     AxiomsSettings config) throws JenaException;
 
     /**

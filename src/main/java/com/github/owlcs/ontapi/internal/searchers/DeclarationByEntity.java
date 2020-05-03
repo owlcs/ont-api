@@ -15,8 +15,8 @@
 package com.github.owlcs.ontapi.internal.searchers;
 
 import com.github.owlcs.ontapi.config.AxiomsSettings;
-import com.github.owlcs.ontapi.internal.InternalObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
+import com.github.owlcs.ontapi.internal.ONTObjectFactory;
 import com.github.owlcs.ontapi.internal.OWLTopObjectType;
 import com.github.owlcs.ontapi.internal.WriteHelper;
 import com.github.owlcs.ontapi.internal.axioms.DeclarationTranslator;
@@ -38,7 +38,7 @@ public class DeclarationByEntity extends BaseByObject<OWLDeclarationAxiom, OWLEn
     @Override
     public ExtendedIterator<ONTObject<OWLDeclarationAxiom>> listAxioms(OWLEntity entity,
                                                                        OntModel model,
-                                                                       InternalObjectFactory factory,
+                                                                       ONTObjectFactory factory,
                                                                        AxiomsSettings config) {
         OntEntity res = PersonalityModel.asPersonalityModel(model)
                 .findNodeAs(WriteHelper.toNode(entity), WriteHelper.getEntityType(entity));

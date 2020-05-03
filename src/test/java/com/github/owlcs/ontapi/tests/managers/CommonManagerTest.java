@@ -17,8 +17,8 @@ package com.github.owlcs.ontapi.tests.managers;
 import com.github.owlcs.ontapi.*;
 import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
 import com.github.owlcs.ontapi.internal.AxiomTranslator;
-import com.github.owlcs.ontapi.internal.InternalObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
+import com.github.owlcs.ontapi.internal.ONTObjectFactory;
 import com.github.owlcs.ontapi.jena.OntModelFactory;
 import com.github.owlcs.ontapi.jena.RWLockedGraph;
 import com.github.owlcs.ontapi.jena.UnionGraph;
@@ -159,12 +159,13 @@ public class CommonManagerTest {
         newClasses.forEach(c -> Assert.assertFalse("Found " + c + " inside original ontology", o1.containsResource(c)));
         Ontology ont = copy.getOntology(IRI.create(uri));
         Assert.assertNotNull(ont);
-        InternalObjectFactory df = AxiomTranslator.getObjectFactory(o2);
+        ONTObjectFactory df = AxiomTranslator.getObjectFactory(o2);
         List<OWLClass> newOWLClasses = newClasses.stream()
                 .map(df::getClass)
                 .map(ONTObject::getOWLObject)
                 .map(AsOWLClass::asOWLClass).collect(Collectors.toList());
         LOGGER.debug("OWL-Classes: {}", newOWLClasses);
+        //noinspection deprecation
         newOWLClasses.forEach(c ->
                 Assert.assertTrue("Can't find " + c + " inside copied ontology",
                         ont.containsReference(c, Imports.INCLUDED))

@@ -16,9 +16,9 @@ package com.github.owlcs.ontapi.internal.objects;
 
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.OntApiException;
-import com.github.owlcs.ontapi.internal.InternalObjectFactory;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
+import com.github.owlcs.ontapi.internal.ONTObjectFactory;
 import com.github.owlcs.ontapi.jena.model.*;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
 import com.github.owlcs.ontapi.owlapi.OWLObjectImpl;
@@ -45,7 +45,7 @@ import java.util.stream.Stream;
  * @param <OWL> subtype of {@link OWLAnonymousClassExpression}, which matches {@link ONT}
  * @see com.github.owlcs.ontapi.owlapi.objects.ce.OWLAnonymousClassExpressionImpl
  * @see ONTClassImpl
- * @see com.github.owlcs.ontapi.internal.ReadHelper#calcClassExpression(OntClass, InternalObjectFactory, Set)
+ * @see com.github.owlcs.ontapi.internal.ReadHelper#calcClassExpression(OntClass, ONTObjectFactory, Set)
  * @see OntClass
  * @see OntClass.Named
  * @since 2.0.0
@@ -63,13 +63,13 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
      * Wraps the given {@link OntClass} as {@link OWLAnonymousClassExpression} and {@link ONTObject}.
      *
      * @param ce      {@link OntClass}, not {@code null}, must be anonymous
-     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @param factory {@link ONTObjectFactory}, not {@code null}
      * @param model   a provider of non-null {@link OntModel}, not {@code null}
      * @return {@link ONTAnonymousClassExpressionImpl} instance
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static ONTAnonymousClassExpressionImpl create(OntClass ce,
-                                                         InternalObjectFactory factory,
+                                                         ONTObjectFactory factory,
                                                          Supplier<OntModel> model) {
         Class<? extends OntClass> type = OntModels.getOntType(ce);
         BlankNodeId id = ce.asNode().getBlankNodeId();
@@ -410,13 +410,13 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
         }
 
         @Override
-        protected Object[] collectContent(OntClass.ObjectHasValue ce, InternalObjectFactory factory) {
+        protected Object[] collectContent(OntClass.ObjectHasValue ce, ONTObjectFactory factory) {
             // [property, filler]
             return new Object[]{toContentItem(ce.getProperty(), factory), toContentItem(ce.getValue())};
         }
 
         @Override
-        protected Object[] initContent(OntClass.ObjectHasValue ce, InternalObjectFactory factory) {
+        protected Object[] initContent(OntClass.ObjectHasValue ce, ONTObjectFactory factory) {
             OntObjectProperty p = ce.getProperty();
             OntIndividual v = ce.getValue();
             return initContent(p.asNode(), v.asNode(), factory.getProperty(p), factory.getIndividual(v));
@@ -539,13 +539,13 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
         }
 
         @Override
-        protected Object[] collectContent(OntClass.DataHasValue ce, InternalObjectFactory factory) {
+        protected Object[] collectContent(OntClass.DataHasValue ce, ONTObjectFactory factory) {
             // [property, filler]
             return new Object[]{toContentItem(ce.getProperty()), toContentItem(ce.getValue())};
         }
 
         @Override
-        protected Object[] initContent(OntClass.DataHasValue ce, InternalObjectFactory factory) {
+        protected Object[] initContent(OntClass.DataHasValue ce, ONTObjectFactory factory) {
             OntDataProperty p = ce.getProperty();
             Literal v = ce.getValue();
             return initContent(p.asNode(), v.asNode(), factory.getProperty(p), factory.getLiteral(v));
@@ -891,7 +891,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
         }
 
         @Override
-        protected ONTObject<? extends OWLIndividual> map(OntIndividual member, InternalObjectFactory factory) {
+        protected ONTObject<? extends OWLIndividual> map(OntIndividual member, ONTObjectFactory factory) {
             return factory.getIndividual(member);
         }
 
@@ -1037,12 +1037,12 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
         }
 
         @Override
-        protected Object[] collectContent(OntClass.ComplementOf ce, InternalObjectFactory factory) {
+        protected Object[] collectContent(OntClass.ComplementOf ce, ONTObjectFactory factory) {
             return new Object[]{toContentItem(ce.getValue(), factory)};
         }
 
         @Override
-        protected Object[] initContent(OntClass.ComplementOf ce, InternalObjectFactory factory) {
+        protected Object[] initContent(OntClass.ComplementOf ce, ONTObjectFactory factory) {
             OntClass c = ce.getValue();
             return initContent(c.asNode(), factory.getClass(c));
         }
@@ -1073,7 +1073,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
         }
 
         @Override
-        protected ONTObject<? extends OWLClassExpression> map(OntClass member, InternalObjectFactory factory) {
+        protected ONTObject<? extends OWLClassExpression> map(OntClass member, ONTObjectFactory factory) {
             return factory.getClass(member);
         }
     }
@@ -1101,10 +1101,10 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
          * Translates Jena {@link ONT_M} resource to OWL-API {@link OWL_M} equivalent.
          *
          * @param member  {@link ONT_M}, not {@code null}
-         * @param factory {@link InternalObjectFactory}, not {@code null}
+         * @param factory {@link ONTObjectFactory}, not {@code null}
          * @return an {@link ONTObject} that wraps {@link OWL_M}
          */
-        protected abstract ONTObject<? extends OWL_M> map(ONT_M member, InternalObjectFactory factory);
+        protected abstract ONTObject<? extends OWL_M> map(ONT_M member, ONTObjectFactory factory);
 
         /**
          * Prepares an {@link OWL_M} to store in cache (content array).
@@ -1118,7 +1118,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
          * Extracts an {@link OWL_M} from content item.
          *
          * @param item    an {@code Object} from cache, not {@code null}
-         * @param factory {@link InternalObjectFactory}, not {@code null}
+         * @param factory {@link ONTObjectFactory}, not {@code null}
          * @return an {@link ONTObject} that wraps {@link OWL_M}
          */
         protected abstract ONTObject<? extends OWL_M> fromContentItem(Object item, ModelObjectFactory factory);
@@ -1154,7 +1154,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
         }
 
         @Override
-        protected Object[] collectContent(ONT_C ce, InternalObjectFactory factory) {
+        protected Object[] collectContent(ONT_C ce, ONTObjectFactory factory) {
             Set<ONTObject<? extends OWL_M>> operands = operands(ce, factory);
             Object[] res = new Object[operands.size()];
             int index = 0;
@@ -1165,7 +1165,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
         }
 
         @Override
-        protected Object[] initContent(ONT_C ce, InternalObjectFactory factory) {
+        protected Object[] initContent(ONT_C ce, ONTObjectFactory factory) {
             Set<ONTObject<? extends OWL_M>> operands = operands(ce, factory);
             Object[] res = new Object[operands.size()];
             int index = 0;
@@ -1178,7 +1178,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
             return res;
         }
 
-        protected Set<ONTObject<? extends OWL_M>> operands(ONT_C ce, InternalObjectFactory factory) {
+        protected Set<ONTObject<? extends OWL_M>> operands(ONT_C ce, ONTObjectFactory factory) {
             Set<ONTObject<? extends OWL_M>> res = createContentSet();
             OntModels.listMembers(ce.getList()).forEachRemaining(e -> res.add(map(e, factory)));
             return res;
@@ -1210,14 +1210,14 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
         }
 
         @Override
-        protected Object[] collectContent(ONT ce, InternalObjectFactory factory) {
+        protected Object[] collectContent(ONT ce, ONTObjectFactory factory) {
             // [property, cardinality, filler]
             return new Object[]{toContentItem(ce.getProperty()),
                     ce.getCardinality(), toContentItem(ce.getValue(), factory)};
         }
 
         @Override
-        protected Object[] initContent(ONT ce, InternalObjectFactory factory) {
+        protected Object[] initContent(ONT ce, ONTObjectFactory factory) {
             OntDataProperty p = ce.getProperty();
             OntDataRange v = ce.getValue();
             int c = ce.getCardinality();
@@ -1300,7 +1300,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
         }
 
         @Override
-        protected Object[] collectContent(ONT ce, InternalObjectFactory factory) {
+        protected Object[] collectContent(ONT ce, ONTObjectFactory factory) {
             // [property, filler]
             return new Object[]{toContentItem(ce.getProperty()), toContentItem(getValue(ce), factory)};
         }
@@ -1308,7 +1308,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
         protected abstract OntDataRange getValue(ONT ce);
 
         @Override
-        protected Object[] initContent(ONT ce, InternalObjectFactory factory) {
+        protected Object[] initContent(ONT ce, ONTObjectFactory factory) {
             OntDataProperty p = ce.getProperty();
             OntDataRange v = getValue(ce);
             return initContent(p.asNode(), v.asNode(), factory.getProperty(p), factory.getDatatype(v));
@@ -1358,13 +1358,13 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
         }
 
         @Override
-        protected Object[] collectContent(ONT ce, InternalObjectFactory factory) {
+        protected Object[] collectContent(ONT ce, ONTObjectFactory factory) {
             // [property]
             return new Object[]{toContentItem(ce.getProperty())};
         }
 
         @Override
-        protected Object[] initContent(ONT ce, InternalObjectFactory factory) {
+        protected Object[] initContent(ONT ce, ONTObjectFactory factory) {
             OntDataProperty p = ce.getProperty();
             return initContent(p.asNode(), factory.getProperty(p));
         }
@@ -1414,14 +1414,14 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
         }
 
         @Override
-        protected Object[] collectContent(ONT ce, InternalObjectFactory factory) {
+        protected Object[] collectContent(ONT ce, ONTObjectFactory factory) {
             // [property, cardinality, filler]
             return new Object[]{toContentItem(ce.getProperty(), factory),
                     ce.getCardinality(), toContentItem(ce.getValue(), factory)};
         }
 
         @Override
-        protected Object[] initContent(ONT ce, InternalObjectFactory factory) {
+        protected Object[] initContent(ONT ce, ONTObjectFactory factory) {
             OntObjectProperty p = ce.getProperty();
             OntClass v = ce.getValue();
             int c = ce.getCardinality();
@@ -1465,13 +1465,13 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
         }
 
         @Override
-        protected Object[] collectContent(ONT ce, InternalObjectFactory factory) {
+        protected Object[] collectContent(ONT ce, ONTObjectFactory factory) {
             // [property, filler]
             return new Object[]{toContentItem(ce.getProperty(), factory), toContentItem(ce.getValue(), factory)};
         }
 
         @Override
-        protected Object[] initContent(ONT ce, InternalObjectFactory factory) {
+        protected Object[] initContent(ONT ce, ONTObjectFactory factory) {
             OntObjectProperty p = ce.getProperty();
             OntClass v = ce.getValue();
             return initContent(p.asNode(), v.asNode(), factory.getProperty(p), factory.getClass(v));
@@ -1518,13 +1518,13 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
         }
 
         @Override
-        protected Object[] collectContent(ONT ce, InternalObjectFactory factory) {
+        protected Object[] collectContent(ONT ce, ONTObjectFactory factory) {
             // [property]
             return new Object[]{toContentItem(ce.getProperty(), factory)};
         }
 
         @Override
-        protected Object[] initContent(ONT ce, InternalObjectFactory factory) {
+        protected Object[] initContent(ONT ce, ONTObjectFactory factory) {
             OntObjectProperty p = ce.getProperty();
             return initContent(p.asNode(), factory.getProperty(p));
         }

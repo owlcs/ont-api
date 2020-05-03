@@ -64,14 +64,14 @@ public abstract class ONTAxiomImpl<X extends OWLAxiom> extends ONTStatementImpl
      * Collects all annotations for the given axiom's main {@link OntStatement}.
      *
      * @param axiom   {@link OntStatement} the root axiom's statement, not {@code null}
-     * @param factory {@link InternalObjectFactory} to retrieve {@link ONTObject}s, not {@code null}
+     * @param factory {@link ONTObjectFactory} to retrieve {@link ONTObject}s, not {@code null}
      * @param config  {@link AxiomsSettings} to control reading, not {@code null}
      * @return a sorted nonnull distinct {@code Collection}
      * of {@link ONTObject}s with {@link OWLAnnotation}s (can be empty if no annotations)
-     * @see ONTAnnotationImpl#collectAnnotations(OntStatement, InternalObjectFactory)
+     * @see ONTAnnotationImpl#collectAnnotations(OntStatement, ONTObjectFactory)
      */
     public static Collection<ONTObject<OWLAnnotation>> collectAnnotations(OntStatement axiom,
-                                                                          InternalObjectFactory factory,
+                                                                          ONTObjectFactory factory,
                                                                           AxiomsSettings config) {
         Map<OWLAnnotation, ONTObject<OWLAnnotation>> res = new TreeMap<>();
         ReadHelper.listAnnotations(axiom, config, factory).forEachRemaining(x -> WithMerge.add(res, x));

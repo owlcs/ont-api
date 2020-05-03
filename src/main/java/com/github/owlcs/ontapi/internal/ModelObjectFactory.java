@@ -26,7 +26,7 @@ import org.semanticweb.owlapi.model.*;
 import java.util.function.Supplier;
 
 /**
- * An interface describing an {@link InternalObjectFactory} that has a link to a specific model.
+ * An interface describing an {@link ONTObjectFactory} that has a link to a specific model.
  * For internal use only.
  * It is to produce following {@link ONTObject}s implementations:
  * <ul>
@@ -37,7 +37,7 @@ import java.util.function.Supplier;
  * <p>
  * Created by @ssz on 02.05.2020.
  */
-public interface ModelObjectFactory extends InternalObjectFactory {
+public interface ModelObjectFactory extends ONTObjectFactory {
 
     Supplier<OntModel> model();
 
@@ -141,7 +141,7 @@ public interface ModelObjectFactory extends InternalObjectFactory {
      * @param uri  String, not {@code null}
      * @param type {@link Entities}, not {@code null}
      * @return {@link ONTObject} with {@link OntEntity}
-     * @see InternalObjectFactory#getEntity(OntEntity)
+     * @see ONTObjectFactory#getEntity(OntEntity)
      */
     default ONTObject<? extends OWLEntity> getEntity(String uri, Entities type) {
         switch (type) {

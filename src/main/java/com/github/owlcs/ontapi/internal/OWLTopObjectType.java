@@ -302,7 +302,7 @@ public enum OWLTopObjectType {
     /**
      * Reads content-objects from the graph.
      *
-     * @param f {@link InternalObjectFactory} to construct OWL-API Objects (wrapped as {@link ONTObject})
+     * @param f {@link ONTObjectFactory} to construct OWL-API Objects (wrapped as {@link ONTObject})
      * @param c {@link InternalConfig} to control process
      * @return {@link ExtendedIterator} over all content objects, found in modelr for this type
      */
@@ -313,7 +313,7 @@ public enum OWLTopObjectType {
     /**
      * Answers an {@code Optional} {@link ONTObject}, that corresponds to the given {@code OWLObject}-key.
      *
-     * @param f   {@link InternalObjectFactory} to construct OWL-API Objects, not {@code null}
+     * @param f   {@link ONTObjectFactory} to construct OWL-API Objects, not {@code null}
      * @param c   {@link InternalConfig} to configure and control the process, not {@code null}
      * @param key - an {@link OWLObject}, must correspond to this enum-type, not {@code null}
      * @return {@link Optional}, possible empty
@@ -328,7 +328,7 @@ public enum OWLTopObjectType {
     /**
      * Answers {@code true} iff the given {@code OWLObject} is present in the graph.
      *
-     * @param f   {@link InternalObjectFactory} to construct OWL-API Objects, not {@code null}
+     * @param f   {@link ONTObjectFactory} to construct OWL-API Objects, not {@code null}
      * @param c   {@link InternalConfig} to configure and control the process, not {@code null}
      * @param key - an {@link OWLObject}, must correspond to this enum-type, not {@code null}
      * @return boolean

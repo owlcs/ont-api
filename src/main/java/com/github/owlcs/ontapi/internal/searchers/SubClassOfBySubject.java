@@ -15,8 +15,8 @@
 package com.github.owlcs.ontapi.internal.searchers;
 
 import com.github.owlcs.ontapi.config.AxiomsSettings;
-import com.github.owlcs.ontapi.internal.InternalObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
+import com.github.owlcs.ontapi.internal.ONTObjectFactory;
 import com.github.owlcs.ontapi.internal.OWLTopObjectType;
 import com.github.owlcs.ontapi.internal.WriteHelper;
 import com.github.owlcs.ontapi.internal.axioms.SubClassOfTranslator;
@@ -37,7 +37,7 @@ public class SubClassOfBySubject extends BaseByObject<OWLSubClassOfAxiom, OWLCla
     @Override
     public ExtendedIterator<ONTObject<OWLSubClassOfAxiom>> listAxioms(OWLClass clazz,
                                                                       OntModel model,
-                                                                      InternalObjectFactory factory,
+                                                                      ONTObjectFactory factory,
                                                                       AxiomsSettings config) {
         Resource s = WriteHelper.toResource(clazz.getIRI());
         ExtendedIterator<OntStatement> res = listBySubjectAndPredicate(model, s, RDFS.subClassOf)

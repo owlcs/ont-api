@@ -15,9 +15,9 @@
 package com.github.owlcs.ontapi.internal.objects;
 
 import com.github.owlcs.ontapi.OntApiException;
-import com.github.owlcs.ontapi.internal.InternalObjectFactory;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
+import com.github.owlcs.ontapi.internal.ONTObjectFactory;
 import com.github.owlcs.ontapi.jena.model.OntDataRange;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
@@ -41,7 +41,7 @@ import java.util.stream.Stream;
  * Created by @ssz on 20.08.2019.
  *
  * @see com.github.owlcs.ontapi.owlapi.objects.dr.OWLAnonymousDataRangeImpl
- * @see com.github.owlcs.ontapi.internal.ReadHelper#calcDataRange(OntDataRange, InternalObjectFactory, Set)
+ * @see com.github.owlcs.ontapi.internal.ReadHelper#calcDataRange(OntDataRange, ONTObjectFactory, Set)
  * @see OntDataRange
  * @since 2.0.0
  */
@@ -58,13 +58,13 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDataRange, OWL ex
      * Wraps the given {@link OntDataRange} as {@link OWLDataRange} and {@link ONTObject}.
      *
      * @param dr      {@link OntDataRange}, not {@code null}, must be anonymous
-     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @param factory {@link ONTObjectFactory}, not {@code null}
      * @param model   a provider of non-null {@link OntModel}, not {@code null}
      * @return {@link ONTAnonymousDataRangeImpl} instance
      */
     @SuppressWarnings({"unchecked", "rawtypes"})
     public static ONTAnonymousDataRangeImpl create(OntDataRange dr,
-                                                   InternalObjectFactory factory,
+                                                   ONTObjectFactory factory,
                                                    Supplier<OntModel> model) {
         Class<? extends OntDataRange> type = OntModels.getOntType(dr);
         BlankNodeId id = dr.asNode().getBlankNodeId();
@@ -206,7 +206,7 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDataRange, OWL ex
         }
 
         @Override
-        protected ONTObject<? extends OWLLiteral> map(Literal literal, InternalObjectFactory factory) {
+        protected ONTObject<? extends OWLLiteral> map(Literal literal, ONTObjectFactory factory) {
             return factory.getLiteral(literal);
         }
 
@@ -288,7 +288,7 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDataRange, OWL ex
         }
 
         @Override
-        protected Object[] collectContent(OntDataRange.Restriction dr, InternalObjectFactory factory) {
+        protected Object[] collectContent(OntDataRange.Restriction dr, ONTObjectFactory factory) {
             Set<ONTObject<OWLFacetRestriction>> members = facetRestrictions(dr, factory);
             Object[] res = new Object[members.size() + 1];
             OntDataRange.Named dt = dr.getValue();
@@ -301,7 +301,7 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDataRange, OWL ex
         }
 
         @Override
-        protected Object[] initContent(OntDataRange.Restriction dr, InternalObjectFactory factory) {
+        protected Object[] initContent(OntDataRange.Restriction dr, ONTObjectFactory factory) {
             Set<ONTObject<OWLFacetRestriction>> members = facetRestrictions(dr, factory);
             Object[] res = new Object[members.size() + 1];
             OntDataRange.Named dt = dr.getValue();
@@ -318,7 +318,7 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDataRange, OWL ex
         }
 
         protected Set<ONTObject<OWLFacetRestriction>> facetRestrictions(OntDataRange.Restriction dr,
-                                                                        InternalObjectFactory factory) {
+                                                                        ONTObjectFactory factory) {
             Set<ONTObject<OWLFacetRestriction>> res = createContentSet();
             OntModels.listMembers(dr.getList()).mapWith(factory::getFacetRestriction).forEachRemaining(res::add);
             return res;
@@ -362,12 +362,12 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDataRange, OWL ex
         }
 
         @Override
-        protected Object[] collectContent(OntDataRange.ComplementOf dr, InternalObjectFactory factory) {
+        protected Object[] collectContent(OntDataRange.ComplementOf dr, ONTObjectFactory factory) {
             return new Object[]{toContentItem(dr.getValue(), factory)};
         }
 
         @Override
-        protected Object[] initContent(OntDataRange.ComplementOf dr, InternalObjectFactory factory) {
+        protected Object[] initContent(OntDataRange.ComplementOf dr, ONTObjectFactory factory) {
             OntDataRange value = dr.getValue();
             Object item = factory.getDatatype(value);
             this.hashCode = OWLObject.hashIteration(hashIndex(), item.hashCode());
@@ -391,7 +391,7 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDataRange, OWL ex
         }
 
         @Override
-        protected ONTObject<? extends OWLDataRange> map(OntDataRange dr, InternalObjectFactory factory) {
+        protected ONTObject<? extends OWLDataRange> map(OntDataRange dr, ONTObjectFactory factory) {
             return factory.getDatatype(dr);
         }
 
@@ -422,10 +422,10 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDataRange, OWL ex
          * Translates Jena {@link ONT_M} resource to OWL-API {@link OWL_M} equivalent.
          *
          * @param member  {@link ONT_M}, not {@code null}
-         * @param factory {@link InternalObjectFactory}, not {@code null}
+         * @param factory {@link ONTObjectFactory}, not {@code null}
          * @return an {@link ONTObject} that wraps {@link OWL_M}
          */
-        protected abstract ONTObject<? extends OWL_M> map(ONT_M member, InternalObjectFactory factory);
+        protected abstract ONTObject<? extends OWL_M> map(ONT_M member, ONTObjectFactory factory);
 
         /**
          * Prepares an {@link OWL_M} to store in cache (content array).
@@ -439,7 +439,7 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDataRange, OWL ex
          * Extracts an {@link OWL_M} from content item.
          *
          * @param item    an {@code Object} from cache, not {@code null}
-         * @param factory {@link InternalObjectFactory}, not {@code null}
+         * @param factory {@link ONTObjectFactory}, not {@code null}
          * @return an {@link ONTObject} that wraps {@link OWL_M}
          */
         protected abstract ONTObject<? extends OWL_M> fromContentItem(Object item, ModelObjectFactory factory);
@@ -475,7 +475,7 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDataRange, OWL ex
         }
 
         @Override
-        protected Object[] collectContent(ONT_D dr, InternalObjectFactory factory) {
+        protected Object[] collectContent(ONT_D dr, ONTObjectFactory factory) {
             Set<ONTObject<? extends OWL_M>> operands = operands(dr, factory);
             Object[] res = new Object[operands.size()];
             int index = 0;
@@ -486,7 +486,7 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDataRange, OWL ex
         }
 
         @Override
-        protected Object[] initContent(ONT_D dr, InternalObjectFactory factory) {
+        protected Object[] initContent(ONT_D dr, ONTObjectFactory factory) {
             Set<ONTObject<? extends OWL_M>> operands = operands(dr, factory);
             Object[] res = new Object[operands.size()];
             int index = 0;
@@ -499,7 +499,7 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDataRange, OWL ex
             return res;
         }
 
-        protected Set<ONTObject<? extends OWL_M>> operands(ONT_D dr, InternalObjectFactory factory) {
+        protected Set<ONTObject<? extends OWL_M>> operands(ONT_D dr, ONTObjectFactory factory) {
             Set<ONTObject<? extends OWL_M>> res = createContentSet();
             OntModels.listMembers(dr.getList()).forEachRemaining(e -> res.add(map(e, factory)));
             return res;

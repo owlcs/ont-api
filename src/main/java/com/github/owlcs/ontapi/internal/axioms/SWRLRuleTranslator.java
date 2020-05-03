@@ -66,7 +66,7 @@ public class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
     }
 
     @Override
-    public ONTObject<SWRLRule> toAxiomWrap(OntStatement statement, InternalObjectFactory factory, AxiomsSettings config) {
+    public ONTObject<SWRLRule> toAxiomWrap(OntStatement statement, ONTObjectFactory factory, AxiomsSettings config) {
         OntSWRL.Imp imp = statement.getSubject(OntSWRL.Imp.class);
 
         Collection<ONTObject<? extends SWRLAtom>> head = imp.head()
@@ -97,7 +97,7 @@ public class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
          * Creates an {@link ONTObject} container that is also {@link SWRLRule}.
          *
          * @param statement {@link OntStatement}, not {@code null}
-         * @param factory   {@link InternalObjectFactory}, not {@code null}
+         * @param factory   {@link ONTObjectFactory}, not {@code null}
          * @param config    {@link AxiomsSettings}, not {@code null}
          * @return {@link AxiomImpl}
          */
@@ -110,7 +110,7 @@ public class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
 
         @SuppressWarnings("rawtypes")
         private static Collection<ONTObject<? extends SWRLAtom>> collectAtoms(OntList<OntSWRL.Atom> list,
-                                                                              InternalObjectFactory factory) {
+                                                                              ONTObjectFactory factory) {
             return Iter.addAll(OntModels.listMembers(list).mapWith(factory::getSWRLAtom), new ArrayList<>());
         }
 
@@ -150,7 +150,7 @@ public class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
         @Override
         public Object[] collectContent() {
             OntSWRL.Imp imp = asResource();
-            InternalObjectFactory factory = getObjectFactory();
+            ONTObjectFactory factory = getObjectFactory();
             Collection<ONTObject<OWLAnnotation>> annotations = collectAnnotations(imp.getMainStatement(), factory, getConfig());
             Object[] res;
             if (annotations.isEmpty()) {

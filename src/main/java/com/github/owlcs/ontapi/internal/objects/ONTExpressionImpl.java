@@ -15,9 +15,9 @@
 package com.github.owlcs.ontapi.internal.objects;
 
 import com.github.owlcs.ontapi.internal.InternalCache;
-import com.github.owlcs.ontapi.internal.InternalObjectFactory;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
+import com.github.owlcs.ontapi.internal.ONTObjectFactory;
 import com.github.owlcs.ontapi.jena.model.*;
 import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.graph.Node;
@@ -67,11 +67,11 @@ public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResource
      * For internal usage only.
      *
      * @param ope     {@link OntObjectProperty}, not {@code null}
-     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @param factory {@link ONTObjectFactory}, not {@code null}
      * @return an {@code Object}, ready for cache
      * @see ONTExpressionImpl#toOPE(Object, ModelObjectFactory)
      */
-    protected static Object toContentItem(OntObjectProperty ope, InternalObjectFactory factory) {
+    protected static Object toContentItem(OntObjectProperty ope, ONTObjectFactory factory) {
         if (ope.isURIResource()) {
             return ope.asNode().getURI();
         }
@@ -84,11 +84,11 @@ public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResource
      * For internal usage only.
      *
      * @param ce      {@link OntClass}, not {@code null}
-     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @param factory {@link ONTObjectFactory}, not {@code null}
      * @return an {@code Object}, ready for cache
      * @see ONTExpressionImpl#toCE(Object, ModelObjectFactory)
      */
-    protected static Object toContentItem(OntClass ce, InternalObjectFactory factory) {
+    protected static Object toContentItem(OntClass ce, ONTObjectFactory factory) {
         if (ce.isURIResource()) {
             return ce.asNode().getURI();
         }
@@ -101,11 +101,11 @@ public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResource
      * For internal usage only.
      *
      * @param dr      {@link OntDataRange}, not {@code null}
-     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @param factory {@link ONTObjectFactory}, not {@code null}
      * @return an {@code Object}, ready for cache
      * @see ONTExpressionImpl#toDR(Object, ModelObjectFactory)
      */
-    protected static Object toContentItem(OntDataRange dr, InternalObjectFactory factory) {
+    protected static Object toContentItem(OntDataRange dr, ONTObjectFactory factory) {
         if (dr.isURIResource()) {
             return dr.asNode().getURI();
         }
@@ -158,24 +158,24 @@ public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResource
      * Collects the cache Array.
      * The array was chosen as the best option in sense of memory consumption and access speed.
      *
-     * @param obj {@link R}, not {@code null}
-     * @param factory  {@link InternalObjectFactory}, not {@code null}
+     * @param obj     {@link R}, not {@code null}
+     * @param factory {@link ONTObjectFactory}, not {@code null}
      * @return an {@code Array} of {@code Object}s (content items)
-     * @see ONTExpressionImpl#initContent(OntObject, InternalObjectFactory)
+     * @see ONTExpressionImpl#initContent(OntObject, ONTObjectFactory)
      */
-    protected abstract Object[] collectContent(R obj, InternalObjectFactory factory);
+    protected abstract Object[] collectContent(R obj, ONTObjectFactory factory);
 
     /**
      * Initializes the object's content and calculates its hashcode.
      * Together, this must be faster.
      *
      * @param obj     {@link R} the source Jena resource, not {@code null}
-     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @param factory {@link ONTObjectFactory}, not {@code null}
      * @return an {@code Array} of {@code Object}s (content items)
-     * @see ONTExpressionImpl#collectContent(OntObject, InternalObjectFactory)
+     * @see ONTExpressionImpl#collectContent(OntObject, ONTObjectFactory)
      * @see OWLObject#initHashCode()
      */
-    protected abstract Object[] initContent(R obj, InternalObjectFactory factory);
+    protected abstract Object[] initContent(R obj, ONTObjectFactory factory);
 
     @Override
     protected BlankNodeId getBlankNodeId() {
@@ -243,7 +243,7 @@ public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResource
      * For internal usage only.
      *
      * @param item    {@code Object}, for the individual, not {@code null}
-     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @param factory {@link ONTObjectFactory}, not {@code null}
      * @return {@link ONTObject} with {@link OWLIndividual}
      * @see ONTExpressionImpl#toContentItem(OntIndividual)
      */
@@ -256,13 +256,13 @@ public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResource
 
     /**
      * Restores an {@link OWLObjectPropertyExpression} from the content {@code item} using the {@code factory}.
-     * This is the inverse of {@link ONTExpressionImpl#toContentItem(OntObjectProperty, InternalObjectFactory)}.
+     * This is the inverse of {@link ONTExpressionImpl#toContentItem(OntObjectProperty, ONTObjectFactory)}.
      * For internal usage only.
      *
      * @param item    {@code Object}, for the object property expression, not {@code null}
      * @param factory {@link ModelObjectFactory}, not {@code null}
      * @return {@link ONTObject} with {@link OWLObjectPropertyExpression}
-     * @see ONTExpressionImpl#toContentItem(OntObjectProperty, InternalObjectFactory)
+     * @see ONTExpressionImpl#toContentItem(OntObjectProperty, ONTObjectFactory)
      */
     @SuppressWarnings("unchecked")
     protected ONTObject<? extends OWLObjectPropertyExpression> toOPE(Object item, ModelObjectFactory factory) {
@@ -292,13 +292,13 @@ public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResource
 
     /**
      * Restores an {@link OWLClassExpression} from the content {@code item} using the {@code factory}.
-     * This is the inverse of {@link ONTExpressionImpl#toContentItem(OntClass, InternalObjectFactory)}.
+     * This is the inverse of {@link ONTExpressionImpl#toContentItem(OntClass, ONTObjectFactory)}.
      * For internal usage only.
      *
      * @param item    {@code Object}, for the class expression, not {@code null}
      * @param factory {@link ModelObjectFactory}, not {@code null}
      * @return {@link ONTObject} with {@link OWLClassExpression}
-     * @see ONTExpressionImpl#toContentItem(OntClass, InternalObjectFactory)
+     * @see ONTExpressionImpl#toContentItem(OntClass, ONTObjectFactory)
      */
     @SuppressWarnings("unchecked")
     protected ONTObject<? extends OWLClassExpression> toCE(Object item, ModelObjectFactory factory) {
@@ -310,13 +310,13 @@ public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResource
 
     /**
      * Restores an {@link OWLDataRange} from the content {@code item} using the {@code factory}.
-     * This is the inverse of {@link ONTExpressionImpl#toContentItem(OntDataRange, InternalObjectFactory)}.
+     * This is the inverse of {@link ONTExpressionImpl#toContentItem(OntDataRange, ONTObjectFactory)}.
      * For internal usage only.
      *
      * @param item    {@code Object}, for the data range, not {@code null}
      * @param factory {@link ModelObjectFactory}, not {@code null}
      * @return {@link ONTObject} with {@link OWLDataRange}
-     * @see ONTExpressionImpl#toContentItem(OntDataRange, InternalObjectFactory)
+     * @see ONTExpressionImpl#toContentItem(OntDataRange, ONTObjectFactory)
      */
     @SuppressWarnings("unchecked")
     protected ONTObject<? extends OWLDataRange> toDR(Object item, ModelObjectFactory factory) {
@@ -332,7 +332,7 @@ public abstract class ONTExpressionImpl<R extends OntObject> extends ONTResource
      * For internal usage only.
      *
      * @param item    {@code Object}, for the literal, not {@code null}
-     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @param factory {@link ONTObjectFactory}, not {@code null}
      * @return {@link ONTObject} with {@link OWLLiteral}
      * @see ONTExpressionImpl#toContentItem(Literal)
      */

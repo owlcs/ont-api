@@ -34,12 +34,12 @@ public interface ByObject<A extends OWLAxiom, O extends OWLObject> {
      *
      * @param object  - {@link O}, not {@code null}
      * @param model   - {@link OntModel}, cannot be {@code null}
-     * @param factory - {@link InternalObjectFactory}, cannot be {@code null}
+     * @param factory - {@link ONTObjectFactory}, cannot be {@code null}
      * @param config  - {@link AxiomsSettings configuration}, cannot {@code null}
      * @return an {@link ExtendedIterator} of {@link A OWLAxiom}s wrapped with {@link ONTObject}
      */
     ExtendedIterator<ONTObject<A>> listAxioms(O object,
                                               OntModel model,
-                                              InternalObjectFactory factory,
+                                              ONTObjectFactory factory,
                                               AxiomsSettings config);
 }

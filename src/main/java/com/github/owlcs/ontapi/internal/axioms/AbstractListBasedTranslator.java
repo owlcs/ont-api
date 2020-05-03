@@ -146,7 +146,7 @@ public abstract class AbstractListBasedTranslator<Axiom extends OWLLogicalAxiom,
          * Creates a factory axiom using the given parameters.
          *
          * @param content     a {@code Array} - the cache, not {@code null}
-         * @param factory     {@link InternalObjectFactory}, not {@code null}
+         * @param factory     {@link ONTObjectFactory}, not {@code null}
          * @param annotations a {@code Collection} of {@link OWLAnnotation annotation}s
          * @return {@link A}
          */

@@ -111,12 +111,12 @@ public class ReadHelper {
      *
      * @param statement {@link OntStatement}, axiom root statement, not {@code null}
      * @param conf      {@link AxiomsSettings}, not {@code null}
-     * @param factory   {@link InternalObjectFactory}
+     * @param factory   {@link ONTObjectFactory}
      * @return a set of wraps {@link ONTObject} around {@link OWLAnnotation}
      */
     public static ExtendedIterator<ONTObject<OWLAnnotation>> listAnnotations(OntStatement statement,
                                                                              AxiomsSettings conf,
-                                                                             InternalObjectFactory factory) {
+                                                                             ONTObjectFactory factory) {
         ExtendedIterator<OntStatement> res = OntModels.listAnnotations(statement);
         if (conf.isLoadAnnotationAxioms() && isDeclarationStatement(statement)) {
             // for compatibility with OWL-API skip all plain annotations attached to an entity (or anonymous individual)
@@ -130,11 +130,11 @@ public class ReadHelper {
      * Lists all annotations related to the object (including assertions).
      *
      * @param obj {@link OntObject}
-     * @param of  {@link InternalObjectFactory}
+     * @param of  {@link ONTObjectFactory}
      * @return {@link ExtendedIterator} of {@link ONTObject}s of {@link OWLAnnotation}
      */
     public static ExtendedIterator<ONTObject<OWLAnnotation>> listOWLAnnotations(OntObject obj,
-                                                                                InternalObjectFactory of) {
+                                                                                ONTObjectFactory of) {
         return OntModels.listAnnotations(obj).mapWith(of::getAnnotation);
     }
 
@@ -142,23 +142,23 @@ public class ReadHelper {
      * Translates {@link OntStatement} to {@link ONTObject} encapsulated {@link OWLAnnotation}.
      *
      * @param ann {@link OntStatement}
-     * @param of  {@link InternalObjectFactory}
+     * @param of  {@link ONTObjectFactory}
      * @return {@link ONTObject} around {@link OWLAnnotation}
      */
-    public static ONTObject<OWLAnnotation> getAnnotation(OntStatement ann, InternalObjectFactory of) {
+    public static ONTObject<OWLAnnotation> getAnnotation(OntStatement ann, ONTObjectFactory of) {
         return ann.getSubject().getAs(OntAnnotation.class) != null ||
                 ann.hasAnnotations() ?
                 getHierarchicalAnnotations(ann, of) : getPlainAnnotation(ann, of);
     }
 
-    private static ONTObject<OWLAnnotation> getPlainAnnotation(OntStatement ann, InternalObjectFactory of) {
+    private static ONTObject<OWLAnnotation> getPlainAnnotation(OntStatement ann, ONTObjectFactory of) {
         ONTObject<OWLAnnotationProperty> p = of.getProperty(ann.getPredicate().as(OntAnnotationProperty.class));
         ONTObject<? extends OWLAnnotationValue> v = of.getValue(ann.getObject());
         OWLAnnotation res = of.getOWLDataFactory().getOWLAnnotation(p.getOWLObject(), v.getOWLObject(), Stream.empty());
         return ONTWrapperImpl.create(res, ann).append(p).append(v);
     }
 
-    private static ONTObject<OWLAnnotation> getHierarchicalAnnotations(OntStatement root, InternalObjectFactory of) {
+    private static ONTObject<OWLAnnotation> getHierarchicalAnnotations(OntStatement root, ONTObjectFactory of) {
         OntObject subject = root.getSubject();
         ONTObject<OWLAnnotationProperty> p = of.getProperty(root.getPredicate().as(OntAnnotationProperty.class));
         ONTObject<? extends OWLAnnotationValue> v = of.getValue(root.getObject());
@@ -178,10 +178,10 @@ public class ReadHelper {
      * Maps {@link OntFacetRestriction} =&gt; {@link OWLFacetRestriction}.
      *
      * @param fr {@link OntFacetRestriction}, not {@code null}
-     * @param of {@link InternalObjectFactory}, not {@code null}
+     * @param of {@link ONTObjectFactory}, not {@code null}
      * @return {@link ONTObject} around {@link OWLFacetRestriction}
      */
-    public static ONTObject<OWLFacetRestriction> getFacetRestriction(OntFacetRestriction fr, InternalObjectFactory of) {
+    public static ONTObject<OWLFacetRestriction> getFacetRestriction(OntFacetRestriction fr, ONTObjectFactory of) {
         OWLFacetRestriction res = calcOWLFacetRestriction(fr, of);
         return ONTWrapperImpl.create(res, fr);
     }
@@ -190,10 +190,10 @@ public class ReadHelper {
      * Creates an {@link OWLFacetRestriction} instance.
      *
      * @param fr {@link OntFacetRestriction}, not {@code null}
-     * @param of {@link InternalObjectFactory}, not {@code null}
+     * @param of {@link ONTObjectFactory}, not {@code null}
      * @return {@link OWLFacetRestriction}
      */
-    public static OWLFacetRestriction calcOWLFacetRestriction(OntFacetRestriction fr, InternalObjectFactory of) {
+    public static OWLFacetRestriction calcOWLFacetRestriction(OntFacetRestriction fr, ONTObjectFactory of) {
         OWLLiteral literal = of.getLiteral(OntApiException.notNull(fr, "Null facet restriction.").getValue()).getOWLObject();
         Class<? extends OntFacetRestriction> type = OntModels.getOntType(fr);
         return of.getOWLDataFactory().getOWLFacetRestriction(getFacet(type), literal);
@@ -237,14 +237,14 @@ public class ReadHelper {
      * Note: this method is recursive.
      *
      * @param dr   {@link OntDataRange Ontology Data Range} to map
-     * @param of   {@link InternalObjectFactory}
+     * @param of   {@link ONTObjectFactory}
      * @param seen Set of {@link Resource}
      * @return {@link ONTObject} around {@link OWLDataRange}
      * @throws OntApiException if something is wrong.
      */
     @SuppressWarnings("unchecked")
     public static ONTObject<? extends OWLDataRange> calcDataRange(OntDataRange dr,
-                                                                  InternalObjectFactory of,
+                                                                  ONTObjectFactory of,
                                                                   Set<Resource> seen) {
         if (OntApiException.notNull(dr, "Null data range").isURIResource()) {
             return of.getDatatype(dr.as(OntDataRange.Named.class));
@@ -292,7 +292,7 @@ public class ReadHelper {
      * Note: this method is recursive.
      *
      * @param ce   {@link OntClass Ontology Class Expression} to map
-     * @param of   {@link InternalObjectFactory}
+     * @param of   {@link ONTObjectFactory}
      * @param seen Set of {@link Resource},
      *             a subsidiary collection to prevent possible graph recursions
      *             (e.g. {@code _:b0 owl:complementOf _:b0})
@@ -301,7 +301,7 @@ public class ReadHelper {
      */
     @SuppressWarnings("unchecked")
     public static ONTObject<? extends OWLClassExpression> calcClassExpression(OntClass ce,
-                                                                              InternalObjectFactory of,
+                                                                              ONTObjectFactory of,
                                                                               Set<Resource> seen) {
         if (OntApiException.notNull(ce, "Null class expression").isURIResource()) {
             return of.getClass(ce.as(OntClass.Named.class));
@@ -429,10 +429,10 @@ public class ReadHelper {
 
     /**
      * @param var {@link OntSWRL.Variable}
-     * @param of  {@link InternalObjectFactory}
+     * @param of  {@link ONTObjectFactory}
      * @return {@link ONTObject} around {@link SWRLVariable}
      */
-    public static ONTObject<SWRLVariable> getSWRLVariable(OntSWRL.Variable var, InternalObjectFactory of) {
+    public static ONTObject<SWRLVariable> getSWRLVariable(OntSWRL.Variable var, ONTObjectFactory of) {
         if (!OntApiException.notNull(var, "Null swrl var").isURIResource()) {
             throw new OntApiException("Anonymous swrl var " + var);
         }
@@ -441,10 +441,10 @@ public class ReadHelper {
 
     /**
      * @param arg {@link OntSWRL.DArg}
-     * @param of  {@link InternalObjectFactory}
+     * @param of  {@link ONTObjectFactory}
      * @return {@link ONTObject} around {@link SWRLDArgument}
      */
-    public static ONTObject<? extends SWRLDArgument> getSWRLLiteralArg(OntSWRL.DArg arg, InternalObjectFactory of) {
+    public static ONTObject<? extends SWRLDArgument> getSWRLLiteralArg(OntSWRL.DArg arg, ONTObjectFactory of) {
         if (OntApiException.notNull(arg, "Null SWRL-D arg").isLiteral()) {
             return ONTWrapperImpl.create(of.getOWLDataFactory()
                     .getSWRLLiteralArgument(of.getLiteral(arg.asLiteral()).getOWLObject()), arg);
@@ -457,10 +457,10 @@ public class ReadHelper {
 
     /**
      * @param arg {@link OntSWRL.IArg}
-     * @param of  {@link InternalObjectFactory}
+     * @param of  {@link ONTObjectFactory}
      * @return {@link ONTObject} around {@link SWRLIArgument}
      */
-    public static ONTObject<? extends SWRLIArgument> getSWRLIndividualArg(OntSWRL.IArg arg, InternalObjectFactory of) {
+    public static ONTObject<? extends SWRLIArgument> getSWRLIndividualArg(OntSWRL.IArg arg, ONTObjectFactory of) {
         if (OntApiException.notNull(arg, "Null SWRL-I arg").canAs(OntIndividual.class)) {
             return ONTWrapperImpl.create(of.getOWLDataFactory()
                     .getSWRLIndividualArgument(of.getIndividual(arg.as(OntIndividual.class)).getOWLObject()), arg);
@@ -473,10 +473,10 @@ public class ReadHelper {
 
     /**
      * @param atom {@link OntSWRL.Atom}
-     * @param of   {@link InternalObjectFactory}
+     * @param of   {@link ONTObjectFactory}
      * @return {@link ONTObject} around {@link SWRLAtom}
      */
-    public static ONTObject<? extends SWRLAtom> calcSWRLAtom(OntSWRL.Atom<?> atom, InternalObjectFactory of) {
+    public static ONTObject<? extends SWRLAtom> calcSWRLAtom(OntSWRL.Atom<?> atom, ONTObjectFactory of) {
         if (atom instanceof OntSWRL.Atom.WithBuiltin) {
             OntSWRL.Atom.WithBuiltin _atom = (OntSWRL.Atom.WithBuiltin) atom;
             IRI iri = of.toIRI(_atom.getPredicate().getURI());

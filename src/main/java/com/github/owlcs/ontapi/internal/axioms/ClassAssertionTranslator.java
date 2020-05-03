@@ -93,7 +93,7 @@ public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionA
 
     @Override
     public ONTObject<OWLClassAssertionAxiom> toAxiomWrap(OntStatement statement,
-                                                         InternalObjectFactory factory,
+                                                         ONTObjectFactory factory,
                                                          AxiomsSettings config) {
         ONTObject<? extends OWLIndividual> i = factory.getIndividual(statement.getSubject(OntIndividual.class));
         ONTObject<? extends OWLClassExpression> ce = factory.getClass(statement.getObject(OntClass.class));
@@ -122,7 +122,7 @@ public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionA
          * Creates an {@link ONTObject} container that is also {@link OWLClassAssertionAxiom}.
          *
          * @param statement {@link OntStatement}, not {@code null}
-         * @param factory   {@link InternalObjectFactory}, not {@code null}
+         * @param factory   {@link ONTObjectFactory}, not {@code null}
          * @param config    {@link AxiomsSettings}, not {@code null}
          * @return {@link AxiomImpl}
          */
@@ -332,7 +332,7 @@ public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionA
             @Override
             public Object[] collectContent() {
                 OntStatement statement = asStatement();
-                InternalObjectFactory factory = getObjectFactory();
+                ONTObjectFactory factory = getObjectFactory();
                 List<ONTObject<?>> res = new ArrayList<>(1);
                 if (!statement.getObject().isURIResource()) {
                     res.add(factory.getClass(statement.getObject(OntClass.class)));

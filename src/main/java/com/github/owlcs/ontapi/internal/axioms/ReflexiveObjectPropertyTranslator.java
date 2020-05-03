@@ -64,7 +64,7 @@ public class ReflexiveObjectPropertyTranslator
 
     @Override
     public ONTObject<OWLReflexiveObjectPropertyAxiom> toAxiomWrap(OntStatement statement,
-                                                                  InternalObjectFactory factory,
+                                                                  ONTObjectFactory factory,
                                                                   AxiomsSettings config) {
         ONTObject<? extends OWLObjectPropertyExpression> p = factory.getProperty(getSubject(statement));
         Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);
@@ -87,7 +87,7 @@ public class ReflexiveObjectPropertyTranslator
          * Creates an {@link ONTObject} container, that is also {@link OWLReflexiveObjectPropertyAxiom}.
          *
          * @param statement {@link OntStatement}, not {@code null}
-         * @param factory   {@link InternalObjectFactory}, not {@code null}
+         * @param factory   {@link ONTObjectFactory}, not {@code null}
          * @param config    {@link AxiomsSettings}, not {@code null}
          * @return {@link AxiomImpl}
          */

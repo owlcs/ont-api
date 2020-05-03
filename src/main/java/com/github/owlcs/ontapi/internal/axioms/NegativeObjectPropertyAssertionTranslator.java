@@ -64,7 +64,7 @@ public class NegativeObjectPropertyAssertionTranslator
 
     @Override
     public ONTObject<OWLNegativeObjectPropertyAssertionAxiom> toAxiomWrap(OntStatement statement,
-                                                                          InternalObjectFactory factory,
+                                                                          ONTObjectFactory factory,
                                                                           AxiomsSettings config) {
         OntNegativeAssertion.WithObjectProperty npa = statement.getSubject(getView());
         ONTObject<? extends OWLIndividual> s = factory.getIndividual(npa.getSource());
@@ -94,7 +94,7 @@ public class NegativeObjectPropertyAssertionTranslator
          * Creates an {@link OWLNegativeObjectPropertyAssertionAxiom} that is also {@link ONTObject}.
          *
          * @param statement {@link OntStatement}, the source, not {@code null}
-         * @param factory   {@link InternalObjectFactory}, not {@code null}
+         * @param factory   {@link ONTObjectFactory}, not {@code null}
          * @param config    {@link AxiomsSettings}, not {@code null}
          * @return {@link AxiomImpl}
          */

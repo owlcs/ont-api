@@ -87,7 +87,7 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
 
     @Override
     public ONTObject<OWLDeclarationAxiom> toAxiomWrap(OntStatement statement,
-                                                      InternalObjectFactory factory,
+                                                      ONTObjectFactory factory,
                                                       AxiomsSettings config) {
         OntEntity e = Entities.find(statement.getResource())
                 .map(Entities::getActualType)
@@ -117,7 +117,7 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
          * Otherwise the method returns a {@link WithAnnotationsImpl} instance with a cache inside.
          *
          * @param statement {@link OntStatement}, the source
-         * @param factory   {@link InternalObjectFactory}
+         * @param factory   {@link ONTObjectFactory}
          * @param config    {@link AxiomsSettings}
          * @return {@link AxiomImpl}
          */
@@ -168,7 +168,7 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
             return findONTEntity(getObjectFactory());
         }
 
-        protected ONTObject<? extends OWLEntity> findONTEntity(InternalObjectFactory factory) {
+        protected ONTObject<? extends OWLEntity> findONTEntity(ONTObjectFactory factory) {
             if (factory instanceof ModelObjectFactory) {
                 return ((ModelObjectFactory) factory).getEntity((String) subject, getResourceType());
             }

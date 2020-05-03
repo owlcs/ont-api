@@ -33,11 +33,11 @@ public interface ObjectSearcher<O extends OWLObject> {
      * Lists all objects from the specified {@code model}
      *
      * @param model   {@link OntModel}, not {@code null}
-     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @param factory {@link ONTObjectFactory}, not {@code null}
      * @param config  {@link AxiomsSettings}, not {@code null}
      * @return an {@link ExtendedIterator} over {@link O} wrapped with {@link ONTObject}
      */
     ExtendedIterator<ONTObject<O>> listObjects(OntModel model,
-                                               InternalObjectFactory factory,
+                                               ONTObjectFactory factory,
                                                AxiomsSettings config);
 }

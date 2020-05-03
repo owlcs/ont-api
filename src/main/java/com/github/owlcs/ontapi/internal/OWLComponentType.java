@@ -48,7 +48,7 @@ public enum OWLComponentType {
         }
 
         @Override
-        ONTObject<? extends OWLObject> wrap(RDFNode n, InternalObjectFactory df) {
+        ONTObject<? extends OWLObject> wrap(RDFNode n, ONTObjectFactory df) {
             return df.getIRI(n.asResource().getURI());
         }
 
@@ -77,7 +77,7 @@ public enum OWLComponentType {
         }
 
         @Override
-        ONTObject<? extends OWLObject> wrap(RDFNode n, InternalObjectFactory df) {
+        ONTObject<? extends OWLObject> wrap(RDFNode n, ONTObjectFactory df) {
             return df.getProperty(n.as(OntAnnotationProperty.class));
         }
     },
@@ -88,7 +88,7 @@ public enum OWLComponentType {
         }
 
         @Override
-        ONTObject<? extends OWLObject> wrap(RDFNode n, InternalObjectFactory df) {
+        ONTObject<? extends OWLObject> wrap(RDFNode n, ONTObjectFactory df) {
             return df.getProperty(n.as(OntDataProperty.class));
         }
     },
@@ -99,7 +99,7 @@ public enum OWLComponentType {
         }
 
         @Override
-        ONTObject<? extends OWLObject> wrap(RDFNode n, InternalObjectFactory df) {
+        ONTObject<? extends OWLObject> wrap(RDFNode n, ONTObjectFactory df) {
             return df.getProperty(n.as(OntObjectProperty.Named.class));
         }
     },
@@ -110,7 +110,7 @@ public enum OWLComponentType {
         }
 
         @Override
-        ONTObject<? extends OWLObject> wrap(RDFNode n, InternalObjectFactory df) {
+        ONTObject<? extends OWLObject> wrap(RDFNode n, ONTObjectFactory df) {
             return df.getIndividual(n.as(OntIndividual.Named.class));
         }
     },
@@ -121,7 +121,7 @@ public enum OWLComponentType {
         }
 
         @Override
-        ONTObject<? extends OWLObject> wrap(RDFNode n, InternalObjectFactory df) {
+        ONTObject<? extends OWLObject> wrap(RDFNode n, ONTObjectFactory df) {
             return df.getClass(n.as(OntClass.Named.class));
         }
     },
@@ -132,7 +132,7 @@ public enum OWLComponentType {
         }
 
         @Override
-        ONTObject<? extends OWLObject> wrap(RDFNode n, InternalObjectFactory df) {
+        ONTObject<? extends OWLObject> wrap(RDFNode n, ONTObjectFactory df) {
             return df.getDatatype(n.as(OntDataRange.Named.class));
         }
     },
@@ -144,7 +144,7 @@ public enum OWLComponentType {
         }
 
         @Override
-        ONTObject<? extends OWLObject> wrap(RDFNode n, InternalObjectFactory df) {
+        ONTObject<? extends OWLObject> wrap(RDFNode n, ONTObjectFactory df) {
             return df.getEntity(n.as(OntEntity.class));
         }
 
@@ -172,7 +172,7 @@ public enum OWLComponentType {
         }
 
         @Override
-        ONTObject<? extends OWLObject> wrap(RDFNode n, InternalObjectFactory df) {
+        ONTObject<? extends OWLObject> wrap(RDFNode n, ONTObjectFactory df) {
             return df.getLiteral(n.asLiteral());
         }
     },
@@ -188,7 +188,7 @@ public enum OWLComponentType {
         }
 
         @Override
-        ONTObject<? extends OWLObject> wrap(RDFNode n, InternalObjectFactory df) {
+        ONTObject<? extends OWLObject> wrap(RDFNode n, ONTObjectFactory df) {
             return df.getIndividual(n.as(OntIndividual.class));
         }
     },
@@ -199,7 +199,7 @@ public enum OWLComponentType {
         }
 
         @Override
-        ONTObject<? extends OWLObject> wrap(RDFNode n, InternalObjectFactory df) {
+        ONTObject<? extends OWLObject> wrap(RDFNode n, ONTObjectFactory df) {
             return df.getIndividual(n.as(OntIndividual.Anonymous.class));
         }
     },
@@ -227,7 +227,7 @@ public enum OWLComponentType {
         }
 
         @Override
-        ONTObject<? extends OWLObject> wrap(RDFNode n, InternalObjectFactory df) {
+        ONTObject<? extends OWLObject> wrap(RDFNode n, ONTObjectFactory df) {
             return df.getDatatype(n.as(OntDataRange.class));
         }
     },
@@ -242,7 +242,7 @@ public enum OWLComponentType {
         }
 
         @Override
-        ONTObject<? extends OWLObject> wrap(RDFNode n, InternalObjectFactory df) {
+        ONTObject<? extends OWLObject> wrap(RDFNode n, ONTObjectFactory df) {
             return df.getDatatype(n.as(OntDataRange.class));
         }
     },
@@ -277,7 +277,7 @@ public enum OWLComponentType {
         }
 
         @Override
-        ONTObject<? extends OWLObject> wrap(RDFNode n, InternalObjectFactory df) {
+        ONTObject<? extends OWLObject> wrap(RDFNode n, ONTObjectFactory df) {
             return df.getClass(n.as(OntClass.class));
         }
     },
@@ -293,7 +293,7 @@ public enum OWLComponentType {
         }
 
         @Override
-        ONTObject<? extends OWLObject> wrap(RDFNode n, InternalObjectFactory df) {
+        ONTObject<? extends OWLObject> wrap(RDFNode n, ONTObjectFactory df) {
             return df.getClass(n.as(OntClass.class));
         }
     },
@@ -304,7 +304,7 @@ public enum OWLComponentType {
         }
 
         @Override
-        ONTObject<? extends OWLObject> wrap(RDFNode n, InternalObjectFactory df) {
+        ONTObject<? extends OWLObject> wrap(RDFNode n, ONTObjectFactory df) {
             return df.getProperty(n.as(OntObjectProperty.Inverse.class));
         }
     },
@@ -315,7 +315,7 @@ public enum OWLComponentType {
         }
 
         @Override
-        ONTObject<? extends OWLObject> wrap(RDFNode n, InternalObjectFactory df) {
+        ONTObject<? extends OWLObject> wrap(RDFNode n, ONTObjectFactory df) {
             return df.getProperty(n.as(OntObjectProperty.class));
         }
     },
@@ -326,14 +326,14 @@ public enum OWLComponentType {
         }
 
         @Override
-        ONTObject<OWLFacetRestriction> wrap(RDFNode n, InternalObjectFactory df) {
+        ONTObject<OWLFacetRestriction> wrap(RDFNode n, ONTObjectFactory df) {
             return df.getFacetRestriction(n.as(OntFacetRestriction.class));
         }
 
     },
     SWRL_VARIABLE(SWRLVariable.class, OntSWRL.Variable.class, false, true) {
         @Override
-        ONTObject<SWRLVariable> wrap(RDFNode n, InternalObjectFactory df) {
+        ONTObject<SWRLVariable> wrap(RDFNode n, ONTObjectFactory df) {
             return df.getSWRLVariable(n.as(OntSWRL.Variable.class));
         }
     },
@@ -345,7 +345,7 @@ public enum OWLComponentType {
         }
 
         @Override
-        ONTObject<? extends OWLObject> wrap(RDFNode n, InternalObjectFactory df) {
+        ONTObject<? extends OWLObject> wrap(RDFNode n, ONTObjectFactory df) {
             return df.getSWRLAtom(n.as(OntSWRL.Atom.class));
         }
     };
@@ -472,10 +472,10 @@ public enum OWLComponentType {
      * Wraps the given node as {@link ONTObject}.
      *
      * @param n  {@link RDFNode}, not {@code null}
-     * @param df {@link InternalObjectFactory}, not {@code null}
+     * @param df {@link ONTObjectFactory}, not {@code null}
      * @return {@link ONTObject}
      */
-    abstract ONTObject<? extends OWLObject> wrap(RDFNode n, InternalObjectFactory df);
+    abstract ONTObject<? extends OWLObject> wrap(RDFNode n, ONTObjectFactory df);
 
     /**
      * Wraps the given {@link OWLObject} as {@link ONTObject} using the specified factory and model.
@@ -483,11 +483,11 @@ public enum OWLComponentType {
      *
      * @param object {@link OWLObject}, not {@code null}
      * @param model  {@link OntModel}, not {@code null}
-     * @param df     {@link InternalObjectFactory}, not {@code null}
+     * @param df     {@link ONTObjectFactory}, not {@code null}
      * @return {@link ONTObject}
      */
     @SuppressWarnings("unchecked")
-    ONTObject<OWLObject> wrap(OWLObject object, OntModel model, InternalObjectFactory df) {
+    ONTObject<OWLObject> wrap(OWLObject object, OntModel model, ONTObjectFactory df) {
         if (object instanceof ONTObject) {
             return (ONTObject<OWLObject>) object;
         }
@@ -542,10 +542,10 @@ public enum OWLComponentType {
      * in the form of {@code Stream} of {@link ONTObject}s.
      *
      * @param container {@link OWLObject}, not {@code null}
-     * @param df        {@link InternalObjectFactory}, not {@code null}
+     * @param df        {@link ONTObjectFactory}, not {@code null}
      * @return {@code Stream} of {@link ONTObject} encapsulating {@link OWLObject}s of this type
      */
-    Stream<ONTObject<OWLObject>> select(OWLObject container, OntModel model, InternalObjectFactory df) {
+    Stream<ONTObject<OWLObject>> select(OWLObject container, OntModel model, ONTObjectFactory df) {
         return select(container).map(x -> wrap(x, model, df));
     }
 
@@ -554,11 +554,11 @@ public enum OWLComponentType {
      * in the form of {@code Stream} of {@link ONTObject}s.
      *
      * @param model {@link OntModel}, not {@code null}
-     * @param df    {@link InternalObjectFactory}, not {@code null}
+     * @param df    {@link ONTObjectFactory}, not {@code null}
      * @return {@link Stream} of {@link ONTObject}s of this type
      */
     @SuppressWarnings("unchecked")
-    public Stream<ONTObject<OWLObject>> select(OntModel model, InternalObjectFactory df) {
+    public Stream<ONTObject<OWLObject>> select(OntModel model, ONTObjectFactory df) {
         return Iter.asStream(listObjects(model).mapWith(x -> (ONTObject<OWLObject>) wrap(x, df)));
     }
 

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,13 +14,7 @@
 
 package com.github.owlcs.ontapi;
 
-import org.apache.jena.graph.BlankNodeId;
-import org.apache.jena.graph.impl.LiteralLabel;
-import org.semanticweb.owlapi.model.*;
-import org.semanticweb.owlapi.util.VersionInfo;
-import org.semanticweb.owlapi.vocab.OWL2Datatype;
-import org.semanticweb.owlapi.vocab.OWLFacet;
-import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
+import com.github.owlcs.ontapi.internal.ONTObjectFactory;
 import com.github.owlcs.ontapi.owlapi.InternalizedEntities;
 import com.github.owlcs.ontapi.owlapi.OWLImportsDeclarationImpl;
 import com.github.owlcs.ontapi.owlapi.axioms.*;
@@ -29,6 +23,13 @@ import com.github.owlcs.ontapi.owlapi.objects.ce.*;
 import com.github.owlcs.ontapi.owlapi.objects.dr.*;
 import com.github.owlcs.ontapi.owlapi.objects.entity.*;
 import com.github.owlcs.ontapi.owlapi.objects.swrl.*;
+import org.apache.jena.graph.BlankNodeId;
+import org.apache.jena.graph.impl.LiteralLabel;
+import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.util.VersionInfo;
+import org.semanticweb.owlapi.vocab.OWL2Datatype;
+import org.semanticweb.owlapi.vocab.OWLFacet;
+import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
 
 import java.time.Instant;
 import java.util.*;
@@ -61,7 +62,7 @@ import static com.github.owlcs.ontapi.owlapi.InternalizedEntities.*;
  *
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
  * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLDataFactoryImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl</a>
- * @see com.github.owlcs.ontapi.internal.InternalObjectFactory
+ * @see ONTObjectFactory
  */
 @SuppressWarnings("NullableProblems")
 public class DataFactoryImpl implements DataFactory {

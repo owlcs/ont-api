@@ -91,7 +91,7 @@ public class ObjectPropertyAssertionTranslator
 
     @Override
     public ONTObject<OWLObjectPropertyAssertionAxiom> toAxiomWrap(OntStatement statement,
-                                                                  InternalObjectFactory factory,
+                                                                  ONTObjectFactory factory,
                                                                   AxiomsSettings config) {
         ONTObject<? extends OWLIndividual> subject = factory.getIndividual(statement.getSubject(OntIndividual.class));
         ONTObject<? extends OWLObjectPropertyExpression> property = factory.getProperty(statement.getPredicate()
@@ -122,7 +122,7 @@ public class ObjectPropertyAssertionTranslator
          * Creates an {@link OWLObjectPropertyAssertionAxiom} that is also {@link ONTObject}.
          *
          * @param statement {@link OntStatement}, the source, not {@code null}
-         * @param factory   {@link InternalObjectFactory}, not {@code null}
+         * @param factory   {@link ONTObjectFactory}, not {@code null}
          * @param config    {@link AxiomsSettings}, not {@code null}
          * @return {@link AxiomImpl}
          */

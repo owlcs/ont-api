@@ -40,9 +40,9 @@ import java.util.Map;
  * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLDataFactoryInternals.java'>uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryInternals</a>
  * @see ONTObject
  */
-public interface InternalObjectFactory {
+public interface ONTObjectFactory {
 
-    InternalObjectFactory DEFAULT = new SimpleObjectFactory(OntManagers.getDataFactory());
+    ONTObjectFactory DEFAULT = new SimpleObjectFactory(OntManagers.getDataFactory());
 
     DataFactory getOWLDataFactory();
 

@@ -67,7 +67,7 @@ public class EquivalentClassesTranslator extends AbstractNaryTranslator<OWLEquiv
 
     @Override
     public ONTObject<OWLEquivalentClassesAxiom> toAxiomWrap(OntStatement statement,
-                                                            InternalObjectFactory factory,
+                                                            ONTObjectFactory factory,
                                                             AxiomsSettings config) {
         ONTObject<? extends OWLClassExpression> a = factory.getClass(statement.getSubject(getView()));
         ONTObject<? extends OWLClassExpression> b = factory.getClass(statement.getObject().as(getView()));
@@ -98,7 +98,7 @@ public class EquivalentClassesTranslator extends AbstractNaryTranslator<OWLEquiv
          * Creates an {@link ONTObject} container, that is also {@link OWLEquivalentClassesAxiom}.
          *
          * @param statement {@link OntStatement}, not {@code null}
-         * @param factory   {@link InternalObjectFactory}, not {@code null}
+         * @param factory   {@link ONTObjectFactory}, not {@code null}
          * @param config    {@link AxiomsSettings}, not {@code null}
          * @return {@link AxiomImpl}
          */

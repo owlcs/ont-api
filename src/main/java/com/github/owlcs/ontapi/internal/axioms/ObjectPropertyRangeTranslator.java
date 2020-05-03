@@ -62,7 +62,7 @@ public class ObjectPropertyRangeTranslator
 
     @Override
     public ONTObject<OWLObjectPropertyRangeAxiom> toAxiomWrap(OntStatement statement,
-                                                              InternalObjectFactory factory,
+                                                              ONTObjectFactory factory,
                                                               AxiomsSettings config) {
         ONTObject<? extends OWLObjectPropertyExpression> p = factory.getProperty(statement.getSubject(getView()));
         ONTObject<? extends OWLClassExpression> ce = factory.getClass(statement.getObject(OntClass.class));
@@ -91,7 +91,7 @@ public class ObjectPropertyRangeTranslator
          * Creates an {@link ONTObject} container that is also {@link OWLObjectPropertyRangeAxiom}.
          *
          * @param statement {@link OntStatement}, not {@code null}
-         * @param factory   {@link InternalObjectFactory}, not {@code null}
+         * @param factory   {@link ONTObjectFactory}, not {@code null}
          * @param config    {@link AxiomsSettings}, not {@code null}
          * @return {@link AxiomImpl}
          */

@@ -14,9 +14,9 @@
 
 package com.github.owlcs.ontapi.internal.objects;
 
-import com.github.owlcs.ontapi.internal.InternalObjectFactory;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
+import com.github.owlcs.ontapi.internal.ONTObjectFactory;
 import com.github.owlcs.ontapi.internal.ReadHelper;
 import com.github.owlcs.ontapi.jena.model.OntFacetRestriction;
 import com.github.owlcs.ontapi.jena.model.OntModel;
@@ -51,12 +51,12 @@ public class ONTFacetRestrictionImpl
      * Wraps the given {@link OntFacetRestriction} as {@link OWLFacetRestriction} and {@link ONTObject}.
      *
      * @param fr      {@link OntFacetRestriction}, not {@code null}
-     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @param factory {@link ONTObjectFactory}, not {@code null}
      * @param model   a provider of non-null {@link OntModel}, cannot be {@code null}
      * @return {@link ONTFacetRestrictionImpl}
      */
     public static ONTFacetRestrictionImpl create(OntFacetRestriction fr,
-                                                 InternalObjectFactory factory,
+                                                 ONTObjectFactory factory,
                                                  Supplier<OntModel> model) {
         ONTFacetRestrictionImpl res = new ONTFacetRestrictionImpl(fr.asNode().getBlankNodeId(), model);
         res.putContent(res.initContent(fr, factory));
@@ -74,13 +74,13 @@ public class ONTFacetRestrictionImpl
     }
 
     @Override
-    protected Object[] collectContent(OntFacetRestriction fr, InternalObjectFactory factory) {
+    protected Object[] collectContent(OntFacetRestriction fr, ONTObjectFactory factory) {
         Class<? extends OntFacetRestriction> type = OntModels.getOntType(fr);
         return new Object[]{ReadHelper.getFacet(type), fr.getValue().asNode().getLiteral()};
     }
 
     @Override
-    protected Object[] initContent(OntFacetRestriction fr, InternalObjectFactory factory) {
+    protected Object[] initContent(OntFacetRestriction fr, ONTObjectFactory factory) {
         OWLFacet facet = ReadHelper.getFacet(OntModels.getOntType(fr));
         Literal value = fr.getValue();
         int hash = OWLObject.hashIteration(hashIndex(), facet.hashCode());

@@ -15,8 +15,8 @@
 package com.github.owlcs.ontapi.internal.searchers;
 
 import com.github.owlcs.ontapi.config.AxiomsSettings;
-import com.github.owlcs.ontapi.internal.InternalObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
+import com.github.owlcs.ontapi.internal.ONTObjectFactory;
 import com.github.owlcs.ontapi.internal.OWLTopObjectType;
 import com.github.owlcs.ontapi.internal.WriteHelper;
 import com.github.owlcs.ontapi.internal.axioms.AnnotationAssertionTranslator;
@@ -35,7 +35,7 @@ public class AnnotationAssertionBySubject extends BaseByObject<OWLAnnotationAsse
     @Override
     public ExtendedIterator<ONTObject<OWLAnnotationAssertionAxiom>> listAxioms(OWLAnnotationSubject subject,
                                                                                OntModel model,
-                                                                               InternalObjectFactory factory,
+                                                                               ONTObjectFactory factory,
                                                                                AxiomsSettings config) {
         ExtendedIterator<OntStatement> res = listBySubject(model, WriteHelper.toResource(subject))
                 .filterKeep(x -> TRANSLATOR.testStatement(x, config));
