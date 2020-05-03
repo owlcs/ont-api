@@ -16,7 +16,9 @@ package com.github.owlcs.ontapi.internal.axioms;
 
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.internal.*;
-import com.github.owlcs.ontapi.internal.objects.*;
+import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
+import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
+import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
 import com.github.owlcs.ontapi.jena.model.OntDataProperty;
 import com.github.owlcs.ontapi.jena.model.OntDataRange;
 import com.github.owlcs.ontapi.jena.model.OntModel;
@@ -90,16 +92,14 @@ public class DataPropertyRangeTranslator extends AbstractPropertyRangeTranslator
          * @param config    {@link InternalConfig}, not {@code null}
          * @return {@link AxiomImpl}
          */
-        public static AxiomImpl create(OntStatement statement,
-                                       ModelObjectFactory factory,
-                                       InternalConfig config) {
+        public static AxiomImpl create(OntStatement statement, ModelObjectFactory factory, InternalConfig config) {
             return WithTwoObjects.create(statement,
                     SimpleImpl.FACTORY, ComplexImpl.FACTORY, SET_HASH_CODE, factory, config);
         }
 
         @Override
         public ONTObject<? extends OWLDataPropertyExpression> getURISubject(ModelObjectFactory factory) {
-            return ONTDataPropertyImpl.find(getSubjectURI(), factory, model);
+            return factory.getDataProperty(getSubjectURI());
         }
 
         @Override
@@ -110,12 +110,11 @@ public class DataPropertyRangeTranslator extends AbstractPropertyRangeTranslator
 
         @Override
         public ONTObject<? extends OWLDataRange> getURIObject(ModelObjectFactory factory) {
-            return ONTDatatypeImpl.find(getObjectURI(), factory, model);
+            return factory.getDatatype(getObjectURI());
         }
 
         @Override
-        public ONTObject<? extends OWLDataRange> objectFromStatement(OntStatement statement,
-                                                                     ModelObjectFactory factory) {
+        public ONTObject<? extends OWLDataRange> objectFromStatement(OntStatement statement, ModelObjectFactory factory) {
             return factory.getDatatype(statement.getObject(OntDataRange.class));
         }
 

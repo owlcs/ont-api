@@ -16,7 +16,9 @@ package com.github.owlcs.ontapi.internal.axioms;
 
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.internal.*;
-import com.github.owlcs.ontapi.internal.objects.*;
+import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
+import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
+import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
 import com.github.owlcs.ontapi.jena.model.OntClass;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntObjectProperty;
@@ -101,7 +103,7 @@ public class ObjectPropertyRangeTranslator
 
         @Override
         public ONTObject<? extends OWLObjectPropertyExpression> getURISubject(ModelObjectFactory factory) {
-            return ONTObjectPropertyImpl.find(getSubjectURI(), factory, model);
+            return factory.getObjectProperty(getSubjectURI());
         }
 
         @Override
@@ -112,7 +114,7 @@ public class ObjectPropertyRangeTranslator
 
         @Override
         public ONTObject<? extends OWLClassExpression> getURIObject(ModelObjectFactory factory) {
-            return ONTClassImpl.find(getObjectURI(), factory, model);
+            return factory.getClass(getObjectURI());
         }
 
         @Override

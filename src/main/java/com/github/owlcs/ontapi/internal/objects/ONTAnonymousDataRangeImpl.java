@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -16,6 +16,7 @@ package com.github.owlcs.ontapi.internal.objects;
 
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.internal.InternalObjectFactory;
+import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.jena.model.OntDataRange;
 import com.github.owlcs.ontapi.jena.model.OntModel;
@@ -220,7 +221,7 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDataRange, OWL ex
         }
 
         @Override
-        protected ONTObject<? extends OWLLiteral> fromContentItem(Object item, InternalObjectFactory factory) {
+        protected ONTObject<? extends OWLLiteral> fromContentItem(Object item, ModelObjectFactory factory) {
             return toLiteral(item, factory);
         }
 
@@ -256,12 +257,12 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDataRange, OWL ex
             return findONTDatatype(getObjectFactory());
         }
 
-        protected ONTObject<OWLDatatype> findONTDatatype(InternalObjectFactory factory) {
+        protected ONTObject<OWLDatatype> findONTDatatype(ModelObjectFactory factory) {
             return toDatatype(getContent()[0], factory);
         }
 
-        private ONTObject<OWLDatatype> toDatatype(Object item, InternalObjectFactory factory) {
-            return ONTDatatypeImpl.find((String) item, factory, model);
+        private ONTObject<OWLDatatype> toDatatype(Object item, ModelObjectFactory factory) {
+            return factory.getDatatype((String) item);
         }
 
         @SuppressWarnings("unchecked")
@@ -282,7 +283,7 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDataRange, OWL ex
             return (Stream<ONTObject<? extends OWLObject>>) objects(getObjectFactory());
         }
 
-        protected Stream<?> objects(InternalObjectFactory factory) {
+        protected Stream<?> objects(ModelObjectFactory factory) {
             return Stream.concat(Stream.of(toDatatype(getContent()[0], factory)), Arrays.stream(getContent()).skip(1));
         }
 
@@ -401,7 +402,7 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDataRange, OWL ex
         }
 
         @Override
-        protected ONTObject<? extends OWLDataRange> fromContentItem(Object item, InternalObjectFactory factory) {
+        protected ONTObject<? extends OWLDataRange> fromContentItem(Object item, ModelObjectFactory factory) {
             return toDR(item, factory);
         }
     }
@@ -441,7 +442,7 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDataRange, OWL ex
          * @param factory {@link InternalObjectFactory}, not {@code null}
          * @return an {@link ONTObject} that wraps {@link OWL_M}
          */
-        protected abstract ONTObject<? extends OWL_M> fromContentItem(Object item, InternalObjectFactory factory);
+        protected abstract ONTObject<? extends OWL_M> fromContentItem(Object item, ModelObjectFactory factory);
 
         @Override
         public Stream<OWL_M> operands() {
@@ -469,7 +470,7 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDataRange, OWL ex
             return (Stream<ONTObject<? extends OWLObject>>) objects(getObjectFactory());
         }
 
-        protected Stream<?> objects(InternalObjectFactory factory) {
+        protected Stream<?> objects(ModelObjectFactory factory) {
             return Arrays.stream(getContent()).map(x -> fromContentItem(x, factory));
         }
 

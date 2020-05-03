@@ -16,7 +16,6 @@ package com.github.owlcs.ontapi.internal.axioms;
 
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
-import com.github.owlcs.ontapi.internal.objects.ONTAnnotationPropertyImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
 import com.github.owlcs.ontapi.jena.model.OntAnnotationProperty;
 import com.github.owlcs.ontapi.jena.model.OntModel;
@@ -139,7 +138,7 @@ public class SubAnnotationPropertyOfTranslator
 
         @Override
         public ONTObject<? extends OWLAnnotationProperty> findByURI(String uri, ModelObjectFactory factory) {
-            return ONTAnnotationPropertyImpl.find(uri, factory, model);
+            return factory.getAnnotationProperty(uri);
         }
 
         @FactoryAccessor

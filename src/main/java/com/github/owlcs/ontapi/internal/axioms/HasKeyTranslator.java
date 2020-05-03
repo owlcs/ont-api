@@ -20,7 +20,6 @@ import com.github.owlcs.ontapi.internal.InternalObjectFactory;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
-import com.github.owlcs.ontapi.internal.objects.ONTClassImpl;
 import com.github.owlcs.ontapi.jena.model.*;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
@@ -166,7 +165,7 @@ public class HasKeyTranslator
 
         @Override
         public ONTObject<? extends OWLClassExpression> findSubjectByURI(String uri, ModelObjectFactory factory) {
-            return ONTClassImpl.find(uri, factory, model);
+            return factory.getClass(uri);
         }
 
         @Override

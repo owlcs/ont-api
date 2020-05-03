@@ -18,7 +18,6 @@ import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
-import com.github.owlcs.ontapi.internal.objects.ONTObjectPropertyImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
 import com.github.owlcs.ontapi.jena.model.OntClass;
 import com.github.owlcs.ontapi.jena.model.OntModel;
@@ -104,7 +103,7 @@ public class ObjectPropertyDomainTranslator
 
         @Override
         public ONTObject<? extends OWLObjectPropertyExpression> getURISubject(ModelObjectFactory factory) {
-            return ONTObjectPropertyImpl.find(getSubjectURI(), factory, model);
+            return factory.getObjectProperty(getSubjectURI());
         }
 
         @Override

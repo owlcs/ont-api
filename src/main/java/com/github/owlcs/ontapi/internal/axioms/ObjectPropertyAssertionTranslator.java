@@ -18,7 +18,6 @@ import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
-import com.github.owlcs.ontapi.internal.objects.ONTObjectPropertyImpl;
 import com.github.owlcs.ontapi.jena.model.OntIndividual;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntObjectProperty;
@@ -153,8 +152,8 @@ public class ObjectPropertyAssertionTranslator
             return findONTProperty(factory);
         }
 
-        public ONTObject<OWLObjectProperty> findONTProperty(InternalObjectFactory factory) {
-            return ONTObjectPropertyImpl.find(predicate, factory, model);
+        public ONTObject<OWLObjectProperty> findONTProperty(ModelObjectFactory factory) {
+            return factory.getObjectProperty(predicate);
         }
 
         @FactoryAccessor
@@ -216,14 +215,12 @@ public class ObjectPropertyAssertionTranslator
         }
 
         @SuppressWarnings({"unchecked", "rawtypes"})
-        protected void collectNamedIndividuals(Set res, InternalObjectFactory factory) {
+        protected void collectNamedIndividuals(Set res, ModelObjectFactory factory) {
             if (subject instanceof String) {
-                res.add(findNamedIndividual((String) subject,
-                        factory == null ? factory = getObjectFactory() : factory).getOWLObject());
+                res.add((factory == null ? factory = getObjectFactory() : factory).getNamedIndividual((String) subject).getOWLObject());
             }
             if (object instanceof String) {
-                res.add(findNamedIndividual((String) object,
-                        factory == null ? getObjectFactory() : factory).getOWLObject());
+                res.add((factory == null ? getObjectFactory() : factory).getNamedIndividual((String) object).getOWLObject());
             }
         }
 
@@ -242,14 +239,12 @@ public class ObjectPropertyAssertionTranslator
             @Override
             public Set<OWLAnonymousIndividual> getAnonymousIndividualSet() {
                 Set<OWLAnonymousIndividual> res = createSortedSet();
-                InternalObjectFactory factory = null;
+                ModelObjectFactory f = null;
                 if (subject instanceof BlankNodeId) {
-                    res.add(findAnonymousIndividual((BlankNodeId) subject,
-                            factory = getObjectFactory()).getOWLObject());
+                    res.add((f = getObjectFactory()).getAnonymousIndividual((BlankNodeId) subject).getOWLObject());
                 }
                 if (object instanceof BlankNodeId) {
-                    res.add(findAnonymousIndividual((BlankNodeId) object,
-                            factory == null ? getObjectFactory() : factory).getOWLObject());
+                    res.add((f == null ? getObjectFactory() : f).getAnonymousIndividual((BlankNodeId) object).getOWLObject());
                 }
                 return res;
             }
@@ -257,7 +252,7 @@ public class ObjectPropertyAssertionTranslator
             @Override
             public Set<OWLEntity> getSignatureSet() {
                 Set<OWLEntity> res = createSortedSet();
-                InternalObjectFactory factory = getObjectFactory();
+                ModelObjectFactory factory = getObjectFactory();
                 res.add(findONTProperty(factory).getOWLObject());
                 collectNamedIndividuals(res, factory);
                 return res;

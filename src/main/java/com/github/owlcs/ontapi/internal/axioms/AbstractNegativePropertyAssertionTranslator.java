@@ -15,7 +15,9 @@
 package com.github.owlcs.ontapi.internal.axioms;
 
 import com.github.owlcs.ontapi.internal.*;
-import com.github.owlcs.ontapi.internal.objects.*;
+import com.github.owlcs.ontapi.internal.objects.ONTAxiomImpl;
+import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
+import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntNegativeAssertion;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
@@ -173,19 +175,18 @@ public abstract class AbstractNegativePropertyAssertionTranslator<Axiom extends 
             return toIndividual(s, factory);
         }
 
-        protected ONTObject<? extends OWLIndividual> toIndividual(Object s, InternalObjectFactory factory) {
+        protected ONTObject<? extends OWLIndividual> toIndividual(Object s, ModelObjectFactory factory) {
             return s instanceof String ?
                     toNamedIndividual((String) s, factory) :
                     toAnonymousIndividual((BlankNodeId) s, factory);
         }
 
-        protected ONTObject<OWLNamedIndividual> toNamedIndividual(String uri, InternalObjectFactory factory) {
-            return ONTNamedIndividualImpl.find(uri, factory, model);
+        protected ONTObject<OWLNamedIndividual> toNamedIndividual(String uri, ModelObjectFactory factory) {
+            return factory.getNamedIndividual(uri);
         }
 
-        protected ONTObject<OWLAnonymousIndividual> toAnonymousIndividual(BlankNodeId id,
-                                                                          InternalObjectFactory factory) {
-            return ONTAnonymousIndividualImpl.find(id, factory, model);
+        protected ONTObject<OWLAnonymousIndividual> toAnonymousIndividual(BlankNodeId id, ModelObjectFactory factory) {
+            return factory.getAnonymousIndividual(id);
         }
 
         protected Object fromIndividual(OWLIndividual i) {

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -17,6 +17,7 @@ package com.github.owlcs.ontapi.internal.objects;
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.internal.InternalObjectFactory;
+import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.jena.model.*;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
@@ -382,7 +383,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
 
         @Override
         public Stream<ONTObject<? extends OWLObject>> objects() {
-            InternalObjectFactory factory = getObjectFactory();
+            ModelObjectFactory factory = getObjectFactory();
             return Stream.of(findOPE(factory), findIndividual(factory));
         }
 
@@ -403,7 +404,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
             return findIndividual(getObjectFactory());
         }
 
-        protected ONTObject<? extends OWLIndividual> findIndividual(InternalObjectFactory factory) {
+        protected ONTObject<? extends OWLIndividual> findIndividual(ModelObjectFactory factory) {
             // [property, filler] - always last:
             return toIndividual(getContent()[1], factory);
         }
@@ -512,7 +513,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
 
         @Override
         public Stream<ONTObject<? extends OWLObject>> objects() {
-            InternalObjectFactory factory = getObjectFactory();
+            ModelObjectFactory factory = getObjectFactory();
             return Stream.of(findNDP(factory), findLiteral(factory));
         }
 
@@ -532,7 +533,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
             return findLiteral(getObjectFactory());
         }
 
-        protected ONTObject<OWLLiteral> findLiteral(InternalObjectFactory factory) {
+        protected ONTObject<OWLLiteral> findLiteral(ModelObjectFactory factory) {
             // [property, filler] -- always last:
             return toLiteral(getContent()[1], factory);
         }
@@ -903,7 +904,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
         }
 
         @Override
-        protected ONTObject<? extends OWLIndividual> fromContentItem(Object item, InternalObjectFactory factory) {
+        protected ONTObject<? extends OWLIndividual> fromContentItem(Object item, ModelObjectFactory factory) {
             return toIndividual(item, factory);
         }
 
@@ -1031,7 +1032,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
             return findCE(getObjectFactory());
         }
 
-        protected ONTObject<? extends OWLClassExpression> findCE(InternalObjectFactory factory) {
+        protected ONTObject<? extends OWLClassExpression> findCE(ModelObjectFactory factory) {
             return toCE(getContent()[0], factory);
         }
 
@@ -1067,7 +1068,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
         }
 
         @Override
-        protected ONTObject<? extends OWLClassExpression> fromContentItem(Object item, InternalObjectFactory factory) {
+        protected ONTObject<? extends OWLClassExpression> fromContentItem(Object item, ModelObjectFactory factory) {
             return toCE(item, factory);
         }
 
@@ -1120,7 +1121,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
          * @param factory {@link InternalObjectFactory}, not {@code null}
          * @return an {@link ONTObject} that wraps {@link OWL_M}
          */
-        protected abstract ONTObject<? extends OWL_M> fromContentItem(Object item, InternalObjectFactory factory);
+        protected abstract ONTObject<? extends OWL_M> fromContentItem(Object item, ModelObjectFactory factory);
 
         @Override
         public Stream<OWL_M> operands() {
@@ -1148,7 +1149,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
             return (Stream<ONTObject<? extends OWLObject>>) objects(getObjectFactory());
         }
 
-        protected Stream<?> objects(InternalObjectFactory factory) {
+        protected Stream<?> objects(ModelObjectFactory factory) {
             return Arrays.stream(getContent()).map(x -> fromContentItem(x, factory));
         }
 
@@ -1284,7 +1285,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
 
         @Override
         public Stream<ONTObject<? extends OWLObject>> objects() {
-            InternalObjectFactory factory = getObjectFactory();
+            ModelObjectFactory factory = getObjectFactory();
             return Stream.of(findNDP(factory), findDR(factory));
         }
 
@@ -1292,7 +1293,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
             return findDR(getObjectFactory());
         }
 
-        protected ONTObject<? extends OWLDataRange> findDR(InternalObjectFactory factory) {
+        protected ONTObject<? extends OWLDataRange> findDR(ModelObjectFactory factory) {
             // [property, cardinality, filler] or [property, filler] - always last:
             Object[] array = getContent();
             return toDR(array[array.length - 1], factory);
@@ -1351,7 +1352,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
             return findNDP(getObjectFactory());
         }
 
-        protected ONTObject<OWLDataProperty> findNDP(InternalObjectFactory factory) {
+        protected ONTObject<OWLDataProperty> findNDP(ModelObjectFactory factory) {
             // [property, cardinality, filler] or [property, filler] or [property] - always first
             return toNDP(getContent()[0], factory);
         }
@@ -1449,7 +1450,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
 
         @Override
         public Stream<ONTObject<? extends OWLObject>> objects() {
-            InternalObjectFactory factory = getObjectFactory();
+            ModelObjectFactory factory = getObjectFactory();
             return Stream.of(findOPE(factory), findCE(factory));
         }
 
@@ -1457,7 +1458,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
             return findCE(getObjectFactory());
         }
 
-        protected ONTObject<? extends OWLClassExpression> findCE(InternalObjectFactory factory) {
+        protected ONTObject<? extends OWLClassExpression> findCE(ModelObjectFactory factory) {
             // [property, cardinality, filler] or [property, filler] -- always last:
             Object[] array = getContent();
             return toCE(array[array.length - 1], factory);
@@ -1511,7 +1512,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
             return findOPE(getObjectFactory());
         }
 
-        protected ONTObject<? extends OWLObjectPropertyExpression> findOPE(InternalObjectFactory factory) {
+        protected ONTObject<? extends OWLObjectPropertyExpression> findOPE(ModelObjectFactory factory) {
             // [property, cardinality, filler] or [property, filler] or [property] - always first:
             return toOPE(getContent()[0], factory);
         }

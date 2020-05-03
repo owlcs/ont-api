@@ -147,10 +147,10 @@ public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionA
             return getONTObject(getObjectFactory()).getOWLObject();
         }
 
-        public ONTObject<? extends OWLIndividual> getONTSubject(InternalObjectFactory factory) {
+        public ONTObject<? extends OWLIndividual> getONTSubject(ModelObjectFactory factory) {
             return hasURISubject() ?
-                    ONTNamedIndividualImpl.find(getSubjectURI(), factory, model) :
-                    ONTAnonymousIndividualImpl.find(getSubjectBlankNodeId(), factory, model);
+                    factory.getNamedIndividual(getSubjectURI()) :
+                    factory.getAnonymousIndividual(getSubjectBlankNodeId());
         }
 
         public ONTObject<? extends OWLIndividual> getONTSubject() {
@@ -161,7 +161,7 @@ public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionA
             return getONTObject(getObjectFactory());
         }
 
-        public abstract ONTObject<? extends OWLClassExpression> getONTObject(InternalObjectFactory factory);
+        public abstract ONTObject<? extends OWLClassExpression> getONTObject(ModelObjectFactory factory);
 
         @FactoryAccessor
         @Override
@@ -198,8 +198,8 @@ public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionA
             }
 
             @Override
-            public ONTObject<? extends OWLClassExpression> getONTObject(InternalObjectFactory factory) {
-                return ONTClassImpl.find(getObjectURI(), factory, model);
+            public ONTObject<? extends OWLClassExpression> getONTObject(ModelObjectFactory factory) {
+                return factory.getClass(getObjectURI());
             }
 
             @Override
@@ -225,7 +225,7 @@ public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionA
 
             @Override
             public Set<OWLEntity> getSignatureSet() {
-                InternalObjectFactory f = getObjectFactory();
+                ModelObjectFactory f = getObjectFactory();
                 Set<OWLEntity> res = createSortedSet();
                 res.add(getONTObject(f).getOWLObject().asOWLClass());
                 if (hasURISubject()) {
@@ -236,7 +236,7 @@ public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionA
 
             @Override
             public Stream<ONTObject<? extends OWLObject>> objects() {
-                InternalObjectFactory f = getObjectFactory();
+                ModelObjectFactory f = getObjectFactory();
                 return Stream.of(getONTSubject(f), getONTObject(f));
             }
 
@@ -296,7 +296,7 @@ public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionA
 
             static Object[] initContent(AxiomImpl axiom,
                                         OntStatement statement,
-                                        InternalObjectFactory factory,
+                                        ModelObjectFactory factory,
                                         InternalConfig config) {
                 Collection<?> annotations = ONTAxiomImpl.collectAnnotations(statement, factory, config);
                 int size = annotations.size();
@@ -304,7 +304,7 @@ public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionA
                 Object object = null;
                 if (statement.getObject().isURIResource()) {
                     hash = OWLObject.hashIteration(hash,
-                            ONTClassImpl.find(statement.getObject().asNode().getURI(), factory, axiom.model).hashCode());
+                            factory.getClass(statement.getObject().asNode().getURI()).hashCode());
                 } else {
                     size++;
                     object = factory.getClass(statement.getObject(OntClass.class));
@@ -346,22 +346,20 @@ public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionA
             }
 
             @Override
-            public ONTObject<? extends OWLClassExpression> getONTObject(InternalObjectFactory factory) {
+            public ONTObject<? extends OWLClassExpression> getONTObject(ModelObjectFactory factory) {
                 return getONTObject(getContent(), factory);
             }
 
             @SuppressWarnings("unchecked")
-            protected ONTObject<? extends OWLClassExpression> getONTObject(Object[] content,
-                                                                           InternalObjectFactory factory) {
-                return hasURIObject() ? ONTClassImpl.find(getObjectURI(), factory, model) :
-                        (ONTObject<? extends OWLClassExpression>) content[0];
+            protected ONTObject<? extends OWLClassExpression> getONTObject(Object[] content, ModelObjectFactory factory) {
+                return hasURIObject() ? factory.getClass(getObjectURI()) : (ONTObject<? extends OWLClassExpression>) content[0];
             }
 
             @SuppressWarnings("unchecked")
             @Override
             public Stream<ONTObject<? extends OWLObject>> objects() {
                 Object[] content = getContent();
-                InternalObjectFactory f = getObjectFactory();
+                ModelObjectFactory f = getObjectFactory();
                 Stream<?> res = Arrays.stream(content);
                 Stream<?> objects;
                 if (hasURIObject()) {

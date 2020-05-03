@@ -18,7 +18,6 @@ import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
-import com.github.owlcs.ontapi.internal.objects.ONTObjectPropertyImpl;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntNegativeAssertion;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
@@ -134,9 +133,7 @@ public class NegativeObjectPropertyAssertionTranslator
         @SuppressWarnings("unchecked")
         @Override
         public ONTObject<? extends OWLObjectPropertyExpression> toPredicate(Object p, ModelObjectFactory factory) {
-            return p instanceof String ?
-                    ONTObjectPropertyImpl.find((String) p, factory, model) :
-                    (ONTObject<? extends OWLObjectPropertyExpression>) p;
+            return p instanceof String ? factory.getObjectProperty((String) p) : (ONTObject<? extends OWLObjectPropertyExpression>) p;
         }
 
         @Override
@@ -207,7 +204,7 @@ public class NegativeObjectPropertyAssertionTranslator
         public Set<OWLNamedIndividual> getNamedIndividualSet() {
             Set<OWLNamedIndividual> res = createSortedSet();
             Object[] content = getContent();
-            InternalObjectFactory factory = getObjectFactory();
+            ModelObjectFactory factory = getObjectFactory();
             if (content[0] instanceof String) {
                 res.add(toNamedIndividual((String) content[0], factory).getOWLObject());
             }

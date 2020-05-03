@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -59,12 +59,12 @@ public abstract class ONTAnnotationImpl extends ONTStatementImpl
      *
      * @param statement {@link OntStatement}, must be annotation (i.e. {@link OntStatement#isAnnotationAssertion()}
      *                  must be {@code true}), not {@code null}
-     * @param factory   {@link InternalObjectFactory}, not {@code null}
+     * @param factory   {@link ModelObjectFactory}, not {@code null}
      * @param model     a provider of non-null {@link OntModel}, not {@code null}
      * @return {@link ONTAnnotationImpl}
      */
     public static ONTAnnotationImpl create(OntStatement statement,
-                                           InternalObjectFactory factory,
+                                           ModelObjectFactory factory,
                                            Supplier<OntModel> model) {
         Collection<?> annotations = collectAnnotations(statement, factory);
         if (annotations.isEmpty()) {
@@ -86,13 +86,13 @@ public abstract class ONTAnnotationImpl extends ONTStatementImpl
     /**
      * Collects the has-code of {@code res} according to OWL-API specification.
      *
-     * @param res     {@link ONTAnnotationImpl}, not {@code null}
-     * @param factory {@link InternalObjectFactory}, not {@code null}
+     * @param res             {@link ONTAnnotationImpl}, not {@code null}
+     * @param factory         {@link ModelObjectFactory}, not {@code null}
      * @param contentHashCode int, a {@code hashCode} of sub-annotations
      * @return int
      */
     private static int collectHashCode(ONTAnnotationImpl res,
-                                       InternalObjectFactory factory,
+                                       ModelObjectFactory factory,
                                        int contentHashCode) {
         int hash = OWLObject.hashIteration(res.hashIndex(), res.findONTAnnotationProperty(factory).hashCode());
         hash = OWLObject.hashIteration(hash, res.findONTAnnotationValue(factory).hashCode());
@@ -133,19 +133,16 @@ public abstract class ONTAnnotationImpl extends ONTStatementImpl
      * The specified statement must be an annotation assertion.
      *
      * @param statement {@link ONTStatementImpl} - must be an annotation assertion, not {@code null}
-     * @param factory   {@link InternalObjectFactory}, not {@code null}
+     * @param factory   {@link ModelObjectFactory}, not {@code null}
      * @return {@link ONTObject}
      */
     public static ONTObject<? extends OWLAnnotationSubject> findONTSubject(ONTStatementImpl statement,
-                                                                           InternalObjectFactory factory) {
-        if (!(factory instanceof ModelObjectFactory)) {
-            return factory.getSubject(statement.getModel().getAnnotationProperty((String) statement.subject));
-        }
+                                                                           ModelObjectFactory factory) {
         if (statement.subject instanceof String) {
             return factory.getIRI((String) statement.subject);
         }
         if (statement.subject instanceof BlankNodeId) {
-            return ((ModelObjectFactory) factory).getAnonymousIndividual((BlankNodeId) statement.subject);
+            return factory.getAnonymousIndividual((BlankNodeId) statement.subject);
         }
         throw new OntApiException.IllegalState("Wrong subject: " + statement.subject);
     }
@@ -157,12 +154,12 @@ public abstract class ONTAnnotationImpl extends ONTStatementImpl
      * The specified statement must be an annotation assertion.
      *
      * @param statement {@link ONTStatementImpl} - must be an annotation assertion, not {@code null}
-     * @param factory   {@link InternalObjectFactory}, not {@code null}
+     * @param factory   {@link ModelObjectFactory}, not {@code null}
      * @return {@link ONTObject}
      */
     public static ONTObject<OWLAnnotationProperty> findONTPredicate(ONTStatementImpl statement,
-                                                                    InternalObjectFactory factory) {
-        return ONTAnnotationPropertyImpl.find(statement.predicate, factory, statement.model);
+                                                                    ModelObjectFactory factory) {
+        return factory.getAnnotationProperty(statement.predicate);
     }
 
     /**
@@ -171,23 +168,19 @@ public abstract class ONTAnnotationImpl extends ONTStatementImpl
      * The specified statement must be an annotation assertion.
      *
      * @param statement {@link ONTStatementImpl} - must be an annotation assertion, not {@code null}
-     * @param factory   {@link InternalObjectFactory}, not {@code null}
+     * @param factory   {@link ModelObjectFactory}, not {@code null}
      * @return {@link ONTObject}
      */
     public static ONTObject<? extends OWLAnnotationValue> findONTObject(ONTStatementImpl statement,
-                                                                        InternalObjectFactory factory) {
-        if (!(factory instanceof ModelObjectFactory)) {
-            return factory.getValue(statement.getModel().asRDFNode(statement.getObjectNode()));
-        }
-        ModelObjectFactory f = (ModelObjectFactory) factory;
+                                                                        ModelObjectFactory factory) {
         if (statement.object instanceof BlankNodeId) {
-            return f.getAnonymousIndividual((BlankNodeId) statement.object);
+            return factory.getAnonymousIndividual((BlankNodeId) statement.object);
         }
         if (statement.object instanceof LiteralLabel) {
-            return f.getLiteral((LiteralLabel) statement.object);
+            return factory.getLiteral((LiteralLabel) statement.object);
         }
         if (statement.object instanceof String) {
-            return f.getIRI((String) statement.object);
+            return factory.getIRI((String) statement.object);
         }
         throw new OntApiException.IllegalState("Wrong object: " + statement.object);
     }
@@ -337,11 +330,11 @@ public abstract class ONTAnnotationImpl extends ONTStatementImpl
         return findONTAnnotationValue(getObjectFactory());
     }
 
-    protected ONTObject<OWLAnnotationProperty> findONTAnnotationProperty(InternalObjectFactory factory) {
+    protected ONTObject<OWLAnnotationProperty> findONTAnnotationProperty(ModelObjectFactory factory) {
         return findONTPredicate(this, factory);
     }
 
-    protected ONTObject<? extends OWLAnnotationValue> findONTAnnotationValue(InternalObjectFactory factory) {
+    protected ONTObject<? extends OWLAnnotationValue> findONTAnnotationValue(ModelObjectFactory factory) {
         return findONTObject(this, factory);
     }
 

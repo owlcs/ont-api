@@ -17,9 +17,7 @@ package com.github.owlcs.ontapi.internal.axioms;
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
-import com.github.owlcs.ontapi.internal.objects.ONTDataPropertyImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
-import com.github.owlcs.ontapi.internal.objects.ONTLiteralImpl;
 import com.github.owlcs.ontapi.jena.model.OntDataProperty;
 import com.github.owlcs.ontapi.jena.model.OntIndividual;
 import com.github.owlcs.ontapi.jena.model.OntModel;
@@ -125,7 +123,7 @@ public class DataPropertyAssertionTranslator
 
         @Override
         public ONTObject<? extends OWLLiteral> findONTObject(ModelObjectFactory factory) {
-            return ONTLiteralImpl.find((LiteralLabel) object, factory, model);
+            return factory.getLiteral((LiteralLabel) object);
         }
 
         @Override
@@ -133,8 +131,8 @@ public class DataPropertyAssertionTranslator
             return findONTProperty(factory);
         }
 
-        public ONTObject<OWLDataProperty> findONTProperty(InternalObjectFactory factory) {
-            return ONTDataPropertyImpl.find(predicate, factory, model);
+        public ONTObject<OWLDataProperty> findONTProperty(ModelObjectFactory factory) {
+            return factory.getDataProperty(predicate);
         }
 
         @FactoryAccessor

@@ -16,7 +16,6 @@ package com.github.owlcs.ontapi.internal.axioms;
 
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.ONTAxiomImpl;
-import com.github.owlcs.ontapi.internal.objects.ONTClassImpl;
 import com.github.owlcs.ontapi.jena.model.OntClass;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntProperty;
@@ -110,7 +109,7 @@ public abstract class AbstractPropertyDomainTranslator<Axiom extends OWLAxiom & 
 
         @Override
         public ONTObject<? extends OWLClassExpression> getURIObject(ModelObjectFactory factory) {
-            return ONTClassImpl.find(getObjectURI(), factory, model);
+            return factory.getClass(getObjectURI());
         }
 
         @Override

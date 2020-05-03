@@ -17,7 +17,6 @@ package com.github.owlcs.ontapi.internal.axioms;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.ONTAxiomImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
-import com.github.owlcs.ontapi.internal.objects.ONTObjectPropertyImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntObjectProperty;
@@ -90,7 +89,7 @@ public abstract class AbstractPropertyTypeTranslator<Axiom extends OWLAxiom & Ha
 
         @Override
         public ONTObject<? extends OWLObjectPropertyExpression> findURISubject(ModelObjectFactory factory) {
-            return ONTObjectPropertyImpl.find((String) subject, factory, model);
+            return factory.getObjectProperty((String) subject);
         }
 
         @Override

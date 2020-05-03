@@ -20,7 +20,6 @@ import com.github.owlcs.ontapi.internal.InternalObjectFactory;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
-import com.github.owlcs.ontapi.internal.objects.ONTObjectPropertyImpl;
 import com.github.owlcs.ontapi.jena.model.OntList;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntObjectProperty;
@@ -162,9 +161,8 @@ public class SubPropertyChainOfTranslator
             return findPropertyByURI(uri, factory);
         }
 
-        private ONTObject<OWLObjectProperty> findPropertyByURI(String uri,
-                                                               InternalObjectFactory factory) {
-            return ONTObjectPropertyImpl.find(uri, factory, model);
+        private ONTObject<OWLObjectProperty> findPropertyByURI(String uri, ModelObjectFactory factory) {
+            return factory.getObjectProperty(uri);
         }
 
         @Override

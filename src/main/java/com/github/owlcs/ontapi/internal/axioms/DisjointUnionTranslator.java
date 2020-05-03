@@ -21,7 +21,6 @@ import com.github.owlcs.ontapi.internal.InternalObjectFactory;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
-import com.github.owlcs.ontapi.internal.objects.ONTClassImpl;
 import com.github.owlcs.ontapi.jena.model.OntClass;
 import com.github.owlcs.ontapi.jena.model.OntList;
 import com.github.owlcs.ontapi.jena.model.OntModel;
@@ -158,12 +157,11 @@ public class DisjointUnionTranslator extends AbstractListBasedTranslator<OWLDisj
 
         @Override
         public ONTObject<OWLClass> findSubjectByURI(String uri, ModelObjectFactory factory) {
-            return ONTClassImpl.find(uri, factory, model);
+            return factory.getClass(uri);
         }
 
         @Override
-        public ONTObject<OWLClass> fetchONTSubject(OntStatement statement,
-                                                   ModelObjectFactory factory) {
+        public ONTObject<OWLClass> fetchONTSubject(OntStatement statement, ModelObjectFactory factory) {
             return findSubjectByURI(statement.getSubject().getURI(), factory);
         }
 

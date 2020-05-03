@@ -15,7 +15,10 @@
 package com.github.owlcs.ontapi.internal.axioms;
 
 import com.github.owlcs.ontapi.internal.*;
-import com.github.owlcs.ontapi.internal.objects.*;
+import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
+import com.github.owlcs.ontapi.internal.objects.ONTAxiomImpl;
+import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
+import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
 import com.github.owlcs.ontapi.jena.model.OntClass;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
@@ -137,7 +140,7 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
 
         @Override
         public ONTObject<? extends OWLClassExpression> findByURI(String uri, ModelObjectFactory factory) {
-            return ONTClassImpl.find(uri, factory, model);
+            return factory.getClass(uri);
         }
 
         @Override

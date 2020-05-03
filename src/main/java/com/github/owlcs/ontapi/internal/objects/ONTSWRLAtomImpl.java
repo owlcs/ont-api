@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -390,7 +390,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
         }
 
         @Override
-        ONTObject<? extends OWLClassExpression> toPredicate(Object item, InternalObjectFactory factory) {
+        ONTObject<? extends OWLClassExpression> toPredicate(Object item, ModelObjectFactory factory) {
             return toCE(item, factory);
         }
 
@@ -438,7 +438,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
         }
 
         @Override
-        ONTObject<? extends OWLDataRange> toPredicate(Object item, InternalObjectFactory factory) {
+        ONTObject<? extends OWLDataRange> toPredicate(Object item, ModelObjectFactory factory) {
             return toDR(item, factory);
         }
 
@@ -616,7 +616,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
         }
 
         @Override
-        ONTObject<? extends OWLDataProperty> toPredicate(Object item, InternalObjectFactory factory) {
+        ONTObject<? extends OWLDataProperty> toPredicate(Object item, ModelObjectFactory factory) {
             return toNDP(item, factory);
         }
 
@@ -745,7 +745,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
 
         @SuppressWarnings("unchecked")
         @Override
-        ONTObject<? extends OWL_P> toPredicate(Object item, InternalObjectFactory factory) {
+        ONTObject<? extends OWL_P> toPredicate(Object item, ModelObjectFactory factory) {
             return (ONTObject<? extends OWL_P>) toOPE(item, factory);
         }
 
@@ -901,13 +901,13 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
             return toSecondArgument(getContent()[2], factory);
         }
 
-        protected ONTObject<? extends OWL_P> findONTPredicate(InternalObjectFactory factory) {
+        protected ONTObject<? extends OWL_P> findONTPredicate(ModelObjectFactory factory) {
             return toPredicate(getContent()[0], factory);
         }
 
         @Override
         public Stream<ONTObject<? extends OWLObject>> objects() {
-            InternalObjectFactory factory = getObjectFactory();
+            ModelObjectFactory factory = getObjectFactory();
             return Stream.of(findONTPredicate(factory), findONTFirstArgument(factory), findONTSecondArgument(factory));
         }
 
@@ -962,7 +962,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
 
         abstract ONTObject<? extends OWL_S> mapSecondArgument(ONT_S a, InternalObjectFactory factory);
 
-        abstract ONTObject<? extends OWL_P> toPredicate(Object item, InternalObjectFactory factory);
+        abstract ONTObject<? extends OWL_P> toPredicate(Object item, ModelObjectFactory factory);
 
         abstract ONTObject<? extends OWL_F> toFirstArgument(Object item, InternalObjectFactory factory);
 
@@ -1016,13 +1016,13 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
             return toArgument(getContent()[1], factory);
         }
 
-        protected ONTObject<? extends OWL_P> findONTPredicate(InternalObjectFactory factory) {
+        protected ONTObject<? extends OWL_P> findONTPredicate(ModelObjectFactory factory) {
             return toPredicate(getContent()[0], factory);
         }
 
         @Override
         public Stream<ONTObject<? extends OWLObject>> objects() {
-            InternalObjectFactory factory = getObjectFactory();
+            ModelObjectFactory factory = getObjectFactory();
             return Stream.of(findONTPredicate(factory), findONTArgument(factory));
         }
 
@@ -1064,7 +1064,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
 
         abstract ONTObject<? extends OWL_A> mapArgument(ONT_A a, InternalObjectFactory factory);
 
-        abstract ONTObject<? extends OWL_P> toPredicate(Object item, InternalObjectFactory factory);
+        abstract ONTObject<? extends OWL_P> toPredicate(Object item, ModelObjectFactory factory);
 
         abstract ONTObject<? extends OWL_A> toArgument(Object item, InternalObjectFactory factory);
 

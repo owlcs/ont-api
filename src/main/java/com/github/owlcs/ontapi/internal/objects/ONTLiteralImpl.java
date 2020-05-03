@@ -14,7 +14,10 @@
 
 package com.github.owlcs.ontapi.internal.objects;
 
-import com.github.owlcs.ontapi.internal.*;
+import com.github.owlcs.ontapi.internal.AsRDFNode;
+import com.github.owlcs.ontapi.internal.HasObjectFactory;
+import com.github.owlcs.ontapi.internal.ModelObjectFactory;
+import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.jena.impl.PersonalityModel;
 import com.github.owlcs.ontapi.jena.model.OntDataRange;
 import com.github.owlcs.ontapi.jena.model.OntModel;
@@ -24,7 +27,6 @@ import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.graph.impl.LiteralLabel;
 import org.apache.jena.rdf.model.Literal;
-import org.apache.jena.rdf.model.RDFNode;
 import org.semanticweb.owlapi.model.OWLDatatype;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLObject;
@@ -54,25 +56,6 @@ public class ONTLiteralImpl extends OWLLiteralImpl
     public ONTLiteralImpl(LiteralLabel n, Supplier<OntModel> m) {
         super(n);
         this.model = Objects.requireNonNull(m);
-    }
-
-    /**
-     * Using the {@code factory} finds or creates an {@link OWLLiteral} instance.
-     *
-     * @param label   {@link LiteralLabel}, not {@code null}
-     * @param factory {@link InternalObjectFactory}, not {@code null}
-     * @param model   a {@code Supplier} with a {@link OntModel},
-     *                which is only used in case the {@code factory} has no reference to a model
-     * @return an {@link ONTObject} which is {@link OWLLiteral}
-     */
-    public static ONTObject<OWLLiteral> find(LiteralLabel label,
-                                             InternalObjectFactory factory,
-                                             Supplier<OntModel> model) {
-        if (factory instanceof ModelObjectFactory) {
-            return ((ModelObjectFactory) factory).getLiteral(label);
-        }
-        RDFNode res = model.get().asRDFNode(NodeFactory.createLiteral(label));
-        return factory.getLiteral(res.asLiteral());
     }
 
     @Override

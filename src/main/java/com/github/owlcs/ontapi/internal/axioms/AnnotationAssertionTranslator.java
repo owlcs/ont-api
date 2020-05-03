@@ -17,7 +17,6 @@ package com.github.owlcs.ontapi.internal.axioms;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTAnnotationImpl;
-import com.github.owlcs.ontapi.internal.objects.ONTLiteralImpl;
 import com.github.owlcs.ontapi.jena.model.*;
 import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.graph.Triple;
@@ -241,15 +240,15 @@ public class AnnotationAssertionTranslator
             }
 
             protected OWLLiteral findLiteral(ModelObjectFactory factory) {
-                return ONTLiteralImpl.find((LiteralLabel) object, factory, model).getOWLObject();
+                return factory.getLiteral((LiteralLabel) object).getOWLObject();
             }
 
             private OWLAnonymousIndividual findAnonymousSubject(ModelObjectFactory factory) {
-                return findAnonymousIndividual((BlankNodeId) subject, factory).getOWLObject();
+                return factory.getAnonymousIndividual((BlankNodeId) subject).getOWLObject();
             }
 
             private OWLAnonymousIndividual findAnonymousObject(ModelObjectFactory factory) {
-                return findAnonymousIndividual((BlankNodeId) object, factory).getOWLObject();
+                return factory.getAnonymousIndividual((BlankNodeId) object).getOWLObject();
             }
         }
 

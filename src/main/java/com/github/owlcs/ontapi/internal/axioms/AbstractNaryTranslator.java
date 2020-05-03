@@ -267,7 +267,7 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
 
         @Override
         public ONTObject<? extends OWLClassExpression> findByURI(String uri, ModelObjectFactory factory) {
-            return ONTClassImpl.find(uri, factory, model);
+            return factory.getClass(uri);
         }
 
         @Override
@@ -308,7 +308,7 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
 
         @Override
         public ONTObject<? extends OWLIndividual> findByURI(String uri, ModelObjectFactory factory) {
-            return ONTNamedIndividualImpl.find(uri, factory, model);
+            return factory.getNamedIndividual(uri);
         }
 
         @Override
@@ -345,8 +345,9 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
         public ONTObject fromContentItem(Object x, ModelObjectFactory factory) {
             if (x instanceof String)
                 return findByURI((String) x, factory);
-            if (x instanceof BlankNodeId)
-                return ONTAnonymousIndividualImpl.find((BlankNodeId) x, factory, model);
+            if (x instanceof BlankNodeId) {
+                return factory.getAnonymousIndividual((BlankNodeId) x);
+            }
             return (ONTObject) x;
         }
 
@@ -379,7 +380,7 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
 
         @Override
         public ONTObject<? extends OWLObjectPropertyExpression> findByURI(String uri, ModelObjectFactory factory) {
-            return ONTObjectPropertyImpl.find(uri, factory, model);
+            return factory.getObjectProperty(uri);
         }
 
         @Override
@@ -410,7 +411,7 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
 
         @Override
         public ONTObject<? extends OWLDataPropertyExpression> findByURI(String uri, ModelObjectFactory factory) {
-            return ONTDataPropertyImpl.find(uri, factory, model);
+            return factory.getDataProperty(uri);
         }
 
         @Override

@@ -15,11 +15,9 @@
 package com.github.owlcs.ontapi.internal.axioms;
 
 import com.github.owlcs.ontapi.internal.AxiomTranslator;
-import com.github.owlcs.ontapi.internal.InternalObjectFactory;
+import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
-import com.github.owlcs.ontapi.internal.objects.ONTAnonymousIndividualImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTAxiomImpl;
-import com.github.owlcs.ontapi.internal.objects.ONTNamedIndividualImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import org.apache.jena.graph.BlankNodeId;
@@ -106,21 +104,8 @@ public abstract class AbstractPropertyAssertionTranslator<P extends OWLPropertyE
             return false;
         }
 
-        protected final ONTObject<? extends OWLIndividual> findByURIOrBlankId(Object id,
-                                                                              InternalObjectFactory factory) {
-            return id instanceof String ? findNamedIndividual((String) id, factory) :
-                    findAnonymousIndividual((BlankNodeId) id, factory);
-        }
-
-        protected final ONTObject<OWLNamedIndividual> findNamedIndividual(String uri,
-                                                                          InternalObjectFactory factory) {
-            return ONTNamedIndividualImpl.find(uri, factory, model);
-        }
-
-        protected final ONTObject<OWLAnonymousIndividual> findAnonymousIndividual(BlankNodeId id,
-                                                                                  InternalObjectFactory factory) {
-            return ONTAnonymousIndividualImpl.find(id, factory, model);
+        protected final ONTObject<? extends OWLIndividual> findByURIOrBlankId(Object id, ModelObjectFactory factory) {
+            return id instanceof String ? factory.getNamedIndividual((String) id) : factory.getAnonymousIndividual((BlankNodeId) id);
         }
     }
-
 }

@@ -16,7 +16,6 @@ package com.github.owlcs.ontapi.internal.axioms;
 
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
-import com.github.owlcs.ontapi.internal.objects.ONTDataPropertyImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
 import com.github.owlcs.ontapi.jena.model.OntDataProperty;
 import com.github.owlcs.ontapi.jena.model.OntModel;
@@ -111,7 +110,7 @@ public class SubDataPropertyOfTranslator extends AbstractSubPropertyTranslator<O
 
         @Override
         public ONTObject<? extends OWLDataPropertyExpression> findByURI(String uri, ModelObjectFactory factory) {
-            return ONTDataPropertyImpl.find(uri, factory, model);
+            return factory.getDataProperty(uri);
         }
 
         @FactoryAccessor

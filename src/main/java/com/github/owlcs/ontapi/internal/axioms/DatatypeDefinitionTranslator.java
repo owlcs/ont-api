@@ -15,7 +15,10 @@
 package com.github.owlcs.ontapi.internal.axioms;
 
 import com.github.owlcs.ontapi.internal.*;
-import com.github.owlcs.ontapi.internal.objects.*;
+import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
+import com.github.owlcs.ontapi.internal.objects.ONTAxiomImpl;
+import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
+import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
 import com.github.owlcs.ontapi.jena.model.OntDataRange;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
@@ -123,7 +126,7 @@ public class DatatypeDefinitionTranslator extends AxiomTranslator<OWLDatatypeDef
 
         @Override
         public ONTObject<? extends OWLDatatype> getURISubject(ModelObjectFactory factory) {
-            return ONTDatatypeImpl.find(getSubjectURI(), factory, model);
+            return factory.getDatatype(getSubjectURI());
         }
 
         @Override
@@ -134,7 +137,7 @@ public class DatatypeDefinitionTranslator extends AxiomTranslator<OWLDatatypeDef
 
         @Override
         public ONTObject<? extends OWLDataRange> getURIObject(ModelObjectFactory factory) {
-            return ONTDatatypeImpl.find(getObjectURI(), factory, model);
+            return factory.getDatatype(getObjectURI());
         }
 
         @Override
