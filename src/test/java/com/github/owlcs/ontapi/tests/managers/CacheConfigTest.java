@@ -143,7 +143,7 @@ public class CacheConfigTest {
         Assert.assertNotNull(o);
         Assert.assertEquals(axioms, o.axioms().count());
         ONTObjectFactory of1 = ((BaseModel) o).getBase().getObjectFactory();
-        Assert.assertTrue(of1 instanceof InternalObjectFactoryImpl);
+        Assert.assertTrue(of1 instanceof InternalObjectFactory);
         Assert.assertFalse(of1 instanceof CacheObjectFactory);
 
         int size1 = 52;

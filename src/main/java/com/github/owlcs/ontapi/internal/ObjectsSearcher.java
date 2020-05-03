@@ -16,28 +16,56 @@ package com.github.owlcs.ontapi.internal;
 
 import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.jena.model.OntModel;
+import com.github.owlcs.ontapi.jena.utils.Iter;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLObject;
 
+import java.util.Optional;
+
 /**
- * An objects searcher.
- * TODO: add contains (see issue #15)
+ * An {@link OWLObject OWL Object}s searcher.
  * Created by @ssz on 19.04.2020.
  *
- * @param <O> - {@link OWLObject} subtype
- * @see AxiomTranslator
+ * @param <K> - {@link OWLObject}
+ * @see ONTObject
+ * @see ByObjectSearcher
  */
-public interface ObjectSearcher<O extends OWLObject> {
+public interface ObjectsSearcher<K extends OWLObject> {
 
     /**
-     * Lists all objects from the specified {@code model}
+     * Lists all objects from the specified {@code model}.
      *
      * @param model   {@link OntModel}, not {@code null}
      * @param factory {@link ONTObjectFactory}, not {@code null}
      * @param config  {@link AxiomsSettings}, not {@code null}
-     * @return an {@link ExtendedIterator} over {@link O} wrapped with {@link ONTObject}
+     * @return an {@link ExtendedIterator} over {@link K} wrapped with {@link ONTObject}
      */
-    ExtendedIterator<ONTObject<O>> listObjects(OntModel model,
-                                               ONTObjectFactory factory,
-                                               AxiomsSettings config);
+    ExtendedIterator<ONTObject<K>> listONTObjects(OntModel model, ONTObjectFactory factory, AxiomsSettings config);
+
+    /**
+     * Answers {@code true} if the specified {@code model} contains the given {@code object}.
+     *
+     * @param object  {@link K} - an object to search, not {@code null}
+     * @param model   {@link OntModel} - a model to search for, not {@code null}
+     * @param factory {@link ONTObjectFactory - to produce ONT-API Objects, not {@code null}}
+     * @param config  {@link AxiomsSettings} - to configure the process, not {@code null}
+     * @return boolean
+     */
+    default boolean containsONTObject(K object, OntModel model, ONTObjectFactory factory, AxiomsSettings config) {
+        return findONTObject(object, model, factory, config).isPresent();
+    }
+
+    /**
+     * Finds a model-{@code object} from the specified {@code model}.
+     *
+     * @param object  {@link K} - an object to search, not {@code null}
+     * @param model   {@link OntModel} - a model to search for, not {@code null}
+     * @param factory {@link ONTObjectFactory - to produce ONT-API Objects, not {@code null}}
+     * @param config  {@link AxiomsSettings} - to configure the process, not {@code null}
+     * @return an {@code Optional} that wraps an {@code ONTObject}-container with a desired {@link K}-instance
+     */
+    default Optional<ONTObject<K>> findONTObject(K object, OntModel model, ONTObjectFactory factory, AxiomsSettings config) {
+        return Iter.findFirst(listONTObjects(model, factory, config).filterKeep(x -> x.getOWLObject().equals(object)));
+    }
+
 }

@@ -25,21 +25,23 @@ import org.semanticweb.owlapi.model.OWLObject;
  * Created by @ssz on 18.04.2020.
  *
  * @param <A> - subtype of {@link OWLAxiom}
- * @param <O> - subtype of {@link OWLObject}
+ * @param <K> - subtype of {@link OWLObject}
+ * @see ONTObject
+ * @see ObjectsSearcher
  */
-public interface ByObject<A extends OWLAxiom, O extends OWLObject> {
+public interface ByObjectSearcher<A extends OWLAxiom, K extends OWLObject> {
 
     /**
-     * Lists all axioms that contain the given {@link O OWLObject}.
+     * Lists all axioms that contain the given {@link K OWLObject}.
      *
-     * @param object  - {@link O}, not {@code null}
+     * @param object  - {@link K}, not {@code null}
      * @param model   - {@link OntModel}, cannot be {@code null}
      * @param factory - {@link ONTObjectFactory}, cannot be {@code null}
      * @param config  - {@link AxiomsSettings configuration}, cannot {@code null}
      * @return an {@link ExtendedIterator} of {@link A OWLAxiom}s wrapped with {@link ONTObject}
      */
-    ExtendedIterator<ONTObject<A>> listAxioms(O object,
-                                              OntModel model,
-                                              ONTObjectFactory factory,
-                                              AxiomsSettings config);
+    ExtendedIterator<ONTObject<A>> listONTAxioms(K object,
+                                                 OntModel model,
+                                                 ONTObjectFactory factory,
+                                                 AxiomsSettings config);
 }

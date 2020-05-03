@@ -37,7 +37,7 @@ import java.util.Set;
 /**
  * Created by @ssz on 19.04.2020.
  */
-public class ClassSearcher extends WithRootSearcher implements ObjectSearcher<OWLClass> {
+public class ClassSearcher extends WithRootSearcher implements ObjectsSearcher<OWLClass> {
 
     private static final Set<AxiomTranslator<OWLAxiom>> TRANSLATORS = selectTranslators(OWLComponentType.CLASS);
 
@@ -46,9 +46,9 @@ public class ClassSearcher extends WithRootSearcher implements ObjectSearcher<OW
     }
 
     @Override
-    public ExtendedIterator<ONTObject<OWLClass>> listObjects(OntModel model,
-                                                             ONTObjectFactory factory,
-                                                             AxiomsSettings config) {
+    public ExtendedIterator<ONTObject<OWLClass>> listONTObjects(OntModel model,
+                                                                ONTObjectFactory factory,
+                                                                AxiomsSettings config) {
         return listClasses(model, config).mapWith(u -> findClass(u, model, factory));
     }
 

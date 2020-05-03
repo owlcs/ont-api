@@ -46,7 +46,7 @@ import java.util.stream.Stream;
  * @param <Axiom> generic type of {@link OWLAxiom}
  */
 @SuppressWarnings("WeakerAccess")
-public abstract class AxiomTranslator<Axiom extends OWLAxiom> extends BaseSearcher {
+public abstract class AxiomTranslator<Axiom extends OWLAxiom> extends BaseSearcher implements ObjectsSearcher<Axiom> {
 
     /**
      * If possible, gets the {@code model}'s {@link InternalConfig Config},
@@ -104,10 +104,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> extends BaseSearch
      * @since 2.0.0
      */
     public final ExtendedIterator<ONTObject<Axiom>> listAxioms(OntModel model) throws JenaException {
-        Objects.requireNonNull(model, "Null model.");
-        ONTObjectFactory factory = getObjectFactory(model);
-        InternalConfig config = getConfig(model);
-        return translate(this, listStatements(model, config), factory, config);
+        return listONTObjects(Objects.requireNonNull(model, "Null model."), getObjectFactory(model), getConfig(model));
     }
 
     /**
@@ -152,44 +149,47 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> extends BaseSearch
      * @return {@link ExtendedIterator} of {@link ONTObject}s that wrap {@link Axiom}s
      * @throws JenaException unable to read axioms of this type
      */
-    protected ExtendedIterator<ONTObject<Axiom>> listAxioms(OntModel model,
-                                                            ONTObjectFactory factory,
-                                                            AxiomsSettings config) throws JenaException {
+    @Override
+    public ExtendedIterator<ONTObject<Axiom>> listONTObjects(OntModel model,
+                                                             ONTObjectFactory factory,
+                                                             AxiomsSettings config) throws JenaException {
         return translate(this, listStatements(model, config), factory, config);
     }
 
     /**
      * Answers {@code true} iff the given axiom ({@code key}) is present in the base graph.
      *
+     * @param key     {@link Axiom}, not {@code null}
      * @param model   a facility (as a {@link Supplier}) to get nonnull {@link OntModel}, not {@code null}
      * @param factory {@link ONTObjectFactory} to produce ONT-API Objects, not {@code null}
      * @param config  {@link AxiomsSettings} to configure the process, not {@code null}
-     * @param key     {@link Axiom}, not {@code null}
      * @return boolean
      * @since 2.0.0
      */
-    protected boolean containsAxiom(OntModel model, ONTObjectFactory factory, AxiomsSettings config, Axiom key) {
+    @Override
+    public boolean containsONTObject(Axiom key, OntModel model, ONTObjectFactory factory, AxiomsSettings config) {
         Objects.requireNonNull(key);
-        return Iter.anyMatch(listAxioms(model, factory, config), x -> x.getOWLObject().equals(key));
+        return Iter.anyMatch(listONTObjects(model, factory, config), x -> x.getOWLObject().equals(key));
     }
 
     /**
      * Finds the {@link ONTObject} axiom representation by the formal {@link Axiom} declaration.
      *
+     * @param key     {@link Axiom}, not {@code null}
      * @param model   a facility (as a {@link Supplier}) to get nonnull {@link OntModel}, not {@code null}
      * @param factory {@link ONTObjectFactory} to produce ONT-API Objects, not {@code null}
      * @param config  {@link AxiomsSettings} to configure the process, not {@code null}
-     * @param key     {@link Axiom}, not {@code null}
      * @return an {@code Optional} that wraps an {@code ONTObject}-container with a desired {@link Axiom}-instance
      * @since 2.0.0
      */
     @SuppressWarnings("unchecked")
-    protected Optional<ONTObject<Axiom>> findAxiom(OntModel model,
-                                                   ONTObjectFactory factory,
-                                                   AxiomsSettings config,
-                                                   Axiom key) {
+    @Override
+    public Optional<ONTObject<Axiom>> findONTObject(Axiom key,
+                                                    OntModel model,
+                                                    ONTObjectFactory factory,
+                                                    AxiomsSettings config) {
         Objects.requireNonNull(key);
-        List<ONTObject<Axiom>> list = listAxioms(model, factory, config)
+        List<ONTObject<Axiom>> list = listONTObjects(model, factory, config)
                 .filterKeep(x -> x.getOWLObject().equals(key)).toList();
         if (list.isEmpty()) {
             return Optional.empty();

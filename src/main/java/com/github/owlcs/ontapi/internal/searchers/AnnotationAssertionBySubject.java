@@ -33,10 +33,10 @@ public class AnnotationAssertionBySubject extends BaseByObject<OWLAnnotationAsse
     private static final AnnotationAssertionTranslator TRANSLATOR = toTranslator(OWLTopObjectType.ANNOTATION_ASSERTION);
 
     @Override
-    public ExtendedIterator<ONTObject<OWLAnnotationAssertionAxiom>> listAxioms(OWLAnnotationSubject subject,
-                                                                               OntModel model,
-                                                                               ONTObjectFactory factory,
-                                                                               AxiomsSettings config) {
+    public ExtendedIterator<ONTObject<OWLAnnotationAssertionAxiom>> listONTAxioms(OWLAnnotationSubject subject,
+                                                                                  OntModel model,
+                                                                                  ONTObjectFactory factory,
+                                                                                  AxiomsSettings config) {
         ExtendedIterator<OntStatement> res = listBySubject(model, WriteHelper.toResource(subject))
                 .filterKeep(x -> TRANSLATOR.testStatement(x, config));
         return translate(TRANSLATOR, res, factory, config);

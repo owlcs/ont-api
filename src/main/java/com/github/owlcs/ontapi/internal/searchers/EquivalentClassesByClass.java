@@ -35,10 +35,10 @@ public class EquivalentClassesByClass extends BaseByObject<OWLEquivalentClassesA
     public static final EquivalentClassesTranslator TRANSLATOR = toTranslator(OWLTopObjectType.EQUIVALENT_CLASSES);
 
     @Override
-    public ExtendedIterator<ONTObject<OWLEquivalentClassesAxiom>> listAxioms(OWLClass clazz,
-                                                                             OntModel model,
-                                                                             ONTObjectFactory factory,
-                                                                             AxiomsSettings config) {
+    public ExtendedIterator<ONTObject<OWLEquivalentClassesAxiom>> listONTAxioms(OWLClass clazz,
+                                                                                OntModel model,
+                                                                                ONTObjectFactory factory,
+                                                                                AxiomsSettings config) {
         Resource c = WriteHelper.toResource(clazz.getIRI());
         ExtendedIterator<OntStatement> res = listBySubjectAndPredicate(model, c, OWL.equivalentClass)
                 .andThen(listByPredicateAndObject(model, OWL.equivalentClass, c))

@@ -124,10 +124,10 @@ public abstract class ByPrimitive<P extends OWLPrimitive> extends BaseByObject<O
      * @return an {@link ExtendedIterator} of {@link OWLAxiom}s wrapped with {@link ONTObject}
      */
     @Override
-    public ExtendedIterator<ONTObject<OWLAxiom>> listAxioms(P primitive,
-                                                            OntModel model,
-                                                            ONTObjectFactory factory,
-                                                            AxiomsSettings config) {
+    public ExtendedIterator<ONTObject<OWLAxiom>> listONTAxioms(P primitive,
+                                                               OntModel model,
+                                                               ONTObjectFactory factory,
+                                                               AxiomsSettings config) {
         ExtendedIterator<OntStatement> res = listStatements(model, primitive);
         if (config.isSplitAxiomAnnotations()) {
             return Iter.flatMap(res,

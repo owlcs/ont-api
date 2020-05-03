@@ -145,25 +145,25 @@ public class InternalModel extends OntGraphModelImpl
     protected final DirectListener directListener;
 
     // Helpers to provide searching axioms by some objects (referencing by primitives).
-    protected final ByObject<OWLAxiom, OWLClass> byClass = new ByClass();
-    protected final ByObject<OWLAxiom, OWLDatatype> byDatatype = new ByDatatype();
-    protected final ByObject<OWLAxiom, OWLNamedIndividual> byNamedIndividual = new ByNamedIndividual();
-    protected final ByObject<OWLAxiom, OWLObjectProperty> byObjectProperty = new ByObjectProperty();
-    protected final ByObject<OWLAxiom, OWLDataProperty> byDataProperty = new ByDataProperty();
-    protected final ByObject<OWLAxiom, OWLAnnotationProperty> byAnnotationProperty = new ByAnnotationProperty();
-    protected final ByObject<OWLAxiom, OWLLiteral> byLiteral = new ByLiteral();
-    protected final ByObject<OWLAxiom, OWLAnonymousIndividual> byAnonymousIndividual = new ByAnonymousIndividual();
-    protected final ByObject<OWLAxiom, IRI> byIRI = new ByIRI();
+    protected final ByObjectSearcher<OWLAxiom, OWLClass> byClass = new ByClass();
+    protected final ByObjectSearcher<OWLAxiom, OWLDatatype> byDatatype = new ByDatatype();
+    protected final ByObjectSearcher<OWLAxiom, OWLNamedIndividual> byNamedIndividual = new ByNamedIndividual();
+    protected final ByObjectSearcher<OWLAxiom, OWLObjectProperty> byObjectProperty = new ByObjectProperty();
+    protected final ByObjectSearcher<OWLAxiom, OWLDataProperty> byDataProperty = new ByDataProperty();
+    protected final ByObjectSearcher<OWLAxiom, OWLAnnotationProperty> byAnnotationProperty = new ByAnnotationProperty();
+    protected final ByObjectSearcher<OWLAxiom, OWLLiteral> byLiteral = new ByLiteral();
+    protected final ByObjectSearcher<OWLAxiom, OWLAnonymousIndividual> byAnonymousIndividual = new ByAnonymousIndividual();
+    protected final ByObjectSearcher<OWLAxiom, IRI> byIRI = new ByIRI();
     // Other searchers
-    protected final ByObject<OWLDeclarationAxiom, OWLEntity> declarationsByEntity = new DeclarationByEntity();
-    protected final ByObject<OWLSubClassOfAxiom, OWLClass> subClassOfBySubject = new SubClassOfBySubject();
-    protected final ByObject<OWLAnnotationAssertionAxiom, OWLAnnotationSubject> annotationAssertionsBySubject
+    protected final ByObjectSearcher<OWLDeclarationAxiom, OWLEntity> declarationsByEntity = new DeclarationByEntity();
+    protected final ByObjectSearcher<OWLSubClassOfAxiom, OWLClass> subClassOfBySubject = new SubClassOfBySubject();
+    protected final ByObjectSearcher<OWLAnnotationAssertionAxiom, OWLAnnotationSubject> annotationAssertionsBySubject
             = new AnnotationAssertionBySubject();
-    protected final ByObject<OWLEquivalentClassesAxiom, OWLClass> equivalentClassesByOperand
+    protected final ByObjectSearcher<OWLEquivalentClassesAxiom, OWLClass> equivalentClassesByOperand
             = new EquivalentClassesByClass();
 
     // To search OWLObjects
-    protected final ObjectSearcher<OWLClass> classSearcher = new ClassSearcher();
+    protected final ObjectsSearcher<OWLClass> classSearcher = new ClassSearcher();
 
     /**
      * Constructs a model instance.
@@ -282,7 +282,7 @@ public class InternalModel extends OntGraphModelImpl
         InternalConfig conf = getConfig();
         Supplier<OntModel> model = this::getSearchModel;
         if (!conf.useLoadObjectsCache()) {
-            return new InternalObjectFactoryImpl(df, model);
+            return new InternalObjectFactory(df, model);
         }
         long size = conf.getLoadObjectsCacheSize();
         boolean parallel = conf.parallel();
@@ -643,7 +643,7 @@ public class InternalModel extends OntGraphModelImpl
             return listOWLAxioms(OWLDeclarationAxiom.class).filter(a -> e.equals(a.getEntity()));
         }
         // in the case of a large ontology, the direct traverse over the graph works significantly faster:
-        return Iter.asStream(declarationsByEntity.listAxioms(e, getSearchModel(), getObjectFactory(), config)
+        return Iter.asStream(declarationsByEntity.listONTAxioms(e, getSearchModel(), getObjectFactory(), config)
                 .mapWith(ONTObject::getOWLObject));
     }
 
@@ -661,7 +661,7 @@ public class InternalModel extends OntGraphModelImpl
         if (!useAxiomsSearchOptimization(config)) {
             return listOWLAxioms(OWLAnnotationAssertionAxiom.class).filter(a -> s.equals(a.getSubject()));
         }
-        return reduce(Iter.asStream(annotationAssertionsBySubject.listAxioms(s, getSearchModel(), getObjectFactory(), config)
+        return reduce(Iter.asStream(annotationAssertionsBySubject.listONTAxioms(s, getSearchModel(), getObjectFactory(), config)
                 .mapWith(ONTObject::getOWLObject)));
     }
 
@@ -677,7 +677,7 @@ public class InternalModel extends OntGraphModelImpl
         if (!useAxiomsSearchOptimization(config)) {
             return listOWLAxioms(OWLSubClassOfAxiom.class).filter(a -> Objects.equals(a.getSubClass(), sub));
         }
-        return reduce(Iter.asStream(subClassOfBySubject.listAxioms(sub, getSearchModel(), getObjectFactory(), config)
+        return reduce(Iter.asStream(subClassOfBySubject.listONTAxioms(sub, getSearchModel(), getObjectFactory(), config)
                 .mapWith(ONTObject::getOWLObject)));
     }
 
@@ -694,7 +694,7 @@ public class InternalModel extends OntGraphModelImpl
         if (!useAxiomsSearchOptimization(config)) {
             return listOWLAxioms(OWLEquivalentClassesAxiom.class).filter(a -> a.operands().anyMatch(c::equals));
         }
-        return reduce(Iter.asStream(equivalentClassesByOperand.listAxioms(c, getSearchModel(), getObjectFactory(), config)
+        return reduce(Iter.asStream(equivalentClassesByOperand.listONTAxioms(c, getSearchModel(), getObjectFactory(), config)
                 .mapWith(ONTObject::getOWLObject)));
     }
 
@@ -712,23 +712,23 @@ public class InternalModel extends OntGraphModelImpl
             OntModel model = getSearchModel();
             ModelObjectFactory factory = getObjectFactory();
             if (filter == OWLComponentType.IRI) {
-                res = byIRI.listAxioms((IRI) primitive, model, factory, config);
+                res = byIRI.listONTAxioms((IRI) primitive, model, factory, config);
             } else if (filter == OWLComponentType.CLASS) {
-                res = byClass.listAxioms((OWLClass) primitive, model, factory, config);
+                res = byClass.listONTAxioms((OWLClass) primitive, model, factory, config);
             } else if (filter == OWLComponentType.NAMED_OBJECT_PROPERTY) {
-                res = byObjectProperty.listAxioms((OWLObjectProperty) primitive, model, factory, config);
+                res = byObjectProperty.listONTAxioms((OWLObjectProperty) primitive, model, factory, config);
             } else if (filter == OWLComponentType.ANNOTATION_PROPERTY) {
-                res = byAnnotationProperty.listAxioms((OWLAnnotationProperty) primitive, model, factory, config);
+                res = byAnnotationProperty.listONTAxioms((OWLAnnotationProperty) primitive, model, factory, config);
             } else if (filter == OWLComponentType.DATATYPE_PROPERTY) {
-                res = byDataProperty.listAxioms((OWLDataProperty) primitive, model, factory, config);
+                res = byDataProperty.listONTAxioms((OWLDataProperty) primitive, model, factory, config);
             } else if (filter == OWLComponentType.NAMED_INDIVIDUAL) {
-                res = byNamedIndividual.listAxioms((OWLNamedIndividual) primitive, model, factory, config);
+                res = byNamedIndividual.listONTAxioms((OWLNamedIndividual) primitive, model, factory, config);
             } else if (filter == OWLComponentType.DATATYPE) {
-                res = byDatatype.listAxioms((OWLDatatype) primitive, model, factory, config);
+                res = byDatatype.listONTAxioms((OWLDatatype) primitive, model, factory, config);
             } else if (filter == OWLComponentType.LITERAL) {
-                res = byLiteral.listAxioms((OWLLiteral) primitive, model, factory, config);
+                res = byLiteral.listONTAxioms((OWLLiteral) primitive, model, factory, config);
             } else if (filter == OWLComponentType.ANONYMOUS_INDIVIDUAL) {
-                res = byAnonymousIndividual.listAxioms((OWLAnonymousIndividual) primitive, model, factory, config);
+                res = byAnonymousIndividual.listONTAxioms((OWLAnonymousIndividual) primitive, model, factory, config);
             } else {
                 throw new OntApiException.IllegalArgument("Wrong type: " + filter);
             }
@@ -796,7 +796,7 @@ public class InternalModel extends OntGraphModelImpl
     }
 
     /**
-     * Answers {@code true} if need to use {@link ByObject}-search optimization.
+     * Answers {@code true} if need to use {@link ByObjectSearcher}-search optimization.
      *
      * @param config {@link InternalConfig}
      * @return boolean
@@ -1227,7 +1227,7 @@ public class InternalModel extends OntGraphModelImpl
             @Override
             @Nonnull
             public ModelObjectFactory getObjectFactory() {
-                return new InternalObjectFactoryImpl(InternalModel.this.getDataFactory(), () -> this);
+                return new InternalObjectFactory(InternalModel.this.getDataFactory(), () -> this);
             }
         }
         return new ObjectModel(u);
@@ -1379,18 +1379,24 @@ public class InternalModel extends OntGraphModelImpl
     /**
      * Creates a {@link ObjectMap} container for the given {@link OWLComponentType}.
      *
-     * @param key {@link OWLComponentType}, not {@code null}
+     * @param type {@link OWLComponentType}, not {@code null}
      * @return {@link ObjectMap}
      * @see #createContentObjectMap(OWLTopObjectType)
      * @see OWLComponentType
      */
-    protected ObjectMap<OWLObject> createComponentObjectMap(OWLComponentType key) {
+    protected ObjectMap<OWLObject> createComponentObjectMap(OWLComponentType type) {
         InternalConfig conf = getConfig();
-        Supplier<Iterator<ONTObject<OWLObject>>> loader = () -> listOWLObjects(key, conf);
+        Supplier<Iterator<ONTObject<OWLObject>>> loader = () -> listOWLObjects(type, conf);
         if (!conf.useComponentCache()) {
-            // todo: need a straight way to find ONTObject that present in the graph,
-            //  the default one is extremely inefficient
-            return new DirectObjectMapImpl<>(loader);
+            ObjectsSearcher<OWLObject> searcher;
+            if (OWLComponentType.CLASS == type) {
+                searcher = (ObjectsSearcher<OWLObject>) (ObjectsSearcher<?>) classSearcher;
+            } else { // TODO: other types
+                return new DirectObjectMapImpl<>(loader);
+            }
+            return new DirectObjectMapImpl<>(loader,
+                    k -> searcher.findONTObject(k, getSearchModel(), getObjectFactory(), getConfig()),
+                    k -> searcher.containsONTObject(k, getSearchModel(), getObjectFactory(), getConfig()));
         }
         boolean parallel = conf.parallel();
         boolean fastIterator = conf.useIteratorCache();
@@ -1409,14 +1415,14 @@ public class InternalModel extends OntGraphModelImpl
         OntModel model = getSearchModel();
         if (OWLComponentType.CLASS == type && useObjectsSearchOptimization(conf)) {
             //noinspection rawtypes
-            return ((Iterator) classSearcher.listObjects(model, factory, conf));
+            return ((Iterator) classSearcher.listONTObjects(model, factory, conf));
         }
         // if content cache is loaded its parsing is faster than graph-optimization
         return selectContentObjects(type).flatMap(x -> type.select(x, model, factory)).iterator();
     }
 
     /**
-     * Answers {@code true} when need to use {@link ObjectSearcher} optimization.
+     * Answers {@code true} when need to use {@link ObjectsSearcher} optimization.
      *
      * @param config {@link InternalConfig}, not {@code null}
      * @return boolean

@@ -33,11 +33,11 @@ public class ByIRI extends ByPrimitive<IRI> {
     private static final ByDatatype BY_DATATYPE = new ByDatatype();
 
     @Override
-    public final ExtendedIterator<ONTObject<OWLAxiom>> listAxioms(IRI iri,
-                                                                  OntModel model,
-                                                                  ONTObjectFactory factory,
-                                                                  AxiomsSettings config) {
-        ExtendedIterator<ONTObject<OWLAxiom>> res = super.listAxioms(iri, model, factory, config);
+    public final ExtendedIterator<ONTObject<OWLAxiom>> listONTAxioms(IRI iri,
+                                                                     OntModel model,
+                                                                     ONTObjectFactory factory,
+                                                                     AxiomsSettings config) {
+        ExtendedIterator<ONTObject<OWLAxiom>> res = super.listONTAxioms(iri, model, factory, config);
         if (isSystem(model, iri.getIRIString())) {
             return res.filterKeep(x -> filter(factory.getOWLDataFactory(), x.getOWLObject(), iri));
         }

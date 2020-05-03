@@ -307,7 +307,7 @@ public enum OWLTopObjectType {
      * @return {@link ExtendedIterator} over all content objects, found in modelr for this type
      */
     ExtendedIterator<? extends ONTObject<? extends OWLObject>> read(ModelObjectFactory f, InternalConfig c) {
-        return getRawTranslator().listAxioms(f.getModel(), f, c);
+        return getRawTranslator().listONTObjects(f.getModel(), f, c);
     }
 
     /**
@@ -322,7 +322,7 @@ public enum OWLTopObjectType {
                                                             InternalConfig c,
                                                             OWLObject key) {
         OWLAxiom k = (OWLAxiom) key;
-        return getRawTranslator().findAxiom(f.getModel(), f, c, k);
+        return getRawTranslator().findONTObject(k, f.getModel(), f, c);
     }
 
     /**
@@ -335,7 +335,7 @@ public enum OWLTopObjectType {
      */
     boolean has(ModelObjectFactory f, InternalConfig c, OWLObject key) {
         OWLAxiom k = (OWLAxiom) key;
-        return getRawTranslator().containsAxiom(f.getModel(), f, c, k);
+        return getRawTranslator().containsONTObject(k, f.getModel(), f, c);
     }
 
     /**

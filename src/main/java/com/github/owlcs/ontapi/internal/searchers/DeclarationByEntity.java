@@ -36,10 +36,10 @@ public class DeclarationByEntity extends BaseByObject<OWLDeclarationAxiom, OWLEn
     private static final DeclarationTranslator TRANSLATOR = toTranslator(OWLTopObjectType.DECLARATION);
 
     @Override
-    public ExtendedIterator<ONTObject<OWLDeclarationAxiom>> listAxioms(OWLEntity entity,
-                                                                       OntModel model,
-                                                                       ONTObjectFactory factory,
-                                                                       AxiomsSettings config) {
+    public ExtendedIterator<ONTObject<OWLDeclarationAxiom>> listONTAxioms(OWLEntity entity,
+                                                                          OntModel model,
+                                                                          ONTObjectFactory factory,
+                                                                          AxiomsSettings config) {
         OntEntity res = PersonalityModel.asPersonalityModel(model)
                 .findNodeAs(WriteHelper.toNode(entity), WriteHelper.getEntityType(entity));
         if (res == null) return Iter.of();

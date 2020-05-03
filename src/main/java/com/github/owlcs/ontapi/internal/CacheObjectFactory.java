@@ -32,7 +32,7 @@ import java.util.function.Supplier;
  * Created by @ssz on 09.09.2018.
  */
 @SuppressWarnings("WeakerAccess")
-public class CacheObjectFactory extends InternalObjectFactoryImpl {
+public class CacheObjectFactory extends InternalObjectFactory {
     /**
      * This magic '2048' is taken from OWL-API DataFactory impl:
      *

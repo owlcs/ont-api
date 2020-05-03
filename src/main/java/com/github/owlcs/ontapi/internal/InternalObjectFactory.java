@@ -34,11 +34,11 @@ import java.util.function.Supplier;
  *
  * @since 2.0.0
  */
-public class InternalObjectFactoryImpl implements ModelObjectFactory {
+public class InternalObjectFactory implements ModelObjectFactory {
     protected final Supplier<OntModel> model;
     protected final DataFactory factory;
 
-    public InternalObjectFactoryImpl(DataFactory factory, Supplier<OntModel> model) {
+    public InternalObjectFactory(DataFactory factory, Supplier<OntModel> model) {
         this.factory = Objects.requireNonNull(factory);
         this.model = Objects.requireNonNull(model);
     }

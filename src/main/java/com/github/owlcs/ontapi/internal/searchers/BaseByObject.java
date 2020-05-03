@@ -14,7 +14,7 @@
 
 package com.github.owlcs.ontapi.internal.searchers;
 
-import com.github.owlcs.ontapi.internal.ByObject;
+import com.github.owlcs.ontapi.internal.ByObjectSearcher;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
 
@@ -22,5 +22,5 @@ import org.semanticweb.owlapi.model.OWLObject;
  * Created by @ssz on 18.04.2020.
  */
 @SuppressWarnings("SameParameterValue")
-abstract class BaseByObject<A extends OWLAxiom, O extends OWLObject> extends WithRootSearcher implements ByObject<A, O> {
+abstract class BaseByObject<A extends OWLAxiom, O extends OWLObject> extends WithRootSearcher implements ByObjectSearcher<A, O> {
 }

@@ -35,10 +35,10 @@ public class SubClassOfBySubject extends BaseByObject<OWLSubClassOfAxiom, OWLCla
     private static final SubClassOfTranslator TRANSLATOR = toTranslator(OWLTopObjectType.SUBCLASS_OF);
 
     @Override
-    public ExtendedIterator<ONTObject<OWLSubClassOfAxiom>> listAxioms(OWLClass clazz,
-                                                                      OntModel model,
-                                                                      ONTObjectFactory factory,
-                                                                      AxiomsSettings config) {
+    public ExtendedIterator<ONTObject<OWLSubClassOfAxiom>> listONTAxioms(OWLClass clazz,
+                                                                         OntModel model,
+                                                                         ONTObjectFactory factory,
+                                                                         AxiomsSettings config) {
         Resource s = WriteHelper.toResource(clazz.getIRI());
         ExtendedIterator<OntStatement> res = listBySubjectAndPredicate(model, s, RDFS.subClassOf)
                 .filterKeep(TRANSLATOR::filter);

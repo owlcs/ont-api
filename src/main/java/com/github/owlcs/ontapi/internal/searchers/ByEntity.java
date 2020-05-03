@@ -33,10 +33,10 @@ import org.semanticweb.owlapi.model.OWLEntity;
 public abstract class ByEntity<E extends OWLEntity> extends ByPrimitive<E> {
 
     @Override
-    public final ExtendedIterator<ONTObject<OWLAxiom>> listAxioms(E entity,
-                                                                  OntModel model,
-                                                                  ONTObjectFactory factory,
-                                                                  AxiomsSettings config) {
+    public final ExtendedIterator<ONTObject<OWLAxiom>> listONTAxioms(E entity,
+                                                                     OntModel model,
+                                                                     ONTObjectFactory factory,
+                                                                     AxiomsSettings config) {
         ExtendedIterator<OntStatement> res = listStatements(model, entity);
         if (config.isSplitAxiomAnnotations()) {
             return Iter.flatMap(res, s -> Iter.flatMap(listTranslators(s, config),
