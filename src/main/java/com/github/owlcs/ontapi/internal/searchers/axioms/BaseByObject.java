@@ -12,26 +12,16 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.github.owlcs.ontapi.internal.searchers;
+package com.github.owlcs.ontapi.internal.searchers.axioms;
 
-import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntStatement;
-import com.github.owlcs.ontapi.jena.utils.Iter;
-import org.apache.jena.util.iterator.ExtendedIterator;
-import org.semanticweb.owlapi.model.OWLProperty;
+import com.github.owlcs.ontapi.internal.ByObjectSearcher;
+import com.github.owlcs.ontapi.internal.searchers.WithRootSearcher;
+import org.semanticweb.owlapi.model.OWLAxiom;
+import org.semanticweb.owlapi.model.OWLObject;
 
 /**
- * Created by @ssz on 29.03.2020.
- *
- * @param <P> - subtype of {@link OWLProperty}
+ * Created by @ssz on 18.04.2020.
  */
-public abstract class ByProperty<P extends OWLProperty> extends ByEntity<P> {
-    @Override
-    public ExtendedIterator<OntStatement> listStatements(OntModel m, String uri) {
-        return Iter.concat(listAssertions(m, uri), super.listStatements(m, uri));
-    }
-
-    protected ExtendedIterator<OntStatement> listAssertions(OntModel m, String uri) {
-        return listByPredicate(m, m.getProperty(uri));
-    }
+@SuppressWarnings("SameParameterValue")
+abstract class BaseByObject<A extends OWLAxiom, O extends OWLObject> extends WithRootSearcher implements ByObjectSearcher<A, O> {
 }

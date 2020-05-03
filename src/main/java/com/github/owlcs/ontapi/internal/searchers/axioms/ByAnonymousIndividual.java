@@ -12,15 +12,29 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.github.owlcs.ontapi.internal.searchers;
+package com.github.owlcs.ontapi.internal.searchers.axioms;
 
-import com.github.owlcs.ontapi.internal.ByObjectSearcher;
-import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLObject;
+import com.github.owlcs.ontapi.jena.model.OntModel;
+import com.github.owlcs.ontapi.jena.model.OntObject;
+import com.github.owlcs.ontapi.jena.model.OntStatement;
+import com.github.owlcs.ontapi.owlapi.objects.OWLAnonymousIndividualImpl;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.util.iterator.ExtendedIterator;
+import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
 
 /**
- * Created by @ssz on 18.04.2020.
+ * A searcher for {@link OWLAnonymousIndividual}.
+ * Created by @ssz on 12.04.2020.
  */
-@SuppressWarnings("SameParameterValue")
-abstract class BaseByObject<A extends OWLAxiom, O extends OWLObject> extends WithRootSearcher implements ByObjectSearcher<A, O> {
+public class ByAnonymousIndividual extends ByPrimitive<OWLAnonymousIndividual> {
+    @Override
+    protected ExtendedIterator<OntStatement> listStatements(OntModel model, OWLAnonymousIndividual individual) {
+        Resource object = model.wrapAsResource(OWLAnonymousIndividualImpl.asONT(individual).asNode());
+        return super.listStatements(model, object);
+    }
+
+    @Override
+    protected ExtendedIterator<OntStatement> listProperties(OntModel model, OntObject root) {
+        return listPropertiesIncludeAnnotations(model, root);
+    }
 }

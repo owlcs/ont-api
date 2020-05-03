@@ -12,44 +12,25 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.github.owlcs.ontapi.internal.searchers;
+package com.github.owlcs.ontapi.internal.searchers.axioms;
 
-import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntStatement;
+import com.github.owlcs.ontapi.internal.AxiomTranslator;
+import com.github.owlcs.ontapi.internal.OWLComponentType;
 import com.github.owlcs.ontapi.jena.utils.Iter;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import org.semanticweb.owlapi.model.OWLEntity;
+import org.semanticweb.owlapi.model.OWLAxiom;
+import org.semanticweb.owlapi.model.OWLNamedIndividual;
+
+import java.util.Set;
 
 /**
- * Created by @ssz on 12.04.2020.
+ * Created by @ssz on 31.03.2020.
  */
-abstract class WithCardinality<E extends OWLEntity> extends ByEntity<E> {
-
-    protected abstract String getTopEntityURI();
-
-    protected abstract boolean isCardinalityRestriction(OntStatement s);
-
-    final ExtendedIterator<OntStatement> listImplicitStatements(OntModel m) {
-        return Iter.flatMap(Iter.of(OWL.cardinality, OWL.maxCardinality, OWL.minCardinality), p -> listByPredicate(m, p))
-                .filterKeep(this::isCardinalityRestriction);
-    }
-
-    protected final ExtendedIterator<OntStatement> includeImplicit(ExtendedIterator<OntStatement> res,
-                                                                   OntModel m,
-                                                                   String uri) {
-        if (!getTopEntityURI().equals(uri)) {
-            return res;
-        }
-        return Iter.concat(res, Iter.flatMap(listImplicitStatements(m), s -> listRootStatements(m, s)));
-    }
+public class ByNamedIndividual extends ByEntity<OWLNamedIndividual> {
+    private static final Set<AxiomTranslator<OWLAxiom>> TRANSLATORS = selectTranslators(OWLComponentType.NAMED_INDIVIDUAL);
 
     @Override
-    public final ExtendedIterator<OntStatement> listStatements(OntModel m, String uri) {
-        return includeImplicit(listExplicitStatements(m, uri), m, uri);
-    }
-
-    protected ExtendedIterator<OntStatement> listExplicitStatements(OntModel m, String uri) {
-        return super.listStatements(m, uri);
+    protected ExtendedIterator<AxiomTranslator<OWLAxiom>> listTranslators() {
+        return Iter.create(TRANSLATORS);
     }
 }

@@ -12,25 +12,40 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.github.owlcs.ontapi.internal.searchers;
+package com.github.owlcs.ontapi.internal.searchers.axioms;
 
-import com.github.owlcs.ontapi.internal.AxiomTranslator;
-import com.github.owlcs.ontapi.internal.OWLComponentType;
-import com.github.owlcs.ontapi.jena.utils.Iter;
+import com.github.owlcs.ontapi.jena.model.OntAnnotation;
+import com.github.owlcs.ontapi.jena.model.OntModel;
+import com.github.owlcs.ontapi.jena.model.OntObject;
+import com.github.owlcs.ontapi.jena.model.OntStatement;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLNamedIndividual;
-
-import java.util.Set;
+import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 
 /**
- * Created by @ssz on 31.03.2020.
+ * A searcher for {@link OWLAnnotationProperty}.
+ * Created by @ssz on 29.03.2020.
  */
-public class ByNamedIndividual extends ByEntity<OWLNamedIndividual> {
-    private static final Set<AxiomTranslator<OWLAxiom>> TRANSLATORS = selectTranslators(OWLComponentType.NAMED_INDIVIDUAL);
+public class ByAnnotationProperty extends ByProperty<OWLAnnotationProperty> {
 
     @Override
-    protected ExtendedIterator<AxiomTranslator<OWLAxiom>> listTranslators() {
-        return Iter.create(TRANSLATORS);
+    protected ExtendedIterator<OntStatement> listAssertions(OntModel m, String uri) {
+        ExtendedIterator<OntStatement> res = super.listAssertions(m, uri);
+        if (includeAnnotations(m)) {
+            res = res.mapWith(this::toRootStatement);
+        }
+        return res;
+    }
+
+    protected OntStatement toRootStatement(OntStatement statement) {
+        OntObject subject = statement.getSubject();
+        OntAnnotation a;
+        if (!subject.isAnon() || (a = subject.getAs(OntAnnotation.class)) == null) {
+            return statement;
+        }
+        OntStatement base = getRoot(a).getBase();
+        if (base != null) {
+            statement = base;
+        }
+        return statement;
     }
 }

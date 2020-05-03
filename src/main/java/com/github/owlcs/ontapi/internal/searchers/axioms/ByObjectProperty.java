@@ -12,33 +12,27 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.github.owlcs.ontapi.internal.searchers;
+package com.github.owlcs.ontapi.internal.searchers.axioms;
 
-import com.github.owlcs.ontapi.config.AxiomsSettings;
-import com.github.owlcs.ontapi.internal.ONTObject;
-import com.github.owlcs.ontapi.internal.ONTObjectFactory;
-import com.github.owlcs.ontapi.internal.OWLTopObjectType;
-import com.github.owlcs.ontapi.internal.WriteHelper;
-import com.github.owlcs.ontapi.internal.axioms.AnnotationAssertionTranslator;
-import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntStatement;
+import com.github.owlcs.ontapi.internal.AxiomTranslator;
+import com.github.owlcs.ontapi.internal.OWLComponentType;
+import com.github.owlcs.ontapi.jena.utils.Iter;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
-import org.semanticweb.owlapi.model.OWLAnnotationSubject;
+import org.semanticweb.owlapi.model.OWLAxiom;
+import org.semanticweb.owlapi.model.OWLObjectProperty;
+
+import java.util.Set;
 
 /**
- * Created by @ssz on 18.04.2020.
+ * A searcher for {@link OWLObjectProperty}.
+ * Created by @ssz on 29.03.2020.
  */
-public class AnnotationAssertionBySubject extends BaseByObject<OWLAnnotationAssertionAxiom, OWLAnnotationSubject> {
-    private static final AnnotationAssertionTranslator TRANSLATOR = toTranslator(OWLTopObjectType.ANNOTATION_ASSERTION);
+public class ByObjectProperty extends ByProperty<OWLObjectProperty> {
+
+    private static final Set<AxiomTranslator<OWLAxiom>> TRANSLATORS = selectTranslators(OWLComponentType.NAMED_OBJECT_PROPERTY);
 
     @Override
-    public ExtendedIterator<ONTObject<OWLAnnotationAssertionAxiom>> listONTAxioms(OWLAnnotationSubject subject,
-                                                                                  OntModel model,
-                                                                                  ONTObjectFactory factory,
-                                                                                  AxiomsSettings config) {
-        ExtendedIterator<OntStatement> res = listBySubject(model, WriteHelper.toResource(subject))
-                .filterKeep(x -> TRANSLATOR.testStatement(x, config));
-        return translate(TRANSLATOR, res, factory, config);
+    protected ExtendedIterator<AxiomTranslator<OWLAxiom>> listTranslators() {
+        return Iter.create(TRANSLATORS);
     }
 }

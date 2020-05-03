@@ -12,36 +12,37 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.github.owlcs.ontapi.internal.searchers;
+package com.github.owlcs.ontapi.internal.searchers.axioms;
 
 import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.ONTObjectFactory;
 import com.github.owlcs.ontapi.internal.OWLTopObjectType;
 import com.github.owlcs.ontapi.internal.WriteHelper;
-import com.github.owlcs.ontapi.internal.axioms.SubClassOfTranslator;
+import com.github.owlcs.ontapi.internal.axioms.EquivalentClassesTranslator;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
+import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
+import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 
 /**
  * Created by @ssz on 18.04.2020.
  */
-public class SubClassOfBySubject extends BaseByObject<OWLSubClassOfAxiom, OWLClass> {
-    private static final SubClassOfTranslator TRANSLATOR = toTranslator(OWLTopObjectType.SUBCLASS_OF);
+public class EquivalentClassesByClass extends BaseByObject<OWLEquivalentClassesAxiom, OWLClass> {
+    public static final EquivalentClassesTranslator TRANSLATOR = toTranslator(OWLTopObjectType.EQUIVALENT_CLASSES);
 
     @Override
-    public ExtendedIterator<ONTObject<OWLSubClassOfAxiom>> listONTAxioms(OWLClass clazz,
-                                                                         OntModel model,
-                                                                         ONTObjectFactory factory,
-                                                                         AxiomsSettings config) {
-        Resource s = WriteHelper.toResource(clazz.getIRI());
-        ExtendedIterator<OntStatement> res = listBySubjectAndPredicate(model, s, RDFS.subClassOf)
-                .filterKeep(TRANSLATOR::filter);
+    public ExtendedIterator<ONTObject<OWLEquivalentClassesAxiom>> listONTAxioms(OWLClass clazz,
+                                                                                OntModel model,
+                                                                                ONTObjectFactory factory,
+                                                                                AxiomsSettings config) {
+        Resource c = WriteHelper.toResource(clazz.getIRI());
+        ExtendedIterator<OntStatement> res = listBySubjectAndPredicate(model, c, OWL.equivalentClass)
+                .andThen(listByPredicateAndObject(model, OWL.equivalentClass, c))
+                .filterKeep(s -> TRANSLATOR.testStatement(s, config));
         return translate(TRANSLATOR, res, factory, config);
     }
 }

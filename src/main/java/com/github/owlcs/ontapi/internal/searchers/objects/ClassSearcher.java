@@ -12,11 +12,13 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.github.owlcs.ontapi.internal.searchers;
+package com.github.owlcs.ontapi.internal.searchers.objects;
 
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.*;
+import com.github.owlcs.ontapi.internal.searchers.WithRootSearcher;
+import com.github.owlcs.ontapi.internal.searchers.axioms.ByClass;
 import com.github.owlcs.ontapi.jena.impl.PersonalityModel;
 import com.github.owlcs.ontapi.jena.impl.conf.OntPersonality;
 import com.github.owlcs.ontapi.jena.model.OntModel;
@@ -45,18 +47,26 @@ public class ClassSearcher extends WithRootSearcher implements ObjectsSearcher<O
         return PersonalityModel.asPersonalityModel(m).getOntPersonality().getBuiltins();
     }
 
-    @Override
-    public ExtendedIterator<ONTObject<OWLClass>> listONTObjects(OntModel model,
-                                                                ONTObjectFactory factory,
-                                                                AxiomsSettings config) {
-        return listClasses(model, config).mapWith(u -> findClass(u, model, factory));
-    }
-
-    protected static ONTObject<OWLClass> findClass(String uri, OntModel model, ONTObjectFactory factory) {
+    /**
+     * Using the {@code factory} finds or creates an {@link OWLClass} instance.
+     *
+     * @param uri     {@code String}, not {@code null}
+     * @param factory {@link ONTObjectFactory}, not {@code null}
+     * @param model   {@link OntModel}
+     * @return an {@link ONTObject} which is {@link OWLClass}
+     */
+    public static ONTObject<OWLClass> find(String uri, OntModel model, ONTObjectFactory factory) {
         if (factory instanceof ModelObjectFactory) {
             return ((ModelObjectFactory) factory).getClass(uri);
         }
         return factory.getClass(OntApiException.mustNotBeNull(model.getOntClass(uri)));
+    }
+
+    @Override
+    public ExtendedIterator<ONTObject<OWLClass>> listONTObjects(OntModel model,
+                                                                ONTObjectFactory factory,
+                                                                AxiomsSettings config) {
+        return listClasses(model, config).mapWith(u -> find(u, model, factory));
     }
 
     protected ExtendedIterator<String> listClasses(OntModel m, AxiomsSettings conf) {

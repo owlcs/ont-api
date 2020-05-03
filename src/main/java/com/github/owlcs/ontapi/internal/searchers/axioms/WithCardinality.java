@@ -12,40 +12,44 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.github.owlcs.ontapi.internal.searchers;
+package com.github.owlcs.ontapi.internal.searchers.axioms;
 
-import com.github.owlcs.ontapi.jena.model.OntAnnotation;
 import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntObject;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
+import com.github.owlcs.ontapi.jena.utils.Iter;
+import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import org.semanticweb.owlapi.model.OWLAnnotationProperty;
+import org.semanticweb.owlapi.model.OWLEntity;
 
 /**
- * A searcher for {@link OWLAnnotationProperty}.
- * Created by @ssz on 29.03.2020.
+ * Created by @ssz on 12.04.2020.
  */
-public class ByAnnotationProperty extends ByProperty<OWLAnnotationProperty> {
+abstract class WithCardinality<E extends OWLEntity> extends ByEntity<E> {
 
-    @Override
-    protected ExtendedIterator<OntStatement> listAssertions(OntModel m, String uri) {
-        ExtendedIterator<OntStatement> res = super.listAssertions(m, uri);
-        if (includeAnnotations(m)) {
-            res = res.mapWith(this::toRootStatement);
-        }
-        return res;
+    protected abstract String getTopEntityURI();
+
+    protected abstract boolean isCardinalityRestriction(OntStatement s);
+
+    final ExtendedIterator<OntStatement> listImplicitStatements(OntModel m) {
+        return Iter.flatMap(Iter.of(OWL.cardinality, OWL.maxCardinality, OWL.minCardinality), p -> listByPredicate(m, p))
+                .filterKeep(this::isCardinalityRestriction);
     }
 
-    protected OntStatement toRootStatement(OntStatement statement) {
-        OntObject subject = statement.getSubject();
-        OntAnnotation a;
-        if (!subject.isAnon() || (a = subject.getAs(OntAnnotation.class)) == null) {
-            return statement;
+    protected final ExtendedIterator<OntStatement> includeImplicit(ExtendedIterator<OntStatement> res,
+                                                                   OntModel m,
+                                                                   String uri) {
+        if (!getTopEntityURI().equals(uri)) {
+            return res;
         }
-        OntStatement base = getRoot(a).getBase();
-        if (base != null) {
-            statement = base;
-        }
-        return statement;
+        return Iter.concat(res, Iter.flatMap(listImplicitStatements(m), s -> listRootStatements(m, s)));
+    }
+
+    @Override
+    public final ExtendedIterator<OntStatement> listStatements(OntModel m, String uri) {
+        return includeImplicit(listExplicitStatements(m, uri), m, uri);
+    }
+
+    protected ExtendedIterator<OntStatement> listExplicitStatements(OntModel m, String uri) {
+        return super.listStatements(m, uri);
     }
 }
