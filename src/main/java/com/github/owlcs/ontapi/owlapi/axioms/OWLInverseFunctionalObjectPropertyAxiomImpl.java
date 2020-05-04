@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -13,8 +13,8 @@
  */
 package com.github.owlcs.ontapi.owlapi.axioms;
 
-import org.semanticweb.owlapi.model.*;
 import com.github.owlcs.ontapi.owlapi.objects.ce.OWLObjectMaxCardinalityImpl;
+import org.semanticweb.owlapi.model.*;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
@@ -50,13 +50,12 @@ public class OWLInverseFunctionalObjectPropertyAxiomImpl
     @SuppressWarnings("unchecked")
     @Override
     public <T extends OWLAxiom> T getAnnotatedAxiom(@Nonnull Stream<OWLAnnotation> anns) {
-        return (T) new OWLInverseFunctionalObjectPropertyAxiomImpl(getProperty(),
-                mergeAnnotations(this, anns));
+        return (T) new OWLInverseFunctionalObjectPropertyAxiomImpl(getProperty(), mergeAnnotations(this, anns));
     }
 
     @Override
     public OWLSubClassOfAxiom asOWLSubClassOfAxiom() {
-        return new OWLSubClassOfAxiomImpl(OWL_THING, new OWLObjectMaxCardinalityImpl(getProperty().getInverseProperty()
-                .getSimplified(), 1, OWL_THING), NO_ANNOTATIONS);
+        return new OWLSubClassOfAxiomImpl(OWL_THING,
+                new OWLObjectMaxCardinalityImpl(getProperty().getInverseProperty(), 1, OWL_THING), NO_ANNOTATIONS);
     }
 }

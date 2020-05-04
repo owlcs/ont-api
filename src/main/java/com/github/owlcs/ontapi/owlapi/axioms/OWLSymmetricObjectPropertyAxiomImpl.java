@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -39,11 +39,11 @@ public class OWLSymmetricObjectPropertyAxiomImpl
 
     @Override
     public Set<OWLSubObjectPropertyOfAxiom> asSubPropertyAxioms() {
-        Set<OWLSubObjectPropertyOfAxiom> result = new HashSet<>(2);
+        Set<OWLSubObjectPropertyOfAxiom> res = new HashSet<>(2);
         OWLObjectPropertyExpression p = getProperty();
-        result.add(new OWLSubObjectPropertyOfAxiomImpl(p, p.getInverseProperty().getSimplified(), NO_ANNOTATIONS));
-        result.add(new OWLSubObjectPropertyOfAxiomImpl(p.getInverseProperty().getSimplified(), p, NO_ANNOTATIONS));
-        return result;
+        res.add(new OWLSubObjectPropertyOfAxiomImpl(p, p.getInverseProperty(), NO_ANNOTATIONS));
+        res.add(new OWLSubObjectPropertyOfAxiomImpl(p.getInverseProperty(), p, NO_ANNOTATIONS));
+        return res;
     }
 
     @SuppressWarnings("unchecked")

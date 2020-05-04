@@ -958,6 +958,29 @@ public class TestFactory {
                         return df.getSWRLRule(body, head, annotations);
                     }
                 }
+                , new AxiomData() {
+                    @Override
+                    public AxiomType getType() {
+                        return AxiomType.SWRL_RULE;
+                    }
+
+                    @Override
+                    public String toString() {
+                        // to test https://github.com/owlcs/ont-api/issues/17
+                        return "SWRLRule Axiom single object property atom";
+                    }
+
+                    @Override
+                    public OWLObject create(OWLDataFactory df) {
+                        OWLObjectPropertyExpression p = df.getOWLObjectInverseOf(df.getOWLObjectProperty("P"));
+                        SWRLIArgument a1 = df.getSWRLVariable("V");
+                        SWRLIArgument a2 = df.getSWRLIndividualArgument(df.getOWLAnonymousIndividual("_:bx"));
+
+                        List<? extends SWRLAtom> body = Collections.singletonList(df.getSWRLObjectPropertyAtom(p, a1, a2));
+                        List<? extends SWRLAtom> head = Collections.emptyList();
+                        return df.getSWRLRule(body, head);
+                    }
+                }
                 , new NamedRange() {
                     @Override
                     public OWLObject create(OWLDataFactory df) {

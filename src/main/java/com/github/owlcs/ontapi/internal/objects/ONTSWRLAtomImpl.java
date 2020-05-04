@@ -14,7 +14,6 @@
 
 package com.github.owlcs.ontapi.internal.objects;
 
-import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
@@ -681,20 +680,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
         @FactoryAccessor
         @Override
         public SWRLObjectPropertyAtom getSimplified() {
-            OWLObjectPropertyExpression p = getPredicate();
-            OWLObjectPropertyExpression ps = p.getSimplified();
-            if (ps.equals(p)) {
-                return eraseModel();
-            }
-            // p always equals ps (v5.1.11) - so the following code just in case:
-            DataFactory df = getDataFactory();
-            ps = eraseModel(ps);
-            SWRLIArgument f = eraseModel(getFirstArgument());
-            SWRLIArgument s = eraseModel(getSecondArgument());
-            if (ps.isAnonymous()) {
-                return df.getSWRLObjectPropertyAtom(ps.getInverseProperty(), s, f);
-            }
-            return df.getSWRLObjectPropertyAtom(ps, f, s);
+            return eraseModel().getSimplified();
         }
 
         @Override
