@@ -354,7 +354,7 @@ public class OntGraphModelImpl extends UnionModel implements OntModel, Personali
      * @param personality {@link OntPersonality}, not {@code null}
      * @return <b>non-distinct</b> {@code ExtendedIterator} of {@link OntGraphModelImpl}s
      */
-    protected final ExtendedIterator<OntGraphModelImpl> listImportModels(OntPersonality personality) {
+    public final ExtendedIterator<OntGraphModelImpl> listImportModels(OntPersonality personality) {
         return listImportGraphs().mapWith(u -> new OntGraphModelImpl(u, personality));
     }
 

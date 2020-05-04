@@ -144,6 +144,23 @@ public class OntModels {
     }
 
     /**
+     * Lists all imported models from the given one.
+     *
+     * @param model {@link OntModel}
+     * @return a {@code ExtendedIterator} of {@link OntModel}s
+     * @see OntModel#imports()
+     */
+    @SuppressWarnings("unchecked")
+    public static ExtendedIterator<OntModel> listImports(OntModel model) {
+        if (model instanceof OntGraphModelImpl) {
+            OntGraphModelImpl m = (OntGraphModelImpl) model;
+            ExtendedIterator<?> res = m.listImportModels(m.getOntPersonality());
+            return (ExtendedIterator<OntModel>) res;
+        }
+        return Iter.create(model.imports().iterator());
+    }
+
+    /**
      * Lists all ontology objects with the given {@code type} that are defined in the base graph.
      * See also {@link OntModels#listLocalStatements(OntModel, Resource, Property, RDFNode)} description.
      *
@@ -153,8 +170,7 @@ public class OntModels {
      * @return {@link ExtendedIterator} of ontology objects of the type {@link O} that are local to the base graph
      * @see OntModel#ontObjects(Class)
      */
-    public static <O extends OntObject> ExtendedIterator<O> listLocalObjects(OntModel model,
-                                                                             Class<? extends O> type) {
+    public static <O extends OntObject> ExtendedIterator<O> listLocalObjects(OntModel model, Class<? extends O> type) {
         if (model instanceof OntGraphModelImpl) {
             return ((OntGraphModelImpl) model).listLocalOntObjects(type);
         }

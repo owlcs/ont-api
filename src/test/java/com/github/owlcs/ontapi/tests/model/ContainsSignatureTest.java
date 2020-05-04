@@ -36,7 +36,7 @@ import java.util.Map;
 @RunWith(Parameterized.class)
 public class ContainsSignatureTest {
 
-    private final ModelData data;
+    protected final ModelData data;
 
     public ContainsSignatureTest(ModelData data) {
         this.data = data;
@@ -93,9 +93,12 @@ public class ContainsSignatureTest {
     }
 
     protected void testContains(Class<? extends OWLEntity> type, Map<String, Boolean> entities) {
-        OWLOntologyManager m = newManager();
-        OWLOntology o = data.fetch(m);
-        OWLDataFactory df = m.getOWLDataFactory();
+        OWLOntology o = data.fetch(newManager());
+        testContains(o, type, entities);
+    }
+
+    protected void testContains(OWLOntology o, Class<? extends OWLEntity> type, Map<String, Boolean> entities) {
+        OWLDataFactory df = o.getOWLOntologyManager().getOWLDataFactory();
         entities.forEach((s, v) -> {
             EntityType<?> t = OWLEntityUtils.getEntityType(type);
             OWLEntity e = df.getOWLEntity(t, IRI.create(s));

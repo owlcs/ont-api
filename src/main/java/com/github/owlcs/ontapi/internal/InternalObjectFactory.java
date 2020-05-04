@@ -15,6 +15,7 @@
 package com.github.owlcs.ontapi.internal;
 
 import com.github.owlcs.ontapi.DataFactory;
+import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.internal.objects.*;
 import com.github.owlcs.ontapi.jena.model.*;
 import org.apache.jena.graph.BlankNodeId;
@@ -41,6 +42,21 @@ public class InternalObjectFactory implements ModelObjectFactory {
     public InternalObjectFactory(DataFactory factory, Supplier<OntModel> model) {
         this.factory = Objects.requireNonNull(factory);
         this.model = Objects.requireNonNull(model);
+    }
+
+    /**
+     * Using the {@code factory} finds or creates an {@link OWLClass} instance.
+     *
+     * @param uri     {@code String}, not {@code null}
+     * @param factory {@link ONTObjectFactory}, not {@code null}
+     * @param model   {@link OntModel}
+     * @return an {@link ONTObject} which is {@link OWLClass}
+     */
+    public static ONTObject<OWLClass> getONTClass(String uri, OntModel model, ONTObjectFactory factory) {
+        if (factory instanceof ModelObjectFactory) {
+            return ((ModelObjectFactory) factory).getClass(uri);
+        }
+        return factory.getClass(OntApiException.mustNotBeNull(model.getOntClass(uri)));
     }
 
     @Override

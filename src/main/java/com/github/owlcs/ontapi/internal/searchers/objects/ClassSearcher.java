@@ -24,6 +24,7 @@ import com.github.owlcs.ontapi.jena.impl.conf.OntPersonality;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
+import com.github.owlcs.ontapi.jena.utils.OntModels;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import org.apache.jena.rdf.model.RDFNode;
@@ -34,7 +35,9 @@ import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 
 /**
  * Created by @ssz on 19.04.2020.
@@ -47,26 +50,54 @@ public class ClassSearcher extends WithRootSearcher implements ObjectsSearcher<O
         return PersonalityModel.asPersonalityModel(m).getOntPersonality().getBuiltins();
     }
 
-    /**
-     * Using the {@code factory} finds or creates an {@link OWLClass} instance.
-     *
-     * @param uri     {@code String}, not {@code null}
-     * @param factory {@link ONTObjectFactory}, not {@code null}
-     * @param model   {@link OntModel}
-     * @return an {@link ONTObject} which is {@link OWLClass}
-     */
-    public static ONTObject<OWLClass> find(String uri, OntModel model, ONTObjectFactory factory) {
+    private static Function<String, ONTObject<OWLClass>> factoryMapping(OntModel model, ONTObjectFactory factory) {
         if (factory instanceof ModelObjectFactory) {
-            return ((ModelObjectFactory) factory).getClass(uri);
+            return ((ModelObjectFactory) factory)::getClass;
         }
-        return factory.getClass(OntApiException.mustNotBeNull(model.getOntClass(uri)));
+        return uri -> factory.getClass(OntApiException.mustNotBeNull(model.getOntClass(uri)));
     }
 
     @Override
     public ExtendedIterator<ONTObject<OWLClass>> listONTObjects(OntModel model,
                                                                 ONTObjectFactory factory,
                                                                 AxiomsSettings config) {
-        return listClasses(model, config).mapWith(u -> find(u, model, factory));
+        return listClasses(model, config).mapWith(factoryMapping(model, factory));
+    }
+
+    @Override
+    public boolean containsONTObject(OWLClass object, OntModel model, ONTObjectFactory factory, AxiomsSettings config) {
+        return containsClass(object.getIRI().getIRIString(), model, config);
+    }
+
+    @Override
+    public Optional<ONTObject<OWLClass>> findONTObject(OWLClass object,
+                                                       OntModel model,
+                                                       ONTObjectFactory factory,
+                                                       AxiomsSettings config) {
+        String uri = object.getIRI().getIRIString();
+        if (containsClass(uri, model, config)) {
+            return Optional.of(InternalObjectFactory.getONTClass(uri, model, factory));
+        }
+        return Optional.empty();
+    }
+
+    protected boolean containsClass(String uri, OntModel m, AxiomsSettings conf) {
+        Resource clazz = m.getResource(uri);
+        if (getBuiltins(m).getClasses().contains(clazz.asNode())) {
+            if (OWL.Thing.equals(clazz)) {
+                if (containAxiom(Iter.flatMap(listImplicitStatements(m), s -> listRootStatements(m, s)), conf)) {
+                    return true;
+                }
+            }
+            return containAxiom(listStatements(m, clazz), conf);
+        }
+        if (m.independent()) {
+            return m.getBaseGraph().contains(clazz.asNode(), RDF.type.asNode(), OWL.Class.asNode());
+        }
+        if (!m.contains(clazz, RDF.type, OWL.Class)) {
+            return false;
+        }
+        return containAxiom(listStatements(m, clazz), conf);
     }
 
     protected ExtendedIterator<String> listClasses(OntModel m, AxiomsSettings conf) {
@@ -104,7 +135,7 @@ public class ClassSearcher extends WithRootSearcher implements ObjectsSearcher<O
     }
 
     protected ExtendedIterator<String> listClassesFromImports(OntModel m) {
-        ExtendedIterator<OntModel> imports = Iter.create(m.imports().iterator());
+        ExtendedIterator<OntModel> imports = OntModels.listImports(m);
         return Iter.distinct(Iter.flatMap(imports, i -> i.listStatements(null, RDF.type, OWL.Class))
                 .mapWith(Statement::getSubject).filterKeep(RDFNode::isURIResource).mapWith(Resource::getURI));
     }

@@ -21,7 +21,6 @@ import com.github.owlcs.ontapi.config.OntConfig;
 import com.github.owlcs.ontapi.tests.ModelData;
 import com.github.owlcs.ontapi.tests.model.ContainsSignatureTest;
 import org.junit.Assert;
-import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 /**
@@ -31,6 +30,7 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
  * @see com.github.owlcs.ontapi.tests.managers.CacheConfigTest;
  */
 public class NoComponentCacheSignatureTest extends ContainsSignatureTest {
+
     public NoComponentCacheSignatureTest(ModelData data) {
         super(data);
     }
@@ -42,10 +42,5 @@ public class NoComponentCacheSignatureTest extends ContainsSignatureTest {
                 .setModelCacheLevel(CacheSettings.CACHE_COMPONENT, false);
         Assert.assertFalse(conf.useComponentCache());
         return m;
-    }
-
-    @Override
-    protected void testContains(Class<? extends OWLEntity> type) {
-        super.testContains(type);
     }
 }

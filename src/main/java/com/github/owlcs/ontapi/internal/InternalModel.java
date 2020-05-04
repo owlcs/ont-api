@@ -1391,7 +1391,7 @@ public class InternalModel extends OntGraphModelImpl
         if (!conf.useComponentCache()) {
             ObjectsSearcher<OWLObject> searcher;
             if (OWLComponentType.CLASS == type) {
-                searcher = (ObjectsSearcher<OWLObject>) (ObjectsSearcher<?>) classSearcher;
+                searcher = cast(classSearcher);
             } else { // TODO: other types
                 return new DirectObjectMapImpl<>(loader);
             }
@@ -1402,6 +1402,10 @@ public class InternalModel extends OntGraphModelImpl
         boolean parallel = conf.parallel();
         boolean fastIterator = conf.useIteratorCache();
         return new CacheObjectMapImpl<>(loader, false, parallel, fastIterator);
+    }
+
+    private static ObjectsSearcher<OWLObject> cast(ObjectsSearcher<?> x) {
+        return (ObjectsSearcher<OWLObject>) x;
     }
 
     /**
