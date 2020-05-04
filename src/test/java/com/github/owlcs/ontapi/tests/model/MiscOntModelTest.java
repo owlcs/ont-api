@@ -38,6 +38,27 @@ import java.util.stream.Collectors;
 public class MiscOntModelTest extends OntModelTestBase {
 
     /**
+     * @see <a href='https://github.com/owlcs/ont-api/issues/16'>olwcs#16</a>
+     */
+    @Test
+    public void testOrderNaryAxiomComponents() {
+        OntologyManager m = OntManagers.createONT();
+        OWLDataFactory df = m.getOWLDataFactory();
+        String ns = "http://xxxx#";
+        OWLAxiom a = df.getOWLEquivalentClassesAxiom(df.getOWLClass(ns + "X"),
+                df.getOWLObjectIntersectionOf(df.getOWLClass(ns + "W"),
+                        df.getOWLObjectSomeValuesFrom(df.getOWLObjectProperty(ns + "i"), df.getOWLClass(ns + "P"))));
+
+        Ontology ont = m.createOntology();
+        ont.add(a);
+
+        OntStatement s = ont.asGraphModel().statements(null, OWL.equivalentClass, null)
+                .findFirst().orElseThrow(AssertionError::new);
+        Assert.assertTrue(s.getSubject().isURIResource());
+        Assert.assertTrue(s.getObject().isAnon());
+    }
+
+    /**
      * Test for bug: "InternalModel add methods does not reset objects cache".
      *
      * @see <a href='https://github.com/avicomp/ont-api/issues/16'>avc#16</a>

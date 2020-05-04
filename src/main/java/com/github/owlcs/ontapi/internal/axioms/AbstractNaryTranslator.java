@@ -65,8 +65,7 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
 
     static final Logger LOGGER = LoggerFactory.getLogger(AbstractNaryTranslator.class);
 
-    private static final Comparator<OWLObject> URI_FIRST_COMPARATOR = (a, b) ->
-            a.isAnonymous() == b.isAnonymous() ? 0 : a.isAnonymous() ? -1 : 1;
+    private static final Comparator<OWLObject> URI_FIRST_COMPARATOR = Comparator.comparing(IsAnonymous::isAnonymous);
 
     void write(OWLNaryAxiom<OWL> thisAxiom, Collection<OWLAnnotation> annotations, OntModel model) {
         List<OWL> operands = thisAxiom.operands().sorted(URI_FIRST_COMPARATOR).collect(Collectors.toList());
