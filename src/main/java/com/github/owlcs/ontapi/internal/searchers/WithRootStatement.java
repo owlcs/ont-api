@@ -31,7 +31,7 @@ import java.util.Set;
 /**
  * Created by @ssz on 19.04.2020.
  */
-public class WithRootSearcher extends BaseSearcher {
+public class WithRootStatement extends BaseSearcher {
 
     /**
      * Lists all roots for the given statement.

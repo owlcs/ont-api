@@ -16,12 +16,16 @@ package com.github.owlcs.ontapi.tests.model;
 
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.tests.ModelData;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.jena.vocabulary.RDFS;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.semanticweb.owlapi.model.*;
 
 import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -51,6 +55,18 @@ public class SearchByObjectTest {
     }
 
     @Test
+    public void testAnnotationAssertionAxioms() {
+        OWLOntology ont = data.load(newManager());
+        Set<OWLAnnotationSubject> entities = new HashSet<>();
+        ont.signature().map(HasIRI::getIRI).forEach(entities::add);
+        entities.add(IRI.create(RDFS.comment.getURI()));
+        entities.add(IRI.create("http://" + RandomStringUtils.randomAlphabetic(12)));
+        ont.anonymousIndividuals().forEach(entities::add);
+        entities.add(ont.getOWLOntologyManager().getOWLDataFactory().getOWLAnonymousIndividual());
+        data.getTester(T.ANNOTATION_ASSERTIONS_BY_SUBJECT).testAxiomsCounts(ont, x -> entities.stream());
+    }
+
+    @Test
     public void testSubClassAxiomsForSubClass() {
         data.doTest(T.SUB_CLASS_OF_BY_SUBJECT, HasClassesInSignature::classesInSignature);
     }
@@ -63,56 +79,67 @@ public class SearchByObjectTest {
     enum TestData {
         PIZZA(ModelData.PIZZA,
                 T.DECLARATIONS.of(-5190508530L),
+                T.ANNOTATION_ASSERTIONS_BY_SUBJECT.of(5847447319L),
                 T.SUB_CLASS_OF_BY_SUBJECT.of(23994790843L),
                 T.EQUIVALENT_CLASS_BY_OPERAND.of(743207879L)
         ),
         FAMILY(ModelData.FAMILY,
                 T.DECLARATIONS.of(34226271096L),
+                T.ANNOTATION_ASSERTIONS_BY_SUBJECT.of(375920279L),
                 T.SUB_CLASS_OF_BY_SUBJECT.of(-405443220L),
                 T.EQUIVALENT_CLASS_BY_OPERAND.of(1149278276L)
         ),
         PEOPLE(ModelData.PEOPLE,
                 T.DECLARATIONS.of(-31040926516L),
+                T.ANNOTATION_ASSERTIONS_BY_SUBJECT.of(14660248630L),
                 T.SUB_CLASS_OF_BY_SUBJECT.of(-6044474129L),
                 T.EQUIVALENT_CLASS_BY_OPERAND.of(229986282L)
         ),
         CAMERA(ModelData.CAMERA,
                 T.DECLARATIONS.of(2967944221L),
+                T.ANNOTATION_ASSERTIONS_BY_SUBJECT.of(),
                 T.SUB_CLASS_OF_BY_SUBJECT.of(3537056616L),
                 T.EQUIVALENT_CLASS_BY_OPERAND.of(2619197590L)
         ),
         KOALA(ModelData.KOALA,
                 T.DECLARATIONS.of(6488467972L),
+                T.ANNOTATION_ASSERTIONS_BY_SUBJECT.of(2255627747L),
                 T.SUB_CLASS_OF_BY_SUBJECT.of(-4740693142L),
                 T.EQUIVALENT_CLASS_BY_OPERAND.of(1433290824L)
         ),
         TRAVEL(ModelData.TRAVEL,
                 T.DECLARATIONS.of(-25825023334L),
+                T.ANNOTATION_ASSERTIONS_BY_SUBJECT.of(-3973926788L),
                 T.SUB_CLASS_OF_BY_SUBJECT.of(3792566851L),
                 T.EQUIVALENT_CLASS_BY_OPERAND.of(-1797460855L)
         ),
         WINE(ModelData.WINE,
                 T.DECLARATIONS.of(20065711780L),
+                T.ANNOTATION_ASSERTIONS_BY_SUBJECT.of(1282021579L),
                 T.SUB_CLASS_OF_BY_SUBJECT.of(23989074593L),
                 T.EQUIVALENT_CLASS_BY_OPERAND.of(15637987080L)
         ),
         FOOD(ModelData.FOOD,
                 T.DECLARATIONS.of(6794851452L),
+                T.ANNOTATION_ASSERTIONS_BY_SUBJECT.of(),
                 T.SUB_CLASS_OF_BY_SUBJECT.of(-2766054837L),
                 T.EQUIVALENT_CLASS_BY_OPERAND.of(16744408703L)
         ),
         NCBITAXON_CUT(ModelData.NCBITAXON_CUT,
                 T.DECLARATIONS.of(244310200631L),
+                T.ANNOTATION_ASSERTIONS_BY_SUBJECT.of(120569949408L),
                 T.SUB_CLASS_OF_BY_SUBJECT.of(-1220817325L),
                 T.EQUIVALENT_CLASS_BY_OPERAND.of()
         ),
         HP_CUT(ModelData.HP_CUT,
                 T.DECLARATIONS.of(-14640456193L),
+                T.ANNOTATION_ASSERTIONS_BY_SUBJECT.of(2061724906L),
                 T.SUB_CLASS_OF_BY_SUBJECT.of(-2245851740L),
                 T.EQUIVALENT_CLASS_BY_OPERAND.of(-1475922263L)
         ),
         FAMILY_PEOPLE_UNION(ModelData.FAMILY_PEOPLE_UNION,
                 T.DECLARATIONS.of(-637777500L),
+                T.ANNOTATION_ASSERTIONS_BY_SUBJECT.of(-311728567L),
                 T.SUB_CLASS_OF_BY_SUBJECT.of(-730374961L),
                 T.EQUIVALENT_CLASS_BY_OPERAND.of(1108552553L)
         ),
@@ -146,6 +173,12 @@ public class SearchByObjectTest {
             @Override
             Stream<? extends OWLObject> listAxioms(OWLOntology ont, OWLObject param) {
                 return ont.declarationAxioms((OWLEntity) param);
+            }
+        },
+        ANNOTATION_ASSERTIONS_BY_SUBJECT {
+            @Override
+            Stream<? extends OWLObject> listAxioms(OWLOntology ont, OWLObject param) {
+                return ont.annotationAssertionAxioms((OWLAnnotationSubject) param);
             }
         },
         SUB_CLASS_OF_BY_SUBJECT {

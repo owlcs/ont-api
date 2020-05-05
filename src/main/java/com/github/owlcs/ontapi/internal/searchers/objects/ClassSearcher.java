@@ -17,7 +17,7 @@ package com.github.owlcs.ontapi.internal.searchers.objects;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.*;
-import com.github.owlcs.ontapi.internal.searchers.WithRootSearcher;
+import com.github.owlcs.ontapi.internal.searchers.WithRootStatement;
 import com.github.owlcs.ontapi.internal.searchers.axioms.ByClass;
 import com.github.owlcs.ontapi.jena.impl.PersonalityModel;
 import com.github.owlcs.ontapi.jena.impl.conf.OntPersonality;
@@ -42,7 +42,7 @@ import java.util.function.Function;
 /**
  * Created by @ssz on 19.04.2020.
  */
-public class ClassSearcher extends WithRootSearcher implements ObjectsSearcher<OWLClass> {
+public class ClassSearcher extends WithRootStatement implements ObjectsSearcher<OWLClass> {
 
     private static final Set<AxiomTranslator<OWLAxiom>> TRANSLATORS = selectTranslators(OWLComponentType.CLASS);
 
