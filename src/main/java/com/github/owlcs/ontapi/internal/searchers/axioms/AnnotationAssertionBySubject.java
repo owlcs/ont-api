@@ -15,7 +15,10 @@
 package com.github.owlcs.ontapi.internal.searchers.axioms;
 
 import com.github.owlcs.ontapi.config.AxiomsSettings;
-import com.github.owlcs.ontapi.internal.*;
+import com.github.owlcs.ontapi.internal.ONTObject;
+import com.github.owlcs.ontapi.internal.ONTObjectFactory;
+import com.github.owlcs.ontapi.internal.OWLTopObjectType;
+import com.github.owlcs.ontapi.internal.WriteHelper;
 import com.github.owlcs.ontapi.internal.axioms.AnnotationAssertionTranslator;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
@@ -27,7 +30,7 @@ import org.semanticweb.owlapi.model.OWLAnnotationSubject;
  * Created by @ssz on 18.04.2020.
  */
 public class AnnotationAssertionBySubject extends BaseByObject<OWLAnnotationAssertionAxiom, OWLAnnotationSubject> {
-    private static final AnnotationAssertionTranslator TRANSLATOR = BaseSearcher.toTranslator(OWLTopObjectType.ANNOTATION_ASSERTION);
+    private static final AnnotationAssertionTranslator TRANSLATOR = toTranslator(OWLTopObjectType.ANNOTATION_ASSERTION);
 
     @Override
     public ExtendedIterator<ONTObject<OWLAnnotationAssertionAxiom>> listONTAxioms(OWLAnnotationSubject subject,
@@ -36,6 +39,6 @@ public class AnnotationAssertionBySubject extends BaseByObject<OWLAnnotationAsse
                                                                                   AxiomsSettings config) {
         ExtendedIterator<OntStatement> res = listBySubject(model, WriteHelper.toResource(subject))
                 .filterKeep(x -> TRANSLATOR.testStatement(x, config));
-        return BaseSearcher.translate(TRANSLATOR, res, factory, config);
+        return translate(TRANSLATOR, res, factory, config);
     }
 }

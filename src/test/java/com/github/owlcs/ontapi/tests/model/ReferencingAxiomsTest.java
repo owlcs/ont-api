@@ -15,13 +15,11 @@
 package com.github.owlcs.ontapi.tests.model;
 
 import com.github.owlcs.ontapi.OntManagers;
-import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OwlObjects;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import com.github.owlcs.ontapi.tests.ModelData;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -29,7 +27,6 @@ import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -69,7 +66,7 @@ public class ReferencingAxiomsTest {
         literals.add(df.getOWLLiteral(true));
         for (int i = 0; i < 4; i++)
             literals.add(df.getOWLLiteral(String.valueOf(i), OWL2Datatype.XSD_NON_NEGATIVE_INTEGER));
-        data.getTester(T.LITERAL).testCounts(ont, x -> literals.stream());
+        data.getTester(T.LITERAL).testAxiomsCounts(ont, x -> literals.stream());
     }
 
     @Test
@@ -79,7 +76,7 @@ public class ReferencingAxiomsTest {
         iris.add(IRI.create(OWL.intersectionOf.getURI()));
         iris.add(IRI.create(RDF.langString.getURI()));
         iris.add(IRI.create("http://" + RandomStringUtils.randomAlphabetic(12)));
-        data.getTester(T.IRI).testCounts(ont, x -> iris.stream());
+        data.getTester(T.IRI).testAxiomsCounts(ont, x -> iris.stream());
     }
 
     @Test
@@ -237,22 +234,22 @@ public class ReferencingAxiomsTest {
         ),
         ;
         private final ModelData resource;
-        private final Tester[] expectations;
+        private final ByPrimitiveTester[] expectations;
 
-        TestData(ModelData data, Tester... expectations) {
+        TestData(ModelData data, ByPrimitiveTester... expectations) {
             this.resource = data;
             this.expectations = expectations;
         }
 
-        public Tester getTester(T type) {
+        public ByPrimitiveTester getTester(T type) {
             return Arrays.stream(expectations)
-                    .filter(x -> Objects.equals(x.type, type))
+                    .filter(x -> x.type.equals(type.name()))
                     .findFirst().orElseThrow(IllegalArgumentException::new);
         }
 
         void doTest(T type, Function<OWLOntology, Stream<? extends OWLPrimitive>> getPrimitives) {
             OWLOntology ont = load(newManager());
-            getTester(type).testCounts(ont, getPrimitives);
+            getTester(type).testAxiomsCounts(ont, getPrimitives);
         }
 
         public OWLOntology load(OWLOntologyManager manager) {
@@ -264,44 +261,13 @@ public class ReferencingAxiomsTest {
         IRI, LITERAL, ANONYMOUS_INDIVIDUAL, NAMED_INDIVIDUAL, CLASS, DATATYPE, OBJECT_PROPERTY, DATA_PROPERTY, ANNOTATION_PROPERTY,
         ;
 
-        private Tester of() {
+        private ByPrimitiveTester of() {
             return of(0);
         }
 
-        private Tester of(long count) {
-            return new Tester(this, count);
+        private ByPrimitiveTester of(long count) {
+            return new ByPrimitiveTester(name(), count, (ont, x) -> ont.referencingAxioms(x).distinct());
         }
     }
 
-    private static class Tester {
-        private final long count;
-        private final T type;
-
-        private Tester(T type, long count) {
-            this.type = type;
-            this.count = count;
-        }
-
-        private long calc(OWLAxiom ax) {
-            return ax.anonymousIndividuals().findFirst().isPresent() ?
-                    ax.toString().replaceAll("\\s_:[a-z\\d\\-]+", " _:x").hashCode() : ax.hashCode();
-        }
-
-        private Stream<OWLAxiom> referencingAxioms(OWLOntology ont, OWLPrimitive x) {
-            return ont.referencingAxioms(x).distinct();
-        }
-
-        private long referencingAxiomsCount(OWLOntology ont, OWLPrimitive x) {
-            return referencingAxioms(ont, x).mapToLong(this::calc).sum();
-        }
-
-        void testCounts(OWLOntology ont, Function<OWLOntology, Stream<? extends OWLPrimitive>> getPrimitives) {
-            Set<OWLPrimitive> primitives = getPrimitives.apply(ont).collect(Collectors.toSet());
-            if (ont instanceof Ontology) { // to be sure that graph optimization is used
-                ((Ontology) ont).clearCache();
-            }
-            long res = primitives.stream().mapToLong(x -> referencingAxiomsCount(ont, x)).sum();
-            Assert.assertEquals(count, res);
-        }
-    }
 }

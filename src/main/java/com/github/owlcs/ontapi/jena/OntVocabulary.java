@@ -29,7 +29,6 @@ import org.apache.jena.vocabulary.SKOS;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -329,8 +328,7 @@ public interface OntVocabulary {
 
         protected static <T> Set<T> getConstants(Class<? extends T> type, Class<?>... vocabularies) {
             return Arrays.stream(vocabularies)
-                    .map(x -> constants(x, type))
-                    .flatMap(Function.identity())
+                    .flatMap(x -> constants(x, type))
                     .collect(Iter.toUnmodifiableSet());
         }
 

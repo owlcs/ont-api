@@ -157,9 +157,9 @@ public class InternalModel extends OntGraphModelImpl
     protected final ByObjectSearcher<OWLAxiom, IRI> byIRI = new ByIRI();
     // Other searchers
     protected final ByObjectSearcher<OWLDeclarationAxiom, OWLEntity> declarationsByEntity = new DeclarationByEntity();
-    protected final ByObjectSearcher<OWLSubClassOfAxiom, OWLClass> subClassOfBySubject = new SubClassOfBySubject();
     protected final ByObjectSearcher<OWLAnnotationAssertionAxiom, OWLAnnotationSubject> annotationAssertionsBySubject
             = new AnnotationAssertionBySubject();
+    protected final ByObjectSearcher<OWLSubClassOfAxiom, OWLClass> subClassOfBySubject = new SubClassOfBySubject();
     protected final ByObjectSearcher<OWLEquivalentClassesAxiom, OWLClass> equivalentClassesByOperand
             = new EquivalentClassesByClass();
 

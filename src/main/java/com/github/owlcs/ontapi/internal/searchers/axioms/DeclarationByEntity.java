@@ -25,6 +25,8 @@ import com.github.owlcs.ontapi.jena.model.OntEntity;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
+import com.github.owlcs.ontapi.jena.vocabulary.RDF;
+import org.apache.jena.graph.Node;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
@@ -40,8 +42,11 @@ public class DeclarationByEntity extends BaseByObject<OWLDeclarationAxiom, OWLEn
                                                                           OntModel model,
                                                                           ONTObjectFactory factory,
                                                                           AxiomsSettings config) {
-        OntEntity res = PersonalityModel.asPersonalityModel(model)
-                .findNodeAs(WriteHelper.toNode(entity), WriteHelper.getEntityType(entity));
+        Node node = WriteHelper.toNode(entity);
+        if (!model.independent() && !model.getBaseGraph().contains(node, RDF.type.asNode(), WriteHelper.getRDFType(entity).asNode())) {
+            return Iter.of();
+        }
+        OntEntity res = PersonalityModel.asPersonalityModel(model).findNodeAs(node, WriteHelper.getEntityType(entity));
         if (res == null) return Iter.of();
         OntStatement statement = res.getMainStatement();
         return statement == null ? Iter.of() : Iter.of(toAxiom(TRANSLATOR, statement, factory, config));
