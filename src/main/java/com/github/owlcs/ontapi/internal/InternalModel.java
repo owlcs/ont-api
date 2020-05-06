@@ -653,17 +653,16 @@ public class InternalModel extends OntGraphModelImpl
      * with the given {@link OWLAnnotationSubject subject}.
      * Note: method returns non-cached axioms.
      *
-     * @param s {@link OWLAnnotationSubject}, not {@code null}
+     * @param subject {@link OWLAnnotationSubject}, not {@code null}
      * @return {@code Stream} of {@link OWLAnnotationAssertionAxiom}s
      */
-    public Stream<OWLAnnotationAssertionAxiom> listOWLAnnotationAssertionAxioms(OWLAnnotationSubject s) {
+    public Stream<OWLAnnotationAssertionAxiom> listOWLAnnotationAssertionAxioms(OWLAnnotationSubject subject) {
         InternalConfig config = getConfig();
         if (!config.isLoadAnnotationAxioms()) return Stream.empty();
         if (!useAxiomsSearchOptimization(config)) {
-            return listOWLAxioms(OWLAnnotationAssertionAxiom.class).filter(a -> s.equals(a.getSubject()));
+            return listOWLAxioms(OWLAnnotationAssertionAxiom.class).filter(a -> subject.equals(a.getSubject()));
         }
-        return reduce(Iter.asStream(annotationAssertionsBySubject.listONTAxioms(s, getSearchModel(), getObjectFactory(), config)
-                .mapWith(ONTObject::getOWLObject)));
+        return listOWLAxioms(annotationAssertionsBySubject, subject, config);
     }
 
     /**
@@ -673,30 +672,35 @@ public class InternalModel extends OntGraphModelImpl
      * @param sub {@link OWLClass}, not {@code null}
      * @return {@code Stream} of {@link OWLSubClassOfAxiom}s
      */
-    public Stream<OWLSubClassOfAxiom> listOWLSubClassOfAxioms(OWLClass sub) {
+    public Stream<OWLSubClassOfAxiom> listOWLSubClassOfAxiomsBySubject(OWLClass sub) {
         InternalConfig config = getConfig();
         if (!useAxiomsSearchOptimization(config)) {
             return listOWLAxioms(OWLSubClassOfAxiom.class).filter(a -> Objects.equals(a.getSubClass(), sub));
         }
-        return reduce(Iter.asStream(subClassOfBySubject.listONTAxioms(sub, getSearchModel(), getObjectFactory(), config)
-                .mapWith(ONTObject::getOWLObject)));
+        return listOWLAxioms(subClassOfBySubject, sub, config);
     }
 
     /**
      * Lists {@link OWLEquivalentClassesAxiom EquivalentClasses Axiom}s by the given {@link OWLClass class}-component.
      * Note: method returns non-cached axioms.
      *
-     * @param c {@link OWLClass}, not {@code null}
+     * @param clazz {@link OWLClass}, not {@code null}
      * @return {@code Stream} of {@link OWLEquivalentClassesAxiom}s
      * @see AbstractNaryTranslator#axioms(OntModel)
      */
-    public Stream<OWLEquivalentClassesAxiom> listOWLEquivalentClassesAxioms(OWLClass c) {
+    public Stream<OWLEquivalentClassesAxiom> listOWLEquivalentClassesAxioms(OWLClass clazz) {
         InternalConfig config = getConfig();
         if (!useAxiomsSearchOptimization(config)) {
-            return listOWLAxioms(OWLEquivalentClassesAxiom.class).filter(a -> a.operands().anyMatch(c::equals));
+            return listOWLAxioms(OWLEquivalentClassesAxiom.class).filter(a -> a.operands().anyMatch(clazz::equals));
         }
-        return reduce(Iter.asStream(equivalentClassesByOperand.listONTAxioms(c, getSearchModel(), getObjectFactory(), config)
-                .mapWith(ONTObject::getOWLObject)));
+        return listOWLAxioms(equivalentClassesByOperand, clazz, config);
+    }
+
+    protected <A extends OWLAxiom, K extends OWLObject> Stream<A> listOWLAxioms(ByObjectSearcher<A, K> searcher,
+                                                                                K parameter,
+                                                                                InternalConfig config) {
+        return reduce(searcher.listONTAxioms(parameter, getSearchModel(), getObjectFactory(), config)
+                .mapWith(ONTObject::getOWLObject));
     }
 
     /**
@@ -733,7 +737,7 @@ public class InternalModel extends OntGraphModelImpl
             } else {
                 throw new OntApiException.IllegalArgument("Wrong type: " + filter);
             }
-            return reduce(Iter.asStream(res.mapWith(ONTObject::getOWLObject)));
+            return reduce(res.mapWith(ONTObject::getOWLObject));
         }
         // the default way:
         if (OWLTopObjectType.ANNOTATION.hasComponent(filter)) {
@@ -922,7 +926,26 @@ public class InternalModel extends OntGraphModelImpl
         // Uniqueness is guaranteed by other mechanisms.
         // 1024 is a magic approximate number of axioms/objects; it is not tested yet.
         ArrayList<R> res = new ArrayList<>(1024);
-        stream.collect(Collectors.toCollection(() -> res));
+        stream.forEach(res::add);
+        res.trimToSize();
+        return res.stream();
+    }
+
+    /**
+     * Performs a final operation over the specified {@code stream} before releasing it out.
+     *
+     * @param stream {@code ExtendedIterator} of {@link R}s
+     * @param <R>    anything
+     * @return {@code Stream} of {@link R}s
+     * @see #reduce(Stream)
+     */
+    protected <R> Stream<R> reduce(ExtendedIterator<R> stream) {
+        InternalConfig conf = getConfig();
+        if (!conf.parallel() || !conf.useContentCache()) {
+            return Iter.asStream(stream);
+        }
+        ArrayList<R> res = new ArrayList<>(1024);
+        stream.forEachRemaining(res::add);
         res.trimToSize();
         return res.stream();
     }

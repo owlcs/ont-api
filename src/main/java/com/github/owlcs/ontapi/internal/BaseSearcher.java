@@ -153,7 +153,7 @@ public abstract class BaseSearcher {
         return listStatements(model, null, null, null);
     }
 
-    private ExtendedIterator<OntStatement> listStatements(OntModel model, Resource s, Property p, RDFNode o) {
+    protected final ExtendedIterator<OntStatement> listStatements(OntModel model, Resource s, Property p, RDFNode o) {
         return OntModels.listLocalStatements(model, s, p, o);
     }
 }

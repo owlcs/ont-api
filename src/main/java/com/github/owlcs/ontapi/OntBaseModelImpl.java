@@ -369,7 +369,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, BaseModel {
      */
     @Override
     public Stream<OWLClassAxiom> axioms(OWLClass clazz) {
-        Stream<? extends OWLClassAxiom> subClassOf = base.listOWLSubClassOfAxioms(clazz);
+        Stream<? extends OWLClassAxiom> subClassOf = base.listOWLSubClassOfAxiomsBySubject(clazz);
         Stream<? extends OWLClassAxiom> disjointUnion = base.listOWLAxioms(OWLDisjointUnionAxiom.class)
                 .filter(a -> Objects.equals(a.getOWLClass(), clazz));
         Stream<? extends OWLClassAxiom> disjoint = base.listOWLAxioms(OWLDisjointClassesAxiom.class)
@@ -588,7 +588,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, BaseModel {
         if (OWLSubClassOfAxiom.class.equals(type) && object instanceof OWLClassExpression) {
             OWLClassExpression c = (OWLClassExpression) object;
             if (c.isOWLClass() && sub) {
-                return (Stream<A>) base.listOWLSubClassOfAxioms(c.asOWLClass());
+                return (Stream<A>) base.listOWLSubClassOfAxiomsBySubject(c.asOWLClass());
             }
             return (Stream<A>) base.listOWLAxioms(OWLSubClassOfAxiom.class)
                     .filter(a -> c.equals(sub ? a.getSubClass() : a.getSuperClass()));
