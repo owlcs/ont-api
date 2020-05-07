@@ -21,11 +21,11 @@ import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDFS;
 
 /**
- * Created by @ssz on 18.04.2020.
+ * Created by @ssz on 07.05.2020.
  */
-public class SubClassOfBySubject extends SubClassOfByClass {
+public class SubClassOfByObject extends SubClassOfByClass {
     @Override
     protected ExtendedIterator<OntStatement> listStatements(OntModel model, Resource clazz) {
-        return listBySubjectAndPredicate(model, clazz, RDFS.subClassOf);
+        return listByPredicateAndObject(model, RDFS.subClassOf, clazz);
     }
 }

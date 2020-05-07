@@ -160,6 +160,7 @@ public class InternalModel extends OntGraphModelImpl
     protected final ByObjectSearcher<OWLAnnotationAssertionAxiom, OWLAnnotationSubject> annotationAssertionsBySubject
             = new AnnotationAssertionBySubject();
     protected final ByObjectSearcher<OWLSubClassOfAxiom, OWLClass> subClassOfBySubject = new SubClassOfBySubject();
+    protected final ByObjectSearcher<OWLSubClassOfAxiom, OWLClass> subClassOfByObject = new SubClassOfByObject();
     protected final ByObjectSearcher<OWLEquivalentClassesAxiom, OWLClass> equivalentClassesByOperand
             = new EquivalentClassesByClass();
 
@@ -625,7 +626,7 @@ public class InternalModel extends OntGraphModelImpl
 
     /**
      * Lists {@link OWLDeclarationAxiom Declaration Axiom}s for the specified {@link OWLEntity entity}.
-     * Note: method returns non-cached axioms.
+     * Note: method may return non-cached axioms.
      *
      * @param e {@link OWLEntity}, not {@code null}
      * @return {@code Stream} of {@link OWLDeclarationAxiom}s
@@ -667,8 +668,6 @@ public class InternalModel extends OntGraphModelImpl
 
     /**
      * Lists {@link OWLSubClassOfAxiom SubClassOf Axiom}s by the given sub {@link OWLClass class}.
-     * Note: method returns non-cached axioms.
-     *
      * @param sub {@link OWLClass}, not {@code null}
      * @return {@code Stream} of {@link OWLSubClassOfAxiom}s
      */
@@ -681,8 +680,21 @@ public class InternalModel extends OntGraphModelImpl
     }
 
     /**
+     * Lists {@link OWLSubClassOfAxiom SubClassOf Axiom}s by the given super {@link OWLClass class}.
+     *
+     * @param sup {@link OWLClass}, not {@code null}
+     * @return {@code Stream} of {@link OWLSubClassOfAxiom}s
+     */
+    public Stream<OWLSubClassOfAxiom> listOWLSubClassOfAxiomsByObject(OWLClass sup) {
+        InternalConfig config = getConfig();
+        if (!useAxiomsSearchOptimization(config)) {
+            return listOWLAxioms(OWLSubClassOfAxiom.class).filter(a -> Objects.equals(a.getSuperClass(), sup));
+        }
+        return listOWLAxioms(subClassOfByObject, sup, config);
+    }
+
+    /**
      * Lists {@link OWLEquivalentClassesAxiom EquivalentClasses Axiom}s by the given {@link OWLClass class}-component.
-     * Note: method returns non-cached axioms.
      *
      * @param clazz {@link OWLClass}, not {@code null}
      * @return {@code Stream} of {@link OWLEquivalentClassesAxiom}s
@@ -696,6 +708,17 @@ public class InternalModel extends OntGraphModelImpl
         return listOWLAxioms(equivalentClassesByOperand, clazz, config);
     }
 
+    /**
+     * Auxiliary method to extract axioms from the graph.
+     * Note: method returns non-cached axioms.
+     *
+     * @param searcher  {@link ByObjectSearcher}
+     * @param parameter {@link K}
+     * @param config    {@link InternalConfig}
+     * @param <A>       {@link OWLAxiom}
+     * @param <K>       {@link OWLObject}
+     * @return {@code Stream}
+     */
     protected <A extends OWLAxiom, K extends OWLObject> Stream<A> listOWLAxioms(ByObjectSearcher<A, K> searcher,
                                                                                 K parameter,
                                                                                 InternalConfig config) {

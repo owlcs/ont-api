@@ -587,8 +587,10 @@ public abstract class OntBaseModelImpl implements OWLOntology, BaseModel {
         }
         if (OWLSubClassOfAxiom.class.equals(type) && object instanceof OWLClassExpression) {
             OWLClassExpression c = (OWLClassExpression) object;
-            if (c.isOWLClass() && sub) {
-                return (Stream<A>) base.listOWLSubClassOfAxiomsBySubject(c.asOWLClass());
+            if (c.isOWLClass()) {
+                return sub ?
+                        (Stream<A>) base.listOWLSubClassOfAxiomsBySubject(c.asOWLClass()) :
+                        (Stream<A>) base.listOWLSubClassOfAxiomsByObject(c.asOWLClass());
             }
             return (Stream<A>) base.listOWLAxioms(OWLSubClassOfAxiom.class)
                     .filter(a -> c.equals(sub ? a.getSubClass() : a.getSuperClass()));
