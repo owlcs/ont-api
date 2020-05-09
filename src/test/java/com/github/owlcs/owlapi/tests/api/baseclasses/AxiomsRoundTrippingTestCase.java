@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -174,134 +174,134 @@ public class AxiomsRoundTrippingTestCase extends AxiomsRoundTrippingBase {
                     axioms.add(df.getSWRLRule(body, head));
                     return axioms;
                 },
-                //
+                // 2:
                 () -> singleton(SubPropertyChainOf(Arrays.asList(propA, propB, propC), propD)),
-                //
+                // 3:
                 () -> singleton(AsymmetricObjectProperty(op)),
-                //
+                // 4:
                 () -> singleton(DifferentIndividuals(createIndividual(), createIndividual(), createIndividual(),
                         createIndividual(), createIndividual(), createIndividual(), createIndividual(), createIndividual(),
                         createIndividual(), createIndividual())),
-                //
+                // 5:
                 () -> Sets.newHashSet(SubClassOf(clsA, ObjectSomeValuesFrom(op, ObjectSomeValuesFrom(op, clsB))),
                         Declaration(clsA), Declaration(clsB)),
-                //
+                // 6:
                 () -> Sets.newHashSet(Declaration(RDFSLabel()), Declaration(peter), AnnotationAssertion(RDFSLabel(), peter
                         .getIRI(), Literal("X", "en"), ann1, ann2)),
                 //
                 () -> Sets.newHashSet(Declaration(RDFSLabel()), Declaration(peter, eAnn1, eAnn2), AnnotationAssertion(
                         RDFSLabel(), peter.getIRI(), Literal("X", "en"), ann1, ann2)),
-                //
+                // 8:
                 () -> singleton(InverseObjectProperties(oq, op)),
                 //
                 () -> singleton(InverseObjectProperties(op, oq)),
-                //
+                // 10:
                 () -> Sets.newHashSet(Declaration(clsA), AnnotationAssertion(apropA, clsA.getIRI(), IRI(
                         "http://www.semanticweb.org/owlapi#", "object"))),
-                //
+                // 11:
                 () -> singleton(SubClassOf(clsA, clsB, singleton(annoInner))),
-                //
+                // 12:
                 () -> singleton(AnnotationPropertyDomain(RDFSComment(), iriA)),
                 //
                 () -> singleton(AnnotationPropertyRange(RDFSComment(), iriA)),
-                //
+                // 14:
                 () -> singleton(SubAnnotationPropertyOf(apropA, RDFSLabel())),
-                //
+                // 15:
                 () -> singleton(SubClassOf(clsA, DataMaxCardinality(3, dp, Integer()))),
-                //
+                // 16:
                 () -> singleton(SubClassOf(clsA, DataMinCardinality(3, dp, Integer()))),
-                //
+                // 17:
                 () -> singleton(SubClassOf(clsA, DataExactCardinality(3, dp, Integer()))),
-                //
+                // 18:
                 () -> singleton(DataPropertyRange(dp, DataUnionOf(disj1, disj2))),
                 //
                 () -> Sets.newHashSet(HasKey(singleton(Annotation(apropA, Literal("Test", ""))), clsA, propA, propB, propC),
                         Declaration(apropA), Declaration(propA), Declaration(propB), Declaration(propC)),
-                //
+                // 20:
                 () -> singleton(DisjointClasses(asUnorderedSet(Stream.generate(OWLFunctionalSyntaxFactory::createClass).limit(1000)))),
-                //
+                // 21:
                 () -> singleton(SubClassOf(clsB, ObjectSomeValuesFrom(op.getInverseProperty(), clsA))),
-                //
+                // 22:
                 () -> singleton(SubDataPropertyOf(dp, dq)),
-                //
+                // 23:
                 () -> singleton(DataPropertyAssertion(dp, ind, Literal(33.3))),
-                //
+                // 24:
                 () -> Sets.newHashSet(NegativeDataPropertyAssertion(dp, ind, Literal(33.3)), NegativeDataPropertyAssertion(
                         dp, ind, Literal("weasel", "")), NegativeDataPropertyAssertion(dp, ind, Literal("weasel"))),
-                //
+                // 25:
                 () -> singleton(FunctionalDataProperty(dp)),
-                //
+                // 26:
                 () -> singleton(DataPropertyDomain(dp, Class(iri("A")))),
-                //
+                // 27:
                 () -> singleton(DataPropertyRange(dp, TopDatatype())),
-                //
+                // 28:
                 () -> Sets.newHashSet(DisjointDataProperties(dpA, dpB, dpC), Declaration(dpA), Declaration(dpB),
                         Declaration(dpC)),
-                //
+                // 29:
                 () -> singleton(DisjointDataProperties(dpA, dpB)),
-                //
+                // 30:
                 () -> singleton(EquivalentDataProperties(dp, dq)),
-                //
+                // 31:
                 () -> singleton(AsymmetricObjectProperty(op)),
-                //
+                // 32:
                 () -> Sets.newHashSet(DatatypeDefinition(datatype, DataComplementOf(Integer())), Declaration(datatype)),
-                //
+                // 33:
                 () -> Sets.newHashSet(DifferentIndividuals(ind, indj), DifferentIndividuals(ind, NamedIndividual(iri(
                         "k")))),
-                //
+                // 34:
                 () -> singleton(DifferentIndividuals(ind, indj, NamedIndividual(iri("k")), NamedIndividual(iri("l")))),
-                //
+                // 35:
                 () -> Sets.newHashSet(DisjointObjectProperties(propA, propB, propC), Declaration(propA), Declaration(propB),
                         Declaration(propC)),
-                //
+                // 36:
                 () -> singleton(DisjointObjectProperties(propA, propB)),
-                //
+                // 37:
                 () -> Sets.newHashSet(EquivalentObjectProperties(propA, propB), Declaration(propA), Declaration(propB)),
-                //
+                // 38:
                 () -> singleton(FunctionalObjectProperty(op)),
-                //
+                // 39:
                 () -> singleton(InverseFunctionalObjectProperty(op)),
-                //
+                // 40:
                 () -> singleton(IrreflexiveObjectProperty(op)),
-                //
+                // 41:
                 () -> singleton(DifferentIndividuals(asUnorderedSet(Stream.generate(OWLFunctionalSyntaxFactory::createIndividual).limit(
                         1000)))),
-                //
+                // 42:
                 () -> Sets.newHashSet(AnnotationAssertion(apropA, clsA.getIRI(), Literal("abc", "en")), Declaration(clsA)),
-                //
+                // 43:
                 () -> Sets.newHashSet(AnnotationAssertion(apropA, iriA, Literal("abc", "en")), AnnotationAssertion(apropA,
                         iriA, Literal("abcd", "")), AnnotationAssertion(apropA, iriA, Literal("abcde")), AnnotationAssertion(
                         apropA, iriA, Literal("abcdef", OWL2Datatype.XSD_STRING)), Declaration(clsA)),
-                //
+                // 44:
                 () -> singleton(NegativeObjectPropertyAssertion(op, ind, indj)),
-                //
+                // 45:
                 () -> singleton(ObjectPropertyAssertion(op, ind, indj)),
-                //
+                // 46:
                 () -> singleton(SubPropertyChainOf(Arrays.asList(propA, propB, propC), propD, Sets.newHashSet(Annotation(
                         apropA, Literal("Test", "en")), Annotation(apropB, Literal("Test", ""))))),
-                //
+                // 47:
                 () -> singleton(ObjectPropertyDomain(op, clsA)),
-                //
+                // 48:
                 () -> singleton(ObjectPropertyRange(op, clsA)),
-                //
+                // 49:
                 () -> Sets.newHashSet(Declaration(Class(IRI("http://www.test.com/ontology#", "Class%37A"))), Declaration(
                         ObjectProperty(IRI("http://www.test.com/ontology#", "prop%37A")))),
-                //
+                // 50:
                 () -> singleton(ReflexiveObjectProperty(op)),
-                //
+                // 51:
                 () -> singleton(SameIndividual(ind, indj)),
-                //
+                // 52:
                 () -> singleton(DataPropertyAssertion(dp, ind, Literal("Test \"literal\"\nStuff"))),
-                //
+                // 53:
                 () -> Sets.newHashSet(DataPropertyAssertion(dp, ind, Literal("Test \"literal\"")), DataPropertyAssertion(dp,
                         ind, Literal("Test 'literal'")), DataPropertyAssertion(dp, ind, Literal("Test \"\"\"literal\"\"\""))),
-                //
+                // 54:
                 () -> singleton(SubObjectPropertyOf(op, oq)),
-                //
+                // 55:
                 () -> singleton(SymmetricObjectProperty(op)),
-                //
+                // 56:
                 () -> singleton(TransitiveObjectProperty(op)),
-                //
+                // 57:
                 () -> Sets.newHashSet(DataPropertyAssertion(dp, ind, Literal(3)), DataPropertyAssertion(dp, ind, Literal(
                         33.3)), DataPropertyAssertion(dp, ind, Literal(true)), DataPropertyAssertion(dp, ind, Literal(33.3f)),
                         DataPropertyAssertion(dp, ind, Literal("33.3"))));

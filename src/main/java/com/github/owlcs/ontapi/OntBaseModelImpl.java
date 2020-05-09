@@ -372,8 +372,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, BaseModel {
         Stream<? extends OWLClassAxiom> subClassOf = base.listOWLSubClassOfAxiomsBySubject(clazz);
         Stream<? extends OWLClassAxiom> disjointUnion = base.listOWLAxioms(OWLDisjointUnionAxiom.class)
                 .filter(a -> Objects.equals(a.getOWLClass(), clazz));
-        Stream<? extends OWLClassAxiom> disjoint = base.listOWLAxioms(OWLDisjointClassesAxiom.class)
-                .filter(a -> a.operands().anyMatch(clazz::equals));
+        Stream<? extends OWLClassAxiom> disjoint = base.listOWLDisjointClassesAxioms(clazz);
         Stream<? extends OWLClassAxiom> equivalent = base.listOWLEquivalentClassesAxioms(clazz);
         return Stream.of(subClassOf, disjointUnion, disjoint, equivalent).flatMap(Function.identity());
     }
@@ -601,6 +600,13 @@ public abstract class OntBaseModelImpl implements OWLOntology, BaseModel {
                 return (Stream<A>) base.listOWLEquivalentClassesAxioms(c.asOWLClass());
             }
             return (Stream<A>) base.listOWLAxioms(OWLEquivalentClassesAxiom.class).filter(a -> a.contains(c));
+        }
+        if (OWLDisjointClassesAxiom.class.equals(type) && sub && object instanceof OWLClassExpression) {
+            OWLClassExpression c = (OWLClassExpression) object;
+            if (c.isOWLClass()) {
+                return (Stream<A>) base.listOWLDisjointClassesAxioms(c.asOWLClass());
+            }
+            return (Stream<A>) base.listOWLAxioms(OWLDisjointClassesAxiom.class).filter(a -> a.contains(c));
         }
         if (OWLInverseObjectPropertiesAxiom.class.equals(type) && object instanceof OWLObjectPropertyExpression) {
             return (Stream<A>) base.listOWLAxioms(OWLInverseObjectPropertiesAxiom.class)

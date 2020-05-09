@@ -81,83 +81,99 @@ public class SearchByObjectTest {
         data.doTest(T.EQUIVALENT_CLASS_BY_OPERAND, HasClassesInSignature::classesInSignature);
     }
 
+    @Test
+    public void testDisjointClassesAxioms() {
+        data.doTest(T.DISJOINT_CLASS_BY_OPERAND, HasClassesInSignature::classesInSignature);
+    }
+
     enum TestData {
         PIZZA(ModelData.PIZZA,
                 T.DECLARATIONS.of(-5190508530L),
                 T.ANNOTATION_ASSERTIONS_BY_SUBJECT.of(5847447319L),
                 T.SUB_CLASS_OF_BY_SUBJECT.of(23994790843L),
                 T.SUB_CLASS_OF_BY_OBJECT.of(15875097811L),
-                T.EQUIVALENT_CLASS_BY_OPERAND.of(743207879L)
+                T.EQUIVALENT_CLASS_BY_OPERAND.of(743207879L),
+                T.DISJOINT_CLASS_BY_OPERAND.of(39992865656L)
         ),
         FAMILY(ModelData.FAMILY,
                 T.DECLARATIONS.of(34226271096L),
                 T.ANNOTATION_ASSERTIONS_BY_SUBJECT.of(375920279L),
                 T.SUB_CLASS_OF_BY_SUBJECT.of(-405443220L),
                 T.SUB_CLASS_OF_BY_OBJECT.of(30468706L),
-                T.EQUIVALENT_CLASS_BY_OPERAND.of(1149278276L)
+                T.EQUIVALENT_CLASS_BY_OPERAND.of(1149278276L),
+                T.DISJOINT_CLASS_BY_OPERAND.of(-5870114142L)
         ),
         PEOPLE(ModelData.PEOPLE,
                 T.DECLARATIONS.of(-31040926516L),
                 T.ANNOTATION_ASSERTIONS_BY_SUBJECT.of(14660248630L),
                 T.SUB_CLASS_OF_BY_SUBJECT.of(-6044474129L),
                 T.SUB_CLASS_OF_BY_OBJECT.of(-8307389053L),
-                T.EQUIVALENT_CLASS_BY_OPERAND.of(229986282L)
+                T.EQUIVALENT_CLASS_BY_OPERAND.of(229986282L),
+                T.DISJOINT_CLASS_BY_OPERAND.of(5151062994L)
         ),
         CAMERA(ModelData.CAMERA,
                 T.DECLARATIONS.of(2967944221L),
                 T.ANNOTATION_ASSERTIONS_BY_SUBJECT.of(),
                 T.SUB_CLASS_OF_BY_SUBJECT.of(3537056616L),
                 T.SUB_CLASS_OF_BY_OBJECT.of(5364459487L),
-                T.EQUIVALENT_CLASS_BY_OPERAND.of(2619197590L)
+                T.EQUIVALENT_CLASS_BY_OPERAND.of(2619197590L),
+                T.DISJOINT_CLASS_BY_OPERAND.of()
         ),
         KOALA(ModelData.KOALA,
                 T.DECLARATIONS.of(6488467972L),
                 T.ANNOTATION_ASSERTIONS_BY_SUBJECT.of(2255627747L),
                 T.SUB_CLASS_OF_BY_SUBJECT.of(-4740693142L),
                 T.SUB_CLASS_OF_BY_OBJECT.of(-6410317539L),
-                T.EQUIVALENT_CLASS_BY_OPERAND.of(1433290824L)
+                T.EQUIVALENT_CLASS_BY_OPERAND.of(1433290824L),
+                T.DISJOINT_CLASS_BY_OPERAND.of(3827692310L)
         ),
         TRAVEL(ModelData.TRAVEL,
                 T.DECLARATIONS.of(-25825023334L),
                 T.ANNOTATION_ASSERTIONS_BY_SUBJECT.of(-3973926788L),
                 T.SUB_CLASS_OF_BY_SUBJECT.of(3792566851L),
                 T.SUB_CLASS_OF_BY_OBJECT.of(1596226755L),
-                T.EQUIVALENT_CLASS_BY_OPERAND.of(-1797460855L)
+                T.EQUIVALENT_CLASS_BY_OPERAND.of(-1797460855L),
+                T.DISJOINT_CLASS_BY_OPERAND.of(13371010920L)
         ),
         WINE(ModelData.WINE,
                 T.DECLARATIONS.of(20065711780L),
                 T.ANNOTATION_ASSERTIONS_BY_SUBJECT.of(1282021579L),
                 T.SUB_CLASS_OF_BY_SUBJECT.of(23989074593L),
                 T.SUB_CLASS_OF_BY_OBJECT.of(-2872929990L),
-                T.EQUIVALENT_CLASS_BY_OPERAND.of(15637987080L)
+                T.EQUIVALENT_CLASS_BY_OPERAND.of(15637987080L),
+                T.DISJOINT_CLASS_BY_OPERAND.of(-2886827780L)
         ),
         FOOD(ModelData.FOOD,
                 T.DECLARATIONS.of(6794851452L),
                 T.ANNOTATION_ASSERTIONS_BY_SUBJECT.of(),
                 T.SUB_CLASS_OF_BY_SUBJECT.of(-2766054837L),
                 T.SUB_CLASS_OF_BY_OBJECT.of(-490371437L),
-                T.EQUIVALENT_CLASS_BY_OPERAND.of(16744408703L)
+                T.EQUIVALENT_CLASS_BY_OPERAND.of(16744408703L),
+                T.DISJOINT_CLASS_BY_OPERAND.of(14957310010L)
         ),
         NCBITAXON_CUT(ModelData.NCBITAXON_CUT,
                 T.DECLARATIONS.of(244310200631L),
                 T.ANNOTATION_ASSERTIONS_BY_SUBJECT.of(120569949408L),
                 T.SUB_CLASS_OF_BY_SUBJECT.of(-1220817325L),
                 T.SUB_CLASS_OF_BY_OBJECT.of(-1220817325L),
-                T.EQUIVALENT_CLASS_BY_OPERAND.of()
+                T.EQUIVALENT_CLASS_BY_OPERAND.of(),
+                T.DISJOINT_CLASS_BY_OPERAND.of(-5419911878L)
         ),
         HP_CUT(ModelData.HP_CUT,
                 T.DECLARATIONS.of(-14640456193L),
                 T.ANNOTATION_ASSERTIONS_BY_SUBJECT.of(2061724906L),
                 T.SUB_CLASS_OF_BY_SUBJECT.of(-2245851740L),
                 T.SUB_CLASS_OF_BY_OBJECT.of(-2245851740L),
-                T.EQUIVALENT_CLASS_BY_OPERAND.of(-1475922263L)
+                T.EQUIVALENT_CLASS_BY_OPERAND.of(-1475922263L),
+                T.DISJOINT_CLASS_BY_OPERAND.of()
         ),
         FAMILY_PEOPLE_UNION(ModelData.FAMILY_PEOPLE_UNION,
                 T.DECLARATIONS.of(-637777500L),
                 T.ANNOTATION_ASSERTIONS_BY_SUBJECT.of(-311728567L),
                 T.SUB_CLASS_OF_BY_SUBJECT.of(-730374961L),
                 T.SUB_CLASS_OF_BY_OBJECT.of(-730374961L),
-                T.EQUIVALENT_CLASS_BY_OPERAND.of(1108552553L)
+                T.EQUIVALENT_CLASS_BY_OPERAND.of(1108552553L),
+                T.DISJOINT_CLASS_BY_OPERAND.of()
         ),
         ;
         private final ModelData resource;
@@ -213,6 +229,12 @@ public class SearchByObjectTest {
             @Override
             Stream<? extends OWLObject> listAxioms(OWLOntology ont, OWLObject param) {
                 return ont.equivalentClassesAxioms((OWLClass) param);
+            }
+        },
+        DISJOINT_CLASS_BY_OPERAND {
+            @Override
+            Stream<? extends OWLObject> listAxioms(OWLOntology ont, OWLObject param) {
+                return ont.disjointClassesAxioms((OWLClass) param);
             }
         },
         ;
