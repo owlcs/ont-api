@@ -18,6 +18,7 @@ import org.apache.jena.rdf.model.RDFList;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
@@ -43,6 +44,21 @@ public interface RDFNodeList<E extends RDFNode> extends Resource {
      * @see com.github.owlcs.ontapi.jena.utils.Iter#asStream(java.util.Iterator)
      */
     Stream<E> members();
+
+    /**
+     * Answers {@code true} if the []-list contains the specified {@code element}.
+     * More formally, returns {@code true} if and only if
+     * this RDF-list contains at least one element {@code e} of the type {@link E} such that {@code element.equals(e)}.
+     *
+     * @param element {@link E}, not {@code null}
+     * @return boolean
+     */
+    default boolean contains(E element) {
+        Objects.requireNonNull(element);
+        try (Stream<E> members = members()) {
+            return members.anyMatch(element::equals);
+        }
+    }
 
     /**
      * Answers the first element of the type {@link E}.

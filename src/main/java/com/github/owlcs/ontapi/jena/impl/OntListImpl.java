@@ -435,6 +435,14 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
         return Iter.flatMap(createSafeRDFListIterator(list.asNode()), this::toListStatements);
     }
 
+    @Override
+    public boolean contains(E item) {
+        RDFList list = getRDFList();
+        if (isNil(list)) return false;
+        return Iter.anyMatch(getModel().getGraph().find(Node.ANY, RDF.first.asNode(), item.asNode()),
+                t -> Iter.anyMatch(createSafeRDFListIterator(list.asNode()), x -> x.contains(t)));
+    }
+
     public ExtendedIterator<OntStatement> listContent() {
         return Iter.of(getMainStatement()).andThen(listSpec());
     }

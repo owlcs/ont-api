@@ -92,6 +92,8 @@ public class OntListTest {
         Assert.assertEquals(1, p2.propertyChains().count());
         Assert.assertEquals(0, p3.propertyChains().count());
         Assert.assertEquals(2, m.objectProperties().flatMap(OntObjectProperty::propertyChains).count());
+        Assert.assertTrue(list.contains(p3));
+        Assert.assertFalse(list.contains(p2));
         check(m, 2, OntObjectProperty.Named.class);
 
         list.remove();
@@ -99,6 +101,7 @@ public class OntListTest {
         Assert.assertEquals(2, list.as(RDFList.class).size());
         Assert.assertFalse(list.isNil());
         Assert.assertFalse(list.members().anyMatch(p -> p.equals(p1)));
+        Assert.assertFalse(list.contains(p1));
         Assert.assertEquals(p3, list.last().orElseThrow(AssertionError::new));
         Assert.assertEquals(p3, list.first().orElseThrow(AssertionError::new));
         check(m, 2, OntObjectProperty.Named.class);
@@ -112,6 +115,9 @@ public class OntListTest {
         Assert.assertEquals(0, list.members().count());
         Assert.assertEquals(0, list.as(RDFList.class).size());
         Assert.assertTrue(list.isNil());
+        Assert.assertFalse(list.contains(p1));
+        Assert.assertFalse(list.contains(p2));
+        Assert.assertFalse(list.contains(p3));
         check(m, 2, OntObjectProperty.class);
     }
 
@@ -236,6 +242,7 @@ public class OntListTest {
         Assert.assertEquals(3, list.size());
         Assert.assertEquals(2, list.members().count());
         Assert.assertEquals(3, list.addFirst(p3).members().count());
+        Assert.assertTrue(list.contains(p3));
         Assert.assertEquals(4, list.size());
         Assert.assertEquals(2, list.get(1).members().count());
         Assert.assertEquals(p3, list.first().orElseThrow(AssertionError::new));
@@ -375,6 +382,10 @@ public class OntListTest {
         Assert.assertEquals(15, list.spec().count());
         Assert.assertEquals(Arrays.asList("Y", "B", "C", "D", "X"),
                 list.members().map(String::valueOf).collect(Collectors.toList()));
+        Assert.assertTrue(list.contains(m.createResource("X")));
+        Assert.assertFalse(list.contains(m.createLiteral("X")));
+        Assert.assertFalse(list.contains(m.createResource("Y")));
+        Assert.assertTrue(list.contains(m.createLiteral("Y")));
 
         Assert.assertEquals(2, list.get(2).removeFirst()
                 .addFirst(m.createResource("Z")).get(1)
@@ -383,6 +394,7 @@ public class OntListTest {
         Assert.assertEquals(Arrays.asList("Y", "B", "Z", "X", "F"), list.members().map(String::valueOf).collect(Collectors.toList()));
         Assert.assertEquals(16, m.size());
         Assert.assertEquals(15, list.spec().count());
+        Assert.assertTrue(list.contains(m.createResource("Z")));
 
         list.clear();
         Assert.assertTrue(list.isNil());
