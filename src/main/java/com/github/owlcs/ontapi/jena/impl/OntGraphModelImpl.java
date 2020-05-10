@@ -642,6 +642,20 @@ public class OntGraphModelImpl extends UnionModel implements OntModel, Personali
     }
 
     /**
+     * Determines if the given {@code (s, p, o)} pattern is present in the base graph,
+     * with {@code null} allowed to represent a wildcard match.
+     *
+     * @param s - {@link Resource} - the subject of the statement tested ({@code null} as wildcard)
+     * @param p - {@link Property} - the predicate of the statement tested ({@code null} as wildcard)
+     * @param o - {@link RDFNode} - the object of the statement tested ({@code null} as wildcard)
+     * @return boolean
+     * @see Model#contains(Resource, Property, RDFNode)
+     */
+    public boolean containsLocal(Resource s, Property p, RDFNode o) {
+        return getBaseGraph().contains(asNode(s), asNode(p), asNode(o));
+    }
+
+    /**
      * Wraps the existing given {@link RDFList []-list} as {@link OntList ONT-list}.
      *
      * @param list      {@link RDFList}, not {@code null}

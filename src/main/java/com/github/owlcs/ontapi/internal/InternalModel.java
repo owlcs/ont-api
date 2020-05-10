@@ -162,6 +162,7 @@ public class InternalModel extends OntGraphModelImpl
     protected final ByObjectSearcher<OWLSubClassOfAxiom, OWLClass> subClassOfBySubject = new SubClassOfBySubject();
     protected final ByObjectSearcher<OWLSubClassOfAxiom, OWLClass> subClassOfByObject = new SubClassOfByObject();
     protected final ByObjectSearcher<OWLEquivalentClassesAxiom, OWLClass> equivalentClassesByClass = new EquivalentClassesByClass();
+    protected final ByObjectSearcher<OWLDisjointClassesAxiom, OWLClass> disjointClassesByClass = new DisjointClassesByClass();
 
     // To search OWLObjects
     protected final ObjectsSearcher<OWLClass> classSearcher = new ClassSearcher();
@@ -709,7 +710,15 @@ public class InternalModel extends OntGraphModelImpl
      * @return {@code Stream} of {@link OWLDisjointClassesAxiom}s
      */
     public Stream<OWLDisjointClassesAxiom> listOWLDisjointClassesAxioms(OWLClass clazz) {
-        return listOWLAxioms(OWLDisjointClassesAxiom.class).filter(x -> x.operands().anyMatch(clazz::equals));
+        InternalConfig config = getConfig();
+        // bad performance of the graph-reading way if
+        // there is a []-list with many disjoint classes (i.e. owl:AllDisjointClasses) =>
+        // it is faster to use parsing of cached axioms (i.e. a classic way), if the cache is present
+        if (!config.useContentCache() ||
+                (!hasManuallyAddedAxioms() && !containsLocal(null, RDF.type, OWL.AllDisjointClasses))) {
+            return listOWLAxioms(disjointClassesByClass, OWLDisjointClassesAxiom.class, clazz, config);
+        }
+        return listOWLNaryAxiomAxiomsByOperand(clazz, OWLDisjointClassesAxiom.class);
     }
 
     /**
@@ -720,18 +729,24 @@ public class InternalModel extends OntGraphModelImpl
      * @param searcher - {@link ByObjectSearcher} for {@link A} and {@link K}
      * @param <A>      - subtype of {@link OWLNaryAxiom}
      * @param <K>      - subtype of {@link OWLObject}
-     * @return {@code Stream} of {@link A}s
+     * @return a {@code Stream} of {@link A}s
      * @see AbstractNaryTranslator#axioms(OntModel)
      */
-    public <A extends OWLNaryAxiom<? super K>,
+    @SuppressWarnings("SameParameterValue")
+    protected <A extends OWLNaryAxiom<? super K>,
             K extends OWLObject> Stream<A> listOWLNaryAxiomAxiomsByOperand(K operand,
                                                                            Class<A> type,
                                                                            ByObjectSearcher<A, K> searcher) {
         InternalConfig config = getConfig();
         if (!useAxiomsSearchOptimization(config)) {
-            return listOWLAxioms(type).filter(a -> a.operands().anyMatch(operand::equals));
+            return listOWLNaryAxiomAxiomsByOperand(operand, type);
         }
         return listOWLAxioms(searcher, type, operand, config);
+    }
+
+    protected <A extends OWLNaryAxiom<? super K>,
+            K extends OWLObject> Stream<A> listOWLNaryAxiomAxiomsByOperand(K operand, Class<A> type) {
+        return listOWLAxioms(type).filter(a -> a.operands().anyMatch(operand::equals));
     }
 
     /**
@@ -869,7 +884,7 @@ public class InternalModel extends OntGraphModelImpl
     }
 
     /**
-     * Answers {@code true} if need to use {@link ByObjectSearcher}-search optimization.
+     * Answers {@code true} if need to use {@link ByObjectSearcher}-search optimization instead of parsing cache.
      *
      * @param config {@link InternalConfig}
      * @return boolean
