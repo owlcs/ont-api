@@ -266,7 +266,7 @@ public class ReferencingAxiomsTest {
         }
 
         private ByPrimitiveTester of(long count) {
-            return new ByPrimitiveTester(name(), count, (ont, x) -> ont.referencingAxioms(x).distinct());
+            return new ByPrimitiveTester(name(), count, OWLAxiomCollection::referencingAxioms);
         }
     }
 

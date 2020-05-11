@@ -53,7 +53,6 @@ import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -412,7 +411,7 @@ public class InternalModel extends OntGraphModelImpl
     public Stream<OWLImportsDeclaration> listOWLImportDeclarations() {
         ModelObjectFactory of = getObjectFactory();
         DataFactory df = getDataFactory();
-        return reduce(getID().imports().map(of::toIRI).map(df::getOWLImportsDeclaration));
+        return ModelIterators.reduce(getID().imports().map(of::toIRI).map(df::getOWLImportsDeclaration), getConfig());
     }
 
     /**
@@ -760,7 +759,6 @@ public class InternalModel extends OntGraphModelImpl
      * @param <A>       - {@link OWLAxiom}
      * @param <K>       - {@link OWLObject}
      * @return a {@code Stream} of {@link A}s (it is distinct if default settings)
-     * @see #reduce(Stream)
      */
     protected <A extends OWLAxiom, K extends OWLObject> Stream<A> listOWLAxioms(ByObjectSearcher<A, K> searcher,
                                                                                 Class<A> type,
@@ -770,19 +768,9 @@ public class InternalModel extends OntGraphModelImpl
                 .mapWith(ONTObject::getOWLObject);
         OWLTopObjectType key = OWLTopObjectType.get(type);
         if (key.isDistinct()) {
-            return reduce(res);
+            return ModelIterators.reduce(res, config);
         }
-        if (!config.useContentCache()) {
-            // no content cache -> no sense to provide a distinct stream
-            return Iter.asStream(res);
-        }
-        // make the result to be distinct:
-        if (config.parallel()) {
-            // no calculations should go beyond this method
-            return Iter.addAll(res, new LinkedHashSet<>()).stream();
-        }
-        // lazy distinct
-        return Iter.asStream(Iter.distinct(res));
+        return ModelIterators.reduceDistinct(res, config);
     }
 
     /**
@@ -819,21 +807,20 @@ public class InternalModel extends OntGraphModelImpl
             } else {
                 throw new OntApiException.IllegalArgument("Wrong type: " + filter);
             }
-            // TODO: need return distinct stream!
-            return reduce(res.mapWith(ONTObject::getOWLObject));
+            return ModelIterators.reduceDistinct(res.mapWith(ONTObject::getOWLObject), config);
         }
         // the default way:
         if (OWLTopObjectType.ANNOTATION.hasComponent(filter)) {
             // is type of annotation -> any axiom may contain the primitive
-            return reduce(OWLTopObjectType.axioms().flatMap(k -> {
+            return ModelIterators.reduce(OWLTopObjectType.axioms().flatMap(k -> {
                 ObjectMap<OWLAxiom> axioms = getContentCache(k);
                 Predicate<OWLAxiom> p = k.hasComponent(filter) ? a -> true : k::hasAnnotations;
                 return axioms.keys().filter(x -> p.test(x) && filter.contains(x, primitive));
-            }));
+            }), config);
         }
         // select only those container-types, that are capable to contain the primitive
-        return flatMap(filteredAxiomsCaches(OWLTopObjectType.axioms().filter(x -> x.hasComponent(filter))),
-                k -> k.keys().filter(x -> filter.contains(x, primitive)));
+        return ModelIterators.flatMap(filteredAxiomsCaches(OWLTopObjectType.axioms().filter(x -> x.hasComponent(filter))),
+                k -> k.keys().filter(x -> filter.contains(x, primitive)), config);
     }
 
     /**
@@ -902,7 +889,7 @@ public class InternalModel extends OntGraphModelImpl
      * @see #listOWLAnnotations()
      */
     public Stream<OWLAxiom> listOWLAxioms() {
-        return flatMap(filteredAxiomsCaches(OWLTopObjectType.axioms()), ObjectMap::keys);
+        return ModelIterators.flatMap(filteredAxiomsCaches(OWLTopObjectType.axioms()), ObjectMap::keys, getConfig());
     }
 
     /**
@@ -911,7 +898,8 @@ public class InternalModel extends OntGraphModelImpl
      * @return {@code Stream} of {@link OWLAxiom}s
      */
     public Stream<OWLLogicalAxiom> listOWLLogicalAxioms() {
-        return flatMap(filteredAxiomsCaches(OWLTopObjectType.logical()), m -> (Stream<OWLLogicalAxiom>) m.keys());
+        return ModelIterators.flatMap(filteredAxiomsCaches(OWLTopObjectType.logical()),
+                m -> (Stream<OWLLogicalAxiom>) m.keys(), getConfig());
     }
 
     /**
@@ -921,7 +909,7 @@ public class InternalModel extends OntGraphModelImpl
      * @return {@code Stream} of {@link OWLAxiom}s
      */
     public Stream<OWLAxiom> listOWLAxioms(Iterable<AxiomType<?>> filter) {
-        return flatMap(filteredAxiomsCaches(OWLTopObjectType.axioms(filter)), ObjectMap::keys);
+        return ModelIterators.flatMap(filteredAxiomsCaches(OWLTopObjectType.axioms(filter)), ObjectMap::keys, getConfig());
     }
 
     /**
@@ -976,86 +964,6 @@ public class InternalModel extends OntGraphModelImpl
         return getContentStore().entrySet().stream()
                 .filter(x -> x.getKey().isAxiom())
                 .mapToLong(x -> x.getValue().count()).sum();
-    }
-
-    /**
-     * Performs a final operation over the specified {@code stream} before releasing it out.
-     * <p>
-     * It is for ensuring safety in case of multithreading environment,
-     * as indicated by the parameter {@link InternalConfig#parallel()}.
-     * If {@code parallel} is {@code true} and {@code stream} is unknown nature
-     * then the collecting must not go beyond this method, otherwise it is allowed to be lazy.
-     * Although the upper API uses {@code ReadWriteLock R/W lock} everywhere
-     * (that is an original OWL-API locking style), it does not guarantee thread-safety on iterating,
-     * and, therefore, without the help of this method,
-     * there is a dangerous of {@link java.util.ConcurrentModificationException} (at best),
-     * if some processing go outside a method who spawned the stream, in spite of the dedicated lock-section.
-     * So need to make sure stream is created from a snapshot state.
-     * <p>
-     * Notice that this class does not produce parallel streams.
-     * It is due to the dangerous of livelocks or even deadlocks while interacting with loading-caches,
-     * since all of them are based on the standard Java {@code ConcurrentHashMap}.
-     *
-     * @param stream {@code Stream} of {@link R}s, expected to be distinct
-     * @param <R>    anything
-     * @return {@code Stream} of {@link R}s
-     * @see #flatMap(Stream, Function)
-     */
-    protected <R> Stream<R> reduce(Stream<R> stream) {
-        InternalConfig conf = getConfig();
-        // model is non-modifiable if cache is disabled
-        if (!conf.parallel() || !conf.useContentCache()) {
-            return stream;
-        }
-        // use ArrayList since it is faster while iterating,
-        // Uniqueness is guaranteed by other mechanisms.
-        // 1024 is a magic approximate number of axioms/objects; it is not tested yet.
-        ArrayList<R> res = new ArrayList<>(1024);
-        stream.forEach(res::add);
-        res.trimToSize();
-        return res.stream();
-    }
-
-    /**
-     * Performs a final operation over the specified {@code stream} before releasing it out.
-     *
-     * @param stream {@code ExtendedIterator} of {@link R}s, expected to be distinct
-     * @param <R>    anything
-     * @return {@code Stream} of {@link R}s
-     * @see #reduce(Stream)
-     */
-    protected <R> Stream<R> reduce(ExtendedIterator<R> stream) {
-        InternalConfig conf = getConfig();
-        if (!conf.parallel() || !conf.useContentCache()) {
-            return Iter.asStream(stream);
-        }
-        ArrayList<R> res = new ArrayList<>(1024);
-        stream.forEachRemaining(res::add);
-        res.trimToSize();
-        return res.stream();
-    }
-
-    /**
-     * Returns a stream consisting of the results of replacing each element of this stream
-     * with the contents of a mapped stream produced by applying the provided mapping function to each element.
-     * The purpose of this method is the same as for {@link #reduce(Stream)}:
-     * for thread-safety reasons calculations should not go beyond the bounds of this method.
-     *
-     * @param stream {@code Stream} of {@link X}
-     * @param map    a {@link Function} for mapping {@link X} to {@code Stream} of {@link R}
-     * @param <R>    anything
-     * @param <X>    anything
-     * @return {@code Stream} of {@link R}
-     * @see #reduce(Stream)
-     */
-    protected <R, X> Stream<R> flatMap(Stream<X> stream, Function<X, Stream<? extends R>> map) {
-        InternalConfig conf = getConfig();
-        if (!conf.parallel() || !conf.useContentCache()) {
-            return stream.flatMap(map);
-        }
-        // force put everything into cache (memory) and get data snapshot
-        // for now there is no any better solution
-        return stream.map(map).collect(Collectors.toList()).stream().flatMap(Function.identity());
     }
 
     /**
