@@ -86,7 +86,7 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings({"WeakerAccess", "unchecked"})
 public class InternalModel extends OntGraphModelImpl
-        implements OntModel, HasOntologyID, HasObjectFactory, HasConfig {
+        implements OntModel, HasOntologyID, HasObjectFactory, HasConfig, ListAxioms {
     private static final Logger LOGGER = LoggerFactory.getLogger(InternalModel.class);
 
     /**
@@ -623,13 +623,7 @@ public class InternalModel extends OntGraphModelImpl
         return getHeaderCache().keys();
     }
 
-    /**
-     * Lists {@link OWLDeclarationAxiom Declaration Axiom}s for the specified {@link OWLEntity entity}.
-     * Note: method may return non-cached axioms.
-     *
-     * @param e {@link OWLEntity}, not {@code null}
-     * @return {@code Stream} of {@link OWLDeclarationAxiom}s
-     */
+    @Override
     public Stream<OWLDeclarationAxiom> listOWLDeclarationAxioms(OWLEntity e) {
         InternalConfig config = getConfig();
         if (!config.isAllowReadDeclarations()) return Stream.empty();
@@ -647,14 +641,7 @@ public class InternalModel extends OntGraphModelImpl
         return listOWLAxioms(declarationsByEntity, OWLDeclarationAxiom.class, e, config);
     }
 
-    /**
-     * Lists {@link OWLAnnotationAssertionAxiom Annotation Assertion Axiom}s
-     * with the given {@link OWLAnnotationSubject subject}.
-     * Note: method returns non-cached axioms.
-     *
-     * @param subject {@link OWLAnnotationSubject}, not {@code null}
-     * @return {@code Stream} of {@link OWLAnnotationAssertionAxiom}s
-     */
+    @Override
     public Stream<OWLAnnotationAssertionAxiom> listOWLAnnotationAssertionAxioms(OWLAnnotationSubject subject) {
         InternalConfig config = getConfig();
         if (!config.isLoadAnnotationAxioms()) return Stream.empty();
@@ -664,50 +651,30 @@ public class InternalModel extends OntGraphModelImpl
         return listOWLAxioms(annotationAssertionsBySubject, OWLAnnotationAssertionAxiom.class, subject, config);
     }
 
-    /**
-     * Lists {@link OWLSubClassOfAxiom SubClassOf Axiom}s by the given sub {@link OWLClass class}.
-     *
-     * @param sub {@link OWLClass}, not {@code null}
-     * @return {@code Stream} of {@link OWLSubClassOfAxiom}s
-     */
-    public Stream<OWLSubClassOfAxiom> listOWLSubClassOfAxiomsBySubject(OWLClass sub) {
+    @Override
+    public Stream<OWLSubClassOfAxiom> listOWLSubClassOfAxiomsBySubject(OWLClass subject) {
         InternalConfig config = getConfig();
         if (!useAxiomsSearchOptimization(config)) {
-            return listOWLAxioms(OWLSubClassOfAxiom.class).filter(a -> Objects.equals(a.getSubClass(), sub));
+            return listOWLAxioms(OWLSubClassOfAxiom.class).filter(a -> Objects.equals(a.getSubClass(), subject));
         }
-        return listOWLAxioms(subClassOfBySubject, OWLSubClassOfAxiom.class, sub, config);
+        return listOWLAxioms(subClassOfBySubject, OWLSubClassOfAxiom.class, subject, config);
     }
 
-    /**
-     * Lists {@link OWLSubClassOfAxiom SubClassOf Axiom}s by the given super {@link OWLClass class}.
-     *
-     * @param sup {@link OWLClass}, not {@code null}
-     * @return {@code Stream} of {@link OWLSubClassOfAxiom}s
-     */
-    public Stream<OWLSubClassOfAxiom> listOWLSubClassOfAxiomsByObject(OWLClass sup) {
+    @Override
+    public Stream<OWLSubClassOfAxiom> listOWLSubClassOfAxiomsByObject(OWLClass object) {
         InternalConfig config = getConfig();
         if (!useAxiomsSearchOptimization(config)) {
-            return listOWLAxioms(OWLSubClassOfAxiom.class).filter(a -> Objects.equals(a.getSuperClass(), sup));
+            return listOWLAxioms(OWLSubClassOfAxiom.class).filter(a -> Objects.equals(a.getSuperClass(), object));
         }
-        return listOWLAxioms(subClassOfByObject, OWLSubClassOfAxiom.class, sup, config);
+        return listOWLAxioms(subClassOfByObject, OWLSubClassOfAxiom.class, object, config);
     }
 
-    /**
-     * Lists {@link OWLEquivalentClassesAxiom EquivalentClasses Axiom}s by the given {@link OWLClass class}-component.
-     *
-     * @param clazz {@link OWLClass}, not {@code null}
-     * @return {@code Stream} of {@link OWLEquivalentClassesAxiom}s
-     */
+    @Override
     public Stream<OWLEquivalentClassesAxiom> listOWLEquivalentClassesAxioms(OWLClass clazz) {
         return listOWLNaryAxiomAxiomsByOperand(clazz, OWLEquivalentClassesAxiom.class, equivalentClassesByClass);
     }
 
-    /**
-     * Lists {@link OWLDisjointClassesAxiom DisjointClasses Axiom}s by the given {@link OWLClass class}-component.
-     *
-     * @param clazz {@link OWLClass}, not {@code null}
-     * @return {@code Stream} of {@link OWLDisjointClassesAxiom}s
-     */
+    @Override
     public Stream<OWLDisjointClassesAxiom> listOWLDisjointClassesAxioms(OWLClass clazz) {
         InternalConfig config = getConfig();
         // bad performance of the graph-reading way if
@@ -717,7 +684,7 @@ public class InternalModel extends OntGraphModelImpl
                 (!hasManuallyAddedAxioms() && !containsLocal(null, RDF.type, OWL.AllDisjointClasses))) {
             return listOWLAxioms(disjointClassesByClass, OWLDisjointClassesAxiom.class, clazz, config);
         }
-        return listOWLNaryAxiomAxiomsByOperand(clazz, OWLDisjointClassesAxiom.class);
+        return listOWLNaryAxiomAxiomsByOperand(OWLDisjointClassesAxiom.class, clazz);
     }
 
     /**
@@ -738,14 +705,9 @@ public class InternalModel extends OntGraphModelImpl
                                                                            ByObjectSearcher<A, K> searcher) {
         InternalConfig config = getConfig();
         if (!useAxiomsSearchOptimization(config)) {
-            return listOWLNaryAxiomAxiomsByOperand(operand, type);
+            return listOWLNaryAxiomAxiomsByOperand(type, operand);
         }
         return listOWLAxioms(searcher, type, operand, config);
-    }
-
-    protected <A extends OWLNaryAxiom<? super K>,
-            K extends OWLObject> Stream<A> listOWLNaryAxiomAxiomsByOperand(K operand, Class<A> type) {
-        return listOWLAxioms(type).filter(a -> a.operands().anyMatch(operand::equals));
     }
 
     /**
@@ -912,13 +874,7 @@ public class InternalModel extends OntGraphModelImpl
         return ModelIterators.flatMap(filteredAxiomsCaches(OWLTopObjectType.axioms(filter)), ObjectMap::keys, getConfig());
     }
 
-    /**
-     * Lists axioms of the given class-type.
-     *
-     * @param type Class
-     * @param <A>  type of axiom
-     * @return {@code Stream} of {@link OWLAxiom}s
-     */
+    @Override
     public <A extends OWLAxiom> Stream<A> listOWLAxioms(Class<A> type) {
         return listOWLAxioms(OWLTopObjectType.get(type));
     }
