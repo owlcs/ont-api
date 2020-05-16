@@ -14,31 +14,27 @@
 
 package com.github.owlcs.ontapi.internal.searchers.axioms;
 
-import com.github.owlcs.ontapi.config.AxiomsSettings;
-import com.github.owlcs.ontapi.internal.ONTObject;
-import com.github.owlcs.ontapi.internal.ONTObjectFactory;
+import com.github.owlcs.ontapi.internal.AxiomTranslator;
 import com.github.owlcs.ontapi.internal.OWLTopObjectType;
 import com.github.owlcs.ontapi.internal.WriteHelper;
 import com.github.owlcs.ontapi.internal.axioms.DataPropertyAssertionTranslator;
-import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntStatement;
-import org.apache.jena.util.iterator.ExtendedIterator;
+import org.apache.jena.rdf.model.Resource;
 import org.semanticweb.owlapi.model.OWLDataPropertyAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLIndividual;
 
 /**
  * Created by @ssz on 16.05.2020.
  */
-public class DataAssertionBySubject extends BaseByObject<OWLDataPropertyAssertionAxiom, OWLIndividual> {
+public class DataAssertionBySubject extends AssertionBySubject<OWLDataPropertyAssertionAxiom, OWLIndividual> {
     private static final DataPropertyAssertionTranslator TRANSLATOR = getTranslator(OWLTopObjectType.DATA_PROPERTY_ASSERTION);
 
     @Override
-    public ExtendedIterator<ONTObject<OWLDataPropertyAssertionAxiom>> listONTAxioms(OWLIndividual subject,
-                                                                                    OntModel model,
-                                                                                    ONTObjectFactory factory,
-                                                                                    AxiomsSettings config) {
-        ExtendedIterator<OntStatement> res = listBySubject(model, WriteHelper.toResource(subject))
-                .filterKeep(x -> TRANSLATOR.testStatement(x, config));
-        return translate(TRANSLATOR, res, factory, config);
+    Resource toResource(OWLIndividual subject) {
+        return WriteHelper.toResource(subject);
+    }
+
+    @Override
+    AxiomTranslator<OWLDataPropertyAssertionAxiom> getTranslator() {
+        return TRANSLATOR;
     }
 }

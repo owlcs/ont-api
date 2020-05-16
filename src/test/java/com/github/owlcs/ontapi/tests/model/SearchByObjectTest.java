@@ -92,6 +92,12 @@ public class SearchByObjectTest {
                 x -> Stream.concat(x.individualsInSignature(), x.anonymousIndividuals()));
     }
 
+    @Test
+    public void testObjectPropertyAssertionAxioms() {
+        data.doTest(T.OBJECT_PROPERTY_ASSERTION_BY_SUBJECT,
+                x -> Stream.concat(x.individualsInSignature(), x.anonymousIndividuals()));
+    }
+
     enum TestData {
         PIZZA(ModelData.PIZZA,
                 T.DECLARATIONS.of(-5190508530L),
@@ -100,7 +106,8 @@ public class SearchByObjectTest {
                 T.SUB_CLASS_OF_BY_OBJECT.of(15875097811L),
                 T.EQUIVALENT_CLASS_BY_OPERAND.of(743207879L),
                 T.DISJOINT_CLASS_BY_OPERAND.of(39992865656L),
-                T.DATA_PROPERTY_ASSERTION_BY_SUBJECT.of()
+                T.DATA_PROPERTY_ASSERTION_BY_SUBJECT.of(),
+                T.OBJECT_PROPERTY_ASSERTION_BY_SUBJECT.of()
         ),
         FAMILY(ModelData.FAMILY,
                 T.DECLARATIONS.of(34226271096L),
@@ -109,7 +116,8 @@ public class SearchByObjectTest {
                 T.SUB_CLASS_OF_BY_OBJECT.of(30468706L),
                 T.EQUIVALENT_CLASS_BY_OPERAND.of(1149278276L),
                 T.DISJOINT_CLASS_BY_OPERAND.of(-5870114142L),
-                T.DATA_PROPERTY_ASSERTION_BY_SUBJECT.of(-46062903685L)
+                T.DATA_PROPERTY_ASSERTION_BY_SUBJECT.of(-46062903685L),
+                T.OBJECT_PROPERTY_ASSERTION_BY_SUBJECT.of(-44647629109L)
         ),
         PEOPLE(ModelData.PEOPLE,
                 T.DECLARATIONS.of(-31040926516L),
@@ -118,7 +126,8 @@ public class SearchByObjectTest {
                 T.SUB_CLASS_OF_BY_OBJECT.of(-8307389053L),
                 T.EQUIVALENT_CLASS_BY_OPERAND.of(229986282L),
                 T.DISJOINT_CLASS_BY_OPERAND.of(5151062994L),
-                T.DATA_PROPERTY_ASSERTION_BY_SUBJECT.of()
+                T.DATA_PROPERTY_ASSERTION_BY_SUBJECT.of(),
+                T.OBJECT_PROPERTY_ASSERTION_BY_SUBJECT.of(-1008566325L)
         ),
         CAMERA(ModelData.CAMERA,
                 T.DECLARATIONS.of(2967944221L),
@@ -127,7 +136,8 @@ public class SearchByObjectTest {
                 T.SUB_CLASS_OF_BY_OBJECT.of(5364459487L),
                 T.EQUIVALENT_CLASS_BY_OPERAND.of(2619197590L),
                 T.DISJOINT_CLASS_BY_OPERAND.of(),
-                T.DATA_PROPERTY_ASSERTION_BY_SUBJECT.of()
+                T.DATA_PROPERTY_ASSERTION_BY_SUBJECT.of(),
+                T.OBJECT_PROPERTY_ASSERTION_BY_SUBJECT.of()
         ),
         KOALA(ModelData.KOALA,
                 T.DECLARATIONS.of(6488467972L),
@@ -136,7 +146,8 @@ public class SearchByObjectTest {
                 T.SUB_CLASS_OF_BY_OBJECT.of(-6410317539L),
                 T.EQUIVALENT_CLASS_BY_OPERAND.of(1433290824L),
                 T.DISJOINT_CLASS_BY_OPERAND.of(3827692310L),
-                T.DATA_PROPERTY_ASSERTION_BY_SUBJECT.of()
+                T.DATA_PROPERTY_ASSERTION_BY_SUBJECT.of(),
+                T.OBJECT_PROPERTY_ASSERTION_BY_SUBJECT.of()
         ),
         TRAVEL(ModelData.TRAVEL,
                 T.DECLARATIONS.of(-25825023334L),
@@ -145,7 +156,8 @@ public class SearchByObjectTest {
                 T.SUB_CLASS_OF_BY_OBJECT.of(1596226755L),
                 T.EQUIVALENT_CLASS_BY_OPERAND.of(-1797460855L),
                 T.DISJOINT_CLASS_BY_OPERAND.of(13371010920L),
-                T.DATA_PROPERTY_ASSERTION_BY_SUBJECT.of()
+                T.DATA_PROPERTY_ASSERTION_BY_SUBJECT.of(),
+                T.OBJECT_PROPERTY_ASSERTION_BY_SUBJECT.of(1580148819L)
         ),
         WINE(ModelData.WINE,
                 T.DECLARATIONS.of(20065711780L),
@@ -154,7 +166,8 @@ public class SearchByObjectTest {
                 T.SUB_CLASS_OF_BY_OBJECT.of(-2872929990L),
                 T.EQUIVALENT_CLASS_BY_OPERAND.of(15637987080L),
                 T.DISJOINT_CLASS_BY_OPERAND.of(-2886827780L),
-                T.DATA_PROPERTY_ASSERTION_BY_SUBJECT.of(2039350484L)
+                T.DATA_PROPERTY_ASSERTION_BY_SUBJECT.of(2039350484L),
+                T.OBJECT_PROPERTY_ASSERTION_BY_SUBJECT.of(24229827352L)
         ),
         FOOD(ModelData.FOOD,
                 T.DECLARATIONS.of(6794851452L),
@@ -163,7 +176,8 @@ public class SearchByObjectTest {
                 T.SUB_CLASS_OF_BY_OBJECT.of(-490371437L),
                 T.EQUIVALENT_CLASS_BY_OPERAND.of(16744408703L),
                 T.DISJOINT_CLASS_BY_OPERAND.of(14957310010L),
-                T.DATA_PROPERTY_ASSERTION_BY_SUBJECT.of()
+                T.DATA_PROPERTY_ASSERTION_BY_SUBJECT.of(),
+                T.OBJECT_PROPERTY_ASSERTION_BY_SUBJECT.of()
         ),
         NCBITAXON_CUT(ModelData.NCBITAXON_CUT,
                 T.DECLARATIONS.of(244310200631L),
@@ -172,7 +186,8 @@ public class SearchByObjectTest {
                 T.SUB_CLASS_OF_BY_OBJECT.of(-1220817325L),
                 T.EQUIVALENT_CLASS_BY_OPERAND.of(),
                 T.DISJOINT_CLASS_BY_OPERAND.of(-5419911878L),
-                T.DATA_PROPERTY_ASSERTION_BY_SUBJECT.of(-22700580140L)
+                T.DATA_PROPERTY_ASSERTION_BY_SUBJECT.of(-22700580140L),
+                T.OBJECT_PROPERTY_ASSERTION_BY_SUBJECT.of()
         ),
         HP_CUT(ModelData.HP_CUT,
                 T.DECLARATIONS.of(-14640456193L),
@@ -181,7 +196,8 @@ public class SearchByObjectTest {
                 T.SUB_CLASS_OF_BY_OBJECT.of(-2245851740L),
                 T.EQUIVALENT_CLASS_BY_OPERAND.of(-1475922263L),
                 T.DISJOINT_CLASS_BY_OPERAND.of(),
-                T.DATA_PROPERTY_ASSERTION_BY_SUBJECT.of()
+                T.DATA_PROPERTY_ASSERTION_BY_SUBJECT.of(),
+                T.OBJECT_PROPERTY_ASSERTION_BY_SUBJECT.of()
         ),
         FAMILY_PEOPLE_UNION(ModelData.FAMILY_PEOPLE_UNION,
                 T.DECLARATIONS.of(-637777500L),
@@ -190,7 +206,8 @@ public class SearchByObjectTest {
                 T.SUB_CLASS_OF_BY_OBJECT.of(-730374961L),
                 T.EQUIVALENT_CLASS_BY_OPERAND.of(1108552553L),
                 T.DISJOINT_CLASS_BY_OPERAND.of(),
-                T.DATA_PROPERTY_ASSERTION_BY_SUBJECT.of(-2596921457L)
+                T.DATA_PROPERTY_ASSERTION_BY_SUBJECT.of(-2596921457L),
+                T.OBJECT_PROPERTY_ASSERTION_BY_SUBJECT.of()
         ),
         ;
         private final ModelData resource;
@@ -230,6 +247,18 @@ public class SearchByObjectTest {
                 return ont.annotationAssertionAxioms((OWLAnnotationSubject) param);
             }
         },
+        DATA_PROPERTY_ASSERTION_BY_SUBJECT {
+            @Override
+            Stream<? extends OWLObject> listAxioms(OWLOntology ont, OWLObject param) {
+                return ont.dataPropertyAssertionAxioms((OWLIndividual) param);
+            }
+        },
+        OBJECT_PROPERTY_ASSERTION_BY_SUBJECT {
+            @Override
+            Stream<? extends OWLObject> listAxioms(OWLOntology ont, OWLObject param) {
+                return ont.objectPropertyAssertionAxioms((OWLIndividual) param);
+            }
+        },
         SUB_CLASS_OF_BY_SUBJECT {
             @Override
             Stream<? extends OWLObject> listAxioms(OWLOntology ont, OWLObject param) {
@@ -254,12 +283,7 @@ public class SearchByObjectTest {
                 return ont.disjointClassesAxioms((OWLClass) param);
             }
         },
-        DATA_PROPERTY_ASSERTION_BY_SUBJECT {
-            @Override
-            Stream<? extends OWLObject> listAxioms(OWLOntology ont, OWLObject param) {
-                return ont.dataPropertyAssertionAxioms((OWLIndividual) param);
-            }
-        };
+        ;
 
         private ByPrimitiveTester of() {
             return of(0);

@@ -16,18 +16,25 @@ package com.github.owlcs.ontapi.internal.searchers.axioms;
 
 import com.github.owlcs.ontapi.internal.AxiomTranslator;
 import com.github.owlcs.ontapi.internal.OWLTopObjectType;
-import com.github.owlcs.ontapi.internal.axioms.AnnotationAssertionTranslator;
-import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
-import org.semanticweb.owlapi.model.OWLAnnotationSubject;
+import com.github.owlcs.ontapi.internal.WriteHelper;
+import com.github.owlcs.ontapi.internal.axioms.ObjectPropertyAssertionTranslator;
+import org.apache.jena.rdf.model.Resource;
+import org.semanticweb.owlapi.model.OWLIndividual;
+import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
 
 /**
- * Created by @ssz on 18.04.2020.
+ * Created by @ssz on 16.05.2020.
  */
-public class AnnotationAssertionBySubject extends AssertionBySubject<OWLAnnotationAssertionAxiom, OWLAnnotationSubject> {
-    private static final AnnotationAssertionTranslator TRANSLATOR = getTranslator(OWLTopObjectType.ANNOTATION_ASSERTION);
+public class ObjectAssertionBySubject extends AssertionBySubject<OWLObjectPropertyAssertionAxiom, OWLIndividual> {
+    private static final ObjectPropertyAssertionTranslator TRANSLATOR = getTranslator(OWLTopObjectType.OBJECT_PROPERTY_ASSERTION);
 
     @Override
-    AxiomTranslator<OWLAnnotationAssertionAxiom> getTranslator() {
+    Resource toResource(OWLIndividual subject) {
+        return WriteHelper.toResource(subject);
+    }
+
+    @Override
+    AxiomTranslator<OWLObjectPropertyAssertionAxiom> getTranslator() {
         return TRANSLATOR;
     }
 }
