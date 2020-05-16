@@ -30,7 +30,7 @@ import org.semanticweb.owlapi.model.OWLAnnotationSubject;
  * Created by @ssz on 18.04.2020.
  */
 public class AnnotationAssertionBySubject extends BaseByObject<OWLAnnotationAssertionAxiom, OWLAnnotationSubject> {
-    private static final AnnotationAssertionTranslator TRANSLATOR = toTranslator(OWLTopObjectType.ANNOTATION_ASSERTION);
+    private static final AnnotationAssertionTranslator TRANSLATOR = getTranslator(OWLTopObjectType.ANNOTATION_ASSERTION);
 
     @Override
     public ExtendedIterator<ONTObject<OWLAnnotationAssertionAxiom>> listONTAxioms(OWLAnnotationSubject subject,

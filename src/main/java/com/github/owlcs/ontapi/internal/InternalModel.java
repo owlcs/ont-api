@@ -158,6 +158,8 @@ public class InternalModel extends OntGraphModelImpl
     protected final ByObjectSearcher<OWLDeclarationAxiom, OWLEntity> declarationsByEntity = new DeclarationByEntity();
     protected final ByObjectSearcher<OWLAnnotationAssertionAxiom, OWLAnnotationSubject> annotationAssertionsBySubject
             = new AnnotationAssertionBySubject();
+    protected final ByObjectSearcher<OWLDataPropertyAssertionAxiom, OWLIndividual> dataAssertionsBySubject
+            = new DataAssertionBySubject();
     protected final ByObjectSearcher<OWLSubClassOfAxiom, OWLClass> subClassOfBySubject = new SubClassOfBySubject();
     protected final ByObjectSearcher<OWLSubClassOfAxiom, OWLClass> subClassOfByObject = new SubClassOfByObject();
     protected final ByObjectSearcher<OWLEquivalentClassesAxiom, OWLClass> equivalentClassesByClass = new EquivalentClassesByClass();
@@ -624,7 +626,7 @@ public class InternalModel extends OntGraphModelImpl
     }
 
     @Override
-    public Stream<OWLDeclarationAxiom> listOWLDeclarationAxioms(OWLEntity e) {
+    public Stream<OWLDeclarationAxiom> listOWLDeclarationAxioms(OWLEntity entity) {
         InternalConfig config = getConfig();
         if (!config.isAllowReadDeclarations()) return Stream.empty();
         // Even there are no changes in OWLDeclarationAxioms,
@@ -635,10 +637,10 @@ public class InternalModel extends OntGraphModelImpl
         // This differs from OWL-API expectations, so need to perform traversing over whole cache
         // to get an axiom in the exactly same form as it has been specified manually:
         if (!useAxiomsSearchOptimization(config)) {
-            return listOWLAxioms(OWLDeclarationAxiom.class).filter(a -> e.equals(a.getEntity()));
+            return ListAxioms.super.listOWLDeclarationAxioms(entity);
         }
         // in the case of a large ontology, the direct traverse over the graph works significantly faster:
-        return listOWLAxioms(declarationsByEntity, OWLDeclarationAxiom.class, e, config);
+        return listOWLAxioms(declarationsByEntity, OWLDeclarationAxiom.class, entity, config);
     }
 
     @Override
@@ -646,16 +648,25 @@ public class InternalModel extends OntGraphModelImpl
         InternalConfig config = getConfig();
         if (!config.isLoadAnnotationAxioms()) return Stream.empty();
         if (!useAxiomsSearchOptimization(config)) {
-            return listOWLAxioms(OWLAnnotationAssertionAxiom.class).filter(a -> subject.equals(a.getSubject()));
+            return ListAxioms.super.listOWLAnnotationAssertionAxioms(subject);
         }
         return listOWLAxioms(annotationAssertionsBySubject, OWLAnnotationAssertionAxiom.class, subject, config);
+    }
+
+    @Override
+    public Stream<OWLDataPropertyAssertionAxiom> listOWLDataPropertyAssertionAxioms(OWLIndividual subject) {
+        InternalConfig config = getConfig();
+        if (!useAxiomsSearchOptimization(config)) {
+            return ListAxioms.super.listOWLDataPropertyAssertionAxioms(subject);
+        }
+        return listOWLAxioms(dataAssertionsBySubject, OWLDataPropertyAssertionAxiom.class, subject, config);
     }
 
     @Override
     public Stream<OWLSubClassOfAxiom> listOWLSubClassOfAxiomsBySubject(OWLClass subject) {
         InternalConfig config = getConfig();
         if (!useAxiomsSearchOptimization(config)) {
-            return listOWLAxioms(OWLSubClassOfAxiom.class).filter(a -> Objects.equals(a.getSubClass(), subject));
+            return ListAxioms.super.listOWLSubClassOfAxiomsBySubject(subject);
         }
         return listOWLAxioms(subClassOfBySubject, OWLSubClassOfAxiom.class, subject, config);
     }
@@ -664,7 +675,7 @@ public class InternalModel extends OntGraphModelImpl
     public Stream<OWLSubClassOfAxiom> listOWLSubClassOfAxiomsByObject(OWLClass object) {
         InternalConfig config = getConfig();
         if (!useAxiomsSearchOptimization(config)) {
-            return listOWLAxioms(OWLSubClassOfAxiom.class).filter(a -> Objects.equals(a.getSuperClass(), object));
+            return ListAxioms.super.listOWLSubClassOfAxiomsByObject(object);
         }
         return listOWLAxioms(subClassOfByObject, OWLSubClassOfAxiom.class, object, config);
     }

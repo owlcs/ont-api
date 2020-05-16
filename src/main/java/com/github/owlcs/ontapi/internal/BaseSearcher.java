@@ -112,7 +112,7 @@ public abstract class BaseSearcher {
         return Iter.create(statements).mapWith(s -> translator.toAxiomWrap(s, factory, config));
     }
 
-    protected static <T extends AxiomTranslator<? extends A>, A extends OWLAxiom> T toTranslator(OWLTopObjectType type) {
+    protected static <T extends AxiomTranslator<? extends A>, A extends OWLAxiom> T getTranslator(OWLTopObjectType type) {
         return type.getTranslator();
     }
 

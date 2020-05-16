@@ -32,7 +32,7 @@ import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
  * Created by @ssz on 18.04.2020.
  */
 public class EquivalentClassesByClass extends BaseByObject<OWLEquivalentClassesAxiom, OWLClass> {
-    public static final EquivalentClassesTranslator TRANSLATOR = toTranslator(OWLTopObjectType.EQUIVALENT_CLASSES);
+    public static final EquivalentClassesTranslator TRANSLATOR = getTranslator(OWLTopObjectType.EQUIVALENT_CLASSES);
 
     @Override
     public ExtendedIterator<ONTObject<OWLEquivalentClassesAxiom>> listONTAxioms(OWLClass clazz,

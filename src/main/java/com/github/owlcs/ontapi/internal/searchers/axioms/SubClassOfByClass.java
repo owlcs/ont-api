@@ -31,7 +31,7 @@ import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
  * Created by @ssz on 07.05.2020.
  */
 abstract class SubClassOfByClass extends BaseByObject<OWLSubClassOfAxiom, OWLClass> {
-    private static final SubClassOfTranslator TRANSLATOR = toTranslator(OWLTopObjectType.SUBCLASS_OF);
+    private static final SubClassOfTranslator TRANSLATOR = getTranslator(OWLTopObjectType.SUBCLASS_OF);
 
     protected abstract ExtendedIterator<OntStatement> listStatements(OntModel model, Resource clazz);
 

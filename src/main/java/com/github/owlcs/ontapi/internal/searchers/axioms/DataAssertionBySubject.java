@@ -19,37 +19,26 @@ import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.ONTObjectFactory;
 import com.github.owlcs.ontapi.internal.OWLTopObjectType;
 import com.github.owlcs.ontapi.internal.WriteHelper;
-import com.github.owlcs.ontapi.internal.axioms.DeclarationTranslator;
-import com.github.owlcs.ontapi.jena.impl.PersonalityModel;
-import com.github.owlcs.ontapi.jena.model.OntEntity;
+import com.github.owlcs.ontapi.internal.axioms.DataPropertyAssertionTranslator;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
-import com.github.owlcs.ontapi.jena.utils.Iter;
-import com.github.owlcs.ontapi.jena.vocabulary.RDF;
-import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
-import org.semanticweb.owlapi.model.OWLEntity;
+import org.semanticweb.owlapi.model.OWLDataPropertyAssertionAxiom;
+import org.semanticweb.owlapi.model.OWLIndividual;
 
 /**
- * Created by @ssz on 18.04.2020.
+ * Created by @ssz on 16.05.2020.
  */
-public class DeclarationByEntity extends BaseByObject<OWLDeclarationAxiom, OWLEntity> {
-    private static final DeclarationTranslator TRANSLATOR = getTranslator(OWLTopObjectType.DECLARATION);
+public class DataAssertionBySubject extends BaseByObject<OWLDataPropertyAssertionAxiom, OWLIndividual> {
+    private static final DataPropertyAssertionTranslator TRANSLATOR = getTranslator(OWLTopObjectType.DATA_PROPERTY_ASSERTION);
 
     @Override
-    public ExtendedIterator<ONTObject<OWLDeclarationAxiom>> listONTAxioms(OWLEntity entity,
-                                                                          OntModel model,
-                                                                          ONTObjectFactory factory,
-                                                                          AxiomsSettings config) {
-        Resource subject = WriteHelper.toResource(entity.getIRI());
-        if (!model.independent()) {
-            return listStatements(model, subject, RDF.type, WriteHelper.getRDFType(entity))
-                    .mapWith(x -> toAxiom(TRANSLATOR, x, factory, config));
-        }
-        OntEntity res = PersonalityModel.asPersonalityModel(model).findNodeAs(subject.asNode(), WriteHelper.getEntityType(entity));
-        if (res == null) return Iter.of();
-        OntStatement statement = res.getMainStatement();
-        return statement == null ? Iter.of() : Iter.of(toAxiom(TRANSLATOR, statement, factory, config));
+    public ExtendedIterator<ONTObject<OWLDataPropertyAssertionAxiom>> listONTAxioms(OWLIndividual subject,
+                                                                                    OntModel model,
+                                                                                    ONTObjectFactory factory,
+                                                                                    AxiomsSettings config) {
+        ExtendedIterator<OntStatement> res = listBySubject(model, WriteHelper.toResource(subject))
+                .filterKeep(x -> TRANSLATOR.testStatement(x, config));
+        return translate(TRANSLATOR, res, factory, config);
     }
 }

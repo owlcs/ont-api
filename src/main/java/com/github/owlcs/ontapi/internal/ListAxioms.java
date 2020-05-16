@@ -133,6 +133,12 @@ interface ListAxioms {
         return listOWLAxioms(OWLNegativeObjectPropertyAssertionAxiom.class).filter(x -> Objects.equals(subject, x.getSubject()));
     }
 
+    /**
+     * Lists {@link OWLDataPropertyAssertionAxiom DataPropertyAssertion Axiom}s by the given {@link OWLIndividual individual}-subjectt.
+     *
+     * @param subject {@link OWLIndividual}, not {@code null}
+     * @return a {@code Stream} of {@link OWLDataPropertyAssertionAxiom}s
+     */
     default Stream<OWLDataPropertyAssertionAxiom> listOWLDataPropertyAssertionAxioms(OWLIndividual subject) {
         return listOWLAxioms(OWLDataPropertyAssertionAxiom.class).filter(x -> Objects.equals(subject, x.getSubject()));
     }

@@ -65,7 +65,7 @@ public class WriteHelper {
         return toResource(toIRI(object));
     }
 
-    private static Resource toResource(OWLIndividual individual) {
+    public static Resource toResource(OWLIndividual individual) {
         return individual.isAnonymous() ?
                 toResource(individual.asOWLAnonymousIndividual()) :
                 toResource(individual.asOWLNamedIndividual().getIRI());
