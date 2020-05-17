@@ -49,7 +49,7 @@ public class ObjectPropertyRangeTranslator
     }
 
     @Override
-    protected boolean filter(OntStatement statement, AxiomsSettings config) {
+    public boolean filter(OntStatement statement, AxiomsSettings config) {
         return super.filter(statement, config) && statement.getObject().canAs(OntClass.class);
     }
 

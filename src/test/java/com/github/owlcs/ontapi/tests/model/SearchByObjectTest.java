@@ -99,6 +99,11 @@ public class SearchByObjectTest {
     }
 
     @Test
+    public void testObjectPropertyRangeAxioms() {
+        data.doTest(T.OBJECT_PROPERTY_RANGE_BY_SUBJECT, HasObjectPropertiesInSignature::objectPropertiesInSignature);
+    }
+
+    @Test
     public void testClassAssertionAxiomsForIndividual() {
         data.doTest(T.CLASS_ASSERTION_BY_SUBJECT,
                 x -> Stream.concat(x.individualsInSignature(), x.anonymousIndividuals()));
@@ -120,7 +125,8 @@ public class SearchByObjectTest {
                 T.DATA_PROPERTY_ASSERTION_BY_SUBJECT.of(),
                 T.OBJECT_PROPERTY_ASSERTION_BY_SUBJECT.of(),
                 T.CLASS_ASSERTION_BY_SUBJECT.of(-3513486065L),
-                T.CLASS_ASSERTION_BY_OBJECT.of(-3513486065L)
+                T.CLASS_ASSERTION_BY_OBJECT.of(-3513486065L),
+                T.OBJECT_PROPERTY_RANGE_BY_SUBJECT.of(-5171741903L)
         ),
         FAMILY(ModelData.FAMILY,
                 T.DECLARATIONS.of(34226271096L),
@@ -132,7 +138,8 @@ public class SearchByObjectTest {
                 T.DATA_PROPERTY_ASSERTION_BY_SUBJECT.of(-46062903685L),
                 T.OBJECT_PROPERTY_ASSERTION_BY_SUBJECT.of(-44647629109L),
                 T.CLASS_ASSERTION_BY_SUBJECT.of(-2344424939L),
-                T.CLASS_ASSERTION_BY_OBJECT.of(-2344424939L)
+                T.CLASS_ASSERTION_BY_OBJECT.of(-2344424939L),
+                T.OBJECT_PROPERTY_RANGE_BY_SUBJECT.of(11112139379L)
         ),
         PEOPLE(ModelData.PEOPLE,
                 T.DECLARATIONS.of(-31040926516L),
@@ -144,7 +151,8 @@ public class SearchByObjectTest {
                 T.DATA_PROPERTY_ASSERTION_BY_SUBJECT.of(),
                 T.OBJECT_PROPERTY_ASSERTION_BY_SUBJECT.of(-1008566325L),
                 T.CLASS_ASSERTION_BY_SUBJECT.of(295642609L),
-                T.CLASS_ASSERTION_BY_OBJECT.of(295642609L) // see https://github.com/owlcs/owlapi/issues/930
+                T.CLASS_ASSERTION_BY_OBJECT.of(295642609L), // see https://github.com/owlcs/owlapi/issues/930
+                T.OBJECT_PROPERTY_RANGE_BY_SUBJECT.of(-2697317876L)
         ),
         CAMERA(ModelData.CAMERA,
                 T.DECLARATIONS.of(2967944221L),
@@ -156,7 +164,8 @@ public class SearchByObjectTest {
                 T.DATA_PROPERTY_ASSERTION_BY_SUBJECT.of(),
                 T.OBJECT_PROPERTY_ASSERTION_BY_SUBJECT.of(),
                 T.CLASS_ASSERTION_BY_SUBJECT.of(-546744276L),
-                T.CLASS_ASSERTION_BY_OBJECT.of(-546744276L)
+                T.CLASS_ASSERTION_BY_OBJECT.of(-546744276L),
+                T.OBJECT_PROPERTY_RANGE_BY_SUBJECT.of(-4417906154L)
         ),
         KOALA(ModelData.KOALA,
                 T.DECLARATIONS.of(6488467972L),
@@ -168,7 +177,8 @@ public class SearchByObjectTest {
                 T.DATA_PROPERTY_ASSERTION_BY_SUBJECT.of(),
                 T.OBJECT_PROPERTY_ASSERTION_BY_SUBJECT.of(),
                 T.CLASS_ASSERTION_BY_SUBJECT.of(-6315703213L),
-                T.CLASS_ASSERTION_BY_OBJECT.of(-6315703213L)
+                T.CLASS_ASSERTION_BY_OBJECT.of(-6315703213L),
+                T.OBJECT_PROPERTY_RANGE_BY_SUBJECT.of(166159343L)
         ),
         TRAVEL(ModelData.TRAVEL,
                 T.DECLARATIONS.of(-25825023334L),
@@ -180,7 +190,8 @@ public class SearchByObjectTest {
                 T.DATA_PROPERTY_ASSERTION_BY_SUBJECT.of(),
                 T.OBJECT_PROPERTY_ASSERTION_BY_SUBJECT.of(1580148819L),
                 T.CLASS_ASSERTION_BY_SUBJECT.of(156661309L),
-                T.CLASS_ASSERTION_BY_OBJECT.of(156661309L)
+                T.CLASS_ASSERTION_BY_OBJECT.of(156661309L),
+                T.OBJECT_PROPERTY_RANGE_BY_SUBJECT.of(3821903939L)
         ),
         WINE(ModelData.WINE,
                 T.DECLARATIONS.of(20065711780L),
@@ -192,7 +203,8 @@ public class SearchByObjectTest {
                 T.DATA_PROPERTY_ASSERTION_BY_SUBJECT.of(2039350484L),
                 T.OBJECT_PROPERTY_ASSERTION_BY_SUBJECT.of(24229827352L),
                 T.CLASS_ASSERTION_BY_SUBJECT.of(-13302103928L),
-                T.CLASS_ASSERTION_BY_OBJECT.of(-13302103928L)
+                T.CLASS_ASSERTION_BY_OBJECT.of(-13302103928L),
+                T.OBJECT_PROPERTY_RANGE_BY_SUBJECT.of(-3535340229L)
         ),
         FOOD(ModelData.FOOD,
                 T.DECLARATIONS.of(6794851452L),
@@ -204,7 +216,8 @@ public class SearchByObjectTest {
                 T.DATA_PROPERTY_ASSERTION_BY_SUBJECT.of(),
                 T.OBJECT_PROPERTY_ASSERTION_BY_SUBJECT.of(),
                 T.CLASS_ASSERTION_BY_SUBJECT.of(696330992L),
-                T.CLASS_ASSERTION_BY_OBJECT.of(696330992L)
+                T.CLASS_ASSERTION_BY_OBJECT.of(696330992L),
+                T.OBJECT_PROPERTY_RANGE_BY_SUBJECT.of(-144528768L)
         ),
         NCBITAXON_CUT(ModelData.NCBITAXON_CUT,
                 T.DECLARATIONS.of(244310200631L),
@@ -216,7 +229,8 @@ public class SearchByObjectTest {
                 T.DATA_PROPERTY_ASSERTION_BY_SUBJECT.of(-22700580140L),
                 T.OBJECT_PROPERTY_ASSERTION_BY_SUBJECT.of(),
                 T.CLASS_ASSERTION_BY_SUBJECT.of(),
-                T.CLASS_ASSERTION_BY_OBJECT.of()
+                T.CLASS_ASSERTION_BY_OBJECT.of(),
+                T.OBJECT_PROPERTY_RANGE_BY_SUBJECT.of(-5754775670L)
         ),
         HP_CUT(ModelData.HP_CUT,
                 T.DECLARATIONS.of(-14640456193L),
@@ -228,7 +242,8 @@ public class SearchByObjectTest {
                 T.DATA_PROPERTY_ASSERTION_BY_SUBJECT.of(),
                 T.OBJECT_PROPERTY_ASSERTION_BY_SUBJECT.of(),
                 T.CLASS_ASSERTION_BY_SUBJECT.of(),
-                T.CLASS_ASSERTION_BY_OBJECT.of()
+                T.CLASS_ASSERTION_BY_OBJECT.of(),
+                T.OBJECT_PROPERTY_RANGE_BY_SUBJECT.of()
         ),
         FAMILY_PEOPLE_UNION(ModelData.FAMILY_PEOPLE_UNION,
                 T.DECLARATIONS.of(-637777500L),
@@ -240,7 +255,8 @@ public class SearchByObjectTest {
                 T.DATA_PROPERTY_ASSERTION_BY_SUBJECT.of(-2596921457L),
                 T.OBJECT_PROPERTY_ASSERTION_BY_SUBJECT.of(),
                 T.CLASS_ASSERTION_BY_SUBJECT.of(-25907713L),
-                T.CLASS_ASSERTION_BY_OBJECT.of(-25907713L)
+                T.CLASS_ASSERTION_BY_OBJECT.of(-25907713L),
+                T.OBJECT_PROPERTY_RANGE_BY_SUBJECT.of()
         ),
         ;
         private final ModelData resource;
@@ -328,7 +344,12 @@ public class SearchByObjectTest {
                 return ont.classAssertionAxioms((OWLClassExpression) param);
             }
         },
-        ;
+        OBJECT_PROPERTY_RANGE_BY_SUBJECT {
+            @Override
+            Stream<? extends OWLObject> listAxioms(OWLOntology ont, OWLObject param) {
+                return ont.objectPropertyRangeAxioms((OWLObjectPropertyExpression) param);
+            }
+        };
 
         private ByPrimitiveTester of() {
             return of(0);

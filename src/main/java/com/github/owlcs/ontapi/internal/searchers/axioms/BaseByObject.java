@@ -62,7 +62,19 @@ abstract class BaseByObject<A extends OWLAxiom, O extends OWLObject> extends Wit
         throw new OntApiException.Unsupported("Unsupported class-expression " + clazz);
     }
 
+    static Resource asResource(OWLObjectPropertyExpression property) {
+        if (property.isOWLObjectProperty()) return asResource((OWLEntity) property.asOWLObjectProperty());
+        if (property instanceof ONTExpressionImpl) {
+            return new ResourceImpl(((ONTExpressionImpl<?>) property).asNode(), null);
+        }
+        throw new OntApiException.Unsupported("Unsupported object-expression " + property);
+    }
+
     public static boolean isSupported(OWLClassExpression clazz) {
         return clazz.isOWLClass() || clazz instanceof ONTExpressionImpl;
+    }
+
+    public static boolean isSupported(OWLObjectPropertyExpression property) {
+        return property.isOWLObjectProperty() || property instanceof ONTExpressionImpl;
     }
 }

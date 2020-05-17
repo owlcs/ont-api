@@ -162,6 +162,8 @@ public class InternalModel extends OntGraphModelImpl
             = new DataAssertionBySubject();
     protected final ByObjectSearcher<OWLObjectPropertyAssertionAxiom, OWLIndividual> objectAssertionsBySubject
             = new ObjectAssertionBySubject();
+    protected final ByObjectSearcher<OWLObjectPropertyRangeAxiom, OWLObjectPropertyExpression> objectPropertyRangeByProperty
+            = new ObjectPropertyRangeBySubject();
     protected final ByObjectSearcher<OWLSubClassOfAxiom, OWLClass> subClassOfBySubject = new SubClassOfBySubject();
     protected final ByObjectSearcher<OWLSubClassOfAxiom, OWLClass> subClassOfByObject = new SubClassOfByObject();
     protected final ByObjectSearcher<OWLEquivalentClassesAxiom, OWLClass> equivalentClassesByClass
@@ -677,6 +679,15 @@ public class InternalModel extends OntGraphModelImpl
             return ListAxioms.super.listOWLObjectPropertyAssertionAxioms(subject);
         }
         return listOWLAxioms(objectAssertionsBySubject, OWLObjectPropertyAssertionAxiom.class, subject, config);
+    }
+
+    @Override
+    public Stream<OWLObjectPropertyRangeAxiom> listOWLObjectPropertyRangeAxioms(OWLObjectPropertyExpression subject) {
+        InternalConfig config = getConfig();
+        if (!ObjectPropertyRangeBySubject.isSupported(subject) || !useAxiomsSearchOptimization(config)) {
+            return ListAxioms.super.listOWLObjectPropertyRangeAxioms(subject);
+        }
+        return listOWLAxioms(objectPropertyRangeByProperty, OWLObjectPropertyRangeAxiom.class, subject, config);
     }
 
     @Override

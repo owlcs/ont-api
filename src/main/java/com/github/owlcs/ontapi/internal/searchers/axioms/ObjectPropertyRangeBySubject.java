@@ -18,27 +18,25 @@ import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.ONTObjectFactory;
 import com.github.owlcs.ontapi.internal.OWLTopObjectType;
-import com.github.owlcs.ontapi.internal.axioms.SubClassOfTranslator;
+import com.github.owlcs.ontapi.internal.axioms.ObjectPropertyRangeTranslator;
 import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntStatement;
-import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
+import org.apache.jena.vocabulary.RDFS;
+import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
+import org.semanticweb.owlapi.model.OWLObjectPropertyRangeAxiom;
 
 /**
- * Created by @ssz on 07.05.2020.
+ * Created by @ssz on 17.05.2020.
  */
-abstract class SubClassOfByOperand extends BaseByObject<OWLSubClassOfAxiom, OWLClass> {
-    private static final SubClassOfTranslator TRANSLATOR = getTranslator(OWLTopObjectType.SUBCLASS_OF);
-
-    protected abstract ExtendedIterator<OntStatement> listStatements(OntModel model, Resource clazz);
+public class ObjectPropertyRangeBySubject extends BaseByObject<OWLObjectPropertyRangeAxiom, OWLObjectPropertyExpression> {
+    private static final ObjectPropertyRangeTranslator TRANSLATOR = getTranslator(OWLTopObjectType.OBJECT_PROPERTY_RANGE);
 
     @Override
-    public final ExtendedIterator<ONTObject<OWLSubClassOfAxiom>> listONTAxioms(OWLClass clazz,
-                                                                               OntModel model,
-                                                                               ONTObjectFactory factory,
-                                                                               AxiomsSettings config) {
-        return translate(TRANSLATOR, listStatements(model, asResource(clazz)).filterKeep(TRANSLATOR::filter), factory, config);
+    public ExtendedIterator<ONTObject<OWLObjectPropertyRangeAxiom>> listONTAxioms(OWLObjectPropertyExpression subject,
+                                                                                  OntModel model,
+                                                                                  ONTObjectFactory factory,
+                                                                                  AxiomsSettings config) {
+        return translate(TRANSLATOR, listBySubjectAndPredicate(model, asResource(subject), RDFS.range)
+                .filterKeep(s -> TRANSLATOR.filter(s, config)), factory, config);
     }
 }
