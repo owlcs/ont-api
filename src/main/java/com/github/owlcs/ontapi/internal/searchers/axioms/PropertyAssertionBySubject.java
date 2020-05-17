@@ -14,18 +14,45 @@
 
 package com.github.owlcs.ontapi.internal.searchers.axioms;
 
+import com.github.owlcs.ontapi.config.AxiomsSettings;
+import com.github.owlcs.ontapi.internal.AxiomTranslator;
+import com.github.owlcs.ontapi.internal.ONTObject;
+import com.github.owlcs.ontapi.internal.ONTObjectFactory;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import org.apache.jena.vocabulary.RDFS;
+import org.semanticweb.owlapi.model.HasSubject;
+import org.semanticweb.owlapi.model.OWLAxiom;
+import org.semanticweb.owlapi.model.OWLObject;
 
 /**
- * Created by @ssz on 07.05.2020.
+ * Created by @ssz on 16.05.2020.
+ *
+ * @param <A> - {@link OWLAxiom} and {@link HasSubject}
+ * @param <S> - {@link OWLObject}
  */
-public class SubClassOfByObject extends SubClassOfByOperand {
+abstract class PropertyAssertionBySubject<A extends OWLAxiom & HasSubject<S>, S extends OWLObject> extends BaseByObject<A, S> {
+
     @Override
-    protected ExtendedIterator<OntStatement> listStatements(OntModel model, Resource clazz) {
-        return listByPredicateAndObject(model, RDFS.subClassOf, clazz);
+    public final ExtendedIterator<ONTObject<A>> listONTAxioms(S subject,
+                                                              OntModel model,
+                                                              ONTObjectFactory factory,
+                                                              AxiomsSettings config) {
+        return listONTAxioms(subject, getTranslator(), model, factory, config);
     }
+
+    private ExtendedIterator<ONTObject<A>> listONTAxioms(S subject,
+                                                         AxiomTranslator<A> translator,
+                                                         OntModel model,
+                                                         ONTObjectFactory factory,
+                                                         AxiomsSettings config) {
+        ExtendedIterator<OntStatement> res = listBySubject(model, toResource(subject))
+                .filterKeep(x -> translator.testStatement(x, config));
+        return translate(translator, res, factory, config);
+    }
+
+    abstract Resource toResource(S subject);
+
+    abstract AxiomTranslator<A> getTranslator();
 }

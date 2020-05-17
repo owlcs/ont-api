@@ -18,7 +18,6 @@ import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.ONTObjectFactory;
 import com.github.owlcs.ontapi.internal.OWLTopObjectType;
-import com.github.owlcs.ontapi.internal.WriteHelper;
 import com.github.owlcs.ontapi.internal.axioms.EquivalentClassesTranslator;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
@@ -31,7 +30,7 @@ import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 /**
  * Created by @ssz on 18.04.2020.
  */
-public class EquivalentClassesByClass extends BaseByObject<OWLEquivalentClassesAxiom, OWLClass> {
+public class EquivalentClassesByOperand extends BaseByObject<OWLEquivalentClassesAxiom, OWLClass> {
     public static final EquivalentClassesTranslator TRANSLATOR = getTranslator(OWLTopObjectType.EQUIVALENT_CLASSES);
 
     @Override
@@ -39,7 +38,7 @@ public class EquivalentClassesByClass extends BaseByObject<OWLEquivalentClassesA
                                                                                 OntModel model,
                                                                                 ONTObjectFactory factory,
                                                                                 AxiomsSettings config) {
-        Resource op = WriteHelper.toResource(clazz.getIRI());
+        Resource op = asResource(clazz);
         ExtendedIterator<OntStatement> res = listBySubjectAndPredicate(model, op, OWL.equivalentClass)
                 .andThen(listByPredicateAndObject(model, OWL.equivalentClass, op))
                 .filterKeep(s -> TRANSLATOR.testStatement(s, config));

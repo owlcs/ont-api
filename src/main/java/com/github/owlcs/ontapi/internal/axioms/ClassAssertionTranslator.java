@@ -62,15 +62,15 @@ public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionA
         return model.getBaseGraph().find(Node.ANY, RDF.Nodes.type, Node.ANY)
                 .filterDrop(t -> forbidden.contains(t.getObject()))
                 .mapWith(model::asStatement)
-                .filterKeep(this::filterSO);
+                .filterKeep(this::filter);
     }
 
     @Override
     public boolean testStatement(OntStatement statement, AxiomsSettings config) {
-        return statement.isDeclaration() && filterSO(statement);
+        return statement.isDeclaration() && filter(statement);
     }
 
-    protected boolean filterSO(OntStatement statement) {
+    public boolean filter(OntStatement statement) {
         // first class then individual,
         // since anonymous individual has more sophisticated and time-consuming checking
         return isClass(statement.getObject()) && isIndividual(statement.getSubject());

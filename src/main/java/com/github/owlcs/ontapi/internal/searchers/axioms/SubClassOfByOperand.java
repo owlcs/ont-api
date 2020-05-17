@@ -14,26 +14,32 @@
 
 package com.github.owlcs.ontapi.internal.searchers.axioms;
 
-import com.github.owlcs.ontapi.internal.AxiomTranslator;
+import com.github.owlcs.ontapi.config.AxiomsSettings;
+import com.github.owlcs.ontapi.internal.ONTObject;
+import com.github.owlcs.ontapi.internal.ONTObjectFactory;
 import com.github.owlcs.ontapi.internal.OWLTopObjectType;
-import com.github.owlcs.ontapi.internal.axioms.ObjectPropertyAssertionTranslator;
+import com.github.owlcs.ontapi.internal.axioms.SubClassOfTranslator;
+import com.github.owlcs.ontapi.jena.model.OntModel;
+import com.github.owlcs.ontapi.jena.model.OntStatement;
 import org.apache.jena.rdf.model.Resource;
-import org.semanticweb.owlapi.model.OWLIndividual;
-import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
+import org.apache.jena.util.iterator.ExtendedIterator;
+import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 
 /**
- * Created by @ssz on 16.05.2020.
+ * Created by @ssz on 07.05.2020.
  */
-public class ObjectAssertionBySubject extends PropertyAssertionBySubject<OWLObjectPropertyAssertionAxiom, OWLIndividual> {
-    private static final ObjectPropertyAssertionTranslator TRANSLATOR = getTranslator(OWLTopObjectType.OBJECT_PROPERTY_ASSERTION);
+abstract class SubClassOfByOperand extends BaseByObject<OWLSubClassOfAxiom, OWLClass> {
+    private static final SubClassOfTranslator TRANSLATOR = getTranslator(OWLTopObjectType.SUBCLASS_OF);
+
+    protected abstract ExtendedIterator<OntStatement> listStatements(OntModel model, Resource clazz);
 
     @Override
-    Resource toResource(OWLIndividual subject) {
-        return asResource(subject);
-    }
-
-    @Override
-    AxiomTranslator<OWLObjectPropertyAssertionAxiom> getTranslator() {
-        return TRANSLATOR;
+    public final ExtendedIterator<ONTObject<OWLSubClassOfAxiom>> listONTAxioms(OWLClass clazz,
+                                                                               OntModel model,
+                                                                               ONTObjectFactory factory,
+                                                                               AxiomsSettings config) {
+        return translate(TRANSLATOR, listStatements(model, asResource(clazz))
+                .filterKeep(TRANSLATOR::filter), factory, config);
     }
 }

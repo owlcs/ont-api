@@ -15,13 +15,36 @@
 package com.github.owlcs.ontapi.internal.searchers.axioms;
 
 import com.github.owlcs.ontapi.internal.ByObjectSearcher;
+import com.github.owlcs.ontapi.internal.WriteHelper;
 import com.github.owlcs.ontapi.internal.searchers.WithRootStatement;
-import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLObject;
+import com.github.owlcs.ontapi.jena.model.OntEntity;
+import org.apache.jena.rdf.model.Resource;
+import org.semanticweb.owlapi.model.*;
 
 /**
  * Created by @ssz on 18.04.2020.
  */
 @SuppressWarnings("SameParameterValue")
 abstract class BaseByObject<A extends OWLAxiom, O extends OWLObject> extends WithRootStatement implements ByObjectSearcher<A, O> {
+
+    static Resource getRDFType(OWLEntity entity) {
+        return WriteHelper.getRDFType(entity);
+    }
+
+    static Class<? extends OntEntity> getClassType(OWLEntity entity) {
+        return WriteHelper.getEntityType(entity);
+    }
+
+    static Resource asResource(OWLEntity entity) {
+        return WriteHelper.toResource(entity.getIRI());
+    }
+
+    static Resource asResource(OWLIndividual individual) {
+        return WriteHelper.toResource(individual);
+    }
+
+    static Resource asResource(OWLAnnotationSubject subject) {
+        return WriteHelper.toResource(subject);
+    }
+
 }

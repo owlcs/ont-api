@@ -14,33 +14,20 @@
 
 package com.github.owlcs.ontapi.internal.searchers.axioms;
 
-import com.github.owlcs.ontapi.config.AxiomsSettings;
-import com.github.owlcs.ontapi.internal.ONTObject;
-import com.github.owlcs.ontapi.internal.ONTObjectFactory;
-import com.github.owlcs.ontapi.internal.OWLTopObjectType;
-import com.github.owlcs.ontapi.internal.WriteHelper;
-import com.github.owlcs.ontapi.internal.axioms.SubClassOfTranslator;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
-import org.apache.jena.rdf.model.Resource;
+import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
+import org.semanticweb.owlapi.model.OWLIndividual;
 
 /**
- * Created by @ssz on 07.05.2020.
+ * Created by @ssz on 17.05.2020.
  */
-abstract class SubClassOfByClass extends BaseByObject<OWLSubClassOfAxiom, OWLClass> {
-    private static final SubClassOfTranslator TRANSLATOR = getTranslator(OWLTopObjectType.SUBCLASS_OF);
-
-    protected abstract ExtendedIterator<OntStatement> listStatements(OntModel model, Resource clazz);
+public class ClassAssertionByIndividual extends ClassAssertionByOperand<OWLIndividual> {
 
     @Override
-    public final ExtendedIterator<ONTObject<OWLSubClassOfAxiom>> listONTAxioms(OWLClass clazz,
-                                                                               OntModel model,
-                                                                               ONTObjectFactory factory,
-                                                                               AxiomsSettings config) {
-        return translate(TRANSLATOR, listStatements(model, WriteHelper.toResource(clazz.getIRI()))
-                .filterKeep(TRANSLATOR::filter), factory, config);
+    protected ExtendedIterator<OntStatement> listStatements(OntModel model, OWLIndividual individual) {
+        return listBySubjectAndPredicate(model, asResource(individual), RDF.type);
     }
+
 }

@@ -17,14 +17,20 @@ package com.github.owlcs.ontapi.internal.searchers.axioms;
 import com.github.owlcs.ontapi.internal.AxiomTranslator;
 import com.github.owlcs.ontapi.internal.OWLTopObjectType;
 import com.github.owlcs.ontapi.internal.axioms.AnnotationAssertionTranslator;
+import org.apache.jena.rdf.model.Resource;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
 import org.semanticweb.owlapi.model.OWLAnnotationSubject;
 
 /**
  * Created by @ssz on 18.04.2020.
  */
-public class AnnotationAssertionBySubject extends AssertionBySubject<OWLAnnotationAssertionAxiom, OWLAnnotationSubject> {
+public class AnnotationAssertionBySubject extends PropertyAssertionBySubject<OWLAnnotationAssertionAxiom, OWLAnnotationSubject> {
     private static final AnnotationAssertionTranslator TRANSLATOR = getTranslator(OWLTopObjectType.ANNOTATION_ASSERTION);
+
+    @Override
+    Resource toResource(OWLAnnotationSubject subject) {
+        return asResource(subject);
+    }
 
     @Override
     AxiomTranslator<OWLAnnotationAssertionAxiom> getTranslator() {

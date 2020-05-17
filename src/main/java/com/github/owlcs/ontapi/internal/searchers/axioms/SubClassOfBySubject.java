@@ -23,7 +23,7 @@ import org.apache.jena.vocabulary.RDFS;
 /**
  * Created by @ssz on 18.04.2020.
  */
-public class SubClassOfBySubject extends SubClassOfByClass {
+public class SubClassOfBySubject extends SubClassOfByOperand {
     @Override
     protected ExtendedIterator<OntStatement> listStatements(OntModel model, Resource clazz) {
         return listBySubjectAndPredicate(model, clazz, RDFS.subClassOf);

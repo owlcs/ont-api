@@ -18,7 +18,6 @@ import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.ONTObjectFactory;
 import com.github.owlcs.ontapi.internal.OWLTopObjectType;
-import com.github.owlcs.ontapi.internal.WriteHelper;
 import com.github.owlcs.ontapi.internal.axioms.DeclarationTranslator;
 import com.github.owlcs.ontapi.jena.impl.PersonalityModel;
 import com.github.owlcs.ontapi.jena.model.OntEntity;
@@ -42,12 +41,12 @@ public class DeclarationByEntity extends BaseByObject<OWLDeclarationAxiom, OWLEn
                                                                           OntModel model,
                                                                           ONTObjectFactory factory,
                                                                           AxiomsSettings config) {
-        Resource subject = WriteHelper.toResource(entity.getIRI());
+        Resource subject = asResource(entity);
         if (!model.independent()) {
-            return listStatements(model, subject, RDF.type, WriteHelper.getRDFType(entity))
+            return listStatements(model, subject, RDF.type, getRDFType(entity))
                     .mapWith(x -> toAxiom(TRANSLATOR, x, factory, config));
         }
-        OntEntity res = PersonalityModel.asPersonalityModel(model).findNodeAs(subject.asNode(), WriteHelper.getEntityType(entity));
+        OntEntity res = PersonalityModel.asPersonalityModel(model).findNodeAs(subject.asNode(), getClassType(entity));
         if (res == null) return Iter.of();
         OntStatement statement = res.getMainStatement();
         return statement == null ? Iter.of() : Iter.of(toAxiom(TRANSLATOR, statement, factory, config));

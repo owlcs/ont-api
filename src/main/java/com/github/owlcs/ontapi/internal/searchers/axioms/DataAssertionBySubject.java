@@ -16,7 +16,6 @@ package com.github.owlcs.ontapi.internal.searchers.axioms;
 
 import com.github.owlcs.ontapi.internal.AxiomTranslator;
 import com.github.owlcs.ontapi.internal.OWLTopObjectType;
-import com.github.owlcs.ontapi.internal.WriteHelper;
 import com.github.owlcs.ontapi.internal.axioms.DataPropertyAssertionTranslator;
 import org.apache.jena.rdf.model.Resource;
 import org.semanticweb.owlapi.model.OWLDataPropertyAssertionAxiom;
@@ -25,12 +24,12 @@ import org.semanticweb.owlapi.model.OWLIndividual;
 /**
  * Created by @ssz on 16.05.2020.
  */
-public class DataAssertionBySubject extends AssertionBySubject<OWLDataPropertyAssertionAxiom, OWLIndividual> {
+public class DataAssertionBySubject extends PropertyAssertionBySubject<OWLDataPropertyAssertionAxiom, OWLIndividual> {
     private static final DataPropertyAssertionTranslator TRANSLATOR = getTranslator(OWLTopObjectType.DATA_PROPERTY_ASSERTION);
 
     @Override
     Resource toResource(OWLIndividual subject) {
-        return WriteHelper.toResource(subject);
+        return asResource(subject);
     }
 
     @Override

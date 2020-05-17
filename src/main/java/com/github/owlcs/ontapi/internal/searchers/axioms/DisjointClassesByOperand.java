@@ -30,7 +30,7 @@ import org.semanticweb.owlapi.model.OWLDisjointClassesAxiom;
 /**
  * Created by @ssz on 09.05.2020.
  */
-public class DisjointClassesByClass extends BaseByObject<OWLDisjointClassesAxiom, OWLClass> {
+public class DisjointClassesByOperand extends BaseByObject<OWLDisjointClassesAxiom, OWLClass> {
     public static final DisjointClassesTranslator TRANSLATOR = getTranslator(OWLTopObjectType.DISJOINT_CLASSES);
 
     protected ExtendedIterator<OntStatement> listStatements(OntModel model, OntClass clazz) {
