@@ -14,11 +14,14 @@
 
 package com.github.owlcs.ontapi.internal.searchers.axioms;
 
+import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.internal.ByObjectSearcher;
 import com.github.owlcs.ontapi.internal.WriteHelper;
+import com.github.owlcs.ontapi.internal.objects.ONTExpressionImpl;
 import com.github.owlcs.ontapi.internal.searchers.WithRootStatement;
 import com.github.owlcs.ontapi.jena.model.OntEntity;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.semanticweb.owlapi.model.*;
 
 /**
@@ -47,4 +50,19 @@ abstract class BaseByObject<A extends OWLAxiom, O extends OWLObject> extends Wit
         return WriteHelper.toResource(subject);
     }
 
+    static Resource asResource(OWLClass clazz) {
+        return asResource((OWLEntity) clazz);
+    }
+
+    static Resource asResource(OWLClassExpression clazz) {
+        if (clazz.isOWLClass()) return asResource(clazz.asOWLClass());
+        if (clazz instanceof ONTExpressionImpl) {
+            return new ResourceImpl(((ONTExpressionImpl<?>) clazz).asNode(), null);
+        }
+        throw new OntApiException.Unsupported("Unsupported class-expression " + clazz);
+    }
+
+    public static boolean isSupported(OWLClassExpression clazz) {
+        return clazz.isOWLClass() || clazz instanceof ONTExpressionImpl;
+    }
 }

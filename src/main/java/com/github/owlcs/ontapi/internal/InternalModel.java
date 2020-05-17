@@ -168,8 +168,10 @@ public class InternalModel extends OntGraphModelImpl
             = new EquivalentClassesByOperand();
     protected final ByObjectSearcher<OWLDisjointClassesAxiom, OWLClass> disjointClassesByClass
             = new DisjointClassesByOperand();
-    protected final ByObjectSearcher<OWLClassAssertionAxiom, OWLIndividual> classAssertionsBySubject
-            = new ClassAssertionByIndividual();
+    protected final ByObjectSearcher<OWLClassAssertionAxiom, OWLIndividual> classAssertionsByIndividual
+            = new ClassAssertionBySubject();
+    protected final ByObjectSearcher<OWLClassAssertionAxiom, OWLClassExpression> classAssertionsByClass
+            = new ClassAssertionByObject();
 
     // To search OWLObjects
     protected final ObjectsSearcher<OWLClass> classSearcher = new ClassSearcher();
@@ -683,7 +685,16 @@ public class InternalModel extends OntGraphModelImpl
         if (!useAxiomsSearchOptimization(config)) {
             return ListAxioms.super.listOWLClassAssertionAxioms(subject);
         }
-        return listOWLAxioms(classAssertionsBySubject, OWLClassAssertionAxiom.class, subject, config);
+        return listOWLAxioms(classAssertionsByIndividual, OWLClassAssertionAxiom.class, subject, config);
+    }
+
+    @Override
+    public Stream<OWLClassAssertionAxiom> listOWLClassAssertionAxioms(OWLClassExpression object) {
+        InternalConfig config = getConfig();
+        if (!ClassAssertionByObject.isSupported(object) || !useAxiomsSearchOptimization(config)) {
+            return ListAxioms.super.listOWLClassAssertionAxioms(object);
+        }
+        return listOWLAxioms(classAssertionsByClass, OWLClassAssertionAxiom.class, object, config);
     }
 
     @Override

@@ -23,7 +23,7 @@ import org.semanticweb.owlapi.model.OWLIndividual;
 /**
  * Created by @ssz on 17.05.2020.
  */
-public class ClassAssertionByIndividual extends ClassAssertionByOperand<OWLIndividual> {
+public class ClassAssertionBySubject extends ClassAssertionByOperand<OWLIndividual> {
 
     @Override
     protected ExtendedIterator<OntStatement> listStatements(OntModel model, OWLIndividual individual) {

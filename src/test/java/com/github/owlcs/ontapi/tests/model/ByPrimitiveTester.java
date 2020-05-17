@@ -18,7 +18,6 @@ import com.github.owlcs.ontapi.Ontology;
 import org.junit.Assert;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLPrimitive;
 
 import java.util.Objects;
 import java.util.Set;
@@ -36,11 +35,11 @@ import java.util.stream.Stream;
 class ByPrimitiveTester {
     final long count;
     final String type;
-    final BiFunction<OWLOntology, OWLPrimitive, Stream<? extends OWLObject>> listAxioms;
+    final BiFunction<OWLOntology, OWLObject, Stream<? extends OWLObject>> listAxioms;
 
     ByPrimitiveTester(String type,
                       long count,
-                      BiFunction<OWLOntology, OWLPrimitive, Stream<? extends OWLObject>> listAxioms) {
+                      BiFunction<OWLOntology, OWLObject, Stream<? extends OWLObject>> listAxioms) {
         this.type = Objects.requireNonNull(type);
         this.listAxioms = Objects.requireNonNull(listAxioms);
         this.count = count;
@@ -51,12 +50,12 @@ class ByPrimitiveTester {
                 ax.toString().replaceAll("\\s_:[a-z\\d\\-]+", " _:x").hashCode() : ax.hashCode();
     }
 
-    private long axiomsCount(OWLOntology ont, OWLPrimitive x) {
+    private long axiomsCount(OWLOntology ont, OWLObject x) {
         return listAxioms.apply(ont, x).mapToLong(ByPrimitiveTester::toLong).sum();
     }
 
-    void testAxiomsCounts(OWLOntology ont, Function<OWLOntology, Stream<? extends OWLPrimitive>> getPrimitives) {
-        Set<OWLPrimitive> primitives = getPrimitives.apply(ont).collect(Collectors.toSet());
+    void testAxiomsCounts(OWLOntology ont, Function<OWLOntology, Stream<? extends OWLObject>> getPrimitives) {
+        Set<OWLObject> primitives = getPrimitives.apply(ont).collect(Collectors.toSet());
         if (ont instanceof Ontology) { // to be sure that graph optimization is used
             ((Ontology) ont).clearCache();
         }

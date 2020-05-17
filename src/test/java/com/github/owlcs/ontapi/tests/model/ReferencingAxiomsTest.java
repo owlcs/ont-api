@@ -249,7 +249,7 @@ public class ReferencingAxiomsTest {
 
         void doTest(T type, Function<OWLOntology, Stream<? extends OWLPrimitive>> getPrimitives) {
             OWLOntology ont = load(newManager());
-            getTester(type).testAxiomsCounts(ont, getPrimitives);
+            getTester(type).testAxiomsCounts(ont, getPrimitives::apply);
         }
 
         public OWLOntology load(OWLOntologyManager manager) {
@@ -266,7 +266,7 @@ public class ReferencingAxiomsTest {
         }
 
         private ByPrimitiveTester of(long count) {
-            return new ByPrimitiveTester(name(), count, OWLAxiomCollection::referencingAxioms);
+            return new ByPrimitiveTester(name(), count, (o, x) -> o.referencingAxioms((OWLPrimitive) x));
         }
     }
 

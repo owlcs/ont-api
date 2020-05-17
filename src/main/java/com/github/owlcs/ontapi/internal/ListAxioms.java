@@ -105,6 +105,12 @@ interface ListAxioms {
         return listOWLAxioms(OWLHasKeyAxiom.class).filter(x -> Objects.equals(subject, x.getClassExpression()));
     }
 
+    /**
+     * Lists {@link OWLClassAssertionAxiom ClassAssertion Axiom}s by the given {@link OWLClassExpression class}-object.
+     *
+     * @param object {@link OWLClassExpression}, not {@code null}
+     * @return a {@code Stream} of {@link OWLClassAssertionAxiom}s
+     */
     default Stream<OWLClassAssertionAxiom> listOWLClassAssertionAxioms(OWLClassExpression object) {
         return listOWLAxioms(OWLClassAssertionAxiom.class).filter(x -> Objects.equals(object, x.getClassExpression()));
     }
