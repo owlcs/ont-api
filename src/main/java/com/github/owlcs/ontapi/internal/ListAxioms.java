@@ -182,6 +182,13 @@ interface ListAxioms {
         return listOWLSubPropertyOfAxiomsByObject(OWLSubObjectPropertyOfAxiom.class, object);
     }
 
+    /**
+     * Lists {@link OWLObjectPropertyDomainAxiom ObjectPropertyDomain Axiom}s
+     * by the given {@link OWLObjectPropertyExpression property}-subject.
+     *
+     * @param subject {@link OWLObjectPropertyExpression}, not {@code null}
+     * @return a {@code Stream} of {@link OWLObjectPropertyDomainAxiom}s
+     */
     default Stream<OWLObjectPropertyDomainAxiom> listOWLObjectPropertyDomainAxioms(OWLObjectPropertyExpression subject) {
         return listOWLPropertyAxioms(OWLObjectPropertyDomainAxiom.class, subject);
     }
