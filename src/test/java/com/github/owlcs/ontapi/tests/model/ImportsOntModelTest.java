@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -291,7 +291,7 @@ public class ImportsOntModelTest extends OntModelTestBase {
         Assert.assertEquals(Stream.of(a, b)
                         .map(ad::asBaseModel)
                         .map(BaseModel::getBase)
-                        .map(UnionModel::getBaseGraph).collect(Collectors.toSet()),
+                        .map(OntModel::getBaseGraph).collect(Collectors.toSet()),
                 Graphs.baseGraphs(ad.asBaseModel(a).getBase().getGraph()).collect(Collectors.toSet()));
 
         m.applyChange(new RemoveImport(a, d.getOWLImportsDeclaration(iri_b)));

@@ -421,17 +421,17 @@ public enum OWLComponentType {
      * Lists non-primitive components that can be shared.
      *
      * @return {@code Stream} of {@link OWLTopObjectType}s
-     * @see InternalModel#getUsedTriples(OntModel, OWLObject)
+     * @see InternalModelImpl#getUsedTriples(OntModel, OWLObject)
      */
     static Stream<OWLComponentType> sharedComponents() {
         return COMPLEX_COMPONENTS.stream();
     }
 
     /**
-     * Lists {@link OWLComponentType} that are used as keys in the {@link InternalModel internal model} components cache.
+     * Lists {@link OWLComponentType} that are used as keys in the {@link InternalModelImpl internal model} components cache.
      *
      * @return {@code Stream} of {@link OWLTopObjectType}s
-     * @see InternalModel#components
+     * @see InternalModelImpl#components
      */
     static Stream<OWLComponentType> keys() {
         return PRIMITIVE_COMPONENTS.stream();

@@ -21,7 +21,6 @@ import com.github.owlcs.ontapi.internal.InternalCache;
 import com.github.owlcs.ontapi.internal.InternalConfig;
 import com.github.owlcs.ontapi.internal.InternalModel;
 import com.github.owlcs.ontapi.jena.UnionGraph;
-import com.github.owlcs.ontapi.jena.impl.OntGraphModelImpl;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.utils.Graphs;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
@@ -1812,7 +1811,7 @@ public class OntologyManagerImpl implements OntologyManager,
             UnionGraph baseGraph = m.getBase().getGraph();
             Stream<UnionGraph> imports = Graphs.getImports(baseGraph).stream()
                     .map(s -> this.content.values().map(OntInfo::get).map(BaseModel.class::cast)
-                            .map(BaseModel::getBase).map(OntGraphModelImpl::getGraph)
+                            .map(BaseModel::getBase).map(InternalModel::getGraph)
                             .filter(g -> Objects.equals(s, Graphs.getURI(g))).findFirst().orElse(null))
                     .filter(Objects::nonNull);
             imports.forEach(baseGraph::addGraph);

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -25,6 +25,7 @@ import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.ChangeApplied;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
@@ -91,7 +92,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements Ontology, OWL
     }
 
     @Override
-    public void setLock(ReadWriteLock lock) {
+    public void setLock(@Nullable ReadWriteLock lock) {
         throw new OntApiException.Unsupported("Model's lock cannot be changed in ONT-API");
     }
 
@@ -271,7 +272,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements Ontology, OWL
         public OntModel asGraphModel() {
             lock.readLock().lock();
             try {
-                OntGraphModelImpl base = getBase();
+                InternalModel base = getBase();
                 return asConcurrent(base.getGraph(), base.getOntPersonality(), lock);
             } finally {
                 lock.readLock().unlock();

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, The University of Manchester, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -17,6 +17,7 @@ package com.github.owlcs.ontapi;
 import com.github.owlcs.ontapi.internal.InternalCache;
 import com.github.owlcs.ontapi.internal.InternalConfig;
 import com.github.owlcs.ontapi.internal.InternalModel;
+import com.github.owlcs.ontapi.internal.InternalModelImpl;
 import com.github.owlcs.ontapi.jena.impl.conf.OntModelConfig;
 import com.github.owlcs.ontapi.jena.impl.conf.OntPersonality;
 import com.github.owlcs.ontapi.jena.model.OntModel;
@@ -91,9 +92,9 @@ public interface BaseModel {
      * @param personality {@link OntPersonality}, not {@code null}, to manage {@code OntObject}s
      * @param config      {@link InternalConfig}, not {@code null}, to control behavior
      * @param dataFactory {@link DataFactory}, not {@code null}, to produces {@code OWLObject}s
-     * @param caches a {@code Map} with {@link OWLPrimitive} class-types as keys
-     *               and manager-wide {@link InternalCache}s as values
-     *               to enable data sharing between different ontologies
+     * @param caches      a {@code Map} with {@link OWLPrimitive} class-types as keys
+     *                    and manager-wide {@link InternalCache}s as values
+     *                    to enable data sharing between different ontologies
      * @return {@link InternalModel}
      */
     static InternalModel createInternalModel(Graph graph,
@@ -101,7 +102,7 @@ public interface BaseModel {
                                              InternalConfig config,
                                              DataFactory dataFactory,
                                              Map<Class<? extends OWLPrimitive>, InternalCache<?, ?>> caches) {
-        return new InternalModel(OntApiException.notNull(graph, "Null graph."),
+        return new InternalModelImpl(OntApiException.notNull(graph, "Null graph."),
                 OntApiException.notNull(personality, "Null personality."),
                 OntApiException.notNull(config, "Null config."),
                 OntApiException.notNull(dataFactory, "Null data-factory"),
