@@ -26,6 +26,7 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.shared.JenaException;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLAxiom;
+import org.semanticweb.owlapi.model.OWLObject;
 
 import java.util.List;
 import java.util.Set;
@@ -112,8 +113,9 @@ public abstract class BaseSearcher {
         return Iter.create(statements).mapWith(s -> translator.toAxiomWrap(s, factory, config));
     }
 
+    @SuppressWarnings("unchecked")
     protected static <T extends AxiomTranslator<? extends A>, A extends OWLAxiom> T getTranslator(OWLTopObjectType type) {
-        return type.getTranslator();
+        return (T) type.getTranslator();
     }
 
     protected static Set<AxiomTranslator<OWLAxiom>> selectTranslators(OWLComponentType type) {
@@ -121,6 +123,16 @@ public abstract class BaseSearcher {
                 .map(OWLTopObjectType::getAxiomType)
                 .map(AxiomParserProvider::get)
                 .collect(Iter.toUnmodifiableSet());
+    }
+
+    @SuppressWarnings("unchecked")
+    static <X> ExtendedIterator<X> cast(ExtendedIterator<?> it) {
+        return (ExtendedIterator<X>) it;
+    }
+
+    @SuppressWarnings("unchecked")
+    static <X extends OWLObject> ObjectsSearcher<X> cast(ObjectsSearcher<?> searcher) {
+        return (ObjectsSearcher<X>) searcher;
     }
 
     protected final ExtendedIterator<OntStatement> listBySubject(OntModel model, Resource subject) {

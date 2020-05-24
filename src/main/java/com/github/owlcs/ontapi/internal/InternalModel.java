@@ -1172,16 +1172,16 @@ public class InternalModel extends OntGraphModelImpl
         InternalConfig c = HasConfig.getConfig(model);
         Set<Triple> res = new HashSet<>();
         // shared declaration and punned axioms:
-        Iter.flatMap(OWLTopObjectType.listAll(), type -> type.read(f, c)
+        Iter.flatMap(OWLTopObjectType.listAll(), type -> type.getSearcher().listONTObjects(model, f, c)
                 .filterKeep(x -> {
                     OWLObject obj = x.getOWLObject();
                     if (type != OWLTopObjectType.DECLARATION && container.equals(obj)) return false;
-                    if (getContentCache(type).contains(obj)) {
+                    if (InternalModel.this.getContentCache(type).contains(obj)) {
                         return true;
                     }
                     if (type == OWLTopObjectType.DECLARATION) {
                         OWLEntity entity = ((OWLDeclarationAxiom) obj).getEntity();
-                        return findUsedContentContainer(entity, obj).isPresent();
+                        return InternalModel.this.findUsedContentContainer(entity, obj).isPresent();
                     }
                     return false;
                 }))
@@ -1268,7 +1268,7 @@ public class InternalModel extends OntGraphModelImpl
             @Override
             @Nonnull
             public ModelObjectFactory getObjectFactory() {
-                return new InternalObjectFactory(InternalModel.this.getDataFactory(), () -> this);
+                return new InternalObjectFactory(InternalModel.this.getDataFactory(), () -> ObjectModel.this);
             }
         }
         return new ObjectModel(u);
@@ -1427,25 +1427,19 @@ public class InternalModel extends OntGraphModelImpl
      */
     protected ObjectMap<OWLObject> createComponentObjectMap(OWLComponentType type) {
         InternalConfig conf = getConfig();
-        Supplier<Iterator<ONTObject<OWLObject>>> loader = () -> listOWLObjects(type, conf);
+        Supplier<Iterator<ONTObject<OWLObject>>> loader = () -> InternalModel.this.listOWLObjects(type, conf);
         if (!conf.useComponentCache()) {
             ObjectsSearcher<OWLObject> searcher;
             if (OWLComponentType.CLASS == type) {
-                searcher = cast(classSearcher);
+                searcher = BaseSearcher.cast(classSearcher);
             } else { // TODO: other types
                 return new DirectObjectMapImpl<>(loader);
             }
-            return new DirectObjectMapImpl<>(loader,
-                    k -> searcher.findONTObject(k, getSearchModel(), getObjectFactory(), getConfig()),
-                    k -> searcher.containsONTObject(k, getSearchModel(), getObjectFactory(), getConfig()));
+            return new DirectObjectMapImpl<>(loader, toFinder(searcher), toTester(searcher));
         }
         boolean parallel = conf.parallel();
         boolean fastIterator = conf.useIteratorCache();
         return new CacheObjectMapImpl<>(loader, false, parallel, fastIterator);
-    }
-
-    private static ObjectsSearcher<OWLObject> cast(ObjectsSearcher<?> x) {
-        return (ObjectsSearcher<OWLObject>) x;
     }
 
     /**
@@ -1668,23 +1662,19 @@ public class InternalModel extends OntGraphModelImpl
      * @see #createComponentObjectMap(OWLComponentType)
      */
     protected ObjectMap<OWLObject> createContentObjectMap(OWLTopObjectType key) {
-        ModelObjectFactory factory = getObjectFactory();
-        Supplier<Iterator<ONTObject<OWLObject>>> loader =
-                () -> (Iterator<ONTObject<OWLObject>>) key.read(factory, getConfig());
+        ObjectsSearcher<OWLObject> searcher = key.getSearcher();
         InternalConfig conf = getConfig();
         if (!conf.useContentCache()) {
-            return new DirectObjectMapImpl<>(loader,
-                    k -> (Optional<ONTObject<OWLObject>>) key.find(factory, getConfig(), k),
-                    k -> key.has(factory, getConfig(), k));
+            return new DirectObjectMapImpl<>(toLoader(searcher), toFinder(searcher), toTester(searcher));
         }
         boolean parallel = conf.parallel();
         boolean fastIterator = conf.useIteratorCache();
         boolean withMerge = !key.isDistinct();
         if (!LOGGER.isDebugEnabled()) {
-            return new CacheObjectMapImpl<>(loader, withMerge, parallel, fastIterator);
+            return new CacheObjectMapImpl<>(toLoader(searcher), withMerge, parallel, fastIterator);
         }
         OntID id = getID();
-        return new CacheObjectMapImpl<OWLObject>(loader, withMerge, parallel, fastIterator) {
+        return new CacheObjectMapImpl<OWLObject>(toLoader(searcher), withMerge, parallel, fastIterator) {
             @Override
             protected CachedMap<OWLObject, ONTObject<OWLObject>> loadMap() {
                 Instant start = Instant.now();
@@ -1700,6 +1690,18 @@ public class InternalModel extends OntGraphModelImpl
                 return res;
             }
         };
+    }
+
+    private <X extends OWLObject> Supplier<Iterator<ONTObject<X>>> toLoader(ObjectsSearcher<X> searcher) {
+        return () -> searcher.listONTObjects(getSearchModel(), getObjectFactory(), getConfig());
+    }
+
+    private <X extends OWLObject> Function<X, Optional<ONTObject<X>>> toFinder(ObjectsSearcher<X> searcher) {
+        return k -> searcher.findONTObject(k, getSearchModel(), getObjectFactory(), getConfig());
+    }
+
+    private <X extends OWLObject> Predicate<X> toTester(ObjectsSearcher<X> searcher) {
+        return k -> searcher.containsONTObject(k, getSearchModel(), getObjectFactory(), getConfig());
     }
 
     /**
