@@ -372,6 +372,11 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
         return listComponents(OWLComponentType.ANONYMOUS_INDIVIDUAL);
     }
 
+    public Stream<OWLClassExpression> listOWLClassExpressions() {
+        return ModelIterators.reduceDistinct(selectContentObjects(OWLComponentType.CLASS_EXPRESSION)
+                .flatMap(OWLObject::nestedClassExpressions), getConfig());
+    }
+
     public Stream<OWLNamedIndividual> listOWLNamedIndividuals() {
         return listComponents(OWLComponentType.NAMED_INDIVIDUAL);
     }

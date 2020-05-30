@@ -25,7 +25,6 @@ import org.semanticweb.owlapi.model.parameters.AxiomAnnotations;
 import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.model.parameters.Navigation;
 import org.semanticweb.owlapi.util.OWLAxiomSearchFilter;
-import org.semanticweb.owlapi.util.OWLClassExpressionCollector;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
@@ -181,7 +180,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, BaseModel {
 
     @Override
     public Stream<OWLClassExpression> nestedClassExpressions() {
-        return accept(new OWLClassExpressionCollector()).stream();
+        return base.listOWLClassExpressions();
     }
 
     @Override

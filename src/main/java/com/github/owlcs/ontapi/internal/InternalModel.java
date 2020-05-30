@@ -72,6 +72,28 @@ public interface InternalModel extends OntModel, PersonalityModel, HasOntologyID
     Stream<OWLAnnotation> listOWLAnnotations();
 
     /**
+     * Lists all class expressions (both anonymous and named) in the form of OWL-API objects.
+     *
+     * @return a {@code Stream} of {@link OWLClassExpression}s
+     * @see #listOWLClasses()
+     */
+    Stream<OWLClassExpression> listOWLClassExpressions();
+
+    /**
+     * Lists all anonymous individuals in the form of OWL-API objects.
+     *
+     * @return a {@code Stream} of {@link OWLAnonymousIndividual}s
+     */
+    Stream<OWLAnonymousIndividual> listOWLAnonymousIndividuals();
+
+    /**
+     * Lists all named individuals in the form of OWL-API objects.
+     *
+     * @return a {@code Stream} of {@link OWLNamedIndividual}s
+     */
+    Stream<OWLNamedIndividual> listOWLNamedIndividuals();
+
+    /**
      * Lists all OWL classes in the form of OWL-API objects.
      *
      * @return a {@code Stream} of {@link OWLClass}es.
@@ -84,20 +106,6 @@ public interface InternalModel extends OntModel, PersonalityModel, HasOntologyID
      * @return a {@code Stream} of {@link OWLDatatype}s
      */
     Stream<OWLDatatype> listOWLDatatypes();
-
-    /**
-     * Lists all named individuals in the form of OWL-API objects.
-     *
-     * @return a {@code Stream} of {@link OWLNamedIndividual}s
-     */
-    Stream<OWLNamedIndividual> listOWLNamedIndividuals();
-
-    /**
-     * Lists all anonymous individuals in the form of OWL-API objects.
-     *
-     * @return a {@code Stream} of {@link OWLAnonymousIndividual}s
-     */
-    Stream<OWLAnonymousIndividual> listOWLAnonymousIndividuals();
 
     /**
      * Lists all data properties in the form of OWL-API objects.
