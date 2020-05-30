@@ -14,44 +14,29 @@
 
 package com.github.owlcs.ontapi.tests.model;
 
-import com.github.owlcs.ontapi.Ontology;
-import org.junit.Assert;
 import org.semanticweb.owlapi.model.OWLObject;
-import org.semanticweb.owlapi.model.OWLOntology;
 
 import java.util.Objects;
-import java.util.Set;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
- * Created by @ssz on 05.05.2020.
- *
- * @see ReferencingAxiomsTest
- * @see SearchByObjectTest
+ * Created by @ssz on 30.05.2020.
  */
-class ByPrimitiveTester extends SearchTester {
-    final BiFunction<OWLOntology, OWLObject, Stream<? extends OWLObject>> listObjects;
+abstract class SearchTester {
 
-    ByPrimitiveTester(String type,
-                      long count,
-                      BiFunction<OWLOntology, OWLObject, Stream<? extends OWLObject>> listObjects) {
-        super(type, count);
-        this.listObjects = Objects.requireNonNull(listObjects);
+    final long count;
+    final String type;
+
+    SearchTester(String type, long count) {
+        this.type = Objects.requireNonNull(type);
+        this.count = count;
     }
 
-    private long axiomsCount(OWLOntology ont, OWLObject x) {
-        return listObjects.apply(ont, x).mapToLong(ByPrimitiveTester::toLong).sum();
+    static long toLong(OWLObject obj) {
+        return obj.anonymousIndividuals().findFirst().isPresent() ? toString(obj).hashCode() : obj.hashCode();
     }
 
-    void testAxiomsCounts(OWLOntology ont, Function<OWLOntology, Stream<? extends OWLObject>> getPrimitives) {
-        Set<OWLObject> primitives = getPrimitives.apply(ont).collect(Collectors.toSet());
-        if (ont instanceof Ontology) { // to be sure that graph optimization is used
-            ((Ontology) ont).clearCache();
-        }
-        long res = primitives.stream().mapToLong(x -> axiomsCount(ont, x)).sum();
-        Assert.assertEquals(count, res);
+    static String toString(OWLObject obj) {
+        return obj.toString().replaceAll("\\s_:[a-z\\d\\-]+", " _:x");
     }
+
 }

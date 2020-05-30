@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -20,7 +20,9 @@ import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
-import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.model.OWLObject;
+import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -50,57 +52,73 @@ public class SignatureTest {
 
     @Test
     public void testClasses() {
-        data.doTest(T.CLASS, HasClassesInSignature::classesInSignature);
+        data.doTest(T.CLASS);
+    }
+
+    @Test
+    public void testClassExpressions() {
+        data.doTest(T.CLASS_EXPRESSION);
     }
 
     @Test
     public void testNamedIndividuals() {
-        data.doTest(T.NAMED_INDIVIDUAL, HasIndividualsInSignature::individualsInSignature);
+        data.doTest(T.NAMED_INDIVIDUAL);
     }
 
     enum TestData {
         PIZZA(ModelData.PIZZA,
                 T.CLASS.of(-18549559397L),
+                T.CLASS_EXPRESSION.of(-42505386964L),
                 T.NAMED_INDIVIDUAL.of(627705256L)
         ),
         FAMILY(ModelData.FAMILY,
                 T.CLASS.of(-1268263574L),
+                T.CLASS_EXPRESSION.of(-16978651096L),
                 T.NAMED_INDIVIDUAL.of(85936112709L)
         ),
         PEOPLE(ModelData.PEOPLE,
                 T.CLASS.of(-44946003502L),
+                T.CLASS_EXPRESSION.of(-51187071185L),
                 T.NAMED_INDIVIDUAL.of(-27921947437L)
         ),
         CAMERA(ModelData.CAMERA,
                 T.CLASS.of(8550118707L),
+                T.CLASS_EXPRESSION.of(7152927621L),
                 T.NAMED_INDIVIDUAL.of(-1151331346L)
         ),
         KOALA(ModelData.KOALA,
                 T.CLASS.of(4003478322L),
+                T.CLASS_EXPRESSION.of(6612435426L),
                 T.NAMED_INDIVIDUAL.of(11447501603L)
         ),
         TRAVEL(ModelData.TRAVEL,
                 T.CLASS.of(-12813239L),
+                T.CLASS_EXPRESSION.of(5669053922L),
                 T.NAMED_INDIVIDUAL.of(647180319L)
         ),
         WINE(ModelData.WINE,
                 T.CLASS.of(-7328739440L),
+                T.CLASS_EXPRESSION.of(-12745569437L),
                 T.NAMED_INDIVIDUAL.of(3479779986L)
         ),
         FOOD(ModelData.FOOD,
                 T.CLASS.of(-23236948086L),
+                T.CLASS_EXPRESSION.of(-15980117497L),
                 T.NAMED_INDIVIDUAL.of(-37834773654L)
         ),
         NCBITAXON_CUT(ModelData.NCBITAXON_CUT,
                 T.CLASS.of(-72461035056L),
+                T.CLASS_EXPRESSION.of(2872387903L),
                 T.NAMED_INDIVIDUAL.of(-75278820767L)
         ),
         HP_CUT(ModelData.HP_CUT,
                 T.CLASS.of(4720902778L),
+                T.CLASS_EXPRESSION.of(8426758568L),
                 T.NAMED_INDIVIDUAL.of()
         ),
         FAMILY_PEOPLE_UNION(ModelData.FAMILY_PEOPLE_UNION,
                 T.CLASS.of(-1213682231L),
+                T.CLASS_EXPRESSION.of(2421052769L),
                 T.NAMED_INDIVIDUAL.of(899752725L)
         ),
         ;
@@ -114,13 +132,12 @@ public class SignatureTest {
 
         public Tester getTester(T type) {
             return Arrays.stream(expectations)
-                    .filter(x -> Objects.equals(x.type, type))
+                    .filter(x -> Objects.equals(x.type, type.name()))
                     .findFirst().orElseThrow(IllegalArgumentException::new);
         }
 
-        void doTest(T type, Function<OWLOntology, Stream<? extends OWLPrimitive>> getEntities) {
-            OWLOntology ont = load(newManager());
-            getTester(type).testCounts(ont, getEntities);
+        void doTest(T type) {
+            getTester(type).testCounts(load(newManager()));
         }
 
         public OWLOntology load(OWLOntologyManager manager) {
@@ -129,7 +146,54 @@ public class SignatureTest {
     }
 
     enum T {
-        ANONYMOUS_INDIVIDUAL, NAMED_INDIVIDUAL, CLASS, DATATYPE, OBJECT_PROPERTY, DATA_PROPERTY, ANNOTATION_PROPERTY,
+        CLASS_EXPRESSION {
+            @Override
+            Stream<? extends OWLObject> listAxioms(OWLOntology ont) {
+                return ont.nestedClassExpressions();
+            }
+        },
+        ANONYMOUS_INDIVIDUAL {
+            @Override
+            Stream<? extends OWLObject> listAxioms(OWLOntology ont) {
+                return ont.anonymousIndividuals();
+            }
+        },
+        NAMED_INDIVIDUAL {
+            @Override
+            Stream<? extends OWLObject> listAxioms(OWLOntology ont) {
+                return ont.individualsInSignature();
+            }
+        },
+        CLASS {
+            @Override
+            Stream<? extends OWLObject> listAxioms(OWLOntology ont) {
+                return ont.classesInSignature();
+            }
+        },
+        DATATYPE {
+            @Override
+            Stream<? extends OWLObject> listAxioms(OWLOntology ont) {
+                return ont.datatypesInSignature();
+            }
+        },
+        OBJECT_PROPERTY {
+            @Override
+            Stream<? extends OWLObject> listAxioms(OWLOntology ont) {
+                return ont.objectPropertiesInSignature();
+            }
+        },
+        DATA_PROPERTY {
+            @Override
+            Stream<? extends OWLObject> listAxioms(OWLOntology ont) {
+                return ont.dataPropertiesInSignature();
+            }
+        },
+        ANNOTATION_PROPERTY {
+            @Override
+            Stream<? extends OWLObject> listAxioms(OWLOntology ont) {
+                return ont.annotationPropertiesInSignature();
+            }
+        },
         ;
 
         private Tester of() {
@@ -137,25 +201,22 @@ public class SignatureTest {
         }
 
         private Tester of(long count) {
-            return new Tester(this, count);
+            return new Tester(this, count, this::listAxioms);
         }
+
+        abstract Stream<? extends OWLObject> listAxioms(OWLOntology ont);
     }
 
-    private static class Tester {
-        private final long count;
-        private final T type;
+    private static class Tester extends SearchTester {
+        final Function<OWLOntology, Stream<? extends OWLObject>> listObjects;
 
-        private Tester(T type, long count) {
-            this.type = type;
-            this.count = count;
+        private Tester(T type, long count, Function<OWLOntology, Stream<? extends OWLObject>> listObjects) {
+            super(type.name(), count);
+            this.listObjects = listObjects;
         }
 
-        private long calc(OWLObject ax) {
-            return ax.hashCode();
-        }
-
-        void testCounts(OWLOntology ont, Function<OWLOntology, Stream<? extends OWLPrimitive>> getSignature) {
-            long res = getSignature.apply(ont).mapToLong(this::calc).sum();
+        void testCounts(OWLOntology ont) {
+            long res = listObjects.apply(ont).mapToLong(SearchTester::toLong).sum();
             Assert.assertEquals(count, res);
         }
     }
