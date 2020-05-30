@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -36,6 +36,8 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * Created by @ssz on 04.03.2019.
@@ -81,19 +83,33 @@ public class CacheConfigTest {
     private static <X> X getPrivateField(Object container,
                                          Class<X> type,
                                          Class<?>... genericTypes) throws Exception {
-        Field res = null;
-        for (Field f : container.getClass().getDeclaredFields()) {
+        Field res = find(container.getClass(), Class::getDeclaredFields, f -> {
             String name = f.getGenericType().getTypeName();
-            if (!name.contains(type.getName()))
-                continue;
-            if (Arrays.stream(genericTypes).map(Class::getName).allMatch(name::contains)) {
-                res = f;
-                break;
-            }
-        }
-        Assert.assertNotNull(res);
+            return name.contains(type.getName()) && Arrays.stream(genericTypes).map(Class::getName).allMatch(name::contains);
+        }).orElseThrow(AssertionError::new);
         res.setAccessible(true);
         return (X) res.get(container);
+    }
+
+    private static <X> Optional<X> find(Class<?> classType, Function<Class<?>, X[]> getFields, Predicate<X> select) {
+        List<Class<?>> types = new ArrayList<>();
+        Set<Class<?>> seen = new HashSet<>();
+        types.add(classType);
+        while (!types.isEmpty()) {
+            Class<?> type = types.remove(0);
+            if (!seen.add(type)) {
+                continue;
+            }
+            Class<?> superType = type.getSuperclass();
+            if (superType != null) {
+                types.add(superType);
+            }
+            Optional<X> res = Arrays.stream(getFields.apply(type))
+                    .filter(select)
+                    .findFirst();
+            if (res.isPresent()) return res;
+        }
+        return Optional.empty();
     }
 
     private static void testLoadManchesterString(OntologyManager m) throws OWLOntologyCreationException {

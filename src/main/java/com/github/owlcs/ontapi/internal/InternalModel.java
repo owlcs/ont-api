@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -17,7 +17,6 @@ package com.github.owlcs.ontapi.internal;
 import com.github.owlcs.ontapi.ID;
 import com.github.owlcs.ontapi.jena.UnionGraph;
 import com.github.owlcs.ontapi.jena.impl.PersonalityModel;
-import com.github.owlcs.ontapi.jena.model.OntEntity;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import org.apache.jena.rdf.model.Model;
 import org.semanticweb.owlapi.model.*;
@@ -26,8 +25,7 @@ import java.util.stream.Stream;
 
 /**
  * A Buffer Graph OWL model,
- * which supports both listing OWL-API objects (OWL Axioms, Entities and Annotations)
- * and Jena interfaces (through the {@link OntModel} view of RDF Graph).
+ * that extends  {@link OntModel ONTAPI Jena Model} providing various methods to work with {@link OWLObject OWLAPI Object}s.
  * <p>
  * Created by @ssz on 24.05.2020.
  */
@@ -39,14 +37,6 @@ public interface InternalModel extends OntModel, PersonalityModel, HasOntologyID
      * @return {@link UnionGraph}
      */
     UnionGraph getGraph();
-
-    /**
-     * Gets 'punnings', i.e. the {@link OntEntity}s which have not only single type.
-     *
-     * @param withImports if false takes into account only base model
-     * @return {@code Stream} of {@link OntEntity}s.
-     */
-    Stream<OntEntity> ambiguousEntities(boolean withImports);
 
     /**
      * Gets the {@link OWLOntologyID OWL Ontology ID} from the model.
@@ -137,6 +127,16 @@ public interface InternalModel extends OntModel, PersonalityModel, HasOntologyID
      * @return a {@code Stream} of {@link OWLEntity}s.
      */
     Stream<OWLEntity> listOWLEntities(IRI iri);
+
+    /**
+     * Lists all 'punnings', i.e. subjects of {@link OWLEntity}s with different types.
+     *
+     * @param withImports if {@code false} the method takes into account only the base graph
+     * @return a {@code Stream} of {@link IRI}s
+     * @see <a href='https://www.w3.org/TR/owl2-new-features/#F12:_Punning'>2.4.1 F12: Punning</a>
+     * @see com.github.owlcs.ontapi.jena.impl.conf.OntPersonality.Punnings
+     */
+    Stream<IRI> listPunningIRIs(boolean withImports);
 
     /**
      * Tests if the given {@link OWLEntity} has the OWL declaration.
