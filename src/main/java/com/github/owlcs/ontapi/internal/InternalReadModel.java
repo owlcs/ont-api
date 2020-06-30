@@ -20,6 +20,7 @@ import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.internal.axioms.AbstractNaryTranslator;
 import com.github.owlcs.ontapi.internal.searchers.axioms.*;
 import com.github.owlcs.ontapi.internal.searchers.objects.ClassSearcher;
+import com.github.owlcs.ontapi.internal.searchers.objects.NamedIndividualSearcher;
 import com.github.owlcs.ontapi.jena.OntJenaException;
 import com.github.owlcs.ontapi.jena.RWLockedGraph;
 import com.github.owlcs.ontapi.jena.impl.OntGraphModelImpl;
@@ -146,6 +147,7 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
 
     // To search OWLObjects
     protected final ObjectsSearcher<OWLClass> classSearcher = new ClassSearcher();
+    protected final ObjectsSearcher<OWLNamedIndividual> individualSearcher = new NamedIndividualSearcher();
 
     InternalReadModel(Graph base,
                       OntPersonality personality,
@@ -854,10 +856,8 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
         InternalConfig conf = getConfig();
         Supplier<Iterator<ONTObject<OWLObject>>> loader = () -> InternalReadModel.this.listOWLObjects(type, conf);
         if (!conf.useComponentCache()) {
-            ObjectsSearcher<OWLObject> searcher;
-            if (OWLComponentType.CLASS == type) {
-                searcher = BaseSearcher.cast(classSearcher);
-            } else { // TODO: other types
+            ObjectsSearcher<OWLObject> searcher = getEntitySearcher(type);
+            if (searcher == null) {
                 return new DirectObjectMapImpl<>(loader);
             }
             return new DirectObjectMapImpl<>(loader, toFinder(searcher), toTester(searcher));
@@ -874,15 +874,26 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
      * @param conf {@link InternalConfig}
      * @return an {@code Iterator} of {@link ONTObject} with the given type
      */
-    @SuppressWarnings({"unchecked", "rawtypes"})
     protected Iterator<ONTObject<OWLObject>> listOWLObjects(OWLComponentType type, InternalConfig conf) {
         ModelObjectFactory factory = getObjectFactory();
         OntModel model = getSearchModel();
-        if (OWLComponentType.CLASS == type && useObjectsSearchOptimization(conf)) {
-            return ((Iterator) classSearcher.listONTObjects(model, factory, conf));
+        ObjectsSearcher<OWLObject> searcher = getEntitySearcher(type);
+        if (searcher != null && useObjectsSearchOptimization(conf)) {
+            return searcher.listONTObjects(model, factory, conf);
         }
-        // if content cache is loaded its parsing is faster than graph-optimization
+        // if content cache is loaded then its parsing is faster than graph-optimization (at least for classes)
         return selectContentObjects(type).flatMap(x -> type.select(x, model, factory)).iterator();
+    }
+
+    private ObjectsSearcher<OWLObject> getEntitySearcher(OWLComponentType type) {
+        if (OWLComponentType.CLASS == type) {
+            return BaseSearcher.cast(classSearcher);
+        }
+        if (OWLComponentType.NAMED_INDIVIDUAL == type) {
+            return BaseSearcher.cast(individualSearcher);
+        }
+        // TODO: support other types (see https://github.com/owlcs/ont-api/issues/15)
+        return null;
     }
 
     /**

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -16,10 +16,13 @@ package com.github.owlcs.ontapi.internal;
 
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.config.AxiomsSettings;
+import com.github.owlcs.ontapi.jena.impl.PersonalityModel;
+import com.github.owlcs.ontapi.jena.model.OntClass;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
+import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
@@ -28,8 +31,10 @@ import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 
 /**
  * A base abstraction for {@link AxiomTranslator}s and searchers.
@@ -119,10 +124,11 @@ public abstract class BaseSearcher {
     }
 
     protected static Set<AxiomTranslator<OWLAxiom>> selectTranslators(OWLComponentType type) {
-        return OWLTopObjectType.axioms().filter(x -> type == null || x.hasComponent(type))
-                .map(OWLTopObjectType::getAxiomType)
-                .map(AxiomParserProvider::get)
-                .collect(Iter.toUnmodifiableSet());
+        return selectTranslators(OWLTopObjectType.axioms().filter(x -> type == null || x.hasComponent(type)));
+    }
+
+    private static Set<AxiomTranslator<OWLAxiom>> selectTranslators(Stream<OWLTopObjectType> types) {
+        return types.map(OWLTopObjectType::getAxiomType).map(AxiomParserProvider::get).collect(Iter.toUnmodifiableSet());
     }
 
     @SuppressWarnings("unchecked")
@@ -133,6 +139,19 @@ public abstract class BaseSearcher {
     @SuppressWarnings("unchecked")
     static <X extends OWLObject> ObjectsSearcher<X> cast(ObjectsSearcher<?> searcher) {
         return (ObjectsSearcher<X>) searcher;
+    }
+
+    /**
+     * Gets all uri-{@link Node}s that are reserved for a model and cannot represent a {@link OntClass.Named}.
+     *
+     * @param model {@link OntModel}, not {@code null}
+     * @return a {@code Set} of {@link Node}s
+     */
+    protected static Set<Node> getSystemResources(OntModel model) {
+        if (model instanceof PersonalityModel) {
+            return ((PersonalityModel) model).getSystemResources(OntClass.Named.class);
+        }
+        return Collections.emptySet();
     }
 
     protected final ExtendedIterator<OntStatement> listBySubject(OntModel model, Resource subject) {

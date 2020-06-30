@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -16,18 +16,17 @@ package com.github.owlcs.ontapi.internal;
 
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.config.AxiomsSettings;
-import com.github.owlcs.ontapi.jena.impl.PersonalityModel;
-import com.github.owlcs.ontapi.jena.model.OntClass;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
-import org.apache.jena.graph.Node;
 import org.apache.jena.shared.JenaException;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAxiom;
 
-import java.util.*;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -69,19 +68,6 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> extends BaseSearch
     public static ONTObjectFactory getObjectFactory(OntModel model) {
         return model instanceof HasObjectFactory ?
                 ((HasObjectFactory) model).getObjectFactory() : ONTObjectFactory.DEFAULT;
-    }
-
-    /**
-     * Gets all uri-{@link Node}s that are reserved for a model and cannot represent a {@link OntClass.Named}.
-     *
-     * @param model {@link OntModel}, not {@code null}
-     * @return a {@code Set} of {@link Node}s
-     */
-    protected static Set<Node> getSystemResources(OntModel model) {
-        if (model instanceof PersonalityModel) {
-            return ((PersonalityModel) model).getSystemResources(OntClass.Named.class);
-        }
-        return Collections.emptySet();
     }
 
     /**

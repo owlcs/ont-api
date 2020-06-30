@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -17,10 +17,7 @@ package com.github.owlcs.ontapi.internal.searchers.objects;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.*;
-import com.github.owlcs.ontapi.internal.searchers.WithRootStatement;
 import com.github.owlcs.ontapi.internal.searchers.axioms.ByClass;
-import com.github.owlcs.ontapi.jena.impl.PersonalityModel;
-import com.github.owlcs.ontapi.jena.impl.conf.OntPersonality;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
@@ -35,61 +32,40 @@ import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
 
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
 
 /**
+ * An {@link ObjectsSearcher} that retrieves {@link OWLClass OWL-API Class}es.
  * Created by @ssz on 19.04.2020.
  */
-public class ClassSearcher extends WithRootStatement implements ObjectsSearcher<OWLClass> {
-
+public class ClassSearcher extends EntitySearcher<OWLClass> {
     private static final Set<AxiomTranslator<OWLAxiom>> TRANSLATORS = selectTranslators(OWLComponentType.CLASS);
 
-    protected static OntPersonality.Builtins getBuiltins(OntModel m) {
-        return PersonalityModel.asPersonalityModel(m).getOntPersonality().getBuiltins();
-    }
-
-    private static Function<String, ONTObject<OWLClass>> factoryMapping(OntModel model, ONTObjectFactory factory) {
-        if (factory instanceof ModelObjectFactory) {
-            return ((ModelObjectFactory) factory)::getClass;
-        }
-        return uri -> factory.getClass(OntApiException.mustNotBeNull(model.getOntClass(uri)));
+    @Override
+    protected ONTObject<OWLClass> createEntity(String uri, OntModel model, ONTObjectFactory factory) {
+        return factory.getClass(OntApiException.mustNotBeNull(model.getOntClass(uri)));
     }
 
     @Override
-    public ExtendedIterator<ONTObject<OWLClass>> listONTObjects(OntModel model,
-                                                                ONTObjectFactory factory,
-                                                                AxiomsSettings config) {
-        return listClasses(model, config).mapWith(factoryMapping(model, factory));
+    protected ONTObject<OWLClass> createEntity(String uri, ModelObjectFactory factory) {
+        return factory.getClass(uri);
     }
 
     @Override
-    public boolean containsONTObject(OWLClass object, OntModel model, ONTObjectFactory factory, AxiomsSettings config) {
-        return containsClass(object.getIRI().getIRIString(), model, config);
+    protected ExtendedIterator<? extends AxiomTranslator<OWLAxiom>> listTranslators() {
+        return Iter.create(TRANSLATORS);
     }
 
     @Override
-    public Optional<ONTObject<OWLClass>> findONTObject(OWLClass object,
-                                                       OntModel model,
-                                                       ONTObjectFactory factory,
-                                                       AxiomsSettings config) {
-        String uri = object.getIRI().getIRIString();
-        if (containsClass(uri, model, config)) {
-            return Optional.of(InternalObjectFactory.getONTClass(uri, model, factory));
-        }
-        return Optional.empty();
-    }
-
-    protected boolean containsClass(String uri, OntModel m, AxiomsSettings conf) {
+    protected boolean containsEntity(String uri, OntModel m, AxiomsSettings conf) {
         Resource clazz = m.getResource(uri);
         if (getBuiltins(m).getClasses().contains(clazz.asNode())) {
             if (OWL.Thing.equals(clazz)) {
-                if (containAxiom(Iter.flatMap(listImplicitStatements(m), s -> listRootStatements(m, s)), conf)) {
+                if (containsAxiom(Iter.flatMap(listImplicitStatements(m), s -> listRootStatements(m, s)), conf)) {
                     return true;
                 }
             }
-            return containAxiom(listStatements(m, clazz), conf);
+            return containsInAxiom(clazz, m, conf);
         }
         if (m.independent()) {
             return m.getBaseGraph().contains(clazz.asNode(), RDF.type.asNode(), OWL.Class.asNode());
@@ -97,19 +73,19 @@ public class ClassSearcher extends WithRootStatement implements ObjectsSearcher<
         if (!m.contains(clazz, RDF.type, OWL.Class)) {
             return false;
         }
-        return containAxiom(listStatements(m, clazz), conf);
+        return containsInAxiom(clazz, m, conf);
     }
 
-    protected ExtendedIterator<String> listClasses(OntModel m, AxiomsSettings conf) {
+    @Override
+    protected ExtendedIterator<String> listEntities(OntModel m, AxiomsSettings conf) {
         Set<String> builtins = new HashSet<>();
-        getBuiltins(m).getClasses()
-                .forEach(x -> {
-                    if (containAxiom(listStatements(m, m.getResource(x.getURI())), conf)) {
-                        builtins.add(x.getURI());
-                    }
-                });
+        getBuiltins(m).getClasses().forEach(x -> {
+            if (containsInAxiom(x.getURI(), m, conf)) {
+                builtins.add(x.getURI());
+            }
+        });
         if (!builtins.contains(OWL.Thing.getURI())) {
-            if (containAxiom(Iter.flatMap(listImplicitStatements(m), s -> listRootStatements(m, s)), conf)) {
+            if (containsAxiom(Iter.flatMap(listImplicitStatements(m), s -> listRootStatements(m, s)), conf)) {
                 builtins.add(OWL.Thing.getURI());
             }
         }
@@ -119,14 +95,10 @@ public class ClassSearcher extends WithRootStatement implements ObjectsSearcher<
         ExtendedIterator<String> res = Iter.concat(explicit, Iter.create(builtins));
         if (!m.independent()) {
             ExtendedIterator<String> shared = listClassesFromImports(m)
-                    .filterKeep(x -> containAxiom(listStatements(m, m.getResource(x)), conf));
+                    .filterKeep(x -> containsInAxiom(x, m, conf));
             res = Iter.concat(res, shared);
         }
         return res;
-    }
-
-    protected ExtendedIterator<OntStatement> listStatements(OntModel m, Resource clazz) {
-        return Iter.concat(listBySubject(m, clazz), Iter.flatMap(listByObject(m, clazz), s -> listRootStatements(m, s)));
     }
 
     protected ExtendedIterator<OntStatement> listImplicitStatements(OntModel m) {
@@ -144,12 +116,4 @@ public class ClassSearcher extends WithRootStatement implements ObjectsSearcher<
         return ByClass.OBJECT_CARDINALITY_TYPES.stream().anyMatch(t -> s.getSubject().canAs(t));
     }
 
-    protected boolean containAxiom(ExtendedIterator<OntStatement> top, AxiomsSettings conf) {
-        return Iter.anyMatch(top, s -> Iter.findFirst(listTranslators(s, conf)).isPresent());
-    }
-
-    protected ExtendedIterator<? extends AxiomTranslator<OWLAxiom>> listTranslators(OntStatement statement,
-                                                                                    AxiomsSettings conf) {
-        return Iter.create(TRANSLATORS).filterKeep(t -> t.testStatement(statement, conf));
-    }
 }
