@@ -34,7 +34,7 @@
         <version.jena>3.14.0</version.jena>
         <version.owlapi>5.1.14</version.owlapi>
         <version.slf4j>1.7.30</version.slf4j>
-        <version.caffeine>2.8.4</version.caffeine>
+        <version.caffeine>2.8.5</version.caffeine>
     </properties>
 
     <licenses>
