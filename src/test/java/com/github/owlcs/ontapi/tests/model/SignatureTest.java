@@ -16,6 +16,7 @@ package com.github.owlcs.ontapi.tests.model;
 
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.tests.ModelData;
+
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -65,61 +66,77 @@ public class SignatureTest {
         data.doTest(T.NAMED_INDIVIDUAL);
     }
 
+    @Test
+    public void testObjectProperties() {
+        data.doTest(T.OBJECT_PROPERTY);
+    }
+
     enum TestData {
         PIZZA(ModelData.PIZZA,
                 T.CLASS.of(-18549559397L),
                 T.CLASS_EXPRESSION.of(-42505386964L),
-                T.NAMED_INDIVIDUAL.of(627705256L)
+                T.NAMED_INDIVIDUAL.of(627705256L),
+                T.OBJECT_PROPERTY.of(833765171L)
         ),
         FAMILY(ModelData.FAMILY,
                 T.CLASS.of(-1268263574L),
                 T.CLASS_EXPRESSION.of(-16978651096L),
-                T.NAMED_INDIVIDUAL.of(85936112709L)
+                T.NAMED_INDIVIDUAL.of(85936112709L),
+                T.OBJECT_PROPERTY.of(16114808725L)
         ),
         PEOPLE(ModelData.PEOPLE,
                 T.CLASS.of(-44946003502L),
                 T.CLASS_EXPRESSION.of(-51187071185L),
-                T.NAMED_INDIVIDUAL.of(-27921947437L)
+                T.NAMED_INDIVIDUAL.of(-27921947437L),
+                T.OBJECT_PROPERTY.of(-3152099946L)
         ),
         CAMERA(ModelData.CAMERA,
                 T.CLASS.of(8550118707L),
                 T.CLASS_EXPRESSION.of(7152927621L),
-                T.NAMED_INDIVIDUAL.of(-1151331346L)
+                T.NAMED_INDIVIDUAL.of(-1151331346L),
+                T.OBJECT_PROPERTY.of(7453849661L)
         ),
         KOALA(ModelData.KOALA,
                 T.CLASS.of(4003478322L),
                 T.CLASS_EXPRESSION.of(6612435426L),
-                T.NAMED_INDIVIDUAL.of(11447501603L)
+                T.NAMED_INDIVIDUAL.of(11447501603L),
+                T.OBJECT_PROPERTY.of(1499233275L)
         ),
         TRAVEL(ModelData.TRAVEL,
                 T.CLASS.of(-12813239L),
                 T.CLASS_EXPRESSION.of(5669053922L),
-                T.NAMED_INDIVIDUAL.of(647180319L)
+                T.NAMED_INDIVIDUAL.of(647180319L),
+                T.OBJECT_PROPERTY.of(451649769L)
         ),
         WINE(ModelData.WINE,
                 T.CLASS.of(-7328739440L),
                 T.CLASS_EXPRESSION.of(-12745569437L),
-                T.NAMED_INDIVIDUAL.of(3479779986L)
+                T.NAMED_INDIVIDUAL.of(3479779986L),
+                T.OBJECT_PROPERTY.of(2015421784L)
         ),
         FOOD(ModelData.FOOD,
                 T.CLASS.of(-23236948086L),
                 T.CLASS_EXPRESSION.of(-15980117497L),
-                T.NAMED_INDIVIDUAL.of(-37834773654L)
+                T.NAMED_INDIVIDUAL.of(-37834773654L),
+                T.OBJECT_PROPERTY.of(-1744813981L)
         ),
         NCBITAXON_CUT(ModelData.NCBITAXON_CUT,
                 T.CLASS.of(-72461035056L),
                 T.CLASS_EXPRESSION.of(2872387903L),
-                T.NAMED_INDIVIDUAL.of(-75278820767L)
+                T.NAMED_INDIVIDUAL.of(-75278820767L),
+                T.OBJECT_PROPERTY.of(-3871221171L)
         ),
         HP_CUT(ModelData.HP_CUT,
                 T.CLASS.of(4720902778L),
                 T.CLASS_EXPRESSION.of(8426758568L),
-                T.NAMED_INDIVIDUAL.of()
+                T.NAMED_INDIVIDUAL.of(),
+                T.OBJECT_PROPERTY.of(-1116367413L)
         ),
         FAMILY_PEOPLE_UNION(ModelData.FAMILY_PEOPLE_UNION,
                 T.CLASS.of(-1213682231L),
                 T.CLASS_EXPRESSION.of(2421052769L),
-                T.NAMED_INDIVIDUAL.of(899752725L)
+                T.NAMED_INDIVIDUAL.of(899752725L),
+                T.OBJECT_PROPERTY.of(-163607138L)
         ),
         ;
         private final ModelData resource;
