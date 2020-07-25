@@ -15,16 +15,12 @@
 package com.github.owlcs.ontapi.internal.searchers.objects;
 
 import com.github.owlcs.ontapi.OntApiException;
-import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.AxiomTranslator;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.ONTObjectFactory;
 import com.github.owlcs.ontapi.internal.OWLComponentType;
-import com.github.owlcs.ontapi.internal.ObjectsSearcher;
-import com.github.owlcs.ontapi.internal.searchers.axioms.ByClass;
 import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 
@@ -32,21 +28,15 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLObjectProperty;
 
 import java.util.Set;
 
 /**
- * An {@link ObjectsSearcher} that retrieves {@link OWLClass OWL-API Class}es.
- * Created by @ssz on 19.04.2020.
+ * Created by @ssz on 25.07.2020.
  */
-public class ClassSearcher extends WithBuiltins<OWLClass> {
-    private static final Set<AxiomTranslator<OWLAxiom>> TRANSLATORS = selectTranslators(OWLComponentType.CLASS);
-
-    @Override
-    protected Resource getEntityType() {
-        return OWL.Class;
-    }
+public class ObjectPropertySearcher extends PropertySearcher<OWLObjectProperty> {
+    private static final Set<AxiomTranslator<OWLAxiom>> TRANSLATORS = selectTranslators(OWLComponentType.NAMED_OBJECT_PROPERTY);
 
     @Override
     protected ExtendedIterator<? extends AxiomTranslator<OWLAxiom>> listTranslators() {
@@ -54,51 +44,22 @@ public class ClassSearcher extends WithBuiltins<OWLClass> {
     }
 
     @Override
-    protected ONTObject<OWLClass> createEntity(String uri, OntModel model, ONTObjectFactory factory) {
-        return factory.getClass(OntApiException.mustNotBeNull(model.getOntClass(uri)));
+    protected ONTObject<OWLObjectProperty> createEntity(String uri, OntModel model, ONTObjectFactory factory) {
+        return factory.getProperty(OntApiException.mustNotBeNull(model.getObjectProperty(uri)));
     }
 
     @Override
-    protected ONTObject<OWLClass> createEntity(String uri, ModelObjectFactory factory) {
-        return factory.getClass(uri);
+    protected ONTObject<OWLObjectProperty> createEntity(String uri, ModelObjectFactory factory) {
+        return factory.getObjectProperty(uri);
     }
 
     @Override
-    protected boolean containsEntity(String uri, OntModel m, AxiomsSettings conf) {
-        Resource clazz = toResource(m, uri);
-        if (containsBuiltin(m, clazz)) {
-            if (OWL.Thing.equals(clazz)) {
-                if (containsAxiom(Iter.flatMap(listImplicitStatements(m), s -> listRootStatements(m, s)), conf)) {
-                    return true;
-                }
-            }
-            return containsInAxiom(clazz, m, conf);
-        }
-        return containsDeclaration(clazz, m, conf);
-    }
-
-    @Override
-    protected ExtendedIterator<String> listEntities(OntModel m, AxiomsSettings conf) {
-        Set<String> builtins = getBuiltins(m, conf);
-        if (!builtins.contains(OWL.Thing.getURI())) {
-            if (containsAxiom(Iter.flatMap(listImplicitStatements(m), s -> listRootStatements(m, s)), conf)) {
-                builtins.add(OWL.Thing.getURI());
-            }
-        }
-        return listEntities(m, builtins, conf);
-    }
-
-    protected ExtendedIterator<OntStatement> listImplicitStatements(OntModel m) {
-        return Iter.flatMap(Iter.of(OWL.cardinality, OWL.maxCardinality, OWL.minCardinality), p -> listByPredicate(m, p))
-                .filterKeep(this::isCardinalityRestriction);
-    }
-
-    protected boolean isCardinalityRestriction(OntStatement s) {
-        return ByClass.OBJECT_CARDINALITY_TYPES.stream().anyMatch(t -> s.getSubject().canAs(t));
+    protected Resource getEntityType() {
+        return OWL.ObjectProperty;
     }
 
     @Override
     protected Set<Node> getBuiltins(OntModel m) {
-        return getBuiltinsVocabulary(m).getClasses();
+        return getBuiltinsVocabulary(m).getObjectProperties();
     }
 }

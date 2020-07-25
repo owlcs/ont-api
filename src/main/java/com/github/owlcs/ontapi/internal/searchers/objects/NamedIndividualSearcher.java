@@ -16,7 +16,12 @@ package com.github.owlcs.ontapi.internal.searchers.objects;
 
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.config.AxiomsSettings;
-import com.github.owlcs.ontapi.internal.*;
+import com.github.owlcs.ontapi.internal.AxiomTranslator;
+import com.github.owlcs.ontapi.internal.ModelObjectFactory;
+import com.github.owlcs.ontapi.internal.ONTObject;
+import com.github.owlcs.ontapi.internal.ONTObjectFactory;
+import com.github.owlcs.ontapi.internal.OWLComponentType;
+import com.github.owlcs.ontapi.internal.ObjectsSearcher;
 import com.github.owlcs.ontapi.jena.impl.OntIndividualImpl;
 import com.github.owlcs.ontapi.jena.impl.PersonalityModel;
 import com.github.owlcs.ontapi.jena.model.OntClass;
@@ -26,8 +31,10 @@ import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
+
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
+import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
@@ -62,17 +69,22 @@ public class NamedIndividualSearcher extends EntitySearcher<OWLNamedIndividual> 
     }
 
     @Override
+    protected Resource getEntityType() {
+        return OWL.NamedIndividual;
+    }
+
+    @Override
     protected ExtendedIterator<String> listEntities(OntModel m, AxiomsSettings conf) {
         ExtendedIterator<String> res = listIndividuals(m);
         if (!m.independent()) {
-            ExtendedIterator<String> shared = listIndividualsFromImports(m)
-                    .filterKeep(x -> containsInAxiom(x, m, conf));
+            ExtendedIterator<String> shared = listFromImports(m).filterKeep(x -> containsInAxiom(x, m, conf));
             res = Iter.concat(res, shared);
         }
         return res;
     }
 
-    protected ExtendedIterator<String> listIndividualsFromImports(OntModel m) {
+    @Override
+    protected ExtendedIterator<String> listFromImports(OntModel m) {
         return Iter.distinct(Iter.flatMap(OntModels.listImports(m), this::listIndividuals));
     }
 

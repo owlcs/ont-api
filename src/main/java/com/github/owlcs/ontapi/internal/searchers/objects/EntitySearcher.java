@@ -15,14 +15,22 @@
 package com.github.owlcs.ontapi.internal.searchers.objects;
 
 import com.github.owlcs.ontapi.config.AxiomsSettings;
-import com.github.owlcs.ontapi.internal.*;
+import com.github.owlcs.ontapi.internal.AxiomTranslator;
+import com.github.owlcs.ontapi.internal.ModelObjectFactory;
+import com.github.owlcs.ontapi.internal.ONTObject;
+import com.github.owlcs.ontapi.internal.ONTObjectFactory;
+import com.github.owlcs.ontapi.internal.ObjectsSearcher;
 import com.github.owlcs.ontapi.internal.searchers.WithRootStatement;
 import com.github.owlcs.ontapi.jena.impl.PersonalityModel;
-import com.github.owlcs.ontapi.jena.impl.conf.OntPersonality;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
+import com.github.owlcs.ontapi.jena.utils.OntModels;
+import com.github.owlcs.ontapi.jena.vocabulary.RDF;
+
+import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLEntity;
@@ -31,15 +39,12 @@ import java.util.Optional;
 import java.util.function.Function;
 
 /**
+ * An abstract {@link OWLEntity} searcher.
  * Created by @ssz on 30.06.2020.
  *
  * @param <E> - subtype of {@link OWLEntity}
  */
 abstract class EntitySearcher<E extends OWLEntity> extends WithRootStatement implements ObjectsSearcher<E> {
-
-    protected static OntPersonality.Builtins getBuiltins(OntModel m) {
-        return asPersonalityModel(m).getOntPersonality().getBuiltins();
-    }
 
     static PersonalityModel asPersonalityModel(OntModel m) {
         return PersonalityModel.asPersonalityModel(m);
@@ -79,6 +84,8 @@ abstract class EntitySearcher<E extends OWLEntity> extends WithRootStatement imp
 
     protected abstract ONTObject<E> createEntity(String uri, ModelObjectFactory factory);
 
+    protected abstract Resource getEntityType();
+
     final ONTObject<E> createONTEntity(String uri, OntModel model, ONTObjectFactory factory) {
         if (factory instanceof ModelObjectFactory) {
             return createEntity(uri, (ModelObjectFactory) factory);
@@ -99,8 +106,14 @@ abstract class EntitySearcher<E extends OWLEntity> extends WithRootStatement imp
         return listTranslators().filterKeep(t -> t.testStatement(statement, conf));
     }
 
+    protected ExtendedIterator<String> listFromImports(OntModel m) {
+        ExtendedIterator<OntModel> imports = OntModels.listImports(m);
+        return Iter.distinct(Iter.flatMap(imports, i -> i.listStatements(null, RDF.type, getEntityType()))
+                .mapWith(Statement::getSubject).filterKeep(RDFNode::isURIResource).mapWith(Resource::getURI));
+    }
+
     protected final boolean containsInAxiom(String uri, OntModel m, AxiomsSettings conf) {
-        return containsInAxiom(m.getResource(uri), m, conf);
+        return containsInAxiom(toResource(m, uri), m, conf);
     }
 
     protected boolean containsInAxiom(Resource uri, OntModel m, AxiomsSettings conf) {
@@ -111,7 +124,22 @@ abstract class EntitySearcher<E extends OWLEntity> extends WithRootStatement imp
         return Iter.anyMatch(roots, s -> Iter.findFirst(listTranslators(s, conf)).isPresent());
     }
 
-    private ExtendedIterator<OntStatement> listRootStatements(OntModel m, Resource uri) {
+    protected ExtendedIterator<OntStatement> listRootStatements(OntModel m, Resource uri) {
         return Iter.concat(listBySubject(m, uri), Iter.flatMap(listByObject(m, uri), s -> listRootStatements(m, s)));
+    }
+
+    protected Resource toResource(OntModel m, String uri) {
+        return m.getResource(uri);
+    }
+
+    final boolean containsDeclaration(Resource uri, OntModel m, AxiomsSettings conf) {
+        Resource type = getEntityType();
+        if (m.independent()) {
+            return m.getBaseGraph().contains(uri.asNode(), RDF.type.asNode(), type.asNode());
+        }
+        if (!m.contains(uri, RDF.type, type)) {
+            return false;
+        }
+        return containsInAxiom(uri, m, conf);
     }
 }
