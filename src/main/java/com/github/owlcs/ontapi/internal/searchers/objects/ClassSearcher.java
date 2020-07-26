@@ -60,15 +60,15 @@ public class ClassSearcher extends WithBuiltins<OWLClass> {
     @Override
     protected boolean containsEntity(String uri, OntModel m, AxiomsSettings conf) {
         Resource clazz = toResource(m, uri);
-        if (isBuiltin(m, clazz)) {
-            if (OWL.Thing.equals(clazz)) {
-                if (containsAxiom(Iter.flatMap(listImplicitStatements(m), s -> listRootStatements(m, s)), conf)) {
-                    return true;
-                }
-            }
-            return containsInOntology(clazz, m, conf);
+        if (!isBuiltin(m, clazz)) {
+            return containsDeclaration(clazz, m, conf);
         }
-        return containsDeclaration(clazz, m, conf);
+        if (OWL.Thing.equals(clazz)) {
+            if (containsAxiom(Iter.flatMap(listImplicitStatements(m), s -> listRootStatements(m, s)), conf)) {
+                return true;
+            }
+        }
+        return containsInOntology(clazz, m, conf);
     }
 
     @Override

@@ -19,10 +19,7 @@ import com.github.owlcs.ontapi.ID;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.internal.axioms.AbstractNaryTranslator;
 import com.github.owlcs.ontapi.internal.searchers.axioms.*;
-import com.github.owlcs.ontapi.internal.searchers.objects.AnnotationPropertySearcher;
-import com.github.owlcs.ontapi.internal.searchers.objects.ClassSearcher;
-import com.github.owlcs.ontapi.internal.searchers.objects.NamedIndividualSearcher;
-import com.github.owlcs.ontapi.internal.searchers.objects.ObjectPropertySearcher;
+import com.github.owlcs.ontapi.internal.searchers.objects.*;
 import com.github.owlcs.ontapi.jena.OntJenaException;
 import com.github.owlcs.ontapi.jena.RWLockedGraph;
 import com.github.owlcs.ontapi.jena.impl.OntGraphModelImpl;
@@ -152,6 +149,7 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
     protected final ObjectsSearcher<OWLNamedIndividual> individualSearcher = new NamedIndividualSearcher();
     protected final ObjectsSearcher<OWLObjectProperty> objectPropertySearcher = new ObjectPropertySearcher();
     protected final ObjectsSearcher<OWLAnnotationProperty> annotationPropertySearcher = new AnnotationPropertySearcher();
+    protected final ObjectsSearcher<OWLDataProperty> dataPropertySearcher = new DataPropertySearcher();
 
     InternalReadModel(Graph base,
                       OntPersonality personality,
@@ -899,6 +897,8 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
                 return BaseSearcher.cast(objectPropertySearcher);
             case ANNOTATION_PROPERTY:
                 return BaseSearcher.cast(annotationPropertySearcher);
+            case DATATYPE_PROPERTY:
+                return BaseSearcher.cast(dataPropertySearcher);
         }
         // TODO: support other types (see https://github.com/owlcs/ont-api/issues/15)
         return null;
