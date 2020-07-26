@@ -16,18 +16,12 @@ package com.github.owlcs.ontapi.internal.searchers.objects;
 
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.config.AxiomsSettings;
-import com.github.owlcs.ontapi.internal.AxiomTranslator;
-import com.github.owlcs.ontapi.internal.ModelObjectFactory;
-import com.github.owlcs.ontapi.internal.ONTObject;
-import com.github.owlcs.ontapi.internal.ONTObjectFactory;
-import com.github.owlcs.ontapi.internal.OWLComponentType;
-import com.github.owlcs.ontapi.internal.ObjectsSearcher;
+import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.searchers.axioms.ByClass;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
-
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.util.iterator.ExtendedIterator;
@@ -66,13 +60,13 @@ public class ClassSearcher extends WithBuiltins<OWLClass> {
     @Override
     protected boolean containsEntity(String uri, OntModel m, AxiomsSettings conf) {
         Resource clazz = toResource(m, uri);
-        if (containsBuiltin(m, clazz)) {
+        if (isBuiltin(m, clazz)) {
             if (OWL.Thing.equals(clazz)) {
                 if (containsAxiom(Iter.flatMap(listImplicitStatements(m), s -> listRootStatements(m, s)), conf)) {
                     return true;
                 }
             }
-            return containsInAxiom(clazz, m, conf);
+            return containsInOntology(clazz, m, conf);
         }
         return containsDeclaration(clazz, m, conf);
     }

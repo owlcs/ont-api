@@ -15,11 +15,7 @@
 package com.github.owlcs.ontapi.internal.searchers.objects;
 
 import com.github.owlcs.ontapi.config.AxiomsSettings;
-import com.github.owlcs.ontapi.internal.AxiomTranslator;
-import com.github.owlcs.ontapi.internal.ModelObjectFactory;
-import com.github.owlcs.ontapi.internal.ONTObject;
-import com.github.owlcs.ontapi.internal.ONTObjectFactory;
-import com.github.owlcs.ontapi.internal.ObjectsSearcher;
+import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.searchers.WithRootStatement;
 import com.github.owlcs.ontapi.jena.impl.PersonalityModel;
 import com.github.owlcs.ontapi.jena.model.OntModel;
@@ -27,7 +23,6 @@ import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
-
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
@@ -106,17 +101,41 @@ abstract class EntitySearcher<E extends OWLEntity> extends WithRootStatement imp
         return listTranslators().filterKeep(t -> t.testStatement(statement, conf));
     }
 
-    protected ExtendedIterator<String> listFromImports(OntModel m) {
+    /**
+     * Lists all uris (entities) that are declared somewhere in imports,
+     * but are also present in the base graph in some axiom definition.
+     *
+     * @param m {@link OntModel}
+     * @return {@link ExtendedIterator} of uris ({@code String}s)
+     */
+    protected ExtendedIterator<String> listSharedFromImports(OntModel m) {
+        return listFromImports(m).mapWith(Resource::getURI);
+    }
+
+    private ExtendedIterator<Resource> listFromImports(OntModel m) {
         ExtendedIterator<OntModel> imports = OntModels.listImports(m);
         return Iter.distinct(Iter.flatMap(imports, i -> i.listStatements(null, RDF.type, getEntityType()))
-                .mapWith(Statement::getSubject).filterKeep(RDFNode::isURIResource).mapWith(Resource::getURI));
+                .mapWith(Statement::getSubject).filterKeep(RDFNode::isURIResource));
     }
 
-    protected final boolean containsInAxiom(String uri, OntModel m, AxiomsSettings conf) {
-        return containsInAxiom(toResource(m, uri), m, conf);
+    protected final boolean containsInOntology(String uri, OntModel m, AxiomsSettings conf) {
+        return containsInOntology(toResource(m, uri), m, conf);
     }
 
-    protected boolean containsInAxiom(Resource uri, OntModel m, AxiomsSettings conf) {
+    /**
+     * Answers {@code true} if the given uri-resource (OWLEntity) contains somewhere
+     * in the given OWL-ontology deeps (in some axiom or in the header).
+     *
+     * @param uri  {@link Resource}
+     * @param m    {@link OntModel}
+     * @param conf {@link AxiomsSettings}
+     * @return boolean
+     */
+    protected boolean containsInOntology(Resource uri, OntModel m, AxiomsSettings conf) {
+        return containsInAxiom(uri, m, conf);
+    }
+
+    final boolean containsInAxiom(Resource uri, OntModel m, AxiomsSettings conf) {
         return containsAxiom(listRootStatements(m, uri), conf);
     }
 

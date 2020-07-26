@@ -15,23 +15,32 @@
 package com.github.owlcs.ontapi.internal.searchers.objects;
 
 import com.github.owlcs.ontapi.OntApiException;
-import com.github.owlcs.ontapi.internal.*;
+import com.github.owlcs.ontapi.config.AxiomsSettings;
+import com.github.owlcs.ontapi.internal.AxiomTranslator;
+import com.github.owlcs.ontapi.internal.ModelObjectFactory;
+import com.github.owlcs.ontapi.internal.ONTObject;
+import com.github.owlcs.ontapi.internal.ONTObjectFactory;
 import com.github.owlcs.ontapi.jena.model.OntModel;
+import com.github.owlcs.ontapi.jena.utils.Graphs;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.util.iterator.ExtendedIterator;
+import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLObjectProperty;
 
 import java.util.Set;
 
 /**
- * Created by @ssz on 25.07.2020.
+ * Created by @ssz on 26.07.2020.
  */
-public class ObjectPropertySearcher extends PropertySearcher<OWLObjectProperty> {
-    private static final Set<AxiomTranslator<OWLAxiom>> TRANSLATORS = selectTranslators(OWLComponentType.NAMED_OBJECT_PROPERTY);
+public class AnnotationPropertySearcher extends PropertySearcher<OWLAnnotationProperty> {
+    /**
+     * All translators, since any axiom can be annotated
+     */
+    private static final Set<AxiomTranslator<OWLAxiom>> TRANSLATORS = selectTranslators(null);
 
     @Override
     protected ExtendedIterator<? extends AxiomTranslator<OWLAxiom>> listTranslators() {
@@ -39,22 +48,32 @@ public class ObjectPropertySearcher extends PropertySearcher<OWLObjectProperty> 
     }
 
     @Override
-    protected ONTObject<OWLObjectProperty> createEntity(String uri, OntModel model, ONTObjectFactory factory) {
-        return factory.getProperty(OntApiException.mustNotBeNull(model.getObjectProperty(uri)));
+    protected ONTObject<OWLAnnotationProperty> createEntity(String uri, OntModel model, ONTObjectFactory factory) {
+        return factory.getProperty(OntApiException.mustNotBeNull(model.getAnnotationProperty(uri)));
     }
 
     @Override
-    protected ONTObject<OWLObjectProperty> createEntity(String uri, ModelObjectFactory factory) {
-        return factory.getObjectProperty(uri);
+    protected ONTObject<OWLAnnotationProperty> createEntity(String uri, ModelObjectFactory factory) {
+        return factory.getAnnotationProperty(uri);
     }
 
     @Override
     protected Resource getEntityType() {
-        return OWL.ObjectProperty;
+        return OWL.AnnotationProperty;
     }
 
     @Override
     protected Set<Node> getBuiltins(OntModel m) {
-        return getBuiltinsVocabulary(m).getObjectProperties();
+        return getBuiltinsVocabulary(m).getAnnotationProperties();
+    }
+
+    @Override
+    protected boolean containsInOntology(Resource uri, OntModel m, AxiomsSettings conf) {
+        Graph g = m.getBaseGraph();
+        if (Graphs.ontologyNode(g).filter(x -> g.contains(x, uri.asNode(), Node.ANY)).isPresent()) { // in header
+            return true;
+        }
+        // in axioms:
+        return super.containsInOntology(uri, m, conf);
     }
 }

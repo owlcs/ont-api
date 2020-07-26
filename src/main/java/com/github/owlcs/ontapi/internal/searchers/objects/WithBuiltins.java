@@ -19,7 +19,6 @@ import com.github.owlcs.ontapi.jena.impl.conf.OntPersonality;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
-
 import org.apache.jena.graph.FrontsNode;
 import org.apache.jena.graph.Node;
 import org.apache.jena.util.iterator.ExtendedIterator;
@@ -35,23 +34,37 @@ import java.util.Set;
  */
 abstract class WithBuiltins<E extends OWLEntity> extends EntitySearcher<E> {
 
-    protected static OntPersonality.Builtins getBuiltinsVocabulary(OntModel m) {
+    static OntPersonality.Builtins getBuiltinsVocabulary(OntModel m) {
         return asPersonalityModel(m).getOntPersonality().getBuiltins();
     }
 
     protected abstract Set<Node> getBuiltins(OntModel m);
 
+    /**
+     * Answers a {@code Set} of all builtins that present somewhere in the ontology spec.
+     *
+     * @param m    {@link OntModel}
+     * @param conf {@link AxiomsSettings}
+     * @return a {@code Set} of uris ({@code String}s)
+     */
     protected Set<String> getBuiltins(OntModel m, AxiomsSettings conf) {
         Set<String> res = new HashSet<>();
         getBuiltins(m).forEach(x -> {
-            if (containsInAxiom(x.getURI(), m, conf)) {
+            if (containsInOntology(x.getURI(), m, conf)) {
                 res.add(x.getURI());
             }
         });
         return res;
     }
 
-    protected boolean containsBuiltin(OntModel m, FrontsNode node) {
+    /**
+     * Answers {@code true} if the given {@code node} is builtin.
+     *
+     * @param m    {@link OntModel}
+     * @param node {@link FrontsNode}
+     * @return boolean
+     */
+    protected boolean isBuiltin(OntModel m, FrontsNode node) {
         return getBuiltins(m).contains(node.asNode());
     }
 
@@ -61,7 +74,7 @@ abstract class WithBuiltins<E extends OWLEntity> extends EntitySearcher<E> {
                 .filterKeep(x -> x != null && !builtins.contains(x));
         ExtendedIterator<String> res = Iter.concat(explicit, Iter.create(builtins));
         if (!m.independent()) {
-            res = Iter.concat(res, listFromImports(m).filterKeep(x -> containsInAxiom(x, m, conf)));
+            res = Iter.concat(res, listSharedFromImports(m).filterKeep(x -> containsInAxiom(toResource(m, x), m, conf)));
         }
         return res;
     }

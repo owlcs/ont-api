@@ -16,12 +16,7 @@ package com.github.owlcs.ontapi.internal.searchers.objects;
 
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.config.AxiomsSettings;
-import com.github.owlcs.ontapi.internal.AxiomTranslator;
-import com.github.owlcs.ontapi.internal.ModelObjectFactory;
-import com.github.owlcs.ontapi.internal.ONTObject;
-import com.github.owlcs.ontapi.internal.ONTObjectFactory;
-import com.github.owlcs.ontapi.internal.OWLComponentType;
-import com.github.owlcs.ontapi.internal.ObjectsSearcher;
+import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.jena.impl.OntIndividualImpl;
 import com.github.owlcs.ontapi.jena.impl.PersonalityModel;
 import com.github.owlcs.ontapi.jena.model.OntClass;
@@ -31,7 +26,6 @@ import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
-
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Resource;
@@ -77,14 +71,13 @@ public class NamedIndividualSearcher extends EntitySearcher<OWLNamedIndividual> 
     protected ExtendedIterator<String> listEntities(OntModel m, AxiomsSettings conf) {
         ExtendedIterator<String> res = listIndividuals(m);
         if (!m.independent()) {
-            ExtendedIterator<String> shared = listFromImports(m).filterKeep(x -> containsInAxiom(x, m, conf));
-            res = Iter.concat(res, shared);
+            res = Iter.concat(res, listSharedFromImports(m).filterKeep(x -> containsInOntology(x, m, conf)));
         }
         return res;
     }
 
     @Override
-    protected ExtendedIterator<String> listFromImports(OntModel m) {
+    protected ExtendedIterator<String> listSharedFromImports(OntModel m) {
         return Iter.distinct(Iter.flatMap(OntModels.listImports(m), this::listIndividuals));
     }
 
@@ -97,7 +90,7 @@ public class NamedIndividualSearcher extends EntitySearcher<OWLNamedIndividual> 
         if (m.independent()) {
             return true;
         }
-        return containsInAxiom(i, m, conf);
+        return containsInOntology(i, m, conf);
     }
 
     /**

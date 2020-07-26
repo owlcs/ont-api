@@ -18,27 +18,8 @@ import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.ID;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.internal.axioms.AbstractNaryTranslator;
-import com.github.owlcs.ontapi.internal.searchers.axioms.AnnotationAssertionBySubject;
-import com.github.owlcs.ontapi.internal.searchers.axioms.ByAnnotationProperty;
-import com.github.owlcs.ontapi.internal.searchers.axioms.ByAnonymousIndividual;
-import com.github.owlcs.ontapi.internal.searchers.axioms.ByClass;
-import com.github.owlcs.ontapi.internal.searchers.axioms.ByDataProperty;
-import com.github.owlcs.ontapi.internal.searchers.axioms.ByDatatype;
-import com.github.owlcs.ontapi.internal.searchers.axioms.ByIRI;
-import com.github.owlcs.ontapi.internal.searchers.axioms.ByLiteral;
-import com.github.owlcs.ontapi.internal.searchers.axioms.ByNamedIndividual;
-import com.github.owlcs.ontapi.internal.searchers.axioms.ByObjectProperty;
-import com.github.owlcs.ontapi.internal.searchers.axioms.ClassAssertionByObject;
-import com.github.owlcs.ontapi.internal.searchers.axioms.ClassAssertionBySubject;
-import com.github.owlcs.ontapi.internal.searchers.axioms.DataAssertionBySubject;
-import com.github.owlcs.ontapi.internal.searchers.axioms.DeclarationByEntity;
-import com.github.owlcs.ontapi.internal.searchers.axioms.DisjointClassesByOperand;
-import com.github.owlcs.ontapi.internal.searchers.axioms.EquivalentClassesByOperand;
-import com.github.owlcs.ontapi.internal.searchers.axioms.ObjectAssertionBySubject;
-import com.github.owlcs.ontapi.internal.searchers.axioms.ObjectPropertyDomainBySubject;
-import com.github.owlcs.ontapi.internal.searchers.axioms.ObjectPropertyRangeBySubject;
-import com.github.owlcs.ontapi.internal.searchers.axioms.SubClassOfByObject;
-import com.github.owlcs.ontapi.internal.searchers.axioms.SubClassOfBySubject;
+import com.github.owlcs.ontapi.internal.searchers.axioms.*;
+import com.github.owlcs.ontapi.internal.searchers.objects.AnnotationPropertySearcher;
 import com.github.owlcs.ontapi.internal.searchers.objects.ClassSearcher;
 import com.github.owlcs.ontapi.internal.searchers.objects.NamedIndividualSearcher;
 import com.github.owlcs.ontapi.internal.searchers.objects.ObjectPropertySearcher;
@@ -46,20 +27,9 @@ import com.github.owlcs.ontapi.jena.OntJenaException;
 import com.github.owlcs.ontapi.jena.RWLockedGraph;
 import com.github.owlcs.ontapi.jena.impl.OntGraphModelImpl;
 import com.github.owlcs.ontapi.jena.impl.conf.OntPersonality;
-import com.github.owlcs.ontapi.jena.model.OntAnnotationProperty;
-import com.github.owlcs.ontapi.jena.model.OntClass;
-import com.github.owlcs.ontapi.jena.model.OntDataProperty;
-import com.github.owlcs.ontapi.jena.model.OntDataRange;
-import com.github.owlcs.ontapi.jena.model.OntEntity;
-import com.github.owlcs.ontapi.jena.model.OntID;
-import com.github.owlcs.ontapi.jena.model.OntIndividual;
-import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntObject;
-import com.github.owlcs.ontapi.jena.model.OntObjectProperty;
-import com.github.owlcs.ontapi.jena.model.OntStatement;
+import com.github.owlcs.ontapi.jena.model.*;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
@@ -68,57 +38,14 @@ import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.shared.Lock;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import org.semanticweb.owlapi.model.AxiomType;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLAnnotation;
-import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
-import org.semanticweb.owlapi.model.OWLAnnotationProperty;
-import org.semanticweb.owlapi.model.OWLAnnotationSubject;
-import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
-import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLClassAssertionAxiom;
-import org.semanticweb.owlapi.model.OWLClassExpression;
-import org.semanticweb.owlapi.model.OWLDataProperty;
-import org.semanticweb.owlapi.model.OWLDataPropertyAssertionAxiom;
-import org.semanticweb.owlapi.model.OWLDatatype;
-import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
-import org.semanticweb.owlapi.model.OWLDisjointClassesAxiom;
-import org.semanticweb.owlapi.model.OWLEntity;
-import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
-import org.semanticweb.owlapi.model.OWLImportsDeclaration;
-import org.semanticweb.owlapi.model.OWLIndividual;
-import org.semanticweb.owlapi.model.OWLLiteral;
-import org.semanticweb.owlapi.model.OWLLogicalAxiom;
-import org.semanticweb.owlapi.model.OWLNamedIndividual;
-import org.semanticweb.owlapi.model.OWLNaryAxiom;
-import org.semanticweb.owlapi.model.OWLObject;
-import org.semanticweb.owlapi.model.OWLObjectProperty;
-import org.semanticweb.owlapi.model.OWLObjectPropertyAssertionAxiom;
-import org.semanticweb.owlapi.model.OWLObjectPropertyDomainAxiom;
-import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
-import org.semanticweb.owlapi.model.OWLObjectPropertyRangeAxiom;
-import org.semanticweb.owlapi.model.OWLPrimitive;
-import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
+import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
-
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -224,6 +151,7 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
     protected final ObjectsSearcher<OWLClass> classSearcher = new ClassSearcher();
     protected final ObjectsSearcher<OWLNamedIndividual> individualSearcher = new NamedIndividualSearcher();
     protected final ObjectsSearcher<OWLObjectProperty> objectPropertySearcher = new ObjectPropertySearcher();
+    protected final ObjectsSearcher<OWLAnnotationProperty> annotationPropertySearcher = new AnnotationPropertySearcher();
 
     InternalReadModel(Graph base,
                       OntPersonality personality,
@@ -962,14 +890,15 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
     }
 
     private ObjectsSearcher<OWLObject> getEntitySearcher(OWLComponentType type) {
-        if (OWLComponentType.CLASS == type) {
-            return BaseSearcher.cast(classSearcher);
-        }
-        if (OWLComponentType.NAMED_INDIVIDUAL == type) {
-            return BaseSearcher.cast(individualSearcher);
-        }
-        if (OWLComponentType.NAMED_OBJECT_PROPERTY == type) {
-            return BaseSearcher.cast(objectPropertySearcher);
+        switch (type) {
+            case CLASS:
+                return BaseSearcher.cast(classSearcher);
+            case NAMED_INDIVIDUAL:
+                return BaseSearcher.cast(individualSearcher);
+            case NAMED_OBJECT_PROPERTY:
+                return BaseSearcher.cast(objectPropertySearcher);
+            case ANNOTATION_PROPERTY:
+                return BaseSearcher.cast(annotationPropertySearcher);
         }
         // TODO: support other types (see https://github.com/owlcs/ont-api/issues/15)
         return null;

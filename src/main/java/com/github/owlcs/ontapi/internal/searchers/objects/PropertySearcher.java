@@ -18,7 +18,6 @@ import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
-
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.util.iterator.ExtendedIterator;
@@ -50,6 +49,6 @@ abstract class PropertySearcher<E extends OWLProperty> extends WithBuiltins<E> {
     @Override
     protected boolean containsEntity(String uri, OntModel m, AxiomsSettings conf) {
         Property p = toResource(m, uri);
-        return containsBuiltin(m, p) ? containsInAxiom(p, m, conf) : containsDeclaration(p, m, conf);
+        return isBuiltin(m, p) ? containsInOntology(p, m, conf) : containsDeclaration(p, m, conf);
     }
 }
