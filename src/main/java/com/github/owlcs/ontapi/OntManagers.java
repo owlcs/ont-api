@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -27,26 +27,31 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
 /**
- * The main (static) accessor to an {@link OWLOntologyManager} with its commonly required features,
- * that provides facilities for creating both <b>ONT-API</b> and native <b>OWL-API</b> instances,
- * but the latter facilities are optional, which have been included just for convenience and completeness,
- * and which only work if {@code owl-api-impl} is present in the classpath.
- * This is an analogue of
+ * {@code com.github.owlcs.ontapi.OntManagers} is a main access point to the system, a collection of factory methods
+ * to provide different implementations of {@link OWLOntologyManager} interface with its commonly required features.
+ * The class contains facilities for creating both <b>ONT-API</b> instances (RDF-centric approach)
+ * as well as instances from the default implementation of <b>OWL-API</b> (OWL-centric approach).
+ * The first family of methods returns instances of the extended {@code ONT-API} interface - {@link OntologyManager}.
+ * The second one is an optional way, it is not a direct part of {@code ONT-API}.
+ * It was included just for convenience and completeness,
+ * and only works if the {@code OWL-API-impl} module is present in the classpath.
+ * <p>
+ * {@code OntManagers} is a full {@code ONT-API} analogue of
  * <a href='https://github.com/owlcs/owlapi/blob/version5/apibinding/src/main/java/org/semanticweb/owlapi/apibinding/OWLManager.java'>org.semanticweb.owlapi.apibinding.OWLManager</a>.
  * <p>
  * Implementation notes:
- * Unlike the {@code OWL-API-apibinding} implementation, no injections are used to construct any object.
- * To create ONT-API instances there are direct factory methods.
- * To create OWL-API instances the straightforward reflection is used.
- * There are no injections since I still don't see any good reason to support it,
- * and also don't need one more place for bugs.
- * If you plan to work with original (pure) OWL-API managers and factories, please include either
+ * Unlike the {@code OWL-API-apibinding}, there is no injections support.
+ * To create {@code ONT-API} instances the direct factory methods are used.
+ * To create {@code OWL-API} instances the straightforward reflection is used.
+ * If you plan to work with original (pure) {@code OWL-API} managers and factories, please include either
  * <a href='https://github.com/owlcs/owlapi/blob/version5/apibinding/'>net.sourceforge.owlapi:owlapi-apibinding</a> or
  * <a href='https://github.com/owlcs/owlapi/blob/version5/impl/'>net.sourceforge.owlapi:owlapi-impl</a> artifacts
  * into your classpath, otherwise the corresponding methods ({@link #createOWL()}, {@link #createConcurrentOWL()})
- * will throw a runtime exception.
+ * will throw a runtime exception. Or better use {@code org.semanticweb.owlapi.apibinding.OWLManager}.
  * <p>
  * Created by @szuev on 27.09.2016.
+ *
+ * @see OntModelFactory
  */
 @SuppressWarnings("WeakerAccess")
 public class OntManagers implements OWLOntologyManagerFactory {
@@ -59,7 +64,7 @@ public class OntManagers implements OWLOntologyManagerFactory {
     private static OWLOntologyManagerFactory managerFactory = () -> DEFAULT_PROFILE.create(false);
 
     /**
-     * Gets the global data factory that can be used to create any OWL API object,
+     * Returns the global data factory that can be used to create any {@code OWL-API} object,
      * including {@link OWLAxiom OWL Axionms}, {@link OWLEntity OWL Entities} and {@link OWLLiteral}.
      * This allows to assembly ontology by adding into it any {@link OWLObject}
      * derived from the {@link DataFactory OWL Data Factory}.
@@ -67,9 +72,9 @@ public class OntManagers implements OWLOntologyManagerFactory {
      * Alternative way to assembly ontology is direct working with the {@link org.apache.jena.graph.Graph Graph}
      * through the {@link com.github.owlcs.ontapi.jena.model.OntModel} view of the ontology,
      * that can be obtained using the method {@link Ontology#asGraphModel()}.
-     * The first way of ontology editing is native for OWL-API,
-     * the second way is native for Apache Jena and provided by ONT-API as a feature,
-     * that actually underlies any interaction with ontologies in ONT-API.
+     * The first way of ontology editing is native for {@code OWL-API},
+     * the second way is native for {@code Apache Jena} and provided by {@code ONT-API} as a feature,
+     * that actually underlies any interaction with ontologies in {@code ONT-API}.
      *
      * @return {@link DataFactory} impl
      */
@@ -78,49 +83,49 @@ public class OntManagers implements OWLOntologyManagerFactory {
     }
 
     /**
-     * Creates a ready to use ONT-API ontology manager with a default configuration,
-     * that includes settings from a properties file {@code /ontapi.properties},
+     * Creates a ready to use {@code ONT-API} ontology manager with default configuration,
+     * that includes settings from a properties file {@link com.github.owlcs.ontapi.config.OntSettings /ontapi.properties},
      * various format-syntaxes for saving/loading ontologies from the {@code jena-arq} package
-     * and, if they are in a classpath, additional format-syntaxes from the OWL-API supply
-     * (packages {@code owlapi-rio}, {@code owlapi-oboformat}).
+     * and, if they are in a classpath, additional format-syntaxes from the {@code OWL-API} supply
+     * (packages {@code owlapi-rio} and {@code owlapi-oboformat}).
      * More about format-syntaxes can be found in {@link OntFormat} class.
      * <p>
      * The returned manager is not thread-safe:
-     * concurrent edition of a manager's ontology will cause {@link java.util.ConcurrentModificationException}.
+     * concurrent edition of a manager's ontology may cause {@link java.util.ConcurrentModificationException}.
      * <p>
      * This is the primary factory method to produce {@link OntologyManager}s
      * that should be used when there is no reason to use any other method to create manager's instances.
      * In other words, if you have doubt what method to use, choose this one.
      *
-     * @return {@link OntologyManager} a fresh ONT-API manager instance
+     * @return {@link OntologyManager} a fresh {@code ONT-API} manager instance
      */
     public static OntologyManager createONT() {
         return DEFAULT_PROFILE.create(false);
     }
 
     /**
-     * Creates a ready to use ONT-API ontology manager with a default configuration
-     * and locking to work in a concurrent environment.
+     * Creates a ready to use {@code ONT-API} ontology manager with default configuration
+     * and locking mechanism to work in a concurrent environment.
      * The returned manager itself and any its component (i.e. ontologies) are thread-safe,
      * i.e. can be safely shared between different threads.
      *
-     * @return {@link OntologyManager} a fresh ONT-API manager instance with concurrency
+     * @return {@link OntologyManager} a fresh {@code ONT-API} manager instance with concurrency
      */
     public static OntologyManager createConcurrentONT() {
         return DEFAULT_PROFILE.create(true);
     }
 
     /**
-     * Creates an original OWL-API (i.e. pure native impl) ontology manager instance with a default configuration.
+     * Creates an original {@code OWL-API} (i.e. pure native impl) ontology manager instance with default configuration.
      * Notes:
      * <ul>
-     * <li>This method is not a direct part of ONT-API, it is here for convenience and/or test purposes only.
+     * <li>This method is not a direct part of {@code ONT-API}, it is here for convenience and/or test purposes only.
      * Better to use a similar method from {@code OWL-API-apibinding} supply, if it is available.
      * See {@code org.semanticweb.owlapi.apibinding.OWLManager}.</li>
      * <li><a href='https://github.com/owlcs/owlapi/blob/version5/impl/'>owlapi-impl</a> must be in the classpath</li>
      * </ul>
      *
-     * @return {@link OWLOntologyManager} a fresh OWL-API manager instance
+     * @return {@link OWLOntologyManager} a fresh {@code OWL-API} manager instance
      * @throws OntApiException if there is no {@code owlapi-impl} in class-path or some unexpected error is occurred
      */
     public static OWLOntologyManager createOWL() throws OntApiException {
@@ -128,17 +133,17 @@ public class OntManagers implements OWLOntologyManagerFactory {
     }
 
     /**
-     * Creates an original OWL-API (i.e pure native impl) ontology manager instance
+     * Creates an original {@code OWL-API} (i.e pure native impl) ontology manager instance
      * with a default configuration and locking to work in a concurrent environment.
      * Notes:
      * <ul>
-     * <li>This method is not a direct part of ONT-API, it is here for convenience and/or test purposes only.
+     * <li>This method is not a direct part of {@code ONT-API}, it is here for convenience and/or test purposes only.
      * Better to use a similar method from {@code OWL-API-apibinding} supply, if it is available.
      * See {@code org.semanticweb.owlapi.apibinding.OWLManager}.</li>
      * <li><a href='https://github.com/owlcs/owlapi/blob/version5/impl/'>owlapi-impl</a> must be in the class-path</li>
      * </ul>
      *
-     * @return {@link OWLOntologyManager} a fresh OWL-API manager instance with concurrency
+     * @return {@link OWLOntologyManager} a fresh {@code OWL-API} manager instance with concurrency
      * @throws OntApiException if there is no {@code owlapi-impl} in class-path or some unexpected error is occurred
      */
     public static OWLOntologyManager createConcurrentOWL() throws OntApiException {
@@ -157,7 +162,6 @@ public class OntManagers implements OWLOntologyManagerFactory {
     /**
      * Changes a default static {@link OWLOntologyManagerFactory factory}.
      * This a way to manage {@link #get()} method behaviour and should not be used without a really good reason.
-     * Though, in ONT-API it is unused.
      *
      * @param p profile object, not {@code null}
      * @see #get()
@@ -193,7 +197,7 @@ public class OntManagers implements OWLOntologyManagerFactory {
     }
 
     /**
-     * An ONT-API impl of the {@link Profile}.
+     * An {@code ONT-API} impl of the {@link Profile}.
      */
     public static class ONTAPIProfile implements Profile {
 
@@ -211,10 +215,10 @@ public class OntManagers implements OWLOntologyManagerFactory {
         }
 
         /**
-         * Creates a fresh ONT-API-impl {@link OWLOntologyManager Ontology Manager}
+         * Creates a fresh {@code ONT-API}-impl {@link OWLOntologyManager Ontology Manager}
          * with the given data factory and with the default ontology factory.
-         * The returned manager does not have any OWL-API storers and parsers,
-         * so it does not support reading and writing in formats that are not supported by Jena.
+         * The returned manager does not have any {@code OWL-API} storers and parsers,
+         * so it does not support reading and writing in formats that are not supported by {@code Apache Jena}.
          *
          * @param dataFactory {@link DataFactory} instance, not {@code null}
          * @param lock        {@link ReadWriteLock} r/w lock, can be {@code null}
@@ -227,8 +231,8 @@ public class OntManagers implements OWLOntologyManagerFactory {
         /**
          * Creates a fresh {@link OntologyManager Ontology Manager}
          * with the given data and ontology factories.
-         * The returned manager does not have any OWL-API storers and parsers,
-         * so ir does not support reading and writing in formats that are not supported by Jena.
+         * The returned manager does not have any {@code OWL-API} storers and parsers,
+         * so ir does not support reading and writing in formats that are not supported by {@code Apache Jena}.
          *
          * @param dataFactory {@link DataFactory}, not {@code null}
          * @param factory     {@link OntologyFactory}, not {@code null}
@@ -257,8 +261,8 @@ public class OntManagers implements OWLOntologyManagerFactory {
         /**
          * Creates a default {@link OntologyFactory.Loader Ontology Load} -
          * an interface to read ontology documents.
-         * The returned loader is capable to read a document using both Jena and OWL-API mechanisms.
-         * The priority is for Jena. The OWL-API native mechanisms are used as last attempt to read a document,
+         * The returned loader is capable to read a document using both {@code Apache Jena} and {@code OWL-API} mechanisms.
+         * The priority is for {@code Apache Jena}. The {@code OWL-API} native mechanisms are used as last attempt to read a document,
          * and will work only if the corresponding {@link OWLParserFactory parsers}s are registered inside the manager.
          *
          * @return {@link OntologyFactory.Loader}
@@ -305,7 +309,7 @@ public class OntManagers implements OWLOntologyManagerFactory {
      * <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>manager</a>
      * and
      * <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLDataFactoryImpl.java'>data factory</a>
-     * instances from OWL-API supply
+     * instances from {@code OWL-API} supply
      * (i.e. from {@code owlapi-apibinding} or directly from {@code owlapi-impl}) using reflection.
      *
      * @return Profile
@@ -316,7 +320,7 @@ public class OntManagers implements OWLOntologyManagerFactory {
     }
 
     /**
-     * The OWL-API impl of {@link Profile} based on straightforward reflection.
+     * The {@code OWL-API} impl of {@link Profile} based on straightforward reflection.
      * The dependency owlapi-impl must be in class-paths,
      * otherwise {@link OntApiException} is expected while initialization.
      *
@@ -370,7 +374,7 @@ public class OntManagers implements OWLOntologyManagerFactory {
         }
 
         /**
-         * Creates a ready to use fresh OWL-API-impl Ontology Manager.
+         * Creates a ready to use fresh {@code OWL-API-impl} Ontology Manager.
          *
          * @param dataFactory {@link OWLDataFactory} instance
          * @param lock        {@link ReadWriteLock} r/w lock
