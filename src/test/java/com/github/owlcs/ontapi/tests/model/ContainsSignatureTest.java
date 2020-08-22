@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -85,7 +85,7 @@ public class ContainsSignatureTest {
     }
 
     protected OWLOntologyManager newManager() {
-        return OntManagers.createONT();
+        return OntManagers.createManager();
     }
 
     protected void testContains(Class<? extends OWLEntity> type) {
@@ -107,7 +107,7 @@ public class ContainsSignatureTest {
     }
 
     protected static Map<String, Boolean> createTestEntities(ModelData data, Class<? extends OWLEntity> type) {
-        return createTestEntities(data.fetch(OntManagers.createOWL()), type);
+        return createTestEntities(data.fetch(OntManagers.createOWLAPIImplManager()), type);
     }
 
     protected static Map<String, Boolean> createTestEntities(OWLOntology o, Class<? extends OWLEntity> type) {

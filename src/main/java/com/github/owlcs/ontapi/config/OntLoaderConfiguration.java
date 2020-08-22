@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -536,7 +536,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
      * @see OWLOntologyLoaderConfiguration#setPriorityCollectionSorting(PriorityCollectionSorting)
      */
     @Override
-    public OntLoaderConfiguration setPriorityCollectionSorting(PriorityCollectionSorting sorting) {
+    public OntLoaderConfiguration setPriorityCollectionSorting(@Nonnull PriorityCollectionSorting sorting) {
         return set(OntSettings.OWL_API_LOAD_CONF_PRIORITY_COLLECTION_SORTING, sorting);
     }
 
@@ -567,7 +567,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
      */
     @Override
     public MissingImportHandlingStrategy getMissingImportHandlingStrategy() {
-        return (MissingImportHandlingStrategy) get(OntSettings.OWL_API_LOAD_CONF_MISSING_IMPORT_HANDLING_STRATEGY);
+        return get(OntSettings.OWL_API_LOAD_CONF_MISSING_IMPORT_HANDLING_STRATEGY);
     }
 
     /**
@@ -587,7 +587,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
      */
     @Override
     public MissingOntologyHeaderStrategy getMissingOntologyHeaderStrategy() {
-        return (MissingOntologyHeaderStrategy) get(OntSettings.OWL_API_LOAD_CONF_MISSING_ONTOLOGY_HEADER_STRATEGY);
+        return get(OntSettings.OWL_API_LOAD_CONF_MISSING_ONTOLOGY_HEADER_STRATEGY);
     }
 
     /**

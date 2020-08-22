@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -50,12 +50,12 @@ public class OWLCommonTransform extends TransformationModel {
     private static final Set<Property> DEPRECATED_OWL_FACETS = Stream.of(DEPRECATED.OWL.maxExclusive,
             DEPRECATED.OWL.maxInclusive,
             DEPRECATED.OWL.minExclusive, DEPRECATED.OWL.minInclusive).collect(Iter.toUnmodifiableSet());
-    private static Set<Property> CARDINALITY_PREDICATES = Stream.of(OWL.cardinality, OWL.qualifiedCardinality,
+    private static final Set<Property> CARDINALITY_PREDICATES = Stream.of(OWL.cardinality, OWL.qualifiedCardinality,
             OWL.maxCardinality, OWL.maxQualifiedCardinality,
             OWL.minCardinality, OWL.minQualifiedCardinality).collect(Iter.toUnmodifiableSet());
-    private static List<Resource> ANNOTATION_TYPES = Stream.of(OWL.Axiom, OWL.Annotation)
+    private static final List<Resource> ANNOTATION_TYPES = Stream.of(OWL.Axiom, OWL.Annotation)
             .collect(Iter.toUnmodifiableList());
-    private boolean processIndividuals;
+    private final boolean processIndividuals;
 
     public OWLCommonTransform(Graph graph) {
         this(graph, false);

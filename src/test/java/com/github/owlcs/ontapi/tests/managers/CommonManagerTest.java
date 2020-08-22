@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -226,11 +226,11 @@ public class CommonManagerTest {
         final IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI("ontapi/test1.ttl"));
         final OWLOntologyID id = OntIRI.create("http://dummy").toOwlOntologyID();
 
-        Assert.assertNotSame("The same manager", OntManagers.createONT(), OntManagers.createONT());
+        Assert.assertNotSame("The same manager", OntManagers.createManager(), OntManagers.createManager());
         Assert.assertNotSame("The same concurrent manager",
-                OntManagers.createConcurrentONT(), OntManagers.createConcurrentONT());
+                OntManagers.createConcurrentManager(), OntManagers.createConcurrentManager());
 
-        OntologyManagerImpl m1 = (OntologyManagerImpl) OntManagers.createONT();
+        OntologyManagerImpl m1 = (OntologyManagerImpl) OntManagers.createManager();
         Assert.assertFalse("Concurrent", m1.isConcurrent());
 
         Ontology ont1 = m1.loadOntology(fileIRI);
@@ -241,7 +241,7 @@ public class CommonManagerTest {
             Assert.assertNotEquals("Incorrect impl", OntologyModelImpl.Concurrent.class, ont1.getClass());
         });
 
-        OntologyManagerImpl m2 = (OntologyManagerImpl) OntManagers.createConcurrentONT();
+        OntologyManagerImpl m2 = (OntologyManagerImpl) OntManagers.createConcurrentManager();
         Assert.assertTrue("Not Concurrent", m2.isConcurrent());
         Ontology ont3 = m2.loadOntology(fileIRI);
         Ontology ont4 = m2.createOntology(id);
@@ -254,8 +254,8 @@ public class CommonManagerTest {
 
     @Test
     public void testConfigs() {
-        OntologyManager m1 = OntManagers.createONT();
-        OntologyManager m2 = OntManagers.createONT();
+        OntologyManager m1 = OntManagers.createManager();
+        OntologyManager m2 = OntManagers.createManager();
         OntLoaderConfiguration conf1 = m1.getOntologyLoaderConfiguration();
         conf1.setPersonality(OntModelConfig.ONT_PERSONALITY_LAX);
         OntLoaderConfiguration conf2 = m2.getOntologyLoaderConfiguration();
@@ -286,7 +286,7 @@ public class CommonManagerTest {
 
     @Test
     public void testConcurrentManager() throws Exception {
-        OWLOntologyManager m = OntManagers.createConcurrentONT();
+        OWLOntologyManager m = OntManagers.createConcurrentManager();
         OWLOntology o1 = m.createOntology();
         OWLOntology o2 = m.loadOntology(IRI.create(ReadWriteUtils.getResourceFile("ontapi/test1.ttl")));
         Assert.assertEquals("Expected 2 ontologies.", 2, m.ontologies().count());
@@ -320,12 +320,12 @@ public class CommonManagerTest {
 
     @Test
     public void testSerialization() throws Exception {
-        serializationTest(OntManagers.createONT());
+        serializationTest(OntManagers.createManager());
     }
 
     @Test
     public void testSerializationWithConcurrency() throws Exception {
-        serializationTest(OntManagers.createConcurrentONT());
+        serializationTest(OntManagers.createConcurrentManager());
     }
 
     @Test
@@ -338,13 +338,13 @@ public class CommonManagerTest {
         jenaModel.read(SpinModels.SPINMAPL.getIRI().getIRIString(), "ttl");
 
         LOGGER.debug("Load spin-rdf ontology family using file-iri-mappings");
-        OntologyManager m1 = OntManagers.createONT();
+        OntologyManager m1 = OntManagers.createManager();
         SpinModels.addMappings(m1);
         m1.loadOntologyFromOntologyDocument(SpinModels.SPINMAPL.getIRI());
         long expected = m1.ontologies().count();
 
         LOGGER.debug("Pass ready composite graph to the manager as-is");
-        OntologyManager m2 = OntManagers.createONT();
+        OntologyManager m2 = OntManagers.createManager();
         m2.addOntology(jenaModel.getGraph());
         long actual = m2.ontologies().count();
 
@@ -360,12 +360,12 @@ public class CommonManagerTest {
 
     @Test
     public void testPassingOntGraphModel() {
-        testPassingOntGraphModel(OntManagers.createONT(), o -> assertOntology(o, false));
+        testPassingOntGraphModel(OntManagers.createManager(), o -> assertOntology(o, false));
     }
 
     @Test
     public void testPassingOntGraphModelInConcurrentManager() {
-        testPassingOntGraphModel(OntManagers.createConcurrentONT(), o -> assertOntology(o, true));
+        testPassingOntGraphModel(OntManagers.createConcurrentManager(), o -> assertOntology(o, true));
     }
 
     private void testPassingOntGraphModel(OntologyManager m, Consumer<OWLOntology> tester) {

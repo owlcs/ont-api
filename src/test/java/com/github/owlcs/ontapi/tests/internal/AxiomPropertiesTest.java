@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -161,7 +161,7 @@ public class AxiomPropertiesTest {
             LOGGER.debug("Test properties for '{}'", a);
             X owl = (X) a.create(ObjectFactoryTestBase.OWL_DATA_FACTORY);
             X ont = (X) a.create(ObjectFactoryTestBase.ONT_DATA_FACTORY);
-            X res = (X) CommonAxiomsTest.createONTObject(OntManagers.createONT(), owl);
+            X res = (X) CommonAxiomsTest.createONTObject(OntManagers.createManager(), owl);
             Assert.assertEquals(owl, res);
             for (Function<X, Object> property : properties) {
                 Object expected = property.apply(owl);
@@ -181,7 +181,7 @@ public class AxiomPropertiesTest {
             X base = (X) a.create(ObjectFactoryTestBase.OWL_DATA_FACTORY);
             Collection<X> owlList = ((X) a.create(ObjectFactoryTestBase.OWL_DATA_FACTORY)).asPairwiseAxioms();
             Collection<X> ontList = ((X) a.create(ObjectFactoryTestBase.ONT_DATA_FACTORY)).asPairwiseAxioms();
-            Collection<X> resList = (Collection<X>) SplitNaryAxiomsTest.createONTAxioms(OntManagers.createONT(), base);
+            Collection<X> resList = (Collection<X>) SplitNaryAxiomsTest.createONTAxioms(OntManagers.createManager(), base);
             for (X owl : owlList) {
                 X ont = ontList.stream().filter(owl::equals)
                         .findFirst().orElseThrow(AssertionError::new);

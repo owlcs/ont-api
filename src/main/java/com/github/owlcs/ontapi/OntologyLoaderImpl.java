@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -407,7 +407,7 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
      * Finds ontology by the IRI.
      * <p>
      * WARNING: the jena iri-resolver ({@link org.apache.jena.riot.system.IRIResolver})
-     * makes all graphs iri's in one common form according to some inner rule, which I can't change,
+     * makes all graphs IRIs in one common form according to some inner rule, which I can't change,
      * but which, I believe, corresponds to the <a href='https://tools.ietf.org/html/rfc3986'>URI standard</a>,
      * ... and also to the <a href='http://ietf.org/rfc/rfc3987'>IRI standard</a>.
      * It happens while writing(saving) ontology as Turtle (at least).
@@ -694,7 +694,8 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
         // source may be null
         private final IRI source;
 
-        private boolean fresh, transforms;
+        private boolean fresh;
+        private final boolean transforms;
         private Node ontology;
         private Set<String> imports;
         private GraphStats stats;

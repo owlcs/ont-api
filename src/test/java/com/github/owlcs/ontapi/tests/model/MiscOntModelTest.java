@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -42,7 +42,7 @@ public class MiscOntModelTest extends OntModelTestBase {
      */
     @Test
     public void testOrderNaryAxiomComponents() {
-        OntologyManager m = OntManagers.createONT();
+        OntologyManager m = OntManagers.createManager();
         OWLDataFactory df = m.getOWLDataFactory();
         String ns = "http://xxxx#";
         OWLAxiom a = df.getOWLEquivalentClassesAxiom(df.getOWLClass(ns + "X"),
@@ -65,7 +65,7 @@ public class MiscOntModelTest extends OntModelTestBase {
      */
     @Test
     public void testAddObjectPropertyAndEntitySearcher() throws Exception {
-        OWLOntologyManager m = OntManagers.createConcurrentONT();
+        OWLOntologyManager m = OntManagers.createConcurrentManager();
         OWLDataFactory df = m.getOWLDataFactory();
         OWLOntology ont = m.createOntology();
         OWLAnnotationProperty a = df.getOWLAnnotationProperty(IRI.create("http://the-a-p"));
@@ -87,7 +87,7 @@ public class MiscOntModelTest extends OntModelTestBase {
 
     @Test
     public void testWorkingWithUnattachedEntity() {
-        OntologyManager m = OntManagers.createONT();
+        OntologyManager m = OntManagers.createManager();
         DataFactory df = m.getOWLDataFactory();
         Ontology o = m.createOntology();
         OWLAxiom a = df.getOWLDeclarationAxiom(df.getOWLAnnotationProperty("a"));
@@ -102,7 +102,7 @@ public class MiscOntModelTest extends OntModelTestBase {
 
     @Test
     public void testAddAxiomWithAnonymousIndividualsInMainTripleAndAnnotation() {
-        OntologyManager m = OntManagers.createONT();
+        OntologyManager m = OntManagers.createManager();
         DataFactory df = m.getOWLDataFactory();
         OWLAxiom a = df.getOWLObjectPropertyAssertionAxiom(df.getOWLObjectProperty("P"),
                 df.getOWLNamedIndividual("I"),
@@ -121,7 +121,7 @@ public class MiscOntModelTest extends OntModelTestBase {
 
     @Test
     public void testRemoveAxiomWithDuplicatedAnnotations() {
-        Ontology o = OntManagers.createONT().createOntology();
+        Ontology o = OntManagers.createManager().createOntology();
         OntModel g = o.asGraphModel();
         OntStatement s = g.createOntClass("X").addSubClassOfStatement(g.createOntClass("Y"));
         int duplicates = 2;
@@ -144,7 +144,7 @@ public class MiscOntModelTest extends OntModelTestBase {
 
     @Test
     public void testGraphIsUnchangedInCaseOfError() {
-        OntologyManager m = OntManagers.createONT();
+        OntologyManager m = OntManagers.createManager();
         DataFactory df = m.getOWLDataFactory();
         Ontology o = m.createOntology();
 
@@ -162,7 +162,7 @@ public class MiscOntModelTest extends OntModelTestBase {
 
     @Test
     public void testNaryRestrictions() {
-        OntologyManager man = OntManagers.createONT();
+        OntologyManager man = OntManagers.createManager();
         Ontology o = man.createOntology();
 
         OntModel m = o.asGraphModel();
@@ -193,7 +193,7 @@ public class MiscOntModelTest extends OntModelTestBase {
         OWLOntologyDocumentSource source = ReadWriteUtils.getStringDocumentSource(input, OntFormat.MANCHESTER_SYNTAX);
         for (int i = 0; i < iter; i++) {
             LOGGER.debug("Iter: #{}", (i + 1));
-            OntologyManager m = OntManagers.createONT();
+            OntologyManager m = OntManagers.createManager();
             Ontology o = m.loadOntologyFromOntologyDocument(source);
             Assert.assertEquals(2, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
         }
@@ -205,7 +205,7 @@ public class MiscOntModelTest extends OntModelTestBase {
         OWLOntologyDocumentSource source = ReadWriteUtils.getFileDocumentSource("/ontapi/family.ttl", OntFormat.TURTLE);
         for (int i = 0; i < iter; i++) {
             LOGGER.debug("Iter: #{}", (i + 1));
-            OWLOntologyManager m = OntManagers.createConcurrentONT();
+            OWLOntologyManager m = OntManagers.createConcurrentManager();
             OWLOntology o = m.loadOntologyFromOntologyDocument(source);
             Assert.assertEquals(58, o.classesInSignature().peek(x -> LOGGER.debug("CL:{}", x)).count());
             Assert.assertEquals(2, o.datatypesInSignature().peek(x -> LOGGER.debug("DT:{}", x)).count());
@@ -219,7 +219,7 @@ public class MiscOntModelTest extends OntModelTestBase {
 
     @Test
     public void testDeleteAxiomWithSharedEntity() {
-        OntologyManager m = OntManagers.createONT();
+        OntologyManager m = OntManagers.createManager();
         DataFactory df = m.getOWLDataFactory();
         Ontology o = m.createOntology();
         OWLClass c = df.getOWLClass("X");
@@ -242,7 +242,7 @@ public class MiscOntModelTest extends OntModelTestBase {
 
     @Test
     public void testLoadDisjointUnion() throws OWLOntologyCreationException {
-        OWLOntologyManager m = OntManagers.createONT();
+        OWLOntologyManager m = OntManagers.createManager();
         String s = "@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n" +
                 "@prefix owl:   <http://www.w3.org/2002/07/owl#> .\n" +
                 "@prefix xml:   <http://www.w3.org/XML/1998/namespace> .\n" +
@@ -265,7 +265,7 @@ public class MiscOntModelTest extends OntModelTestBase {
 
     @Test
     public void testLoadHasKey() throws OWLOntologyCreationException {
-        OWLOntologyManager m = OntManagers.createONT();
+        OWLOntologyManager m = OntManagers.createManager();
         String s = "@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n" +
                 "@prefix owl:   <http://www.w3.org/2002/07/owl#> .\n" +
                 "@prefix xml:   <http://www.w3.org/XML/1998/namespace> .\n" +
@@ -288,7 +288,7 @@ public class MiscOntModelTest extends OntModelTestBase {
 
     @Test
     public void testInverseOfObjectProperties() throws OWLOntologyCreationException {
-        OWLOntologyManager manager = OntManagers.createONT();
+        OWLOntologyManager manager = OntManagers.createManager();
         OWLDataFactory df = manager.getOWLDataFactory();
         OWLOntology o = manager.createOntology();
         OWLObjectProperty p1 = df.getOWLObjectProperty(IRI.create("p1"));
@@ -313,7 +313,7 @@ public class MiscOntModelTest extends OntModelTestBase {
 
     @Test
     public void testAnonymousIndividuals() {
-        OntologyManager manager = OntManagers.createONT();
+        OntologyManager manager = OntManagers.createManager();
         OWLDataFactory df = manager.getOWLDataFactory();
         Ontology o = manager.createOntology();
 
@@ -336,7 +336,7 @@ public class MiscOntModelTest extends OntModelTestBase {
 
     @Test
     public void testRemoveStatement() {
-        OntologyManager man = OntManagers.createONT();
+        OntologyManager man = OntManagers.createManager();
         Ontology o = man.createOntology(IRI.create("X"));
 
         OntModel m = o.asGraphModel();

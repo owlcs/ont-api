@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -224,7 +224,7 @@ public class OntManagersTest {
     private static class ONTStandard extends ONTProfile {
         @Override
         public OWLOntologyManager createManager() {
-            return OntManagers.createONT();
+            return OntManagers.createManager();
         }
 
         @Override
@@ -246,7 +246,7 @@ public class OntManagersTest {
     private static class ONTConcurrent extends ONTProfile {
         @Override
         public OWLOntologyManager createManager() {
-            return OntManagers.createConcurrentONT();
+            return OntManagers.createConcurrentManager();
         }
 
         @Override
@@ -284,7 +284,7 @@ public class OntManagersTest {
 
         @Override
         public OWLOntologyManager createManager() {
-            return OntManagers.createOWL();
+            return OntManagers.createOWLAPIImplManager();
         }
     }
 
@@ -292,7 +292,7 @@ public class OntManagersTest {
 
         @Override
         public OWLOntologyManager createManager() {
-            return OntManagers.createConcurrentOWL();
+            return OntManagers.createConcurrentOWLAPIImplManager();
         }
 
         @Override

@@ -47,7 +47,7 @@ public class SignatureTest {
     }
 
     private static OWLOntologyManager newManager() {
-        return OntManagers.createONT();
+        return OntManagers.createManager();
     }
 
     @Test

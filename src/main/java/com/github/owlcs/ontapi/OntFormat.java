@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,14 +14,14 @@
 
 package com.github.owlcs.ontapi;
 
+import com.github.owlcs.ontapi.OWLLangRegistry.LangKey;
+import com.github.owlcs.ontapi.OWLLangRegistry.OWLLang;
+import com.github.owlcs.ontapi.jena.OntModelFactory;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFParserRegistry;
 import org.apache.jena.riot.RDFWriterRegistry;
 import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.PrefixManager;
-import com.github.owlcs.ontapi.OWLLangRegistry.LangKey;
-import com.github.owlcs.ontapi.OWLLangRegistry.OWLLang;
-import com.github.owlcs.ontapi.jena.OntModelFactory;
 
 import javax.annotation.Nullable;
 import java.io.Writer;
@@ -75,7 +75,7 @@ public enum OntFormat {
     ;
 
     private final String id;
-    private String ext;
+    private final String ext;
     private final List<Lang> jenaLangs;
     private final List<LangKey> owlTypes;
 

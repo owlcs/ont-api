@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -52,7 +52,7 @@ public class SimpleLoadTest {
     @Test
     public void testFoaf() throws Exception {
         String fileName = "ontapi/foaf.rdf";
-        OntologyManager manager = OntManagers.createONT();
+        OntologyManager manager = OntManagers.createManager();
         OntLoaderConfiguration conf = manager.getOntologyLoaderConfiguration()
                 .setPersonality(OntModelConfig.ONT_PERSONALITY_STRICT);
         manager.setOntologyLoaderConfiguration(conf);
@@ -71,10 +71,10 @@ public class SimpleLoadTest {
 
         List<OWLAxiom> ontList = ont.axioms().sorted().collect(Collectors.toList());
 
-        OWLOntology owl = OntManagers.createOWL().loadOntologyFromOntologyDocument(fileIRI);
+        OWLOntology owl = OntManagers.createOWLAPIImplManager().loadOntologyFromOntologyDocument(fileIRI);
         Set<OWLAxiom> punningAxioms = illegalPunningURIs.stream()
                 .map(Resource::getURI).map(IRI::create)
-                .map(owl::referencingAxioms).flatMap(Function.identity()).collect(Collectors.toSet());
+                .flatMap(owl::referencingAxioms).collect(Collectors.toSet());
         LOGGER.debug("OWL Axioms to exclude from consideration (" + punningAxioms.size() + "): ");
         punningAxioms.stream().map(String::valueOf).forEach(LOGGER::debug);
         List<OWLAxiom> owlList = owl.axioms()
@@ -92,8 +92,8 @@ public class SimpleLoadTest {
         IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI(fileName));
         LOGGER.debug("The source document file {}", fileIRI);
 
-        Ontology ont = OntManagers.createONT().loadOntologyFromOntologyDocument(fileIRI);
-        OWLOntology owl = OntManagers.createOWL().loadOntologyFromOntologyDocument(fileIRI);
+        Ontology ont = OntManagers.createManager().loadOntologyFromOntologyDocument(fileIRI);
+        OWLOntology owl = OntManagers.createOWLAPIImplManager().loadOntologyFromOntologyDocument(fileIRI);
 
         List<OWLAxiom> owlList = TestUtils.splitAxioms(owl).sorted().collect(Collectors.toList());
         List<OWLAxiom> ontList = TestUtils.splitAxioms(ont).sorted().collect(Collectors.toList());
@@ -160,8 +160,8 @@ public class SimpleLoadTest {
         IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI(fileName));
         LOGGER.debug("The source document file {}", fileIRI);
 
-        Ontology ont = OntManagers.createONT().loadOntologyFromOntologyDocument(fileIRI);
-        OWLOntology owl = OntManagers.createOWL().loadOntologyFromOntologyDocument(fileIRI);
+        Ontology ont = OntManagers.createManager().loadOntologyFromOntologyDocument(fileIRI);
+        OWLOntology owl = OntManagers.createOWLAPIImplManager().loadOntologyFromOntologyDocument(fileIRI);
 
         List<OWLAxiom> owlList = TestUtils.splitAxioms(owl).sorted().collect(Collectors.toList());
         List<OWLAxiom> ontList = TestUtils.splitAxioms(ont).sorted().collect(Collectors.toList());

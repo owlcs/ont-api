@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -45,7 +45,7 @@ public class ModifyAxiomsTest {
     @Test
     public void testRemoveAllAxiomsFromLoadedOntology() {
         String ns = "http://x#";
-        OntologyManager m = OntManagers.createONT();
+        OntologyManager m = OntManagers.createManager();
         DataFactory df = m.getOWLDataFactory();
 
         Ontology o = m.createOntology();
@@ -70,7 +70,7 @@ public class ModifyAxiomsTest {
 
     @Test
     public void testAddRemoveSeveralAxioms() {
-        OntologyManager m = OntManagers.createONT();
+        OntologyManager m = OntManagers.createManager();
         OWLDataFactory df = m.getOWLDataFactory();
         Ontology o = m.createOntology(IRI.create("X"));
 
@@ -88,7 +88,7 @@ public class ModifyAxiomsTest {
 
     @Test
     public void testRemoveAxiomWithDirectlySharedClassExpression() {
-        OntologyManager man = OntManagers.createONT();
+        OntologyManager man = OntManagers.createManager();
         OWLDataFactory df = man.getOWLDataFactory();
         Ontology o = man.createOntology(IRI.create("X"));
 
@@ -121,7 +121,7 @@ public class ModifyAxiomsTest {
 
     @Test
     public void testRemoveAxiomWithIndirectlySharedClassExpression() {
-        OntologyManager man = OntManagers.createONT();
+        OntologyManager man = OntManagers.createManager();
         OWLDataFactory df = man.getOWLDataFactory();
         Ontology o = man.createOntology(IRI.create("X"));
 
@@ -155,7 +155,7 @@ public class ModifyAxiomsTest {
 
     @Test
     public void testRemoveAxiomWithSimilarClassExpression() {
-        OntologyManager man = OntManagers.createONT();
+        OntologyManager man = OntManagers.createManager();
         OWLDataFactory df = man.getOWLDataFactory();
         Ontology o = man.createOntology(IRI.create("X"));
 
@@ -187,7 +187,7 @@ public class ModifyAxiomsTest {
 
     @Test
     public void testRemoveAxiomWithSharedSWRL() {
-        OntologyManager man = OntManagers.createONT();
+        OntologyManager man = OntManagers.createManager();
         Ontology o = man.createOntology(IRI.create("http://swrl-test"));
 
         OntModel m = o.asGraphModel().setNsPrefix("swrl", SWRL.NS);
@@ -235,7 +235,7 @@ public class ModifyAxiomsTest {
 
     @Test
     public void testRemoveAxiomWithSharedDataRange() {
-        OntologyManager man = OntManagers.createONT();
+        OntologyManager man = OntManagers.createManager();
         Ontology o = man.createOntology(IRI.create("http://dr-test"));
 
         OntModel m = o.asGraphModel();
@@ -276,7 +276,7 @@ public class ModifyAxiomsTest {
 
     @Test
     public void testAddRemoveSingleAxiom() {
-        OntologyManager m = OntManagers.createONT();
+        OntologyManager m = OntManagers.createManager();
         OWLDataFactory df = m.getOWLDataFactory();
         Ontology o = m.createOntology(IRI.create("X"));
 
@@ -296,7 +296,7 @@ public class ModifyAxiomsTest {
 
     @Test
     public void testAddRemoveSingleHeaderAnnotation() {
-        OntologyManager m = OntManagers.createONT();
+        OntologyManager m = OntManagers.createManager();
         OWLDataFactory df = m.getOWLDataFactory();
         Ontology o = m.createOntology(IRI.create("X"));
 
@@ -315,7 +315,7 @@ public class ModifyAxiomsTest {
 
     @Test
     public void testRemoveAxiomWithBulkAnnotation() throws OWLOntologyCreationException {
-        OntologyManager man = OntManagers.createONT();
+        OntologyManager man = OntManagers.createManager();
         OWLOntologyDocumentSource source = ReadWriteUtils.getStringDocumentSource("" +
                 "@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n" +
                 "@prefix owl:   <http://www.w3.org/2002/07/owl#> .\n" +
@@ -349,7 +349,7 @@ public class ModifyAxiomsTest {
 
     @Test
     public void testEquivalentClassIntersection() {
-        OntologyManager man = OntManagers.createONT();
+        OntologyManager man = OntManagers.createManager();
         man.getOntologyConfigurator().setPersonality(OntModelConfig.ONT_PERSONALITY_LAX);
 
         Ontology o = man.createOntology(IRI.create("http://test1"));
@@ -386,7 +386,7 @@ public class ModifyAxiomsTest {
 
     @Test
     public void testNegativeDataPropertyIntersection() {
-        OntologyManager man = OntManagers.createONT();
+        OntologyManager man = OntManagers.createManager();
         man.getOntologyConfigurator().setPersonality(OntModelConfig.ONT_PERSONALITY_LAX);
         OWLAdapter ad = OWLAdapter.get();
         OWLDataFactory df = man.getOWLDataFactory();
@@ -428,7 +428,7 @@ public class ModifyAxiomsTest {
 
     @Test
     public void testSubPropertyPunnings() {
-        OntologyManager man = OntManagers.createONT();
+        OntologyManager man = OntManagers.createManager();
         man.getOntologyConfigurator().setPersonality(OntModelConfig.ONT_PERSONALITY_LAX);
 
         OWLDataFactory df = man.getOWLDataFactory();

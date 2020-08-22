@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,6 +14,10 @@
 
 package com.github.owlcs.ontapi.tests.formats;
 
+import com.github.owlcs.ontapi.OntFormat;
+import com.github.owlcs.ontapi.OntManagers;
+import com.github.owlcs.ontapi.utils.ReadWriteUtils;
+import com.github.owlcs.ontapi.utils.StringInputStreamDocumentSource;
 import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.formats.TurtleDocumentFormat;
@@ -23,10 +27,6 @@ import org.semanticweb.owlapi.io.UnparsableOntologyException;
 import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.github.owlcs.ontapi.OntFormat;
-import com.github.owlcs.ontapi.OntManagers;
-import com.github.owlcs.ontapi.utils.ReadWriteUtils;
-import com.github.owlcs.ontapi.utils.StringInputStreamDocumentSource;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -64,7 +64,7 @@ public class OntFormatsTest {
     public void testDocumentFormatFactories() throws OWLOntologyCreationException {
         // from owlapi-impl to compare.
         // use the simplest ontology to avoid any deep parsing exceptions
-        OWLOntology ontology = OntManagers.createOWL().createOntology(IRI.create("http://test.org/empty"));
+        OWLOntology ontology = OntManagers.createOWLAPIImplManager().createOntology(IRI.create("http://test.org/empty"));
         LOGGER.debug("{}", ontology);
         Set<OntFormat> writeNotSupported = new HashSet<>();
         Set<OntFormat> readNotSupported = new HashSet<>();
@@ -78,7 +78,7 @@ public class OntFormatsTest {
             }
             try {
                 OWLOntologyDocumentSource source = new IRIDocumentSource(IRI.create(p.toUri()), f.createOwlFormat(), null);
-                OntManagers.createOWL().loadOntologyFromOntologyDocument(source);
+                OntManagers.createOWLAPIImplManager().loadOntologyFromOntologyDocument(source);
             } catch (UnparsableOntologyException e) {
                 LOGGER.debug("Can't read {}", p, e);
                 readNotSupported.add(f);
@@ -94,7 +94,7 @@ public class OntFormatsTest {
 
     @Test
     public void testFormatSupporting() throws OWLOntologyCreationException, OWLOntologyStorageException {
-        OWLOntologyManager m = OntManagers.createOWL();
+        OWLOntologyManager m = OntManagers.createOWLAPIImplManager();
         OWLDataFactory df = m.getOWLDataFactory();
         // make a simple ontology with class-assertion and sub-class-of axioms:
         OWLClass c1 = df.getOWLClass(IRI.create("http://test.org/class1"));
@@ -129,7 +129,7 @@ public class OntFormatsTest {
 
             OWLOntology res;
             try {
-                res = OntManagers.createOWL().loadOntologyFromOntologyDocument(source);
+                res = OntManagers.createOWLAPIImplManager().loadOntologyFromOntologyDocument(source);
                 Assert.assertTrue(type + ": read should be supported", type.isReadSupported());
             } catch (UnparsableOntologyException e) {
                 Assert.assertFalse(type + ": should not be supported", type.isSupported());

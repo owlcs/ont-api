@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -55,7 +55,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
 
     @Test
     public void testNegativeAssertionAnnotations() {
-        OntologyManager m = OntManagers.createONT();
+        OntologyManager m = OntManagers.createManager();
         Ontology o = m.createOntology();
         OntModel g = o.asGraphModel();
 
@@ -93,7 +93,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
         String label = "some-label";
 
         LOGGER.debug("Create fresh ontology ({}).", iri);
-        OntologyManager manager = OntManagers.createONT();
+        OntologyManager manager = OntManagers.createManager();
         OWLDataFactory factory = manager.getOWLDataFactory();
         Ontology owl = manager.createOntology(iri);
 
@@ -140,7 +140,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
         TestUtils.compareAxioms(Stream.of(expected), owl.axioms());
 
         LOGGER.debug("Reload ontology.");
-        OWLOntology reload = ReadWriteUtils.convertJenaToOWL(OntManagers.createOWL(), jena, null);
+        OWLOntology reload = ReadWriteUtils.convertJenaToOWL(OntManagers.createOWLAPIImplManager(), jena, null);
         LOGGER.debug("Axioms after reload:");
         reload.axioms().map(String::valueOf).forEach(LOGGER::debug);
         TestUtils.compareAxioms(Stream.of(expected), reload.axioms());
@@ -151,7 +151,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
      */
     @Test
     public void testComplexAnnotations1() {
-        OntologyManager manager = OntManagers.createONT();
+        OntologyManager manager = OntManagers.createManager();
         Assert.assertTrue(manager.getOntologyLoaderConfiguration().isAllowBulkAnnotationAssertions());
         complexAnnotationsTest(manager, true);
     }
@@ -161,7 +161,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
      */
     @Test
     public void testComplexAnnotations2() {
-        OntologyManager manager = OntManagers.createONT();
+        OntologyManager manager = OntManagers.createManager();
         manager.getOntologyConfigurator().setAllowBulkAnnotationAssertions(false);
         Assert.assertFalse(manager.getOntologyLoaderConfiguration().isAllowBulkAnnotationAssertions());
         complexAnnotationsTest(manager, false);
@@ -495,12 +495,12 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
      */
     @Test
     public void testAnnotateOntology() throws Exception {
-        annotateOntologyTest(OntManagers.createONT());
+        annotateOntologyTest(OntManagers.createManager());
     }
 
     @Test
     public void testLoadCommonBulkAnnotations() throws Exception {
-        OWLOntologyManager m = OntManagers.createONT();
+        OWLOntologyManager m = OntManagers.createManager();
         OWLDataFactory df = m.getOWLDataFactory();
         OWLAnnotationProperty p1 = df.getOWLAnnotationProperty("http://www.geneontology.org/formats/oboInOwl#hasNarrowSynonym");
         OWLAnnotationProperty p2 = df.getOWLAnnotationProperty("http://www.geneontology.org/formats/oboInOwl#hasDbXref");
@@ -519,7 +519,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
 
     @Test
     public void testLoadSplitBulkAnnotations() throws Exception {
-        OntologyManager m = OntManagers.createONT();
+        OntologyManager m = OntManagers.createManager();
         OntLoaderConfiguration conf = m.getOntologyConfigurator()
                 .buildLoaderConfiguration().setSplitAxiomAnnotations(true);
         Assert.assertFalse(m.getOntologyLoaderConfiguration().isSplitAxiomAnnotations());
@@ -547,7 +547,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
 
     @Test
     public void testLoadNoSplitBulkAnnotations() throws Exception {
-        OWLOntologyManager m = OntManagers.createONT();
+        OWLOntologyManager m = OntManagers.createManager();
         OWLOntology o = m.loadOntologyFromOntologyDocument(IRI.create(ReadWriteUtils.getResourceURI("ontapi/test-annotations-2.ttl")));
         ReadWriteUtils.print(o);
         List<OWLAnnotationAssertionAxiom> list = o.axioms(AxiomType.ANNOTATION_ASSERTION).collect(Collectors.toList());
@@ -573,7 +573,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
 
     @Test
     public void testLoadRootSplitBulkAnnotations() throws Exception {
-        OntologyManager m = OntManagers.createONT();
+        OntologyManager m = OntManagers.createManager();
         Path file = Paths.get(ReadWriteUtils.getResourceURI("ontapi/test-annotations-3.ttl"));
         FileDocumentSource src = new FileDocumentSource(file.toFile());
         OWLOntology o = m.loadOntologyFromOntologyDocument(src, m.getOntologyLoaderConfiguration()
@@ -589,7 +589,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
 
     @Test
     public void testLoadRootNoSplitBulkAnnotations() throws Exception {
-        OWLOntologyManager m = OntManagers.createONT();
+        OWLOntologyManager m = OntManagers.createManager();
         String file = "ontapi/test-annotations-3.ttl";
         OWLOntology o = m.loadOntologyFromOntologyDocument(IRI.create(ReadWriteUtils.getResourceURI(file)));
         Assert.assertEquals(3, o.axioms().peek(x -> LOGGER.debug("Axiom: {}", x)).count());

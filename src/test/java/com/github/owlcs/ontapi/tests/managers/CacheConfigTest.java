@@ -126,14 +126,14 @@ public class CacheConfigTest {
 
     @Test
     public void testConfigureManagerIRICacheSize() {
-        testConfigureIRICacheSize(OntManagers.createONT());
-        testConfigureIRICacheSize(OntManagers.createConcurrentONT());
+        testConfigureIRICacheSize(OntManagers.createManager());
+        testConfigureIRICacheSize(OntManagers.createConcurrentManager());
     }
 
     @Test
     public void testNodesCacheSize() throws Exception {
         Assert.assertEquals(Prop.NODES_CACHE_SIZE.getInt(), new OntConfig().getLoadNodesCacheSize());
-        OntologyManager m = OntManagers.createONT();
+        OntologyManager m = OntManagers.createManager();
         Assert.assertNotNull(m.getOntologyConfigurator().setLoadNodesCacheSize(-123));
         Assert.assertEquals(-123, m.getOntologyLoaderConfiguration().getLoadNodesCacheSize());
         // cache is disabled, try to load model
@@ -153,7 +153,7 @@ public class CacheConfigTest {
     @Test
     public void testObjectsCacheSize() throws Exception {
         long axioms = 945;
-        OntologyManager m = OntManagers.createONT();
+        OntologyManager m = OntManagers.createManager();
         Assert.assertEquals(Prop.OBJECTS_CACHE_SIZE.getInt(), m.getOntologyConfigurator().getLoadObjectsCacheSize());
         OntLoaderConfiguration conf = new OntConfig().buildLoaderConfiguration().setLoadObjectsCacheSize(-1);
         Assert.assertEquals(-1, conf.getLoadObjectsCacheSize());
@@ -200,7 +200,7 @@ public class CacheConfigTest {
         Graph g = ReadWriteUtils.loadResourceTTLFile("/ontapi/pizza.ttl").getGraph();
 
         long axioms1 = 945;
-        OntologyManager m1 = OntManagers.createONT();
+        OntologyManager m1 = OntManagers.createManager();
         DataFactory df = m1.getOWLDataFactory();
         Assert.assertEquals(CacheSettings.CACHE_ALL, Prop.CONTENT_CACHE_LEVEL.getInt());
         Assert.assertTrue(m1.getOntologyConfigurator().useContentCache());
@@ -217,7 +217,7 @@ public class CacheConfigTest {
 
         // no cache model:
         long axioms2 = 948;
-        OntologyManager m2 = OntManagers.createONT();
+        OntologyManager m2 = OntManagers.createManager();
         OntLoaderConfiguration conf = m2.getOntologyLoaderConfiguration()
                 .setModelCacheLevel(CacheSettings.CACHE_ALL, false);
         Assert.assertFalse(conf.useContentCache());
@@ -260,7 +260,7 @@ public class CacheConfigTest {
         OWLAdapter adapter = OWLAdapter.get();
         OWLOntologyDocumentSource src = ReadWriteUtils.getFileDocumentSource("/ontapi/pizza.ttl", OntFormat.TURTLE);
 
-        OntologyManager m1 = OntManagers.createONT();
+        OntologyManager m1 = OntManagers.createManager();
         Ontology o1 = m1.loadOntologyFromOntologyDocument(src,
                 m1.getOntologyLoaderConfiguration().setModelCacheLevel(CacheSettings.CACHE_CONTENT, true));
         InternalModelImpl im1 = (InternalModelImpl) adapter.asBaseModel(o1).getBase();
@@ -285,7 +285,7 @@ public class CacheConfigTest {
             }
         });
 
-        OntologyManager m2 = OntManagers.createONT();
+        OntologyManager m2 = OntManagers.createManager();
         Ontology o2 = m2.loadOntologyFromOntologyDocument(src,
                 m2.getOntologyLoaderConfiguration().setModelCacheLevel(CacheSettings.CACHE_CONTENT, false));
         InternalModelImpl im2 = getBase(o2);
@@ -307,7 +307,7 @@ public class CacheConfigTest {
         Graph g = ReadWriteUtils.loadResourceTTLFile("/ontapi/pizza.ttl").getGraph();
 
         long signature1 = 118;
-        OntologyManager m1 = OntManagers.createONT();
+        OntologyManager m1 = OntManagers.createManager();
         DataFactory df = m1.getOWLDataFactory();
         Assert.assertEquals(CacheSettings.CACHE_ALL, Prop.CONTENT_CACHE_LEVEL.getInt());
         Assert.assertTrue(m1.getOntologyConfigurator().useComponentCache());
@@ -326,7 +326,7 @@ public class CacheConfigTest {
 
         // no cache model:
         long signature2 = signature1 + 2;
-        OntologyManager m2 = OntManagers.createONT();
+        OntologyManager m2 = OntManagers.createManager();
         OntLoaderConfiguration conf = m2.getOntologyLoaderConfiguration()
                 .setModelCacheLevel(CacheSettings.CACHE_COMPONENT, false);
         Assert.assertFalse(conf.useComponentCache());
@@ -360,7 +360,7 @@ public class CacheConfigTest {
                 , OWLComponentType.ANONYMOUS_INDIVIDUAL);
         OWLOntologyDocumentSource src = ReadWriteUtils.getFileDocumentSource("/ontapi/pizza.ttl", OntFormat.TURTLE);
 
-        OntologyManager m1 = OntManagers.createONT();
+        OntologyManager m1 = OntManagers.createManager();
         Ontology o1 = m1.loadOntologyFromOntologyDocument(src,
                 m1.getOntologyLoaderConfiguration().setModelCacheLevel(CacheSettings.CACHE_COMPONENT, true));
         InternalModelImpl im1 = getBase(o1);
@@ -385,7 +385,7 @@ public class CacheConfigTest {
             }
         });
 
-        OntologyManager m2 = OntManagers.createONT();
+        OntologyManager m2 = OntManagers.createManager();
         Ontology o2 = m2.loadOntologyFromOntologyDocument(src,
                 m2.getOntologyLoaderConfiguration().setModelCacheLevel(CacheSettings.CACHE_COMPONENT, false));
         InternalModelImpl im2 = (InternalModelImpl) adapter.asBaseModel(o2).getBase();
@@ -436,7 +436,7 @@ public class CacheConfigTest {
         OWLOntologyDocumentSource s = ReadWriteUtils.getFileDocumentSource("/ontapi/pizza.ttl", OntFormat.TURTLE);
 
         long axioms = 945;
-        OntologyManager m = OntManagers.createONT();
+        OntologyManager m = OntManagers.createManager();
         DataFactory df = m.getOWLDataFactory();
         m.getOntologyConfigurator().setModelCacheLevel(CacheSettings.CACHE_CONTENT);
 
@@ -457,14 +457,14 @@ public class CacheConfigTest {
 
     @Test
     public void testLoadNativeOWLFormatWhenContentCacheIsDisabled() throws OWLOntologyCreationException {
-        OntologyManager m = OntManagers.createONT();
+        OntologyManager m = OntManagers.createManager();
         m.getOntologyConfigurator().setModelCacheLevel(CacheSettings.CACHE_CONTENT, false);
         testLoadManchesterString(m);
     }
 
     @Test
     public void testLoadNativeOWLFormatWhenAllCachesAreDisabled() throws OWLOntologyCreationException {
-        OntologyManager m = OntManagers.createONT();
+        OntologyManager m = OntManagers.createManager();
         m.getOntologyConfigurator().setModelCacheLevel(0);
         testLoadManchesterString(m);
     }
@@ -499,7 +499,7 @@ public class CacheConfigTest {
                 + ":DM rdf:type owl:NamedIndividual , prov:Person .\n"
                 + ":FMDomain rdf:type owl:NamedIndividual , prov:Activity ; prov:ass :DM .";
 
-        OntologyManager m = OntManagers.createONT();
+        OntologyManager m = OntManagers.createManager();
         m.getOntologyConfigurator().setModelCacheLevel(0);
 
         OWLOntologyDocumentSource source = ReadWriteUtils.getStringDocumentSource(wrong, OntFormat.TURTLE);

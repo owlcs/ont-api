@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -45,7 +45,7 @@ public class CopyManagerTest {
      * @return new instance of {@link OntologyManager}
      */
     private static OntologyManager deepCopyManager(OntologyManager from) {
-        OntologyManager res = OntManagers.createONT();
+        OntologyManager res = OntManagers.createManager();
         copyManager(from, res, OntologyCopy.DEEP);
         return res;
     }
@@ -101,12 +101,12 @@ public class CopyManagerTest {
 
     @Test
     public void testSimpleCoping() throws Exception {
-        simpleCopyTest(OntManagers.createONT(), OntManagers.createOWL(), OntologyCopy.SHALLOW);
-        simpleCopyTest(OntManagers.createONT(), OntManagers.createOWL(), OntologyCopy.DEEP);
-        simpleCopyTest(OntManagers.createOWL(), OntManagers.createONT(), OntologyCopy.SHALLOW);
-        simpleCopyTest(OntManagers.createOWL(), OntManagers.createONT(), OntologyCopy.DEEP);
-        simpleCopyTest(OntManagers.createONT(), OntManagers.createONT(), OntologyCopy.SHALLOW);
-        simpleCopyTest(OntManagers.createONT(), OntManagers.createONT(), OntologyCopy.DEEP);
+        simpleCopyTest(OntManagers.createManager(), OntManagers.createOWLAPIImplManager(), OntologyCopy.SHALLOW);
+        simpleCopyTest(OntManagers.createManager(), OntManagers.createOWLAPIImplManager(), OntologyCopy.DEEP);
+        simpleCopyTest(OntManagers.createOWLAPIImplManager(), OntManagers.createManager(), OntologyCopy.SHALLOW);
+        simpleCopyTest(OntManagers.createOWLAPIImplManager(), OntManagers.createManager(), OntologyCopy.DEEP);
+        simpleCopyTest(OntManagers.createManager(), OntManagers.createManager(), OntologyCopy.SHALLOW);
+        simpleCopyTest(OntManagers.createManager(), OntManagers.createManager(), OntologyCopy.DEEP);
     }
 
     private void simpleCopyTest(OWLOntologyManager from, OWLOntologyManager to, OntologyCopy mode) throws Exception {
@@ -136,16 +136,16 @@ public class CopyManagerTest {
 
     @Test(expected = OntApiException.Unsupported.class)
     public void testMoveFromDefaultOWLAPIManager() throws OWLOntologyCreationException {
-        OWLOntologyManager src = OntManagers.createOWL();
-        OWLOntologyManager dst = OntManagers.createONT();
+        OWLOntologyManager src = OntManagers.createOWLAPIImplManager();
+        OWLOntologyManager dst = OntManagers.createManager();
         OWLOntology o = src.createOntology();
         dst.copyOntology(o, OntologyCopy.MOVE);
     }
 
     @Test(expected = OntApiException.Unsupported.class)
     public void testMoveFromONTAPIManager() throws OWLOntologyCreationException {
-        OWLOntologyManager src = OntManagers.createONT();
-        OWLOntologyManager dst = OntManagers.createONT();
+        OWLOntologyManager src = OntManagers.createManager();
+        OWLOntologyManager dst = OntManagers.createManager();
         OWLOntology o = src.createOntology();
         dst.copyOntology(o, OntologyCopy.MOVE);
     }
@@ -161,7 +161,7 @@ public class CopyManagerTest {
         IRI iri4 = IRI.create("http://spinrdf.org/spif");
         IRI doc4 = IRI.create(ReadWriteUtils.getResourcePath("etc", "spif.ttl").toUri());
 
-        OntologyManager from = OntManagers.createONT();
+        OntologyManager from = OntManagers.createManager();
         from.getIRIMappers().add(FileMap.create(iri1, doc1));
         from.getIRIMappers().add(FileMap.create(iri2, doc2));
         from.getIRIMappers().add(FileMap.create(iri3, doc3));
@@ -210,7 +210,7 @@ public class CopyManagerTest {
         IRI iri2 = IRI.create("http://spinrdf.org/spin");
         IRI doc2 = IRI.create(ReadWriteUtils.getResourcePath("omn", "spin.omn").toUri());
 
-        OntologyManager from = OntManagers.createONT();
+        OntologyManager from = OntManagers.createManager();
         from.getOntologyConfigurator().disableWebAccess();
         from.getIRIMappers().add(FileMap.create(iri1, doc1));
         from.getIRIMappers().add(FileMap.create(iri2, doc2));
@@ -235,7 +235,7 @@ public class CopyManagerTest {
 
     @Test
     public void testCopyWholeManager3() throws Exception {
-        OntologyManager from = OntManagers.createONT();
+        OntologyManager from = OntManagers.createManager();
         from.getOntologyConfigurator().disableWebAccess()
                 .setMissingImportHandlingStrategy(MissingImportHandlingStrategy.SILENT);
         from.loadOntologyFromOntologyDocument(IRI.create(ReadWriteUtils.getResourceURI("owlapi/importscyclic", "relaMath.owl")));
@@ -251,13 +251,13 @@ public class CopyManagerTest {
         String uri_a = "urn:a";
         String uri_b = "urn:b";
         String uri_c = "urn:c";
-        OntologyManager m1 = OntManagers.createONT();
+        OntologyManager m1 = OntManagers.createManager();
         OntModel a = m1.createGraphModel(uri_a);
         OntModel b = m1.createGraphModel(uri_b);
         OntModel c = m1.createGraphModel(uri_c);
         a.addImport(b).addImport(c);
 
-        OntologyManager m2 = OntManagers.createONT();
+        OntologyManager m2 = OntManagers.createManager();
         m2.createGraphModel(uri_b);
 
         Ontology src = m1.getOntology(IRI.create(uri_a));
@@ -287,14 +287,14 @@ public class CopyManagerTest {
         String uri_b = "urn:b";
         String uri_c = "urn:c";
         String uri_d = "urn:d";
-        OntologyManager m1 = OntManagers.createONT();
+        OntologyManager m1 = OntManagers.createManager();
         OntModel a = m1.createGraphModel(uri_a);
         OntModel b = m1.createGraphModel(uri_b);
         OntModel c = m1.createGraphModel(uri_c);
         OntModel d = m1.createGraphModel(uri_d);
         a.addImport(b.addImport(d)).addImport(c.addImport(d));
 
-        OntologyManager m2 = OntManagers.createONT();
+        OntologyManager m2 = OntManagers.createManager();
         m2.createGraphModel(uri_b);
 
         Ontology src_a = m1.getOntology(IRI.create(uri_a));
@@ -350,7 +350,7 @@ public class CopyManagerTest {
         String uri_a = "urn:a";
         String uri_b = "urn:b";
         String uri_c = "urn:c";
-        OWLOntologyManager m1 = OntManagers.createOWL();
+        OWLOntologyManager m1 = OntManagers.createOWLAPIImplManager();
         OWLOntology a = m1.createOntology(IRI.create(uri_a));
         OWLOntology b = m1.createOntology(IRI.create(uri_b));
         OWLOntology c = m1.createOntology(IRI.create(uri_c));
@@ -358,7 +358,7 @@ public class CopyManagerTest {
         m1.applyChange(new AddImport(a, getImportsDeclaration(c)));
         m1.applyChange(new AddImport(b, getImportsDeclaration(c)));
 
-        OntologyManager m2 = OntManagers.createONT();
+        OntologyManager m2 = OntManagers.createManager();
         m2.createGraphModel(uri_b);
 
         OWLOntology src_a = m1.getOntology(IRI.create(uri_a));
@@ -398,12 +398,12 @@ public class CopyManagerTest {
 
     @Test
     public void testShallowCopingManagerWithCyclingImports() {
-        testCopingManagerWithCyclingImports(OntManagers.createONT(), OntManagers.createConcurrentONT(), OntologyCopy.SHALLOW);
+        testCopingManagerWithCyclingImports(OntManagers.createManager(), OntManagers.createConcurrentManager(), OntologyCopy.SHALLOW);
     }
 
     @Test
     public void testDeepCopingManagerWithCyclingImports() {
-        testCopingManagerWithCyclingImports(OntManagers.createConcurrentONT(), OntManagers.createONT(), OntologyCopy.DEEP);
+        testCopingManagerWithCyclingImports(OntManagers.createConcurrentManager(), OntManagers.createManager(), OntologyCopy.DEEP);
     }
 
     private void testCopingManagerWithCyclingImports(OntologyManager m1, OntologyManager m2, OntologyCopy mode) {
@@ -430,14 +430,14 @@ public class CopyManagerTest {
 
     @Test
     public void testShallowCopingManagerWithAnonymousOntologies() {
-        testCopingManagerWithAnonymousOntologies(OntManagers.createConcurrentONT(),
-                OntManagers.createONT(), OntologyCopy.SHALLOW);
+        testCopingManagerWithAnonymousOntologies(OntManagers.createConcurrentManager(),
+                OntManagers.createManager(), OntologyCopy.SHALLOW);
     }
 
     @Test
     public void testDeepCopingManagerWithAnonymousOntologies() {
-        testCopingManagerWithAnonymousOntologies(OntManagers.createONT(),
-                OntManagers.createConcurrentONT(), OntologyCopy.DEEP);
+        testCopingManagerWithAnonymousOntologies(OntManagers.createManager(),
+                OntManagers.createConcurrentManager(), OntologyCopy.DEEP);
     }
 
     private void testCopingManagerWithAnonymousOntologies(OntologyManager m1, OntologyManager m2, OntologyCopy mode) {

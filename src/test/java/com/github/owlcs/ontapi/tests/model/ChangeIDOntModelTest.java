@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -48,7 +48,7 @@ public class ChangeIDOntModelTest extends OntModelTestBase {
     @Test
     public void testIDIsChangedExternally() {
         OntModel g1 = OntModelFactory.createModel();
-        OntologyManager m = OntManagers.createONT();
+        OntologyManager m = OntManagers.createManager();
         m.addOntology(g1.getGraph());
         String iri1 = "http://x.com";
         g1.setID(iri1);
@@ -59,7 +59,7 @@ public class ChangeIDOntModelTest extends OntModelTestBase {
         g2.setID(iri2);
         Assert.assertNotNull(m.getOntology(IRI.create(iri2)));
 
-        OntologyManager m2 = OntManagers.createConcurrentONT();
+        OntologyManager m2 = OntManagers.createConcurrentManager();
         Ontology o3 = m2.createOntology();
         OntModel g3 = o3.asGraphModel();
         String iri3 = "http://z.com";
@@ -87,7 +87,7 @@ public class ChangeIDOntModelTest extends OntModelTestBase {
                 .applyChanges(new SetOntologyID(o, i)), "OWLOntology#applyChanges(...)");
         for (ApplyChangesWrapper w : Arrays.asList(w1, w2, w3, w4)) {
             //testApplyChanges(OntManagers.createOWL(), w); // <-- will fail on w4
-            testApplyChanges(OntManagers.createONT(), w);
+            testApplyChanges(OntManagers.createManager(), w);
         }
     }
 
@@ -113,7 +113,7 @@ public class ChangeIDOntModelTest extends OntModelTestBase {
 
     @Test
     public void testDifferent() {
-        OntologyManager manager = OntManagers.createONT();
+        OntologyManager manager = OntManagers.createManager();
 
         // anon ontology
         Ontology anon = manager.createOntology();

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -78,11 +78,11 @@ public class GraphDocumentSourceTest {
     public void testOntGraphDocumentSourceInOWL() throws OWLOntologyCreationException {
         IRI pizza = IRI.create(MiscOntologyTest.class.getResource("/ontapi/pizza.ttl"));
         LOGGER.debug("File: {}", pizza);
-        Ontology ont = OntManagers.createONT().loadOntology(pizza);
+        Ontology ont = OntManagers.createManager().loadOntology(pizza);
         OWLOntologyDocumentSource src = OntGraphDocumentSource.wrap(ont.asGraphModel().getBaseGraph());
         URI uri = src.getDocumentIRI().toURI();
         LOGGER.debug("Load using pipes from: {}", uri);
-        OWLOntology owl = OntManagers.createOWL().loadOntologyFromOntologyDocument(src);
+        OWLOntology owl = OntManagers.createOWLAPIImplManager().loadOntologyFromOntologyDocument(src);
         Set<OWLAxiom> ontAxioms = ont.axioms().collect(Collectors.toSet());
         Set<OWLAxiom> owlAxioms = owl.axioms().collect(Collectors.toSet());
         LOGGER.debug("OWL Axioms Count={}, ONT Axioms Count={}", owlAxioms.size(), ontAxioms.size());
@@ -92,7 +92,7 @@ public class GraphDocumentSourceTest {
     @Test
     public void testOntGraphDocumentSourceInONT() throws OWLOntologyCreationException {
         List<String> iris = Arrays.asList("a", "b", "c");
-        OntologyManager m = OntManagers.createONT();
+        OntologyManager m = OntManagers.createManager();
         m.createGraphModel(iris.get(0));
         m.createGraphModel(iris.get(1));
         OntModel c = OntModelFactory.createModel();
@@ -178,7 +178,7 @@ public class GraphDocumentSourceTest {
 
         ReadWriteUtils.print(ModelFactory.createModelForGraph(u));
 
-        OntologyManager manager = OntManagers.createONT();
+        OntologyManager manager = OntManagers.createManager();
         Ontology o = manager.addOntology(u);
         Assert.assertEquals(1, manager.ontologies().peek(x -> LOGGER.debug("Ontology: {}", x)).count());
         Assert.assertNotNull(manager.getOntology(new ID(m1.getID())));
@@ -204,7 +204,7 @@ public class GraphDocumentSourceTest {
 
     @Test
     public void testDisableTransforms() throws OWLOntologyCreationException {
-        OntologyManager m = OntManagers.createONT();
+        OntologyManager m = OntManagers.createManager();
         m.getOntologyConfigurator().setGraphTransformers(new GraphTransformers()
                 .addLast(g -> {
                     throw new IllegalStateException("TEST");

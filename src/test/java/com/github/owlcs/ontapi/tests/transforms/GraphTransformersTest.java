@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -74,13 +74,14 @@ public class GraphTransformersTest {
         int axiomsCountSPINMAPL = 902; //895;//902;//856;
         int axiomsCountTotal = 7701; //7685; //7796; //7625;
 
-        OntologyManager m = OntManagers.createONT();
+        OntologyManager m = OntManagers.createManager();
         // Setup spin manager:
         m.getOntologyConfigurator()
                 .setGraphTransformers(GraphTransformers.get().addFirst(Transform.Factory.create(SpinTransform.class)))
                 .setPersonality(SpinModels.ONT_SPIN_PERSONALITY)
                 .disableWebAccess();
         SpinModels.addMappings(m);
+        //noinspection deprecation
         SpinModels.addMappings(FileManager.get());
 
         IRI iri = SpinModels.SPINMAPL.getIRI();
@@ -129,7 +130,7 @@ public class GraphTransformersTest {
 
     @Test
     public void testLoadSpinLibraryWithoutTransforms() throws Exception {
-        OntologyManager m = OntManagers.createONT();
+        OntologyManager m = OntManagers.createManager();
         // Setup spin manager:
         GraphTransformers transformers = m.getOntologyConfigurator().getGraphTransformers()
                 .setFilter(g -> {
@@ -139,6 +140,7 @@ public class GraphTransformersTest {
         m.getOntologyConfigurator().setGraphTransformers(transformers)
                 .disableWebAccess();
         SpinModels.addMappings(m);
+        //noinspection deprecation
         SpinModels.addMappings(FileManager.get());
         Ontology spin = m.loadOntology(SpinModels.SPINMAPL.getIRI());
         Assert.assertEquals(10, m.ontologies().count());
@@ -187,8 +189,8 @@ public class GraphTransformersTest {
             return Stream.empty();
         });
 
-        OWLOntologyManager manager = OntManagers.createOWL();
-        OWLOntologyManager testManager = OntManagers.createOWL();
+        OWLOntologyManager manager = OntManagers.createOWLAPIImplManager();
+        OWLOntologyManager testManager = OntManagers.createOWLAPIImplManager();
 
         OntModel jenaSP = OntModelFactory.createModel(
                 GraphTransformers.convert(ReadWriteUtils.loadResourceTTLFile("etc/sp.ttl").getGraph()),
@@ -237,7 +239,7 @@ public class GraphTransformersTest {
     public void testSWRLVocabulary() throws Exception {
         IRI iri = IRI.create("http://www.w3.org/2003/11/swrl");
         IRI file = IRI.create(ReadWriteUtils.getResourceURI("ontapi/swrl.owl.rdf"));
-        OntologyManager m = OntManagers.createONT();
+        OntologyManager m = OntManagers.createManager();
         m.getOntologyConfigurator().setPersonality(OntModelConfig.ONT_PERSONALITY_LAX);
         Ontology o = m.loadOntology(file);
         Assert.assertTrue("No ontology", m.contains(iri));
@@ -322,7 +324,7 @@ public class GraphTransformersTest {
     @Test
     public void testTransformsOnLoad() throws OWLOntologyCreationException {
         List<String> iris = Arrays.asList("http://a", "http://b", "http://c", "http://d");
-        OntologyManager m = OntManagers.createONT();
+        OntologyManager m = OntManagers.createManager();
 
         Set<String> processed = new HashSet<>();
         GraphTransformers st = m.getOntologyConfigurator().getGraphTransformers()

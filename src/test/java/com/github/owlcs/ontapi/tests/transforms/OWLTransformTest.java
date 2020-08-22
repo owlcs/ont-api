@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -68,7 +68,7 @@ public class OWLTransformTest {
 
         OWLOntologyDocumentSource src = ReadWriteUtils.getStringDocumentSource(txt, OntFormat.TURTLE);
 
-        Ontology o = OntManagers.createONT().loadOntologyFromOntologyDocument(src);
+        Ontology o = OntManagers.createManager().loadOntologyFromOntologyDocument(src);
         ReadWriteUtils.print(o);
         o.saveOntology(OntFormat.FUNCTIONAL_SYNTAX.createOwlFormat(), ReadWriteUtils.NULL_OUT);
         Assert.assertEquals(6, o.asGraphModel().size());
@@ -78,7 +78,7 @@ public class OWLTransformTest {
     @Test
     public void testNCBITAXONTransform() throws OWLOntologyCreationException {
         OWLOntologyDocumentSource src = ReadWriteUtils.getFileDocumentSource("/ontapi/NCBITAXON-CUT.ttl", OntFormat.TURTLE);
-        OWLOntologyManager m = OntManagers.createONT();
+        OWLOntologyManager m = OntManagers.createManager();
         OWLOntology o = m.loadOntologyFromOntologyDocument(src);
 
         TestUtils.assertAxiom(o, AxiomType.TRANSITIVE_OBJECT_PROPERTY, 3);
@@ -105,7 +105,7 @@ public class OWLTransformTest {
         OWLOntologyDocumentSource src = ReadWriteUtils.getFileDocumentSource("/owlapi/owl11/family/family.owl",
                 OntFormat.RDF_XML);
         LOGGER.debug("Source: {}", src);
-        OWLOntologyManager m = OntManagers.createONT();
+        OWLOntologyManager m = OntManagers.createManager();
         OWLOntology o = m.loadOntologyFromOntologyDocument(src);
 
         ReadWriteUtils.print(o);
@@ -137,7 +137,7 @@ public class OWLTransformTest {
         OWLOntologyDocumentSource src = ReadWriteUtils.getFileDocumentSource("/owlapi/owl11/family/family.owl",
                 OntFormat.RDF_XML);
         LOGGER.debug("Source: {}", src);
-        OntologyManager m = OntManagers.createONT();
+        OntologyManager m = OntManagers.createManager();
         m.getOntologyConfigurator().setPerformTransformation(false);
         Ontology o = m.loadOntologyFromOntologyDocument(src);
 
@@ -174,7 +174,7 @@ public class OWLTransformTest {
                 "@prefix rdfs:  <http://www.w3.org/2000/01/rdf-schema#> .\n" +
                 "\n" +
                 "ex:c    owl:unionOf  ( ex:x ex:y ) .";
-        Ontology o = OntManagers.createONT().loadOntologyFromOntologyDocument(new StringDocumentSource(s));
+        Ontology o = OntManagers.createManager().loadOntologyFromOntologyDocument(new StringDocumentSource(s));
         ReadWriteUtils.print(o);
         Assert.assertEquals(3, o.axioms(AxiomType.DECLARATION).peek(x -> LOGGER.debug("DE: {}", x)).count());
         Assert.assertEquals(1, o.axioms(AxiomType.EQUIVALENT_CLASSES).peek(x -> LOGGER.debug("EC: {}", x)).count());
@@ -197,7 +197,7 @@ public class OWLTransformTest {
                 .addProperty(DEPRECATED.RDF.object, "v");
         ReadWriteUtils.print(m);
 
-        OntologyManager manager = OntManagers.createONT();
+        OntologyManager manager = OntManagers.createManager();
         Ontology o = manager.addOntology(m.getGraph(), manager.getOntologyLoaderConfiguration());
         ReadWriteUtils.print(o);
         TestUtils.assertAxiom(o, AxiomType.DECLARATION, 3);
@@ -215,7 +215,7 @@ public class OWLTransformTest {
         m.createResource("http://class").addProperty(RDF.type, OWL.Class);
         String txt = ReadWriteUtils.toString(m, OntFormat.TURTLE);
 
-        OntologyManager manager = OntManagers.createONT();
+        OntologyManager manager = OntManagers.createManager();
         Ontology o = manager.loadOntologyFromOntologyDocument(ReadWriteUtils.getStringDocumentSource(txt, OntFormat.TURTLE));
         OWLOntologyLoaderMetaData meta = manager.getNonnullOntologyFormat(o)
                 .getOntologyLoaderMetaData().orElseThrow(AssertionError::new);
@@ -240,7 +240,7 @@ public class OWLTransformTest {
 
         LOGGER.debug("Original RDF:\n{}", txt);
 
-        OntologyManager manager = OntManagers.createONT();
+        OntologyManager manager = OntManagers.createManager();
         Ontology o = manager.loadOntologyFromOntologyDocument(ReadWriteUtils.getStringDocumentSource(txt, OntFormat.TURTLE));
         ReadWriteUtils.print(o);
         Assert.assertEquals(ontIRI, o.getOntologyID().getOntologyIRI().map(IRI::getIRIString).orElseThrow(AssertionError::new));
@@ -274,7 +274,7 @@ public class OWLTransformTest {
                 NodeFactory.createLiteral("v1"));
         Triple t2 = Triple.create(NodeFactory.createURI("b"), NodeFactory.createURI("c"),
                 NodeFactory.createLiteral("v2"));
-        OntologyManager manager = OntManagers.createONT();
+        OntologyManager manager = OntManagers.createManager();
         GraphTransformers transformers = manager.getOntologyConfigurator().getGraphTransformers()
                 .addLast(new Empty(t1)).addLast(new Empty(t2));
         manager.getOntologyConfigurator().setGraphTransformers(transformers);

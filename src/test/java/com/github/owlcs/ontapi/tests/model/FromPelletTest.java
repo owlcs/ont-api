@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -37,7 +37,7 @@ public class FromPelletTest {
 
     @Test
     public void testAddRemoveAxioms() throws Exception {
-        OWLOntologyManager m = OntManagers.createConcurrentONT();
+        OWLOntologyManager m = OntManagers.createConcurrentManager();
 
         OWLDataFactory df = m.getOWLDataFactory();
 
@@ -148,7 +148,7 @@ public class FromPelletTest {
     public void testPropertyChain() throws Exception {
         IRI iri = IRI.create(ReadWriteUtils.getResourceURI("ontapi/propertyChain.owl"));
         LOGGER.debug("{}", iri);
-        OntologyManager m = OntManagers.createONT();
+        OntologyManager m = OntManagers.createManager();
         Ontology o = m.loadOntology(iri);
         ReadWriteUtils.print(o);
         o.axioms().map(String::valueOf).forEach(LOGGER::debug);
@@ -161,7 +161,7 @@ public class FromPelletTest {
     public void testSWRLOntology() throws Exception {
         IRI iri = IRI.create(ReadWriteUtils.getResourceURI("ontapi/anyURI-premise.rdf"));
         LOGGER.debug("{}", iri);
-        OWLOntologyManager m = OntManagers.createONT();
+        OWLOntologyManager m = OntManagers.createManager();
         OWLOntology o = m.loadOntology(iri);
         ReadWriteUtils.print(o);
         o.axioms().map(String::valueOf).forEach(LOGGER::debug);

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -305,42 +305,42 @@ public class ImportsOntModelTest extends OntModelTestBase {
 
     @Test
     public void testGraphModelImports() {
-        testGraphModelImports(OntManagers.createONT());
+        testGraphModelImports(OntManagers.createManager());
     }
 
     @Test
     public void testConcurrentGraphModelImports() {
-        testGraphModelImports(OntManagers.createConcurrentONT());
+        testGraphModelImports(OntManagers.createConcurrentManager());
     }
 
     @Test
     public void testGraphModelCycleImports() {
-        testGraphModelCycleImports(OntManagers.createONT());
+        testGraphModelCycleImports(OntManagers.createManager());
     }
 
     @Test
     public void testGraphModelCycleImportsWithConcurrent() {
-        testGraphModelCycleImports(OntManagers.createConcurrentONT());
+        testGraphModelCycleImports(OntManagers.createConcurrentManager());
     }
 
     @Test
     public void testMutualImportsWhileLoad() throws Exception {
-        testMutualImportsWhileLoading(OntManagers.createONT());
+        testMutualImportsWhileLoading(OntManagers.createManager());
     }
 
     @Test
     public void testMutualImportsWhileLoadWithConcurrentManager() throws Exception {
-        testMutualImportsWhileLoading(OntManagers.createConcurrentONT());
+        testMutualImportsWhileLoading(OntManagers.createConcurrentManager());
     }
 
     @Test
     public void testMutualImportsWhileCreate() throws Exception {
-        testMutualImportsWhileCreation(OntManagers.createONT());
+        testMutualImportsWhileCreation(OntManagers.createManager());
     }
 
     @Test
     public void testMutualImportsWhileCreateWithConcurrent() throws Exception {
-        testMutualImportsWhileCreation(OntManagers.createConcurrentONT());
+        testMutualImportsWhileCreation(OntManagers.createConcurrentManager());
     }
 
     @Test
@@ -350,7 +350,7 @@ public class ImportsOntModelTest extends OntModelTestBase {
         IRI ver1 = IRI.create("http://ver/1.0");
         IRI ver2 = IRI.create("http://ver/2.0");
 
-        OntologyManager m = OntManagers.createONT();
+        OntologyManager m = OntManagers.createManager();
         OWLDataFactory df = m.getOWLDataFactory();
         Ontology a = m.createOntology(new OWLOntologyID(aIRI, ver1));
         Ontology b = m.createOntology(bIRI);
@@ -424,7 +424,7 @@ public class ImportsOntModelTest extends OntModelTestBase {
     @Test
     public void testAddImportsWithControl() {
         OntIRI baseIRI = OntIRI.create("http://test.test/add-import/base");
-        OntologyManager manager = OntManagers.createConcurrentONT();
+        OntologyManager manager = OntManagers.createConcurrentManager();
         manager.getOntologyConfigurator().setControlImports(true);
 
         OWLDataFactory factory = manager.getOWLDataFactory();
@@ -493,7 +493,7 @@ public class ImportsOntModelTest extends OntModelTestBase {
         assertDeclarationInModels(base.asGraphModel(), child.asGraphModel(), dtIRI.toResource(), RDFS.Datatype);
 
         LOGGER.debug("Reload models.");
-        OntologyManager newManager = OntManagers.createONT();
+        OntologyManager newManager = OntManagers.createManager();
         Ontology newBase = ReadWriteUtils.convertJenaToONT(newManager, base.asGraphModel());
         Ontology newChild = ReadWriteUtils.convertJenaToONT(newManager, child.asGraphModel());
 
@@ -523,7 +523,7 @@ public class ImportsOntModelTest extends OntModelTestBase {
 
     @Test
     public void testCommonImportsBehaviour() {
-        OntologyManager m = OntManagers.createONT();
+        OntologyManager m = OntManagers.createManager();
         String a_uri = "A";
         String b_uri = "B";
         Ontology a_owl = m.createOntology(IRI.create(a_uri));
@@ -560,7 +560,7 @@ public class ImportsOntModelTest extends OntModelTestBase {
 
     @Test
     public void testConcurrentImportsBehaviour() {
-        OntologyManager m = OntManagers.createConcurrentONT();
+        OntologyManager m = OntManagers.createConcurrentManager();
         Ontology a = m.createOntology(IRI.create("a"));
         Ontology b = m.createOntology(IRI.create("b"));
         a.asGraphModel().addImport(b.asGraphModel());
@@ -582,21 +582,21 @@ public class ImportsOntModelTest extends OntModelTestBase {
 
     @Test
     public void testCommonDifferentImportsStrategies() {
-        oneMoreImportsTest(OntManagers.createONT());
+        oneMoreImportsTest(OntManagers.createManager());
     }
 
     @Test
     public void testConcurrentDifferentImportsStrategies() {
-        oneMoreImportsTest(OntManagers.createConcurrentONT());
+        oneMoreImportsTest(OntManagers.createConcurrentManager());
     }
 
     @Test
     public void testBaseModelImportsCommon() {
-        baseModelImportsTest(OntManagers.createONT());
+        baseModelImportsTest(OntManagers.createManager());
     }
 
     @Test
     public void testBaseModelImportsConcurrent() {
-        baseModelImportsTest(OntManagers.createConcurrentONT());
+        baseModelImportsTest(OntManagers.createConcurrentManager());
     }
 }

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -55,7 +55,7 @@ abstract class OntModelTestBase {
 
     void checkAxioms(Ontology original, AxiomType<?>... excluded) {
         LOGGER.debug("Load ontology to another manager from jena graph.");
-        OWLOntologyManager manager = OntManagers.createOWL();
+        OWLOntologyManager manager = OntManagers.createOWLAPIImplManager();
         OWLOntology result = ReadWriteUtils.convertJenaToOWL(manager, original.asGraphModel());
         LOGGER.debug("All (actual) axioms from reloaded ontology[OWL]:");
         result.axioms().map(String::valueOf).forEach(LOGGER::debug);

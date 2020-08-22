@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -262,11 +262,11 @@ public class ReadWriteUtils {
     }
 
     public static OWLOntology loadOWLOntology(IRI fileIRI) {
-        return loadOWLOntology(OntManagers.createOWL(), fileIRI);
+        return loadOWLOntology(OntManagers.createOWLAPIImplManager(), fileIRI);
     }
 
     public static Ontology loadOntologyModel(IRI fileIRI) {
-        return (Ontology) loadOWLOntology(OntManagers.createONT(), fileIRI);
+        return (Ontology) loadOWLOntology(OntManagers.createManager(), fileIRI);
     }
 
     public static OWLOntology convertJenaToOWL(OWLOntologyManager manager, Model model, OntFormat convertFormat) {
@@ -284,7 +284,7 @@ public class ReadWriteUtils {
     }
 
     public static OWLOntology convertJenaToOWL(OWLOntologyManager manager, Model model) {
-        if (manager == null) manager = OntManagers.createOWL();
+        if (manager == null) manager = OntManagers.createOWLAPIImplManager();
         return convertJenaToOWL(manager, model, OntFormat.TURTLE);
     }
 
@@ -293,7 +293,7 @@ public class ReadWriteUtils {
     }
 
     public static Ontology convertJenaToONT(OntologyManager manager, Model model) {
-        if (manager == null) manager = OntManagers.createONT();
+        if (manager == null) manager = OntManagers.createManager();
         return (Ontology) convertJenaToOWL(manager, model, OntFormat.TURTLE);
     }
 

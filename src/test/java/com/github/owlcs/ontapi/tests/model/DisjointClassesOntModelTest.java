@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -61,7 +61,7 @@ public class DisjointClassesOntModelTest extends OntModelTestBase {
         LOGGER.debug("Load ontology from file {}", fileIRI);
         OWLOntology original;
         try {
-            original = OntManagers.createONT().loadOntology(fileIRI);
+            original = OntManagers.createManager().loadOntology(fileIRI);
         } catch (OWLOntologyCreationException e) {
             throw new AssertionError(e);
         }
@@ -70,7 +70,7 @@ public class DisjointClassesOntModelTest extends OntModelTestBase {
         LOGGER.debug("Assemble new ontology with the same content.");
         OntIRI iri = OntIRI.create("http://test.test/complex");
         OntIRI ver = OntIRI.create("http://test.test/complex/version-iri/1.0");
-        Ontology result = OntManagers.createONT().createOntology(iri.toOwlOntologyID());
+        Ontology result = OntManagers.createManager().createOntology(iri.toOwlOntologyID());
         OntModel jena = result.asGraphModel()
                 .setNsPrefix("", iri.getIRIString() + "#")
                 .getID().setVersionIRI(ver.getIRIString())

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -117,7 +117,7 @@ public class LoadFactoryManagerTest {
     public void testOntologyAlreadyExistsException() throws Exception {
         Path p = ReadWriteUtils.getResourcePath("ontapi", "pizza.ttl");
         OWLOntologyDocumentSource src = new FileDocumentSource(p.toFile(), OntFormat.TURTLE.createOwlFormat());
-        OntologyManager m = OntManagers.createONT();
+        OntologyManager m = OntManagers.createManager();
         m.loadOntologyFromOntologyDocument(src);
         Assert.assertEquals(1, m.ontologies().count());
         try {
@@ -131,7 +131,7 @@ public class LoadFactoryManagerTest {
 
     @Test
     public void testEmptyOntologyDefaultPrefixes() {
-        OWLDocumentFormat f = OntManagers.createONT().createOntology().getFormat();
+        OWLDocumentFormat f = OntManagers.createManager().createOntology().getFormat();
         Assert.assertNotNull(f);
         Map<String, String> map = f.asPrefixOWLDocumentFormat().getPrefixName2PrefixMap();
         Assert.assertEquals(4, map.size());
@@ -145,7 +145,7 @@ public class LoadFactoryManagerTest {
     public void testPrefixesRoundTrips() throws Exception {
         URI uri = ReadWriteUtils.getResourcePath("ontapi", "foaf.rdf").toUri();
         Path p = Paths.get(uri);
-        OWLOntologyManager m = OntManagers.createONT();
+        OWLOntologyManager m = OntManagers.createManager();
         OWLOntologyDocumentSource src = new FileDocumentSource(p.toFile(), OntFormat.RDF_XML.createOwlFormat());
         OWLOntology o = m.loadOntologyFromOntologyDocument(src);
         OWLDocumentFormat f = m.getOntologyFormat(o);
@@ -175,7 +175,7 @@ public class LoadFactoryManagerTest {
         int c = StringUtils.countMatches(txt1, "@prefix");
         Assert.assertEquals(11, c);
         OWLOntologyDocumentSource src1 = new StringInputStreamDocumentSource(txt1, f1);
-        OWLDocumentFormat f2 = OntManagers.createConcurrentONT().loadOntologyFromOntologyDocument(src1).getFormat();
+        OWLDocumentFormat f2 = OntManagers.createConcurrentManager().loadOntologyFromOntologyDocument(src1).getFormat();
         Assert.assertNotNull(f2);
         Assert.assertEquals(c, f2.asPrefixOWLDocumentFormat().getPrefixName2PrefixMap().size());
 
@@ -193,7 +193,7 @@ public class LoadFactoryManagerTest {
         String txt4 = ReadWriteUtils.toString(o, f4);
         LOGGER.debug(txt4);
         OWLOntologyDocumentSource src4 = new StringInputStreamDocumentSource(txt1, f1);
-        OWLDocumentFormat f5 = OntManagers.createConcurrentONT().loadOntologyFromOntologyDocument(src4).getFormat();
+        OWLDocumentFormat f5 = OntManagers.createConcurrentManager().loadOntologyFromOntologyDocument(src4).getFormat();
         Assert.assertNotNull(f5);
         Assert.assertTrue(f2.asPrefixOWLDocumentFormat().getPrefixName2PrefixMap().entrySet()
                 .containsAll(f1.asPrefixOWLDocumentFormat().getPrefixName2PrefixMap().entrySet()));
@@ -206,7 +206,7 @@ public class LoadFactoryManagerTest {
      */
     @Test
     public void testLoadUnmodifiableGraph() throws OWLOntologyCreationException {
-        OntologyManager m = OntManagers.createONT();
+        OntologyManager m = OntManagers.createManager();
         OntModel b = OntModelFactory.createModel().setID("http://b").getModel();
         OntModel a = OntModelFactory.createModel().setID("http://a").getModel().addImport(b);
 
@@ -234,7 +234,7 @@ public class LoadFactoryManagerTest {
         IRI a = IRI.create(ReadWriteUtils.getResourceURI("ontapi/load-test-a.owl"));
         IRI b = IRI.create(ReadWriteUtils.getResourceURI("ontapi/load-test-b.ttl"));
 
-        OWLOntologyManager m = OntManagers.createONT();
+        OWLOntologyManager m = OntManagers.createManager();
         OWLOntology o = m.loadOntologyFromOntologyDocument(a);
         Assert.assertEquals(1, m.ontologies().count());
         Assert.assertNotNull(o.getOWLOntologyManager());
@@ -263,7 +263,7 @@ public class LoadFactoryManagerTest {
         map.put("http://spinrdf.org/spin", ReadWriteUtils.getResourcePath("omn", "spin.omn"));
         map.put("http://spinrdf.org/spl", ReadWriteUtils.getResourcePath("omn", "spl.spin.omn"));
 
-        OntologyManager manager = OntManagers.createONT();
+        OntologyManager manager = OntManagers.createManager();
         for (String uri : map.keySet()) {
             manager.getIRIMappers().add(new SimpleIRIMapper(IRI.create(uri), IRI.create(map.get(uri).toUri())));
         }
@@ -282,14 +282,14 @@ public class LoadFactoryManagerTest {
     @Test(expected = OntologyFactoryImpl.OWLTransformException.class)
     public void tesLoadWrongRDFSyntax() throws OWLOntologyCreationException {
         // wrong []-List
-        OntManagers.createONT().loadOntology(IRI.create(ReadWriteUtils.getResourceURI("ontapi/wrong.rdf")));
+        OntManagers.createManager().loadOntology(IRI.create(ReadWriteUtils.getResourceURI("ontapi/wrong.rdf")));
     }
 
     @Test(expected = UnloadableImportException.class)
     public void testLoadNotJenaHierarchyWithDisabledWeb() throws Exception {
         Path path = ReadWriteUtils.getResourcePath("/owlapi/obo", "annotated_import.obo");
         LOGGER.debug("File {}", path);
-        OntologyManager m = OntManagers.createONT();
+        OntologyManager m = OntManagers.createManager();
         m.getOntologyConfigurator().setSupportedSchemes(Collections.singletonList(OntConfig.DefaultScheme.FILE));
         OWLOntologyID id = m.loadOntology(IRI.create(path.toUri())).getOntologyID();
         LOGGER.error("The ontology {} is loaded.", id);
@@ -299,7 +299,7 @@ public class LoadFactoryManagerTest {
     public void testLoadRecursiveGraphWithTransform() throws OWLOntologyCreationException {
         IRI iri = IRI.create(ReadWriteUtils.getResourceURI("ontapi/recursive-graph.ttl"));
         LOGGER.debug("The file: {}", iri);
-        OntologyManager m = OntManagers.createONT();
+        OntologyManager m = OntManagers.createManager();
         GraphTransformers store = m.getOntologyConfigurator().getGraphTransformers();
         if (!store.get(OWLRecursiveTransform.class.getName()).isPresent()) {
             m.getOntologyConfigurator().setGraphTransformers(store.addFirst(Transform.Factory.create(OWLRecursiveTransform.class)));
@@ -314,7 +314,7 @@ public class LoadFactoryManagerTest {
     @Test
     public void testNoTransformsForNativeOWLAPIFormats() throws Exception {
         OWLOntologyDocumentSource src = ReadWriteUtils.getFileDocumentSource("/owlapi/primer.owlxml.xml", OntFormat.OWL_XML);
-        OntologyManager m = OntManagers.createONT();
+        OntologyManager m = OntManagers.createManager();
         m.getOntologyConfigurator().setGraphTransformers(new GraphTransformers().addLast(g -> {
             Assert.fail("No transforms are expected.");
             return null;
@@ -329,7 +329,7 @@ public class LoadFactoryManagerTest {
      */
     @Test
     public void testLoadCorruptedOntology() throws Exception {
-        OWLOntologyManager m = OntManagers.createONT();
+        OWLOntologyManager m = OntManagers.createManager();
 
         IRI amyIRI = IRI.create("http://www.w3.org/2013/12/FDA-TA/tests/RenalTransplantation/subject-amy");
         IRI sueIRI = IRI.create("http://www.w3.org/2013/12/FDA-TA/tests/RenalTransplantation/subject-sue");
@@ -372,7 +372,7 @@ public class LoadFactoryManagerTest {
                 IRI.create(ReadWriteUtils.getResourcePath("etc", "spin.ttl").toFile()));
 
         LOGGER.debug("1) Test load some web ontology for a case when only file scheme is allowed.");
-        OntologyManager m1 = OntManagers.createONT();
+        OntologyManager m1 = OntManagers.createManager();
         OntLoaderConfiguration conf = m1.getOntologyLoaderConfiguration()
                 .setSupportedSchemes(Stream.of(OntConfig.DefaultScheme.FILE).collect(Collectors.toList()));
         m1.setOntologyLoaderConfiguration(conf);
@@ -404,7 +404,7 @@ public class LoadFactoryManagerTest {
         Assert.assertEquals("Should be single ontology inside", 1, m1.ontologies().count());
 
         LOGGER.debug("4) Try to load new web-ontology with file mapping which depends on some other web-ontology.");
-        OntologyManager m2 = OntManagers.createONT();
+        OntologyManager m2 = OntManagers.createManager();
         m2.setOntologyLoaderConfiguration(conf);
         m2.getIRIMappers().add(mapSpin);
         try {
@@ -424,7 +424,7 @@ public class LoadFactoryManagerTest {
         Assert.assertEquals("Should be only single ontology inside.", 1, m2.ontologies().count());
 
         LOGGER.debug("6) Set ignore some import and load ontology with dependencies.");
-        OntologyManager m3 = OntManagers.createONT();
+        OntologyManager m3 = OntManagers.createManager();
         m3.getIRIMappers().add(mapSp);
         m3.getIRIMappers().add(mapSpin);
         m3.setOntologyLoaderConfiguration(conf
@@ -433,19 +433,19 @@ public class LoadFactoryManagerTest {
         Assert.assertEquals("Should be only single ontology inside.", 1, m3.ontologies().count());
 
         LOGGER.debug("7) Default way to load.");
-        OntologyManager m4 = OntManagers.createONT();
+        OntologyManager m4 = OntManagers.createManager();
         m4.getIRIMappers().add(mapSp);
         m4.getIRIMappers().add(mapSpin);
         m4.loadOntology(spin);
         Assert.assertEquals("Should be two ontologies inside.", 2, m4.ontologies().count());
 
         LOGGER.debug("8) Test loading with MissingOntologyHeaderStrategy = true/false");
-        OWLOntologyManager m5 = OntManagers.createONT();
+        OWLOntologyManager m5 = OntManagers.createManager();
         Assert.assertEquals("Incorrect default settings", MissingOntologyHeaderStrategy.INCLUDE_GRAPH,
                 m5.getOntologyLoaderConfiguration().getMissingOntologyHeaderStrategy());
         loadLoopedOntologyFamily(m5);
         Assert.assertEquals("Wrong ontologies count.", 3, m5.ontologies().count());
-        OWLOntologyManager m6 = OntManagers.createONT();
+        OWLOntologyManager m6 = OntManagers.createManager();
         m6.setOntologyLoaderConfiguration(m6.getOntologyLoaderConfiguration()
                 .setMissingOntologyHeaderStrategy(MissingOntologyHeaderStrategy.IMPORT_GRAPH));
         loadLoopedOntologyFamily(m6);
@@ -456,7 +456,7 @@ public class LoadFactoryManagerTest {
     @Test
     public void testMissedImports() throws OWLOntologyCreationException {
         // create data:
-        OntologyManager m = OntManagers.createONT();
+        OntologyManager m = OntManagers.createManager();
         Ontology a = m.createOntology(IRI.create("urn:a"));
         Ontology b = m.createOntology(IRI.create("urn:b"));
         a.asGraphModel().createOntClass("A");
@@ -467,13 +467,13 @@ public class LoadFactoryManagerTest {
         String sA = ReadWriteUtils.toString(a, OntFormat.TURTLE);
         String sB = ReadWriteUtils.toString(b, OntFormat.TURTLE);
         // direct:
-        OntologyManager m2 = OntManagers.createONT();
+        OntologyManager m2 = OntManagers.createManager();
         m2.loadOntologyFromOntologyDocument(new StringDocumentSource(sA));
         Ontology b2 = m2.loadOntologyFromOntologyDocument(new StringDocumentSource(sB));
         checkForMissedImportsTest(b2);
 
         // reverse through stream:
-        OntologyManager m3 = OntManagers.createONT();
+        OntologyManager m3 = OntManagers.createManager();
         Ontology b3 = m3.loadOntologyFromOntologyDocument(new StringDocumentSource(sB),
                 m3.getOntologyLoaderConfiguration()
                         .setMissingImportHandlingStrategy(MissingImportHandlingStrategy.SILENT));
@@ -481,7 +481,7 @@ public class LoadFactoryManagerTest {
         checkForMissedImportsTest(b3);
 
         // reverse through graph
-        OntologyManager m4 = OntManagers.createONT();
+        OntologyManager m4 = OntManagers.createManager();
         Ontology b4 = m4.addOntology(b.asGraphModel().getBaseGraph(),
                 m4.getOntologyLoaderConfiguration()
                         .setMissingImportHandlingStrategy(MissingImportHandlingStrategy.SILENT));
@@ -529,7 +529,7 @@ public class LoadFactoryManagerTest {
                 })
                 .orElse(null);
 
-        OntologyManager m = OntManagers.createONT();
+        OntologyManager m = OntManagers.createManager();
         //m.getOntologyConfigurator().setSupportedSchemes(Collections.singletonList(() -> "store"));
         //m.setIRIMappers(Collections.singleton(iriMapper));
         m.getDocumentSourceMappers().add(docMapper);
@@ -541,7 +541,7 @@ public class LoadFactoryManagerTest {
     @Test(expected = OntologyFactoryImpl.ConfigMismatchException.class)
     public void testDisableWebAccess() throws OWLOntologyCreationException {
         IRI iri = IRI.create("http://spinrdf.org/sp");
-        OntologyManager m = OntManagers.createONT();
+        OntologyManager m = OntManagers.createManager();
         m.loadOntologyFromOntologyDocument(new IRIDocumentSource(iri),
                 m.getOntologyLoaderConfiguration().disableWebAccess());
     }
@@ -553,7 +553,7 @@ public class LoadFactoryManagerTest {
         b.setID("http://b").setVersionIRI("http://ver1");
         a.addImport(b);
 
-        OntologyManager m = OntManagers.createONT();
+        OntologyManager m = OntManagers.createManager();
         m.getOntologyConfigurator().disableWebAccess();
         m.addOntology(a.getGraph());
         Assert.assertEquals(2, m.ontologies().count());
@@ -561,7 +561,7 @@ public class LoadFactoryManagerTest {
 
     @Test
     public void testAddRemoveOntologyFactory() throws OWLOntologyCreationException {
-        OntologyManager manager = OntManagers.createConcurrentONT();
+        OntologyManager manager = OntManagers.createConcurrentManager();
         Assert.assertEquals(1, manager.getOntologyFactories().size());
         manager.getOntologyFactories().clear();
         Assert.assertTrue(manager.getOntologyFactories().isEmpty());
@@ -617,7 +617,7 @@ public class LoadFactoryManagerTest {
         OWLOntologyDocumentSource source = new IRIDocumentSource(IRI.create(ReadWriteUtils.getResourceURI("/etc/spl.spin.ttl")));
 
         // Load using Jena turtle reader:
-        OntologyManager m1 = OntManagers.createONT();
+        OntologyManager m1 = OntManagers.createManager();
         Ontology o1 = m1.loadOntologyFromOntologyDocument(source, conf.buildLoaderConfiguration());
         Assert.assertEquals(1, m1.ontologies().count());
         Assert.assertEquals(0, o1.asGraphModel().imports().count());
@@ -629,7 +629,7 @@ public class LoadFactoryManagerTest {
         Assert.assertTrue(lists.stream().allMatch(RDFList::isValid));
 
         // Load using OWL-API Turtle Parser
-        OntologyManager m2 = OntManagers.createONT();
+        OntologyManager m2 = OntManagers.createManager();
         Ontology o2 = m2.loadOntologyFromOntologyDocument(source,
                 conf.buildLoaderConfiguration().setUseOWLParsersToLoad(true));
         Assert.assertEquals(1, m2.ontologies().count());
@@ -642,7 +642,7 @@ public class LoadFactoryManagerTest {
 
     @Test
     public void testLoadWithDisabledProcessImports() throws OWLOntologyCreationException {
-        OntologyManager m = OntManagers.createONT();
+        OntologyManager m = OntManagers.createManager();
         String uri_a = "urn:a";
         String uri_b = "urn:b";
         String prefixes = "@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n" +
@@ -707,7 +707,7 @@ public class LoadFactoryManagerTest {
         };
         OntologyFactory factory = new OntManagers.ONTAPIProfile().createOntologyFactory(builder);
 
-        OntologyManager m = OntManagers.createONT();
+        OntologyManager m = OntManagers.createManager();
         m.getOntologyFactories().clear();
         Assert.assertEquals(0, m.getOntologyFactories().size());
         m.getOntologyFactories().add(factory);
@@ -746,7 +746,7 @@ public class LoadFactoryManagerTest {
     @Test
     public void testLoadConfigurationWWithUseOWLParsersOption() throws OWLOntologyCreationException {
         OWLOntologyDocumentSource src = ReadWriteUtils.getFileDocumentSource("/ontapi/test2.owl", OntFormat.OWL_XML);
-        OntologyManager m = OntManagers.createONT();
+        OntologyManager m = OntManagers.createManager();
         OntLoaderConfiguration conf = m.getOntologyLoaderConfiguration().setUseOWLParsersToLoad(true);
         Ontology o = m.loadOntologyFromOntologyDocument(src, conf);
         OWLAdapter adapter = OWLAdapter.get();

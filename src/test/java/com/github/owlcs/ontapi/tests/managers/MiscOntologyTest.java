@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -57,7 +57,7 @@ public class MiscOntologyTest {
     @Test
     public void testImportsOnConcurrentManager() {
         Class<? extends OWLOntology> expected = OntologyModelImpl.Concurrent.class;
-        OntologyManager m = OntManagers.createConcurrentONT();
+        OntologyManager m = OntManagers.createConcurrentManager();
         DataFactory df = m.getOWLDataFactory();
         Ontology a = m.createOntology(IRI.create("A"));
         Ontology b = m.createOntology(IRI.create("B"));
@@ -82,7 +82,7 @@ public class MiscOntologyTest {
     public void testReadRecursiveGraph() throws OWLOntologyCreationException {
         IRI iri = IRI.create(ReadWriteUtils.getResourceURI("ontapi/recursive-graph.ttl"));
         LOGGER.debug("The file: {}", iri);
-        OntologyManager m = OntManagers.createONT();
+        OntologyManager m = OntManagers.createManager();
         m.getOntologyConfigurator().setPerformTransformation(false);
         Ontology o = m.loadOntology(iri);
         ReadWriteUtils.print(o.asGraphModel());
@@ -100,7 +100,7 @@ public class MiscOntologyTest {
 
     @Test
     public void testRecursionOnComplementOfWithIgnoreReadAxiomsErrors() {
-        OntologyManager m = OntManagers.createONT();
+        OntologyManager m = OntManagers.createManager();
         m.getOntologyConfigurator().setIgnoreAxiomsReadErrors(true);
         Graph g = makeGraphWithRecursion();
         OntModel o = m.addOntology(g).asGraphModel();
@@ -122,7 +122,7 @@ public class MiscOntologyTest {
         LOGGER.debug("\n{}", ReadWriteUtils.toString(model, OntFormat.TURTLE));
 
         LOGGER.debug("Add to manager");
-        OntologyManager manager1 = OntManagers.createONT();
+        OntologyManager manager1 = OntManagers.createManager();
         Ontology ontology1 = manager1.addOntology(model.getGraph());
         Assert.assertEquals(1, ontology1.getAxiomCount());
         OWLDocumentFormat format1 = manager1.getOntologyFormat(ontology1);
@@ -140,7 +140,7 @@ public class MiscOntologyTest {
 
         LOGGER.debug("Reload");
         OWLOntologyDocumentSource source = new FileDocumentSource(file.toFile(), OntFormat.RDF_XML.createOwlFormat());
-        OntologyManager manager2 = OntManagers.createONT();
+        OntologyManager manager2 = OntManagers.createManager();
         Ontology ontology2 = manager2.loadOntologyFromOntologyDocument(source);
 
         Assert.assertEquals(1, ontology2.getAxiomCount());

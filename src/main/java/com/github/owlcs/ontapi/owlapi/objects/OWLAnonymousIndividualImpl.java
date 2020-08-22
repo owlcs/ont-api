@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -13,12 +13,12 @@
  */
 package com.github.owlcs.ontapi.owlapi.objects;
 
+import com.github.owlcs.ontapi.AsNode;
+import com.github.owlcs.ontapi.owlapi.OWLObjectImpl;
 import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.semanticweb.owlapi.model.*;
-import com.github.owlcs.ontapi.AsNode;
-import com.github.owlcs.ontapi.owlapi.OWLObjectImpl;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
@@ -102,7 +102,7 @@ public class OWLAnonymousIndividualImpl extends OWLObjectImpl implements OWLAnon
     }
 
     @Override
-    public boolean containsEntityInSignature(OWLEntity entity) {
+    public boolean containsEntityInSignature(@Nullable OWLEntity entity) {
         return false;
     }
 

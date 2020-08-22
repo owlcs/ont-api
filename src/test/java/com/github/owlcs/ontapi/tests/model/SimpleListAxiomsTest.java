@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,6 +14,9 @@
 
 package com.github.owlcs.ontapi.tests.model;
 
+import com.github.owlcs.ontapi.OntFormat;
+import com.github.owlcs.ontapi.OntManagers;
+import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -22,9 +25,6 @@ import org.junit.runners.Parameterized;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.Imports;
-import com.github.owlcs.ontapi.OntFormat;
-import com.github.owlcs.ontapi.OntManagers;
-import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 
 import java.util.stream.Stream;
 
@@ -49,8 +49,8 @@ public class SimpleListAxiomsTest {
 
     @BeforeClass
     public static void prepareModel() throws Exception {
-        common = createTestOntology(OntManagers.createONT());
-        concurrent = createTestOntology(OntManagers.createConcurrentONT());
+        common = createTestOntology(OntManagers.createManager());
+        concurrent = createTestOntology(OntManagers.createConcurrentManager());
     }
 
     private static OWLOntology createTestOntology(OWLOntologyManager m) throws Exception {

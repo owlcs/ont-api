@@ -736,9 +736,8 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
         return (Stream<A>) listOWLAxioms(key).filter(x -> filter.contains(x, object));
     }
 
-    @SuppressWarnings("unchecked")
     public <A extends OWLAxiom> Stream<A> listOWLAxioms(AxiomType<A> type) {
-        return (Stream<A>) listOWLAxioms(OWLTopObjectType.get(type));
+        return listOWLAxioms(OWLTopObjectType.get(type));
     }
 
     public long getOWLAxiomCount() {
