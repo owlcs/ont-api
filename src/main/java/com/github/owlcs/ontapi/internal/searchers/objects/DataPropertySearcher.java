@@ -54,7 +54,7 @@ public class DataPropertySearcher extends PropertySearcher<OWLDataProperty> {
     }
 
     @Override
-    protected Set<Node> getBuiltins(OntModel m) {
+    protected Set<Node> getBuiltinsSpec(OntModel m) {
         return getBuiltinsVocabulary(m).getDatatypeProperties();
     }
 }

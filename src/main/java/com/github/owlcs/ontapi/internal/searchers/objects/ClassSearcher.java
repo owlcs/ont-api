@@ -60,7 +60,7 @@ public class ClassSearcher extends WithBuiltins<OWLClass> {
     @Override
     protected boolean containsEntity(String uri, OntModel m, AxiomsSettings conf) {
         Resource clazz = toResource(m, uri);
-        if (!isBuiltin(m, clazz)) {
+        if (!isInBuiltinSpec(m, clazz)) {
             return containsDeclaration(clazz, m, conf);
         }
         if (OWL.Thing.equals(clazz)) {
@@ -73,7 +73,7 @@ public class ClassSearcher extends WithBuiltins<OWLClass> {
 
     @Override
     protected ExtendedIterator<String> listEntities(OntModel m, AxiomsSettings conf) {
-        Set<String> builtins = getBuiltins(m, conf);
+        Set<String> builtins = getModelBuiltins(m, conf);
         if (!builtins.contains(OWL.Thing.getURI())) {
             if (containsAxiom(Iter.flatMap(listImplicitStatements(m), s -> listRootStatements(m, s)), conf)) {
                 builtins.add(OWL.Thing.getURI());
@@ -92,7 +92,7 @@ public class ClassSearcher extends WithBuiltins<OWLClass> {
     }
 
     @Override
-    protected Set<Node> getBuiltins(OntModel m) {
+    protected Set<Node> getBuiltinsSpec(OntModel m) {
         return getBuiltinsVocabulary(m).getClasses();
     }
 }

@@ -38,18 +38,24 @@ abstract class WithBuiltins<E extends OWLEntity> extends EntitySearcher<E> {
         return asPersonalityModel(m).getOntPersonality().getBuiltins();
     }
 
-    protected abstract Set<Node> getBuiltins(OntModel m);
+    /**
+     * Answers a {@code Set} of all builtins that allowed by the specification.
+     *
+     * @param m {@link OntModel}
+     * @return a {@code Set} of uris ({@link Node}s)
+     */
+    protected abstract Set<Node> getBuiltinsSpec(OntModel m);
 
     /**
-     * Answers a {@code Set} of all builtins that present somewhere in the ontology spec.
+     * Answers a {@code Set} of all builtins that present somewhere in the ontology.
      *
      * @param m    {@link OntModel}
      * @param conf {@link AxiomsSettings}
      * @return a {@code Set} of uris ({@code String}s)
      */
-    protected Set<String> getBuiltins(OntModel m, AxiomsSettings conf) {
+    protected Set<String> getModelBuiltins(OntModel m, AxiomsSettings conf) {
         Set<String> res = new HashSet<>();
-        getBuiltins(m).forEach(x -> {
+        getBuiltinsSpec(m).forEach(x -> {
             if (containsInOntology(x.getURI(), m, conf)) {
                 res.add(x.getURI());
             }
@@ -64,8 +70,8 @@ abstract class WithBuiltins<E extends OWLEntity> extends EntitySearcher<E> {
      * @param node {@link FrontsNode}
      * @return boolean
      */
-    protected boolean isBuiltin(OntModel m, FrontsNode node) {
-        return getBuiltins(m).contains(node.asNode());
+    protected boolean isInBuiltinSpec(OntModel m, FrontsNode node) {
+        return getBuiltinsSpec(m).contains(node.asNode());
     }
 
     final ExtendedIterator<String> listEntities(OntModel m, Set<String> builtins, AxiomsSettings conf) {

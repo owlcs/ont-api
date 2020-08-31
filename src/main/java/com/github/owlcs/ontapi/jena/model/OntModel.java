@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -25,6 +25,7 @@ import org.apache.jena.reasoner.Reasoner;
 import org.apache.jena.vocabulary.RDFS;
 
 import java.util.Collection;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 /**
@@ -77,18 +78,20 @@ public interface OntModel extends Model,
     Graph getBaseGraph();
 
     /**
-     * Gets an Ontology ID object.
-     * Since OWL2 graph can only contain the one {@code @uri rdf:type owl:Ontology} triple inside,
-     * this method creates such statement if it absent;
-     * in case there are more than one {@code Resource} with the type equaled to {@code owl:Ontology},
-     * it chooses the most bulky one (i.e. those that contains the most number of associated statements)
-     * and all the others leave intact.
+     * Finds an Ontology ID object.
+     * <p>
+     * Since OWL2 graph can only contain single {@code @uri rdf:type owl:Ontology} triple inside itself,
+     * in case there are more than one such {@code Resource}s with the type {@link OWL#Ontology owl:Ontology},
+     * the method chooses the most bulky one (i.e. those that contains the most number of associated statements)
+     * and all the other triples leave intact.
+     * No changes in the {@code Graph} is made.
+     * The method works only with the {@link #getBaseGraph() base graph}.
      *
-     * @return {@link OntID} an existing or fresh {@link Resource},
-     * that is subject in the {@code _:x rdf:type owl:Ontology} statement
+     * @return an {@code Optional} that contains the {@link OntID}
+     * @see #setID(String)
      * @see com.github.owlcs.ontapi.jena.utils.Graphs#ontologyNode
      */
-    OntID getID();
+    Optional<OntID> id();
 
     /**
      * Creates a new {@code @uri rdf:type owl:Ontology} statement for the specified {@code uri}
@@ -99,6 +102,7 @@ public interface OntModel extends Model,
      * @param uri String, can be {@code null} to make this ontology to be anonymous
      * @return the new {@link OntID} instance
      * @throws OntJenaException if ontology can't be added (e.g. due to collision with imports)
+     * @see #getID()
      */
     OntID setID(String uri);
 
@@ -366,6 +370,22 @@ public interface OntModel extends Model,
      * Default methods for simplification:
      * ===================================
      */
+
+    /**
+     * Gets the Ontology ID object.
+     * <p>
+     * Since OWL2 graph can only contain the one {@code @uri rdf:type owl:Ontology} triple inside,
+     * this method creates such statement if it absent;
+     * in case there are more than one {@code Resource} with the type equaled to {@link OWL#Ontology owl:Ontology},
+     * it chooses the most bulky one (i.e. those that contains the most number of associated statements)
+     * and all the others leave intact.
+     *
+     * @return {@link OntID} an existing or fresh {@link Resource},
+     * that is subject in the {@code _:x rdf:type owl:Ontology} statement
+     */
+    default OntID getID() {
+        return id().orElseGet(() -> createResource(OWL.Ontology).as(OntID.class));
+    }
 
     default OntClass.Named createOntClass(String uri) {
         return createOntEntity(OntClass.Named.class, uri);

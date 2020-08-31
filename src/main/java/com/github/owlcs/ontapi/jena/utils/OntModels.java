@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -208,6 +208,15 @@ public class OntModels {
     }
 
     /**
+     * Lists all class-types for the given individual.
+     *
+     * @return an {@link ExtendedIterator} over all direct {@link OntClass class}-types
+     */
+    public static ExtendedIterator<OntClass> listClasses(OntIndividual i) {
+        return i instanceof OntIndividualImpl ? ((OntIndividualImpl) i).listClasses() : Iter.create(i.classes().iterator());
+    }
+
+    /**
      * Lists all model statements, which belong to the base graph, using the given SPO.
      * <p>
      * It is placed here because there is no certainty that methods for working with {@code ExtendedIterator}
@@ -221,7 +230,7 @@ public class OntModels {
      * @param s     {@link Resource}, can be {@code null} for any
      * @param p     {@link Property}, can be {@code null} for any
      * @param o     {@link RDFNode}, can be {@code null} for any
-     * @return {@link ExtendedIterator} of {@link OntStatement}s local to the base model graph
+     * @return an {@link ExtendedIterator} of {@link OntStatement}s local to the base model graph
      * @see OntModel#localStatements(Resource, Property, RDFNode)
      */
     public static ExtendedIterator<OntStatement> listLocalStatements(OntModel model,

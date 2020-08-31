@@ -43,12 +43,12 @@ abstract class PropertySearcher<E extends OWLProperty> extends WithBuiltins<E> {
 
     @Override
     protected ExtendedIterator<String> listEntities(OntModel m, AxiomsSettings conf) {
-        return listEntities(m, getBuiltins(m, conf), conf);
+        return listEntities(m, getModelBuiltins(m, conf), conf);
     }
 
     @Override
     protected boolean containsEntity(String uri, OntModel m, AxiomsSettings conf) {
         Property p = toResource(m, uri);
-        return isBuiltin(m, p) ? containsInOntology(p, m, conf) : containsDeclaration(p, m, conf);
+        return isInBuiltinSpec(m, p) ? containsInOntology(p, m, conf) : containsDeclaration(p, m, conf);
     }
 }

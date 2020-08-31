@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -22,6 +22,7 @@ import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntObject;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
+import com.github.owlcs.ontapi.jena.utils.Models;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.*;
 
@@ -39,7 +40,7 @@ public class ByIRI extends ByPrimitive<IRI> {
                                                                      AxiomsSettings config) {
         ExtendedIterator<ONTObject<OWLAxiom>> res = super.listONTAxioms(iri, model, factory, config);
         if (isSystem(model, iri.getIRIString())) {
-            return res.filterKeep(x -> filter(factory.getOWLDataFactory(), x.getOWLObject(), iri));
+            return res.filterKeep(x -> containsURI(factory.getOWLDataFactory(), x.getOWLObject(), iri));
         }
         return res;
     }
@@ -52,20 +53,7 @@ public class ByIRI extends ByPrimitive<IRI> {
     }
 
     protected ExtendedIterator<OntStatement> listCandidates(OntModel model, String iri) {
-        return Iter.flatMap(listStatements(model).filterKeep(x -> filter(x, iri)), s -> listRootStatements(model, s));
-    }
-
-    /**
-     * Answers {@code true} if the given {@code uri} is a part of the given {@code statement}.
-     *
-     * @param statement {@link OntStatement}
-     * @param uri       {@code String}
-     * @return boolean
-     */
-    protected boolean filter(OntStatement statement, String uri) {
-        if (uri.equals(statement.getSubject().getURI())) return true;
-        if (uri.equals(statement.getPredicate().getURI())) return true;
-        return hasURI(statement.getObject(), uri);
+        return Iter.flatMap(listStatements(model).filterKeep(x -> Models.containsURI(x, iri)), s -> listRootStatements(model, s));
     }
 
     /**
@@ -76,7 +64,7 @@ public class ByIRI extends ByPrimitive<IRI> {
      * @param iri     {@link IRI}
      * @return boolean
      */
-    protected boolean filter(OWLDataFactory factory, OWLAxiom axiom, IRI iri) {
+    protected boolean containsURI(OWLDataFactory factory, OWLAxiom axiom, IRI iri) {
         if (axiom.isAnnotated() || AxiomType.ANNOTATION_ASSERTION.equals(axiom.getAxiomType())) {
             return OwlObjects.iris(axiom).anyMatch(iri::equals);
         }

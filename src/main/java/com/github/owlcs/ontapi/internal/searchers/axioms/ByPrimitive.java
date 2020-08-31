@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -25,7 +25,6 @@ import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
-import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLAxiom;
@@ -68,20 +67,6 @@ public abstract class ByPrimitive<P extends OWLPrimitive> extends BaseByObject<O
     public static OntAnnotation getRoot(OntAnnotation annotation) {
         OntAnnotation parent = annotation.parent().orElse(null);
         return parent == null ? annotation : getRoot(parent);
-    }
-
-    /**
-     * Answers {@code true} if the given {@code node} contains the specified {@code uri}.
-     *
-     * @param node {@link RDFNode}
-     * @param uri  {@code String}
-     * @return boolean
-     */
-    protected static boolean hasURI(RDFNode node, String uri) {
-        if (node.isURIResource()) {
-            return uri.equals(node.asResource().getURI());
-        }
-        return node.isLiteral() && uri.equals(node.asLiteral().getDatatypeURI());
     }
 
     /**

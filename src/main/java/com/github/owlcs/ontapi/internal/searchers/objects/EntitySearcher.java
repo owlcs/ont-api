@@ -126,9 +126,9 @@ abstract class EntitySearcher<E extends OWLEntity> extends WithRootStatement imp
      * Answers {@code true} if the given uri-resource (OWLEntity) contains somewhere
      * in the given OWL-ontology deeps (in some axiom or in the header).
      *
-     * @param uri  {@link Resource}
-     * @param m    {@link OntModel}
-     * @param conf {@link AxiomsSettings}
+     * @param uri  {@link Resource}, entity of {@link #getEntityType() this type}, not {@code null}
+     * @param m    {@link OntModel}, not {@code null}
+     * @param conf {@link AxiomsSettings}, not {@code null}
      * @return boolean
      */
     protected boolean containsInOntology(Resource uri, OntModel m, AxiomsSettings conf) {

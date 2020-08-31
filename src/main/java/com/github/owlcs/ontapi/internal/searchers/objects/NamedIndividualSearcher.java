@@ -17,7 +17,6 @@ package com.github.owlcs.ontapi.internal.searchers.objects;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.*;
-import com.github.owlcs.ontapi.jena.impl.OntIndividualImpl;
 import com.github.owlcs.ontapi.jena.impl.PersonalityModel;
 import com.github.owlcs.ontapi.jena.model.OntClass;
 import com.github.owlcs.ontapi.jena.model.OntIndividual;
@@ -42,10 +41,6 @@ import java.util.Set;
  */
 public class NamedIndividualSearcher extends EntitySearcher<OWLNamedIndividual> {
     private static final Set<AxiomTranslator<OWLAxiom>> TRANSLATORS = selectTranslators(OWLComponentType.NAMED_INDIVIDUAL);
-
-    private static ExtendedIterator<OntClass> listClasses(OntIndividual i) {
-        return i instanceof OntIndividualImpl ? ((OntIndividualImpl) i).listClasses() : Iter.create(i.classes().iterator());
-    }
 
     @Override
     protected ExtendedIterator<? extends AxiomTranslator<OWLAxiom>> listTranslators() {
@@ -127,7 +122,7 @@ public class NamedIndividualSearcher extends EntitySearcher<OWLNamedIndividual> 
             if (s == null) return false;
             OntIndividual i = s.getSubject().getAs(OntIndividual.class);
             if (i == null) return false;
-            Iter.concat(Iter.of(OWL.NamedIndividual), listClasses(i))
+            Iter.concat(Iter.of(OWL.NamedIndividual), OntModels.listClasses(i))
                     .forEachRemaining(x -> {
                         if (s.getObject().equals(x)) {
                             return;

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -327,5 +327,32 @@ public class Models {
      */
     public static String toString(Statement inModel) {
         return toString(inModel, inModel.getModel());
+    }
+
+    /**
+     * Answers {@code true} if the given {@code node} contains the specified {@code uri}.
+     *
+     * @param node {@link RDFNode}, not {@code null}
+     * @param uri  {@code String}, not {@code null}
+     * @return boolean
+     */
+    public static boolean containsURI(RDFNode node, String uri) {
+        if (node.isURIResource()) {
+            return uri.equals(node.asResource().getURI());
+        }
+        return node.isLiteral() && uri.equals(node.asLiteral().getDatatypeURI());
+    }
+
+    /**
+     * Answers {@code true} if the given {@code uri} is a part of the given {@code statement}.
+     *
+     * @param statement {@link Statement}, not {@code null}
+     * @param uri       {@code String}, not {@code null}
+     * @return boolean
+     */
+    public static boolean containsURI(Statement statement, String uri) {
+        if (uri.equals(statement.getSubject().getURI())) return true;
+        if (uri.equals(statement.getPredicate().getURI())) return true;
+        return containsURI(statement.getObject(), uri);
     }
 }
