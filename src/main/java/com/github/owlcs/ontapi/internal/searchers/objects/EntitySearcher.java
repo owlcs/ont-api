@@ -19,6 +19,7 @@ import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.internal.searchers.WithRootStatement;
 import com.github.owlcs.ontapi.jena.impl.PersonalityModel;
 import com.github.owlcs.ontapi.jena.model.OntModel;
+import com.github.owlcs.ontapi.jena.model.OntObject;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
@@ -43,6 +44,16 @@ abstract class EntitySearcher<E extends OWLEntity> extends WithRootStatement imp
 
     static PersonalityModel asPersonalityModel(OntModel m) {
         return PersonalityModel.asPersonalityModel(m);
+    }
+
+    /**
+     * Recursively lists all annotations for the ontology header in the form of a flat stream.
+     *
+     * @param m {@link OntModel}, not {@code null}
+     * @return an {@code ExtendedIterator} of all header annotations including sub-annotations
+     */
+    public static ExtendedIterator<OntStatement> listHeaderAnnotations(OntModel m) {
+        return m.id().map(OntObject::getMainStatement).map(OntModels::listAllAnnotations).orElse(Iter.of());
     }
 
     @Override

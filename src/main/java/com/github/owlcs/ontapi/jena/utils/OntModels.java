@@ -210,6 +210,7 @@ public class OntModels {
     /**
      * Lists all class-types for the given individual.
      *
+     * @param i an {@link OntIndividual}, not {@code null}
      * @return an {@link ExtendedIterator} over all direct {@link OntClass class}-types
      */
     public static ExtendedIterator<OntClass> listClasses(OntIndividual i) {
@@ -321,9 +322,45 @@ public class OntModels {
      * in the form of a flat stream.
      *
      * @param statement {@link OntStatement}, not {@code null}
-     * @return {@code Stream} of {@link OntStatement}s, each of them is annotation property assertion
+     * @return a {@code Stream} of {@link OntStatement}s, each of them is annotation property assertion
+     * @see #listAllAnnotations(OntStatement)
      */
     public static Stream<OntStatement> annotations(OntStatement statement) {
-        return Stream.concat(statement.annotations(), statement.annotations().flatMap(OntModels::annotations));
+        if (statement instanceof OntStatementImpl) {
+            return Iter.asStream(listAllAnnotations(statement));
+        }
+        return statement.annotations().flatMap(s -> Stream.concat(Stream.of(s), annotations(s)));
+    }
+
+    /**
+     * For the specified {@link OntStatement Statement}
+     * lists all its annotation assertions recursively including their sub-annotations.
+     * <p>
+     * For example, for the following snippet
+     * <pre>{@code
+     * [ a                      owl:Annotation ;
+     *   rdfs:label             "label2" ;
+     *   owl:annotatedProperty  rdfs:label ;
+     *   owl:annotatedSource    [ a                      owl:Axiom ;
+     *                            rdfs:label             "label1" ;
+     *                            owl:annotatedProperty  rdfs:comment ;
+     *                            owl:annotatedSource    [ a             owl:Ontology ;
+     *                                                     rdfs:comment  "comment"
+     *                                                   ] ;
+     *                            owl:annotatedTarget    "comment"
+     *                          ] ;
+     *   owl:annotatedTarget    "label1"
+     * ] .
+     * }</pre>
+     * there would be three annotations:
+     * {@code _:b0 rdfs:comment "comment"},
+     * {@code _:b1 rdfs:label "label1"},
+     * {@code _:b2 rdfs:label "label2"}.
+     *
+     * @param statement {@link OntStatement}, not {@code null}
+     * @return an {@link ExtendedIterator} of {@link OntStatement}s
+     */
+    public static ExtendedIterator<OntStatement> listAllAnnotations(OntStatement statement) {
+        return Iter.flatMap(listAnnotations(statement), s -> Iter.concat(Iter.of(s), listAllAnnotations(s)));
     }
 }

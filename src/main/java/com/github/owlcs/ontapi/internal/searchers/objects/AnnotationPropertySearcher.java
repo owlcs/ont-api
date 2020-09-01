@@ -21,10 +21,7 @@ import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.ONTObjectFactory;
 import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntObject;
-import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
-import com.github.owlcs.ontapi.jena.utils.OntModels;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Resource;
@@ -34,7 +31,6 @@ import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAxiom;
 
 import java.util.Set;
-import java.util.stream.Stream;
 
 /**
  * Created by @ssz on 26.07.2020.
@@ -44,16 +40,6 @@ public class AnnotationPropertySearcher extends PropertySearcher<OWLAnnotationPr
      * All translators, since any axiom can be annotated
      */
     private static final Set<AxiomTranslator<OWLAxiom>> TRANSLATORS = selectTranslators(null);
-
-    /**
-     * Recursively lists all annotations for the ontology header in the form of a flat stream.
-     *
-     * @param m {@link OntModel}, not {@code null}
-     * @return a {@code Stream} of all header annotations including sub-annotations
-     */
-    public static Stream<OntStatement> headerAnnotations(OntModel m) {
-        return m.id().map(OntObject::getMainStatement).map(OntModels::annotations).orElse(Stream.empty());
-    }
 
     @Override
     protected ExtendedIterator<? extends AxiomTranslator<OWLAxiom>> listTranslators() {
@@ -82,7 +68,7 @@ public class AnnotationPropertySearcher extends PropertySearcher<OWLAnnotationPr
 
     @Override
     protected boolean containsInOntology(Resource uri, OntModel m, AxiomsSettings conf) {
-        if (headerAnnotations(m).map(Statement::getPredicate).anyMatch(uri::equals)) { // in header
+        if (Iter.anyMatch(listHeaderAnnotations(m).mapWith(Statement::getPredicate), uri::equals)) { // in header
             return true;
         }
         // in axioms:
