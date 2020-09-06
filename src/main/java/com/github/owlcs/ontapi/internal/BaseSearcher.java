@@ -154,23 +154,23 @@ public abstract class BaseSearcher {
         return Collections.emptySet();
     }
 
-    protected final ExtendedIterator<OntStatement> listBySubject(OntModel model, Resource subject) {
+    public final ExtendedIterator<OntStatement> listBySubject(OntModel model, Resource subject) {
         return listStatements(model, subject, null, null);
     }
 
-    protected final ExtendedIterator<OntStatement> listBySubjectAndPredicate(OntModel m, Resource subject, Property uri) {
+    public final ExtendedIterator<OntStatement> listBySubjectAndPredicate(OntModel m, Resource subject, Property uri) {
         return listStatements(m, subject, uri, null);
     }
 
-    protected final ExtendedIterator<OntStatement> listByPredicate(OntModel m, Property uri) {
+    public final ExtendedIterator<OntStatement> listByPredicate(OntModel m, Property uri) {
         return listStatements(m, null, uri, null);
     }
 
-    protected final ExtendedIterator<OntStatement> listByPredicateAndObject(OntModel model, Property uri, RDFNode object) {
+    public final ExtendedIterator<OntStatement> listByPredicateAndObject(OntModel model, Property uri, RDFNode object) {
         return listStatements(model, null, uri, object);
     }
 
-    protected final ExtendedIterator<OntStatement> listByObject(OntModel model, RDFNode object) {
+    public final ExtendedIterator<OntStatement> listByObject(OntModel model, RDFNode object) {
         return listStatements(model, null, null, object);
     }
 
@@ -180,11 +180,11 @@ public abstract class BaseSearcher {
      * @param model {@link OntModel}, not {@code null}
      * @return {@link ExtendedIterator} of {@link OntStatement}s
      */
-    protected final ExtendedIterator<OntStatement> listStatements(OntModel model) {
+    public final ExtendedIterator<OntStatement> listStatements(OntModel model) {
         return listStatements(model, null, null, null);
     }
 
-    protected final ExtendedIterator<OntStatement> listStatements(OntModel model, Resource s, Property p, RDFNode o) {
+    public final ExtendedIterator<OntStatement> listStatements(OntModel model, Resource s, Property p, RDFNode o) {
         return OntModels.listLocalStatements(model, s, p, o);
     }
 }

@@ -17,13 +17,12 @@ package com.github.owlcs.ontapi.internal.searchers.objects;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.*;
-import com.github.owlcs.ontapi.internal.searchers.axioms.ByDatatype;
+import com.github.owlcs.ontapi.internal.searchers.ForDatatype;
 import com.github.owlcs.ontapi.jena.model.OntClass;
 import com.github.owlcs.ontapi.jena.model.OntDataRange;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.RDFNode;
@@ -43,7 +42,7 @@ import java.util.stream.Collectors;
  * An {@link ObjectsSearcher} that retrieves {@link OWLDatatype OWL-API Datatype}s.
  * Created by @ssz on 31.08.2020.
  */
-public class DatatypeSearcher extends WithBuiltins<OWLDatatype> {
+public class DatatypeSearcher extends WithCardinality<OWLDatatype> implements ForDatatype {
     /**
      * All translators, since any axiom can be annotated and therefore contains an literal with datatype inside
      */
@@ -101,34 +100,21 @@ public class DatatypeSearcher extends WithBuiltins<OWLDatatype> {
         return Iter.create(res);
     }
 
-    protected ExtendedIterator<OntStatement> listImplicitStatements(OntModel m) {
-        return Iter.flatMap(Iter.of(OWL.cardinality, OWL.maxCardinality, OWL.minCardinality), p -> listByPredicate(m, p))
-                .filterKeep(this::isCardinalityRestriction);
-    }
-
-    protected boolean isCardinalityRestriction(OntStatement s) {
-        return ByDatatype.DATA_CARDINALITY_TYPES.stream().anyMatch(t -> s.getSubject().canAs(t));
-    }
-
-    private void addToSet(Set<String> res, OntModel m, AxiomsSettings conf) {
-        Set<OntStatement> header = listHeaderAnnotations(m).toSet();
+    private void addToSet(Set<String> res, OntModel model, AxiomsSettings conf) {
+        Set<OntStatement> header = listHeaderAnnotations(model).toSet();
         // direct:
-        listStatements(m).forEachRemaining(s -> addToSet(res, s, header, m, conf));
+        listStatements(model).forEachRemaining(s -> addToSet(res, s, header, model, conf));
         // shared from imports:
-        if (!m.independent()) {
-            Set<String> fromHeader = header.stream().map(s -> getDatatype(s.getObject(), m)).filter(Objects::nonNull)
+        if (!model.independent()) {
+            Set<String> fromHeader = header.stream().map(s -> getDatatype(s.getObject(), model)).filter(Objects::nonNull)
                     .map(Resource::getURI).collect(Collectors.toSet());
-            listSharedFromImports(m)
+            listSharedFromImports(model)
                     .filterDrop(res::contains)
-                    .filterKeep(s -> fromHeader.contains(s) || containsInAxiom(toResource(m, s), m, conf))
+                    .filterKeep(s -> fromHeader.contains(s) || containsInAxiom(toResource(model, s), model, conf))
                     .forEachRemaining(res::add);
         }
-        // special case of RDFS:Literal ?
-        if (!res.contains(RDFS.Literal.getURI())) {
-            if (containsAxiom(Iter.flatMap(listImplicitStatements(m), s -> listRootStatements(m, s)), conf)) {
-                res.add(RDFS.Literal.getURI());
-            }
-        }
+        // special case of RDFS:Literal
+        addTopEntity(res, model, conf);
     }
 
     private void addToSet(Set<String> res,
@@ -144,27 +130,13 @@ public class DatatypeSearcher extends WithBuiltins<OWLDatatype> {
         if (res.contains(uri)) { // already processed
             return;
         }
-        Class<? extends OntClass.RestrictionCE<?>> type = ByDatatype.getSpecialDataRestrictionType(uri);
+        Class<? extends OntClass.RestrictionCE<?>> type = ForDatatype.getSpecialDataRestrictionType(uri);
         if (type != null && statement.getSubject().canAs(type)) {
             return;
         }
         if (isInOntology(statement, header, model, conf)) {
             res.add(uri);
         }
-    }
-
-    @Override
-    protected boolean containsEntity(String uri, OntModel model, AxiomsSettings conf) {
-        Resource dt = toResource(model, uri);
-        if (!isInBuiltinSpec(model, dt)) {
-            return containsDeclaration(dt, model, conf);
-        }
-        if (RDFS.Literal.equals(dt)) { // implicit case
-            if (containsAxiom(Iter.flatMap(listImplicitStatements(model), s -> listRootStatements(model, s)), conf)) {
-                return true;
-            }
-        }
-        return containsInOntology(dt, model, conf);
     }
 
     @Override
@@ -175,7 +147,7 @@ public class DatatypeSearcher extends WithBuiltins<OWLDatatype> {
     @Override
     protected boolean containsInOntology(String uri, OntModel model, AxiomsSettings conf) {
         Set<OntStatement> header = listHeaderAnnotations(model).toSet();
-        Class<? extends OntClass.RestrictionCE<?>> type = ByDatatype.getSpecialDataRestrictionType(uri);
+        Class<? extends OntClass.RestrictionCE<?>> type = ForDatatype.getSpecialDataRestrictionType(uri);
         return Iter.anyMatch(listStatements(model), s -> {
             if (s.getObject().isURIResource() && uri.equals(s.getResource().getURI())) {
                 return isInAxiom(s, model, conf);

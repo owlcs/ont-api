@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -16,10 +16,9 @@ package com.github.owlcs.ontapi.internal.searchers.axioms;
 
 import com.github.owlcs.ontapi.internal.AxiomTranslator;
 import com.github.owlcs.ontapi.internal.OWLComponentType;
+import com.github.owlcs.ontapi.internal.searchers.ForClass;
 import com.github.owlcs.ontapi.jena.model.OntClass;
-import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -31,7 +30,7 @@ import java.util.stream.Stream;
  * A searcher for {@link OWLClass}.
  * Created by @ssz on 19.03.2020.
  */
-public class ByClass extends WithCardinality<OWLClass> {
+public class ByClass extends WithCardinality<OWLClass> implements ForClass {
 
     public static final Set<Class<? extends OntClass.CardinalityRestrictionCE<?, ?>>> OBJECT_CARDINALITY_TYPES =
             Stream.of(OntClass.ObjectMaxCardinality.class, OntClass.ObjectMinCardinality.class, OntClass.ObjectCardinality.class)
@@ -40,17 +39,8 @@ public class ByClass extends WithCardinality<OWLClass> {
     private static final Set<AxiomTranslator<OWLAxiom>> TRANSLATORS = selectTranslators(OWLComponentType.CLASS);
 
     @Override
-    protected String getTopEntityURI() {
-        return OWL.Thing.getURI();
-    }
-
-    @Override
-    protected boolean isCardinalityRestriction(OntStatement s) {
-        return OBJECT_CARDINALITY_TYPES.stream().anyMatch(t -> s.getSubject().canAs(t));
-    }
-
-    @Override
     protected ExtendedIterator<AxiomTranslator<OWLAxiom>> listTranslators() {
         return Iter.create(TRANSLATORS);
     }
+
 }

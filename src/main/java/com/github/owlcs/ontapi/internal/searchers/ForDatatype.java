@@ -12,41 +12,55 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.github.owlcs.ontapi.internal.searchers.axioms;
+package com.github.owlcs.ontapi.internal.searchers;
 
-import com.github.owlcs.ontapi.internal.searchers.ForDatatype;
 import com.github.owlcs.ontapi.jena.model.OntClass;
-import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntObject;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
-import com.github.owlcs.ontapi.jena.utils.Models;
-import org.apache.jena.util.iterator.ExtendedIterator;
-import org.semanticweb.owlapi.model.OWLDatatype;
+import com.github.owlcs.ontapi.jena.vocabulary.XSD;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.vocabulary.RDFS;
+
+import java.util.Set;
+import java.util.stream.Stream;
 
 /**
- * A searcher for {@link OWLDatatype}.
- * Created by @ssz on 06.04.2020.
+ * Created by @ssz on 06.09.2020.
  */
-public class ByDatatype extends WithCardinality<OWLDatatype> implements ForDatatype {
+public interface ForDatatype extends ForTopEntity {
+
+    Set<Class<? extends OntClass.CardinalityRestrictionCE<?, ?>>> DATA_CARDINALITY_TYPES =
+            Stream.of(OntClass.DataMaxCardinality.class, OntClass.DataMinCardinality.class, OntClass.DataCardinality.class)
+                    .collect(Iter.toUnmodifiableSet());
+
+    /**
+     * Answers a class-type of a {@link OntClass.RestrictionCE},
+     * whose instances have the specified {@code OWLDatatype} in their composition,
+     * which, at the same time, is excluded from the signature according to OWLAPI design.
+     *
+     * @param uri - {@code String}
+     * @return - {@code Class}-type or {@code null}
+     * @see <a href='https://github.com/owlcs/owlapi/issues/783'>OWLAPI Issue 783</a>
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    static Class<? extends OntClass.RestrictionCE<?>> getSpecialDataRestrictionType(String uri) {
+        Class res = null;
+        if (XSD.xboolean.getURI().equals(uri)) {
+            res = OntClass.HasSelf.class;
+        }
+        if (XSD.nonNegativeInteger.getURI().equals(uri)) {
+            res = OntClass.CardinalityRestrictionCE.class;
+        }
+        return res;
+    }
 
     @Override
-    protected ExtendedIterator<OntStatement> listExplicitStatements(OntModel m, String uri) {
-        return excludeImplicit(Iter.flatMap(listStatements(m).filterKeep(s -> filter(s, uri)), s -> listRootStatements(m, s)), uri);
-    }
-
-    protected ExtendedIterator<OntStatement> excludeImplicit(ExtendedIterator<OntStatement> res, String uri) {
-        Class<? extends OntClass.RestrictionCE<?>> type = ForDatatype.getSpecialDataRestrictionType(uri);
-        return type != null ? res.filterDrop(s -> s.getSubject().canAs(type)) : res;
-    }
-
-    protected boolean filter(OntStatement s, String uri) {
-        if (uri.equals(s.getSubject().getURI())) return true;
-        return Models.containsURI(s.getObject(), uri);
+    default Resource getTopEntity() {
+        return RDFS.Literal;
     }
 
     @Override
-    protected ExtendedIterator<OntStatement> listProperties(OntModel model, OntObject root) {
-        return listPropertiesIncludeAnnotations(model, root);
+    default boolean isCardinalityRestriction(OntStatement s) {
+        return DATA_CARDINALITY_TYPES.stream().anyMatch(t -> s.getSubject().canAs(t));
     }
 }

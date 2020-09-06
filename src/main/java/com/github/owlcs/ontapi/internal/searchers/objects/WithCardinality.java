@@ -12,41 +12,49 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.github.owlcs.ontapi.internal.searchers.axioms;
+package com.github.owlcs.ontapi.internal.searchers.objects;
 
-import com.github.owlcs.ontapi.internal.searchers.ForDatatype;
-import com.github.owlcs.ontapi.jena.model.OntClass;
+import com.github.owlcs.ontapi.config.AxiomsSettings;
+import com.github.owlcs.ontapi.internal.searchers.ForTopEntity;
 import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntObject;
-import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
-import com.github.owlcs.ontapi.jena.utils.Models;
-import org.apache.jena.util.iterator.ExtendedIterator;
-import org.semanticweb.owlapi.model.OWLDatatype;
+import org.apache.jena.rdf.model.Resource;
+import org.semanticweb.owlapi.model.OWLEntity;
+
+import java.util.Set;
 
 /**
- * A searcher for {@link OWLDatatype}.
- * Created by @ssz on 06.04.2020.
+ * Created by @ssz on 06.09.2020.
+ *
+ * @param <E> either {@link org.semanticweb.owlapi.model.OWLClass} or {@link org.semanticweb.owlapi.model.OWLDatatype}
  */
-public class ByDatatype extends WithCardinality<OWLDatatype> implements ForDatatype {
+abstract class WithCardinality<E extends OWLEntity> extends WithBuiltins<E> implements ForTopEntity {
+
+    private boolean containsCardinalityAxiom(OntModel model, AxiomsSettings conf) {
+        return containsAxiom(Iter.flatMap(listImplicitStatements(model), s -> listRootStatements(model, s)), conf);
+    }
+
+    protected void addTopEntity(Set<String> res, OntModel model, AxiomsSettings conf) {
+        String uri = getTopEntityURI();
+        if (res.contains(uri)) {
+            return;
+        }
+        if (containsCardinalityAxiom(model, conf)) {
+            res.add(uri);
+        }
+    }
 
     @Override
-    protected ExtendedIterator<OntStatement> listExplicitStatements(OntModel m, String uri) {
-        return excludeImplicit(Iter.flatMap(listStatements(m).filterKeep(s -> filter(s, uri)), s -> listRootStatements(m, s)), uri);
-    }
-
-    protected ExtendedIterator<OntStatement> excludeImplicit(ExtendedIterator<OntStatement> res, String uri) {
-        Class<? extends OntClass.RestrictionCE<?>> type = ForDatatype.getSpecialDataRestrictionType(uri);
-        return type != null ? res.filterDrop(s -> s.getSubject().canAs(type)) : res;
-    }
-
-    protected boolean filter(OntStatement s, String uri) {
-        if (uri.equals(s.getSubject().getURI())) return true;
-        return Models.containsURI(s.getObject(), uri);
-    }
-
-    @Override
-    protected ExtendedIterator<OntStatement> listProperties(OntModel model, OntObject root) {
-        return listPropertiesIncludeAnnotations(model, root);
+    protected final boolean containsEntity(String uri, OntModel model, AxiomsSettings conf) {
+        Resource res = toResource(model, uri);
+        if (!isInBuiltinSpec(model, res)) {
+            return containsDeclaration(res, model, conf);
+        }
+        if (getTopEntity().equals(res)) {
+            if (containsCardinalityAxiom(model, conf)) {
+                return true;
+            }
+        }
+        return containsInOntology(res, model, conf);
     }
 }

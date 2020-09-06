@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,26 +14,19 @@
 
 package com.github.owlcs.ontapi.internal.searchers.axioms;
 
+import com.github.owlcs.ontapi.internal.searchers.ForTopEntity;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLEntity;
 
 /**
  * Created by @ssz on 12.04.2020.
+ *
+ * @param <E> either {@link org.semanticweb.owlapi.model.OWLClass} or {@link org.semanticweb.owlapi.model.OWLDatatype}
  */
-abstract class WithCardinality<E extends OWLEntity> extends ByEntity<E> {
-
-    protected abstract String getTopEntityURI();
-
-    protected abstract boolean isCardinalityRestriction(OntStatement s);
-
-    final ExtendedIterator<OntStatement> listImplicitStatements(OntModel m) {
-        return Iter.flatMap(Iter.of(OWL.cardinality, OWL.maxCardinality, OWL.minCardinality), p -> listByPredicate(m, p))
-                .filterKeep(this::isCardinalityRestriction);
-    }
+abstract class WithCardinality<E extends OWLEntity> extends ByEntity<E> implements ForTopEntity {
 
     protected final ExtendedIterator<OntStatement> includeImplicit(ExtendedIterator<OntStatement> res,
                                                                    OntModel m,
