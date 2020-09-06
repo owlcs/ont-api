@@ -34,9 +34,30 @@ import java.util.stream.Stream;
  */
 public class ByDatatype extends WithCardinality<OWLDatatype> {
 
-    private static final Set<Class<? extends OntClass.CardinalityRestrictionCE<?, ?>>> DATA_CARDINALITY_TYPES =
+    public static final Set<Class<? extends OntClass.CardinalityRestrictionCE<?, ?>>> DATA_CARDINALITY_TYPES =
             Stream.of(OntClass.DataMaxCardinality.class, OntClass.DataMinCardinality.class, OntClass.DataCardinality.class)
                     .collect(Iter.toUnmodifiableSet());
+
+    /**
+     * Answers a class-type of a {@link OntClass.RestrictionCE},
+     * whose instances have the specified {@code OWLDatatype} in their composition,
+     * which, at the same time, is excluded from the signature according to OWLAPI design.
+     *
+     * @param uri - {@code String}
+     * @return - {@code Class}-type of {@code null}
+     * @see <a href='https://github.com/owlcs/owlapi/issues/783'>OWLAPI Issue 783</a>
+     */
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public static Class<? extends OntClass.RestrictionCE<?>> getSpecialDataRestrictionType(String uri) {
+        Class res = null;
+        if (XSD.xboolean.getURI().equals(uri)) {
+            res = OntClass.HasSelf.class;
+        }
+        if (XSD.nonNegativeInteger.getURI().equals(uri)) {
+            res = OntClass.CardinalityRestrictionCE.class;
+        }
+        return res;
+    }
 
     @Override
     protected ExtendedIterator<OntStatement> listExplicitStatements(OntModel m, String uri) {
@@ -54,15 +75,8 @@ public class ByDatatype extends WithCardinality<OWLDatatype> {
     }
 
     protected ExtendedIterator<OntStatement> excludeImplicit(ExtendedIterator<OntStatement> res, String uri) {
-        // https://github.com/owlcs/owlapi/issues/783
-        if (XSD.xboolean.getURI().equals(uri)) {
-            // HasSelf
-            res = res.filterDrop(s -> s.getSubject().canAs(OntClass.HasSelf.class));
-        } else if (XSD.nonNegativeInteger.getURI().equals(uri)) {
-            // cardinality restrictions
-            res = res.filterDrop(s -> s.getSubject().canAs(OntClass.CardinalityRestrictionCE.class));
-        }
-        return res;
+        Class<? extends OntClass.RestrictionCE<?>> type = getSpecialDataRestrictionType(uri);
+        return type != null ? res.filterDrop(s -> s.getSubject().canAs(type)) : res;
     }
 
     protected boolean filter(OntStatement s, String uri) {

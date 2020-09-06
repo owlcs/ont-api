@@ -340,10 +340,7 @@ public class CacheConfigTest {
         Assert.assertEquals(signature2, o2.signature().distinct().count());
         int count2_2 = g2.getFindPatterns().size();
         LOGGER.debug("3) Find invocation count: {}", count2_2);
-        // currently, in most cases, the components cache filling occurs through reading the content cache,
-        // only for several types of entities (i.e. for NamedIndividuals)
-        // there is a direct graph reading that slightly increases the count
-        Assert.assertEquals(Math.round(count2_1 / 100d), Math.round(count2_2 / 100d));
+        Assert.assertTrue(count2_1 < count2_2);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})

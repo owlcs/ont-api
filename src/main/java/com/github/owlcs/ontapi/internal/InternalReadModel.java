@@ -147,6 +147,7 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
     // To search OWLObjects
     protected final ObjectsSearcher<OWLClass> classSearcher = new ClassSearcher();
     protected final ObjectsSearcher<OWLNamedIndividual> individualSearcher = new NamedIndividualSearcher();
+    protected final ObjectsSearcher<OWLDatatype> datatypeSearcher = new DatatypeSearcher();
     protected final ObjectsSearcher<OWLObjectProperty> objectPropertySearcher = new ObjectPropertySearcher();
     protected final ObjectsSearcher<OWLAnnotationProperty> annotationPropertySearcher = new AnnotationPropertySearcher();
     protected final ObjectsSearcher<OWLDataProperty> dataPropertySearcher = new DataPropertySearcher();
@@ -892,6 +893,8 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
                 return BaseSearcher.cast(classSearcher);
             case NAMED_INDIVIDUAL:
                 return BaseSearcher.cast(individualSearcher);
+            case DATATYPE:
+                return BaseSearcher.cast(datatypeSearcher);
             case NAMED_OBJECT_PROPERTY:
                 return BaseSearcher.cast(objectPropertySearcher);
             case ANNOTATION_PROPERTY:
@@ -899,7 +902,6 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
             case DATATYPE_PROPERTY:
                 return BaseSearcher.cast(dataPropertySearcher);
         }
-        // TODO: support other types (see https://github.com/owlcs/ont-api/issues/15)
         return null;
     }
 

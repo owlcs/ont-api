@@ -129,7 +129,7 @@ abstract class EntitySearcher<E extends OWLEntity> extends WithRootStatement imp
                 .mapWith(Statement::getSubject).filterKeep(RDFNode::isURIResource));
     }
 
-    protected final boolean containsInOntology(String uri, OntModel m, AxiomsSettings conf) {
+    protected boolean containsInOntology(String uri, OntModel m, AxiomsSettings conf) {
         return containsInOntology(toResource(m, uri), m, conf);
     }
 
