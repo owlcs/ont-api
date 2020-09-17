@@ -696,7 +696,7 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
      *
      * @param config {@link InternalConfig}
      * @return boolean
-     * @see #useObjectsSearchOptimization(OWLComponentType, InternalConfig)
+     * @see #useObjectsSearchOptimization(InternalConfig)
      * @see #useReferencingAxiomsSearchOptimization(OWLComponentType, InternalConfig)
      */
     protected boolean useAxiomsSearchOptimization(InternalConfig config) {
@@ -880,7 +880,7 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
         ModelObjectFactory factory = getObjectFactory();
         OntModel model = getSearchModel();
         ObjectsSearcher<OWLObject> searcher = getEntitySearcher(type);
-        if (searcher != null && useObjectsSearchOptimization(type, conf)) {
+        if (searcher != null && useObjectsSearchOptimization(conf)) {
             return searcher.listONTObjects(model, factory, conf);
         }
         // if content cache is loaded then its parsing is faster than graph-optimization (at least for classes)
@@ -910,21 +910,17 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
      * should be used to fill the component cache for the specified type.
      * <p>
      *
-     * @param type   {@link OWLComponentType}
      * @param config {@link InternalConfig}, not {@code null}
      * @return boolean
      * @see #useAxiomsSearchOptimization(InternalConfig)
      * @see #useReferencingAxiomsSearchOptimization(OWLComponentType, InternalConfig)
      */
-    protected boolean useObjectsSearchOptimization(OWLComponentType type, InternalConfig config) {
-        if (OWLComponentType.NAMED_INDIVIDUAL == type && independent()) {
-            // for named individuals the graph optimization is faster since there are no builtins,
-            // but only in case there is no imports;
-            // otherwise need to parse implicit cases of reusing and therefore the behaviour is more complicated
-            return true;
-        }
-        // use parsing of content-cache if it is enabled and loaded then, otherwise - graph optimization
-        return !config.useContentCache() || contentCaches().anyMatch(x -> !x.isLoaded());
+    protected boolean useObjectsSearchOptimization(InternalConfig config) {
+        // Use the graph-way (direct searchers) instead of the content (axioms) parsing
+        // in case the content-cache is disabled OR it is empty (i.e. nothing has been loaded yet).
+        // Otherwise, use content loading & parsing: it is faster in general and, usually,
+        // if you need components then you need also the whole content, so it is better to load it at once.
+        return !config.useContentCache() || contentCaches().noneMatch(ObjectMap::isLoaded);
     }
 
     /**
