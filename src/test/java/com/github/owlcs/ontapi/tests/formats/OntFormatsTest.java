@@ -16,11 +16,11 @@ package com.github.owlcs.ontapi.tests.formats;
 
 import com.github.owlcs.ontapi.OntFormat;
 import com.github.owlcs.ontapi.OntManagers;
-import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import com.github.owlcs.ontapi.utils.StringInputStreamDocumentSource;
 import org.junit.Assert;
+import org.junit.Rule;
 import org.junit.Test;
-import org.semanticweb.owlapi.formats.TurtleDocumentFormat;
+import org.junit.rules.TemporaryFolder;
 import org.semanticweb.owlapi.io.IRIDocumentSource;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.io.UnparsableOntologyException;
@@ -50,6 +50,9 @@ import java.util.stream.Collectors;
 public class OntFormatsTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(OntFormatsTest.class);
 
+    @Rule
+    public TemporaryFolder out = new TemporaryFolder();
+
     @Test
     public void testOntFormatsCommon() {
         Arrays.stream(OntFormat.values()).forEach(f -> {
@@ -61,7 +64,7 @@ public class OntFormatsTest {
     }
 
     @Test
-    public void testDocumentFormatFactories() throws OWLOntologyCreationException {
+    public void testDocumentFormatFactories() throws Exception {
         // from owlapi-impl to compare.
         // use the simplest ontology to avoid any deep parsing exceptions
         OWLOntology ontology = OntManagers.createOWLAPIImplManager().createOntology(IRI.create("http://test.org/empty"));
@@ -69,7 +72,7 @@ public class OntFormatsTest {
         Set<OntFormat> writeNotSupported = new HashSet<>();
         Set<OntFormat> readNotSupported = new HashSet<>();
         for (OntFormat f : OntFormat.values()) {
-            Path p = save(ontology, f);
+            Path p = save(ontology, out, f);
             LOGGER.debug("Format: {}, File: {}", f, p);
             if (p == null) { // write fail, but if it is pure jena format it is expected.
                 if (!f.isJenaOnly())
@@ -152,10 +155,13 @@ public class OntFormatsTest {
         return Arrays.stream(types).allMatch(type -> actual.axioms(type).count() == expected.axioms(type).count());
     }
 
-    private static Path save(OWLOntology ontology, OntFormat type) {
-        Path file = ReadWriteUtils.getFileToSave("formats-test", type);
-        LOGGER.debug("Save owl-ontology to {} ({})", file, type == null ? "TURTLE" : type.getID());
-        OWLDocumentFormat format = type == null ? new TurtleDocumentFormat() : type.createOwlFormat();
+    private static Path save(OWLOntology ontology, TemporaryFolder dir, OntFormat type) throws IOException {
+        if (type == null) {
+            type = OntFormat.TURTLE;
+        }
+        Path file = dir.newFile("formats-test." + type.getExt()).toPath();
+        LOGGER.debug("Save owl-ontology to {} ({})", file, type.getID());
+        OWLDocumentFormat format = type.createOwlFormat();
         try (OutputStream out = Files.newOutputStream(file)) {
             ontology.getOWLOntologyManager().saveOntology(ontology, format, out);
         } catch (OWLOntologyStorageException | IOException | UnsupportedOperationException e) {

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -25,7 +25,6 @@ import org.topbraid.spin.model.*;
 
 import java.util.List;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -112,7 +111,7 @@ public class SpinTransform extends TransformationModel {
     }
 
     public Stream<Query> queries() {
-        return Stream.of(QueryType.values()).map(this::queries).flatMap(Function.identity());
+        return Stream.of(QueryType.values()).flatMap(this::queries);
     }
 
     protected Stream<Query> queries(QueryType type) {

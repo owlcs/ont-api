@@ -45,7 +45,7 @@ import java.util.Objects;
  * <p>
  * Created by @szuev on 27.09.2016.
  */
-@SuppressWarnings({"unused", "WeakerAccess", "SameParameterValue"})
+@SuppressWarnings({"WeakerAccess", "SameParameterValue"})
 public class ReadWriteUtils {
     public static final PrintStream NULL_OUT = new PrintStream(new OutputStream() {
         @Override
@@ -53,8 +53,6 @@ public class ReadWriteUtils {
         }
     });
     private static final Logger LOGGER = LoggerFactory.getLogger(ReadWriteUtils.class);
-
-    public static final String DESTINATION_DIR = "out";
 
     public static void print(OWLOntology ontology) {
         print(ontology, null);
@@ -127,10 +125,6 @@ public class ReadWriteUtils {
         return load(getResourceURI(file), f);
     }
 
-    public static Model loadOutTTLFile(String file) {
-        return load(getOutURI(file), null);
-    }
-
     public static Model load(URI file, OntFormat f) {
         String format = f == null ? "ttl" : f.getID();
         Model m = ModelFactory.createDefaultModel();
@@ -141,22 +135,6 @@ public class ReadWriteUtils {
         } catch (IOException e) {
             LOGGER.error("Can't read model", e);
             throw new AssertionError(e);
-        }
-    }
-
-    public static Path getFileToSave(String name, OntFormat type) {
-        Path dir = Paths.get(DESTINATION_DIR);
-        if (!Files.exists(dir)) {
-            try {
-                Files.createDirectory(dir);
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
-        }
-        try {
-            return dir.toRealPath().resolve(name + (type != null ? "." + type.getExt() : ""));
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
         }
     }
 
@@ -230,26 +208,6 @@ public class ReadWriteUtils {
         return getResourceURI(dir, name);
     }
 
-    public static Path getOutPath(String file) {
-        return Paths.get(DESTINATION_DIR).resolve(file);
-    }
-
-    public static URI getOutURI(String file) {
-        return getOutPath(file).toUri();
-    }
-
-    public static Path save(Model model, String name, OntFormat type) {
-        Path dst = getFileToSave(name, type);
-        LOGGER.debug("Save model to " + dst.toUri() + " (" + type.getID() + ")");
-        try (Writer out = Files.newBufferedWriter(dst)) {
-            model.write(out, type.getID());
-        } catch (IOException e) {
-            LOGGER.error("Unable to save model " + dst, e);
-            return null;
-        }
-        return dst;
-    }
-
     public static OWLOntology loadOWLOntology(OWLOntologyManager manager, IRI fileIRI) {
         LOGGER.debug("Load ontology model from {}.", fileIRI);
         OWLOntology owl = null;
@@ -265,10 +223,6 @@ public class ReadWriteUtils {
         return loadOWLOntology(OntManagers.createOWLAPIImplManager(), fileIRI);
     }
 
-    public static Ontology loadOntologyModel(IRI fileIRI) {
-        return (Ontology) loadOWLOntology(OntManagers.createManager(), fileIRI);
-    }
-
     public static OWLOntology convertJenaToOWL(OWLOntologyManager manager, Model model, OntFormat convertFormat) {
         String uri = TestUtils.getURI(model);
         LOGGER.debug("Put ontology {}({}) to the manager.", uri, convertFormat);
@@ -277,10 +231,6 @@ public class ReadWriteUtils {
         } catch (IOException | OWLOntologyCreationException e) {
             throw new AssertionError(e);
         }
-    }
-
-    public static OWLOntology convertJenaToOWL(Model model) {
-        return convertJenaToOWL(null, model);
     }
 
     public static OWLOntology convertJenaToOWL(OWLOntologyManager manager, Model model) {
