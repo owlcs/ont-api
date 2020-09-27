@@ -79,6 +79,12 @@ public class DeclarationTranslator extends AbstractSimpleTranslator<OWLDeclarati
     }
 
     @Override
+    protected ExtendedIterator<OntStatement> listStatements(OntModel model, AxiomsSettings config, OWLDeclarationAxiom key) {
+        if (!config.isAllowReadDeclarations()) return NullIterator.instance();
+        return super.listStatements(model, config, key);
+    }
+
+    @Override
     protected Triple getSearchTriple(OWLDeclarationAxiom axiom) {
         if (axiom instanceof AxiomImpl) {
             return ((AxiomImpl) axiom).asTriple();
