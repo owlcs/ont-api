@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -48,7 +48,7 @@ import java.util.stream.Stream;
  * Created by @szuev on 28.09.2016.
  */
 @SuppressWarnings("WeakerAccess")
-public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> {
+public class DeclarationTranslator extends AbstractSimpleTranslator<OWLDeclarationAxiom> {
 
     @Override
     public void write(OWLDeclarationAxiom axiom, OntModel model) {
@@ -76,6 +76,14 @@ public class DeclarationTranslator extends AxiomTranslator<OWLDeclarationAxiom> 
                 .map(Entities::getActualType)
                 .map(t -> statement.getModel().getOntEntity(t, statement.getSubject()))
                 .isPresent();
+    }
+
+    @Override
+    protected Triple getSearchTriple(OWLDeclarationAxiom axiom) {
+        if (axiom instanceof AxiomImpl) {
+            return ((AxiomImpl) axiom).asTriple();
+        }
+        return Triple.create(WriteHelper.toNode(axiom.getEntity()), RDF.type.asNode(), WriteHelper.getRDFType(axiom.getEntity()).asNode());
     }
 
     @Override

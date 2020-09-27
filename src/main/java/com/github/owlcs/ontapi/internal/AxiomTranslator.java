@@ -19,14 +19,14 @@ import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Triple;
 import org.apache.jena.shared.JenaException;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAxiom;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -143,6 +143,50 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> extends BaseSearch
     }
 
     /**
+     * @param key     {@link Axiom}, to narrow the searching, not {@code null}
+     * @param model   a facility (as {@link Supplier}) to provide nonnull {@link OntModel}
+     * @param factory {@link ONTObjectFactory} to produce OWL-API Objects, not {@code null}
+     * @param config  {@link AxiomsSettings} to control process, not {@code null}
+     * @return {@link ExtendedIterator} of {@link ONTObject}s that wrap {@link Axiom}s
+     * @throws JenaException unable to read axioms of this type
+     */
+    private ExtendedIterator<ONTObject<Axiom>> listONTObjects(Axiom key,
+                                                              OntModel model,
+                                                              ONTObjectFactory factory,
+                                                              AxiomsSettings config) throws JenaException {
+        return translate(this, listStatements(key, model, config), factory, config);
+    }
+
+    /**
+     * @param key    {@link Axiom}, to narrow the searching, not {@code null}
+     * @param model  {@link OntModel Ontology Jena Model}, not {@code null}
+     * @param config {@link AxiomsSettings} control settings, not {@code null}
+     * @return {@link ExtendedIterator} of {@link OntStatement}s in-{@code model}
+     */
+    private ExtendedIterator<OntStatement> listStatements(Axiom key, OntModel model, AxiomsSettings config) {
+        ExtendedIterator<OntStatement> res;
+        Collection<Triple> search = getSearchTriples(key);
+        if (!search.isEmpty()) {
+            Graph g = model.getBaseGraph();
+            res = Iter.create(search).filterKeep(g::contains).mapWith(model::asStatement);
+        } else {
+            res = listStatements(model, config);
+        }
+        return res;
+    }
+
+    /**
+     * Returns a collection of {@link Triple triple}s for search optimization.
+     * Usually, each of the returned triples has an URI-subject and URI-object.
+     *
+     * @param axiom {@link Axiom} to extract triples, not {@code null}
+     * @return a {@code Collection} of {@link Triple}s, can be empty
+     */
+    protected Collection<Triple> getSearchTriples(Axiom axiom) {
+        return Collections.emptyList();
+    }
+
+    /**
      * Answers {@code true} iff the given axiom ({@code key}) is present in the base graph.
      *
      * @param key     {@link Axiom}, not {@code null}
@@ -155,7 +199,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> extends BaseSearch
     @Override
     public boolean containsONTObject(Axiom key, OntModel model, ONTObjectFactory factory, AxiomsSettings config) {
         Objects.requireNonNull(key);
-        return Iter.anyMatch(listONTObjects(model, factory, config), x -> x.getOWLObject().equals(key));
+        return Iter.anyMatch(listONTObjects(key, model, factory, config), x -> key.equals(x.getOWLObject()));
     }
 
     /**
@@ -175,8 +219,8 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> extends BaseSearch
                                                     ONTObjectFactory factory,
                                                     AxiomsSettings config) {
         Objects.requireNonNull(key);
-        List<ONTObject<Axiom>> list = listONTObjects(model, factory, config)
-                .filterKeep(x -> x.getOWLObject().equals(key)).toList();
+        List<ONTObject<Axiom>> list = listONTObjects(key, model, factory, config)
+                .filterKeep(x -> key.equals(x.getOWLObject())).toList();
         if (list.isEmpty()) {
             return Optional.empty();
         }
