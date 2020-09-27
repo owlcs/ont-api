@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -22,8 +22,11 @@ import com.github.owlcs.ontapi.jena.model.OntDisjoint;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntObject;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
+import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
+import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.util.iterator.ExtendedIterator;
@@ -91,6 +94,17 @@ public abstract class AbstractTwoWayNaryTranslator<Axiom extends OWLAxiom & OWLN
     abstract Property getMembersPredicate();
 
     abstract Class<? extends OntDisjoint<ONT>> getDisjointView();
+
+    @Override
+    protected ExtendedIterator<OntStatement> listStatements(OntModel model, AxiomsSettings config, Axiom key) {
+        ExtendedIterator<OntStatement> res = listStatements(model, config);
+        Collection<Triple> search = getSearchTriples(key);
+        if (search.isEmpty()) {
+            return res;
+        }
+        Graph g = model.getBaseGraph();
+        return Iter.create(search).filterKeep(g::contains).mapWith(model::asStatement).andThen(res);
+    }
 
     ONTObject<Axiom> makeAxiom(OntStatement statement,
                                Collection<ONTObject<OWLAnnotation>> annotations,

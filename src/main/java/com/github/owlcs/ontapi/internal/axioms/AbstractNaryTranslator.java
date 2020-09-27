@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -25,6 +25,7 @@ import com.github.owlcs.ontapi.jena.model.*;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.owlapi.objects.OWLAnonymousIndividualImpl;
 import org.apache.jena.graph.BlankNodeId;
+import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.util.iterator.ExtendedIterator;
@@ -104,6 +105,30 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
 
     protected boolean filter(Statement statement) {
         return statement.getSubject().canAs(getView()) && statement.getObject().canAs(getView());
+    }
+
+    @Override
+    protected Collection<Triple> getSearchTriples(Axiom axiom) {
+        Triple res = getSearchTriple(axiom);
+        return res == null ? Collections.emptyList() :
+                Arrays.asList(res, Triple.create(res.getObject(), res.getPredicate(), res.getSubject()));
+    }
+
+    protected Triple getSearchTriple(Axiom axiom) {
+        if (axiom instanceof WithManyObjects.Simple) {
+            return ((WithManyObjects.Simple<?>) axiom).asTriple();
+        }
+        List<OWL> list = axiom.getOperandsAsList();
+        if (list.size() != 2) {
+            return null; // for Disjoint Objects
+        }
+        OWL left = list.get(0);
+        OWL right = list.get(1);
+        if (left instanceof HasIRI && right instanceof HasIRI) {
+            return Triple.create(WriteHelper.toNode((HasIRI) left),
+                    getPredicate().asNode(), WriteHelper.toNode((HasIRI) right));
+        }
+        return null;
     }
 
     /**
