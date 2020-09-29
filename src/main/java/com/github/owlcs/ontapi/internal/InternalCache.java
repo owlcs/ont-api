@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -250,7 +250,6 @@ public interface InternalCache<K, V> {
      * @param <V>      the type of mapped values
      * @return {@link InternalCache}
      */
-    @SuppressWarnings("unused")
     static <K, V> InternalCache<K, V> createSoft(boolean caffeine) {
         if (caffeine) {
             return new CaffeineWrapper<>(Caffeine.newBuilder().softValues().build());
@@ -269,7 +268,6 @@ public interface InternalCache<K, V> {
      * @param <V>      the type of mapped values
      * @return {@link Loading}
      */
-    @SuppressWarnings("unused")
     static <K, V> Loading<K, V> createSoft(Function<? super K, ? extends V> loader,
                                            boolean caffeine) {
         InternalCache<K, V> res = caffeine ?

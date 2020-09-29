@@ -155,7 +155,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> extends BaseSearch
     @Override
     public boolean containsONTObject(Axiom key, OntModel model, ONTObjectFactory factory, AxiomsSettings config) {
         Objects.requireNonNull(key);
-        return Iter.anyMatch(listONTObjects(model, factory, config, key), x -> key.equals(x.getOWLObject()));
+        return Iter.anyMatch(listSearchCandidates(key, model, factory, config), x -> key.equals(x.getOWLObject()));
     }
 
     /**
@@ -175,7 +175,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> extends BaseSearch
                                                     ONTObjectFactory factory,
                                                     AxiomsSettings config) {
         Objects.requireNonNull(key);
-        List<ONTObject<Axiom>> list = listONTObjects(model, factory, config, key)
+        List<ONTObject<Axiom>> list = listSearchCandidates(key, model, factory, config)
                 .filterKeep(x -> key.equals(x.getOWLObject())).toList();
         if (list.isEmpty()) {
             return Optional.empty();
@@ -188,31 +188,31 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> extends BaseSearch
     }
 
     /**
+     * @param key     {@link Axiom}, to narrow the searching, not {@code null}
      * @param model   a facility (as {@link Supplier}) to provide nonnull {@link OntModel}
      * @param factory {@link ONTObjectFactory} to produce OWL-API Objects, not {@code null}
      * @param config  {@link AxiomsSettings} to control process, not {@code null}
-     * @param key     {@link Axiom}, to narrow the searching, not {@code null}
      * @return {@link ExtendedIterator} of {@link ONTObject}s that wrap {@link Axiom}s
      * @throws JenaException unable to read axioms of this type
      */
-    private ExtendedIterator<ONTObject<Axiom>> listONTObjects(OntModel model,
-                                                              ONTObjectFactory factory,
-                                                              AxiomsSettings config,
-                                                              Axiom key) throws JenaException {
-        return translate(this, listStatements(model, config, key), factory, config);
+    private ExtendedIterator<ONTObject<Axiom>> listSearchCandidates(Axiom key,
+                                                                    OntModel model,
+                                                                    ONTObjectFactory factory,
+                                                                    AxiomsSettings config) throws JenaException {
+        return translate(this, listSearchStatements(key, model, config), factory, config);
     }
 
     /**
      * Lists all statements-candidates
-     * to perform the searching over for the given axiom (which is passed as last argument to harrow the searching).
-     * This is a helper method for internal usage only.
+     * to be used in the searching for the given axiom (which is passed as last argument to harrow the searching).
+     * This is a helper method to optimize searching on a direct model (i.e. when there is no internal cache).
      *
+     * @param key    {@link Axiom}, to narrow the searching, not {@code null}
      * @param model  {@link OntModel Ontology Jena Model}, not {@code null}
      * @param config {@link AxiomsSettings} control settings, not {@code null}
-     * @param key    {@link Axiom}, to narrow the searching, not {@code null}
      * @return {@link ExtendedIterator} of {@link OntStatement}s in-{@code model}
      */
-    protected ExtendedIterator<OntStatement> listStatements(OntModel model, AxiomsSettings config, Axiom key) {
+    protected ExtendedIterator<OntStatement> listSearchStatements(Axiom key, OntModel model, AxiomsSettings config) {
         Collection<Triple> search = getSearchTriples(key);
         if (!search.isEmpty()) {
             Graph g = model.getBaseGraph();
@@ -224,7 +224,7 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> extends BaseSearch
     /**
      * Returns a collection of {@link Triple triple}s for search optimization.
      * Usually, each of the returned triples has an URI-subject and URI-object.
-     * This is a helper method for internal usage only.
+     * This is a helper method to optimize searching on a direct model (i.e. when there is no internal cache).
      *
      * @param axiom {@link Axiom} to extract triples, not {@code null}
      * @return a {@code Collection} of {@link Triple}s, can be empty

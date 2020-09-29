@@ -15,6 +15,7 @@
 package com.github.owlcs.ontapi.internal.axioms;
 
 import com.github.owlcs.ontapi.internal.AxiomTranslator;
+import com.github.owlcs.ontapi.jena.utils.Graphs;
 import org.apache.jena.graph.Triple;
 import org.semanticweb.owlapi.model.OWLAxiom;
 
@@ -26,7 +27,15 @@ import java.util.Collections;
  */
 abstract class AbstractSimpleTranslator<Axiom extends OWLAxiom> extends AxiomTranslator<Axiom> {
 
-    protected abstract Triple getSearchTriple(Axiom axiom);
+    private Triple getSearchTriple(Axiom axiom) {
+        if (axiom instanceof WithTriple) {
+            Triple res = ((WithTriple) axiom).asTriple();
+            return Graphs.isNamedTriple(res) ? res : null;
+        }
+        return createSearchTriple(axiom);
+    }
+
+    abstract Triple createSearchTriple(Axiom axiom);
 
     @Override
     protected final Collection<Triple> getSearchTriples(Axiom axiom) {

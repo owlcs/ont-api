@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -223,14 +223,14 @@ public class Graphs {
      * The method can be used, for example, to get an ONT graph from the {@link org.apache.jena.ontology.OntModel}.
      * Note: it is a recursive method.
      *
-     * @param g {@link Graph}
+     * @param graph {@link Graph}
      * @return {@link UnionGraph}
      * @throws StackOverflowError in case there is a loop in imports (i.e. a recursion in the hierarchy)
      */
-    public static UnionGraph toUnion(Graph g) {
-        if (g instanceof UnionGraph) return (UnionGraph) g;
-        if (g instanceof GraphMem) return new UnionGraph(g);
-        return toUnion(getBase(g), baseGraphs(g).collect(Collectors.toSet()));
+    public static UnionGraph toUnion(Graph graph) {
+        if (graph instanceof UnionGraph) return (UnionGraph) graph;
+        if (graph instanceof GraphMem) return new UnionGraph(graph);
+        return toUnion(getBase(graph), baseGraphs(graph).collect(Collectors.toSet()));
     }
 
     /**
@@ -303,17 +303,17 @@ public class Graphs {
      * Note: it works with any graph, not necessarily with the base;
      * for a valid composite ontology graph a lot of ontological nodes are expected.
      *
-     * @param g {@link Graph}
+     * @param graph {@link Graph}
      * @return {@link Optional} around the {@link Node} which could be uri or blank.
      */
-    public static Optional<Node> ontologyNode(Graph g) {
-        List<Node> res = g.find(Node.ANY, RDF.Nodes.type, OWL.Ontology.asNode())
+    public static Optional<Node> ontologyNode(Graph graph) {
+        List<Node> res = graph.find(Node.ANY, RDF.Nodes.type, OWL.Ontology.asNode())
                 .mapWith(t -> {
                     Node n = t.getSubject();
                     return n.isURI() || n.isBlank() ? n : null;
                 }).filterDrop(Objects::isNull).toList();
         if (res.isEmpty()) return Optional.empty();
-        res.sort(rootNodeComparator(g));
+        res.sort(rootNodeComparator(graph));
         return Optional.of(res.get(0));
     }
 
@@ -421,12 +421,12 @@ public class Graphs {
      * Returns a {@code Graph} as a Turtle String.
      * For debugging.
      *
-     * @param g {@link Graph}
+     * @param graph {@link Graph}
      * @return String
      */
-    public static String toTurtleString(Graph g) {
+    public static String toTurtleString(Graph graph) {
         StringWriter sw = new StringWriter();
-        RDFDataMgr.write(sw, g, Lang.TURTLE);
+        RDFDataMgr.write(sw, graph, Lang.TURTLE);
         return sw.toString();
     }
 
@@ -507,6 +507,48 @@ public class Graphs {
     }
 
     /**
+     * Lists all unique subject nodes in the given graph.
+     * Warning: the result is temporary stored in-memory!
+     *
+     * @param graph {@link Graph}, not {@code null}
+     * @return an {@link ExtendedIterator ExtendedIterator} (<b>distinct</b>) of all subjects in the graph
+     * @throws OutOfMemoryError while iterating in case the graph is too large
+     *                          so that all its subjects can be placed in memory as a {@code Set}
+     * @see GraphUtil#listSubjects(Graph, Node, Node)
+     */
+    public static ExtendedIterator<Node> listSubjects(Graph graph) {
+        return Iter.create(() -> Collections.unmodifiableSet(graph.find().mapWith(Triple::getSubject).toSet()).iterator());
+    }
+
+    /**
+     * Lists all unique nodes in the given graph, which are used in a subject or an object positions.
+     * Warning: the result is temporary stored in-memory!
+     *
+     * @param graph {@link Graph}, not {@code null}
+     * @return an {@link ExtendedIterator ExtendedIterator} (<b>distinct</b>) of all subjects or objects in the graph
+     * @throws OutOfMemoryError while iterating in case the graph is too large
+     *                          so that all its subjects and objects can be placed in memory as a {@code Set}
+     * @see GraphUtils#allNodes(Graph)
+     */
+    public static ExtendedIterator<Node> listSubjectsAndObjects(Graph graph) {
+        return Iter.create(() -> Collections.unmodifiableSet(Iter.flatMap(graph.find(),
+                t -> Iter.of(t.getSubject(), t.getObject())).toSet()).iterator());
+    }
+
+    /**
+     * Lists all unique nodes in the given graph.
+     * Warning: the result is temporary stored in-memory!
+     *
+     * @param graph {@link Graph}, not {@code null}
+     * @return an {@link ExtendedIterator ExtendedIterator} (<b>distinct</b>) of all nodes in the graph
+     * @throws OutOfMemoryError while iterating in case the graph is too large to be placed in memory as a {@code Set}
+     */
+    public static ExtendedIterator<Node> listAllNodes(Graph graph) {
+        return Iter.create(() -> Collections.unmodifiableSet(Iter.flatMap(graph.find(),
+                t -> Iter.of(t.getSubject(), t.getPredicate(), t.getObject())).toSet()).iterator());
+    }
+
+    /**
      * Makes a fresh node instance according to the given iri.
      *
      * @param iri String, an IRI to create URI-Node or {@code null} to create Blank-Node
@@ -517,44 +559,23 @@ public class Graphs {
     }
 
     /**
-     * Lists all unique subject nodes in the given graph.
-     * Warning: the result is temporary stored in-memory!
+     * Answers {@code true} when all parts of the given RDF triple are URIs (i.e. not blank nodes or literals).
      *
-     * @param g {@link Graph}, not {@code null}
-     * @return an {@link ExtendedIterator ExtendedIterator} (<b>distinct</b>) of all subjects in the graph
-     * @throws OutOfMemoryError while iterating in case the graph is too large
-     *                          so that all its subjects can be placed in memory as a {@code Set}
-     * @see GraphUtil#listSubjects(Graph, Node, Node)
+     * @param triple a regular graph {@link Triple}, not {@code null}
+     * @return boolean
      */
-    public static ExtendedIterator<Node> listSubjects(Graph g) {
-        return Iter.create(() -> Collections.unmodifiableSet(g.find().mapWith(Triple::getSubject).toSet()).iterator());
+    public static boolean isNamedTriple(Triple triple) {
+        return triple.getObject().isURI() && triple.getSubject().isURI();
     }
 
     /**
-     * Lists all unique nodes in the given graph, which are used in a subject or an object positions.
-     * Warning: the result is temporary stored in-memory!
+     * Inverts the given triple so that
+     * the new triple has the same subject as the given object, and the same object as the given subject.
      *
-     * @param g {@link Graph}, not {@code null}
-     * @return an {@link ExtendedIterator ExtendedIterator} (<b>distinct</b>) of all subjects or objects in the graph
-     * @throws OutOfMemoryError while iterating in case the graph is too large
-     *                          so that all its subjects and objects can be placed in memory as a {@code Set}
-     * @see GraphUtils#allNodes(Graph)
+     * @param triple {@code SPO} the {@link Triple}, not {@code null}
+     * @return {@link Triple}, {@code OPS}
      */
-    public static ExtendedIterator<Node> listSubjectsAndObjects(Graph g) {
-        return Iter.create(() -> Collections.unmodifiableSet(Iter.flatMap(g.find(),
-                t -> Iter.of(t.getSubject(), t.getObject())).toSet()).iterator());
-    }
-
-    /**
-     * Lists all unique nodes in the given graph.
-     * Warning: the result is temporary stored in-memory!
-     *
-     * @param g {@link Graph}, not {@code null}
-     * @return an {@link ExtendedIterator ExtendedIterator} (<b>distinct</b>) of all nodes in the graph
-     * @throws OutOfMemoryError while iterating in case the graph is too large to be placed in memory as a {@code Set}
-     */
-    public static ExtendedIterator<Node> listAllNodes(Graph g) {
-        return Iter.create(() -> Collections.unmodifiableSet(Iter.flatMap(g.find(),
-                t -> Iter.of(t.getSubject(), t.getPredicate(), t.getObject())).toSet()).iterator());
+    public static Triple invertTriple(Triple triple) {
+        return Triple.create(triple.getObject(), triple.getPredicate(), triple.getSubject());
     }
 }

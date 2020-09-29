@@ -96,7 +96,7 @@ public abstract class AbstractTwoWayNaryTranslator<Axiom extends OWLAxiom & OWLN
     abstract Class<? extends OntDisjoint<ONT>> getDisjointView();
 
     @Override
-    protected ExtendedIterator<OntStatement> listStatements(OntModel model, AxiomsSettings config, Axiom key) {
+    protected ExtendedIterator<OntStatement> listSearchStatements(Axiom key, OntModel model, AxiomsSettings config) {
         ExtendedIterator<OntStatement> res = listStatements(model, config);
         Collection<Triple> search = getSearchTriples(key);
         if (search.isEmpty()) {

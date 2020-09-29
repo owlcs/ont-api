@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -184,6 +184,53 @@ public class WriteHelper {
                 return OntFacetRestriction.LangRange.class;
         }
         throw new OntApiException.IllegalArgument("Unsupported " + facet);
+    }
+
+
+    /**
+     * Extracts {@link IRI} from {@link OWLObject}.
+     *
+     * @param object {@link OWLObject}, not {@code null}
+     * @return {@link IRI}
+     */
+    public static IRI toIRI(OWLObject object) {
+        if (OntApiException.notNull(object, "Null owl-object specified.").isIRI()) return (IRI) object;
+        if (object instanceof HasIRI) {
+            return ((HasIRI) object).getIRI();
+        }
+        if (object instanceof OWLAnnotationObject) {
+            return ((OWLAnnotationObject) object).asIRI().orElseThrow(() -> new OntApiException.IllegalArgument("Not iri: " + object));
+        }
+        if (object instanceof OWLClassExpression) {
+            return toIRI((OWLClassExpression) object);
+        }
+        if (object instanceof OWLPropertyExpression) {
+            return toIRI((OWLPropertyExpression) object);
+        }
+        throw new OntApiException.IllegalArgument("Unsupported owl-object: " + object);
+    }
+
+    private static IRI toIRI(OWLClassExpression expression) {
+        HasIRI res = null;
+        if (ClassExpressionType.OWL_CLASS.equals(expression.getClassExpressionType())) {
+            res = (OWLClass) expression;
+        }
+        return OntApiException.notNull(res, "Unsupported class-expression: " + expression).getIRI();
+    }
+
+    private static IRI toIRI(OWLPropertyExpression expression) {
+        if (expression.isOWLDataProperty())
+            return expression.asOWLDataProperty().getIRI();
+        if (expression.isOWLObjectProperty())
+            return expression.asOWLObjectProperty().getIRI();
+        if (expression.isOWLAnnotationProperty()) {
+            return expression.asOWLAnnotationProperty().getIRI();
+        }
+        throw new OntApiException.IllegalArgument("Unsupported property-expression: " + expression);
+    }
+
+    public static Node getNamedNode(OWLObject object) {
+        return object instanceof HasIRI ? toNode((HasIRI) object) : null;
     }
 
     public static void writeAssertionTriple(OntModel model,
@@ -406,48 +453,6 @@ public class WriteHelper {
     public static void addAnnotations(OntObject object, Collection<OWLAnnotation> annotations) {
         addAnnotations(OntApiException.notNull(object.getMainStatement(), "Can't determine the root statement for " + object),
                 annotations);
-    }
-
-    /**
-     * Extracts {@link IRI} from {@link OWLObject}.
-     *
-     * @param object {@link OWLObject}, not {@code null}
-     * @return {@link IRI}
-     */
-    public static IRI toIRI(OWLObject object) {
-        if (OntApiException.notNull(object, "Null owl-object specified.").isIRI()) return (IRI) object;
-        if (object instanceof HasIRI) {
-            return ((HasIRI) object).getIRI();
-        }
-        if (object instanceof OWLAnnotationObject) {
-            return ((OWLAnnotationObject) object).asIRI().orElseThrow(() -> new OntApiException("Not iri: " + object));
-        }
-        if (object instanceof OWLClassExpression) {
-            return toIRI((OWLClassExpression) object);
-        }
-        if (object instanceof OWLPropertyExpression) {
-            return toIRI((OWLPropertyExpression) object);
-        }
-        throw new OntApiException("Unsupported owl-object: " + object);
-    }
-
-    private static IRI toIRI(OWLClassExpression expression) {
-        HasIRI res = null;
-        if (ClassExpressionType.OWL_CLASS.equals(expression.getClassExpressionType())) {
-            res = (OWLClass) expression;
-        }
-        return OntApiException.notNull(res, "Unsupported class-expression: " + expression).getIRI();
-    }
-
-    private static IRI toIRI(OWLPropertyExpression expression) {
-        if (expression.isOWLDataProperty())
-            return expression.asOWLDataProperty().getIRI();
-        if (expression.isOWLObjectProperty())
-            return expression.asOWLObjectProperty().getIRI();
-        if (expression.isOWLAnnotationProperty()) {
-            return expression.asOWLAnnotationProperty().getIRI();
-        }
-        throw new OntApiException("Unsupported property-expression: " + expression);
     }
 
     public static Literal addLiteral(OntModel model, OWLLiteral literal) {

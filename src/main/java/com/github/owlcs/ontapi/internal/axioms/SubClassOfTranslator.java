@@ -23,6 +23,7 @@ import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
 import com.github.owlcs.ontapi.jena.model.OntClass;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
+import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.util.iterator.ExtendedIterator;
@@ -94,17 +95,12 @@ public class SubClassOfTranslator extends AbstractSimpleTranslator<OWLSubClassOf
     }
 
     @Override
-    protected Triple getSearchTriple(OWLSubClassOfAxiom axiom) {
-        if (axiom instanceof AxiomImpl) {
-            Triple res = ((AxiomImpl) axiom).asTriple();
-            return res.getSubject().isURI() && res.getObject().isURI() ? res : null;
-        }
-        OWLClassExpression left = axiom.getSubClass();
-        OWLClassExpression right = axiom.getSuperClass();
-        if (!left.isOWLClass() || !right.isOWLClass()) {
-            return null;
-        }
-        return Triple.create(WriteHelper.toNode(left.asOWLClass()), RDFS.subClassOf.asNode(), WriteHelper.toNode(right.asOWLClass()));
+    protected Triple createSearchTriple(OWLSubClassOfAxiom axiom) {
+        Node subject = WriteHelper.getNamedNode(axiom.getSubClass());
+        if (subject == null) return null;
+        Node object = WriteHelper.getNamedNode(axiom.getSuperClass());
+        if (object == null) return null;
+        return Triple.create(subject, RDFS.subClassOf.asNode(), object);
     }
 
     /**

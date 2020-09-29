@@ -22,9 +22,11 @@ import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.WriteHelper;
 import com.github.owlcs.ontapi.internal.objects.*;
 import com.github.owlcs.ontapi.jena.model.*;
+import com.github.owlcs.ontapi.jena.utils.Graphs;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.owlapi.objects.OWLAnonymousIndividualImpl;
 import org.apache.jena.graph.BlankNodeId;
+import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Statement;
@@ -110,25 +112,22 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
     @Override
     protected Collection<Triple> getSearchTriples(Axiom axiom) {
         Triple res = getSearchTriple(axiom);
-        return res == null ? Collections.emptyList() :
-                Arrays.asList(res, Triple.create(res.getObject(), res.getPredicate(), res.getSubject()));
+        return res == null ? Collections.emptyList() : Arrays.asList(res, Graphs.invertTriple(res));
     }
 
     protected Triple getSearchTriple(Axiom axiom) {
         if (axiom instanceof WithManyObjects.Simple) {
             return ((WithManyObjects.Simple<?>) axiom).asTriple();
         }
-        List<OWL> list = axiom.getOperandsAsList();
+        List<? extends OWLObject> list = axiom.getOperandsAsList();
         if (list.size() != 2) {
-            return null; // for Disjoint Objects
+            return null; // for Disjoint Objects (anonymous)
         }
-        OWL left = list.get(0);
-        OWL right = list.get(1);
-        if (left instanceof HasIRI && right instanceof HasIRI) {
-            return Triple.create(WriteHelper.toNode((HasIRI) left),
-                    getPredicate().asNode(), WriteHelper.toNode((HasIRI) right));
-        }
-        return null;
+        Node left = WriteHelper.getNamedNode(list.get(0));
+        if (left == null) return null;
+        Node right = WriteHelper.getNamedNode(list.get(1));
+        if (right == null) return null;
+        return Triple.create(left, getPredicate().asNode(), right);
     }
 
     /**
