@@ -76,7 +76,11 @@ public class WriteHelper {
     }
 
     public static Node toNode(HasIRI entity) {
-        return NodeFactory.createURI(entity.getIRI().getIRIString());
+        return toNode(entity.getIRI());
+    }
+
+    public static Node toNode(IRI iri) {
+        return NodeFactory.createURI(iri.getIRIString());
     }
 
     public static Node toBlankNode(OWLAnonymousIndividual individual) {

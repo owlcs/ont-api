@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -15,12 +15,12 @@
 package com.github.owlcs.ontapi.internal.axioms;
 
 import com.github.owlcs.ontapi.config.AxiomsSettings;
-import com.github.owlcs.ontapi.internal.AxiomTranslator;
 import com.github.owlcs.ontapi.internal.WriteHelper;
 import com.github.owlcs.ontapi.internal.objects.ONTAxiomImpl;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntProperty;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
+import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDFS;
@@ -36,8 +36,9 @@ import java.util.function.Supplier;
  * <p>
  * Created by @szuev on 30.09.2016.
  */
-public abstract class AbstractPropertyRangeTranslator<Axiom extends OWLAxiom & HasProperty<?> & HasRange<?>, P extends OntProperty>
-        extends AxiomTranslator<Axiom> {
+public abstract class AbstractPropertyRangeTranslator<Axiom extends OWLAxiom
+        & HasRange<? extends OWLObject> & HasProperty<? extends OWLPropertyExpression>,
+        P extends OntProperty> extends AbstractSimpleTranslator<Axiom> {
     @Override
     public void write(Axiom axiom, OntModel graph) {
         WriteHelper.writeTriple(graph, axiom.getProperty(), RDFS.range, axiom.getRange(), axiom.annotationsAsList());
@@ -57,6 +58,19 @@ public abstract class AbstractPropertyRangeTranslator<Axiom extends OWLAxiom & H
     @Override
     public boolean testStatement(OntStatement statement, AxiomsSettings config) {
         return RDFS.range.equals(statement.getPredicate()) && filter(statement, config);
+    }
+
+    @Override
+    Triple createSearchTriple(Axiom axiom) {
+        Node subject = WriteHelper.getNamedNode(axiom.getProperty());
+        if (subject == null) return null;
+        Node object = extractNamedObject(axiom);
+        if (object == null) return null;
+        return Triple.create(subject, RDFS.range.asNode(), object);
+    }
+
+    Node extractNamedObject(Axiom axiom) {
+        return WriteHelper.getNamedNode(axiom.getRange());
     }
 
     /**
