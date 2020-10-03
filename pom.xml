@@ -35,6 +35,7 @@
         <version.owlapi>5.1.14</version.owlapi>
         <version.slf4j>1.7.30</version.slf4j>
         <version.caffeine>2.8.5</version.caffeine>
+        <version.junit>5.7.0</version.junit>
     </properties>
 
     <licenses>
@@ -49,7 +50,7 @@
     </licenses>
 
     <organization>
-        <name>The University of Manchester, owl.cs group</name>
+        <name>owl.cs group</name>
         <url>https://github.com/owlcs/</url>
     </organization>
 
@@ -123,6 +124,24 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.12</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>${version.junit}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
+            <version>${version.junit}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.vintage</groupId>
+            <artifactId>junit-vintage-engine</artifactId>
+            <version>${version.junit}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -266,6 +285,11 @@
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.0.0-M5</version>
             </plugin>
         </plugins>
     </build>
