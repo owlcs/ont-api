@@ -16,10 +16,9 @@ package com.github.owlcs.ontapi.tests.model;
 
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.tests.ModelData;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLDataFactory;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -30,33 +29,23 @@ import java.util.Collections;
 /**
  * Created by @ssz on 22.09.2020.
  */
-@RunWith(Parameterized.class)
 public class ContainsAxiomsTest {
-    protected final ModelData data;
-
-    public ContainsAxiomsTest(ModelData data) {
-        this.data = data;
-    }
-
-    @Parameterized.Parameters(name = "{0}")
-    public static ModelData[] getData() {
-        return ModelData.values();
-    }
 
     protected OWLOntologyManager newManager() {
         return OntManagers.createManager();
     }
 
-    @Test
-    public void testContainsAxioms() {
+    @ParameterizedTest
+    @EnumSource(value = ModelData.class)
+    public void testContainsAxioms(ModelData data) {
         OWLOntologyManager m = newManager();
         OWLDataFactory df = m.getOWLDataFactory();
         OWLOntology ont = data.fetch(m);
 
         OWLAxiom ax = df.getOWLSubClassOfAxiom(df.getOWLClass("A"), df.getOWLClass("B"),
                 Collections.singletonList(df.getRDFSComment("For" + data)));
-        Assert.assertFalse(ont.containsAxiom(ax));
+        Assertions.assertFalse(ont.containsAxiom(ax));
 
-        ont.axioms().forEach(x -> Assert.assertTrue(ont.containsAxiom(x)));
+        ont.axioms().forEach(x -> Assertions.assertTrue(ont.containsAxiom(x)));
     }
 }

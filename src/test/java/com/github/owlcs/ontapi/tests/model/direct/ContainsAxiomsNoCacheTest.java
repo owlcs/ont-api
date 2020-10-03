@@ -20,8 +20,9 @@ import com.github.owlcs.ontapi.config.CacheSettings;
 import com.github.owlcs.ontapi.config.OntConfig;
 import com.github.owlcs.ontapi.tests.ModelData;
 import com.github.owlcs.ontapi.tests.model.ContainsAxiomsTest;
-import org.junit.Assert;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 /**
@@ -30,22 +31,17 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
  */
 public class ContainsAxiomsNoCacheTest extends ContainsAxiomsTest {
 
-    public ContainsAxiomsNoCacheTest(ModelData data) {
-        super(data);
-    }
-
-    @Parameterized.Parameters(name = "{0}")
-    public static ModelData[] getData() {
-        return new ModelData[]{ModelData.PIZZA, ModelData.FAMILY, ModelData.CAMERA, ModelData.TRAVEL};
-    }
-
     @Override
     protected OWLOntologyManager newManager() {
         OntologyManager m = OntManagers.createManager();
-        OntConfig conf = m.getOntologyConfigurator()
-                .setModelCacheLevel(CacheSettings.CACHE_CONTENT, false);
-        Assert.assertFalse(conf.useContentCache());
+        OntConfig conf = m.getOntologyConfigurator().setModelCacheLevel(CacheSettings.CACHE_CONTENT, false);
+        Assertions.assertFalse(conf.useContentCache());
         return m;
+    }
 
+    @ParameterizedTest
+    @EnumSource(value = ModelData.class, names = {"PIZZA", "FAMILY", "CAMERA", "TRAVEL"})
+    public void testContainsAxioms(ModelData data) {
+        super.testContainsAxioms(data);
     }
 }
