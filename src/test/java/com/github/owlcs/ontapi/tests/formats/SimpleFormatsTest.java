@@ -19,12 +19,10 @@ import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.utils.OntIRI;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
-import org.hamcrest.core.IsEqual;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.slf4j.Logger;
@@ -43,24 +41,17 @@ import java.util.stream.Stream;
  * <p>
  * Created by szuev on 20.12.2016.
  */
-@RunWith(Parameterized.class)
 public class SimpleFormatsTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(SimpleFormatsTest.class);
-    private final OntFormat format;
     private static final String fileName = "test2";
     private static List<OWLAxiom> expected;
 
-    public SimpleFormatsTest(OntFormat format) {
-        this.format = format;
-    }
-
-    @Parameterized.Parameters(name = "{0}")
     public static List<OntFormat> getData() {
         //return OntFormat.owlOnly().collect(Collectors.toList());
         return Arrays.asList(OntFormat.OWL_XML, OntFormat.MANCHESTER_SYNTAX, OntFormat.FUNCTIONAL_SYNTAX, OntFormat.OBO);
     }
 
-    @BeforeClass
+    @BeforeAll
     public static void before() {
         OWLDataFactory factory = OntManagers.getDataFactory();
 
@@ -80,8 +71,9 @@ public class SimpleFormatsTest {
                 factory.getOWLDataPropertyRangeAxiom(ndp, dt)).sorted().collect(Collectors.toList());
     }
 
-    @Test
-    public void test() {
+    @ParameterizedTest
+    @MethodSource("getData")
+    public void testFormat(OntFormat format) {
         IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI("ontapi", fileName + "." + format.getExt()));
         LOGGER.debug("Load ontology {}. Format: {}", fileIRI, format);
         Ontology o;
@@ -104,7 +96,7 @@ public class SimpleFormatsTest {
                     return true;
                 })
                 .sorted().collect(Collectors.toList());
-        Assert.assertThat("[" + format + "] Incorrect list of axioms (expected=" + expected.size() +
-                ",actual=" + actual.size() + ")", actual, IsEqual.equalTo(expected));
+        Assertions.assertEquals(expected, actual,
+                String.format("[%s] Incorrect list of axioms (expected=%d,actual=%d)", format, expected.size(), actual.size()));
     }
 }

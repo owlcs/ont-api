@@ -20,9 +20,7 @@ import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
-import org.junit.Assert;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.*;
 
 import java.util.Collections;
@@ -33,14 +31,8 @@ import java.util.stream.Collectors;
  * Created by @ssz on 03.09.2019.
  */
 @SuppressWarnings("WeakerAccess")
-@RunWith(Parameterized.class)
 public class CommonAxiomsTest extends StatementTestBase {
 
-    public CommonAxiomsTest(Data data) {
-        super(data);
-    }
-
-    @Parameterized.Parameters(name = "{0}")
     public static List<AxiomData> getData() {
         return getAxiomData(
                 AxiomType.SUBCLASS_OF
@@ -96,7 +88,7 @@ public class CommonAxiomsTest extends StatementTestBase {
         o.clearCache();
         ReadWriteUtils.print(o);
         OWLAxiom res = o.axioms().filter(ont::equals).findFirst().orElseThrow(AssertionError::new);
-        Assert.assertTrue(res instanceof ONTObject);
+        Assertions.assertTrue(res instanceof ONTObject);
         return res;
     }
 
@@ -105,7 +97,7 @@ public class CommonAxiomsTest extends StatementTestBase {
     }
 
     @Override
-    OWLObject fromModel() {
+    OWLObject fromModel(Data data) {
         OntologyManager m = OntManagers.createManager();
         DataFactory df = m.getOWLDataFactory();
         OWLAxiom ont = (OWLAxiom) data.create(df);
@@ -113,43 +105,43 @@ public class CommonAxiomsTest extends StatementTestBase {
     }
 
     @Override
-    void testEraseModel(OWLObject sample, OWLObject actual) {
-        super.testEraseModel(sample, actual);
+    void testEraseModel(Data data, OWLObject sample, OWLObject actual) {
+        super.testEraseModel(data, sample, actual);
 
         LOGGER.debug("test NNF for '{}'", data);
         OWLAxiom expectedNNF = ((OWLAxiom) sample).getNNF();
         OWLAxiom actualNNF = ((OWLAxiom) actual).getNNF();
-        Assert.assertEquals(expectedNNF, actualNNF);
+        Assertions.assertEquals(expectedNNF, actualNNF);
         testObjectHasNoModelReference(actualNNF);
 
         LOGGER.debug("Test axiom without annotation for '{}'", data);
         OWLAxiom expectedNoAnnotations = ((OWLAxiom) sample).getAxiomWithoutAnnotations();
         OWLAxiom actualNoAnnotations = ((OWLAxiom) actual).getAxiomWithoutAnnotations();
-        Assert.assertEquals(expectedNoAnnotations, actualNoAnnotations);
+        Assertions.assertEquals(expectedNoAnnotations, actualNoAnnotations);
         testObjectHasNoModelReference(actualNoAnnotations);
 
         LOGGER.debug("Test axiom with annotation for '{}'", data);
         OWLAxiom expectedWithAnnotation = createWithAnnotation((OWLAxiom) sample, OWL_DATA_FACTORY);
         OWLAxiom actualWithAnnotation = createWithAnnotation((OWLAxiom) actual, ONT_DATA_FACTORY);
-        Assert.assertEquals(expectedWithAnnotation, actualWithAnnotation);
+        Assertions.assertEquals(expectedWithAnnotation, actualWithAnnotation);
         testObjectHasNoModelReference(actualWithAnnotation);
     }
 
     @Override
-    void testComponents(OWLObject expected, OWLObject actual) {
+    void testComponents(Data data, OWLObject expected, OWLObject actual) {
         LOGGER.debug("Test annotations for '{}'", data);
         OWLAxiom owl = (OWLAxiom) expected;
         OWLAxiom ont = (OWLAxiom) actual;
         validate(owl, ont, "annotations", HasAnnotations::annotations);
-        super.testComponents(owl, ont);
+        super.testComponents(data, owl, ont);
     }
 
     @Override
-    void testBooleanProperties(OWLObject expected, OWLObject actual) {
+    void testBooleanProperties(Data data, OWLObject expected, OWLObject actual) {
         LOGGER.debug("Test isAnnotated for '{}'", data);
         OWLAxiom owl = (OWLAxiom) expected;
         OWLAxiom ont = (OWLAxiom) actual;
-        Assert.assertEquals(owl.isAnnotated(), ont.isAnnotated());
-        super.testBooleanProperties(owl, ont);
+        Assertions.assertEquals(owl.isAnnotated(), ont.isAnnotated());
+        super.testBooleanProperties(data, owl, ont);
     }
 }

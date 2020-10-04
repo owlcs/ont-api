@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -16,7 +16,7 @@ package com.github.owlcs.ontapi.tests.internal;
 
 import com.github.owlcs.ontapi.internal.InternalCache;
 import com.github.owlcs.ontapi.internal.objects.WithContent;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.OWLObject;
 
 import java.lang.reflect.Field;
@@ -31,28 +31,25 @@ import java.util.Set;
  */
 abstract class ContentTestBase extends ObjectFactoryTestBase {
 
-    ContentTestBase(Data data) {
-        super(data);
-    }
-
-    void testContent(OWLObject sample, OWLObject test) {
+    @Override
+    void testContent(Data data, OWLObject sample, OWLObject test) {
         LOGGER.debug("Test content {}", data);
-        testInternalCacheReset(sample, test);
+        testInternalCacheReset(data, sample, test);
     }
 
     @SuppressWarnings("rawtypes")
-    private void testInternalCacheReset(OWLObject sample, OWLObject instance) {
-        Assert.assertTrue(instance instanceof WithContent);
+    private void testInternalCacheReset(Data data, OWLObject sample, OWLObject instance) {
+        Assertions.assertTrue(instance instanceof WithContent);
         WithContent wc = (WithContent) instance;
         InternalCache.Loading cache = getContentCache(instance);
-        Assert.assertFalse(cache.isEmpty());
-        Assert.assertTrue(wc.hasContent());
+        Assertions.assertFalse(cache.isEmpty());
+        Assertions.assertTrue(wc.hasContent());
         wc.clearContent();
-        Assert.assertTrue(cache.isEmpty());
-        Assert.assertFalse(wc.hasContent());
-        testCompare(sample, instance);
-        Assert.assertTrue(wc.hasContent());
-        testComponents(sample, instance);
+        Assertions.assertTrue(cache.isEmpty());
+        Assertions.assertFalse(wc.hasContent());
+        testCompare(data, sample, instance);
+        Assertions.assertTrue(wc.hasContent());
+        testComponents(data, sample, instance);
     }
 
     private static InternalCache.Loading<?, ?> getContentCache(OWLObject inst) {

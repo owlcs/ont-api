@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,10 +14,10 @@
 
 package com.github.owlcs.ontapi.tests.internal;
 
-import org.junit.Assert;
-import org.semanticweb.owlapi.model.OWLObject;
 import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
 import com.github.owlcs.ontapi.internal.objects.WithContent;
+import org.junit.jupiter.api.Assertions;
+import org.semanticweb.owlapi.model.OWLObject;
 
 /**
  * Created by @ssz on 14.09.2019.
@@ -25,18 +25,12 @@ import com.github.owlcs.ontapi.internal.objects.WithContent;
  * @see ONTStatementImpl
  */
 abstract class StatementTestBase extends ContentTestBase {
-
-    StatementTestBase(Data data) {
-        super(data);
-    }
-
     @Override
-    void testContent(OWLObject sample, OWLObject test) {
+    void testContent(Data data, OWLObject sample, OWLObject test) {
         if (test instanceof WithContent) {
-            super.testContent(sample, test);
+            super.testContent(data, sample, test);
         } else {
-            Assert.assertFalse(((ONTStatementImpl) test).isAnnotated());
+            Assertions.assertFalse(((ONTStatementImpl) test).isAnnotated());
         }
     }
-
 }

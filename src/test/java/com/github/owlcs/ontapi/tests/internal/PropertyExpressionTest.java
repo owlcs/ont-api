@@ -19,9 +19,7 @@ import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.internal.ONTObject;
-import org.junit.Assert;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectInverseOf;
@@ -33,22 +31,14 @@ import java.util.stream.Collectors;
 /**
  * Created by @ssz on 19.08.2019.
  */
-@RunWith(Parameterized.class)
 public class PropertyExpressionTest extends ContentTestBase {
 
-    public PropertyExpressionTest(Data data) {
-        super(data);
-    }
-
-    @Parameterized.Parameters(name = "{0}")
     public static List<Data> getData() {
-        return getObjects().stream()
-                .filter(Data::isAnonymousProperty)
-                .collect(Collectors.toList());
+        return getObjects().stream().filter(Data::isAnonymousProperty).collect(Collectors.toList());
     }
 
     @Override
-    OWLObject fromModel() {
+    OWLObject fromModel(Data data) {
         OntologyManager m = OntManagers.createManager();
         DataFactory df = m.getOWLDataFactory();
 
@@ -58,9 +48,8 @@ public class PropertyExpressionTest extends ContentTestBase {
         o.add(df.getOWLSubObjectPropertyOfAxiom(df.getOWLObjectProperty("P"), ont));
         o.clearCache();
         OWLObjectPropertyExpression res = o.axioms(AxiomType.SUB_OBJECT_PROPERTY)
-                .findFirst().orElseThrow(AssertionError::new)
-                .getSuperProperty();
-        Assert.assertTrue(res instanceof ONTObject);
+                .findFirst().orElseThrow(AssertionError::new).getSuperProperty();
+        Assertions.assertTrue(res instanceof ONTObject);
         return res;
     }
 

@@ -27,10 +27,9 @@ import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.vocabulary.XSD;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,20 +45,8 @@ import java.util.function.Consumer;
  * To test {@link com.github.owlcs.ontapi.internal.WithMerge#merge(ONTObject)}
  * Created by @ssz on 16.11.2019.
  */
-@RunWith(Parameterized.class)
 public class ONTObjectMergeTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(ONTObjectMergeTest.class);
-
-    private final Data data;
-
-    public ONTObjectMergeTest(Data data) {
-        this.data = data;
-    }
-
-    @Parameterized.Parameters(name = "{0}")
-    public static Data[] getData() {
-        return Data.values();
-    }
 
     private static <ONT extends OntObject, OWL extends OWLNaryAxiom<?>> void test(BiFunction<OntModel, String, ONT> addDeclaration,
                                                                                   BiConsumer<ONT, ONT> addAxioms,
@@ -103,16 +90,16 @@ public class ONTObjectMergeTest {
         contentMaker.accept(g);
         ReadWriteUtils.print(g);
 
-        Assert.assertEquals(initModelSize, g.size());
+        Assertions.assertEquals(initModelSize, g.size());
 
-        Assert.assertEquals(initAxiomsSize, o.axioms().peek(a -> LOGGER.debug("Axiom: {}", a)).count());
+        Assertions.assertEquals(initAxiomsSize, o.axioms().peek(a -> LOGGER.debug("Axiom: {}", a)).count());
         OWL a = o.axioms(type).findFirst().orElseThrow(AssertionError::new);
 
         o.remove(a);
         ReadWriteUtils.print(g);
 
-        Assert.assertEquals(initAxiomsSize - 1, o.axioms().count());
-        Assert.assertEquals(afterRemoveModelSize, g.size());
+        Assertions.assertEquals(initAxiomsSize - 1, o.axioms().count());
+        Assertions.assertEquals(afterRemoveModelSize, g.size());
     }
 
     private static OntObjectProperty createInverse(OntObjectProperty.Named p) {
@@ -120,8 +107,9 @@ public class ONTObjectMergeTest {
                 .addProperty(OWL.inverseOf, p).as(OntObjectProperty.class);
     }
 
-    @Test
-    public void testMerge() {
+    @ParameterizedTest
+    @EnumSource(value = Data.class)
+    public void testMerge(Data data) {
         data.doTest();
     }
 
@@ -140,7 +128,7 @@ public class ONTObjectMergeTest {
 
                 // in OWL-view must be one (merged) annotation:
                 List<OWLAnnotation> owl = o.annotationsAsList();
-                Assert.assertEquals(1, owl.size());
+                Assertions.assertEquals(1, owl.size());
 
                 @SuppressWarnings("unchecked")
                 ONTObject<OWLAnnotation> ont = (ONTObject<OWLAnnotation>) owl.get(0);
@@ -148,7 +136,7 @@ public class ONTObjectMergeTest {
                 ReadWriteUtils.print(res);
 
                 m.applyChange(new RemoveOntologyAnnotation(o, ont.getOWLObject()));
-                Assert.assertEquals(1, g.size());
+                Assertions.assertEquals(1, g.size());
             }
         },
 
@@ -165,33 +153,33 @@ public class ONTObjectMergeTest {
                 x.addEquivalentClass(y.addEquivalentClass(x)).addEquivalentClass(z);
                 ReadWriteUtils.print(g);
 
-                Assert.assertEquals(5, o.axioms().count());
+                Assertions.assertEquals(5, o.axioms().count());
 
                 DataFactory df = m.getOWLDataFactory();
                 OWLEquivalentClassesAxiom xz = o.axioms(AxiomType.EQUIVALENT_CLASSES)
                         .filter(a -> a.contains(df.getOWLClass(z.getURI()))).findFirst().orElseThrow(AssertionError::new);
                 OWLEquivalentClassesAxiom xy = o.axioms(AxiomType.EQUIVALENT_CLASSES)
                         .filter(a -> a.contains(df.getOWLClass(y.getURI()))).findFirst().orElseThrow(AssertionError::new);
-                Assert.assertTrue(xy.containsEntityInSignature(df.getOWLClass(x.getURI())));
+                Assertions.assertTrue(xy.containsEntityInSignature(df.getOWLClass(x.getURI())));
 
                 @SuppressWarnings("unchecked")
                 ONTObject<OWLEquivalentClassesAxiom> xzOnt = (ONTObject<OWLEquivalentClassesAxiom>) xz;
                 @SuppressWarnings("unchecked")
                 ONTObject<OWLEquivalentClassesAxiom> xyOnt = (ONTObject<OWLEquivalentClassesAxiom>) xy;
 
-                Assert.assertEquals(3, xzOnt.triples().count());
+                Assertions.assertEquals(3, xzOnt.triples().count());
 
                 // can't test carefully, since no method to get value (merged axiom), only keys are available:
-                Assert.assertEquals(3, xyOnt.triples().count());
+                Assertions.assertEquals(3, xyOnt.triples().count());
                 // but can delete axiom with all its triples
                 o.remove(xyOnt.getOWLObject());
 
                 ReadWriteUtils.print(g);
-                Assert.assertEquals(4, o.axioms().count());
-                Assert.assertEquals(1, o.axioms(AxiomType.EQUIVALENT_CLASSES).count());
+                Assertions.assertEquals(4, o.axioms().count());
+                Assertions.assertEquals(1, o.axioms(AxiomType.EQUIVALENT_CLASSES).count());
                 // header + "<X> owl:equivalentClass <Z>" + 3 declarations
-                Assert.assertEquals(5, g.size());
-                Assert.assertEquals(1, g.statements(null, OWL.equivalentClass, null).count());
+                Assertions.assertEquals(5, g.size());
+                Assertions.assertEquals(1, g.statements(null, OWL.equivalentClass, null).count());
             }
         },
 
@@ -248,21 +236,21 @@ public class ONTObjectMergeTest {
                 // 4 triples
                 op.addNegativeAssertion(i1, i2);
                 ReadWriteUtils.print(g);
-                Assert.assertEquals(29, g.size());
+                Assertions.assertEquals(29, g.size());
 
-                Assert.assertEquals(2, o.axioms(AxiomType.NEGATIVE_OBJECT_PROPERTY_ASSERTION).count());
+                Assertions.assertEquals(2, o.axioms(AxiomType.NEGATIVE_OBJECT_PROPERTY_ASSERTION).count());
                 OWLAxiom a1 = o.axioms(AxiomType.NEGATIVE_OBJECT_PROPERTY_ASSERTION).filter(x -> !x.isAnnotated())
                         .findFirst().orElseThrow(AssertionError::new);
                 OWLAxiom a2 = o.axioms(AxiomType.NEGATIVE_OBJECT_PROPERTY_ASSERTION).filter(OWLAxiom::isAnnotated)
                         .findFirst().orElseThrow(AssertionError::new);
                 // 4 from OntNPA + 3 declarations
-                Assert.assertEquals(7, ((ONTObject<?>) a1).triples().count());
+                Assertions.assertEquals(7, ((ONTObject<?>) a1).triples().count());
 
                 o.remove(a2);
-                Assert.assertEquals(9, g.size());
+                Assertions.assertEquals(9, g.size());
 
                 o.remove(a1);
-                Assert.assertEquals(5, g.size());
+                Assertions.assertEquals(5, g.size());
             }
         },
 
@@ -519,7 +507,7 @@ public class ONTObjectMergeTest {
         ;
 
         void doTest() {
-            Assert.fail("Not supported");
+            Assertions.fail("Not supported");
         }
     }
 }

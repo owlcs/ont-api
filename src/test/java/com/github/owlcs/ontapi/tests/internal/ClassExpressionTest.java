@@ -19,9 +19,7 @@ import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.internal.ONTObject;
-import org.junit.Assert;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLObject;
@@ -32,18 +30,10 @@ import java.util.stream.Collectors;
 /**
  * Created by @ssz on 13.08.2019.
  */
-@RunWith(Parameterized.class)
 public class ClassExpressionTest extends ContentTestBase {
 
-    public ClassExpressionTest(Data data) {
-        super(data);
-    }
-
-    @Parameterized.Parameters(name = "{0}")
     public static List<Data> getData() {
-        return getObjects().stream()
-                .filter(Data::isAnonymousClassExpression)
-                .collect(Collectors.toList());
+        return getObjects().stream().filter(Data::isAnonymousClassExpression).collect(Collectors.toList());
     }
 
     static OWLObject createONTObject(OWLClassExpression ont) {
@@ -54,35 +44,35 @@ public class ClassExpressionTest extends ContentTestBase {
         o.clearCache();
         OWLClassExpression res = o.axioms(AxiomType.SUBCLASS_OF).findFirst().orElseThrow(AssertionError::new)
                 .getSuperClass();
-        Assert.assertTrue(res instanceof ONTObject);
+        Assertions.assertTrue(res instanceof ONTObject);
         return res;
     }
 
     @Override
-    OWLObject fromModel() {
+    OWLObject fromModel(Data data) {
         return createONTObject((OWLClassExpression) data.create(ONT_DATA_FACTORY));
     }
 
     @Override
-    void testEraseModel(OWLObject sample, OWLObject actual) {
-        super.testEraseModel(sample, actual);
+    void testEraseModel(Data data, OWLObject sample, OWLObject actual) {
+        super.testEraseModel(data, sample, actual);
 
         LOGGER.debug("test NNF for '{}'", data);
         OWLClassExpression expectedNNF = ((OWLClassExpression) sample).getNNF();
         OWLClassExpression actualNNF = ((OWLClassExpression) actual).getNNF();
-        Assert.assertEquals(expectedNNF, actualNNF);
+        Assertions.assertEquals(expectedNNF, actualNNF);
         testObjectHasNoModelReference(actualNNF);
 
         LOGGER.debug("Test ObjectComplementOf for '{}'", data);
         OWLClassExpression expectedObjectComplementOf = ((OWLClassExpression) sample).getObjectComplementOf();
         OWLClassExpression actualObjectComplementOf = ((OWLClassExpression) actual).getObjectComplementOf();
-        Assert.assertEquals(expectedObjectComplementOf, actualObjectComplementOf);
+        Assertions.assertEquals(expectedObjectComplementOf, actualObjectComplementOf);
         testObjectHasNoModelReference(actualObjectComplementOf);
 
         LOGGER.debug("Test ComplementNNF for '{}'", data);
         OWLClassExpression expectedComplementNNF = ((OWLClassExpression) sample).getComplementNNF();
         OWLClassExpression actualComplementNNF = ((OWLClassExpression) actual).getComplementNNF();
-        Assert.assertEquals(expectedComplementNNF, actualComplementNNF);
+        Assertions.assertEquals(expectedComplementNNF, actualComplementNNF);
         testObjectHasNoModelReference(actualComplementNNF);
     }
 

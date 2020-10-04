@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -16,17 +16,15 @@ package com.github.owlcs.ontapi.tests;
 
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.OntManagers;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.semanticweb.owlapi.model.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.List;
 
 /**
  * Test for {@link DataFactory ONT-API Data Factory} functionality.
@@ -36,39 +34,34 @@ import java.util.List;
  *
  * @see <a href='https://github.com/owlcs/owlapi/blob/version5/contract/src/test/java/org/semanticweb/owlapi/api/test/OWLDataFactoryImplTestCase.java'>org.semanticweb.owlapi.api.test.OWLDataFactoryImplTestCase</a>
  */
-@RunWith(Parameterized.class)
 public class DataFactoryTest extends TestFactory {
     private static final OWLDataFactory OWL_DATA_FACTORY = OntManagers.createOWLProfile().dataFactory();
     private static final DataFactory ONT_DATA_FACTORY = OntManagers.getDataFactory();
 
-    private final Data data;
-
-    public DataFactoryTest(Data data) {
-        this.data = data;
-    }
-
-    @Test
-    public void testCreateAndValidate() {
+    @ParameterizedTest
+    @MethodSource("getObjects")
+    public void testCreateAndValidate(Data data) {
         Class<? extends OWLObject> implType = data.getSuperImplClassType();
         OWLObject owl = data.create(OWL_DATA_FACTORY);
-        Assert.assertFalse(implType.isInstance(owl));
+        Assertions.assertFalse(implType.isInstance(owl));
         OWLObject ont1 = data.create(ONT_DATA_FACTORY);
-        Assert.assertTrue(implType.isInstance(ont1));
+        Assertions.assertTrue(implType.isInstance(ont1));
         data.testCompare(owl, ont1);
         OWLObject ont2 = data.create(ONT_DATA_FACTORY);
         if (data.shouldBeSame()) {
-            Assert.assertSame(ont1, ont2);
+            Assertions.assertSame(ont1, ont2);
             return;
         }
         data.testCompare(ont1, ont2);
     }
 
-    @Test
-    public void testBooleanProperties() {
+    @ParameterizedTest
+    @MethodSource("getObjects")
+    public void testBooleanProperties(Data data) {
         OWLObject test = data.create(ONT_DATA_FACTORY);
         OWLObject sample = data.create(OWL_DATA_FACTORY);
-        checkBooleanProperties(sample);
-        checkBooleanProperties(test);
+        checkBooleanProperties(data, sample);
+        checkBooleanProperties(data, test);
 
         // NOTE: sometimes the properties below are contrary to common sense
         // (for example, OWLLiteral and SWRLVariable are anonymous),
@@ -85,61 +78,63 @@ public class DataFactoryTest extends TestFactory {
         final boolean expectedBottomEntity = sample.isBottomEntity();
         final boolean expectedTopEntity = sample.isTopEntity();
 
-        Assert.assertEquals("'" + test + "'#isAnonymous() must be " + expectedAnonymous,
-                expectedAnonymous, test.isAnonymous());
-        Assert.assertEquals("'" + test + "'#isNamed() must be " + expectedNamed, expectedNamed, test.isNamed());
+        Assertions.assertEquals(expectedAnonymous, test.isAnonymous(),
+                "'" + test + "'#isAnonymous() must be " + expectedAnonymous);
+        Assertions.assertEquals(expectedNamed, test.isNamed(), "'" + test + "'#isNamed() must be " + expectedNamed);
 
-        Assert.assertEquals("'" + test + "'#isIndividual() must be " + expectedIndividual,
-                expectedIndividual, test.isIndividual());
-        Assert.assertEquals("'" + test + "'#isAxiom() must be " + expectedAxiom, expectedAxiom, test.isAxiom());
+        Assertions.assertEquals(expectedIndividual, test.isIndividual(),
+                "'" + test + "'#isIndividual() must be " + expectedIndividual);
+        Assertions.assertEquals(expectedAxiom, test.isAxiom(),
+                "'" + test + "'#isAxiom() must be " + expectedAxiom);
 
-        Assert.assertEquals("'" + test + "'#isAnonymousExpression() must be " + expectedAnonymousExpression,
-                expectedAnonymousExpression, test.isAnonymousExpression());
+        Assertions.assertEquals(expectedAnonymousExpression, test.isAnonymousExpression(),
+                "'" + test + "'#isAnonymousExpression() must be " + expectedAnonymousExpression);
 
-        Assert.assertFalse("'" + test + "' must not be IRI", test.isIRI());
-        Assert.assertFalse("'" + test + "' must not be Ontology", test.isOntology());
+        Assertions.assertFalse(test.isIRI(), "'" + test + "' must not be IRI");
+        Assertions.assertFalse(test.isOntology(), "'" + test + "' must not be Ontology");
 
-        Assert.assertEquals("'" + test + "'#isBottomEntity() must be " + expectedBottomEntity,
-                expectedBottomEntity, test.isBottomEntity());
-        Assert.assertEquals("'" + test + "'#isTopEntity() must be " + expectedTopEntity,
-                expectedTopEntity, test.isTopEntity());
+        Assertions.assertEquals(expectedBottomEntity, test.isBottomEntity(),
+                "'" + test + "'#isBottomEntity() must be " + expectedBottomEntity);
+        Assertions.assertEquals(expectedTopEntity, test.isTopEntity(),
+                "'" + test + "'#isTopEntity() must be " + expectedTopEntity);
     }
 
-    private void checkBooleanProperties(OWLObject object) {
+    private void checkBooleanProperties(Data data, OWLObject object) {
         if (data.isEntity()) {
-            Assert.assertTrue(object instanceof OWLEntity);
-            Assert.assertEquals(data.shouldBeSame(), ((OWLEntity) object).isBuiltIn());
+            Assertions.assertTrue(object instanceof OWLEntity);
+            Assertions.assertEquals(data.shouldBeSame(), ((OWLEntity) object).isBuiltIn());
         } else {
-            Assert.assertFalse(object instanceof OWLEntity);
+            Assertions.assertFalse(object instanceof OWLEntity);
         }
         if (data.isAxiom()) {
-            Assert.assertTrue(object instanceof OWLAxiom);
-            Assert.assertEquals(((AxiomData) data).getType(), ((OWLAxiom) object).getAxiomType());
+            Assertions.assertTrue(object instanceof OWLAxiom);
+            Assertions.assertEquals(((AxiomData) data).getType(), ((OWLAxiom) object).getAxiomType());
         } else {
-            Assert.assertFalse(object instanceof OWLAxiom);
+            Assertions.assertFalse(object instanceof OWLAxiom);
         }
-        Assert.assertEquals(data.isClass(), object instanceof OWLClass);
-        Assert.assertEquals(data.isDatatype(), object instanceof OWLDatatype);
-        Assert.assertEquals(data.isAnnotationProperty(), object instanceof OWLAnnotationProperty);
-        Assert.assertEquals(data.isObjectProperty(), object instanceof OWLObjectProperty);
-        Assert.assertEquals(data.isDatatypeProperty(), object instanceof OWLDataProperty);
-        Assert.assertEquals(data.isIndividual(), object instanceof OWLIndividual);
-        Assert.assertEquals(data.isAnonymousIndividual(), object instanceof OWLAnonymousIndividual);
-        Assert.assertEquals(data.isAnonymousDataRange(),
+        Assertions.assertEquals(data.isClass(), object instanceof OWLClass);
+        Assertions.assertEquals(data.isDatatype(), object instanceof OWLDatatype);
+        Assertions.assertEquals(data.isAnnotationProperty(), object instanceof OWLAnnotationProperty);
+        Assertions.assertEquals(data.isObjectProperty(), object instanceof OWLObjectProperty);
+        Assertions.assertEquals(data.isDatatypeProperty(), object instanceof OWLDataProperty);
+        Assertions.assertEquals(data.isIndividual(), object instanceof OWLIndividual);
+        Assertions.assertEquals(data.isAnonymousIndividual(), object instanceof OWLAnonymousIndividual);
+        Assertions.assertEquals(data.isAnonymousDataRange(),
                 !(object instanceof OWLDatatype) && object instanceof OWLDataRange);
-        Assert.assertEquals(data.isAnonymousClassExpression(),
+        Assertions.assertEquals(data.isAnonymousClassExpression(),
                 !(object instanceof OWLClass) && object instanceof OWLClassExpression);
-        Assert.assertEquals(data.isLiteral(), object instanceof OWLLiteral);
-        Assert.assertEquals(data.isOWLAnnotation(), object instanceof OWLAnnotation);
-        Assert.assertEquals(data.isFacetRestriction(), object instanceof OWLFacetRestriction);
-        Assert.assertEquals(data.isSWRLVariable(), object instanceof SWRLVariable);
-        Assert.assertEquals(data.isSWRLIndividual(), object instanceof SWRLIndividualArgument);
-        Assert.assertEquals(data.isSWRLLiteral(), object instanceof SWRLLiteralArgument);
-        Assert.assertEquals(data.isSWRLAtom(), object instanceof SWRLAtom);
+        Assertions.assertEquals(data.isLiteral(), object instanceof OWLLiteral);
+        Assertions.assertEquals(data.isOWLAnnotation(), object instanceof OWLAnnotation);
+        Assertions.assertEquals(data.isFacetRestriction(), object instanceof OWLFacetRestriction);
+        Assertions.assertEquals(data.isSWRLVariable(), object instanceof SWRLVariable);
+        Assertions.assertEquals(data.isSWRLIndividual(), object instanceof SWRLIndividualArgument);
+        Assertions.assertEquals(data.isSWRLLiteral(), object instanceof SWRLLiteralArgument);
+        Assertions.assertEquals(data.isSWRLAtom(), object instanceof SWRLAtom);
     }
 
-    @Test
-    public void testSerialization() throws Exception {
+    @ParameterizedTest
+    @MethodSource("getObjects")
+    public void testSerialization(Data data) throws Exception {
         OWLObject object = data.create(ONT_DATA_FACTORY);
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         ObjectOutputStream stream = new ObjectOutputStream(out);
@@ -150,11 +145,6 @@ public class DataFactoryTest extends TestFactory {
         ObjectInputStream inStream = new ObjectInputStream(in);
         OWLObject copy = (OWLObject) inStream.readObject();
         data.testCompare(object, copy);
-    }
-
-    @Parameterized.Parameters(name = "{0}")
-    public static List<Data> getData() {
-        return getObjects();
     }
 
 }

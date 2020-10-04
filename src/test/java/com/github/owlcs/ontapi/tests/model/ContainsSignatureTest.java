@@ -21,10 +21,9 @@ import com.github.owlcs.ontapi.tests.ModelData;
 import com.github.owlcs.ontapi.utils.OWLEntityUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.jena.rdf.model.Resource;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.semanticweb.owlapi.model.*;
 
 import java.util.HashMap;
@@ -33,78 +32,7 @@ import java.util.Map;
 /**
  * Created by @ssz on 01.05.2020.
  */
-@RunWith(Parameterized.class)
 public class ContainsSignatureTest {
-
-    protected final ModelData data;
-
-    public ContainsSignatureTest(ModelData data) {
-        this.data = data;
-    }
-
-    @Parameterized.Parameters(name = "{0}")
-    public static ModelData[] getData() {
-        return ModelData.values();
-    }
-
-    @Test
-    public void testContainsClasses() {
-        testContains(OWLClass.class);
-    }
-
-    @Test
-    public void testContainsDatatypes() {
-        if (data == ModelData.FOOD) { // see https://github.com/owlcs/owlapi/issues/928
-            Map<String, Boolean> data = new HashMap<>();
-            data.put(XSD.xstring.getURI(), Boolean.TRUE);
-            data.put(XSD.nonNegativeInteger.getURI(), Boolean.FALSE);
-            testContains(OWLDatatype.class, data);
-            return;
-        }
-        testContains(OWLDatatype.class);
-    }
-
-    @Test
-    public void testContainsNamedIndividuals() {
-        testContains(OWLNamedIndividual.class);
-    }
-
-    @Test
-    public void testContainsObjectProperty() {
-        testContains(OWLObjectProperty.class);
-    }
-
-    @Test
-    public void testContainsAnnotationProperty() {
-        testContains(OWLAnnotationProperty.class);
-    }
-
-    @Test
-    public void testContainsDataProperty() {
-        testContains(OWLDataProperty.class);
-    }
-
-    protected OWLOntologyManager newManager() {
-        return OntManagers.createManager();
-    }
-
-    protected void testContains(Class<? extends OWLEntity> type) {
-        testContains(type, createTestEntities(data, type));
-    }
-
-    protected void testContains(Class<? extends OWLEntity> type, Map<String, Boolean> entities) {
-        OWLOntology o = data.fetch(newManager());
-        testContains(o, type, entities);
-    }
-
-    protected void testContains(OWLOntology o, Class<? extends OWLEntity> type, Map<String, Boolean> entities) {
-        OWLDataFactory df = o.getOWLOntologyManager().getOWLDataFactory();
-        entities.forEach((s, v) -> {
-            EntityType<?> t = OWLEntityUtils.getEntityType(type);
-            OWLEntity e = df.getOWLEntity(t, IRI.create(s));
-            Assert.assertEquals("Test " + t + " ::: " + e, v, o.containsEntityInSignature(e));
-        });
-    }
 
     protected static Map<String, Boolean> createTestEntities(ModelData data, Class<? extends OWLEntity> type) {
         return createTestEntities(data.fetch(OntManagers.createOWLAPIImplManager()), type);
@@ -122,5 +50,70 @@ public class ContainsSignatureTest {
         Map<String, Boolean> res = new HashMap<>();
         OWLEntityUtils.signature(o, type).forEach(x -> res.put(x.getIRI().getIRIString(), Boolean.TRUE));
         return res;
+    }
+
+    protected OWLOntologyManager newManager() {
+        return OntManagers.createManager();
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = ModelData.class)
+    public void testContainsClasses(ModelData data) {
+        testContains(data, OWLClass.class);
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = ModelData.class)
+    public void testContainsDatatypes(ModelData data) {
+        if (data == ModelData.FOOD) { // see https://github.com/owlcs/owlapi/issues/928
+            Map<String, Boolean> d = new HashMap<>();
+            d.put(XSD.xstring.getURI(), Boolean.TRUE);
+            d.put(XSD.nonNegativeInteger.getURI(), Boolean.FALSE);
+            testContains(data, OWLDatatype.class, d);
+            return;
+        }
+        testContains(data, OWLDatatype.class);
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = ModelData.class)
+    public void testContainsNamedIndividuals(ModelData data) {
+        testContains(data, OWLNamedIndividual.class);
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = ModelData.class)
+    public void testContainsObjectProperty(ModelData data) {
+        testContains(data, OWLObjectProperty.class);
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = ModelData.class)
+    public void testContainsAnnotationProperty(ModelData data) {
+        testContains(data, OWLAnnotationProperty.class);
+    }
+
+    @ParameterizedTest
+    @EnumSource(value = ModelData.class)
+    public void testContainsDataProperty(ModelData data) {
+        testContains(data, OWLDataProperty.class);
+    }
+
+    protected void testContains(ModelData data, Class<? extends OWLEntity> type) {
+        testContains(data, type, createTestEntities(data, type));
+    }
+
+    protected void testContains(ModelData data, Class<? extends OWLEntity> type, Map<String, Boolean> entities) {
+        OWLOntology o = data.fetch(newManager());
+        testContains(o, type, entities);
+    }
+
+    protected void testContains(OWLOntology o, Class<? extends OWLEntity> type, Map<String, Boolean> entities) {
+        OWLDataFactory df = o.getOWLOntologyManager().getOWLDataFactory();
+        entities.forEach((s, v) -> {
+            EntityType<?> t = OWLEntityUtils.getEntityType(type);
+            OWLEntity e = df.getOWLEntity(t, IRI.create(s));
+            Assertions.assertEquals(v, o.containsEntityInSignature(e), "Test " + t + " ::: " + e);
+        });
     }
 }

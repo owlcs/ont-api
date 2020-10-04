@@ -20,9 +20,8 @@ import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import com.github.owlcs.ontapi.tests.ModelData;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 
@@ -35,30 +34,21 @@ import java.util.stream.Stream;
 /**
  * Created by @ssz on 08.03.2020.
  */
-@RunWith(Parameterized.class)
 public class ReferencingAxiomsTest {
-    private final TestData data;
 
-    public ReferencingAxiomsTest(TestData data) {
-        this.data = data;
-    }
-
-    @Parameterized.Parameters(name = "{0}")
-    public static TestData[] getData() {
-        return TestData.values();
-    }
-
-    private static OWLOntologyManager newManager() {
+    protected static OWLOntologyManager newManager() {
         return OntManagers.createManager();
     }
 
-    @Test
-    public void testSearchByClass() {
+    @ParameterizedTest
+    @EnumSource(value = TestData.class)
+    public void testSearchByClass(TestData data) {
         data.doTest(T.CLASS, HasClassesInSignature::classesInSignature);
     }
 
-    @Test
-    public void testSearchByLiteral() {
+    @ParameterizedTest
+    @EnumSource(value = TestData.class)
+    public void testSearchByLiteral(TestData data) {
         OWLOntology ont = data.load(newManager());
         OWLDataFactory df = ont.getOWLOntologyManager().getOWLDataFactory();
         Set<OWLLiteral> literals = ont.axioms().flatMap(x -> OwlObjects.objects(OWLLiteral.class, x))
@@ -69,8 +59,9 @@ public class ReferencingAxiomsTest {
         data.getTester(T.LITERAL).testAxiomsCounts(ont, x -> literals.stream());
     }
 
-    @Test
-    public void testSearchByIRI() {
+    @ParameterizedTest
+    @EnumSource(value = TestData.class)
+    public void testSearchByIRI(TestData data) {
         OWLOntology ont = data.load(newManager());
         Set<IRI> iris = ont.signature().map(HasIRI::getIRI).collect(Collectors.toSet());
         iris.add(IRI.create(OWL.intersectionOf.getURI()));
@@ -79,33 +70,39 @@ public class ReferencingAxiomsTest {
         data.getTester(T.IRI).testAxiomsCounts(ont, x -> iris.stream());
     }
 
-    @Test
-    public void testSearchByAnonymousIndividuals() {
+    @ParameterizedTest
+    @EnumSource(value = TestData.class)
+    public void testSearchByAnonymousIndividuals(TestData data) {
         data.doTest(T.ANONYMOUS_INDIVIDUAL, HasAnonymousIndividuals::anonymousIndividuals);
     }
 
-    @Test
-    public void testSearchByNamedIndividuals() {
+    @ParameterizedTest
+    @EnumSource(value = TestData.class)
+    public void testSearchByNamedIndividuals(TestData data) {
         data.doTest(T.NAMED_INDIVIDUAL, HasIndividualsInSignature::individualsInSignature);
     }
 
-    @Test
-    public void testSearchByDatatypes() {
+    @ParameterizedTest
+    @EnumSource(value = TestData.class)
+    public void testSearchByDatatypes(TestData data) {
         data.doTest(T.DATATYPE, HasDatatypesInSignature::datatypesInSignature);
     }
 
-    @Test
-    public void testSearchByObjectProperty() {
+    @ParameterizedTest
+    @EnumSource(value = TestData.class)
+    public void testSearchByObjectProperty(TestData data) {
         data.doTest(T.OBJECT_PROPERTY, HasObjectPropertiesInSignature::objectPropertiesInSignature);
     }
 
-    @Test
-    public void testSearchByDatatypeProperty() {
+    @ParameterizedTest
+    @EnumSource(value = TestData.class)
+    public void testSearchByDatatypeProperty(TestData data) {
         data.doTest(T.DATA_PROPERTY, HasDataPropertiesInSignature::dataPropertiesInSignature);
     }
 
-    @Test
-    public void testSearchByAnnotationProperty() {
+    @ParameterizedTest
+    @EnumSource(value = TestData.class)
+    public void testSearchByAnnotationProperty(TestData data) {
         data.doTest(T.ANNOTATION_PROPERTY, HasAnnotationPropertiesInSignature::annotationPropertiesInSignature);
     }
 

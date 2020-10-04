@@ -20,9 +20,7 @@ import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
-import org.junit.Assert;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.*;
 
 import java.util.Collections;
@@ -32,14 +30,8 @@ import java.util.stream.Collectors;
 /**
  * Created by @ssz on 21.08.2019.
  */
-@RunWith(Parameterized.class)
 public class SWRLArgTest extends ObjectFactoryTestBase {
 
-    public SWRLArgTest(Data data) {
-        super(data);
-    }
-
-    @Parameterized.Parameters(name = "{0}")
     public static List<Data> getData() {
         return getObjects().stream()
                 .filter(x -> x.isSWRLVariable() || x.isSWRLIndividual() || x.isSWRLLiteral())
@@ -47,7 +39,7 @@ public class SWRLArgTest extends ObjectFactoryTestBase {
     }
 
     @Override
-    OWLObject fromModel() {
+    OWLObject fromModel(Data data) {
         OntologyManager m = OntManagers.createManager();
         DataFactory df = m.getOWLDataFactory();
 
@@ -67,7 +59,7 @@ public class SWRLArgTest extends ObjectFactoryTestBase {
                 .filter(x -> !var.equals(x))
                 .findFirst()
                 .orElseThrow(AssertionError::new);
-        Assert.assertTrue(res instanceof ONTObject);
+        Assertions.assertTrue(res instanceof ONTObject);
         return res;
     }
 

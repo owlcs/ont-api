@@ -17,11 +17,10 @@ package com.github.owlcs.ontapi.tests.model;
 import com.github.owlcs.ontapi.OntFormat;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
-import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.Imports;
@@ -31,23 +30,12 @@ import java.util.stream.Stream;
 /**
  * Created by @ssz on 01.08.2019.
  */
-@RunWith(Parameterized.class)
 public class SimpleListAxiomsTest {
 
     private static OWLOntology common;
     private static OWLOntology concurrent;
-    private final AxiomsData data;
 
-    public SimpleListAxiomsTest(AxiomsData data) {
-        this.data = data;
-    }
-
-    @Parameterized.Parameters(name = "{0}")
-    public static AxiomsData[] data() {
-        return AxiomsData.values();
-    }
-
-    @BeforeClass
+    @BeforeAll
     public static void prepareModel() throws Exception {
         common = createTestOntology(OntManagers.createManager());
         concurrent = createTestOntology(OntManagers.createConcurrentManager());
@@ -64,19 +52,21 @@ public class SimpleListAxiomsTest {
         return pizza;
     }
 
-    @Test
-    public void testListAxiomsCommon() {
-        testListAxioms(common);
+    @ParameterizedTest
+    @EnumSource(value = AxiomsData.class)
+    public void testListAxiomsCommon(AxiomsData data) {
+        testListAxioms(data, common);
     }
 
-    @Test
-    public void testListAxiomsConcurrent() {
-        testListAxioms(concurrent);
+    @ParameterizedTest
+    @EnumSource(value = AxiomsData.class)
+    public void testListAxiomsConcurrent(AxiomsData data) {
+        testListAxioms(data, concurrent);
     }
 
-    private void testListAxioms(OWLOntology ont) {
-        Assert.assertEquals(data.inBase, data.select(ont, false).count());
-        Assert.assertEquals(data.withImports, data.select(ont, true).count());
+    private void testListAxioms(AxiomsData data, OWLOntology ont) {
+        Assertions.assertEquals(data.inBase, data.select(ont, false).count());
+        Assertions.assertEquals(data.withImports, data.select(ont, true).count());
     }
 
     enum AxiomsData {

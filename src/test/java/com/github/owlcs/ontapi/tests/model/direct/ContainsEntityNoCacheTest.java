@@ -18,9 +18,8 @@ import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.config.CacheSettings;
 import com.github.owlcs.ontapi.config.OntConfig;
-import com.github.owlcs.ontapi.tests.ModelData;
 import com.github.owlcs.ontapi.tests.model.ContainsSignatureTest;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 /**
@@ -31,16 +30,11 @@ import org.semanticweb.owlapi.model.OWLOntologyManager;
  */
 public class ContainsEntityNoCacheTest extends ContainsSignatureTest {
 
-    public ContainsEntityNoCacheTest(ModelData data) {
-        super(data);
-    }
-
     @Override
     protected OWLOntologyManager newManager() {
         OntologyManager m = OntManagers.createManager();
-        OntConfig conf = m.getOntologyConfigurator()
-                .setModelCacheLevel(CacheSettings.CACHE_COMPONENT, false);
-        Assert.assertFalse(conf.useComponentCache());
+        OntConfig conf = m.getOntologyConfigurator().setModelCacheLevel(CacheSettings.CACHE_COMPONENT, false);
+        Assertions.assertFalse(conf.useComponentCache());
         return m;
     }
 }

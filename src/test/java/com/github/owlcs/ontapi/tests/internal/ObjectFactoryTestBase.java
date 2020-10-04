@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -18,8 +18,9 @@ import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.objects.ModelObject;
 import com.github.owlcs.ontapi.tests.TestFactory;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,10 +43,8 @@ abstract class ObjectFactoryTestBase extends TestFactory {
 
     private static final String TEST_NS = "http://" + UUID.randomUUID() + "#";
 
-    protected final Data data;
-
-    ObjectFactoryTestBase(Data data) {
-        this.data = data;
+    public static List<? extends Data> getData() {
+        throw new UnsupportedOperationException();
     }
 
     static Stream<? extends OWLObject> components(OWLObject object) {
@@ -54,8 +53,8 @@ abstract class ObjectFactoryTestBase extends TestFactory {
     }
 
     static void testObjectHasNoModelReference(OWLObject test) {
-        Assert.assertFalse(test instanceof ONTObject);
-        components(test).forEach(x -> Assert.assertFalse(x instanceof ONTObject));
+        Assertions.assertFalse(test instanceof ONTObject);
+        components(test).forEach(x -> Assertions.assertFalse(x instanceof ONTObject));
     }
 
     static boolean isOWL(OWLObject obj) {
@@ -70,46 +69,47 @@ abstract class ObjectFactoryTestBase extends TestFactory {
         return obj.getClass().getName().startsWith(packageFullName);
     }
 
-    abstract OWLObject fromModel();
+    abstract OWLObject fromModel(Data data);
 
-    @Test
-    public void testONTObject() {
+    @ParameterizedTest
+    @MethodSource("getData")
+    public void testONTObject(Data data) {
         OWLObject ont = data.create(ONT_DATA_FACTORY);
         OWLObject owl = data.create(OWL_DATA_FACTORY);
-        OWLObject test = fromModel();
-        Assert.assertTrue(test instanceof ModelObject);
-        Assert.assertTrue(isONT(ont));
-        Assert.assertTrue(isOWL(owl));
+        OWLObject test = fromModel(data);
+        Assertions.assertTrue(test instanceof ModelObject);
+        Assertions.assertTrue(isONT(ont));
+        Assertions.assertTrue(isOWL(owl));
 
-        testONTObject(owl, ont, test);
+        testONTObject(data, owl, ont, test);
     }
 
-    final void testONTObject(OWLObject sample, OWLObject fromFactory, OWLObject fromModel) {
-        testCompare(sample, fromModel);
-        testCompare(fromFactory, fromModel);
+    final void testONTObject(Data data, OWLObject sample, OWLObject fromFactory, OWLObject fromModel) {
+        testCompare(data, sample, fromModel);
+        testCompare(data, fromFactory, fromModel);
 
-        testComponents(sample, fromModel);
-        testBooleanProperties(sample, fromModel);
-        testEraseModel(sample, fromModel);
-        testContent(sample, fromModel);
+        testComponents(data, sample, fromModel);
+        testBooleanProperties(data, sample, fromModel);
+        testEraseModel(data, sample, fromModel);
+        testContent(data, sample, fromModel);
     }
 
-    void testContent(OWLObject sample, OWLObject test) {
+    void testContent(Data data, OWLObject sample, OWLObject test) {
     }
 
-    void testCompare(OWLObject expected, OWLObject actual) {
+    void testCompare(Data data, OWLObject expected, OWLObject actual) {
         LOGGER.debug("Test compare for '{}'", data);
         data.testCompare(expected, actual);
     }
 
-    void testEraseModel(OWLObject sample, OWLObject actual) {
+    void testEraseModel(Data data, OWLObject sample, OWLObject actual) {
         LOGGER.debug("Test erase model for '{}'", data);
         OWLObject factoryObject = ((ModelObject<?>) actual).eraseModel();
-        Assert.assertEquals(sample, factoryObject);
+        Assertions.assertEquals(sample, factoryObject);
         testObjectHasNoModelReference(factoryObject);
     }
 
-    void testComponents(OWLObject expected, OWLObject actual) {
+    void testComponents(Data data, OWLObject expected, OWLObject actual) {
         LOGGER.debug("Test signature for '{}'", data);
         validate(expected, actual, "signature", HasSignature::signature);
         validate(expected, actual, "classes", HasClassesInSignature::classesInSignature);
@@ -129,18 +129,18 @@ abstract class ObjectFactoryTestBase extends TestFactory {
                                         Function<X, Stream<? extends OWLObject>> get) {
         List<? extends OWLObject> expectedList = get.apply(expected).collect(Collectors.toList());
         List<? extends OWLObject> actualList = get.apply(actual).collect(Collectors.toList());
-        Assert.assertEquals("Wrong " + msg + ":", expectedList, actualList);
+        Assertions.assertEquals(expectedList, actualList, "Wrong " + msg + ":");
     }
 
-    void testBooleanProperties(OWLObject expected, OWLObject actual) {
+    void testBooleanProperties(Data data, OWLObject expected, OWLObject actual) {
         LOGGER.debug("Test contains for '{}'", data);
-        expected.signature().forEach(x -> Assert.assertTrue(actual.containsEntityInSignature(x)));
-        Assert.assertFalse(actual.containsEntityInSignature(OWL_DATA_FACTORY.getOWLClass(TEST_NS, "C")));
-        Assert.assertFalse(actual.containsEntityInSignature(OWL_DATA_FACTORY.getOWLDatatype(TEST_NS, "D")));
-        Assert.assertFalse(actual.containsEntityInSignature(OWL_DATA_FACTORY.getOWLNamedIndividual(TEST_NS, "I")));
-        Assert.assertFalse(actual.containsEntityInSignature(OWL_DATA_FACTORY.getOWLObjectProperty(TEST_NS, "P")));
-        Assert.assertFalse(actual.containsEntityInSignature(OWL_DATA_FACTORY.getOWLDataProperty(TEST_NS, "P")));
-        Assert.assertFalse(actual.containsEntityInSignature(OWL_DATA_FACTORY.getOWLAnnotationProperty(TEST_NS, "P")));
+        expected.signature().forEach(x -> Assertions.assertTrue(actual.containsEntityInSignature(x)));
+        Assertions.assertFalse(actual.containsEntityInSignature(OWL_DATA_FACTORY.getOWLClass(TEST_NS, "C")));
+        Assertions.assertFalse(actual.containsEntityInSignature(OWL_DATA_FACTORY.getOWLDatatype(TEST_NS, "D")));
+        Assertions.assertFalse(actual.containsEntityInSignature(OWL_DATA_FACTORY.getOWLNamedIndividual(TEST_NS, "I")));
+        Assertions.assertFalse(actual.containsEntityInSignature(OWL_DATA_FACTORY.getOWLObjectProperty(TEST_NS, "P")));
+        Assertions.assertFalse(actual.containsEntityInSignature(OWL_DATA_FACTORY.getOWLDataProperty(TEST_NS, "P")));
+        Assertions.assertFalse(actual.containsEntityInSignature(OWL_DATA_FACTORY.getOWLAnnotationProperty(TEST_NS, "P")));
     }
 
 }

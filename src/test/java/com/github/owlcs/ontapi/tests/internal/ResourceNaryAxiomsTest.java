@@ -16,9 +16,9 @@ package com.github.owlcs.ontapi.tests.internal;
 
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.internal.objects.ModelObject;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLNaryAxiom;
@@ -31,11 +31,6 @@ import java.util.List;
  */
 public class ResourceNaryAxiomsTest extends NaryAxiomsTestBase {
 
-    public ResourceNaryAxiomsTest(Data data) {
-        super(data);
-    }
-
-    @Parameterized.Parameters(name = "{0}")
     public static List<AxiomData> getData() {
         return getAxiomData(
                 AxiomType.DISJOINT_CLASSES
@@ -45,23 +40,25 @@ public class ResourceNaryAxiomsTest extends NaryAxiomsTestBase {
         );
     }
 
-    @Test
-    public void testONTObject() {
+    @ParameterizedTest
+    @MethodSource("getData")
+    @Override
+    public void testONTObject(Data data) {
         OWLNaryAxiom<?> owl = (OWLNaryAxiom<?>) data.create(OWL_DATA_FACTORY);
         LOGGER.debug("Test: '{}'", owl);
         OWLNaryAxiom<?> ont = (OWLNaryAxiom<?>) data.create(ONT_DATA_FACTORY);
 
-        Assert.assertTrue(isONT(ont));
-        Assert.assertTrue(isOWL(owl));
+        Assertions.assertTrue(isONT(ont));
+        Assertions.assertTrue(isOWL(owl));
 
         Collection<? extends OWLAxiom> expectedPairwise = owl.asPairwiseAxioms();
         Collection<? extends OWLAxiom> testPairwise = ont.asPairwiseAxioms();
-        Assert.assertEquals(expectedPairwise, testPairwise);
+        Assertions.assertEquals(expectedPairwise, testPairwise);
 
         OWLAxiom test = createONTObject(OntManagers.createManager(), owl);
 
-        Assert.assertTrue(test instanceof ModelObject);
-        testONTObject(owl, ont, test);
+        Assertions.assertTrue(test instanceof ModelObject);
+        testONTObject(data, owl, ont, test);
     }
 
 }

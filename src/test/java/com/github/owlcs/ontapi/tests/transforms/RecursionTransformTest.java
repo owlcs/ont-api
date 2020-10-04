@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -24,11 +24,10 @@ import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.sparql.util.graph.GraphListenerBase;
-import org.junit.Assert;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,13 +42,16 @@ import java.util.Set;
 /**
  * Created by @szuev on 30.01.2018.
  */
-@Ignore //todo: temporary ignored: right now this functionality is not used by the ONT-API and buggy
-@RunWith(Parameterized.class)
+@Disabled(value = "unstable")
+//todo: temporary ignored: right now this functionality is not used by the ONT-API and buggy
 public class RecursionTransformTest {
-    private final TestData data;
 
-    public RecursionTransformTest(TestData data) {
-        this.data = data;
+    public static List<TestData> getData() {
+        return Arrays.asList(
+                TestData.of("ontapi/recursive-graph.ttl", 1)
+                , TestData.of("/etc/spl.spin.ttl", 0)
+                , TestData.of("ontapi/test-rec.ttl", 0)
+                , TestData.of("ontapi/test-long.ttl", 0));
     }
 
     /**
@@ -60,8 +62,9 @@ public class RecursionTransformTest {
      * at java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:580)
      * at java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:270)
      */
-    @Test
-    public void testOWLTrasform() throws IOException {
+    @ParameterizedTest
+    @MethodSource("getData")
+    public void testOWLTransform(TestData data) throws IOException {
         OntModel m = OntModelFactory.createModel();
         try (InputStream in = Files.newInputStream(data.file)) {
             m.read(in, null, data.format.getID());
@@ -72,13 +75,8 @@ public class RecursionTransformTest {
         TestListener l = new TestListener();
         Graphs.getBase(g).getEventManager().register(l);
         t.perform();
-        Assert.assertEquals("Wrong add triples count", data.addCount, l.add.size());
-        Assert.assertEquals("Wrong delete triples count", data.deleteCount, l.delete.size());
-    }
-
-    @Parameterized.Parameters(name = "{0}")
-    public static List<TestData> getData() {
-        return Arrays.asList(TestData.of("ontapi/recursive-graph.ttl", 1), TestData.of("/etc/spl.spin.ttl", 0), TestData.of("ontapi/test-rec.ttl", 0), TestData.of("ontapi/test-long.ttl", 0));
+        Assertions.assertEquals(data.addCount, l.add.size(), "Wrong add triples count");
+        Assertions.assertEquals(data.deleteCount, l.delete.size(), "Wrong delete triples count");
     }
 
     private static class TestData {
@@ -104,8 +102,8 @@ public class RecursionTransformTest {
     }
 
     private static class TestListener extends GraphListenerBase {
-        private Set<Triple> add = new HashSet<>();
-        private Set<Triple> delete = new HashSet<>();
+        private final Set<Triple> add = new HashSet<>();
+        private final Set<Triple> delete = new HashSet<>();
 
         @Override
         protected void addEvent(Triple t) {

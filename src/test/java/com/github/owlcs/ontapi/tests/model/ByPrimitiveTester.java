@@ -15,7 +15,7 @@
 package com.github.owlcs.ontapi.tests.model;
 
 import com.github.owlcs.ontapi.Ontology;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLOntology;
 
@@ -52,6 +52,6 @@ class ByPrimitiveTester extends SearchTester {
             ((Ontology) ont).clearCache();
         }
         long res = primitives.stream().mapToLong(x -> axiomsCount(ont, x)).sum();
-        Assert.assertEquals(count, res);
+        Assertions.assertEquals(count, res);
     }
 }

@@ -19,9 +19,7 @@ import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.internal.ONTObject;
-import org.junit.Assert;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.util.SimpleRenderer;
@@ -32,22 +30,14 @@ import java.util.stream.Collectors;
 /**
  * Created by @ssz on 13.08.2019.
  */
-@RunWith(Parameterized.class)
 public class EntityTest extends ObjectFactoryTestBase {
 
-    public EntityTest(Data data) {
-        super(data);
-    }
-
-    @Parameterized.Parameters(name = "{0}")
     public static List<Data> getData() {
-        return getObjects().stream()
-                .filter(Data::isEntity)
-                .collect(Collectors.toList());
+        return getObjects().stream().filter(Data::isEntity).collect(Collectors.toList());
     }
 
     @Override
-    OWLObject fromModel() {
+    OWLObject fromModel(Data data) {
         OntologyManager m = OntManagers.createManager();
         DataFactory df = m.getOWLDataFactory();
 
@@ -58,18 +48,18 @@ public class EntityTest extends ObjectFactoryTestBase {
         o.clearCache();
         //ReadWriteUtils.print(o);
         OWLEntity res = o.signature().findFirst().orElseThrow(AssertionError::new);
-        Assert.assertTrue(res instanceof ONTObject);
+        Assertions.assertTrue(res instanceof ONTObject);
         return res;
     }
 
     @Override
-    void testCompare(OWLObject expected, OWLObject actual) {
+    void testCompare(Data data, OWLObject expected, OWLObject actual) {
         data.assertCheckNotSame(expected, actual);
         data.assertCheckHashCode(expected, actual);
         data.assertCheckEquals(expected, actual);
         // todo: here is some minor bug or misunderstanding in OWL-API and ONT-API (as copy-paste):
         //  OWL2DatatypeImpl do not use renderer - just naked IRI is always returned
         String toString = new SimpleRenderer().render(actual);
-        Assert.assertEquals(toString, actual.toString());
+        Assertions.assertEquals(toString, actual.toString());
     }
 }

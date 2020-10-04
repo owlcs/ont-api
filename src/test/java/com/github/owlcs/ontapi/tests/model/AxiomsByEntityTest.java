@@ -17,10 +17,9 @@ package com.github.owlcs.ontapi.tests.model;
 import com.github.owlcs.ontapi.OntBaseModelImpl;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.Ontology;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.semanticweb.owlapi.vocab.OWLFacet;
@@ -47,23 +46,12 @@ import java.util.stream.Stream;
  * <p>
  * Created by @szuev on 20.02.2018.
  */
-@RunWith(Parameterized.class)
 public class AxiomsByEntityTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(AxiomsByEntityTest.class);
 
-    private final Entity data;
-
-    public AxiomsByEntityTest(Entity data) {
-        this.data = data;
-    }
-
-    @Parameterized.Parameters(name = "{0}")
-    public static Entity[] data() {
-        return Entity.values();
-    }
-
-    @Test
-    public void testAxioms() {
+    @ParameterizedTest
+    @EnumSource(value = Entity.class)
+    public void testAxioms(Entity data) {
         List<OWLAxiom> axioms = data.createTestAxioms().peek(x -> LOGGER.debug("ADD: {}", x)).collect(Collectors.toList());
 
         OWLOntology expected = data.createOntology(OntManagers.createOWLAPIImplManager(), axioms);
@@ -217,9 +205,9 @@ public class AxiomsByEntityTest {
 
             @Override
             void assertAxioms(String message, Collection<OWLAxiom> expected, Collection<OWLAxiom> actual) {
-                Set<String> _actual = actual.stream().map(Entity::toString).collect(Collectors.toSet());
-                Set<String> _expected = expected.stream().map(Entity::toString).collect(Collectors.toSet());
-                Assert.assertEquals(message, _expected, _actual);
+                Set<String> actualSet = actual.stream().map(Entity::toString).collect(Collectors.toSet());
+                Set<String> expectedSet = expected.stream().map(Entity::toString).collect(Collectors.toSet());
+                Assertions.assertEquals(expectedSet, actualSet, message);
             }
         },
 
@@ -385,8 +373,8 @@ public class AxiomsByEntityTest {
         Set<OWLEntity> testEntities(OWLOntology expected, Ontology actual) {
             Set<OWLEntity> actualEntities = entities(actual).collect(Collectors.toSet());
             Set<OWLEntity> expectedEntities = entities(expected).collect(Collectors.toSet());
-            Assert.assertEquals(String.format("%s - wrong %s list:", toString(actual), this),
-                    expectedEntities, actualEntities);
+            Assertions.assertEquals(expectedEntities, actualEntities,
+                    String.format("%s - wrong %s list:", toString(actual), this));
             return expectedEntities;
         }
 
@@ -413,7 +401,7 @@ public class AxiomsByEntityTest {
         }
 
         void assertAxioms(String message, Collection<OWLAxiom> expected, Collection<OWLAxiom> actual) {
-            Assert.assertEquals(message, expected, actual);
+            Assertions.assertEquals(expected, actual, message);
         }
 
         OWLOntology createOntology(OWLOntologyManager manager, List<OWLAxiom> axioms) {

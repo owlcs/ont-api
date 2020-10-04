@@ -18,9 +18,8 @@ import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.tests.ModelData;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.jena.vocabulary.RDFS;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.semanticweb.owlapi.model.*;
 
 import java.util.Arrays;
@@ -32,30 +31,21 @@ import java.util.stream.Stream;
 /**
  * Created by @ssz on 05.05.2020.
  */
-@RunWith(Parameterized.class)
 public class SearchByObjectTest {
-    private final TestData data;
 
-    public SearchByObjectTest(TestData data) {
-        this.data = data;
-    }
-
-    @Parameterized.Parameters(name = "{0}")
-    public static TestData[] getData() {
-        return TestData.values();
-    }
-
-    private static OWLOntologyManager newManager() {
+    protected static OWLOntologyManager newManager() {
         return OntManagers.createManager();
     }
 
-    @Test
-    public void testDeclarations() {
+    @ParameterizedTest
+    @EnumSource(value = TestData.class)
+    public void testDeclarations(TestData data) {
         data.doTest(T.DECLARATIONS, HasSignature::signature);
     }
 
-    @Test
-    public void testAnnotationAssertionAxioms() {
+    @ParameterizedTest
+    @EnumSource(value = TestData.class)
+    public void testAnnotationAssertionAxioms(TestData data) {
         OWLOntology ont = data.load(newManager());
         Set<OWLAnnotationSubject> entities = new HashSet<>();
         ont.signature().map(HasIRI::getIRI).forEach(entities::add);
@@ -66,56 +56,66 @@ public class SearchByObjectTest {
         data.getTester(T.ANNOTATION_ASSERTIONS_BY_SUBJECT).testAxiomsCounts(ont, x -> entities.stream());
     }
 
-    @Test
-    public void testSubClassAxiomsForSubClass() {
+    @ParameterizedTest
+    @EnumSource(value = TestData.class)
+    public void testSubClassAxiomsForSubClass(TestData data) {
         data.doTest(T.SUB_CLASS_OF_BY_SUBJECT, HasClassesInSignature::classesInSignature);
     }
 
-    @Test
-    public void testSubClassAxiomsForSuperClass() {
+    @ParameterizedTest
+    @EnumSource(value = TestData.class)
+    public void testSubClassAxiomsForSuperClass(TestData data) {
         data.doTest(T.SUB_CLASS_OF_BY_OBJECT, HasClassesInSignature::classesInSignature);
     }
 
-    @Test
-    public void testEquivalentClassesAxioms() {
+    @ParameterizedTest
+    @EnumSource(value = TestData.class)
+    public void testEquivalentClassesAxioms(TestData data) {
         data.doTest(T.EQUIVALENT_CLASS_BY_OPERAND, HasClassesInSignature::classesInSignature);
     }
 
-    @Test
-    public void testDisjointClassesAxioms() {
+    @ParameterizedTest
+    @EnumSource(value = TestData.class)
+    public void testDisjointClassesAxioms(TestData data) {
         data.doTest(T.DISJOINT_CLASS_BY_OPERAND, HasClassesInSignature::classesInSignature);
     }
 
-    @Test
-    public void testDataPropertyAssertionAxioms() {
+    @ParameterizedTest
+    @EnumSource(value = TestData.class)
+    public void testDataPropertyAssertionAxioms(TestData data) {
         data.doTest(T.DATA_PROPERTY_ASSERTION_BY_SUBJECT,
                 x -> Stream.concat(x.individualsInSignature(), x.anonymousIndividuals()));
     }
 
-    @Test
-    public void testObjectPropertyAssertionAxioms() {
+    @ParameterizedTest
+    @EnumSource(value = TestData.class)
+    public void testObjectPropertyAssertionAxioms(TestData data) {
         data.doTest(T.OBJECT_PROPERTY_ASSERTION_BY_SUBJECT,
                 x -> Stream.concat(x.individualsInSignature(), x.anonymousIndividuals()));
     }
 
-    @Test
-    public void testObjectPropertyRangeAxioms() {
+    @ParameterizedTest
+    @EnumSource(value = TestData.class)
+    public void testObjectPropertyRangeAxioms(TestData data) {
         data.doTest(T.OBJECT_PROPERTY_RANGE_BY_SUBJECT, HasObjectPropertiesInSignature::objectPropertiesInSignature);
     }
 
-    @Test
-    public void testObjectPropertyDomainAxioms() {
+    @ParameterizedTest
+    @EnumSource(value = TestData.class)
+    public void testObjectPropertyDomainAxioms(TestData data) {
         data.doTest(T.OBJECT_PROPERTY_DOMAIN_BY_SUBJECT, HasObjectPropertiesInSignature::objectPropertiesInSignature);
     }
 
-    @Test
-    public void testClassAssertionAxiomsForIndividual() {
+    @ParameterizedTest
+    @EnumSource(value = TestData.class)
+    public void testClassAssertionAxiomsForIndividual(TestData data) {
         data.doTest(T.CLASS_ASSERTION_BY_SUBJECT,
                 x -> Stream.concat(x.individualsInSignature(), x.anonymousIndividuals()));
     }
 
-    @Test
-    public void testClassAssertionAxiomsForClassExpression() {
+    @ParameterizedTest
+    @EnumSource(value = TestData.class)
+    public void testClassAssertionAxiomsForClassExpression(TestData data) {
         data.doTest(T.CLASS_ASSERTION_BY_OBJECT, OWLObject::nestedClassExpressions);
     }
 

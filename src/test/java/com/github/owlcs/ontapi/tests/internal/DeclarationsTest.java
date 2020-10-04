@@ -17,7 +17,6 @@ package com.github.owlcs.ontapi.tests.internal;
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.OntologyManager;
-import org.junit.runners.Parameterized;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
@@ -28,17 +27,13 @@ import java.util.List;
  * Created by @ssz on 03.10.2019.
  */
 public class DeclarationsTest extends CommonAxiomsTest {
-    public DeclarationsTest(Data data) {
-        super(data);
-    }
 
-    @Parameterized.Parameters(name = "{0}")
     public static List<AxiomData> getData() {
         return getAxiomData(AxiomType.DECLARATION);
     }
 
     @Override
-    OWLObject fromModel() {
+    OWLObject fromModel(Data data) {
         OntologyManager m = OntManagers.createManager();
         // to allow annotations for declaration:
         m.getOntologyConfigurator().setLoadAnnotationAxioms(false);

@@ -19,9 +19,9 @@ import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.objects.ModelObject;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLNaryAxiom;
@@ -35,11 +35,7 @@ import java.util.stream.Collectors;
  * Created by @ssz on 03.10.2019.
  */
 public class SplitNaryAxiomsTest extends NaryAxiomsTestBase {
-    public SplitNaryAxiomsTest(Data data) {
-        super(data);
-    }
 
-    @Parameterized.Parameters(name = "{0}")
     public static List<AxiomData> getData() {
         return getAxiomData(
                 AxiomType.EQUIVALENT_CLASSES
@@ -55,40 +51,42 @@ public class SplitNaryAxiomsTest extends NaryAxiomsTestBase {
         o.add(toWrite);
         o.clearCache();
         List<OWLAxiom> res = o.axioms(toWrite.getAxiomType())
-                .peek(x -> Assert.assertTrue(x instanceof ONTObject))
+                .peek(x -> Assertions.assertTrue(x instanceof ONTObject))
                 .sorted()
                 .collect(Collectors.toList());
-        Assert.assertFalse(res.isEmpty());
+        Assertions.assertFalse(res.isEmpty());
         if (res.size() == 1) {
             return new HashSet<>(res);
         }
         return res;
     }
 
-    @Test
-    public void testONTObject() {
+    @ParameterizedTest
+    @MethodSource("getData")
+    @Override
+    public void testONTObject(Data data) {
         OWLNaryAxiom<?> owl = (OWLNaryAxiom<?>) data.create(OWL_DATA_FACTORY);
         LOGGER.debug("Test: '{}'", owl);
         OWLNaryAxiom<?> ont = (OWLNaryAxiom<?>) data.create(ONT_DATA_FACTORY);
 
-        Assert.assertTrue(isONT(ont));
-        Assert.assertTrue(isOWL(owl));
+        Assertions.assertTrue(isONT(ont));
+        Assertions.assertTrue(isOWL(owl));
 
         Collection<? extends OWLAxiom> expectedPairwise = owl.asPairwiseAxioms();
         Collection<? extends OWLAxiom> testPairwise = ont.asPairwiseAxioms();
-        Assert.assertEquals(expectedPairwise, testPairwise);
+        Assertions.assertEquals(expectedPairwise, testPairwise);
 
         Collection<? extends OWLAxiom> fromModel = createONTAxioms(OntManagers.createManager(), owl);
-        Assert.assertEquals(expectedPairwise, fromModel);
+        Assertions.assertEquals(expectedPairwise, fromModel);
 
         for (OWLAxiom expected : expectedPairwise) {
             OWLAxiom test = fromModel.stream().filter(expected::equals)
                     .findFirst().orElseThrow(AssertionError::new);
             OWLAxiom fromFactory = testPairwise.stream().filter(expected::equals)
                     .findFirst().orElseThrow(AssertionError::new);
-            Assert.assertTrue(test instanceof ModelObject);
+            Assertions.assertTrue(test instanceof ModelObject);
 
-            testONTObject(expected, fromFactory, test);
+            testONTObject(data, expected, fromFactory, test);
         }
     }
 }

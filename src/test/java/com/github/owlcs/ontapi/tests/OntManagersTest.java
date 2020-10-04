@@ -15,10 +15,9 @@
 package com.github.owlcs.ontapi.tests;
 
 import com.github.owlcs.ontapi.*;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.semanticweb.owlapi.model.*;
 
 import java.lang.reflect.Field;
@@ -34,51 +33,46 @@ import java.util.concurrent.locks.ReadWriteLock;
  * @see <a href='https://github.com/owlcs/owlapi/blob/version5/contract/src/test/java/org/semanticweb/owlapi/api/test/OWLManagerTestCase.java'>org.semanticweb.owlapi.api.test.OWLManagerTestCase</a>
  * @see OntManagers
  */
-@RunWith(Parameterized.class)
 public class OntManagersTest {
 
-    private final TestProfile data;
-
-    public OntManagersTest(TestProfile data) {
-        this.data = data;
-    }
-
-    @Parameterized.Parameters(name = "{0}")
     public static List<TestProfile> getData() {
         return Arrays.asList(new ONTStandard(), new ONTConcurrent(), new OWLStandard(), new OWLConcurrent());
     }
 
-    @Test
-    public void testManager() {
+    @ParameterizedTest
+    @MethodSource("getData")
+    public void testManager(TestProfile data) {
         OWLOntologyManager m = data.createManager();
-        Assert.assertSame(data.getManagerImplType(), m.getClass());
+        Assertions.assertSame(data.getManagerImplType(), m.getClass());
         OWLDataFactory df = m.getOWLDataFactory();
-        Assert.assertSame(data.getDataFactoryImplType(), df.getClass());
+        Assertions.assertSame(data.getDataFactoryImplType(), df.getClass());
         OWLOntologyFactory of = m.getOntologyFactories().iterator().next();
-        Assert.assertNotNull(of);
-        Assert.assertSame(data.getOntologyFactoryImplType(), of.getClass());
-        Assert.assertEquals(data.getNumberOfStorers(), m.getOntologyStorers().size());
-        Assert.assertEquals(data.getNumberOfParsers(), m.getOntologyParsers().size());
+        Assertions.assertNotNull(of);
+        Assertions.assertSame(data.getOntologyFactoryImplType(), of.getClass());
+        Assertions.assertEquals(data.getNumberOfStorers(), m.getOntologyStorers().size());
+        Assertions.assertEquals(data.getNumberOfParsers(), m.getOntologyParsers().size());
     }
 
-    @Test
-    public void testOntology() throws Exception {
+    @ParameterizedTest
+    @MethodSource("getData")
+    public void testOntology(TestProfile data) throws Exception {
         OWLOntologyManager m = data.createManager();
         OWLOntology o = m.createOntology();
-        Assert.assertSame(data.getOntologyImplType(), o.getClass());
-        Assert.assertSame(m, o.getOWLOntologyManager());
-        Assert.assertNotEquals(o, m.createOntology());
+        Assertions.assertSame(data.getOntologyImplType(), o.getClass());
+        Assertions.assertSame(m, o.getOWLOntologyManager());
+        Assertions.assertNotEquals(o, m.createOntology());
     }
 
-    @Test
-    public void testShareLock() throws Exception {
+    @ParameterizedTest
+    @MethodSource("getData")
+    public void testShareLock(TestProfile data) throws Exception {
         OWLOntologyManager m = data.createManager();
         OWLOntology o = m.createOntology();
-        Assert.assertSame(data.getReadLock(o), data.getReadLock(m));
-        Assert.assertSame(data.getWriteLock(o), data.getWriteLock(m));
+        Assertions.assertSame(data.getReadLock(o), data.getReadLock(m));
+        Assertions.assertSame(data.getWriteLock(o), data.getWriteLock(m));
         OWLOntology b = m.createOntology(IRI.create("X"));
-        Assert.assertSame(data.getReadLock(b), data.getReadLock(m));
-        Assert.assertSame(data.getWriteLock(b), data.getWriteLock(m));
+        Assertions.assertSame(data.getReadLock(b), data.getReadLock(m));
+        Assertions.assertSame(data.getWriteLock(b), data.getWriteLock(m));
     }
 
     @SuppressWarnings("unchecked")

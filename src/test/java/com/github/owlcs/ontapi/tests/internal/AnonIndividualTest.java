@@ -20,9 +20,7 @@ import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
-import org.junit.Assert;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
 import org.semanticweb.owlapi.model.OWLIndividual;
@@ -34,22 +32,14 @@ import java.util.stream.Collectors;
 /**
  * Created by @ssz on 13.08.2019.
  */
-@RunWith(Parameterized.class)
 public class AnonIndividualTest extends ObjectFactoryTestBase {
 
-    public AnonIndividualTest(Data data) {
-        super(data);
-    }
-
-    @Parameterized.Parameters(name = "{0}")
     public static List<Data> getData() {
-        return getObjects().stream()
-                .filter(Data::isAnonymousIndividual)
-                .collect(Collectors.toList());
+        return getObjects().stream().filter(Data::isAnonymousIndividual).collect(Collectors.toList());
     }
 
     @Override
-    OWLObject fromModel() {
+    OWLObject fromModel(Data data) {
         OntologyManager m = OntManagers.createManager();
         DataFactory df = m.getOWLDataFactory();
 
@@ -61,7 +51,7 @@ public class AnonIndividualTest extends ObjectFactoryTestBase {
         ReadWriteUtils.print(o);
         OWLIndividual res = o.axioms(AxiomType.OBJECT_PROPERTY_ASSERTION).findFirst()
                 .orElseThrow(AssertionError::new).getObject();
-        Assert.assertTrue(res instanceof ONTObject);
+        Assertions.assertTrue(res instanceof ONTObject);
         return res;
     }
 }

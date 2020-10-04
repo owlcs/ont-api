@@ -16,9 +16,7 @@ package com.github.owlcs.ontapi.tests.internal;
 
 import com.github.owlcs.ontapi.*;
 import com.github.owlcs.ontapi.internal.ONTObject;
-import org.junit.Assert;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.AddOntologyAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLObject;
@@ -29,22 +27,14 @@ import java.util.stream.Collectors;
 /**
  * Created by @ssz on 18.08.2019.
  */
-@RunWith(Parameterized.class)
 public class OWLAnnotationTest extends StatementTestBase {
 
-    public OWLAnnotationTest(Data data) {
-        super(data);
-    }
-
-    @Parameterized.Parameters(name = "{0}")
     public static List<Data> getData() {
-        return getObjects().stream()
-                .filter(Data::isOWLAnnotation)
-                .collect(Collectors.toList());
+        return getObjects().stream().filter(Data::isOWLAnnotation).collect(Collectors.toList());
     }
 
     @Override
-    OWLObject fromModel() {
+    OWLObject fromModel(Data data) {
         OntologyManager m = OntManagers.createManager();
         DataFactory df = m.getOWLDataFactory();
 
@@ -56,7 +46,7 @@ public class OWLAnnotationTest extends StatementTestBase {
         m.applyChange(new AddOntologyAnnotation(o, ont));
         o.clearCache();
         OWLAnnotation res = o.annotations().findFirst().orElseThrow(AssertionError::new);
-        Assert.assertTrue(res instanceof ONTObject);
+        Assertions.assertTrue(res instanceof ONTObject);
         return res;
     }
 

@@ -16,10 +16,9 @@ package com.github.owlcs.ontapi.tests.model;
 
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.tests.ModelData;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
@@ -32,56 +31,51 @@ import java.util.stream.Stream;
 /**
  * Created by @szuev on 03.04.2018.
  */
-@RunWith(Parameterized.class)
 public class SignatureTest {
 
-    private final TestData data;
-
-    public SignatureTest(TestData data) {
-        this.data = data;
-    }
-
-    @Parameterized.Parameters(name = "{0}")
-    public static TestData[] getData() {
-        return TestData.values();
-    }
-
-    private static OWLOntologyManager newManager() {
+    protected static OWLOntologyManager newManager() {
         return OntManagers.createManager();
     }
 
-    @Test
-    public void testClasses() {
+    @ParameterizedTest
+    @EnumSource(value = TestData.class)
+    public void testClasses(TestData data) {
         data.doTest(T.CLASS);
     }
 
-    @Test
-    public void testClassExpressions() {
+    @ParameterizedTest
+    @EnumSource(value = TestData.class)
+    public void testClassExpressions(TestData data) {
         data.doTest(T.CLASS_EXPRESSION);
     }
 
-    @Test
-    public void testNamedIndividuals() {
+    @ParameterizedTest
+    @EnumSource(value = TestData.class)
+    public void testNamedIndividuals(TestData data) {
         data.doTest(T.NAMED_INDIVIDUAL);
     }
 
-    @Test
-    public void testObjectProperties() {
+    @ParameterizedTest
+    @EnumSource(value = TestData.class)
+    public void testObjectProperties(TestData data) {
         data.doTest(T.OBJECT_PROPERTY);
     }
 
-    @Test
-    public void testAnnotationProperties() {
+    @ParameterizedTest
+    @EnumSource(value = TestData.class)
+    public void testAnnotationProperties(TestData data) {
         data.doTest(T.ANNOTATION_PROPERTY);
     }
 
-    @Test
-    public void testDataProperties() {
+    @ParameterizedTest
+    @EnumSource(value = TestData.class)
+    public void testDataProperties(TestData data) {
         data.doTest(T.DATA_PROPERTY);
     }
 
-    @Test
-    public void testDatatypes() {
+    @ParameterizedTest
+    @EnumSource(value = TestData.class)
+    public void testDatatypes(TestData data) {
         data.doTest(T.DATATYPE);
     }
 
@@ -281,7 +275,7 @@ public class SignatureTest {
 
         void testCounts(OWLOntology ont) {
             long res = listObjects.apply(ont).mapToLong(SearchTester::toLong).sum();
-            Assert.assertEquals(count, res);
+            Assertions.assertEquals(count, res);
         }
     }
 }

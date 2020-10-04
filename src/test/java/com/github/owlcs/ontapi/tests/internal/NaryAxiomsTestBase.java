@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,7 +14,7 @@
 
 package com.github.owlcs.ontapi.tests.internal;
 
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.OWLNaryAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
 
@@ -23,15 +23,10 @@ import java.util.Collection;
 /**
  * Created by @ssz on 14.10.2019.
  */
-class NaryAxiomsTestBase extends CommonAxiomsTest {
-
-    NaryAxiomsTestBase(Data data) {
-        super(data);
-    }
-
+abstract class NaryAxiomsTestBase extends CommonAxiomsTest {
     @Override
-    void testEraseModel(OWLObject sample, OWLObject actual) {
-        super.testEraseModel(sample, actual);
+    void testEraseModel(Data data, OWLObject sample, OWLObject actual) {
+        super.testEraseModel(data, sample, actual);
 
         OWLNaryAxiom<?> owl = (OWLNaryAxiom<?>) sample;
         OWLNaryAxiom<?> ont = (OWLNaryAxiom<?>) actual;
@@ -39,13 +34,13 @@ class NaryAxiomsTestBase extends CommonAxiomsTest {
         LOGGER.debug("Test asPairwiseAxioms for '{}'", data);
         Collection<? extends OWLObject> expectedPairwise = owl.asPairwiseAxioms();
         Collection<? extends OWLObject> testPairwise = ont.asPairwiseAxioms();
-        Assert.assertEquals(expectedPairwise, testPairwise);
+        Assertions.assertEquals(expectedPairwise, testPairwise);
         testPairwise.forEach(ObjectFactoryTestBase::testObjectHasNoModelReference);
 
         LOGGER.debug("Test splitToAnnotatedPairs for '{}'", data);
         Collection<? extends OWLObject> expectedSplit = owl.splitToAnnotatedPairs();
         Collection<? extends OWLObject> testSplit = ont.splitToAnnotatedPairs();
-        Assert.assertEquals(expectedSplit, testSplit);
+        Assertions.assertEquals(expectedSplit, testSplit);
         testSplit.forEach(ObjectFactoryTestBase::testObjectHasNoModelReference);
     }
 }
