@@ -16,6 +16,8 @@ package com.github.owlcs.ontapi.tests;
 
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.OntManagers;
+import com.github.owlcs.ontapi.tests.TestFactory.AxiomData;
+import com.github.owlcs.ontapi.tests.TestFactory.Data;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -25,6 +27,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.List;
 
 /**
  * Test for {@link DataFactory ONT-API Data Factory} functionality.
@@ -34,9 +37,13 @@ import java.io.ObjectOutputStream;
  *
  * @see <a href='https://github.com/owlcs/owlapi/blob/version5/contract/src/test/java/org/semanticweb/owlapi/api/test/OWLDataFactoryImplTestCase.java'>org.semanticweb.owlapi.api.test.OWLDataFactoryImplTestCase</a>
  */
-public class DataFactoryTest extends TestFactory {
+public class DataFactoryTest {
     private static final OWLDataFactory OWL_DATA_FACTORY = OntManagers.createOWLProfile().dataFactory();
     private static final DataFactory ONT_DATA_FACTORY = OntManagers.getDataFactory();
+
+    public static List<Data> getObjects() {
+        return TestFactory.getObjects();
+    }
 
     @ParameterizedTest
     @MethodSource("getObjects")

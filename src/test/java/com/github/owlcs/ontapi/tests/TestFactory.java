@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -16,7 +16,7 @@ package com.github.owlcs.ontapi.tests;
 
 import com.github.owlcs.ontapi.owlapi.OWLObjectImpl;
 import com.github.owlcs.ontapi.owlapi.objects.entity.OWLBuiltinDatatypeImpl;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.semanticweb.owlapi.vocab.OWLFacet;
@@ -32,7 +32,7 @@ import java.util.stream.Stream;
  * Created by @ssz on 22.08.2019.
  */
 @SuppressWarnings("rawtypes")
-public class TestFactory {
+public final class TestFactory {
 
     public static List<Data> getObjects() {
         return Arrays.asList(
@@ -2901,22 +2901,22 @@ public class TestFactory {
         }
 
         default void assertCheckNotSame(OWLObject expected, OWLObject actual) {
-            Assert.assertNotSame(expected, actual);
+            Assertions.assertNotSame(expected, actual);
         }
 
         default void assertCheckEquals(OWLObject expected, OWLObject actual) {
             if (!expected.equals(actual)) {
                 System.err.println("Not eq:: " + actual);
             }
-            Assert.assertEquals("'" + expected + "': not equal", expected, actual);
+            Assertions.assertEquals(expected, actual, "'" + expected + "': not equal");
         }
 
         default void assertCheckToString(OWLObject expected, OWLObject actual) {
-            Assert.assertEquals("'" + expected + "': wrong toString", expected.toString(), actual.toString());
+            Assertions.assertEquals(expected.toString(), actual.toString(), "'" + expected + "': wrong toString");
         }
 
         default void assertCheckHashCode(OWLObject expected, OWLObject actual) {
-            Assert.assertEquals("'" + expected + "': wrong hashcode", expected.hashCode(), actual.hashCode());
+            Assertions.assertEquals(expected.hashCode(), actual.hashCode(), "'" + expected + "': wrong hashcode");
         }
 
         default void assertCheckProperties(OWLObject expected, OWLObject actual) {
@@ -3156,15 +3156,15 @@ public class TestFactory {
         default void assertCheckProperties(OWLObject expected, OWLObject actual) {
             OWLLiteral left = (OWLLiteral) expected;
             OWLLiteral right = (OWLLiteral) actual;
-            Assert.assertEquals(left.getLiteral(), right.getLiteral());
-            Assert.assertEquals(left.getLang(), right.getLang());
-            Assert.assertEquals(left.getDatatype(), right.getDatatype());
-            Assert.assertEquals(left.isRDFPlainLiteral(), right.isRDFPlainLiteral());
-            Assert.assertEquals(left.isBoolean(), right.isBoolean());
-            Assert.assertEquals(left.isDouble(), right.isDouble());
-            Assert.assertEquals(left.isFloat(), right.isFloat());
-            Assert.assertEquals(left.isInteger(), right.isInteger());
-            Assert.assertEquals(left.isLiteral(), right.isLiteral());
+            Assertions.assertEquals(left.getLiteral(), right.getLiteral());
+            Assertions.assertEquals(left.getLang(), right.getLang());
+            Assertions.assertEquals(left.getDatatype(), right.getDatatype());
+            Assertions.assertEquals(left.isRDFPlainLiteral(), right.isRDFPlainLiteral());
+            Assertions.assertEquals(left.isBoolean(), right.isBoolean());
+            Assertions.assertEquals(left.isDouble(), right.isDouble());
+            Assertions.assertEquals(left.isFloat(), right.isFloat());
+            Assertions.assertEquals(left.isInteger(), right.isInteger());
+            Assertions.assertEquals(left.isLiteral(), right.isLiteral());
         }
 
         @Override

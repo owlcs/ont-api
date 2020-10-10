@@ -19,6 +19,9 @@ import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.internal.ONTObject;
+import com.github.owlcs.ontapi.tests.TestFactory;
+import com.github.owlcs.ontapi.tests.TestFactory.AxiomData;
+import com.github.owlcs.ontapi.tests.TestFactory.Data;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.*;
@@ -68,7 +71,7 @@ public class CommonAxiomsTest extends StatementTestBase {
     }
 
     public static List<AxiomData> getAxiomData(AxiomType<?>... types) {
-        return getObjects().stream().filter(Data::isAxiom)
+        return TestFactory.getObjects().stream().filter(Data::isAxiom)
                 .map(x -> (AxiomData) x)
                 .filter(x -> isOneOf(x, types))
                 .collect(Collectors.toList());

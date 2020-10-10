@@ -14,6 +14,7 @@
 
 package com.github.owlcs.ontapi.tests.internal;
 
+import com.github.owlcs.ontapi.tests.TestFactory.Data;
 import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.OWLNaryAxiom;
 import org.semanticweb.owlapi.model.OWLObject;

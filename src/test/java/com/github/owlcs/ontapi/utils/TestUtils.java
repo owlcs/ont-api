@@ -122,9 +122,8 @@ public class TestUtils {
     }
 
     public static Stream<OWLAxiom> splitAxioms(OWLOntology o) {
-        return o.axioms()
-                .flatMap(a -> a instanceof OWLNaryAxiom ?
-                        ((OWLNaryAxiom<?>) a).splitToAnnotatedPairs().stream() : Stream.of(a)).distinct();
+        return o.axioms().flatMap(a -> a instanceof OWLNaryAxiom ?
+                ((OWLNaryAxiom<?>) a).splitToAnnotatedPairs().stream() : Stream.of(a)).distinct();
     }
 
     public static OntModelConfig.StdMode getMode(OntPersonality profile) {

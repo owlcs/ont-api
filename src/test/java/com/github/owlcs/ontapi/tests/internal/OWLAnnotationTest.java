@@ -16,6 +16,8 @@ package com.github.owlcs.ontapi.tests.internal;
 
 import com.github.owlcs.ontapi.*;
 import com.github.owlcs.ontapi.internal.ONTObject;
+import com.github.owlcs.ontapi.tests.TestFactory;
+import com.github.owlcs.ontapi.tests.TestFactory.Data;
 import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.AddOntologyAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotation;
@@ -30,7 +32,7 @@ import java.util.stream.Collectors;
 public class OWLAnnotationTest extends StatementTestBase {
 
     public static List<Data> getData() {
-        return getObjects().stream().filter(Data::isOWLAnnotation).collect(Collectors.toList());
+        return TestFactory.getObjects().stream().filter(Data::isOWLAnnotation).collect(Collectors.toList());
     }
 
     @Override

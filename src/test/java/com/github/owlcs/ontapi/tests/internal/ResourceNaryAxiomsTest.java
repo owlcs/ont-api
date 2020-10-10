@@ -16,6 +16,8 @@ package com.github.owlcs.ontapi.tests.internal;
 
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.internal.objects.ModelObject;
+import com.github.owlcs.ontapi.tests.TestFactory.AxiomData;
+import com.github.owlcs.ontapi.tests.TestFactory.Data;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;

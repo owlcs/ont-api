@@ -17,7 +17,7 @@ package com.github.owlcs.ontapi.tests.internal;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.objects.ModelObject;
-import com.github.owlcs.ontapi.tests.TestFactory;
+import com.github.owlcs.ontapi.tests.TestFactory.Data;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -35,7 +35,7 @@ import java.util.stream.Stream;
  * Created by @ssz on 13.08.2019.
  */
 @SuppressWarnings("WeakerAccess")
-abstract class ObjectFactoryTestBase extends TestFactory {
+abstract class ObjectFactoryTestBase {
     static final Logger LOGGER = LoggerFactory.getLogger(ObjectFactoryTestBase.class);
 
     static final OWLDataFactory ONT_DATA_FACTORY = OntManagers.getDataFactory();

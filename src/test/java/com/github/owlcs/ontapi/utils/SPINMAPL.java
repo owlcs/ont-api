@@ -23,6 +23,7 @@ import org.apache.jena.rdf.model.ResourceFactory;
  * <p>
  * Created by szuev on 21.04.2017.
  */
+@SuppressWarnings("unused")
 public class SPINMAPL {
     public final static String URI = "http://topbraid.org/spin/spinmapl";
     public final static String NS = URI + "#";

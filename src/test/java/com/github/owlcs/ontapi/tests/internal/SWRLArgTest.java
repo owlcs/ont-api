@@ -19,6 +19,8 @@ import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.internal.ONTObject;
+import com.github.owlcs.ontapi.tests.TestFactory;
+import com.github.owlcs.ontapi.tests.TestFactory.Data;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.*;
@@ -33,7 +35,7 @@ import java.util.stream.Collectors;
 public class SWRLArgTest extends ObjectFactoryTestBase {
 
     public static List<Data> getData() {
-        return getObjects().stream()
+        return TestFactory.getObjects().stream()
                 .filter(x -> x.isSWRLVariable() || x.isSWRLIndividual() || x.isSWRLLiteral())
                 .collect(Collectors.toList());
     }

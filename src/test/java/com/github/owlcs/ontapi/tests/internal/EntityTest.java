@@ -19,6 +19,8 @@ import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.internal.ONTObject;
+import com.github.owlcs.ontapi.tests.TestFactory;
+import com.github.owlcs.ontapi.tests.TestFactory.Data;
 import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLObject;
@@ -33,7 +35,7 @@ import java.util.stream.Collectors;
 public class EntityTest extends ObjectFactoryTestBase {
 
     public static List<Data> getData() {
-        return getObjects().stream().filter(Data::isEntity).collect(Collectors.toList());
+        return TestFactory.getObjects().stream().filter(Data::isEntity).collect(Collectors.toList());
     }
 
     @Override

@@ -17,6 +17,8 @@ package com.github.owlcs.ontapi.tests.internal;
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.OntologyManager;
+import com.github.owlcs.ontapi.tests.TestFactory.AxiomData;
+import com.github.owlcs.ontapi.tests.TestFactory.Data;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
