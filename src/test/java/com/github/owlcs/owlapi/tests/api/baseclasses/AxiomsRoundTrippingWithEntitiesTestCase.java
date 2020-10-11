@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -13,14 +13,12 @@
  */
 package com.github.owlcs.owlapi.tests.api.baseclasses;
 
+import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.google.common.collect.Sets;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLOntology;
-
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
 
 /**
  * @author Matthew Horridge, The University of Manchester, Information Management Group
@@ -28,13 +26,14 @@ import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
 public class AxiomsRoundTrippingWithEntitiesTestCase extends AxiomsRoundTrippingBase {
 
     private static final IRI iriA = iri("A");
-    private static final OWLClass clsA = Class(iriA);
-    private static final OWLAnnotationProperty apropA = AnnotationProperty(iri("apropA"));
-    private static final OWLAnnotationProperty apropB = AnnotationProperty(iri("apropB"));
+    private static final OWLClass clsA = OWLFunctionalSyntaxFactory.Class(iriA);
+    private static final OWLAnnotationProperty apropA = OWLFunctionalSyntaxFactory.AnnotationProperty(iri("apropA"));
+    private static final OWLAnnotationProperty apropB = OWLFunctionalSyntaxFactory.AnnotationProperty(iri("apropB"));
 
     public AxiomsRoundTrippingWithEntitiesTestCase() {
-        super(() -> Sets.newHashSet(Declaration(clsA), AnnotationAssertion(apropA, clsA.getIRI(), Literal("value1")),
-                AnnotationAssertion(apropB, clsA.getIRI(), Literal("value2"))));
+        super(() -> Sets.newHashSet(OWLFunctionalSyntaxFactory.Declaration(clsA)
+                , OWLFunctionalSyntaxFactory.AnnotationAssertion(apropA, clsA.getIRI(), OWLFunctionalSyntaxFactory.Literal("value1"))
+                , OWLFunctionalSyntaxFactory.AnnotationAssertion(apropB, clsA.getIRI(), OWLFunctionalSyntaxFactory.Literal("value2"))));
     }
 
     @Override

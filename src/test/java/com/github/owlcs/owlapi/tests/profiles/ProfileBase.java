@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -15,7 +15,7 @@
 package com.github.owlcs.owlapi.tests.profiles;
 
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
@@ -37,7 +37,7 @@ public class ProfileBase extends TestBase {
             OWLOntology o = m.loadOntologyFromOntologyDocument(new StringDocumentSource(in));
             com.github.owlcs.ontapi.utils.ReadWriteUtils.print(o);
             o.axioms().forEach(a -> LOGGER.debug(String.valueOf(a)));
-            Assert.assertTrue("Empty axioms list", o.axioms().count() > 0);
+            Assertions.assertTrue(o.axioms().count() > 0, "Empty axioms list");
             OWLProfileReport OWL2_EL = Profiles.OWL2_EL.checkOntology(o);
             OWLProfileReport OWL2_QL = Profiles.OWL2_QL.checkOntology(o);
             OWLProfileReport OWL2_RL = Profiles.OWL2_RL.checkOntology(o);
@@ -46,12 +46,12 @@ public class ProfileBase extends TestBase {
             LOGGER.debug("Violations(QL): " + OWL2_QL.getViolations());
             LOGGER.debug("Violations(RL): " + OWL2_RL.getViolations());
             LOGGER.debug("Violations(DL): " + OWL2_DL.getViolations());
-            Assert.assertEquals(el, OWL2_EL.isInProfile());
-            Assert.assertEquals(ql, OWL2_QL.isInProfile());
-            Assert.assertEquals(rl, OWL2_RL.isInProfile());
-            Assert.assertEquals(dl, OWL2_DL.isInProfile());
+            Assertions.assertEquals(el, OWL2_EL.isInProfile());
+            Assertions.assertEquals(ql, OWL2_QL.isInProfile());
+            Assertions.assertEquals(rl, OWL2_RL.isInProfile());
+            Assertions.assertEquals(dl, OWL2_DL.isInProfile());
         } catch (OWLOntologyCreationException e) {
-            throw new AssertionError("Exception!", e);
+            Assertions.fail("Exception!", e);
         }
     }
 }

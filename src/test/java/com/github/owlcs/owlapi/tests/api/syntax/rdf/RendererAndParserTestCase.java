@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -15,11 +15,9 @@ package com.github.owlcs.owlapi.tests.api.syntax.rdf;
 
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLLogicalAxiom;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -32,16 +30,8 @@ import java.util.stream.Collectors;
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
  */
-@RunWith(Parameterized.class)
 public class RendererAndParserTestCase extends TestBase {
 
-    private final AxiomBuilder axioms;
-
-    public RendererAndParserTestCase(AxiomBuilder b) {
-        axioms = b;
-    }
-
-    @Parameters
     public static List<AxiomBuilder> getData() {
         return Arrays.asList(
                 // AnonymousIndividual
@@ -80,8 +70,9 @@ public class RendererAndParserTestCase extends TestBase {
                                         OWLFunctionalSyntaxFactory.createClass())))));
     }
 
-    @Test
-    public void testSaveAndReload() throws Exception {
+    @ParameterizedTest
+    @MethodSource("getData")
+    public void testSaveAndReload(AxiomBuilder axioms) throws Exception {
         OWLOntology ontA = getOWLOntology();
         ontA.add(axioms.build());
         OWLOntology ontB = roundTrip(ontA);
@@ -103,6 +94,6 @@ public class RendererAndParserTestCase extends TestBase {
                 msg.append(axiom).append("\n");
             }
         }
-        Assert.assertTrue(msg.toString(), aMinusB.isEmpty() && bMinusA.isEmpty());
+        Assertions.assertTrue(aMinusB.isEmpty() && bMinusA.isEmpty(), msg.toString());
     }
 }

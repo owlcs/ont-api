@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -15,22 +15,19 @@
 package com.github.owlcs.owlapi.tests.api;
 
 import com.google.common.collect.Sets;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.util.OWLObjectComponentCollector;
 
 import java.util.*;
-
-import static org.junit.Assert.assertEquals;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asUnorderedSet;
+import java.util.stream.Collectors;
 
 /**
  * Copy-paste from <a href='https://github.com/owlcs/owlapi'>OWL-API, ver. 5.1.1</a>
  */
-@RunWith(Parameterized.class)
 public class OWLObjectComponentCollectorTestCase {
 
     private static final String CI = "<urn:test#c>";
@@ -250,15 +247,7 @@ public class OWLObjectComponentCollectorTestCase {
             "BuiltInAtom(<urn:swrl:var#v2> Variable(<urn:swrl:var#var5>) Variable(<urn:swrl:var#var6>) )";
     private static final String SHORTRULE =
             "DLSafeRule( Body(BuiltInAtom(<urn:swrl:var#v1> Variable(<urn:swrl:var#var3>) Variable(<urn:swrl:var#var4>) )) Head(BuiltInAtom(<urn:swrl:var#v2> Variable(<urn:swrl:var#var5>) Variable(<urn:swrl:var#var6>) )) )";
-    private final OWLAxiom object;
-    private final Set<String> expected;
 
-    public OWLObjectComponentCollectorTestCase(OWLAxiom object, String[] expected) {
-        this.object = object;
-        this.expected = Sets.newHashSet(expected);
-    }
-
-    @Parameterized.Parameters(name = "{0}")
     public static Collection<Object[]> getData() {
         DataBuilder b = new DataBuilder();
         Map<OWLAxiom, String[]> map = new LinkedHashMap<>();
@@ -344,11 +333,12 @@ public class OWLObjectComponentCollectorTestCase {
         return toReturn;
     }
 
-    @Test
-    public void testAssertion() {
-        OWLObjectComponentCollector testsubject = new OWLObjectComponentCollector();
-        Collection<OWLObject> components = testsubject.getComponents(object);
-        Set<String> strings = asUnorderedSet(components.stream().map(Object::toString));
-        assertEquals(expected, strings);
+    @ParameterizedTest
+    @MethodSource("getData")
+    public void testAssertion(OWLAxiom object, String[] expected) {
+        OWLObjectComponentCollector subject = new OWLObjectComponentCollector();
+        Collection<OWLObject> components = subject.getComponents(object);
+        Set<String> strings = components.stream().map(Object::toString).collect(Collectors.toSet());
+        Assertions.assertEquals(Sets.newHashSet(expected), strings);
     }
 }

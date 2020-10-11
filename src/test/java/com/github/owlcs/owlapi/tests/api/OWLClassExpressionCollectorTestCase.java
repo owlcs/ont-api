@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,19 +14,16 @@
 package com.github.owlcs.owlapi.tests.api;
 
 import com.google.common.collect.Sets;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.util.OWLClassExpressionCollector;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
-import static org.junit.Assert.assertEquals;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asUnorderedSet;
-
-@RunWith(Parameterized.class)
 public class OWLClassExpressionCollectorTestCase {
 
     private static final String CI = "<urn:test#c>";
@@ -49,15 +46,7 @@ public class OWLClassExpressionCollectorTestCase {
     private static final String DMAX = "DataMaxCardinality(1 <urn:test#dp> <urn:test#datatype>)";
     private static final String DEQ = "DataExactCardinality(1 <urn:test#dp> <urn:test#datatype>)";
     private static final String THING = "owl:Thing";
-    private final OWLAxiom object;
-    private final Set<String> expected;
 
-    public OWLClassExpressionCollectorTestCase(OWLAxiom object, String[] expected) {
-        this.object = object;
-        this.expected = Sets.newHashSet(expected);
-    }
-
-    @Parameterized.Parameters
     public static Collection<Object[]> getData() {
         DataBuilder b = new DataBuilder();
         Map<OWLAxiom, String[]> map = new LinkedHashMap<>();
@@ -138,11 +127,12 @@ public class OWLClassExpressionCollectorTestCase {
         return toReturn;
     }
 
-    @Test
-    public void testAssertion() {
-        OWLClassExpressionCollector testsubject = new OWLClassExpressionCollector();
-        Collection<OWLClassExpression> components = object.accept(testsubject);
-        Set<String> strings = asUnorderedSet(components.stream().map(Object::toString));
-        assertEquals(expected, strings);
+    @ParameterizedTest
+    @MethodSource("getData")
+    public void testAssertion(OWLAxiom object, String[] expected) {
+        OWLClassExpressionCollector subject = new OWLClassExpressionCollector();
+        Collection<OWLClassExpression> components = object.accept(subject);
+        Set<String> strings = components.stream().map(Object::toString).collect(Collectors.toSet());
+        Assertions.assertEquals(Sets.newHashSet(expected), strings);
     }
 }

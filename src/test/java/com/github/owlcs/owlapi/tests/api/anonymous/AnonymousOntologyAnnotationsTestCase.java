@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -13,10 +13,9 @@
  */
 package com.github.owlcs.owlapi.tests.api.anonymous;
 
+import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.AbstractRoundTrippingTestCase;
 import org.semanticweb.owlapi.model.*;
-
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
 
 /**
  * @author Matthew Horridge, The University of Manchester, Bio-Health Informatics Group
@@ -26,12 +25,11 @@ public class AnonymousOntologyAnnotationsTestCase extends AbstractRoundTrippingT
     @Override
     protected OWLOntology createOntology() {
         OWLOntology ont = getAnonymousOWLOntology();
-        OWLAnnotationProperty prop = AnnotationProperty(IRI("http://www.semanticweb.org/ontologies/test/annotationont#",
-                "prop"));
-        OWLLiteral value = Literal(33);
+        OWLAnnotationProperty prop = OWLFunctionalSyntaxFactory.AnnotationProperty(IRI.create("http://www.semanticweb.org/ontologies/test/annotationont#", "prop"));
+        OWLLiteral value = OWLFunctionalSyntaxFactory.Literal(33);
         OWLAnnotation annotation = df.getOWLAnnotation(prop, value);
         ont.applyChange(new AddOntologyAnnotation(ont, annotation));
-        ont.getOWLOntologyManager().addAxiom(ont, Declaration(prop));
+        ont.getOWLOntologyManager().addAxiom(ont, OWLFunctionalSyntaxFactory.Declaration(prop));
         return ont;
     }
 }

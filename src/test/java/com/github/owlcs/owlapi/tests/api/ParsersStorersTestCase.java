@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -13,11 +13,10 @@
  */
 package com.github.owlcs.owlapi.tests.api;
 
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import com.github.owlcs.owlapi.OWLManager;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.semanticweb.owlapi.dlsyntax.parser.DLSyntaxOWLParserFactory;
 import org.semanticweb.owlapi.dlsyntax.renderer.DLSyntaxStorerFactory;
 import org.semanticweb.owlapi.formats.*;
@@ -41,40 +40,44 @@ import org.semanticweb.owlapi.rdf.rdfxml.parser.RDFXMLParserFactory;
 import org.semanticweb.owlapi.rdf.rdfxml.renderer.RDFXMLStorerFactory;
 import org.semanticweb.owlapi.rdf.turtle.parser.TurtleOntologyParserFactory;
 import org.semanticweb.owlapi.rdf.turtle.renderer.TurtleStorerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@RunWith(Parameterized.class)
-public class ParsersStorersTestCase extends TestBase {
+public class ParsersStorersTestCase {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ParsersStorersTestCase.class);
 
-    private final OWLAxiom object;
-
-    public ParsersStorersTestCase(OWLAxiom object) {
-        this.object = object;
-    }
-
-    @Parameterized.Parameters
     public static Collection<OWLAxiom> getData() {
         return new DataBuilder().all();
     }
 
-    public OWLOntology ont() {
+    private OWLOntology ont(OWLAxiom object) {
         OWLOntology o = getAnonymousOWLOntology();
         o.add(object);
         return o;
     }
 
-    public void test(OWLStorerFactory stores,
-                     OWLParserFactory parsers,
-                     OWLDocumentFormat format,
-                     boolean expectParse,
-                     boolean expectRoundtrip) throws Exception {
+    protected OWLOntology getAnonymousOWLOntology() {
+        try {
+            return OWLManager.createOWLOntologyManager().createOntology();
+        } catch (OWLOntologyCreationException e) {
+            return Assertions.fail(e);
+        }
+    }
+
+    private void test(OWLAxiom object,
+                      OWLStorerFactory stores,
+                      OWLParserFactory parsers,
+                      OWLDocumentFormat format,
+                      boolean expectParse,
+                      boolean expectRoundtrip) throws Exception {
         LOGGER.debug("Test object: <{}>", object);
         LOGGER.debug("Test format: {}", format.getClass().getSimpleName());
         StringDocumentTarget target = new StringDocumentTarget();
-        OWLOntology data = ont();
+        OWLOntology data = ont(object);
 
         LOGGER.debug("Test Data:");
         com.github.owlcs.ontapi.utils.ReadWriteUtils.print(data);
@@ -113,7 +116,7 @@ public class ParsersStorersTestCase extends TestBase {
                 .map(String::valueOf)
                 .map(s -> s.replaceAll(bNodePattern, bNodeValue)).collect(Collectors.toList());
 
-        Assert.assertTrue("Can't find " + test + " inside \n" + axioms, axioms.contains(test));
+        Assertions.assertTrue(axioms.contains(test), "Can't find " + test + " inside \n" + axioms);
     }
 
     private static OWLAxiom trimAxiom(OWLAxiom axiom) {
@@ -123,58 +126,67 @@ public class ParsersStorersTestCase extends TestBase {
         return axiom.getAxiomWithoutAnnotations();
     }
 
-    @Test
-    public void testManchesterSyntax() throws Exception {
+    @ParameterizedTest
+    @MethodSource("getData")
+    public void testManchesterSyntax(OWLAxiom object) throws Exception {
         boolean logicalAxiom = object.isLogicalAxiom();
-        test(new ManchesterSyntaxStorerFactory(), new ManchesterOWLSyntaxOntologyParserFactory(),
-                new ManchesterSyntaxDocumentFormat(), logicalAxiom, logicalAxiom);
+        test(object, new ManchesterSyntaxStorerFactory(),
+                new ManchesterOWLSyntaxOntologyParserFactory(), new ManchesterSyntaxDocumentFormat(), logicalAxiom, logicalAxiom);
     }
 
-    @Test
-    public void testKRSS2() throws Exception {
+    @ParameterizedTest
+    @MethodSource("getData")
+    public void testKRSS2(OWLAxiom object) throws Exception {
         // XXX at some point roundtripping should be supported
-        test(new KRSS2OWLSyntaxStorerFactory(), new KRSS2OWLParserFactory(), new KRSS2DocumentFormat(), false, false);
+        test(object, new KRSS2OWLSyntaxStorerFactory(), new KRSS2OWLParserFactory(), new KRSS2DocumentFormat(), false, false);
     }
 
-    @Test
-    public void testKRSS() throws Exception {
+    @ParameterizedTest
+    @MethodSource("getData")
+    public void testKRSS(OWLAxiom object) throws Exception {
         // XXX at some point roundtripping should be supported
-        test(new KRSSSyntaxStorerFactory(), new KRSSOWLParserFactory(), new KRSSDocumentFormat(), false, false);
+        test(object, new KRSSSyntaxStorerFactory(), new KRSSOWLParserFactory(), new KRSSDocumentFormat(), false, false);
     }
 
-    @Test
-    public void testTurtle() throws Exception {
-        test(new TurtleStorerFactory(), new TurtleOntologyParserFactory(), new TurtleDocumentFormat(), true, true);
+    @ParameterizedTest
+    @MethodSource("getData")
+    public void testTurtle(OWLAxiom object) throws Exception {
+        test(object, new TurtleStorerFactory(), new TurtleOntologyParserFactory(), new TurtleDocumentFormat(), true, true);
     }
 
-    @Test
-    public void testFSS() throws Exception {
-        test(new FunctionalSyntaxStorerFactory(), new OWLFunctionalSyntaxOWLParserFactory(),
-                new FunctionalSyntaxDocumentFormat(), true, true);
+    @ParameterizedTest
+    @MethodSource("getData")
+    public void testFSS(OWLAxiom object) throws Exception {
+        test(object, new FunctionalSyntaxStorerFactory(),
+                new OWLFunctionalSyntaxOWLParserFactory(), new FunctionalSyntaxDocumentFormat(), true, true);
     }
 
-    @Test
-    public void testOWLXML() throws Exception {
-        test(new OWLXMLStorerFactory(), new OWLXMLParserFactory(), new OWLXMLDocumentFormat(), true, true);
+    @ParameterizedTest
+    @MethodSource("getData")
+    public void testOWLXML(OWLAxiom object) throws Exception {
+        test(object, new OWLXMLStorerFactory(), new OWLXMLParserFactory(), new OWLXMLDocumentFormat(), true, true);
     }
 
-    @Test
-    public void testRDFXML() throws Exception {
-        test(new RDFXMLStorerFactory(), new RDFXMLParserFactory(), new RDFXMLDocumentFormat(), true, true);
+    @ParameterizedTest
+    @MethodSource("getData")
+    public void testRDFXML(OWLAxiom object) throws Exception {
+        test(object, new RDFXMLStorerFactory(), new RDFXMLParserFactory(), new RDFXMLDocumentFormat(), true, true);
     }
 
-    @Test
-    public void testDLSyntax() throws Exception {
+    @ParameterizedTest
+    @MethodSource("getData")
+    public void testDLSyntax(OWLAxiom object) throws Exception {
         // XXX at some point roundtripping should be supported
-        test(new DLSyntaxStorerFactory(), new DLSyntaxOWLParserFactory(), new DLSyntaxDocumentFormat(), false, false);
+        test(object, new DLSyntaxStorerFactory(), new DLSyntaxOWLParserFactory(), new DLSyntaxDocumentFormat(), false, false);
     }
 
-    @Test
-    public void testLatex() throws Exception {
+    @ParameterizedTest
+    @MethodSource("getData")
+    public void testLatex(OWLAxiom object) throws Exception {
         LatexDocumentFormat ontologyFormat = new LatexDocumentFormat();
         LatexStorerFactory storer = new LatexStorerFactory();
         StringDocumentTarget target = new StringDocumentTarget();
-        storer.createStorer().storeOntology(ont(), target, ontologyFormat);
+        storer.createStorer().storeOntology(ont(object), target, ontologyFormat);
         // assertEquals(expected, object.toString());
     }
 }

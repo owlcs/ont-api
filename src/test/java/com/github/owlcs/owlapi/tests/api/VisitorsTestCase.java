@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,9 +14,9 @@
 
 package com.github.owlcs.owlapi.tests.api;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.util.SimpleRenderer;
 
@@ -25,23 +25,11 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-
 /**
  * Copy-paste from <a href='https://github.com/owlcs/owlapi'>OWL-API, ver. 5.1.1</a>
  */
-@RunWith(Parameterized.class)
 public class VisitorsTestCase {
 
-    private final OWLObject object;
-    private final String expected;
-
-    public VisitorsTestCase(OWLObject object, String expected) {
-        this.object = object;
-        this.expected = expected;
-    }
-
-    @Parameterized.Parameters
     public static Collection<Object[]> getData() {
         DataBuilder b = new DataBuilder();
         Map<OWLObject, String> map = new LinkedHashMap<>();
@@ -189,9 +177,10 @@ public class VisitorsTestCase {
         return toReturn;
     }
 
-    @Test
-    public void testAssertion() {
+    @ParameterizedTest
+    @MethodSource("getData")
+    public void testAssertion(OWLObject object, String expected) {
         String render = new SimpleRenderer().render(object);
-        assertEquals(expected, render);
+        Assertions.assertEquals(expected, render);
     }
 }

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -17,11 +17,11 @@ package com.github.owlcs.owlapi.tests.api;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.owlapi.OWLManager;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.semanticweb.owlapi.formats.FunctionalSyntaxDocumentFormat;
 import org.semanticweb.owlapi.formats.OWLXMLDocumentFormat;
 import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
@@ -31,19 +31,11 @@ import org.semanticweb.owlapi.model.*;
 import java.util.Arrays;
 import java.util.Collection;
 
-@RunWith(Parameterized.class)
 public class PunnedDeclarationsNotAddedTestCase extends TestBase {
 
-    @Parameters(name = "{0}")
     public static Collection<OWLDocumentFormat> data() {
         return Arrays.asList(new FunctionalSyntaxDocumentFormat(),
                 new OWLXMLDocumentFormat(), new RDFXMLDocumentFormat(), new TurtleDocumentFormat());
-    }
-
-    private final OWLDocumentFormat format;
-
-    public PunnedDeclarationsNotAddedTestCase(OWLDocumentFormat format) {
-        this.format = format;
     }
 
     private OWLOntology getOntologyWithPunnedInvalidDeclarations() {
@@ -69,34 +61,31 @@ public class PunnedDeclarationsNotAddedTestCase extends TestBase {
         return o;
     }
 
-    @Test
-    public void shouldDeclareMissingEntities() throws OWLOntologyCreationException, OWLOntologyStorageException {
+    @ParameterizedTest
+    @MethodSource("data")
+    public void shouldDeclareMissingEntities(OWLDocumentFormat format) throws Exception {
         OWLOntology o = getOntologyWithMissingDeclarations();
         OWLOntology reloaded = roundTrip(o, format);
         OWLObjectProperty op = df.getOWLObjectProperty(iri("testObjectProperty"));
         OWLAnnotationProperty ap = df.getOWLAnnotationProperty(iri("testAnnotationProperty"));
-        Assert.assertTrue(reloaded.containsAxiom(df.getOWLDeclarationAxiom(ap)));
-        Assert.assertTrue(reloaded.containsAxiom(df.getOWLDeclarationAxiom(op)));
+        Assertions.assertTrue(reloaded.containsAxiom(df.getOWLDeclarationAxiom(ap)));
+        Assertions.assertTrue(reloaded.containsAxiom(df.getOWLDeclarationAxiom(op)));
     }
 
-    @Test
-    public void shouldNotAddDeclarationsForIllegalPunnings() throws Exception {
-        if (OWLManager.DEBUG_USE_OWL) {
-            testOWLAPI();
-        } else {
-            testONTAPI();
-        }
-    }
-
-    private void testOWLAPI() throws Exception {
+    @ParameterizedTest
+    @MethodSource("data")
+    public void shouldNotAddDeclarationsForIllegalPunnings(OWLDocumentFormat format) throws Exception {
+        Assumptions.assumeTrue(OWLManager.DEBUG_USE_OWL);
         OWLOntology o = getOntologyWithPunnedInvalidDeclarations();
         OWLOntology reloaded = roundTrip(o, format);
         OWLAnnotationProperty ap = df.getOWLAnnotationProperty(iri("testProperty"));
         OWLDeclarationAxiom ax = df.getOWLDeclarationAxiom(ap);
-        Assert.assertFalse("ap testProperty should not have been declared", reloaded.containsAxiom(ax));
+        Assertions.assertFalse(reloaded.containsAxiom(ax), "ap testProperty should not have been declared");
     }
 
-    private void testONTAPI() throws Exception {
+    @Test
+    public void shouldNotAddDeclarationsForIllegalPunnings() throws Exception {
+        Assumptions.assumeFalse(OWLManager.DEBUG_USE_OWL);
         OWLOntologyManager m = setupManager();
         OWLOntologyLoaderConfiguration conf = ((com.github.owlcs.ontapi.config.OntLoaderConfiguration) m
                 .getOntologyLoaderConfiguration())
@@ -117,7 +106,7 @@ public class PunnedDeclarationsNotAddedTestCase extends TestBase {
         // ONT-API HACK: not even able to add illegal axioms:
         try {
             o.add(assertion);
-            Assert.fail("The assetrtion succesfully added: " + assertion);
+            Assertions.fail("The assertion successfully added: " + assertion);
         } catch (OntApiException e) {
             LOGGER.debug("Exception: {}", e.getMessage());
             Throwable cause = e.getCause();

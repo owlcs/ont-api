@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -13,30 +13,21 @@
  */
 package com.github.owlcs.owlapi.tests.api;
 
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import com.github.owlcs.owlapi.OWLManager;
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.util.DLExpressivityChecker;
-import com.github.owlcs.owlapi.OWLManager;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@RunWith(Parameterized.class)
 public class DLExpressivityCheckerTestCase extends TestBase {
-    private final Data data;
-
-    public DLExpressivityCheckerTestCase(Data data) {
-        this.data = data;
-    }
-
-    @Parameterized.Parameters(name = "{0}")
     public static List<Data> getData() {
         DataBuilder b = new DataBuilder();
         return Arrays.asList(
@@ -116,13 +107,14 @@ public class DLExpressivityCheckerTestCase extends TestBase {
         );
     }
 
-    @Test
-    public void testAssertion() throws Exception {
+    @ParameterizedTest
+    @MethodSource("getData")
+    public void testAssertion(Data data) throws Exception {
         OWLOntology o = OWLManager.createOWLOntologyManager().createOntology();
         data.axioms.forEach(o::add);
 
         String actual = new DLExpressivityChecker(Collections.singleton(o)).getDescriptionLogicName();
-        Assert.assertEquals(data.expected, actual);
+        Assertions.assertEquals(data.expected, actual);
     }
 
     public static class Data {

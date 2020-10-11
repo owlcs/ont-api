@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -15,10 +15,8 @@
 package com.github.owlcs.owlapi.tests.profiles;
 
 import com.github.owlcs.owlapi.OWLManager;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
@@ -28,14 +26,7 @@ import org.semanticweb.owlapi.profiles.Profiles;
 import java.util.Arrays;
 import java.util.List;
 
-@RunWith(Parameterized.class)
 public class ProfileFullTestCase extends ProfileBase {
-
-    private final String premise;
-
-    public ProfileFullTestCase(String premise) {
-        this.premise = premise;
-    }
 
     /**
      * ONT-API comment(1):
@@ -57,8 +48,9 @@ public class ProfileFullTestCase extends ProfileBase {
      * to allow illegal punnings. One of the test-ontologies contains such things.
      * It is also a 'hack' to match OWL-API behaviour.
      */
-    @Test
-    public void testFull() {
+    @ParameterizedTest
+    @MethodSource("getData")
+    public void testFull(String premise) {
         OWLOntologyManager manager = setupManager();
         if (!OWLManager.DEBUG_USE_OWL) {
             OWLOntologyLoaderConfiguration conf = ((com.github.owlcs.ontapi.config.OntLoaderConfiguration) manager
@@ -70,7 +62,6 @@ public class ProfileFullTestCase extends ProfileBase {
         test(manager, premise, false, false, false, false);
     }
 
-    @Parameters
     public static List<String> getData() {
         return Arrays.asList(
                 "<rdf:RDF xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" xmlns:owl=\"http://www.w3.org/2002/07/owl#\" xml:base=\"urn:test\"><owl:Ontology/><owl:Class rdf:nodeID=\"B\"><owl:intersectionOf rdf:parseType=\"Collection\"><owl:Class rdf:about=\"urn:test#B\"/></owl:intersectionOf></owl:Class><rdf:Description><rdf:type rdf:nodeID=\"B\"/></rdf:Description><owl:Class><owl:intersectionOf rdf:parseType=\"Collection\"><owl:Class rdf:about=\"urn:test#C\"/><rdf:Description rdf:nodeID=\"B\"/></owl:intersectionOf></owl:Class></rdf:RDF>",

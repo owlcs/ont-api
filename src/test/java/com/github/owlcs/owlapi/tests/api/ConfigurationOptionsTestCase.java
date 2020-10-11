@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,11 +14,9 @@
 
 package com.github.owlcs.owlapi.tests.api;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameter;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.semanticweb.owlapi.model.MissingImportHandlingStrategy;
 import org.semanticweb.owlapi.model.MissingOntologyHeaderStrategy;
 import org.semanticweb.owlapi.model.PriorityCollectionSorting;
@@ -28,17 +26,8 @@ import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-
-@RunWith(Parameterized.class)
 public class ConfigurationOptionsTestCase {
 
-    @Parameter()
-    public ConfigurationOptions config;
-    @Parameter(1)
-    public Object value;
-
-    @Parameters(name = "{0}")
     public static List<Object[]> values() {
         List<Object[]> toReturn = new ArrayList<>();
         toReturn.add(new Object[]{ConfigurationOptions.ACCEPT_HTTP_COMPRESSION, Boolean.TRUE});
@@ -64,9 +53,10 @@ public class ConfigurationOptionsTestCase {
         return toReturn;
     }
 
-    @Test
-    public void shouldFindExpectedValue() {
-        assertEquals(value, config.getValue(value.getClass(), new EnumMap<>(ConfigurationOptions.class)));
-        assertEquals(value, config.getDefaultValue(value.getClass()));
+    @ParameterizedTest
+    @MethodSource("values")
+    public void shouldFindExpectedValue(ConfigurationOptions config, Object value) {
+        Assertions.assertEquals(value, config.getValue(value.getClass(), new EnumMap<>(ConfigurationOptions.class)));
+        Assertions.assertEquals(value, config.getDefaultValue(value.getClass()));
     }
 }

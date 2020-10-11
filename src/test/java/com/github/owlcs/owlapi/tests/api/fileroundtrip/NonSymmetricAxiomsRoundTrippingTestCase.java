@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -13,64 +13,57 @@
  */
 package com.github.owlcs.owlapi.tests.api.fileroundtrip;
 
+import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.semanticweb.owlapi.formats.FunctionalSyntaxDocumentFormat;
-import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
-import static org.junit.Assert.assertEquals;
-
 /**
  * @author Matthew Horridge, The University of Manchester, Information Management Group
  */
-@RunWith(Parameterized.class)
 public class NonSymmetricAxiomsRoundTrippingTestCase extends TestBase {
 
     private static final IRI iriA = iri("A");
-    private static final OWLClass clsA = Class(iriA);
-    private static final OWLClass clsB = Class(iri("B"));
-    private static final OWLClass clsC = Class(iri("C"));
-    private static final OWLDatatype dataD = Datatype(iri("D"));
-    private static final OWLDatatype dataE = Datatype(iri("E"));
-    private static final OWLObjectProperty propA = ObjectProperty(iri("propA"));
-    private static final OWLDataProperty propB = DataProperty(iri("propB"));
-    private static final OWLObjectSomeValuesFrom d = ObjectSomeValuesFrom(propA, ObjectIntersectionOf(clsB, clsC));
-    private static final OWLDataSomeValuesFrom e = DataSomeValuesFrom(propB, DataIntersectionOf(dataD, dataE));
-    private static final OWLClassExpression du = ObjectUnionOf(clsB, clsC);
-    private static final OWLDataUnionOf eu = DataUnionOf(dataD, dataE);
-    private OWLAxiom in;
-    private OWLAxiom out;
+    private static final OWLClass clsA = OWLFunctionalSyntaxFactory.Class(iriA);
+    private static final OWLClass clsB = OWLFunctionalSyntaxFactory.Class(iri("B"));
+    private static final OWLClass clsC = OWLFunctionalSyntaxFactory.Class(iri("C"));
+    private static final OWLDatatype dataD = OWLFunctionalSyntaxFactory.Datatype(iri("D"));
+    private static final OWLDatatype dataE = OWLFunctionalSyntaxFactory.Datatype(iri("E"));
+    private static final OWLObjectProperty propA = OWLFunctionalSyntaxFactory.ObjectProperty(iri("propA"));
+    private static final OWLDataProperty propB = OWLFunctionalSyntaxFactory.DataProperty(iri("propB"));
+    private static final OWLObjectSomeValuesFrom d = OWLFunctionalSyntaxFactory.ObjectSomeValuesFrom(propA,
+            OWLFunctionalSyntaxFactory.ObjectIntersectionOf(clsB, clsC));
+    private static final OWLDataSomeValuesFrom e = OWLFunctionalSyntaxFactory.DataSomeValuesFrom(propB,
+            OWLFunctionalSyntaxFactory.DataIntersectionOf(dataD, dataE));
+    private static final OWLClassExpression du = OWLFunctionalSyntaxFactory.ObjectUnionOf(clsB, clsC);
+    private static final OWLDataUnionOf eu = OWLFunctionalSyntaxFactory.DataUnionOf(dataD, dataE);
 
-    public NonSymmetricAxiomsRoundTrippingTestCase(OWLAxiom in, OWLAxiom out) {
-        this.in = in;
-        this.out = out;
-    }
-
-    @Parameters
     public static List<OWLAxiom[]> getData() {
         List<OWLAxiom[]> list = new ArrayList<>();
-        list.add(new OWLAxiom[]{SubClassOf(clsA, ObjectIntersectionOf(d, d)), SubClassOf(clsA, d)});
-        list.add(new OWLAxiom[]{SubClassOf(clsA, ObjectUnionOf(e, e)), SubClassOf(clsA, e)});
-        list.add(new OWLAxiom[]{SubClassOf(clsA, ObjectIntersectionOf(du, du)), SubClassOf(clsA, du)});
-        list.add(new OWLAxiom[]{DatatypeDefinition(dataD, DataUnionOf(eu, eu)), DatatypeDefinition(dataD, eu)});
+        list.add(new OWLAxiom[]{OWLFunctionalSyntaxFactory.SubClassOf(clsA, OWLFunctionalSyntaxFactory.ObjectIntersectionOf(d, d)),
+                OWLFunctionalSyntaxFactory.SubClassOf(clsA, d)});
+        list.add(new OWLAxiom[]{OWLFunctionalSyntaxFactory.SubClassOf(clsA, OWLFunctionalSyntaxFactory.ObjectUnionOf(e, e)),
+                OWLFunctionalSyntaxFactory.SubClassOf(clsA, e)});
+        list.add(new OWLAxiom[]{OWLFunctionalSyntaxFactory.SubClassOf(clsA, OWLFunctionalSyntaxFactory.ObjectIntersectionOf(du, du)),
+                OWLFunctionalSyntaxFactory.SubClassOf(clsA, du)});
+        list.add(new OWLAxiom[]{OWLFunctionalSyntaxFactory.DatatypeDefinition(dataD, OWLFunctionalSyntaxFactory.DataUnionOf(eu, eu)),
+                OWLFunctionalSyntaxFactory.DatatypeDefinition(dataD, eu)});
         return list;
     }
 
-    @Test
-    public void shouldRoundTripAReadableVersion() throws OWLOntologyCreationException, OWLOntologyStorageException {
+    @ParameterizedTest
+    @MethodSource("getData")
+    public void shouldRoundTripAReadableVersion(OWLAxiom in, OWLAxiom out) throws Exception {
         OWLOntology output = getOWLOntology();
         output.add(in);
         OWLOntology o = roundTrip(output, new FunctionalSyntaxDocumentFormat());
-        assertEquals(1, o.logicalAxioms().count());
-        assertEquals(out, o.logicalAxioms().iterator().next());
+        Assertions.assertEquals(1, o.logicalAxioms().count());
+        Assertions.assertEquals(out, o.logicalAxioms().iterator().next());
     }
 }

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -13,6 +13,7 @@
  */
 package com.github.owlcs.owlapi.tests.api.baseclasses;
 
+import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.google.common.collect.Sets;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
@@ -23,19 +24,19 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
 
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
+import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Declaration;
 
 /**
  * @author Matthew Horridge, The University of Manchester, Information Management Group
  */
 public abstract class AnnotatedAxiomRoundTrippingTestCase extends AxiomsRoundTrippingBase {
 
-    private static OWLAnnotationProperty prop = AnnotationProperty(iri("prop"));
-    private static OWLLiteral lit = Literal("Test", "");
-    private static OWLAnnotation anno1 = Annotation(prop, lit);
-    private static OWLAnnotationProperty prop2 = AnnotationProperty(iri("prop2"));
-    private static OWLAnnotation anno2 = Annotation(prop2, lit);
-    private static Set<OWLAnnotation> annos = Sets.newHashSet(anno1, anno2);
+    private static final OWLAnnotationProperty prop = OWLFunctionalSyntaxFactory.AnnotationProperty(iri("prop"));
+    private static final OWLLiteral lit = OWLFunctionalSyntaxFactory.Literal("Test", "");
+    private static final OWLAnnotation anno1 = OWLFunctionalSyntaxFactory.Annotation(prop, lit);
+    private static final OWLAnnotationProperty prop2 = OWLFunctionalSyntaxFactory.AnnotationProperty(iri("prop2"));
+    private static final OWLAnnotation anno2 = OWLFunctionalSyntaxFactory.Annotation(prop2, lit);
+    private static final Set<OWLAnnotation> annos = Sets.newHashSet(anno1, anno2);
 
     public AnnotatedAxiomRoundTrippingTestCase(Function<Set<OWLAnnotation>, OWLAxiom> f) {
         super(() -> {

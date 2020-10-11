@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -13,58 +13,50 @@
  */
 package com.github.owlcs.owlapi.tests.api.annotations;
 
+import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
-import org.semanticweb.owlapi.model.IRI;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.search.EntitySearcher;
 
 import java.util.Arrays;
 import java.util.Collection;
 
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
-import static org.junit.Assert.assertTrue;
-import static org.semanticweb.owlapi.search.EntitySearcher.getAnnotationObjects;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.contains;
-
 /**
  * @author Matthew Horridge, The University of Manchester, Bio-Health Informatics Group
  */
-@RunWith(Parameterized.class)
 public class AnnotationAccessorsTestCase extends TestBase {
 
     private static final IRI SUBJECT = IRI.create("http://owlapi.sourceforge.net/ontologies/test#", "X");
 
-    @Parameters
     public static Collection<OWLPrimitive> getData() {
-        return Arrays.asList(Class(SUBJECT), NamedIndividual(SUBJECT), DataProperty(SUBJECT), ObjectProperty(SUBJECT),
-                Datatype(SUBJECT), AnnotationProperty(SUBJECT), AnonymousIndividual());
-    }
-
-    private final OWLPrimitive e;
-
-    public AnnotationAccessorsTestCase(OWLPrimitive e) {
-        this.e = e;
+        return Arrays.asList(OWLFunctionalSyntaxFactory.Class(SUBJECT)
+                , OWLFunctionalSyntaxFactory.NamedIndividual(SUBJECT)
+                , OWLFunctionalSyntaxFactory.DataProperty(SUBJECT)
+                , OWLFunctionalSyntaxFactory.ObjectProperty(SUBJECT)
+                , OWLFunctionalSyntaxFactory.Datatype(SUBJECT)
+                , OWLFunctionalSyntaxFactory.AnnotationProperty(SUBJECT)
+                , OWLFunctionalSyntaxFactory.AnonymousIndividual());
     }
 
     private static OWLAnnotationAssertionAxiom createAnnotationAssertionAxiom() {
-        OWLAnnotationProperty prop = AnnotationProperty(iri("prop"));
-        OWLAnnotationValue value = Literal("value");
-        return AnnotationAssertion(prop, SUBJECT, value);
+        OWLAnnotationProperty prop = OWLFunctionalSyntaxFactory.AnnotationProperty(iri("prop"));
+        OWLAnnotationValue value = OWLFunctionalSyntaxFactory.Literal("value");
+        return OWLFunctionalSyntaxFactory.AnnotationAssertion(prop, SUBJECT, value);
     }
 
-    @Test
-    public void testClassAccessor() {
+    @ParameterizedTest
+    @MethodSource("getData")
+    public void testClassAccessor(OWLPrimitive e) {
         OWLOntology ont = getOWLOntology();
         OWLAnnotationAssertionAxiom ax = createAnnotationAssertionAxiom();
         ont.getOWLOntologyManager().addAxiom(ont, ax);
-        assertTrue(ont.annotationAssertionAxioms(SUBJECT).anyMatch(a -> a.equals(ax)));
+        Assertions.assertTrue(ont.annotationAssertionAxioms(SUBJECT).anyMatch(a -> a.equals(ax)));
         if (e instanceof OWLEntity) {
-            assertTrue(ont.annotationAssertionAxioms(((OWLEntity) e).getIRI()).anyMatch(a -> a.equals(ax)));
-            assertTrue(contains(getAnnotationObjects((OWLEntity) e, ont), ax.getAnnotation()));
+            Assertions.assertTrue(ont.annotationAssertionAxioms(((OWLEntity) e).getIRI()).anyMatch(a -> a.equals(ax)));
+            Assertions.assertTrue(EntitySearcher.getAnnotationObjects((OWLEntity) e, ont).anyMatch(x -> x.equals(ax.getAnnotation())));
         }
     }
 }

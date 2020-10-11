@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -16,13 +16,12 @@ package com.github.owlcs.owlapi.tests.decomposition;
 
 import com.github.owlcs.owlapi.OWLManager;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.util.OWLAPIStreamUtils;
 import uk.ac.manchester.cs.atomicdecomposition.AtomicDecomposition;
 import uk.ac.manchester.cs.atomicdecomposition.AtomicDecompositionImpl;
 import uk.ac.manchester.cs.owlapi.modularity.ModuleType;
@@ -31,13 +30,9 @@ import uk.ac.manchester.cs.owlapi.modularity.SyntacticLocalityModuleExtractor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.junit.Assert.assertEquals;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asList;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asSet;
-
-@RunWith(Parameterized.class)
 public class OldModularisationEquivalenceTestCase extends TestBase {
 
     public static final String KOALA = "<?xml version=\"1.0\"?>\n"
@@ -67,93 +62,84 @@ public class OldModularisationEquivalenceTestCase extends TestBase {
             + "  <owl:FunctionalProperty rdf:ID=\"hasGender\"><rdfs:range rdf:resource=\"#Gender\"/><rdf:type rdf:resource=\"http://www.w3.org/2002/07/owl#ObjectProperty\"/><rdfs:domain rdf:resource=\"#Animal\"/></owl:FunctionalProperty>\n"
             + "  <owl:FunctionalProperty rdf:ID=\"isHardWorking\"><rdfs:range rdf:resource=\"http://www.w3.org/2001/XMLSchema#boolean\"/><rdfs:domain rdf:resource=\"#Person\"/><rdf:type rdf:resource=\"http://www.w3.org/2002/07/owl#DatatypeProperty\"/></owl:FunctionalProperty>\n"
             + "  <Degree rdf:ID=\"MA\"/>\n</rdf:RDF>";
-    private static String ns = "http://protege.stanford.edu/plugins/owl/owl-library/koala.owl#";
-    private static OWLDataFactory f = OWLManager.getOWLDataFactory();
+    private static final String ns = "http://protege.stanford.edu/plugins/owl/owl-library/koala.owl#";
+    private static final OWLDataFactory f = OWLManager.getOWLDataFactory();
 
     private static Set<OWLEntity> l(String... s) {
-        return asSet(Stream.of(s).map(st -> f.getOWLClass(ns, st)), OWLEntity.class);
+        return OWLAPIStreamUtils.asSet(Stream.of(s).map(st -> f.getOWLClass(ns, st)), OWLEntity.class);
     }
 
-    @Parameters(name = "{0}")
     public static List<Set<OWLEntity>> params() {
-        List<Set<OWLEntity>> l = new ArrayList<>();
-        l.add(l("Person"));
-        l.add(l("Habitat"));
-        l.add(l("Forest"));
-        l.add(l("Degree"));
-        l.add(l("Parent"));
-        l.add(l("GraduateStudent"));
-        l.add(l("Rainforest"));
-        l.add(l("Marsupials"));
-        l.add(l("KoalaWithPhD"));
-        l.add(l("TasmanianDevil"));
-        l.add(l("University"));
-        l.add(l("Animal"));
-        l.add(l("Male"));
-        l.add(l("MaleStudentWith3Daughters"));
-        l.add(l("Female"));
-        l.add(l("Koala"));
-        l.add(l("Student"));
-        l.add(l("Quokka"));
-        l.add(l("Gender"));
-        l.add(l("DryEucalyptForest"));
-        l.add(l("GraduateStudent", "Koala", "KoalaWithPhD", "MaleStudentWith3Daughters", "Person", "Quokka",
+        List<Set<OWLEntity>> res = new ArrayList<>();
+        res.add(l("Person"));
+        res.add(l("Habitat"));
+        res.add(l("Forest"));
+        res.add(l("Degree"));
+        res.add(l("Parent"));
+        res.add(l("GraduateStudent"));
+        res.add(l("Rainforest"));
+        res.add(l("Marsupials"));
+        res.add(l("KoalaWithPhD"));
+        res.add(l("TasmanianDevil"));
+        res.add(l("University"));
+        res.add(l("Animal"));
+        res.add(l("Male"));
+        res.add(l("MaleStudentWith3Daughters"));
+        res.add(l("Female"));
+        res.add(l("Koala"));
+        res.add(l("Student"));
+        res.add(l("Quokka"));
+        res.add(l("Gender"));
+        res.add(l("DryEucalyptForest"));
+        res.add(l("GraduateStudent", "Koala", "KoalaWithPhD", "MaleStudentWith3Daughters", "Person", "Quokka",
                 "Student"));
-        l.add(l("DryEucalyptForest", "Forest", "Habitat", "Koala", "KoalaWithPhD", "Quokka", "Rainforest",
+        res.add(l("DryEucalyptForest", "Forest", "Habitat", "Koala", "KoalaWithPhD", "Quokka", "Rainforest",
                 "University"));
-        l.add(l("DryEucalyptForest", "Forest", "Koala", "KoalaWithPhD", "Quokka", "Rainforest"));
-        l.add(l("Degree", "Koala", "KoalaWithPhD", "Quokka"));
-        l.add(l("Koala", "KoalaWithPhD", "MaleStudentWith3Daughters", "Parent", "Quokka"));
-        l.add(l("GraduateStudent", "Koala", "KoalaWithPhD", "Quokka"));
-        l.add(l("Koala", "KoalaWithPhD", "Quokka", "Rainforest"));
-        l.add(l("Koala", "KoalaWithPhD", "Marsupials", "Quokka", "TasmanianDevil"));
-        l.add(l("Koala", "KoalaWithPhD", "Quokka"));
-        l.add(l("Koala", "KoalaWithPhD", "Quokka", "TasmanianDevil"));
-        l.add(l("Koala", "KoalaWithPhD", "Quokka", "University"));
-        l.add(l("Animal", "Female", "GraduateStudent", "Koala", "KoalaWithPhD", "Male", "MaleStudentWith3Daughters",
+        res.add(l("DryEucalyptForest", "Forest", "Koala", "KoalaWithPhD", "Quokka", "Rainforest"));
+        res.add(l("Degree", "Koala", "KoalaWithPhD", "Quokka"));
+        res.add(l("Koala", "KoalaWithPhD", "MaleStudentWith3Daughters", "Parent", "Quokka"));
+        res.add(l("GraduateStudent", "Koala", "KoalaWithPhD", "Quokka"));
+        res.add(l("Koala", "KoalaWithPhD", "Quokka", "Rainforest"));
+        res.add(l("Koala", "KoalaWithPhD", "Marsupials", "Quokka", "TasmanianDevil"));
+        res.add(l("Koala", "KoalaWithPhD", "Quokka"));
+        res.add(l("Koala", "KoalaWithPhD", "Quokka", "TasmanianDevil"));
+        res.add(l("Koala", "KoalaWithPhD", "Quokka", "University"));
+        res.add(l("Animal", "Female", "GraduateStudent", "Koala", "KoalaWithPhD", "Male", "MaleStudentWith3Daughters",
                 "Marsupials", "Parent", "Person", "Quokka", "Student", "TasmanianDevil"));
-        l.add(l("Koala", "KoalaWithPhD", "Male", "MaleStudentWith3Daughters", "Quokka"));
-        l.add(l("Koala", "KoalaWithPhD", "MaleStudentWith3Daughters", "Quokka"));
-        l.add(l("Female", "Koala", "KoalaWithPhD", "Quokka"));
-        l.add(l("Koala", "KoalaWithPhD", "Quokka"));
-        l.add(l("GraduateStudent", "Koala", "KoalaWithPhD", "MaleStudentWith3Daughters", "Quokka", "Student"));
-        l.add(l("Koala", "KoalaWithPhD", "Quokka"));
-        l.add(l("Gender", "Koala", "KoalaWithPhD", "Quokka"));
-        l.add(l("DryEucalyptForest", "Koala", "KoalaWithPhD", "Quokka"));
-        return l;
+        res.add(l("Koala", "KoalaWithPhD", "Male", "MaleStudentWith3Daughters", "Quokka"));
+        res.add(l("Koala", "KoalaWithPhD", "MaleStudentWith3Daughters", "Quokka"));
+        res.add(l("Female", "Koala", "KoalaWithPhD", "Quokka"));
+        res.add(l("Koala", "KoalaWithPhD", "Quokka"));
+        res.add(l("GraduateStudent", "Koala", "KoalaWithPhD", "MaleStudentWith3Daughters", "Quokka", "Student"));
+        res.add(l("Koala", "KoalaWithPhD", "Quokka"));
+        res.add(l("Gender", "Koala", "KoalaWithPhD", "Quokka"));
+        res.add(l("DryEucalyptForest", "Koala", "KoalaWithPhD", "Quokka"));
+        return res;
     }
 
-    private Set<OWLEntity> signature;
-
-    public OldModularisationEquivalenceTestCase(Set<OWLEntity> l) {
-        signature = l;
+    @ParameterizedTest
+    @MethodSource("params")
+    public void testModularizationWithAtomicDecompositionStar(Set<OWLEntity> signature) throws OWLException {
+        testModularizationWithAtomicDecomposition(signature, ModuleType.STAR);
     }
 
-    @Test
-    @Ignore
-    public void testModularizationWithAtomicDecompositionStar() throws OWLException {
+    @ParameterizedTest
+    @MethodSource("params")
+    public void testModularizationWithAtomicDecompositionTop(Set<OWLEntity> signature) throws OWLException {
+        testModularizationWithAtomicDecomposition(signature, ModuleType.TOP);
+    }
+
+    @ParameterizedTest
+    @MethodSource("params")
+    public void testModularizationWithAtomicDecompositionBottom(Set<OWLEntity> signature) throws OWLException {
+        testModularizationWithAtomicDecomposition(signature, ModuleType.BOT);
+    }
+
+    private void testModularizationWithAtomicDecomposition(Set<OWLEntity> signature, ModuleType type) throws OWLException {
         OWLOntology o = m.loadOntologyFromOntologyDocument(new StringDocumentSource(KOALA));
-        List<OWLAxiom> module1 = asList(getADModule1(o, signature, ModuleType.STAR).stream().sorted());
-        List<OWLAxiom> module2 = asList(getTraditionalModule(m, o, signature, ModuleType.STAR).stream()
-                .filter(OWLAxiom::isLogicalAxiom).sorted());
-        makeAssertion(module1, module2);
-    }
-
-    @Test
-    public void testModularizationWithAtomicDecompositionTop() throws OWLException {
-        OWLOntology o = m.loadOntologyFromOntologyDocument(new StringDocumentSource(KOALA));
-        List<OWLAxiom> module1 = asList(getADModule1(o, signature, ModuleType.TOP).stream().sorted());
-        List<OWLAxiom> module2 = asList(getTraditionalModule(m, o, signature, ModuleType.TOP).stream()
-                .filter(OWLAxiom::isLogicalAxiom).sorted());
-        makeAssertion(module1, module2);
-    }
-
-    @Test
-    public void testModularizationWithAtomicDecompositionBottom() throws OWLException {
-        OWLOntology o = m.loadOntologyFromOntologyDocument(new StringDocumentSource(KOALA));
-        List<OWLAxiom> module1 = asList(getADModule1(o, signature, ModuleType.BOT).stream().sorted());
-        List<OWLAxiom> module2 = asList(getTraditionalModule(m, o, signature, ModuleType.BOT).stream()
-                .filter(OWLAxiom::isLogicalAxiom).sorted());
+        List<OWLAxiom> module1 = getADModule1(o, signature, type).stream().sorted().collect(Collectors.toList());
+        List<OWLAxiom> module2 = getTraditionalModule(m, o, signature, type).stream()
+                .filter(OWLAxiom::isLogicalAxiom).sorted().collect(Collectors.toList());
         makeAssertion(module1, module2);
     }
 
@@ -167,11 +153,10 @@ public class OldModularisationEquivalenceTestCase extends TestBase {
             LOGGER.debug("OldModularisationEquivalenceTestCase.testModularizationWithAtomicDecomposition() \n{},\n{}",
                     s1, s2);
         }
-        assertEquals(s1, s2);
+        Assertions.assertEquals(s1, s2);
     }
 
-    protected Set<OWLAxiom> getTraditionalModule(OWLOntologyManager man, OWLOntology o, Set<OWLEntity> seedSig,
-                                                 ModuleType type) {
+    protected Set<OWLAxiom> getTraditionalModule(OWLOntologyManager man, OWLOntology o, Set<OWLEntity> seedSig, ModuleType type) {
         SyntacticLocalityModuleExtractor sme = new SyntacticLocalityModuleExtractor(man, o, type);
         return sme.extract(seedSig);
     }
@@ -183,6 +168,6 @@ public class OldModularisationEquivalenceTestCase extends TestBase {
     // }
     protected Set<OWLAxiom> getADModule1(OWLOntology o, Set<OWLEntity> sig, ModuleType mt) {
         AtomicDecomposition ad = new AtomicDecompositionImpl(o);
-        return asSet(ad.getModule(sig.stream(), false, mt));
+        return ad.getModule(sig.stream(), false, mt).collect(Collectors.toSet());
     }
 }

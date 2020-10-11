@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -13,9 +13,9 @@
  */
 package com.github.owlcs.owlapi.tests.api;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.util.HornAxiomVisitorEx;
@@ -25,20 +25,8 @@ import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
-
-@RunWith(Parameterized.class)
 public class HornAxiomVisitorExTestCase {
 
-    private final OWLAxiom object;
-    private final Boolean b;
-
-    public HornAxiomVisitorExTestCase(OWLAxiom object, Boolean b) {
-        this.object = object;
-        this.b = b;
-    }
-
-    @Parameterized.Parameters
     public static Collection<Object[]> getData() {
         DataBuilder b = new DataBuilder();
         Map<OWLObject, Boolean> map = new LinkedHashMap<>();
@@ -118,10 +106,11 @@ public class HornAxiomVisitorExTestCase {
         return toReturn;
     }
 
-    @Test
-    public void testAssertion() {
-        HornAxiomVisitorEx testsubject = new HornAxiomVisitorEx();
-        Boolean result = object.accept(testsubject);
-        assertEquals(b, result);
+    @ParameterizedTest
+    @MethodSource("getData")
+    public void testAssertion(OWLAxiom object, Boolean b) {
+        HornAxiomVisitorEx subject = new HornAxiomVisitorEx();
+        Boolean result = object.accept(subject);
+        Assertions.assertEquals(b, result);
     }
 }
