@@ -14,13 +14,13 @@
 
 package com.github.owlcs.ontapi.tests.formats;
 
+import com.github.owlcs.TempDirectory;
 import com.github.owlcs.ontapi.OntFormat;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.utils.StringInputStreamDocumentSource;
-import org.junit.Assert;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.semanticweb.owlapi.io.IRIDocumentSource;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.io.UnparsableOntologyException;
@@ -41,25 +41,29 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * As a test.
+ * This is a collection of simple acceptance test-cases
+ * to control changes in OWL-API formats (parsers and storers) in conjunction with ONT-API io-mechanisms.
  * Currently it is mostly to compare OWL-API and ONT-API read/write support.
- * See {@link OntFormat}.
  * <p>
  * Created by @szuev on 10.01.2018.
+ *
+ * @see OntFormat
  */
+@ExtendWith(TempDirectory.class)
 public class OntFormatsTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(OntFormatsTest.class);
 
-    @Rule
-    public TemporaryFolder out = new TemporaryFolder();
+    private OWLOntologyManager newOntologyManager() {
+        return OntManagers.createOWLAPIImplManager();
+    }
 
     @Test
     public void testOntFormatsCommon() {
         Arrays.stream(OntFormat.values()).forEach(f -> {
             OWLDocumentFormat owl = f.createOwlFormat();
-            Assert.assertNotNull(owl);
-            Assert.assertNotNull(owl.getKey());
-            Assert.assertSame(f, OntFormat.get(owl));
+            Assertions.assertNotNull(owl);
+            Assertions.assertNotNull(owl.getKey());
+            Assertions.assertSame(f, OntFormat.get(owl));
         });
     }
 
@@ -67,37 +71,38 @@ public class OntFormatsTest {
     public void testDocumentFormatFactories() throws Exception {
         // from owlapi-impl to compare.
         // use the simplest ontology to avoid any deep parsing exceptions
-        OWLOntology ontology = OntManagers.createOWLAPIImplManager().createOntology(IRI.create("http://test.org/empty"));
+        OWLOntology ontology = newOntologyManager().createOntology(IRI.create("http://test.org/empty"));
         LOGGER.debug("{}", ontology);
         Set<OntFormat> writeNotSupported = new HashSet<>();
         Set<OntFormat> readNotSupported = new HashSet<>();
-        for (OntFormat f : OntFormat.values()) {
-            Path p = save(ontology, out, f);
-            LOGGER.debug("Format: {}, File: {}", f, p);
-            if (p == null) { // write fail, but if it is pure jena format it is expected.
-                if (!f.isJenaOnly())
-                    writeNotSupported.add(f);
+        for (OntFormat format : OntFormat.values()) {
+            Path file = save(ontology, format);
+            LOGGER.debug("Format: {}, File: {}", format, file);
+            if (file == null) { // write fail, but if it is pure jena format it is expected.
+                if (!format.isJenaOnly()) {
+                    writeNotSupported.add(format);
+                }
                 continue;
             }
             try {
-                OWLOntologyDocumentSource source = new IRIDocumentSource(IRI.create(p.toUri()), f.createOwlFormat(), null);
-                OntManagers.createOWLAPIImplManager().loadOntologyFromOntologyDocument(source);
+                OWLOntologyDocumentSource source = new IRIDocumentSource(IRI.create(file.toUri()), format.createOwlFormat(), null);
+                newOntologyManager().loadOntologyFromOntologyDocument(source);
             } catch (UnparsableOntologyException e) {
-                LOGGER.debug("Can't read {}", p, e);
-                readNotSupported.add(f);
+                LOGGER.debug("Can't read {}", file, e);
+                readNotSupported.add(format);
             } catch (OWLOntologyCreationException e) {
                 throw new AssertionError(e);
             }
         }
         LOGGER.debug("Write not supported: {}", writeNotSupported);
         LOGGER.debug("Read not supported: {}", readNotSupported);
-        writeNotSupported.forEach(f -> Assert.assertFalse(f.toString(), f.isWriteSupported()));
-        readNotSupported.forEach(f -> Assert.assertFalse(f.toString(), f.isReadSupported()));
+        writeNotSupported.forEach(f -> Assertions.assertFalse(f.isWriteSupported(), f.toString()));
+        readNotSupported.forEach(f -> Assertions.assertFalse(f.isReadSupported(), f.toString()));
     }
 
     @Test
     public void testFormatSupporting() throws OWLOntologyCreationException, OWLOntologyStorageException {
-        OWLOntologyManager m = OntManagers.createOWLAPIImplManager();
+        OWLOntologyManager m = newOntologyManager();
         OWLDataFactory df = m.getOWLDataFactory();
         // make a simple ontology with class-assertion and sub-class-of axioms:
         OWLClass c1 = df.getOWLClass(IRI.create("http://test.org/class1"));
@@ -118,11 +123,11 @@ public class OntFormatsTest {
             String txt;
             try {
                 ont.saveOntology(format, out);
-                Assert.assertTrue(type + ": write should be supported", type.isWriteSupported());
+                Assertions.assertTrue(type.isWriteSupported(), type + ": write should be supported");
                 txt = new String(out.toByteArray(), StandardCharsets.UTF_8);
                 LOGGER.debug(txt);
             } catch (OWLStorerNotFoundException e) {
-                Assert.assertFalse(type + ": write should not be supported", type.isWriteSupported());
+                Assertions.assertFalse(type.isWriteSupported(), type + ": write should not be supported");
                 LOGGER.debug("{} is not supported to write ", type);
                 continue;
             }
@@ -132,10 +137,10 @@ public class OntFormatsTest {
 
             OWLOntology res;
             try {
-                res = OntManagers.createOWLAPIImplManager().loadOntologyFromOntologyDocument(source);
-                Assert.assertTrue(type + ": read should be supported", type.isReadSupported());
+                res = newOntologyManager().loadOntologyFromOntologyDocument(source);
+                Assertions.assertTrue(type.isReadSupported(), type + ": read should be supported");
             } catch (UnparsableOntologyException e) {
-                Assert.assertFalse(type + ": should not be supported", type.isSupported());
+                Assertions.assertFalse(type.isSupported(), type + ": should not be supported");
                 LOGGER.debug("{} is not supported to read ", type);
                 continue;
             }
@@ -145,7 +150,7 @@ public class OntFormatsTest {
             if (!checkAxiomsCount(ont, res, AxiomType.CLASS_ASSERTION, AxiomType.SUBCLASS_OF)) {
                 LOGGER.debug("Can't find class assertion. Format: {}", format);
                 if (!type.isSupported()) continue;
-                Assert.fail("Wrong axioms. Format: " + type);
+                Assertions.fail("Wrong axioms. Format: " + type);
             }
         }
     }
@@ -155,12 +160,9 @@ public class OntFormatsTest {
         return Arrays.stream(types).allMatch(type -> actual.axioms(type).count() == expected.axioms(type).count());
     }
 
-    private static Path save(OWLOntology ontology, TemporaryFolder dir, OntFormat type) throws IOException {
-        if (type == null) {
-            type = OntFormat.TURTLE;
-        }
-        Path file = dir.newFile("formats-test." + type.getExt()).toPath();
-        LOGGER.debug("Save owl-ontology to {} ({})", file, type.getID());
+    private static Path save(OWLOntology ontology, OntFormat type) throws IOException {
+        Path file = TempDirectory.createFile("formats-test.", "." + type.getExt());
+        LOGGER.debug("Save ontology to {} (format={})", file, type);
         OWLDocumentFormat format = type.createOwlFormat();
         try (OutputStream out = Files.newOutputStream(file)) {
             ontology.getOWLOntologyManager().saveOntology(ontology, format, out);

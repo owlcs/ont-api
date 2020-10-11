@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -42,7 +42,6 @@ import java.io.Reader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.function.Supplier;
 
 import static com.github.owlcs.ontapi.OntologyFactoryImpl.ConfigMismatchException;
 import static com.github.owlcs.ontapi.OntologyFactoryImpl.UnsupportedFormatException;
@@ -242,15 +241,15 @@ public class OntGraphUtils {
      * The main method to read the source document into the graph.
      * The method is public for more generality.
      *
-     * @param graph  {@link Graph} the graph(empty) to put in.
+     * @param graph  {@link Graph} the graph(empty) to put in
      * @param source {@link OWLOntologyDocumentSource} the source (encapsulates IO-stream, IO-Reader or IRI of document)
      * @param conf   {@link OntLoaderConfiguration} config
-     * @return {@link OntFormat} corresponding to the specified source.
+     * @return {@link OntFormat} corresponding to the specified source
      * @throws UnsupportedFormatException   if source can't be read into graph using jena.
      * @throws ConfigMismatchException      if there is some conflict with config settings,
      *                                      anyway we can't continue.
      * @throws OWLOntologyCreationException if there is some serious IO problem
-     * @throws OntApiException              if some other problem.
+     * @throws OntApiException              if some other problem
      */
     public static OntFormat readGraph(Graph graph,
                                       OWLOntologyDocumentSource source,
@@ -258,19 +257,16 @@ public class OntGraphUtils {
         IRI iri = OntApiException.notNull(source, "Null document source.").getDocumentIRI();
         if (LOGGER.isDebugEnabled())
             LOGGER.debug("Read graph from <{}>.", iri);
-        Supplier<OWLOntologyInputSourceException> orElse = () -> new OWLOntologyInputSourceException("Can't get " +
-                "input-stream/reader from " + iri);
-        if (source.getInputStream().isPresent()) {
-            return read(graph, source, s -> s.getInputStream().orElseThrow(orElse));
-        }
-        if (source.getReader().isPresent()) {
-            return read(graph, source, s -> asInputStream(s.getReader().orElseThrow(orElse)));
-        }
+        OntFormat res = read(graph, source, s -> s.getInputStream().orElse(null));
+        if (res != null) return res;
+        res = read(graph, source, s -> asInputStream(s.getReader().orElse(null)));
+        if (res != null) return res;
         if (conf.getSupportedSchemes().stream().noneMatch(s -> s.same(iri))) {
             throw new ConfigMismatchException("Not allowed scheme: " + iri);
         }
         String header = source.getAcceptHeaders().orElse(DEFAULT_REQUEST);
-        return read(graph, source, s -> DocumentSources.getInputStream(iri, conf, header).orElseThrow(orElse));
+        return read(graph, source, s -> DocumentSources.getInputStream(iri, conf, header)
+                .orElseThrow(() -> new OWLOntologyInputSourceException("Can't get input-stream from " + iri)));
     }
 
     /**
@@ -280,7 +276,7 @@ public class OntGraphUtils {
      * @param graph    {@link Graph}
      * @param source   {@link OWLOntologyDocumentSource}
      * @param supplier {@link OntInputSupplier}
-     * @return {@link OntFormat}
+     * @return {@link OntFormat} or {@code null} in case no {@code InputStream} is provided
      * @throws OWLOntologyCreationException if something is wrong.
      */
     protected static OntFormat read(Graph graph,
@@ -297,6 +293,9 @@ public class OntGraphUtils {
             }
             Lang lang = format.getLang();
             try (InputStream is = supplier.open(source)) {
+                if (is == null) {
+                    return null;
+                }
                 if (LOGGER.isDebugEnabled())
                     LOGGER.debug("try <{}>", lang);
                 // with @base:
@@ -374,11 +373,12 @@ public class OntGraphUtils {
      * (see {@link java.io.BufferedReader#defaultCharBufferSize} and
      * {@link java.io.BufferedInputStream#DEFAULT_BUFFER_SIZE}).
      *
-     * @param reader {@link Reader}, not {@code null}
+     * @param reader {@link Reader}, may be {@code null}
      * @return {@link InputStream} that is ready to use by jena
      */
     @SuppressWarnings("JavadocReference")
     protected static InputStream asInputStream(Reader reader) {
+        if (reader == null) return null;
         Charset charset;
         if (reader instanceof InputStreamReader) {
             charset = Charset.forName(((InputStreamReader) reader).getEncoding());

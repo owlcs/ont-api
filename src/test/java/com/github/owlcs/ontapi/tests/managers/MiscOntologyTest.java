@@ -14,6 +14,7 @@
 
 package com.github.owlcs.ontapi.tests.managers;
 
+import com.github.owlcs.TempDirectory;
 import com.github.owlcs.ontapi.*;
 import com.github.owlcs.ontapi.jena.OntJenaException;
 import com.github.owlcs.ontapi.jena.OntModelFactory;
@@ -25,8 +26,8 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.OWL;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.io.FileDocumentSource;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.*;
@@ -70,32 +71,38 @@ public class MiscOntologyTest {
         ReadWriteUtils.print(a);
         ReadWriteUtils.print(b);
 
-        Assert.assertEquals(3, a.imports()
-                .peek(x -> Assert.assertTrue(expected.isInstance(x))).count());
-        Assert.assertEquals(2, a.directImports()
-                .peek(x -> Assert.assertTrue(expected.isInstance(x))).count());
-        Assert.assertEquals(4, a.importsClosure()
-                .peek(x -> Assert.assertTrue(expected.isInstance(x))).count());
+        Assertions.assertEquals(3, a.imports()
+                .peek(x -> Assertions.assertTrue(expected.isInstance(x))).count());
+        Assertions.assertEquals(2, a.directImports()
+                .peek(x -> Assertions.assertTrue(expected.isInstance(x))).count());
+        Assertions.assertEquals(4, a.importsClosure()
+                .peek(x -> Assertions.assertTrue(expected.isInstance(x))).count());
     }
 
-    @Test(expected = OntApiException.class) // not a StackOverflowError
-    public void testReadRecursiveGraph() throws OWLOntologyCreationException {
-        IRI iri = IRI.create(ReadWriteUtils.getResourceURI("ontapi/recursive-graph.ttl"));
-        LOGGER.debug("The file: {}", iri);
-        OntologyManager m = OntManagers.createManager();
-        m.getOntologyConfigurator().setPerformTransformation(false);
-        Ontology o = m.loadOntology(iri);
-        ReadWriteUtils.print(o.asGraphModel());
-        o.axioms().forEach(a -> LOGGER.debug("{}", a));
+    @Test
+    public void testReadRecursiveGraph() {
+        // not a StackOverflowError
+        Assertions.assertThrows(OntApiException.class, () -> {
+            IRI iri = IRI.create(ReadWriteUtils.getResourceURI("ontapi/recursive-graph.ttl"));
+            LOGGER.debug("The file: {}", iri);
+            OntologyManager m = OntManagers.createManager();
+            m.getOntologyConfigurator().setPerformTransformation(false);
+            Ontology o = m.loadOntology(iri);
+            ReadWriteUtils.print(o.asGraphModel());
+            o.axioms().forEach(a -> LOGGER.debug("{}", a));
+        });
     }
 
-    @Test(expected = OntJenaException.class) // not a StackOverflowError
+    @Test
     public void testRecursionOnComplementOf() {
-        Graph g = makeGraphWithRecursion();
-        OntModel o = OntModelFactory.createModel(g);
-        ReadWriteUtils.print(o);
-        List<OntClass> ces = o.ontObjects(OntClass.class).collect(Collectors.toList());
-        ces.forEach(x -> LOGGER.error("{}", x));
+        // not a StackOverflowError
+        Assertions.assertThrows(OntJenaException.class, () -> {
+            Graph g = makeGraphWithRecursion();
+            OntModel o = OntModelFactory.createModel(g);
+            ReadWriteUtils.print(o);
+            List<OntClass> ces = o.ontObjects(OntClass.class).collect(Collectors.toList());
+            ces.forEach(x -> LOGGER.error("{}", x));
+        });
     }
 
     @Test
@@ -105,8 +112,8 @@ public class MiscOntologyTest {
         Graph g = makeGraphWithRecursion();
         OntModel o = m.addOntology(g).asGraphModel();
         ReadWriteUtils.print(o);
-        Assert.assertEquals(0, o.ontObjects(OntClass.ComplementOf.class).count());
-        Assert.assertEquals(0, o.ontObjects(OntClass.class).count());
+        Assertions.assertEquals(0, o.ontObjects(OntClass.ComplementOf.class).count());
+        Assertions.assertEquals(0, o.ontObjects(OntClass.class).count());
     }
 
     @Test
@@ -124,14 +131,15 @@ public class MiscOntologyTest {
         LOGGER.debug("Add to manager");
         OntologyManager manager1 = OntManagers.createManager();
         Ontology ontology1 = manager1.addOntology(model.getGraph());
-        Assert.assertEquals(1, ontology1.getAxiomCount());
+        Assertions.assertEquals(1, ontology1.getAxiomCount());
         OWLDocumentFormat format1 = manager1.getOntologyFormat(ontology1);
-        Assert.assertEquals(OntFormat.TURTLE.createOwlFormat(), format1);
+        Assertions.assertEquals(OntFormat.TURTLE.createOwlFormat(), format1);
         //noinspection ConstantConditions
-        Assert.assertEquals("Wrong prefix", model.getNsPrefixURI(prefName), format1.asPrefixOWLDocumentFormat().getPrefix(prefName + ":"));
+        Assertions.assertEquals(model.getNsPrefixURI(prefName),
+                format1.asPrefixOWLDocumentFormat().getPrefix(prefName + ":"), "Wrong prefix");
 
         LOGGER.debug("Save");
-        Path file = Files.createTempFile(getClass().getName() + ".", ".rdf");
+        Path file = TempDirectory.createFile(getClass().getName() + ".", ".rdf");
         IRI iri = IRI.create(file.toUri());
         LOGGER.debug("File to save {}", file);
         OWLDocumentFormat format = OntFormat.RDF_XML.createOwlFormat();
@@ -143,12 +151,16 @@ public class MiscOntologyTest {
         OntologyManager manager2 = OntManagers.createManager();
         Ontology ontology2 = manager2.loadOntologyFromOntologyDocument(source);
 
-        Assert.assertEquals(1, ontology2.getAxiomCount());
+        Files.delete(file);
+        Assertions.assertFalse(Files.exists(file));
+
+        Assertions.assertEquals(1, ontology2.getAxiomCount());
         OWLDocumentFormat format2 = manager2.getOntologyFormat(ontology2);
         LOGGER.debug("\n{}", ReadWriteUtils.toString(ontology2, format2));
-        Assert.assertEquals(OntFormat.RDF_XML.createOwlFormat(), format2);
+        Assertions.assertEquals(OntFormat.RDF_XML.createOwlFormat(), format2);
         //noinspection ConstantConditions
-        Assert.assertEquals("Wrong prefix", model.getNsPrefixURI(prefName), format2.asPrefixOWLDocumentFormat().getPrefix(prefName + ":"));
+        Assertions.assertEquals(model.getNsPrefixURI(prefName),
+                format2.asPrefixOWLDocumentFormat().getPrefix(prefName + ":"), "Wrong prefix");
     }
 
 }

@@ -14,6 +14,7 @@
 
 package com.github.owlcs.ontapi.utils;
 
+import com.github.owlcs.TempDirectory;
 import com.github.owlcs.ontapi.OntFormat;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.Ontology;
@@ -36,7 +37,6 @@ import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystem;
 import java.nio.file.*;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
 import java.util.Objects;
 
@@ -107,10 +107,6 @@ public class ReadWriteUtils {
         return toInputStream(toString(model, ext));
     }
 
-    public static InputStream toInputStream(OWLOntology model, OntFormat ext) {
-        return toInputStream(toString(model, ext));
-    }
-
     public static Model loadFromString(String input, OntFormat ext) {
         Model m = ModelFactory.createDefaultModel();
         m.read(toInputStream(input), null, ext.getID());
@@ -164,7 +160,7 @@ public class ReadWriteUtils {
                 jar = FileSystems.newFileSystem(url.toURI(), new HashMap<>());
             }
             Path source = jar.getPath(dir).resolve(fileName);
-            Path res = Paths.get(ReadWriteUtils.TemporaryResourcesHolder.DIR + file);
+            Path res = Paths.get(TempDirectory.DIR + file);
             if (!Files.exists(res)) {
                 LOGGER.debug("Unpack {}:{} -> {}", jar, source, res);
                 Files.createDirectories(res.getParent());
@@ -259,44 +255,5 @@ public class ReadWriteUtils {
 
     public static OWLOntologyDocumentSource getStringDocumentSource(String txt, OntFormat format) {
         return new StringInputStreamDocumentSource(txt, format);
-    }
-
-    private static class TemporaryResourcesHolder {
-        private static final String TEMP_RESOURCES_PREFIX = "ont-api-resources-";
-        static final Path DIR = create();
-
-        private static Path create() {
-            try {
-                Path res = Files.createTempDirectory(TEMP_RESOURCES_PREFIX);
-                Runtime.getRuntime().addShutdownHook(new Thread(
-                        () -> {
-                            try {
-                                Files.walkFileTree(res, new SimpleFileVisitor<Path>() {
-                                    @Override
-                                    public FileVisitResult visitFile(Path file, BasicFileAttributes a)
-                                            throws IOException {
-                                        Files.delete(file);
-                                        return FileVisitResult.CONTINUE;
-                                    }
-
-                                    @Override
-                                    public FileVisitResult postVisitDirectory(Path dir, IOException e)
-                                            throws IOException {
-                                        if (e == null) {
-                                            Files.delete(dir);
-                                            return FileVisitResult.CONTINUE;
-                                        }
-                                        throw e;
-                                    }
-                                });
-                            } catch (IOException e) {
-                                throw new UncheckedIOException("Failed to delete " + res, e);
-                            }
-                        }));
-                return res;
-            } catch (IOException e) {
-                throw new UncheckedIOException("Unable to create temporary dir", e);
-            }
-        }
     }
 }
