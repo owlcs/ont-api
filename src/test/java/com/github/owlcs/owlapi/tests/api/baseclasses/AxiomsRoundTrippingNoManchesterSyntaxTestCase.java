@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -13,63 +13,62 @@
  */
 package com.github.owlcs.owlapi.tests.api.baseclasses;
 
+import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
+import com.github.owlcs.owlapi.OWLManager;
 import com.google.common.collect.Sets;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.junit.jupiter.api.Disabled;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
+import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 import java.util.Arrays;
 import java.util.List;
-
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
+import java.util.stream.Stream;
 
 /**
  * @author Matthew Horridge, The University of Manchester, Information Management Group
  */
-@RunWith(Parameterized.class)
 public class AxiomsRoundTrippingNoManchesterSyntaxTestCase extends AxiomsRoundTrippingBase {
 
-    public AxiomsRoundTrippingNoManchesterSyntaxTestCase(AxiomBuilder f) {
-        super(f);
-    }
-
-    @Override
-    public void testManchesterOWLSyntax() {
+    @Disabled
+    public void testManchesterOWLSyntax(OWLOntology owl) {
         // no valid Manchester OWL Syntax roundtrip
     }
 
-    @Parameters
+    public static Stream<OWLOntology> data() {
+        OWLOntologyManager m = OWLManager.createOWLOntologyManager();
+        return getData().stream().map(x -> createOntology(m, x));
+    }
+
     public static List<AxiomBuilder> getData() {
-        OWLObjectPropertyExpression p = ObjectProperty(iri("p"))
+        OWLObjectPropertyExpression p = OWLFunctionalSyntaxFactory.ObjectProperty(iri("p"))
                 .getInverseProperty();
-        OWLObjectPropertyExpression q = ObjectProperty(iri("q"))
+        OWLObjectPropertyExpression q = OWLFunctionalSyntaxFactory.ObjectProperty(iri("q"))
                 .getInverseProperty();
-        OWLClass clsA = Class(iri("A"));
+        OWLClass clsA = OWLFunctionalSyntaxFactory.Class(iri("A"));
         return Arrays.asList(
                 // AsymmetricObjectPropertyInverse
-                () -> Sets.newHashSet(AsymmetricObjectProperty(p)),
+                () -> Sets.newHashSet(OWLFunctionalSyntaxFactory.AsymmetricObjectProperty(p)),
                 // EquivalentObjectPropertiesWithInverses
-                () -> Sets.newHashSet(EquivalentObjectProperties(p, q)),
+                () -> Sets.newHashSet(OWLFunctionalSyntaxFactory.EquivalentObjectProperties(p, q)),
                 // FunctionalObjectPropertyInverse
-                () -> Sets.newHashSet(FunctionalObjectProperty(p)),
+                () -> Sets.newHashSet(OWLFunctionalSyntaxFactory.FunctionalObjectProperty(p)),
                 // InverseFunctionalObjectPropertyInverse
-                () -> Sets.newHashSet(InverseFunctionalObjectProperty(p)),
+                () -> Sets.newHashSet(OWLFunctionalSyntaxFactory.InverseFunctionalObjectProperty(p)),
                 // IrreflexiveObjectPropertyInverse
-                () -> Sets.newHashSet(IrreflexiveObjectProperty(p)),
+                () -> Sets.newHashSet(OWLFunctionalSyntaxFactory.IrreflexiveObjectProperty(p)),
                 // ObjectPropertyDomainInverse
-                () -> Sets.newHashSet(ObjectPropertyDomain(p, clsA)),
+                () -> Sets.newHashSet(OWLFunctionalSyntaxFactory.ObjectPropertyDomain(p, clsA)),
                 // ObjectPropertyRangeInverse
-                () -> Sets.newHashSet(ObjectPropertyRange(p, clsA)),
+                () -> Sets.newHashSet(OWLFunctionalSyntaxFactory.ObjectPropertyRange(p, clsA)),
                 // ReflexiveObjectPropertyInverse
-                () -> Sets.newHashSet(ReflexiveObjectProperty(p)),
+                () -> Sets.newHashSet(OWLFunctionalSyntaxFactory.ReflexiveObjectProperty(p)),
                 // SubObjectPropertyOfInverse
-                () -> Sets.newHashSet(SubObjectPropertyOf(p, q)),
+                () -> Sets.newHashSet(OWLFunctionalSyntaxFactory.SubObjectPropertyOf(p, q)),
                 // SymmetricObjectPropertyInverse
-                () -> Sets.newHashSet(SymmetricObjectProperty(p)),
+                () -> Sets.newHashSet(OWLFunctionalSyntaxFactory.SymmetricObjectProperty(p)),
                 // TransitiveObjectPropertyInverse
-                () -> Sets.newHashSet(TransitiveObjectProperty(p)));
+                () -> Sets.newHashSet(OWLFunctionalSyntaxFactory.TransitiveObjectProperty(p)));
     }
 }

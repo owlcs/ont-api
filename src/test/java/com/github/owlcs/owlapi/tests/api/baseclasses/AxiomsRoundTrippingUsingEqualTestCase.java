@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -13,59 +13,43 @@
  */
 package com.github.owlcs.owlapi.tests.api.baseclasses;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
-import org.semanticweb.owlapi.formats.FunctionalSyntaxDocumentFormat;
-import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
-import org.semanticweb.owlapi.model.IRI;
+import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
+import com.github.owlcs.owlapi.OWLManager;
 import org.semanticweb.owlapi.model.*;
 
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
+import java.util.stream.Stream;
 
 /**
  * @author Matthew Horridge, The University of Manchester, Information Management Group
  */
-@RunWith(Parameterized.class)
 public class AxiomsRoundTrippingUsingEqualTestCase extends AxiomsRoundTrippingBase {
 
-    public AxiomsRoundTrippingUsingEqualTestCase(AxiomBuilder f) {
-        super(f);
+    public static Stream<OWLOntology> data() {
+        OWLOntologyManager m = OWLManager.createOWLOntologyManager();
+        return getData().stream().map(x -> createOntology(m, x));
     }
 
-    @Override
-    public void roundTripRDFXMLAndFunctionalShouldBeSame() throws OWLOntologyCreationException,
-            OWLOntologyStorageException {
-        OWLOntology ont = createOntology();
-        OWLOntology o1 = roundTrip(ont, new RDFXMLDocumentFormat());
-        OWLOntology o2 = roundTrip(ont, new FunctionalSyntaxDocumentFormat());
-        equal(o1, o2);
-    }
-
-    @Parameters
     public static List<AxiomBuilder> getData() {
         return Arrays.asList(
                 // AnonymousIndividualRoundtrip
                 () -> {
                     Set<OWLAxiom> axioms = new HashSet<>();
-                    OWLAnonymousIndividual ind = AnonymousIndividual();
-                    OWLClass cls = Class(iri("A"));
-                    OWLAnnotationProperty prop = AnnotationProperty(iri("prop"));
-                    OWLAnnotationAssertionAxiom ax = AnnotationAssertion(prop, cls.getIRI(), ind);
+                    OWLAnonymousIndividual ind = OWLFunctionalSyntaxFactory.AnonymousIndividual();
+                    OWLClass cls = OWLFunctionalSyntaxFactory.Class(iri("A"));
+                    OWLAnnotationProperty prop = OWLFunctionalSyntaxFactory.AnnotationProperty(iri("prop"));
+                    OWLAnnotationAssertionAxiom ax = OWLFunctionalSyntaxFactory.AnnotationAssertion(prop, cls.getIRI(), ind);
                     axioms.add(ax);
-                    axioms.add(Declaration(cls));
-                    OWLObjectProperty p = ObjectProperty(iri("p"));
-                    axioms.add(Declaration(p));
-                    OWLAnonymousIndividual anon1 = AnonymousIndividual();
-                    OWLAnonymousIndividual anon2 = AnonymousIndividual();
-                    OWLNamedIndividual ind1 = NamedIndividual(iri("j"));
-                    OWLNamedIndividual ind2 = NamedIndividual(iri("i"));
+                    axioms.add(OWLFunctionalSyntaxFactory.Declaration(cls));
+                    OWLObjectProperty p = OWLFunctionalSyntaxFactory.ObjectProperty(iri("p"));
+                    axioms.add(OWLFunctionalSyntaxFactory.Declaration(p));
+                    OWLAnonymousIndividual anon1 = OWLFunctionalSyntaxFactory.AnonymousIndividual();
+                    OWLAnonymousIndividual anon2 = OWLFunctionalSyntaxFactory.AnonymousIndividual();
+                    OWLNamedIndividual ind1 = OWLFunctionalSyntaxFactory.NamedIndividual(iri("j"));
+                    OWLNamedIndividual ind2 = OWLFunctionalSyntaxFactory.NamedIndividual(iri("i"));
                     axioms.add(df.getOWLObjectPropertyAssertionAxiom(p, ind1, ind2));
                     axioms.add(df.getOWLObjectPropertyAssertionAxiom(p, anon1, anon1));
                     axioms.add(df.getOWLObjectPropertyAssertionAxiom(p, anon2, ind2));
@@ -76,39 +60,39 @@ public class AxiomsRoundTrippingUsingEqualTestCase extends AxiomsRoundTrippingBa
                 () -> {
                     // Originally submitted by Timothy Redmond
                     String ns = "http://another.com/ont";
-                    OWLClass a = Class(IRI(ns + "#", "A"));
-                    OWLAnnotationProperty p = AnnotationProperty(IRI(ns + "#", "p"));
-                    OWLObjectProperty q = ObjectProperty(IRI(ns + "#", "q"));
-                    OWLAnonymousIndividual h = AnonymousIndividual();
-                    OWLAnonymousIndividual i = AnonymousIndividual();
+                    OWLClass a = OWLFunctionalSyntaxFactory.Class(OWLFunctionalSyntaxFactory.IRI(ns + "#", "A"));
+                    OWLAnnotationProperty p = OWLFunctionalSyntaxFactory.AnnotationProperty(OWLFunctionalSyntaxFactory.IRI(ns + "#", "p"));
+                    OWLObjectProperty q = OWLFunctionalSyntaxFactory.ObjectProperty(OWLFunctionalSyntaxFactory.IRI(ns + "#", "q"));
+                    OWLAnonymousIndividual h = OWLFunctionalSyntaxFactory.AnonymousIndividual();
+                    OWLAnonymousIndividual i = OWLFunctionalSyntaxFactory.AnonymousIndividual();
                     Set<OWLAxiom> axioms = new HashSet<>();
-                    axioms.add(AnnotationAssertion(p, a.getIRI(), h));
-                    axioms.add(ClassAssertion(a, h));
-                    axioms.add(ObjectPropertyAssertion(q, h, i));
-                    axioms.add(AnnotationAssertion(RDFSLabel(), h, Literal("Second", "en")));
+                    axioms.add(OWLFunctionalSyntaxFactory.AnnotationAssertion(p, a.getIRI(), h));
+                    axioms.add(OWLFunctionalSyntaxFactory.ClassAssertion(a, h));
+                    axioms.add(OWLFunctionalSyntaxFactory.ObjectPropertyAssertion(q, h, i));
+                    axioms.add(OWLFunctionalSyntaxFactory.AnnotationAssertion(OWLFunctionalSyntaxFactory.RDFSLabel(), h, OWLFunctionalSyntaxFactory.Literal("Second", "en")));
                     return axioms;
                 },
                 // AnonymousIndividuals
                 () -> {
                     Set<OWLAxiom> axioms = new HashSet<>();
-                    OWLAnonymousIndividual ind = AnonymousIndividual();
-                    axioms.add(ObjectPropertyAssertion(ObjectProperty(iri("p")), NamedIndividual(iri("i1")), ind));
-                    axioms.add(ObjectPropertyAssertion(ObjectProperty(iri("p")), ind, NamedIndividual(iri("i2"))));
+                    OWLAnonymousIndividual ind = OWLFunctionalSyntaxFactory.AnonymousIndividual();
+                    axioms.add(OWLFunctionalSyntaxFactory.ObjectPropertyAssertion(OWLFunctionalSyntaxFactory.ObjectProperty(iri("p")), OWLFunctionalSyntaxFactory.NamedIndividual(iri("i1")), ind));
+                    axioms.add(OWLFunctionalSyntaxFactory.ObjectPropertyAssertion(OWLFunctionalSyntaxFactory.ObjectProperty(iri("p")), ind, OWLFunctionalSyntaxFactory.NamedIndividual(iri("i2"))));
                     return axioms;
                 },
                 // ChainedAnonymousIndividuals
                 () -> {
                     Set<OWLAxiom> axioms = new HashSet<>();
-                    IRI annoPropIRI = IRI("http://owlapi.sourceforge.net/ontology#", "annoProp");
-                    OWLAnnotationProperty property = AnnotationProperty(annoPropIRI);
-                    IRI subject = IRI("http://owlapi.sourceforge.net/ontology#", "subject");
-                    axioms.add(Declaration(NamedIndividual(subject)));
-                    OWLAnonymousIndividual individual1 = AnonymousIndividual();
-                    OWLAnonymousIndividual individual2 = AnonymousIndividual();
-                    OWLAnonymousIndividual individual3 = AnonymousIndividual();
-                    OWLAnnotationAssertionAxiom annoAssertion1 = AnnotationAssertion(property, subject, individual1);
-                    OWLAnnotationAssertionAxiom annoAssertion2 = AnnotationAssertion(property, individual1, individual2);
-                    OWLAnnotationAssertionAxiom annoAssertion3 = AnnotationAssertion(property, individual2, individual3);
+                    IRI annoPropIRI = OWLFunctionalSyntaxFactory.IRI("http://owlapi.sourceforge.net/ontology#", "annoProp");
+                    OWLAnnotationProperty property = OWLFunctionalSyntaxFactory.AnnotationProperty(annoPropIRI);
+                    IRI subject = OWLFunctionalSyntaxFactory.IRI("http://owlapi.sourceforge.net/ontology#", "subject");
+                    axioms.add(OWLFunctionalSyntaxFactory.Declaration(OWLFunctionalSyntaxFactory.NamedIndividual(subject)));
+                    OWLAnonymousIndividual individual1 = OWLFunctionalSyntaxFactory.AnonymousIndividual();
+                    OWLAnonymousIndividual individual2 = OWLFunctionalSyntaxFactory.AnonymousIndividual();
+                    OWLAnonymousIndividual individual3 = OWLFunctionalSyntaxFactory.AnonymousIndividual();
+                    OWLAnnotationAssertionAxiom annoAssertion1 = OWLFunctionalSyntaxFactory.AnnotationAssertion(property, subject, individual1);
+                    OWLAnnotationAssertionAxiom annoAssertion2 = OWLFunctionalSyntaxFactory.AnnotationAssertion(property, individual1, individual2);
+                    OWLAnnotationAssertionAxiom annoAssertion3 = OWLFunctionalSyntaxFactory.AnnotationAssertion(property, individual2, individual3);
                     axioms.add(annoAssertion1);
                     axioms.add(annoAssertion2);
                     axioms.add(annoAssertion3);
@@ -117,32 +101,32 @@ public class AxiomsRoundTrippingUsingEqualTestCase extends AxiomsRoundTrippingBa
                 // ClassAssertionWithAnonymousIndividual
                 () -> {
                     Set<OWLAxiom> axioms = new HashSet<>();
-                    OWLIndividual ind = AnonymousIndividual("a");
-                    OWLClass cls = Class(iri("A"));
-                    axioms.add(ClassAssertion(cls, ind));
-                    axioms.add(Declaration(cls));
+                    OWLIndividual ind = OWLFunctionalSyntaxFactory.AnonymousIndividual("a");
+                    OWLClass cls = OWLFunctionalSyntaxFactory.Class(iri("A"));
+                    axioms.add(OWLFunctionalSyntaxFactory.ClassAssertion(cls, ind));
+                    axioms.add(OWLFunctionalSyntaxFactory.Declaration(cls));
                     return axioms;
                 },
                 // DifferentIndividualsAnonymous
                 () -> {
                     Set<OWLAxiom> axioms = new HashSet<>();
-                    axioms.add(DifferentIndividuals(AnonymousIndividual(), AnonymousIndividual(), AnonymousIndividual()));
+                    axioms.add(OWLFunctionalSyntaxFactory.DifferentIndividuals(OWLFunctionalSyntaxFactory.AnonymousIndividual(), OWLFunctionalSyntaxFactory.AnonymousIndividual(), OWLFunctionalSyntaxFactory.AnonymousIndividual()));
                     return axioms;
                 },
                 // DifferentIndividualsPairwiseAnonymous
                 () -> {
                     Set<OWLAxiom> axioms = new HashSet<>();
-                    axioms.add(DifferentIndividuals(AnonymousIndividual(), AnonymousIndividual()));
+                    axioms.add(OWLFunctionalSyntaxFactory.DifferentIndividuals(OWLFunctionalSyntaxFactory.AnonymousIndividual(), OWLFunctionalSyntaxFactory.AnonymousIndividual()));
                     return axioms;
                 },
                 // ObjectPropertyAssertionWithAnonymousIndividuals
                 () -> {
-                    OWLIndividual subject = AnonymousIndividual();
-                    OWLIndividual object = AnonymousIndividual();
-                    OWLObjectProperty prop = ObjectProperty(iri("prop"));
+                    OWLIndividual subject = OWLFunctionalSyntaxFactory.AnonymousIndividual();
+                    OWLIndividual object = OWLFunctionalSyntaxFactory.AnonymousIndividual();
+                    OWLObjectProperty prop = OWLFunctionalSyntaxFactory.ObjectProperty(iri("prop"));
                     Set<OWLAxiom> axioms = new HashSet<>();
-                    axioms.add(ObjectPropertyAssertion(prop, subject, object));
-                    axioms.add(Declaration(prop));
+                    axioms.add(OWLFunctionalSyntaxFactory.ObjectPropertyAssertion(prop, subject, object));
+                    axioms.add(OWLFunctionalSyntaxFactory.Declaration(prop));
                     return axioms;
                 },
                 // SameIndividualsAnonymous
@@ -153,7 +137,7 @@ public class AxiomsRoundTrippingUsingEqualTestCase extends AxiomsRoundTrippingBa
                     // axiom
                     // with anon individuals is not allowed
                     // in OWL 2, but it should at least round trip
-                    axioms.add(SameIndividual(AnonymousIndividual(), AnonymousIndividual()));
+                    axioms.add(OWLFunctionalSyntaxFactory.SameIndividual(OWLFunctionalSyntaxFactory.AnonymousIndividual(), OWLFunctionalSyntaxFactory.AnonymousIndividual()));
                     return axioms;
                 });
     }

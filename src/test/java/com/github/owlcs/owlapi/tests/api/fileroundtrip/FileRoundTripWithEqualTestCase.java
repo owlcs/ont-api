@@ -11,50 +11,26 @@
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
+
 package com.github.owlcs.owlapi.tests.api.fileroundtrip;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
-import org.semanticweb.owlapi.formats.FunctionalSyntaxDocumentFormat;
-import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Information Management Group
+ * <p>
+ * Created by @ssz on 11.10.2020.
  */
-@RunWith(Parameterized.class)
-public class FileRoudTripWithEqualTestCase extends AbstractFileRoundTrippingTestCase {
+public class FileRoundTripWithEqualTestCase extends AbstractFileRoundTrippingTestCase {
 
-    public FileRoudTripWithEqualTestCase(String f) {
-        super(f);
-    }
-
-    @Parameters
-    public static List<String> getData() {
-        return Arrays.asList(
-                // AnonymousTroublesomeConversion
-                "extraBlankNodes.owl",
-                // AnonymousTurtle2
-                "testBlankNodes2.ttl",
-                // AnonymousTurtleAssertion
-                "testBlankNodesAssertions.ttl",
-                "owlxml_anonloop.owx");
-    }
-
-    @Override
-    @Test
-    public void roundTripRDFXMLAndFunctionalShouldBeSame()
-            throws OWLOntologyCreationException, OWLOntologyStorageException {
-        OWLOntology ont = createOntology();
-        OWLOntology o1 = roundTrip(ont, new RDFXMLDocumentFormat());
-        OWLOntology o2 = roundTrip(ont, new FunctionalSyntaxDocumentFormat());
-        equal(o1, o2);
+    public static Stream<OWLOntology> data() {
+        return Stream.of(
+                "extraBlankNodes.owl"
+                , "testBlankNodes2.ttl"
+                , "testBlankNodesAssertions.ttl"
+                , "owlxml_anonloop.owx"
+        ).map(AbstractFileRoundTrippingTestCase::createOntology);
     }
 }

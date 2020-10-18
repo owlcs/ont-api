@@ -14,6 +14,7 @@
 package com.github.owlcs.owlapi.tests.api.baseclasses;
 
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
+import com.github.owlcs.owlapi.OWLManager;
 import com.google.common.collect.Sets;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
@@ -23,22 +24,22 @@ import org.semanticweb.owlapi.model.OWLOntology;
 /**
  * @author Matthew Horridge, The University of Manchester, Information Management Group
  */
-public class AxiomsRoundTrippingWithEntitiesTestCase extends AxiomsRoundTrippingBase {
+public class AxiomsRoundTrippingWithEntitiesTestCase extends AbstractRoundTrippingTestCase {
 
     private static final IRI iriA = iri("A");
     private static final OWLClass clsA = OWLFunctionalSyntaxFactory.Class(iriA);
     private static final OWLAnnotationProperty apropA = OWLFunctionalSyntaxFactory.AnnotationProperty(iri("apropA"));
     private static final OWLAnnotationProperty apropB = OWLFunctionalSyntaxFactory.AnnotationProperty(iri("apropB"));
 
-    public AxiomsRoundTrippingWithEntitiesTestCase() {
-        super(() -> Sets.newHashSet(OWLFunctionalSyntaxFactory.Declaration(clsA)
+    private static AxiomBuilder createAxiomBuilder() {
+        return () -> Sets.newHashSet(OWLFunctionalSyntaxFactory.Declaration(clsA)
                 , OWLFunctionalSyntaxFactory.AnnotationAssertion(apropA, clsA.getIRI(), OWLFunctionalSyntaxFactory.Literal("value1"))
-                , OWLFunctionalSyntaxFactory.AnnotationAssertion(apropB, clsA.getIRI(), OWLFunctionalSyntaxFactory.Literal("value2"))));
+                , OWLFunctionalSyntaxFactory.AnnotationAssertion(apropB, clsA.getIRI(), OWLFunctionalSyntaxFactory.Literal("value2")));
     }
 
     @Override
     protected OWLOntology createOntology() {
-        OWLOntology createOntology = super.createOntology();
+        OWLOntology createOntology = AxiomsRoundTrippingBase.createOntology(OWLManager.createOWLOntologyManager(), createAxiomBuilder());
         m.getOntologyConfigurator().withUseNamespaceEntities(true);
         return createOntology;
     }

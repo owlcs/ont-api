@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -13,13 +13,14 @@
  */
 package com.github.owlcs.owlapi.tests.api.baseclasses;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import com.github.owlcs.owlapi.OWLManager;
+import org.junit.jupiter.api.Assertions;
+import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.*;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
@@ -27,16 +28,13 @@ import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
 /**
  * @author Matthew Horridge, The University of Manchester, Bio-Health Informatics Group
  */
-@RunWith(Parameterized.class)
-public class LiteralWithEscapesTestCase extends AbstractRoundTrippingTestCase {
+public class LiteralWithEscapesTestCase extends ParametrizedRoundTrippingTestCase {
 
-    private final String escape;
-
-    public LiteralWithEscapesTestCase(String s) {
-        escape = s;
+    public static Stream<OWLOntology> data() {
+        OWLOntologyManager m = OWLManager.createOWLOntologyManager();
+        return getData().stream().map(x -> createOntology(m, x));
     }
 
-    @Parameters
     public static List<String> getData() {
         return Arrays.asList(
                 // LiteralWithBackslash
@@ -51,8 +49,7 @@ public class LiteralWithEscapesTestCase extends AbstractRoundTrippingTestCase {
                 "'");
     }
 
-    @Override
-    protected OWLOntology createOntology() {
+    protected static OWLOntology createOntology(OWLOntologyManager m, String escape) {
         OWLClass cls = Class(IRI("http://owlapi.sourceforge.net/ontology#", "A"));
         OWLAnnotationProperty prop = AnnotationProperty(IRI("http://owlapi.sourceforge.net/ontology#", "prop"));
         OWLLiteral lit1 = Literal(escape);
@@ -63,8 +60,13 @@ public class LiteralWithEscapesTestCase extends AbstractRoundTrippingTestCase {
         OWLAnnotationAssertionAxiom ax2 = AnnotationAssertion(prop, cls.getIRI(), lit2);
         OWLAnnotationAssertionAxiom ax3 = AnnotationAssertion(prop, cls.getIRI(), lit3);
         OWLAnnotationAssertionAxiom ax4 = AnnotationAssertion(prop, cls.getIRI(), lit4);
-        OWLOntology o = getOWLOntology();
-        o.add(ax1, ax2, ax3, ax4, Declaration(cls));
-        return o;
+
+        try {
+            OWLOntology res = m.createOntology(IRI.getNextDocumentIRI(URI_BASE));
+            res.add(ax1, ax2, ax3, ax4, Declaration(cls));
+            return res;
+        } catch (OWLOntologyCreationException e) {
+            return Assertions.fail(e);
+        }
     }
 }

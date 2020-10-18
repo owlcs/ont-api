@@ -14,29 +14,31 @@
 package com.github.owlcs.owlapi.tests.api.baseclasses;
 
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import com.github.owlcs.owlapi.OWLManager;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
+import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 /**
  * @author Matthew Horridge, The University of Manchester, Bio-Health Informatics Group
  */
-@RunWith(Parameterized.class)
 public class AnnotatedAxiomRoundtripExceptManchesterSyntaxTestCase extends AnnotatedAxiomRoundTrippingTestCase {
 
-    public AnnotatedAxiomRoundtripExceptManchesterSyntaxTestCase(Function<Set<OWLAnnotation>, OWLAxiom> f) {
-        super(f);
+    public static Stream<OWLOntology> data() {
+        OWLOntologyManager m = OWLManager.createOWLOntologyManager();
+        return getData().stream().map(AnnotatedAxiomRoundTrippingTestCase::createAxiomBuilder).map(x -> createOntology(m, x));
     }
 
-    @Parameters
     public static List<Function<Set<OWLAnnotation>, OWLAxiom>> getData() {
         return Arrays.asList(a -> OWLFunctionalSyntaxFactory.Declaration(OWLFunctionalSyntaxFactory.ObjectProperty(iri("propP")), a)
                 , a -> OWLFunctionalSyntaxFactory.Declaration(OWLFunctionalSyntaxFactory.Datatype(iri("DT")), a)
@@ -47,9 +49,11 @@ public class AnnotatedAxiomRoundtripExceptManchesterSyntaxTestCase extends Annot
     }
 
     @Override
-    @Test
-    public void testManchesterOWLSyntax() { // todo ?
+    @ParameterizedTest
+    @MethodSource("data")
+    public void testManchesterOWLSyntax(OWLOntology ont) throws Exception {
         // Can't represent annotated declarations in Manchester Syntax
-        // super.testManchesterOWLSyntax();
+        Assumptions.assumeFalse(OWLManager.DEBUG_USE_OWL);
+        super.testManchesterOWLSyntax(ont);
     }
 }

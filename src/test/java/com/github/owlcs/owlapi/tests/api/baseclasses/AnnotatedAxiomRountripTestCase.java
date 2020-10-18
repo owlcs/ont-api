@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -13,16 +13,17 @@
  */
 package com.github.owlcs.owlapi.tests.api.baseclasses;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import com.github.owlcs.owlapi.OWLManager;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
+import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
@@ -30,14 +31,13 @@ import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
 /**
  * @author Matthew Horridge, The University of Manchester, Information  Management Group
  */
-@RunWith(Parameterized.class)
 public class AnnotatedAxiomRountripTestCase extends AnnotatedAxiomRoundTrippingTestCase {
 
-    public AnnotatedAxiomRountripTestCase(Function<Set<OWLAnnotation>, OWLAxiom> f) {
-        super(f);
+    public static Stream<OWLOntology> data() {
+        OWLOntologyManager m = OWLManager.createOWLOntologyManager();
+        return getData().stream().map(AnnotatedAxiomRoundTrippingTestCase::createAxiomBuilder).map(x -> createOntology(m, x));
     }
 
-    @Parameters
     public static List<Function<Set<OWLAnnotation>, OWLAxiom>> getData() {
         return Arrays.asList(
                 a -> AsymmetricObjectProperty(ObjectProperty(iri("p")), a),

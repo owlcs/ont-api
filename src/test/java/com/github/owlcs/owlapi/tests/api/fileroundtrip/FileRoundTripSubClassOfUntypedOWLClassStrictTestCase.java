@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -15,23 +15,28 @@ package com.github.owlcs.owlapi.tests.api.fileroundtrip;
 
 import com.github.owlcs.ontapi.OWLAdapter;
 import com.github.owlcs.owlapi.OWLManager;
-import org.junit.Assert;
-import org.junit.Test;
+import com.github.owlcs.owlapi.tests.api.baseclasses.AbstractRoundTrippingTestCase;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.io.RDFTriple;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
 
 import java.util.stream.Stream;
 
 /**
  * @author Matthew Horridge, The University of Manchester, Bio-Health Informatics Group
  */
-public class FileRoundTripSubClassOfUntypedOWLClassStrictTestCase extends AbstractFileRoundTrippingTestCase {
+public class FileRoundTripSubClassOfUntypedOWLClassStrictTestCase extends AbstractRoundTrippingTestCase {
 
-    public FileRoundTripSubClassOfUntypedOWLClassStrictTestCase() {
-        super("SubClassOfUntypedOWLClass.rdf");
+    private static final String FILE = "SubClassOfUntypedOWLClass.rdf";
+
+    @Override
+    protected OWLOntology createOntology() {
+        return AbstractFileRoundTrippingTestCase.createOntology(FILE);
     }
 
     /**
@@ -48,20 +53,21 @@ public class FileRoundTripSubClassOfUntypedOWLClassStrictTestCase extends Abstra
      */
     @Test
     public void testAxioms() {
-        config = config.setStrict(true);
+        OWLOntologyLoaderConfiguration config = this.config.setStrict(true);
         if (!OWLManager.DEBUG_USE_OWL) {
             config = OWLAdapter.get().asONT(config).setUseOWLParsersToLoad(true);
         }
-        OWLOntology ont = createOntology();
+        OWLOntology ont = AbstractFileRoundTrippingTestCase.createOntology(FILE, OWLManager.createOWLOntologyManager(), config);
         com.github.owlcs.ontapi.utils.ReadWriteUtils.print(ont);
-        Assert.assertEquals(0, ont.axioms(AxiomType.SUBCLASS_OF).count());
+        Assertions.assertEquals(0, ont.axioms(AxiomType.SUBCLASS_OF).count());
         OWLDocumentFormat format = ont.getFormat();
-        Assert.assertTrue(format instanceof RDFXMLDocumentFormat);
+        Assertions.assertTrue(format instanceof RDFXMLDocumentFormat);
 
         RDFXMLDocumentFormat rdfXmlFormat = (RDFXMLDocumentFormat) format;
-        Assert.assertTrue(rdfXmlFormat.getOntologyLoaderMetaData().isPresent());
+        Assertions.assertTrue(rdfXmlFormat.getOntologyLoaderMetaData().isPresent());
         Stream<RDFTriple> triples = rdfXmlFormat.getOntologyLoaderMetaData()
                 .orElseThrow(() -> new AssertionError("No loader meta data")).getUnparsedTriples();
-        Assert.assertEquals(1, triples.count());
+        Assertions.assertEquals(1, triples.count());
     }
+
 }

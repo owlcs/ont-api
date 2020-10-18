@@ -11,6 +11,7 @@
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
+
 package com.github.owlcs.owlapi.tests.api.baseclasses;
 
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
@@ -24,10 +25,10 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
 
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Declaration;
-
 /**
- * @author Matthew Horridge, The University of Manchester, Information Management Group
+ * @author Matthew Horridge, The University of Manchester, Information  Management Group
+ * <p>
+ * Created by @ssz on 18.10.2020.
  */
 public abstract class AnnotatedAxiomRoundTrippingTestCase extends AxiomsRoundTrippingBase {
 
@@ -38,16 +39,17 @@ public abstract class AnnotatedAxiomRoundTrippingTestCase extends AxiomsRoundTri
     private static final OWLAnnotation anno2 = OWLFunctionalSyntaxFactory.Annotation(prop2, lit);
     private static final Set<OWLAnnotation> annos = Sets.newHashSet(anno1, anno2);
 
-    public AnnotatedAxiomRoundTrippingTestCase(Function<Set<OWLAnnotation>, OWLAxiom> f) {
-        super(() -> {
+    protected static AxiomBuilder createAxiomBuilder(Function<Set<OWLAnnotation>, OWLAxiom> f) {
+        return () -> {
             Set<OWLAxiom> axioms = new HashSet<>();
             OWLAxiom ax = f.apply(annos);
             axioms.add(ax.getAnnotatedAxiom(annos));
-            axioms.add(Declaration(prop));
-            axioms.add(Declaration(prop2));
+            axioms.add(OWLFunctionalSyntaxFactory.Declaration(prop));
+            axioms.add(OWLFunctionalSyntaxFactory.Declaration(prop2));
             axioms.add(ax.getAnnotatedAxiom(singleton(anno1)));
             axioms.add(ax.getAnnotatedAxiom(singleton(anno2)));
             return axioms;
-        });
+        };
     }
+
 }

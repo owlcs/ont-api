@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,27 +14,24 @@
 package com.github.owlcs.owlapi.tests.api.baseclasses;
 
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
+import com.github.owlcs.owlapi.OWLManager;
 import com.google.common.collect.Sets;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.semanticweb.owlapi.vocab.OWLFacet;
 
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Integer;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asUnorderedSet;
 
 /**
  * @author Matthew Horridge, The University of Manchester, Information Management Group
  */
-@RunWith(Parameterized.class)
 public class AxiomsRoundTrippingTestCase extends AxiomsRoundTrippingBase {
 
     private static final IRI iriA = iri("A");
@@ -94,14 +91,13 @@ public class AxiomsRoundTrippingTestCase extends AxiomsRoundTrippingBase {
     private static final OWLAnnotation annoInner = Annotation(AnnotationProperty(iri("myLabel")), Literal("Label"),
             annoOuter);
 
-    public AxiomsRoundTrippingTestCase(AxiomBuilder f) {
-        super(f);
+    public static Stream<OWLOntology> data() {
+        OWLOntologyManager m = OWLManager.createOWLOntologyManager();
+        return Arrays.stream(getData()).map(x -> createOntology(m, x));
     }
 
-    @Parameters
-    public static List<AxiomBuilder> getData() {
-        //noinspection RedundantTypeArguments (explicit type arguments speedup compilation and analysis time)
-        return Arrays.<AxiomBuilder>asList(
+    public static AxiomBuilder[] getData() {
+        return new AxiomBuilder[]{
                 // SWRLRuleAlternateNS
                 () -> {
                     Set<OWLAxiom> axioms = new HashSet<>();
@@ -218,7 +214,7 @@ public class AxiomsRoundTrippingTestCase extends AxiomsRoundTrippingBase {
                 () -> Sets.newHashSet(HasKey(singleton(Annotation(apropA, Literal("Test", ""))), clsA, propA, propB, propC),
                         Declaration(apropA), Declaration(propA), Declaration(propB), Declaration(propC)),
                 // 20:
-                () -> singleton(DisjointClasses(asUnorderedSet(Stream.generate(OWLFunctionalSyntaxFactory::createClass).limit(1000)))),
+                () -> singleton(DisjointClasses(Stream.generate(OWLFunctionalSyntaxFactory::createClass).limit(1000).collect(Collectors.toSet()))),
                 // 21:
                 () -> singleton(SubClassOf(clsB, ObjectSomeValuesFrom(op.getInverseProperty(), clsA))),
                 // 22:
@@ -264,8 +260,8 @@ public class AxiomsRoundTrippingTestCase extends AxiomsRoundTrippingBase {
                 // 40:
                 () -> singleton(IrreflexiveObjectProperty(op)),
                 // 41:
-                () -> singleton(DifferentIndividuals(asUnorderedSet(Stream.generate(OWLFunctionalSyntaxFactory::createIndividual).limit(
-                        1000)))),
+                () -> singleton(DifferentIndividuals(Stream.generate(OWLFunctionalSyntaxFactory::createIndividual).limit(
+                        1000).collect(Collectors.toSet()))),
                 // 42:
                 () -> Sets.newHashSet(AnnotationAssertion(apropA, clsA.getIRI(), Literal("abc", "en")), Declaration(clsA)),
                 // 43:
@@ -304,6 +300,7 @@ public class AxiomsRoundTrippingTestCase extends AxiomsRoundTrippingBase {
                 // 57:
                 () -> Sets.newHashSet(DataPropertyAssertion(dp, ind, Literal(3)), DataPropertyAssertion(dp, ind, Literal(
                         33.3)), DataPropertyAssertion(dp, ind, Literal(true)), DataPropertyAssertion(dp, ind, Literal(33.3f)),
-                        DataPropertyAssertion(dp, ind, Literal("33.3"))));
+                        DataPropertyAssertion(dp, ind, Literal("33.3")))
+        };
     }
 }

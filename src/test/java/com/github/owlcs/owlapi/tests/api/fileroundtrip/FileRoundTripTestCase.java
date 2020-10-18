@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -13,27 +13,21 @@
  */
 package com.github.owlcs.owlapi.tests.api.fileroundtrip;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import org.semanticweb.owlapi.model.OWLOntology;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Information Management Group
  */
-@RunWith(Parameterized.class)
 public class FileRoundTripTestCase extends AbstractFileRoundTrippingTestCase {
 
-    public FileRoundTripTestCase(String f) {
-        super(f);
+    public static Stream<OWLOntology> data() {
+        return files().map(AbstractFileRoundTrippingTestCase::createOntology);
     }
 
-    @Parameters(name = "{0}")
-    public static List<String> getData() {
-        //@formatter:off
-        return Arrays.asList(
+    public static Stream<String> files() {
+        return Stream.of(
                 "AnnotatedPropertyAssertions.rdf",
                 "ComplexSubProperty.rdf",
                 "DataAllValuesFrom.rdf",
@@ -93,6 +87,5 @@ public class FileRoundTripTestCase extends AbstractFileRoundTrippingTestCase {
                 "SubClassOfUntypedOWLClass.rdf",
                 "SubClassOfUntypedSomeValuesFrom.rdf",
                 "XMLLiteral.rdf");
-        //@formatter:on
     }
 }

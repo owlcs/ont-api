@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -13,32 +13,40 @@
  */
 package com.github.owlcs.owlapi.tests.api.individuals;
 
+import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
+import com.github.owlcs.owlapi.OWLManager;
+import com.github.owlcs.owlapi.tests.api.baseclasses.AbstractRoundTrippingTestCase;
 import com.github.owlcs.owlapi.tests.api.baseclasses.AxiomsRoundTrippingBase;
 import com.google.common.collect.Sets;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.rdf.rdfxml.parser.OWLRDFXMLParserException;
 import org.semanticweb.owlapi.rdf.rdfxml.parser.RDFXMLParser;
 
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
-
 /**
  * @author Matthew Horridge, The University of Manchester, Information Management Group
  */
-public class RelativeURITestCase extends AxiomsRoundTrippingBase {
+public class RelativeURITestCase extends AbstractRoundTrippingTestCase {
 
-    public RelativeURITestCase() {
-        super(() -> Sets.newHashSet(Declaration(Class(IRI(IRI.getNextDocumentIRI(URI_BASE) + "/", "Office")))));
+    @Override
+    protected OWLOntology createOntology() {
+        OWLClass clazz = OWLFunctionalSyntaxFactory.Class(IRI.create(IRI.getNextDocumentIRI(URI_BASE) + "/", "Office"));
+        return AxiomsRoundTrippingBase.createOntology(OWLManager.createOWLOntologyManager(),
+                () -> Sets.newHashSet(OWLFunctionalSyntaxFactory.Declaration(clazz)));
     }
 
     @Test
-    public void shouldThrowMeaningfulException() {
-        expectedException.expect(OWLRDFXMLParserException.class);
-        expectedException.expectMessage(
-                "[line=1:column=378] IRI 'http://example.com/#1#2' cannot be resolved against current base IRI ");
+    public void testShouldThrowMeaningfulException() {
+        String actual = Assertions.assertThrows(OWLRDFXMLParserException.class, this::shouldThrowMeaningfulException).getMessage();
+        Assertions.assertTrue(actual.contains("[line=1:column=378] IRI 'http://example.com/#1#2' " +
+                "cannot be resolved against current base IRI "));
+    }
+
+    private void shouldThrowMeaningfulException() {
         // on Java 6 for Mac the following assertion does not work: the root
         // exception does not have a message.
         // expectedException
@@ -56,4 +64,5 @@ public class RelativeURITestCase extends AxiomsRoundTrippingBase {
         RDFXMLParser parser = new RDFXMLParser();
         parser.parse(new StringDocumentSource(rdfContent), ontology, config);
     }
+
 }

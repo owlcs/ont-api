@@ -24,6 +24,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.rules.ExpectedException;
@@ -343,7 +344,7 @@ public abstract class TestBase {
         try {
             return m.createOntology(IRI.getNextDocumentIRI(URI_BASE));
         } catch (OWLOntologyCreationException e) {
-            throw new OWLRuntimeException(e);
+            return Assertions.fail(e);
         }
     }
 

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -13,17 +13,20 @@
  */
 package com.github.owlcs.owlapi.tests.api.baseclasses;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-import org.junit.runners.Parameterized.Parameters;
+import com.github.owlcs.owlapi.OWLManager;
+import org.junit.jupiter.api.Assumptions;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
+import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
@@ -31,28 +34,27 @@ import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
 /**
  * @author Matthew Horridge, The University of Manchester, Bio-Health Informatics Group
  */
-@RunWith(Parameterized.class)
 public class AnnotatedAxiomRoundtripExceptRDFXMLAndFunctionalTestCase extends AnnotatedAxiomRoundTrippingTestCase {
 
-    public AnnotatedAxiomRoundtripExceptRDFXMLAndFunctionalTestCase(Function<Set<OWLAnnotation>, OWLAxiom> f) {
-        super(f);
+    public static Stream<OWLOntology> data() {
+        OWLOntologyManager m = OWLManager.createOWLOntologyManager();
+        return getData().stream().map(AnnotatedAxiomRoundTrippingTestCase::createAxiomBuilder).map(x -> createOntology(m, x));
     }
 
-    @Parameters
     public static List<Function<Set<OWLAnnotation>, OWLAxiom>> getData() {
         return Arrays.asList(
-                a -> EquivalentClasses(a, Class(iri("A")), Class(iri("B")),
-                        Class(iri("C")), Class(iri("D"))),
-                a -> EquivalentDataProperties(a, DataProperty(iri("p")),
-                        DataProperty(iri("q")), DataProperty(iri("r"))),
-                a -> EquivalentObjectProperties(a, ObjectProperty(iri("p")),
-                        ObjectProperty(iri("q")), ObjectProperty(iri("r"))));
+                a -> EquivalentClasses(a, Class(iri("A")), Class(iri("B")), Class(iri("C")), Class(iri("D")))
+                , a -> EquivalentDataProperties(a, DataProperty(iri("p")), DataProperty(iri("q")), DataProperty(iri("r")))
+                , a -> EquivalentObjectProperties(a, ObjectProperty(iri("p")), ObjectProperty(iri("q")), ObjectProperty(iri("r")))
+        );
     }
 
     @Override
-    @Test
-    public void roundTripRDFXMLAndFunctionalShouldBeSame() { //todo?
-        // Serializations are structurally different because of nary equivalent
-        // axioms
+    @ParameterizedTest
+    @MethodSource("data")
+    public void roundTripRDFXMLAndFunctionalShouldBeSame(OWLOntology ont) throws Exception {
+        // Serializations are structurally different because of nary equivalent axioms
+        Assumptions.assumeFalse(OWLManager.DEBUG_USE_OWL);
+        super.roundTripRDFXMLAndFunctionalShouldBeSame(ont);
     }
 }
