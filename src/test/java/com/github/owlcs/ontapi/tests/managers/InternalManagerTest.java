@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -20,8 +20,8 @@ import com.github.owlcs.ontapi.OntologyCollection;
 import com.github.owlcs.ontapi.OntologyCollectionImpl;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import org.apache.jena.graph.Node;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.model.HasOntologyID;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntologyID;
@@ -76,7 +76,7 @@ public class InternalManagerTest {
     private static void changeOntologyIRIs(OntologyCollection<IDHolder> list) {
         list.values().forEach(o -> {
             String iri = o.getOntologyIRI();
-            Assert.assertNotNull(iri);
+            Assertions.assertNotNull(iri);
             o.setOntologyIRI(iri + "_x");
         });
     }
@@ -96,76 +96,77 @@ public class InternalManagerTest {
     @Test
     public void testCommonOntologyCollection() {
         OntologyCollection<IDHolder> list1 = new OntologyCollectionImpl<>();
-        Assert.assertTrue(list1.isEmpty());
-        Assert.assertEquals(0, list1.size());
+        Assertions.assertTrue(list1.isEmpty());
+        Assertions.assertEquals(0, list1.size());
 
         IDHolder a = IDHolder.of("a");
         IDHolder b = IDHolder.of("b");
         list1.add(a).add(b);
         LOGGER.debug("1) List: {}", list1);
-        Assert.assertEquals(2, list1.size());
-        Assert.assertFalse(list1.isEmpty());
-        Assert.assertTrue(list1.get(ID.create("a", null)).isPresent());
-        Assert.assertFalse(list1.get(ID.create("a", "v")).isPresent());
-        Assert.assertTrue(list1.contains(b.getOntologyID()));
-        Assert.assertFalse(list1.contains(ID.create("a", "v")));
+        Assertions.assertEquals(2, list1.size());
+        Assertions.assertFalse(list1.isEmpty());
+        Assertions.assertTrue(list1.get(ID.create("a", null)).isPresent());
+        Assertions.assertFalse(list1.get(ID.create("a", "v")).isPresent());
+        Assertions.assertTrue(list1.contains(b.getOntologyID()));
+        Assertions.assertFalse(list1.contains(ID.create("a", "v")));
 
         // change id externally for 'b':
         b.setOntologyID(IDHolder.of("x").getOntologyID());
         LOGGER.debug("2) List: {}", list1);
         list1.delete(b).remove(a.getOntologyID());
-        Assert.assertEquals(0, list1.size());
-        Assert.assertTrue(list1.isEmpty());
+        Assertions.assertEquals(0, list1.size());
+        Assertions.assertTrue(list1.isEmpty());
 
         OntologyCollection<IDHolder> list2 = new OntologyCollectionImpl<>(NoOpReadWriteLock.NO_OP_RW_LOCK,
                 Arrays.asList(a, b));
         LOGGER.debug("3) List: {}", list2);
-        Assert.assertEquals(2, list2.size());
-        Assert.assertEquals(2, list2.values().peek(x -> LOGGER.debug("{}", x)).count());
-        Assert.assertFalse(list2.isEmpty());
-        Assert.assertFalse(list2.get(ID.create("b", null)).isPresent());
-        Assert.assertTrue(list2.get(ID.create("x", null)).isPresent());
-        Assert.assertEquals(Arrays.asList("a", "x"), list2.keys()
+        Assertions.assertEquals(2, list2.size());
+        Assertions.assertEquals(2, list2.values().peek(x -> LOGGER.debug("{}", x)).count());
+        Assertions.assertFalse(list2.isEmpty());
+        Assertions.assertFalse(list2.get(ID.create("b", null)).isPresent());
+        Assertions.assertTrue(list2.get(ID.create("x", null)).isPresent());
+        Assertions.assertEquals(Arrays.asList("a", "x"), list2.keys()
                 .map(ID::asONT).map(ID::asNode)
                 .map(Node::getURI).sorted().collect(Collectors.toList()));
         list2.clear();
-        Assert.assertTrue(list2.isEmpty());
-        Assert.assertEquals(0, list2.size());
-        Assert.assertEquals(0, list2.values().count());
+        Assertions.assertTrue(list2.isEmpty());
+        Assertions.assertEquals(0, list2.size());
+        Assertions.assertEquals(0, list2.values().count());
         list2.add(b).add(a);
         LOGGER.debug("4) List: {}", list2);
 
         // change id externally for 'a':
         a.setOntologyID(ID.create("x", null));
         LOGGER.debug("5) List: {}", list2);
-        Assert.assertEquals(2, list2.size());
-        Assert.assertEquals(Arrays.asList("x", "x"), list2.keys()
+        Assertions.assertEquals(2, list2.size());
+        Assertions.assertEquals(Arrays.asList("x", "x"), list2.keys()
                 .map(ID::asONT).map(ID::asNode)
                 .map(Node::getURI).sorted().collect(Collectors.toList()));
-        Assert.assertSame(b, list2.get(ID.create("x", null)).orElseThrow(AssertionError::new));
-        Assert.assertNotSame(a, list2.get(ID.create("x", null)).orElseThrow(AssertionError::new));
+        Assertions.assertSame(b, list2.get(ID.create("x", null)).orElseThrow(AssertionError::new));
+        Assertions.assertNotSame(a, list2.get(ID.create("x", null)).orElseThrow(AssertionError::new));
 
         // change id externally for 'b':
         b.setOntologyID(ID.create("x", "v"));
         LOGGER.debug("6) List: {}", list2);
         Set<OWLOntologyID> keys = list2.keys().collect(Collectors.toSet());
         LOGGER.debug("Keys: {}", keys);
-        Assert.assertEquals(2, keys.size());
-        Assert.assertSame(a, list2.get(ID.create("x", null)).orElseThrow(AssertionError::new));
-        Assert.assertNotSame(b, list2.get(ID.create("x", null)).orElseThrow(AssertionError::new));
+        Assertions.assertEquals(2, keys.size());
+        Assertions.assertSame(a, list2.get(ID.create("x", null)).orElseThrow(AssertionError::new));
+        Assertions.assertNotSame(b, list2.get(ID.create("x", null)).orElseThrow(AssertionError::new));
 
         // change id externally for 'a' and 'b':
         a.setOntologyID(ID.create("y", null));
         b.setOntologyID(ID.create("x", null));
         LOGGER.debug("7) List: {}", list2);
-        Assert.assertEquals(2, list2.values().peek(x -> LOGGER.debug("{}", x)).count());
-        Assert.assertSame(b, list2.get(ID.create("x", null)).orElseThrow(AssertionError::new));
-        Assert.assertSame(a, list2.get(ID.create("y", null)).orElseThrow(AssertionError::new));
+        Assertions.assertEquals(2, list2.values().peek(x -> LOGGER.debug("{}", x)).count());
+        Assertions.assertSame(b, list2.get(ID.create("x", null)).orElseThrow(AssertionError::new));
+        Assertions.assertSame(a, list2.get(ID.create("y", null)).orElseThrow(AssertionError::new));
     }
 
-    @Test(expected = Exception.class)
-    public void testConcurrentModificationOfNonSynchronizedList() throws Exception {
-        testConcurrentModification(new OntologyCollectionImpl<>(NoOpReadWriteLock.NO_OP_RW_LOCK));
+    @Test
+    public void testConcurrentModificationOfNonSynchronizedList() {
+        Assertions.assertThrows(Exception.class,
+                () -> testConcurrentModification(new OntologyCollectionImpl<>(NoOpReadWriteLock.NO_OP_RW_LOCK)));
     }
 
     @Test
@@ -186,7 +187,7 @@ public class InternalManagerTest {
             LOGGER.debug("Run. The collection ({}): {}", list.size(), list);
         }
         LOGGER.debug("Fin. The collection: {}", list);
-        Assert.assertTrue(list.isEmpty());
+        Assertions.assertTrue(list.isEmpty());
     }
 
     @SuppressWarnings("WeakerAccess")

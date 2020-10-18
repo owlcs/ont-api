@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -15,8 +15,8 @@ package com.github.owlcs.owlapi.tests.api.syntax.rdf;
 
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.model.*;
 
 import java.util.Arrays;
@@ -28,7 +28,7 @@ import java.util.Set;
  * Test cases for rendering of disjoint axioms.
  * The OWL 1.1 specification makes it possible to specify that a set of classes are mutually disjoint.
  * Unfortunately, this must be represented in RDF as a set of pairwise disjoint statements.
- * In otherwords, DisjointClasses(A, B, C) must be represented as DisjointWith(A, B), DisjointWith(A, C) DisjointWith(B, C).
+ * In other words, DisjointClasses(A, B, C) must be represented as DisjointWith(A, B), DisjointWith(A, C) DisjointWith(B, C).
  * ~This test case ensure that these axioms are serialised correctly.
  *
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
@@ -49,28 +49,30 @@ public class DisjointsTestCase extends TestBase {
         OWLAxiom ax = df.getOWLDisjointClassesAxiom(classExpressions);
         ontA.add(ax);
         OWLOntology ontB = roundTrip(ontA);
-        Assert.assertTrue(ontB.axioms().anyMatch(ax::equals));
+        Assertions.assertTrue(ontB.axioms().anyMatch(ax::equals));
     }
 
     @Test // copy-pasted form 5.1.8 owlapi-contract
-    public void shouldAcceptSingleDisjointAxiom() {
+    public void testShouldAcceptSingleDisjointAxiom() {
         // The famous idiomatic use of DisjointClasses with one operand
         OWLClass t = df.getOWLClass("urn:test:class");
         OWLDisjointClassesAxiom ax = df.getOWLDisjointClassesAxiom(Collections.singletonList(t));
-        Assert.assertEquals(df.getOWLDisjointClassesAxiom(Arrays.asList(t, df.getOWLThing())), ax.getAxiomWithoutAnnotations());
+        Assertions.assertEquals(df.getOWLDisjointClassesAxiom(Arrays.asList(t, df.getOWLThing())), ax.getAxiomWithoutAnnotations());
         OWLLiteral value = df.getOWLLiteral("DisjointClasses(<urn:test:class>) replaced by DisjointClasses(<urn:test:class> owl:Thing)");
         OWLAnnotation a = ax.annotationsAsList().get(0);
-        Assert.assertEquals(value, a.getValue());
-        Assert.assertEquals(df.getRDFSComment(), a.getProperty());
+        Assertions.assertEquals(value, a.getValue());
+        Assertions.assertEquals(df.getRDFSComment(), a.getProperty());
     }
 
-    @Test(expected = OWLRuntimeException.class) // copy-pasted form 5.1.8 owlapi-contract
-    public void shouldRejectDisjointClassesWithSingletonThing() {
-        df.getOWLDisjointClassesAxiom(Collections.singletonList(df.getOWLThing()));
+    @Test // copy-pasted form 5.1.8 owlapi-contract
+    public void testShouldRejectDisjointClassesWithSingletonThing() {
+        Assertions.assertThrows(OWLRuntimeException.class,
+                () -> df.getOWLDisjointClassesAxiom(Collections.singletonList(df.getOWLThing())));
     }
 
-    @Test(expected = OWLRuntimeException.class) // copy-pasted form 5.1.8 owlapi-contract
-    public void shouldRejectDisjointClassesWithSingletonNothing() {
-        df.getOWLDisjointClassesAxiom(Collections.singletonList(df.getOWLNothing()));
+    @Test // copy-pasted form 5.1.8 owlapi-contract
+    public void testShouldRejectDisjointClassesWithSingletonNothing() {
+        Assertions.assertThrows(OWLRuntimeException.class,
+                () -> df.getOWLDisjointClassesAxiom(Collections.singletonList(df.getOWLNothing())));
     }
 }

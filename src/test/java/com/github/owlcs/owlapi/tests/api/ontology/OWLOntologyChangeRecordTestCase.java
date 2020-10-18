@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,15 +14,13 @@
 package com.github.owlcs.owlapi.tests.api.ontology;
 
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.semanticweb.owlapi.change.AddAxiomData;
 import org.semanticweb.owlapi.change.OWLOntologyChangeData;
 import org.semanticweb.owlapi.change.OWLOntologyChangeRecord;
 import org.semanticweb.owlapi.model.*;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Matthew Horridge, Stanford University, Bio-Medical Informatics Research Group
@@ -30,33 +28,33 @@ import static org.mockito.Mockito.mock;
 public class OWLOntologyChangeRecordTestCase extends TestBase {
 
     private final OWLOntologyID mockOntologyID = new OWLOntologyID();
-    private final OWLOntologyChangeData mockChangeData = mock(OWLOntologyChangeData.class);
-    private final OWLAxiom mockAxiom = mock(OWLAxiom.class);
+    private final OWLOntologyChangeData mockChangeData = Mockito.mock(OWLOntologyChangeData.class);
+    private final OWLAxiom mockAxiom = Mockito.mock(OWLAxiom.class);
 
     @Test
     public void testEquals() {
         OWLOntologyChangeRecord record1 = new OWLOntologyChangeRecord(mockOntologyID, mockChangeData);
         OWLOntologyChangeRecord record2 = new OWLOntologyChangeRecord(mockOntologyID, mockChangeData);
-        assertEquals(record1, record2);
+        Assertions.assertEquals(record1, record2);
     }
 
     @Test
     public void testGettersNotNull() {
         OWLOntologyChangeRecord record = new OWLOntologyChangeRecord(mockOntologyID, mockChangeData);
-        assertNotNull(record.getOntologyID());
+        Assertions.assertNotNull(record.getOntologyID());
     }
 
     @Test
     public void testGetterEqual() {
         OWLOntologyChangeRecord record = new OWLOntologyChangeRecord(mockOntologyID, mockChangeData);
-        assertEquals(mockOntologyID, record.getOntologyID());
-        assertEquals(mockChangeData, record.getData());
+        Assertions.assertEquals(mockOntologyID, record.getOntologyID());
+        Assertions.assertEquals(mockChangeData, record.getData());
     }
 
-    @Test(expected = UnknownOWLOntologyException.class)
+    @Test
     public void testCreateOntologyChange() {
-        OWLOntologyChangeRecord changeRecord = new OWLOntologyChangeRecord(mockOntologyID, mockChangeData);
-        changeRecord.createOntologyChange(m);
+        Assertions.assertThrows(UnknownOWLOntologyException.class,
+                () -> new OWLOntologyChangeRecord(mockOntologyID, mockChangeData).createOntologyChange(m));
     }
 
     @Test
@@ -66,8 +64,8 @@ public class OWLOntologyChangeRecordTestCase extends TestBase {
         AddAxiomData addAxiomData = new AddAxiomData(mockAxiom);
         OWLOntologyChangeRecord changeRecord = new OWLOntologyChangeRecord(ontologyID, addAxiomData);
         OWLOntologyChange change = changeRecord.createOntologyChange(m);
-        assertNotNull(change);
-        assertEquals(change.getOntology().getOntologyID(), ontologyID);
-        assertEquals(mockAxiom, change.getAxiom());
+        Assertions.assertNotNull(change);
+        Assertions.assertEquals(change.getOntology().getOntologyID(), ontologyID);
+        Assertions.assertEquals(mockAxiom, change.getAxiom());
     }
 }

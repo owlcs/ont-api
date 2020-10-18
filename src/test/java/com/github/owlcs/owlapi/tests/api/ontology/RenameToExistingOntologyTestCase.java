@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -13,28 +13,28 @@
  */
 package com.github.owlcs.owlapi.tests.api.ontology;
 
+import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.model.*;
 
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.IRI;
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.emptyOptional;
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.optional;
+import java.util.Optional;
 
 /**
  * @author Matthew Horridge, The University of Manchester, Information Management Group
  */
 public class RenameToExistingOntologyTestCase extends TestBase {
 
-    @Test(expected = OWLOntologyRenameException.class)
-    public void testRenameToExistingOntology() throws OWLOntologyCreationException {
-        IRI ontologyAIRI = IRI("http://www.semanticweb.org/ontologies/", "ontologyA");
-        OWLOntology onto = getOWLOntology(ontologyAIRI);
-        onto.add(df.getOWLDeclarationAxiom(Class(IRI("urn:test:", "testclass"))));
-        IRI ontologyBIRI = IRI("http://www.semanticweb.org/ontologies/", "ontologyB");
-        OWLOntology ontologyB = getOWLOntology(ontologyBIRI);
-        ontologyB.applyChange(new SetOntologyID(ontologyB, new OWLOntologyID(optional(ontologyAIRI),
-                emptyOptional(IRI.class))));
+    @Test
+    public void testRenameToExistingOntology() {
+        Assertions.assertThrows(OWLOntologyRenameException.class, () -> {
+            IRI ontologyAIRI = OWLFunctionalSyntaxFactory.IRI("http://www.semanticweb.org/ontologies/", "ontologyA");
+            OWLOntology onto = getOWLOntology(ontologyAIRI);
+            onto.add(df.getOWLDeclarationAxiom(OWLFunctionalSyntaxFactory.Class(OWLFunctionalSyntaxFactory.IRI("urn:test:", "testclass"))));
+            IRI ontologyBIRI = OWLFunctionalSyntaxFactory.IRI("http://www.semanticweb.org/ontologies/", "ontologyB");
+            OWLOntology ontologyB = getOWLOntology(ontologyBIRI);
+            ontologyB.applyChange(new SetOntologyID(ontologyB, new OWLOntologyID(Optional.of(ontologyAIRI), Optional.empty())));
+        });
     }
 }

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -15,7 +15,8 @@ package com.github.owlcs.owlapi.tests.api.syntax;
 
 import com.github.owlcs.owlapi.OWLManager;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.expression.OWLEntityChecker;
 import org.semanticweb.owlapi.manchestersyntax.renderer.ParserException;
 import org.semanticweb.owlapi.model.*;
@@ -26,20 +27,6 @@ import javax.annotation.Nullable;
 
 public class ManchesterParseErrorTestCase extends TestBase {
 
-    @Test(expected = ParserException.class)
-    public void shouldNotParse() {
-        parse("p some rdfs:Literal");
-        String text1 = "p some Litera";
-        parse(text1);
-    }
-
-    @Test(expected = ParserException.class)
-    public void shouldNotParseToo() {
-        parse("p some rdfs:Literal");
-        String text1 = "p some Literal";
-        parse(text1);
-    }
-
     private static void parse(String text) {
         MockEntityChecker checker = new MockEntityChecker(df);
         ManchesterOWLSyntaxParser parser = OWLManager.createManchesterParser();
@@ -48,11 +35,28 @@ public class ManchesterParseErrorTestCase extends TestBase {
         parser.parseClassExpression();
     }
 
+    @Test
+    public void testShouldNotParse() {
+        Assertions.assertThrows(ParserException.class, () -> {
+            parse("p some rdfs:Literal");
+            String text1 = "p some Litera";
+            parse(text1);
+        });
+    }
+
+    @Test
+    public void testShouldNotParseToo() {
+        Assertions.assertThrows(ParserException.class, () -> {
+            parse("p some rdfs:Literal");
+            String text1 = "p some Literal";
+            parse(text1);
+        });
+    }
+
     /**
      * A very simple entity checker that only understands that "p" is a property
      * and rdfs:Literal is a datatype. He is an extreme simplification of the
-     * entity checker that runs when Protege is set to render entities as
-     * qnames.
+     * entity checker that runs when Protege is set to render entities as qnames.
      *
      * @author tredmond
      */

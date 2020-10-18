@@ -19,8 +19,8 @@ import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.utils.Graphs;
 import com.github.owlcs.ontapi.utils.FileMap;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
-import org.junit.Assert;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.model.parameters.OntologyCopy;
@@ -76,20 +76,20 @@ public class CopyManagerTest {
     }
 
     private static void compareManagersContentTest(OWLOntologyManager left, OWLOntologyManager right) {
-        Assert.assertEquals(left.ontologies().count(), right.ontologies().count());
+        Assertions.assertEquals(left.ontologies().count(), right.ontologies().count());
         left.ontologies()
                 .forEach(src -> {
                     OWLOntologyID id = src.getOntologyID();
                     LOGGER.debug("Test {}", id);
                     OWLOntology dst = right.getOntology(id);
-                    Assert.assertNotNull("Can't find ontology " + id, dst);
+                    Assertions.assertNotNull(dst, "Can't find ontology " + id);
                     List<OWLAxiom> expectedAxioms = src.axioms(Imports.EXCLUDED)
                             .filter(t -> !t.getAxiomType().equals(AxiomType.DECLARATION))
                             .collect(Collectors.toList());
                     List<OWLAxiom> actualAxioms = dst.axioms(Imports.EXCLUDED)
                             .filter(t -> !t.getAxiomType().equals(AxiomType.DECLARATION))
                             .collect(Collectors.toList());
-                    Assert.assertEquals("Axioms list differ for " + id, expectedAxioms.size(), actualAxioms.size());
+                    Assertions.assertEquals(expectedAxioms.size(), actualAxioms.size(), "Axioms list differ for " + id);
                 });
     }
 
@@ -123,27 +123,35 @@ public class CopyManagerTest {
         o1.add(df.getOWLDeclarationAxiom(clazz));
 
         to.copyOntology(o1, mode);
-        Assert.assertEquals("Incorrect ontologies count inside OWL-manager", fromCount + 1, from.ontologies().count());
-        Assert.assertEquals("Incorrect ontologies count inside ONT-manager", toCount + 1, to.ontologies().count());
-        Assert.assertTrue("Can't find " + iri, to.contains(iri));
+        Assertions.assertEquals(fromCount + 1, from.ontologies().count(), "Incorrect ontologies count inside OWL-manager");
+        Assertions.assertEquals(toCount + 1, to.ontologies().count(), "Incorrect ontologies count inside ONT-manager");
+        Assertions.assertTrue(to.contains(iri), "Can't find " + iri);
         OWLOntology o2 = to.getOntology(iri);
-        Assert.assertNotNull("Can't find " + to, o2);
-        Assert.assertNotSame("Should not be same", o1, o2);
+        Assertions.assertNotNull(o2, "Can't find " + to);
+        Assertions.assertNotSame(o1, o2, "Should not be same");
         Set<OWLClass> classes = o2.classesInSignature().collect(Collectors.toSet());
-        Assert.assertEquals("Should be single class inside", 1, classes.size());
-        Assert.assertTrue("Can't find " + clazz, classes.contains(clazz));
+        Assertions.assertEquals(1, classes.size(), "Should be single class inside");
+        Assertions.assertTrue(classes.contains(clazz), "Can't find " + clazz);
     }
 
-    @Test(expected = OntApiException.Unsupported.class)
-    public void testMoveFromDefaultOWLAPIManager() throws OWLOntologyCreationException {
+    @Test
+    public void testMoveFromDefaultOWLAPIManager() {
+        Assertions.assertThrows(OntApiException.Unsupported.class, this::moveFromDefaultOWLAPIManager);
+    }
+
+    private void moveFromDefaultOWLAPIManager() throws OWLOntologyCreationException {
         OWLOntologyManager src = OntManagers.createOWLAPIImplManager();
         OWLOntologyManager dst = OntManagers.createManager();
         OWLOntology o = src.createOntology();
         dst.copyOntology(o, OntologyCopy.MOVE);
     }
 
-    @Test(expected = OntApiException.Unsupported.class)
-    public void testMoveFromONTAPIManager() throws OWLOntologyCreationException {
+    @Test
+    public void testMoveFromONTAPIManager() {
+        Assertions.assertThrows(OntApiException.Unsupported.class, this::moveFromONTAPIManager);
+    }
+
+    private void moveFromONTAPIManager() throws OWLOntologyCreationException {
         OWLOntologyManager src = OntManagers.createManager();
         OWLOntologyManager dst = OntManagers.createManager();
         OWLOntology o = src.createOntology();
@@ -169,36 +177,36 @@ public class CopyManagerTest {
 
         // loads sp.ttl, then spif.ttl, then try to load spin.ttl
         from.loadOntologyFromOntologyDocument(iri1);
-        Assert.assertEquals(1, from.ontologies().count());
+        Assertions.assertEquals(1, from.ontologies().count());
         from.loadOntologyFromOntologyDocument(iri4);
-        Assert.assertEquals(4, from.ontologies().count());
+        Assertions.assertEquals(4, from.ontologies().count());
         try {
             from.loadOntologyFromOntologyDocument(doc2);
-            Assert.fail(doc2 + " has been successfully loaded.");
+            Assertions.fail(doc2 + " has been successfully loaded.");
         } catch (OWLOntologyAlreadyExistsException e) {
             LOGGER.debug("It is ok : {}", e.getMessage());
         }
-        Assert.assertEquals(4, from.ontologies().count());
+        Assertions.assertEquals(4, from.ontologies().count());
 
 
         LOGGER.debug("Copy manager");
         OntologyManager to = CopyManagerTest.deepCopyManager(from);
-        Assert.assertEquals(4, to.ontologies().count());
+        Assertions.assertEquals(4, to.ontologies().count());
 
         // validate doc iris:
         OWLOntology o2 = to.getOntology(iri2);
-        Assert.assertNotNull(o2);
-        Assert.assertEquals(doc2, to.getOntologyDocumentIRI(o2));
+        Assertions.assertNotNull(o2);
+        Assertions.assertEquals(doc2, to.getOntologyDocumentIRI(o2));
         OWLOntology o3 = to.getOntology(iri3);
-        Assert.assertNotNull(o3);
-        Assert.assertEquals(doc3, to.getOntologyDocumentIRI(o3));
+        Assertions.assertNotNull(o3);
+        Assertions.assertEquals(doc3, to.getOntologyDocumentIRI(o3));
         // Note: the same behaviour as OWL-API (tested: 5.1.4): the primary ontology has ontology-iri as document-iri.
         OWLOntology o4 = to.getOntology(iri4);
-        Assert.assertNotNull(o4);
-        Assert.assertEquals(iri4, to.getOntologyDocumentIRI(o4));
+        Assertions.assertNotNull(o4);
+        Assertions.assertEquals(iri4, to.getOntologyDocumentIRI(o4));
         OWLOntology o1 = to.getOntology(iri1);
-        Assert.assertNotNull(o1);
-        Assert.assertEquals(iri1, to.getOntologyDocumentIRI(o1));
+        Assertions.assertNotNull(o1);
+        Assertions.assertEquals(iri1, to.getOntologyDocumentIRI(o1));
 
         compareManagersContentTest(from, to);
     }
@@ -216,19 +224,19 @@ public class CopyManagerTest {
         from.getIRIMappers().add(FileMap.create(iri2, doc2));
 
         from.loadOntologyFromOntologyDocument(iri2);
-        Assert.assertEquals(2, from.ontologies().count());
+        Assertions.assertEquals(2, from.ontologies().count());
 
         LOGGER.debug("Copy manager");
         OntologyManager to = CopyManagerTest.deepCopyManager(from);
-        Assert.assertEquals(2, to.ontologies().count());
+        Assertions.assertEquals(2, to.ontologies().count());
 
         // validate doc iris:
         OWLOntology o1 = to.getOntology(iri1);
-        Assert.assertNotNull(o1);
-        Assert.assertEquals(doc1, to.getOntologyDocumentIRI(o1));
+        Assertions.assertNotNull(o1);
+        Assertions.assertEquals(doc1, to.getOntologyDocumentIRI(o1));
         OWLOntology o2 = to.getOntology(iri2);
-        Assert.assertNotNull(o2);
-        Assert.assertEquals(iri2, to.getOntologyDocumentIRI(o2));
+        Assertions.assertNotNull(o2);
+        Assertions.assertEquals(iri2, to.getOntologyDocumentIRI(o2));
 
         compareManagersContentTest(from, to);
     }
@@ -261,24 +269,24 @@ public class CopyManagerTest {
         m2.createGraphModel(uri_b);
 
         Ontology src = m1.getOntology(IRI.create(uri_a));
-        Assert.assertNotNull(src);
+        Assertions.assertNotNull(src);
         m1.setOntologyDocumentIRI(src, IRI.create("x"));
         m1.setOntologyFormat(src, OntFormat.OBO.createOwlFormat());
 
         Ontology dst = m2.copyOntology(src, OntologyCopy.SHALLOW);
-        Assert.assertEquals(2, m2.ontologies().count());
-        Assert.assertEquals(1, dst.imports().count());
-        Assert.assertEquals(2, dst.importsDeclarations().count());
+        Assertions.assertEquals(2, m2.ontologies().count());
+        Assertions.assertEquals(1, dst.imports().count());
+        Assertions.assertEquals(2, dst.importsDeclarations().count());
 
-        Assert.assertSame(a.getBaseGraph(), dst.asGraphModel().getBaseGraph());
+        Assertions.assertSame(a.getBaseGraph(), dst.asGraphModel().getBaseGraph());
 
         OWLDocumentFormat f = m2.getOntologyFormat(dst);
         IRI di = m2.getOntologyDocumentIRI(dst);
         LOGGER.debug("New doc IRI: {}", di);
-        Assert.assertNotNull(f);
-        Assert.assertNotNull(di);
-        Assert.assertEquals(OntFormat.TURTLE.createOwlFormat().getKey(), f.getKey());
-        Assert.assertEquals(OntGraphDocumentSource.wrap(a.getBaseGraph()).getDocumentIRI(), di);
+        Assertions.assertNotNull(f);
+        Assertions.assertNotNull(di);
+        Assertions.assertEquals(OntFormat.TURTLE.createOwlFormat().getKey(), f.getKey());
+        Assertions.assertEquals(OntGraphDocumentSource.wrap(a.getBaseGraph()).getDocumentIRI(), di);
     }
 
     @Test
@@ -298,51 +306,51 @@ public class CopyManagerTest {
         m2.createGraphModel(uri_b);
 
         Ontology src_a = m1.getOntology(IRI.create(uri_a));
-        Assert.assertNotNull(src_a);
+        Assertions.assertNotNull(src_a);
         IRI di_src_a = IRI.create("x");
         OWLDocumentFormat f_src_a = OntFormat.LATEX.createOwlFormat();
         m1.setOntologyDocumentIRI(src_a, di_src_a);
         m1.setOntologyFormat(src_a, f_src_a);
 
         OWLOntology dst_a = m2.copyOntology(src_a, OntologyCopy.DEEP);
-        Assert.assertEquals(2, m2.ontologies().count());
-        Assert.assertEquals(1, dst_a.imports().count());
-        Assert.assertEquals(2, dst_a.importsDeclarations().count());
+        Assertions.assertEquals(2, m2.ontologies().count());
+        Assertions.assertEquals(1, dst_a.imports().count());
+        Assertions.assertEquals(2, dst_a.importsDeclarations().count());
         Ontology dst_b = m2.getOntology(IRI.create(uri_b));
-        Assert.assertNotNull(dst_b);
-        Assert.assertEquals(0, dst_b.importsDeclarations().count());
+        Assertions.assertNotNull(dst_b);
+        Assertions.assertEquals(0, dst_b.importsDeclarations().count());
 
         OWLDocumentFormat f_dst_a = m2.getOntologyFormat(dst_a);
         IRI di_dst_a = m2.getOntologyDocumentIRI(dst_a);
-        Assert.assertSame(f_src_a, f_dst_a);
-        Assert.assertSame(di_src_a, di_dst_a);
+        Assertions.assertSame(f_src_a, f_dst_a);
+        Assertions.assertSame(di_src_a, di_dst_a);
 
         Ontology src_c = m1.getOntology(IRI.create(uri_c));
-        Assert.assertNotNull(src_c);
+        Assertions.assertNotNull(src_c);
         OWLOntology dst_c = m2.copyOntology(src_c, OntologyCopy.DEEP);
-        Assert.assertEquals(3, m2.ontologies().count());
-        Assert.assertEquals(2, dst_a.imports().count());
-        Assert.assertEquals(1, dst_c.importsDeclarations().count());
-        Assert.assertEquals(0, dst_c.imports().count());
-        Assert.assertEquals(0, dst_b.importsDeclarations().count());
-        Assert.assertSame(dst_b, m2.getOntology(IRI.create(uri_b)));
+        Assertions.assertEquals(3, m2.ontologies().count());
+        Assertions.assertEquals(2, dst_a.imports().count());
+        Assertions.assertEquals(1, dst_c.importsDeclarations().count());
+        Assertions.assertEquals(0, dst_c.imports().count());
+        Assertions.assertEquals(0, dst_b.importsDeclarations().count());
+        Assertions.assertSame(dst_b, m2.getOntology(IRI.create(uri_b)));
         IRI di_dst_c = m2.getOntologyDocumentIRI(dst_c);
         LOGGER.debug("Doc IRI (c): {}", di_dst_c);
-        Assert.assertEquals(uri_c, di_dst_c.getIRIString());
-        Assert.assertEquals(OntFormat.TURTLE.createOwlFormat(), m2.getOntologyFormat(dst_c));
+        Assertions.assertEquals(uri_c, di_dst_c.getIRIString());
+        Assertions.assertEquals(OntFormat.TURTLE.createOwlFormat(), m2.getOntologyFormat(dst_c));
 
         OWLOntology dst_d = m2.getOntology(IRI.create(uri_d));
-        Assert.assertNull(dst_d);
+        Assertions.assertNull(dst_d);
         Ontology src_d = m1.getOntology(IRI.create(uri_d));
-        Assert.assertNotNull(src_d);
+        Assertions.assertNotNull(src_d);
         dst_d = m2.copyOntology(src_d, OntologyCopy.DEEP);
 
-        Assert.assertEquals(4, m2.ontologies().count());
-        Assert.assertEquals(3, dst_a.imports().count());
-        Assert.assertEquals(1, dst_c.importsDeclarations().count());
-        Assert.assertEquals(1, dst_c.imports().count());
-        Assert.assertEquals(0, dst_b.importsDeclarations().count());
-        Assert.assertEquals(0, dst_d.importsDeclarations().count());
+        Assertions.assertEquals(4, m2.ontologies().count());
+        Assertions.assertEquals(3, dst_a.imports().count());
+        Assertions.assertEquals(1, dst_c.importsDeclarations().count());
+        Assertions.assertEquals(1, dst_c.imports().count());
+        Assertions.assertEquals(0, dst_b.importsDeclarations().count());
+        Assertions.assertEquals(0, dst_d.importsDeclarations().count());
     }
 
     @Test
@@ -362,38 +370,38 @@ public class CopyManagerTest {
         m2.createGraphModel(uri_b);
 
         OWLOntology src_a = m1.getOntology(IRI.create(uri_a));
-        Assert.assertNotNull(src_a);
+        Assertions.assertNotNull(src_a);
         IRI di_src_a = IRI.create("x");
         OWLDocumentFormat f_src_a = OntFormat.LATEX.createOwlFormat();
         m1.setOntologyDocumentIRI(src_a, di_src_a);
         m1.setOntologyFormat(src_a, f_src_a);
 
         OWLOntology dst_a = m2.copyOntology(src_a, OntologyCopy.DEEP);
-        Assert.assertEquals(2, m2.ontologies().count());
-        Assert.assertEquals(1, dst_a.imports().count());
-        Assert.assertEquals(2, dst_a.importsDeclarations().count());
+        Assertions.assertEquals(2, m2.ontologies().count());
+        Assertions.assertEquals(1, dst_a.imports().count());
+        Assertions.assertEquals(2, dst_a.importsDeclarations().count());
         Ontology dst_b = m2.getOntology(IRI.create(uri_b));
-        Assert.assertNotNull(dst_b);
-        Assert.assertEquals(0, dst_b.importsDeclarations().count());
+        Assertions.assertNotNull(dst_b);
+        Assertions.assertEquals(0, dst_b.importsDeclarations().count());
 
         OWLDocumentFormat f_dst_a = m2.getOntologyFormat(dst_a);
         IRI di_dst_a = m2.getOntologyDocumentIRI(dst_a);
-        Assert.assertSame(f_src_a, f_dst_a);
-        Assert.assertSame(di_src_a, di_dst_a);
+        Assertions.assertSame(f_src_a, f_dst_a);
+        Assertions.assertSame(di_src_a, di_dst_a);
 
         OWLOntology src_c = m1.getOntology(IRI.create(uri_c));
-        Assert.assertNotNull(src_c);
+        Assertions.assertNotNull(src_c);
         OWLOntology dst_c = m2.copyOntology(src_c, OntologyCopy.DEEP);
-        Assert.assertEquals(3, m2.ontologies().count());
-        Assert.assertEquals(2, dst_a.imports().count());
-        Assert.assertEquals(0, dst_c.importsDeclarations().count());
-        Assert.assertEquals(0, dst_c.imports().count());
-        Assert.assertEquals(0, dst_b.importsDeclarations().count());
-        Assert.assertSame(dst_b, m2.getOntology(IRI.create(uri_b)));
+        Assertions.assertEquals(3, m2.ontologies().count());
+        Assertions.assertEquals(2, dst_a.imports().count());
+        Assertions.assertEquals(0, dst_c.importsDeclarations().count());
+        Assertions.assertEquals(0, dst_c.imports().count());
+        Assertions.assertEquals(0, dst_b.importsDeclarations().count());
+        Assertions.assertSame(dst_b, m2.getOntology(IRI.create(uri_b)));
         IRI di_dst_c = m2.getOntologyDocumentIRI(dst_c);
         LOGGER.debug("Doc IRI (c): {}", di_dst_c);
-        Assert.assertEquals(uri_c, di_dst_c.getIRIString());
-        Assert.assertEquals(OntFormat.RDF_XML.createOwlFormat(), m2.getOntologyFormat(dst_c));
+        Assertions.assertEquals(uri_c, di_dst_c.getIRIString());
+        Assertions.assertEquals(OntFormat.RDF_XML.createOwlFormat(), m2.getOntologyFormat(dst_c));
     }
 
     @Test
@@ -422,9 +430,9 @@ public class CopyManagerTest {
     }
 
     private void testManagerWithCyclicImports(OntologyManager m) {
-        Assert.assertEquals(2, m.ontologies().peek(x -> {
+        Assertions.assertEquals(2, m.ontologies().peek(x -> {
             LOGGER.debug("TEST: {}", x);
-            Assert.assertEquals(2, Graphs.baseGraphs(((Ontology) x).asGraphModel().getGraph()).count());
+            Assertions.assertEquals(2, Graphs.baseGraphs(((Ontology) x).asGraphModel().getGraph()).count());
         }).count());
     }
 
@@ -457,10 +465,10 @@ public class CopyManagerTest {
     }
 
     private void testManagerWithAnonymousOntologies(OntologyManager m) {
-        Assert.assertEquals(5, m.ontologies().count());
-        Assert.assertEquals(2, m.ontologies().filter(IsAnonymous::isAnonymous).count());
-        Assert.assertEquals(3, m.ontologies().filter(x -> !x.imports().findFirst().isPresent()).count());
-        Assert.assertEquals(1, m.ontologies().filter(IsAnonymous::isAnonymous)
+        Assertions.assertEquals(5, m.ontologies().count());
+        Assertions.assertEquals(2, m.ontologies().filter(IsAnonymous::isAnonymous).count());
+        Assertions.assertEquals(3, m.ontologies().filter(x -> !x.imports().findFirst().isPresent()).count());
+        Assertions.assertEquals(1, m.ontologies().filter(IsAnonymous::isAnonymous)
                 .filter(x -> !x.imports().findFirst().isPresent()).count());
     }
 

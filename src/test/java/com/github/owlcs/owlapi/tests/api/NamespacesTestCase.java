@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,7 +14,8 @@
 package com.github.owlcs.owlapi.tests.api;
 
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.formats.FunctionalSyntaxDocumentFormat;
 import org.semanticweb.owlapi.io.StringDocumentTarget;
 import org.semanticweb.owlapi.model.*;
@@ -24,46 +25,45 @@ import org.semanticweb.owlapi.vocab.XSDVocabulary;
 
 import java.util.EnumSet;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 public class NamespacesTestCase extends TestBase {
 
     @Test
-    public void shouldFindInNamespace() {
+    public void testShouldFindInNamespace() {
         EnumSet<Namespaces> reserved = EnumSet.of(Namespaces.OWL, Namespaces.RDF, Namespaces.RDFS, Namespaces.XSD);
         for (Namespaces n : Namespaces.values()) {
             IRI iri = IRI.create(n.getPrefixIRI(), "test");
             boolean reservedVocabulary = iri.isReservedVocabulary();
-            assertEquals(iri + " reserved? Should be " + reserved.contains(n) + " but is " + reservedVocabulary,
-                    reservedVocabulary, reserved.contains(n));
+            Assertions.assertEquals(reservedVocabulary, reserved.contains(n),
+                    iri + " reserved? Should be " + reserved.contains(n) + " but is " + reservedVocabulary);
         }
     }
 
     @Test
-    public void shouldParseXSDSTRING() {
+    public void testShouldParseXSDSTRING() {
         // given
         String s = "xsd:string";
         // when
         XSDVocabulary v = XSDVocabulary.parseShortName(s);
         // then
-        assertEquals(XSDVocabulary.STRING, v);
-        assertEquals(OWL2Datatype.XSD_STRING.getDatatype(df), df.getOWLDatatype(v));
-    }
-
-    @SuppressWarnings("ResultOfMethodCallIgnored")
-    @Test(expected = IllegalArgumentException.class)
-    public void shouldFailToParseInvalidString() {
-        // given
-        String s = "xsd:st";
-        // when
-        XSDVocabulary.parseShortName(s);
-        // then
-        // an exception should have been thrown
+        Assertions.assertEquals(XSDVocabulary.STRING, v);
+        Assertions.assertEquals(OWL2Datatype.XSD_STRING.getDatatype(df), df.getOWLDatatype(v));
     }
 
     @Test
-    public void shouldSetPrefix() throws OWLOntologyCreationException, OWLOntologyStorageException {
+    public void testShouldFailToParseInvalidString() {
+        Assertions.assertThrows(IllegalArgumentException.class, () -> {
+            // given
+            String s = "xsd:st";
+            // when
+            //noinspection ResultOfMethodCallIgnored
+            XSDVocabulary.parseShortName(s);
+            // then
+            // an exception should have been thrown
+        });
+    }
+
+    @Test
+    public void testShouldSetPrefix() throws OWLOntologyCreationException, OWLOntologyStorageException {
         // what is going on here?
         OWLClass item = df.getOWLClass("http://test.owl/test#", "item");
         OWLDeclarationAxiom declaration = df.getOWLDeclarationAxiom(item);
@@ -82,7 +82,7 @@ public class NamespacesTestCase extends TestBase {
         StringDocumentTarget t2 = new StringDocumentTarget();
         // saving o1 using m1 ? WTF? why then is o2 here??
         m1.saveOntology(o1, pm2, t2);
-        assertTrue(t2.toString().contains("Declaration(Class(:item))"));
-        assertEquals(t1.toString(), t2.toString());
+        Assertions.assertTrue(t2.toString().contains("Declaration(Class(:item))"));
+        Assertions.assertEquals(t1.toString(), t2.toString());
     }
 }
