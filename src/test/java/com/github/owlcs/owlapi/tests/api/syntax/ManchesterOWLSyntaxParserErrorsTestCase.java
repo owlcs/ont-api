@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -15,20 +15,15 @@
 package com.github.owlcs.owlapi.tests.api.syntax;
 
 import com.github.owlcs.owlapi.OWLManager;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.semanticweb.owlapi.expression.OWLEntityChecker;
 import org.semanticweb.owlapi.manchestersyntax.parser.ManchesterOWLSyntaxTokenizer;
 import org.semanticweb.owlapi.manchestersyntax.renderer.ParserException;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.mansyntax.ManchesterOWLSyntaxParser;
-
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 /**
  * Some tests that ensure the correct token and token position are returned when
@@ -36,32 +31,31 @@ import static org.mockito.Mockito.when;
  *
  * @author Matthew Horridge, Stanford University, Bio-Medical Informatics Research Group, Date: 01/04/2014
  */
-@RunWith(MockitoJUnitRunner.class)
 public class ManchesterOWLSyntaxParserErrorsTestCase {
 
-    @Mock
     protected OWLEntityChecker entityChecker;
     private ParserWrapper parser;
 
-    @Before
+    @BeforeEach
     public void setUp() {
+        entityChecker = Mockito.mock(OWLEntityChecker.class);
         OWLDataFactory dataFactory = OWLManager.getOWLDataFactory();
-        OWLClass cls = mock(OWLClass.class);
-        when(cls.getIRI()).thenReturn(mock(IRI.class));
-        when(entityChecker.getOWLClass("C")).thenReturn(cls);
-        OWLClass clsC1 = mock(OWLClass.class);
-        when(clsC1.getIRI()).thenReturn(mock(IRI.class));
-        when(entityChecker.getOWLClass("C1")).thenReturn(clsC1);
-        OWLObjectProperty oP = mock(OWLObjectProperty.class);
-        when(oP.getIRI()).thenReturn(mock(IRI.class));
-        when(oP.asOWLObjectProperty()).thenReturn(oP);
-        when(entityChecker.getOWLObjectProperty("oP")).thenReturn(oP);
-        when(entityChecker.getOWLDataProperty("dP")).thenReturn(mock(OWLDataProperty.class));
-        when(entityChecker.getOWLAnnotationProperty("aP")).thenReturn(mock(OWLAnnotationProperty.class));
-        when(entityChecker.getOWLAnnotationProperty("rdfs:comment")).thenReturn(dataFactory.getRDFSComment());
-        OWLNamedIndividual ind = mock(OWLNamedIndividual.class);
-        when(entityChecker.getOWLIndividual("ind")).thenReturn(ind);
-        when(ind.asOWLNamedIndividual()).thenReturn(ind);
+        OWLClass cls = Mockito.mock(OWLClass.class);
+        Mockito.when(cls.getIRI()).thenReturn(Mockito.mock(IRI.class));
+        Mockito.when(entityChecker.getOWLClass("C")).thenReturn(cls);
+        OWLClass clsC1 = Mockito.mock(OWLClass.class);
+        Mockito.when(clsC1.getIRI()).thenReturn(Mockito.mock(IRI.class));
+        Mockito.when(entityChecker.getOWLClass("C1")).thenReturn(clsC1);
+        OWLObjectProperty oP = Mockito.mock(OWLObjectProperty.class);
+        Mockito.when(oP.getIRI()).thenReturn(Mockito.mock(IRI.class));
+        Mockito.when(oP.asOWLObjectProperty()).thenReturn(oP);
+        Mockito.when(entityChecker.getOWLObjectProperty("oP")).thenReturn(oP);
+        Mockito.when(entityChecker.getOWLDataProperty("dP")).thenReturn(Mockito.mock(OWLDataProperty.class));
+        Mockito.when(entityChecker.getOWLAnnotationProperty("aP")).thenReturn(Mockito.mock(OWLAnnotationProperty.class));
+        Mockito.when(entityChecker.getOWLAnnotationProperty("rdfs:comment")).thenReturn(dataFactory.getRDFSComment());
+        OWLNamedIndividual ind = Mockito.mock(OWLNamedIndividual.class);
+        Mockito.when(entityChecker.getOWLIndividual("ind")).thenReturn(ind);
+        Mockito.when(ind.asOWLNamedIndividual()).thenReturn(ind);
         parser = new ParserWrapper();
     }
 
@@ -483,12 +477,12 @@ public class ManchesterOWLSyntaxParserErrorsTestCase {
     private void checkForExceptionAt(String input, int index, String currentToken) {
         try {
             parser.parse(input);
-            fail();
+            Assertions.fail();
         } catch (ParserException e) {
-            assertEquals(index, e.getStartPos());
-            assertEquals(currentToken, e.getCurrentToken());
-            assertFalse(e.getTokenSequence().isEmpty());
-            assertEquals(currentToken, e.getTokenSequence().get(0));
+            Assertions.assertEquals(index, e.getStartPos());
+            Assertions.assertEquals(currentToken, e.getCurrentToken());
+            Assertions.assertFalse(e.getTokenSequence().isEmpty());
+            Assertions.assertEquals(currentToken, e.getTokenSequence().get(0));
         }
     }
 

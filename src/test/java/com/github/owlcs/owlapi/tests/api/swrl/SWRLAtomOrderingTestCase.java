@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -16,24 +16,18 @@ package com.github.owlcs.owlapi.tests.api.swrl;
 
 import com.github.owlcs.ontapi.owlapi.axioms.SWRLRuleImpl;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.runners.MockitoJUnitRunner;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.SWRLAtom;
 
 import java.util.*;
-
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asList;
+import java.util.stream.Collectors;
 
 /**
  * @author Matthew Horridge, Stanford University, Bio-Medical Informatics Research Group, Date: 04/04/2014
  */
-@RunWith(MockitoJUnitRunner.class)
 public class SWRLAtomOrderingTestCase extends TestBase {
 
     protected SWRLAtom atomA;
@@ -43,7 +37,7 @@ public class SWRLAtomOrderingTestCase extends TestBase {
     private SWRLRuleImpl rule;
     private final Set<SWRLAtom> body = new LinkedHashSet<>();
 
-    @Before
+    @BeforeEach
     public void setUp() {
         OWLClass predicate = df.getOWLClass(iri("a"));
         atomA = df.getSWRLClassAtom(predicate, df.getSWRLIndividualArgument(df.getOWLNamedIndividual(iri("i"))));
@@ -60,8 +54,8 @@ public class SWRLAtomOrderingTestCase extends TestBase {
 
     @Test
     public void shouldPreserveBodyOrdering() {
-        List<SWRLAtom> ruleImplBody = asList(rule.body());
+        List<SWRLAtom> ruleImplBody = rule.body().collect(Collectors.toList());
         List<SWRLAtom> specifiedBody = new ArrayList<>(body);
-        assertThat(ruleImplBody, is(equalTo(specifiedBody)));
+        Assertions.assertEquals(ruleImplBody, specifiedBody);
     }
 }
