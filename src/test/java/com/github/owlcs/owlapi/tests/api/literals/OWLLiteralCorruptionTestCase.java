@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,16 +14,16 @@
 package com.github.owlcs.owlapi.tests.api.literals;
 
 import com.github.owlcs.ontapi.OntFormat;
-import org.junit.Assert;
-import org.junit.Test;
+import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
+import com.github.owlcs.owlapi.OWLManager;
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.formats.FunctionalSyntaxDocumentFormat;
 import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
-import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
-import com.github.owlcs.owlapi.OWLManager;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 import java.util.Optional;
 
@@ -32,7 +32,7 @@ import java.util.Optional;
 public class OWLLiteralCorruptionTestCase extends TestBase {
 
     @Test
-    public void shouldroundTripLiteral() {
+    public void testShouldRoundTripLiteral() {
         String testString;
         StringBuilder sb = new StringBuilder();
         int count = 17;
@@ -43,7 +43,7 @@ public class OWLLiteralCorruptionTestCase extends TestBase {
         }
         testString = sb.toString();
         OWLLiteral literal = OWLFunctionalSyntaxFactory.Literal(testString);
-        Assert.assertEquals("Out = in ? false", literal.getLiteral(), testString);
+        Assertions.assertEquals(literal.getLiteral(), testString, "Out = in ? false");
     }
 
     /**
@@ -67,7 +67,7 @@ public class OWLLiteralCorruptionTestCase extends TestBase {
      * @throws Exception
      */
     @Test
-    public void shouldRoundTripXMLLiteral() throws Exception {
+    public void testShouldRoundTripXMLLiteral() throws Exception {
         String literal = "<div xmlns='http://www.w3.org/1999/xhtml'><h3>[unknown]</h3><p>(describe NameGroup \"[unknown]\")</p></div>";
         OWLOntology o = getOWLOntology();
         OWLDataProperty p = df.getOWLDataProperty(IRI.create("urn:test#", "p"));
@@ -82,9 +82,9 @@ public class OWLLiteralCorruptionTestCase extends TestBase {
 
         if (OWLManager.DEBUG_USE_OWL) {
             LOGGER.warn("'{}' != '{}'", literal, axiom.getObject().getLiteral());
-            Assert.assertTrue("Can't find literal", txt.contains(literal));
+            Assertions.assertTrue(txt.contains(literal), "Can't find literal");
         } else {
-            Assert.assertEquals("Incorrect literal '" + literal + "'", literal, axiom.getObject().getLiteral());
+            Assertions.assertEquals(literal, axiom.getObject().getLiteral(), "Incorrect literal '" + literal + "'");
         }
     }
 
@@ -97,7 +97,7 @@ public class OWLLiteralCorruptionTestCase extends TestBase {
      * @throws Exception
      */
     @Test
-    public void shouldFailOnMalformedXMLLiteral() throws Exception {
+    public void testShouldFailOnMalformedXMLLiteral() throws Exception {
         String literal = "<ncicp:ComplexDefinition>" +
                 "<ncicp:def-definition>" +
                 "A form of cancer that begins in melanocytes (cells that make the pigment melanin). " +
@@ -106,16 +106,22 @@ public class OWLLiteralCorruptionTestCase extends TestBase {
                 "</ncicp:def-definition>" +
                 "<ncicp:def-source>NCI-GLOSS</ncicp:def-source>" +
                 "</ncicp:ComplexDefinition>";
+        if (OWLManager.DEBUG_USE_OWL) {
+            String actual = Assertions.assertThrows(OWLOntologyStorageException.class,
+                    () -> shouldFailOnMalformedXMLLiteral(literal)).getMessage();
+            Assertions.assertTrue(actual.contains(literal));
+            Assertions.assertTrue(actual.contains("XML literal is not self contained"));
+            return;
+        }
+        shouldFailOnMalformedXMLLiteral(literal);
+    }
+
+    private void shouldFailOnMalformedXMLLiteral(String literal) throws Exception {
         OWLOntology o = m.createOntology();
         OWLDataProperty p = df.getOWLDataProperty(IRI.create("urn:test#", "p"));
         OWLLiteral l = df.getOWLLiteral(literal, OWL2Datatype.RDF_XML_LITERAL);
         OWLNamedIndividual i = df.getOWLNamedIndividual(IRI.create("urn:test#", "i"));
         o.add(df.getOWLDataPropertyAssertionAxiom(p, i, l));
-        if (OWLManager.DEBUG_USE_OWL) {
-            expectedException.expect(OWLOntologyStorageException.class);
-            expectedException.expectMessage(literal);
-            expectedException.expectMessage("XML literal is not self contained");
-        }
         // OWL-API stops working on the next line:
         String txt = saveOntology(o, OntFormat.RDF_XML.createOwlFormat()).toString();
         // ONT-API checking:
@@ -123,11 +129,11 @@ public class OWLLiteralCorruptionTestCase extends TestBase {
         OWLOntology res = loadOntologyFromString(txt);
         OWLDataPropertyAssertionAxiom axiom = res.axioms(AxiomType.DATA_PROPERTY_ASSERTION)
                 .findFirst().orElseThrow(() -> new AssertionError("Can't find data-property assertion"));
-        Assert.assertEquals("Incorrect literal", literal, axiom.getObject().getLiteral());
+        Assertions.assertEquals(literal, axiom.getObject().getLiteral(), "Incorrect literal");
     }
 
     @Test
-    public void shouldAcceptXMLLiteralWithDatatype() throws OWLOntologyStorageException {
+    public void testShouldAcceptXMLLiteralWithDatatype() throws OWLOntologyStorageException {
         // A bug in OWLAPI means some incorrect XMLLiterals might have been
         // produced.
         // They should be understood in input and saved correctly on roundtrip
@@ -158,21 +164,21 @@ public class OWLLiteralCorruptionTestCase extends TestBase {
         OWLLiteral l1 = findFirstAnnotationAssertionLiteral(o1);
         OWLLiteral l2 = findFirstAnnotationAssertionLiteral(o2);
         if (OWLManager.DEBUG_USE_OWL) {
-            Assert.assertEquals("OWL-API expects identical literals", l1, l2);
+            Assertions.assertEquals(l1, l2, "OWL-API expects identical literals");
         } else {
             // I don't understand what's going on here, but I trust Jena.
             // The second literal has 'xmlns' in additional.
             // Since we can't easily fix Jena, lets think 'it is by design'
             // TODO: check it!
-            Assert.assertEquals("<test>xxx</test>", l1.getLiteral());
-            Assert.assertEquals("<test xmlns=\"http://www.w3.org/2002/07/owl#\">xxx</test>", l2.getLiteral());
+            Assertions.assertEquals("<test>xxx</test>", l1.getLiteral());
+            Assertions.assertEquals("<test xmlns=\"http://www.w3.org/2002/07/owl#\">xxx</test>", l2.getLiteral());
         }
         String res1 = saveOntology(o1, new RDFXMLDocumentFormat()).toString();
         String res2 = saveOntology(o2, new RDFXMLDocumentFormat()).toString();
         LOGGER.debug(res1);
         LOGGER.debug(res2);
-        Assert.assertTrue(res1.contains(correct));
-        Assert.assertTrue(res2.contains(correct));
+        Assertions.assertTrue(res1.contains(correct));
+        Assertions.assertTrue(res2.contains(correct));
     }
 
     private static OWLLiteral findFirstAnnotationAssertionLiteral(OWLOntology o) {
@@ -184,7 +190,7 @@ public class OWLLiteralCorruptionTestCase extends TestBase {
     }
 
     @Test
-    public void shouldRoundtripPaddedLiterals() throws OWLOntologyCreationException, OWLOntologyStorageException {
+    public void testShouldRoundtripPaddedLiterals() throws OWLOntologyCreationException, OWLOntologyStorageException {
         String in = "Prefix(:=<urn:test#>)\n" + "Prefix(a:=<urn:test#>)\n"
                 + "Prefix(rdfs:=<http://www.w3.org/2000/01/rdf-schema#>)\n"
                 + "Prefix(owl2xml:=<http://www.w3.org/2006/12/owl2-xml#>)\n" + "Prefix(test:=<urn:test#>)\n"
@@ -197,14 +203,14 @@ public class OWLLiteralCorruptionTestCase extends TestBase {
         equal(o, o2);
         OWLDataProperty p = df.getOWLDataProperty(IRI.create("urn:test#", "dp"));
         OWLNamedIndividual i = df.getOWLNamedIndividual(IRI.create("urn:test#", "c"));
-        Assert.assertTrue(o.containsAxiom(df.getOWLDataPropertyAssertionAxiom(p, i, df.getOWLLiteral("01", df.getIntegerOWLDatatype()))));
-        Assert.assertTrue(o.containsAxiom(df.getOWLDataPropertyAssertionAxiom(p, i, df.getOWLLiteral("1", df.getIntegerOWLDatatype()))));
-        Assert.assertTrue(o.containsAxiom(df.getOWLDataPropertyAssertionAxiom(p, i, df.getOWLLiteral("1", OWL2Datatype.XSD_SHORT.getDatatype(df)))));
+        Assertions.assertTrue(o.containsAxiom(df.getOWLDataPropertyAssertionAxiom(p, i, df.getOWLLiteral("01", df.getIntegerOWLDatatype()))));
+        Assertions.assertTrue(o.containsAxiom(df.getOWLDataPropertyAssertionAxiom(p, i, df.getOWLLiteral("1", df.getIntegerOWLDatatype()))));
+        Assertions.assertTrue(o.containsAxiom(df.getOWLDataPropertyAssertionAxiom(p, i, df.getOWLLiteral("1", OWL2Datatype.XSD_SHORT.getDatatype(df)))));
     }
 
     @Test
-    public void shouldNotFindPaddedLiteralsEqualToNonPadded() {
-        Assert.assertNotEquals(df.getOWLLiteral("01", df.getIntegerOWLDatatype()), df.getOWLLiteral("1", df.getIntegerOWLDatatype()));
-        Assert.assertNotEquals(df.getOWLLiteral("1", df.getIntegerOWLDatatype()), df.getOWLLiteral("01", df.getIntegerOWLDatatype()));
+    public void testShouldNotFindPaddedLiteralsEqualToNonPadded() {
+        Assertions.assertNotEquals(df.getOWLLiteral("01", df.getIntegerOWLDatatype()), df.getOWLLiteral("1", df.getIntegerOWLDatatype()));
+        Assertions.assertNotEquals(df.getOWLLiteral("1", df.getIntegerOWLDatatype()), df.getOWLLiteral("01", df.getIntegerOWLDatatype()));
     }
 }

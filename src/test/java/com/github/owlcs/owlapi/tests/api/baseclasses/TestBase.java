@@ -23,12 +23,9 @@ import com.github.owlcs.owlapi.tests.api.anonymous.AnonymousIndividualsNormalise
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
-import org.junit.Rule;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.rules.ExpectedException;
-import org.junit.rules.Timeout;
 import org.semanticweb.owlapi.formats.ManchesterSyntaxDocumentFormat;
 import org.semanticweb.owlapi.formats.PrefixDocumentFormat;
 import org.semanticweb.owlapi.formats.RDFJsonLDDocumentFormat;
@@ -47,7 +44,6 @@ import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
 /**
@@ -57,15 +53,11 @@ public abstract class TestBase {
     protected static final Logger LOGGER = LoggerFactory.getLogger(TestBase.class);
     public static final File RESOURCES = resources().toFile();
 
-    protected static final String URI_BASE = OWLManager.DEBUG_USE_OWL ?
-            "http://www.semanticweb.org/owlapi/test" : "https://github.com/owlcs/ont-api/test";
+    protected static final String URI_BASE = "http://www.semanticweb.org/owlapi/test";
 
     protected static OWLDataFactory df;
     protected static OWLOntologyManager masterManager;
-    @Rule
-    public ExpectedException expectedException = ExpectedException.none();
-    @Rule
-    public Timeout timeout = new Timeout(1_000_000, TimeUnit.MILLISECONDS);
+
     protected OWLOntologyLoaderConfiguration config = new OWLOntologyLoaderConfiguration();
     protected OWLOntologyManager m;
     protected OWLOntologyManager m1;
