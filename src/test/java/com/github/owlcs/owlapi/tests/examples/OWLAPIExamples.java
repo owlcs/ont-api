@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -13,10 +13,12 @@
  */
 package com.github.owlcs.owlapi.tests.examples;
 
+import com.github.owlcs.TempDirectory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.semanticweb.owlapi.formats.ManchesterSyntaxDocumentFormat;
 import org.semanticweb.owlapi.formats.OWLXMLDocumentFormat;
 import org.semanticweb.owlapi.formats.TurtleDocumentFormat;
@@ -24,35 +26,29 @@ import org.semanticweb.owlapi.io.StreamDocumentTarget;
 import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.io.StringDocumentTarget;
 import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.reasoner.*;
 import org.semanticweb.owlapi.reasoner.structural.StructuralReasoner;
 import org.semanticweb.owlapi.reasoner.structural.StructuralReasonerFactory;
+import org.semanticweb.owlapi.search.EntitySearcher;
 import org.semanticweb.owlapi.search.Filters;
+import org.semanticweb.owlapi.search.Searcher;
 import org.semanticweb.owlapi.util.*;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.semanticweb.owlapi.vocab.OWLFacet;
 import uk.ac.manchester.cs.owlapi.modularity.ModuleType;
 import uk.ac.manchester.cs.owlapi.modularity.SyntacticLocalityModuleExtractor;
 
-import javax.annotation.Nonnull;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.*;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.semanticweb.owlapi.model.parameters.Imports.INCLUDED;
-import static org.semanticweb.owlapi.search.EntitySearcher.getAnnotationObjects;
-import static org.semanticweb.owlapi.search.Searcher.sup;
-import static org.semanticweb.owlapi.util.OWLAPIPreconditions.optional;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.*;
-import static org.semanticweb.owlapi.vocab.OWLFacet.MAX_EXCLUSIVE;
-import static org.semanticweb.owlapi.vocab.OWLFacet.MIN_INCLUSIVE;
+import java.util.stream.Collectors;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
  */
 @SuppressWarnings("all")
+@ExtendWith(TempDirectory.class)
 public class OWLAPIExamples extends TestBase {
 
     public static final String KOALA = "<?xml version=\"1.0\"?>\n"
@@ -108,7 +104,7 @@ public class OWLAPIExamples extends TestBase {
         // Load the ontology as if we were loading it from the web (from its
         // ontology IRI)
         OWLOntology redirectedOntology = manager.loadOntology(remoteOntology);
-        assertEquals(redirectedOntology, ontology);
+        Assertions.assertEquals(redirectedOntology, ontology);
         // Note that when imports are loaded an ontology manager will be
         // searched for mappings
     }
@@ -136,7 +132,7 @@ public class OWLAPIExamples extends TestBase {
         OWLOntology ontology = load(manager);
         // Now save a local copy of the ontology. (Specify a path appropriate to
         // your setup)
-        File file = folder.newFile("owlapiexamples_saving.owl");
+        File file = TempDirectory.createFile("owlapiexamples_saving", ".owl").toFile();
         manager.saveOntology(ontology, IRI.create(file.toURI()));
         // By default ontologies are saved in the format from which they were
         // loaded. In this case the ontology was loaded from rdf/xml. We
@@ -151,7 +147,7 @@ public class OWLAPIExamples extends TestBase {
         // supports prefixes. When we save the ontology in the new format we
         // will copy the prefixes over so that we have nicely abbreviated IRIs
         // in the new ontology document
-        Assert.assertNotNull(format);
+        Assertions.assertNotNull(format);
         if (format.isPrefixOWLDocumentFormat()) {
             owlxmlFormat.copyPrefixesFrom(format.asPrefixOWLDocumentFormat());
         }
@@ -254,7 +250,7 @@ public class OWLAPIExamples extends TestBase {
         OWLLiteral eighteen = factory.getOWLLiteral(18);
         // Now create the restriction. The OWLFacet enum provides an enumeration
         // of the various facets that can be used
-        OWLDatatypeRestriction integerGE18 = factory.getOWLDatatypeRestriction(integer, MIN_INCLUSIVE, eighteen);
+        OWLDatatypeRestriction integerGE18 = factory.getOWLDatatypeRestriction(integer, OWLFacet.MIN_INCLUSIVE, eighteen);
         // We could use this datatype in restriction, as the range of data
         // properties etc. For example, if we want to restrict the range of the
         // :hasAge data property to 18 or more we specify its range as this data
@@ -322,7 +318,7 @@ public class OWLAPIExamples extends TestBase {
         OWLLiteral eighteenConstant = factory.getOWLLiteral(18);
         // Now create our custom datarange, which is int greater than or equal
         // to 18. To do this, we need the minInclusive facet
-        OWLFacet facet = MIN_INCLUSIVE;
+        OWLFacet facet = OWLFacet.MIN_INCLUSIVE;
         // Create the restricted data range by applying the facet restriction
         // with a value of 18 to int
         OWLDataRange intGreaterThan18 = factory.getOWLDatatypeRestriction(intDatatype, facet, eighteenConstant);
@@ -383,7 +379,7 @@ public class OWLAPIExamples extends TestBase {
         // }
         // Now save a copy to another location in OWL/XML format (i.e. disregard
         // the format that the ontology was loaded in).
-        IRI destination = IRI.create(folder.newFile("owlapiexample_example1.xml"));
+        IRI destination = IRI.create(TempDirectory.createFile("owlapiexample_example1", ".xml").toFile());
         manager.saveOntology(ontology, new OWLXMLDocumentFormat(), destination);
     }
 
@@ -440,8 +436,8 @@ public class OWLAPIExamples extends TestBase {
         // do anything that's necessary, e.g., print them out
         // System.out.println("Referenced class: " + cls);
         // We should also find that B is an ASSERTED superclass of A
-        Iterable<OWLClassExpression> superClasses = asList(sup(ontology.axioms(Filters.subClassWithSub, clsA, INCLUDED),
-                OWLClassExpression.class));
+        Iterable<OWLClassExpression> superClasses = Searcher.sup(ontology.axioms(Filters.subClassWithSub, clsA, Imports.INCLUDED),
+                OWLClassExpression.class).collect(Collectors.toList());
         // Now save the ontology. The ontology will be saved to the location
         // where we loaded it from, in the default ontology format
         manager.saveOntology(ontology);
@@ -493,7 +489,7 @@ public class OWLAPIExamples extends TestBase {
         IRI versionIRI = IRI.create(ontologyIRI + "/", "version1");
         // Note that we MUST specify an ontology IRI if we want to specify a
         // version IRI
-        OWLOntologyID newOntologyID = new OWLOntologyID(optional(ontologyIRI), optional(versionIRI));
+        OWLOntologyID newOntologyID = new OWLOntologyID(OWLAPIPreconditions.optional(ontologyIRI), OWLAPIPreconditions.optional(versionIRI));
         // Create the change that will set our version IRI
         SetOntologyID setOntologyID = new SetOntologyID(ontology, newOntologyID);
         // Apply the change
@@ -503,7 +499,7 @@ public class OWLAPIExamples extends TestBase {
         // IRI and version IRI
         IRI ontologyIRI2 = IRI.create("http://www.semanticweb.org/ontologies/", "myontology2");
         IRI versionIRI2 = IRI.create("http://www.semanticweb.org/ontologies/myontology2/", "newversion");
-        OWLOntologyID ontologyID2 = new OWLOntologyID(optional(ontologyIRI2), optional(versionIRI2));
+        OWLOntologyID ontologyID2 = new OWLOntologyID(OWLAPIPreconditions.optional(ontologyIRI2), OWLAPIPreconditions.optional(versionIRI2));
         // Now create the ontology
         OWLOntology ontology2 = manager.createOntology(ontologyID2);
         // Finally, if we don't want to give an ontology an IRI, in OWL 2 we
@@ -868,7 +864,7 @@ public class OWLAPIExamples extends TestBase {
         // class B and class C. In this case, we don't particularly care about
         // the equivalences, so we will flatten this set of sets and print the
         // result
-        Set<OWLClass> clses = asSet(subClses.entities());
+        Set<OWLClass> clses = subClses.entities().collect(Collectors.toSet());
         // for (OWLClass cls : clses) {
         // System.out.println(" " + cls);
         // }
@@ -879,7 +875,7 @@ public class OWLAPIExamples extends TestBase {
         // The reasoner returns a NodeSet again. This time the NodeSet contains
         // individuals. Again, we just want the individuals, so get a flattened
         // set.
-        Set<OWLNamedIndividual> individuals = asSet(individualsNodeSet.entities());
+        Set<OWLNamedIndividual> individuals = individualsNodeSet.entities().collect(Collectors.toSet());
         // for (OWLNamedIndividual ind : individuals) {
         // System.out.println(" " + ind);
         // }
@@ -891,7 +887,7 @@ public class OWLAPIExamples extends TestBase {
         // Let's get all properties for all individuals
         ont.individualsInSignature().forEach(i -> ont.objectPropertiesInSignature().forEach(p -> {
             NodeSet<OWLNamedIndividual> individualValues = reasoner.getObjectPropertyValues(i, p);
-            Set<OWLNamedIndividual> values = asUnorderedSet(individualValues.entities());
+            Set<OWLNamedIndividual> values = individualValues.entities().collect(Collectors.toSet());
             // System.out.println("The property values for "+p+" for
             // individual "+i+" are: ");
             // for (OWLNamedIndividual ind : values) {
@@ -939,7 +935,7 @@ public class OWLAPIExamples extends TestBase {
             OWLClass cls = it.next();
             // User a prefix manager to provide a slightly nicer shorter name
             String shortForm = pm.getShortForm(cls);
-            assertNotNull(shortForm);
+            Assertions.assertNotNull(shortForm);
         }
     }
 
@@ -1080,7 +1076,7 @@ public class OWLAPIExamples extends TestBase {
         // rdfs:label
         OWLAnnotationProperty label = df.getRDFSLabel();
         // Get the annotations on the class that use the label property
-        ont.classesInSignature().forEach(c -> getAnnotationObjects(c, ont.importsClosure(), label).map(a -> a.getValue()
+        ont.classesInSignature().forEach(c -> EntitySearcher.getAnnotationObjects(c, ont.importsClosure(), label).map(a -> a.getValue()
                 .asLiteral()).filter(v -> v.isPresent() && v.get().hasLang("en")).forEach(v -> v.get().getLiteral()));
     }
 
@@ -1112,7 +1108,7 @@ public class OWLAPIExamples extends TestBase {
             seedSig.add(ent);
             if (OWLClass.class.isAssignableFrom(ent.getClass())) {
                 NodeSet<OWLClass> subClasses = reasoner.getSubClasses((OWLClass) ent, false);
-                seedSig.addAll(asList(subClasses.entities()));
+                subClasses.entities().forEach(seedSig::add);
             }
         }
         // We now extract a locality-based module. For most reuse purposes, the
@@ -1250,7 +1246,7 @@ public class OWLAPIExamples extends TestBase {
      *
      * @throws Exception exception
      */
-    @Ignore("This test is ignored. We do not want to fetch stuff from the network just to run a unit test for an example")
+    @Disabled("This test is ignored. We do not want to fetch stuff from the network just to run a unit test for an example")
     @Test
     public void shouldUseIRIMappers() throws Exception {
         IRI mgedOntologyIri = IRI.create("http://mged.sourceforge.net/ontologies/", "MGEDOntology.owl");
@@ -1291,7 +1287,7 @@ public class OWLAPIExamples extends TestBase {
         // folder and maps their IRIs to their locations in this folder We
         // specify a directory/folder where the ontologies are located. In this
         // case we've just specified the tmp directory.
-        @Nonnull File file = folder.newFolder();
+        File file = TempDirectory.createFile(null, null).toFile();
         // We can also specify a flag to indicate whether the directory should
         // be searched recursively.
         OWLOntologyIRIMapper autoIRIMapper = new AutoIRIMapper(file, false);
@@ -1607,10 +1603,10 @@ public class OWLAPIExamples extends TestBase {
         // taking the integer datatype and applying facet restrictions to it.
         // Note that we have statically imported the data range facet vocabulary
         // OWLFacet
-        OWLFacetRestriction geq13 = factory.getOWLFacetRestriction(MIN_INCLUSIVE, factory.getOWLLiteral(13));
+        OWLFacetRestriction geq13 = factory.getOWLFacetRestriction(OWLFacet.MIN_INCLUSIVE, factory.getOWLLiteral(13));
         // We don't have to explicitly create the typed constant, there are
         // convenience methods to do this
-        OWLFacetRestriction lt20 = factory.getOWLFacetRestriction(MAX_EXCLUSIVE, 20);
+        OWLFacetRestriction lt20 = factory.getOWLFacetRestriction(OWLFacet.MAX_EXCLUSIVE, 20);
         // Restrict the base type, integer (which is just an XML Schema
         // Datatype) with the facet restrictions.
         OWLDataRange dataRng = factory.getOWLDatatypeRestriction(integerDatatype, geq13, lt20);
@@ -1625,7 +1621,7 @@ public class OWLAPIExamples extends TestBase {
         manager.addAxiom(ont, teenagerDefinition);
         // Do the same for Adult that has an age greater than 21
         OWLDataRange geq21 = factory.getOWLDatatypeRestriction(integerDatatype, factory.getOWLFacetRestriction(
-                MIN_INCLUSIVE, 21));
+                OWLFacet.MIN_INCLUSIVE, 21));
         OWLClass adult = factory.getOWLClass(ontologyIRI + "#", "Adult");
         OWLClassExpression adultAgeRestriction = factory.getOWLDataSomeValuesFrom(hasAge, geq21);
         OWLClassExpression adultPerson = factory.getOWLObjectIntersectionOf(person, adultAgeRestriction);

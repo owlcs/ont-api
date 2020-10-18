@@ -28,7 +28,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.rules.ExpectedException;
-import org.junit.rules.TemporaryFolder;
 import org.junit.rules.Timeout;
 import org.semanticweb.owlapi.formats.ManchesterSyntaxDocumentFormat;
 import org.semanticweb.owlapi.formats.PrefixDocumentFormat;
@@ -45,6 +44,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.URISyntaxException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
@@ -53,14 +54,14 @@ import java.util.stream.Stream;
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
  */
 public abstract class TestBase {
-
     protected static final Logger LOGGER = LoggerFactory.getLogger(TestBase.class);
-    protected static final String URI_BASE = "http://www.semanticweb.org/owlapi/test";
+    public static final File RESOURCES = resources().toFile();
+
+    protected static final String URI_BASE = OWLManager.DEBUG_USE_OWL ?
+            "http://www.semanticweb.org/owlapi/test" : "https://github.com/owlcs/ont-api/test";
+
     protected static OWLDataFactory df;
     protected static OWLOntologyManager masterManager;
-    protected static final File RESOURCES = resources();
-    @Rule
-    public TemporaryFolder folder = new TemporaryFolder();
     @Rule
     public ExpectedException expectedException = ExpectedException.none();
     @Rule
@@ -69,9 +70,9 @@ public abstract class TestBase {
     protected OWLOntologyManager m;
     protected OWLOntologyManager m1;
 
-    private static File resources() {
+    private static Path resources() {
         try {
-            return new File(TestBase.class.getResource("/owlapi/owlapi.properties").toURI()).getParentFile();
+            return Paths.get(TestBase.class.getResource("/owlapi/").toURI());
         } catch (URISyntaxException e) {
             throw new IllegalStateException("NO RESOURCE FOLDER ACCESSIBLE", e);
         }
