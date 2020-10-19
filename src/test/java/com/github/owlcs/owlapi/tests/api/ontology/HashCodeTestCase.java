@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -15,8 +15,8 @@ package com.github.owlcs.owlapi.tests.api.ontology;
 
 import com.github.owlcs.ontapi.owlapi.objects.OWLLiteralImpl;
 import com.github.owlcs.owlapi.OWLManager;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLDatatype;
 import org.semanticweb.owlapi.model.OWLLiteral;
@@ -38,11 +38,11 @@ public class HashCodeTestCase {
         OWLLiteral litNoComp = createLiteral("3", datatype);
         OWLLiteral litNoComp2 = createLiteral("3", datatype);
         OWLLiteral litIntImpl = createLiteral(3);
-        Assert.assertEquals(litNoComp.getLiteral(), litIntImpl.getLiteral());
+        Assertions.assertEquals(litNoComp.getLiteral(), litIntImpl.getLiteral());
         Set<OWLLiteral> lncset = new HashSet<>();
         lncset.add(litNoComp);
-        Assert.assertTrue(lncset.contains(litNoComp2));
-        Assert.assertTrue(lncset.contains(litIntImpl));
+        Assertions.assertTrue(lncset.contains(litNoComp2));
+        Assertions.assertTrue(lncset.contains(litIntImpl));
     }
 
     @Test
@@ -51,11 +51,11 @@ public class HashCodeTestCase {
         OWLLiteral litNoComp = createLiteral("3.0", datatype);
         OWLLiteral litNoComp2 = createLiteral("3.0", datatype);
         OWLLiteral litIntImpl = createLiteral(3.0D);
-        Assert.assertEquals(litNoComp.getLiteral(), litIntImpl.getLiteral());
+        Assertions.assertEquals(litNoComp.getLiteral(), litIntImpl.getLiteral());
         Set<OWLLiteral> lncset = new HashSet<>();
         lncset.add(litNoComp);
-        Assert.assertTrue(lncset.contains(litNoComp2));
-        Assert.assertTrue(lncset.contains(litIntImpl));
+        Assertions.assertTrue(lncset.contains(litNoComp2));
+        Assertions.assertTrue(lncset.contains(litIntImpl));
     }
 
     @Test
@@ -64,11 +64,11 @@ public class HashCodeTestCase {
         OWLLiteral litNoComp = createLiteral("3.0", datatype);
         OWLLiteral litNoComp2 = createLiteral("3.0", datatype);
         OWLLiteral litIntImpl = createLiteral(3.0F);
-        Assert.assertEquals(litNoComp.getLiteral(), litIntImpl.getLiteral());
+        Assertions.assertEquals(litNoComp.getLiteral(), litIntImpl.getLiteral());
         Set<OWLLiteral> lncset = new HashSet<>();
         lncset.add(litNoComp);
-        Assert.assertTrue(lncset.contains(litNoComp2));
-        Assert.assertTrue(lncset.contains(litIntImpl));
+        Assertions.assertTrue(lncset.contains(litNoComp2));
+        Assertions.assertTrue(lncset.contains(litIntImpl));
     }
 
     @Test
@@ -77,11 +77,11 @@ public class HashCodeTestCase {
         OWLLiteral litNoComp = createLiteral("true", datatype);
         OWLLiteral litNoComp2 = createLiteral("true", datatype);
         OWLLiteral litIntImpl = createLiteral(true);
-        Assert.assertEquals(litNoComp.getLiteral(), litIntImpl.getLiteral());
+        Assertions.assertEquals(litNoComp.getLiteral(), litIntImpl.getLiteral());
         Set<OWLLiteral> lncset = new HashSet<>();
         lncset.add(litNoComp);
-        Assert.assertTrue(lncset.contains(litNoComp2));
-        Assert.assertTrue(lncset.contains(litIntImpl));
+        Assertions.assertTrue(lncset.contains(litNoComp2));
+        Assertions.assertTrue(lncset.contains(litIntImpl));
     }
 
     private static OWLDatatype createDT(IRI iri) {

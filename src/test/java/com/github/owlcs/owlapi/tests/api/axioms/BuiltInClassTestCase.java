@@ -14,8 +14,8 @@
 package com.github.owlcs.owlapi.tests.api.axioms;
 
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
@@ -30,35 +30,35 @@ public class BuiltInClassTestCase {
     @Test
     public void testOWLThing() {
         OWLClass thing = OWLFunctionalSyntaxFactory.OWLThing();
-        Assert.assertTrue(thing.isOWLThing());
-        Assert.assertFalse(thing.isOWLNothing());
+        Assertions.assertTrue(thing.isOWLThing());
+        Assertions.assertFalse(thing.isOWLNothing());
     }
 
     @Test
     public void testOWLThingFromURI() {
         OWLClassExpression desc = OWLFunctionalSyntaxFactory.Class(OWLRDFVocabulary.OWL_THING.getIRI());
-        Assert.assertTrue(desc.isOWLThing());
-        Assert.assertFalse(desc.isOWLNothing());
+        Assertions.assertTrue(desc.isOWLThing());
+        Assertions.assertFalse(desc.isOWLNothing());
     }
 
     @Test
     public void testOWLNothing() {
         OWLClass nothing = OWLFunctionalSyntaxFactory.OWLNothing();
-        Assert.assertTrue(nothing.isOWLNothing());
-        Assert.assertFalse(nothing.isOWLThing());
+        Assertions.assertTrue(nothing.isOWLNothing());
+        Assertions.assertFalse(nothing.isOWLThing());
     }
 
     @Test
     public void testOWLNothingFromURI() {
         OWLClassExpression desc = OWLFunctionalSyntaxFactory.Class(OWLRDFVocabulary.OWL_NOTHING.getIRI());
-        Assert.assertTrue(desc.isOWLNothing());
-        Assert.assertFalse(desc.isOWLThing());
+        Assertions.assertTrue(desc.isOWLNothing());
+        Assertions.assertFalse(desc.isOWLThing());
     }
 
     @Test
     public void testAnonymousClass() {
         OWLClassExpression desc = OWLFunctionalSyntaxFactory.ObjectHasSelf(OWLFunctionalSyntaxFactory.createObjectProperty());
-        Assert.assertFalse(desc.isOWLThing());
-        Assert.assertFalse(desc.isOWLNothing());
+        Assertions.assertFalse(desc.isOWLThing());
+        Assertions.assertFalse(desc.isOWLNothing());
     }
 }

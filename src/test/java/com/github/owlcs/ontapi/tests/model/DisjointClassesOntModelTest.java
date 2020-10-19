@@ -26,9 +26,8 @@ import com.github.owlcs.ontapi.utils.OntIRI;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import org.apache.jena.rdf.model.RDFList;
 import org.apache.jena.rdf.model.Resource;
-import org.hamcrest.core.IsEqual;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.*;
 
 import java.util.List;
@@ -90,7 +89,7 @@ public class DisjointClassesOntModelTest extends OntModelTestBase {
         OntClass.ObjectSomeValuesFrom restriction = jena.createObjectSomeValuesFrom(property, ontSimple2);
         ontComplex2.addSuperClass(restriction).addSuperClass(ontComplex1);
         ontComplex2.addComment("comment1", "es");
-        Assert.assertEquals("comment1", ontComplex2.getComment("es"));
+        Assertions.assertEquals("comment1", ontComplex2.getComment("es"));
         ontComplex1.addDisjointClass(ontSimple1);
 
         // bulk disjoint instead adding one by one (to have the same list of axioms):
@@ -102,7 +101,7 @@ public class DisjointClassesOntModelTest extends OntModelTestBase {
         LOGGER.debug("Compare axioms.");
         List<OWLAxiom> actual = result.axioms().sorted().collect(Collectors.toList());
         List<OWLAxiom> expected = original.axioms().sorted().collect(Collectors.toList());
-        Assert.assertThat("Axioms", actual, IsEqual.equalTo(expected));
+        Assertions.assertEquals(expected, actual);
 
         LOGGER.debug("Remove OWL:disjointWith for {} & {} pair.", ontComplex1, ontSimple1);
         jena.removeAll(ontComplex1, OWL.disjointWith, null);
@@ -111,7 +110,7 @@ public class DisjointClassesOntModelTest extends OntModelTestBase {
         expected = original.axioms().sorted().collect(Collectors.toList());
         expected.remove(factory.getOWLDisjointClassesAxiom(owlComplex1, owlSimple1));
         expected.stream().map(String::valueOf).forEach(LOGGER::debug);
-        Assert.assertThat("Axioms", actual, IsEqual.equalTo(expected));
+        Assertions.assertEquals(expected, actual);
 
         LOGGER.debug("Remove owl:AllDisjointClasses using RDFList#removeList");
         Resource anon = jena.listResourcesWithProperty(RDF.type, OWL.AllDisjointClasses).toList().get(0);
@@ -119,14 +118,13 @@ public class DisjointClassesOntModelTest extends OntModelTestBase {
         list.removeList();
         jena.removeAll(anon, null, null);
         debug(result);
-        Assert.assertFalse(result.axioms(AxiomType.DISJOINT_CLASSES).findFirst().isPresent());
+        Assertions.assertFalse(result.axioms(AxiomType.DISJOINT_CLASSES).findFirst().isPresent());
 
         LOGGER.debug("Compare axioms.");
         actual = result.axioms().sorted().collect(Collectors.toList());
         expected = original.axioms()
                 .filter(a -> !AxiomType.DISJOINT_CLASSES.equals(a.getAxiomType()))
                 .sorted().collect(Collectors.toList());
-        Assert.assertThat("Axioms", actual, IsEqual.equalTo(expected));
-
+        Assertions.assertEquals(expected, actual);
     }
 }

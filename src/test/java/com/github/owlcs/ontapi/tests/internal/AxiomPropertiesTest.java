@@ -16,8 +16,8 @@ package com.github.owlcs.ontapi.tests.internal;
 
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.tests.TestFactory;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -156,17 +156,17 @@ public class AxiomPropertiesTest {
     @SafeVarargs
     private static <X extends OWLAxiom> void testAxiom(List<TestFactory.AxiomData> data,
                                                        Function<X, Object>... properties) {
-        Assert.assertFalse(data.isEmpty());
+        Assertions.assertFalse(data.isEmpty());
         for (TestFactory.AxiomData a : data) {
             LOGGER.debug("Test properties for '{}'", a);
             X owl = (X) a.create(ObjectFactoryTestBase.OWL_DATA_FACTORY);
             X ont = (X) a.create(ObjectFactoryTestBase.ONT_DATA_FACTORY);
             X res = (X) CommonAxiomsTest.createONTObject(OntManagers.createManager(), owl);
-            Assert.assertEquals(owl, res);
+            Assertions.assertEquals(owl, res);
             for (Function<X, Object> property : properties) {
                 Object expected = property.apply(owl);
-                Assert.assertEquals(expected, property.apply(ont));
-                Assert.assertEquals(expected, property.apply(res));
+                Assertions.assertEquals(expected, property.apply(ont));
+                Assertions.assertEquals(expected, property.apply(res));
             }
         }
     }
@@ -175,7 +175,7 @@ public class AxiomPropertiesTest {
     @SafeVarargs
     private static <X extends OWLNaryAxiom> void testSplitNaryAxioms(List<TestFactory.AxiomData> data,
                                                                      Function<X, Object>... properties) {
-        Assert.assertFalse(data.isEmpty());
+        Assertions.assertFalse(data.isEmpty());
         for (TestFactory.AxiomData a : data) {
             LOGGER.debug("Test properties for '{}'", a);
             X base = (X) a.create(ObjectFactoryTestBase.OWL_DATA_FACTORY);
@@ -189,8 +189,8 @@ public class AxiomPropertiesTest {
                         .findFirst().orElseThrow(AssertionError::new);
                 for (Function<X, Object> property : properties) {
                     Object expected = property.apply(owl);
-                    Assert.assertEquals(expected, property.apply(ont));
-                    Assert.assertEquals(expected, property.apply(res));
+                    Assertions.assertEquals(expected, property.apply(ont));
+                    Assertions.assertEquals(expected, property.apply(res));
                 }
             }
         }

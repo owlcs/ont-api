@@ -34,9 +34,8 @@ import org.apache.jena.mem.GraphMem;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.util.FileManager;
-import org.hamcrest.core.IsEqual;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.Imports;
 import org.slf4j.Logger;
@@ -81,9 +80,7 @@ public class CommonManagerTest {
         ObjectInputStream inStream = new ObjectInputStream(in);
         OWLOntologyManager copy = (OWLOntologyManager) inStream.readObject();
         if (origin instanceof OntologyManager) {
-            Assert.assertEquals("Incorrect concurrency",
-                    ((OntologyManagerImpl) origin).isConcurrent(),
-                    ((OntologyManagerImpl) copy).isConcurrent());
+            Assertions.assertEquals(((OntologyManagerImpl) origin).isConcurrent(), ((OntologyManagerImpl) copy).isConcurrent());
         }
 
         fixAfterSerialization(origin, copy);
@@ -146,7 +143,7 @@ public class CommonManagerTest {
         origin.getGraphModel("urn:iri.com#3").createOntClass("http://some/new#Class2");
         List<OntClass.Named> classes2 = o2.classes().collect(Collectors.toList());
         // check that in the second (copied) manager there is no changes:
-        Assert.assertEquals("incorrect classes", classes1, classes2);
+        Assertions.assertEquals(classes1, classes2);
 
         // create two new classes inside copied manager.
         Set<OntClass.Named> classes3 = o2.classes().collect(Collectors.toSet());
@@ -155,10 +152,10 @@ public class CommonManagerTest {
         List<OntClass.Named> newClasses = Arrays.asList(cl3, cl4);
         classes3.addAll(newClasses);
         Set<OntClass.Named> classes4 = o2.classes().collect(Collectors.toSet());
-        Assert.assertEquals("incorrect classes", classes3, classes4);
-        newClasses.forEach(c -> Assert.assertFalse("Found " + c + " inside original ontology", o1.containsResource(c)));
+        Assertions.assertEquals(classes3, classes4);
+        newClasses.forEach(c -> Assertions.assertFalse(o1.containsResource(c), "Found " + c + " inside original ontology"));
         Ontology ont = copy.getOntology(IRI.create(uri));
-        Assert.assertNotNull(ont);
+        Assertions.assertNotNull(ont);
         ONTObjectFactory df = AxiomTranslator.getObjectFactory(o2);
         List<OWLClass> newOWLClasses = newClasses.stream()
                 .map(df::getClass)
@@ -166,40 +163,37 @@ public class CommonManagerTest {
                 .map(AsOWLClass::asOWLClass).collect(Collectors.toList());
         LOGGER.debug("OWL-Classes: {}", newOWLClasses);
         //noinspection deprecation
-        newOWLClasses.forEach(c ->
-                Assert.assertTrue("Can't find " + c + " inside copied ontology",
-                        ont.containsReference(c, Imports.INCLUDED))
-        );
+        newOWLClasses.forEach(c -> Assertions.assertTrue(ont.containsReference(c, Imports.INCLUDED),
+                "Can't find " + c + " inside copied ontology"));
     }
 
     public static void compareManagersTest(OWLOntologyManager expected, OWLOntologyManager actual) {
-        Assert.assertEquals("Incorrect number of ontologies.",
-                expected.ontologies().count(), actual.ontologies().count());
+        Assertions.assertEquals(expected.ontologies().count(), actual.ontologies().count());
         actual.ontologies().forEach(test -> {
             OWLOntologyID id = test.getOntologyID();
             LOGGER.debug("Test <{}>", id);
             OWLOntology origin = expected.getOntology(id);
-            Assert.assertNotNull("Can't find init ontology with id " + id, origin);
+            Assertions.assertNotNull(origin, "Can't find init ontology with id " + id);
             AxiomType.AXIOM_TYPES.forEach(t -> {
                 Set<OWLAxiom> expectedAxiom = origin.axioms(t).collect(Collectors.toSet());
                 Set<OWLAxiom> actualAxiom = test.axioms(t).collect(Collectors.toSet());
-                Assert.assertThat(String.format("Incorrect axioms for type <%s> and %s (expected=%d, actual=%d)",
-                        t, id, expectedAxiom.size(), actualAxiom.size()),
-                        actualAxiom, IsEqual.equalTo(expectedAxiom));
+                Assertions.assertEquals(expectedAxiom, actualAxiom,
+                        String.format("Incorrect axioms for type <%s> and %s (expected=%d, actual=%d)",
+                                t, id, expectedAxiom.size(), actualAxiom.size()));
             });
 
             Set<OWLImportsDeclaration> expectedImports = origin.importsDeclarations().collect(Collectors.toSet());
             Set<OWLImportsDeclaration> actualImports = test.importsDeclarations().collect(Collectors.toSet());
-            Assert.assertEquals("Incorrect imports for " + id, expectedImports, actualImports);
+            Assertions.assertEquals(expectedImports, actualImports, "Incorrect imports for " + id);
             OWLDocumentFormat expectedFormat = origin.getFormat();
             OWLDocumentFormat actualFormat = test.getFormat();
-            Assert.assertEquals("Incorrect formats for " + id, expectedFormat, actualFormat);
+            Assertions.assertEquals(expectedFormat, actualFormat, "Incorrect formats for " + id);
             Map<String, String> expectedPrefixes = expectedFormat != null &&
                     expectedFormat.isPrefixOWLDocumentFormat() ?
                     expectedFormat.asPrefixOWLDocumentFormat().getPrefixName2PrefixMap() : null;
             Map<String, String> actualPrefixes = actualFormat != null && actualFormat.isPrefixOWLDocumentFormat() ?
                     actualFormat.asPrefixOWLDocumentFormat().getPrefixName2PrefixMap() : null;
-            Assert.assertEquals("Incorrect prefixes for " + id, expectedPrefixes, actualPrefixes);
+            Assertions.assertEquals(expectedPrefixes, actualPrefixes, "Incorrect prefixes for " + id);
             compareEntitiesTest(origin, test);
         });
     }
@@ -209,7 +203,7 @@ public class CommonManagerTest {
             Set<OWLEntity> actualEntities = actualOnt.signature(i).collect(Collectors.toSet());
             Set<OWLEntity> expectedEntities = expectedOnt.signature(i).collect(Collectors.toSet());
             LOGGER.debug("OWL entities: {}", actualEntities);
-            Assert.assertEquals("Incorrect owl entities", expectedEntities, actualEntities);
+            Assertions.assertEquals(expectedEntities, actualEntities);
         }
         if (actualOnt instanceof Ontology && expectedOnt instanceof Ontology) {  // ont
             OntModel a = ((Ontology) actualOnt).asGraphModel();
@@ -217,7 +211,7 @@ public class CommonManagerTest {
             List<OntEntity> actualEntities = a.ontEntities().collect(Collectors.toList());
             List<OntEntity> expectedEntities = e.ontEntities().collect(Collectors.toList());
             LOGGER.debug("ONT entities: {}", actualEntities);
-            Assert.assertEquals("Incorrect ont entities", expectedEntities, actualEntities);
+            Assertions.assertEquals(expectedEntities, actualEntities);
         }
     }
 
@@ -226,29 +220,28 @@ public class CommonManagerTest {
         final IRI fileIRI = IRI.create(ReadWriteUtils.getResourceURI("ontapi/test1.ttl"));
         final OWLOntologyID id = OntIRI.create("http://dummy").toOwlOntologyID();
 
-        Assert.assertNotSame("The same manager", OntManagers.createManager(), OntManagers.createManager());
-        Assert.assertNotSame("The same concurrent manager",
-                OntManagers.createConcurrentManager(), OntManagers.createConcurrentManager());
+        Assertions.assertNotSame(OntManagers.createManager(), OntManagers.createManager());
+        Assertions.assertNotSame(OntManagers.createConcurrentManager(), OntManagers.createConcurrentManager());
 
         OntologyManagerImpl m1 = (OntologyManagerImpl) OntManagers.createManager();
-        Assert.assertFalse("Concurrent", m1.isConcurrent());
+        Assertions.assertFalse(m1.isConcurrent());
 
         Ontology ont1 = m1.loadOntology(fileIRI);
         Ontology ont2 = m1.createOntology(id);
-        Assert.assertEquals("Incorrect num of ontologies", 2, m1.ontologies().count());
+        Assertions.assertEquals(2, m1.ontologies().count());
         Stream.of(ont1, ont2).forEach(o -> {
-            Assert.assertEquals("Incorrect impl", OntologyModelImpl.class, ont1.getClass());
-            Assert.assertNotEquals("Incorrect impl", OntologyModelImpl.Concurrent.class, ont1.getClass());
+            Assertions.assertEquals(OntologyModelImpl.class, ont1.getClass());
+            Assertions.assertNotEquals(OntologyModelImpl.Concurrent.class, ont1.getClass());
         });
 
         OntologyManagerImpl m2 = (OntologyManagerImpl) OntManagers.createConcurrentManager();
-        Assert.assertTrue("Not Concurrent", m2.isConcurrent());
+        Assertions.assertTrue(m2.isConcurrent());
         Ontology ont3 = m2.loadOntology(fileIRI);
         Ontology ont4 = m2.createOntology(id);
-        Assert.assertEquals("Incorrect num of ontologies", 2, m2.ontologies().count());
+        Assertions.assertEquals(2, m2.ontologies().count());
         Stream.of(ont3, ont4).forEach(o -> {
-            Assert.assertNotEquals("Incorrect impl", OntologyModelImpl.class, ont3.getClass());
-            Assert.assertEquals("Incorrect impl", OntologyModelImpl.Concurrent.class, ont3.getClass());
+            Assertions.assertNotEquals(OntologyModelImpl.class, ont3.getClass());
+            Assertions.assertEquals(OntologyModelImpl.Concurrent.class, ont3.getClass());
         });
     }
 
@@ -260,27 +253,25 @@ public class CommonManagerTest {
         conf1.setPersonality(OntModelConfig.ONT_PERSONALITY_LAX);
         OntLoaderConfiguration conf2 = m2.getOntologyLoaderConfiguration();
         conf2.setPersonality(OntModelConfig.ONT_PERSONALITY_STRICT);
-        Assert.assertEquals("Not the same loader configs", conf1, conf2);
-        Assert.assertEquals("Not the same personalities", conf1.getPersonality(), conf2.getPersonality());
+        Assertions.assertEquals(conf1, conf2);
+        Assertions.assertEquals(conf1.getPersonality(), conf2.getPersonality());
         m1.setOntologyLoaderConfiguration(conf1.setPersonality(OntModelConfig.ONT_PERSONALITY_LAX));
         m2.setOntologyLoaderConfiguration(conf1.setPersonality(OntModelConfig.ONT_PERSONALITY_STRICT));
-        Assert.assertNotEquals("The same personalities", m1.getOntologyLoaderConfiguration().getPersonality(),
+        Assertions.assertNotEquals(m1.getOntologyLoaderConfiguration().getPersonality(),
                 m2.getOntologyLoaderConfiguration().getPersonality());
 
         boolean doTransformation = !conf1.isPerformTransformation();
         m1.getOntologyLoaderConfiguration().setPerformTransformation(doTransformation);
-        Assert.assertNotEquals("The 'perform transformation' flag is changed", doTransformation,
+        Assertions.assertNotEquals(doTransformation,
                 m1.getOntologyLoaderConfiguration().isPerformTransformation());
         m1.setOntologyLoaderConfiguration(conf2.setPerformTransformation(doTransformation));
-        Assert.assertEquals("The same 'perform transformation' flag", doTransformation,
-                m1.getOntologyLoaderConfiguration().isPerformTransformation());
+        Assertions.assertEquals(doTransformation, m1.getOntologyLoaderConfiguration().isPerformTransformation());
 
         GraphTransformers store = new GraphTransformers().addLast(g -> Stream.empty());
         OntLoaderConfiguration conf3 = m1.getOntologyLoaderConfiguration().setGraphTransformers(store);
-        Assert.assertNotEquals("Graph transform action store is changed", store,
-                m1.getOntologyLoaderConfiguration().getGraphTransformers());
+        Assertions.assertNotEquals(store, m1.getOntologyLoaderConfiguration().getGraphTransformers());
         m1.setOntologyLoaderConfiguration(conf3);
-        Assert.assertEquals("Can't set transform action store.", store,
+        Assertions.assertEquals(store,
                 m1.getOntologyLoaderConfiguration().getGraphTransformers());
     }
 
@@ -289,33 +280,31 @@ public class CommonManagerTest {
         OWLOntologyManager m = OntManagers.createConcurrentManager();
         OWLOntology o1 = m.createOntology();
         OWLOntology o2 = m.loadOntology(IRI.create(ReadWriteUtils.getResourceFile("ontapi/test1.ttl")));
-        Assert.assertEquals("Expected 2 ontologies.", 2, m.ontologies().count());
-        Assert.assertTrue("(1)Not concurrent model!", o1 instanceof OntologyModelImpl.Concurrent);
-        Assert.assertTrue("(2)Not concurrent model!", o2 instanceof OntologyModelImpl.Concurrent);
+        Assertions.assertEquals(2, m.ontologies().count());
+        Assertions.assertTrue(o1 instanceof OntologyModelImpl.Concurrent);
+        Assertions.assertTrue(o2 instanceof OntologyModelImpl.Concurrent);
         ReadWriteLock managerLock = ((OntologyManagerImpl) m).getLock();
-        Assert.assertNotNull(managerLock);
-        Assert.assertEquals(managerLock, ((OntologyModelImpl.Concurrent) o1).getLock());
-        Assert.assertEquals(managerLock, ((OntologyModelImpl.Concurrent) o2).getLock());
-        Assert.assertTrue("(1)Not concurrent graph!",
-                ((Ontology) o1).asGraphModel().getBaseGraph() instanceof RWLockedGraph);
-        Assert.assertTrue("(2)Not concurrent graph!",
-                ((Ontology) o2).asGraphModel().getBaseGraph() instanceof RWLockedGraph);
-        Assert.assertEquals(managerLock, ((RWLockedGraph) ((Ontology) o1).asGraphModel().getBaseGraph()).lock());
-        Assert.assertEquals(managerLock, ((RWLockedGraph) ((Ontology) o2).asGraphModel().getBaseGraph()).lock());
+        Assertions.assertNotNull(managerLock);
+        Assertions.assertEquals(managerLock, ((OntologyModelImpl.Concurrent) o1).getLock());
+        Assertions.assertEquals(managerLock, ((OntologyModelImpl.Concurrent) o2).getLock());
+        Assertions.assertTrue(((Ontology) o1).asGraphModel().getBaseGraph() instanceof RWLockedGraph);
+        Assertions.assertTrue(((Ontology) o2).asGraphModel().getBaseGraph() instanceof RWLockedGraph);
+        Assertions.assertEquals(managerLock, ((RWLockedGraph) ((Ontology) o1).asGraphModel().getBaseGraph()).lock());
+        Assertions.assertEquals(managerLock, ((RWLockedGraph) ((Ontology) o2).asGraphModel().getBaseGraph()).lock());
 
         o1.axioms().forEach(a -> LOGGER.debug("{}", a));
         ((Ontology) o1).asGraphModel().createOntClass("urn:c1").createIndividual("urn:i");
         OWLDataFactory df = m.getOWLDataFactory();
         o1.add(df.getOWLAnnotationAssertionAxiom(df.getOWLAnnotationProperty(IRI.create("urn:ap")),
                 IRI.create("urn:c1"), df.getOWLLiteral("test", "e")));
-        Assert.assertEquals(4, o1.getAxiomCount());
+        Assertions.assertEquals(4, o1.getAxiomCount());
         ((Ontology) o1).clearCache();
-        Assert.assertEquals("+ 1 declaration", 5, o1.getAxiomCount());
+        Assertions.assertEquals(5, o1.getAxiomCount());
 
         o2.axioms().forEach(a -> LOGGER.debug("{}", a));
-        Assert.assertEquals(12, o2.getAxiomCount());
+        Assertions.assertEquals(12, o2.getAxiomCount());
         ((Ontology) o2).clearCache();
-        Assert.assertEquals(12, o2.getAxiomCount());
+        Assertions.assertEquals(12, o2.getAxiomCount());
     }
 
     @Test
@@ -348,14 +337,14 @@ public class CommonManagerTest {
         m2.addOntology(jenaModel.getGraph());
         long actual = m2.ontologies().count();
 
-        Assert.assertEquals("Counts of ontologies does not match", expected, actual);
+        Assertions.assertEquals(expected, actual);
 
         LOGGER.debug("Add several additional ontologies");
         m2.addOntology(OntModelFactory.createDefaultGraph());
         OntModel o2 = OntModelFactory.createModel();
         o2.setID("http://example.org/test");
         m2.addOntology(o2.getGraph());
-        Assert.assertEquals("Counts of ontologies does not match", expected + 2, m2.ontologies().count());
+        Assertions.assertEquals(expected + 2, m2.ontologies().count());
     }
 
     @Test
@@ -376,29 +365,29 @@ public class CommonManagerTest {
         a.addImport(b.addImport(c).addImport(d));
 
         m.addOntology(a.getGraph());
-        Assert.assertEquals(4, m.ontologies().peek(tester).count());
+        Assertions.assertEquals(4, m.ontologies().peek(tester).count());
     }
 
     private void assertOntology(OWLOntology ont, boolean isConcurrent) {
         OntModel m = ((Ontology) ont).asGraphModel();
         LOGGER.debug("Test {}", m);
-        Assert.assertNotNull(m);
+        Assertions.assertNotNull(m);
         if (isConcurrent) {
-            Assert.assertTrue(m.getBaseGraph() instanceof RWLockedGraph);
-            Assert.assertTrue(((RWLockedGraph) m.getBaseGraph()).get() instanceof GraphMem);
+            Assertions.assertTrue(m.getBaseGraph() instanceof RWLockedGraph);
+            Assertions.assertTrue(((RWLockedGraph) m.getBaseGraph()).get() instanceof GraphMem);
         } else {
-            Assert.assertTrue(m.getBaseGraph() instanceof GraphMem);
+            Assertions.assertTrue(m.getBaseGraph() instanceof GraphMem);
         }
-        Assert.assertTrue(m.getGraph() instanceof UnionGraph);
-        Assert.assertEquals(m.getID().imports().count(), m.imports().count());
+        Assertions.assertTrue(m.getGraph() instanceof UnionGraph);
+        Assertions.assertEquals(m.getID().imports().count(), m.imports().count());
         UnionGraph u = (UnionGraph) m.getGraph();
         u.getUnderlying().listGraphs().forEachRemaining(g -> {
             if (g instanceof UnionGraph) {
-                Assert.assertTrue(((UnionGraph) g).getBaseGraph() instanceof GraphMem);
+                Assertions.assertTrue(((UnionGraph) g).getBaseGraph() instanceof GraphMem);
             } else {
-                Assert.assertTrue(g instanceof GraphMem);
+                Assertions.assertTrue(g instanceof GraphMem);
             }
         });
-        u.listBaseGraphs().forEachRemaining(g -> Assert.assertFalse(g instanceof UnionGraph));
+        u.listBaseGraphs().forEachRemaining(g -> Assertions.assertFalse(g instanceof UnionGraph));
     }
 }

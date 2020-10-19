@@ -23,8 +23,8 @@ import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLDeclarationAxiom;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
@@ -42,16 +42,16 @@ public class ONTObjectContentTest {
         g.createOntClass("X").addSubClassOfStatement(g.createOntClass("Y")).annotate(g.getRDFSComment(), "XY");
         ReadWriteUtils.print(g);
 
-        Assert.assertEquals(3, o.getAxiomCount());
+        Assertions.assertEquals(3, o.getAxiomCount());
         OWLSubClassOfAxiom owl = o.axioms(AxiomType.SUBCLASS_OF).findFirst().orElseThrow(AssertionError::new);
-        Assert.assertTrue(owl.isAnnotated());
+        Assertions.assertTrue(owl.isAnnotated());
 
         ONTObject<OWLSubClassOfAxiom> ont = (ONTObject<OWLSubClassOfAxiom>) owl;
         Model res = ModelFactory.createModelForGraph(ont.toGraph()).setNsPrefixes(OntModelFactory.STANDARD);
-        Assert.assertEquals(8, res.size());
+        Assertions.assertEquals(8, res.size());
 
         o.remove(ont.getOWLObject());
-        Assert.assertEquals(3, g.size());
+        Assertions.assertEquals(3, g.size());
     }
 
     @SuppressWarnings("unchecked")
@@ -64,15 +64,15 @@ public class ONTObjectContentTest {
         g.createOntClass("X").addComment("X");
         ReadWriteUtils.print(g);
 
-        Assert.assertEquals(1, o.getAxiomCount());
+        Assertions.assertEquals(1, o.getAxiomCount());
         OWLDeclarationAxiom owl = o.axioms(AxiomType.DECLARATION).findFirst().orElseThrow(AssertionError::new);
-        Assert.assertTrue(owl.isAnnotated());
+        Assertions.assertTrue(owl.isAnnotated());
 
         ONTObject<OWLDeclarationAxiom> ont = (ONTObject<OWLDeclarationAxiom>) owl;
         Model res = ModelFactory.createModelForGraph(ont.toGraph()).setNsPrefixes(OntModelFactory.STANDARD);
-        Assert.assertEquals(2, res.size());
+        Assertions.assertEquals(2, res.size());
 
         o.remove(ont.getOWLObject());
-        Assert.assertEquals(1, g.size());
+        Assertions.assertEquals(1, g.size());
     }
 }

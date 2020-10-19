@@ -15,8 +15,8 @@ package com.github.owlcs.owlapi.tests.api.syntax;
 
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
@@ -42,9 +42,9 @@ public class FunctionalSyntaxCommentTestCase extends TestBase {
         OWLAxiom ax2 = OWLFunctionalSyntaxFactory.SubClassOf(OWLFunctionalSyntaxFactory.Class(IRI.create("urn:test.owl#", "ContactInformation")), OWLFunctionalSyntaxFactory.DataMaxCardinality(1, OWLFunctionalSyntaxFactory.DataProperty(
                 IRI.create("urn:test.owl#", "city")), OWLFunctionalSyntaxFactory.Datatype(OWL2Datatype.XSD_STRING.getIRI())));
         OWLAxiom ax3 = OWLFunctionalSyntaxFactory.Declaration(OWLFunctionalSyntaxFactory.Class(IRI.create("urn:test.owl#", "ContactInformation")));
-        Assert.assertTrue(o.containsAxiom(ax1));
-        Assert.assertTrue(o.containsAxiom(ax2));
-        Assert.assertTrue(o.containsAxiom(ax3));
+        Assertions.assertTrue(o.containsAxiom(ax1));
+        Assertions.assertTrue(o.containsAxiom(ax2));
+        Assertions.assertTrue(o.containsAxiom(ax3));
     }
 
     @Test
@@ -62,7 +62,7 @@ public class FunctionalSyntaxCommentTestCase extends TestBase {
         OWLOntology o = loadOntologyFromString(new StringDocumentSource(in));
         OWLClass a = df.getOWLClass(IRI.create("urn:test#", "A"));
         OWLDataProperty p = df.getOWLDataProperty(IRI.create("urn:test#", "dp"));
-        Assert.assertTrue(o.containsAxiom(df.getOWLSubClassOfAxiom(a, df.getOWLDataMinCardinality(257, p,
+        Assertions.assertTrue(o.containsAxiom(df.getOWLSubClassOfAxiom(a, df.getOWLDataMinCardinality(257, p,
                 OWL2Datatype.RDFS_LITERAL.getDatatype(df)))));
     }
 
@@ -70,14 +70,14 @@ public class FunctionalSyntaxCommentTestCase extends TestBase {
     public void testConvertGetLoadedOntology() throws Exception {
         String input = "Prefix(:=<http://www.example.org/#>)\nOntology(<http://example.org/>\nSubClassOf(:a :b) )";
         OWLOntology origOnt = loadOntologyFromString(input);
-        Assert.assertNotNull(origOnt);
+        Assertions.assertNotNull(origOnt);
         OWLOntologyManager manager = origOnt.getOWLOntologyManager();
-        Assert.assertEquals(1, manager.ontologies().count());
-        Assert.assertFalse(origOnt.getOntologyID().getVersionIRI().isPresent());
-        Assert.assertTrue(origOnt.getAxiomCount() > 0);
+        Assertions.assertEquals(1, manager.ontologies().count());
+        Assertions.assertFalse(origOnt.getOntologyID().getVersionIRI().isPresent());
+        Assertions.assertTrue(origOnt.getAxiomCount() > 0);
         Optional<IRI> ontologyIRI = origOnt.getOntologyID().getOntologyIRI();
-        Assert.assertTrue(ontologyIRI.isPresent());
+        Assertions.assertTrue(ontologyIRI.isPresent());
         OWLOntology newOnt = manager.getOntology(ontologyIRI.orElseThrow(AssertionError::new));
-        Assert.assertNotNull(newOnt);
+        Assertions.assertNotNull(newOnt);
     }
 }

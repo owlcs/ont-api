@@ -20,8 +20,8 @@ import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.XSD;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import org.apache.jena.vocabulary.RDFS;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.search.EntitySearcher;
@@ -54,8 +54,8 @@ public class MiscOntModelTest extends OntModelTestBase {
 
         OntStatement s = ont.asGraphModel().statements(null, OWL.equivalentClass, null)
                 .findFirst().orElseThrow(AssertionError::new);
-        Assert.assertTrue(s.getSubject().isURIResource());
-        Assert.assertTrue(s.getObject().isAnon());
+        Assertions.assertTrue(s.getSubject().isURIResource());
+        Assertions.assertTrue(s.getObject().isAnon());
     }
 
     /**
@@ -71,18 +71,18 @@ public class MiscOntModelTest extends OntModelTestBase {
         OWLAnnotationProperty a = df.getOWLAnnotationProperty(IRI.create("http://the-a-p"));
 
         // init objects cache here:
-        Assert.assertFalse(ont.containsEntityInSignature(a));
+        Assertions.assertFalse(ont.containsEntityInSignature(a));
 
         OWLObjectProperty o = df.getOWLObjectProperty(IRI.create("http://the-o-p"));
         ont.addAxiom(df.getOWLDeclarationAxiom(a));
         ont.addAxiom(df.getOWLSubObjectPropertyOfAxiom(o, df.getOWLTopObjectProperty()));
         ReadWriteUtils.print(ont);
         Set<?> props = EntitySearcher.getSuperProperties(o, ont).collect(Collectors.toSet());
-        Assert.assertEquals(1, props.size());
+        Assertions.assertEquals(1, props.size());
         //noinspection deprecation
-        Assert.assertTrue(ont.containsReference(a));
-        Assert.assertTrue(ont.containsEntityInSignature(a));
-        Assert.assertTrue(ont.containsEntityInSignature(o));
+        Assertions.assertTrue(ont.containsReference(a));
+        Assertions.assertTrue(ont.containsEntityInSignature(a));
+        Assertions.assertTrue(ont.containsEntityInSignature(o));
     }
 
     @Test
@@ -94,10 +94,10 @@ public class MiscOntModelTest extends OntModelTestBase {
         o.add(a);
         OWLEntity e1 = o.signature().filter(AsOWLAnnotationProperty::isOWLAnnotationProperty)
                 .findFirst().orElseThrow(AssertionError::new);
-        Assert.assertFalse(e1.isBuiltIn());
+        Assertions.assertFalse(e1.isBuiltIn());
 
         o.remove(a);
-        Assert.assertFalse(e1.isBuiltIn());
+        Assertions.assertFalse(e1.isBuiltIn());
     }
 
     @Test
@@ -111,11 +111,11 @@ public class MiscOntModelTest extends OntModelTestBase {
                         df.getOWLAnonymousIndividual("_:b1"))));
         Ontology o = m.createOntology();
         o.add(a);
-        Assert.assertTrue(o.containsAxiom(a));
+        Assertions.assertTrue(o.containsAxiom(a));
         o.axioms().filter(a::equals).findFirst().orElseThrow(AssertionError::new);
 
         o.clearCache();
-        Assert.assertTrue(o.containsAxiom(a));
+        Assertions.assertTrue(o.containsAxiom(a));
         o.axioms().filter(a::equals).findFirst().orElseThrow(AssertionError::new);
     }
 
@@ -133,13 +133,13 @@ public class MiscOntModelTest extends OntModelTestBase {
                     .addProperty(OWL.annotatedTarget, s.getObject());
         }
         ReadWriteUtils.print(g);
-        Assert.assertEquals(3, o.getAxiomCount());
+        Assertions.assertEquals(3, o.getAxiomCount());
 
         OWLSubClassOfAxiom owl = o.axioms(AxiomType.SUBCLASS_OF)
                 .findFirst().orElseThrow(AssertionError::new);
         o.remove(owl);
         ReadWriteUtils.print(g);
-        Assert.assertEquals(3, g.size());
+        Assertions.assertEquals(3, g.size());
     }
 
     @Test
@@ -151,13 +151,13 @@ public class MiscOntModelTest extends OntModelTestBase {
         o.add(df.getOWLDeclarationAxiom(df.getOWLObjectProperty("P")));
         try {
             o.add(df.getOWLDeclarationAxiom(df.getOWLDataProperty("P")));
-            Assert.fail("Possible to add punning");
+            Assertions.fail("Possible to add punning");
         } catch (OntApiException e) {
             LOGGER.debug("Expected: '{}'", e.getMessage());
         }
         ReadWriteUtils.print(o);
-        Assert.assertEquals(2, o.asGraphModel().size());
-        Assert.assertEquals(1, o.axioms().count());
+        Assertions.assertEquals(2, o.asGraphModel().size());
+        Assertions.assertEquals(1, o.axioms().count());
     }
 
     @Test
@@ -174,12 +174,12 @@ public class MiscOntModelTest extends OntModelTestBase {
         m.createOntClass("y").addEquivalentClass(ce2);
         ReadWriteUtils.print(m);
 
-        Assert.assertEquals(5, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
+        Assertions.assertEquals(5, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
 
         DataFactory df = man.getOWLDataFactory();
-        Assert.assertTrue(o.containsAxiom(df.getOWLSubClassOfAxiom(df.getOWLClass("x"),
+        Assertions.assertTrue(o.containsAxiom(df.getOWLSubClassOfAxiom(df.getOWLClass("x"),
                 df.getOWLDataAllValuesFrom(df.getOWLDataProperty("p"), df.getStringOWLDatatype()))));
-        Assert.assertTrue(o.containsAxiom(df.getOWLEquivalentClassesAxiom(df.getOWLClass("y"),
+        Assertions.assertTrue(o.containsAxiom(df.getOWLEquivalentClassesAxiom(df.getOWLClass("y"),
                 df.getOWLDataSomeValuesFrom(df.getOWLDataProperty("p"), df.getStringOWLDatatype()))));
     }
 
@@ -195,7 +195,7 @@ public class MiscOntModelTest extends OntModelTestBase {
             LOGGER.debug("Iter: #{}", (i + 1));
             OntologyManager m = OntManagers.createManager();
             Ontology o = m.loadOntologyFromOntologyDocument(source);
-            Assert.assertEquals(2, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
+            Assertions.assertEquals(2, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
         }
     }
 
@@ -207,13 +207,13 @@ public class MiscOntModelTest extends OntModelTestBase {
             LOGGER.debug("Iter: #{}", (i + 1));
             OWLOntologyManager m = OntManagers.createConcurrentManager();
             OWLOntology o = m.loadOntologyFromOntologyDocument(source);
-            Assert.assertEquals(58, o.classesInSignature().peek(x -> LOGGER.debug("CL:{}", x)).count());
-            Assert.assertEquals(2, o.datatypesInSignature().peek(x -> LOGGER.debug("DT:{}", x)).count());
-            Assert.assertEquals(508, o.individualsInSignature().peek(x -> LOGGER.debug("NI:{}", x)).count());
-            Assert.assertEquals(80, o.objectPropertiesInSignature().peek(x -> LOGGER.debug("OP:{}", x)).count());
-            Assert.assertEquals(2, o.datatypesInSignature().peek(x -> LOGGER.debug("DP:{}", x)).count());
-            Assert.assertEquals(1, o.annotationPropertiesInSignature().peek(x -> LOGGER.debug("AP:{}", x)).count());
-            Assert.assertEquals(2845, o.axioms().peek(x -> LOGGER.debug("AXIOM:{}", x)).count());
+            Assertions.assertEquals(58, o.classesInSignature().peek(x -> LOGGER.debug("CL:{}", x)).count());
+            Assertions.assertEquals(2, o.datatypesInSignature().peek(x -> LOGGER.debug("DT:{}", x)).count());
+            Assertions.assertEquals(508, o.individualsInSignature().peek(x -> LOGGER.debug("NI:{}", x)).count());
+            Assertions.assertEquals(80, o.objectPropertiesInSignature().peek(x -> LOGGER.debug("OP:{}", x)).count());
+            Assertions.assertEquals(2, o.datatypesInSignature().peek(x -> LOGGER.debug("DP:{}", x)).count());
+            Assertions.assertEquals(1, o.annotationPropertiesInSignature().peek(x -> LOGGER.debug("AP:{}", x)).count());
+            Assertions.assertEquals(2845, o.axioms().peek(x -> LOGGER.debug("AXIOM:{}", x)).count());
         }
     }
 
@@ -230,14 +230,14 @@ public class MiscOntModelTest extends OntModelTestBase {
         o.add(a2);
         o.add(a3);
         ReadWriteUtils.print(o);
-        Assert.assertEquals(3, o.axioms().peek(x -> LOGGER.debug("1) Axiom: {}", x)).count());
+        Assertions.assertEquals(3, o.axioms().peek(x -> LOGGER.debug("1) Axiom: {}", x)).count());
 
         o.remove(a1);
         ReadWriteUtils.print(o);
-        Assert.assertEquals(2, o.axioms().peek(x -> LOGGER.debug("2) Axiom: {}", x)).count());
+        Assertions.assertEquals(2, o.axioms().peek(x -> LOGGER.debug("2) Axiom: {}", x)).count());
 
         o.clearCache();
-        Assert.assertEquals(5, o.axioms().peek(x -> LOGGER.debug("3) Axiom: {}", x)).count());
+        Assertions.assertEquals(5, o.axioms().peek(x -> LOGGER.debug("3) Axiom: {}", x)).count());
     }
 
     @Test
@@ -259,8 +259,8 @@ public class MiscOntModelTest extends OntModelTestBase {
 
         OWLOntology o = m.loadOntologyFromOntologyDocument(ReadWriteUtils.getStringDocumentSource(s, OntFormat.TURTLE));
         debug(o);
-        Assert.assertEquals(2, o.axioms(AxiomType.DISJOINT_UNION).count());
-        Assert.assertEquals(7, o.axioms().count());
+        Assertions.assertEquals(2, o.axioms(AxiomType.DISJOINT_UNION).count());
+        Assertions.assertEquals(7, o.axioms().count());
     }
 
     @Test
@@ -282,8 +282,8 @@ public class MiscOntModelTest extends OntModelTestBase {
                 "<p2>    a       owl:ObjectProperty .";
         OWLOntology o = m.loadOntologyFromOntologyDocument(ReadWriteUtils.getStringDocumentSource(s, OntFormat.TURTLE));
         debug(o);
-        Assert.assertEquals(2, o.axioms(AxiomType.HAS_KEY).count());
-        Assert.assertEquals(8, o.axioms().count());
+        Assertions.assertEquals(2, o.axioms(AxiomType.HAS_KEY).count());
+        Assertions.assertEquals(8, o.axioms().count());
     }
 
     @Test
@@ -304,11 +304,11 @@ public class MiscOntModelTest extends OntModelTestBase {
         o.add(df.getOWLInverseObjectPropertiesAxiom(p2, p1));
         debug(o);
 
-        Assert.assertEquals(3, o.axioms()
+        Assertions.assertEquals(3, o.axioms()
                 .filter(a -> OwlObjects.objects(OWLObjectInverseOf.class, a).findAny().isPresent())
                 .peek(x -> LOGGER.debug("AxiomWithInverseOf: {}", x)).count());
 
-        Assert.assertEquals(2, ((Ontology) o).asGraphModel().statements(null, OWL.inverseOf, null).count());
+        Assertions.assertEquals(2, ((Ontology) o).asGraphModel().statements(null, OWL.inverseOf, null).count());
     }
 
     @Test
@@ -330,8 +330,8 @@ public class MiscOntModelTest extends OntModelTestBase {
         OntIndividual ni2 = m.getOWLNothing().individuals().findFirst().orElseThrow(AssertionError::new);
         LOGGER.debug("Get: {}, {}", ti2, ni2);
 
-        Assert.assertEquals("_:" + ti1.getId().getLabelString(), ti2.toStringID());
-        Assert.assertEquals(ni1.toStringID(), "_:" + ni2.getId().getLabelString());
+        Assertions.assertEquals("_:" + ti1.getId().getLabelString(), ti2.toStringID());
+        Assertions.assertEquals(ni1.toStringID(), "_:" + ni2.getId().getLabelString());
     }
 
     @Test
@@ -346,14 +346,14 @@ public class MiscOntModelTest extends OntModelTestBase {
                 .addEquivalentClass(m.createObjectAllValuesFrom(m.createObjectProperty("p"), ce));
 
         ReadWriteUtils.print(m);
-        Assert.assertEquals(9, o.axioms().peek(x -> LOGGER.debug("1:{}", x)).count());
-        Assert.assertEquals(19, m.size());
+        Assertions.assertEquals(9, o.axioms().peek(x -> LOGGER.debug("1:{}", x)).count());
+        Assertions.assertEquals(19, m.size());
 
         OntStatement s = m.statements(null, OWL.unionOf, null).findFirst().orElseThrow(AssertionError::new);
         m.remove(s);
 
         ReadWriteUtils.print(m);
-        Assert.assertEquals(6, o.axioms().peek(x -> LOGGER.debug("2:{}", x)).count());
-        Assert.assertEquals(18, m.size());
+        Assertions.assertEquals(6, o.axioms().peek(x -> LOGGER.debug("2:{}", x)).count());
+        Assertions.assertEquals(18, m.size());
     }
 }

@@ -14,7 +14,7 @@
 package com.github.owlcs.owlapi.tests.api.ontology;
 
 import com.github.owlcs.owlapi.tests.api.baseclasses.AbstractRoundTrippingTestCase;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.formats.PrefixDocumentFormat;
 import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -30,7 +30,7 @@ public class PrefixOntologyFormatTestCase extends AbstractRoundTrippingTestCase 
     protected OWLOntology createOntology() {
         OWLOntology ont = getAnonymousOWLOntology();
         PrefixDocumentFormat format = (PrefixDocumentFormat) ont.getFormat();
-        Assert.assertNotNull(format);
+        Assertions.assertNotNull(format);
         format.setDefaultPrefix("http://default.com");
         format.setPrefix("a", "http://ontology.com/a#");
         format.setPrefix("b", "http://ontology.com/b#");
@@ -49,8 +49,8 @@ public class PrefixOntologyFormatTestCase extends AbstractRoundTrippingTestCase 
         prefixFormat.getPrefixName2PrefixMap();
         PrefixDocumentFormat prefixFormat2 = (PrefixDocumentFormat) ont2Format;
         prefixFormat.prefixNames().forEach(prefixName -> {
-            Assert.assertTrue("Can't find prefix '" + prefixName + "'", prefixFormat2.containsPrefixMapping(prefixName));
-            Assert.assertEquals(prefixFormat.getPrefix(prefixName),
+            Assertions.assertTrue(prefixFormat2.containsPrefixMapping(prefixName), "Can't find prefix '" + prefixName + "'");
+            Assertions.assertEquals(prefixFormat.getPrefix(prefixName),
                     prefixFormat2.getPrefix(prefixName));
         });
         return ont2;

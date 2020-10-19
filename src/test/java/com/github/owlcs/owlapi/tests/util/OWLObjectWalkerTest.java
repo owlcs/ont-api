@@ -15,9 +15,9 @@
 package com.github.owlcs.owlapi.tests.util;
 
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.AnnotationWalkingControl;
 import org.semanticweb.owlapi.util.OWLObjectWalker;
@@ -72,7 +72,7 @@ public class OWLObjectWalkerTest extends TestBase {
             walker = new OWLObjectWalker<>(ontologySet, true, walkFlag);
         }
         walker.walkStructure(visitor);
-        Assert.assertEquals(expected, visitedAnnotations);
+        Assertions.assertEquals(expected, visitedAnnotations);
     }
 
     private OWLOntology getOwlOntology() {

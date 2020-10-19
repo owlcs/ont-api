@@ -15,8 +15,8 @@ package com.github.owlcs.owlapi.tests.api.syntax;
 
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.formats.FunctionalSyntaxDocumentFormat;
 import org.semanticweb.owlapi.formats.ManchesterSyntaxDocumentFormat;
 import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
@@ -48,12 +48,12 @@ public class FunctionalSyntaxIRIProblemTestCase extends TestBase {
         ManchesterSyntaxDocumentFormat manchesterFormat = new ManchesterSyntaxDocumentFormat();
         manchesterFormat.asPrefixOWLDocumentFormat().setPrefix("example", "http://example.org/");
         OWLOntology loadOntology3 = roundTrip(ontology, manchesterFormat);
-        Assert.assertEquals(ontology, loadOntology);
-        Assert.assertEquals(ontology, loadOntology2);
-        Assert.assertEquals(ontology, loadOntology3);
-        Assert.assertTrue(ontology.equalAxioms(loadOntology));
-        Assert.assertTrue(ontology.equalAxioms(loadOntology2));
-        Assert.assertTrue(ontology.equalAxioms(loadOntology3));
+        Assertions.assertEquals(ontology, loadOntology);
+        Assertions.assertEquals(ontology, loadOntology2);
+        Assertions.assertEquals(ontology, loadOntology3);
+        Assertions.assertTrue(ontology.equalAxioms(loadOntology));
+        Assertions.assertTrue(ontology.equalAxioms(loadOntology2));
+        Assertions.assertTrue(ontology.equalAxioms(loadOntology3));
     }
 
     @Test
@@ -70,7 +70,7 @@ public class FunctionalSyntaxIRIProblemTestCase extends TestBase {
         m.setOntologyFormat(ontology, ontoFormat);
         StringDocumentTarget documentTarget = new StringDocumentTarget();
         m.saveOntology(ontology, documentTarget);
-        Assert.assertTrue(documentTarget.toString().contains("example:pizza"));
+        Assertions.assertTrue(documentTarget.toString().contains("example:pizza"));
     }
 
     @Test
@@ -92,7 +92,7 @@ public class FunctionalSyntaxIRIProblemTestCase extends TestBase {
         PrefixManager pm = new DefaultPrefixManager();
         pm.setPrefix("pizza", prefix);
         OWLClass pizza = df.getOWLClass("pizza:PizzaBase", pm);
-        Assert.assertEquals(prefix + "PizzaBase", pizza.getIRI().toString());
+        Assertions.assertEquals(prefix + "PizzaBase", pizza.getIRI().toString());
         OWLDeclarationAxiom declarationAxiom = df.getOWLDeclarationAxiom(pizza);
         m.addAxiom(ontology, declarationAxiom);
         FunctionalSyntaxDocumentFormat ontoFormat = new FunctionalSyntaxDocumentFormat();
@@ -100,7 +100,7 @@ public class FunctionalSyntaxIRIProblemTestCase extends TestBase {
         m.setOntologyFormat(ontology, ontoFormat);
         OWLOntologyDocumentTarget stream = new StringDocumentTarget();
         m.saveOntology(ontology, stream);
-        Assert.assertTrue(stream.toString().contains("pizza:PizzaBase"));
+        Assertions.assertTrue(stream.toString().contains("pizza:PizzaBase"));
     }
 
     @Test

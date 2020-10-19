@@ -13,8 +13,8 @@
  */
 package com.github.owlcs.owlapi.tests.api.dataproperties;
 
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.mockito.Mockito;
 import org.semanticweb.owlapi.change.AddAxiomData;
 import org.semanticweb.owlapi.model.AddAxiom;
@@ -33,21 +33,21 @@ public class AddAxiomDataTestCase {
     public void testEquals() {
         AddAxiomData data1 = new AddAxiomData(mockAxiom);
         AddAxiomData data2 = new AddAxiomData(mockAxiom);
-        Assert.assertEquals(data1, data2);
+        Assertions.assertEquals(data1, data2);
     }
 
     @Test
     public void testOntologyChange() {
         AddAxiomData data = new AddAxiomData(mockAxiom);
         AddAxiom change = data.createOntologyChange(mockOntology);
-        Assert.assertEquals(change.getOntology(), mockOntology);
-        Assert.assertEquals(change.getAxiom(), mockAxiom);
+        Assertions.assertEquals(change.getOntology(), mockOntology);
+        Assertions.assertEquals(change.getAxiom(), mockAxiom);
     }
 
     @Test
     public void testRoundTripChange() {
         AddAxiomData data = new AddAxiomData(mockAxiom);
         AddAxiom change = new AddAxiom(mockOntology, mockAxiom);
-        Assert.assertEquals(data, change.getChangeData());
+        Assertions.assertEquals(data, change.getChangeData());
     }
 }

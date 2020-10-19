@@ -15,8 +15,8 @@
 package com.github.owlcs.owlapi.tests.rio;
 
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.OWLStorerFactory;
 import org.semanticweb.owlapi.util.PriorityCollection;
 
@@ -30,6 +30,6 @@ public class OWLOntologyStorerFactoryRegistryTestCase {
     @Test
     public void setUp() {
         PriorityCollection<OWLStorerFactory> ontologyStorers = TestBase.createOWLManager().getOntologyStorers();
-        Assert.assertEquals(EXPECTED_STORERS, ontologyStorers.size());
+        Assertions.assertEquals(EXPECTED_STORERS, ontologyStorers.size());
     }
 }

@@ -15,8 +15,8 @@
 package com.github.owlcs.owlapi.tests.api.syntax.rdf;
 
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.model.*;
@@ -34,31 +34,43 @@ public class UndeclaredAnnotationTestCase extends TestBase {
     @Test
     public void testRDFXMLUsingUndeclaredAnnotationProperty() throws OWLOntologyCreationException {
         String input = "<?xml version=\"1.0\"?>\n"
-                + "<!DOCTYPE rdf:RDF [\n <!ENTITY ns \"http://example.com/ns#\" >\n <!ENTITY owl \"http://www.w3.org/2002/07/owl#\" >\n <!ENTITY xsd \"http://www.w3.org/2001/XMLSchema#\" >\n <!ENTITY xml \"http://www.w3.org/XML/1998/namespace\" >\n <!ENTITY rdfs \"http://www.w3.org/2000/01/rdf-schema#\" >\n <!ENTITY rdf \"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" >\n ]>\n"
-                + "<rdf:RDF xmlns=\"http://www.org/\" xml:base=\"http://www.org/\" xmlns:rdfs=\"http://www.w3.org/2000/01/rdf-schema#\" xmlns:ns=\"http://example.com/ns#\" xmlns:owl=\"http://www.w3.org/2002/07/owl#\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema#\" xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" xmlns:xml=\"http://www.w3.org/XML/1998/namespace\">\n"
+                + "<!DOCTYPE rdf:RDF [\n "
+                + "<!ENTITY ns \"http://example.com/ns#\" >\n "
+                + "<!ENTITY owl \"http://www.w3.org/2002/07/owl#\" >\n "
+                + "<!ENTITY xsd \"http://www.w3.org/2001/XMLSchema#\" >\n "
+                + "<!ENTITY xml \"http://www.w3.org/XML/1998/namespace\" >\n "
+                + "<!ENTITY rdfs \"http://www.w3.org/2000/01/rdf-schema#\" >\n "
+                + "<!ENTITY rdf \"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" >\n ]>\n"
+                + "<rdf:RDF xmlns=\"http://www.org/\" "
+                + "xml:base=\"http://www.org/\" "
+                + "xmlns:rdfs=\"http://www.w3.org/2000/01/rdf-schema#\" "
+                + "xmlns:ns=\"http://example.com/ns#\" "
+                + "xmlns:owl=\"http://www.w3.org/2002/07/owl#\" "
+                + "xmlns:xsd=\"http://www.w3.org/2001/XMLSchema#\" "
+                + "xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" "
+                + "xmlns:xml=\"http://www.w3.org/XML/1998/namespace\">\n"
                 + "    <owl:Ontology rdf:about=\"http://www.org/\"/>\n"
                 + "    <rdf:Description rdf:about=\"&ns;test\"><ns:rel><rdf:Description ns:pred =\"Not visible\"/></ns:rel></rdf:Description>\n"
                 + "</rdf:RDF>";
         OWLOntology oo = loadOntologyFromString(input);
         RDFXMLDocumentFormat format = (RDFXMLDocumentFormat) oo.getFormat();
-        Assert.assertNotNull(format);
-        Assert.assertTrue(format.getOntologyLoaderMetaData().isPresent());
-        Assert.assertEquals("Should have no unparsed triples", 0, format.getOntologyLoaderMetaData().get().getUnparsedTriples()
+        Assertions.assertNotNull(format);
+        Assertions.assertTrue(format.getOntologyLoaderMetaData().isPresent());
+        Assertions.assertEquals(0, format.getOntologyLoaderMetaData().get().getUnparsedTriples()
                 .count());
         Set<OWLAnnotationAssertionAxiom> annotationAxioms = oo.axioms(AxiomType.ANNOTATION_ASSERTION).collect(Collectors.toSet());
-        Assert.assertEquals("annotation axiom count should be 2", 2, annotationAxioms.size());
-        OWLAnnotationProperty relProperty = df.getOWLAnnotationProperty("http://example.com/ns#", "rel");
-        OWLAnnotationProperty predProperty = df.getOWLAnnotationProperty("http://example.com/ns#", "pred");
+        Assertions.assertEquals(2, annotationAxioms.size());
+        OWLAnnotationProperty p = df.getOWLAnnotationProperty("http://example.com/ns#", "rel");
+        OWLAnnotationProperty pp = df.getOWLAnnotationProperty("http://example.com/ns#", "pred");
         Set<OWLAnonymousIndividual> anonymousIndividualSet = oo.anonymousIndividuals().collect(Collectors.toSet());
-        Assert.assertEquals("should be one anonymous individual", 1, anonymousIndividualSet.size());
+        Assertions.assertEquals(1, anonymousIndividualSet.size());
         @Nonnull OWLAnonymousIndividual anonymousIndividual = anonymousIndividualSet.iterator().next();
-        OWLAnnotationAssertionAxiom relAx = df.getOWLAnnotationAssertionAxiom(relProperty, IRI.create(
+        OWLAnnotationAssertionAxiom relAx = df.getOWLAnnotationAssertionAxiom(p, IRI.create(
                 "http://example.com/ns#", "test"), anonymousIndividual);
         OWLLiteral notVisible = df.getOWLLiteral("Not visible", "");
-        OWLAnnotationAssertionAxiom predAx = df.getOWLAnnotationAssertionAxiom(predProperty, anonymousIndividual,
-                notVisible);
-        Assert.assertTrue("should contain relax", annotationAxioms.contains(relAx));
-        Assert.assertTrue("should contain predax", annotationAxioms.contains(predAx));
+        OWLAnnotationAssertionAxiom predAx = df.getOWLAnnotationAssertionAxiom(pp, anonymousIndividual, notVisible);
+        Assertions.assertTrue(annotationAxioms.contains(relAx));
+        Assertions.assertTrue(annotationAxioms.contains(predAx));
     }
 
     @Test
@@ -85,9 +97,9 @@ public class UndeclaredAnnotationTestCase extends TestBase {
                 countBNodeAnnotations.incrementAndGet();
             }
         });
-        Assert.assertEquals(3, countPreds.intValue());
-        Assert.assertEquals(2, countLabels.intValue());
-        Assert.assertEquals(3, countBNodeAnnotations.intValue());
+        Assertions.assertEquals(3, countPreds.intValue());
+        Assertions.assertEquals(2, countLabels.intValue());
+        Assertions.assertEquals(3, countBNodeAnnotations.intValue());
     }
 
     @Test
@@ -101,6 +113,6 @@ public class UndeclaredAnnotationTestCase extends TestBase {
                 + "                owl:minCardinality \"0\"^^xsd:nonNegativeInteger\n" + "   ] .";
         OWLOntology o = loadOntologyWithConfig(new StringDocumentSource(input), new OWLOntologyLoaderConfiguration()
                 .setStrict(true));
-        Assert.assertEquals(0, o.getLogicalAxiomCount());
+        Assertions.assertEquals(0, o.getLogicalAxiomCount());
     }
 }

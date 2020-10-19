@@ -15,8 +15,8 @@ package com.github.owlcs.owlapi.tests.api.dataproperties;
 
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.formats.ManchesterSyntaxDocumentFormat;
 import org.semanticweb.owlapi.formats.PrefixDocumentFormat;
 import org.semanticweb.owlapi.model.*;
@@ -45,7 +45,7 @@ public class DisjointClassesRoundTripTestCase extends TestBase {
                 + "(piz:E or piz:C),\n "
                 + "(piz:F or piz:C)";
         OWLOntology roundtripped = loadOntologyFromString(input);
-        Assert.assertTrue(input, OWLAPIStreamUtils.equalStreams(ontology.logicalAxioms(), roundtripped.logicalAxioms()));
+        Assertions.assertTrue(OWLAPIStreamUtils.equalStreams(ontology.logicalAxioms(), roundtripped.logicalAxioms()), input);
     }
 
     @Test
@@ -54,7 +54,7 @@ public class DisjointClassesRoundTripTestCase extends TestBase {
         PrefixDocumentFormat format = new ManchesterSyntaxDocumentFormat();
         format.setPrefix("piz", NS + '#');
         OWLOntology roundtripped = roundTrip(ontology, format);
-        Assert.assertTrue(OWLAPIStreamUtils.equalStreams(ontology.logicalAxioms(), roundtripped.logicalAxioms()));
+        Assertions.assertTrue(OWLAPIStreamUtils.equalStreams(ontology.logicalAxioms(), roundtripped.logicalAxioms()));
     }
 
     private OWLOntology buildOntology() {

@@ -16,8 +16,8 @@ package com.github.owlcs.ontapi.tests.internal;
 
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.internal.objects.ModelObject;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +54,7 @@ public class ModelObjectTest {
         OWLObjectExactCardinality in = df.getOWLObjectExactCardinality(12,
                 df.getOWLObjectProperty("P"), df.getOWLClass("X"));
         OWLObjectExactCardinality res = (OWLObjectExactCardinality) ClassExpressionTest.createONTObject(in);
-        Assert.assertTrue(res instanceof ModelObject);
+        Assertions.assertTrue(res instanceof ModelObject);
         OWLClassExpression c = res.asIntersectionOfMinMax();
         ObjectFactoryTestBase.testObjectHasNoModelReference(c);
     }
@@ -65,7 +65,7 @@ public class ModelObjectTest {
         OWLDataExactCardinality in = df.getOWLDataExactCardinality(12,
                 df.getOWLDataProperty("P"), df.getOWLDatatype("X"));
         OWLDataExactCardinality res = (OWLDataExactCardinality) ClassExpressionTest.createONTObject(in);
-        Assert.assertTrue(res instanceof ModelObject);
+        Assertions.assertTrue(res instanceof ModelObject);
         OWLClassExpression c = res.asIntersectionOfMinMax();
         ObjectFactoryTestBase.testObjectHasNoModelReference(c);
     }
@@ -75,7 +75,7 @@ public class ModelObjectTest {
         OWLDataFactory df = ObjectFactoryTestBase.ONT_DATA_FACTORY;
         OWLObjectOneOf in = df.getOWLObjectOneOf(df.getOWLNamedIndividual("1"), df.getOWLNamedIndividual("2"));
         OWLObjectOneOf res = (OWLObjectOneOf) ClassExpressionTest.createONTObject(in);
-        Assert.assertTrue(res instanceof ModelObject);
+        Assertions.assertTrue(res instanceof ModelObject);
         OWLClassExpression c = res.asObjectUnionOf();
         ObjectFactoryTestBase.testObjectHasNoModelReference(c);
     }
@@ -87,9 +87,9 @@ public class ModelObjectTest {
         OWLAnnotationAssertionAxiom ax = df.getOWLAnnotationAssertionAxiom(IRI.create("subject"), expected);
         OWLAnnotationAssertionAxiom res = (OWLAnnotationAssertionAxiom) CommonAxiomsTest
                 .createONTObject(OntManagers.createManager(), ax);
-        Assert.assertTrue(res instanceof ModelObject);
+        Assertions.assertTrue(res instanceof ModelObject);
         OWLAnnotation actual = res.getAnnotation();
-        Assert.assertEquals(expected, actual);
+        Assertions.assertEquals(expected, actual);
         ObjectFactoryTestBase.testObjectHasNoModelReference(actual);
     }
 
@@ -298,10 +298,10 @@ public class ModelObjectTest {
     @SuppressWarnings("unchecked")
     private <X extends OWLNaryAxiom<?>> X testNaryAxiom(X expected) {
         Collection<? extends OWLAxiom> res = SplitNaryAxiomsTest.createONTAxioms(OntManagers.createManager(), expected);
-        Assert.assertEquals(1, res.size());
+        Assertions.assertEquals(1, res.size());
         X actual = (X) res.iterator().next();
-        Assert.assertTrue(actual instanceof ModelObject);
-        Assert.assertEquals(expected, actual);
+        Assertions.assertTrue(actual instanceof ModelObject);
+        Assertions.assertEquals(expected, actual);
 
         testNarySplitMethod(expected, actual, OWLNaryAxiom::asPairwiseAxioms);
         testNarySplitMethod(expected, actual, OWLNaryAxiom::splitToAnnotatedPairs);
@@ -313,7 +313,7 @@ public class ModelObjectTest {
                                      Function<OWLNaryAxiom<?>, Collection<? extends OWLAxiom>> get) {
         Collection<? extends OWLAxiom> expectedAxioms = get.apply(expected);
         Collection<? extends OWLAxiom> actualAxioms = get.apply(actual);
-        Assert.assertEquals(expectedAxioms, actualAxioms);
+        Assertions.assertEquals(expectedAxioms, actualAxioms);
         actualAxioms.forEach(ObjectFactoryTestBase::testObjectHasNoModelReference);
     }
 
@@ -328,23 +328,23 @@ public class ModelObjectTest {
         X ont = factory.apply(ObjectFactoryTestBase.ONT_DATA_FACTORY);
         X owl = factory.apply(ObjectFactoryTestBase.OWL_DATA_FACTORY);
         LOGGER.debug("Test factory properties for '{}'", owl);
-        Assert.assertEquals(owl, ont);
-        Assert.assertNotEquals(0, properties.length);
+        Assertions.assertEquals(owl, ont);
+        Assertions.assertNotEquals(0, properties.length);
         for (Function<X, Object> property : properties) {
             Object expected = property.apply(owl);
             LOGGER.debug("Test factory property '{}'", expected);
-            Assert.assertEquals(expected, property.apply(ont));
+            Assertions.assertEquals(expected, property.apply(ont));
             OWLObject res = CommonAxiomsTest.createONTObject(OntManagers.createManager(), ont);
-            Assert.assertTrue(res instanceof ModelObject);
+            Assertions.assertTrue(res instanceof ModelObject);
             X actual = (X) res;
-            Assert.assertEquals(owl, actual);
+            Assertions.assertEquals(owl, actual);
             Object test = property.apply(actual);
-            Assert.assertEquals(expected, test);
+            Assertions.assertEquals(expected, test);
             if (test instanceof OWLAxiom) {
                 ObjectFactoryTestBase.testObjectHasNoModelReference((OWLObject) test);
             } else if (test instanceof Collection) {
                 Collection<OWLAxiom> list = (Collection<OWLAxiom>) test;
-                Assert.assertFalse(list.isEmpty());
+                Assertions.assertFalse(list.isEmpty());
                 list.forEach(ObjectFactoryTestBase::testObjectHasNoModelReference);
             }
         }
@@ -352,7 +352,7 @@ public class ModelObjectTest {
 
     private void testAsSomeValuesFrom(OWLHasValueRestriction<?> in) {
         OWLHasValueRestriction<?> res = (OWLHasValueRestriction<?>) ClassExpressionTest.createONTObject(in);
-        Assert.assertTrue(res instanceof ModelObject);
+        Assertions.assertTrue(res instanceof ModelObject);
         OWLClassExpression c = res.asSomeValuesFrom();
         ObjectFactoryTestBase.testObjectHasNoModelReference(c);
     }

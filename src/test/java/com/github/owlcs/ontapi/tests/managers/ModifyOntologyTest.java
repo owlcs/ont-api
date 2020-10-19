@@ -20,8 +20,8 @@ import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.RemoveAxiom;
@@ -48,14 +48,14 @@ public class ModifyOntologyTest {
         OntModel g = o.asGraphModel();
         g.createOntClass(ns + "X").addSuperClass(g.createOntClass(ns + "Y"));
         ReadWriteUtils.print(g);
-        Assert.assertEquals(3, o.axioms().peek(x -> LOGGER.debug("(1): {}", x)).count());
+        Assertions.assertEquals(3, o.axioms().peek(x -> LOGGER.debug("(1): {}", x)).count());
 
         List<RemoveAxiom> changes = o.axioms().map(x -> new RemoveAxiom(o, x)).collect(Collectors.toList());
         m.applyChanges(changes);
         ReadWriteUtils.print(g);
 
-        Assert.assertEquals(0, o.axioms().peek(x -> LOGGER.debug("(2): {}", x)).count());
-        Assert.assertEquals(1, g.size());
+        Assertions.assertEquals(0, o.axioms().peek(x -> LOGGER.debug("(2): {}", x)).count());
+        Assertions.assertEquals(1, g.size());
     }
 
     @Test
@@ -73,7 +73,7 @@ public class ModifyOntologyTest {
         List<AddAxiom> changes = axioms.stream().map(x -> new AddAxiom(o, x)).collect(Collectors.toList());
         m.applyChanges(changes);
         ReadWriteUtils.print(o);
-        Assert.assertEquals(4, o.axioms().peek(x -> LOGGER.debug("(1): {}", x)).count());
-        Assert.assertEquals(7, o.asGraphModel().size());
+        Assertions.assertEquals(4, o.axioms().peek(x -> LOGGER.debug("(1): {}", x)).count());
+        Assertions.assertEquals(7, o.asGraphModel().size());
     }
 }

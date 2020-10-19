@@ -13,8 +13,8 @@
  */
 package com.github.owlcs.owlapi.tests.api.ontology;
 
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.mockito.Mockito;
 import org.semanticweb.owlapi.change.RemoveOntologyAnnotationData;
 import org.semanticweb.owlapi.model.OWLAnnotation;
@@ -37,35 +37,35 @@ public class RemoveOntologyAnnotationDataTestCase {
     public void testEquals() {
         RemoveOntologyAnnotationData data1 = createData();
         RemoveOntologyAnnotationData data2 = createData();
-        Assert.assertEquals(data1, data2);
-        Assert.assertEquals(data1.hashCode(), data2.hashCode());
+        Assertions.assertEquals(data1, data2);
+        Assertions.assertEquals(data1.hashCode(), data2.hashCode());
     }
 
     @Test
     public void testGettersReturnNotNull() {
         RemoveOntologyAnnotationData data = createData();
-        Assert.assertNotNull(data.getAnnotation());
-        Assert.assertNotNull(data.createOntologyChange(mockOntology));
+        Assertions.assertNotNull(data.getAnnotation());
+        Assertions.assertNotNull(data.createOntologyChange(mockOntology));
     }
 
     @Test
     public void testGettersEquals() {
         RemoveOntologyAnnotationData data = createData();
-        Assert.assertEquals(mockAnnotation, data.getAnnotation());
+        Assertions.assertEquals(mockAnnotation, data.getAnnotation());
     }
 
     @Test
     public void testCreateOntologyChange() {
         RemoveOntologyAnnotationData data = createData();
         RemoveOntologyAnnotation change = data.createOntologyChange(mockOntology);
-        Assert.assertEquals(mockOntology, change.getOntology());
-        Assert.assertEquals(mockAnnotation, change.getAnnotation());
+        Assertions.assertEquals(mockOntology, change.getOntology());
+        Assertions.assertEquals(mockAnnotation, change.getAnnotation());
     }
 
     @Test
     public void testGetChangeData() {
         RemoveOntologyAnnotationData data = createData();
         RemoveOntologyAnnotation change = new RemoveOntologyAnnotation(mockOntology, mockAnnotation);
-        Assert.assertEquals(change.getChangeData(), data);
+        Assertions.assertEquals(change.getChangeData(), data);
     }
 }

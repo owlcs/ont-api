@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -27,8 +27,8 @@ import org.apache.jena.rdf.model.RDFList;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.OWL;
 import org.apache.jena.vocabulary.XSD;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -83,39 +83,36 @@ public class SWRLModelTest {
 
         ReadWriteUtils.print(m);
 
-        Assert.assertEquals(2, atom1.arguments().count());
-        Assert.assertEquals(1, atom2.arguments().count());
-        Assert.assertEquals(2, atom3.arguments().count());
-        Assert.assertEquals(2, atom4.arguments().count());
-        Assert.assertEquals(2, atom5.arguments().count());
+        Assertions.assertEquals(2, atom1.arguments().count());
+        Assertions.assertEquals(1, atom2.arguments().count());
+        Assertions.assertEquals(2, atom3.arguments().count());
+        Assertions.assertEquals(2, atom4.arguments().count());
+        Assertions.assertEquals(2, atom5.arguments().count());
 
-        Assert.assertEquals(18, imp.spec().peek(x -> LOGGER.debug("Imp Spec: {}", x)).count());
-        Assert.assertEquals(8, atom1.spec().peek(x -> LOGGER.debug("BuiltIn Spec: {}", x)).count());
-        Assert.assertEquals(3, atom2.spec().peek(x -> LOGGER.debug("Classes Spec: {}", x)).count());
-        Assert.assertEquals(4, atom3.spec().peek(x -> LOGGER.debug("Individuals Spec: {}", x)).count());
-        Assert.assertEquals(4, atom4.spec().peek(x -> LOGGER.debug("DataProperies Spec: {}", x)).count());
-        Assert.assertEquals(4, atom5.spec().peek(x -> LOGGER.debug("ObjectProperies Spec: {}", x)).count());
+        Assertions.assertEquals(18, imp.spec().peek(x -> LOGGER.debug("Imp Spec: {}", x)).count());
+        Assertions.assertEquals(8, atom1.spec().peek(x -> LOGGER.debug("BuiltIn Spec: {}", x)).count());
+        Assertions.assertEquals(3, atom2.spec().peek(x -> LOGGER.debug("Classes Spec: {}", x)).count());
+        Assertions.assertEquals(4, atom3.spec().peek(x -> LOGGER.debug("Individuals Spec: {}", x)).count());
+        Assertions.assertEquals(4, atom4.spec().peek(x -> LOGGER.debug("DataProperties Spec: {}", x)).count());
+        Assertions.assertEquals(4, atom5.spec().peek(x -> LOGGER.debug("ObjectProperties Spec: {}", x)).count());
 
         // literals(2) and variables(1):
         LOGGER.debug("All D-Args:");
-        Assert.assertEquals("Incorrect count of SWRL D-Arg", 3,
-                m.ontObjects(OntSWRL.DArg.class).map(String::valueOf).peek(LOGGER::debug).count());
+        Assertions.assertEquals(3, m.ontObjects(OntSWRL.DArg.class).map(String::valueOf).peek(LOGGER::debug).count());
         // individuals(2 anonymous, 1 named) and variables(1):
         LOGGER.debug("All I-Args:");
-        Assert.assertEquals("Incorrect count of SWRL I-Arg", 4,
-                m.ontObjects(OntSWRL.IArg.class).map(String::valueOf).peek(LOGGER::debug).count());
+        Assertions.assertEquals(4, m.ontObjects(OntSWRL.IArg.class).map(String::valueOf).peek(LOGGER::debug).count());
 
-        Assert.assertEquals(1, m.ontObjects(OntSWRL.Builtin.class).peek(x -> LOGGER.debug("Builtin: {}", x)).count());
+        Assertions.assertEquals(1, m.ontObjects(OntSWRL.Builtin.class).peek(x -> LOGGER.debug("Builtin: {}", x)).count());
 
-        Assert.assertEquals("Incorrect count of atoms", 5, m.ontObjects(OntSWRL.Atom.class).count());
-        Assert.assertEquals("Incorrect count of unary atoms", 1, m.ontObjects(OntSWRL.Atom.Unary.class).count());
-        Assert.assertEquals("Incorrect count of binary atoms", 3, m.ontObjects(OntSWRL.Atom.Binary.class).count());
-        Assert.assertEquals("Incorrect count of variables", 1, m.ontObjects(OntSWRL.Variable.class).count());
-        Assert.assertEquals("Incorrect count of SWRL:Imp", 1, m.ontObjects(OntSWRL.Imp.class).count());
-        Assert.assertEquals("Incorrect count of SWRL Objects", 8,
-                m.ontObjects(OntSWRL.class).peek(x -> LOGGER.debug("SWRL Obj: {}", x)).count());
+        Assertions.assertEquals(5, m.ontObjects(OntSWRL.Atom.class).count());
+        Assertions.assertEquals(1, m.ontObjects(OntSWRL.Atom.Unary.class).count());
+        Assertions.assertEquals(3, m.ontObjects(OntSWRL.Atom.Binary.class).count());
+        Assertions.assertEquals(1, m.ontObjects(OntSWRL.Variable.class).count());
+        Assertions.assertEquals(1, m.ontObjects(OntSWRL.Imp.class).count());
+        Assertions.assertEquals(8, m.ontObjects(OntSWRL.class).peek(x -> LOGGER.debug("SWRL Obj: {}", x)).count());
 
-        Assert.assertEquals(5, m.statements(null, RDF.type, SWRL.AtomList)
+        Assertions.assertEquals(5, m.statements(null, RDF.type, SWRL.AtomList)
                 .map(OntStatement::getSubject)
                 .map(s -> s.as(RDFList.class))
                 .peek(s -> LOGGER.debug("SWRL-List: {}", s.asJavaList()))
@@ -129,24 +126,24 @@ public class SWRLModelTest {
 
         ReadWriteUtils.print(m);
 
-        Assert.assertEquals(1, m.ontObjects(OntSWRL.Imp.class).count());
-        Assert.assertEquals(3, m.ontObjects(OntSWRL.Atom.WithObjectProperty.class).count());
-        Assert.assertEquals(0, m.ontObjects(OntSWRL.Atom.WithDifferentIndividuals.class).count());
-        Assert.assertEquals(0, m.ontObjects(OntSWRL.Atom.WithDataRange.class).count());
-        Assert.assertEquals(3, m.ontObjects(OntSWRL.Atom.class).count());
-        Assert.assertEquals(0, m.ontObjects(OntSWRL.Atom.WithBuiltin.class).count());
-        Assert.assertEquals(0, m.ontObjects(OntSWRL.Atom.Unary.class).count());
-        Assert.assertEquals(3, m.ontObjects(OntSWRL.Atom.Binary.class).count());
-        Assert.assertEquals(3, m.ontObjects(OntSWRL.Variable.class).count());
-        Assert.assertEquals(3, m.ontObjects(OntSWRL.IArg.class).count());
-        Assert.assertEquals(3, m.ontObjects(OntSWRL.DArg.class).count());
-        Assert.assertEquals(3, m.ontObjects(OntSWRL.Arg.class).count());
-        Assert.assertEquals(0, m.ontObjects(OntSWRL.Builtin.class).count());
-        Assert.assertEquals(7, m.ontObjects(OntSWRL.class).count());
+        Assertions.assertEquals(1, m.ontObjects(OntSWRL.Imp.class).count());
+        Assertions.assertEquals(3, m.ontObjects(OntSWRL.Atom.WithObjectProperty.class).count());
+        Assertions.assertEquals(0, m.ontObjects(OntSWRL.Atom.WithDifferentIndividuals.class).count());
+        Assertions.assertEquals(0, m.ontObjects(OntSWRL.Atom.WithDataRange.class).count());
+        Assertions.assertEquals(3, m.ontObjects(OntSWRL.Atom.class).count());
+        Assertions.assertEquals(0, m.ontObjects(OntSWRL.Atom.WithBuiltin.class).count());
+        Assertions.assertEquals(0, m.ontObjects(OntSWRL.Atom.Unary.class).count());
+        Assertions.assertEquals(3, m.ontObjects(OntSWRL.Atom.Binary.class).count());
+        Assertions.assertEquals(3, m.ontObjects(OntSWRL.Variable.class).count());
+        Assertions.assertEquals(3, m.ontObjects(OntSWRL.IArg.class).count());
+        Assertions.assertEquals(3, m.ontObjects(OntSWRL.DArg.class).count());
+        Assertions.assertEquals(3, m.ontObjects(OntSWRL.Arg.class).count());
+        Assertions.assertEquals(0, m.ontObjects(OntSWRL.Builtin.class).count());
+        Assertions.assertEquals(7, m.ontObjects(OntSWRL.class).count());
 
         OntSWRL.Imp imp = m.ontObjects(OntSWRL.Imp.class).findFirst().orElseThrow(AssertionError::new);
-        Assert.assertEquals(2, imp.getBodyList().members().count());
-        Assert.assertEquals(1, imp.getHeadList().members().count());
+        Assertions.assertEquals(2, imp.getBodyList().members().count());
+        Assertions.assertEquals(1, imp.getHeadList().members().count());
 
         OntSWRL.Variable x = getVariable(m, "x");
         OntSWRL.Variable y = getVariable(m, "y");
@@ -158,20 +155,20 @@ public class SWRLModelTest {
                 Collections.singletonList(m.createDataRangeSWRLAtom(XSD.xdouble.inModel(m).as(OntDataRange.Named.class), z)));
         ReadWriteUtils.print(m);
 
-        Assert.assertEquals(2, m.ontObjects(OntSWRL.Imp.class).count());
-        Assert.assertEquals(3, m.ontObjects(OntSWRL.Atom.WithObjectProperty.class).count());
-        Assert.assertEquals(1, m.ontObjects(OntSWRL.Atom.WithDifferentIndividuals.class).count());
-        Assert.assertEquals(1, m.ontObjects(OntSWRL.Atom.WithDataRange.class).count());
-        Assert.assertEquals(5, m.ontObjects(OntSWRL.Atom.class).count());
-        Assert.assertEquals(0, m.ontObjects(OntSWRL.Atom.WithBuiltin.class).count());
-        Assert.assertEquals(1, m.ontObjects(OntSWRL.Atom.Unary.class).count());
-        Assert.assertEquals(4, m.ontObjects(OntSWRL.Atom.Binary.class).count());
-        Assert.assertEquals(3, m.ontObjects(OntSWRL.Variable.class).count());
-        Assert.assertEquals(3, m.ontObjects(OntSWRL.IArg.class).count());
-        Assert.assertEquals(3, m.ontObjects(OntSWRL.DArg.class).count());
-        Assert.assertEquals(3, m.ontObjects(OntSWRL.Arg.class).count());
-        Assert.assertEquals(0, m.ontObjects(OntSWRL.Builtin.class).count());
-        Assert.assertEquals(10, m.ontObjects(OntSWRL.class).count());
+        Assertions.assertEquals(2, m.ontObjects(OntSWRL.Imp.class).count());
+        Assertions.assertEquals(3, m.ontObjects(OntSWRL.Atom.WithObjectProperty.class).count());
+        Assertions.assertEquals(1, m.ontObjects(OntSWRL.Atom.WithDifferentIndividuals.class).count());
+        Assertions.assertEquals(1, m.ontObjects(OntSWRL.Atom.WithDataRange.class).count());
+        Assertions.assertEquals(5, m.ontObjects(OntSWRL.Atom.class).count());
+        Assertions.assertEquals(0, m.ontObjects(OntSWRL.Atom.WithBuiltin.class).count());
+        Assertions.assertEquals(1, m.ontObjects(OntSWRL.Atom.Unary.class).count());
+        Assertions.assertEquals(4, m.ontObjects(OntSWRL.Atom.Binary.class).count());
+        Assertions.assertEquals(3, m.ontObjects(OntSWRL.Variable.class).count());
+        Assertions.assertEquals(3, m.ontObjects(OntSWRL.IArg.class).count());
+        Assertions.assertEquals(3, m.ontObjects(OntSWRL.DArg.class).count());
+        Assertions.assertEquals(3, m.ontObjects(OntSWRL.Arg.class).count());
+        Assertions.assertEquals(0, m.ontObjects(OntSWRL.Builtin.class).count());
+        Assertions.assertEquals(10, m.ontObjects(OntSWRL.class).count());
     }
 
     @Test
@@ -197,16 +194,16 @@ public class SWRLModelTest {
 
         ReadWriteUtils.print(m);
 
-        Assert.assertEquals(3, m.ontObjects(OntSWRL.Atom.WithBuiltin.class).count());
-        Assert.assertEquals(1, m.ontObjects(OntSWRL.Builtin.class).count());
+        Assertions.assertEquals(3, m.ontObjects(OntSWRL.Atom.WithBuiltin.class).count());
+        Assertions.assertEquals(1, m.ontObjects(OntSWRL.Builtin.class).count());
 
-        Assert.assertEquals(7, a.spec().peek(x -> LOGGER.debug("1)Spec: {}", x)).count());
-        Assert.assertEquals(9, b.spec().peek(x -> LOGGER.debug("2)Spec: {}", x)).count());
-        Assert.assertEquals(8, c.spec().peek(x -> LOGGER.debug("3)Spec: {}", x)).count());
+        Assertions.assertEquals(7, a.spec().peek(x -> LOGGER.debug("1)Spec: {}", x)).count());
+        Assertions.assertEquals(9, b.spec().peek(x -> LOGGER.debug("2)Spec: {}", x)).count());
+        Assertions.assertEquals(8, c.spec().peek(x -> LOGGER.debug("3)Spec: {}", x)).count());
 
-        Assert.assertEquals(0, a.getPredicate().spec().count());
-        Assert.assertEquals(0, b.getPredicate().spec().count());
-        Assert.assertEquals(1, c.getPredicate().spec().count());
+        Assertions.assertEquals(0, a.getPredicate().spec().count());
+        Assertions.assertEquals(0, b.getPredicate().spec().count());
+        Assertions.assertEquals(1, c.getPredicate().spec().count());
     }
 
     @Test
@@ -228,39 +225,39 @@ public class SWRLModelTest {
                 .addProperty(SWRL.classPredicate, c)
                 .as(OntSWRL.Atom.WithClass.class);
 
-        Assert.assertEquals(c, a1.getPredicate());
-        Assert.assertEquals(i1, a1.getArg());
+        Assertions.assertEquals(c, a1.getPredicate());
+        Assertions.assertEquals(i1, a1.getArg());
 
         OntSWRL.Atom.WithSameIndividuals a2 = m.createResource(SWRL.SameIndividualAtom)
                 .addProperty(SWRL.argument1, i1)
                 .addProperty(SWRL.argument2, i2)
                 .as(OntSWRL.Atom.WithSameIndividuals.class);
-        Assert.assertEquals(i1, a2.getFirstArg());
-        Assert.assertEquals(i2, a2.getSecondArg());
-        Assert.assertEquals(OWL.sameAs, a2.getPredicate());
+        Assertions.assertEquals(i1, a2.getFirstArg());
+        Assertions.assertEquals(i2, a2.getSecondArg());
+        Assertions.assertEquals(OWL.sameAs, a2.getPredicate());
 
         OntSWRL.Atom.WithObjectProperty a3 = m.createResource(SWRL.IndividualPropertyAtom)
                 .addProperty(SWRL.argument1, i1)
                 .addProperty(SWRL.argument2, i3)
                 .addProperty(SWRL.propertyPredicate, p1)
                 .as(OntSWRL.Atom.WithObjectProperty.class);
-        Assert.assertEquals(i1, a3.getFirstArg());
-        Assert.assertEquals(i3, a3.getSecondArg());
-        Assert.assertEquals(p1, a3.getPredicate());
+        Assertions.assertEquals(i1, a3.getFirstArg());
+        Assertions.assertEquals(i3, a3.getSecondArg());
+        Assertions.assertEquals(p1, a3.getPredicate());
 
         OntSWRL.Atom.WithDataProperty a4 = m.createResource(SWRL.DatavaluedPropertyAtom)
                 .addProperty(SWRL.argument1, i1)
                 .addProperty(SWRL.argument2, v)
                 .addProperty(SWRL.propertyPredicate, p2)
                 .as(OntSWRL.Atom.WithDataProperty.class);
-        Assert.assertEquals(i1, a4.getFirstArg());
+        Assertions.assertEquals(i1, a4.getFirstArg());
         //noinspection AssertEqualsBetweenInconvertibleTypes
-        Assert.assertEquals(v, a4.getSecondArg());
-        Assert.assertEquals(p2, a4.getPredicate());
+        Assertions.assertEquals(v, a4.getSecondArg());
+        Assertions.assertEquals(p2, a4.getPredicate());
 
         ReadWriteUtils.print(m);
-        Assert.assertEquals(3, m.ontObjects(OntSWRL.IArg.class).count());
-        Assert.assertEquals(1, m.ontObjects(OntSWRL.DArg.class).count());
-        Assert.assertEquals(4, m.ontObjects(OntSWRL.Atom.class).count());
+        Assertions.assertEquals(3, m.ontObjects(OntSWRL.IArg.class).count());
+        Assertions.assertEquals(1, m.ontObjects(OntSWRL.DArg.class).count());
+        Assertions.assertEquals(4, m.ontObjects(OntSWRL.Atom.class).count());
     }
 }

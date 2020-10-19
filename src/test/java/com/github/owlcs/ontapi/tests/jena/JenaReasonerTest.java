@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -28,8 +28,8 @@ import org.apache.jena.reasoner.rulesys.GenericRuleReasoner;
 import org.apache.jena.reasoner.rulesys.RDFSRuleReasonerFactory;
 import org.apache.jena.reasoner.rulesys.Rule;
 import org.apache.jena.vocabulary.ReasonerVocabulary;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -78,7 +78,7 @@ public class JenaReasonerTest {
         Resource a = inf.getResource(NS + "a");
         Statement s = a.getProperty(q);
         LOGGER.debug("Statement: {}", s);
-        Assert.assertNotNull("Null statement", s);
+        Assertions.assertNotNull(s, "Null statement");
     }
 
     @Test
@@ -114,7 +114,7 @@ public class JenaReasonerTest {
                 LOGGER.debug(" - {}", report);
             }
         }
-        Assert.assertEquals("Wrong result", result, validity.isValid());
+        Assertions.assertEquals(result, validity.isValid());
     }
 
     /**
@@ -142,7 +142,7 @@ public class JenaReasonerTest {
 
         List<Statement> statements = inf.listStatements(A, p, D).toList();
         LOGGER.debug("{}", statements);
-        Assert.assertEquals("Incorrect statements", 1, statements.size());
+        Assertions.assertEquals(1, statements.size());
         StringWriter res = new StringWriter();
         PrintWriter out = new PrintWriter(res, true);
         Iterator<Derivation> id = inf.getDerivation(statements.get(0));
@@ -155,7 +155,7 @@ public class JenaReasonerTest {
                 "        Fact (eg:A eg:p eg:B)\n" +
                 "        Fact (eg:B eg:p eg:C)\n" +
                 "    Fact (eg:C eg:p eg:D)\n";
-        Assert.assertEquals(expected, res.toString().replace("\r", ""));
+        Assertions.assertEquals(expected, res.toString().replace("\r", ""));
     }
 
     /**
@@ -190,10 +190,10 @@ public class JenaReasonerTest {
         while (list.hasNext()) {
             LOGGER.debug(" - {}", list.next());
         }
-        Assert.assertTrue(inf.contains(A, p, B));
-        Assert.assertTrue(inf.contains(A, r, C));
+        Assertions.assertTrue(inf.contains(A, p, B));
+        Assertions.assertTrue(inf.contains(A, r, C));
 
-        Assert.assertEquals("Data has been changed", data, ReadWriteUtils.toString(rawData, OntFormat.TURTLE));
+        Assertions.assertEquals(data, ReadWriteUtils.toString(rawData, OntFormat.TURTLE), "Data has been changed");
     }
 
 }

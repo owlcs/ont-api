@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -15,8 +15,8 @@ package com.github.owlcs.owlapi.tests.api.individuals;
 
 import com.github.owlcs.owlapi.OWLManager;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.rdf.rdfxml.renderer.IllegalElementNameException;
@@ -38,11 +38,11 @@ public class NoQNameTestCase extends TestBase {
                 IllegalElementNameException.class : org.apache.jena.shared.InvalidPropertyURIException.class;
         try {
             roundTripOntology(createOntology());
-            Assert.fail("Expected an exception specifying that a QName could not be generated");
+            Assertions.fail("Expected an exception specifying that a QName could not be generated");
         } catch (OWLOntologyStorageException e) {
             LOGGER.debug("Exception:::{}", e.getMessage());
             Throwable cause = e.getCause();
-            Assert.assertNotNull(cause);
+            Assertions.assertNotNull(cause);
             LOGGER.debug("Cause:::{}", cause.getMessage());
             if (!expectedCause.isInstance(cause)) {
                 throw e;

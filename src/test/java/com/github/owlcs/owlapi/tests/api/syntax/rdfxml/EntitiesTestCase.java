@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,14 +14,14 @@
 
 package com.github.owlcs.owlapi.tests.api.syntax.rdfxml;
 
-import org.junit.Assert;
+import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.io.StringDocumentTarget;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.rdf.rdfxml.renderer.RDFXMLStorerFactory;
-import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 
 
 @SuppressWarnings("javadoc")
@@ -39,7 +39,7 @@ public class EntitiesTestCase extends TestBase {
      * @throws Exception
      */
     @Test
-    public void shouldRoundtripEntities() throws Exception {
+    public void testShouldRoundtripEntities() throws Exception {
         String input = "<?xml version=\"1.0\"?>\n"
                 + "<!DOCTYPE rdf:RDF [<!ENTITY vin  \"http://www.w3.org/TR/2004/REC-owl-guide-20040210/wine#\" > ]>\n"
                 + "<rdf:RDF"
@@ -58,12 +58,12 @@ public class EntitiesTestCase extends TestBase {
 
         StringDocumentSource source = new StringDocumentSource(input, iri, new RDFXMLDocumentFormat(), null);
         OWLOntology o = m.loadOntologyFromOntologyDocument(source);
-        Assert.assertEquals("Wrong ontology IRI", base, o.getOntologyID().getOntologyIRI().map(IRI::getIRIString).orElse(null));
+        Assertions.assertEquals(base, o.getOntologyID().getOntologyIRI().map(IRI::getIRIString).orElse(null));
         OWLDocumentFormat format = o.getFormat();
-        Assert.assertNotNull("No format", format);
+        Assertions.assertNotNull(format);
 
         m.getOntologyConfigurator().withUseNamespaceEntities(true);
-        Assert.assertTrue(m.getOntologyWriterConfiguration().isUseNamespaceEntities());
+        Assertions.assertTrue(m.getOntologyWriterConfiguration().isUseNamespaceEntities());
         //m.setOntologyWriterConfiguration(m.getOntologyWriterConfiguration().withUseNamespaceEntities(true));
 
         StringDocumentTarget target = new StringDocumentTarget();
@@ -72,6 +72,6 @@ public class EntitiesTestCase extends TestBase {
         store.createStorer().storeOntology(o, target, format);
         //o.getOWLOntologyManager().saveOntology(o, format, target);
         LOGGER.debug("As string:\n{}", target);
-        Assert.assertTrue(target.toString().contains("<owl:priorVersion rdf:resource=\"&vin;test\"/>"));
+        Assertions.assertTrue(target.toString().contains("<owl:priorVersion rdf:resource=\"&vin;test\"/>"));
     }
 }

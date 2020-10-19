@@ -15,8 +15,8 @@
 package com.github.owlcs.owlapi.tests.api.imports;
 
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.util.AutoIRIMapper;
 
@@ -26,7 +26,7 @@ public class AutoIRIMapperTestCase extends TestBase {
     public void testShouldTestIRIMapperForOWLXML() {
         AutoIRIMapper mapper = new AutoIRIMapper(RESOURCES, false);
         IRI documentIRI = mapper.getDocumentIRI(IRI.create("urn:test:", "prem"));
-        Assert.assertNotNull(documentIRI);
-        Assert.assertTrue(documentIRI.toString().endsWith("/urntestontology.xml"));
+        Assertions.assertNotNull(documentIRI);
+        Assertions.assertTrue(documentIRI.toString().endsWith("/urntestontology.xml"));
     }
 }

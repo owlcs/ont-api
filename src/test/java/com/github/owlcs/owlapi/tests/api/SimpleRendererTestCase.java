@@ -15,8 +15,8 @@
 package com.github.owlcs.owlapi.tests.api;
 
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -29,7 +29,7 @@ public class SimpleRendererTestCase extends TestBase {
     @Test
     public void testShouldSetPrefixes() {
         testSubject.setPrefix("test", "urn:test#");
-        Assert.assertEquals("test:t", testSubject.getShortForm(IRI.create("urn:test#", "t")));
+        Assertions.assertEquals("test:t", testSubject.getShortForm(IRI.create("urn:test#", "t")));
     }
 
     @Test
@@ -39,6 +39,6 @@ public class SimpleRendererTestCase extends TestBase {
         o.getOWLOntologyManager().setOntologyFormat(o, f);
         f.setPrefix("test", "urn:test#");
         testSubject.setPrefixesFromOntologyFormat(o, true);
-        Assert.assertEquals("test:t", testSubject.getShortForm(IRI.create("urn:test#", "t")));
+        Assertions.assertEquals("test:t", testSubject.getShortForm(IRI.create("urn:test#", "t")));
     }
 }

@@ -15,9 +15,9 @@
 package com.github.owlcs.owlapi.tests.decomposition;
 
 import com.github.owlcs.owlapi.OWLManager;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapitools.decomposition.AxiomWrapper;
 import org.semanticweb.owlapitools.decomposition.Signature;
@@ -498,7 +498,7 @@ public class SyntacticLocalityTestCase {
     public void testShouldResetSignature() {
         OWLSubClassOfAxiom ax = df.getOWLSubClassOfAxiom(a, b);
         testSubject.preprocessOntology(Collections.singletonList(new AxiomWrapper(ax)));
-        Assert.assertEquals(ax.signature().collect(Collectors.toSet()), testSubject.getSignature().getSignature());
+        Assertions.assertEquals(ax.signature().collect(Collectors.toSet()), testSubject.getSignature().getSignature());
     }
 
     @Before
@@ -513,7 +513,7 @@ public class SyntacticLocalityTestCase {
     private void test(OWLAxiom ax, boolean expected, OWLEntity... entities) {
         set(entities);
         boolean local = testSubject.local(ax);
-        Assert.assertEquals(expected, local);
+        Assertions.assertEquals(expected, local);
     }
 
     @SuppressWarnings("SameParameterValue")
@@ -521,6 +521,6 @@ public class SyntacticLocalityTestCase {
         set(entities);
         testSubject.getSignature().setLocality(locality);
         boolean local = testSubject.local(ax);
-        Assert.assertEquals(expected, local);
+        Assertions.assertEquals(expected, local);
     }
 }

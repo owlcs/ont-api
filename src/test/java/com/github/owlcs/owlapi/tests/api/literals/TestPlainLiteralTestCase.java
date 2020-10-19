@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -15,8 +15,8 @@ package com.github.owlcs.owlapi.tests.api.literals;
 
 import com.github.owlcs.ontapi.OntFormat;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
@@ -30,9 +30,9 @@ public class TestPlainLiteralTestCase extends TestBase {
     @Test
     public void testPlainLiteral() {
         IRI iri = IRI("http://www.w3.org/1999/02/22-rdf-syntax-ns#", "PlainLiteral");
-        Assert.assertTrue(iri.isPlainLiteral());
-        Assert.assertNotNull(df.getRDFPlainLiteral());
-        Assert.assertNotNull(OWL2Datatype.getDatatype(iri));
+        Assertions.assertTrue(iri.isPlainLiteral());
+        Assertions.assertNotNull(df.getRDFPlainLiteral());
+        Assertions.assertNotNull(OWL2Datatype.getDatatype(iri));
     }
 
     @Test
@@ -46,15 +46,15 @@ public class TestPlainLiteralTestCase extends TestBase {
                 + "        </rdf:Description>\n" + "    </rdf:RDF>";
         OWLOntology o = loadOntologyFromString(input);
         IRI i = IRI("urn:test#", "ind");
-        Assert.assertEquals(AnnotationAssertion(RDFSComment(), i, Literal("test", OWL2Datatype.RDF_PLAIN_LITERAL)),
+        Assertions.assertEquals(AnnotationAssertion(RDFSComment(), i, Literal("test", OWL2Datatype.RDF_PLAIN_LITERAL)),
                 o.annotationAssertionAxioms(i).iterator().next());
     }
 
     @Test
     public void testPlainLiteralFromEvren() {
         OWLDatatype node = df.getRDFPlainLiteral();
-        Assert.assertTrue(node.isBuiltIn());
-        Assert.assertNotNull(node.getBuiltInDatatype());
+        Assertions.assertTrue(node.isBuiltIn());
+        Assertions.assertNotNull(node.getBuiltInDatatype());
     }
 
     @Test
@@ -74,8 +74,8 @@ public class TestPlainLiteralTestCase extends TestBase {
         String expectedStart = "<test:p";
         String expectedEnd = ">test</test:p>";
 
-        Assert.assertTrue(out.toString(), out.toString().contains(expectedStart));
-        Assert.assertTrue(out.toString(), out.toString().contains(expectedEnd));
+        Assertions.assertTrue(out.toString().contains(expectedStart), out.toString());
+        Assertions.assertTrue(out.toString().contains(expectedEnd), out.toString());
     }
 
     @Test
@@ -89,8 +89,8 @@ public class TestPlainLiteralTestCase extends TestBase {
         o.saveOntology(out);
         String expectedStart = "<rdfs:comment";
         String expectedEnd = ">test</rdfs:comment>";
-        Assert.assertTrue(out.toString(), out.toString().contains(expectedStart));
-        Assert.assertTrue(out.toString(), out.toString().contains(expectedEnd));
+        Assertions.assertTrue(out.toString().contains(expectedStart), out.toString());
+        Assertions.assertTrue(out.toString().contains(expectedEnd), out.toString());
     }
 
     @Test
@@ -104,7 +104,7 @@ public class TestPlainLiteralTestCase extends TestBase {
         o.saveOntology(out);
         String expectedStart = "<rdfs:comment";
         String expectedEnd = ">test</rdfs:comment>";
-        Assert.assertTrue(out.toString(), out.toString().contains(expectedStart));
-        Assert.assertTrue(out.toString(), out.toString().contains(expectedEnd));
+        Assertions.assertTrue(out.toString().contains(expectedStart), out.toString());
+        Assertions.assertTrue(out.toString().contains(expectedEnd), out.toString());
     }
 }

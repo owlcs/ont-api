@@ -30,9 +30,9 @@ import com.github.owlcs.ontapi.utils.SpinModels;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.util.FileManager;
 import org.apache.jena.vocabulary.RDF;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,7 +82,7 @@ public class SpinMappingTest {
         List<IRI> actual = manager.ontologies().map(HasOntologyID::getOntologyID).map(OWLOntologyID::getOntologyIRI).
                 filter(Optional::isPresent).map(Optional::get).sorted().collect(Collectors.toList());
         List<IRI> expected = Stream.of(SpinModels.values()).map(SpinModels::getIRI).sorted().collect(Collectors.toList());
-        Assert.assertEquals("Incorrect collection of ontologies", expected, actual);
+        Assertions.assertEquals(expected, actual);
     }
 
     @Test
@@ -92,11 +92,11 @@ public class SpinMappingTest {
         OntModel source = createSourceModel();
         OntModel target = createTargetModel();
         OntModel mapping = composeMapping(source, target);
-        Assert.assertEquals("Incorrect ontologies count", SpinModels.values().length + 3, manager.ontologies().count());
+        Assertions.assertEquals(SpinModels.values().length + 3, manager.ontologies().count());
 
         ReadWriteUtils.print(mapping);
         Ontology map = manager.getOntology(IRI.create(mapping.getID().getURI()));
-        Assert.assertNotNull(map);
+        Assertions.assertNotNull(map);
         runInferences(map, target);
         ReadWriteUtils.print(target);
 
@@ -110,14 +110,14 @@ public class SpinMappingTest {
         List<OntIndividual> sourceIndividuals = source.namedIndividuals().collect(Collectors.toList());
         List<Resource> targetIndividuals = target.listSubjectsWithProperty(RDF.type, targetClass).toList();
         LOGGER.debug("Individuals count: {}", targetIndividuals.size());
-        Assert.assertEquals("Incorrect count of individuals", sourceIndividuals.size(), targetIndividuals.size());
+        Assertions.assertEquals(sourceIndividuals.size(), targetIndividuals.size());
         sourceIndividuals.forEach(named -> {
             Resource i = target.getResource(named.getURI());
-            Assert.assertTrue("Can't find individual " + i, target.contains(i, RDF.type, targetClass));
+            Assertions.assertTrue(target.contains(i, RDF.type, targetClass), "Can't find individual " + i);
             List<RDFNode> objects = target.listObjectsOfProperty(i, targetProperty).toList();
-            Assert.assertEquals("Incorrect data for " + i, 1, objects.size());
+            Assertions.assertEquals(1, objects.size());
             Literal res = objects.get(0).asLiteral();
-            Assert.assertTrue("Incorrect literal value for " + i, res.getString().contains(DATA_SEPARATOR));
+            Assertions.assertTrue(res.getString().contains(DATA_SEPARATOR), "Incorrect literal value for " + i);
         });
     }
 
@@ -193,9 +193,9 @@ public class SpinMappingTest {
         i2.addLiteral(prop1, "val2");
         i2.addLiteral(prop2, Integer.valueOf(99090));
         Ontology o = manager.getOntology(IRI.create(uri));
-        Assert.assertNotNull("Can't find ontology " + uri, o);
+        Assertions.assertNotNull(o, "Can't find ontology " + uri);
         o.axioms().forEach(x -> LOGGER.debug("{}", x));
-        Assert.assertEquals("Incorrect number of data-property assertions", 4, o.axioms(AxiomType.DATA_PROPERTY_ASSERTION).count());
+        Assertions.assertEquals(4, o.axioms(AxiomType.DATA_PROPERTY_ASSERTION).count());
         ReadWriteUtils.print(res);
         return res;
     }
@@ -213,7 +213,7 @@ public class SpinMappingTest {
         OntClass clazz = res.createOntClass(ns + "ClassTarget");
         res.createDataProperty(ns + "targetProperty").addRange(XSD.xstring).addDomain(clazz);
         Ontology o = manager.getOntology(IRI.create(uri));
-        Assert.assertNotNull("Can't find ontology " + uri, o);
+        Assertions.assertNotNull(o, "Can't find ontology " + uri);
         o.axioms().forEach(x -> LOGGER.debug("{}", x));
         ReadWriteUtils.print(res);
         return res;

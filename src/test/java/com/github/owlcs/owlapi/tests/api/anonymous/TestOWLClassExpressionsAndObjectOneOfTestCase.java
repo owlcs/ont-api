@@ -14,8 +14,8 @@
 package com.github.owlcs.owlapi.tests.api.anonymous;
 
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
@@ -28,6 +28,6 @@ public class TestOWLClassExpressionsAndObjectOneOfTestCase extends TestBase {
                 + "SubClassOf(\n:man\n ObjectSomeValuesFrom(\n :like\n "
                 + "ObjectOneOf(\n_:c\n)\n)\n)\n\n ClassAssertion(\n:car\n_:c\n)\n)";
         OWLOntology o = loadOntologyFromString(text);
-        Assert.assertNotNull(o);
+        Assertions.assertNotNull(o);
     }
 }

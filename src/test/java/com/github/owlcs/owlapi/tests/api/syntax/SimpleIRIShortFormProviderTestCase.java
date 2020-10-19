@@ -13,8 +13,8 @@
  */
 package com.github.owlcs.owlapi.tests.api.syntax;
 
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.util.SimpleIRIShortFormProvider;
 
@@ -28,7 +28,7 @@ public class SimpleIRIShortFormProviderTestCase {
         IRI iri = IRI.create("http://owl.cs.manchester.ac.uk/ontology/x#", "A");
         SimpleIRIShortFormProvider sfp = new SimpleIRIShortFormProvider();
         String shortForm = sfp.getShortForm(iri);
-        Assert.assertEquals("A", shortForm);
+        Assertions.assertEquals("A", shortForm);
     }
 
     @Test
@@ -36,7 +36,7 @@ public class SimpleIRIShortFormProviderTestCase {
         IRI iri = IRI.create("http://owl.cs.manchester.ac.uk/ontology/", "x");
         SimpleIRIShortFormProvider sfp = new SimpleIRIShortFormProvider();
         String shortForm = sfp.getShortForm(iri);
-        Assert.assertEquals("x", shortForm);
+        Assertions.assertEquals("x", shortForm);
     }
 
     @Test
@@ -44,6 +44,6 @@ public class SimpleIRIShortFormProviderTestCase {
         IRI iri = IRI.create("http://owl.cs.manchester.ac.uk/", "");
         SimpleIRIShortFormProvider sfp = new SimpleIRIShortFormProvider();
         String shortForm = sfp.getShortForm(iri);
-        Assert.assertEquals("<http://owl.cs.manchester.ac.uk/>", shortForm);
+        Assertions.assertEquals("<http://owl.cs.manchester.ac.uk/>", shortForm);
     }
 }

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -17,8 +17,8 @@ package com.github.owlcs.ontapi.tests;
 import com.github.owlcs.ontapi.ID;
 import com.github.owlcs.ontapi.jena.OntModelFactory;
 import com.github.owlcs.ontapi.jena.model.OntModel;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 
@@ -33,10 +33,10 @@ public class OntologyIDTest {
     public void testAnonymousID() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OWLOntologyID id = new ID(m.getID());
-        Assert.assertTrue(id.isAnonymous());
-        Assert.assertFalse(id.getOntologyIRI().isPresent());
-        Assert.assertFalse(id.getVersionIRI().isPresent());
-        Assert.assertEquals(17 + 37 * m.getID().asNode().getBlankNodeLabel().hashCode(), id.hashCode());
+        Assertions.assertTrue(id.isAnonymous());
+        Assertions.assertFalse(id.getOntologyIRI().isPresent());
+        Assertions.assertFalse(id.getVersionIRI().isPresent());
+        Assertions.assertEquals(17 + 37 * m.getID().asNode().getBlankNodeLabel().hashCode(), id.hashCode());
     }
 
     @Test
@@ -44,14 +44,14 @@ public class OntologyIDTest {
         String uri = "http://ex";
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         OWLOntologyID id = new ID(m.setID(uri));
-        Assert.assertFalse(id.isAnonymous());
-        Assert.assertTrue(id.getOntologyIRI().isPresent());
-        Assert.assertFalse(id.getVersionIRI().isPresent());
-        Assert.assertEquals(uri, id.getOntologyIRI().map(IRI::getIRIString).orElseThrow(AssertionError::new));
+        Assertions.assertFalse(id.isAnonymous());
+        Assertions.assertTrue(id.getOntologyIRI().isPresent());
+        Assertions.assertFalse(id.getVersionIRI().isPresent());
+        Assertions.assertEquals(uri, id.getOntologyIRI().map(IRI::getIRIString).orElseThrow(AssertionError::new));
         OWLOntologyID owl = new OWLOntologyID(IRI.create(uri));
-        Assert.assertEquals(owl, id);
-        Assert.assertEquals(owl.hashCode(), id.hashCode());
-        Assert.assertEquals(owl.toString(), id.toString());
+        Assertions.assertEquals(owl, id);
+        Assertions.assertEquals(owl.hashCode(), id.hashCode());
+        Assertions.assertEquals(owl.toString(), id.toString());
     }
 
     @Test
@@ -61,41 +61,41 @@ public class OntologyIDTest {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD)
                 .setID(uri).setVersionIRI(ver).getModel();
         OWLOntologyID id = new ID(m.getID());
-        Assert.assertFalse(id.isAnonymous());
-        Assert.assertTrue(id.getOntologyIRI().isPresent());
-        Assert.assertTrue(id.getVersionIRI().isPresent());
-        Assert.assertEquals(uri, id.getOntologyIRI().map(IRI::getIRIString).orElseThrow(AssertionError::new));
-        Assert.assertEquals(ver, id.getVersionIRI().map(IRI::getIRIString).orElseThrow(AssertionError::new));
+        Assertions.assertFalse(id.isAnonymous());
+        Assertions.assertTrue(id.getOntologyIRI().isPresent());
+        Assertions.assertTrue(id.getVersionIRI().isPresent());
+        Assertions.assertEquals(uri, id.getOntologyIRI().map(IRI::getIRIString).orElseThrow(AssertionError::new));
+        Assertions.assertEquals(ver, id.getVersionIRI().map(IRI::getIRIString).orElseThrow(AssertionError::new));
         OWLOntologyID owl = new OWLOntologyID(IRI.create(uri), IRI.create(ver));
-        Assert.assertEquals(owl, id);
-        Assert.assertEquals(owl.hashCode(), id.hashCode());
-        Assert.assertEquals(owl.toString(), id.toString());
+        Assertions.assertEquals(owl, id);
+        Assertions.assertEquals(owl.hashCode(), id.hashCode());
+        Assertions.assertEquals(owl.toString(), id.toString());
     }
 
     @Test
     public void testCompareIDs() {
         OWLOntologyID owl1 = new OWLOntologyID(IRI.create("x://A"), IRI.create("x://B"));
         ID ont1 = ID.asONT(owl1);
-        Assert.assertFalse(ont1.isAnonymous());
-        Assert.assertTrue(ont1.getOntologyIRI().isPresent());
-        Assert.assertTrue(ont1.getVersionIRI().isPresent());
-        Assert.assertEquals(owl1, ont1);
-        Assert.assertEquals(owl1.hashCode(), ont1.hashCode());
-        Assert.assertEquals(owl1.toString(), ont1.toString());
+        Assertions.assertFalse(ont1.isAnonymous());
+        Assertions.assertTrue(ont1.getOntologyIRI().isPresent());
+        Assertions.assertTrue(ont1.getVersionIRI().isPresent());
+        Assertions.assertEquals(owl1, ont1);
+        Assertions.assertEquals(owl1.hashCode(), ont1.hashCode());
+        Assertions.assertEquals(owl1.toString(), ont1.toString());
 
         OWLOntologyID owl2 = new OWLOntologyID(IRI.create("x://C"));
         ID ont2 = ID.asONT(owl2);
-        Assert.assertFalse(ont2.isAnonymous());
-        Assert.assertTrue(ont2.getOntologyIRI().isPresent());
-        Assert.assertFalse(ont2.getVersionIRI().isPresent());
-        Assert.assertEquals(owl2, ont2);
-        Assert.assertEquals(owl2.hashCode(), ont2.hashCode());
-        Assert.assertEquals(owl2.toString(), ont2.toString());
+        Assertions.assertFalse(ont2.isAnonymous());
+        Assertions.assertTrue(ont2.getOntologyIRI().isPresent());
+        Assertions.assertFalse(ont2.getVersionIRI().isPresent());
+        Assertions.assertEquals(owl2, ont2);
+        Assertions.assertEquals(owl2.hashCode(), ont2.hashCode());
+        Assertions.assertEquals(owl2.toString(), ont2.toString());
 
         OWLOntologyID owl3 = new OWLOntologyID();
         ID ont3 = ID.asONT(owl3);
-        Assert.assertTrue(ont3.isAnonymous());
-        Assert.assertFalse(ont3.getOntologyIRI().isPresent());
-        Assert.assertFalse(ont3.getVersionIRI().isPresent());
+        Assertions.assertTrue(ont3.isAnonymous());
+        Assertions.assertFalse(ont3.getOntologyIRI().isPresent());
+        Assertions.assertFalse(ont3.getVersionIRI().isPresent());
     }
 }

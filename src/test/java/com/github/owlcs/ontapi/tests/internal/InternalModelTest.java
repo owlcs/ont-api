@@ -36,9 +36,8 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.vocabulary.RDFS;
-import org.hamcrest.core.IsEqual;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,7 +62,7 @@ public class InternalModelTest {
     @Test
     public void testSimpleAxiomTranslator() {
         OntModel model = OntModelFactory.createModel(loadResourceTTLFile("ontapi/pizza.ttl").getGraph());
-        Assert.assertEquals(945, model.statements()
+        Assertions.assertEquals(945, model.statements()
                 .flatMap(s -> AxiomType.AXIOM_TYPES.stream().map(AxiomParserProvider::get)
                         .filter(x -> x.testStatement(s))
                         .map(x -> x.toAxiom(s))).peek(x -> LOGGER.debug("{}", x)).count());
@@ -92,8 +91,7 @@ public class InternalModelTest {
         print(m2);
         Set<Statement> actual = m2.listStatements().toSet();
         Set<Statement> expected = m.listStatements().toSet();
-        Assert.assertThat("Incorrect statements (actual=" + actual.size() + ", expected=" + expected.size() + ")",
-                actual, IsEqual.equalTo(expected));
+        Assertions.assertEquals(expected, actual, "Incorrect statements (actual=" + actual.size() + ", expected=" + expected.size() + ")");
     }
 
     @Test
@@ -104,7 +102,7 @@ public class InternalModelTest {
 
         Set<OWLAnnotation> annotations = model.listOWLAnnotations().collect(Collectors.toSet());
         annotations.forEach(x -> LOGGER.debug("{}", x));
-        Assert.assertEquals("Incorrect annotations count", 4, annotations.size());
+        Assertions.assertEquals(4, annotations.size());
 
         LOGGER.debug("Create bulk annotation.");
         OWLAnnotation bulk = factory.getOWLAnnotation(factory.getRDFSLabel(), factory.getOWLLiteral("the label"),
@@ -112,14 +110,14 @@ public class InternalModelTest {
         model.add(bulk);
         annotations = model.listOWLAnnotations().collect(Collectors.toSet());
         annotations.forEach(x -> LOGGER.debug("{}", x));
-        Assert.assertEquals("Incorrect annotations count", 5, annotations.size());
+        Assertions.assertEquals(5, annotations.size());
 
         LOGGER.debug("Create plain(assertion) annotation.");
         OWLAnnotation plain = factory.getOWLAnnotation(factory.getRDFSSeeAlso(), IRI.create("http://please.click.me/"));
         model.add(plain);
         annotations = model.listOWLAnnotations().collect(Collectors.toSet());
         annotations.forEach(x -> LOGGER.debug("{}", x));
-        Assert.assertEquals("Incorrect annotations count", 6, annotations.size());
+        Assertions.assertEquals(6, annotations.size());
 
         LOGGER.debug("Remove annotations.");
         OWLAnnotation comment = annotations.stream()
@@ -132,7 +130,7 @@ public class InternalModelTest {
 
         annotations = model.listOWLAnnotations().collect(Collectors.toSet());
         annotations.forEach(x -> LOGGER.debug("{}", x));
-        Assert.assertEquals("Incorrect annotations count", 4, annotations.size());
+        Assertions.assertEquals(4, annotations.size());
     }
 
     @Test
@@ -202,8 +200,8 @@ public class InternalModelTest {
         AxiomParserProvider.get(view).axioms(model).forEach(e -> {
             Axiom axiom = e.getOWLObject();
             Set<Triple> triples = e.triples().collect(Collectors.toSet());
-            Assert.assertNotNull("Null axiom", axiom);
-            Assert.assertFalse("No associated triples", triples.isEmpty());
+            Assertions.assertNotNull(axiom, "Null axiom");
+            Assertions.assertFalse(triples.isEmpty(), "No associated triples");
             LOGGER.debug("{} {}", axiom, triples);
         });
     }
@@ -234,9 +232,9 @@ public class InternalModelTest {
         List<T> expected = owl.sorted().collect(Collectors.toList());
         LOGGER.debug("{} (owl, expected) ::: {} (ont, actual)", expected.size(), actual.size());
         if (OWLAnonymousIndividual.class.equals(view)) {
-            Assert.assertEquals("Incorrect anonymous individuals count ", actual.size(), expected.size());
+            Assertions.assertEquals(actual.size(), expected.size(), "Incorrect anonymous individuals count ");
         } else {
-            Assert.assertThat("Incorrect " + view.getSimpleName(), actual, IsEqual.equalTo(expected));
+            Assertions.assertEquals(expected, actual, "Incorrect " + view.getSimpleName());
         }
     }
 

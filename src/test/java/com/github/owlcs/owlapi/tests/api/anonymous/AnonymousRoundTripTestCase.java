@@ -15,8 +15,8 @@ package com.github.owlcs.owlapi.tests.api.anonymous;
 
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.formats.ManchesterSyntaxDocumentFormat;
 import org.semanticweb.owlapi.model.*;
 
@@ -25,7 +25,7 @@ public class AnonymousRoundTripTestCase extends TestBase {
     @Test
     public void shouldNotFailOnAnonymousOntologySearch() throws OWLOntologyCreationException {
         m.createOntology(new OWLOntologyID());
-        Assert.assertNull(m.getOntology(new OWLOntologyID()));
+        Assertions.assertNull(m.getOntology(new OWLOntologyID()));
     }
 
     @Test

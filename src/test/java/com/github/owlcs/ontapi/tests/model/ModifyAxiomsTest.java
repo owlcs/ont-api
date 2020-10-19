@@ -22,8 +22,8 @@ import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import com.github.owlcs.ontapi.jena.vocabulary.SWRL;
 import com.github.owlcs.ontapi.jena.vocabulary.XSD;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
@@ -52,20 +52,20 @@ public class ModifyAxiomsTest {
         OntModel g = o.asGraphModel();
         g.createOntClass(ns + "X").addSuperClass(g.createOntClass(ns + "Y"));
         ReadWriteUtils.print(g);
-        Assert.assertEquals(4, g.size());
-        Assert.assertEquals(3, o.axioms().peek(x -> LOGGER.debug("1): {}", x)).count());
+        Assertions.assertEquals(4, g.size());
+        Assertions.assertEquals(3, o.axioms().peek(x -> LOGGER.debug("1): {}", x)).count());
 
         o.remove(df.getOWLDeclarationAxiom(df.getOWLClass(ns + "X")));
-        Assert.assertEquals(2, o.axioms().peek(x -> LOGGER.debug("2): {}", x)).count());
-        Assert.assertEquals(4, g.size());
+        Assertions.assertEquals(2, o.axioms().peek(x -> LOGGER.debug("2): {}", x)).count());
+        Assertions.assertEquals(4, g.size());
 
         o.remove(df.getOWLDeclarationAxiom(df.getOWLClass(ns + "Y")));
-        Assert.assertEquals(1, o.axioms().peek(x -> LOGGER.debug("3): {}", x)).count());
-        Assert.assertEquals(4, g.size());
+        Assertions.assertEquals(1, o.axioms().peek(x -> LOGGER.debug("3): {}", x)).count());
+        Assertions.assertEquals(4, g.size());
 
         o.remove(df.getOWLSubClassOfAxiom(df.getOWLClass(ns + "X"), df.getOWLClass(ns + "Y")));
-        Assert.assertEquals(0, o.axioms().peek(x -> LOGGER.debug("4): {}", x)).count());
-        Assert.assertEquals(1, g.size());
+        Assertions.assertEquals(0, o.axioms().peek(x -> LOGGER.debug("4): {}", x)).count());
+        Assertions.assertEquals(1, g.size());
     }
 
     @Test
@@ -82,8 +82,8 @@ public class ModifyAxiomsTest {
         o.remove(b);
 
         ReadWriteUtils.print(o);
-        Assert.assertTrue(o.isEmpty());
-        Assert.assertEquals(1, o.asGraphModel().size());
+        Assertions.assertTrue(o.isEmpty());
+        Assertions.assertEquals(1, o.asGraphModel().size());
     }
 
     @Test
@@ -97,26 +97,26 @@ public class ModifyAxiomsTest {
         m.createOntClass("x").addSuperClass(ce);
         m.createOntClass("y").addSuperClass(ce);
         ReadWriteUtils.print(m);
-        Assert.assertEquals(5, o.axioms().peek(a -> LOGGER.debug("1:{}", a)).count());
-        Assert.assertEquals(12, m.size());
+        Assertions.assertEquals(5, o.axioms().peek(a -> LOGGER.debug("1:{}", a)).count());
+        Assertions.assertEquals(12, m.size());
 
         OWLAxiom x = o.subClassAxiomsForSubClass(df.getOWLClass("x")).findFirst().orElseThrow(AssertionError::new);
         o.remove(x);
 
         ReadWriteUtils.print(m);
-        Assert.assertEquals(4, o.axioms().peek(a -> LOGGER.debug("2:{}", a)).count());
-        Assert.assertEquals(11, m.size());
+        Assertions.assertEquals(4, o.axioms().peek(a -> LOGGER.debug("2:{}", a)).count());
+        Assertions.assertEquals(11, m.size());
 
         OWLAxiom y = o.subClassAxiomsForSubClass(df.getOWLClass("y")).findFirst().orElseThrow(AssertionError::new);
         o.remove(y);
 
         ReadWriteUtils.print(m);
-        Assert.assertEquals(3, o.axioms().peek(a -> LOGGER.debug("3:{}", a)).count());
-        Assert.assertEquals(4, m.size());
+        Assertions.assertEquals(3, o.axioms().peek(a -> LOGGER.debug("3:{}", a)).count());
+        Assertions.assertEquals(4, m.size());
 
         o.axioms(AxiomType.DECLARATION).collect(Collectors.toList()).forEach(o::remove);
-        Assert.assertTrue(o.isEmpty());
-        Assert.assertEquals(1, m.size());
+        Assertions.assertTrue(o.isEmpty());
+        Assertions.assertEquals(1, m.size());
     }
 
     @Test
@@ -131,26 +131,26 @@ public class ModifyAxiomsTest {
         m.createOntClass("x").addSuperClass(ce2);
         m.createOntClass("y").addSuperClass(ce1);
         ReadWriteUtils.print(m);
-        Assert.assertEquals(5, o.axioms().peek(a -> LOGGER.debug("1:{}", a)).count());
-        Assert.assertEquals(17, m.size());
+        Assertions.assertEquals(5, o.axioms().peek(a -> LOGGER.debug("1:{}", a)).count());
+        Assertions.assertEquals(17, m.size());
 
         OWLAxiom x = o.subClassAxiomsForSubClass(df.getOWLClass("x")).findFirst().orElseThrow(AssertionError::new);
         o.remove(x);
 
         ReadWriteUtils.print(m);
-        Assert.assertEquals(4, o.axioms().peek(a -> LOGGER.debug("2:{}", a)).count());
-        Assert.assertEquals(11, m.size());
+        Assertions.assertEquals(4, o.axioms().peek(a -> LOGGER.debug("2:{}", a)).count());
+        Assertions.assertEquals(11, m.size());
 
         OWLAxiom y = o.subClassAxiomsForSubClass(df.getOWLClass("y")).findFirst().orElseThrow(AssertionError::new);
         o.remove(y);
 
         ReadWriteUtils.print(m);
-        Assert.assertEquals(3, o.axioms().peek(a -> LOGGER.debug("3:{}", a)).count());
-        Assert.assertEquals(4, m.size());
+        Assertions.assertEquals(3, o.axioms().peek(a -> LOGGER.debug("3:{}", a)).count());
+        Assertions.assertEquals(4, m.size());
 
         o.axioms(AxiomType.DECLARATION).collect(Collectors.toList()).forEach(o::remove);
-        Assert.assertTrue(o.isEmpty());
-        Assert.assertEquals(1, m.size());
+        Assertions.assertTrue(o.isEmpty());
+        Assertions.assertEquals(1, m.size());
     }
 
     @Test
@@ -163,26 +163,26 @@ public class ModifyAxiomsTest {
         m.createOntClass("x").addSuperClass(m.createObjectUnionOf(m.createOntClass("y"), m.createOntClass("z")));
         m.createOntClass("y").addSuperClass(m.createObjectUnionOf(m.createOntClass("y"), m.createOntClass("z")));
         ReadWriteUtils.print(m);
-        Assert.assertEquals(5, o.axioms().peek(a -> LOGGER.debug("1:{}", a)).count());
-        Assert.assertEquals(18, m.size());
+        Assertions.assertEquals(5, o.axioms().peek(a -> LOGGER.debug("1:{}", a)).count());
+        Assertions.assertEquals(18, m.size());
 
         OWLAxiom x = o.subClassAxiomsForSubClass(df.getOWLClass("x")).findFirst().orElseThrow(AssertionError::new);
         o.remove(x);
 
         ReadWriteUtils.print(m);
-        Assert.assertEquals(4, o.axioms().peek(a -> LOGGER.debug("2:{}", a)).count());
-        Assert.assertEquals(11, m.size());
+        Assertions.assertEquals(4, o.axioms().peek(a -> LOGGER.debug("2:{}", a)).count());
+        Assertions.assertEquals(11, m.size());
 
         OWLAxiom y = o.subClassAxiomsForSubClass(df.getOWLClass("y")).findFirst().orElseThrow(AssertionError::new);
         o.remove(y);
 
         ReadWriteUtils.print(m);
-        Assert.assertEquals(3, o.axioms().peek(a -> LOGGER.debug("3:{}", a)).count());
-        Assert.assertEquals(4, m.size());
+        Assertions.assertEquals(3, o.axioms().peek(a -> LOGGER.debug("3:{}", a)).count());
+        Assertions.assertEquals(4, m.size());
 
         o.axioms(AxiomType.DECLARATION).collect(Collectors.toList()).forEach(o::remove);
-        Assert.assertTrue(o.isEmpty());
-        Assert.assertEquals(1, m.size());
+        Assertions.assertTrue(o.isEmpty());
+        Assertions.assertEquals(1, m.size());
     }
 
     @Test
@@ -205,32 +205,32 @@ public class ModifyAxiomsTest {
         m.createSWRLImp(Arrays.asList(a2, a1, a4), Collections.emptyList());
 
         ReadWriteUtils.print(m);
-        Assert.assertEquals(5, o.axioms().peek(x -> LOGGER.debug("1:{}", x)).count());
-        Assert.assertEquals(43, m.size());
+        Assertions.assertEquals(5, o.axioms().peek(x -> LOGGER.debug("1:{}", x)).count());
+        Assertions.assertEquals(43, m.size());
 
         List<OWLAxiom> axioms = o.axioms(AxiomType.SWRL_RULE).collect(Collectors.toList());
-        Assert.assertEquals(2, axioms.size());
+        Assertions.assertEquals(2, axioms.size());
 
         o.remove(axioms.get(0));
 
         ReadWriteUtils.print(m);
-        Assert.assertEquals(4, o.axioms().peek(x -> LOGGER.debug("2:{}", x)).count());
-        Assert.assertEquals(27, m.size());
-        Assert.assertTrue(o.containsAxiom(axioms.get(1)));
+        Assertions.assertEquals(4, o.axioms().peek(x -> LOGGER.debug("2:{}", x)).count());
+        Assertions.assertEquals(27, m.size());
+        Assertions.assertTrue(o.containsAxiom(axioms.get(1)));
 
         o.clearCache();
-        Assert.assertEquals(1, o.axioms(AxiomType.SWRL_RULE).peek(x -> LOGGER.debug("3:{}", x)).count());
-        Assert.assertTrue(o.containsAxiom(axioms.get(1)));
+        Assertions.assertEquals(1, o.axioms(AxiomType.SWRL_RULE).peek(x -> LOGGER.debug("3:{}", x)).count());
+        Assertions.assertTrue(o.containsAxiom(axioms.get(1)));
 
         o.remove(axioms.get(1));
 
         ReadWriteUtils.print(m);
-        Assert.assertEquals(3, o.axioms().peek(x -> LOGGER.debug("4:{}", x)).count());
-        Assert.assertEquals(4, m.size());
+        Assertions.assertEquals(3, o.axioms().peek(x -> LOGGER.debug("4:{}", x)).count());
+        Assertions.assertEquals(4, m.size());
 
         o.axioms(AxiomType.DECLARATION).collect(Collectors.toList()).forEach(o::remove);
-        Assert.assertTrue(o.isEmpty());
-        Assert.assertEquals(1, m.size());
+        Assertions.assertTrue(o.isEmpty());
+        Assertions.assertEquals(1, m.size());
     }
 
     @Test
@@ -248,30 +248,30 @@ public class ModifyAxiomsTest {
         m.createOntClass("C2").addDisjointUnion(m.createDataAllValuesFrom(m.createDataProperty("P2"), dr2));
 
         ReadWriteUtils.print(m);
-        Assert.assertEquals(7, o.axioms().peek(x -> LOGGER.debug("1:{}", x)).count());
-        Assert.assertEquals(30, m.size());
+        Assertions.assertEquals(7, o.axioms().peek(x -> LOGGER.debug("1:{}", x)).count());
+        Assertions.assertEquals(30, m.size());
 
         OWLAxiom a1 = o.axioms(AxiomType.DISJOINT_UNION).findFirst().orElseThrow(AssertionError::new);
         o.remove(a1);
         ReadWriteUtils.print(m);
-        Assert.assertEquals(6, o.axioms().peek(x -> LOGGER.debug("2:{}", x)).count());
-        Assert.assertEquals(24, m.size());
+        Assertions.assertEquals(6, o.axioms().peek(x -> LOGGER.debug("2:{}", x)).count());
+        Assertions.assertEquals(24, m.size());
 
         OWLAxiom a2 = o.axioms(AxiomType.DATA_PROPERTY_RANGE).findFirst().orElseThrow(AssertionError::new);
         o.remove(a2);
         ReadWriteUtils.print(m);
-        Assert.assertEquals(5, o.axioms().peek(x -> LOGGER.debug("3:{}", x)).count());
-        Assert.assertEquals(18, m.size());
+        Assertions.assertEquals(5, o.axioms().peek(x -> LOGGER.debug("3:{}", x)).count());
+        Assertions.assertEquals(18, m.size());
 
         OWLAxiom a3 = o.axioms(AxiomType.DISJOINT_CLASSES).findFirst().orElseThrow(AssertionError::new);
         o.remove(a3);
         ReadWriteUtils.print(m);
-        Assert.assertEquals(4, o.axioms().peek(x -> LOGGER.debug("4:{}", x)).count());
-        Assert.assertEquals(5, m.size());
+        Assertions.assertEquals(4, o.axioms().peek(x -> LOGGER.debug("4:{}", x)).count());
+        Assertions.assertEquals(5, m.size());
 
         o.axioms(AxiomType.DECLARATION).collect(Collectors.toList()).forEach(o::remove);
-        Assert.assertTrue(o.isEmpty());
-        Assert.assertEquals(1, m.size());
+        Assertions.assertTrue(o.isEmpty());
+        Assertions.assertEquals(1, m.size());
     }
 
     @Test
@@ -290,8 +290,8 @@ public class ModifyAxiomsTest {
         o.remove(a);
         ReadWriteUtils.print(o);
 
-        Assert.assertTrue(o.isEmpty());
-        Assert.assertEquals(1, o.asGraphModel().size());
+        Assertions.assertTrue(o.isEmpty());
+        Assertions.assertEquals(1, o.asGraphModel().size());
     }
 
     @Test
@@ -309,8 +309,8 @@ public class ModifyAxiomsTest {
         m.applyChange(new RemoveOntologyAnnotation(o, a));
         ReadWriteUtils.print(o);
 
-        Assert.assertTrue(o.isEmpty());
-        Assert.assertEquals(1, o.asGraphModel().size());
+        Assertions.assertTrue(o.isEmpty());
+        Assertions.assertEquals(1, o.asGraphModel().size());
     }
 
     @Test
@@ -341,10 +341,10 @@ public class ModifyAxiomsTest {
         LOGGER.debug("{}", subClassOf);
         o.remove(subClassOf);
         ReadWriteUtils.print(o);
-        Assert.assertEquals(2, o.asGraphModel().size());
+        Assertions.assertEquals(2, o.asGraphModel().size());
         o.remove(declaration);
-        Assert.assertEquals(1, o.asGraphModel().size());
-        Assert.assertTrue(o.isEmpty());
+        Assertions.assertEquals(1, o.asGraphModel().size());
+        Assertions.assertTrue(o.isEmpty());
     }
 
     @Test
@@ -362,26 +362,26 @@ public class ModifyAxiomsTest {
         c.addEquivalentClassStatement(ce).annotate(m.getRDFSComment(), "x");
         ReadWriteUtils.print(o);
 
-        Assert.assertEquals(4, o.axioms().peek(x -> LOGGER.debug("A: {}", x)).count());
-        Assert.assertEquals(15, m.statements().peek(x -> LOGGER.debug("S: {}", x)).count());
+        Assertions.assertEquals(4, o.axioms().peek(x -> LOGGER.debug("A: {}", x)).count());
+        Assertions.assertEquals(15, m.statements().peek(x -> LOGGER.debug("S: {}", x)).count());
         OWLEquivalentClassesAxiom eca = o.axioms(AxiomType.EQUIVALENT_CLASSES).findFirst()
                 .orElseThrow(AssertionError::new);
         OWLDatatypeDefinitionAxiom dda = o.axioms(AxiomType.DATATYPE_DEFINITION).findFirst()
                 .orElseThrow(AssertionError::new);
-        Assert.assertEquals(ClassExpressionType.OBJECT_COMPLEMENT_OF,
+        Assertions.assertEquals(ClassExpressionType.OBJECT_COMPLEMENT_OF,
                 eca.operands().filter(IsAnonymous::isAnonymous)
                         .findFirst().orElseThrow(AssertionError::new).getClassExpressionType());
-        Assert.assertEquals(DataRangeType.DATA_ONE_OF, dda.getDataRange().getDataRangeType());
+        Assertions.assertEquals(DataRangeType.DATA_ONE_OF, dda.getDataRange().getDataRangeType());
 
         o.remove(dda);
         ReadWriteUtils.print(o);
-        Assert.assertEquals(3, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
-        Assert.assertEquals(11, m.size());
+        Assertions.assertEquals(3, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
+        Assertions.assertEquals(11, m.size());
 
         o.remove(eca);
         ReadWriteUtils.print(o);
-        Assert.assertEquals(2, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
-        Assert.assertEquals(3, m.size());
+        Assertions.assertEquals(2, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
+        Assertions.assertEquals(3, m.size());
     }
 
     @Test
@@ -399,30 +399,30 @@ public class ModifyAxiomsTest {
         m.createIndividual("I").addNegativeAssertion(m.createDataProperty("P"), m.createLiteral("x"));
 
         ReadWriteUtils.print(o);
-        Assert.assertEquals(system - 1, ad.asBaseModel(o).getBase().getSystemResources(OntClass.Named.class).size());
-        Assert.assertEquals(7, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
-        Assert.assertEquals(9, m.size());
+        Assertions.assertEquals(system - 1, ad.asBaseModel(o).getBase().getSystemResources(OntClass.Named.class).size());
+        Assertions.assertEquals(7, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
+        Assertions.assertEquals(9, m.size());
 
         OWLAxiom ndpa = o.axioms(AxiomType.NEGATIVE_DATA_PROPERTY_ASSERTION).findFirst().orElseThrow(AssertionError::new);
         OWLAxiom dpa = o.axioms(AxiomType.DATA_PROPERTY_ASSERTION).findFirst().orElseThrow(AssertionError::new);
         OWLAxiom ca = o.axioms(AxiomType.CLASS_ASSERTION).findFirst().orElseThrow(AssertionError::new);
         o.remove(ndpa);
         ReadWriteUtils.print(o);
-        Assert.assertEquals(6, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
-        Assert.assertEquals(7, m.size());
+        Assertions.assertEquals(6, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
+        Assertions.assertEquals(7, m.size());
 
         o.remove(dpa);
         o.remove(ca);
         ReadWriteUtils.print(o);
-        Assert.assertEquals(4, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
-        Assert.assertEquals(5, m.size());
+        Assertions.assertEquals(4, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
+        Assertions.assertEquals(5, m.size());
 
         o.remove(df.getOWLDeclarationAxiom(df.getOWLClass(OWL.NegativePropertyAssertion.getURI())));
         o.remove(df.getOWLDeclarationAxiom(df.getOWLDataProperty(OWL.targetValue.getURI())));
         ReadWriteUtils.print(o);
-        Assert.assertEquals(system, ad.asBaseModel(o).getBase().getSystemResources(OntClass.Named.class).size());
-        Assert.assertEquals(2, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
-        Assert.assertEquals(3, m.size());
+        Assertions.assertEquals(system, ad.asBaseModel(o).getBase().getSystemResources(OntClass.Named.class).size());
+        Assertions.assertEquals(2, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
+        Assertions.assertEquals(3, m.size());
 
     }
 
@@ -445,22 +445,22 @@ public class ModifyAxiomsTest {
         o.add(df.getOWLSubAnnotationPropertyOfAxiom(ap_a, ap_b));
         ReadWriteUtils.print(o);
 
-        Assert.assertEquals(6, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
-        Assert.assertEquals(6, o.asGraphModel().size());
+        Assertions.assertEquals(6, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
+        Assertions.assertEquals(6, o.asGraphModel().size());
 
         o.removeAxiom(df.getOWLSubAnnotationPropertyOfAxiom(ap_a, ap_b));
         ReadWriteUtils.print(o);
-        Assert.assertEquals(5, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
-        Assert.assertEquals(6, o.asGraphModel().size());
+        Assertions.assertEquals(5, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
+        Assertions.assertEquals(6, o.asGraphModel().size());
 
         o.removeAxiom(df.getOWLDeclarationAxiom(ap_a));
         ReadWriteUtils.print(o);
-        Assert.assertEquals(4, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
-        Assert.assertEquals(5, o.asGraphModel().size());
+        Assertions.assertEquals(4, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
+        Assertions.assertEquals(5, o.asGraphModel().size());
 
         o.removeAxiom(df.getOWLDeclarationAxiom(ap_b));
         ReadWriteUtils.print(o);
-        Assert.assertEquals(3, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
-        Assert.assertEquals(4, o.asGraphModel().size());
+        Assertions.assertEquals(3, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
+        Assertions.assertEquals(4, o.asGraphModel().size());
     }
 }

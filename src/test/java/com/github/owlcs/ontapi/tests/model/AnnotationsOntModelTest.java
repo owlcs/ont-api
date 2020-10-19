@@ -32,8 +32,8 @@ import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.vocabulary.RDFS;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.io.FileDocumentSource;
 import org.semanticweb.owlapi.io.IRIDocumentSource;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
@@ -75,11 +75,11 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
         LOGGER.debug("NOPA: {}", nopa);
         LOGGER.debug("NDPA: {}", ndpa);
 
-        Assert.assertTrue(nopa.isAnnotated());
-        Assert.assertTrue(ndpa.isAnnotated());
-        Assert.assertEquals(2, nopa.annotations().count());
-        Assert.assertEquals(1, ndpa.annotations().count());
-        Assert.assertEquals(2, ndpa.annotations().findFirst().orElseThrow(AssertionError::new).annotations().count());
+        Assertions.assertTrue(nopa.isAnnotated());
+        Assertions.assertTrue(ndpa.isAnnotated());
+        Assertions.assertEquals(2, nopa.annotations().count());
+        Assertions.assertEquals(1, ndpa.annotations().count());
+        Assertions.assertEquals(2, ndpa.annotations().findFirst().orElseThrow(AssertionError::new).annotations().count());
     }
 
     @Test
@@ -152,7 +152,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
     @Test
     public void testComplexAnnotations1() {
         OntologyManager manager = OntManagers.createManager();
-        Assert.assertTrue(manager.getOntologyLoaderConfiguration().isAllowBulkAnnotationAssertions());
+        Assertions.assertTrue(manager.getOntologyLoaderConfiguration().isAllowBulkAnnotationAssertions());
         complexAnnotationsTest(manager, true);
     }
 
@@ -163,7 +163,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
     public void testComplexAnnotations2() {
         OntologyManager manager = OntManagers.createManager();
         manager.getOntologyConfigurator().setAllowBulkAnnotationAssertions(false);
-        Assert.assertFalse(manager.getOntologyLoaderConfiguration().isAllowBulkAnnotationAssertions());
+        Assertions.assertFalse(manager.getOntologyLoaderConfiguration().isAllowBulkAnnotationAssertions());
         complexAnnotationsTest(manager, false);
     }
 
@@ -219,7 +219,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
         OWLOntologyID id2 = iri.toOwlOntologyID(iri.addPath("2.0"));
         LOGGER.debug("Create ontology {} (empty)", id2);
         Ontology owl2 = manager.createOntology(id2);
-        Assert.assertEquals("Incorrect number of ontologies.", count + 2, manager.ontologies().count());
+        Assertions.assertEquals(count + 2, manager.ontologies().count());
 
         LOGGER.debug("Pass all content from {} to {} using jena.", id1, id2);
         OntModel source = owl1.asGraphModel();
@@ -231,36 +231,34 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
         debug(owl2);
 
         LOGGER.debug("Validate axioms"); // By default bulk assertions are allowed:
-        Assert.assertEquals("Should be single class-assertion", 1, owl2.axioms(AxiomType.CLASS_ASSERTION).count());
-        Assert.assertEquals("Should be two declarations(class + individual)", 2,
+        Assertions.assertEquals(1, owl2.axioms(AxiomType.CLASS_ASSERTION).count());
+        Assertions.assertEquals(2,
                 owl2.axioms(AxiomType.DECLARATION).count());
-        Assert.assertTrue("Incorrect class assertion axiom.", owl2.containsAxiom(individualAxiom));
+        Assertions.assertTrue(owl2.containsAxiom(individualAxiom));
 
-        Assert.assertEquals(allowBulkAnnotationAssertions ? 4 : 2,
+        Assertions.assertEquals(allowBulkAnnotationAssertions ? 4 : 2,
                 AxiomParserProvider.get(AxiomType.ANNOTATION_ASSERTION).statements(owl2.asGraphModel())
                         .peek(x -> LOGGER.debug("TEST:::: {}", x)).count());
 
         if (allowBulkAnnotationAssertions) {
-            Assert.assertEquals("Incorrect axioms count", 7, owl2.getAxiomCount());
-            Assert.assertEquals("Incorrect annotation-assertions count", 4,
+            Assertions.assertEquals(7, owl2.getAxiomCount());
+            Assertions.assertEquals(4,
                     owl2.axioms(AxiomType.ANNOTATION_ASSERTION).count());
-            Assert.assertEquals("Incorrect count of annotated axioms", 3,
+            Assertions.assertEquals(3,
                     owl2.axioms().filter(OWLAxiom::isAnnotated).count());
-            Assert.assertTrue("Can't find bulk assertion N1",
-                    owl2.containsAxiom(df.getOWLAnnotationAssertionAxiom(clazz.getIRI(), root1)));
-            Assert.assertTrue("Can't find bulk assertion N2",
-                    owl2.containsAxiom(df.getOWLAnnotationAssertionAxiom(clazz.getIRI(), root2)));
-            Assert.assertTrue("No unannotated class-declaration", owl2.containsAxiom(df.getOWLDeclarationAxiom(clazz)));
+            Assertions.assertTrue(owl2.containsAxiom(df.getOWLAnnotationAssertionAxiom(clazz.getIRI(), root1)));
+            Assertions.assertTrue(owl2.containsAxiom(df.getOWLAnnotationAssertionAxiom(clazz.getIRI(), root2)));
+            Assertions.assertTrue(owl2.containsAxiom(df.getOWLDeclarationAxiom(clazz)));
         } else {
-            Assert.assertEquals("Incorrect axioms count", 5, owl2.getAxiomCount());
-            Assert.assertEquals("Incorrect annotation-assertions count", 2,
+            Assertions.assertEquals(5, owl2.getAxiomCount());
+            Assertions.assertEquals(2,
                     owl2.axioms(AxiomType.ANNOTATION_ASSERTION).count());
-            Assert.assertEquals("Incorrect count of annotated axioms", 2,
+            Assertions.assertEquals(2,
                     owl2.axioms().filter(OWLAxiom::isAnnotated).count());
             // no assertion annotations inside:
             OWLAxiom expectedClassAxiom = df.getOWLDeclarationAxiom(clazz,
                     Stream.of(root1, root2).collect(Collectors.toSet()));
-            Assert.assertTrue("Incorrect declaration class axiom", owl2.containsAxiom(expectedClassAxiom));
+            Assertions.assertTrue(owl2.containsAxiom(expectedClassAxiom));
         }
     }
 
@@ -507,14 +505,14 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
         OWLClass c = df.getOWLClass("http://purl.obolibrary.org/obo/TTO_1006537");
 
         OWLOntology o = m.loadOntologyFromOntologyDocument(IRI.create(ReadWriteUtils.getResourceURI("ontapi/test-annotations-1.ttl")));
-        Assert.assertEquals("Wrong annotation assertions count", 1, o.axioms(AxiomType.ANNOTATION_ASSERTION).count());
+        Assertions.assertEquals(1, o.axioms(AxiomType.ANNOTATION_ASSERTION).count());
         OWLAnnotationAssertionAxiom axiom = o.axioms(AxiomType.ANNOTATION_ASSERTION).findFirst().orElseThrow(AssertionError::new);
-        Assert.assertEquals("Wrong value", df.getOWLLiteral("Squalus cinereus"), axiom.getValue());
-        Assert.assertEquals("Wrong subject", c.getIRI(), axiom.getSubject());
-        Assert.assertEquals("Wrong predicate", p1, axiom.getProperty());
+        Assertions.assertEquals(df.getOWLLiteral("Squalus cinereus"), axiom.getValue());
+        Assertions.assertEquals(c.getIRI(), axiom.getSubject());
+        Assertions.assertEquals(p1, axiom.getProperty());
         List<OWLAnnotation> sub = axiom.annotationsAsList();
-        Assert.assertEquals("Wrong count of sub-annotations", 2, sub.size());
-        sub.forEach(a -> Assert.assertEquals("Wrong predicate", p2, a.getProperty()));
+        Assertions.assertEquals(2, sub.size());
+        sub.forEach(a -> Assertions.assertEquals(p2, a.getProperty()));
     }
 
     @Test
@@ -522,7 +520,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
         OntologyManager m = OntManagers.createManager();
         OntLoaderConfiguration conf = m.getOntologyConfigurator()
                 .buildLoaderConfiguration().setSplitAxiomAnnotations(true);
-        Assert.assertFalse(m.getOntologyLoaderConfiguration().isSplitAxiomAnnotations());
+        Assertions.assertFalse(m.getOntologyLoaderConfiguration().isSplitAxiomAnnotations());
 
         IRI file = IRI.create(ReadWriteUtils.getResourceURI("ontapi/test-annotations-2.ttl"));
         OWLOntologyDocumentSource src = new IRIDocumentSource(file, OntFormat.TURTLE.createOwlFormat(), null);
@@ -532,15 +530,15 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
         OWLAnnotationProperty p1 = df.getOWLAnnotationProperty("http://www.geneontology.org/formats/oboInOwl#hasNarrowSynonym");
         OWLAnnotationProperty p2 = df.getOWLAnnotationProperty("http://www.geneontology.org/formats/oboInOwl#hasDbXref");
         OWLClass c = df.getOWLClass("http://purl.obolibrary.org/obo/TTO_1006537");
-        Assert.assertEquals("Wrong annotation assertions count", 2, o.axioms(AxiomType.ANNOTATION_ASSERTION)
+        Assertions.assertEquals(2, o.axioms(AxiomType.ANNOTATION_ASSERTION)
                 .peek(x -> LOGGER.debug("Axiom {}", x))
                 .peek(axiom -> {
-                    Assert.assertEquals("Wrong value", df.getOWLLiteral("Squalus cinereus"), axiom.getValue());
-                    Assert.assertEquals("Wrong subject", c.getIRI(), axiom.getSubject());
-                    Assert.assertEquals("Wrong predicate", p1, axiom.getProperty());
+                    Assertions.assertEquals(df.getOWLLiteral("Squalus cinereus"), axiom.getValue());
+                    Assertions.assertEquals(c.getIRI(), axiom.getSubject());
+                    Assertions.assertEquals(p1, axiom.getProperty());
                     List<OWLAnnotation> sub = axiom.annotationsAsList();
-                    Assert.assertEquals("Wrong count of sub-annotations", 1, sub.size());
-                    Assert.assertEquals("Wrong predicate", p2, sub.get(0).getProperty());
+                    Assertions.assertEquals(1, sub.size());
+                    Assertions.assertEquals(p2, sub.get(0).getProperty());
                 })
                 .count());
     }
@@ -551,24 +549,22 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
         OWLOntology o = m.loadOntologyFromOntologyDocument(IRI.create(ReadWriteUtils.getResourceURI("ontapi/test-annotations-2.ttl")));
         ReadWriteUtils.print(o);
         List<OWLAnnotationAssertionAxiom> list = o.axioms(AxiomType.ANNOTATION_ASSERTION).collect(Collectors.toList());
-        Assert.assertEquals(1, list.size());
+        Assertions.assertEquals(1, list.size());
         OWLAnnotationAssertionAxiom axiom = list.get(0);
 
         OWLDataFactory df = m.getOWLDataFactory();
         OWLAnnotationProperty p1 = df.getOWLAnnotationProperty("http://www.geneontology.org/formats/oboInOwl#hasNarrowSynonym");
         OWLAnnotationProperty p2 = df.getOWLAnnotationProperty("http://www.geneontology.org/formats/oboInOwl#hasDbXref");
         OWLClass c = df.getOWLClass("http://purl.obolibrary.org/obo/TTO_1006537");
-        Assert.assertEquals("Wrong value", df.getOWLLiteral("Squalus cinereus"), axiom.getValue());
-        Assert.assertEquals("Wrong subject", c.getIRI(), axiom.getSubject());
-        Assert.assertEquals("Wrong predicate", p1, axiom.getProperty());
+        Assertions.assertEquals(df.getOWLLiteral("Squalus cinereus"), axiom.getValue());
+        Assertions.assertEquals(c.getIRI(), axiom.getSubject());
+        Assertions.assertEquals(p1, axiom.getProperty());
         List<OWLAnnotation> sub = axiom.annotations().sorted().collect(Collectors.toList());
-        Assert.assertEquals("Wrong count of sub-annotations", 2, sub.size());
-        Assert.assertEquals("Wrong predicate", p2, sub.get(0).getProperty());
-        Assert.assertEquals("Wrong predicate", p2, sub.get(1).getProperty());
-        Assert.assertEquals("CASSPC:46467", sub.get(0).getValue().asLiteral()
-                .orElseThrow(AssertionError::new).getLiteral());
-        Assert.assertEquals("CASSPC:6553", sub.get(1).getValue().asLiteral()
-                .orElseThrow(AssertionError::new).getLiteral());
+        Assertions.assertEquals(2, sub.size());
+        Assertions.assertEquals(p2, sub.get(0).getProperty());
+        Assertions.assertEquals(p2, sub.get(1).getProperty());
+        Assertions.assertEquals("CASSPC:46467", sub.get(0).getValue().asLiteral().orElseThrow(AssertionError::new).getLiteral());
+        Assertions.assertEquals("CASSPC:6553", sub.get(1).getValue().asLiteral().orElseThrow(AssertionError::new).getLiteral());
     }
 
     @Test
@@ -578,12 +574,12 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
         FileDocumentSource src = new FileDocumentSource(file.toFile());
         OWLOntology o = m.loadOntologyFromOntologyDocument(src, m.getOntologyLoaderConfiguration()
                 .setSplitAxiomAnnotations(true));
-        Assert.assertEquals(4, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
-        Assert.assertEquals("Wrong declarations count", 3, o.axioms(AxiomType.DECLARATION).count());
-        Assert.assertEquals("Wrong annotations count", 1, o.axioms(AxiomType.ANNOTATION_ASSERTION).count());
+        Assertions.assertEquals(4, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
+        Assertions.assertEquals(3, o.axioms(AxiomType.DECLARATION).count());
+        Assertions.assertEquals(1, o.axioms(AxiomType.ANNOTATION_ASSERTION).count());
         o.axioms(AxiomType.DECLARATION).forEach(a -> {
             int expected = a.getEntity().isOWLClass() ? 1 : 0;
-            Assert.assertEquals("Wrong annotations count: ", expected, a.annotations().count());
+            Assertions.assertEquals(expected, a.annotations().count());
         });
     }
 
@@ -592,12 +588,12 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
         OWLOntologyManager m = OntManagers.createManager();
         String file = "ontapi/test-annotations-3.ttl";
         OWLOntology o = m.loadOntologyFromOntologyDocument(IRI.create(ReadWriteUtils.getResourceURI(file)));
-        Assert.assertEquals(3, o.axioms().peek(x -> LOGGER.debug("Axiom: {}", x)).count());
+        Assertions.assertEquals(3, o.axioms().peek(x -> LOGGER.debug("Axiom: {}", x)).count());
 
-        Assert.assertEquals("Wrong declarations count", 2, o.axioms(AxiomType.DECLARATION).count());
-        Assert.assertEquals("Wrong annotations count", 1, o.axioms(AxiomType.ANNOTATION_ASSERTION).count());
+        Assertions.assertEquals(2, o.axioms(AxiomType.DECLARATION).count());
+        Assertions.assertEquals(1, o.axioms(AxiomType.ANNOTATION_ASSERTION).count());
         o.axioms(AxiomType.DECLARATION)
-                .forEach(a -> Assert.assertEquals("Wrong annotations count: ", a.getEntity().isOWLClass() ? 2 : 0,
+                .forEach(a -> Assertions.assertEquals(a.getEntity().isOWLClass() ? 2 : 0,
                         a.annotations().count()));
     }
 
@@ -631,58 +627,55 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
         if (manager instanceof OntologyManager) {
             OntModel jena = ((Ontology) o1).asGraphModel();
             // test annotation see-also:
-            Assert.assertTrue("Can't find rdfs:comment " + comment, jena.contains(null, RDFS.comment,
-                    WriteHelper.toRDFNode(comment)));
-            Assert.assertTrue("Can't find owl:annotatedTarget " + comment, jena.contains(null, OWL.annotatedTarget,
-                    WriteHelper.toRDFNode(comment)));
-            Assert.assertEquals("Should be at least two rdf:label " + label, 2, jena.listStatements(null, RDFS.label,
+            Assertions.assertTrue(jena.contains(null, RDFS.comment, WriteHelper.toRDFNode(comment)));
+            Assertions.assertTrue(jena.contains(null, OWL.annotatedTarget, WriteHelper.toRDFNode(comment)));
+            Assertions.assertEquals(2, jena.listStatements(null, RDFS.label,
                     WriteHelper.toRDFNode(label)).toList().size());
-            Assert.assertTrue("Can't find rdfs:seeAlso " + link + " attached to ontology.",
-                    jena.contains(iri.toResource(), RDFS.seeAlso, WriteHelper.toResource(link)));
+            Assertions.assertTrue(jena.contains(iri.toResource(), RDFS.seeAlso, WriteHelper.toResource(link)),
+                    "Can't find rdfs:seeAlso " + link + " attached to ontology.");
             Resource seeAlsoRoot = jena.statements(null, OWL.annotatedProperty, RDFS.seeAlso)
                     .map(Statement::getSubject)
                     .filter(Resource::isAnon)
                     .filter(r -> r.hasProperty(RDF.type, OWL.Axiom))
                     .findFirst().orElseThrow(() -> new AssertionError("No axiom root for rdfs:seeAlso"));
-            Assert.assertTrue("Can't find owl:annotatedSource",
-                    seeAlsoRoot.hasProperty(OWL.annotatedSource, jena.getID()));
-            Assert.assertTrue("Can't find  owl:annotatedTarget", seeAlsoRoot.hasProperty(OWL.annotatedTarget,
+            Assertions.assertTrue(seeAlsoRoot.hasProperty(OWL.annotatedSource, jena.getID()));
+            Assertions.assertTrue(seeAlsoRoot.hasProperty(OWL.annotatedTarget,
                     WriteHelper.toResource(link)));
             // test annotation with custom property:
-            Assert.assertTrue("Can't find " + annotationProperty + " " + someLiteral, jena.contains(iri.toResource(),
-                    WriteHelper.toProperty(annotationProperty), WriteHelper.toRDFNode(someLiteral)));
-            Assert.assertTrue("Can't find declaration of " + annotationProperty,
-                    jena.contains(WriteHelper.toResource(annotationProperty), RDF.type, OWL.AnnotationProperty));
+            Assertions.assertTrue(jena.contains(iri.toResource(),
+                    WriteHelper.toProperty(annotationProperty), WriteHelper.toRDFNode(someLiteral)),
+                    "Can't find " + annotationProperty + " " + someLiteral);
+            Assertions.assertTrue(jena.contains(WriteHelper.toResource(annotationProperty), RDF.type, OWL.AnnotationProperty),
+                    "Can't find declaration of " + annotationProperty);
         }
 
         LOGGER.debug("2) Remove {}", seeAlsoAnnotation);
         o1.applyChanges(new RemoveOntologyAnnotation(o1, seeAlsoAnnotation));
         debug(o1);
-        Assert.assertFalse("The annotation " + seeAlsoAnnotation + " still present",
-                o1.annotations().anyMatch(seeAlsoAnnotation::equals));
+        Assertions.assertFalse(o1.annotations().anyMatch(seeAlsoAnnotation::equals),
+                "The annotation " + seeAlsoAnnotation + " still present");
 
         // test jena annotation1:
         if (manager instanceof OntologyManager) {
             OntModel jena = ((Ontology) o1).asGraphModel();
-            Assert.assertFalse("There is rdfs:comment " + comment,
-                    jena.contains(null, RDFS.comment, WriteHelper.toRDFNode(comment)));
-            Assert.assertFalse("There is owl:annotatedTarget " + comment,
-                    jena.contains(null, OWL.annotatedTarget, WriteHelper.toRDFNode(comment)));
-            Assert.assertEquals("There is rdf:label " + label, 0,
-                    jena.listStatements(null, RDFS.label, WriteHelper.toRDFNode(label)).toList().size());
-            Assert.assertFalse("There is rdfs:seeAlso " + link,
-                    jena.contains(iri.toResource(), RDFS.seeAlso, WriteHelper.toResource(link)));
+            Assertions.assertFalse(jena.contains(null, RDFS.comment, WriteHelper.toRDFNode(comment)),
+                    "There is rdfs:comment " + comment);
+            Assertions.assertFalse(jena.contains(null, OWL.annotatedTarget, WriteHelper.toRDFNode(comment)),
+                    "There is owl:annotatedTarget " + comment);
+            Assertions.assertEquals(0, jena.listStatements(null, RDFS.label, WriteHelper.toRDFNode(label)).toList().size());
+            Assertions.assertFalse(jena.contains(iri.toResource(), RDFS.seeAlso, WriteHelper.toResource(link)),
+                    "There is rdfs:seeAlso " + link);
             // test annotation2:
-            Assert.assertTrue("Can't find " + annotationProperty + " " + someLiteral, jena.contains(iri.toResource(),
-                    WriteHelper.toProperty(annotationProperty), WriteHelper.toRDFNode(someLiteral)));
-            Assert.assertTrue("Can't find declaration of " + annotationProperty,
-                    jena.contains(WriteHelper.toResource(annotationProperty), RDF.type, OWL.AnnotationProperty));
+            Assertions.assertTrue(jena.contains(iri.toResource(), WriteHelper.toProperty(annotationProperty), WriteHelper.toRDFNode(someLiteral)),
+                    "Can't find " + annotationProperty + " " + someLiteral);
+            Assertions.assertTrue(jena.contains(WriteHelper.toResource(annotationProperty), RDF.type, OWL.AnnotationProperty),
+                    "Can't find declaration of " + annotationProperty);
         }
 
         LOGGER.debug("3) Remove {}", customPropertyAnnotation);
         o1.applyChanges(new RemoveOntologyAnnotation(o1, customPropertyAnnotation));
-        Assert.assertFalse("The annotation " + customPropertyAnnotation + " still present",
-                o1.annotations().anyMatch(customPropertyAnnotation::equals));
+        Assertions.assertFalse(o1.annotations().anyMatch(customPropertyAnnotation::equals),
+                "The annotation " + customPropertyAnnotation + " still present");
         o1.remove(df.getOWLDeclarationAxiom(annotationProperty));
         debug(o1);
         if (manager instanceof OntologyManager) {
@@ -690,7 +683,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
             List<Statement> rest = jena.listStatements().toList();
             LOGGER.debug("Rest statements : ");
             rest.stream().map(String::valueOf).forEach(LOGGER::debug);
-            Assert.assertEquals("Expected only single triplet", 1, rest.size());
+            Assertions.assertEquals(1, rest.size());
         }
 
         LOGGER.debug("4) Reload original ontology.");
@@ -698,11 +691,11 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
         txt += String.format("<%s> <%s> <%s> .", iri, OWL.versionIRI, ver);
         LOGGER.debug("To Load: \n{}\n", txt);
         OWLOntology o2 = manager.loadOntologyFromOntologyDocument(new StringDocumentSource(txt));
-        Assert.assertEquals("Incorrect ontologies count", count + 2, manager.ontologies().count());
+        Assertions.assertEquals(count + 2, manager.ontologies().count());
         List<OWLAnnotation> actual = o2.annotations().sorted().collect(Collectors.toList());
         List<OWLAnnotation> expected = Stream.of(seeAlsoAnnotation, customPropertyAnnotation)
                 .sorted().collect(Collectors.toList());
-        Assert.assertEquals("Incorrect ontology annotations after reloading", expected, actual);
+        Assertions.assertEquals(expected, actual);
     }
 
     @Override

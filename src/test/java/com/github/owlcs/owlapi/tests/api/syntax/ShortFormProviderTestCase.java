@@ -14,8 +14,8 @@
 package com.github.owlcs.owlapi.tests.api.syntax;
 
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.util.QNameShortFormProvider;
@@ -30,7 +30,7 @@ public class ShortFormProviderTestCase {
         OWLClass c = OWLFunctionalSyntaxFactory.Class(IRI.create("http://www.ebi.ac.uk/fgpt/ontologies/test/", "TEST_00001"));
         QNameShortFormProvider shortener = new QNameShortFormProvider();
         String shortform = shortener.getShortForm(c);
-        Assert.assertEquals("test:TEST_00001", shortform);
+        Assertions.assertEquals("test:TEST_00001", shortform);
     }
 
     @Test
@@ -38,7 +38,7 @@ public class ShortFormProviderTestCase {
         OWLClass c = OWLFunctionalSyntaxFactory.Class(IRI.create("http://www.example.org/#", "Woman"));
         QNameShortFormProvider shortener = new QNameShortFormProvider();
         String shortform = shortener.getShortForm(c);
-        Assert.assertEquals("www:Woman", shortform);
+        Assertions.assertEquals("www:Woman", shortform);
     }
 
     @Test
@@ -48,6 +48,6 @@ public class ShortFormProviderTestCase {
         prefixes.put("test", "http://www.example.org/#");
         QNameShortFormProvider shortener = new QNameShortFormProvider(prefixes);
         String shortform = shortener.getShortForm(c);
-        Assert.assertEquals("test:Woman", shortform);
+        Assertions.assertEquals("test:Woman", shortform);
     }
 }

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -16,9 +16,9 @@ package com.github.owlcs.owlapi.tests.api.ontology;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.owlapi.OWLManager;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -70,7 +70,7 @@ public class MoveOntologyTestCase extends TestBase {
         try {
             copy = m1.copyOntology(o, OntologyCopy.MOVE);
             if (isONT) {
-                Assert.fail("This functionality is expected to be disabled");
+                Assertions.fail("This functionality is expected to be disabled");
             }
         } catch (OntApiException.Unsupported e) {
             if (isONT) {
@@ -79,36 +79,36 @@ public class MoveOntologyTestCase extends TestBase {
             }
             throw e;
         }
-        Assert.assertSame(o, copy);
-        Assert.assertEquals(m1, copy.getOWLOntologyManager());
-        Assert.assertFalse(m.contains(o));
-        Assert.assertTrue(m1.contains(copy));
-        Assert.assertEquals(asSet(o.annotations()), asSet(copy.annotations()));
-        Assert.assertNull(m.getOntologyFormat(o));
+        Assertions.assertSame(o, copy);
+        Assertions.assertEquals(m1, copy.getOWLOntologyManager());
+        Assertions.assertFalse(m.contains(o));
+        Assertions.assertTrue(m1.contains(copy));
+        Assertions.assertEquals(asSet(o.annotations()), asSet(copy.annotations()));
+        Assertions.assertNull(m.getOntologyFormat(o));
     }
 
     @Test
     public void testShallow() throws OWLOntologyCreationException {
         OWLOntology o = m.loadOntologyFromOntologyDocument(new StringDocumentSource(s));
         OWLOntology copy = m1.copyOntology(o, OntologyCopy.SHALLOW);
-        Assert.assertEquals(m1, copy.getOWLOntologyManager());
-        Assert.assertTrue(m.contains(o));
-        Assert.assertTrue(m1.contains(copy));
-        Assert.assertNotNull(m.getOntologyFormat(o));
-        Assert.assertEquals(asSet(o.annotations()), asSet(copy.annotations()));
-        Assert.assertEquals(asSet(o.importsDeclarations()), asSet(copy.importsDeclarations()));
+        Assertions.assertEquals(m1, copy.getOWLOntologyManager());
+        Assertions.assertTrue(m.contains(o));
+        Assertions.assertTrue(m1.contains(copy));
+        Assertions.assertNotNull(m.getOntologyFormat(o));
+        Assertions.assertEquals(asSet(o.annotations()), asSet(copy.annotations()));
+        Assertions.assertEquals(asSet(o.importsDeclarations()), asSet(copy.importsDeclarations()));
     }
 
     @Test
     public void testDeep() throws OWLOntologyCreationException {
         OWLOntology o = m.loadOntologyFromOntologyDocument(new StringDocumentSource(s));
         OWLOntology copy = m1.copyOntology(o, OntologyCopy.DEEP);
-        Assert.assertEquals(m1, copy.getOWLOntologyManager());
-        Assert.assertTrue(m.contains(o));
-        Assert.assertTrue(m1.contains(copy));
-        Assert.assertNotNull(m.getOntologyFormat(o));
-        Assert.assertNotNull(m1.getOntologyFormat(o));
-        Assert.assertEquals(asSet(o.annotations()), asSet(copy.annotations()));
-        Assert.assertEquals(asSet(o.importsDeclarations()), asSet(copy.importsDeclarations()));
+        Assertions.assertEquals(m1, copy.getOWLOntologyManager());
+        Assertions.assertTrue(m.contains(o));
+        Assertions.assertTrue(m1.contains(copy));
+        Assertions.assertNotNull(m.getOntologyFormat(o));
+        Assertions.assertNotNull(m1.getOntologyFormat(o));
+        Assertions.assertEquals(asSet(o.annotations()), asSet(copy.annotations()));
+        Assertions.assertEquals(asSet(o.importsDeclarations()), asSet(copy.importsDeclarations()));
     }
 }

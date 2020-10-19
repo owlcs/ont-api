@@ -20,8 +20,8 @@ import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,7 +43,7 @@ public class AxiomsConfigTest {
     @Test
     public void testLoadAnnotationsOption() {
         OntologyManager m = OntManagers.createManager();
-        Assert.assertTrue("Incorrect default settings", m.getOntologyLoaderConfiguration().isLoadAnnotationAxioms());
+        Assertions.assertTrue(m.getOntologyLoaderConfiguration().isLoadAnnotationAxioms(), "Incorrect default settings");
         OWLDataFactory df = m.getOWLDataFactory();
 
         Ontology o1 = m.createOntology();
@@ -64,14 +64,14 @@ public class AxiomsConfigTest {
 
         LOGGER.debug("Change Load Annotation settings");
         m.setOntologyLoaderConfiguration(m.getOntologyLoaderConfiguration().setLoadAnnotationAxioms(false));
-        Assert.assertFalse("Incorrect settings", m.getOntologyLoaderConfiguration().isLoadAnnotationAxioms());
+        Assertions.assertFalse(m.getOntologyLoaderConfiguration().isLoadAnnotationAxioms(), "Incorrect settings");
         // check the axioms changed.
         List<OWLAxiom> axioms1 = o1.axioms().collect(Collectors.toList());
         axioms1.forEach(a -> LOGGER.debug("{}", a));
-        Assert.assertEquals("Should be 2 axioms only", 2, axioms1.size());
-        Assert.assertTrue("Can't find declaration for " + ap, axioms1.contains(df.getOWLDeclarationAxiom(ap)));
-        Assert.assertTrue("The declaration for " + cl + " should be with annotations now",
-                axioms1.contains(df.getOWLDeclarationAxiom(cl, Arrays.asList(a1, a2))));
+        Assertions.assertEquals(2, axioms1.size());
+        Assertions.assertTrue(axioms1.contains(df.getOWLDeclarationAxiom(ap)), "Can't find declaration for " + ap);
+        Assertions.assertTrue(axioms1.contains(df.getOWLDeclarationAxiom(cl, Arrays.asList(a1, a2))),
+                "The declaration for " + cl + " should be with annotations now");
 
         LOGGER.debug("Create new ontology ");
         Ontology o2 = m.createOntology();
@@ -79,17 +79,17 @@ public class AxiomsConfigTest {
         ReadWriteUtils.print(o2);
         List<OWLAxiom> axioms2 = o2.axioms().collect(Collectors.toList());
         axioms2.forEach(a -> LOGGER.debug("{}", a));
-        Assert.assertEquals("Should be 2 axioms only", 2, axioms2.size());
-        Assert.assertTrue("Can't find declaration for " + ap, axioms2.contains(df.getOWLDeclarationAxiom(ap)));
-        Assert.assertTrue("The declaration for " + cl + " should not be unannotated now",
-                axioms2.contains(df.getOWLDeclarationAxiom(cl)));
+        Assertions.assertEquals(2, axioms2.size());
+        Assertions.assertTrue(axioms2.contains(df.getOWLDeclarationAxiom(ap)), "Can't find declaration for " + ap);
+        Assertions.assertTrue(axioms2.contains(df.getOWLDeclarationAxiom(cl)),
+                "The declaration for " + cl + " should not be unannotated now");
     }
 
     @Test
     public void testBulkAnnotationsSetting() throws Exception {
         OntologyManager m = OntManagers.createManager();
-        Assert.assertTrue("Incorrect default settings",
-                m.getOntologyLoaderConfiguration().isAllowBulkAnnotationAssertions());
+        Assertions.assertTrue(m.getOntologyLoaderConfiguration().isAllowBulkAnnotationAssertions(),
+                "Incorrect default settings");
         OWLDataFactory df = m.getOWLDataFactory();
 
         Ontology o1 = m.createOntology();
@@ -110,44 +110,42 @@ public class AxiomsConfigTest {
         String txt = ReadWriteUtils.toString(o1, OntFormat.TURTLE);
         LOGGER.debug("\n" + txt);
         OWLOntology o2 = m.loadOntologyFromOntologyDocument(ReadWriteUtils.toInputStream(txt));
-        Assert.assertEquals("Incorrect axioms collection in the copied ontology",
-                axioms1, o2.axioms().collect(Collectors.toSet()));
+        Assertions.assertEquals(axioms1, o2.axioms().collect(Collectors.toSet()), "Incorrect axioms collection in the copied ontology");
 
         LOGGER.debug("Change Allow Bulk Annotation Assertion setting");
         m.setOntologyLoaderConfiguration(m.getOntologyLoaderConfiguration().setAllowBulkAnnotationAssertions(false));
-        Assert.assertFalse("Incorrect settings", m.getOntologyLoaderConfiguration().isAllowBulkAnnotationAssertions());
+        Assertions.assertFalse(m.getOntologyLoaderConfiguration().isAllowBulkAnnotationAssertions());
         o1.axioms().forEach(a -> LOGGER.debug("{}", a));
         Set<OWLAxiom> axioms2 = Stream.of(
                 df.getOWLAnnotationAssertionAxiom(cl.getIRI(), a1),
                 df.getOWLDeclarationAxiom(cl, Stream.of(a2).collect(Collectors.toSet()))
         ).collect(Collectors.toSet());
 
-        Assert.assertEquals("Incorrect axioms count", axioms2.size(), o1.getAxiomCount());
-        Assert.assertEquals("Incorrect axioms collection in the first ontology",
-                axioms2, o1.axioms().collect(Collectors.toSet()));
-        Assert.assertEquals("Incorrect axioms collection in the second ontology",
-                axioms2, o2.axioms().collect(Collectors.toSet()));
+        Assertions.assertEquals(axioms2.size(), o1.getAxiomCount());
+        Assertions.assertEquals(axioms2, o1.axioms().collect(Collectors.toSet()),
+                "Incorrect axioms collection in the first ontology");
+        Assertions.assertEquals(axioms2,
+                o2.axioms().collect(Collectors.toSet()), "Incorrect axioms collection in the second ontology");
         LOGGER.debug("Create third ontology with the same content.");
         OWLOntology o3 = m.loadOntologyFromOntologyDocument(ReadWriteUtils.toInputStream(txt));
-        Assert.assertEquals("Incorrect axioms collection in the third ontology",
-                axioms2, o3.axioms().collect(Collectors.toSet()));
+        Assertions.assertEquals(axioms2, o3.axioms().collect(Collectors.toSet()), "Incorrect axioms collection in the third ontology");
     }
 
     @Test
     public void testLoadSplitBulkRootAnnotations() throws OWLOntologyCreationException {
         OntologyManager m = OntManagers.createManager();
-        Assert.assertTrue(m.getOntologyConfigurator().shouldLoadAnnotations());
-        Assert.assertFalse(m.getOntologyConfigurator().isSplitAxiomAnnotations());
+        Assertions.assertTrue(m.getOntologyConfigurator().shouldLoadAnnotations());
+        Assertions.assertFalse(m.getOntologyConfigurator().isSplitAxiomAnnotations());
         m.getOntologyConfigurator().setLoadAnnotationAxioms(false).setSplitAxiomAnnotations(true);
 
         String file = "ontapi/test-annotations-3.ttl";
         OWLOntology o = m.loadOntologyFromOntologyDocument(IRI.create(ReadWriteUtils.getResourceURI(file)));
         o.axioms().map(String::valueOf).forEach(LOGGER::debug);
-        Assert.assertEquals(0, o.axioms(AxiomType.ANNOTATION_ASSERTION).count());
-        Assert.assertEquals(3, o.axioms(AxiomType.DECLARATION).count());
+        Assertions.assertEquals(0, o.axioms(AxiomType.ANNOTATION_ASSERTION).count());
+        Assertions.assertEquals(3, o.axioms(AxiomType.DECLARATION).count());
         long annotationsCount = o.axioms(AxiomType.DECLARATION)
                 .filter(a -> a.getEntity().isOWLClass()).mapToLong(a -> a.annotations().count()).sum();
-        Assert.assertEquals("Wrong annotations count", 3, annotationsCount);
+        Assertions.assertEquals(3, annotationsCount);
     }
 
     @Test
@@ -159,7 +157,7 @@ public class AxiomsConfigTest {
         Ontology o = m.loadOntology(iri);
         ReadWriteUtils.print(o.asGraphModel());
         o.axioms().forEach(a -> LOGGER.debug("{}", a));
-        Assert.assertEquals("Wrong axioms count", 5, o.getAxiomCount());
-        Assert.assertEquals(1, o.axioms(AxiomType.SUBCLASS_OF).count());
+        Assertions.assertEquals(5, o.getAxiomCount());
+        Assertions.assertEquals(1, o.axioms(AxiomType.SUBCLASS_OF).count());
     }
 }

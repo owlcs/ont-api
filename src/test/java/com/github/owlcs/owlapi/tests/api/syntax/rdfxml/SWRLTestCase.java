@@ -14,8 +14,8 @@
 package com.github.owlcs.owlapi.tests.api.syntax.rdfxml;
 
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
@@ -88,6 +88,6 @@ public class SWRLTestCase extends TestBase {
                 + "      </swrl:AtomList>\n" + "    </swrl:body>\n"
                 + "  </swrl:Imp>\n" + "</rdf:RDF>";
         OWLOntology ont = loadOntologyFromString(input);
-        Assert.assertEquals(0, ont.individualsInSignature().count());
+        Assertions.assertEquals(0, ont.individualsInSignature().count());
     }
 }

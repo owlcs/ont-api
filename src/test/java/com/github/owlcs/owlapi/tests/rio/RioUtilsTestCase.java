@@ -19,9 +19,9 @@ import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.io.RDFLiteral;
 import org.semanticweb.owlapi.io.RDFResourceBlankNode;
 import org.semanticweb.owlapi.io.RDFResourceIRI;
@@ -104,25 +104,25 @@ public class RioUtilsTestCase {
     @Test
     public void testTripleAllIRI() {
         Statement tripleAsStatement = RioUtils.tripleAsStatement(testOwlApiTripleAllIRI);
-        Assert.assertEquals(testSesameTripleAllIRI, tripleAsStatement);
+        Assertions.assertEquals(testSesameTripleAllIRI, tripleAsStatement);
     }
 
     @Test
     public void testTripleBNodeComparisonObject() {
         Statement tripleAsStatement = RioUtils.tripleAsStatement(testOwlApiTripleObjectBNode);
-        Assert.assertEquals(testSesameTripleObjectBNode, tripleAsStatement);
+        Assertions.assertEquals(testSesameTripleObjectBNode, tripleAsStatement);
     }
 
     @Test
     public void testTripleBNodeComparisonSubject() {
         Statement tripleAsStatement = RioUtils.tripleAsStatement(testOwlApiTripleSubjectBNode);
-        Assert.assertEquals(testSesameTripleSubjectBNode, tripleAsStatement);
+        Assertions.assertEquals(testSesameTripleSubjectBNode, tripleAsStatement);
     }
 
     @Test
     public void testTripleBNodeComparisonSubjectAndObject() {
         Statement tripleAsStatement = RioUtils.tripleAsStatement(testOwlApiTripleSubjectObjectBNode);
-        Assert.assertEquals(testSesameTripleSubjectObjectBNode, tripleAsStatement);
+        Assertions.assertEquals(testSesameTripleSubjectObjectBNode, tripleAsStatement);
     }
 
     /*
@@ -132,7 +132,7 @@ public class RioUtilsTestCase {
     @Test
     public void testTripleLangLiteral() {
         Statement tripleAsStatement = RioUtils.tripleAsStatement(testOwlApiTripleLangLiteral);
-        Assert.assertEquals(testSesameTripleLangLiteral, tripleAsStatement);
+        Assertions.assertEquals(testSesameTripleLangLiteral, tripleAsStatement);
     }
 
     /*
@@ -142,7 +142,7 @@ public class RioUtilsTestCase {
     @Test
     public void testTriplePlainLiteral() {
         Statement tripleAsStatement = RioUtils.tripleAsStatement(testOwlApiTriplePlainLiteral);
-        Assert.assertEquals(testSesameTriplePlainLiteral, tripleAsStatement);
+        Assertions.assertEquals(testSesameTriplePlainLiteral, tripleAsStatement);
     }
 
     /*
@@ -152,6 +152,6 @@ public class RioUtilsTestCase {
     @Test
     public void testTripleTypedLiteral() {
         Statement tripleAsStatement = RioUtils.tripleAsStatement(testOwlApiTripleTypedLiteral);
-        Assert.assertEquals(testSesameTripleTypedLiteral, tripleAsStatement);
+        Assertions.assertEquals(testSesameTripleTypedLiteral, tripleAsStatement);
     }
 }

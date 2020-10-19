@@ -22,7 +22,7 @@ import com.github.owlcs.ontapi.OntologyManager;
 import org.apache.commons.io.IOUtils;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.formats.TurtleDocumentFormat;
 import org.semanticweb.owlapi.io.FileDocumentSource;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
@@ -210,7 +210,7 @@ public class ReadWriteUtils {
         try {
             owl = manager.loadOntology(fileIRI);
         } catch (OWLOntologyCreationException e) {
-            Assert.fail(e.getMessage());
+            Assertions.fail(e.getMessage());
         }
         return owl;
     }

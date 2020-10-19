@@ -14,8 +14,8 @@
 package com.github.owlcs.owlapi.tests.api.ontology;
 
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.vocab.DublinCoreVocabulary;
@@ -29,8 +29,7 @@ public class DublinCoreTestCase extends TestBase {
     public void testAnnotationProperties() {
         OWLOntology ontology = ontologyFromClasspathFile("dublincore.rdf");
         for (DublinCoreVocabulary vocabulary : DublinCoreVocabulary.values()) {
-            Assert.assertTrue(vocabulary.getIRI().toString(),
-                    ontology.containsAnnotationPropertyInSignature(vocabulary.getIRI(), Imports.EXCLUDED));
+            Assertions.assertTrue(ontology.containsAnnotationPropertyInSignature(vocabulary.getIRI(), Imports.EXCLUDED));
         }
     }
 }

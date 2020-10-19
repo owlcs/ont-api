@@ -17,8 +17,8 @@ package com.github.owlcs.ontapi.tests;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,7 +64,7 @@ public class RaceTest {
                 LOGGER.debug("+ {}", a);
             o.add(a);
             long res = o.subClassAxiomsForSubClass(c).count();
-            Assert.assertTrue(res == 0 || res == 1);
+            Assertions.assertTrue(res == 0 || res == 1);
         }
     }
 

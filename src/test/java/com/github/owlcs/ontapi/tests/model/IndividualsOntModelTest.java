@@ -23,8 +23,8 @@ import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import com.github.owlcs.ontapi.utils.OntIRI;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLDataFactory;
@@ -68,10 +68,10 @@ public class IndividualsOntModelTest extends OntModelTestBase {
 
         debug(owl);
 
-        Assert.assertEquals("OWL: incorrect classes count", classesCount + individualsCount, owl.axioms(AxiomType.DECLARATION).count());
-        Assert.assertEquals("Jena: incorrect classes count.", classesCount, jena.ontEntities(OntClass.Named.class).count());
-        Assert.assertEquals("OWL: incorrect individuals count", individualsCount, owl.axioms(AxiomType.CLASS_ASSERTION).count());
-        Assert.assertEquals("Jena: incorrect individuals count.", individualsCount, jena.ontObjects(OntIndividual.class).count());
+        Assertions.assertEquals(classesCount + individualsCount, owl.axioms(AxiomType.DECLARATION).count());
+        Assertions.assertEquals(classesCount, jena.ontEntities(OntClass.Named.class).count());
+        Assertions.assertEquals(individualsCount, owl.axioms(AxiomType.CLASS_ASSERTION).count());
+        Assertions.assertEquals(individualsCount, jena.ontObjects(OntIndividual.class).count());
 
         LOGGER.debug("Remove individuals");
         // remove class assertion and declaration:
@@ -84,8 +84,8 @@ public class IndividualsOntModelTest extends OntModelTestBase {
 
         debug(owl);
 
-        Assert.assertEquals("OWL: incorrect individuals count after removing", individualsCount, owl.axioms(AxiomType.CLASS_ASSERTION).count());
-        Assert.assertEquals("Jena: incorrect individuals count after removing.", individualsCount, jena.ontObjects(OntIndividual.class).count());
+        Assertions.assertEquals(individualsCount, owl.axioms(AxiomType.CLASS_ASSERTION).count());
+        Assertions.assertEquals(individualsCount, jena.ontObjects(OntIndividual.class).count());
     }
 
 }

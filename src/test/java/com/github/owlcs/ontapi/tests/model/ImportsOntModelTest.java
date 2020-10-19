@@ -31,8 +31,8 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDFS;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.Imports;
@@ -54,30 +54,30 @@ public class ImportsOntModelTest extends OntModelTestBase {
         OntModel c = m.createGraphModel("c");
 
         a.addImport(b);
-        Assert.assertEquals(2, UnionModel.asUnionGraph(a.getGraph()).listBaseGraphs().toList().size());
+        Assertions.assertEquals(2, UnionModel.asUnionGraph(a.getGraph()).listBaseGraphs().toList().size());
         b.addImport(a);
-        Assert.assertEquals(2, UnionModel.asUnionGraph(a.getGraph()).listBaseGraphs().toList().size());
+        Assertions.assertEquals(2, UnionModel.asUnionGraph(a.getGraph()).listBaseGraphs().toList().size());
         b.addImport(c);
-        Assert.assertEquals(3, UnionModel.asUnionGraph(a.getGraph()).listBaseGraphs().toList().size());
+        Assertions.assertEquals(3, UnionModel.asUnionGraph(a.getGraph()).listBaseGraphs().toList().size());
 
-        Assert.assertEquals(1, a.imports().count());
-        Assert.assertEquals(2, b.imports().count());
-        Assert.assertEquals(0, c.imports().count());
+        Assertions.assertEquals(1, a.imports().count());
+        Assertions.assertEquals(2, b.imports().count());
+        Assertions.assertEquals(0, c.imports().count());
 
         a.createOntClass("A");
-        Assert.assertEquals(1, a.ontEntities().count());
-        Assert.assertEquals(1, b.ontEntities().count());
-        Assert.assertEquals(0, c.ontEntities().count());
+        Assertions.assertEquals(1, a.ontEntities().count());
+        Assertions.assertEquals(1, b.ontEntities().count());
+        Assertions.assertEquals(0, c.ontEntities().count());
 
         b.createOntClass("B");
-        Assert.assertEquals(2, a.ontEntities().count());
-        Assert.assertEquals(2, b.ontEntities().count());
-        Assert.assertEquals(0, c.ontEntities().count());
+        Assertions.assertEquals(2, a.ontEntities().count());
+        Assertions.assertEquals(2, b.ontEntities().count());
+        Assertions.assertEquals(0, c.ontEntities().count());
 
         c.createOntClass("C");
-        Assert.assertEquals(3, a.ontEntities().peek(x -> LOGGER.debug("Entity: {}", x)).count());
-        Assert.assertEquals(3, b.ontEntities().count());
-        Assert.assertEquals(1, c.ontEntities().count());
+        Assertions.assertEquals(3, a.ontEntities().peek(x -> LOGGER.debug("Entity: {}", x)).count());
+        Assertions.assertEquals(3, b.ontEntities().count());
+        Assertions.assertEquals(1, c.ontEntities().count());
 
         assertOntologyAxioms(m, a.getID().getURI(), 3);
         assertOntologyAxioms(m, b.getID().getURI(), 3);
@@ -86,8 +86,8 @@ public class ImportsOntModelTest extends OntModelTestBase {
 
     private static void assertOntologyAxioms(OntologyManager m, String ontURI, int expectedAxiomsCount) {
         Ontology o = m.getOntology(IRI.create(ontURI));
-        Assert.assertNotNull(o);
-        Assert.assertEquals(expectedAxiomsCount, o.axioms(Imports.INCLUDED).count());
+        Assertions.assertNotNull(o);
+        Assertions.assertEquals(expectedAxiomsCount, o.axioms(Imports.INCLUDED).count());
     }
 
     private static void testMutualImportsWhileLoading(OntologyManager m) throws Exception {
@@ -107,13 +107,13 @@ public class ImportsOntModelTest extends OntModelTestBase {
         m.getDocumentSourceMappers().add(source);
 
         Ontology a = m.loadOntology(a_iri);
-        Assert.assertEquals(2, m.ontologies().count());
+        Assertions.assertEquals(2, m.ontologies().count());
         Ontology b = m.getOntology(b_iri);
-        Assert.assertNotNull(b);
+        Assertions.assertNotNull(b);
 
         a.add(df.getOWLDeclarationAxiom(df.getOWLClass("http://X")));
-        Assert.assertEquals(3, a.axioms(Imports.INCLUDED).peek(x -> LOGGER.debug("{}:::Axiom: {}", a_iri, x)).count());
-        Assert.assertEquals(3, b.axioms(Imports.INCLUDED).peek(x -> LOGGER.debug("{}:::Axiom: {}", b_iri, x)).count());
+        Assertions.assertEquals(3, a.axioms(Imports.INCLUDED).peek(x -> LOGGER.debug("{}:::Axiom: {}", a_iri, x)).count());
+        Assertions.assertEquals(3, b.axioms(Imports.INCLUDED).peek(x -> LOGGER.debug("{}:::Axiom: {}", b_iri, x)).count());
     }
 
     private static OWLOntologyDocumentSource createSource(IRI ont, IRI imports) {
@@ -145,8 +145,8 @@ public class ImportsOntModelTest extends OntModelTestBase {
 
         ont_a.axioms(Imports.INCLUDED).forEach(x -> LOGGER.debug("{}", x));
         Set<OWLAxiom> expected = Stream.of(ax_a, ax_b).collect(Collectors.toSet());
-        Assert.assertEquals(expected, ont_a.axioms(Imports.INCLUDED).collect(Collectors.toSet()));
-        Assert.assertEquals(expected, ont_b.axioms(Imports.INCLUDED).collect(Collectors.toSet()));
+        Assertions.assertEquals(expected, ont_a.axioms(Imports.INCLUDED).collect(Collectors.toSet()));
+        Assertions.assertEquals(expected, ont_b.axioms(Imports.INCLUDED).collect(Collectors.toSet()));
     }
 
     private static void oneMoreImportsTest(OntologyManager m) {
@@ -160,51 +160,51 @@ public class ImportsOntModelTest extends OntModelTestBase {
         c.asGraphModel().createOntClass(c_uri + "#c-1");
 
         a.add(df.getOWLDeclarationAxiom(df.getOWLClass(IRI.create(a_uri + "#a-1"))));
-        Assert.assertEquals(1, a.axioms().count());
+        Assertions.assertEquals(1, a.axioms().count());
 
         a.asGraphModel().createOntClass(a_uri + "#a-2");
-        Assert.assertEquals(2, a.axioms().count());
+        Assertions.assertEquals(2, a.axioms().count());
 
         a.asGraphModel().addImport(b.asGraphModel());
         b.add(df.getOWLDeclarationAxiom(df.getOWLClass(IRI.create(b_uri + "#b-1"))));
         b.asGraphModel().createOntClass(b_uri + "#b-2");
-        Assert.assertEquals(4, a.axioms(Imports.INCLUDED).count());
-        Assert.assertEquals(4, a.asGraphModel().classes().count());
+        Assertions.assertEquals(4, a.axioms(Imports.INCLUDED).count());
+        Assertions.assertEquals(4, a.asGraphModel().classes().count());
 
         a.asGraphModel().imports().findFirst().orElseThrow(AssertionError::new)
                 .createOntClass(b_uri + "#b-3");
         a.imports().findFirst().orElseThrow(AssertionError::new)
                 .add(df.getOWLDeclarationAxiom(df.getOWLClass(IRI.create(b_uri + "#b-4"))));
-        Assert.assertEquals(6, a.axioms(Imports.INCLUDED).count());
-        Assert.assertEquals(6, a.asGraphModel().classes().count());
+        Assertions.assertEquals(6, a.axioms(Imports.INCLUDED).count());
+        Assertions.assertEquals(6, a.asGraphModel().classes().count());
 
         OntModelFactory.createModel(a.asGraphModel().getGraph()).createOntClass(a_uri + "#a-3");
         OntModelFactory.createModel(a.asGraphModel().imports().findFirst()
                 .orElseThrow(AssertionError::new).getGraph()).createOntClass(b_uri + "#b-5");
-        Assert.assertEquals(8, a.axioms(Imports.INCLUDED).count());
-        Assert.assertEquals(8, a.asGraphModel().classes().count());
+        Assertions.assertEquals(8, a.axioms(Imports.INCLUDED).count());
+        Assertions.assertEquals(8, a.asGraphModel().classes().count());
 
         Optional.ofNullable(m.getOntology(IRI.create("http://b")))
                 .orElseThrow(AssertionError::new).asGraphModel().createOntClass(b_uri + "#b-6");
         Optional.ofNullable(m.getOntology(IRI.create("http://b")))
                 .orElseThrow(AssertionError::new)
                 .add(df.getOWLDeclarationAxiom(df.getOWLClass(IRI.create(b_uri + "#b-7"))));
-        Assert.assertEquals(10, a.axioms(Imports.INCLUDED).count());
-        Assert.assertEquals(10, a.asGraphModel().classes().count());
+        Assertions.assertEquals(10, a.axioms(Imports.INCLUDED).count());
+        Assertions.assertEquals(10, a.asGraphModel().classes().count());
 
         OntModelFactory.createModel(a.asGraphModel().getGraph()).addImport(c.asGraphModel());
-        Assert.assertEquals(11, a.axioms(Imports.INCLUDED).count());
-        Assert.assertEquals(11, a.asGraphModel().classes().count());
+        Assertions.assertEquals(11, a.axioms(Imports.INCLUDED).count());
+        Assertions.assertEquals(11, a.asGraphModel().classes().count());
         OntModelFactory.createModel(a.asGraphModel().getGraph()).removeImport(c.asGraphModel());
-        Assert.assertEquals(10, a.axioms(Imports.INCLUDED).count());
-        Assert.assertEquals(10, a.asGraphModel().classes().count());
+        Assertions.assertEquals(10, a.axioms(Imports.INCLUDED).count());
+        Assertions.assertEquals(10, a.asGraphModel().classes().count());
 
         OntModelFactory.createModel(a.asGraphModel().getGraph()).addImport(m.getGraphModel("http://c"));
-        Assert.assertEquals(11, a.axioms(Imports.INCLUDED).count());
-        Assert.assertEquals(11, a.asGraphModel().classes().count());
+        Assertions.assertEquals(11, a.axioms(Imports.INCLUDED).count());
+        Assertions.assertEquals(11, a.asGraphModel().classes().count());
         OntModelFactory.createModel(a.asGraphModel().getGraph()).removeImport("http://c");
-        Assert.assertEquals(10, a.axioms(Imports.INCLUDED).count());
-        Assert.assertEquals(10, a.asGraphModel().classes().count());
+        Assertions.assertEquals(10, a.axioms(Imports.INCLUDED).count());
+        Assertions.assertEquals(10, a.asGraphModel().classes().count());
     }
 
     private static void assertDeclarationInModels(OntModel mustHave,
@@ -217,12 +217,12 @@ public class ImportsOntModelTest extends OntModelTestBase {
 
     private static void assertHasDeclaration(OntModel model, Resource subject, Resource object) {
         Triple t = createDeclaration(subject, object);
-        Assert.assertTrue("Can't find the triple " + t, model.getBaseGraph().contains(t));
+        Assertions.assertTrue(model.getBaseGraph().contains(t), "Can't find the triple " + t);
     }
 
     private static void assertHasNoDeclaration(OntModel model, Resource subject, Resource object) {
         Triple t = createDeclaration(subject, object);
-        Assert.assertFalse("There is the triple " + t, model.getBaseGraph().contains(t));
+        Assertions.assertFalse(model.getBaseGraph().contains(t), "There is the triple " + t);
     }
 
     private static Triple createDeclaration(Resource r, RDFNode o) {
@@ -235,40 +235,40 @@ public class ImportsOntModelTest extends OntModelTestBase {
         OntModel c = m.createGraphModel("c");
 
         a.addImport(b);
-        Assert.assertEquals(1, a.imports().count());
-        Assert.assertFalse(a.hasImport(c));
-        Assert.assertTrue(a.hasImport(b.getID().getURI()));
-        Assert.assertTrue(a.hasImport(b));
+        Assertions.assertEquals(1, a.imports().count());
+        Assertions.assertFalse(a.hasImport(c));
+        Assertions.assertTrue(a.hasImport(b.getID().getURI()));
+        Assertions.assertTrue(a.hasImport(b));
         b = a.imports().findFirst().orElseThrow(AssertionError::new);
-        Assert.assertTrue(a.hasImport(b));
+        Assertions.assertTrue(a.hasImport(b));
 
         c.addImport(b);
-        Assert.assertEquals(1, c.imports().count());
-        Assert.assertTrue(c.hasImport(b.getID().getURI()));
-        Assert.assertTrue(c.hasImport(b));
+        Assertions.assertEquals(1, c.imports().count());
+        Assertions.assertTrue(c.hasImport(b.getID().getURI()));
+        Assertions.assertTrue(c.hasImport(b));
 
         a.removeImport(b);
-        Assert.assertEquals(0, a.imports().count());
-        Assert.assertFalse(a.hasImport(b.getID().getURI()));
-        Assert.assertFalse(a.hasImport(b));
+        Assertions.assertEquals(0, a.imports().count());
+        Assertions.assertFalse(a.hasImport(b.getID().getURI()));
+        Assertions.assertFalse(a.hasImport(b));
 
         a.addImport(m.getGraphModel("b"));
-        Assert.assertEquals(1, a.imports().count());
-        Assert.assertTrue(a.hasImport(b.getID().getURI()));
-        Assert.assertTrue(a.hasImport(b));
+        Assertions.assertEquals(1, a.imports().count());
+        Assertions.assertTrue(a.hasImport(b.getID().getURI()));
+        Assertions.assertTrue(a.hasImport(b));
 
         c.removeImport("b");
-        Assert.assertEquals(0, c.imports().count());
-        Assert.assertFalse(c.hasImport(b.getID().getURI()));
-        Assert.assertFalse(c.hasImport(b));
+        Assertions.assertEquals(0, c.imports().count());
+        Assertions.assertFalse(c.hasImport(b.getID().getURI()));
+        Assertions.assertFalse(c.hasImport(b));
 
         OntModel x = m.createGraphModel("x");
         OntModel y = m.createGraphModel("y");
         OntModel z = m.createGraphModel("z");
 
         m.getGraphModel("x").addImport(y).addImport(z);
-        Assert.assertEquals(2, x.imports().count());
-        Assert.assertEquals(2, m.getGraphModel("x").imports().count());
+        Assertions.assertEquals(2, x.imports().count());
+        Assertions.assertEquals(2, m.getGraphModel("x").imports().count());
     }
 
     private static void baseModelImportsTest(OntologyManager m) {
@@ -281,25 +281,25 @@ public class ImportsOntModelTest extends OntModelTestBase {
         Ontology b = m.createOntology(iri_b);
 
         m.applyChange(new AddImport(a, d.getOWLImportsDeclaration(iri_b)));
-        Assert.assertTrue(a.isEmpty());
-        Assert.assertTrue(b.isEmpty());
-        Assert.assertEquals(1, a.imports().count());
-        Assert.assertEquals(0, b.imports().count());
-        Assert.assertEquals(1, Graphs.subGraphs(a.asGraphModel().getGraph()).count());
-        Assert.assertEquals(0, Graphs.subGraphs(b.asGraphModel().getGraph()).count());
-        Assert.assertEquals(1, Graphs.subGraphs(ad.asBaseModel(a).getBase().getGraph()).count());
-        Assert.assertEquals(Stream.of(a, b)
+        Assertions.assertTrue(a.isEmpty());
+        Assertions.assertTrue(b.isEmpty());
+        Assertions.assertEquals(1, a.imports().count());
+        Assertions.assertEquals(0, b.imports().count());
+        Assertions.assertEquals(1, Graphs.subGraphs(a.asGraphModel().getGraph()).count());
+        Assertions.assertEquals(0, Graphs.subGraphs(b.asGraphModel().getGraph()).count());
+        Assertions.assertEquals(1, Graphs.subGraphs(ad.asBaseModel(a).getBase().getGraph()).count());
+        Assertions.assertEquals(Stream.of(a, b)
                         .map(ad::asBaseModel)
                         .map(BaseModel::getBase)
                         .map(OntModel::getBaseGraph).collect(Collectors.toSet()),
                 Graphs.baseGraphs(ad.asBaseModel(a).getBase().getGraph()).collect(Collectors.toSet()));
 
         m.applyChange(new RemoveImport(a, d.getOWLImportsDeclaration(iri_b)));
-        Assert.assertEquals(0, a.imports().count());
-        Assert.assertEquals(0, b.imports().count());
-        Assert.assertEquals(0, Graphs.subGraphs(a.asGraphModel().getGraph()).count());
-        Assert.assertEquals(0, Graphs.subGraphs(b.asGraphModel().getGraph()).count());
-        Assert.assertEquals(0, Graphs.subGraphs(ad.asBaseModel(a).getBase().getGraph()).count());
+        Assertions.assertEquals(0, a.imports().count());
+        Assertions.assertEquals(0, b.imports().count());
+        Assertions.assertEquals(0, Graphs.subGraphs(a.asGraphModel().getGraph()).count());
+        Assertions.assertEquals(0, Graphs.subGraphs(b.asGraphModel().getGraph()).count());
+        Assertions.assertEquals(0, Graphs.subGraphs(ad.asBaseModel(a).getBase().getGraph()).count());
 
     }
 
@@ -360,25 +360,25 @@ public class ImportsOntModelTest extends OntModelTestBase {
 
         // check OWL-API declaration:
         List<OWLImportsDeclaration> dec = b.importsDeclarations().collect(Collectors.toList());
-        Assert.assertEquals(1, dec.size());
-        Assert.assertEquals(ver1, dec.get(0).getIRI());
+        Assertions.assertEquals(1, dec.size());
+        Assertions.assertEquals(ver1, dec.get(0).getIRI());
         // check graph references and graph imports:
         OntModel g = b.asGraphModel();
-        Assert.assertEquals(1, g.imports().count());
-        Assert.assertEquals(ver1, g.getID().imports().findFirst().map(IRI::create).orElseThrow(AssertionError::new));
+        Assertions.assertEquals(1, g.imports().count());
+        Assertions.assertEquals(ver1, g.getID().imports().findFirst().map(IRI::create).orElseThrow(AssertionError::new));
 
-        Assert.assertSame(a, m.getImportedOntology(ver1));
+        Assertions.assertSame(a, m.getImportedOntology(ver1));
         // should found ontology by its iri:
-        Assert.assertSame(a, m.getImportedOntology(aIRI));
-        Assert.assertSame(b, m.getImportedOntology(bIRI));
+        Assertions.assertSame(a, m.getImportedOntology(aIRI));
+        Assertions.assertSame(b, m.getImportedOntology(bIRI));
 
         // what if in manager there is one more ontology with the same iri but different version iri ?
         Ontology c = m.createOntology(new OWLOntologyID(aIRI, ver2));
-        Assert.assertSame(a, m.getImportedOntology(ver1));
-        Assert.assertSame(c, m.getImportedOntology(ver2));
-        Assert.assertSame(b, m.getImportedOntology(bIRI));
+        Assertions.assertSame(a, m.getImportedOntology(ver1));
+        Assertions.assertSame(c, m.getImportedOntology(ver2));
+        Assertions.assertSame(b, m.getImportedOntology(bIRI));
         // should not be found by its iri, since it is not primary for series:
-        Assert.assertNull(m.getImportedOntology(aIRI));
+        Assertions.assertNull(m.getImportedOntology(aIRI));
     }
 
     @Test
@@ -390,7 +390,7 @@ public class ImportsOntModelTest extends OntModelTestBase {
         OntModel jena = owl.asGraphModel();
         int importsCount = 4;
         OntID jenaOnt = jena.setID(iri.getIRIString());
-        Assert.assertNotNull(jenaOnt);
+        Assertions.assertNotNull(jenaOnt);
         LOGGER.debug("Add imports.");
         OntIRI import1 = OntIRI.create("http://dummy-imports.com/first");
         OntIRI import2 = OntIRI.create("http://dummy-imports.com/second");
@@ -403,9 +403,9 @@ public class ImportsOntModelTest extends OntModelTestBase {
 
         debug(owl);
 
-        Assert.assertEquals("OWL: incorrect imported ontology count.", 0, owl.imports().count());
-        Assert.assertEquals("OWL: incorrect imports count.", importsCount, owl.importsDeclarations().count());
-        Assert.assertEquals("Jena: incorrect imports count.", importsCount,
+        Assertions.assertEquals(0, owl.imports().count());
+        Assertions.assertEquals(importsCount, owl.importsDeclarations().count());
+        Assertions.assertEquals(importsCount,
                 jena.listStatements(iri.toResource(), OWL.imports, (RDFNode) null).toList().size());
 
         LOGGER.debug("Remove imports.");
@@ -413,9 +413,9 @@ public class ImportsOntModelTest extends OntModelTestBase {
         manager.applyChange(new RemoveImport(owl, factory.getOWLImportsDeclaration(import1)));
         debug(owl);
         importsCount = 2;
-        Assert.assertEquals("OWL: incorrect imports count after removing.", importsCount,
+        Assertions.assertEquals(importsCount,
                 owl.importsDeclarations().count());
-        Assert.assertEquals("Jena: incorrect imports count after removing.", importsCount,
+        Assertions.assertEquals(importsCount,
                 jena.getID().imports().count());
 
         debug(owl);
@@ -463,7 +463,7 @@ public class ImportsOntModelTest extends OntModelTestBase {
         Ontology child = manager.createOntology(childIRI);
         child.applyChanges(new AddImport(child, factory.getOWLImportsDeclaration(baseIRI)));
 
-        Assert.assertEquals("Incorrect imports count", 1, child.imports().count());
+        Assertions.assertEquals(1, child.imports().count());
 
         OWLDatatypeRestriction dataRange1 = factory.getOWLDatatypeMinMaxInclusiveRestriction(1, 2.3);
 
@@ -497,9 +497,8 @@ public class ImportsOntModelTest extends OntModelTestBase {
         Ontology newBase = ReadWriteUtils.convertJenaToONT(newManager, base.asGraphModel());
         Ontology newChild = ReadWriteUtils.convertJenaToONT(newManager, child.asGraphModel());
 
-        Assert.assertEquals("Incorrect imports count", 1, newChild.imports().count());
-        Assert.assertEquals("Should be the same number of statements",
-                child.asGraphModel().listStatements().toList().size(),
+        Assertions.assertEquals(1, newChild.imports().count());
+        Assertions.assertEquals(child.asGraphModel().listStatements().toList().size(),
                 newChild.asGraphModel().listStatements().toList().size());
         TestUtils.compareAxioms(base.axioms(), newBase.axioms());
 
@@ -530,12 +529,12 @@ public class ImportsOntModelTest extends OntModelTestBase {
         Ontology b_owl = m.createOntology(IRI.create(b_uri));
 
         OntModel a = m.getGraphModel(a_uri);
-        Assert.assertNotNull(a);
+        Assertions.assertNotNull(a);
         OntModel b = m.getGraphModel(b_uri);
-        Assert.assertNotNull(b);
+        Assertions.assertNotNull(b);
         a.addImport(b);
 
-        Assert.assertTrue(a_owl.imports().anyMatch(o -> Objects.equals(o, b_owl)));
+        Assertions.assertTrue(a_owl.imports().anyMatch(o -> Objects.equals(o, b_owl)));
 
         LOGGER.debug("Add class and associated individual");
         OntIndividual i = b.createOntClass("class").createIndividual("individual");
@@ -543,9 +542,9 @@ public class ImportsOntModelTest extends OntModelTestBase {
 
         Set<OWLAxiom> b_axioms_1 = b_owl.axioms().collect(Collectors.toSet());
         Set<OWLAxiom> a_axioms_1 = a_owl.axioms(Imports.INCLUDED).collect(Collectors.toSet());
-        Assert.assertEquals(3, b_axioms_1.size());
-        Assert.assertEquals(0, a_owl.getAxiomCount());
-        Assert.assertEquals(b_axioms_1, a_axioms_1);
+        Assertions.assertEquals(3, b_axioms_1.size());
+        Assertions.assertEquals(0, a_owl.getAxiomCount());
+        Assertions.assertEquals(b_axioms_1, a_axioms_1);
 
         LOGGER.debug("Remove individual (class assertion + declaration)");
         b.removeOntObject(i);
@@ -553,9 +552,9 @@ public class ImportsOntModelTest extends OntModelTestBase {
 
         Set<OWLAxiom> b_axioms_2 = b_owl.axioms().collect(Collectors.toSet());
         Set<OWLAxiom> a_axioms_2 = a_owl.axioms(Imports.INCLUDED).collect(Collectors.toSet());
-        Assert.assertEquals("Wrong axioms list: " + b_axioms_2, 1, b_axioms_2.size());
-        Assert.assertEquals("Expected no axioms in parent.", 0, a_owl.getAxiomCount());
-        Assert.assertEquals(b_axioms_2, a_axioms_2);
+        Assertions.assertEquals(1, b_axioms_2.size());
+        Assertions.assertEquals(0, a_owl.getAxiomCount());
+        Assertions.assertEquals(b_axioms_2, a_axioms_2);
     }
 
     @Test
@@ -564,20 +563,20 @@ public class ImportsOntModelTest extends OntModelTestBase {
         Ontology a = m.createOntology(IRI.create("a"));
         Ontology b = m.createOntology(IRI.create("b"));
         a.asGraphModel().addImport(b.asGraphModel());
-        Assert.assertEquals(1, a.imports().count());
-        Assert.assertEquals(0, b.imports().count());
-        Assert.assertEquals(1, a.asGraphModel().imports().count());
-        Assert.assertEquals(0, b.asGraphModel().imports().count());
+        Assertions.assertEquals(1, a.imports().count());
+        Assertions.assertEquals(0, b.imports().count());
+        Assertions.assertEquals(1, a.asGraphModel().imports().count());
+        Assertions.assertEquals(0, b.asGraphModel().imports().count());
         a.asGraphModel().createOntClass("A-C");
         b.asGraphModel().createOntClass("B-C");
-        Assert.assertEquals(2, a.signature(Imports.INCLUDED).count());
-        Assert.assertEquals(2, a.asGraphModel().classes().count());
+        Assertions.assertEquals(2, a.signature(Imports.INCLUDED).count());
+        Assertions.assertEquals(2, a.asGraphModel().classes().count());
 
-        Assert.assertEquals(0, a.asGraphModel().removeImport("b").imports().count());
-        Assert.assertEquals(0, a.imports().count());
-        Assert.assertEquals(0, a.asGraphModel().imports().count());
-        Assert.assertEquals(1, a.signature(Imports.INCLUDED).count());
-        Assert.assertEquals(1, a.asGraphModel().classes().count());
+        Assertions.assertEquals(0, a.asGraphModel().removeImport("b").imports().count());
+        Assertions.assertEquals(0, a.imports().count());
+        Assertions.assertEquals(0, a.asGraphModel().imports().count());
+        Assertions.assertEquals(1, a.signature(Imports.INCLUDED).count());
+        Assertions.assertEquals(1, a.asGraphModel().classes().count());
     }
 
     @Test

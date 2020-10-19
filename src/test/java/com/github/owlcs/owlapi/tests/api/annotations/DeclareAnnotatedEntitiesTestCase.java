@@ -15,8 +15,8 @@
 package com.github.owlcs.owlapi.tests.api.annotations;
 
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
@@ -81,6 +81,6 @@ public class DeclareAnnotatedEntitiesTestCase extends TestBase {
         ontology2.add(annotationAssertionAxioms);
         OWLOntology o3 = roundTrip(ontology2, new RDFXMLDocumentFormat());
         Set<OWLDeclarationAxiom> reloadedDeclarations = o3.axioms(AxiomType.DECLARATION).collect(Collectors.toSet());
-        Assert.assertEquals(declarations.toString(), reloadedDeclarations.toString());
+        Assertions.assertEquals(declarations.toString(), reloadedDeclarations.toString());
     }
 }

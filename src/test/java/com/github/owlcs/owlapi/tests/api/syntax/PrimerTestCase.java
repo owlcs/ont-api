@@ -15,9 +15,9 @@
 package com.github.owlcs.owlapi.tests.api.syntax;
 
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.formats.*;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.profiles.OWL2DLProfile;
@@ -103,14 +103,14 @@ public class PrimerTestCase extends TestBase {
 
     @Before
     public void setUpProfile() {
-        Assert.assertTrue(profile.checkOntology(func).isInProfile());
+        Assertions.assertTrue(profile.checkOntology(func).isInProfile());
     }
 
     @Test
     public void shouldManchBeEquivalent() throws OWLOntologyCreationException {
         OWLOntology manch = loadOntologyFromString(MANCHESTER, IRI.create("urn:primer#", "manchester"),
                 new ManchesterSyntaxDocumentFormat());
-        Assert.assertTrue(profile.checkOntology(manch).getViolations().isEmpty());
+        Assertions.assertTrue(profile.checkOntology(manch).getViolations().isEmpty());
         // XXX Manchester OWL Syntax does not support GCIs
         // the input adopts a trick to semantically get around this, by
         // asserting a new named class equivalent to the right hand side of the
@@ -138,7 +138,7 @@ public class PrimerTestCase extends TestBase {
     public void shouldRDFXMLBeEquivalent() {
         OWLOntology rdf = loadOntologyFromString(RDFXML, IRI.create("urn:primer#", "rdfxml"),
                 new RDFXMLDocumentFormat());
-        Assert.assertTrue(profile.checkOntology(rdf).getViolations().isEmpty());
+        Assertions.assertTrue(profile.checkOntology(rdf).getViolations().isEmpty());
         equal(func, rdf);
     }
 
@@ -146,7 +146,7 @@ public class PrimerTestCase extends TestBase {
     public void shouldOWLXMLBeEquivalent() {
         OWLOntology owl = loadOntologyFromString(OWLXML, IRI.create("urn:primer#", "owlxml"),
                 new OWLXMLDocumentFormat());
-        Assert.assertTrue(profile.checkOntology(owl).getViolations().isEmpty());
+        Assertions.assertTrue(profile.checkOntology(owl).getViolations().isEmpty());
         equal(func, owl);
     }
 
@@ -154,7 +154,7 @@ public class PrimerTestCase extends TestBase {
     public void shouldTURTLEBeEquivalent() {
         OWLOntology turt = loadOntologyFromString(TURTLE, IRI.create("urn:primer#", "turtle"),
                 new TurtleDocumentFormat());
-        Assert.assertTrue(profile.checkOntology(turt).getViolations().isEmpty());
+        Assertions.assertTrue(profile.checkOntology(turt).getViolations().isEmpty());
         // XXX somehow the Turtle parser introduces a tautology: the inverse of
         // inverse(hasParent) is hasParent
         // dropping said tautology to assert equality of the rest of the axioms

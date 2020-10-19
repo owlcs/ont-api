@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -15,8 +15,8 @@ package com.github.owlcs.owlapi.tests.api.literals;
 
 import com.github.owlcs.owlapi.OWLManager;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.OWLDatatype;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -33,7 +33,7 @@ public class TestCornerCasesTestCase extends TestBase {
         OWLDatatype type = df.getFloatOWLDatatype();
         OWLLiteral lit1 = df.getOWLLiteral("0.0", type);
         OWLLiteral lit2 = df.getOWLLiteral("-0.0", type);
-        Assert.assertNotEquals(lit1, lit2);
+        Assertions.assertNotEquals(lit1, lit2);
     }
 
     @Test
@@ -41,7 +41,7 @@ public class TestCornerCasesTestCase extends TestBase {
         String expected = "2147483648";
         OWLDatatype type = df.getIntegerOWLDatatype();
         OWLLiteral lit = df.getOWLLiteral(expected, type);
-        Assert.assertEquals(expected, lit.getLiteral());
+        Assertions.assertEquals(expected, lit.getLiteral());
     }
 
     @Test
@@ -55,7 +55,7 @@ public class TestCornerCasesTestCase extends TestBase {
         OWLDatatype type = df.getIntegerOWLDatatype();
         OWLLiteral lit1 = df.getOWLLiteral("01", type);
         OWLLiteral lit2 = df.getOWLLiteral("1", type);
-        Assert.assertNotEquals(lit1, lit2);
+        Assertions.assertNotEquals(lit1, lit2);
     }
 
     /**
@@ -93,7 +93,7 @@ public class TestCornerCasesTestCase extends TestBase {
             Set<String> s2 = new TreeSet<>(expected);
             s2.removeAll(intersection);
         }*/
-        Assert.assertEquals("Sets were supposed to be equal", result, expected);
+        Assertions.assertEquals(result, expected);
     }
 
     @Test
@@ -105,7 +105,7 @@ public class TestCornerCasesTestCase extends TestBase {
                 + "DataSomeValuesFrom(:dp DataOneOf(\"-INF\"^^xsd:float \"-0\"^^xsd:integer))"
                 + "\n)\nClassAssertion(:A :a))";
         OWLOntology o = loadOntologyFromString(input);
-        Assert.assertTrue(saveOntology(o).toString().contains("-INF"));
+        Assertions.assertTrue(saveOntology(o).toString().contains("-INF"));
         OWLOntology o1 = roundTrip(o);
         equal(o, o1);
     }
@@ -119,7 +119,7 @@ public class TestCornerCasesTestCase extends TestBase {
                 + "DataSomeValuesFrom(:dp DataOneOf(\"-INF\"^^xsd:float \"-0\"^^xsd:integer))" + "\n)" + '\n'
                 + "ClassAssertion(:A :a)" + "\n)";
         OWLOntology o = loadOntologyFromString(input);
-        Assert.assertTrue(saveOntology(o).toString().contains("-INF"));
+        Assertions.assertTrue(saveOntology(o).toString().contains("-INF"));
         OWLOntology o1 = roundTrip(o);
         equal(o, o1);
     }

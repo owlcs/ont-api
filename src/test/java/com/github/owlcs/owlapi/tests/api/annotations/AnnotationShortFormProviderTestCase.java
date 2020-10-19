@@ -15,8 +15,8 @@ package com.github.owlcs.owlapi.tests.api.annotations;
 
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.*;
 
@@ -43,7 +43,7 @@ public class AnnotationShortFormProviderTestCase extends TestBase {
                 .AnnotationAssertion(prop, root.getIRI(),
                         OWLFunctionalSyntaxFactory.Literal(shortForm)));
         AnnotationValueShortFormProvider sfp = new AnnotationValueShortFormProvider(props, langMap, m);
-        Assert.assertEquals(sfp.getShortForm(root), shortForm);
+        Assertions.assertEquals(sfp.getShortForm(root), shortForm);
     }
 
     @Test
@@ -57,11 +57,11 @@ public class AnnotationShortFormProviderTestCase extends TestBase {
                         OWLFunctionalSyntaxFactory.Literal(label2, "xy")));
         langMap.put(prop, Arrays.asList("ab", "xy"));
         AnnotationValueShortFormProvider sfp = new AnnotationValueShortFormProvider(props, langMap, m);
-        Assert.assertEquals(sfp.getShortForm(root), label1);
+        Assertions.assertEquals(sfp.getShortForm(root), label1);
         Map<OWLAnnotationProperty, List<String>> langMap2 = new HashMap<>();
         langMap2.put(prop, Arrays.asList("xy", "ab"));
         AnnotationValueShortFormProvider sfp2 = new AnnotationValueShortFormProvider(props, langMap2, m);
-        Assert.assertEquals(sfp2.getShortForm(root), label2);
+        Assertions.assertEquals(sfp2.getShortForm(root), label2);
     }
 
     @Test
@@ -70,7 +70,7 @@ public class AnnotationShortFormProviderTestCase extends TestBase {
         OWLFunctionalSyntaxFactory.Ontology(m, OWLFunctionalSyntaxFactory.AnnotationAssertion(prop, root.getIRI(),
                 IRI.create("http://org.semanticweb.owlapi/ont#", "myIRI")));
         AnnotationValueShortFormProvider sfp = new AnnotationValueShortFormProvider(props, langMap, m);
-        Assert.assertEquals("myIRI", sfp.getShortForm(root));
+        Assertions.assertEquals("myIRI", sfp.getShortForm(root));
     }
 
     @Test
@@ -90,6 +90,6 @@ public class AnnotationShortFormProviderTestCase extends TestBase {
             }
         });
         String shortForm2 = sfp.getShortForm(root);
-        Assert.assertEquals(shortForm2, '"' + shortForm + '"');
+        Assertions.assertEquals(shortForm2, '"' + shortForm + '"');
     }
 }

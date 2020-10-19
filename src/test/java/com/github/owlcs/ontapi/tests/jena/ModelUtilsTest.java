@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -27,8 +27,8 @@ import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,7 +62,7 @@ public class ModelUtilsTest {
                 m.createOntClass(ns + "CL3"));
 
         ReadWriteUtils.print(m);
-        Assert.assertEquals(40, m.localStatements().count());
+        Assertions.assertEquals(40, m.localStatements().count());
 
         Resource r = m.statements(null, RDFS.subClassOf, null)
                 .map(Statement::getObject)
@@ -85,7 +85,7 @@ public class ModelUtilsTest {
 
         LOGGER.debug("---------------");
         ReadWriteUtils.print(m);
-        Assert.assertEquals(10, m.statements().count());
+        Assertions.assertEquals(10, m.statements().count());
     }
 
     @Test
@@ -101,10 +101,10 @@ public class ModelUtilsTest {
                 .addVersionInfo("lab5");
         ReadWriteUtils.print(m);
         Property p = OWL.versionInfo;
-        Assert.assertEquals(2, Models.langValues(id, p, null).count());
-        Assert.assertEquals(3, Models.langValues(id, p, "e2").count());
-        Assert.assertEquals(1, Models.langValues(id, p, "language3").count());
-        Assert.assertEquals(7, m.listObjectsOfProperty(id, p).toSet().size());
+        Assertions.assertEquals(2, Models.langValues(id, p, null).count());
+        Assertions.assertEquals(3, Models.langValues(id, p, "e2").count());
+        Assertions.assertEquals(1, Models.langValues(id, p, "language3").count());
+        Assertions.assertEquals(7, m.listObjectsOfProperty(id, p).toSet().size());
     }
 
     @Test
@@ -117,16 +117,16 @@ public class ModelUtilsTest {
         // collection depending on a1
         OntModel m1 = OntModelFactory.createModel().setID("http://m1").getModel().addImport(a1);
         OntModel m2 = OntModelFactory.createModel().setID("http://m2").getModel().addImport(a1);
-        Assert.assertTrue(ModelFactory.createModelForGraph(m1.getGraph()).containsResource(c1));
-        Assert.assertFalse(ModelFactory.createModelForGraph(m1.getGraph()).containsResource(c2));
-        Assert.assertTrue(ModelFactory.createModelForGraph(m2.getGraph()).containsResource(c1));
-        Assert.assertFalse(ModelFactory.createModelForGraph(m2.getGraph()).containsResource(c2));
+        Assertions.assertTrue(ModelFactory.createModelForGraph(m1.getGraph()).containsResource(c1));
+        Assertions.assertFalse(ModelFactory.createModelForGraph(m1.getGraph()).containsResource(c2));
+        Assertions.assertTrue(ModelFactory.createModelForGraph(m2.getGraph()).containsResource(c1));
+        Assertions.assertFalse(ModelFactory.createModelForGraph(m2.getGraph()).containsResource(c2));
 
         OntModels.insert(() -> Stream.of(m1, m2), a2, true);
-        Assert.assertTrue(ModelFactory.createModelForGraph(m1.getGraph()).containsResource(c2));
-        Assert.assertFalse(ModelFactory.createModelForGraph(m1.getGraph()).containsResource(c1));
-        Assert.assertTrue(ModelFactory.createModelForGraph(m2.getGraph()).containsResource(c2));
-        Assert.assertFalse(ModelFactory.createModelForGraph(m2.getGraph()).containsResource(c1));
+        Assertions.assertTrue(ModelFactory.createModelForGraph(m1.getGraph()).containsResource(c2));
+        Assertions.assertFalse(ModelFactory.createModelForGraph(m1.getGraph()).containsResource(c1));
+        Assertions.assertTrue(ModelFactory.createModelForGraph(m2.getGraph()).containsResource(c2));
+        Assertions.assertFalse(ModelFactory.createModelForGraph(m2.getGraph()).containsResource(c1));
     }
 
     @Test
@@ -136,19 +136,19 @@ public class ModelUtilsTest {
         OntClass b = m.createOntClass("B");
         Resource t = m.getResource("type");
         RDFList list = Models.createTypedList(m, t, Arrays.asList(a, b));
-        Assert.assertNotNull(list);
+        Assertions.assertNotNull(list);
         ReadWriteUtils.print(m);
-        Assert.assertEquals(8, m.size());
-        Assert.assertEquals(2, m.listStatements(null, RDF.type, t).toList().size());
+        Assertions.assertEquals(8, m.size());
+        Assertions.assertEquals(2, m.listStatements(null, RDF.type, t).toList().size());
 
-        Assert.assertTrue(Models.isInList(m, a));
-        Assert.assertTrue(Models.isInList(m, b));
+        Assertions.assertTrue(Models.isInList(m, a));
+        Assertions.assertTrue(Models.isInList(m, b));
 
-        Assert.assertEquals(6, Iter.peek(Models.listDescendingStatements(list),
-                s -> Assert.assertTrue(RDF.type.equals(s.getPredicate()) || Models.isInList(s))).toList().size());
+        Assertions.assertEquals(6, Iter.peek(Models.listDescendingStatements(list),
+                s -> Assertions.assertTrue(RDF.type.equals(s.getPredicate()) || Models.isInList(s))).toList().size());
 
-        Assert.assertEquals(2, Models.subjects(t).count());
-        Assert.assertEquals(2, Models.listAscendingStatements(RDF.nil.inModel(m)).toList().size());
+        Assertions.assertEquals(2, Models.subjects(t).count());
+        Assertions.assertEquals(2, Models.listAscendingStatements(RDF.nil.inModel(m)).toList().size());
     }
 
     @Test
@@ -167,6 +167,6 @@ public class ModelUtilsTest {
         List<Statement> tmp;
         Collections.shuffle(tmp = m.listStatements().toList());
         List<Statement> second = tmp.stream().sorted(comp).collect(Collectors.toList());
-        Assert.assertEquals(first, second);
+        Assertions.assertEquals(first, second);
     }
 }

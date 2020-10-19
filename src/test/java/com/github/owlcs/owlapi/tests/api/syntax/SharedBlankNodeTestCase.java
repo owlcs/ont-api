@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -17,8 +17,8 @@ package com.github.owlcs.owlapi.tests.api.syntax;
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.OWLManager;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.formats.FunctionalSyntaxDocumentFormat;
 import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.io.StringDocumentSource;
@@ -40,7 +40,7 @@ import java.util.stream.Stream;
 public class SharedBlankNodeTestCase extends TestBase {
 
     @Test
-    public void shouldSaveOneIndividual() throws Exception {
+    public void testShouldSaveOneIndividual() throws Exception {
         OWLOntology ontology = createOntology();
         StringDocumentTarget s = saveOntology(ontology, new RDFXMLDocumentFormat());
         StringDocumentTarget functionalSyntax = saveOntology(ontology, new FunctionalSyntaxDocumentFormat());
@@ -72,13 +72,13 @@ public class SharedBlankNodeTestCase extends TestBase {
     }
 
     private static void testAnnotation(OWLOntology o) {
-        o.individualsInSignature().forEach(i -> Assert.assertEquals(2L, o.objectPropertyAssertionAxioms(i).count()));
+        o.individualsInSignature().forEach(i -> Assertions.assertEquals(2L, o.objectPropertyAssertionAxioms(i).count()));
         o.annotations().map(a -> (OWLIndividual) a.getValue()).forEach(i ->
-                Assert.assertEquals(1L, o.dataPropertyAssertionAxioms(i).count()));
+                Assertions.assertEquals(1L, o.dataPropertyAssertionAxioms(i).count()));
     }
 
     @Test
-    public void shouldRoundtripBlankNodeAnnotations() throws OWLOntologyCreationException, OWLOntologyStorageException {
+    public void testShouldRoundtripBlankNodeAnnotations() throws OWLOntologyCreationException, OWLOntologyStorageException {
         String input = "<?xml version=\"1.0\"?>\r\n"
                 + "<rdf:RDF "
                 + "xmlns:owl=\"http://www.w3.org/2002/07/owl#\" "
@@ -91,14 +91,14 @@ public class SharedBlankNodeTestCase extends TestBase {
         OWLOntology o = loadOntologyFromString(input);
         OWLOntology o1 = loadOntologyFromString(saveOntology(o, new FunctionalSyntaxDocumentFormat()));
         OWLOntology o2 = loadOntologyFromString(saveOntology(o1, new RDFXMLDocumentFormat()));
-        Assert.assertEquals(1L, o2.annotationAssertionAxioms(IRI.create("http://E", "")).count());
+        Assertions.assertEquals(1L, o2.annotationAssertionAxioms(IRI.create("http://E", "")).count());
         Stream<OWLAnnotationSubject> s = o2.annotationAssertionAxioms(IRI.create("http://E", "")).map(
                 a -> (OWLAnnotationSubject) a.getValue());
-        s.forEach(a -> Assert.assertEquals(1L, o2.annotationAssertionAxioms(a).count()));
+        s.forEach(a -> Assertions.assertEquals(1L, o2.annotationAssertionAxioms(a).count()));
     }
 
     @Test
-    public void shouldRemapUponReading() throws OWLOntologyCreationException {
+    public void testShouldRemapUponReading() throws OWLOntologyCreationException {
         String input = "Prefix(rdf:=<http://www.w3.org/1999/02/22-rdf-syntax-ns#>)\r\n"
                 + "Prefix(xml:=<http://www.w3.org/XML/1998/namespace>)\r\n"
                 + "Prefix(xsd:=<http://www.w3.org/2001/XMLSchema#>)\r\n"
@@ -112,13 +112,13 @@ public class SharedBlankNodeTestCase extends TestBase {
                 .map(OWLAnnotationAssertionAxiom::getValue).filter(OWLAnonymousIndividual.class::isInstance).collect(Collectors.toSet());
         Set<OWLAnnotationValue> values2 = o2.axioms(AxiomType.ANNOTATION_ASSERTION)
                 .map(OWLAnnotationAssertionAxiom::getValue).filter(OWLAnonymousIndividual.class::isInstance).collect(Collectors.toSet());
-        Assert.assertEquals(values1.toString(), values1.size(), 1);
-        Assert.assertEquals(values1.toString(), values2.size(), 1);
-        Assert.assertNotEquals(values1, values2);
+        Assertions.assertEquals(1, values1.size());
+        Assertions.assertEquals(1, values2.size());
+        Assertions.assertNotEquals(values1, values2);
     }
 
     @Test
-    public void shouldHaveOnlyOneAnonIndividual() throws OWLOntologyCreationException {
+    public void testShouldHaveOnlyOneAnonIndividual() throws OWLOntologyCreationException {
         String input = "<?xml version=\"1.0\"?>\r\n"
                 + "<rdf:RDF "
                 + "xmlns:owl=\"http://www.w3.org/2002/07/owl#\" "
@@ -136,9 +136,9 @@ public class SharedBlankNodeTestCase extends TestBase {
                 .map(OWLAnnotationAssertionAxiom::getValue).filter(OWLAnonymousIndividual.class::isInstance).collect(Collectors.toSet());
         Set<OWLAnnotationValue> values2 = o2.axioms(AxiomType.ANNOTATION_ASSERTION)
                 .map(OWLAnnotationAssertionAxiom::getValue).filter(OWLAnonymousIndividual.class::isInstance).collect(Collectors.toSet());
-        Assert.assertEquals(values1.toString(), values1.size(), 1);
-        Assert.assertEquals(values1.toString(), values2.size(), 1);
-        Assert.assertNotEquals(values1, values2);
+        Assertions.assertEquals(1, values1.size());
+        Assertions.assertEquals(1, values2.size());
+        Assertions.assertNotEquals(values1, values2);
     }
 
     /**
@@ -148,7 +148,7 @@ public class SharedBlankNodeTestCase extends TestBase {
      * to be sure that anonymous individuals have the same blank-node-ids as it expected by OWL-API.
      */
     @Test
-    public void shouldNotRemapUponReloading() throws Exception {
+    public void testShouldNotRemapUponReloading() throws Exception {
         try {
             m.getOntologyConfigurator().withRemapAllAnonymousIndividualsIds(false);
             String input = "<?xml version=\"1.0\"?>\r\n"
@@ -183,7 +183,7 @@ public class SharedBlankNodeTestCase extends TestBase {
             OWLOntology o2 = m2.loadOntologyFromOntologyDocument(new StringDocumentSource(input), conf);
             OWLAPIStreamUtils.add(values, o2.axioms(AxiomType.ANNOTATION_ASSERTION)
                     .map(OWLAnnotationAssertionAxiom::getValue).filter(OWLAnonymousIndividual.class::isInstance));
-            Assert.assertEquals(values.toString(), values.size(), 1);
+            Assertions.assertEquals(1, values.size());
         } finally {
             m.getOntologyConfigurator().withRemapAllAnonymousIndividualsIds(true);
         }
@@ -191,7 +191,7 @@ public class SharedBlankNodeTestCase extends TestBase {
     }
 
     @Test
-    public void shouldNotOutputNodeIdWhenNotNeeded() throws OWLOntologyCreationException, OWLOntologyStorageException {
+    public void testShouldNotOutputNodeIdWhenNotNeeded() throws OWLOntologyCreationException, OWLOntologyStorageException {
         String input = "<?xml version=\"1.0\"?>\r\n"
                 + "<rdf:RDF xmlns=\"http://www.w3.org/2002/07/owl#\"\r\n"
                 + "     xml:base=\"http://www.w3.org/2002/07/owl\"\r\n"
@@ -210,7 +210,7 @@ public class SharedBlankNodeTestCase extends TestBase {
                 + "</rdf:RDF>";
         OWLOntology o1 = loadOntologyFromString(input);
         StringDocumentTarget result = saveOntology(o1, new RDFXMLDocumentFormat());
-        Assert.assertFalse(result.toString().contains("rdf:nodeID"));
+        Assertions.assertFalse(result.toString().contains("rdf:nodeID"));
     }
 
     /**
@@ -220,7 +220,7 @@ public class SharedBlankNodeTestCase extends TestBase {
      * This is to make test passed both for OWL-API and ONT-API.
      */
     @Test
-    public void shouldOutputNodeIdEvenIfNotNeeded() throws Exception {
+    public void testShouldOutputNodeIdEvenIfNotNeeded() throws Exception {
         String input = "<?xml version=\"1.0\"?>\r\n"
                 + "<rdf:RDF xmlns=\"http://www.w3.org/2002/07/owl#\"\r\n"
                 + "     xml:base=\"http://www.w3.org/2002/07/owl\"\r\n"
@@ -244,13 +244,13 @@ public class SharedBlankNodeTestCase extends TestBase {
 
             new RDFXMLStorerFactory().createStorer().storeOntology(o1, result, new RDFXMLDocumentFormat());
             LOGGER.debug("(1)Result:\n{}", result);
-            Assert.assertTrue(result.toString().contains("rdf:nodeID"));
+            Assertions.assertTrue(result.toString().contains("rdf:nodeID"));
 
             OWLOntology reloaded = loadOntologyFromString(result);
             StringDocumentTarget resaved = new StringDocumentTarget();
             new RDFXMLStorerFactory().createStorer().storeOntology(reloaded, resaved, new RDFXMLDocumentFormat());
             LOGGER.debug("(2)Result:\n{}", resaved);
-            Assert.assertEquals(result.toString(), resaved.toString());
+            Assertions.assertEquals(result.toString(), resaved.toString());
         } finally {
             // make sure the static variable is reset after the test
             masterManager.getOntologyConfigurator().withSaveIdsForAllAnonymousIndividuals(false);
@@ -258,7 +258,7 @@ public class SharedBlankNodeTestCase extends TestBase {
     }
 
     @Test
-    public void shouldOutputNodeIdWhenNeeded() throws OWLOntologyCreationException, OWLOntologyStorageException {
+    public void testShouldOutputNodeIdWhenNeeded() throws OWLOntologyCreationException, OWLOntologyStorageException {
         String input = "<?xml version=\"1.0\"?>\r\n"
                 + "<rdf:RDF xmlns=\"http://www.w3.org/2002/07/owl#\"\r\n"
                 + "     xml:base=\"http://www.w3.org/2002/07/owl\"\r\n"
@@ -284,6 +284,6 @@ public class SharedBlankNodeTestCase extends TestBase {
                 + "</rdf:RDF>";
         OWLOntology o1 = loadOntologyFromString(input);
         StringDocumentTarget result = saveOntology(o1, new RDFXMLDocumentFormat());
-        Assert.assertTrue(result.toString().contains("rdf:nodeID"));
+        Assertions.assertTrue(result.toString().contains("rdf:nodeID"));
     }
 }

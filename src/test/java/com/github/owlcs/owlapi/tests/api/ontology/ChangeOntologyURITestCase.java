@@ -14,8 +14,8 @@
 package com.github.owlcs.owlapi.tests.api.ontology;
 
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.OWLOntologyIRIChanger;
 
@@ -34,7 +34,7 @@ public class ChangeOntologyURITestCase extends TestBase {
         OWLOntology ont = m.createOntology(oldIRI);
         OWLOntology importingOnt = m.createOntology(IRI.create("http://www.semanticweb.org/ontologies/", "ontC"));
         m.applyChange(new AddImport(importingOnt, df.getOWLImportsDeclaration(ont.getOntologyID().getOntologyIRI().orElseThrow(AssertionError::new))));
-        Assert.assertTrue(m.contains(oldIRI));
+        Assertions.assertTrue(m.contains(oldIRI));
         LOGGER.debug("Ontology before renaming:");
         com.github.owlcs.ontapi.utils.ReadWriteUtils.print(importingOnt);
         OWLOntologyIRIChanger changer = new OWLOntologyIRIChanger(m);
@@ -44,24 +44,24 @@ public class ChangeOntologyURITestCase extends TestBase {
         Set<IRI> imports = importingOnt.importsDeclarations().map(OWLImportsDeclaration::getIRI).collect(Collectors.toSet());
         LOGGER.debug("Imports : " + imports);
 
-        Assert.assertFalse(m.contains(oldIRI));
-        Assert.assertTrue(m.contains(newIRI));
-        Assert.assertTrue(m.ontologies().anyMatch(o -> o.equals(ont)));
-        Assert.assertTrue(m.directImports(importingOnt).anyMatch(o -> o.equals(ont)));
+        Assertions.assertFalse(m.contains(oldIRI));
+        Assertions.assertTrue(m.contains(newIRI));
+        Assertions.assertTrue(m.ontologies().anyMatch(o -> o.equals(ont)));
+        Assertions.assertTrue(m.directImports(importingOnt).anyMatch(o -> o.equals(ont)));
 
-        Assert.assertTrue("Can't find " + newIRI + " inside " + importingOnt.getOntologyID(), imports.contains(newIRI));
-        Assert.assertFalse("There is " + oldIRI + " inside " + importingOnt.getOntologyID(), imports.contains(oldIRI));
+        Assertions.assertTrue(imports.contains(newIRI), "Can't find " + newIRI + " inside " + importingOnt.getOntologyID());
+        Assertions.assertFalse(imports.contains(oldIRI), "There is " + oldIRI + " inside " + importingOnt.getOntologyID());
 
         OWLOntology ontology = m.getOntology(newIRI);
-        Assert.assertNotNull("ontology should not be null", ontology);
-        Assert.assertEquals(ontology, ont);
+        Assertions.assertNotNull(ontology);
+        Assertions.assertEquals(ontology, ont);
         //noinspection OptionalGetWithoutIsPresent
-        Assert.assertEquals(ontology.getOntologyID().getOntologyIRI().get(), newIRI);
-        Assert.assertTrue(m.importsClosure(importingOnt).anyMatch(o -> o.equals(ont)));
-        Assert.assertNotNull("ontology should not be null", m.getOntologyDocumentIRI(ont));
+        Assertions.assertEquals(ontology.getOntologyID().getOntologyIRI().get(), newIRI);
+        Assertions.assertTrue(m.importsClosure(importingOnt).anyMatch(o -> o.equals(ont)));
+        Assertions.assertNotNull(m.getOntologyDocumentIRI(ont), "ontology should not be null");
         // Document IRI will still be the same (in this case the old ont URI)
-        Assert.assertEquals(m.getOntologyDocumentIRI(ont), oldIRI);
-        Assert.assertNotNull("ontology format should not be null", ont.getFormat());
+        Assertions.assertEquals(m.getOntologyDocumentIRI(ont), oldIRI);
+        Assertions.assertNotNull(ont.getFormat(), "ontology format should not be null");
     }
 
     @Test

@@ -15,8 +15,8 @@ package com.github.owlcs.owlapi.tests.api.axioms;
 
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.*;
 
 /**
@@ -34,7 +34,7 @@ public class DeclarationEntityReferencesTestCase extends TestBase {
         OWLAxiom ax = OWLFunctionalSyntaxFactory.Declaration(cls);
         OWLOntology ont = getOWLOntology();
         ont.add(ax);
-        Assert.assertTrue(ont.classesInSignature().anyMatch(cls::equals));
+        Assertions.assertTrue(ont.classesInSignature().anyMatch(cls::equals));
     }
 
     @Test
@@ -43,7 +43,7 @@ public class DeclarationEntityReferencesTestCase extends TestBase {
         OWLAxiom ax = OWLFunctionalSyntaxFactory.Declaration(prop);
         OWLOntology ont = getOWLOntology();
         ont.add(ax);
-        Assert.assertTrue(ont.objectPropertiesInSignature().anyMatch(prop::equals));
+        Assertions.assertTrue(ont.objectPropertiesInSignature().anyMatch(prop::equals));
     }
 
     @Test
@@ -52,7 +52,7 @@ public class DeclarationEntityReferencesTestCase extends TestBase {
         OWLAxiom ax = OWLFunctionalSyntaxFactory.Declaration(prop);
         OWLOntology ont = getOWLOntology();
         ont.add(ax);
-        Assert.assertTrue(ont.dataPropertiesInSignature().anyMatch(prop::equals));
+        Assertions.assertTrue(ont.dataPropertiesInSignature().anyMatch(prop::equals));
     }
 
     @Test
@@ -61,6 +61,6 @@ public class DeclarationEntityReferencesTestCase extends TestBase {
         OWLAxiom ax = OWLFunctionalSyntaxFactory.Declaration(ind);
         OWLOntology ont = getOWLOntology();
         ont.add(ax);
-        Assert.assertTrue(ont.individualsInSignature().anyMatch(ind::equals));
+        Assertions.assertTrue(ont.individualsInSignature().anyMatch(ind::equals));
     }
 }

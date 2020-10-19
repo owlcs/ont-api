@@ -16,8 +16,8 @@ package com.github.owlcs.owlapi.tests.api.syntax;
 
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.*;
 
 import java.io.File;
@@ -31,7 +31,7 @@ public class OWLXMLTestCase extends TestBase {
         OWLOntology o = m.loadOntologyFromOntologyDocument(new File(RESOURCES, "owlxml_anonloop.owx"));
         o.axioms(AxiomType.CLASS_ASSERTION).forEach(ax -> {
             OWLAxiom expected = df.getOWLObjectPropertyAssertionAxiom(r, ax.getIndividual(), ax.getIndividual());
-            Assert.assertTrue(expected + " not found", o.containsAxiom(expected));
+            Assertions.assertTrue(o.containsAxiom(expected), expected + " not found");
         });
     }
 }

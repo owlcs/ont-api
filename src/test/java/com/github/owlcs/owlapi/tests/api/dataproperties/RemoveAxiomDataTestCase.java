@@ -13,8 +13,8 @@
  */
 package com.github.owlcs.owlapi.tests.api.dataproperties;
 
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.mockito.Mockito;
 import org.semanticweb.owlapi.change.RemoveAxiomData;
 import org.semanticweb.owlapi.model.OWLAxiom;
@@ -33,29 +33,29 @@ public class RemoveAxiomDataTestCase {
     public void testEquals() {
         RemoveAxiomData data1 = new RemoveAxiomData(mockAxiom);
         RemoveAxiomData data2 = new RemoveAxiomData(mockAxiom);
-        Assert.assertEquals(data1, data2);
-        Assert.assertEquals(data1.hashCode(), data2.hashCode());
+        Assertions.assertEquals(data1, data2);
+        Assertions.assertEquals(data1.hashCode(), data2.hashCode());
     }
 
     @Test
     public void testGettersNotNull() {
         RemoveAxiomData data = new RemoveAxiomData(mockAxiom);
-        Assert.assertNotNull(data.getAxiom());
+        Assertions.assertNotNull(data.getAxiom());
     }
 
     @Test
     public void testCreateOntologyChange() {
         RemoveAxiomData data = new RemoveAxiomData(mockAxiom);
         RemoveAxiom change = data.createOntologyChange(mockOntology);
-        Assert.assertNotNull(change);
-        Assert.assertEquals(change.getOntology(), mockOntology);
-        Assert.assertEquals(change.getAxiom(), mockAxiom);
+        Assertions.assertNotNull(change);
+        Assertions.assertEquals(change.getOntology(), mockOntology);
+        Assertions.assertEquals(change.getAxiom(), mockAxiom);
     }
 
     @Test
     public void testRoundTripChange() {
         RemoveAxiomData data = new RemoveAxiomData(mockAxiom);
         RemoveAxiom change = new RemoveAxiom(mockOntology, mockAxiom);
-        Assert.assertEquals(data, change.getChangeData());
+        Assertions.assertEquals(data, change.getChangeData());
     }
 }

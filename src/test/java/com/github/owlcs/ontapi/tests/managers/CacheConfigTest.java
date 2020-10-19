@@ -27,8 +27,8 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.graph.impl.WrappedGraph;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
@@ -54,9 +54,9 @@ public class CacheConfigTest {
     private static void testConfigureIRICacheSize(OntologyManager m) {
         int def = Prop.IRI_CACHE_SIZE.getInt();
         OntConfig c1 = m.getOntologyConfigurator();
-        Assert.assertNotNull(c1);
-        Assert.assertEquals(def, c1.getManagerIRIsCacheSize());
-        Assert.assertEquals(def, m.getOntologyConfigurator().getManagerIRIsCacheSize());
+        Assertions.assertNotNull(c1);
+        Assertions.assertEquals(def, c1.getManagerIRIsCacheSize());
+        Assertions.assertEquals(def, m.getOntologyConfigurator().getManagerIRIsCacheSize());
 
         OntConfig c2 = new OntConfig() {
             @Override
@@ -64,9 +64,9 @@ public class CacheConfigTest {
                 return super.setManagerIRIsCacheSize(size);
             }
         }.setManagerIRIsCacheSize(1);
-        Assert.assertEquals(1, c2.getManagerIRIsCacheSize());
+        Assertions.assertEquals(1, c2.getManagerIRIsCacheSize());
         m.setOntologyConfigurator(c2);
-        Assert.assertEquals(1, m.getOntologyConfigurator().getManagerIRIsCacheSize());
+        Assertions.assertEquals(1, m.getOntologyConfigurator().getManagerIRIsCacheSize());
     }
 
     private static InternalCache<?, ?> getInternalCache(CacheObjectFactory of,
@@ -120,8 +120,8 @@ public class CacheConfigTest {
                 "rdfs:label \"bob-label\"@en";
         OWLOntologyDocumentSource source = ReadWriteUtils.getStringDocumentSource(input, OntFormat.MANCHESTER_SYNTAX);
         Ontology o = m.loadOntologyFromOntologyDocument(source);
-        Assert.assertNotNull(o);
-        Assert.assertEquals(2, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
+        Assertions.assertNotNull(o);
+        Assertions.assertEquals(2, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
     }
 
     @Test
@@ -132,67 +132,67 @@ public class CacheConfigTest {
 
     @Test
     public void testNodesCacheSize() throws Exception {
-        Assert.assertEquals(Prop.NODES_CACHE_SIZE.getInt(), new OntConfig().getLoadNodesCacheSize());
+        Assertions.assertEquals(Prop.NODES_CACHE_SIZE.getInt(), new OntConfig().getLoadNodesCacheSize());
         OntologyManager m = OntManagers.createManager();
-        Assert.assertNotNull(m.getOntologyConfigurator().setLoadNodesCacheSize(-123));
-        Assert.assertEquals(-123, m.getOntologyLoaderConfiguration().getLoadNodesCacheSize());
+        Assertions.assertNotNull(m.getOntologyConfigurator().setLoadNodesCacheSize(-123));
+        Assertions.assertEquals(-123, m.getOntologyLoaderConfiguration().getLoadNodesCacheSize());
         // cache is disabled, try to load model
         Ontology o = m.loadOntologyFromOntologyDocument(ReadWriteUtils.getFileDocumentSource("/ontapi/pizza.ttl",
                 OntFormat.TURTLE));
-        Assert.assertNotNull(o);
-        Assert.assertEquals(945, o.axioms().count());
+        Assertions.assertNotNull(o);
+        Assertions.assertEquals(945, o.axioms().count());
 
         OntGraphModelImpl m1 = getBase(o).getSearchModel();
-        Assert.assertTrue(m1 instanceof InternalModelImpl);
+        Assertions.assertTrue(m1 instanceof InternalModelImpl);
 
         m.setOntologyLoaderConfiguration(m.getOntologyLoaderConfiguration().setLoadNodesCacheSize(10_000));
         OntGraphModelImpl m2 = getBase(o).getSearchModel();
-        Assert.assertTrue(m2 instanceof SearchModel);
+        Assertions.assertTrue(m2 instanceof SearchModel);
     }
 
     @Test
     public void testObjectsCacheSize() throws Exception {
         long axioms = 945;
         OntologyManager m = OntManagers.createManager();
-        Assert.assertEquals(Prop.OBJECTS_CACHE_SIZE.getInt(), m.getOntologyConfigurator().getLoadObjectsCacheSize());
+        Assertions.assertEquals(Prop.OBJECTS_CACHE_SIZE.getInt(), m.getOntologyConfigurator().getLoadObjectsCacheSize());
         OntLoaderConfiguration conf = new OntConfig().buildLoaderConfiguration().setLoadObjectsCacheSize(-1);
-        Assert.assertEquals(-1, conf.getLoadObjectsCacheSize());
+        Assertions.assertEquals(-1, conf.getLoadObjectsCacheSize());
         m.setOntologyLoaderConfiguration(conf);
         Ontology o = m.loadOntologyFromOntologyDocument(ReadWriteUtils.getFileDocumentSource("/ontapi/pizza.ttl",
                 OntFormat.TURTLE));
-        Assert.assertNotNull(o);
-        Assert.assertEquals(axioms, o.axioms().count());
+        Assertions.assertNotNull(o);
+        Assertions.assertEquals(axioms, o.axioms().count());
         ONTObjectFactory of1 = getBase(o).getObjectFactory();
-        Assert.assertTrue(of1 instanceof InternalObjectFactory);
-        Assert.assertFalse(of1 instanceof CacheObjectFactory);
+        Assertions.assertTrue(of1 instanceof InternalObjectFactory);
+        Assertions.assertFalse(of1 instanceof CacheObjectFactory);
 
         int size1 = 52;
         m.setOntologyLoaderConfiguration(conf.setLoadObjectsCacheSize(size1));
-        Assert.assertEquals(axioms, o.axioms().count());
+        Assertions.assertEquals(axioms, o.axioms().count());
         ONTObjectFactory of2 = getBase(o).getObjectFactory();
-        Assert.assertTrue(of2 instanceof CacheObjectFactory);
+        Assertions.assertTrue(of2 instanceof CacheObjectFactory);
         CacheObjectFactory cof1 = (CacheObjectFactory) of2;
 
-        Assert.assertEquals(size1, getInternalCache(cof1, OWLClass.class).size());
-        Assert.assertEquals(2, getInternalCache(cof1, OWLDatatype.class).size());
-        Assert.assertEquals(5, getInternalCache(cof1, OWLNamedIndividual.class).size());
-        Assert.assertEquals(2, getInternalCache(cof1, OWLAnnotationProperty.class).size());
-        Assert.assertEquals(0, getInternalCache(cof1, OWLDataProperty.class).size());
-        Assert.assertEquals(8, getInternalCache(cof1, OWLObjectProperty.class).size());
+        Assertions.assertEquals(size1, getInternalCache(cof1, OWLClass.class).size());
+        Assertions.assertEquals(2, getInternalCache(cof1, OWLDatatype.class).size());
+        Assertions.assertEquals(5, getInternalCache(cof1, OWLNamedIndividual.class).size());
+        Assertions.assertEquals(2, getInternalCache(cof1, OWLAnnotationProperty.class).size());
+        Assertions.assertEquals(0, getInternalCache(cof1, OWLDataProperty.class).size());
+        Assertions.assertEquals(8, getInternalCache(cof1, OWLObjectProperty.class).size());
 
         int size2 = 2;
         m.setOntologyLoaderConfiguration(conf.setLoadObjectsCacheSize(size2));
-        Assert.assertEquals(axioms, o.axioms().count());
+        Assertions.assertEquals(axioms, o.axioms().count());
         ONTObjectFactory of3 = getBase(o).getObjectFactory();
-        Assert.assertTrue(of3 instanceof CacheObjectFactory);
+        Assertions.assertTrue(of3 instanceof CacheObjectFactory);
         CacheObjectFactory cof2 = (CacheObjectFactory) of3;
 
-        Assert.assertEquals(size2, getInternalCache(cof2, OWLClass.class).size());
-        Assert.assertEquals(2, getInternalCache(cof2, OWLDatatype.class).size());
-        Assert.assertEquals(size2, getInternalCache(cof2, OWLNamedIndividual.class).size());
-        Assert.assertEquals(size2, getInternalCache(cof2, OWLAnnotationProperty.class).size());
-        Assert.assertEquals(0, getInternalCache(cof2, OWLDataProperty.class).size());
-        Assert.assertEquals(size2, getInternalCache(cof2, OWLObjectProperty.class).size());
+        Assertions.assertEquals(size2, getInternalCache(cof2, OWLClass.class).size());
+        Assertions.assertEquals(2, getInternalCache(cof2, OWLDatatype.class).size());
+        Assertions.assertEquals(size2, getInternalCache(cof2, OWLNamedIndividual.class).size());
+        Assertions.assertEquals(size2, getInternalCache(cof2, OWLAnnotationProperty.class).size());
+        Assertions.assertEquals(0, getInternalCache(cof2, OWLDataProperty.class).size());
+        Assertions.assertEquals(size2, getInternalCache(cof2, OWLObjectProperty.class).size());
     }
 
     @Test
@@ -202,16 +202,16 @@ public class CacheConfigTest {
         long axioms1 = 945;
         OntologyManager m1 = OntManagers.createManager();
         DataFactory df = m1.getOWLDataFactory();
-        Assert.assertEquals(CacheSettings.CACHE_ALL, Prop.CONTENT_CACHE_LEVEL.getInt());
-        Assert.assertTrue(m1.getOntologyConfigurator().useContentCache());
+        Assertions.assertEquals(CacheSettings.CACHE_ALL, Prop.CONTENT_CACHE_LEVEL.getInt());
+        Assertions.assertTrue(m1.getOntologyConfigurator().useContentCache());
         LogFindGraph g1 = new LogFindGraph(g);
         Ontology o1 = m1.addOntology(g1);
-        Assert.assertEquals(axioms1, o1.axioms().count());
+        Assertions.assertEquals(axioms1, o1.axioms().count());
         int count1 = g1.getFindPatterns().size();
         LOGGER.debug("1) Find invocation count: {}", count1);
         // cached:
-        Assert.assertEquals(axioms1, o1.axioms().count());
-        Assert.assertEquals(count1, g1.getFindPatterns().size());
+        Assertions.assertEquals(axioms1, o1.axioms().count());
+        Assertions.assertEquals(count1, g1.getFindPatterns().size());
         OWLAxiom axiom = df.getOWLSubClassOfAxiom(df.getOWLClass("A"), df.getOWLClass("B"));
         o1.add(axiom);
 
@@ -220,37 +220,37 @@ public class CacheConfigTest {
         OntologyManager m2 = OntManagers.createManager();
         OntLoaderConfiguration conf = m2.getOntologyLoaderConfiguration()
                 .setModelCacheLevel(CacheSettings.CACHE_ALL, false);
-        Assert.assertFalse(conf.useContentCache());
+        Assertions.assertFalse(conf.useContentCache());
         m2.setOntologyLoaderConfiguration(conf);
         LogFindGraph g2 = new LogFindGraph(g);
         Ontology o2 = m2.addOntology(g2);
-        Assert.assertEquals(axioms2, o2.axioms().count());
+        Assertions.assertEquals(axioms2, o2.axioms().count());
         int count2_1 = g2.getFindPatterns().size();
         LOGGER.debug("2) Find invocation count: {}", count2_1);
 
-        Assert.assertEquals(axioms2, o2.axioms().count());
+        Assertions.assertEquals(axioms2, o2.axioms().count());
         int count2_2 = g2.getFindPatterns().size();
-        Assert.assertTrue(count2_2 > count2_1);
+        Assertions.assertTrue(count2_2 > count2_1);
 
-        Assert.assertEquals(axioms2, o2.axioms().count());
-        Assert.assertEquals(2 * count2_2 - count2_1, g2.getFindPatterns().size());
+        Assertions.assertEquals(axioms2, o2.axioms().count());
+        Assertions.assertEquals(2 * count2_2 - count2_1, g2.getFindPatterns().size());
 
         int size = g.size();
         try {
             o2.add(df.getOWLSubClassOfAxiom(df.getOWLClass("C"), df.getOWLClass("D")));
-            Assert.fail("Possible to add axiom");
+            Assertions.fail("Possible to add axiom");
         } catch (OntologyModelImpl.ModificationDeniedException e) {
             LOGGER.debug("Expected: '{}'", e.getMessage());
         }
-        Assert.assertEquals(size, g.size());
+        Assertions.assertEquals(size, g.size());
 
         try {
             o2.remove(axiom);
-            Assert.fail("Possible to delete axiom");
+            Assertions.fail("Possible to delete axiom");
         } catch (OntologyModelImpl.ModificationDeniedException e) {
             LOGGER.debug("Expected: '{}'", e.getMessage());
         }
-        Assert.assertEquals(size, g.size());
+        Assertions.assertEquals(size, g.size());
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -265,23 +265,23 @@ public class CacheConfigTest {
                 m1.getOntologyLoaderConfiguration().setModelCacheLevel(CacheSettings.CACHE_CONTENT, true));
         InternalModelImpl im1 = (InternalModelImpl) adapter.asBaseModel(o1).getBase();
         InternalCache.Loading c1 = getInternalCache(im1, OWLTopObjectType.class);
-        Assert.assertNotNull(c1);
+        Assertions.assertNotNull(c1);
         Map map1 = (Map) c1.get(im1);
-        Assert.assertNotNull(map1);
+        Assertions.assertNotNull(map1);
         OWLTopObjectType.all().forEach(k -> {
             ObjectMap v = (ObjectMap) map1.get(k);
-            Assert.assertNotNull(v);
-            Assert.assertFalse("Loaded: " + k, v.isLoaded());
+            Assertions.assertNotNull(v);
+            Assertions.assertFalse(v.isLoaded(), "Loaded: " + k);
         });
         // load axioms:
-        Assert.assertEquals(axioms, o1.getAxiomCount());
+        Assertions.assertEquals(axioms, o1.getAxiomCount());
         OWLTopObjectType.all().forEach(k -> {
             ObjectMap v = (ObjectMap) map1.get(k);
-            Assert.assertNotNull(v);
+            Assertions.assertNotNull(v);
             if (OWLTopObjectType.ANNOTATION.equals(k)) {
-                Assert.assertFalse("Loaded: " + k, v.isLoaded());
+                Assertions.assertFalse(v.isLoaded(), "Loaded: " + k);
             } else {
-                Assert.assertTrue("Not loaded: " + k, v.isLoaded());
+                Assertions.assertTrue(v.isLoaded(), "Not loaded: " + k);
             }
         });
 
@@ -290,15 +290,15 @@ public class CacheConfigTest {
                 m2.getOntologyLoaderConfiguration().setModelCacheLevel(CacheSettings.CACHE_CONTENT, false));
         InternalModelImpl im2 = getBase(o2);
         InternalCache.Loading c2 = getInternalCache(im2, OWLTopObjectType.class);
-        Assert.assertNotNull(c2);
+        Assertions.assertNotNull(c2);
         Map map2 = (Map) c2.get(im2);
-        Assert.assertNotNull(map2);
+        Assertions.assertNotNull(map2);
         // load axioms:
-        Assert.assertEquals(axioms, o2.getAxiomCount());
+        Assertions.assertEquals(axioms, o2.getAxiomCount());
         OWLTopObjectType.all().forEach(k -> {
             ObjectMap v = (ObjectMap) map2.get(k);
-            Assert.assertNotNull(v);
-            Assert.assertFalse("Loaded: " + k, v.isLoaded());
+            Assertions.assertNotNull(v);
+            Assertions.assertFalse(v.isLoaded(), "Loaded: " + k);
         });
     }
 
@@ -309,38 +309,38 @@ public class CacheConfigTest {
         long signature1 = 118;
         OntologyManager m1 = OntManagers.createManager();
         DataFactory df = m1.getOWLDataFactory();
-        Assert.assertEquals(CacheSettings.CACHE_ALL, Prop.CONTENT_CACHE_LEVEL.getInt());
-        Assert.assertTrue(m1.getOntologyConfigurator().useComponentCache());
+        Assertions.assertEquals(CacheSettings.CACHE_ALL, Prop.CONTENT_CACHE_LEVEL.getInt());
+        Assertions.assertTrue(m1.getOntologyConfigurator().useComponentCache());
 
         LogFindGraph g1 = new LogFindGraph(g);
         Ontology o1 = m1.addOntology(g1);
-        Assert.assertEquals(signature1, o1.signature().count());
+        Assertions.assertEquals(signature1, o1.signature().count());
         int count1 = g1.getFindPatterns().size();
         LOGGER.debug("1) Find invocation count: {}", count1);
         // cached:
-        Assert.assertEquals(signature1, o1.signature().count());
-        Assert.assertEquals(count1, g1.getFindPatterns().size());
+        Assertions.assertEquals(signature1, o1.signature().count());
+        Assertions.assertEquals(count1, g1.getFindPatterns().size());
         OWLAxiom axiom = df.getOWLSubClassOfAxiom(df.getOWLClass("A"), df.getOWLClass("B"));
         o1.add(axiom);
-        Assert.assertEquals(signature1 + 2, o1.signature().count());
+        Assertions.assertEquals(signature1 + 2, o1.signature().count());
 
         // no cache model:
         long signature2 = signature1 + 2;
         OntologyManager m2 = OntManagers.createManager();
         OntLoaderConfiguration conf = m2.getOntologyLoaderConfiguration()
                 .setModelCacheLevel(CacheSettings.CACHE_COMPONENT, false);
-        Assert.assertFalse(conf.useComponentCache());
-        Assert.assertTrue(conf.useContentCache());
+        Assertions.assertFalse(conf.useComponentCache());
+        Assertions.assertTrue(conf.useContentCache());
         LogFindGraph g2 = new LogFindGraph(g);
         Ontology o2 = m2.addOntology(g2, conf);
-        Assert.assertEquals(signature2, o2.signature().distinct().count());
+        Assertions.assertEquals(signature2, o2.signature().distinct().count());
         int count2_1 = g2.getFindPatterns().size();
         LOGGER.debug("2) Find invocation count: {}", count2_1);
 
-        Assert.assertEquals(signature2, o2.signature().distinct().count());
+        Assertions.assertEquals(signature2, o2.signature().distinct().count());
         int count2_2 = g2.getFindPatterns().size();
         LOGGER.debug("3) Find invocation count: {}", count2_2);
-        Assert.assertTrue(count2_1 < count2_2);
+        Assertions.assertTrue(count2_1 < count2_2);
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})
@@ -362,23 +362,23 @@ public class CacheConfigTest {
                 m1.getOntologyLoaderConfiguration().setModelCacheLevel(CacheSettings.CACHE_COMPONENT, true));
         InternalModelImpl im1 = getBase(o1);
         InternalCache.Loading c1 = getInternalCache(im1, OWLComponentType.class);
-        Assert.assertNotNull(c1);
+        Assertions.assertNotNull(c1);
         Map map1 = (Map) c1.get(im1);
-        Assert.assertNotNull(map1);
+        Assertions.assertNotNull(map1);
         keys.forEach(k -> {
             ObjectMap v = (ObjectMap) map1.get(k);
-            Assert.assertNotNull(v);
-            Assert.assertFalse("Loaded " + k, v.isLoaded());
+            Assertions.assertNotNull(v);
+            Assertions.assertFalse(v.isLoaded(), "Loaded " + k);
         });
         // load signature:
-        Assert.assertEquals(signature, o1.signature().count());
+        Assertions.assertEquals(signature, o1.signature().count());
         keys.forEach(k -> {
             ObjectMap v = (ObjectMap) map1.get(k);
-            Assert.assertNotNull(v);
+            Assertions.assertNotNull(v);
             if (OWLComponentType.ANONYMOUS_INDIVIDUAL.equals(k)) {
-                Assert.assertFalse("Loaded " + k, v.isLoaded());
+                Assertions.assertFalse(v.isLoaded(), "Loaded " + k);
             } else {
-                Assert.assertTrue("Not loaded: " + k, v.isLoaded());
+                Assertions.assertTrue(v.isLoaded(), "Not loaded: " + k);
             }
         });
 
@@ -387,15 +387,15 @@ public class CacheConfigTest {
                 m2.getOntologyLoaderConfiguration().setModelCacheLevel(CacheSettings.CACHE_COMPONENT, false));
         InternalModelImpl im2 = (InternalModelImpl) adapter.asBaseModel(o2).getBase();
         InternalCache.Loading c2 = getInternalCache(im2, OWLComponentType.class);
-        Assert.assertNotNull(c2);
+        Assertions.assertNotNull(c2);
         Map map2 = (Map) c2.get(im2);
-        Assert.assertNotNull(map2);
+        Assertions.assertNotNull(map2);
         // load signature:
-        Assert.assertEquals(signature, o2.signature().distinct().count());
+        Assertions.assertEquals(signature, o2.signature().distinct().count());
         keys.forEach(k -> {
             ObjectMap v = (ObjectMap) map2.get(k);
-            Assert.assertNotNull(v);
-            Assert.assertFalse("Loaded " + k, v.isLoaded());
+            Assertions.assertNotNull(v);
+            Assertions.assertFalse(v.isLoaded(), "Loaded " + k);
         });
     }
 
@@ -403,29 +403,29 @@ public class CacheConfigTest {
     public void testContentCacheLevels() {
         OntConfig c = new OntConfig();
         c.setModelCacheLevel(CacheSettings.CACHE_ITERATOR);
-        Assert.assertFalse(c.useComponentCache());
-        Assert.assertTrue(c.useIteratorCache());
-        Assert.assertFalse(c.useContentCache());
+        Assertions.assertFalse(c.useComponentCache());
+        Assertions.assertTrue(c.useIteratorCache());
+        Assertions.assertFalse(c.useContentCache());
 
         c.setModelCacheLevel(CacheSettings.CACHE_COMPONENT);
-        Assert.assertTrue(c.useComponentCache());
-        Assert.assertFalse(c.useIteratorCache());
-        Assert.assertFalse(c.useContentCache());
+        Assertions.assertTrue(c.useComponentCache());
+        Assertions.assertFalse(c.useIteratorCache());
+        Assertions.assertFalse(c.useContentCache());
 
         c.setModelCacheLevel(CacheSettings.CACHE_CONTENT);
-        Assert.assertFalse(c.useComponentCache());
-        Assert.assertFalse(c.useIteratorCache());
-        Assert.assertTrue(c.useContentCache());
+        Assertions.assertFalse(c.useComponentCache());
+        Assertions.assertFalse(c.useIteratorCache());
+        Assertions.assertTrue(c.useContentCache());
 
         c.setModelCacheLevel(CacheSettings.CACHE_ALL, false);
-        Assert.assertFalse(c.useComponentCache());
-        Assert.assertFalse(c.useIteratorCache());
-        Assert.assertFalse(c.useContentCache());
+        Assertions.assertFalse(c.useComponentCache());
+        Assertions.assertFalse(c.useIteratorCache());
+        Assertions.assertFalse(c.useContentCache());
 
         c.setModelCacheLevel(CacheSettings.CACHE_ALL, true);
-        Assert.assertTrue(c.useComponentCache());
-        Assert.assertTrue(c.useIteratorCache());
-        Assert.assertTrue(c.useContentCache());
+        Assertions.assertTrue(c.useComponentCache());
+        Assertions.assertTrue(c.useIteratorCache());
+        Assertions.assertTrue(c.useContentCache());
     }
 
     @Test
@@ -438,18 +438,18 @@ public class CacheConfigTest {
         m.getOntologyConfigurator().setModelCacheLevel(CacheSettings.CACHE_CONTENT);
 
         Ontology o = m.loadOntologyFromOntologyDocument(s);
-        Assert.assertEquals(axioms, o.getAxiomCount());
+        Assertions.assertEquals(axioms, o.getAxiomCount());
         OWLClass c = df.getOWLClass("C");
         OWLAxiom a = df.getOWLSubClassOfAxiom(c, df.getOWLNothing(), Collections.singletonList(df.getRDFSLabel("x1")));
         o.add(a);
-        Assert.assertEquals(axioms + 1, o.getAxiomCount());
+        Assertions.assertEquals(axioms + 1, o.getAxiomCount());
         o.clearCache();
-        Assert.assertEquals(axioms + 2, o.getAxiomCount());
+        Assertions.assertEquals(axioms + 2, o.getAxiomCount());
 
         o.remove(a);
-        Assert.assertEquals(axioms + 1, o.axioms().count());
+        Assertions.assertEquals(axioms + 1, o.axioms().count());
         o.remove(df.getOWLDeclarationAxiom(c));
-        Assert.assertEquals(axioms, o.getAxiomCount());
+        Assertions.assertEquals(axioms, o.getAxiomCount());
     }
 
     @Test
@@ -502,7 +502,7 @@ public class CacheConfigTest {
         OWLOntologyDocumentSource source = ReadWriteUtils.getStringDocumentSource(wrong, OntFormat.TURTLE);
         Ontology o = m.loadOntologyFromOntologyDocument(source);
         ReadWriteUtils.print(o);
-        Assert.assertEquals(16, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
+        Assertions.assertEquals(16, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
     }
 
     enum Prop {

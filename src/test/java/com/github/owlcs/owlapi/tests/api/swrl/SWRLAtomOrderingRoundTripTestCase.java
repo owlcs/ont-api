@@ -16,9 +16,9 @@ package com.github.owlcs.owlapi.tests.api.swrl;
 
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.formats.ManchesterSyntaxDocumentFormat;
 import org.semanticweb.owlapi.formats.OWLXMLDocumentFormat;
 import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
@@ -107,7 +107,7 @@ public class SWRLAtomOrderingRoundTripTestCase extends TestBase {
                 + "            </rdf:Description>\n" + "        </swrl:head>\n" + "    </rdf:Description>\n" + "</rdf:RDF>";
         OWLOntology o = loadOntologyFromString(in, IRI.create("urn:test#", "test"), new RDFXMLDocumentFormat());
         String string = saveOntology(o).toString();
-        Assert.assertFalse(string, string.contains("<rdf:type rdf:resource=\"http://www.w3.org/2003/11/swrl#Variable\"/>"));
+        Assertions.assertFalse(string.contains("<rdf:type rdf:resource=\"http://www.w3.org/2003/11/swrl#Variable\"/>"));
     }
 
     @Test
@@ -122,18 +122,18 @@ public class SWRLAtomOrderingRoundTripTestCase extends TestBase {
         ont.saveOntology(ontologyFormat, documentTarget);
         OWLOntology ont2 = loadOntologyFromString(documentTarget);
         Set<SWRLRule> rules = ont2.axioms(AxiomType.SWRL_RULE).collect(Collectors.toSet());
-        Assert.assertEquals(1, rules.size());
+        Assertions.assertEquals(1, rules.size());
         SWRLRule parsedRule = rules.iterator().next();
         //assertThat(parsedRule, is(equalTo(rule)));
-        Assert.assertEquals(parsedRule, rule);
+        Assertions.assertEquals(parsedRule, rule);
         List<SWRLAtom> originalBody = new ArrayList<>(body);
         List<SWRLAtom> parsedBody = parsedRule.body().collect(Collectors.toList());
         //assertThat(parsedBody, is(equalTo(originalBody)));
-        Assert.assertEquals(parsedBody, originalBody);
+        Assertions.assertEquals(parsedBody, originalBody);
         List<SWRLAtom> originalHead = new ArrayList<>(head);
         List<SWRLAtom> parsedHead = parsedRule.head().collect(Collectors.toList());
         //assertThat(originalHead, is(equalTo(parsedHead)));
-        Assert.assertEquals(originalHead, parsedHead);
+        Assertions.assertEquals(originalHead, parsedHead);
     }
 
     @Test

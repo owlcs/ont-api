@@ -15,8 +15,8 @@ package com.github.owlcs.owlapi.tests.api.annotations;
 
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -41,11 +41,11 @@ public class AnnotationPropertyConvenienceMethodTestCase extends TestBase {
         ont.getOWLOntologyManager().addAxiom(ont, df.getOWLSubAnnotationPropertyOfAxiom(propP, propQ));
         ont.getOWLOntologyManager().addAxiom(ont, df.getOWLSubAnnotationPropertyOfAxiom(propP, propR));
         Collection<OWLAxiom> axioms = ont.axioms(Filters.subAnnotationWithSub, propP, Imports.INCLUDED).collect(Collectors.toSet());
-        Assert.assertTrue(Searcher.sup(axioms.stream()).anyMatch(propQ::equals));
-        Assert.assertTrue(Searcher.sup(axioms.stream()).anyMatch(propR::equals));
+        Assertions.assertTrue(Searcher.sup(axioms.stream()).anyMatch(propQ::equals));
+        Assertions.assertTrue(Searcher.sup(axioms.stream()).anyMatch(propR::equals));
         axioms = ont.axioms(Filters.subAnnotationWithSub, propP, Imports.EXCLUDED).collect(Collectors.toSet());
-        Assert.assertTrue(Searcher.sup(axioms.stream()).anyMatch(propQ::equals));
-        Assert.assertTrue(Searcher.sup(axioms.stream()).anyMatch(propR::equals));
+        Assertions.assertTrue(Searcher.sup(axioms.stream()).anyMatch(propQ::equals));
+        Assertions.assertTrue(Searcher.sup(axioms.stream()).anyMatch(propR::equals));
     }
 
     @Test
@@ -56,9 +56,9 @@ public class AnnotationPropertyConvenienceMethodTestCase extends TestBase {
         OWLAnnotationProperty propR = OWLFunctionalSyntaxFactory.AnnotationProperty(iri("propR"));
         ont.getOWLOntologyManager().addAxiom(ont, df.getOWLSubAnnotationPropertyOfAxiom(propP, propQ));
         ont.getOWLOntologyManager().addAxiom(ont, df.getOWLSubAnnotationPropertyOfAxiom(propP, propR));
-        Assert.assertTrue(Searcher.sub(ont.axioms(Filters.subAnnotationWithSuper, propQ, Imports.INCLUDED)).anyMatch(propP::equals));
-        Assert.assertTrue(Searcher.sub(ont.axioms(Filters.subAnnotationWithSuper, propQ, Imports.EXCLUDED)).anyMatch(propP::equals));
-        Assert.assertTrue(Searcher.sub(ont.axioms(Filters.subAnnotationWithSuper, propR, Imports.INCLUDED)).anyMatch(propP::equals));
-        Assert.assertTrue(Searcher.sub(ont.axioms(Filters.subAnnotationWithSuper, propR, Imports.EXCLUDED)).anyMatch(propP::equals));
+        Assertions.assertTrue(Searcher.sub(ont.axioms(Filters.subAnnotationWithSuper, propQ, Imports.INCLUDED)).anyMatch(propP::equals));
+        Assertions.assertTrue(Searcher.sub(ont.axioms(Filters.subAnnotationWithSuper, propQ, Imports.EXCLUDED)).anyMatch(propP::equals));
+        Assertions.assertTrue(Searcher.sub(ont.axioms(Filters.subAnnotationWithSuper, propR, Imports.INCLUDED)).anyMatch(propP::equals));
+        Assertions.assertTrue(Searcher.sub(ont.axioms(Filters.subAnnotationWithSuper, propR, Imports.EXCLUDED)).anyMatch(propP::equals));
     }
 }

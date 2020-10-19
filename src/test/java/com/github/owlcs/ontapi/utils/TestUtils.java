@@ -28,7 +28,7 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.vocabulary.RDFS;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.OWLAPIStreamUtils;
 import org.slf4j.Logger;
@@ -77,7 +77,7 @@ public class TestUtils {
         expected.values().forEach(x -> LOGGER.debug("{}", x));
         LOGGER.debug("[Compare] Actual axioms: ");
         actual.values().forEach(x -> LOGGER.debug("{}", x));
-        Assert.assertEquals("Incorrect axiom types:", expected.keySet(), actual.keySet());
+        Assertions.assertEquals(expected.keySet(), actual.keySet(), "Incorrect axiom types:");
         List<String> errors = new ArrayList<>();
         for (AxiomType<?> type : expected.keySet()) {
             List<OWLAxiom> exList = expected.get(type);
@@ -94,7 +94,7 @@ public class TestUtils {
             }
         }
         errors.forEach(LOGGER::error);
-        Assert.assertTrue("There are " + errors.size() + " errors", errors.isEmpty());
+        Assertions.assertTrue(errors.isEmpty(), "There are " + errors.size() + " errors");
     }
 
     public static Map<AxiomType<?>, List<OWLAxiom>> toMap(Stream<? extends OWLAxiom> stream) {
@@ -135,7 +135,7 @@ public class TestUtils {
         } else if (OntModelConfig.ONT_PERSONALITY_LAX.equals(profile)) {
             mode = OntModelConfig.StdMode.LAX;
         } else {
-            Assert.fail("Unsupported personality profile " + profile);
+            Assertions.fail("Unsupported personality profile " + profile);
         }
         return mode;
     }
@@ -204,6 +204,6 @@ public class TestUtils {
         if (expected != actual) {
             o.axioms(t).forEach(x -> LOGGER.error("{}", x));
         }
-        Assert.assertEquals("Wrong axioms for " + t, expected, actual);
+        Assertions.assertEquals(expected, actual, "Wrong axioms for " + t);
     }
 }

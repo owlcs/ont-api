@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -15,8 +15,8 @@ package com.github.owlcs.owlapi.tests.api.syntax;
 
 import com.github.owlcs.owlapi.OWLManager;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.io.XMLUtils;
 import org.semanticweb.owlapi.model.AxiomType;
@@ -43,37 +43,37 @@ public class XMLUtilsTestCase extends TestBase {
 
     @Test
     public void testIsNCName() {
-        Assert.assertTrue(XMLUtils.isNCName(CODE_POINT_STRING + "abc" + CODE_POINT_STRING));
-        Assert.assertTrue(XMLUtils.isNCName(CODE_POINT_STRING + "abc123" + CODE_POINT_STRING));
-        Assert.assertFalse(XMLUtils.isNCName("123" + CODE_POINT_STRING));
-        Assert.assertFalse(XMLUtils.isNCName(CODE_POINT_STRING + ":a"));
-        Assert.assertFalse(XMLUtils.isNCName(""));
-        Assert.assertFalse(XMLUtils.isNCName(null));
+        Assertions.assertTrue(XMLUtils.isNCName(CODE_POINT_STRING + "abc" + CODE_POINT_STRING));
+        Assertions.assertTrue(XMLUtils.isNCName(CODE_POINT_STRING + "abc123" + CODE_POINT_STRING));
+        Assertions.assertFalse(XMLUtils.isNCName("123" + CODE_POINT_STRING));
+        Assertions.assertFalse(XMLUtils.isNCName(CODE_POINT_STRING + ":a"));
+        Assertions.assertFalse(XMLUtils.isNCName(""));
+        Assertions.assertFalse(XMLUtils.isNCName(null));
     }
 
     @Test
     public void testIsQName() {
-        Assert.assertTrue(XMLUtils.isQName(CODE_POINT_STRING + "p1:abc" + CODE_POINT_STRING));
-        Assert.assertFalse(XMLUtils.isQName(CODE_POINT_STRING + "p1:2abc" + CODE_POINT_STRING));
-        Assert.assertFalse(XMLUtils.isQName("11" + CODE_POINT_STRING + ":abc" + CODE_POINT_STRING));
-        Assert.assertFalse(XMLUtils.isQName("ab:c%20d"));
+        Assertions.assertTrue(XMLUtils.isQName(CODE_POINT_STRING + "p1:abc" + CODE_POINT_STRING));
+        Assertions.assertFalse(XMLUtils.isQName(CODE_POINT_STRING + "p1:2abc" + CODE_POINT_STRING));
+        Assertions.assertFalse(XMLUtils.isQName("11" + CODE_POINT_STRING + ":abc" + CODE_POINT_STRING));
+        Assertions.assertFalse(XMLUtils.isQName("ab:c%20d"));
     }
 
     @Test
     public void testEndsWithNCName() {
-        Assert.assertEquals("abc" + CODE_POINT_STRING, XMLUtils.getNCNameSuffix("1abc" + CODE_POINT_STRING));
-        Assert.assertTrue(XMLUtils.hasNCNameSuffix("1abc" + CODE_POINT_STRING));
-        Assert.assertNull(XMLUtils.getNCNameSuffix(CODE_POINT_STRING + "p1:123"));
-        Assert.assertFalse(XMLUtils.hasNCNameSuffix(CODE_POINT_STRING + "p1:123"));
-        Assert.assertEquals("ABC", XMLUtils.getNCNameSuffix("http://owlapi.sourceforge.net/ontology/ABC"));
-        Assert.assertEquals("ABC", XMLUtils.getNCNameSuffix("http://owlapi.sourceforge.net/ontology#ABC"));
-        Assert.assertEquals("ABC", XMLUtils.getNCNameSuffix("http://owlapi.sourceforge.net/ontology:ABC"));
+        Assertions.assertEquals("abc" + CODE_POINT_STRING, XMLUtils.getNCNameSuffix("1abc" + CODE_POINT_STRING));
+        Assertions.assertTrue(XMLUtils.hasNCNameSuffix("1abc" + CODE_POINT_STRING));
+        Assertions.assertNull(XMLUtils.getNCNameSuffix(CODE_POINT_STRING + "p1:123"));
+        Assertions.assertFalse(XMLUtils.hasNCNameSuffix(CODE_POINT_STRING + "p1:123"));
+        Assertions.assertEquals("ABC", XMLUtils.getNCNameSuffix("http://owlapi.sourceforge.net/ontology/ABC"));
+        Assertions.assertEquals("ABC", XMLUtils.getNCNameSuffix("http://owlapi.sourceforge.net/ontology#ABC"));
+        Assertions.assertEquals("ABC", XMLUtils.getNCNameSuffix("http://owlapi.sourceforge.net/ontology:ABC"));
     }
 
     @Test
     public void testParsesBNode() {
-        Assert.assertEquals("_:test", XMLUtils.getNCNamePrefix("_:test"));
-        Assert.assertNull(XMLUtils.getNCNameSuffix("_:test"));
+        Assertions.assertEquals("_:test", XMLUtils.getNCNamePrefix("_:test"));
+        Assertions.assertNull(XMLUtils.getNCNameSuffix("_:test"));
     }
 
     /**
@@ -90,7 +90,7 @@ public class XMLUtilsTestCase extends TestBase {
      */
     @SuppressWarnings("JavadocReference")
     @Test
-    public void testmissingTypes() {
+    public void testMissingTypes() {
         // given
         String input = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
                 + "<rdf:RDF\n"
@@ -133,8 +133,8 @@ public class XMLUtilsTestCase extends TestBase {
             expected.put(AxiomType.ANNOTATION_ASSERTION, 7);
             expected.put(AxiomType.CLASS_ASSERTION, 3);
             expected.put(AxiomType.DECLARATION, 3);
-            expected.forEach((t, i) -> Assert.assertEquals(String.format("Should be %d %s.", i, t), i.longValue(), o.axioms(t).count()));
+            expected.forEach((t, i) -> Assertions.assertEquals(i.longValue(), o.axioms(t).count(), String.format("Should be %d %s.", i, t)));
         }
-        Assert.assertEquals("Incorrect number of axioms", 15, o.getAxiomCount());
+        Assertions.assertEquals(15, o.getAxiomCount());
     }
 }

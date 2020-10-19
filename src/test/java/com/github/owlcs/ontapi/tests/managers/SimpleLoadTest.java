@@ -24,8 +24,8 @@ import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import com.github.owlcs.ontapi.utils.TestUtils;
 import org.apache.jena.rdf.model.Resource;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,7 +67,7 @@ public class SimpleLoadTest {
         LOGGER.debug("There are following illegal punnins inside original graph: {}", illegalPunningURIs);
         List<OntEntity> illegalPunnings = model.ontEntities()
                 .filter(illegalPunningURIs::contains).collect(Collectors.toList());
-        Assert.assertTrue("Has illegal punnings: " + illegalPunnings, illegalPunnings.isEmpty());
+        Assertions.assertTrue(illegalPunnings.isEmpty(), "Has illegal punnings: " + illegalPunnings);
 
         List<OWLAxiom> ontList = ont.axioms().sorted().collect(Collectors.toList());
 
@@ -120,9 +120,8 @@ public class SimpleLoadTest {
                 .sorted().distinct().collect(Collectors.toList());
         List<OWLAxiom> actualDeclarations = ontList.stream()
                 .filter(a -> AxiomType.DECLARATION.equals(a.getAxiomType())).collect(Collectors.toList());
-        Assert.assertEquals("Incorrect declaration axioms (actual=" + actualDeclarations.size() + ", expected=" +
-                        expectedDeclarations.size() + ")",
-                expectedDeclarations, actualDeclarations);
+        Assertions.assertEquals(expectedDeclarations, actualDeclarations,
+                "Incorrect declaration axioms (actual=" + actualDeclarations.size() + ", expected=" + expectedDeclarations.size() + ")");
 
         LOGGER.debug("Test type <{}>", AxiomType.CLASS_ASSERTION);
         List<OWLAxiom> expectedClassAssertions = Stream.of(
@@ -135,9 +134,8 @@ public class SimpleLoadTest {
                 .sorted().distinct().collect(Collectors.toList());
         List<OWLAxiom> actualClassAssertions = ontList.stream()
                 .filter(a -> AxiomType.CLASS_ASSERTION.equals(a.getAxiomType())).collect(Collectors.toList());
-        Assert.assertEquals("Incorrect class-assertions axioms (actual=" + actualClassAssertions.size() + ", expected=" +
-                        expectedClassAssertions.size() + ")",
-                expectedClassAssertions, actualClassAssertions);
+        Assertions.assertEquals(expectedClassAssertions, actualClassAssertions,
+                "Incorrect class-assertions axioms (actual=" + actualClassAssertions.size() + ", expected=" + expectedClassAssertions.size() + ")");
 
         LOGGER.debug("Test type <{}>", AxiomType.DATA_PROPERTY_ASSERTION);
         List<OWLAxiom> expectedDataPropertyAssertions = Stream.of(
@@ -150,9 +148,7 @@ public class SimpleLoadTest {
                 .sorted().distinct().collect(Collectors.toList());
         List<OWLAxiom> actualDataPropertyAssertions = ontList.stream()
                 .filter(a -> AxiomType.DATA_PROPERTY_ASSERTION.equals(a.getAxiomType())).collect(Collectors.toList());
-        Assert.assertEquals("Incorrect data-property-assertions axioms (actual=" + actualDataPropertyAssertions.size() +
-                        ", expected=" + expectedDataPropertyAssertions.size() + ")",
-                expectedDataPropertyAssertions, actualDataPropertyAssertions);
+        Assertions.assertEquals(expectedDataPropertyAssertions, actualDataPropertyAssertions);
     }
 
     @SuppressWarnings("SameParameterValue")
@@ -185,8 +181,8 @@ public class SimpleLoadTest {
             List<OWLAxiom> expected = owlList.stream()
                     .filter(axiom -> type.equals(axiom.getAxiomType())).collect(Collectors.toList());
             LOGGER.debug("Test type <{}> ::: {}", type, expected.size());
-            Assert.assertEquals("Incorrect axioms for type <" + type + "> (actual(ont)="
-                    + actual.size() + ", expected(owl)=" + expected.size() + ")", expected, actual);
+            Assertions.assertEquals(expected, actual,
+                    "Incorrect axioms for type <" + type + "> (actual(ont)=" + actual.size() + ", expected(owl)=" + expected.size() + ")");
         });
     }
 

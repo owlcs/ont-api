@@ -15,8 +15,8 @@ package com.github.owlcs.owlapi.tests.api.dataproperties;
 
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -32,7 +32,7 @@ public class DisjointUnionTestCase extends TestBase {
     public void testDisjointUnion() {
         OWLOntology ontology = getOWLOntology();
         ontology.add(OWLFunctionalSyntaxFactory.DisjointUnion(A, B, C));
-        Assert.assertEquals(1, ontology.disjointUnionAxioms(A).count());
-        Assert.assertEquals(0, ontology.disjointUnionAxioms(B).count());
+        Assertions.assertEquals(1, ontology.disjointUnionAxioms(A).count());
+        Assertions.assertEquals(0, ontology.disjointUnionAxioms(B).count());
     }
 }

@@ -19,8 +19,8 @@ import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.jena.model.OntObjectProperty;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.slf4j.Logger;
@@ -152,9 +152,9 @@ public class FromPelletTest {
         Ontology o = m.loadOntology(iri);
         ReadWriteUtils.print(o);
         o.axioms().map(String::valueOf).forEach(LOGGER::debug);
-        Assert.assertEquals("Incorrect count of property chains axioms", 4, o.axioms(AxiomType.SUB_PROPERTY_CHAIN_OF).count());
+        Assertions.assertEquals(4, o.axioms(AxiomType.SUB_PROPERTY_CHAIN_OF).count());
         OntObjectProperty p = o.asGraphModel().getObjectProperty("http://www.example.org/test#s");
-        Assert.assertEquals("Incorrect count of property chains", 3, p.propertyChains().count());
+        Assertions.assertEquals(3, p.propertyChains().count());
     }
 
     @Test
@@ -165,7 +165,6 @@ public class FromPelletTest {
         OWLOntology o = m.loadOntology(iri);
         ReadWriteUtils.print(o);
         o.axioms().map(String::valueOf).forEach(LOGGER::debug);
-        Assert.assertEquals("Incorrect data properties count", 7,
-                o.dataPropertiesInSignature().peek(x -> LOGGER.debug("DP: {}", x)).count());
+        Assertions.assertEquals(7, o.dataPropertiesInSignature().peek(x -> LOGGER.debug("DP: {}", x)).count());
     }
 }

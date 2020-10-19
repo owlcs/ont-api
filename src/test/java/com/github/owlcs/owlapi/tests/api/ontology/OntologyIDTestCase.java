@@ -14,8 +14,8 @@
 package com.github.owlcs.owlapi.tests.api.ontology;
 
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntologyID;
 
@@ -26,40 +26,40 @@ public class OntologyIDTestCase extends TestBase {
     private static final String TEST_ONTOLOGY_IRI_STRING = "http://test.it/check1";
 
     @Test
-    public void shouldFindSameHashCode() {
+    public void testShouldFindSameHashCode() {
         IRI iri1 = IRI.create(TEST_ONTOLOGY_IRI_STRING, "");
         IRI iri2 = IRI.create(TEST_ONTOLOGY_IRI_STRING, "");
-        Assert.assertEquals(iri1.hashCode(), iri2.hashCode());
-        Assert.assertEquals(iri1, iri2);
+        Assertions.assertEquals(iri1.hashCode(), iri2.hashCode());
+        Assertions.assertEquals(iri1, iri2);
     }
 
     @Test
-    public void shouldFindSameHashCodeForIDs() {
+    public void testShouldFindSameHashCodeForIDs() {
         IRI iri1 = IRI.create(TEST_ONTOLOGY_IRI_STRING, "");
         IRI iri2 = IRI.create(TEST_ONTOLOGY_IRI_STRING, "");
-        Assert.assertEquals(iri1.hashCode(), iri2.hashCode());
+        Assertions.assertEquals(iri1.hashCode(), iri2.hashCode());
         OWLOntologyID id1 = new OWLOntologyID(Optional.of(iri1), Optional.empty());
         OWLOntologyID id2 = new OWLOntologyID(Optional.of(iri2), Optional.empty());
-        Assert.assertEquals(id1.hashCode(), id2.hashCode());
+        Assertions.assertEquals(id1.hashCode(), id2.hashCode());
     }
 
     @Test
-    public void shouldFindSameHashCodeForIDs2() {
+    public void testShouldFindSameHashCodeForIDs2() {
         IRI iri1 = IRI.create(TEST_ONTOLOGY_IRI_STRING, "");
         IRI iri2 = IRI.create(TEST_ONTOLOGY_IRI_STRING, "");
-        Assert.assertEquals(iri1.hashCode(), iri2.hashCode());
+        Assertions.assertEquals(iri1.hashCode(), iri2.hashCode());
         OWLOntologyID id1 = new OWLOntologyID(Optional.of(iri1), Optional.empty());
         OWLOntologyID id2 = new OWLOntologyID(Optional.of(iri2), Optional.empty());
-        Assert.assertEquals(id1.hashCode(), id2.hashCode());
-        Assert.assertEquals(id1, id2);
+        Assertions.assertEquals(id1.hashCode(), id2.hashCode());
+        Assertions.assertEquals(id1, id2);
     }
 
     @Test
     public void testUnequalIdsUnequal() {
         OWLOntologyID id1 = new OWLOntologyID(Optional.of(IRI.create("http://www.w3.org/", "foo")), Optional.empty());
         OWLOntologyID id2 = new OWLOntologyID(Optional.of(IRI.create("http://www.w3.org/", "bar")), Optional.empty());
-        Assert.assertNotEquals(id1.hashCode(), id2.hashCode());
-        Assert.assertNotEquals(id1, id2);
+        Assertions.assertNotEquals(id1.hashCode(), id2.hashCode());
+        Assertions.assertNotEquals(id1, id2);
     }
 
     // this is an experiment, if the manager were to keep all versions of an
@@ -68,25 +68,25 @@ public class OntologyIDTestCase extends TestBase {
     public void testVersionedIDComparisons() {
         IRI iri1 = IRI.create(TEST_ONTOLOGY_IRI_STRING, "");
         IRI iri2 = IRI.create(TEST_ONTOLOGY_IRI_STRING, "");
-        Assert.assertEquals(iri1.hashCode(), iri2.hashCode());
-        Assert.assertEquals(iri1, iri2);
+        Assertions.assertEquals(iri1.hashCode(), iri2.hashCode());
+        Assertions.assertEquals(iri1, iri2);
         OWLOntologyID unversionedID = new OWLOntologyID(Optional.of(iri1), Optional.empty());
         IRI version1IRI = IRI.create(TEST_ONTOLOGY_IRI_STRING + "/", "version1");
         OWLOntologyID version1ID = new OWLOntologyID(Optional.of(iri2), Optional.of(version1IRI));
-        Assert.assertEquals("null vs v1 base IRIs", unversionedID.getOntologyIRI(), version1ID.getOntologyIRI());
-        Assert.assertNotEquals(unversionedID.getVersionIRI(), version1ID.getVersionIRI());
-        Assert.assertNotEquals("null version vs version1", unversionedID.hashCode(), version1ID.hashCode());
-        Assert.assertNotEquals("null version vs version1", unversionedID, version1ID);
+        Assertions.assertEquals(unversionedID.getOntologyIRI(), version1ID.getOntologyIRI());
+        Assertions.assertNotEquals(unversionedID.getVersionIRI(), version1ID.getVersionIRI());
+        Assertions.assertNotEquals(unversionedID.hashCode(), version1ID.hashCode());
+        Assertions.assertNotEquals(unversionedID, version1ID);
         OWLOntologyID duplicateVersion1ID = new OWLOntologyID(Optional.of(IRI.create(TEST_ONTOLOGY_IRI_STRING, "")),
                 Optional.of(version1IRI));
-        Assert.assertEquals(" two version1 ids", version1ID, duplicateVersion1ID);
+        Assertions.assertEquals(version1ID, duplicateVersion1ID);
         OWLOntologyID differentBasedVersion1ID = new OWLOntologyID(Optional.of(IRI.create(TEST_ONTOLOGY_IRI_STRING +
                 "-of-doom", "")), Optional.of(version1IRI));
-        Assert.assertNotEquals("version1 of two base IRIs", version1ID, differentBasedVersion1ID);
+        Assertions.assertNotEquals(version1ID, differentBasedVersion1ID);
         IRI version2IRI = IRI.create(TEST_ONTOLOGY_IRI_STRING + "/", "version2");
         IRI iri3 = IRI.create(TEST_ONTOLOGY_IRI_STRING, "");
         OWLOntologyID version2ID = new OWLOntologyID(Optional.of(iri3), Optional.of(version2IRI));
-        Assert.assertNotEquals("version1 vs version2", version1ID.hashCode(), version2ID.hashCode());
-        Assert.assertNotEquals("version1 vs version2", version1ID, version2ID);
+        Assertions.assertNotEquals(version1ID.hashCode(), version2ID.hashCode());
+        Assertions.assertNotEquals(version1ID, version2ID);
     }
 }

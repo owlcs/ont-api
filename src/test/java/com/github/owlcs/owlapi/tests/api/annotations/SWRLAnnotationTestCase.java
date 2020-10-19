@@ -15,9 +15,9 @@ package com.github.owlcs.owlapi.tests.api.annotations;
 
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.io.StringDocumentTarget;
@@ -72,10 +72,10 @@ public class SWRLAnnotationTestCase extends TestBase {
     @Test
     public void testShouldRoundTripAnnotation() throws Exception {
         OWLOntology ontology = createOntology();
-        Assert.assertTrue(ontology.containsAxiom(axiom));
+        Assertions.assertTrue(ontology.containsAxiom(axiom));
         StringDocumentTarget saveOntology = saveOntology(ontology);
         ontology = loadOntologyFromString(saveOntology);
-        Assert.assertTrue(ontology.containsAxiom(axiom));
+        Assertions.assertTrue(ontology.containsAxiom(axiom));
     }
 
     public OWLOntology createOntology() {
@@ -92,7 +92,7 @@ public class SWRLAnnotationTestCase extends TestBase {
         OWLOntology ontology = manager.loadOntologyFromOntologyDocument(new StringDocumentSource(input,
                 "test2test", new RDFXMLDocumentFormat(), null));
         debug(ontology);
-        Assert.assertTrue(ontology.axioms(AxiomType.SWRL_RULE)
+        Assertions.assertTrue(ontology.axioms(AxiomType.SWRL_RULE)
                 .anyMatch(ax -> ax.toString().contains(makeSWRLRuleAnnotatedAxiomString(ontology))));
     }
 
@@ -102,7 +102,7 @@ public class SWRLAnnotationTestCase extends TestBase {
         OWLOntology ontology = setupManager().loadOntologyFromOntologyDocument(new StringDocumentSource(input,
                 "test", new RDFXMLDocumentFormat(), null));
         debug(ontology);
-        Assert.assertTrue(ontology.axioms(AxiomType.SWRL_RULE)
+        Assertions.assertTrue(ontology.axioms(AxiomType.SWRL_RULE)
                 .anyMatch(ax -> ax.toString().contains(makeSWRLRuleAnnotatedAxiomString(ontology))));
     }
 

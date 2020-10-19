@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -30,8 +30,8 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphStatisticsHandler;
 import org.apache.jena.graph.Node;
 import org.apache.jena.shared.PrefixMapping;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.slf4j.Logger;
@@ -59,9 +59,9 @@ public class RWLockedGraphTest {
     private static final int THREADS_NUM_1 = 3;
     private static final int THREADS_NUM_2 = 3;
 
-    private static List<AxiomType<? extends OWLAxiom>> EXCLUDED_TYPES = Arrays.asList(AxiomType.DECLARATION,
+    private static final List<AxiomType<? extends OWLAxiom>> EXCLUDED_TYPES = Arrays.asList(AxiomType.DECLARATION,
             AxiomType.ANNOTATION_ASSERTION, AxiomType.SUBCLASS_OF);
-    private static Set<AxiomType<? extends OWLAxiom>> CONSIDERED_TYPES = AxiomType.AXIOM_TYPES.stream()
+    private static final Set<AxiomType<? extends OWLAxiom>> CONSIDERED_TYPES = AxiomType.AXIOM_TYPES.stream()
             .filter(x -> !EXCLUDED_TYPES.contains(x)).collect(Iter.toUnmodifiableSet()); // 453
 
     private static void testRace(OntModel m) throws ExecutionException, InterruptedException {
@@ -97,7 +97,7 @@ public class RWLockedGraphTest {
 
     private static void listAxiomsAndModifyClasses(OntModel m) {
         LOGGER.debug("[{}]:::listAxiomsAndModifyClasses", Thread.currentThread().getName());
-        Assert.assertEquals(453, listAxioms(CONSIDERED_TYPES, m).count());
+        Assertions.assertEquals(453, listAxioms(CONSIDERED_TYPES, m).count());
         int num = 10;
         for (int i = 0; i < num; i++) {
             m.createOntClass("C" + i).addComment("X" + i);
@@ -122,9 +122,10 @@ public class RWLockedGraphTest {
             m.removeOntObject(m.getOntClass(name + "b" + i));
         }
         long count = m.statements(null, RDF.type, OWL.Class).filter(x -> x.getSubject().isURIResource()).count();
-        Assert.assertTrue("Count: " + count, count >= 100);
+        Assertions.assertTrue(count >= 100, "Count: " + count);
     }
 
+    @SuppressWarnings("SameParameterValue")
     private static Stream<OWLAxiom> listAxioms(Collection<AxiomType<? extends OWLAxiom>> types, OntModel m) {
         return types.stream()
                 .map(AxiomParserProvider::get)
@@ -156,11 +157,11 @@ public class RWLockedGraphTest {
                 String pref = Thread.currentThread().getName();
                 pm.setNsPrefix(pref + "1", "a");
                 pm.setNsPrefix(pref + "2", "b");
-                Assert.assertTrue(pm.numPrefixes() >= 2);
+                Assertions.assertTrue(pm.numPrefixes() >= 2);
                 pm.removeNsPrefix(pref + "1");
-                Assert.assertTrue(pm.numPrefixes() >= 1);
+                Assertions.assertTrue(pm.numPrefixes() >= 1);
                 pm.removeNsPrefix(pref + "2");
-                Assert.assertTrue(pm.numPrefixes() >= 0);
+                Assertions.assertTrue(pm.numPrefixes() >= 0);
             }));
         }
         AtomicInteger index = new AtomicInteger();
@@ -176,8 +177,8 @@ public class RWLockedGraphTest {
             f.get();
         }
         LOGGER.debug("{}", pm);
-        Assert.assertFalse(pm.hasNoMappings());
-        Assert.assertEquals(THREADS_NUM_2, pm.numPrefixes());
+        Assertions.assertFalse(pm.hasNoMappings());
+        Assertions.assertEquals(THREADS_NUM_2, pm.numPrefixes());
     }
 
     @SuppressWarnings("deprecation")
@@ -187,7 +188,7 @@ public class RWLockedGraphTest {
         GraphStatisticsHandler gsh = g.getStatisticsHandler();
         int size = g.size();
         LOGGER.debug("Total size: {}", size);
-        Assert.assertEquals(size, g.get().getStatisticsHandler().getStatistic(Node.ANY, Node.ANY, Node.ANY));
-        Assert.assertEquals(size, gsh.getStatistic(Node.ANY, Node.ANY, Node.ANY));
+        Assertions.assertEquals(size, g.get().getStatisticsHandler().getStatistic(Node.ANY, Node.ANY, Node.ANY));
+        Assertions.assertEquals(size, gsh.getStatistic(Node.ANY, Node.ANY, Node.ANY));
     }
 }

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -31,8 +31,8 @@ import org.apache.jena.shared.AddDeniedException;
 import org.apache.jena.shared.ClosedException;
 import org.apache.jena.shared.DeleteDeniedException;
 import org.apache.jena.shared.PrefixMapping;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,12 +65,12 @@ public class UnionGraphTest {
 
     private static void assertClosed(UnionGraph g, boolean expectedClosed) {
         if (expectedClosed) {
-            Assert.assertTrue(g.isClosed());
-            Assert.assertTrue(g.getBaseGraph().isClosed());
+            Assertions.assertTrue(g.isClosed());
+            Assertions.assertTrue(g.getBaseGraph().isClosed());
             return;
         }
-        Assert.assertFalse(g.isClosed());
-        Assert.assertFalse(g.getBaseGraph().isClosed());
+        Assertions.assertFalse(g.isClosed());
+        Assertions.assertFalse(g.getBaseGraph().isClosed());
     }
 
     @Test
@@ -84,16 +84,16 @@ public class UnionGraphTest {
         c.addGraph(d);
         String tree = Graphs.importsTreeAsString(a);
         LOGGER.debug("----------\n{}", tree);
-        Assert.assertEquals(4, tree.split("\n").length);
+        Assertions.assertEquals(4, tree.split("\n").length);
         d.addGraph(b);
         tree = Graphs.importsTreeAsString(a);
         LOGGER.debug("----------\n{}", tree);
-        Assert.assertEquals(5, tree.split("\n").length);
+        Assertions.assertEquals(5, tree.split("\n").length);
         // recursion:
         d.addGraph(c);
         tree = Graphs.importsTreeAsString(a);
         LOGGER.debug("----------\n{}", tree);
-        Assert.assertEquals(6, tree.split("\n").length);
+        Assertions.assertEquals(6, tree.split("\n").length);
 
         Graph h = createNamedGraph("H");
         c.addGraph(h);
@@ -102,13 +102,13 @@ public class UnionGraphTest {
         ((UnionGraph) b).addGraph(h);
         tree = Graphs.importsTreeAsString(a);
         LOGGER.debug("----------\n{}", tree);
-        Assert.assertEquals(8, tree.split("\n").length);
+        Assertions.assertEquals(8, tree.split("\n").length);
 
         // remove recursion:
         d.removeGraph(c);
         tree = Graphs.importsTreeAsString(a);
         LOGGER.debug("----------\n{}", tree);
-        Assert.assertEquals(7, tree.split("\n").length);
+        Assertions.assertEquals(7, tree.split("\n").length);
     }
 
     @Test
@@ -120,38 +120,38 @@ public class UnionGraphTest {
         base.getPrefixMapping().setNsPrefixes(OntModelFactory.STANDARD);
         base.add(a);
         Graph unmodified = new UnmodifiableGraph(base);
-        Assert.assertEquals(1, unmodified.find().toSet().size());
-        Assert.assertEquals(4, unmodified.getPrefixMapping().numPrefixes());
+        Assertions.assertEquals(1, unmodified.find().toSet().size());
+        Assertions.assertEquals(4, unmodified.getPrefixMapping().numPrefixes());
 
         UnionGraph u = new UnionGraph(unmodified);
-        Assert.assertEquals(4, u.getPrefixMapping().numPrefixes());
+        Assertions.assertEquals(4, u.getPrefixMapping().numPrefixes());
 
         try {
             u.getPrefixMapping().setNsPrefix("x", "http://x#");
-            Assert.fail("Possible to add prefix");
+            Assertions.fail("Possible to add prefix");
         } catch (PrefixMapping.JenaLockedException lj) {
             LOGGER.debug("Expected: '{}'", lj.getMessage());
         }
 
-        Assert.assertEquals(4, u.getPrefixMapping().numPrefixes());
+        Assertions.assertEquals(4, u.getPrefixMapping().numPrefixes());
         try {
             u.add(b);
-            Assert.fail("Possible to add triple");
+            Assertions.fail("Possible to add triple");
         } catch (AddDeniedException aj) {
             LOGGER.debug("Expected: '{}'", aj.getMessage());
         }
         try {
             u.delete(a);
-            Assert.fail("Possible to delete triple");
+            Assertions.fail("Possible to delete triple");
         } catch (DeleteDeniedException dj) {
             LOGGER.debug("Expected: '{}'", dj.getMessage());
         }
-        Assert.assertEquals(1, unmodified.find().toSet().size());
+        Assertions.assertEquals(1, unmodified.find().toSet().size());
 
         base.add(b);
         base.getPrefixMapping().setNsPrefix("x", "http://x#").setNsPrefix("y", "http://y#");
-        Assert.assertEquals(2, u.find().toSet().size());
-        Assert.assertEquals(6, u.getPrefixMapping().numPrefixes());
+        Assertions.assertEquals(2, u.find().toSet().size());
+        Assertions.assertEquals(6, u.getPrefixMapping().numPrefixes());
     }
 
     @Test
@@ -200,23 +200,23 @@ public class UnionGraphTest {
         UnionGraph d = new UnionGraph(Factory.createGraphMem());
         try {
             b.addGraph(d);
-            Assert.fail("Possible to add a sub-graph");
+            Assertions.fail("Possible to add a sub-graph");
         } catch (ClosedException ce) {
             LOGGER.debug("Expected: '{}'", ce.getMessage());
         }
         try {
             b.removeGraph(c);
-            Assert.fail("Possible to remove a sub-graph");
+            Assertions.fail("Possible to remove a sub-graph");
         } catch (ClosedException ce) {
             LOGGER.debug("Expected: '{}'", ce.getMessage());
         }
-        Assert.assertNotNull(a.addGraph(d));
+        Assertions.assertNotNull(a.addGraph(d));
         LOGGER.debug("1) Tree:\n{}", Graphs.importsTreeAsString(a));
-        Assert.assertEquals(4, a.listBaseGraphs().toList().size());
+        Assertions.assertEquals(4, a.listBaseGraphs().toList().size());
 
-        Assert.assertNotNull(a.removeGraph(b));
+        Assertions.assertNotNull(a.removeGraph(b));
         LOGGER.debug("2) Tree:\n{}", Graphs.importsTreeAsString(a));
-        Assert.assertEquals(2, a.listBaseGraphs().toList().size());
+        Assertions.assertEquals(2, a.listBaseGraphs().toList().size());
     }
 
     @Test
@@ -224,42 +224,42 @@ public class UnionGraphTest {
         Graph g1 = Factory.createGraphMem();
         Graph g2 = Factory.createGraphMem();
         UnionGraph a = new UnionGraph(g1);
-        Assert.assertTrue(a.dependsOn(a));
-        Assert.assertTrue(a.dependsOn(g1));
-        Assert.assertFalse(g1.dependsOn(a));
-        Assert.assertFalse(a.dependsOn(Factory.createGraphMem()));
+        Assertions.assertTrue(a.dependsOn(a));
+        Assertions.assertTrue(a.dependsOn(g1));
+        Assertions.assertFalse(g1.dependsOn(a));
+        Assertions.assertFalse(a.dependsOn(Factory.createGraphMem()));
 
         UnionGraph b = new UnionGraph(g1);
         UnionGraph c = new UnionGraph(Factory.createGraphMem());
         a.addGraph(b.addGraph(c));
-        Assert.assertEquals(2, a.listBaseGraphs().toList().size());
+        Assertions.assertEquals(2, a.listBaseGraphs().toList().size());
         String tree = Graphs.importsTreeAsString(a);
         LOGGER.debug("1) Tree:\n{}", tree);
-        Assert.assertEquals(3, tree.split("\n").length);
-        Assert.assertEquals(0, StringUtils.countMatches(tree, Graphs.RECURSIVE_GRAPH_IDENTIFIER));
+        Assertions.assertEquals(3, tree.split("\n").length);
+        Assertions.assertEquals(0, StringUtils.countMatches(tree, Graphs.RECURSIVE_GRAPH_IDENTIFIER));
 
-        Assert.assertTrue(a.dependsOn(b));
-        Assert.assertTrue(a.dependsOn(c));
-        Assert.assertTrue(a.dependsOn(c.getBaseGraph()));
-        Assert.assertFalse(a.dependsOn(g2));
+        Assertions.assertTrue(a.dependsOn(b));
+        Assertions.assertTrue(a.dependsOn(c));
+        Assertions.assertTrue(a.dependsOn(c.getBaseGraph()));
+        Assertions.assertFalse(a.dependsOn(g2));
 
         UnionGraph d = new UnionGraph(createNamedGraph("d"));
         c.addGraph(d);
         // recursion:
         d.addGraph(a);
-        Assert.assertEquals(3, a.listBaseGraphs().toList().size());
+        Assertions.assertEquals(3, a.listBaseGraphs().toList().size());
         LOGGER.debug("2) Tree:\n{}", (tree = Graphs.importsTreeAsString(a)));
-        Assert.assertEquals(5, tree.split("\n").length);
-        Assert.assertEquals(4, StringUtils.countMatches(tree, Graphs.NULL_ONTOLOGY_IDENTIFIER));
-        Assert.assertEquals(1, StringUtils.countMatches(tree, Graphs.RECURSIVE_GRAPH_IDENTIFIER));
+        Assertions.assertEquals(5, tree.split("\n").length);
+        Assertions.assertEquals(4, StringUtils.countMatches(tree, Graphs.NULL_ONTOLOGY_IDENTIFIER));
+        Assertions.assertEquals(1, StringUtils.countMatches(tree, Graphs.RECURSIVE_GRAPH_IDENTIFIER));
 
-        Assert.assertTrue(a.dependsOn(b));
-        Assert.assertTrue(a.dependsOn(c));
-        Assert.assertTrue(a.dependsOn(d));
-        Assert.assertTrue(c.dependsOn(d));
-        Assert.assertTrue(d.dependsOn(c));
-        Assert.assertTrue(d.dependsOn(a));
-        Assert.assertFalse(a.dependsOn(g2));
+        Assertions.assertTrue(a.dependsOn(b));
+        Assertions.assertTrue(a.dependsOn(c));
+        Assertions.assertTrue(a.dependsOn(d));
+        Assertions.assertTrue(c.dependsOn(d));
+        Assertions.assertTrue(d.dependsOn(c));
+        Assertions.assertTrue(d.dependsOn(a));
+        Assertions.assertFalse(a.dependsOn(g2));
     }
 
     @Test
@@ -274,7 +274,7 @@ public class UnionGraphTest {
         u1.addGraph(u2);
         u1.addGraph(u3);
         u1.addGraph(b);
-        Assert.assertEquals(new HashSet<>(Arrays.asList(a, b, c)), u1.listBaseGraphs().toSet());
+        Assertions.assertEquals(new HashSet<>(Arrays.asList(a, b, c)), u1.listBaseGraphs().toSet());
     }
 
     @Test
@@ -290,6 +290,6 @@ public class UnionGraphTest {
         u1.addGraph(u2);
         u1.addGraph(u3);
         u1.addGraph(b);
-        Assert.assertEquals(new HashSet<>(Arrays.asList(a, b, c, d)), u1.listBaseGraphs().toSet());
+        Assertions.assertEquals(new HashSet<>(Arrays.asList(a, b, c, d)), u1.listBaseGraphs().toSet());
     }
 }

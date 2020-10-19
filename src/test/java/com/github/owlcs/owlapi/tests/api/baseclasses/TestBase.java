@@ -20,7 +20,6 @@ import com.github.owlcs.ontapi.OntologyModelImpl;
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.OWLManager;
 import com.github.owlcs.owlapi.tests.api.anonymous.AnonymousIndividualsNormaliser;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.jupiter.api.Assertions;
@@ -133,9 +132,9 @@ public abstract class TestBase {
 
     public static boolean equal(OWLOntology ont1, OWLOntology ont2) {
         if (!ont1.isAnonymous() && !ont2.isAnonymous()) {
-            Assert.assertEquals("Ontologies supposed to be the same", ont1.getOntologyID(), ont2.getOntologyID());
+            Assertions.assertEquals(ont1.getOntologyID(), ont2.getOntologyID(), "Ontologies supposed to be the same");
         }
-        Assert.assertEquals(OWLAPIStreamUtils.asSet(ont1.annotations()), OWLAPIStreamUtils.asSet(ont2.annotations()));
+        Assertions.assertEquals(OWLAPIStreamUtils.asSet(ont1.annotations()), OWLAPIStreamUtils.asSet(ont2.annotations()));
         Set<OWLAxiom> axioms1;
         Set<OWLAxiom> axioms2;
         // This isn't great - we normalise axioms by changing the ids of
@@ -368,7 +367,7 @@ public abstract class TestBase {
         }
         StringDocumentTarget target = new StringDocumentTarget();
         OWLDocumentFormat fromFormat = ont.getFormat();
-        Assert.assertNotNull(fromFormat);
+        Assertions.assertNotNull(fromFormat);
         if (fromFormat.isPrefixOWLDocumentFormat() && format.isPrefixOWLDocumentFormat()) {
             PrefixDocumentFormat fromPrefixFormat = fromFormat.asPrefixOWLDocumentFormat();
             PrefixDocumentFormat toPrefixFormat = format.asPrefixOWLDocumentFormat();

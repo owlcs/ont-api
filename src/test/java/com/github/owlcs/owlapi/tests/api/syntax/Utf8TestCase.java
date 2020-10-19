@@ -15,8 +15,8 @@ package com.github.owlcs.owlapi.tests.api.syntax;
 
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.formats.FunctionalSyntaxDocumentFormat;
 import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.io.StreamDocumentSource;
@@ -65,7 +65,7 @@ public class Utf8TestCase extends TestBase {
         OWLXMLParser parser = new OWLXMLParser();
         try {
             parser.parse(new StreamDocumentSource(in), getOWLOntology(), config);
-            Assert.fail("parsing should have failed, invalid input");
+            Assertions.fail("parsing should have failed, invalid input");
         } catch (@SuppressWarnings("unused") Exception ex) {
             // expected to fail, but actual exception depends on the parsers in
             // the classpath

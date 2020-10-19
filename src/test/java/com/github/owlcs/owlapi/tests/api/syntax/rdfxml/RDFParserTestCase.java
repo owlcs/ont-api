@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,8 +14,8 @@
 package com.github.owlcs.owlapi.tests.api.syntax.rdfxml;
 
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -75,7 +75,7 @@ public class RDFParserTestCase extends TestBase {
                 + "<owl:Datatype rdf:about=\"&xsd;integer\"/>\n" + "<owl:Datatype rdf:about=\"&xsd;string\"/>\n"
                 + "</rdf:RDF>";
         OWLOntology o = loadOntologyFromString(in);
-        Assert.assertFalse(o.containsObjectPropertyInSignature(IRI.create("http://www.loa-cnr.it/ontologies/Plans.owl#",
+        Assertions.assertFalse(o.containsObjectPropertyInSignature(IRI.create("http://www.loa-cnr.it/ontologies/Plans.owl#",
                 "iteration-cardinality")));
     }
 
@@ -91,7 +91,7 @@ public class RDFParserTestCase extends TestBase {
                 + "    <rdfs:subPropertyOf rdf:resource=\"http://bibframe.org/vocab/relatedTo\"/>\n" + "  </rdf:Property>\n"
                 + "</rdf:RDF>";
         OWLOntology o = loadOntologyFromString(in);
-        Assert.assertEquals(0, o.axioms(AxiomType.SUB_ANNOTATION_PROPERTY_OF).count());
-        Assert.assertEquals(1, o.axioms(AxiomType.SUB_OBJECT_PROPERTY).count());
+        Assertions.assertEquals(0, o.axioms(AxiomType.SUB_ANNOTATION_PROPERTY_OF).count());
+        Assertions.assertEquals(1, o.axioms(AxiomType.SUB_OBJECT_PROPERTY).count());
     }
 }

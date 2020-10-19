@@ -14,8 +14,8 @@
 package com.github.owlcs.owlapi.tests.api.dataproperties;
 
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 
@@ -44,6 +44,6 @@ public class AllDifferentTestCase extends TestBase {
                 + "</owl:members></owl:AllDifferent></rdf:RDF>";
         OWLOntology o1 = loadOntologyFromString(onto1);
         OWLOntology o2 = loadOntologyFromString(onto2);
-        Assert.assertEquals(o2.getLogicalAxiomCount(), o1.getLogicalAxiomCount());
+        Assertions.assertEquals(o2.getLogicalAxiomCount(), o1.getLogicalAxiomCount());
     }
 }

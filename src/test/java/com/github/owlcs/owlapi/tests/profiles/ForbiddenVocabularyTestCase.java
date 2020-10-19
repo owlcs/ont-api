@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,8 +14,8 @@
 package com.github.owlcs.owlapi.tests.profiles;
 
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.profiles.OWL2DLProfile;
@@ -364,9 +364,9 @@ public class ForbiddenVocabularyTestCase extends TestBase {
         com.github.owlcs.ontapi.utils.ReadWriteUtils.print(o);
         OWL2DLProfile p = new OWL2DLProfile();
         OWLProfileReport checkOntology = p.checkOntology(o);
-        Assert.assertEquals(1, checkOntology.getViolations().size());
+        Assertions.assertEquals(1, checkOntology.getViolations().size());
         OWLProfileViolation v = checkOntology.getViolations().get(0);
-        Assert.assertTrue(v instanceof UseOfReservedVocabularyForAnnotationPropertyIRI);
+        Assertions.assertTrue(v instanceof UseOfReservedVocabularyForAnnotationPropertyIRI);
     }
 
     @Test
@@ -387,7 +387,7 @@ public class ForbiddenVocabularyTestCase extends TestBase {
         OWLOntology o = loadOntologyFromString(test);
         OWL2DLProfile profile = new OWL2DLProfile();
         OWLProfileReport report = profile.checkOntology(o);
-        Assert.assertTrue(report.isInProfile());
+        Assertions.assertTrue(report.isInProfile());
     }
 
     @Test
@@ -414,7 +414,7 @@ public class ForbiddenVocabularyTestCase extends TestBase {
         OWLOntology o = loadOntologyFromString(onto);
         OWL2RLProfile p = new OWL2RLProfile();
         OWLProfileReport report = p.checkOntology(o);
-        Assert.assertTrue(report.getViolations().isEmpty());
+        Assertions.assertTrue(report.getViolations().isEmpty());
     }
 
     @Test
@@ -439,15 +439,15 @@ public class ForbiddenVocabularyTestCase extends TestBase {
         OWLObjectPropertyManager manager = new OWLObjectPropertyManager(o);
         o.getOWLOntologyManager().addAxiom(o, brokenAxiom1);
         o.getOWLOntologyManager().addAxiom(o, brokenAxiom2);
-        Assert.assertTrue(manager.isLessThan(brother, uncle));
-        Assert.assertTrue(manager.isLessThan(uncle, brother));
-        Assert.assertTrue(manager.isLessThan(brother, brother));
-        Assert.assertTrue(manager.isLessThan(uncle, uncle));
+        Assertions.assertTrue(manager.isLessThan(brother, uncle));
+        Assertions.assertTrue(manager.isLessThan(uncle, brother));
+        Assertions.assertTrue(manager.isLessThan(brother, brother));
+        Assertions.assertTrue(manager.isLessThan(uncle, uncle));
         OWL2DLProfile profile = new OWL2DLProfile();
         List<OWLProfileViolation> violations = profile.checkOntology(o).getViolations();
-        Assert.assertFalse(violations.isEmpty());
+        Assertions.assertFalse(violations.isEmpty());
         for (OWLProfileViolation v : violations) {
-            Assert.assertTrue(brokenAxiom1.equals(v.getAxiom()) || brokenAxiom2.equals(v.getAxiom()));
+            Assertions.assertTrue(brokenAxiom1.equals(v.getAxiom()) || brokenAxiom2.equals(v.getAxiom()));
         }
     }
 
@@ -466,10 +466,10 @@ public class ForbiddenVocabularyTestCase extends TestBase {
                 brother), uncle);
         OWLObjectPropertyManager manager = new OWLObjectPropertyManager(o);
         o.getOWLOntologyManager().addAxiom(o, brokenAxiom1);
-        Assert.assertTrue(manager.isLessThan(brother, uncle));
+        Assertions.assertTrue(manager.isLessThan(brother, uncle));
         OWL2DLProfile profile = new OWL2DLProfile();
         List<OWLProfileViolation> violations = profile.checkOntology(o).getViolations();
-        Assert.assertTrue(violations.isEmpty());
+        Assertions.assertTrue(violations.isEmpty());
     }
 
     @Test
@@ -477,7 +477,7 @@ public class ForbiddenVocabularyTestCase extends TestBase {
         OWLOntology o = loadOntologyFromString(input1);
         OWL2DLProfile profile = new OWL2DLProfile();
         List<OWLProfileViolation> violations = profile.checkOntology(o).getViolations();
-        Assert.assertTrue(violations.isEmpty());
+        Assertions.assertTrue(violations.isEmpty());
     }
 
     @Test
@@ -485,6 +485,6 @@ public class ForbiddenVocabularyTestCase extends TestBase {
         OWLOntology o = loadOntologyFromString(input2);
         OWL2DLProfile profile = new OWL2DLProfile();
         List<OWLProfileViolation> violations = profile.checkOntology(o).getViolations();
-        Assert.assertTrue(violations.isEmpty());
+        Assertions.assertTrue(violations.isEmpty());
     }
 }

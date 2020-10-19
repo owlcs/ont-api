@@ -15,8 +15,8 @@ package com.github.owlcs.owlapi.tests.api.annotations;
 
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.Imports;
 
@@ -35,8 +35,8 @@ public class AnnotationPropertyReferencesTestCase extends TestBase {
         OWLAnnotationAssertionAxiom ax = OWLFunctionalSyntaxFactory.AnnotationAssertion(ap, subject, val);
         OWLOntology ont = getOWLOntology();
         ont.getOWLOntologyManager().addAxiom(ont, ax);
-        Assert.assertTrue(ont.containsAnnotationPropertyInSignature(ap.getIRI()));
-        Assert.assertTrue(ont.annotationPropertiesInSignature().anyMatch(a -> a.equals(ap)));
+        Assertions.assertTrue(ont.containsAnnotationPropertyInSignature(ap.getIRI()));
+        Assertions.assertTrue(ont.annotationPropertiesInSignature().anyMatch(a -> a.equals(ap)));
     }
 
     @Test
@@ -48,8 +48,8 @@ public class AnnotationPropertyReferencesTestCase extends TestBase {
                 OWLFunctionalSyntaxFactory.Class(iri("B")), Collections.singleton(anno));
         OWLOntology ont = getOWLOntology();
         ont.getOWLOntologyManager().addAxiom(ont, ax);
-        Assert.assertTrue(ont.containsAnnotationPropertyInSignature(anno.getProperty().getIRI()));
-        Assert.assertTrue(ont.annotationPropertiesInSignature().anyMatch(a -> a.equals(anno.getProperty())));
+        Assertions.assertTrue(ont.containsAnnotationPropertyInSignature(anno.getProperty().getIRI()));
+        Assertions.assertTrue(ont.annotationPropertiesInSignature().anyMatch(a -> a.equals(anno.getProperty())));
     }
 
     @Test
@@ -59,7 +59,7 @@ public class AnnotationPropertyReferencesTestCase extends TestBase {
         OWLAnnotation anno = df.getOWLAnnotation(ap, val);
         OWLOntology ont = getOWLOntology();
         ont.getOWLOntologyManager().applyChange(new AddOntologyAnnotation(ont, anno));
-        Assert.assertTrue(ont.containsAnnotationPropertyInSignature(anno.getProperty().getIRI(), Imports.EXCLUDED));
-        Assert.assertTrue(ont.annotationPropertiesInSignature(Imports.EXCLUDED).anyMatch(a -> a.equals(anno.getProperty())));
+        Assertions.assertTrue(ont.containsAnnotationPropertyInSignature(anno.getProperty().getIRI(), Imports.EXCLUDED));
+        Assertions.assertTrue(ont.annotationPropertiesInSignature(Imports.EXCLUDED).anyMatch(a -> a.equals(anno.getProperty())));
     }
 }

@@ -13,8 +13,8 @@
  */
 package com.github.owlcs.owlapi.tests.api.ontology;
 
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.IRI;
 
 /**
@@ -27,7 +27,7 @@ public class IRICharSequenceTestCase {
         String str = "http://owlapi.sourceforge.net#ABC";
         IRI iri = IRI.create("http://owlapi.sourceforge.net#", "ABC");
         for (int i = 0; i < str.length(); i++) {
-            Assert.assertEquals(str.charAt(i), iri.charAt(i));
+            Assertions.assertEquals(str.charAt(i), iri.charAt(i));
         }
     }
 
@@ -36,7 +36,7 @@ public class IRICharSequenceTestCase {
         String str = "http://owlapi.sourceforge.net";
         IRI iri = IRI.create(str, "");
         for (int i = 0; i < str.length(); i++) {
-            Assert.assertEquals(str.charAt(i), iri.charAt(i));
+            Assertions.assertEquals(str.charAt(i), iri.charAt(i));
         }
     }
 
@@ -45,7 +45,7 @@ public class IRICharSequenceTestCase {
         String str = "#ABC";
         IRI iri = IRI.create("#", "ABC");
         for (int i = 0; i < str.length(); i++) {
-            Assert.assertEquals(str.charAt(i), iri.charAt(i));
+            Assertions.assertEquals(str.charAt(i), iri.charAt(i));
         }
     }
 
@@ -55,7 +55,7 @@ public class IRICharSequenceTestCase {
         IRI iri = IRI.create("http://owlapi.sourceforge.net#", "ABC");
         for (int i = 0; i < str.length(); i++) {
             for (int j = i; j < str.length(); j++) {
-                Assert.assertEquals(str.subSequence(i, j), iri.subSequence(i, j));
+                Assertions.assertEquals(str.subSequence(i, j), iri.subSequence(i, j));
             }
         }
     }
@@ -63,18 +63,18 @@ public class IRICharSequenceTestCase {
     @Test
     public void testLength() {
         IRI iri = IRI.create("http://owlapi.sourceforge.net#", "ABC");
-        Assert.assertEquals(33, iri.length());
+        Assertions.assertEquals(33, iri.length());
     }
 
     @Test
     public void testLengthNoRemainder() {
         IRI iri = IRI.create("http://owlapi.sourceforge.net", "");
-        Assert.assertEquals(29, iri.length());
+        Assertions.assertEquals(29, iri.length());
     }
 
     @Test
     public void testLengthNoPrefix() {
         IRI iri = IRI.create("#", "ABC");
-        Assert.assertEquals(4, iri.length());
+        Assertions.assertEquals(4, iri.length());
     }
 }

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -28,8 +28,8 @@ import org.apache.jena.mem.GraphMem;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.sparql.graph.GraphWrapper;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,12 +51,12 @@ public class GraphUtilsTest {
     @Test
     public void testToUnionUtilsMethod() {
         Map<String, Graph> graphs = SpinModels.loadSpinGraphs();
-        Assert.assertEquals(10, graphs.size());
+        Assertions.assertEquals(10, graphs.size());
         UnionGraph g = Graphs.toUnion(graphs.get(SpinModels.SPINMAPL.uri()), graphs.values());
         LOGGER.debug("\n{}", Graphs.toTurtleString(g));
         String tree = Graphs.importsTreeAsString(g);
         LOGGER.debug("----------\n{}", tree);
-        Assert.assertEquals(27, tree.split("\n").length);
+        Assertions.assertEquals(27, tree.split("\n").length);
     }
 
     @Test
@@ -71,8 +71,8 @@ public class GraphUtilsTest {
         u.addGraph(new GraphWrapper(UnionGraphTest.createTestMemGraph("y")));
 
         Set<Graph> actual = Graphs.baseGraphs(u).peek(x -> LOGGER.debug("{}", x)).collect(Collectors.toSet());
-        Assert.assertEquals(7, actual.size());
-        Assert.assertEquals(flat(u).collect(Collectors.toSet()), actual);
+        Assertions.assertEquals(7, actual.size());
+        Assertions.assertEquals(flat(u).collect(Collectors.toSet()), actual);
     }
 
     private static Stream<Graph> flat(Graph graph) {
@@ -82,13 +82,13 @@ public class GraphUtilsTest {
 
     @Test
     public void testIsSized() {
-        Assert.assertTrue(Graphs.isSized(new GraphMem()));
-        Assert.assertTrue(Graphs.isSized(new UnionGraph(new GraphMem())));
-        Assert.assertTrue(Graphs.isSized(new UnionGraph(new RWLockedGraph(new GraphMem(), new ReentrantReadWriteLock()))));
+        Assertions.assertTrue(Graphs.isSized(new GraphMem()));
+        Assertions.assertTrue(Graphs.isSized(new UnionGraph(new GraphMem())));
+        Assertions.assertTrue(Graphs.isSized(new UnionGraph(new RWLockedGraph(new GraphMem(), new ReentrantReadWriteLock()))));
 
         UnionGraph u1 = new UnionGraph(new GraphMem());
         u1.addGraph(u1);
-        Assert.assertFalse(Graphs.isSized(u1));
+        Assertions.assertFalse(Graphs.isSized(u1));
 
         Graph g = new GraphBase() {
             @Override
@@ -96,20 +96,20 @@ public class GraphUtilsTest {
                 throw new AssertionError();
             }
         };
-        Assert.assertFalse(Graphs.isSized(g));
+        Assertions.assertFalse(Graphs.isSized(g));
     }
 
     @Test
     public void testIsDistinct() {
-        Assert.assertTrue(Graphs.isDistinct(new GraphMem()));
-        Assert.assertTrue(Graphs.isDistinct(new UnionGraph(new GraphMem())));
-        Assert.assertTrue(Graphs.isDistinct(new UnionGraph(new RWLockedGraph(new GraphMem(), new ReentrantReadWriteLock()))));
+        Assertions.assertTrue(Graphs.isDistinct(new GraphMem()));
+        Assertions.assertTrue(Graphs.isDistinct(new UnionGraph(new GraphMem())));
+        Assertions.assertTrue(Graphs.isDistinct(new UnionGraph(new RWLockedGraph(new GraphMem(), new ReentrantReadWriteLock()))));
 
         UnionGraph u1 = new UnionGraph(new GraphMem(), false);
-        Assert.assertTrue(Graphs.isDistinct(u1));
+        Assertions.assertTrue(Graphs.isDistinct(u1));
 
         u1.addGraph(new GraphMem());
-        Assert.assertFalse(Graphs.isDistinct(u1));
+        Assertions.assertFalse(Graphs.isDistinct(u1));
 
         Graph g = new GraphBase() {
             @Override
@@ -117,36 +117,36 @@ public class GraphUtilsTest {
                 throw new AssertionError();
             }
         };
-        Assert.assertFalse(Graphs.isDistinct(g));
+        Assertions.assertFalse(Graphs.isDistinct(g));
     }
 
     @Test
     public void testIsSame() {
         GraphMem g = new GraphMem();
-        Assert.assertTrue(Graphs.isSameBase(g, g));
+        Assertions.assertTrue(Graphs.isSameBase(g, g));
 
         Graph a = new UnionGraph(new GraphWrapper(new GraphWrapper(g)));
-        Assert.assertTrue(Graphs.isSameBase(a, g));
+        Assertions.assertTrue(Graphs.isSameBase(a, g));
 
         MultiUnion b = new MultiUnion();
         b.addGraph(g);
         b.addGraph(new GraphMem());
-        Assert.assertTrue(Graphs.isSameBase(a, b));
+        Assertions.assertTrue(Graphs.isSameBase(a, b));
 
         UnionGraph c = new UnionGraph(new RWLockedGraph(g, new ReentrantReadWriteLock()));
-        Assert.assertTrue(Graphs.isSameBase(a, c));
+        Assertions.assertTrue(Graphs.isSameBase(a, c));
 
-        Assert.assertFalse(Graphs.isSameBase(g, new GraphMem()));
+        Assertions.assertFalse(Graphs.isSameBase(g, new GraphMem()));
 
         Graph d = new UnionGraph(new WrappedGraph(new WrappedGraph(g)));
-        Assert.assertFalse(Graphs.isSameBase(a, d));
+        Assertions.assertFalse(Graphs.isSameBase(a, d));
 
-        Assert.assertFalse(Graphs.isSameBase(new UnionGraph(g), new UnionGraph(new GraphMem())));
+        Assertions.assertFalse(Graphs.isSameBase(new UnionGraph(g), new UnionGraph(new GraphMem())));
 
         MultiUnion e = new MultiUnion();
         e.addGraph(new GraphMem());
         e.addGraph(g);
-        Assert.assertFalse(Graphs.isSameBase(b, e));
+        Assertions.assertFalse(Graphs.isSameBase(b, e));
     }
 
     @Test
@@ -158,14 +158,14 @@ public class GraphUtilsTest {
         b.getPrefixMapping().setNsPrefix("b1", "x3");
         c.getPrefixMapping().setNsPrefix("b2", "x4");
 
-        Assert.assertEquals(4, Graphs.collectPrefixes(Arrays.asList(a, b, c)).numPrefixes());
-        Assert.assertEquals(3, Graphs.collectPrefixes(Arrays.asList(a, b)).numPrefixes());
-        Assert.assertEquals(2, Graphs.collectPrefixes(Arrays.asList(b, c)).numPrefixes());
-        Assert.assertEquals(1, Graphs.collectPrefixes(Collections.singleton(b)).numPrefixes());
+        Assertions.assertEquals(4, Graphs.collectPrefixes(Arrays.asList(a, b, c)).numPrefixes());
+        Assertions.assertEquals(3, Graphs.collectPrefixes(Arrays.asList(a, b)).numPrefixes());
+        Assertions.assertEquals(2, Graphs.collectPrefixes(Arrays.asList(b, c)).numPrefixes());
+        Assertions.assertEquals(1, Graphs.collectPrefixes(Collections.singleton(b)).numPrefixes());
 
         try {
             Graphs.collectPrefixes(Sets.of(b, c)).setNsPrefix("X", "x");
-            Assert.fail();
+            Assertions.fail();
         } catch (PrefixMapping.JenaLockedException j) {
             // expected
         }

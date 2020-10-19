@@ -13,8 +13,8 @@
  */
 package com.github.owlcs.owlapi.tests.api.imports;
 
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.mockito.Mockito;
 import org.semanticweb.owlapi.change.RemoveImportData;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
@@ -37,35 +37,35 @@ public class RemoveImportDataTestCase {
     public void testEquals() {
         RemoveImportData data1 = createData();
         RemoveImportData data2 = createData();
-        Assert.assertEquals(data1, data2);
-        Assert.assertEquals(data1.hashCode(), data2.hashCode());
+        Assertions.assertEquals(data1, data2);
+        Assertions.assertEquals(data1.hashCode(), data2.hashCode());
     }
 
     @Test
     public void testGettersReturnNotNull() {
         RemoveImportData data = createData();
-        Assert.assertNotNull(data.getDeclaration());
-        Assert.assertNotNull(data.createOntologyChange(mockOntology));
+        Assertions.assertNotNull(data.getDeclaration());
+        Assertions.assertNotNull(data.createOntologyChange(mockOntology));
     }
 
     @Test
     public void testGettersEquals() {
         RemoveImportData data = createData();
-        Assert.assertEquals(mockDeclaration, data.getDeclaration());
+        Assertions.assertEquals(mockDeclaration, data.getDeclaration());
     }
 
     @Test
     public void testCreateOntologyChange() {
         RemoveImportData data = createData();
         RemoveImport change = data.createOntologyChange(mockOntology);
-        Assert.assertEquals(mockOntology, change.getOntology());
-        Assert.assertEquals(mockDeclaration, change.getImportDeclaration());
+        Assertions.assertEquals(mockOntology, change.getOntology());
+        Assertions.assertEquals(mockDeclaration, change.getImportDeclaration());
     }
 
     @Test
     public void testOntologyChangeSymmetry() {
         RemoveImportData data = createData();
         RemoveImport change = new RemoveImport(mockOntology, mockDeclaration);
-        Assert.assertEquals(change.getChangeData(), data);
+        Assertions.assertEquals(change.getChangeData(), data);
     }
 }

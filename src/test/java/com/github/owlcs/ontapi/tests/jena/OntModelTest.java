@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -33,9 +33,8 @@ import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.riot.Lang;
-import org.hamcrest.core.IsEqual;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,13 +59,12 @@ public class OntModelTest {
     }
 
     private static void assertOntObjectsCount(OntModel m, Class<? extends OntObject> type, long expected) {
-        Assert.assertEquals(expected, m.ontObjects(type).count());
+        Assertions.assertEquals(expected, m.ontObjects(type).count());
     }
 
     private static void testPizzaCEs(Model m, Property predicate, List<? extends OntClass> ces) {
         String type = ces.isEmpty() ? null : ((OntCEImpl) ces.get(0)).getActualClass().getSimpleName();
-        Assert.assertEquals("Incorrect count of " + type, m.listSubjectsWithProperty(predicate)
-                .toSet().size(), ces.size());
+        Assertions.assertEquals(m.listSubjectsWithProperty(predicate).toSet().size(), ces.size(), "Incorrect count of " + type);
     }
 
     @SuppressWarnings("rawtypes")
@@ -88,20 +86,19 @@ public class OntModelTest {
 
         Set<Resource> expectedNamed = toUnmodifiableSet(annotationProperties, datatypeProperties, namedObjectProperties);
         Set<Resource> expectedPEs = toUnmodifiableSet(expectedNamed, inverseObjectProperties);
-        Assert.assertEquals("Incorrect number of property expressions", expectedPEs.size(), actualPEs.size());
+        Assertions.assertEquals(expectedPEs.size(), actualPEs.size());
 
         List<OntNamedProperty> actualNamed = ont.ontObjects(OntNamedProperty.class)
                 .peek(x -> LOGGER.debug("Named property: {}", x))
                 .collect(Collectors.toList());
-        Assert.assertEquals("Incorrect number of named properties", expectedNamed.size(), actualNamed.size());
+        Assertions.assertEquals(expectedNamed.size(), actualNamed.size());
 
         List<OntProperty> actualDOs = ont.ontObjects(OntRealProperty.class).collect(Collectors.toList());
         Set<Resource> expectedDOs = toUnmodifiableSet(datatypeProperties, namedObjectProperties, inverseObjectProperties);
-        Assert.assertEquals("Incorrect number of data and object property expressions",
-                expectedDOs.size(), actualDOs.size());
+        Assertions.assertEquals(expectedDOs.size(), actualDOs.size());
 
-        Assert.assertEquals("Incorrect number of owl:inverseOf for object properties", inverseStatements.size(),
-                ont.objectProperties().flatMap(OntObjectProperty::inverseProperties).count());
+        Assertions.assertEquals(inverseStatements.size(), ont.objectProperties()
+                .flatMap(OntObjectProperty::inverseProperties).count());
     }
 
     @SuppressWarnings("rawtypes")
@@ -116,7 +113,7 @@ public class OntModelTest {
                 .mapWith(Statement::getSubject).filterKeep(RDFNode::isURIResource).toSet().size();
         int actualClassesCount = classes.size();
         LOGGER.debug("Classes Count = {}", actualClassesCount);
-        Assert.assertEquals("Incorrect Classes count", expectedClassesCount, actualClassesCount);
+        Assertions.assertEquals(expectedClassesCount, actualClassesCount);
 
         LOGGER.debug("Class Expressions:");
         List<OntClass> ces = m.ontObjects(OntClass.class).collect(Collectors.toList());
@@ -125,11 +122,10 @@ public class OntModelTest {
                 .andThen(m.listStatements(null, RDF.type, OWL.Restriction)).toSet().size();
         int actualCEsCount = ces.size();
         LOGGER.debug("Class Expressions Count = {}", actualCEsCount);
-        Assert.assertEquals("Incorrect CE's count", expectedCEsCount, actualCEsCount);
+        Assertions.assertEquals(expectedCEsCount, actualCEsCount);
 
         List<OntClass.RestrictionCE> restrictionCEs = m.ontObjects(OntClass.RestrictionCE.class).collect(Collectors.toList());
-        Assert.assertEquals("Incorrect count of restrictions ",
-                m.listStatements(null, RDF.type, OWL.Restriction).toSet().size(), restrictionCEs.size());
+        Assertions.assertEquals(m.listStatements(null, RDF.type, OWL.Restriction).toSet().size(), restrictionCEs.size());
 
         List<OntClass.ObjectSomeValuesFrom> objectSomeValuesFromCEs = m.ontObjects(OntClass.ObjectSomeValuesFrom.class)
                 .collect(Collectors.toList());
@@ -175,7 +171,7 @@ public class OntModelTest {
         Map<OntIndividual, Set<OntClass>> classes = individuals.stream()
                 .collect(Collectors.toMap(Function.identity(), i -> i.classes().collect(Collectors.toSet())));
         classes.forEach((i, c) -> LOGGER.debug("Individual: {}, Classes: {}", i, c));
-        classes.forEach((i, c) -> c.forEach(_c -> Assert.assertEquals(1, _c.individuals()
+        classes.forEach((i, c) -> c.forEach(_c -> Assertions.assertEquals(1, _c.individuals()
                 .filter(_i -> Objects.equals(_i, i)).count())));
 
         Set<Resource> namedIndividuals = m.listSubjectsWithProperty(RDF.type, OWL.NamedIndividual).toSet();
@@ -186,7 +182,7 @@ public class OntModelTest {
                 .mapWith(Statement::getSubject).toSet();
         Set<Resource> expected = new HashSet<>(namedIndividuals);
         expected.addAll(anonIndividuals);
-        Assert.assertEquals("Incorrect number of individuals", expected.size(), individuals.size());
+        Assertions.assertEquals(expected.size(), individuals.size());
     }
 
     @Test
@@ -216,56 +212,56 @@ public class OntModelTest {
                         .addAll(x.properties().collect(Collectors.toSet())));
         props.forEach((c, ps) -> LOGGER.debug("{} => {}", c, ps));
 
-        Assert.assertEquals(numClasses, props.keySet().size());
-        Assert.assertEquals(5, props.values().stream().mapToLong(Collection::size).sum());
+        Assertions.assertEquals(numClasses, props.keySet().size());
+        Assertions.assertEquals(5, props.values().stream().mapToLong(Collection::size).sum());
 
         String ns = m.getID().getURI() + "#";
         OntClass.Named animal = m.getOntClass(ns + "Animal");
-        Assert.assertNotNull(animal);
-        Assert.assertEquals("Wrong #Animal attached properties count", 3, animal.properties().count());
+        Assertions.assertNotNull(animal);
+        Assertions.assertEquals(3, animal.properties().count());
         OntClass.Named person = m.getOntClass(ns + "Person");
-        Assert.assertNotNull(person);
-        Assert.assertEquals("Wrong #Person attached properties count", 2, person.properties().count());
+        Assertions.assertNotNull(person);
+        Assertions.assertEquals(2, person.properties().count());
 
         OntDataProperty isHardWorking = m.getDataProperty(ns + "isHardWorking");
-        Assert.assertNotNull(isHardWorking);
+        Assertions.assertNotNull(isHardWorking);
         Set<OntObjectProperty> objProperties = m.ontObjects(OntObjectProperty.Named.class).collect(Collectors.toSet());
-        Assert.assertEquals(4, objProperties.size());
+        Assertions.assertEquals(4, objProperties.size());
 
         OntStatement statement = person.createHasKey(objProperties, Collections.singleton(isHardWorking)).getMainStatement();
-        Assert.assertTrue(statement.getObject().canAs(RDFList.class));
+        Assertions.assertTrue(statement.getObject().canAs(RDFList.class));
         statement.addAnnotation(m.getRDFSComment(), "These are keys", "xz");
         ReadWriteUtils.print(m);
 
-        Assert.assertEquals(5, person.hasKeys().findFirst().orElseThrow(AssertionError::new).members().count());
-        Assert.assertEquals(numClasses, m.ontObjects(OntClass.class).distinct().count());
-        Assert.assertEquals(statementsCount + 16, m.statements().count());
-        Assert.assertNotNull(statement.deleteAnnotation(m.getRDFSComment()));
+        Assertions.assertEquals(5, person.hasKeys().findFirst().orElseThrow(AssertionError::new).members().count());
+        Assertions.assertEquals(numClasses, m.ontObjects(OntClass.class).distinct().count());
+        Assertions.assertEquals(statementsCount + 16, m.statements().count());
+        Assertions.assertNotNull(statement.deleteAnnotation(m.getRDFSComment()));
 
-        Assert.assertEquals(statementsCount + 11, m.statements().count());
+        Assertions.assertEquals(statementsCount + 11, m.statements().count());
         person.clearHasKeys();
-        Assert.assertEquals(statementsCount, m.statements().count());
+        Assertions.assertEquals(statementsCount, m.statements().count());
 
         OntClass.Named marsupials = m.getOntClass(ns + "Marsupials");
-        Assert.assertNotNull(marsupials);
-        Assert.assertEquals(marsupials, person.disjointClasses().findFirst().orElse(null));
-        Assert.assertEquals(person, marsupials.disjointClasses().findAny().orElse(null));
+        Assertions.assertNotNull(marsupials);
+        Assertions.assertEquals(marsupials, person.disjointClasses().findFirst().orElse(null));
+        Assertions.assertEquals(person, marsupials.disjointClasses().findAny().orElse(null));
 
         marsupials.addDisjointClass(animal);
-        Assert.assertEquals(2, marsupials.disjointClasses().count());
-        Assert.assertEquals(0, animal.disjointClasses().count());
-        Assert.assertEquals(1, person.disjointClasses().count());
+        Assertions.assertEquals(2, marsupials.disjointClasses().count());
+        Assertions.assertEquals(0, animal.disjointClasses().count());
+        Assertions.assertEquals(1, person.disjointClasses().count());
         marsupials.removeDisjointClass(animal);
-        Assert.assertEquals(1, marsupials.disjointClasses().count());
-        Assert.assertEquals(0, animal.disjointClasses().count());
-        Assert.assertEquals(1, person.disjointClasses().count());
+        Assertions.assertEquals(1, marsupials.disjointClasses().count());
+        Assertions.assertEquals(0, animal.disjointClasses().count());
+        Assertions.assertEquals(1, person.disjointClasses().count());
 
         person.addSuperClass(marsupials);
-        Assert.assertEquals(2, person.superClasses().count());
+        Assertions.assertEquals(2, person.superClasses().count());
         person.removeSuperClass(marsupials);
-        Assert.assertEquals(1, person.superClasses().count());
+        Assertions.assertEquals(1, person.superClasses().count());
 
-        Assert.assertEquals(statementsCount, m.statements().count());
+        Assertions.assertEquals(statementsCount, m.statements().count());
     }
 
     @Test
@@ -276,13 +272,13 @@ public class OntModelTest {
         }
         simplePropertiesValidation(m);
         OntObjectProperty p1 = m.objectProperties().findFirst().orElseThrow(AssertionError::new);
-        Assert.assertFalse(p1.findInverseProperty().isPresent());
+        Assertions.assertFalse(p1.findInverseProperty().isPresent());
         OntObjectProperty p2 = m.createResource().addProperty(OWL.inverseOf, p1).as(OntObjectProperty.class);
-        Assert.assertTrue(p2.findInverseProperty().isPresent());
-        Assert.assertEquals(1, p2.inverseProperties().count());
-        Assert.assertEquals(p1.asProperty(), p2.asProperty());
-        Assert.assertEquals(p1, p2.findInverseProperty().orElseThrow(AssertionError::new));
-        Assert.assertEquals(1, m.ontObjects(OntObjectProperty.Inverse.class).count());
+        Assertions.assertTrue(p2.findInverseProperty().isPresent());
+        Assertions.assertEquals(1, p2.inverseProperties().count());
+        Assertions.assertEquals(p1.asProperty(), p2.asProperty());
+        Assertions.assertEquals(p1, p2.findInverseProperty().orElseThrow(AssertionError::new));
+        Assertions.assertEquals(1, m.ontObjects(OntObjectProperty.Inverse.class).count());
     }
 
     @Test
@@ -304,16 +300,14 @@ public class OntModelTest {
 
         LOGGER.debug("Base:");
         base = child.imports().findFirst().orElse(null);
-        Assert.assertNotNull("Null base", base);
+        Assertions.assertNotNull(base, "Null base");
         ReadWriteUtils.print(base);
         LOGGER.debug("Child:");
         ReadWriteUtils.print(child);
         Set<String> imports = child.getID().imports().collect(Collectors.toSet());
-        Assert.assertThat("Incorrect imports", imports, IsEqual.equalTo(Stream.of(baseURI)
-                .collect(Collectors.toSet())));
-        Assert.assertEquals("Incorrect count of entities", 4, child.ontEntities().count());
-        Assert.assertEquals("Incorrect count of local entities", 2, child.ontEntities()
-                .filter(OntEntity::isLocal).count());
+        Assertions.assertEquals(imports, Stream.of(baseURI).collect(Collectors.toSet()));
+        Assertions.assertEquals(4, child.ontEntities().count());
+        Assertions.assertEquals(2, child.ontEntities().filter(OntEntity::isLocal).count());
     }
 
     @Test
@@ -355,11 +349,11 @@ public class OntModelTest {
                 .addNegativeAssertion(contactInfo, phone.createLiteral("212 85 06"))
                 .addNegativeAssertion(hasContact.createInverse(), bobs);
 
-        Assert.assertEquals(2, bob.positiveAssertions().count());
-        Assert.assertEquals(3, bob.negativeAssertions().count());
+        Assertions.assertEquals(2, bob.positiveAssertions().count());
+        Assertions.assertEquals(3, bob.negativeAssertions().count());
 
         ReadWriteUtils.print(m);
-        Assert.assertEquals(42, m.statements().count());
+        Assertions.assertEquals(42, m.statements().count());
     }
 
     @Test
@@ -380,10 +374,10 @@ public class OntModelTest {
         e.addAnnotation(m.getRDFSComment(), pref + "entity of type " + type.getSimpleName())
                 .addAnnotation(m.getRDFSLabel(), pref + "label");
         m.asStatement(e.getMainStatement().asTriple()).addAnnotation(m.getRDFSComment(), pref + "comment");
-        Assert.assertEquals(2, e.annotations().count());
-        Assert.assertEquals(2, e.statements().count());
-        Assert.assertSame(e, e.as(type));
-        Assert.assertSame(e, ((OntGraphModelImpl) m).getNodeAs(e.asNode(), type));
+        Assertions.assertEquals(2, e.annotations().count());
+        Assertions.assertEquals(2, e.statements().count());
+        Assertions.assertSame(e, e.as(type));
+        Assertions.assertSame(e, ((OntGraphModelImpl) m).getNodeAs(e.asNode(), type));
     }
 
     @Test
@@ -418,69 +412,69 @@ public class OntModelTest {
 
         ReadWriteUtils.print(m);
 
-        Assert.assertEquals(1, class1.spec().map(Models::toString)
+        Assertions.assertEquals(1, class1.spec().map(Models::toString)
                 .peek(x -> LOGGER.debug("1::CLASS SPEC: {}", x)).count());
-        Assert.assertEquals(4, class1.content().map(Models::toString)
+        Assertions.assertEquals(4, class1.content().map(Models::toString)
                 .peek(x -> LOGGER.debug("1::CLASS CONTENT: {}", x)).count());
 
-        Assert.assertEquals(6, class2.spec().map(Models::toString)
+        Assertions.assertEquals(6, class2.spec().map(Models::toString)
                 .peek(x -> LOGGER.debug("2::CLASS SPEC: {}", x)).count());
-        Assert.assertEquals(7, class2.content().map(Models::toString)
+        Assertions.assertEquals(7, class2.content().map(Models::toString)
                 .peek(x -> LOGGER.debug("2::CLASS CONTENT: {}", x)).count());
 
-        Assert.assertEquals(3, class3.spec().map(Models::toString)
+        Assertions.assertEquals(3, class3.spec().map(Models::toString)
                 .peek(x -> LOGGER.debug("3::CLASS SPEC: {}", x)).count());
-        Assert.assertEquals(3, class3.content().map(Models::toString)
+        Assertions.assertEquals(3, class3.content().map(Models::toString)
                 .peek(x -> LOGGER.debug("3::CLASS CONTENT: {}", x)).count());
 
-        Assert.assertEquals(4, class4.spec().map(Models::toString)
+        Assertions.assertEquals(4, class4.spec().map(Models::toString)
                 .peek(x -> LOGGER.debug("4::CLASS SPEC: {}", x)).count());
-        Assert.assertEquals(4, class4.content().map(Models::toString)
+        Assertions.assertEquals(4, class4.content().map(Models::toString)
                 .peek(x -> LOGGER.debug("4::CLASS CONTENT: {}", x)).count());
 
-        Assert.assertEquals(0, class5.spec().map(Models::toString)
+        Assertions.assertEquals(0, class5.spec().map(Models::toString)
                 .peek(x -> LOGGER.debug("5::CLASS SPEC: {}", x)).count());
-        Assert.assertEquals(1, class5.content().map(Models::toString)
+        Assertions.assertEquals(1, class5.content().map(Models::toString)
                 .peek(x -> LOGGER.debug("5::CLASS CONTENT: {}", x)).count());
 
-        Assert.assertEquals(3, class6.spec().map(Models::toString)
+        Assertions.assertEquals(3, class6.spec().map(Models::toString)
                 .peek(x -> LOGGER.debug("6::CLASS SPEC: {}", x)).count());
-        Assert.assertEquals(3, class6.content().map(Models::toString)
+        Assertions.assertEquals(3, class6.content().map(Models::toString)
                 .peek(x -> LOGGER.debug("6::CLASS CONTENT: {}", x)).count());
 
-        Assert.assertEquals(3, class7.spec().map(Models::toString)
+        Assertions.assertEquals(3, class7.spec().map(Models::toString)
                 .peek(x -> LOGGER.debug("7::CLASS SPEC: {}", x)).count());
-        Assert.assertEquals(3, class7.content().map(Models::toString)
+        Assertions.assertEquals(3, class7.content().map(Models::toString)
                 .peek(x -> LOGGER.debug("7::CLASS CONTENT: {}", x)).count());
 
-        Assert.assertEquals(0, dr1.spec().map(Models::toString)
+        Assertions.assertEquals(0, dr1.spec().map(Models::toString)
                 .peek(x -> LOGGER.debug("1::DATA-RANGE SPEC: {}", x)).count());
-        Assert.assertEquals(0, dr1.content().map(Models::toString)
+        Assertions.assertEquals(0, dr1.content().map(Models::toString)
                 .peek(x -> LOGGER.debug("1::DATA-RANGE CONTENT: {}", x)).count());
 
-        Assert.assertEquals(6, dr2.spec().map(Models::toString)
+        Assertions.assertEquals(6, dr2.spec().map(Models::toString)
                 .peek(x -> LOGGER.debug("2::DATA-RANGE SPEC: {}", x)).count());
-        Assert.assertEquals(6, dr2.content().map(Models::toString)
+        Assertions.assertEquals(6, dr2.content().map(Models::toString)
                 .peek(x -> LOGGER.debug("2::DATA-RANGE CONTENT: {}", x)).count());
 
-        Assert.assertEquals(2, dr3.spec().map(Models::toString)
+        Assertions.assertEquals(2, dr3.spec().map(Models::toString)
                 .peek(x -> LOGGER.debug("3::DATA-RANGE SPEC: {}", x)).count());
-        Assert.assertEquals(2, dr3.content().map(Models::toString)
+        Assertions.assertEquals(2, dr3.content().map(Models::toString)
                 .peek(x -> LOGGER.debug("3::DATA-RANGE CONTENT: {}", x)).count());
 
-        Assert.assertEquals(1, i1.spec().map(Models::toString)
+        Assertions.assertEquals(1, i1.spec().map(Models::toString)
                 .peek(x -> LOGGER.debug("1::INDIVIDUAL SPEC: {}", x)).count());
-        Assert.assertEquals(6, i1.content().map(Models::toString)
+        Assertions.assertEquals(6, i1.content().map(Models::toString)
                 .peek(x -> LOGGER.debug("1::INDIVIDUAL CONTENT: {}", x)).count());
 
-        Assert.assertEquals(0, i2.spec().map(Models::toString)
+        Assertions.assertEquals(0, i2.spec().map(Models::toString)
                 .peek(x -> LOGGER.debug("2::INDIVIDUAL SPEC: {}", x)).count());
-        Assert.assertEquals(1, i2.content().map(Models::toString)
+        Assertions.assertEquals(1, i2.content().map(Models::toString)
                 .peek(x -> LOGGER.debug("2::INDIVIDUAL CONTENT: {}", x)).count());
 
-        Assert.assertEquals(4, npa1.spec().map(Models::toString)
+        Assertions.assertEquals(4, npa1.spec().map(Models::toString)
                 .peek(x -> LOGGER.debug("1::NAP SPEC: {}", x)).count());
-        Assert.assertEquals(4, npa1.content().map(Models::toString)
+        Assertions.assertEquals(4, npa1.content().map(Models::toString)
                 .peek(x -> LOGGER.debug("1::NAP CONTENT: {}", x)).count());
     }
 
@@ -495,44 +489,44 @@ public class OntModelTest {
         OntClass class4 = m.createObjectComplementOf(class3);
         OntClass class5 = m.createObjectSomeValuesFrom(p, class4);
         OntClass class6 = m.createObjectIntersectionOf(m.getOWLThing(), class2, class4, class5);
-        Assert.assertEquals(6, m.ontObjects(OntClass.class).count());
+        Assertions.assertEquals(6, m.ontObjects(OntClass.class).count());
         long size = m.size();
         OntDisjoint<?> d = m.createDisjointClasses(m.getOWLNothing(), class1, class6);
         ReadWriteUtils.print(m);
 
         m.removeOntObject(d);
         ReadWriteUtils.print(m);
-        Assert.assertEquals(size, m.statements().count());
+        Assertions.assertEquals(size, m.statements().count());
 
         m.removeOntObject(class6).removeOntObject(class5).removeOntObject(class4).removeOntObject(p);
         ReadWriteUtils.print(m);
 
-        Assert.assertEquals(3, m.size());
+        Assertions.assertEquals(3, m.size());
     }
 
     @Test
     public void testModelPrefixes() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
         m.setID("http://x");
-        Assert.assertEquals(4, m.numPrefixes());
-        Assert.assertEquals(4, m.getBaseGraph().getPrefixMapping().numPrefixes());
+        Assertions.assertEquals(4, m.numPrefixes());
+        Assertions.assertEquals(4, m.getBaseGraph().getPrefixMapping().numPrefixes());
         String txt = ReadWriteUtils.toString(m, OntFormat.TURTLE);
         LOGGER.debug(txt);
-        Assert.assertEquals(6, txt.split("\n").length);
+        Assertions.assertEquals(6, txt.split("\n").length);
 
         m.setNsPrefix("x", "http://x#");
-        Assert.assertEquals(5, m.numPrefixes());
-        Assert.assertEquals(5, m.getBaseGraph().getPrefixMapping().numPrefixes());
+        Assertions.assertEquals(5, m.numPrefixes());
+        Assertions.assertEquals(5, m.getBaseGraph().getPrefixMapping().numPrefixes());
         txt = ReadWriteUtils.toString(m, OntFormat.TURTLE);
         LOGGER.debug(txt);
-        Assert.assertEquals(7, txt.split("\n").length);
+        Assertions.assertEquals(7, txt.split("\n").length);
 
         m.removeNsPrefix("x");
-        Assert.assertEquals(4, m.numPrefixes());
-        Assert.assertEquals(4, m.getBaseGraph().getPrefixMapping().numPrefixes());
+        Assertions.assertEquals(4, m.numPrefixes());
+        Assertions.assertEquals(4, m.getBaseGraph().getPrefixMapping().numPrefixes());
         txt = ReadWriteUtils.toString(m, OntFormat.TURTLE);
         LOGGER.debug(txt);
-        Assert.assertEquals(6, txt.split("\n").length);
+        Assertions.assertEquals(6, txt.split("\n").length);
     }
 
     @Test
@@ -548,39 +542,39 @@ public class OntModelTest {
 
         try {
             c.addImport(av1).addImport(av1);
-            Assert.fail("Can add the same model");
+            Assertions.fail("Can add the same model");
         } catch (OntJenaException j) {
             LOGGER.debug("Expected: '{}'", j.getMessage());
         }
-        Assert.assertTrue(c.hasImport(av1));
-        Assert.assertFalse(c.hasImport(av2));
-        Assert.assertEquals(1, c.imports().count());
+        Assertions.assertTrue(c.hasImport(av1));
+        Assertions.assertFalse(c.hasImport(av2));
+        Assertions.assertEquals(1, c.imports().count());
 
         c.removeImport(av1).addImport(av2);
-        Assert.assertTrue(c.hasImport(av2));
-        Assert.assertFalse(c.hasImport(av1));
-        Assert.assertEquals(1, c.imports().count());
+        Assertions.assertTrue(c.hasImport(av2));
+        Assertions.assertFalse(c.hasImport(av1));
+        Assertions.assertEquals(1, c.imports().count());
 
         b.addImport(c);
-        Assert.assertEquals(1, b.imports().count());
-        Assert.assertTrue(b.hasImport(c));
-        Assert.assertFalse(b.hasImport(av1));
-        Assert.assertFalse(b.hasImport(av2));
+        Assertions.assertEquals(1, b.imports().count());
+        Assertions.assertTrue(b.hasImport(c));
+        Assertions.assertFalse(b.hasImport(av1));
+        Assertions.assertFalse(b.hasImport(av2));
 
         String tree = Graphs.importsTreeAsString(b.getGraph());
         LOGGER.debug("1) Tree: \n{}", tree);
-        Assert.assertEquals(Arrays.asList("<b>", "<c>", "<a[v2]>"),
+        Assertions.assertEquals(Arrays.asList("<b>", "<c>", "<a[v2]>"),
                 Arrays.stream(tree.split("\n")).map(String::trim).collect(Collectors.toList()));
 
         c.removeImport(av1);
         tree = Graphs.importsTreeAsString(b.getGraph());
-        Assert.assertEquals(Arrays.asList("<b>", "<c>", "<a[v2]>"),
+        Assertions.assertEquals(Arrays.asList("<b>", "<c>", "<a[v2]>"),
                 Arrays.stream(tree.split("\n")).map(String::trim).collect(Collectors.toList()));
 
         c.removeImport(av2).addImport(av1);
         tree = Graphs.importsTreeAsString(b.getGraph());
         LOGGER.debug("2) Tree: \n{}", tree);
-        Assert.assertEquals(Arrays.asList("<b>", "<c>", "<a[v1]>"),
+        Assertions.assertEquals(Arrays.asList("<b>", "<c>", "<a[v1]>"),
                 Arrays.stream(tree.split("\n")).map(String::trim).collect(Collectors.toList()));
 
         // sync imports:
@@ -588,11 +582,11 @@ public class OntModelTest {
         OntModels.syncImports(b);
         tree = Graphs.importsTreeAsString(b.getGraph());
         LOGGER.debug("3) Tree: \n{}", tree);
-        Assert.assertEquals(4, OntModels.importsClosure(b).count());
-        Assert.assertEquals(3, OntModels.importsClosure(c).count());
-        Assert.assertEquals(Arrays.asList("<b>", "<c>", "<a[v1]>", "<a[v2]>"),
+        Assertions.assertEquals(4, OntModels.importsClosure(b).count());
+        Assertions.assertEquals(3, OntModels.importsClosure(c).count());
+        Assertions.assertEquals(Arrays.asList("<b>", "<c>", "<a[v1]>", "<a[v2]>"),
                 Arrays.stream(tree.split("\n")).map(String::trim).collect(Collectors.toList()));
-        Assert.assertEquals(Arrays.asList("v1", "v2"), c.statements(null, OWL.imports, null)
+        Assertions.assertEquals(Arrays.asList("v1", "v2"), c.statements(null, OWL.imports, null)
                 .map(Statement::getResource)
                 .map(Resource::getURI)
                 .sorted()
@@ -612,45 +606,45 @@ public class OntModelTest {
         c.setID("c");
 
         a.addImport(b);
-        Assert.assertEquals(1, a.imports().count());
-        Assert.assertEquals(0, b.imports().count());
-        Assert.assertEquals(0, c.imports().count());
-        Assert.assertEquals(2, a.ontEntities().count());
-        Assert.assertEquals(1, b.ontEntities().count());
-        Assert.assertEquals(1, c.ontEntities().count());
+        Assertions.assertEquals(1, a.imports().count());
+        Assertions.assertEquals(0, b.imports().count());
+        Assertions.assertEquals(0, c.imports().count());
+        Assertions.assertEquals(2, a.ontEntities().count());
+        Assertions.assertEquals(1, b.ontEntities().count());
+        Assertions.assertEquals(1, c.ontEntities().count());
 
         b.addImport(c);
-        Assert.assertEquals(1, a.imports().count());
-        Assert.assertEquals(1, b.imports().count());
-        Assert.assertEquals(0, c.imports().count());
-        Assert.assertEquals(3, a.ontEntities().count());
-        Assert.assertEquals(2, b.ontEntities().count());
-        Assert.assertEquals(1, c.ontEntities().count());
+        Assertions.assertEquals(1, a.imports().count());
+        Assertions.assertEquals(1, b.imports().count());
+        Assertions.assertEquals(0, c.imports().count());
+        Assertions.assertEquals(3, a.ontEntities().count());
+        Assertions.assertEquals(2, b.ontEntities().count());
+        Assertions.assertEquals(1, c.ontEntities().count());
 
         // add cycle import:
         c.addImport(a);
-        Assert.assertEquals(1, a.imports().count());
-        Assert.assertEquals(1, b.imports().count());
-        Assert.assertEquals(1, c.imports().count());
-        Assert.assertEquals(3, a.ontEntities().count());
-        Assert.assertEquals(3, b.ontEntities().count());
-        Assert.assertEquals(3, c.ontEntities().count());
+        Assertions.assertEquals(1, a.imports().count());
+        Assertions.assertEquals(1, b.imports().count());
+        Assertions.assertEquals(1, c.imports().count());
+        Assertions.assertEquals(3, a.ontEntities().count());
+        Assertions.assertEquals(3, b.ontEntities().count());
+        Assertions.assertEquals(3, c.ontEntities().count());
 
         // add more entities:
         a.createOntClass("B");
         b.createOntClass("X");
-        Assert.assertEquals(4, a.ontEntities().count());
-        Assert.assertEquals(4, b.ontEntities().count());
-        Assert.assertEquals(4, c.ontEntities().count());
+        Assertions.assertEquals(4, a.ontEntities().count());
+        Assertions.assertEquals(4, b.ontEntities().count());
+        Assertions.assertEquals(4, c.ontEntities().count());
 
         // remove cycle import
         b.removeImport(c);
-        Assert.assertEquals(1, a.imports().count());
-        Assert.assertEquals(0, b.imports().count());
-        Assert.assertEquals(1, c.imports().count());
-        Assert.assertEquals(3, a.ontEntities().count());
-        Assert.assertEquals(2, b.ontEntities().count());
-        Assert.assertEquals(4, c.ontEntities().count());
+        Assertions.assertEquals(1, a.imports().count());
+        Assertions.assertEquals(0, b.imports().count());
+        Assertions.assertEquals(1, c.imports().count());
+        Assertions.assertEquals(3, a.ontEntities().count());
+        Assertions.assertEquals(2, b.ontEntities().count());
+        Assertions.assertEquals(4, c.ontEntities().count());
     }
 
     @Test
@@ -658,10 +652,10 @@ public class OntModelTest {
         Graph g = ReadWriteUtils.loadResourceTTLFile("/ontapi/pizza.ttl").getGraph();
         OntModel m = OntModelFactory.createModel(g);
         OntNamedProperty<?> p = m.getOntEntity(OntNamedProperty.class, m.expandPrefix(":isIngredientOf"));
-        Assert.assertNotNull(p);
-        Assert.assertEquals(0, p.getOrdinal());
-        Assert.assertEquals(0, m.getRDFSComment().getOrdinal());
-        Assert.assertEquals(0, m.getOWLBottomDataProperty().getOrdinal());
+        Assertions.assertNotNull(p);
+        Assertions.assertEquals(0, p.getOrdinal());
+        Assertions.assertEquals(0, m.getRDFSComment().getOrdinal());
+        Assertions.assertEquals(0, m.getOWLBottomDataProperty().getOrdinal());
     }
 
     @Test
@@ -715,11 +709,11 @@ public class OntModelTest {
 
         ReadWriteUtils.print(m);
 
-        Assert.assertEquals(2, i2.classes(true).count());
-        Assert.assertEquals(5, i2.classes(false).count());
+        Assertions.assertEquals(2, i2.classes(true).count());
+        Assertions.assertEquals(5, i2.classes(false).count());
 
-        Assert.assertEquals(2, i1.classes(true).count());
-        Assert.assertEquals(5, i1.classes(false).count());
+        Assertions.assertEquals(2, i1.classes(true).count());
+        Assertions.assertEquals(5, i1.classes(false).count());
     }
 
     @Test
@@ -732,14 +726,14 @@ public class OntModelTest {
         s.addAnnotation(m.getRDFSComment(), "a3");
 
         ReadWriteUtils.print(m);
-        Assert.assertEquals(14, m.size());
+        Assertions.assertEquals(14, m.size());
 
         d.removeDomain(c);
         ReadWriteUtils.print(m);
-        Assert.assertEquals(2, m.size());
+        Assertions.assertEquals(2, m.size());
 
         d.removeRange(c);
-        Assert.assertEquals(2, m.size());
+        Assertions.assertEquals(2, m.size());
     }
 
     @Test
@@ -759,17 +753,17 @@ public class OntModelTest {
 
         List<OntIndividual> list1 = Arrays.asList(i1, i2);
         OntDisjoint.Individuals d1 = m.createDifferentIndividuals(list1);
-        Assert.assertEquals(list1, d1.getList().members().collect(Collectors.toList()));
-        Assert.assertEquals(2, d1.members().count());
-        Assert.assertSame(d1, d1.setComponents(i2, i3));
-        Assert.assertEquals(Arrays.asList(i2, i3), d1.members().collect(Collectors.toList()));
+        Assertions.assertEquals(list1, d1.getList().members().collect(Collectors.toList()));
+        Assertions.assertEquals(2, d1.members().count());
+        Assertions.assertSame(d1, d1.setComponents(i2, i3));
+        Assertions.assertEquals(Arrays.asList(i2, i3), d1.members().collect(Collectors.toList()));
 
         OntDisjoint.ObjectProperties d2 = m.createDisjointObjectProperties(op1, op2, op3);
-        Assert.assertEquals(3, d2.getList().members().count());
-        Assert.assertTrue(d2.setComponents().getList().isEmpty());
+        Assertions.assertEquals(3, d2.getList().members().count());
+        Assertions.assertTrue(d2.setComponents().getList().isEmpty());
 
         OntDisjoint.DataProperties d3 = m.createDisjointDataProperties(dp1, dp2);
-        Assert.assertEquals(2, d3.setComponents(Arrays.asList(dp3, m.getOWLBottomDataProperty())).members().count());
+        Assertions.assertEquals(2, d3.setComponents(Arrays.asList(dp3, m.getOWLBottomDataProperty())).members().count());
 
         ReadWriteUtils.print(m);
 
@@ -780,7 +774,7 @@ public class OntModelTest {
                 .map(RDFList::asJavaList)
                 .flatMap(Collection::stream)
                 .collect(Collectors.toSet());
-        Assert.assertEquals(expected, actual);
+        Assertions.assertEquals(expected, actual);
     }
 
     @Test
@@ -826,16 +820,16 @@ public class OntModelTest {
         m.createObjectOneOf(i1, i2, ce2.createIndividual());
 
         ReadWriteUtils.print(m);
-        Assert.assertEquals("Incorrect count of individuals", 3, m.ontObjects(OntIndividual.class).count());
-        Assert.assertEquals("Incorrect count of class expressions", 4, m.ontObjects(OntClass.class).count());
-        Assert.assertEquals("Incorrect count of restrictions", 2, m.ontObjects(OntClass.RestrictionCE.class).count());
-        Assert.assertEquals("Incorrect count of cardinality restrictions", 1,
-                m.ontObjects(OntClass.CardinalityRestrictionCE.class).count());
-        Assert.assertEquals("Incorrect count of datatype entities", 3, m.ontObjects(OntDataRange.Named.class).count());
-        Assert.assertEquals("Incorrect count of data properties", 1, m.ontObjects(OntDataProperty.class).count());
-        Assert.assertEquals("Incorrect count of facet restrictions", 2, m.ontObjects(OntFacetRestriction.class).count());
-        Assert.assertEquals("Incorrect count of data ranges", 9, m.ontObjects(OntDataRange.class).count());
-        Assert.assertEquals("Incorrect count of entities", 6, m.ontObjects(OntEntity.class).count());
+        Assertions.assertEquals(3, m.ontObjects(OntIndividual.class).count(), "Incorrect count of individuals");
+        Assertions.assertEquals(4, m.ontObjects(OntClass.class).count(), "Incorrect count of class expressions");
+        Assertions.assertEquals(2, m.ontObjects(OntClass.RestrictionCE.class).count(), "Incorrect count of restrictions");
+        Assertions.assertEquals(1, m.ontObjects(OntClass.CardinalityRestrictionCE.class).count(),
+                "Incorrect count of cardinality restrictions");
+        Assertions.assertEquals(3, m.ontObjects(OntDataRange.Named.class).count(), "Incorrect count of datatype entities");
+        Assertions.assertEquals(1, m.ontObjects(OntDataProperty.class).count(), "Incorrect count of data properties");
+        Assertions.assertEquals(2, m.ontObjects(OntFacetRestriction.class).count(), "Incorrect count of facet restrictions");
+        Assertions.assertEquals(9, m.ontObjects(OntDataRange.class).count(), "Incorrect count of data ranges");
+        Assertions.assertEquals(6, m.ontObjects(OntEntity.class).count(), "Incorrect count of entities");
     }
 }
 

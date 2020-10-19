@@ -13,8 +13,8 @@
  */
 package com.github.owlcs.owlapi.tests.api;
 
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.io.RDFResourceIRI;
 import org.semanticweb.owlapi.io.RDFTriple;
 import org.semanticweb.owlapi.model.IRI;
@@ -26,6 +26,6 @@ public class RdfGraphComparatorTestCase {
         RDFResourceIRI iri1 = new RDFResourceIRI(IRI.create("urn:test#", "a1"));
         RDFTriple first = new RDFTriple(iri1, iri1, iri1);
         RDFTriple second = new RDFTriple(iri1, iri1, iri1);
-        Assert.assertEquals(0, first.compareTo(second));
+        Assertions.assertEquals(0, first.compareTo(second));
     }
 }

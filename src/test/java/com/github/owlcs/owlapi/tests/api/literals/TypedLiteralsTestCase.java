@@ -15,8 +15,8 @@ package com.github.owlcs.owlapi.tests.api.literals;
 
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.OWLLiteralReplacer;
 import org.semanticweb.owlapi.util.OWLObjectTransformer;
@@ -52,15 +52,15 @@ public class TypedLiteralsTestCase extends TestBase {
         replacements.put(OWLFunctionalSyntaxFactory.Literal(true), OWLFunctionalSyntaxFactory.Literal(false));
         replacements.put(OWLFunctionalSyntaxFactory.Literal(3), OWLFunctionalSyntaxFactory.Literal(4));
         List<OWLOntologyChange> results = replacer.changeLiterals(replacements);
-        Assert.assertTrue(results.contains(new AddAxiom(o,
+        Assertions.assertTrue(results.contains(new AddAxiom(o,
                 OWLFunctionalSyntaxFactory.DataPropertyAssertion(prop, ind, OWLFunctionalSyntaxFactory.Literal(4)))));
-        Assert.assertTrue(results.contains(new AddAxiom(o,
+        Assertions.assertTrue(results.contains(new AddAxiom(o,
                 OWLFunctionalSyntaxFactory.DataPropertyAssertion(prop, ind, OWLFunctionalSyntaxFactory.Literal(false)))));
-        Assert.assertTrue(results.contains(new RemoveAxiom(o,
+        Assertions.assertTrue(results.contains(new RemoveAxiom(o,
                 OWLFunctionalSyntaxFactory.DataPropertyAssertion(prop, ind, OWLFunctionalSyntaxFactory.Literal(3)))));
-        Assert.assertTrue(results.contains(new RemoveAxiom(o,
+        Assertions.assertTrue(results.contains(new RemoveAxiom(o,
                 OWLFunctionalSyntaxFactory.DataPropertyAssertion(prop, ind, OWLFunctionalSyntaxFactory.Literal(true)))));
-        Assert.assertEquals(4, results.size());
+        Assertions.assertEquals(4, results.size());
     }
 
     @Test
@@ -77,14 +77,14 @@ public class TypedLiteralsTestCase extends TestBase {
             return l;
         }, df, OWLLiteral.class);
         List<OWLOntologyChange> results = replacer.change(o);
-        Assert.assertTrue(results.contains(new AddAxiom(o,
+        Assertions.assertTrue(results.contains(new AddAxiom(o,
                 OWLFunctionalSyntaxFactory.DataPropertyAssertion(prop, ind, OWLFunctionalSyntaxFactory.Literal(4)))));
-        Assert.assertTrue(results.contains(new AddAxiom(o,
+        Assertions.assertTrue(results.contains(new AddAxiom(o,
                 OWLFunctionalSyntaxFactory.DataPropertyAssertion(prop, ind, OWLFunctionalSyntaxFactory.Literal(false)))));
-        Assert.assertTrue(results.contains(new RemoveAxiom(o,
+        Assertions.assertTrue(results.contains(new RemoveAxiom(o,
                 OWLFunctionalSyntaxFactory.DataPropertyAssertion(prop, ind, OWLFunctionalSyntaxFactory.Literal(3)))));
-        Assert.assertTrue(results.contains(new RemoveAxiom(o,
+        Assertions.assertTrue(results.contains(new RemoveAxiom(o,
                 OWLFunctionalSyntaxFactory.DataPropertyAssertion(prop, ind, OWLFunctionalSyntaxFactory.Literal(true)))));
-        Assert.assertEquals(4, results.size());
+        Assertions.assertEquals(4, results.size());
     }
 }

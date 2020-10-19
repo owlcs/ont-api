@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -17,8 +17,8 @@ import com.github.owlcs.ontapi.OWLAdapter;
 import com.github.owlcs.ontapi.transforms.Transform;
 import com.github.owlcs.owlapi.OWLManager;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.profiles.*;
@@ -75,11 +75,13 @@ public class ProfileValidationTestCase extends TestBase {
                     .filter(Optional::isPresent)
                     .map(Optional::get).collect(Collectors.toList());
 
-            Assert.assertFalse("No values found", values.isEmpty());
+            Assertions.assertFalse(values.isEmpty());
             IRI iri = ind.asOWLNamedIndividual().getIRI();
             LOGGER.debug("{}:::IRI:::{}", ++count, iri);
-            Collection<OWLIndividual> finder = Searcher.values(testCasesOntology.objectPropertyAssertionAxioms(ind), speciesProperty).collect(Collectors.toSet());
-            Collection<OWLIndividual> negativeFinder = Searcher.negValues(testCasesOntology.negativeObjectPropertyAssertionAxioms(ind), speciesProperty).collect(Collectors.toSet());
+            Collection<OWLIndividual> finder = Searcher.values(testCasesOntology.objectPropertyAssertionAxioms(ind), speciesProperty)
+                    .collect(Collectors.toSet());
+            Collection<OWLIndividual> negativeFinder = Searcher.negValues(testCasesOntology.negativeObjectPropertyAssertionAxioms(ind), speciesProperty)
+                    .collect(Collectors.toSet());
             for (OWLLiteral v : values) {
                 testInnerOntology(v.getLiteral(), finder, negativeFinder);
             }
@@ -92,8 +94,8 @@ public class ProfileValidationTestCase extends TestBase {
         OWLNamedIndividual rl = df.getOWLNamedIndividual(IRI.create(ALL_NS, "RL"));
         OWLNamedIndividual full = df.getOWLNamedIndividual(IRI.create(ALL_NS, "FULL"));
         OWLNamedIndividual dl = df.getOWLNamedIndividual(IRI.create(ALL_NS, "DL"));
-        Assert.assertNotNull(full);
-        Assert.assertNotNull(dl);
+        Assertions.assertNotNull(full);
+        Assertions.assertNotNull(dl);
         OWLOntologyManager manager = manager();
         OWLOntology ontology = manager.loadOntologyFromOntologyDocument(new StringDocumentSource(txt));
         //com.github.owlcs.ontapi.utils.ReadWriteUtils.print(ontology);
@@ -141,7 +143,8 @@ public class ProfileValidationTestCase extends TestBase {
                 conf
                         //.setAllowReadDeclarations(false)
                         //.setPerformTransformation(false)
-                        .setGraphTransformers(conf.getGraphTransformers().addFirst(Transform.Factory.create(com.github.owlcs.ontapi.utils.WrongRDFListTransform.class)))
+                        .setGraphTransformers(conf.getGraphTransformers()
+                                .addFirst(Transform.Factory.create(com.github.owlcs.ontapi.utils.WrongRDFListTransform.class)))
                 .setSupportedSchemes(Stream.of(com.github.owlcs.ontapi.config.OntConfig.DefaultScheme.FILE).collect(Collectors.toList()))
                         .setPersonality(com.github.owlcs.ontapi.jena.impl.conf.OntModelConfig.ONT_PERSONALITY_LAX));
         return m;
@@ -149,8 +152,8 @@ public class ProfileValidationTestCase extends TestBase {
 
     private static void checkProfile(OWLOntology ontology, OWLProfile profile, boolean shouldBeInProfile) {
         OWLProfileReport report = profile.checkOntology(ontology);
-        Assert.assertEquals(String.format("[%s] VIOLATIONS:\n%s", profile.getClass().getSimpleName(), report.getViolations()),
-                shouldBeInProfile, report.isInProfile());
+        Assertions.assertEquals(shouldBeInProfile, report.isInProfile(),
+                String.format("[%s] VIOLATIONS:\n%s", profile.getClass().getSimpleName(), report.getViolations()));
     }
 
     @Test

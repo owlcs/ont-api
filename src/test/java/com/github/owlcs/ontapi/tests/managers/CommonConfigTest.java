@@ -19,8 +19,8 @@ import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.config.OntConfig;
 import com.github.owlcs.ontapi.jena.impl.conf.OntModelConfig;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
@@ -53,7 +53,7 @@ public class CommonConfigTest {
     }
 
     private static void assertEqualsConfigurator(OntologyConfigurator conf, OWLOntologyManager m) {
-        Assert.assertEquals(m.getOntologyConfigurator(), conf);
+        Assertions.assertEquals(m.getOntologyConfigurator(), conf);
     }
 
     @Test
@@ -64,14 +64,14 @@ public class CommonConfigTest {
     }
 
     private static void testGeneralConfigOverrideBehaviour(OWLOntologyManager m) {
-        Assert.assertTrue(m.getOntologyLoaderConfiguration().isAcceptingHTTPCompression());
+        Assertions.assertTrue(m.getOntologyLoaderConfiguration().isAcceptingHTTPCompression());
         m.getOntologyConfigurator().setAcceptingHTTPCompression(false);
-        Assert.assertFalse(m.getOntologyConfigurator().shouldAcceptHTTPCompression());
-        Assert.assertFalse(m.getOntologyLoaderConfiguration().isAcceptingHTTPCompression());
+        Assertions.assertFalse(m.getOntologyConfigurator().shouldAcceptHTTPCompression());
+        Assertions.assertFalse(m.getOntologyLoaderConfiguration().isAcceptingHTTPCompression());
 
         m.setOntologyLoaderConfiguration(new OWLOntologyLoaderConfiguration().setAcceptingHTTPCompression(true));
-        Assert.assertFalse(m.getOntologyConfigurator().shouldAcceptHTTPCompression());
-        Assert.assertTrue(m.getOntologyLoaderConfiguration().isAcceptingHTTPCompression());
+        Assertions.assertFalse(m.getOntologyConfigurator().shouldAcceptHTTPCompression());
+        Assertions.assertTrue(m.getOntologyLoaderConfiguration().isAcceptingHTTPCompression());
     }
 
     @Test
@@ -82,8 +82,8 @@ public class CommonConfigTest {
                 return super.getIgnoredImports();
             }
         }.getIgnoredImports();
-        Assert.assertEquals(7, imports.size());
+        Assertions.assertEquals(7, imports.size());
 
-        Assert.assertTrue(new OntConfig().buildLoaderConfiguration().isIgnoredImport(IRI.create(OWL.NS)));
+        Assertions.assertTrue(new OntConfig().buildLoaderConfiguration().isIgnoredImport(IRI.create(OWL.NS)));
     }
 }

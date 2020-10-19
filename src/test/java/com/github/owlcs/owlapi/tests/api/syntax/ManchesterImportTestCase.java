@@ -14,8 +14,8 @@
 package com.github.owlcs.owlapi.tests.api.syntax;
 
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
@@ -33,7 +33,7 @@ public class ManchesterImportTestCase extends TestBase {
     public void testManualImports() throws OWLOntologyCreationException {
         OWLOntologyManager manager = getManager();
         manager.loadOntologyFromOntologyDocument(new File(RESOURCES, superpath));
-        Assert.assertNotNull(manager.getOntology(str));
+        Assertions.assertNotNull(manager.getOntology(str));
     }
 
     private OWLOntologyManager getManager() {
@@ -46,9 +46,9 @@ public class ManchesterImportTestCase extends TestBase {
     public void testRemoteIsParseable() throws OWLOntologyCreationException {
         OWLOntologyManager manager = getManager();
         OWLOntology ontology = manager.loadOntology(str);
-        Assert.assertEquals(1, ontology.axioms().count());
-        Assert.assertEquals(str, ontology.getOntologyID().getOntologyIRI().orElse(null));
-        Assert.assertNotNull(manager.getOntology(str));
+        Assertions.assertEquals(1, ontology.axioms().count());
+        Assertions.assertEquals(str, ontology.getOntologyID().getOntologyIRI().orElse(null));
+        Assertions.assertNotNull(manager.getOntology(str));
     }
 
     @Test
@@ -57,8 +57,8 @@ public class ManchesterImportTestCase extends TestBase {
         OWLOntology manualImport = managerStart.loadOntologyFromOntologyDocument(new File(RESOURCES, superpath));
         OWLOntologyManager managerTest = getManager();
         OWLOntology iriImport = managerTest.loadOntology(str);
-        Assert.assertTrue(manualImport.equalAxioms(iriImport));
-        Assert.assertEquals(manualImport.getOntologyID(), iriImport.getOntologyID());
+        Assertions.assertTrue(manualImport.equalAxioms(iriImport));
+        Assertions.assertEquals(manualImport.getOntologyID(), iriImport.getOntologyID());
     }
 
     @Test

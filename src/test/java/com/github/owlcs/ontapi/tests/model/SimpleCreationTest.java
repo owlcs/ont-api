@@ -23,9 +23,9 @@ import com.github.owlcs.ontapi.utils.OntIRI;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import org.apache.log4j.Logger;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.*;
 
 /**
@@ -91,7 +91,6 @@ public class SimpleCreationTest {
 
         ReadWriteUtils.print(ontology.asGraphModel(), OntFormat.TURTLE);
         LOGGER.debug("All statements: " + ontology.asGraphModel().listStatements().toList().size());
-        Assert.assertEquals("incorrect statements size", statements,
-                ontology.asGraphModel().getBaseModel().listStatements().toList().size());
+        Assertions.assertEquals(statements, ontology.asGraphModel().getBaseModel().listStatements().toList().size());
     }
 }

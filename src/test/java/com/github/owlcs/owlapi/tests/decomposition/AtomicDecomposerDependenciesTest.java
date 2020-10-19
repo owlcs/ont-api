@@ -15,8 +15,8 @@
 package com.github.owlcs.owlapi.tests.decomposition;
 
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.*;
 import uk.ac.manchester.cs.atomicdecomposition.Atom;
 import uk.ac.manchester.cs.atomicdecomposition.AtomicDecomposition;
@@ -30,18 +30,18 @@ public class AtomicDecomposerDependenciesTest {
     public void testAtomicDecomposer() throws OWLOntologyCreationException {
         // given
         OWLOntology o = getOntology();
-        Assert.assertEquals(3, o.getAxiomCount());
+        Assertions.assertEquals(3, o.getAxiomCount());
         AtomicDecomposition ad = new AtomicDecompositionImpl(o);
-        Assert.assertEquals(3, ad.getAtoms().size());
+        Assertions.assertEquals(3, ad.getAtoms().size());
         Atom atom = ad.getBottomAtoms().iterator().next();
-        Assert.assertNotNull(atom);
+        Assertions.assertNotNull(atom);
         // when
         Set<Atom> dependencies = ad.getDependencies(atom, true);
         Set<Atom> dependencies2 = ad.getDependencies(atom, false);
         dependencies2.remove(atom);
         // then
-        Assert.assertEquals(0, dependencies2.size());
-        Assert.assertEquals(0, dependencies.size());
+        Assertions.assertEquals(0, dependencies2.size());
+        Assertions.assertEquals(0, dependencies.size());
     }
 
     private static OWLOntology getOntology() throws OWLOntologyCreationException {

@@ -20,8 +20,8 @@ import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import com.github.owlcs.ontapi.utils.TestUtils;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.slf4j.Logger;
@@ -47,7 +47,7 @@ public class SWRLTransformTest {
         TestUtils.assertAxiom(o, AxiomType.DATA_PROPERTY_ASSERTION, 6);
         TestUtils.assertAxiom(o, AxiomType.CLASS_ASSERTION, 1);
         TestUtils.assertAxiom(o, AxiomType.SWRL_RULE, 0);
-        Assert.assertEquals(13, o.axioms().count());
+        Assertions.assertEquals(13, o.axioms().count());
     }
 
     @Test
@@ -63,6 +63,6 @@ public class SWRLTransformTest {
         TestUtils.assertAxiom(o, AxiomType.DATA_PROPERTY_ASSERTION, 6);
         TestUtils.assertAxiom(o, AxiomType.CLASS_ASSERTION, 1);
         TestUtils.assertAxiom(o, AxiomType.SWRL_RULE, 1);
-        Assert.assertEquals(16, o.axioms().count());
+        Assertions.assertEquals(16, o.axioms().count());
     }
 }

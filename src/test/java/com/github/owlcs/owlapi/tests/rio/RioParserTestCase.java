@@ -15,9 +15,9 @@
 package com.github.owlcs.owlapi.tests.rio;
 
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.formats.RioRDFXMLDocumentFormat;
 import org.semanticweb.owlapi.formats.RioRDFXMLDocumentFormatFactory;
@@ -57,17 +57,17 @@ public class RioParserTestCase extends TestBase {
         RDFXMLParser owlapiParser = new RDFXMLParser();
         OWLDocumentFormat owlapiOntologyFormat = owlapiParser.parse(getStream("/owlapi/koala.owl"), owlapiOntologyPrimer,
                 config);
-        Assert.assertEquals(70, owlapiOntologyPrimer.getAxiomCount());
-        Assert.assertEquals(new RDFXMLDocumentFormat(), owlapiOntologyFormat);
+        Assertions.assertEquals(70, owlapiOntologyPrimer.getAxiomCount());
+        Assertions.assertEquals(new RDFXMLDocumentFormat(), owlapiOntologyFormat);
         RioParserImpl rioParser = new RioParserImpl(new RioRDFXMLDocumentFormatFactory());
         // OWLOntology ontology = OWLOntologyManagerFactoryRegistry
         // .createOWLOntologyManager().createOntology(
         OWLOntology ontology = m1.createOntology(IRI.create("http://protege.stanford.edu/plugins/owl/owl-library/",
                 "koala.owl"));
         OWLDocumentFormat rioOntologyFormat = rioParser.parse(getStream("/owlapi/koala.owl"), ontology, config);
-        Assert.assertEquals(new RioRDFXMLDocumentFormat(), rioOntologyFormat);
+        Assertions.assertEquals(new RioRDFXMLDocumentFormat(), rioOntologyFormat);
         equal(owlapiOntologyPrimer, ontology);
-        Assert.assertEquals(70, ontology.getAxiomCount());
+        Assertions.assertEquals(70, ontology.getAxiomCount());
     }
 
     /*
@@ -80,17 +80,17 @@ public class RioParserTestCase extends TestBase {
         RDFXMLParser owlapiParser = new RDFXMLParser();
         OWLDocumentFormat owlapiOntologyFormat = owlapiParser.parse(getStream("/owlapi/primer.rdfxml.xml"),
                 owlapiOntologyPrimer, config);
-        Assert.assertEquals(93, owlapiOntologyPrimer.getAxiomCount());
-        Assert.assertEquals(new RDFXMLDocumentFormat(), owlapiOntologyFormat);
+        Assertions.assertEquals(93, owlapiOntologyPrimer.getAxiomCount());
+        Assertions.assertEquals(new RDFXMLDocumentFormat(), owlapiOntologyFormat);
         RioParserImpl rioParser = new RioParserImpl(new RioRDFXMLDocumentFormatFactory());
         // OWLOntology rioOntologyPrimer = OWLOntologyManagerFactoryRegistry
         // .createOWLOntologyManager()
         OWLOntology rioOntologyPrimer = m1.createOntology(IRI.create("http://example.com/owl/", "families"));
         OWLDocumentFormat rioOntologyFormat = rioParser.parse(getStream("/owlapi/primer.rdfxml.xml"), rioOntologyPrimer,
                 config);
-        Assert.assertEquals(new RioRDFXMLDocumentFormat(), rioOntologyFormat);
+        Assertions.assertEquals(new RioRDFXMLDocumentFormat(), rioOntologyFormat);
         equal(owlapiOntologyPrimer, rioOntologyPrimer);
-        Assert.assertEquals(93, rioOntologyPrimer.getAxiomCount());
+        Assertions.assertEquals(93, rioOntologyPrimer.getAxiomCount());
     }
 
     /**
@@ -120,17 +120,17 @@ public class RioParserTestCase extends TestBase {
         RDFXMLParser owlapiParser = new RDFXMLParser();
         OWLDocumentFormat owlapiOntologyFormat = owlapiParser.parse(getStream("/owlapi/rioParserTest1-minimal.rdf"),
                 owlapiOntologyPrimer, config);
-        Assert.assertEquals(4, owlapiOntologyPrimer.getAxiomCount());
-        Assert.assertEquals(new RDFXMLDocumentFormat(), owlapiOntologyFormat);
+        Assertions.assertEquals(4, owlapiOntologyPrimer.getAxiomCount());
+        Assertions.assertEquals(new RDFXMLDocumentFormat(), owlapiOntologyFormat);
         RioParserImpl rioParser = new RioParserImpl(new RioRDFXMLDocumentFormatFactory());
         // OWLOntology rioOntologyPrimer = OWLOntologyManagerFactoryRegistry
         // .createOWLOntologyManager().createOntology(
         OWLOntology rioOntologyPrimer = m1.createOntology(IRI.create("http://example.com/owl/", "families"));
         OWLDocumentFormat rioOntologyFormat = rioParser.parse(getStream("/owlapi/rioParserTest1-minimal.rdf"),
                 rioOntologyPrimer, config);
-        Assert.assertEquals(new RioRDFXMLDocumentFormat(), rioOntologyFormat);
+        Assertions.assertEquals(new RioRDFXMLDocumentFormat(), rioOntologyFormat);
         equal(owlapiOntologyPrimer, rioOntologyPrimer);
-        Assert.assertEquals(4, rioOntologyPrimer.getAxiomCount());
+        Assertions.assertEquals(4, rioOntologyPrimer.getAxiomCount());
     }
 
     /*
@@ -143,16 +143,16 @@ public class RioParserTestCase extends TestBase {
         RDFXMLParser owlapiParser = new RDFXMLParser();
         OWLDocumentFormat owlapiOntologyFormat = owlapiParser.parse(getStream("/owlapi/rioParserTest1-minimal.rdf"),
                 owlapiOntologyPrimer, config);
-        Assert.assertEquals(4, owlapiOntologyPrimer.getAxiomCount());
-        Assert.assertEquals(new RDFXMLDocumentFormat(), owlapiOntologyFormat);
+        Assertions.assertEquals(4, owlapiOntologyPrimer.getAxiomCount());
+        Assertions.assertEquals(new RDFXMLDocumentFormat(), owlapiOntologyFormat);
         RioParserImpl rioParser = new RioParserImpl(new RioRDFXMLDocumentFormatFactory());
         // OWLOntology rioOntologyPrimer = OWLOntologyManagerFactoryRegistry
         // .createOWLOntologyManager().createOntology(
         OWLOntology rioOntologyPrimer = m1.createOntology(IRI.create("http://example.com/owl/", "families"));
         OWLDocumentFormat rioOntologyFormat = rioParser.parse(getStream("/owlapi/rioParserTest1-minimal.rdf"),
                 rioOntologyPrimer, config);
-        Assert.assertEquals(new RioRDFXMLDocumentFormat(), rioOntologyFormat);
+        Assertions.assertEquals(new RioRDFXMLDocumentFormat(), rioOntologyFormat);
         equal(owlapiOntologyPrimer, rioOntologyPrimer);
-        Assert.assertEquals(4, rioOntologyPrimer.getAxiomCount());
+        Assertions.assertEquals(4, rioOntologyPrimer.getAxiomCount());
     }
 }

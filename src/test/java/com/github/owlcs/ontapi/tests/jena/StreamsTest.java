@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -22,8 +22,8 @@ import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import org.apache.jena.mem.GraphMem;
 import org.apache.jena.vocabulary.RDFS;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -43,14 +43,14 @@ public class StreamsTest {
 
     private static void assertTrueConstant(Stream<?> s, int expected) {
         int actual = getCharacteristics(s);
-        Assert.assertTrue("Expected: " + SPLITERATOR_CONSTANTS.get(expected) + ", but found: " + actual,
-                hasCharacteristics(actual, expected));
+        Assertions.assertTrue(hasCharacteristics(actual, expected),
+                "Expected: " + SPLITERATOR_CONSTANTS.get(expected) + ", but found: " + actual);
     }
 
     private static void assertFalseConstant(Stream<?> s, int expected) {
         int actual = getCharacteristics(s);
-        Assert.assertFalse("Stream should not have " + SPLITERATOR_CONSTANTS.get(expected),
-                hasCharacteristics(actual, expected));
+        Assertions.assertFalse(hasCharacteristics(actual, expected),
+                "Stream should not have " + SPLITERATOR_CONSTANTS.get(expected));
     }
 
     private static int getCharacteristics(Stream<?> s) {
@@ -187,14 +187,14 @@ public class StreamsTest {
 
         assertFalseConstant(a.ontObjects(OntClass.Named.class), Spliterator.DISTINCT);
 
-        Assert.assertEquals(2, a.classes().count());
-        Assert.assertEquals(2, a.ontObjects(OntClass.Named.class).count());
-        Assert.assertEquals(2, a.ontEntities().count());
-        Assert.assertEquals(2, a.statements(null, RDF.type, OWL.Class).count());
+        Assertions.assertEquals(2, a.classes().count());
+        Assertions.assertEquals(2, a.ontObjects(OntClass.Named.class).count());
+        Assertions.assertEquals(2, a.ontEntities().count());
+        Assertions.assertEquals(2, a.statements(null, RDF.type, OWL.Class).count());
 
-        Assert.assertEquals(1, a.classes().distinct().count());
-        Assert.assertEquals(1, a.ontObjects(OntClass.Named.class).distinct().count());
-        Assert.assertEquals(1, a.ontEntities().distinct().count());
-        Assert.assertEquals(1, a.statements(null, RDF.type, OWL.Class).distinct().count());
+        Assertions.assertEquals(1, a.classes().distinct().count());
+        Assertions.assertEquals(1, a.ontObjects(OntClass.Named.class).distinct().count());
+        Assertions.assertEquals(1, a.ontEntities().distinct().count());
+        Assertions.assertEquals(1, a.statements(null, RDF.type, OWL.Class).distinct().count());
     }
 }

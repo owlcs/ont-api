@@ -15,8 +15,8 @@ package com.github.owlcs.owlapi.tests.api.dataproperties;
 
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.*;
 
 import java.util.Collection;
@@ -36,9 +36,9 @@ public class EquivalentClassesAxiomTestCase extends TestBase {
         OWLClassExpression desc = OWLFunctionalSyntaxFactory.ObjectSomeValuesFrom(propP, clsB);
         OWLClassExpression desc2 = OWLFunctionalSyntaxFactory.ObjectSomeValuesFrom(propP, clsA);
         OWLEquivalentClassesAxiom ax = OWLFunctionalSyntaxFactory.EquivalentClasses(clsA, desc);
-        Assert.assertTrue(ax.containsNamedEquivalentClass());
+        Assertions.assertTrue(ax.containsNamedEquivalentClass());
         OWLEquivalentClassesAxiom ax2 = OWLFunctionalSyntaxFactory.EquivalentClasses(desc, desc2);
-        Assert.assertFalse(ax2.containsNamedEquivalentClass());
+        Assertions.assertFalse(ax2.containsNamedEquivalentClass());
     }
 
     @Test
@@ -49,8 +49,8 @@ public class EquivalentClassesAxiomTestCase extends TestBase {
         OWLClassExpression desc = OWLFunctionalSyntaxFactory.ObjectSomeValuesFrom(propP, clsB);
         OWLEquivalentClassesAxiom ax = OWLFunctionalSyntaxFactory.EquivalentClasses(clsA, desc);
         Set<OWLClass> clses = ax.namedClasses().collect(Collectors.toSet());
-        Assert.assertEquals(1, clses.size());
-        Assert.assertTrue(clses.contains(clsA));
+        Assertions.assertEquals(1, clses.size());
+        Assertions.assertTrue(clses.contains(clsA));
     }
 
     @Test
@@ -60,9 +60,9 @@ public class EquivalentClassesAxiomTestCase extends TestBase {
         OWLClassExpression desc = OWLFunctionalSyntaxFactory.ObjectSomeValuesFrom(propP, clsB);
         OWLEquivalentClassesAxiom ax = OWLFunctionalSyntaxFactory.EquivalentClasses(OWLFunctionalSyntaxFactory.OWLNothing(), desc);
         Set<OWLClass> clses = ax.namedClasses().collect(Collectors.toSet());
-        Assert.assertTrue(clses.isEmpty());
-        Assert.assertFalse(ax.containsOWLThing());
-        Assert.assertTrue(ax.containsOWLNothing());
+        Assertions.assertTrue(clses.isEmpty());
+        Assertions.assertFalse(ax.containsOWLThing());
+        Assertions.assertTrue(ax.containsOWLNothing());
     }
 
     @Test
@@ -72,9 +72,9 @@ public class EquivalentClassesAxiomTestCase extends TestBase {
         OWLClassExpression desc = OWLFunctionalSyntaxFactory.ObjectSomeValuesFrom(propP, clsB);
         OWLEquivalentClassesAxiom ax = OWLFunctionalSyntaxFactory.EquivalentClasses(OWLFunctionalSyntaxFactory.OWLThing(), desc);
         Set<OWLClass> clses = ax.namedClasses().collect(Collectors.toSet());
-        Assert.assertTrue(clses.isEmpty());
-        Assert.assertFalse(ax.containsOWLNothing());
-        Assert.assertTrue(ax.containsOWLThing());
+        Assertions.assertTrue(clses.isEmpty());
+        Assertions.assertFalse(ax.containsOWLNothing());
+        Assertions.assertTrue(ax.containsOWLThing());
     }
 
     @Test
@@ -84,12 +84,12 @@ public class EquivalentClassesAxiomTestCase extends TestBase {
         OWLClass clsC = OWLFunctionalSyntaxFactory.Class(iri("C"));
         OWLEquivalentClassesAxiom ax = OWLFunctionalSyntaxFactory.EquivalentClasses(clsA, clsB, clsC);
         Collection<OWLSubClassOfAxiom> scas = ax.asOWLSubClassOfAxioms();
-        Assert.assertEquals(6, scas.size());
-        Assert.assertTrue(scas.contains(OWLFunctionalSyntaxFactory.SubClassOf(clsA, clsB)));
-        Assert.assertTrue(scas.contains(OWLFunctionalSyntaxFactory.SubClassOf(clsB, clsA)));
-        Assert.assertTrue(scas.contains(OWLFunctionalSyntaxFactory.SubClassOf(clsA, clsC)));
-        Assert.assertTrue(scas.contains(OWLFunctionalSyntaxFactory.SubClassOf(clsC, clsA)));
-        Assert.assertTrue(scas.contains(OWLFunctionalSyntaxFactory.SubClassOf(clsB, clsC)));
-        Assert.assertTrue(scas.contains(OWLFunctionalSyntaxFactory.SubClassOf(clsC, clsB)));
+        Assertions.assertEquals(6, scas.size());
+        Assertions.assertTrue(scas.contains(OWLFunctionalSyntaxFactory.SubClassOf(clsA, clsB)));
+        Assertions.assertTrue(scas.contains(OWLFunctionalSyntaxFactory.SubClassOf(clsB, clsA)));
+        Assertions.assertTrue(scas.contains(OWLFunctionalSyntaxFactory.SubClassOf(clsA, clsC)));
+        Assertions.assertTrue(scas.contains(OWLFunctionalSyntaxFactory.SubClassOf(clsC, clsA)));
+        Assertions.assertTrue(scas.contains(OWLFunctionalSyntaxFactory.SubClassOf(clsB, clsC)));
+        Assertions.assertTrue(scas.contains(OWLFunctionalSyntaxFactory.SubClassOf(clsC, clsB)));
     }
 }

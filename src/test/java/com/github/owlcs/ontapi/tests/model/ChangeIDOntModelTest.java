@@ -30,8 +30,8 @@ import com.github.owlcs.ontapi.utils.OntIRI;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.util.ResourceUtils;
 import org.apache.jena.vocabulary.RDFS;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.*;
 
 import java.util.*;
@@ -52,20 +52,20 @@ public class ChangeIDOntModelTest extends OntModelTestBase {
         m.addOntology(g1.getGraph());
         String iri1 = "http://x.com";
         g1.setID(iri1);
-        Assert.assertNotNull(m.getOntology(IRI.create(iri1)));
+        Assertions.assertNotNull(m.getOntology(IRI.create(iri1)));
 
         OntModel g2 = m.createOntology().asGraphModel();
         String iri2 = "http://y.com";
         g2.setID(iri2);
-        Assert.assertNotNull(m.getOntology(IRI.create(iri2)));
+        Assertions.assertNotNull(m.getOntology(IRI.create(iri2)));
 
         OntologyManager m2 = OntManagers.createConcurrentManager();
         Ontology o3 = m2.createOntology();
         OntModel g3 = o3.asGraphModel();
         String iri3 = "http://z.com";
         g3.setID(iri3);
-        Assert.assertNotNull(m2.getOntology(IRI.create(iri3)));
-        Assert.assertTrue(m2.contains(o3));
+        Assertions.assertNotNull(m2.getOntology(IRI.create(iri3)));
+        Assertions.assertTrue(m2.contains(o3));
     }
 
     /**
@@ -98,16 +98,16 @@ public class ChangeIDOntModelTest extends OntModelTestBase {
         OWLOntology o = m.createOntology(x);
         OWLOntologyID id1 = o.getOntologyID();
         LOGGER.debug("2)iri=<{}>, id=<{}>", x, id1);
-        Assert.assertTrue("can't find " + x, m.contains(x));
-        Assert.assertTrue("can't find " + id1, m.contains(id1));
+        Assertions.assertTrue(m.contains(x), "can't find " + x);
+        Assertions.assertTrue(m.contains(id1), "can't find " + id1);
         IRI y = IRI.create("y");
         p.process(o, y);
         OWLOntologyID id2 = o.getOntologyID();
         LOGGER.debug("2)iri=<{}>, id=<{}>", y, id2);
-        Assert.assertFalse("still " + x, m.contains(x));
-        Assert.assertFalse("still " + id1, m.contains(id1));
-        Assert.assertTrue("can't find " + y, m.contains(y));
-        Assert.assertTrue("can't find " + id2, m.contains(id2));
+        Assertions.assertFalse(m.contains(x), "still " + x);
+        Assertions.assertFalse(m.contains(id1), "still " + id1);
+        Assertions.assertTrue(m.contains(y), "can't find " + y);
+        Assertions.assertTrue(m.contains(id2), "can't find " + id2);
         LOGGER.debug("PASS: " + msg);
     }
 
@@ -117,7 +117,7 @@ public class ChangeIDOntModelTest extends OntModelTestBase {
 
         // anon ontology
         Ontology anon = manager.createOntology();
-        Assert.assertEquals("Should be one ontology inside jena-graph", 1,
+        Assertions.assertEquals(1,
                 anon.asGraphModel().listStatements(null, RDF.type, OWL.Ontology).toList().size());
 
         LOGGER.debug("Create owl ontology.");
@@ -151,7 +151,7 @@ public class ChangeIDOntModelTest extends OntModelTestBase {
         owl.applyChanges(new SetOntologyID(owl, test1));
         testIRIChanged(manager, owl, jena, test1, imports, annotations);
         testHasClass(owl, jena, clazz);
-        Assert.assertEquals("Incorrect number of ontologies", numOfOnt, manager.ontologies().count());
+        Assertions.assertEquals(numOfOnt, manager.ontologies().count());
 
         Resource ont = jena.listStatements(null, RDF.type, OWL.Ontology).mapWith(Statement::getSubject).toList().get(0);
         OWLOntologyID test2 = iri.addPath("test2").toOwlOntologyID(test1.getVersionIRI().orElse(null));
@@ -159,7 +159,7 @@ public class ChangeIDOntModelTest extends OntModelTestBase {
         ResourceUtils.renameResource(ont, OntIRI.toStringIRI(test2));
         testIRIChanged(manager, owl, jena, test2, imports, annotations);
         testHasClass(owl, jena, clazz);
-        Assert.assertEquals("Incorrect number of ontologies", numOfOnt, manager.ontologies().count());
+        Assertions.assertEquals(numOfOnt, manager.ontologies().count());
 
         ont = jena.listStatements(null, RDF.type, OWL.Ontology).mapWith(Statement::getSubject).toList().get(0);
         OWLOntologyID test3 = new OWLOntologyID(); //iri.addPath("test3").toOwlOntologyID();
@@ -167,7 +167,7 @@ public class ChangeIDOntModelTest extends OntModelTestBase {
         ResourceUtils.renameResource(ont, null);
         try {
             OWLOntologyID actual = owl.getOntologyID();
-            Assert.fail("Possible to get id: " + actual);
+            Assertions.fail("Possible to get id: " + actual);
         } catch (OntApiException a) {
             LOGGER.debug("Expected '{}'", a.getMessage());
             // fix broken id:
@@ -175,14 +175,14 @@ public class ChangeIDOntModelTest extends OntModelTestBase {
         }
         testIRIChanged(manager, owl, jena, test3, imports, annotations);
         testHasClass(owl, jena, clazz);
-        Assert.assertEquals("Incorrect number of ontologies", numOfOnt, manager.ontologies().count());
+        Assertions.assertEquals(numOfOnt, manager.ontologies().count());
 
         OWLOntologyID test4 = iri.addPath("test4").toOwlOntologyID();
         LOGGER.debug("4)Change ontology iri to {} through owl-api.", test4);
         manager.applyChange(new SetOntologyID(owl, test4));
         testIRIChanged(manager, owl, jena, test4, imports, annotations);
         testHasClass(owl, jena, clazz);
-        Assert.assertEquals("Incorrect number of ontologies", numOfOnt, manager.ontologies().count());
+        Assertions.assertEquals(numOfOnt, manager.ontologies().count());
 
         //anon:
         OWLOntologyID test5 = new OWLOntologyID();
@@ -190,7 +190,7 @@ public class ChangeIDOntModelTest extends OntModelTestBase {
         manager.applyChange(new SetOntologyID(owl, test5));
         testIRIChanged(manager, owl, jena, test5, imports, annotations);
         testHasClass(owl, jena, clazz);
-        Assert.assertEquals("Incorrect number of ontologies", numOfOnt, manager.ontologies().count());
+        Assertions.assertEquals(numOfOnt, manager.ontologies().count());
     }
 
     private static void testIRIChanged(OntologyManager manager,
@@ -198,50 +198,49 @@ public class ChangeIDOntModelTest extends OntModelTestBase {
                                        OntModel jena,
                                        OWLOntologyID id,
                                        List<Resource> imports,
-                                       Map<Property,
-                                               List<RDFNode>> annotations) {
+                                       Map<Property, List<RDFNode>> annotations) {
         debug(owl);
 
         if (!id.isAnonymous())
-            Assert.assertTrue("Can't find ontology " + id + " by ID", manager.contains(id));
-        Assert.assertTrue("Can't find ontology " + id + " in manager", manager.contains(owl));
+            Assertions.assertTrue(manager.contains(id), "Can't find ontology " + id + " by ID");
+        Assertions.assertTrue(manager.contains(owl), "Can't find ontology " + id + " in manager");
         if (id.getOntologyIRI().isPresent()) {
-            Assert.assertTrue("Can't find " + id.getOntologyIRI().get() + " in manager",
-                    manager.contains(id.getOntologyIRI().get()));
+            Assertions.assertTrue(manager.contains(id.getOntologyIRI().get()),
+                    "Can't find " + id.getOntologyIRI().get() + " in manager");
         }
 
         String iri = id.getOntologyIRI().isPresent() ?
                 id.getOntologyIRI().orElseThrow(AssertionError::new).getIRIString() : null;
         OntID ontID = jena.getID();
-        Assert.assertNotNull("Can't find new ontology for iri " + id, ontID);
-        Assert.assertNotNull("Can't find new ontology in jena", owl.asGraphModel().getID());
-        Assert.assertEquals("Incorrect jena id-iri", iri, ontID.getURI());
-        Assert.assertTrue("Incorrect ID expected=" + id + ", actual=" + owl.getOntologyID(),
-                (id.isAnonymous() && owl.getOntologyID().isAnonymous()) || owl.getOntologyID().equals(id));
+        Assertions.assertNotNull(ontID, "Can't find new ontology for iri " + id);
+        Assertions.assertNotNull(owl.asGraphModel().getID());
+        Assertions.assertEquals(iri, ontID.getURI());
+        Assertions.assertTrue((id.isAnonymous() && owl.getOntologyID().isAnonymous()) || owl.getOntologyID().equals(id),
+                "Incorrect ID expected=" + id + ", actual=" + owl.getOntologyID());
         // check imports:
         List<String> expected = imports.stream().map(Resource::getURI).sorted().collect(Collectors.toList());
         List<String> actualOwl = owl.importsDeclarations()
                 .map(OWLImportsDeclaration::getIRI).map(IRI::getIRIString).sorted().collect(Collectors.toList());
         List<String> actualJena = jena.getID().imports().sorted().collect(Collectors.toList());
-        Assert.assertEquals("Incorrect owl imports", expected, actualOwl);
-        Assert.assertEquals("Incorrect jena imports", expected, actualJena);
+        Assertions.assertEquals(expected, actualOwl);
+        Assertions.assertEquals(expected, actualJena);
         // check owl-annotations:
         int count = 0;
         for (Property p : annotations.keySet()) {
             count += annotations.get(p).size();
             annotations.get(p).forEach(node -> {
                 OWLAnnotation a = toOWLAnnotation(p, node);
-                Assert.assertTrue("Can't find annotation " + a, owl.annotations().anyMatch(a::equals));
+                Assertions.assertTrue(owl.annotations().anyMatch(a::equals), "Can't find annotation " + a);
             });
         }
-        Assert.assertEquals("Incorrect annotation count", count, owl.annotations().count());
+        Assertions.assertEquals(count, owl.annotations().count());
         // check jena annotations:
         for (Property p : annotations.keySet()) {
             List<RDFNode> actualList = jena.listStatements(ontID, p, (RDFNode) null).mapWith(Statement::getObject).
                     toList().stream().sorted(Models.RDF_NODE_COMPARATOR).collect(Collectors.toList());
             List<RDFNode> expectedList = annotations.get(p).stream()
                     .sorted(Models.RDF_NODE_COMPARATOR).collect(Collectors.toList());
-            Assert.assertEquals("Incorrect list of annotations", expectedList, actualList);
+            Assertions.assertEquals(expectedList, actualList);
         }
     }
 
@@ -249,10 +248,10 @@ public class ChangeIDOntModelTest extends OntModelTestBase {
         OWLEntity entity = owl.axioms(AxiomType.DECLARATION)
                 .map(OWLDeclarationAxiom::getEntity)
                 .filter(AsOWLClass::isOWLClass).findFirst().orElseThrow(AssertionError::new);
-        Assert.assertEquals("Incorrect owl-class uri", classIRI, entity.getIRI());
+        Assertions.assertEquals(classIRI, entity.getIRI());
         List<OntClass.Named> classes = jena.ontEntities(OntClass.Named.class).collect(Collectors.toList());
-        Assert.assertFalse("Can't find any jena-class", classes.isEmpty());
-        Assert.assertEquals("Incorrect jena-class uri", classIRI.getIRIString(), classes.get(0).getURI());
+        Assertions.assertFalse(classes.isEmpty());
+        Assertions.assertEquals(classIRI.getIRIString(), classes.get(0).getURI());
     }
 
     private static void createOntologyProperties(Ontology owl,
@@ -280,7 +279,7 @@ public class ChangeIDOntModelTest extends OntModelTestBase {
             Literal literal = node.asLiteral();
             v = factory.getOWLLiteral(literal.getLexicalForm(), literal.getLanguage());
         } else {
-            Assert.fail("Unknown node " + node);
+            Assertions.fail("Unknown node " + node);
         }
         return new OWLAnnotationImplNotAnnotated(p, v);
     }

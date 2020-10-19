@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -15,10 +15,8 @@
 package com.github.owlcs.owlapi.tests.api;
 
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
 import static org.semanticweb.owlapi.vocab.OWL2Datatype.*;
 
 /**
@@ -27,206 +25,206 @@ import static org.semanticweb.owlapi.vocab.OWL2Datatype.*;
 public class OWL2DatatypePrefixedNameTestCase {
 
     @Test
-    public void shouldReturnCorrectPrefixNameForXMLLiteral() {
+    public void testShouldReturnCorrectPrefixNameForXMLLiteral() {
         String prefixedName = RDF_XML_LITERAL.getPrefixedName();
-        assertThat(prefixedName, is(equalTo("rdf:XMLLiteral")));
+        Assertions.assertEquals("rdf:XMLLiteral", prefixedName);
     }
 
     @Test
-    public void shouldReturnCorrectPrefixNameForLiteral() {
+    public void testShouldReturnCorrectPrefixNameForLiteral() {
         String prefixedName = RDFS_LITERAL.getPrefixedName();
-        assertThat(prefixedName, is(equalTo("rdfs:Literal")));
+        Assertions.assertEquals("rdfs:Literal", prefixedName);
     }
 
     @Test
-    public void shouldReturnCorrectPrefixNameForPlainLiteral() {
+    public void testShouldReturnCorrectPrefixNameForPlainLiteral() {
         String prefixedName = RDF_PLAIN_LITERAL.getPrefixedName();
-        assertThat(prefixedName, is(equalTo("rdf:PlainLiteral")));
+        Assertions.assertEquals("rdf:PlainLiteral", prefixedName);
     }
 
     @Test
-    public void shouldReturnCorrectPrefixNameForreal() {
+    public void testShouldReturnCorrectPrefixNameForReal() {
         String prefixedName = OWL_REAL.getPrefixedName();
-        assertThat(prefixedName, is(equalTo("owl:real")));
+        Assertions.assertEquals("owl:real", prefixedName);
     }
 
     @Test
-    public void shouldReturnCorrectPrefixNameForrational() {
+    public void testShouldReturnCorrectPrefixNameForRational() {
         String prefixedName = OWL_RATIONAL.getPrefixedName();
-        assertThat(prefixedName, is(equalTo("owl:rational")));
+        Assertions.assertEquals("owl:rational", prefixedName);
     }
 
     @Test
-    public void shouldReturnCorrectPrefixNameForstring() {
+    public void testShouldReturnCorrectPrefixNameForString() {
         String prefixedName = XSD_STRING.getPrefixedName();
-        assertThat(prefixedName, is(equalTo("xsd:string")));
+        Assertions.assertEquals("xsd:string", prefixedName);
     }
 
     @Test
-    public void shouldReturnCorrectPrefixNameFornormalizedString() {
+    public void testShouldReturnCorrectPrefixNameForNormalizedString() {
         String prefixedName = XSD_NORMALIZED_STRING.getPrefixedName();
-        assertThat(prefixedName, is(equalTo("xsd:normalizedString")));
+        Assertions.assertEquals("xsd:normalizedString", prefixedName);
     }
 
     @Test
-    public void shouldReturnCorrectPrefixNameFortoken() {
+    public void testShouldReturnCorrectPrefixNameForToken() {
         String prefixedName = XSD_TOKEN.getPrefixedName();
-        assertThat(prefixedName, is(equalTo("xsd:token")));
+        Assertions.assertEquals("xsd:token", prefixedName);
     }
 
     @Test
-    public void shouldReturnCorrectPrefixNameForlanguage() {
+    public void testShouldReturnCorrectPrefixNameForLanguage() {
         String prefixedName = XSD_LANGUAGE.getPrefixedName();
-        assertThat(prefixedName, is(equalTo("xsd:language")));
+        Assertions.assertEquals("xsd:language", prefixedName);
     }
 
     @Test
-    public void shouldReturnCorrectPrefixNameForName() {
+    public void testShouldReturnCorrectPrefixNameForName() {
         String prefixedName = XSD_NAME.getPrefixedName();
-        assertThat(prefixedName, is(equalTo("xsd:Name")));
+        Assertions.assertEquals("xsd:Name", prefixedName);
     }
 
     @Test
-    public void shouldReturnCorrectPrefixNameForNCName() {
+    public void testShouldReturnCorrectPrefixNameForNCName() {
         String prefixedName = XSD_NCNAME.getPrefixedName();
-        assertThat(prefixedName, is(equalTo("xsd:NCName")));
+        Assertions.assertEquals("xsd:NCName", prefixedName);
     }
 
     @Test
-    public void shouldReturnCorrectPrefixNameForNMTOKEN() {
+    public void testShouldReturnCorrectPrefixNameForNMTOKEN() {
         String prefixedName = XSD_NMTOKEN.getPrefixedName();
-        assertThat(prefixedName, is(equalTo("xsd:NMTOKEN")));
+        Assertions.assertEquals("xsd:NMTOKEN", prefixedName);
     }
 
     @Test
-    public void shouldReturnCorrectPrefixNameFordecimal() {
+    public void testShouldReturnCorrectPrefixNameForDecimal() {
         String prefixedName = XSD_DECIMAL.getPrefixedName();
-        assertThat(prefixedName, is(equalTo("xsd:decimal")));
+        Assertions.assertEquals("xsd:decimal", prefixedName);
     }
 
     @Test
-    public void shouldReturnCorrectPrefixNameForinteger() {
+    public void testShouldReturnCorrectPrefixNameForInteger() {
         String prefixedName = XSD_INTEGER.getPrefixedName();
-        assertThat(prefixedName, is(equalTo("xsd:integer")));
+        Assertions.assertEquals("xsd:integer", prefixedName);
     }
 
     @Test
-    public void shouldReturnCorrectPrefixNameFornonNegativeInteger() {
+    public void testShouldReturnCorrectPrefixNameForNonNegativeInteger() {
         String prefixedName = XSD_NON_NEGATIVE_INTEGER.getPrefixedName();
-        assertThat(prefixedName, is(equalTo("xsd:nonNegativeInteger")));
+        Assertions.assertEquals("xsd:nonNegativeInteger", prefixedName);
     }
 
     @Test
-    public void shouldReturnCorrectPrefixNameFornonPositiveInteger() {
+    public void testShouldReturnCorrectPrefixNameForNonPositiveInteger() {
         String prefixedName = XSD_NON_POSITIVE_INTEGER.getPrefixedName();
-        assertThat(prefixedName, is(equalTo("xsd:nonPositiveInteger")));
+        Assertions.assertEquals("xsd:nonPositiveInteger", prefixedName);
     }
 
     @Test
-    public void shouldReturnCorrectPrefixNameForpositiveInteger() {
+    public void testShouldReturnCorrectPrefixNameForPositiveInteger() {
         String prefixedName = XSD_POSITIVE_INTEGER.getPrefixedName();
-        assertThat(prefixedName, is(equalTo("xsd:positiveInteger")));
+        Assertions.assertEquals("xsd:positiveInteger", prefixedName);
     }
 
     @Test
-    public void shouldReturnCorrectPrefixNameFornegativeInteger() {
+    public void testShouldReturnCorrectPrefixNameForNegativeInteger() {
         String prefixedName = XSD_NEGATIVE_INTEGER.getPrefixedName();
-        assertThat(prefixedName, is(equalTo("xsd:negativeInteger")));
+        Assertions.assertEquals("xsd:negativeInteger", prefixedName);
     }
 
     @Test
-    public void shouldReturnCorrectPrefixNameForlong() {
+    public void testShouldReturnCorrectPrefixNameForLong() {
         String prefixedName = XSD_LONG.getPrefixedName();
-        assertThat(prefixedName, is(equalTo("xsd:long")));
+        Assertions.assertEquals("xsd:long", prefixedName);
     }
 
     @Test
-    public void shouldReturnCorrectPrefixNameForint() {
+    public void testShouldReturnCorrectPrefixNameForInt() {
         String prefixedName = XSD_INT.getPrefixedName();
-        assertThat(prefixedName, is(equalTo("xsd:int")));
+        Assertions.assertEquals("xsd:int", prefixedName);
     }
 
     @Test
-    public void shouldReturnCorrectPrefixNameForshort() {
+    public void testShouldReturnCorrectPrefixNameForShort() {
         String prefixedName = XSD_SHORT.getPrefixedName();
-        assertThat(prefixedName, is(equalTo("xsd:short")));
+        Assertions.assertEquals("xsd:short", prefixedName);
     }
 
     @Test
-    public void shouldReturnCorrectPrefixNameForbyte() {
+    public void testShouldReturnCorrectPrefixNameForByte() {
         String prefixedName = XSD_BYTE.getPrefixedName();
-        assertThat(prefixedName, is(equalTo("xsd:byte")));
+        Assertions.assertEquals("xsd:byte", prefixedName);
     }
 
     @Test
-    public void shouldReturnCorrectPrefixNameForunsignedLong() {
+    public void testShouldReturnCorrectPrefixNameForUnsignedLong() {
         String prefixedName = XSD_UNSIGNED_LONG.getPrefixedName();
-        assertThat(prefixedName, is(equalTo("xsd:unsignedLong")));
+        Assertions.assertEquals("xsd:unsignedLong", prefixedName);
     }
 
     @Test
-    public void shouldReturnCorrectPrefixNameForunsignedInt() {
+    public void testShouldReturnCorrectPrefixNameForUnsignedInt() {
         String prefixedName = XSD_UNSIGNED_INT.getPrefixedName();
-        assertThat(prefixedName, is(equalTo("xsd:unsignedInt")));
+        Assertions.assertEquals("xsd:unsignedInt", prefixedName);
     }
 
     @Test
-    public void shouldReturnCorrectPrefixNameForunsignedShort() {
+    public void testShouldReturnCorrectPrefixNameForUnsignedShort() {
         String prefixedName = XSD_UNSIGNED_SHORT.getPrefixedName();
-        assertThat(prefixedName, is(equalTo("xsd:unsignedShort")));
+        Assertions.assertEquals("xsd:unsignedShort", prefixedName);
     }
 
     @Test
-    public void shouldReturnCorrectPrefixNameForunsignedByte() {
+    public void testShouldReturnCorrectPrefixNameForUnsignedByte() {
         String prefixedName = XSD_UNSIGNED_BYTE.getPrefixedName();
-        assertThat(prefixedName, is(equalTo("xsd:unsignedByte")));
+        Assertions.assertEquals("xsd:unsignedByte", prefixedName);
     }
 
     @Test
-    public void shouldReturnCorrectPrefixNameFordouble() {
+    public void testShouldReturnCorrectPrefixNameForDouble() {
         String prefixedName = XSD_DOUBLE.getPrefixedName();
-        assertThat(prefixedName, is(equalTo("xsd:double")));
+        Assertions.assertEquals("xsd:double", prefixedName);
     }
 
     @Test
-    public void shouldReturnCorrectPrefixNameForfloat() {
+    public void testShouldReturnCorrectPrefixNameForFloat() {
         String prefixedName = XSD_FLOAT.getPrefixedName();
-        assertThat(prefixedName, is(equalTo("xsd:float")));
+        Assertions.assertEquals("xsd:float", prefixedName);
     }
 
     @Test
-    public void shouldReturnCorrectPrefixNameForboolean() {
+    public void testShouldReturnCorrectPrefixNameForBoolean() {
         String prefixedName = XSD_BOOLEAN.getPrefixedName();
-        assertThat(prefixedName, is(equalTo("xsd:boolean")));
+        Assertions.assertEquals("xsd:boolean", prefixedName);
     }
 
     @Test
-    public void shouldReturnCorrectPrefixNameForhexBinary() {
+    public void testShouldReturnCorrectPrefixNameForHexBinary() {
         String prefixedName = XSD_HEX_BINARY.getPrefixedName();
-        assertThat(prefixedName, is(equalTo("xsd:hexBinary")));
+        Assertions.assertEquals("xsd:hexBinary", prefixedName);
     }
 
     @Test
-    public void shouldReturnCorrectPrefixNameForbase64Binary() {
+    public void testShouldReturnCorrectPrefixNameForBase64Binary() {
         String prefixedName = XSD_BASE_64_BINARY.getPrefixedName();
-        assertThat(prefixedName, is(equalTo("xsd:base64Binary")));
+        Assertions.assertEquals("xsd:base64Binary", prefixedName);
     }
 
     @Test
-    public void shouldReturnCorrectPrefixNameForanyURI() {
+    public void testShouldReturnCorrectPrefixNameForAnyURI() {
         String prefixedName = XSD_ANY_URI.getPrefixedName();
-        assertThat(prefixedName, is(equalTo("xsd:anyURI")));
+        Assertions.assertEquals("xsd:anyURI", prefixedName);
     }
 
     @Test
-    public void shouldReturnCorrectPrefixNameFordateTime() {
+    public void testShouldReturnCorrectPrefixNameForDateTime() {
         String prefixedName = XSD_DATE_TIME.getPrefixedName();
-        assertThat(prefixedName, is(equalTo("xsd:dateTime")));
+        Assertions.assertEquals("xsd:dateTime", prefixedName);
     }
 
     @Test
-    public void shouldReturnCorrectPrefixNameFordateTimeStamp() {
+    public void testShouldReturnCorrectPrefixNameForDateTimeStamp() {
         String prefixedName = XSD_DATE_TIME_STAMP.getPrefixedName();
-        assertThat(prefixedName, is(equalTo("xsd:dateTimeStamp")));
+        Assertions.assertEquals("xsd:dateTimeStamp", prefixedName);
     }
 }

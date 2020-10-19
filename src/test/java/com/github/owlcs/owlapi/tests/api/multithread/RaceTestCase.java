@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,8 +14,8 @@
 package com.github.owlcs.owlapi.tests.api.multithread;
 
 import com.github.owlcs.owlapi.OWLManager;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -45,7 +45,7 @@ public class RaceTestCase {
         } while (!r.callback.failed() && repetitions < totalRepetitions);
         if (r.callback.failed()) {
             r.callback.diagnose();
-            Assert.fail("Failed after " + repetitions + " repetition(s).");
+            Assertions.fail("Failed after " + repetitions + " repetition(s).");
         }
     }
 
@@ -66,7 +66,7 @@ public class RaceTestCase {
         protected RaceCallback callback;
         final AtomicBoolean done = new AtomicBoolean(false);
         ExecutorService exec = Executors.newFixedThreadPool(5);
-        private Runnable writer = () -> {
+        private final Runnable writer = () -> {
             while (!done.get()) {
                 callback.add();
             }
@@ -87,7 +87,7 @@ public class RaceTestCase {
 
         public static class SubClassLHSCallback implements RaceCallback {
 
-            private AtomicInteger counter = new AtomicInteger();
+            private final AtomicInteger counter = new AtomicInteger();
             OWLDataFactory factory;
             OWLOntologyManager manager;
             OWLOntology ontology;

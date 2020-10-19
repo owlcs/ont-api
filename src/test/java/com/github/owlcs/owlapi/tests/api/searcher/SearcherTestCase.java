@@ -15,8 +15,8 @@ package com.github.owlcs.owlapi.tests.api.searcher;
 
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.search.Filters;
@@ -35,8 +35,8 @@ public class SearcherTestCase extends TestBase {
         OWLClass d = OWLFunctionalSyntaxFactory.Class(IRI.create("urn:test#", "d"));
         OWLAxiom ax = OWLFunctionalSyntaxFactory.SubClassOf(c, d);
         o.getOWLOntologyManager().addAxiom(o, ax);
-        Assert.assertTrue(o.axioms(AxiomType.SUBCLASS_OF).anyMatch(ax::equals));
-        Assert.assertTrue(o.axioms(c).anyMatch(ax::equals));
+        Assertions.assertTrue(o.axioms(AxiomType.SUBCLASS_OF).anyMatch(ax::equals));
+        Assertions.assertTrue(o.axioms(c).anyMatch(ax::equals));
     }
 
     @Test
@@ -56,13 +56,13 @@ public class SearcherTestCase extends TestBase {
         o.getOWLOntologyManager().addAxiom(o, ax2);
         o.getOWLOntologyManager().addAxiom(o, ax3);
         o.getOWLOntologyManager().addAxiom(o, ax4);
-        Assert.assertTrue(o.axioms(AxiomType.SUB_OBJECT_PROPERTY).anyMatch(ax::equals));
+        Assertions.assertTrue(o.axioms(AxiomType.SUB_OBJECT_PROPERTY).anyMatch(ax::equals));
         Collection<OWLAxiom> axioms = o.axioms(Filters.subObjectPropertyWithSuper, d, Imports.INCLUDED).collect(Collectors.toSet());
-        Assert.assertTrue(Searcher.sub(axioms.stream()).anyMatch(c::equals));
+        Assertions.assertTrue(Searcher.sub(axioms.stream()).anyMatch(c::equals));
         axioms = o.axioms(Filters.subObjectPropertyWithSub, c, Imports.INCLUDED).collect(Collectors.toSet());
-        Assert.assertTrue(Searcher.sup(axioms.stream()).anyMatch(d::equals));
-        Assert.assertTrue(Searcher.domain(o.objectPropertyDomainAxioms(c)).anyMatch(x::equals));
-        Assert.assertTrue(Searcher.equivalent(o.equivalentObjectPropertiesAxioms(c)).anyMatch(e::equals));
+        Assertions.assertTrue(Searcher.sup(axioms.stream()).anyMatch(d::equals));
+        Assertions.assertTrue(Searcher.domain(o.objectPropertyDomainAxioms(c)).anyMatch(x::equals));
+        Assertions.assertTrue(Searcher.equivalent(o.equivalentObjectPropertiesAxioms(c)).anyMatch(e::equals));
     }
 
     @Test
@@ -81,12 +81,12 @@ public class SearcherTestCase extends TestBase {
         o.getOWLOntologyManager().addAxiom(o, ax2);
         o.getOWLOntologyManager().addAxiom(o, ax3);
         o.getOWLOntologyManager().addAxiom(o, ax4);
-        Assert.assertTrue(o.axioms(AxiomType.SUB_DATA_PROPERTY).anyMatch(ax::equals));
-        Assert.assertTrue(Searcher.sub(o.axioms(Filters.subDataPropertyWithSuper, d, Imports.INCLUDED)).anyMatch(c::equals));
+        Assertions.assertTrue(o.axioms(AxiomType.SUB_DATA_PROPERTY).anyMatch(ax::equals));
+        Assertions.assertTrue(Searcher.sub(o.axioms(Filters.subDataPropertyWithSuper, d, Imports.INCLUDED)).anyMatch(c::equals));
         Collection<OWLAxiom> axioms = o.axioms(Filters.subDataPropertyWithSub, c, Imports.INCLUDED).collect(Collectors.toSet());
-        Assert.assertTrue(Searcher.sup(axioms.stream()).anyMatch(d::equals));
-        Assert.assertTrue(Searcher.domain(o.dataPropertyDomainAxioms(c)).anyMatch(x::equals));
-        Assert.assertTrue(Searcher.range(o.dataPropertyRangeAxioms(c)).anyMatch(OWLFunctionalSyntaxFactory.Boolean()::equals));
-        Assert.assertTrue(Searcher.equivalent(o.equivalentDataPropertiesAxioms(c)).anyMatch(e::equals));
+        Assertions.assertTrue(Searcher.sup(axioms.stream()).anyMatch(d::equals));
+        Assertions.assertTrue(Searcher.domain(o.dataPropertyDomainAxioms(c)).anyMatch(x::equals));
+        Assertions.assertTrue(Searcher.range(o.dataPropertyRangeAxioms(c)).anyMatch(OWLFunctionalSyntaxFactory.Boolean()::equals));
+        Assertions.assertTrue(Searcher.equivalent(o.equivalentDataPropertiesAxioms(c)).anyMatch(e::equals));
     }
 }

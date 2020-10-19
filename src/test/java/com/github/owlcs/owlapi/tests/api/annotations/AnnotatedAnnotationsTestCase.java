@@ -17,8 +17,8 @@ package com.github.owlcs.owlapi.tests.api.annotations;
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import com.google.common.collect.Sets;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.*;
 
 import java.util.Arrays;
@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 public class AnnotatedAnnotationsTestCase extends TestBase {
 
     @Test
-    public void testShouldRoundtripMultipleNestedAnnotationsdebug() throws OWLOntologyCreationException {
+    public void testShouldRoundTripMultipleNestedAnnotationsDebug() throws OWLOntologyCreationException {
         String ns = "urn:n:a#";
         Set<OWLAxiom> axioms = Sets.newHashSet(df.getOWLObjectPropertyAssertionAxiom(df.getOWLObjectProperty(ns, "r"),
                 df.getOWLNamedIndividual(ns, "a"),
@@ -73,11 +73,11 @@ public class AnnotatedAnnotationsTestCase extends TestBase {
         OWLOntology ont = loadOntologyFromString(input);
         // due to smart OWL-API (OWLLiteralImpl.hash != OWLLiteralImplInteger.hash) we can't compare Sets, change to Lists:
         // assertEquals(axioms, OWLAPIStreamUtils.asUnorderedSet(ont.logicalAxioms()));
-        Assert.assertEquals("Incorrect axioms", axioms.stream().sorted().collect(Collectors.toList()), ont.logicalAxioms().sorted().collect(Collectors.toList()));
+        Assertions.assertEquals(axioms.stream().sorted().collect(Collectors.toList()), ont.logicalAxioms().sorted().collect(Collectors.toList()));
     }
 
     @Test
-    public void testShouldLoadAnnotatedannotationsCorrectly() throws OWLOntologyCreationException,
+    public void testShouldLoadAnnotatedAnnotationsCorrectly() throws OWLOntologyCreationException,
             OWLOntologyStorageException {
         IRI subject = IRI.create("http://purl.obolibrary.org/obo/", "UBERON_0000033");
         String input = "<?xml version=\"1.0\"?>\n"
@@ -111,11 +111,11 @@ public class AnnotatedAnnotationsTestCase extends TestBase {
         long before = testcase.annotationAssertionAxioms(subject).count();
         OWLOntology result = roundTrip(testcase);
         long after = result.annotationAssertionAxioms(subject).count();
-        Assert.assertEquals(before, after);
+        Assertions.assertEquals(before, after);
     }
 
     @Test
-    public void testShouldRecognizeAnnotationsOnAxiomsWithDifferentannotationsAsDistinct() {
+    public void testShouldRecognizeAnnotationsOnAxiomsWithDifferentAnnotationsAsDistinct() {
         OWLAnnotationProperty p = OWLFunctionalSyntaxFactory.AnnotationProperty(iri("p"));
         OWLAnnotationSubject i = iri("i");
         OWLLiteral v = OWLFunctionalSyntaxFactory.Literal("value");
@@ -126,6 +126,6 @@ public class AnnotatedAnnotationsTestCase extends TestBase {
         Set<OWLAnnotationAssertionAxiom> set = new TreeSet<>();
         set.add(ax1);
         set.add(ax2);
-        Assert.assertEquals(2, set.size());
+        Assertions.assertEquals(2, set.size());
     }
 }

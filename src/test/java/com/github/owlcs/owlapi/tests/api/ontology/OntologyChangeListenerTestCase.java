@@ -15,8 +15,8 @@ package com.github.owlcs.owlapi.tests.api.ontology;
 
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.*;
 
 import java.util.HashSet;
@@ -56,15 +56,15 @@ public class OntologyChangeListenerTestCase extends TestBase {
             }
         });
         ont.getOWLOntologyManager().addAxiom(ont, ax);
-        Assert.assertTrue(additions.contains(ax));
-        Assert.assertTrue(impendingAdditions.contains(ax));
+        Assertions.assertTrue(additions.contains(ax));
+        Assertions.assertTrue(impendingAdditions.contains(ax));
         ont.remove(ax);
-        Assert.assertTrue(removals.contains(ax));
-        Assert.assertTrue(impendingRemovals.contains(ax));
+        Assertions.assertTrue(removals.contains(ax));
+        Assertions.assertTrue(impendingRemovals.contains(ax));
         // test that no op changes are not broadcasted
         removals.clear();
         ont.remove(ax);
-        Assert.assertFalse(removals.contains(ax));
-        Assert.assertTrue(impendingRemovals.contains(ax));
+        Assertions.assertFalse(removals.contains(ax));
+        Assertions.assertTrue(impendingRemovals.contains(ax));
     }
 }

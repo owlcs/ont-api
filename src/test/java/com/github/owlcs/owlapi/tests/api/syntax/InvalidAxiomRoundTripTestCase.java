@@ -15,9 +15,9 @@ package com.github.owlcs.owlapi.tests.api.syntax;
 
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.formats.FunctionalSyntaxDocumentFormat;
 import org.semanticweb.owlapi.model.*;
 
@@ -29,10 +29,10 @@ public class InvalidAxiomRoundTripTestCase extends TestBase {
     private OWLOntology o;
 
     private static void assertCorrectResult(OWLAxiom wrongAxiom, OWLAxiom validAxiom, OWLOntology reloaded) {
-        Assert.assertNotNull(reloaded);
-        Assert.assertTrue(reloaded.containsAxiom(validAxiom));
-        Assert.assertFalse(reloaded.containsAxiom(wrongAxiom));
-        Assert.assertEquals(1, reloaded.getLogicalAxiomCount());
+        Assertions.assertNotNull(reloaded);
+        Assertions.assertTrue(reloaded.containsAxiom(validAxiom));
+        Assertions.assertFalse(reloaded.containsAxiom(wrongAxiom));
+        Assertions.assertEquals(1, reloaded.getLogicalAxiomCount());
     }
 
     @Before
@@ -74,10 +74,10 @@ public class InvalidAxiomRoundTripTestCase extends TestBase {
         o.add(wrongAxiom, validAxiom);
         OWLOntology reloaded = saveAndReload();
         // then
-        Assert.assertNotNull(reloaded);
-        Assert.assertTrue(reloaded.containsAxiom(validAxiom));
-        Assert.assertFalse(reloaded.containsAxiom(wrongAxiom));
-        Assert.assertEquals(1, reloaded.getLogicalAxiomCount());
+        Assertions.assertNotNull(reloaded);
+        Assertions.assertTrue(reloaded.containsAxiom(validAxiom));
+        Assertions.assertFalse(reloaded.containsAxiom(wrongAxiom));
+        Assertions.assertEquals(1, reloaded.getLogicalAxiomCount());
     }
 
     @Test
@@ -99,22 +99,22 @@ public class InvalidAxiomRoundTripTestCase extends TestBase {
         o.add(singleClassDisjointAxiom, validAxiom);
         OWLOntology reloaded = roundTrip(o, new FunctionalSyntaxDocumentFormat());
         // then
-        Assert.assertNotNull(reloaded);
-        Assert.assertTrue(reloaded.containsAxiom(validAxiom));
-        Assert.assertTrue(reloaded.containsAxiom(singleClassDisjointAxiom));
-        Assert.assertEquals(2, reloaded.getLogicalAxiomCount());
+        Assertions.assertNotNull(reloaded);
+        Assertions.assertTrue(reloaded.containsAxiom(validAxiom));
+        Assertions.assertTrue(reloaded.containsAxiom(singleClassDisjointAxiom));
+        Assertions.assertEquals(2, reloaded.getLogicalAxiomCount());
     }
 
     protected void checkSingletonDisjointFixup(OWLClass e1, OWLDisjointClassesAxiom wrongAxiom) {
         Set<OWLClassExpression> classExpressions = wrongAxiom.classExpressions().collect(Collectors.toSet());
-        Assert.assertEquals("should have two members", 2, classExpressions.size());
-        Assert.assertTrue("contains e1", classExpressions.contains(e1));
+        Assertions.assertEquals(2, classExpressions.size());
+        Assertions.assertTrue(classExpressions.contains(e1));
         if (!e1.isOWLThing()) {
-            Assert.assertTrue("contains Thing", classExpressions.contains(OWLFunctionalSyntaxFactory.OWLThing()));
+            Assertions.assertTrue(classExpressions.contains(OWLFunctionalSyntaxFactory.OWLThing()));
         } else {
-            Assert.assertTrue("contains Nothing", classExpressions.contains(OWLFunctionalSyntaxFactory.OWLNothing()));
+            Assertions.assertTrue(classExpressions.contains(OWLFunctionalSyntaxFactory.OWLNothing()));
         }
-        Assert.assertTrue("is annotated", wrongAxiom.isAnnotated());
+        Assertions.assertTrue(wrongAxiom.isAnnotated());
     }
 
     @Test
@@ -131,10 +131,10 @@ public class InvalidAxiomRoundTripTestCase extends TestBase {
         o.add(wrongAxiom, validAxiom);
         OWLOntology reloaded = saveAndReload();
         // then
-        Assert.assertNotNull(reloaded);
-        Assert.assertTrue(reloaded.containsAxiom(validAxiom));
-        Assert.assertFalse(reloaded.containsAxiom(wrongAxiom));
-        Assert.assertEquals(1, reloaded.getLogicalAxiomCount());
+        Assertions.assertNotNull(reloaded);
+        Assertions.assertTrue(reloaded.containsAxiom(validAxiom));
+        Assertions.assertFalse(reloaded.containsAxiom(wrongAxiom));
+        Assertions.assertEquals(1, reloaded.getLogicalAxiomCount());
     }
 
     @Test
@@ -167,10 +167,10 @@ public class InvalidAxiomRoundTripTestCase extends TestBase {
         o.add(wrongAxiom, validAxiom);
         OWLOntology reloaded = saveAndReload();
         // then
-        Assert.assertNotNull(reloaded);
-        Assert.assertTrue(reloaded.containsAxiom(validAxiom));
-        Assert.assertFalse(reloaded.containsAxiom(wrongAxiom));
-        Assert.assertEquals(1, reloaded.getLogicalAxiomCount());
+        Assertions.assertNotNull(reloaded);
+        Assertions.assertTrue(reloaded.containsAxiom(validAxiom));
+        Assertions.assertFalse(reloaded.containsAxiom(wrongAxiom));
+        Assertions.assertEquals(1, reloaded.getLogicalAxiomCount());
     }
 
     @Test
@@ -187,10 +187,10 @@ public class InvalidAxiomRoundTripTestCase extends TestBase {
         o.add(wrongAxiom, validAxiom);
         OWLOntology reloaded = saveAndReload();
         // then
-        Assert.assertNotNull(reloaded);
-        Assert.assertTrue(reloaded.containsAxiom(validAxiom));
-        Assert.assertFalse(reloaded.containsAxiom(wrongAxiom));
-        Assert.assertEquals(1, reloaded.getLogicalAxiomCount());
+        Assertions.assertNotNull(reloaded);
+        Assertions.assertTrue(reloaded.containsAxiom(validAxiom));
+        Assertions.assertFalse(reloaded.containsAxiom(wrongAxiom));
+        Assertions.assertEquals(1, reloaded.getLogicalAxiomCount());
     }
 
     @Test
@@ -207,9 +207,9 @@ public class InvalidAxiomRoundTripTestCase extends TestBase {
         o.add(wrongAxiom, validAxiom);
         OWLOntology reloaded = saveAndReload();
         // then
-        Assert.assertNotNull(reloaded);
-        Assert.assertTrue(reloaded.containsAxiom(validAxiom));
-        Assert.assertFalse(reloaded.containsAxiom(wrongAxiom));
-        Assert.assertEquals(1, reloaded.getLogicalAxiomCount());
+        Assertions.assertNotNull(reloaded);
+        Assertions.assertTrue(reloaded.containsAxiom(validAxiom));
+        Assertions.assertFalse(reloaded.containsAxiom(wrongAxiom));
+        Assertions.assertEquals(1, reloaded.getLogicalAxiomCount());
     }
 }

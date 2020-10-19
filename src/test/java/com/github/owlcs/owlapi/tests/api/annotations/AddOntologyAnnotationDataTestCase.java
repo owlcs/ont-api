@@ -13,8 +13,8 @@
  */
 package com.github.owlcs.owlapi.tests.api.annotations;
 
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.mockito.Mockito;
 import org.semanticweb.owlapi.change.AddOntologyAnnotationData;
 import org.semanticweb.owlapi.model.AddOntologyAnnotation;
@@ -37,35 +37,35 @@ public class AddOntologyAnnotationDataTestCase {
     public void testEquals() {
         AddOntologyAnnotationData data1 = createData();
         AddOntologyAnnotationData data2 = createData();
-        Assert.assertEquals(data1, data2);
-        Assert.assertEquals(data1.hashCode(), data2.hashCode());
+        Assertions.assertEquals(data1, data2);
+        Assertions.assertEquals(data1.hashCode(), data2.hashCode());
     }
 
     @Test
     public void testGettersReturnNotNull() {
         AddOntologyAnnotationData data = createData();
-        Assert.assertNotNull(data.getAnnotation());
-        Assert.assertNotNull(data.createOntologyChange(mockOntology));
+        Assertions.assertNotNull(data.getAnnotation());
+        Assertions.assertNotNull(data.createOntologyChange(mockOntology));
     }
 
     @Test
     public void testGettersEquals() {
         AddOntologyAnnotationData data = createData();
-        Assert.assertEquals(mockAnnotation, data.getAnnotation());
+        Assertions.assertEquals(mockAnnotation, data.getAnnotation());
     }
 
     @Test
     public void testCreateOntologyChange() {
         AddOntologyAnnotationData data = createData();
         AddOntologyAnnotation change = data.createOntologyChange(mockOntology);
-        Assert.assertEquals(mockOntology, change.getOntology());
-        Assert.assertEquals(mockAnnotation, change.getAnnotation());
+        Assertions.assertEquals(mockOntology, change.getOntology());
+        Assertions.assertEquals(mockAnnotation, change.getAnnotation());
     }
 
     @Test
     public void testOntologyChangeSymmetry() {
         AddOntologyAnnotationData data = createData();
         AddOntologyAnnotation change = new AddOntologyAnnotation(mockOntology, mockAnnotation);
-        Assert.assertEquals(change.getChangeData(), data);
+        Assertions.assertEquals(change.getChangeData(), data);
     }
 }

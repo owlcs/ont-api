@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,8 +14,8 @@
 package com.github.owlcs.owlapi.tests.api.annotations;
 
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.formats.FunctionalSyntaxDocumentFormat;
 import org.semanticweb.owlapi.formats.OWLXMLDocumentFormat;
 import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
@@ -74,13 +74,12 @@ public class LoadAnnotationAxiomsTestCase extends TestBase {
 
         OWLOntology o1 = reload(ontology, format, withAnnotationsConfig);
         Set<OWLAxiom> axioms2 = o1.axioms().filter(notDeclaration()).collect(Collectors.toSet());
-        Assert.assertEquals("Incorrect axioms for config with loaded annotations", axioms, axioms2);
+        Assertions.assertEquals(axioms, axioms2);
         OWLOntology o2 = reload(ontology, format, withoutAnnotationsConfig);
-        Assert.assertNotEquals("The same axioms after reloading", axioms, o2.axioms().filter(notDeclaration()).collect(Collectors.toSet()));
+        Assertions.assertNotEquals(axioms, o2.axioms().filter(notDeclaration()).collect(Collectors.toSet()));
         Set<OWLAxiom> axiomsMinusAnnotationAxioms = new HashSet<>(axioms);
         axiomsMinusAnnotationAxioms.removeAll(annotationAxioms);
-        Assert.assertEquals("Incorrect axioms for config without loaded annotations", axiomsMinusAnnotationAxioms,
-                o2.axioms().filter(notDeclaration()).collect(Collectors.toSet()));
+        Assertions.assertEquals(axiomsMinusAnnotationAxioms, o2.axioms().filter(notDeclaration()).collect(Collectors.toSet()));
     }
 
     private static Predicate<OWLAxiom> notDeclaration() {

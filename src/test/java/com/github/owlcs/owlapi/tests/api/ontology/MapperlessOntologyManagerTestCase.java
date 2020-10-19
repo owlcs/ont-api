@@ -14,8 +14,8 @@
 package com.github.owlcs.owlapi.tests.api.ontology;
 
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.*;
 
 import java.util.HashSet;
@@ -37,23 +37,23 @@ public class MapperlessOntologyManagerTestCase extends TestBase {
     public void testCreateOntologyWithIRI() throws OWLOntologyCreationException {
         OWLOntologyManager manager = createManager();
         OWLOntology ontology = manager.createOntology(ONTOLOGY_IRI);
-        Assert.assertEquals(ONTOLOGY_IRI, ontology.getOntologyID().getOntologyIRI().orElse(null));
-        Assert.assertEquals(ONTOLOGY_IRI, manager.getOntologyDocumentIRI(ontology));
+        Assertions.assertEquals(ONTOLOGY_IRI, ontology.getOntologyID().getOntologyIRI().orElse(null));
+        Assertions.assertEquals(ONTOLOGY_IRI, manager.getOntologyDocumentIRI(ontology));
     }
 
     @Test
     public void testCreateOntologyWithAxioms() throws OWLOntologyCreationException {
         OWLOntologyManager manager = createManager();
         OWLOntology ontology = manager.createOntology(new HashSet<>());
-        Assert.assertNotNull("ontology should not be null", manager.getOntologyDocumentIRI(ontology));
+        Assertions.assertNotNull(manager.getOntologyDocumentIRI(ontology));
     }
 
     @Test
     public void testCreateOntologyWithAxiomsAndIRI() throws OWLOntologyCreationException {
         OWLOntologyManager manager = createManager();
         OWLOntology ontology = manager.createOntology(new HashSet<>(), ONTOLOGY_IRI);
-        Assert.assertEquals(ONTOLOGY_IRI, ontology.getOntologyID().getOntologyIRI().orElse(null));
-        Assert.assertEquals(ONTOLOGY_IRI, manager.getOntologyDocumentIRI(ontology));
+        Assertions.assertEquals(ONTOLOGY_IRI, ontology.getOntologyID().getOntologyIRI().orElse(null));
+        Assertions.assertEquals(ONTOLOGY_IRI, manager.getOntologyDocumentIRI(ontology));
     }
 
     @Test
@@ -62,9 +62,9 @@ public class MapperlessOntologyManagerTestCase extends TestBase {
         IRI versionIRI = IRI.create("http://version/1", "");
         OWLOntologyID id = new OWLOntologyID(Optional.of(ONTOLOGY_IRI), Optional.of(versionIRI));
         OWLOntology ontology = manager.createOntology(id);
-        Assert.assertEquals(ONTOLOGY_IRI, ontology.getOntologyID().getOntologyIRI().orElse(null));
-        Assert.assertEquals(versionIRI, ontology.getOntologyID().getVersionIRI().orElse(null));
-        Assert.assertEquals(versionIRI, manager.getOntologyDocumentIRI(ontology));
+        Assertions.assertEquals(ONTOLOGY_IRI, ontology.getOntologyID().getOntologyIRI().orElse(null));
+        Assertions.assertEquals(versionIRI, ontology.getOntologyID().getVersionIRI().orElse(null));
+        Assertions.assertEquals(versionIRI, manager.getOntologyDocumentIRI(ontology));
     }
 
     @Test
@@ -72,7 +72,7 @@ public class MapperlessOntologyManagerTestCase extends TestBase {
         OWLOntologyManager manager = createManager();
         OWLOntologyID id = new OWLOntologyID(Optional.of(ONTOLOGY_IRI), Optional.empty());
         OWLOntology ontology = manager.createOntology(id);
-        Assert.assertEquals(ONTOLOGY_IRI, ontology.getOntologyID().getOntologyIRI().orElse(null));
-        Assert.assertEquals(ONTOLOGY_IRI, manager.getOntologyDocumentIRI(ontology));
+        Assertions.assertEquals(ONTOLOGY_IRI, ontology.getOntologyID().getOntologyIRI().orElse(null));
+        Assertions.assertEquals(ONTOLOGY_IRI, manager.getOntologyDocumentIRI(ontology));
     }
 }

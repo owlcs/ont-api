@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -29,8 +29,8 @@ import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.sparql.vocabulary.FOAF;
 import org.apache.jena.vocabulary.RDFS;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,10 +60,10 @@ public class PersonalityTest {
         OntPersonality p1 = PersonalityBuilder.from(OntModelConfig.ONT_PERSONALITY_STRICT)
                 .setBuiltins(OntModelConfig.createBuiltinsVocabulary(OntVocabulary.Factory.OWL_VOCABULARY)).build();
         OntModel m1 = OntModelFactory.createModel(g.getGraph(), p1);
-        Assert.assertEquals(1, m1.classes().peek(x -> LOGGER.debug("Class::{}", x)).count());
-        Assert.assertNull(m1.getOntClass(agent));
-        Assert.assertNull(m1.getOntClass(document));
-        Assert.assertEquals(0, m1.getOntClass(clazz).superClasses().count());
+        Assertions.assertEquals(1, m1.classes().peek(x -> LOGGER.debug("Class::{}", x)).count());
+        Assertions.assertNull(m1.getOntClass(agent));
+        Assertions.assertNull(m1.getOntClass(document));
+        Assertions.assertEquals(0, m1.getOntClass(clazz).superClasses().count());
 
         OntVocabulary SIMPLE_FOAF_VOC = OntVocabulary.Factory.create(OWL.Class, agent, document);
         OntVocabulary voc = OntVocabulary.Factory.create(OntVocabulary.Factory.OWL_VOCABULARY, SIMPLE_FOAF_VOC);
@@ -72,10 +72,10 @@ public class PersonalityTest {
         OntModel m2 = OntModelFactory.createModel(g.getGraph(), p2);
 
         // listClasses only works with explicit owl-classes, it does not take into account builtins
-        Assert.assertEquals(1, m2.classes().peek(x -> LOGGER.debug("Class::{}", x)).count());
-        Assert.assertNotNull(m2.getOntClass(agent));
-        Assert.assertNotNull(m2.getOntClass(document));
-        Assert.assertEquals(1, m2.getOntClass(clazz).superClasses()
+        Assertions.assertEquals(1, m2.classes().peek(x -> LOGGER.debug("Class::{}", x)).count());
+        Assertions.assertNotNull(m2.getOntClass(agent));
+        Assertions.assertNotNull(m2.getOntClass(document));
+        Assertions.assertEquals(1, m2.getOntClass(clazz).superClasses()
                 .peek(x -> LOGGER.debug("SuperClass::{}", x)).count());
     }
 
@@ -91,14 +91,14 @@ public class PersonalityTest {
         ReadWriteUtils.print(g);
 
         OntModel m1 = OntModelFactory.createModel(g.getGraph());
-        Assert.assertEquals(2, m1.ontObjects(OntIndividual.class)
+        Assertions.assertEquals(2, m1.ontObjects(OntIndividual.class)
                 .peek(x -> LOGGER.debug("1)Individual: {}", x)).count());
 
         OntVocabulary voc = OntVocabulary.Factory.create(RDF.Property, p);
         OntPersonality p2 = PersonalityBuilder.from(OntModelConfig.ONT_PERSONALITY_STRICT)
                 .setReserved(OntModelConfig.createReservedVocabulary(voc)).build();
         OntModel m2 = OntModelFactory.createModel(g.getGraph(), p2);
-        Assert.assertEquals(1, m2.ontObjects(OntIndividual.class)
+        Assertions.assertEquals(1, m2.ontObjects(OntIndividual.class)
                 .peek(x -> LOGGER.debug("2)Individual: {}", x)).count());
     }
 
@@ -116,12 +116,12 @@ public class PersonalityTest {
         m1.createDatatype(i2.getURI());
         m1.createOntClass(i1.getURI());
         ReadWriteUtils.print(m1);
-        Assert.assertEquals(3, m1.classes().peek(x -> LOGGER.debug("1)Class: {}", x)).count());
-        Assert.assertEquals(3, m1.individuals().peek(x -> LOGGER.debug("1)Individual: {}", x)).count());
-        Assert.assertEquals(1, m1.datatypes().peek(x -> LOGGER.debug("1)Datatype: {}", x)).count());
+        Assertions.assertEquals(3, m1.classes().peek(x -> LOGGER.debug("1)Class: {}", x)).count());
+        Assertions.assertEquals(3, m1.individuals().peek(x -> LOGGER.debug("1)Individual: {}", x)).count());
+        Assertions.assertEquals(1, m1.datatypes().peek(x -> LOGGER.debug("1)Datatype: {}", x)).count());
 
         OntPersonality.Punnings punnings = new OntPersonality.Punnings() {
-            OntPersonality.Punnings base = OntModelConfig.ONT_PERSONALITY_STRICT.getPunnings();
+            final OntPersonality.Punnings base = OntModelConfig.ONT_PERSONALITY_STRICT.getPunnings();
 
             @Override
             public Set<Node> get(Class<? extends OntObject> type) throws OntJenaException {
@@ -141,12 +141,12 @@ public class PersonalityTest {
             }
         };
         OntPersonality p2 = PersonalityBuilder.from(OntModelConfig.ONT_PERSONALITY_STRICT).setPunnings(punnings).build();
-        OntEntity.listEntityTypes().forEachRemaining(t -> Assert.assertEquals(2, p2.getPunnings().get(t).size()));
+        OntEntity.listEntityTypes().forEachRemaining(t -> Assertions.assertEquals(2, p2.getPunnings().get(t).size()));
 
         OntModel m2 = OntModelFactory.createModel(m1.getGraph(), p2);
-        Assert.assertEquals(1, m2.individuals().peek(x -> LOGGER.debug("2)Individuals: {}", x)).count());
-        Assert.assertEquals(0, m2.datatypes().peek(x -> LOGGER.debug("2)Datatype: {}", x)).count());
-        Assert.assertEquals(2, m2.classes().peek(x -> LOGGER.debug("2)Classes: {}", x)).count());
+        Assertions.assertEquals(1, m2.individuals().peek(x -> LOGGER.debug("2)Individuals: {}", x)).count());
+        Assertions.assertEquals(0, m2.datatypes().peek(x -> LOGGER.debug("2)Datatype: {}", x)).count());
+        Assertions.assertEquals(2, m2.classes().peek(x -> LOGGER.debug("2)Classes: {}", x)).count());
     }
 
     @Test
@@ -161,10 +161,10 @@ public class PersonalityTest {
         OntIndividual i3 = c2.createIndividual(ns + "indi3");
         m.createDifferentIndividuals(i1, i2, i3);
         ReadWriteUtils.print(m);
-        Assert.assertEquals(0, m.datatypes().count());
-        Assert.assertEquals(2, m.classes().count());
-        Assert.assertEquals(1, m.ontObjects(OntDisjoint.Individuals.class).count());
-        Assert.assertEquals(3, m.ontObjects(OntClass.class).count());
+        Assertions.assertEquals(0, m.datatypes().count());
+        Assertions.assertEquals(2, m.classes().count());
+        Assertions.assertEquals(1, m.ontObjects(OntDisjoint.Individuals.class).count());
+        Assertions.assertEquals(3, m.ontObjects(OntClass.class).count());
         LOGGER.debug("===================");
 
         // add punn:
@@ -173,24 +173,24 @@ public class PersonalityTest {
 
         try {
             m2.createDatatype(ns + "class2");
-            Assert.fail("Possible to add punn");
+            Assertions.fail("Possible to add punn");
         } catch (OntJenaException e) {
             LOGGER.debug(e.getMessage());
         }
 
         ReadWriteUtils.print(m2);
-        Assert.assertEquals(0, m2.datatypes().count());
-        Assert.assertEquals(1, m2.classes().count());
-        Assert.assertEquals(1, m2.ontObjects(OntDisjoint.Individuals.class).count());
+        Assertions.assertEquals(0, m2.datatypes().count());
+        Assertions.assertEquals(1, m2.classes().count());
+        Assertions.assertEquals(1, m2.ontObjects(OntDisjoint.Individuals.class).count());
         List<OntClass> ces = m2.ontObjects(OntClass.class).collect(Collectors.toList());
-        Assert.assertEquals("Wrong ces list: " + ces, 1, ces.size());
+        Assertions.assertEquals(1, ces.size(), "Wrong ces list: " + ces);
         LOGGER.debug("===================");
 
         OntModel m3 = OntModelFactory.createModel(m2.getBaseGraph(), OntModelConfig.ONT_PERSONALITY_LAX);
-        Assert.assertEquals(1, m3.datatypes().count());
-        Assert.assertEquals(2, m3.classes().count());
-        Assert.assertEquals(1, m3.ontObjects(OntDisjoint.Individuals.class).count());
-        Assert.assertEquals(3, m3.ontObjects(OntClass.class).count());
+        Assertions.assertEquals(1, m3.datatypes().count());
+        Assertions.assertEquals(2, m3.classes().count());
+        Assertions.assertEquals(1, m3.ontObjects(OntDisjoint.Individuals.class).count());
+        Assertions.assertEquals(3, m3.ontObjects(OntClass.class).count());
     }
 
     @Test
@@ -208,12 +208,12 @@ public class PersonalityTest {
         OntIndividual i4 = m.createObjectCardinality(p2, 1, c1).createIndividual(ns + "indi4");
         m.createDifferentIndividuals(i1, i2, i3, i4);
         ReadWriteUtils.print(m);
-        Assert.assertEquals(0, m.dataProperties().count());
-        Assert.assertEquals(0, m.annotationProperties().count());
-        Assert.assertEquals(2, m.objectProperties().count());
-        Assert.assertEquals(1, m.classes().count());
-        Assert.assertEquals(4, m.ontObjects(OntIndividual.class).count());
-        Assert.assertEquals(4, m.ontObjects(OntClass.class).count());
+        Assertions.assertEquals(0, m.dataProperties().count());
+        Assertions.assertEquals(0, m.annotationProperties().count());
+        Assertions.assertEquals(2, m.objectProperties().count());
+        Assertions.assertEquals(1, m.classes().count());
+        Assertions.assertEquals(4, m.ontObjects(OntIndividual.class).count());
+        Assertions.assertEquals(4, m.ontObjects(OntClass.class).count());
         LOGGER.debug("===================");
 
         // add punns:
@@ -223,26 +223,26 @@ public class PersonalityTest {
 
         try {
             m2.createDataProperty(ns + "prop2");
-            Assert.fail("Possible to add punn");
+            Assertions.fail("Possible to add punn");
         } catch (OntJenaException e) {
             LOGGER.debug(e.getMessage());
         }
 
         ReadWriteUtils.print(m2);
-        Assert.assertEquals(0, m2.objectProperties().count());
-        Assert.assertEquals(0, m2.dataProperties().count());
-        Assert.assertEquals(0, m2.annotationProperties().count());
+        Assertions.assertEquals(0, m2.objectProperties().count());
+        Assertions.assertEquals(0, m2.dataProperties().count());
+        Assertions.assertEquals(0, m2.annotationProperties().count());
         List<OntClass> ces = m2.ontObjects(OntClass.class).collect(Collectors.toList());
         // no ObjectSomeValuesFrom, no ObjectCardinality
-        Assert.assertEquals("Wrong ces list: " + ces, 2, ces.size());
+        Assertions.assertEquals(2, ces.size(), "Wrong ces list: " + ces);
         LOGGER.debug("===================");
 
         OntModel m3 = OntModelFactory.createModel(m2.getBaseGraph(), OntModelConfig.ONT_PERSONALITY_LAX);
-        Assert.assertEquals(1, m3.dataProperties().count());
-        Assert.assertEquals(1, m3.annotationProperties().count());
-        Assert.assertEquals(2, m3.objectProperties().count());
-        Assert.assertEquals(1, m3.ontObjects(OntDisjoint.Individuals.class).count());
-        Assert.assertEquals(4, m3.ontObjects(OntClass.class).count());
+        Assertions.assertEquals(1, m3.dataProperties().count());
+        Assertions.assertEquals(1, m3.annotationProperties().count());
+        Assertions.assertEquals(2, m3.objectProperties().count());
+        Assertions.assertEquals(1, m3.ontObjects(OntDisjoint.Individuals.class).count());
+        Assertions.assertEquals(4, m3.ontObjects(OntClass.class).count());
     }
 
     @Test
@@ -264,31 +264,31 @@ public class PersonalityTest {
         m.createResource(ns + "inid4", c1);
 
         ReadWriteUtils.print(m);
-        Assert.assertEquals(2, m.namedIndividuals().count());
-        Assert.assertEquals(5, m.ontObjects(OntIndividual.class).count());
-        Assert.assertEquals(5, m.individuals().count());
+        Assertions.assertEquals(2, m.namedIndividuals().count());
+        Assertions.assertEquals(5, m.ontObjects(OntIndividual.class).count());
+        Assertions.assertEquals(5, m.individuals().count());
 
         LOGGER.debug("==================="); // CUSTOM PERSONALITY (owl:NamedIndividual is required)
         OntModel m2 = OntModelFactory.createModel(m.getGraph(), personality);
-        Assert.assertEquals(2, m2.namedIndividuals().count());
-        Assert.assertEquals(3, m2.ontObjects(OntIndividual.class).count());
+        Assertions.assertEquals(2, m2.namedIndividuals().count());
+        Assertions.assertEquals(3, m2.ontObjects(OntIndividual.class).count());
         Resource indi5 = m.createResource(ns + "inid5", c2);
-        Assert.assertEquals(3, m2.ontObjects(OntIndividual.class).count());
-        Assert.assertEquals(3, m2.individuals().count());
+        Assertions.assertEquals(3, m2.ontObjects(OntIndividual.class).count());
+        Assertions.assertEquals(3, m2.individuals().count());
 
         OntDisjoint.Individuals disjoint2 = m2.createDifferentIndividuals(m2.ontObjects(OntIndividual.class)
                 .collect(Collectors.toList()));
         disjoint2.getList().as(RDFList.class).add(indi5);
         ReadWriteUtils.print(m2);
-        Assert.assertEquals(3, disjoint2.members().count());
+        Assertions.assertEquals(3, disjoint2.members().count());
 
         LOGGER.debug("==================="); // BACK TO STANDARD PERSONALITY
         OntModel m3 = OntModelFactory.createModel(m2.getGraph(), OntModelConfig.ONT_PERSONALITY_MEDIUM);
-        Assert.assertEquals(2, m3.namedIndividuals().count());
-        Assert.assertEquals(6, m3.ontObjects(OntIndividual.class).count());
+        Assertions.assertEquals(2, m3.namedIndividuals().count());
+        Assertions.assertEquals(6, m3.ontObjects(OntIndividual.class).count());
         OntDisjoint.Individuals disjoint3 = m3.ontObjects(OntDisjoint.Individuals.class).findFirst()
                 .orElseThrow(AssertionError::new);
-        Assert.assertEquals(4, disjoint3.members().count());
+        Assertions.assertEquals(4, disjoint3.members().count());
     }
 
     public static OntPersonality buildCustomPersonality() {
@@ -298,11 +298,11 @@ public class PersonalityTest {
         OntPersonality res = PersonalityBuilder.from(from)
                 .add(OntIndividual.Named.class, factory)
                 .build();
-        Assert.assertEquals(97, res.types().count());
+        Assertions.assertEquals(97, res.types().count());
         List<Class<? extends OntObject>> objects = res.types(OntObject.class).collect(Collectors.toList());
         List<Class<? extends OntEntity>> entities = res.types(OntEntity.class).collect(Collectors.toList());
-        Assert.assertEquals(87, objects.size());
-        Assert.assertEquals(8, entities.size());
+        Assertions.assertEquals(87, objects.size());
+        Assertions.assertEquals(8, entities.size());
         return res;
     }
 

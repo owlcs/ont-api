@@ -15,9 +15,9 @@ package com.github.owlcs.owlapi.tests.api.ontology;
 
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.formats.*;
 import org.semanticweb.owlapi.io.StringDocumentTarget;
 import org.semanticweb.owlapi.model.*;
@@ -77,8 +77,8 @@ public class SWRLRoundTripTestCase extends TestBase {
         OWLXMLDocumentFormat f = new OWLXMLDocumentFormat();
         OWLOntology ontology2 = loadOntologyFromString(saveOntology(ontology, f));
         equal(ontology, ontology2);
-        ontology2.axioms(AxiomType.SWRL_RULE).forEach(r -> Assert.assertFalse(noLabel(r)));
-        ontology2.axioms(AxiomType.DATATYPE_DEFINITION).forEach(r -> Assert.assertFalse(noLabel(r)));
+        ontology2.axioms(AxiomType.SWRL_RULE).forEach(r -> Assertions.assertFalse(noLabel(r)));
+        ontology2.axioms(AxiomType.DATATYPE_DEFINITION).forEach(r -> Assertions.assertFalse(noLabel(r)));
     }
 
     @Test
@@ -87,8 +87,8 @@ public class SWRLRoundTripTestCase extends TestBase {
         OWLDocumentFormat f = new TurtleDocumentFormat();
         OWLOntology ontology2 = loadOntologyFromString(saveOntology(ontology, f));
         equal(ontology, ontology2);
-        ontology2.axioms(AxiomType.SWRL_RULE).forEach(r -> Assert.assertFalse(noLabel(r)));
-        ontology2.axioms(AxiomType.DATATYPE_DEFINITION).forEach(r -> Assert.assertFalse(noLabel(r)));
+        ontology2.axioms(AxiomType.SWRL_RULE).forEach(r -> Assertions.assertFalse(noLabel(r)));
+        ontology2.axioms(AxiomType.DATATYPE_DEFINITION).forEach(r -> Assertions.assertFalse(noLabel(r)));
     }
 
     @Test
@@ -97,8 +97,8 @@ public class SWRLRoundTripTestCase extends TestBase {
         OWLDocumentFormat f = new FunctionalSyntaxDocumentFormat();
         OWLOntology ontology2 = loadOntologyFromString(saveOntology(ontology, f));
         equal(ontology, ontology2);
-        ontology2.axioms(AxiomType.SWRL_RULE).forEach(r -> Assert.assertFalse(noLabel(r)));
-        ontology2.axioms(AxiomType.DATATYPE_DEFINITION).forEach(r -> Assert.assertFalse(noLabel(r)));
+        ontology2.axioms(AxiomType.SWRL_RULE).forEach(r -> Assertions.assertFalse(noLabel(r)));
+        ontology2.axioms(AxiomType.DATATYPE_DEFINITION).forEach(r -> Assertions.assertFalse(noLabel(r)));
     }
 
     @Test
@@ -107,8 +107,8 @@ public class SWRLRoundTripTestCase extends TestBase {
         OWLDocumentFormat f = new RDFXMLDocumentFormat();
         OWLOntology ontology2 = loadOntologyFromString(saveOntology(ontology, f));
         equal(ontology, ontology2);
-        ontology2.axioms(AxiomType.SWRL_RULE).forEach(r -> Assert.assertFalse(noLabel(r)));
-        ontology2.axioms(AxiomType.DATATYPE_DEFINITION).forEach(r -> Assert.assertFalse(noLabel(r)));
+        ontology2.axioms(AxiomType.SWRL_RULE).forEach(r -> Assertions.assertFalse(noLabel(r)));
+        ontology2.axioms(AxiomType.DATATYPE_DEFINITION).forEach(r -> Assertions.assertFalse(noLabel(r)));
     }
 
     @Test
@@ -117,7 +117,7 @@ public class SWRLRoundTripTestCase extends TestBase {
         OWLDocumentFormat f = new RDFXMLDocumentFormat();
         OWLOntology ontology2 = loadOntologyFromString(saveOntology(ontology, f));
         equal(ontology, ontology2);
-        ontology2.axioms(AxiomType.DATATYPE_DEFINITION).forEach(r -> Assert.assertFalse(noLabel(r)));
+        ontology2.axioms(AxiomType.DATATYPE_DEFINITION).forEach(r -> Assertions.assertFalse(noLabel(r)));
     }
 
     private boolean noLabel(OWLAxiom r) {
@@ -132,8 +132,8 @@ public class SWRLRoundTripTestCase extends TestBase {
         StringDocumentTarget save = saveOntology(ontology, f);
         OWLOntology ontology2 = loadOntologyFromString(save);
         equal(ontology, ontology2);
-        ontology2.axioms(AxiomType.SWRL_RULE).forEach(r -> Assert.assertFalse(noLabel(r)));
-        ontology2.axioms(AxiomType.DATATYPE_DEFINITION).forEach(r -> Assert.assertFalse(noLabel(r)));
+        ontology2.axioms(AxiomType.SWRL_RULE).forEach(r -> Assertions.assertFalse(noLabel(r)));
+        ontology2.axioms(AxiomType.DATATYPE_DEFINITION).forEach(r -> Assertions.assertFalse(noLabel(r)));
     }
 
     /**
@@ -193,7 +193,7 @@ public class SWRLRoundTripTestCase extends TestBase {
         OWLOntology o = loadOntologyFromString(s);
         OWLDatatypeDefinitionAxiom def = df.getOWLDatatypeDefinitionAxiom(df.getOWLDatatype("urn:my#", "datatype"), df
                 .getDoubleOWLDatatype(), Collections.singleton(df.getRDFSLabel("datatype definition")));
-        Assert.assertTrue(o.axioms().anyMatch(def::equals));
+        Assertions.assertTrue(o.axioms().anyMatch(def::equals));
     }
 
 
@@ -227,6 +227,6 @@ public class SWRLRoundTripTestCase extends TestBase {
         OWLSubClassOfAxiom def = df.getOWLSubClassOfAxiom(df.getOWLClass("urn:test#", "myClass"),
                 df.getOWLClass("urn:test#", "test"), Collections.singleton(df.getRDFSLabel("datatype definition")));
         com.github.owlcs.ontapi.utils.ReadWriteUtils.print(o);
-        Assert.assertTrue(o.axioms().anyMatch(def::equals));
+        Assertions.assertTrue(o.axioms().anyMatch(def::equals));
     }
 }

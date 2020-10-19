@@ -16,10 +16,10 @@ package com.github.owlcs.owlapi.tests.decomposition;
 
 import com.github.owlcs.owlapi.OWLManager;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapitools.decomposition.AxiomWrapper;
 import org.semanticweb.owlapitools.decomposition.SemanticLocalityChecker;
@@ -517,7 +517,7 @@ public class SemanticLocalityTestCase {
         testSubject.preprocessOntology(Collections.singletonList(new AxiomWrapper(ax)));
         set(entities);
         boolean local = testSubject.local(ax);
-        Assert.assertEquals(expected, local);
+        Assertions.assertEquals(expected, local);
     }
 
     @SuppressWarnings("SameParameterValue")
@@ -526,6 +526,6 @@ public class SemanticLocalityTestCase {
         set(entities);
         testSubject.getSignature().setLocality(locality);
         boolean local = testSubject.local(ax);
-        Assert.assertEquals(expected, local);
+        Assertions.assertEquals(expected, local);
     }
 }

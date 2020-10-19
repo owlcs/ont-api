@@ -15,8 +15,8 @@
 package com.github.owlcs.owlapi.tests.rio;
 
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.functional.parser.OWLFunctionalSyntaxOWLParserFactory;
 import org.semanticweb.owlapi.io.OWLParserFactory;
 import org.semanticweb.owlapi.krss2.parser.KRSS2OWLParserFactory;
@@ -68,8 +68,7 @@ public class OWLParserFactoryRegistryTestCase {
             found.add(p.getClass());
         }
         for (Class<? extends OWLParserFactory> p : factories) {
-            Assert.assertTrue("Expected among parsers: " + p.getSimpleName(), found
-                    .contains(p));
+            Assertions.assertTrue(found.contains(p), "Expected among parsers: " + p.getSimpleName());
         }
     }
 }

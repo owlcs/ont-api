@@ -15,8 +15,8 @@ package com.github.owlcs.owlapi.tests.api.axioms;
 
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.NNF;
 
@@ -40,20 +40,20 @@ public class NNFTestCase extends TestBase {
     @Test
     public void testPosOWLClass() {
         OWLClass cls = OWLFunctionalSyntaxFactory.Class(iri("A"));
-        Assert.assertEquals(cls.getNNF(), cls);
+        Assertions.assertEquals(cls.getNNF(), cls);
     }
 
     @Test
     public void testNegOWLClass() {
         OWLClassExpression cls = OWLFunctionalSyntaxFactory.ObjectComplementOf(OWLFunctionalSyntaxFactory.Class(iri("A")));
-        Assert.assertEquals(cls.getNNF(), cls);
+        Assertions.assertEquals(cls.getNNF(), cls);
     }
 
     @Test
     public void testPosAllValuesFrom() {
         OWLClassExpression cls = OWLFunctionalSyntaxFactory.ObjectAllValuesFrom(OWLFunctionalSyntaxFactory.ObjectProperty(iri("p")),
                 OWLFunctionalSyntaxFactory.Class(iri("A")));
-        Assert.assertEquals(cls.getNNF(), cls);
+        Assertions.assertEquals(cls.getNNF(), cls);
     }
 
     @Test
@@ -63,14 +63,14 @@ public class NNFTestCase extends TestBase {
         OWLObjectAllValuesFrom allValuesFrom = OWLFunctionalSyntaxFactory.ObjectAllValuesFrom(property, filler);
         OWLClassExpression cls = allValuesFrom.getObjectComplementOf();
         OWLClassExpression nnf = OWLFunctionalSyntaxFactory.ObjectSomeValuesFrom(property, filler.getObjectComplementOf());
-        Assert.assertEquals(cls.getNNF(), nnf);
+        Assertions.assertEquals(cls.getNNF(), nnf);
     }
 
     @Test
     public void testPosSomeValuesFrom() {
         OWLClassExpression cls = OWLFunctionalSyntaxFactory.ObjectSomeValuesFrom(OWLFunctionalSyntaxFactory.ObjectProperty(iri("p")),
                 OWLFunctionalSyntaxFactory.Class(iri("A")));
-        Assert.assertEquals(cls.getNNF(), cls);
+        Assertions.assertEquals(cls.getNNF(), cls);
     }
 
     @Test
@@ -81,7 +81,7 @@ public class NNFTestCase extends TestBase {
         OWLClassExpression cls = OWLFunctionalSyntaxFactory.ObjectComplementOf(someValuesFrom);
         OWLClassExpression nnf = OWLFunctionalSyntaxFactory.ObjectAllValuesFrom(property,
                 OWLFunctionalSyntaxFactory.ObjectComplementOf(filler));
-        Assert.assertEquals(cls.getNNF(), nnf);
+        Assertions.assertEquals(cls.getNNF(), nnf);
     }
 
     @Test
@@ -89,7 +89,7 @@ public class NNFTestCase extends TestBase {
         OWLClassExpression cls = OWLFunctionalSyntaxFactory.ObjectIntersectionOf(OWLFunctionalSyntaxFactory.Class(iri("A")),
                 OWLFunctionalSyntaxFactory.Class(iri("B")),
                 OWLFunctionalSyntaxFactory.Class(iri("C")));
-        Assert.assertEquals(cls.getNNF(), cls);
+        Assertions.assertEquals(cls.getNNF(), cls);
     }
 
     @Test
@@ -102,14 +102,14 @@ public class NNFTestCase extends TestBase {
                         .ObjectComplementOf(OWLFunctionalSyntaxFactory.Class(iri("A"))),
                 OWLFunctionalSyntaxFactory.ObjectComplementOf(OWLFunctionalSyntaxFactory.Class(iri("B"))),
                 OWLFunctionalSyntaxFactory.ObjectComplementOf(OWLFunctionalSyntaxFactory.Class(iri("C"))));
-        Assert.assertEquals(cls.getNNF(), nnf);
+        Assertions.assertEquals(cls.getNNF(), nnf);
     }
 
     @Test
     public void testPosObjectUnionOf() {
         OWLClassExpression cls = OWLFunctionalSyntaxFactory.ObjectUnionOf(OWLFunctionalSyntaxFactory.Class(iri("A")),
                 OWLFunctionalSyntaxFactory.Class(iri("B")), OWLFunctionalSyntaxFactory.Class(iri("C")));
-        Assert.assertEquals(cls.getNNF(), cls);
+        Assertions.assertEquals(cls.getNNF(), cls);
     }
 
     @Test
@@ -122,7 +122,7 @@ public class NNFTestCase extends TestBase {
                         .ObjectComplementOf(OWLFunctionalSyntaxFactory.Class(iri("A"))),
                 OWLFunctionalSyntaxFactory.ObjectComplementOf(OWLFunctionalSyntaxFactory.Class(iri("B"))),
                 OWLFunctionalSyntaxFactory.ObjectComplementOf(OWLFunctionalSyntaxFactory.Class(iri("C"))));
-        Assert.assertEquals(cls.getNNF(), nnf);
+        Assertions.assertEquals(cls.getNNF(), nnf);
     }
 
     @Test
@@ -130,7 +130,7 @@ public class NNFTestCase extends TestBase {
         OWLObjectProperty prop = OWLFunctionalSyntaxFactory.ObjectProperty(iri("p"));
         OWLClassExpression filler = OWLFunctionalSyntaxFactory.Class(iri("A"));
         OWLClassExpression cls = OWLFunctionalSyntaxFactory.ObjectMinCardinality(3, prop, filler);
-        Assert.assertEquals(cls.getNNF(), cls);
+        Assertions.assertEquals(cls.getNNF(), cls);
     }
 
     @Test
@@ -139,7 +139,7 @@ public class NNFTestCase extends TestBase {
         OWLClassExpression filler = OWLFunctionalSyntaxFactory.Class(iri("A"));
         OWLClassExpression cls = OWLFunctionalSyntaxFactory.ObjectMinCardinality(3, prop, filler).getObjectComplementOf();
         OWLClassExpression nnf = OWLFunctionalSyntaxFactory.ObjectMaxCardinality(2, prop, filler);
-        Assert.assertEquals(cls.getNNF(), nnf);
+        Assertions.assertEquals(cls.getNNF(), nnf);
     }
 
     @Test
@@ -147,7 +147,7 @@ public class NNFTestCase extends TestBase {
         OWLObjectProperty prop = OWLFunctionalSyntaxFactory.ObjectProperty(iri("p"));
         OWLClassExpression filler = OWLFunctionalSyntaxFactory.Class(iri("A"));
         OWLClassExpression cls = OWLFunctionalSyntaxFactory.ObjectMaxCardinality(3, prop, filler);
-        Assert.assertEquals(cls.getNNF(), cls);
+        Assertions.assertEquals(cls.getNNF(), cls);
     }
 
     @Test
@@ -156,13 +156,13 @@ public class NNFTestCase extends TestBase {
         OWLClassExpression filler = OWLFunctionalSyntaxFactory.Class(iri("A"));
         OWLClassExpression cls = OWLFunctionalSyntaxFactory.ObjectMaxCardinality(3, prop, filler).getObjectComplementOf();
         OWLClassExpression nnf = OWLFunctionalSyntaxFactory.ObjectMinCardinality(4, prop, filler);
-        Assert.assertEquals(cls.getNNF(), nnf);
+        Assertions.assertEquals(cls.getNNF(), nnf);
     }
 
     @Test
     public void testNamedClass() {
         OWLClassExpression comp = getNNF(clsA);
-        Assert.assertEquals(clsA, comp);
+        Assertions.assertEquals(clsA, comp);
     }
 
     @Test
@@ -172,7 +172,7 @@ public class NNFTestCase extends TestBase {
         OWLClassExpression nnf = OWLFunctionalSyntaxFactory.ObjectUnionOf(OWLFunctionalSyntaxFactory
                 .ObjectComplementOf(clsA), OWLFunctionalSyntaxFactory.ObjectComplementOf(clsB));
         OWLClassExpression comp = getNNF(neg);
-        Assert.assertEquals(nnf, comp);
+        Assertions.assertEquals(nnf, comp);
     }
 
     @Test
@@ -182,7 +182,7 @@ public class NNFTestCase extends TestBase {
         OWLClassExpression nnf = OWLFunctionalSyntaxFactory.ObjectIntersectionOf(OWLFunctionalSyntaxFactory
                 .ObjectComplementOf(clsA), OWLFunctionalSyntaxFactory.ObjectComplementOf(clsB));
         OWLClassExpression comp = getNNF(neg);
-        Assert.assertEquals(nnf, comp);
+        Assertions.assertEquals(nnf, comp);
     }
 
     @Test
@@ -190,7 +190,7 @@ public class NNFTestCase extends TestBase {
         OWLClassExpression desc = OWLFunctionalSyntaxFactory.ObjectComplementOf(clsA);
         OWLClassExpression neg = OWLFunctionalSyntaxFactory.ObjectComplementOf(desc);
         OWLClassExpression comp = getNNF(neg);
-        Assert.assertEquals(clsA, comp);
+        Assertions.assertEquals(clsA, comp);
     }
 
     @Test
@@ -200,7 +200,7 @@ public class NNFTestCase extends TestBase {
         OWLClassExpression neg = OWLFunctionalSyntaxFactory.ObjectComplementOf(desc);
         OWLClassExpression nnf = OWLFunctionalSyntaxFactory.ObjectComplementOf(clsA);
         OWLClassExpression comp = getNNF(neg);
-        Assert.assertEquals(nnf, comp);
+        Assertions.assertEquals(nnf, comp);
     }
 
     @Test
@@ -210,7 +210,7 @@ public class NNFTestCase extends TestBase {
         OWLClassExpression nnf = OWLFunctionalSyntaxFactory.ObjectAllValuesFrom(propP,
                 OWLFunctionalSyntaxFactory.ObjectComplementOf(clsA));
         OWLClassExpression comp = getNNF(neg);
-        Assert.assertEquals(nnf, comp);
+        Assertions.assertEquals(nnf, comp);
     }
 
     @Test
@@ -220,7 +220,7 @@ public class NNFTestCase extends TestBase {
         OWLClassExpression nnf = OWLFunctionalSyntaxFactory.ObjectSomeValuesFrom(propP,
                 OWLFunctionalSyntaxFactory.ObjectComplementOf(clsA));
         OWLClassExpression comp = getNNF(neg);
-        Assert.assertEquals(nnf, comp);
+        Assertions.assertEquals(nnf, comp);
     }
 
     @Test
@@ -230,7 +230,7 @@ public class NNFTestCase extends TestBase {
         OWLClassExpression nnf = OWLFunctionalSyntaxFactory.ObjectAllValuesFrom(propP,
                 OWLFunctionalSyntaxFactory.ObjectComplementOf(OWLFunctionalSyntaxFactory.ObjectOneOf(indA)));
         OWLClassExpression comp = getNNF(neg);
-        Assert.assertEquals(nnf, comp);
+        Assertions.assertEquals(nnf, comp);
     }
 
     @Test
@@ -239,7 +239,7 @@ public class NNFTestCase extends TestBase {
         OWLClassExpression neg = OWLFunctionalSyntaxFactory.ObjectComplementOf(desc);
         OWLClassExpression nnf = OWLFunctionalSyntaxFactory.ObjectMaxCardinality(2, propP, clsA);
         OWLClassExpression comp = getNNF(neg);
-        Assert.assertEquals(nnf, comp);
+        Assertions.assertEquals(nnf, comp);
     }
 
     @Test
@@ -248,7 +248,7 @@ public class NNFTestCase extends TestBase {
         OWLClassExpression neg = OWLFunctionalSyntaxFactory.ObjectComplementOf(desc);
         OWLClassExpression nnf = OWLFunctionalSyntaxFactory.ObjectMinCardinality(4, propP, clsA);
         OWLClassExpression comp = getNNF(neg);
-        Assert.assertEquals(nnf, comp);
+        Assertions.assertEquals(nnf, comp);
     }
 
     @Test
@@ -263,7 +263,7 @@ public class NNFTestCase extends TestBase {
                                 OWLFunctionalSyntaxFactory.ObjectComplementOf(clsB))));
         OWLClassExpression neg = OWLFunctionalSyntaxFactory.ObjectComplementOf(desc);
         OWLClassExpression comp = getNNF(neg);
-        Assert.assertEquals(comp, nnf);
+        Assertions.assertEquals(comp, nnf);
     }
 
     @Test
@@ -274,6 +274,6 @@ public class NNFTestCase extends TestBase {
         OWLClassExpression nnf = OWLFunctionalSyntaxFactory.ObjectUnionOf(OWLFunctionalSyntaxFactory.ObjectUnionOf(OWLFunctionalSyntaxFactory.ObjectComplementOf(clsA), OWLFunctionalSyntaxFactory.ObjectComplementOf(clsB)),
                 OWLFunctionalSyntaxFactory.ObjectUnionOf(clsC, clsD));
         OWLClassExpression comp = getNNF(neg);
-        Assert.assertEquals(comp, nnf);
+        Assertions.assertEquals(comp, nnf);
     }
 }

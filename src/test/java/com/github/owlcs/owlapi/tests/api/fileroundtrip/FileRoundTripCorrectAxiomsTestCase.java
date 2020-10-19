@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -19,8 +19,8 @@ import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.OWLManager;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import com.google.common.collect.Sets;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.AxiomAnnotations;
@@ -43,14 +43,14 @@ import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
 
 public class FileRoundTripCorrectAxiomsTestCase extends TestBase {
 
-    private OWLDataProperty dp = OWLFunctionalSyntaxFactory.DataProperty(iri("p"));
-    private OWLClass clA = Class(iri("A"));
-    private OWLObjectProperty or = OWLFunctionalSyntaxFactory.ObjectProperty(iri("r"));
-    private OWLObjectProperty oq = OWLFunctionalSyntaxFactory.ObjectProperty(iri("q"));
-    private OWLObjectProperty op = OWLFunctionalSyntaxFactory.ObjectProperty(iri("p"));
-    private OWLDatatype dt = OWLFunctionalSyntaxFactory.Datatype(iri("B"));
-    private OWLClass clB = OWLFunctionalSyntaxFactory.Class(iri("B"));
-    private OWLClass classC = OWLFunctionalSyntaxFactory.Class(iri("C"));
+    private final OWLDataProperty dp = OWLFunctionalSyntaxFactory.DataProperty(iri("p"));
+    private final OWLClass clA = Class(iri("A"));
+    private final OWLObjectProperty or = OWLFunctionalSyntaxFactory.ObjectProperty(iri("r"));
+    private final OWLObjectProperty oq = OWLFunctionalSyntaxFactory.ObjectProperty(iri("q"));
+    private final OWLObjectProperty op = OWLFunctionalSyntaxFactory.ObjectProperty(iri("p"));
+    private final OWLDatatype dt = OWLFunctionalSyntaxFactory.Datatype(iri("B"));
+    private final OWLClass clB = OWLFunctionalSyntaxFactory.Class(iri("B"));
+    private final OWLClass classC = OWLFunctionalSyntaxFactory.Class(iri("C"));
 
     protected void assertEqualsSet(String ontology, OWLAxiom... axioms) {
         Set<OWLAxiom> expected = Sets.newHashSet(axioms);
@@ -64,9 +64,9 @@ public class FileRoundTripCorrectAxiomsTestCase extends TestBase {
         LOGGER.debug("Expected:");
         expected.forEach(a -> LOGGER.debug("{}", a));
         if (OWLManager.DEBUG_USE_OWL) {
-            Assert.assertEquals("Incorrect set of axioms", expected, actual);
+            Assertions.assertEquals(expected, actual, "Incorrect set of axioms");
         } else { // all explicit declarations are included!
-            Assert.assertTrue("Some axioms are absent", actual.containsAll(expected));
+            Assertions.assertTrue(actual.containsAll(expected), "Some axioms are absent");
         }
     }
 
@@ -78,11 +78,11 @@ public class FileRoundTripCorrectAxiomsTestCase extends TestBase {
         OWLObjectProperty predicate = OWLFunctionalSyntaxFactory.ObjectProperty(IRI("http://Example.com#", "located_at"));
         OWLNamedIndividual object = OWLFunctionalSyntaxFactory.NamedIndividual(IRI("http://Example.com#", "myLocation"));
         OWLAxiom ax = ObjectPropertyAssertion(predicate, subject, object);
-        Assert.assertTrue(ontology.containsAxiom(ax, Imports.EXCLUDED, AxiomAnnotations.IGNORE_AXIOM_ANNOTATIONS));
+        Assertions.assertTrue(ontology.containsAxiom(ax, Imports.EXCLUDED, AxiomAnnotations.IGNORE_AXIOM_ANNOTATIONS));
         Set<OWLAxiom> axioms = ontology.axiomsIgnoreAnnotations(ax, Imports.EXCLUDED).collect(Collectors.toSet());
-        Assert.assertEquals(1, axioms.size());
+        Assertions.assertEquals(1, axioms.size());
         OWLAxiom theAxiom = axioms.iterator().next();
-        Assert.assertTrue(theAxiom.isAnnotated());
+        Assertions.assertTrue(theAxiom.isAnnotated());
     }
 
     @Test
@@ -177,7 +177,7 @@ public class FileRoundTripCorrectAxiomsTestCase extends TestBase {
                 .forEach(OWLAnnotation::isDeprecatedIRIAnnotation);
         OWLDataProperty prop = DataProperty(IRI("http://www.semanticweb.org/owlapi/test#", "prop"));
         Searcher.annotationObjects(ont.annotationAssertionAxioms(prop.getIRI(), Imports.INCLUDED))
-                .forEach(a -> Assert.assertTrue(a
+                .forEach(a -> Assertions.assertTrue(a
                         .isDeprecatedIRIAnnotation()));
     }
 
@@ -287,7 +287,7 @@ public class FileRoundTripCorrectAxiomsTestCase extends TestBase {
         IRI clsIRI = IRI("http://owlapi.sourceforge.net/ontology#", "ClsA");
         OWLClass cls = Class(clsIRI);
         OWLDeclarationAxiom ax = Declaration(cls);
-        Assert.assertTrue(ont.containsAxiom(ax));
+        Assertions.assertTrue(ont.containsAxiom(ax));
     }
 
     @Test
@@ -313,21 +313,21 @@ public class FileRoundTripCorrectAxiomsTestCase extends TestBase {
     public void testIsGCIMethodSubClassAxiom() {
         OWLClassExpression desc = ObjectIntersectionOf(clA, classC);
         OWLSubClassOfAxiom ax1 = SubClassOf(clA, clB);
-        Assert.assertFalse(ax1.isGCI());
+        Assertions.assertFalse(ax1.isGCI());
         OWLSubClassOfAxiom ax2 = SubClassOf(desc, clB);
-        Assert.assertTrue(ax2.isGCI());
+        Assertions.assertTrue(ax2.isGCI());
     }
 
     @Test
     public void testParsedAxiomsSubClassOfUntypedOWLClass() {
         OWLOntology ontology = ontologyFromClasspathFile("SubClassOfUntypedOWLClass.rdf");
         List<OWLSubClassOfAxiom> axioms = ontology.axioms(AxiomType.SUBCLASS_OF).collect(Collectors.toList());
-        Assert.assertEquals(1, axioms.size());
+        Assertions.assertEquals(1, axioms.size());
         OWLSubClassOfAxiom ax = axioms.iterator().next();
         OWLClass subCls = Class(IRI("http://www.semanticweb.org/owlapi/test#", "A"));
         OWLClass supCls = Class(IRI("http://www.semanticweb.org/owlapi/test#", "B"));
-        Assert.assertEquals(subCls, ax.getSubClass());
-        Assert.assertEquals(supCls, ax.getSuperClass());
+        Assertions.assertEquals(subCls, ax.getSubClass());
+        Assertions.assertEquals(supCls, ax.getSuperClass());
     }
 
     @Test
@@ -335,17 +335,17 @@ public class FileRoundTripCorrectAxiomsTestCase extends TestBase {
         OWLOntology ontology = ontologyFromClasspathFile("SubClassOfUntypedSomeValuesFrom.rdf");
         ReadWriteUtils.print(ontology);
         List<OWLSubClassOfAxiom> axioms = ontology.axioms(AxiomType.SUBCLASS_OF).collect(Collectors.toList());
-        Assert.assertEquals(1, axioms.size());
+        Assertions.assertEquals(1, axioms.size());
         OWLSubClassOfAxiom ax = axioms.iterator().next();
         OWLClass subCls = Class(IRI("http://www.semanticweb.org/owlapi/test#", "A"));
-        Assert.assertEquals(subCls, ax.getSubClass());
+        Assertions.assertEquals(subCls, ax.getSubClass());
         OWLClassExpression supCls = ax.getSuperClass();
-        Assert.assertTrue(supCls instanceof OWLObjectSomeValuesFrom);
+        Assertions.assertTrue(supCls instanceof OWLObjectSomeValuesFrom);
         OWLObjectSomeValuesFrom someValuesFrom = (OWLObjectSomeValuesFrom) supCls;
         OWLObjectProperty property = ObjectProperty(IRI("http://www.semanticweb.org/owlapi/test#", "P"));
         OWLClass fillerCls = Class(IRI("http://www.semanticweb.org/owlapi/test#", "C"));
-        Assert.assertEquals(property, someValuesFrom.getProperty());
-        Assert.assertEquals(fillerCls, someValuesFrom.getFiller());
+        Assertions.assertEquals(property, someValuesFrom.getProperty());
+        Assertions.assertEquals(fillerCls, someValuesFrom.getFiller());
     }
 
     @Test

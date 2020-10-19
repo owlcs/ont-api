@@ -34,8 +34,8 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.io.OWLOntologyLoaderMetaData;
 import org.semanticweb.owlapi.io.RDFOntologyHeaderStatus;
@@ -71,8 +71,8 @@ public class OWLTransformTest {
         Ontology o = OntManagers.createManager().loadOntologyFromOntologyDocument(src);
         ReadWriteUtils.print(o);
         o.saveOntology(OntFormat.FUNCTIONAL_SYNTAX.createOwlFormat(), ReadWriteUtils.NULL_OUT);
-        Assert.assertEquals(6, o.asGraphModel().size());
-        Assert.assertEquals(5, o.axioms().peek(x -> LOGGER.debug("Axiom: {}", x)).count());
+        Assertions.assertEquals(6, o.asGraphModel().size());
+        Assertions.assertEquals(5, o.axioms().peek(x -> LOGGER.debug("Axiom: {}", x)).count());
     }
 
     @Test
@@ -129,7 +129,7 @@ public class OWLTransformTest {
         TestUtils.assertAxiom(o, AxiomType.ANNOTATION_ASSERTION, 0);
         TestUtils.assertAxiom(o, AxiomType.SUB_PROPERTY_CHAIN_OF, 2);
 
-        Assert.assertEquals(132, o.getAxiomCount());
+        Assertions.assertEquals(132, o.getAxiomCount());
     }
 
     @Test
@@ -162,7 +162,7 @@ public class OWLTransformTest {
         TestUtils.assertAxiom(o, AxiomType.ANNOTATION_ASSERTION, 0);
         TestUtils.assertAxiom(o, AxiomType.SUB_PROPERTY_CHAIN_OF, 0);
 
-        Assert.assertEquals(96, o.getAxiomCount());
+        Assertions.assertEquals(96, o.getAxiomCount());
     }
 
     @Test
@@ -176,8 +176,8 @@ public class OWLTransformTest {
                 "ex:c    owl:unionOf  ( ex:x ex:y ) .";
         Ontology o = OntManagers.createManager().loadOntologyFromOntologyDocument(new StringDocumentSource(s));
         ReadWriteUtils.print(o);
-        Assert.assertEquals(3, o.axioms(AxiomType.DECLARATION).peek(x -> LOGGER.debug("DE: {}", x)).count());
-        Assert.assertEquals(1, o.axioms(AxiomType.EQUIVALENT_CLASSES).peek(x -> LOGGER.debug("EC: {}", x)).count());
+        Assertions.assertEquals(3, o.axioms(AxiomType.DECLARATION).peek(x -> LOGGER.debug("DE: {}", x)).count());
+        Assertions.assertEquals(1, o.axioms(AxiomType.EQUIVALENT_CLASSES).peek(x -> LOGGER.debug("EC: {}", x)).count());
     }
 
     @Test
@@ -206,7 +206,7 @@ public class OWLTransformTest {
         TestUtils.assertAxiom(o, AxiomType.DATA_PROPERTY_DOMAIN, 1);
         TestUtils.assertAxiom(o, AxiomType.DATA_PROPERTY_RANGE, 1);
         TestUtils.assertAxiom(o, AxiomType.EQUIVALENT_DATA_PROPERTIES, 1);
-        Assert.assertEquals(8, o.axioms().count());
+        Assertions.assertEquals(8, o.axioms().count());
     }
 
     @Test
@@ -220,10 +220,10 @@ public class OWLTransformTest {
         OWLOntologyLoaderMetaData meta = manager.getNonnullOntologyFormat(o)
                 .getOntologyLoaderMetaData().orElseThrow(AssertionError::new);
         print(meta);
-        Assert.assertEquals(RDFOntologyHeaderStatus.PARSED_ZERO_HEADERS, meta.getHeaderState());
-        Assert.assertEquals(0, meta.getUnparsedTriples().count());
-        Assert.assertEquals(1, meta.getGuessedDeclarations().size());
-        Assert.assertEquals(2, meta.getTripleCount());
+        Assertions.assertEquals(RDFOntologyHeaderStatus.PARSED_ZERO_HEADERS, meta.getHeaderState());
+        Assertions.assertEquals(0, meta.getUnparsedTriples().count());
+        Assertions.assertEquals(1, meta.getGuessedDeclarations().size());
+        Assertions.assertEquals(2, meta.getTripleCount());
     }
 
     @Test
@@ -243,17 +243,17 @@ public class OWLTransformTest {
         OntologyManager manager = OntManagers.createManager();
         Ontology o = manager.loadOntologyFromOntologyDocument(ReadWriteUtils.getStringDocumentSource(txt, OntFormat.TURTLE));
         ReadWriteUtils.print(o);
-        Assert.assertEquals(ontIRI, o.getOntologyID().getOntologyIRI().map(IRI::getIRIString).orElseThrow(AssertionError::new));
-        Assert.assertEquals(verIRI, o.getOntologyID().getVersionIRI().map(IRI::getIRIString).orElseThrow(AssertionError::new));
+        Assertions.assertEquals(ontIRI, o.getOntologyID().getOntologyIRI().map(IRI::getIRIString).orElseThrow(AssertionError::new));
+        Assertions.assertEquals(verIRI, o.getOntologyID().getVersionIRI().map(IRI::getIRIString).orElseThrow(AssertionError::new));
 
         OWLOntologyLoaderMetaData meta = manager.getNonnullOntologyFormat(o)
                 .getOntologyLoaderMetaData().orElseThrow(AssertionError::new);
         print(meta);
 
-        Assert.assertEquals(RDFOntologyHeaderStatus.PARSED_MULTIPLE_HEADERS, meta.getHeaderState());
-        Assert.assertEquals(0, meta.getUnparsedTriples().count());
-        Assert.assertEquals(1, meta.getGuessedDeclarations().size());
-        Assert.assertEquals(o.asGraphModel().size(), meta.getTripleCount());
+        Assertions.assertEquals(RDFOntologyHeaderStatus.PARSED_MULTIPLE_HEADERS, meta.getHeaderState());
+        Assertions.assertEquals(0, meta.getUnparsedTriples().count());
+        Assertions.assertEquals(1, meta.getGuessedDeclarations().size());
+        Assertions.assertEquals(o.asGraphModel().size(), meta.getTripleCount());
     }
 
     @Test
@@ -287,10 +287,10 @@ public class OWLTransformTest {
                 .getOntologyLoaderMetaData().orElseThrow(AssertionError::new);
         print(meta);
 
-        Assert.assertEquals(RDFOntologyHeaderStatus.PARSED_ONE_HEADER, meta.getHeaderState());
-        Assert.assertEquals(2, meta.getUnparsedTriples().count());
-        Assert.assertEquals(0, meta.getGuessedDeclarations().size());
-        Assert.assertEquals(o.asGraphModel().size(), meta.getTripleCount());
+        Assertions.assertEquals(RDFOntologyHeaderStatus.PARSED_ONE_HEADER, meta.getHeaderState());
+        Assertions.assertEquals(2, meta.getUnparsedTriples().count());
+        Assertions.assertEquals(0, meta.getGuessedDeclarations().size());
+        Assertions.assertEquals(o.asGraphModel().size(), meta.getTripleCount());
     }
 
     private static void print(OWLOntologyLoaderMetaData meta) {

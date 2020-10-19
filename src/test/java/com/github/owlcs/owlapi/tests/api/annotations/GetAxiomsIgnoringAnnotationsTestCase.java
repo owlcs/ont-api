@@ -15,8 +15,8 @@ package com.github.owlcs.owlapi.tests.api.annotations;
 
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.*;
 
 import java.util.Collections;
@@ -35,10 +35,10 @@ public class GetAxiomsIgnoringAnnotationsTestCase extends TestBase {
                 OWLFunctionalSyntaxFactory.Class(iri("B")), Collections.singleton(anno));
         OWLOntology ont = getOWLOntology();
         ont.getOWLOntologyManager().addAxiom(ont, axiom);
-        Assert.assertTrue(ont.axiomsIgnoreAnnotations(axiom).anyMatch(axiom::equals));
+        Assertions.assertTrue(ont.axiomsIgnoreAnnotations(axiom).anyMatch(axiom::equals));
         OWLAxiom noAnnotations = axiom.getAxiomWithoutAnnotations();
-        Assert.assertFalse(ont.axiomsIgnoreAnnotations(axiom).anyMatch(noAnnotations::equals));
-        Assert.assertTrue(ont.axiomsIgnoreAnnotations(noAnnotations).anyMatch(axiom::equals));
-        Assert.assertFalse(ont.axiomsIgnoreAnnotations(noAnnotations).anyMatch(noAnnotations::equals));
+        Assertions.assertFalse(ont.axiomsIgnoreAnnotations(axiom).anyMatch(noAnnotations::equals));
+        Assertions.assertTrue(ont.axiomsIgnoreAnnotations(noAnnotations).anyMatch(axiom::equals));
+        Assertions.assertFalse(ont.axiomsIgnoreAnnotations(noAnnotations).anyMatch(noAnnotations::equals));
     }
 }

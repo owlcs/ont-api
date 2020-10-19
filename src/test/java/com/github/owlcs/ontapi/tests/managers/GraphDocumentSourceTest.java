@@ -29,8 +29,8 @@ import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDFS;
-import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.formats.TurtleDocumentFormat;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.IRI;
@@ -62,16 +62,16 @@ public class GraphDocumentSourceTest {
         OntModel m = OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("/ontapi/pizza.ttl").getGraph());
         OntGraphDocumentSource s = OntGraphDocumentSource.wrap(m.getGraph());
         URI u1 = s.getDocumentIRI().toURI();
-        Assert.assertFalse(s.hasAlredyFailedOnStreams());
-        Assert.assertFalse(s.hasAlredyFailedOnIRIResolution());
+        Assertions.assertFalse(s.hasAlredyFailedOnStreams());
+        Assertions.assertFalse(s.hasAlredyFailedOnIRIResolution());
         InputStream a = s.getInputStream().orElseThrow(AssertionError::new);
         InputStream b = s.getInputStream().orElseThrow(AssertionError::new);
-        Assert.assertNotSame(a, b);
-        Assert.assertFalse(s.hasAlredyFailedOnStreams());
-        Assert.assertFalse(s.hasAlredyFailedOnIRIResolution());
-        Assert.assertEquals(u1, s.getDocumentIRI().toURI());
-        Assert.assertEquals(OntFormat.TURTLE, s.getOntFormat());
-        Assert.assertTrue(s.getFormat().orElseThrow(AssertionError::new) instanceof TurtleDocumentFormat);
+        Assertions.assertNotSame(a, b);
+        Assertions.assertFalse(s.hasAlredyFailedOnStreams());
+        Assertions.assertFalse(s.hasAlredyFailedOnIRIResolution());
+        Assertions.assertEquals(u1, s.getDocumentIRI().toURI());
+        Assertions.assertEquals(OntFormat.TURTLE, s.getOntFormat());
+        Assertions.assertTrue(s.getFormat().orElseThrow(AssertionError::new) instanceof TurtleDocumentFormat);
     }
 
     @Test
@@ -86,7 +86,7 @@ public class GraphDocumentSourceTest {
         Set<OWLAxiom> ontAxioms = ont.axioms().collect(Collectors.toSet());
         Set<OWLAxiom> owlAxioms = owl.axioms().collect(Collectors.toSet());
         LOGGER.debug("OWL Axioms Count={}, ONT Axioms Count={}", owlAxioms.size(), ontAxioms.size());
-        Assert.assertEquals(ontAxioms, owlAxioms);
+        Assertions.assertEquals(ontAxioms, owlAxioms);
     }
 
     @Test
@@ -101,8 +101,8 @@ public class GraphDocumentSourceTest {
         OntGraphDocumentSource src = OntGraphDocumentSource.wrap(c.getGraph());
         LOGGER.debug("Load graph from: {}", src.getDocumentIRI().toURI());
         m.loadOntologyFromOntologyDocument(src);
-        Assert.assertEquals(3, m.ontologies().count());
-        iris.forEach(i -> Assert.assertNotNull(m.getGraphModel(i)));
+        Assertions.assertEquals(3, m.ontologies().count());
+        iris.forEach(i -> Assertions.assertNotNull(m.getGraphModel(i)));
     }
 
     @Test
@@ -141,7 +141,7 @@ public class GraphDocumentSourceTest {
     }
 
     private void testBrokenOGDS(String graphName, OntGraphDocumentSource ogds) throws IOException {
-        Assert.assertFalse(ogds.hasAlredyFailedOnStreams());
+        Assertions.assertFalse(ogds.hasAlredyFailedOnStreams());
         IOException expected = null;
         try (InputStream is1 = ogds.getInputStream().orElseThrow(AssertionError::new)) {
             int x = is1.read();
@@ -149,13 +149,13 @@ public class GraphDocumentSourceTest {
         } catch (IOException e) {
             expected = e;
         }
-        Assert.assertNotNull(expected);
+        Assertions.assertNotNull(expected);
         LOGGER.debug("Message: {}", expected.getMessage());
-        Assert.assertTrue("Unexpected message: '" + expected.getMessage() + "'",
-                expected.getMessage().contains(graphName));
-        Assert.assertNotNull(expected.getCause());
+        Assertions.assertTrue(expected.getMessage().contains(graphName),
+                "Unexpected message: '" + expected.getMessage() + "'");
+        Assertions.assertNotNull(expected.getCause());
         LOGGER.debug("Cause: {}", expected.getCause().getMessage());
-        Assert.assertTrue("No fail?", ogds.hasAlredyFailedOnStreams());
+        Assertions.assertTrue(ogds.hasAlredyFailedOnStreams(), "No fail?");
         InputStream is2 = ogds.getInputStream().orElseThrow(AssertionError::new);
         try {
             is2.close();
@@ -180,21 +180,21 @@ public class GraphDocumentSourceTest {
 
         OntologyManager manager = OntManagers.createManager();
         Ontology o = manager.addOntology(u);
-        Assert.assertEquals(1, manager.ontologies().peek(x -> LOGGER.debug("Ontology: {}", x)).count());
-        Assert.assertNotNull(manager.getOntology(new ID(m1.getID())));
+        Assertions.assertEquals(1, manager.ontologies().peek(x -> LOGGER.debug("Ontology: {}", x)).count());
+        Assertions.assertNotNull(manager.getOntology(new ID(m1.getID())));
 
         // class declaration and annotation property assertion with anonymous individual
-        Assert.assertEquals(2, o.axioms().peek(x -> LOGGER.debug("AXIOM: {}", x)).count());
-        Assert.assertEquals(1, o.asGraphModel().ontObjects(OntIndividual.class)
+        Assertions.assertEquals(2, o.axioms().peek(x -> LOGGER.debug("AXIOM: {}", x)).count());
+        Assertions.assertEquals(1, o.asGraphModel().ontObjects(OntIndividual.class)
                 .peek(x -> LOGGER.debug("Individual: {}", x)).count());
 
-        Assert.assertTrue(o.asGraphModel().getBaseGraph() instanceof Union);
-        Assert.assertTrue(o.asGraphModel().getGraph() instanceof UnionGraph);
+        Assertions.assertTrue(o.asGraphModel().getBaseGraph() instanceof Union);
+        Assertions.assertTrue(o.asGraphModel().getGraph() instanceof UnionGraph);
 
         // serialization should fail:
         try (ObjectOutputStream stream = new ObjectOutputStream(new ByteArrayOutputStream())) {
             stream.writeObject(manager);
-            Assert.fail("Possible to serialize");
+            Assertions.fail("Possible to serialize");
         } catch (OntApiException e) {
             LOGGER.debug("Expected: '{}'", e.getMessage());
         } catch (IOException e) {
@@ -214,10 +214,10 @@ public class GraphDocumentSourceTest {
         OntGraphDocumentSource s1 = OntGraphDocumentSource.wrap(g.getBaseGraph());
         try {
             m.loadOntologyFromOntologyDocument(s1);
-            Assert.fail("No transforms are running");
+            Assertions.fail("No transforms are running");
         } catch (IllegalStateException e) {
             LOGGER.debug("Expected: {}", e.getMessage());
-            Assert.assertEquals(0, m.ontologies().count());
+            Assertions.assertEquals(0, m.ontologies().count());
         }
         OntGraphDocumentSource s2 = new OntGraphDocumentSource() {
             @Override
@@ -231,7 +231,7 @@ public class GraphDocumentSourceTest {
             }
         };
         Ontology o = m.loadOntologyFromOntologyDocument(s2);
-        Assert.assertNotNull(o);
-        Assert.assertEquals(1, m.ontologies().count());
+        Assertions.assertNotNull(o);
+        Assertions.assertEquals(1, m.ontologies().count());
     }
 }

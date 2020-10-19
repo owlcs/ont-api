@@ -15,9 +15,9 @@
 package com.github.owlcs.owlapi.tests.api;
 
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.formats.PrefixDocumentFormat;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.Imports;
@@ -54,10 +54,10 @@ public class GuessRDFSPropertyTypeTestCase extends TestBase {
     @Before
     public void setUp() {
         cidocOntology = ontologyFromClasspathFile(CIDOC_FILE, config);
-        Assert.assertNotNull(cidocOntology);
+        Assertions.assertNotNull(cidocOntology);
         OWLDocumentFormat format = cidocOntology.getFormat();
-        Assert.assertNotNull(format);
-        Assert.assertTrue(format.isPrefixOWLDocumentFormat());
+        Assertions.assertNotNull(format);
+        Assertions.assertTrue(format.isPrefixOWLDocumentFormat());
         prefixOWLDocumentFormat = format.asPrefixOWLDocumentFormat();
         prefixOWLDocumentFormat.setDefaultPrefix(CIDOC_PREFIX);
     }
@@ -79,9 +79,9 @@ public class GuessRDFSPropertyTypeTestCase extends TestBase {
                              String expectedSuperProperty) {
         IRI p11IRI = prefixOWLDocumentFormat.getIRI(propertyName);
         Set<OWLEntity> hadParticipant = cidocOntology.entitiesInSignature(p11IRI).collect(Collectors.toSet());
-        Assert.assertEquals("should have found " + propertyName, 1, hadParticipant.size());
+        Assertions.assertEquals(1, hadParticipant.size(), "should have found " + propertyName);
         OWLEntity entity = hadParticipant.iterator().next();
-        Assert.assertTrue("EntityType", OWLProperty.class.isAssignableFrom(entity.getClass()));
+        Assertions.assertTrue(OWLProperty.class.isAssignableFrom(entity.getClass()));
         if (entity.isOWLObjectProperty()) {
             testProperty(entity.asOWLObjectProperty(), expectedDomain, expectedRange, expectedSuperProperty);
         }
@@ -96,29 +96,29 @@ public class GuessRDFSPropertyTypeTestCase extends TestBase {
                               String expectedSuperProperty) {
         Stream<OWLClassExpression> rangeStream = Searcher.range(cidocOntology.objectPropertyRangeAxioms(p11property));
         Collection<OWLClassExpression> ranges = rangeStream.collect(Collectors.toSet());
-        Assert.assertEquals("should have 1 range", 1, ranges.size());
+        Assertions.assertEquals(1, ranges.size());
         HasIRI range = (HasIRI) ranges.iterator().next();
         IRI rangeIRI = range.getIRI();
         IRI expectedIRI = IRI.create(expectedRange);
         if (!expectedIRI.isAbsolute()) {
             expectedIRI = prefixOWLDocumentFormat.getIRI(expectedRange);
         }
-        Assert.assertEquals("range", expectedIRI, rangeIRI);
+        Assertions.assertEquals(expectedIRI, rangeIRI);
         Stream<OWLClassExpression> domainStream = Searcher.domain(cidocOntology.objectPropertyDomainAxioms(p11property));
         Collection<OWLClassExpression> domains = domainStream.collect(Collectors.toSet());
-        Assert.assertEquals("should have 1 domain", 1, domains.size());
+        Assertions.assertEquals(1, domains.size());
         HasIRI domain = (HasIRI) domains.iterator().next();
         IRI domainIRI = domain.getIRI();
-        Assert.assertEquals("domain should be E5_Event", prefixOWLDocumentFormat.getIRI(expectedDomain), domainIRI);
+        Assertions.assertEquals(prefixOWLDocumentFormat.getIRI(expectedDomain), domainIRI);
         Stream<OWLObjectPropertyExpression> superStream = Searcher.sup(cidocOntology.axioms(
                 Filters.subObjectPropertyWithSub, p11property, Imports.INCLUDED));
         Collection<OWLObjectPropertyExpression> superProperties = superStream.collect(Collectors.toSet());
         // Set<OWLPropertyExpression> superProperties =
         // p11_property.getSuperProperties(cidocOntology);
-        Assert.assertEquals("should have 1 super Property", 1, superProperties.size());
+        Assertions.assertEquals(1, superProperties.size());
         HasIRI superProperty = (HasIRI) superProperties.iterator().next();
         IRI superPropertyIRI = superProperty.getIRI();
-        Assert.assertEquals("super property ", prefixOWLDocumentFormat.getIRI(expectedSuperProperty), superPropertyIRI);
+        Assertions.assertEquals(prefixOWLDocumentFormat.getIRI(expectedSuperProperty), superPropertyIRI);
     }
 
     private void testProperty(OWLDataProperty p11property,
@@ -127,45 +127,45 @@ public class GuessRDFSPropertyTypeTestCase extends TestBase {
                               String expectedSuperProperty) {
         Stream<OWLClassExpression> rangeClasses = Searcher.range(cidocOntology.dataPropertyRangeAxioms(p11property));
         Collection<OWLClassExpression> ranges = rangeClasses.collect(Collectors.toSet());
-        Assert.assertEquals("should have 1 range", 1, ranges.size());
+        Assertions.assertEquals(1, ranges.size());
         HasIRI range = (HasIRI) ranges.iterator().next();
         IRI rangeIRI = range.getIRI();
         IRI expectedIRI = IRI.create(expectedRange);
         if (!expectedIRI.isAbsolute()) {
             expectedIRI = prefixOWLDocumentFormat.getIRI(expectedRange);
         }
-        Assert.assertEquals("range", expectedIRI, rangeIRI);
+        Assertions.assertEquals(expectedIRI, rangeIRI);
         Stream<OWLClassExpression> domainStream = Searcher.domain(cidocOntology.dataPropertyDomainAxioms(p11property));
         Collection<OWLClassExpression> domains = domainStream.collect(Collectors.toSet());
         // p11_property .getDomains(cidocOntology);
-        Assert.assertEquals("should have 1 domain", 1, domains.size());
+        Assertions.assertEquals(1, domains.size());
         HasIRI domain = (HasIRI) domains.iterator().next();
         IRI domainIRI = domain.getIRI();
-        Assert.assertEquals("domain should be E5_Event", prefixOWLDocumentFormat.getIRI(expectedDomain), domainIRI);
+        Assertions.assertEquals(prefixOWLDocumentFormat.getIRI(expectedDomain), domainIRI);
         Stream<OWLObjectPropertyExpression> supStream = Searcher.sup(cidocOntology.axioms(
                 Filters.subDataPropertyWithSub, p11property, Imports.INCLUDED));
         Collection<OWLObjectPropertyExpression> superProperties = supStream.collect(Collectors.toSet());
         // Set<OWLPropertyExpression> superProperties =
         // p11_property.getSuperProperties(cidocOntology);
-        Assert.assertEquals("should have 1 super Property", 1, superProperties.size());
+        Assertions.assertEquals(1, superProperties.size());
         HasIRI superProperty = (HasIRI) superProperties.iterator().next();
         IRI superPropertyIRI = superProperty.getIRI();
-        Assert.assertEquals("super property ", prefixOWLDocumentFormat.getIRI(expectedSuperProperty), superPropertyIRI);
+        Assertions.assertEquals(prefixOWLDocumentFormat.getIRI(expectedSuperProperty), superPropertyIRI);
     }
 
     @Test
     public void testObjectPropertyAndDataPropertySetsNonTriviallyDisjoint() {
         Set<OWLObjectProperty> objectProperties = cidocOntology.objectPropertiesInSignature().collect(Collectors.toSet());
         Set<OWLDataProperty> dataProperties = cidocOntology.dataPropertiesInSignature().collect(Collectors.toSet());
-        Assert.assertFalse("should have some object Properties", objectProperties.isEmpty());
-        Assert.assertFalse("should have some data Properties", dataProperties.isEmpty());
-        Assert.assertTrue("object properties and data properties should be disjoint", Collections.disjoint(objectProperties,
+        Assertions.assertFalse(objectProperties.isEmpty());
+        Assertions.assertFalse(dataProperties.isEmpty());
+        Assertions.assertTrue(Collections.disjoint(objectProperties,
                 dataProperties));
     }
 
     @Test
     public void testAnnotationPropertyCount() {
-        Assert.assertEquals("should only have 2 rdfs annotation properties", 2,
+        Assertions.assertEquals(2,
                 cidocOntology.annotationPropertiesInSignature(Imports.INCLUDED).count());
     }
 }

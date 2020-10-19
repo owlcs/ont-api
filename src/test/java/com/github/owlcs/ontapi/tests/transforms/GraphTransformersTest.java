@@ -42,9 +42,9 @@ import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.util.FileManager;
 import org.apache.jena.vocabulary.RDFS;
-import org.hamcrest.core.IsEqual;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.io.OWLOntologyLoaderMetaData;
 import org.semanticweb.owlapi.io.RDFOntologyHeaderStatus;
 import org.semanticweb.owlapi.model.*;
@@ -88,9 +88,9 @@ public class GraphTransformersTest {
         Ontology spinmapl = m.loadOntology(iri);
         String actualTree = Graphs.importsTreeAsString(spinmapl.asGraphModel().getGraph());
         LOGGER.debug("Tree:\n{}", actualTree);
-        Assert.assertEquals(27, actualTree.split("\n").length);
+        Assertions.assertEquals(27, actualTree.split("\n").length);
 
-        Assert.assertEquals(10, m.ontologies().count());
+        Assertions.assertEquals(10, m.ontologies().count());
         m.ontologies().forEach(o -> {
             IRI uri = o.getOntologyID().getOntologyIRI().orElseThrow(AssertionError::new);
             OWLDocumentFormat f = Optional.ofNullable(m.getOntologyFormat(o)).orElseThrow(AssertionError::new);
@@ -101,29 +101,29 @@ public class GraphTransformersTest {
                     d.getTripleCount(),
                     d.getUnparsedTriples().count(),
                     d.getGuessedDeclarations().size());
-            Assert.assertEquals(RDFOntologyHeaderStatus.PARSED_ONE_HEADER, d.getHeaderState());
+            Assertions.assertEquals(RDFOntologyHeaderStatus.PARSED_ONE_HEADER, d.getHeaderState());
             if (SpinModels.SMF_BASE.getIRI().equals(uri)) {
                 return;
             }
-            Assert.assertNotEquals("Wrong guessed declarations count for " + uri, 0, d.getGuessedDeclarations().size());
+            Assertions.assertNotEquals(0, d.getGuessedDeclarations().size());
         });
 
         Ontology spl = m.getOntology(SpinModels.SPL.getIRI());
-        Assert.assertNotNull("Can't find SPL", spl);
+        Assertions.assertNotNull(spl);
 
         //String splAsString = ReadWriteUtils.toString(spl.asGraphModel(), OntFormat.TURTLE);
         //LOGGER.debug(splAsString);
 
-        Assert.assertEquals("Incorrect spinmapl axioms count", axiomsCountSPINMAPL, spinmapl.getAxiomCount());
-        Assert.assertEquals("Incorrect total axioms count", axiomsCountTotal, spinmapl.axioms(Imports.INCLUDED).count());
+        Assertions.assertEquals(axiomsCountSPINMAPL, spinmapl.getAxiomCount());
+        Assertions.assertEquals(axiomsCountTotal, spinmapl.axioms(Imports.INCLUDED).count());
 
         OWLAnnotationProperty spText = m.getOWLDataFactory().getOWLAnnotationProperty(IRI.create(SP.text.getURI()));
         OWLAnnotationAssertionAxiom axiom = spl.axioms(AxiomType.ANNOTATION_ASSERTION).filter(a -> Objects.equals(a.getProperty(), spText))
                 .findAny().orElseThrow(() -> new AssertionError("Can't find any sp:text annotation assertion"));
         Optional<OWLLiteral> literal = axiom.getValue().asLiteral();
         Optional<OWLAnonymousIndividual> individual = axiom.getSubject().asAnonymousIndividual();
-        Assert.assertTrue("No literal", literal.isPresent());
-        Assert.assertTrue("No individual", individual.isPresent());
+        Assertions.assertTrue(literal.isPresent());
+        Assertions.assertTrue(individual.isPresent());
         LOGGER.debug("Axioms related to query <{}>", literal.get().getLiteral().replace("\n", " "));
         spl.referencingAxioms(individual.get()).map(String::valueOf).forEach(LOGGER::debug);
     }
@@ -143,7 +143,7 @@ public class GraphTransformersTest {
         //noinspection deprecation
         SpinModels.addMappings(FileManager.get());
         Ontology spin = m.loadOntology(SpinModels.SPINMAPL.getIRI());
-        Assert.assertEquals(10, m.ontologies().count());
+        Assertions.assertEquals(10, m.ontologies().count());
         m.ontologies().forEach(o -> {
             IRI uri = o.getOntologyID().getOntologyIRI().orElseThrow(AssertionError::new);
             OWLDocumentFormat f = Optional.ofNullable(m.getOntologyFormat(o)).orElseThrow(AssertionError::new);
@@ -154,11 +154,11 @@ public class GraphTransformersTest {
                     d.getTripleCount(),
                     d.getUnparsedTriples().count(),
                     d.getGuessedDeclarations().size());
-            Assert.assertEquals("Wrong guessed declarations count for " + uri, 0, d.getGuessedDeclarations().size());
+            Assertions.assertEquals(0, d.getGuessedDeclarations().size(), "Wrong guessed declarations count for " + uri);
         });
-        Assert.assertNotNull(m.getOntology(SpinModels.SPL.getIRI()));
+        Assertions.assertNotNull(m.getOntology(SpinModels.SPL.getIRI()));
 
-        Assert.assertEquals(1098, spin.axioms(Imports.INCLUDED).count());
+        Assertions.assertEquals(1098, spin.axioms(Imports.INCLUDED).count());
         spin.axioms(Imports.INCLUDED)
                 .collect(Collectors.groupingBy(OWLAxiom::getAxiomType))
                 .forEach((type, axioms) -> {
@@ -177,8 +177,8 @@ public class GraphTransformersTest {
 
     private static void assertGraphSize(OntologyManager m, SpinModels ont, long count) {
         Ontology o = m.getOntology(ont.getIRI());
-        Assert.assertNotNull(o);
-        Assert.assertEquals(count, o.asGraphModel().localStatements().count());
+        Assertions.assertNotNull(o);
+        Assertions.assertEquals(count, o.asGraphModel().localStatements().count());
     }
 
     @Test // todo: old test - seems to be irrelevant now. delete or fix
@@ -242,15 +242,15 @@ public class GraphTransformersTest {
         OntologyManager m = OntManagers.createManager();
         m.getOntologyConfigurator().setPersonality(OntModelConfig.ONT_PERSONALITY_LAX);
         Ontology o = m.loadOntology(file);
-        Assert.assertTrue("No ontology", m.contains(iri));
+        Assertions.assertTrue(m.contains(iri));
 
         ReadWriteUtils.print(o);
         o.axioms().map(String::valueOf).forEach(LOGGER::debug);
 
-        Assert.assertNull("rdfs:Literal should not be class", o.asGraphModel().getOntClass(RDFS.Literal));
-        Assert.assertEquals("Should be DataAllValuesFrom", 1, o.asGraphModel().ontObjects(OntClass.DataAllValuesFrom.class).count());
-        Assert.assertNotNull(SWRL.argument2 + " should be data property", o.asGraphModel().getDataProperty(SWRL.argument2));
-        Assert.assertNotNull(SWRL.argument2 + " should be object property", o.asGraphModel().getObjectProperty(SWRL.argument2));
+        Assertions.assertNull(o.asGraphModel().getOntClass(RDFS.Literal));
+        Assertions.assertEquals(1, o.asGraphModel().ontObjects(OntClass.DataAllValuesFrom.class).count());
+        Assertions.assertNotNull(o.asGraphModel().getDataProperty(SWRL.argument2), SWRL.argument2 + " should be data property");
+        Assertions.assertNotNull(o.asGraphModel().getObjectProperty(SWRL.argument2), SWRL.argument2 + " should be object property");
     }
 
     @Test
@@ -260,12 +260,12 @@ public class GraphTransformersTest {
         Transform last = Transform.Factory.create(SWRLTransform.class); //OWLDeclarationTransform.class;
 
         GraphTransformers store = GraphTransformers.get();
-        Assert.assertSame(store, GraphTransformers.get());
-        Assert.assertEquals(num, store.transforms().peek(x -> LOGGER.debug("Store:::{}", x.id())).count());
-        Assert.assertTrue(store.get(first.id()).isPresent());
+        Assertions.assertSame(store, GraphTransformers.get());
+        Assertions.assertEquals(num, store.transforms().peek(x -> LOGGER.debug("Store:::{}", x.id())).count());
+        Assertions.assertTrue(store.get(first.id()).isPresent());
         List<String> ids = store.transforms().map(Transform::id).collect(Collectors.toList());
-        Assert.assertEquals(first.id(), ids.get(0));
-        Assert.assertEquals(last.id(), ids.get(ids.size() - 1));
+        Assertions.assertEquals(first.id(), ids.get(0));
+        Assertions.assertEquals(last.id(), ids.get(ids.size() - 1));
         Transform maker = Transform.Factory.create("a", g -> new TransformationModel(g) {
             @Override
             public void perform() throws TransformException {
@@ -274,21 +274,21 @@ public class GraphTransformersTest {
         });
         GraphTransformers store1 = store.insertAfter(first.id(), maker);
         store1.transforms().map(Transform::id).forEach(x -> LOGGER.debug("Store1:::{}", x));
-        Assert.assertNotEquals(store, store1);
-        Assert.assertEquals(num, store.transforms().count());
+        Assertions.assertNotEquals(store, store1);
+        Assertions.assertEquals(num, store.transforms().count());
         List<String> ids1 = store1.transforms().map(Transform::id).collect(Collectors.toList());
-        Assert.assertEquals(num + 1, ids1.size());
+        Assertions.assertEquals(num + 1, ids1.size());
         Assert.assertEquals("a", ids1.get(1));
 
         GraphTransformers store2 = store1.removeFirst();
-        Assert.assertNotEquals(store1, store2);
-        Assert.assertEquals(num + 1, store1.transforms().count());
-        Assert.assertEquals(num, store2.transforms().count());
+        Assertions.assertNotEquals(store1, store2);
+        Assertions.assertEquals(num + 1, store1.transforms().count());
+        Assertions.assertEquals(num, store2.transforms().count());
 
         GraphTransformers store3 = store1.remove(OWLCommonTransform.class.getSimpleName());
-        Assert.assertNotEquals(store1, store3);
-        Assert.assertEquals(num + 1, store1.transforms().count());
-        Assert.assertEquals(num, store3.transforms().peek(x -> LOGGER.debug("Store3:::{}", x.id())).count());
+        Assertions.assertNotEquals(store1, store3);
+        Assertions.assertEquals(num + 1, store1.transforms().count());
+        Assertions.assertEquals(num, store3.transforms().peek(x -> LOGGER.debug("Store3:::{}", x.id())).count());
 
         GraphTransformers store4 = store3.removeLast().removeLast().removeLast()
                 .addLast(g -> {
@@ -302,7 +302,7 @@ public class GraphTransformersTest {
                 })
                 .setFilter(Graph::isEmpty);
 
-        Assert.assertEquals(num - 2, store4.transforms().peek(s -> LOGGER.debug("Store4::::{}", s.id())).count());
+        Assertions.assertEquals(num - 2, store4.transforms().peek(s -> LOGGER.debug("Store4::::{}", s.id())).count());
         Model m1 = ModelFactory.createDefaultModel();
         OntModel m2 = OntModelFactory.createModel().setID("http://x").getModel();
         store4.transform(m2.getGraph());
@@ -310,15 +310,15 @@ public class GraphTransformersTest {
 
         // test m1:
         ReadWriteUtils.print(m1);
-        Assert.assertEquals(3, m1.listStatements().toList().size());
-        Assert.assertTrue(m1.contains(m1.getResource("some"), RDF.type, RDFS.Datatype));
-        Assert.assertTrue(m1.contains(null, OWL.versionIRI, m1.getResource("http://ver")));
-        Assert.assertEquals(1, m1.listResourcesWithProperty(RDF.type, OWL.Ontology).filterKeep(RDFNode::isAnon).toSet().size());
+        Assertions.assertEquals(3, m1.listStatements().toList().size());
+        Assertions.assertTrue(m1.contains(m1.getResource("some"), RDF.type, RDFS.Datatype));
+        Assertions.assertTrue(m1.contains(null, OWL.versionIRI, m1.getResource("http://ver")));
+        Assertions.assertEquals(1, m1.listResourcesWithProperty(RDF.type, OWL.Ontology).filterKeep(RDFNode::isAnon).toSet().size());
 
         // test m2 (should be unchanged):
         ReadWriteUtils.print(m2);
         Assert.assertEquals("http://x", m2.getID().getURI());
-        Assert.assertEquals(1, m2.statements().count());
+        Assertions.assertEquals(1, m2.statements().count());
     }
 
     @Test
@@ -333,7 +333,7 @@ public class GraphTransformersTest {
                     public Stream<Triple> apply(Graph g) {
                         String n = Graphs.getName(g);
                         LOGGER.debug("Test {} on {}", id(), n);
-                        Assert.assertTrue("Already processed: " + n, processed.add(n));
+                        Assertions.assertTrue(processed.add(n), "Already processed: " + n);
                         return Stream.empty();
                     }
 
@@ -357,19 +357,19 @@ public class GraphTransformersTest {
         String d_txt = ReadWriteUtils.toString(d, OntFormat.TURTLE);
 
         m.loadOntologyFromOntologyDocument(ReadWriteUtils.getStringDocumentSource(c_txt, OntFormat.TURTLE));
-        Assert.assertEquals(3, m.ontologies().count());
+        Assertions.assertEquals(3, m.ontologies().count());
 
         m.loadOntologyFromOntologyDocument(ReadWriteUtils.getStringDocumentSource(d_txt, OntFormat.TURTLE));
-        Assert.assertEquals(4, m.ontologies().count());
+        Assertions.assertEquals(4, m.ontologies().count());
 
-        iris.forEach(i -> Assert.assertNotNull(m.getGraphModel(i)));
+        iris.forEach(i -> Assertions.assertNotNull(m.getGraphModel(i)));
     }
 
     @SuppressWarnings("unused")
     private static void signatureTest(OWLOntology owl, OntModel jena) {
         List<String> expectedClasses = owlToList(owl.classesInSignature(Imports.INCLUDED));
         List<String> actualClasses = jenaToList(jena.classes());
-        Assert.assertTrue("Classes", actualClasses.containsAll(expectedClasses));
+        Assertions.assertTrue(actualClasses.containsAll(expectedClasses));
 
         List<String> expectedAnnotationProperties = owlToList(owl.annotationPropertiesInSignature(Imports.INCLUDED));//, RDFS.comment, RDFS.label, OWL2.deprecated, OWL.versionInfo);
         List<String> actualAnnotationProperties = jenaToList(jena.annotationProperties());
@@ -381,17 +381,17 @@ public class GraphTransformersTest {
         LOGGER.debug("Actual ObjectProperties: " + actualObjectProperties);
         LOGGER.debug("Actual DataProperties: " + actualDataProperties);
 
-        Assert.assertThat("AnnotationProperties", actualAnnotationProperties, IsEqual.equalTo(expectedAnnotationProperties));
-        //Assert.assertThat("DataProperties", actualDataProperties, IsEqual.equalTo(expectedDataProperties));
-        //Assert.assertThat("ObjectProperties", actualObjectProperties, IsEqual.equalTo(expectedObjectProperties));
+        Assertions.assertEquals(expectedAnnotationProperties, actualAnnotationProperties);
+        //Assertions.assertThat(actualDataProperties, IsEqual.equalTo(expectedDataProperties));
+        //Assertions.assertThat(actualObjectProperties, IsEqual.equalTo(expectedObjectProperties));
 
         List<String> expectedDatatypes = owlToList(owl.datatypesInSignature(Imports.INCLUDED));
         List<String> actualDatatypes = jenaToList(jena.datatypes());
-        Assert.assertThat("Datatypes", actualDatatypes, IsEqual.equalTo(expectedDatatypes));
+        Assertions.assertEquals(expectedDatatypes, actualDatatypes);
 
         List<String> expectedIndividuals = owlToList(owl.individualsInSignature(Imports.INCLUDED));
         List<String> actualIndividuals = jenaToList(jena.namedIndividuals());
-        Assert.assertThat("Individuals", actualIndividuals, IsEqual.equalTo(expectedIndividuals));
+        Assertions.assertEquals(expectedIndividuals, actualIndividuals);
     }
 
     private static boolean isNotBuiltIn(OWLEntity entity) {

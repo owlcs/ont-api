@@ -16,9 +16,9 @@ package com.github.owlcs.owlapi.tests.util;
 
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLProperty;
@@ -51,12 +51,12 @@ public class EntitySearcherTestCase extends TestBase {
     @Test
     public void testShouldReturnSuperProperty() {
         List<OWLProperty> supers = EntitySearcher.getSuperProperties(subProperty, ontologies.stream()).collect(Collectors.toList());
-        Assert.assertTrue(supers.toString(), supers.contains(superProperty));
+        Assertions.assertTrue(supers.contains(superProperty));
     }
 
     @Test
     public void testShouldReturnSubProperty() {
         Stream<OWLProperty> subs = EntitySearcher.getSubProperties(superProperty, ontologies.stream());
-        Assert.assertTrue(subs.anyMatch(x -> x.equals(subProperty)));
+        Assertions.assertTrue(subs.anyMatch(x -> x.equals(subProperty)));
     }
 }
