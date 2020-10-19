@@ -15,8 +15,8 @@ package com.github.owlcs.owlapi.tests.api;
 
 import com.github.owlcs.ontapi.jena.impl.conf.OntModelConfig;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.AutoIRIMapper;
 import org.semanticweb.owlapi.util.DefaultPrefixManager;

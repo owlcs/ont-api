@@ -20,8 +20,6 @@ import com.github.owlcs.ontapi.OntologyModelImpl;
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.OWLManager;
 import com.github.owlcs.owlapi.tests.api.anonymous.AnonymousIndividualsNormaliser;
-import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -72,7 +70,6 @@ public abstract class TestBase {
         return OWLManager.createOWLOntologyManager();
     }
 
-    @BeforeClass
     @BeforeAll
     public static void setupManagers() {
         masterManager = createOWLManager();
@@ -307,7 +304,6 @@ public abstract class TestBase {
         }
     }
 
-    @Before
     @BeforeEach
     public void setupManagersClean() {
         m = setupManager();

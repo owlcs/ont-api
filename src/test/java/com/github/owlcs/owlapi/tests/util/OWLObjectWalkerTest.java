@@ -15,9 +15,9 @@
 package com.github.owlcs.owlapi.tests.util;
 
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Before;
-import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.AnnotationWalkingControl;
 import org.semanticweb.owlapi.util.OWLObjectWalker;
@@ -36,7 +36,7 @@ public class OWLObjectWalkerTest extends TestBase {
     private OWLAnnotation goodbye;
     private OWLAnnotation hello;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         ap = df.getOWLAnnotationProperty(iri("ap"));
         cruelWorld = df.getOWLAnnotation(ap, df.getOWLLiteral("cruel world"));

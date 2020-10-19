@@ -15,8 +15,8 @@ package com.github.owlcs.owlapi.tests.api.ontology;
 
 import com.github.owlcs.ontapi.owlapi.objects.OWLLiteralImpl;
 import com.github.owlcs.owlapi.OWLManager;
-import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLDatatype;
 import org.semanticweb.owlapi.model.OWLLiteral;

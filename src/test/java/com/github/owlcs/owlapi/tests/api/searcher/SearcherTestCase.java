@@ -15,8 +15,8 @@ package com.github.owlcs.owlapi.tests.api.searcher;
 
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.search.Filters;

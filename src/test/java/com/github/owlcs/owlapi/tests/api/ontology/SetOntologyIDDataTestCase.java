@@ -13,9 +13,9 @@
  */
 package com.github.owlcs.owlapi.tests.api.ontology;
 
-import org.junit.Before;
-import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.semanticweb.owlapi.change.SetOntologyIDData;
 import org.semanticweb.owlapi.model.IRI;
@@ -33,7 +33,7 @@ public class SetOntologyIDDataTestCase {
     private final OWLOntology mockOntology = Mockito.mock(OWLOntology.class);
     private final OWLOntologyID mockOntologyID = new OWLOntologyID();
 
-    @Before
+    @BeforeEach
     public void setUp() {
         Mockito.when(mockOntology.getOntologyID()).thenReturn(new OWLOntologyID(Optional.of(IRI.create("urn:test:", "onto1")),
                 Optional.of(IRI.create("urn:test:", "onto1_1"))));

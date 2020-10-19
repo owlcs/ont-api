@@ -15,9 +15,9 @@
 package com.github.owlcs.owlapi.tests.api;
 
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Before;
-import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.formats.PrefixDocumentFormat;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.Imports;
@@ -51,7 +51,7 @@ public class GuessRDFSPropertyTypeTestCase extends TestBase {
     private OWLOntology cidocOntology;
     private PrefixDocumentFormat prefixOWLDocumentFormat;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         cidocOntology = ontologyFromClasspathFile(CIDOC_FILE, config);
         Assertions.assertNotNull(cidocOntology);

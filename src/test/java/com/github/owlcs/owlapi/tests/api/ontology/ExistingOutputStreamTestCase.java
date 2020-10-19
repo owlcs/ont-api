@@ -14,8 +14,8 @@
 package com.github.owlcs.owlapi.tests.api.ontology;
 
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.formats.*;
 import org.semanticweb.owlapi.io.StringDocumentTarget;
 import org.semanticweb.owlapi.model.OWLDocumentFormat;

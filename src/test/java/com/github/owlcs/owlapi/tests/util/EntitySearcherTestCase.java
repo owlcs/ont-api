@@ -16,9 +16,9 @@ package com.github.owlcs.owlapi.tests.util;
 
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Before;
-import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLProperty;
@@ -38,7 +38,7 @@ public class EntitySearcherTestCase extends TestBase {
     private OWLObjectProperty subProperty;
     private Set<OWLOntology> ontologies;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         PrefixManager pm = new DefaultPrefixManager();
         pm.setDefaultPrefix("http://www.ontologies.com/ontology");

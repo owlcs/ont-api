@@ -15,8 +15,8 @@
 package com.github.owlcs.owlapi.tests.api.syntax.rdfxml;
 
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.io.StringDocumentTarget;

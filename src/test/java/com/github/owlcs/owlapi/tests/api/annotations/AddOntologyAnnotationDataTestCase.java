@@ -13,8 +13,8 @@
  */
 package com.github.owlcs.owlapi.tests.api.annotations;
 
-import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.semanticweb.owlapi.change.AddOntologyAnnotationData;
 import org.semanticweb.owlapi.model.AddOntologyAnnotation;

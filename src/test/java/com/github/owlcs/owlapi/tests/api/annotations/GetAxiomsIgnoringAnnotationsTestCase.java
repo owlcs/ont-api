@@ -15,8 +15,8 @@ package com.github.owlcs.owlapi.tests.api.annotations;
 
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.model.*;
 
 import java.util.Collections;

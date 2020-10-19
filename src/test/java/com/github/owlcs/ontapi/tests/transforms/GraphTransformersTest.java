@@ -42,9 +42,8 @@ import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.util.FileManager;
 import org.apache.jena.vocabulary.RDFS;
-import org.junit.Assert;
-import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.io.OWLOntologyLoaderMetaData;
 import org.semanticweb.owlapi.io.RDFOntologyHeaderStatus;
 import org.semanticweb.owlapi.model.*;
@@ -278,7 +277,7 @@ public class GraphTransformersTest {
         Assertions.assertEquals(num, store.transforms().count());
         List<String> ids1 = store1.transforms().map(Transform::id).collect(Collectors.toList());
         Assertions.assertEquals(num + 1, ids1.size());
-        Assert.assertEquals("a", ids1.get(1));
+        Assertions.assertEquals("a", ids1.get(1));
 
         GraphTransformers store2 = store1.removeFirst();
         Assertions.assertNotEquals(store1, store2);
@@ -317,7 +316,7 @@ public class GraphTransformersTest {
 
         // test m2 (should be unchanged):
         ReadWriteUtils.print(m2);
-        Assert.assertEquals("http://x", m2.getID().getURI());
+        Assertions.assertEquals("http://x", m2.getID().getURI());
         Assertions.assertEquals(1, m2.statements().count());
     }
 

@@ -30,9 +30,9 @@ import com.github.owlcs.ontapi.utils.SpinModels;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.util.FileManager;
 import org.apache.jena.vocabulary.RDF;
-import org.junit.Before;
-import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,7 +60,7 @@ public class SpinMappingTest {
 
     protected OntologyManager manager;
 
-    @Before
+    @BeforeEach
     public void before() {
         LOGGER.debug("Set up manager.");
         manager = OntManagers.createManager();

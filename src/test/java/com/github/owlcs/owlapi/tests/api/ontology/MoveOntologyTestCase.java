@@ -16,9 +16,9 @@ package com.github.owlcs.owlapi.tests.api.ontology;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.owlapi.OWLManager;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Before;
-import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -57,7 +57,7 @@ public class MoveOntologyTestCase extends TestBase {
         return s.collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
-    @Before
+    @BeforeEach
     public void setUp() throws OWLOntologyCreationException {
         m.createOntology(IRI.create("urn:test#", "test"));
     }

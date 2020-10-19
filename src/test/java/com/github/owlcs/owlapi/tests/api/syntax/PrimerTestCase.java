@@ -15,9 +15,9 @@
 package com.github.owlcs.owlapi.tests.api.syntax;
 
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Before;
-import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.formats.*;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.profiles.OWL2DLProfile;
@@ -101,7 +101,7 @@ public class PrimerTestCase extends TestBase {
             + " </rdf:RDF>";
     OWL2DLProfile profile = new OWL2DLProfile();
 
-    @Before
+    @BeforeEach
     public void setUpProfile() {
         Assertions.assertTrue(profile.checkOntology(func).isInProfile());
     }

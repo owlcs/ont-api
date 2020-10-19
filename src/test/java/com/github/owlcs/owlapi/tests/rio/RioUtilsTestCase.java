@@ -19,9 +19,9 @@ import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
-import org.junit.Before;
-import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.io.RDFLiteral;
 import org.semanticweb.owlapi.io.RDFResourceBlankNode;
 import org.semanticweb.owlapi.io.RDFResourceIRI;
@@ -51,7 +51,7 @@ public class RioUtilsTestCase {
     private Statement testSesameTripleObjectBNode;
     private Statement testSesameTripleSubjectObjectBNode;
 
-    @Before
+    @BeforeEach
     public void setUp() {
         RDFResourceIRI testOwlApiSubjectUri1 = new RDFResourceIRI(IRI.create("urn:test:subject:uri:1", ""));
         RDFResourceIRI testOwlApiPredicateUri1 = new RDFResourceIRI(IRI.create("urn:test:predicate:uri:1", ""));

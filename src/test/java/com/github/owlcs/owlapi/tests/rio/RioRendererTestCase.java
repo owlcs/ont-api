@@ -25,9 +25,9 @@ import org.eclipse.rdf4j.rio.RDFParser;
 import org.eclipse.rdf4j.rio.RDFWriter;
 import org.eclipse.rdf4j.rio.Rio;
 import org.eclipse.rdf4j.rio.helpers.StatementCollector;
-import org.junit.Before;
-import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.rio.*;
@@ -56,7 +56,7 @@ public class RioRendererTestCase extends TestBase {
     private StringWriter testNTriplesStringWriter;
     private RDFWriter testNTriplesRioWriter;
 
-    @Before
+    @BeforeEach
     public void setUp() throws Exception {
         vf = SimpleValueFactory.getInstance();
         m.getOntologyStorers()

@@ -14,10 +14,10 @@
 package com.github.owlcs.owlapi.tests.api.baseclasses;
 
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
@@ -116,12 +116,12 @@ public class ReasonerTestCase extends TestBase {
         return OWLFunctionalSyntaxFactory.Class(iri("A"));
     }
 
-    @Before
+    @BeforeEach
     public void setUpOntoAndReasoner() {
         reasoner = reasonerFactory.createReasoner(createOntology());
     }
 
-    @After
+    @AfterEach
     public void tearDown() {
         reasoner.dispose();
     }

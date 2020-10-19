@@ -30,8 +30,8 @@ import com.github.owlcs.ontapi.utils.OntIRI;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.util.ResourceUtils;
 import org.apache.jena.vocabulary.RDFS;
-import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.model.*;
 
 import java.util.*;

@@ -15,9 +15,9 @@ package com.github.owlcs.owlapi.tests.api.annotations;
 
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Before;
-import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.io.StringDocumentTarget;
@@ -53,7 +53,7 @@ public class SWRLAnnotationTestCase extends TestBase {
     protected OWLClass b = OWLFunctionalSyntaxFactory.Class(OWLFunctionalSyntaxFactory.IRI(NS + "#", "B"));
     protected OWLAxiom axiom;
 
-    @Before
+    @BeforeEach
     public void setUpAtoms() {
         SWRLVariable x = df.getSWRLVariable(NS + "#", "x");
         SWRLAtom atom1 = df.getSWRLClassAtom(a, x);

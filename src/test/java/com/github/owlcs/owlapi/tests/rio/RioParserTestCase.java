@@ -15,9 +15,9 @@
 package com.github.owlcs.owlapi.tests.rio;
 
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Before;
-import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.formats.RioRDFXMLDocumentFormat;
 import org.semanticweb.owlapi.formats.RioRDFXMLDocumentFormatFactory;
@@ -34,7 +34,7 @@ import org.semanticweb.owlapi.rio.RioRDFXMLParserFactory;
  */
 public class RioParserTestCase extends TestBase {
 
-    @Before
+    @BeforeEach
     public void setUpManager() {
         // Use non-Rio storers
         // limit to Rio parsers for RioParserImpl Test

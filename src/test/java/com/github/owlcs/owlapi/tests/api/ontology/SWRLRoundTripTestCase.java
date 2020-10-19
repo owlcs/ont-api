@@ -15,9 +15,9 @@ package com.github.owlcs.owlapi.tests.api.ontology;
 
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Ignore;
-import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.formats.*;
 import org.semanticweb.owlapi.io.StringDocumentTarget;
 import org.semanticweb.owlapi.model.*;
@@ -124,7 +124,7 @@ public class SWRLRoundTripTestCase extends TestBase {
         return r.annotations(df.getRDFSLabel()).count() == 0;
     }
 
-    @Ignore("man syntax does not like annotations")
+    @Disabled("man syntax does not like annotations")
     @Test
     public void testShouldDoCompleteRoundtripWithAnnotationsMan() throws Exception {
         OWLOntology ontology = prepareOntology();

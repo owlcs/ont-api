@@ -13,8 +13,8 @@
  */
 package com.github.owlcs.owlapi.tests.api;
 
-import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 public class OWLObjectTypeIndexProviderTestCase {
 

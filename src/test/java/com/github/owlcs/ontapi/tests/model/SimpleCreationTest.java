@@ -22,10 +22,10 @@ import com.github.owlcs.ontapi.jena.OntModelFactory;
 import com.github.owlcs.ontapi.utils.OntIRI;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import org.apache.log4j.Logger;
-import org.junit.After;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.model.*;
 
 /**
@@ -36,14 +36,14 @@ import org.semanticweb.owlapi.model.*;
 public class SimpleCreationTest {
     private static final Logger LOGGER = Logger.getLogger(SimpleCreationTest.class);
 
-    @BeforeClass
+    @BeforeAll
     public static void before() {
         LOGGER.debug("Before -- START");
         OntModelFactory.init();
         LOGGER.debug("Before -- END");
     }
 
-    @After
+    @AfterEach
     public void after() {
         LOGGER.debug("After");
     }

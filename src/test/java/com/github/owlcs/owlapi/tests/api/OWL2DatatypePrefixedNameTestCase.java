@@ -14,8 +14,8 @@
 
 package com.github.owlcs.owlapi.tests.api;
 
-import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 
 import static org.semanticweb.owlapi.vocab.OWL2Datatype.*;
 

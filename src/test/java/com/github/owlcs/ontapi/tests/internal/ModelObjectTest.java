@@ -16,8 +16,8 @@ package com.github.owlcs.ontapi.tests.internal;
 
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.internal.objects.ModelObject;
-import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -13,8 +13,8 @@
  */
 package com.github.owlcs.owlapi.tests.api.imports;
 
-import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.semanticweb.owlapi.change.AddImportData;
 import org.semanticweb.owlapi.model.AddImport;

@@ -16,10 +16,10 @@ package com.github.owlcs.owlapi.tests.decomposition;
 
 import com.github.owlcs.owlapi.OWLManager;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapitools.decomposition.AxiomWrapper;
 import org.semanticweb.owlapitools.decomposition.SemanticLocalityChecker;
@@ -30,7 +30,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Stream;
 
-@Ignore
+@Disabled
 public class SemanticLocalityTestCase {
 
     private static final String NS = "urn:test#";
@@ -63,7 +63,7 @@ public class SemanticLocalityTestCase {
     private SemanticLocalityChecker testSubject;
 
     @SuppressWarnings("ConstantConditions")
-    @Before
+    @BeforeEach
     public void setUp() {
         // XXX add a reasoner factory
         testSubject = new SemanticLocalityChecker(null, TestBase.createOWLManager());

@@ -15,9 +15,9 @@ package com.github.owlcs.owlapi.tests.api.syntax;
 
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Before;
-import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.formats.FunctionalSyntaxDocumentFormat;
 import org.semanticweb.owlapi.model.*;
 
@@ -35,7 +35,7 @@ public class InvalidAxiomRoundTripTestCase extends TestBase {
         Assertions.assertEquals(1, reloaded.getLogicalAxiomCount());
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
         o = getOWLOntology();
     }

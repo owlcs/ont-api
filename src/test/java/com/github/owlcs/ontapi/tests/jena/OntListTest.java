@@ -29,8 +29,8 @@ import org.apache.jena.rdf.model.*;
 import org.apache.jena.util.iterator.NullIterator;
 import org.apache.jena.vocabulary.RDFS;
 import org.apache.jena.vocabulary.XSD;
-import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

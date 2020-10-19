@@ -15,9 +15,9 @@
 package com.github.owlcs.owlapi.tests.decomposition;
 
 import com.github.owlcs.owlapi.OWLManager;
-import org.junit.Before;
-import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapitools.decomposition.AxiomWrapper;
 import org.semanticweb.owlapitools.decomposition.Signature;
@@ -501,7 +501,7 @@ public class SyntacticLocalityTestCase {
         Assertions.assertEquals(ax.signature().collect(Collectors.toSet()), testSubject.getSignature().getSignature());
     }
 
-    @Before
+    @BeforeEach
     public void setUp() {
         testSubject = new SyntacticLocalityChecker();
     }

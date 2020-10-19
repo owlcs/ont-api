@@ -15,9 +15,9 @@ package com.github.owlcs.owlapi.tests.api.ontology;
 
 import com.github.owlcs.owlapi.OWLManager;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Before;
-import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.model.*;
 
 import java.util.Set;
@@ -30,7 +30,7 @@ public class OWLOntologyManagerImplTestCase extends TestBase {
 
     private OWLOntologyManager manager;
 
-    @Before
+    @BeforeEach
     public void setUpManager() {
         manager = OWLManager.createOWLOntologyManager();
         //manager = new OWLOntologyManagerImpl(new OWLDataFactoryImpl(), new ReentrantReadWriteLock());

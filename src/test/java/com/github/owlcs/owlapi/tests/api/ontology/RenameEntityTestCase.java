@@ -16,9 +16,9 @@ package com.github.owlcs.owlapi.tests.api.ontology;
 import com.github.owlcs.owlapi.OWLManager;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import com.google.common.collect.Sets;
-import org.junit.Before;
-import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.OWLAPIStreamUtils;
 import org.semanticweb.owlapi.util.OWLEntityRenamer;
@@ -36,7 +36,7 @@ import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
  * @author Matthew Horridge, The University of Manchester, Information Management Group
  */
 public class RenameEntityTestCase extends TestBase {
-    @Before
+    @BeforeEach
     public void setupManagersClean() {
         super.setupManagersClean();
         if (OWLManager.DEBUG_USE_OWL) return;

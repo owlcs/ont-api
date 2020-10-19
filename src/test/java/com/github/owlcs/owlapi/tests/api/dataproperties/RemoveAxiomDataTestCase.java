@@ -13,8 +13,8 @@
  */
 package com.github.owlcs.owlapi.tests.api.dataproperties;
 
-import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.semanticweb.owlapi.change.RemoveAxiomData;
 import org.semanticweb.owlapi.model.OWLAxiom;

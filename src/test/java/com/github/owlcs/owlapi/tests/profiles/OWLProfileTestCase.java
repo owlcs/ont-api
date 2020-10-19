@@ -17,9 +17,9 @@ import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.OWLManager;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Before;
-import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.profiles.*;
@@ -56,7 +56,7 @@ public class OWLProfileTestCase extends TestBase {
     private static final OWLObjectProperty P = ObjectProperty(IRI("urn:test#", "objectproperty"));
     private OWLOntology o;
 
-    @Before
+    @BeforeEach
     @Override
     public void setupManagersClean() {
         super.setupManagersClean();

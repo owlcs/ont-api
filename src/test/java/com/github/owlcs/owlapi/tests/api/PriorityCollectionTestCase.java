@@ -14,8 +14,8 @@
 
 package com.github.owlcs.owlapi.tests.api;
 
-import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.functional.renderer.FunctionalSyntaxStorerFactory;
 import org.semanticweb.owlapi.krss2.renderer.KRSS2OWLSyntaxStorerFactory;
 import org.semanticweb.owlapi.latex.renderer.LatexStorerFactory;

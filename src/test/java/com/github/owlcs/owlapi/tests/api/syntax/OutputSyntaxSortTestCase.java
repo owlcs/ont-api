@@ -15,14 +15,15 @@
 package com.github.owlcs.owlapi.tests.api.syntax;
 
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.ComparisonFailure;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.semanticweb.owlapi.formats.*;
 import org.semanticweb.owlapi.io.StringDocumentSource;
-import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLDocumentFormat;
+import org.semanticweb.owlapi.model.OWLOntology;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,11 +32,11 @@ import java.util.List;
 
 /**
  * WARNING: It is ignored.
- * At the moment ONT-API doesn't support the same order of formatted output since it is based on jena.
+ * At the moment ONT-API doesn't support the same order of formatted output since it is RDF based
  * In addition the test data below contains uri "<testString>".
  * It is bad for jena XML Writer: {@link org.apache.jena.shared.BadURIException} expected.
  */
-@Disabled
+@Disabled("Not compatible with ONT-API") // TODO: remove ?
 public class OutputSyntaxSortTestCase extends TestBase {
 
     String[] input = new String[]{"Prefix(:=<http://www.co-ode.org/ontologies/pizza/pizza.owl#>)\n"
@@ -255,7 +256,7 @@ public class OutputSyntaxSortTestCase extends TestBase {
 
     @ParameterizedTest
     @MethodSource("getData")
-    public void shouldOutputAllInSameOrder(OWLDocumentFormat format) throws OWLOntologyStorageException, OWLOntologyCreationException {
+    public void shouldOutputAllInSameOrder(OWLDocumentFormat format) throws Exception {
         masterManager.getOntologyConfigurator().withRemapAllAnonymousIndividualsIds(false);
         try {
             List<OWLOntology> ontologies = new ArrayList<>();
@@ -270,8 +271,7 @@ public class OutputSyntaxSortTestCase extends TestBase {
                 equal(ontologies.get(i), ontologies.get(i + 1));
             }
             for (int i = 0; i < set.size() - 1; i++) {
-                String m = format.getKey() + " " + new ComparisonFailure("", set.get(i), set.get(i + 1)).getMessage();
-                Assertions.assertEquals(set.get(i), set.get(i + 1), m);
+                Assertions.assertEquals(set.get(i), set.get(i + 1));
             }
         } finally {
             masterManager.getOntologyConfigurator().withRemapAllAnonymousIndividualsIds(true);

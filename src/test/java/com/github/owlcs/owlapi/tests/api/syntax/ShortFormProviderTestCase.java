@@ -14,8 +14,8 @@
 package com.github.owlcs.owlapi.tests.api.syntax;
 
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
-import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.util.QNameShortFormProvider;

@@ -16,9 +16,9 @@ package com.github.owlcs.owlapi.tests.api.swrl;
 
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
-import org.junit.Before;
-import org.junit.Test;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.formats.ManchesterSyntaxDocumentFormat;
 import org.semanticweb.owlapi.formats.OWLXMLDocumentFormat;
 import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
@@ -42,7 +42,7 @@ public class SWRLAtomOrderingRoundTripTestCase extends TestBase {
     private final Set<SWRLAtom> head = new LinkedHashSet<>();
     private SWRLRule rule;
 
-    @Before
+    @BeforeEach
     public void setUpPrefixes() {
         PrefixManager pm = new DefaultPrefixManager(null, null, "http://stuff.com/A/");
         OWLClass clsA = OWLFunctionalSyntaxFactory.Class("A", pm);
