@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,6 +14,7 @@
 package com.github.owlcs.owlapi.tests.api.syntax;
 
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
+import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -23,19 +24,16 @@ import org.semanticweb.owlapi.util.AutoIRIMapper;
 
 import java.io.File;
 
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.IRI;
-import static org.junit.Assert.*;
-
 public class ManchesterImportTestCase extends TestBase {
 
-    private final IRI str = IRI("http://owlapitestontologies.com/", "thesuperont");
+    private final IRI str = IRI.create("http://owlapitestontologies.com/", "thesuperont");
     private final String superpath = "/imports/thesuperont.omn";
 
     @Test
     public void testManualImports() throws OWLOntologyCreationException {
         OWLOntologyManager manager = getManager();
         manager.loadOntologyFromOntologyDocument(new File(RESOURCES, superpath));
-        assertNotNull(manager.getOntology(str));
+        Assert.assertNotNull(manager.getOntology(str));
     }
 
     private OWLOntologyManager getManager() {
@@ -48,9 +46,9 @@ public class ManchesterImportTestCase extends TestBase {
     public void testRemoteIsParseable() throws OWLOntologyCreationException {
         OWLOntologyManager manager = getManager();
         OWLOntology ontology = manager.loadOntology(str);
-        assertEquals(1, ontology.axioms().count());
-        assertEquals(str, ontology.getOntologyID().getOntologyIRI().orElse(null));
-        assertNotNull(manager.getOntology(str));
+        Assert.assertEquals(1, ontology.axioms().count());
+        Assert.assertEquals(str, ontology.getOntologyID().getOntologyIRI().orElse(null));
+        Assert.assertNotNull(manager.getOntology(str));
     }
 
     @Test
@@ -59,8 +57,8 @@ public class ManchesterImportTestCase extends TestBase {
         OWLOntology manualImport = managerStart.loadOntologyFromOntologyDocument(new File(RESOURCES, superpath));
         OWLOntologyManager managerTest = getManager();
         OWLOntology iriImport = managerTest.loadOntology(str);
-        assertTrue(manualImport.equalAxioms(iriImport));
-        assertEquals(manualImport.getOntologyID(), iriImport.getOntologyID());
+        Assert.assertTrue(manualImport.equalAxioms(iriImport));
+        Assert.assertEquals(manualImport.getOntologyID(), iriImport.getOntologyID());
     }
 
     @Test

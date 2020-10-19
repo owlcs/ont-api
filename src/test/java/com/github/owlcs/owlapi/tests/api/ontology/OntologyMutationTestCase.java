@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -13,7 +13,9 @@
  */
 package com.github.owlcs.owlapi.tests.api.ontology;
 
+import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
+import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.AddAxiom;
 import org.semanticweb.owlapi.model.OWLAxiom;
@@ -23,11 +25,6 @@ import org.semanticweb.owlapi.model.OWLOntologyChange;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-
 /**
  * @author Matthew Horridge, The University Of Manchester, Information Management Group
  */
@@ -36,44 +33,44 @@ public class OntologyMutationTestCase extends TestBase {
     @Test
     public void testAddAxiom() {
         OWLOntology ont = getOWLOntology();
-        OWLAxiom ax = SubClassOf(Class(iri("A")), OWLThing());
+        OWLAxiom ax = OWLFunctionalSyntaxFactory.SubClassOf(OWLFunctionalSyntaxFactory.Class(iri("A")), OWLFunctionalSyntaxFactory.OWLThing());
         List<OWLOntologyChange> chgs = new ArrayList<>();
         ont.getOWLOntologyManager().addOntologyChangeListener(chgs::addAll);
         ont.add(ax);
-        assertEquals(1, chgs.size());
-        assertTrue(chgs.contains(new AddAxiom(ont, ax)));
+        Assert.assertEquals(1, chgs.size());
+        Assert.assertTrue(chgs.contains(new AddAxiom(ont, ax)));
     }
 
     @Test
     public void testAddAxioms() {
         OWLOntology ont = getOWLOntology();
-        OWLAxiom ax = SubClassOf(Class(iri("A")), OWLThing());
+        OWLAxiom ax = OWLFunctionalSyntaxFactory.SubClassOf(OWLFunctionalSyntaxFactory.Class(iri("A")), OWLFunctionalSyntaxFactory.OWLThing());
         List<OWLOntologyChange> chgs = new ArrayList<>();
         ont.getOWLOntologyManager().addOntologyChangeListener(chgs::addAll);
         ont.add(ax);
-        assertEquals(1, chgs.size());
-        assertTrue(chgs.contains(new AddAxiom(ont, ax)));
+        Assert.assertEquals(1, chgs.size());
+        Assert.assertTrue(chgs.contains(new AddAxiom(ont, ax)));
     }
 
     @Test
     public void testApplyChange() {
         OWLOntology ont = getOWLOntology();
-        OWLAxiom ax = SubClassOf(Class(iri("A")), OWLThing());
+        OWLAxiom ax = OWLFunctionalSyntaxFactory.SubClassOf(OWLFunctionalSyntaxFactory.Class(iri("A")), OWLFunctionalSyntaxFactory.OWLThing());
         List<OWLOntologyChange> chgs = new ArrayList<>();
         ont.getOWLOntologyManager().addOntologyChangeListener(chgs::addAll);
         ont.getOWLOntologyManager().applyChange(new AddAxiom(ont, ax));
-        assertEquals(1, chgs.size());
-        assertTrue(chgs.contains(new AddAxiom(ont, ax)));
+        Assert.assertEquals(1, chgs.size());
+        Assert.assertTrue(chgs.contains(new AddAxiom(ont, ax)));
     }
 
     @Test
     public void testApplyChanges() {
         OWLOntology ont = getOWLOntology();
-        OWLAxiom ax = SubClassOf(Class(iri("A")), OWLThing());
+        OWLAxiom ax = OWLFunctionalSyntaxFactory.SubClassOf(OWLFunctionalSyntaxFactory.Class(iri("A")), OWLFunctionalSyntaxFactory.OWLThing());
         List<OWLOntologyChange> chgs = new ArrayList<>();
         ont.getOWLOntologyManager().addOntologyChangeListener(chgs::addAll);
         ont.getOWLOntologyManager().applyChange(new AddAxiom(ont, ax));
-        assertEquals(1, chgs.size());
-        assertTrue(chgs.contains(new AddAxiom(ont, ax)));
+        Assert.assertEquals(1, chgs.size());
+        Assert.assertTrue(chgs.contains(new AddAxiom(ont, ax)));
     }
 }

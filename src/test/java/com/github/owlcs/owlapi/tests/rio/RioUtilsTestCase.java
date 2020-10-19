@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -19,6 +19,7 @@ import org.eclipse.rdf4j.model.Literal;
 import org.eclipse.rdf4j.model.Statement;
 import org.eclipse.rdf4j.model.ValueFactory;
 import org.eclipse.rdf4j.model.impl.SimpleValueFactory;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.semanticweb.owlapi.io.RDFLiteral;
@@ -27,8 +28,6 @@ import org.semanticweb.owlapi.io.RDFResourceIRI;
 import org.semanticweb.owlapi.io.RDFTriple;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.rio.utils.RioUtils;
-
-import static org.junit.Assert.assertEquals;
 
 /**
  * Copy-paste from <a href='https://github.com/owlcs/owlapi'>OWL-API, ver. 5.1.1</a>
@@ -105,25 +104,25 @@ public class RioUtilsTestCase {
     @Test
     public void testTripleAllIRI() {
         Statement tripleAsStatement = RioUtils.tripleAsStatement(testOwlApiTripleAllIRI);
-        assertEquals(testSesameTripleAllIRI, tripleAsStatement);
+        Assert.assertEquals(testSesameTripleAllIRI, tripleAsStatement);
     }
 
     @Test
     public void testTripleBNodeComparisonObject() {
         Statement tripleAsStatement = RioUtils.tripleAsStatement(testOwlApiTripleObjectBNode);
-        assertEquals(testSesameTripleObjectBNode, tripleAsStatement);
+        Assert.assertEquals(testSesameTripleObjectBNode, tripleAsStatement);
     }
 
     @Test
     public void testTripleBNodeComparisonSubject() {
         Statement tripleAsStatement = RioUtils.tripleAsStatement(testOwlApiTripleSubjectBNode);
-        assertEquals(testSesameTripleSubjectBNode, tripleAsStatement);
+        Assert.assertEquals(testSesameTripleSubjectBNode, tripleAsStatement);
     }
 
     @Test
     public void testTripleBNodeComparisonSubjectAndObject() {
         Statement tripleAsStatement = RioUtils.tripleAsStatement(testOwlApiTripleSubjectObjectBNode);
-        assertEquals(testSesameTripleSubjectObjectBNode, tripleAsStatement);
+        Assert.assertEquals(testSesameTripleSubjectObjectBNode, tripleAsStatement);
     }
 
     /*
@@ -133,7 +132,7 @@ public class RioUtilsTestCase {
     @Test
     public void testTripleLangLiteral() {
         Statement tripleAsStatement = RioUtils.tripleAsStatement(testOwlApiTripleLangLiteral);
-        assertEquals(testSesameTripleLangLiteral, tripleAsStatement);
+        Assert.assertEquals(testSesameTripleLangLiteral, tripleAsStatement);
     }
 
     /*
@@ -143,7 +142,7 @@ public class RioUtilsTestCase {
     @Test
     public void testTriplePlainLiteral() {
         Statement tripleAsStatement = RioUtils.tripleAsStatement(testOwlApiTriplePlainLiteral);
-        assertEquals(testSesameTriplePlainLiteral, tripleAsStatement);
+        Assert.assertEquals(testSesameTriplePlainLiteral, tripleAsStatement);
     }
 
     /*
@@ -153,6 +152,6 @@ public class RioUtilsTestCase {
     @Test
     public void testTripleTypedLiteral() {
         Statement tripleAsStatement = RioUtils.tripleAsStatement(testOwlApiTripleTypedLiteral);
-        assertEquals(testSesameTripleTypedLiteral, tripleAsStatement);
+        Assert.assertEquals(testSesameTripleTypedLiteral, tripleAsStatement);
     }
 }

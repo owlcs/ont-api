@@ -101,6 +101,6 @@ public abstract class ParametrizedRoundTrippingTestCase extends TestBase {
     @ParameterizedTest
     @MethodSource("data")
     public void roundTripRDFXMLAndFunctionalShouldBeSame(OWLOntology ont) throws Exception {
-        getTestCore(ont).roundTripRDFXMLAndFunctionalShouldBeSame();
+        getTestCore(ont).testRoundTripRDFXMLAndFunctionalShouldBeSame();
     }
 }

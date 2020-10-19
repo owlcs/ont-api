@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -13,36 +13,34 @@
  */
 package com.github.owlcs.owlapi.tests.api.anonymous;
 
+import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
+import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.formats.ManchesterSyntaxDocumentFormat;
 import org.semanticweb.owlapi.model.*;
-
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
-import static org.junit.Assert.assertNull;
 
 public class AnonymousRoundTripTestCase extends TestBase {
 
     @Test
     public void shouldNotFailOnAnonymousOntologySearch() throws OWLOntologyCreationException {
         m.createOntology(new OWLOntologyID());
-        assertNull(m.getOntology(new OWLOntologyID()));
+        Assert.assertNull(m.getOntology(new OWLOntologyID()));
     }
 
     @Test
     public void testRoundTrip() throws Exception {
         String ns = "http://smi-protege.stanford.edu/ontologies/AnonymousIndividuals.owl";
-        OWLClass a = Class(IRI(ns + "#", "A"));
-        OWLAnonymousIndividual h = AnonymousIndividual();
-        OWLAnonymousIndividual i = AnonymousIndividual();
-        OWLAnnotationProperty p = AnnotationProperty(IRI(ns + "#", "p"));
-        OWLObjectProperty q = ObjectProperty(IRI(ns + "#", "q"));
+        OWLClass a = OWLFunctionalSyntaxFactory.Class(OWLFunctionalSyntaxFactory.IRI(ns + "#", "A"));
+        OWLAnonymousIndividual h = OWLFunctionalSyntaxFactory.AnonymousIndividual();
+        OWLAnonymousIndividual i = OWLFunctionalSyntaxFactory.AnonymousIndividual();
+        OWLAnnotationProperty p = OWLFunctionalSyntaxFactory.AnnotationProperty(OWLFunctionalSyntaxFactory.IRI(ns + "#", "p"));
+        OWLObjectProperty q = OWLFunctionalSyntaxFactory.ObjectProperty(OWLFunctionalSyntaxFactory.IRI(ns + "#", "q"));
         OWLOntology ontology = getOWLOntology();
         OWLAnnotation annotation1 = df.getOWLAnnotation(p, h);
-        OWLAnnotation annotation2 = df.getRDFSLabel(Literal("Second", "en"));
-        ontology.add(df.getOWLAnnotationAssertionAxiom(a.getIRI(), annotation1), ClassAssertion(a, h),
-                ObjectPropertyAssertion(q, h, i), df.getOWLAnnotationAssertionAxiom(h, annotation2));
+        OWLAnnotation annotation2 = df.getRDFSLabel(OWLFunctionalSyntaxFactory.Literal("Second", "en"));
+        ontology.add(df.getOWLAnnotationAssertionAxiom(a.getIRI(), annotation1), OWLFunctionalSyntaxFactory.ClassAssertion(a, h),
+                OWLFunctionalSyntaxFactory.ObjectPropertyAssertion(q, h, i), df.getOWLAnnotationAssertionAxiom(h, annotation2));
         OWLOntology o = roundTrip(ontology, new ManchesterSyntaxDocumentFormat());
         equal(ontology, o);
     }

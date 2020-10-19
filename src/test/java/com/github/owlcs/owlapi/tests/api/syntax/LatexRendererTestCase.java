@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,16 +14,15 @@
 package com.github.owlcs.owlapi.tests.api.syntax;
 
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
+import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.formats.LatexDocumentFormat;
 import org.semanticweb.owlapi.model.OWLOntology;
 
-import static org.junit.Assert.assertTrue;
-
 public class LatexRendererTestCase extends TestBase {
 
     @Test
-    public void shouldRenderEscapingUnderscores() throws Exception {
+    public void testShouldRenderEscapingUnderscores() throws Exception {
         String input = "<?xml version=\"1.0\"?>\n"
                 + "<rdf:RDF xmlns=\"http://namespace.owl#\"\n"
                 + "     xml:base=\"http://namespace.owl\"\n"
@@ -36,7 +35,6 @@ public class LatexRendererTestCase extends TestBase {
                 + "<owl:ObjectProperty rdf:about=\"http://namespace.owl#p\"/>"
                 + "</rdf:RDF>";
         OWLOntology o = loadOntologyFromString(input);
-        assertTrue(saveOntology(o, new LatexDocumentFormat()).toString()
-                .contains("C\\_Test"));
+        Assert.assertTrue(saveOntology(o, new LatexDocumentFormat()).toString().contains("C\\_Test"));
     }
 }

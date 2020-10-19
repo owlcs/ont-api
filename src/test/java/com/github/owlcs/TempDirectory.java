@@ -35,11 +35,12 @@ import java.nio.file.attribute.BasicFileAttributes;
  * Created by @ssz on 10.10.2020.
  */
 public class TempDirectory implements AfterAllCallback {
+    private static final Logger LOGGER = LoggerFactory.getLogger(TempDirectory.class);
     /**
      * As a singleton: one working directory for the entire test suite.
      */
     public static final Path DIR = createTempDirectory("junit-ont-api-");
-    private static final Logger LOGGER = LoggerFactory.getLogger(TempDirectory.class);
+
 
     /**
      * Creates a new empty file in the {@link #DIR junit working directory},

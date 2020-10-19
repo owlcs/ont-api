@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -13,21 +13,19 @@
  */
 package com.github.owlcs.owlapi.tests.api.syntax;
 
+import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
+import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.formats.FunctionalSyntaxDocumentFormat;
 import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.io.StreamDocumentSource;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.owlxml.parser.OWLXMLParser;
+import org.semanticweb.owlapi.search.EntitySearcher;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
-
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
-import static org.junit.Assert.fail;
-import static org.semanticweb.owlapi.search.EntitySearcher.getAnnotationObjects;
 
 public class Utf8TestCase extends TestBase {
 
@@ -54,7 +52,7 @@ public class Utf8TestCase extends TestBase {
 
     @SuppressWarnings({"OptionalGetWithoutIsPresent", "UnusedReturnValue"})
     private static boolean checkOntology(OWLOntology ontology, OWLClass c, String chinese) {
-        return getAnnotationObjects(c, ontology)
+        return EntitySearcher.getAnnotationObjects(c, ontology)
                 .anyMatch(a -> chinese.equals(a.getValue().asLiteral().get().getLiteral()));
     }
 
@@ -67,7 +65,7 @@ public class Utf8TestCase extends TestBase {
         OWLXMLParser parser = new OWLXMLParser();
         try {
             parser.parse(new StreamDocumentSource(in), getOWLOntology(), config);
-            fail("parsing should have failed, invalid input");
+            Assert.fail("parsing should have failed, invalid input");
         } catch (@SuppressWarnings("unused") Exception ex) {
             // expected to fail, but actual exception depends on the parsers in
             // the classpath
@@ -104,7 +102,7 @@ public class Utf8TestCase extends TestBase {
     @Test
     public void testRoundTrip() throws Exception {
         String ns = "http://protege.org/ontologies/UTF8RoundTrip.owl";
-        OWLClass c = Class(IRI(ns + "#", "C"));
+        OWLClass c = OWLFunctionalSyntaxFactory.Class(OWLFunctionalSyntaxFactory.IRI(ns + "#", "C"));
         /*
          * The two unicode characters entered here are valid and can be found in
          * the code chart http://www.unicode.org/charts/PDF/U4E00.pdf. It has
@@ -123,8 +121,8 @@ public class Utf8TestCase extends TestBase {
 
     private OWLOntology createOriginalOntology(String ns, OWLClass c, String chinese)
             throws OWLOntologyCreationException {
-        OWLOntology ontology = getOWLOntology(IRI(ns, ""));
-        OWLAxiom annotationAxiom = AnnotationAssertion(RDFSLabel(), c.getIRI(), Literal(chinese));
+        OWLOntology ontology = getOWLOntology(OWLFunctionalSyntaxFactory.IRI(ns, ""));
+        OWLAxiom annotationAxiom = OWLFunctionalSyntaxFactory.AnnotationAssertion(OWLFunctionalSyntaxFactory.RDFSLabel(), c.getIRI(), OWLFunctionalSyntaxFactory.Literal(chinese));
         ontology.add(annotationAxiom);
         return ontology;
     }
@@ -133,7 +131,7 @@ public class Utf8TestCase extends TestBase {
     public void testPositiveUTF8roundTrip() throws Exception {
         String ns = "http://protege.org/UTF8.owl";
         OWLOntology ontology = getOWLOntology();
-        OWLClass a = Class(IRI(ns + "#", "A"));
+        OWLClass a = OWLFunctionalSyntaxFactory.Class(OWLFunctionalSyntaxFactory.IRI(ns + "#", "A"));
         ontology.add(df.getOWLDeclarationAxiom(a));
         OWLAnnotation ann = df.getRDFSLabel("Chinese=處方");
         OWLAxiom axiom = df.getOWLAnnotationAssertionAxiom(a.getIRI(), ann);

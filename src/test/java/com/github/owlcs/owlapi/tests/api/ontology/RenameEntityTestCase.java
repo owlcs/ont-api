@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -23,6 +23,7 @@ import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.OWLAPIStreamUtils;
 import org.semanticweb.owlapi.util.OWLEntityRenamer;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -84,7 +85,7 @@ public class RenameEntityTestCase extends TestBase {
 
         LOGGER.debug("----------------------------------------------");
         LOGGER.debug("Rename {} -> {}", clsAIRI1, clsAIRI2);
-        OWLEntityRenamer entityRenamer = new OWLEntityRenamer(ont.getOWLOntologyManager(), singleton(ont));
+        OWLEntityRenamer entityRenamer = new OWLEntityRenamer(ont.getOWLOntologyManager(), Collections.singleton(ont));
         List<OWLOntologyChange> changes1 = entityRenamer.changeIRI(clsAIRI1, clsAIRI2.getIRI());
         changes1.forEach(x -> LOGGER.debug(String.valueOf(x)));
         ont.getOWLOntologyManager().applyChanges(changes1);
@@ -154,7 +155,7 @@ public class RenameEntityTestCase extends TestBase {
 
         LOGGER.debug("----------------------------------------------");
         LOGGER.debug("Rename {} -> {}", propA, propA2);
-        OWLEntityRenamer entityRenamer = new OWLEntityRenamer(ont.getOWLOntologyManager(), singleton(ont));
+        OWLEntityRenamer entityRenamer = new OWLEntityRenamer(ont.getOWLOntologyManager(), Collections.singleton(ont));
         List<OWLOntologyChange> changes1 = entityRenamer.changeIRI(propA, propA2.getIRI());
         changes1.forEach(x -> LOGGER.debug(String.valueOf(x)));
         ont.getOWLOntologyManager().applyChanges(changes1);
@@ -199,7 +200,7 @@ public class RenameEntityTestCase extends TestBase {
         axioms2.add(DataPropertyAssertion(propA2, indA, Literal(33)));
         axioms2.add(NegativeDataPropertyAssertion(propA2, indA, Literal(44)));
         axioms2.add(AnnotationAssertion(annoProp, propA2.getIRI(), Literal("X")));
-        OWLEntityRenamer entityRenamer = new OWLEntityRenamer(ont.getOWLOntologyManager(), singleton(ont));
+        OWLEntityRenamer entityRenamer = new OWLEntityRenamer(ont.getOWLOntologyManager(), Collections.singleton(ont));
         List<OWLOntologyChange> changes = entityRenamer.changeIRI(propA, propA2.getIRI());
         ont.getOWLOntologyManager().applyChanges(changes);
         Assert.assertEquals(ont.axioms().collect(Collectors.toSet()), axioms2);
@@ -226,7 +227,7 @@ public class RenameEntityTestCase extends TestBase {
                 DataPropertyAssertion(propA, indB, Literal(33)), NegativeDataPropertyAssertion(propA, indB, Literal(44)),
                 AnnotationAssertion(annoProp, propA.getIRI(), Literal("X")), ObjectPropertyAssertion(propB, indB, indB),
                 NegativeObjectPropertyAssertion(propB, indB, indB));
-        OWLEntityRenamer entityRenamer = new OWLEntityRenamer(ont.getOWLOntologyManager(), singleton(ont));
+        OWLEntityRenamer entityRenamer = new OWLEntityRenamer(ont.getOWLOntologyManager(), Collections.singleton(ont));
         List<OWLOntologyChange> changes = entityRenamer.changeIRI(indA, indB.getIRI());
         ont.getOWLOntologyManager().applyChanges(changes);
         Assert.assertEquals(ont.axioms().collect(Collectors.toSet()), axioms2);
@@ -257,7 +258,7 @@ public class RenameEntityTestCase extends TestBase {
         axioms2.add(DataPropertyRange(propB, rng1R));
         axioms2.add(DataPropertyRange(propB, rng2R));
         axioms2.add(DataPropertyRange(propB, rng3R));
-        OWLEntityRenamer entityRenamer = new OWLEntityRenamer(ont.getOWLOntologyManager(), singleton(ont));
+        OWLEntityRenamer entityRenamer = new OWLEntityRenamer(ont.getOWLOntologyManager(), Collections.singleton(ont));
         List<OWLOntologyChange> changes = entityRenamer.changeIRI(dtA, dtC.getIRI());
         ont.getOWLOntologyManager().applyChanges(changes);
         Assert.assertEquals(ont.axioms().collect(Collectors.toSet()), axioms2);
@@ -287,7 +288,7 @@ public class RenameEntityTestCase extends TestBase {
         axioms2.add(SubAnnotationPropertyOf(annoPropR, annoProp2));
         axioms2.add(AnnotationPropertyRange(annoPropR, indA.getIRI()));
         axioms2.add(AnnotationPropertyDomain(annoPropR, indA.getIRI()));
-        OWLEntityRenamer entityRenamer = new OWLEntityRenamer(ont.getOWLOntologyManager(), singleton(ont));
+        OWLEntityRenamer entityRenamer = new OWLEntityRenamer(ont.getOWLOntologyManager(), Collections.singleton(ont));
         List<OWLOntologyChange> changes = entityRenamer.changeIRI(annoProp, annoPropR.getIRI());
         ont.getOWLOntologyManager().applyChanges(changes);
         Assert.assertEquals(ont.axioms().collect(Collectors.toSet()), axioms2);

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -13,51 +13,49 @@
  */
 package com.github.owlcs.owlapi.tests.api.dataproperties;
 
+import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.semanticweb.owlapi.change.RemoveAxiomData;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.RemoveAxiom;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Matthew Horridge, Stanford University, Bio-Medical Informatics  Research Group
  */
 public class RemoveAxiomDataTestCase {
 
-    private final OWLAxiom mockAxiom = mock(OWLAxiom.class);
-    private final OWLOntology mockOntology = mock(OWLOntology.class);
+    private final OWLAxiom mockAxiom = Mockito.mock(OWLAxiom.class);
+    private final OWLOntology mockOntology = Mockito.mock(OWLOntology.class);
 
     @Test
     public void testEquals() {
         RemoveAxiomData data1 = new RemoveAxiomData(mockAxiom);
         RemoveAxiomData data2 = new RemoveAxiomData(mockAxiom);
-        assertEquals(data1, data2);
-        assertEquals(data1.hashCode(), data2.hashCode());
+        Assert.assertEquals(data1, data2);
+        Assert.assertEquals(data1.hashCode(), data2.hashCode());
     }
 
     @Test
     public void testGettersNotNull() {
         RemoveAxiomData data = new RemoveAxiomData(mockAxiom);
-        assertNotNull(data.getAxiom());
+        Assert.assertNotNull(data.getAxiom());
     }
 
     @Test
     public void testCreateOntologyChange() {
         RemoveAxiomData data = new RemoveAxiomData(mockAxiom);
         RemoveAxiom change = data.createOntologyChange(mockOntology);
-        assertNotNull(change);
-        assertEquals(change.getOntology(), mockOntology);
-        assertEquals(change.getAxiom(), mockAxiom);
+        Assert.assertNotNull(change);
+        Assert.assertEquals(change.getOntology(), mockOntology);
+        Assert.assertEquals(change.getAxiom(), mockAxiom);
     }
 
     @Test
     public void testRoundTripChange() {
         RemoveAxiomData data = new RemoveAxiomData(mockAxiom);
         RemoveAxiom change = new RemoveAxiom(mockOntology, mockAxiom);
-        assertEquals(data, change.getChangeData());
+        Assert.assertEquals(data, change.getChangeData());
     }
 }

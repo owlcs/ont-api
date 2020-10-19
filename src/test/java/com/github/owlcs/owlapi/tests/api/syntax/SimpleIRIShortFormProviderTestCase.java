@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -13,12 +13,10 @@
  */
 package com.github.owlcs.owlapi.tests.api.syntax;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.util.SimpleIRIShortFormProvider;
-
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.IRI;
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author Matthew Horridge, The University of Manchester, Bio-Health Informatics Group
@@ -27,25 +25,25 @@ public class SimpleIRIShortFormProviderTestCase {
 
     @Test
     public void testFragmentShortForm() {
-        IRI iri = IRI("http://owl.cs.manchester.ac.uk/ontology/x#", "A");
+        IRI iri = IRI.create("http://owl.cs.manchester.ac.uk/ontology/x#", "A");
         SimpleIRIShortFormProvider sfp = new SimpleIRIShortFormProvider();
         String shortForm = sfp.getShortForm(iri);
-        assertEquals("A", shortForm);
+        Assert.assertEquals("A", shortForm);
     }
 
     @Test
     public void testLastPathShortForm() {
-        IRI iri = IRI("http://owl.cs.manchester.ac.uk/ontology/", "x");
+        IRI iri = IRI.create("http://owl.cs.manchester.ac.uk/ontology/", "x");
         SimpleIRIShortFormProvider sfp = new SimpleIRIShortFormProvider();
         String shortForm = sfp.getShortForm(iri);
-        assertEquals("x", shortForm);
+        Assert.assertEquals("x", shortForm);
     }
 
     @Test
     public void testEmptyPathShortForm() {
-        IRI iri = IRI("http://owl.cs.manchester.ac.uk/", "");
+        IRI iri = IRI.create("http://owl.cs.manchester.ac.uk/", "");
         SimpleIRIShortFormProvider sfp = new SimpleIRIShortFormProvider();
         String shortForm = sfp.getShortForm(iri);
-        assertEquals("<http://owl.cs.manchester.ac.uk/>", shortForm);
+        Assert.assertEquals("<http://owl.cs.manchester.ac.uk/>", shortForm);
     }
 }

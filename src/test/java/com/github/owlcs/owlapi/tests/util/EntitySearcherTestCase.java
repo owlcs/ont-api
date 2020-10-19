@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,7 +14,9 @@
 
 package com.github.owlcs.owlapi.tests.util;
 
+import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
@@ -27,12 +29,8 @@ import org.semanticweb.owlapi.util.DefaultPrefixManager;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
-import static org.junit.Assert.assertTrue;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asList;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.contains;
 
 public class EntitySearcherTestCase extends TestBase {
 
@@ -44,21 +42,21 @@ public class EntitySearcherTestCase extends TestBase {
     public void setUp() {
         PrefixManager pm = new DefaultPrefixManager();
         pm.setDefaultPrefix("http://www.ontologies.com/ontology");
-        subProperty = ObjectProperty("subProperty", pm);
-        superProperty = ObjectProperty("superProperty", pm);
-        OWLOntology ontology = Ontology(m, SubObjectPropertyOf(subProperty, superProperty));
+        subProperty = OWLFunctionalSyntaxFactory.ObjectProperty("subProperty", pm);
+        superProperty = OWLFunctionalSyntaxFactory.ObjectProperty("superProperty", pm);
+        OWLOntology ontology = OWLFunctionalSyntaxFactory.Ontology(m, OWLFunctionalSyntaxFactory.SubObjectPropertyOf(subProperty, superProperty));
         ontologies = Collections.singleton(ontology);
     }
 
     @Test
-    public void shouldReturnSuperProperty() {
-        List<OWLProperty> supers = asList(EntitySearcher.getSuperProperties(subProperty, ontologies.stream()));
-        assertTrue(supers.toString(), supers.contains(superProperty));
+    public void testShouldReturnSuperProperty() {
+        List<OWLProperty> supers = EntitySearcher.getSuperProperties(subProperty, ontologies.stream()).collect(Collectors.toList());
+        Assert.assertTrue(supers.toString(), supers.contains(superProperty));
     }
 
     @Test
-    public void shouldReturnSubProperty() {
+    public void testShouldReturnSubProperty() {
         Stream<OWLProperty> subs = EntitySearcher.getSubProperties(superProperty, ontologies.stream());
-        assertTrue(contains(subs, subProperty));
+        Assert.assertTrue(subs.anyMatch(x -> x.equals(subProperty)));
     }
 }

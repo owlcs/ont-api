@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -13,33 +13,31 @@
  */
 package com.github.owlcs.owlapi.tests.api.syntax;
 
+import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.semanticweb.owlapi.formats.FunctionalSyntaxDocumentFormat;
 import org.semanticweb.owlapi.model.*;
 
 import java.util.Set;
-
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
-import static org.junit.Assert.*;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asUnorderedSet;
+import java.util.stream.Collectors;
 
 public class InvalidAxiomRoundTripTestCase extends TestBase {
 
     private OWLOntology o;
 
-    @Before
-    public void setUpO() {
-        o = getOWLOntology();
+    private static void assertCorrectResult(OWLAxiom wrongAxiom, OWLAxiom validAxiom, OWLOntology reloaded) {
+        Assert.assertNotNull(reloaded);
+        Assert.assertTrue(reloaded.containsAxiom(validAxiom));
+        Assert.assertFalse(reloaded.containsAxiom(wrongAxiom));
+        Assert.assertEquals(1, reloaded.getLogicalAxiomCount());
     }
 
-    private static void assertCorrectResult(OWLAxiom wrongAxiom, OWLAxiom validAxiom, OWLOntology reloaded) {
-        assertNotNull(reloaded);
-        assertTrue(reloaded.containsAxiom(validAxiom));
-        assertFalse(reloaded.containsAxiom(wrongAxiom));
-        assertEquals(1, reloaded.getLogicalAxiomCount());
+    @Before
+    public void setUp() {
+        o = getOWLOntology();
     }
 
     private OWLOntology saveAndReload() throws OWLOntologyStorageException, OWLOntologyCreationException {
@@ -47,15 +45,15 @@ public class InvalidAxiomRoundTripTestCase extends TestBase {
     }
 
     @Test
-    public void shouldRoundTripInvalidDifferentIndividuals() throws OWLOntologyCreationException,
+    public void testShouldRoundTripInvalidDifferentIndividuals() throws OWLOntologyCreationException,
             OWLOntologyStorageException {
         // given
-        OWLNamedIndividual e1 = NamedIndividual(IRI("urn:tes#", "t1"));
-        OWLNamedIndividual e2 = NamedIndividual(IRI("urn:tes#", "t2"));
-        OWLNamedIndividual e3 = NamedIndividual(IRI("urn:tes#", "t3"));
+        OWLNamedIndividual e1 = OWLFunctionalSyntaxFactory.NamedIndividual(IRI.create("urn:tes#", "t1"));
+        OWLNamedIndividual e2 = OWLFunctionalSyntaxFactory.NamedIndividual(IRI.create("urn:tes#", "t2"));
+        OWLNamedIndividual e3 = OWLFunctionalSyntaxFactory.NamedIndividual(IRI.create("urn:tes#", "t3"));
         // given
-        OWLAxiom wrongAxiom = DifferentIndividuals(e1);
-        OWLAxiom validAxiom = DifferentIndividuals(e2, e3);
+        OWLAxiom wrongAxiom = OWLFunctionalSyntaxFactory.DifferentIndividuals(e1);
+        OWLAxiom validAxiom = OWLFunctionalSyntaxFactory.DifferentIndividuals(e2, e3);
         // when
         o.add(wrongAxiom, validAxiom);
         // then
@@ -63,92 +61,92 @@ public class InvalidAxiomRoundTripTestCase extends TestBase {
     }
 
     @Test
-    public void shouldRoundTripInvalidDisjointObjectProperties() throws OWLOntologyCreationException,
+    public void testShouldRoundTripInvalidDisjointObjectProperties() throws OWLOntologyCreationException,
             OWLOntologyStorageException {
         // given
-        OWLObjectProperty e1 = ObjectProperty(IRI("urn:tes#", "t1"));
-        OWLObjectProperty e2 = ObjectProperty(IRI("urn:tes#", "t2"));
-        OWLObjectProperty e3 = ObjectProperty(IRI("urn:tes#", "t3"));
+        OWLObjectProperty e1 = OWLFunctionalSyntaxFactory.ObjectProperty(IRI.create("urn:tes#", "t1"));
+        OWLObjectProperty e2 = OWLFunctionalSyntaxFactory.ObjectProperty(IRI.create("urn:tes#", "t2"));
+        OWLObjectProperty e3 = OWLFunctionalSyntaxFactory.ObjectProperty(IRI.create("urn:tes#", "t3"));
         // given
-        OWLAxiom wrongAxiom = DisjointObjectProperties(e1);
-        OWLAxiom validAxiom = DisjointObjectProperties(e2, e3);
+        OWLAxiom wrongAxiom = OWLFunctionalSyntaxFactory.DisjointObjectProperties(e1);
+        OWLAxiom validAxiom = OWLFunctionalSyntaxFactory.DisjointObjectProperties(e2, e3);
         // when
         o.add(wrongAxiom, validAxiom);
         OWLOntology reloaded = saveAndReload();
         // then
-        assertNotNull(reloaded);
-        assertTrue(reloaded.containsAxiom(validAxiom));
-        assertFalse(reloaded.containsAxiom(wrongAxiom));
-        assertEquals(1, reloaded.getLogicalAxiomCount());
+        Assert.assertNotNull(reloaded);
+        Assert.assertTrue(reloaded.containsAxiom(validAxiom));
+        Assert.assertFalse(reloaded.containsAxiom(wrongAxiom));
+        Assert.assertEquals(1, reloaded.getLogicalAxiomCount());
     }
 
     @Test
-    public void shouldRoundTripInvalidDisjointClasses() throws Exception {
+    public void testShouldRoundTripInvalidDisjointClasses() throws Exception {
         // given
-        OWLClass e1 = Class(IRI("urn:tes#", "t1"));
-        OWLClass e2 = Class(IRI("urn:tes#", "t2"));
-        OWLClass e3 = Class(IRI("urn:tes#", "t3"));
+        OWLClass e1 = OWLFunctionalSyntaxFactory.Class(IRI.create("urn:tes#", "t1"));
+        OWLClass e2 = OWLFunctionalSyntaxFactory.Class(IRI.create("urn:tes#", "t2"));
+        OWLClass e3 = OWLFunctionalSyntaxFactory.Class(IRI.create("urn:tes#", "t3"));
         // The implementation now checks for classes that only have a single
         // distinct element
         // Note: we cannot distinguish between a self-disjoint axiom and an
         // FSS/API etc created single element axiom.
         // but this is coding around a problem in the spec.
-        checkSingletonDisjointFixup(e1, DisjointClasses(e1, e1));
-        OWLDisjointClassesAxiom singleClassDisjointAxiom = DisjointClasses(e1);
+        checkSingletonDisjointFixup(e1, OWLFunctionalSyntaxFactory.DisjointClasses(e1, e1));
+        OWLDisjointClassesAxiom singleClassDisjointAxiom = OWLFunctionalSyntaxFactory.DisjointClasses(e1);
         checkSingletonDisjointFixup(e1, singleClassDisjointAxiom);
-        OWLAxiom validAxiom = DisjointClasses(e2, e3);
+        OWLAxiom validAxiom = OWLFunctionalSyntaxFactory.DisjointClasses(e2, e3);
         // when
         o.add(singleClassDisjointAxiom, validAxiom);
         OWLOntology reloaded = roundTrip(o, new FunctionalSyntaxDocumentFormat());
         // then
-        assertNotNull(reloaded);
-        assertTrue(reloaded.containsAxiom(validAxiom));
-        assertTrue(reloaded.containsAxiom(singleClassDisjointAxiom));
-        assertEquals(2, reloaded.getLogicalAxiomCount());
+        Assert.assertNotNull(reloaded);
+        Assert.assertTrue(reloaded.containsAxiom(validAxiom));
+        Assert.assertTrue(reloaded.containsAxiom(singleClassDisjointAxiom));
+        Assert.assertEquals(2, reloaded.getLogicalAxiomCount());
     }
 
     protected void checkSingletonDisjointFixup(OWLClass e1, OWLDisjointClassesAxiom wrongAxiom) {
-        Set<OWLClassExpression> classExpressions = asUnorderedSet(wrongAxiom.classExpressions());
-        assertEquals("should have two members", 2, classExpressions.size());
-        assertTrue("contains e1", classExpressions.contains(e1));
+        Set<OWLClassExpression> classExpressions = wrongAxiom.classExpressions().collect(Collectors.toSet());
+        Assert.assertEquals("should have two members", 2, classExpressions.size());
+        Assert.assertTrue("contains e1", classExpressions.contains(e1));
         if (!e1.isOWLThing()) {
-            assertTrue("contains Thing", classExpressions.contains(OWLThing()));
+            Assert.assertTrue("contains Thing", classExpressions.contains(OWLFunctionalSyntaxFactory.OWLThing()));
         } else {
-            assertTrue("contains Nothing", classExpressions.contains(OWLNothing()));
+            Assert.assertTrue("contains Nothing", classExpressions.contains(OWLFunctionalSyntaxFactory.OWLNothing()));
         }
-        assertTrue("is annotated", wrongAxiom.isAnnotated());
+        Assert.assertTrue("is annotated", wrongAxiom.isAnnotated());
     }
 
     @Test
-    public void shouldRoundTripInvalidDisjointDataProperties() throws OWLOntologyCreationException,
+    public void testShouldRoundTripInvalidDisjointDataProperties() throws OWLOntologyCreationException,
             OWLOntologyStorageException {
         // given
-        OWLDataProperty e1 = DataProperty(IRI("urn:tes#", "t1"));
-        OWLDataProperty e2 = DataProperty(IRI("urn:tes#", "t2"));
-        OWLDataProperty e3 = DataProperty(IRI("urn:tes#", "t3"));
+        OWLDataProperty e1 = OWLFunctionalSyntaxFactory.DataProperty(IRI.create("urn:tes#", "t1"));
+        OWLDataProperty e2 = OWLFunctionalSyntaxFactory.DataProperty(IRI.create("urn:tes#", "t2"));
+        OWLDataProperty e3 = OWLFunctionalSyntaxFactory.DataProperty(IRI.create("urn:tes#", "t3"));
         // given
-        OWLAxiom wrongAxiom = DisjointDataProperties(e1);
-        OWLAxiom validAxiom = DisjointDataProperties(e2, e3);
+        OWLAxiom wrongAxiom = OWLFunctionalSyntaxFactory.DisjointDataProperties(e1);
+        OWLAxiom validAxiom = OWLFunctionalSyntaxFactory.DisjointDataProperties(e2, e3);
         // when
         o.add(wrongAxiom, validAxiom);
         OWLOntology reloaded = saveAndReload();
         // then
-        assertNotNull(reloaded);
-        assertTrue(reloaded.containsAxiom(validAxiom));
-        assertFalse(reloaded.containsAxiom(wrongAxiom));
-        assertEquals(1, reloaded.getLogicalAxiomCount());
+        Assert.assertNotNull(reloaded);
+        Assert.assertTrue(reloaded.containsAxiom(validAxiom));
+        Assert.assertFalse(reloaded.containsAxiom(wrongAxiom));
+        Assert.assertEquals(1, reloaded.getLogicalAxiomCount());
     }
 
     @Test
-    public void shouldRoundTripInvalidSameIndividuals() throws OWLOntologyCreationException,
+    public void testShouldRoundTripInvalidSameIndividuals() throws OWLOntologyCreationException,
             OWLOntologyStorageException {
         // given
-        OWLNamedIndividual e1 = NamedIndividual(IRI("urn:tes#", "t1"));
-        OWLNamedIndividual e2 = NamedIndividual(IRI("urn:tes#", "t2"));
-        OWLNamedIndividual e3 = NamedIndividual(IRI("urn:tes#", "t3"));
+        OWLNamedIndividual e1 = OWLFunctionalSyntaxFactory.NamedIndividual(IRI.create("urn:tes#", "t1"));
+        OWLNamedIndividual e2 = OWLFunctionalSyntaxFactory.NamedIndividual(IRI.create("urn:tes#", "t2"));
+        OWLNamedIndividual e3 = OWLFunctionalSyntaxFactory.NamedIndividual(IRI.create("urn:tes#", "t3"));
         // given
-        OWLAxiom wrongAxiom = SameIndividual(e1);
-        OWLAxiom validAxiom = SameIndividual(e2, e3);
+        OWLAxiom wrongAxiom = OWLFunctionalSyntaxFactory.SameIndividual(e1);
+        OWLAxiom validAxiom = OWLFunctionalSyntaxFactory.SameIndividual(e2, e3);
         // when
         o.add(wrongAxiom, validAxiom);
         // then
@@ -156,62 +154,62 @@ public class InvalidAxiomRoundTripTestCase extends TestBase {
     }
 
     @Test
-    public void shouldRoundTripInvalidEquivalentClasses() throws OWLOntologyCreationException,
+    public void testShouldRoundTripInvalidEquivalentClasses() throws OWLOntologyCreationException,
             OWLOntologyStorageException {
         // given
-        OWLClass e1 = Class(IRI("urn:tes#", "t1"));
-        OWLClass e2 = Class(IRI("urn:tes#", "t2"));
-        OWLClass e3 = Class(IRI("urn:tes#", "t3"));
+        OWLClass e1 = OWLFunctionalSyntaxFactory.Class(IRI.create("urn:tes#", "t1"));
+        OWLClass e2 = OWLFunctionalSyntaxFactory.Class(IRI.create("urn:tes#", "t2"));
+        OWLClass e3 = OWLFunctionalSyntaxFactory.Class(IRI.create("urn:tes#", "t3"));
         // given
-        OWLAxiom wrongAxiom = EquivalentClasses(e1);
-        OWLAxiom validAxiom = EquivalentClasses(e2, e3);
+        OWLAxiom wrongAxiom = OWLFunctionalSyntaxFactory.EquivalentClasses(e1);
+        OWLAxiom validAxiom = OWLFunctionalSyntaxFactory.EquivalentClasses(e2, e3);
         // when
         o.add(wrongAxiom, validAxiom);
         OWLOntology reloaded = saveAndReload();
         // then
-        assertNotNull(reloaded);
-        assertTrue(reloaded.containsAxiom(validAxiom));
-        assertFalse(reloaded.containsAxiom(wrongAxiom));
-        assertEquals(1, reloaded.getLogicalAxiomCount());
+        Assert.assertNotNull(reloaded);
+        Assert.assertTrue(reloaded.containsAxiom(validAxiom));
+        Assert.assertFalse(reloaded.containsAxiom(wrongAxiom));
+        Assert.assertEquals(1, reloaded.getLogicalAxiomCount());
     }
 
     @Test
-    public void shouldRoundTripInvalidEquivalentObjectProperties() throws OWLOntologyCreationException,
+    public void testShouldRoundTripInvalidEquivalentObjectProperties() throws OWLOntologyCreationException,
             OWLOntologyStorageException {
         // given
-        OWLObjectProperty e1 = ObjectProperty(IRI("urn:tes#", "t1"));
-        OWLObjectProperty e2 = ObjectProperty(IRI("urn:tes#", "t2"));
-        OWLObjectProperty e3 = ObjectProperty(IRI("urn:tes#", "t3"));
+        OWLObjectProperty e1 = OWLFunctionalSyntaxFactory.ObjectProperty(IRI.create("urn:tes#", "t1"));
+        OWLObjectProperty e2 = OWLFunctionalSyntaxFactory.ObjectProperty(IRI.create("urn:tes#", "t2"));
+        OWLObjectProperty e3 = OWLFunctionalSyntaxFactory.ObjectProperty(IRI.create("urn:tes#", "t3"));
         // given
-        OWLAxiom wrongAxiom = EquivalentObjectProperties(e1);
-        OWLAxiom validAxiom = EquivalentObjectProperties(e2, e3);
+        OWLAxiom wrongAxiom = OWLFunctionalSyntaxFactory.EquivalentObjectProperties(e1);
+        OWLAxiom validAxiom = OWLFunctionalSyntaxFactory.EquivalentObjectProperties(e2, e3);
         // when
         o.add(wrongAxiom, validAxiom);
         OWLOntology reloaded = saveAndReload();
         // then
-        assertNotNull(reloaded);
-        assertTrue(reloaded.containsAxiom(validAxiom));
-        assertFalse(reloaded.containsAxiom(wrongAxiom));
-        assertEquals(1, reloaded.getLogicalAxiomCount());
+        Assert.assertNotNull(reloaded);
+        Assert.assertTrue(reloaded.containsAxiom(validAxiom));
+        Assert.assertFalse(reloaded.containsAxiom(wrongAxiom));
+        Assert.assertEquals(1, reloaded.getLogicalAxiomCount());
     }
 
     @Test
-    public void shouldRoundTripInvalidEquivalentDataProperties() throws OWLOntologyCreationException,
+    public void testShouldRoundTripInvalidEquivalentDataProperties() throws OWLOntologyCreationException,
             OWLOntologyStorageException {
         // given
-        OWLDataProperty e1 = DataProperty(IRI("urn:tes#", "t1"));
-        OWLDataProperty e2 = DataProperty(IRI("urn:tes#", "t2"));
-        OWLDataProperty e3 = DataProperty(IRI("urn:tes#", "t3"));
+        OWLDataProperty e1 = OWLFunctionalSyntaxFactory.DataProperty(IRI.create("urn:tes#", "t1"));
+        OWLDataProperty e2 = OWLFunctionalSyntaxFactory.DataProperty(IRI.create("urn:tes#", "t2"));
+        OWLDataProperty e3 = OWLFunctionalSyntaxFactory.DataProperty(IRI.create("urn:tes#", "t3"));
         // given
-        OWLAxiom wrongAxiom = EquivalentDataProperties(e1);
-        OWLAxiom validAxiom = EquivalentDataProperties(e2, e3);
+        OWLAxiom wrongAxiom = OWLFunctionalSyntaxFactory.EquivalentDataProperties(e1);
+        OWLAxiom validAxiom = OWLFunctionalSyntaxFactory.EquivalentDataProperties(e2, e3);
         // when
         o.add(wrongAxiom, validAxiom);
         OWLOntology reloaded = saveAndReload();
         // then
-        assertNotNull(reloaded);
-        assertTrue(reloaded.containsAxiom(validAxiom));
-        assertFalse(reloaded.containsAxiom(wrongAxiom));
-        assertEquals(1, reloaded.getLogicalAxiomCount());
+        Assert.assertNotNull(reloaded);
+        Assert.assertTrue(reloaded.containsAxiom(validAxiom));
+        Assert.assertFalse(reloaded.containsAxiom(wrongAxiom));
+        Assert.assertEquals(1, reloaded.getLogicalAxiomCount());
     }
 }

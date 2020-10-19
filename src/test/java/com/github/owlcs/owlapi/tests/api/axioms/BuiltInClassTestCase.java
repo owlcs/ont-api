@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -13,15 +13,12 @@
  */
 package com.github.owlcs.owlapi.tests.api.axioms;
 
+import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
+import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
-
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 /**
  * Tests that the isOWLThing and isOWLNothing methods return correct values.
@@ -32,36 +29,36 @@ public class BuiltInClassTestCase {
 
     @Test
     public void testOWLThing() {
-        OWLClass thing = OWLThing();
-        assertTrue(thing.isOWLThing());
-        assertFalse(thing.isOWLNothing());
+        OWLClass thing = OWLFunctionalSyntaxFactory.OWLThing();
+        Assert.assertTrue(thing.isOWLThing());
+        Assert.assertFalse(thing.isOWLNothing());
     }
 
     @Test
     public void testOWLThingFromURI() {
-        OWLClassExpression desc = Class(OWLRDFVocabulary.OWL_THING.getIRI());
-        assertTrue(desc.isOWLThing());
-        assertFalse(desc.isOWLNothing());
+        OWLClassExpression desc = OWLFunctionalSyntaxFactory.Class(OWLRDFVocabulary.OWL_THING.getIRI());
+        Assert.assertTrue(desc.isOWLThing());
+        Assert.assertFalse(desc.isOWLNothing());
     }
 
     @Test
     public void testOWLNothing() {
-        OWLClass nothing = OWLNothing();
-        assertTrue(nothing.isOWLNothing());
-        assertFalse(nothing.isOWLThing());
+        OWLClass nothing = OWLFunctionalSyntaxFactory.OWLNothing();
+        Assert.assertTrue(nothing.isOWLNothing());
+        Assert.assertFalse(nothing.isOWLThing());
     }
 
     @Test
     public void testOWLNothingFromURI() {
-        OWLClassExpression desc = Class(OWLRDFVocabulary.OWL_NOTHING.getIRI());
-        assertTrue(desc.isOWLNothing());
-        assertFalse(desc.isOWLThing());
+        OWLClassExpression desc = OWLFunctionalSyntaxFactory.Class(OWLRDFVocabulary.OWL_NOTHING.getIRI());
+        Assert.assertTrue(desc.isOWLNothing());
+        Assert.assertFalse(desc.isOWLThing());
     }
 
     @Test
     public void testAnonymousClass() {
-        OWLClassExpression desc = ObjectHasSelf(createObjectProperty());
-        assertFalse(desc.isOWLThing());
-        assertFalse(desc.isOWLNothing());
+        OWLClassExpression desc = OWLFunctionalSyntaxFactory.ObjectHasSelf(OWLFunctionalSyntaxFactory.createObjectProperty());
+        Assert.assertFalse(desc.isOWLThing());
+        Assert.assertFalse(desc.isOWLNothing());
     }
 }

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -13,17 +13,15 @@
  */
 package com.github.owlcs.owlapi.tests.api;
 
+import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
+import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLDataProperty;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 import org.semanticweb.owlapi.model.OWLOntology;
-
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.semanticweb.owlapi.search.EntitySearcher.*;
+import org.semanticweb.owlapi.search.EntitySearcher;
 
 /**
  * @author Matthew Horridge, The University of Manchester, Bio-Health Informatics Group
@@ -33,80 +31,80 @@ public class PropertyCharacteristicsAccessorsTestCase extends TestBase {
     @Test
     public void testTransitive() {
         OWLOntology ont = getOWLOntology();
-        OWLObjectProperty prop = ObjectProperty(iri("prop"));
-        assertFalse(isTransitive(prop, ont));
-        OWLAxiom ax = TransitiveObjectProperty(prop);
+        OWLObjectProperty prop = OWLFunctionalSyntaxFactory.ObjectProperty(iri("prop"));
+        Assert.assertFalse(EntitySearcher.isTransitive(prop, ont));
+        OWLAxiom ax = OWLFunctionalSyntaxFactory.TransitiveObjectProperty(prop);
         ont.add(ax);
-        assertTrue(isTransitive(prop, ont));
+        Assert.assertTrue(EntitySearcher.isTransitive(prop, ont));
     }
 
     @Test
     public void testSymmetric() {
         OWLOntology ont = getOWLOntology();
-        OWLObjectProperty prop = ObjectProperty(iri("prop"));
-        assertFalse(isSymmetric(prop, ont));
-        OWLAxiom ax = SymmetricObjectProperty(prop);
+        OWLObjectProperty prop = OWLFunctionalSyntaxFactory.ObjectProperty(iri("prop"));
+        Assert.assertFalse(EntitySearcher.isSymmetric(prop, ont));
+        OWLAxiom ax = OWLFunctionalSyntaxFactory.SymmetricObjectProperty(prop);
         ont.add(ax);
-        assertTrue(isSymmetric(prop, ont));
+        Assert.assertTrue(EntitySearcher.isSymmetric(prop, ont));
     }
 
     @Test
     public void testAsymmetric() {
         OWLOntology ont = getOWLOntology();
-        OWLObjectProperty prop = ObjectProperty(iri("prop"));
-        assertFalse(isAsymmetric(prop, ont));
-        OWLAxiom ax = AsymmetricObjectProperty(prop);
+        OWLObjectProperty prop = OWLFunctionalSyntaxFactory.ObjectProperty(iri("prop"));
+        Assert.assertFalse(EntitySearcher.isAsymmetric(prop, ont));
+        OWLAxiom ax = OWLFunctionalSyntaxFactory.AsymmetricObjectProperty(prop);
         ont.add(ax);
-        assertTrue(isAsymmetric(prop, ont));
+        Assert.assertTrue(EntitySearcher.isAsymmetric(prop, ont));
     }
 
     @Test
     public void testReflexive() {
         OWLOntology ont = getOWLOntology();
-        OWLObjectProperty prop = ObjectProperty(iri("prop"));
-        assertFalse(isReflexive(prop, ont));
-        OWLAxiom ax = ReflexiveObjectProperty(prop);
+        OWLObjectProperty prop = OWLFunctionalSyntaxFactory.ObjectProperty(iri("prop"));
+        Assert.assertFalse(EntitySearcher.isReflexive(prop, ont));
+        OWLAxiom ax = OWLFunctionalSyntaxFactory.ReflexiveObjectProperty(prop);
         ont.add(ax);
-        assertTrue(isReflexive(prop, ont));
+        Assert.assertTrue(EntitySearcher.isReflexive(prop, ont));
     }
 
     @Test
     public void testIrreflexive() {
         OWLOntology ont = getOWLOntology();
-        OWLObjectProperty prop = ObjectProperty(iri("prop"));
-        assertFalse(isIrreflexive(prop, ont));
-        OWLAxiom ax = IrreflexiveObjectProperty(prop);
+        OWLObjectProperty prop = OWLFunctionalSyntaxFactory.ObjectProperty(iri("prop"));
+        Assert.assertFalse(EntitySearcher.isIrreflexive(prop, ont));
+        OWLAxiom ax = OWLFunctionalSyntaxFactory.IrreflexiveObjectProperty(prop);
         ont.add(ax);
-        assertTrue(isIrreflexive(prop, ont));
+        Assert.assertTrue(EntitySearcher.isIrreflexive(prop, ont));
     }
 
     @Test
     public void testFunctional() {
         OWLOntology ont = getOWLOntology();
-        OWLObjectProperty prop = ObjectProperty(iri("prop"));
-        assertFalse(isFunctional(prop, ont));
-        OWLAxiom ax = FunctionalObjectProperty(prop);
+        OWLObjectProperty prop = OWLFunctionalSyntaxFactory.ObjectProperty(iri("prop"));
+        Assert.assertFalse(EntitySearcher.isFunctional(prop, ont));
+        OWLAxiom ax = OWLFunctionalSyntaxFactory.FunctionalObjectProperty(prop);
         ont.add(ax);
-        assertTrue(isFunctional(prop, ont));
+        Assert.assertTrue(EntitySearcher.isFunctional(prop, ont));
     }
 
     @Test
     public void testInverseFunctional() {
         OWLOntology ont = getOWLOntology();
-        OWLObjectProperty prop = ObjectProperty(iri("prop"));
-        assertFalse(isInverseFunctional(prop, ont));
-        OWLAxiom ax = InverseFunctionalObjectProperty(prop);
+        OWLObjectProperty prop = OWLFunctionalSyntaxFactory.ObjectProperty(iri("prop"));
+        Assert.assertFalse(EntitySearcher.isInverseFunctional(prop, ont));
+        OWLAxiom ax = OWLFunctionalSyntaxFactory.InverseFunctionalObjectProperty(prop);
         ont.add(ax);
-        assertTrue(isInverseFunctional(prop, ont));
+        Assert.assertTrue(EntitySearcher.isInverseFunctional(prop, ont));
     }
 
     @Test
     public void testFunctionalDataProperty() {
         OWLOntology ont = getOWLOntology();
-        OWLDataProperty prop = DataProperty(iri("prop"));
-        assertFalse(isFunctional(prop, ont));
-        OWLAxiom ax = FunctionalDataProperty(prop);
+        OWLDataProperty prop = OWLFunctionalSyntaxFactory.DataProperty(iri("prop"));
+        Assert.assertFalse(EntitySearcher.isFunctional(prop, ont));
+        OWLAxiom ax = OWLFunctionalSyntaxFactory.FunctionalDataProperty(prop);
         ont.add(ax);
-        assertTrue(isFunctional(prop, ont));
+        Assert.assertTrue(EntitySearcher.isFunctional(prop, ont));
     }
 }

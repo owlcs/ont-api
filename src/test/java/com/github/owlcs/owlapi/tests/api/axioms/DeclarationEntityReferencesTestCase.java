@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -13,13 +13,11 @@
  */
 package com.github.owlcs.owlapi.tests.api.axioms;
 
+import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
+import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
-
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
-import static org.junit.Assert.assertTrue;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.contains;
 
 /**
  * A test case which ensures that an ontology contains entity references when
@@ -32,37 +30,37 @@ public class DeclarationEntityReferencesTestCase extends TestBase {
 
     @Test
     public void testOWLClassDeclarationAxiom() {
-        OWLClass cls = createClass();
-        OWLAxiom ax = Declaration(cls);
+        OWLClass cls = OWLFunctionalSyntaxFactory.createClass();
+        OWLAxiom ax = OWLFunctionalSyntaxFactory.Declaration(cls);
         OWLOntology ont = getOWLOntology();
         ont.add(ax);
-        assertTrue(contains(ont.classesInSignature(), cls));
+        Assert.assertTrue(ont.classesInSignature().anyMatch(cls::equals));
     }
 
     @Test
     public void testOWLObjectPropertyDeclarationAxiom() {
-        OWLObjectProperty prop = createObjectProperty();
-        OWLAxiom ax = Declaration(prop);
+        OWLObjectProperty prop = OWLFunctionalSyntaxFactory.createObjectProperty();
+        OWLAxiom ax = OWLFunctionalSyntaxFactory.Declaration(prop);
         OWLOntology ont = getOWLOntology();
         ont.add(ax);
-        assertTrue(contains(ont.objectPropertiesInSignature(), prop));
+        Assert.assertTrue(ont.objectPropertiesInSignature().anyMatch(prop::equals));
     }
 
     @Test
     public void testOWLDataPropertyDeclarationAxiom() {
-        OWLDataProperty prop = createDataProperty();
-        OWLAxiom ax = Declaration(prop);
+        OWLDataProperty prop = OWLFunctionalSyntaxFactory.createDataProperty();
+        OWLAxiom ax = OWLFunctionalSyntaxFactory.Declaration(prop);
         OWLOntology ont = getOWLOntology();
         ont.add(ax);
-        assertTrue(contains(ont.dataPropertiesInSignature(), prop));
+        Assert.assertTrue(ont.dataPropertiesInSignature().anyMatch(prop::equals));
     }
 
     @Test
     public void testOWLIndividualDeclarationAxiom() {
-        OWLNamedIndividual ind = createIndividual();
-        OWLAxiom ax = Declaration(ind);
+        OWLNamedIndividual ind = OWLFunctionalSyntaxFactory.createIndividual();
+        OWLAxiom ax = OWLFunctionalSyntaxFactory.Declaration(ind);
         OWLOntology ont = getOWLOntology();
         ont.add(ax);
-        assertTrue(contains(ont.individualsInSignature(), ind));
+        Assert.assertTrue(ont.individualsInSignature().anyMatch(ind::equals));
     }
 }

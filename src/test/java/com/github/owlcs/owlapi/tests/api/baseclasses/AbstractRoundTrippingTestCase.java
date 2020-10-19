@@ -78,8 +78,7 @@ public abstract class AbstractRoundTrippingTestCase extends TestBase {
     }
 
     @Test
-    public void roundTripRDFXMLAndFunctionalShouldBeSame() throws OWLOntologyCreationException,
-            OWLOntologyStorageException {
+    public void testRoundTripRDFXMLAndFunctionalShouldBeSame() throws Exception {
         OWLOntology ont = createOntology();
         OWLOntology o1 = roundTrip(ont, new RDFXMLDocumentFormat());
         OWLOntology o2 = roundTrip(ont, new FunctionalSyntaxDocumentFormat());

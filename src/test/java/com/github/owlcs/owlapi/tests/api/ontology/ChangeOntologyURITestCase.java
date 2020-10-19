@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,15 +14,13 @@
 package com.github.owlcs.owlapi.tests.api.ontology;
 
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
+import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.OWLOntologyIRIChanger;
 
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.IRI;
-import static org.junit.Assert.*;
 
 /**
  * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
@@ -31,12 +29,12 @@ public class ChangeOntologyURITestCase extends TestBase {
 
     @Test
     public void testChangeURI() throws OWLOntologyCreationException {
-        IRI oldIRI = IRI("http://www.semanticweb.org/ontologies/", "ontA");
-        IRI newIRI = IRI("http://www.semanticweb.org/ontologies/", "ontB");
+        IRI oldIRI = IRI.create("http://www.semanticweb.org/ontologies/", "ontA");
+        IRI newIRI = IRI.create("http://www.semanticweb.org/ontologies/", "ontB");
         OWLOntology ont = m.createOntology(oldIRI);
-        OWLOntology importingOnt = m.createOntology(IRI("http://www.semanticweb.org/ontologies/", "ontC"));
-        m.applyChange(new AddImport(importingOnt, df.getOWLImportsDeclaration(get(ont.getOntologyID().getOntologyIRI()))));
-        assertTrue(m.contains(oldIRI));
+        OWLOntology importingOnt = m.createOntology(IRI.create("http://www.semanticweb.org/ontologies/", "ontC"));
+        m.applyChange(new AddImport(importingOnt, df.getOWLImportsDeclaration(ont.getOntologyID().getOntologyIRI().orElseThrow(AssertionError::new))));
+        Assert.assertTrue(m.contains(oldIRI));
         LOGGER.debug("Ontology before renaming:");
         com.github.owlcs.ontapi.utils.ReadWriteUtils.print(importingOnt);
         OWLOntologyIRIChanger changer = new OWLOntologyIRIChanger(m);
@@ -46,28 +44,28 @@ public class ChangeOntologyURITestCase extends TestBase {
         Set<IRI> imports = importingOnt.importsDeclarations().map(OWLImportsDeclaration::getIRI).collect(Collectors.toSet());
         LOGGER.debug("Imports : " + imports);
 
-        assertFalse(m.contains(oldIRI));
-        assertTrue(m.contains(newIRI));
-        assertTrue(m.ontologies().anyMatch(o -> o.equals(ont)));
-        assertTrue(m.directImports(importingOnt).anyMatch(o -> o.equals(ont)));
+        Assert.assertFalse(m.contains(oldIRI));
+        Assert.assertTrue(m.contains(newIRI));
+        Assert.assertTrue(m.ontologies().anyMatch(o -> o.equals(ont)));
+        Assert.assertTrue(m.directImports(importingOnt).anyMatch(o -> o.equals(ont)));
 
-        assertTrue("Can't find " + newIRI + " inside " + importingOnt.getOntologyID(), imports.contains(newIRI));
-        assertFalse("There is " + oldIRI + " inside " + importingOnt.getOntologyID(), imports.contains(oldIRI));
+        Assert.assertTrue("Can't find " + newIRI + " inside " + importingOnt.getOntologyID(), imports.contains(newIRI));
+        Assert.assertFalse("There is " + oldIRI + " inside " + importingOnt.getOntologyID(), imports.contains(oldIRI));
 
         OWLOntology ontology = m.getOntology(newIRI);
-        assertNotNull("ontology should not be null", ontology);
-        assertEquals(ontology, ont);
+        Assert.assertNotNull("ontology should not be null", ontology);
+        Assert.assertEquals(ontology, ont);
         //noinspection OptionalGetWithoutIsPresent
-        assertEquals(ontology.getOntologyID().getOntologyIRI().get(), newIRI);
-        assertTrue(m.importsClosure(importingOnt).anyMatch(o -> o.equals(ont)));
-        assertNotNull("ontology should not be null", m.getOntologyDocumentIRI(ont));
+        Assert.assertEquals(ontology.getOntologyID().getOntologyIRI().get(), newIRI);
+        Assert.assertTrue(m.importsClosure(importingOnt).anyMatch(o -> o.equals(ont)));
+        Assert.assertNotNull("ontology should not be null", m.getOntologyDocumentIRI(ont));
         // Document IRI will still be the same (in this case the old ont URI)
-        assertEquals(m.getOntologyDocumentIRI(ont), oldIRI);
-        assertNotNull("ontology format should not be null", ont.getFormat());
+        Assert.assertEquals(m.getOntologyDocumentIRI(ont), oldIRI);
+        Assert.assertNotNull("ontology format should not be null", ont.getFormat());
     }
 
     @Test
-    public void shouldCheckContents() throws OWLOntologyCreationException {
+    public void testShouldCheckContents() throws OWLOntologyCreationException {
         m.createOntology(IRI.create("http://www.test.com/", "123"));
         OWLOntologyID anonymousId = m1.createOntology().getOntologyID();
         m.contains(anonymousId);

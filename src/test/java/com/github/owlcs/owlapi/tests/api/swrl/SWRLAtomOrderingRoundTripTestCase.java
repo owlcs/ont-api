@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,7 +14,9 @@
 
 package com.github.owlcs.owlapi.tests.api.swrl;
 
+import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.semanticweb.owlapi.formats.ManchesterSyntaxDocumentFormat;
@@ -29,15 +31,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.hamcrest.core.Is.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asList;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asUnorderedSet;
+import java.util.stream.Collectors;
 
 /**
  * @author Matthew Horridge, Stanford University, Bio-Medical Informatics Research Group, Date: 04/04/2014
@@ -51,11 +45,11 @@ public class SWRLAtomOrderingRoundTripTestCase extends TestBase {
     @Before
     public void setUpPrefixes() {
         PrefixManager pm = new DefaultPrefixManager(null, null, "http://stuff.com/A/");
-        OWLClass clsA = Class("A", pm);
-        OWLClass clsB = Class("B", pm);
-        OWLClass clsC = Class("C", pm);
-        OWLClass clsD = Class("D", pm);
-        OWLClass clsE = Class("E", pm);
+        OWLClass clsA = OWLFunctionalSyntaxFactory.Class("A", pm);
+        OWLClass clsB = OWLFunctionalSyntaxFactory.Class("B", pm);
+        OWLClass clsC = OWLFunctionalSyntaxFactory.Class("C", pm);
+        OWLClass clsD = OWLFunctionalSyntaxFactory.Class("D", pm);
+        OWLClass clsE = OWLFunctionalSyntaxFactory.Class("E", pm);
         SWRLVariable varA = df.getSWRLVariable("http://other.com/A/", "VarA");
         SWRLVariable varB = df.getSWRLVariable("http://other.com/A/", "VarA");
         SWRLVariable varC = df.getSWRLVariable("http://other.com/A/", "VarA");
@@ -68,7 +62,7 @@ public class SWRLAtomOrderingRoundTripTestCase extends TestBase {
     }
 
     @Test
-    public void individualsShouldNotGetSWRLVariableTypes() throws OWLOntologyStorageException {
+    public void testIndividualsShouldNotGetSWRLVariableTypes() throws OWLOntologyStorageException {
         String in = "<rdf:RDF xmlns=\"urn:test#\" xml:base=\"urn:test\" xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" xmlns:owl=\"http://www.w3.org/2002/07/owl#\" xmlns:xml=\"http://www.w3.org/XML/1998/namespace\" xmlns:swrlb=\"http://www.w3.org/2003/11/swrlb#\" xmlns:swrl=\"http://www.w3.org/2003/11/swrl#\" xmlns:protege=\"urn:test#\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema#\" xmlns:rdfs=\"http://www.w3.org/2000/01/rdf-schema#\">\n"
                 + "    <owl:Ontology rdf:about=\"urn:test\"/>\n"
                 + "    <owl:ObjectProperty rdf:about=\"urn:test#drives\"/>\n"
@@ -113,48 +107,47 @@ public class SWRLAtomOrderingRoundTripTestCase extends TestBase {
                 + "            </rdf:Description>\n" + "        </swrl:head>\n" + "    </rdf:Description>\n" + "</rdf:RDF>";
         OWLOntology o = loadOntologyFromString(in, IRI.create("urn:test#", "test"), new RDFXMLDocumentFormat());
         String string = saveOntology(o).toString();
-        assertFalse(string, string.contains("<rdf:type rdf:resource=\"http://www.w3.org/2003/11/swrl#Variable\"/>"));
+        Assert.assertFalse(string, string.contains("<rdf:type rdf:resource=\"http://www.w3.org/2003/11/swrl#Variable\"/>"));
     }
 
     @Test
-    public void shouldPreserveOrderingInRDFXMLRoundTrip() throws Exception {
+    public void testShouldPreserveOrderingInRDFXMLRoundTrip() throws Exception {
         roundTrip(new RDFXMLDocumentFormat());
     }
 
-    private void roundTrip(OWLDocumentFormat ontologyFormat) throws OWLOntologyCreationException,
-            OWLOntologyStorageException {
+    private void roundTrip(OWLDocumentFormat ontologyFormat) throws Exception {
         OWLOntology ont = getOWLOntology();
         ont.add(rule);
         StringDocumentTarget documentTarget = new StringDocumentTarget();
         ont.saveOntology(ontologyFormat, documentTarget);
         OWLOntology ont2 = loadOntologyFromString(documentTarget);
-        Set<SWRLRule> rules = asUnorderedSet(ont2.axioms(AxiomType.SWRL_RULE));
-        assertEquals(1, rules.size());
+        Set<SWRLRule> rules = ont2.axioms(AxiomType.SWRL_RULE).collect(Collectors.toSet());
+        Assert.assertEquals(1, rules.size());
         SWRLRule parsedRule = rules.iterator().next();
-        assertThat(parsedRule, is(equalTo(rule)));
+        //assertThat(parsedRule, is(equalTo(rule)));
+        Assert.assertEquals(parsedRule, rule);
         List<SWRLAtom> originalBody = new ArrayList<>(body);
-        List<SWRLAtom> parsedBody = asList(parsedRule.body());
-        assertThat(parsedBody, is(equalTo(originalBody)));
+        List<SWRLAtom> parsedBody = parsedRule.body().collect(Collectors.toList());
+        //assertThat(parsedBody, is(equalTo(originalBody)));
+        Assert.assertEquals(parsedBody, originalBody);
         List<SWRLAtom> originalHead = new ArrayList<>(head);
-        List<SWRLAtom> parsedHead = asList(parsedRule.head());
-        assertThat(originalHead, is(equalTo(parsedHead)));
+        List<SWRLAtom> parsedHead = parsedRule.head().collect(Collectors.toList());
+        //assertThat(originalHead, is(equalTo(parsedHead)));
+        Assert.assertEquals(originalHead, parsedHead);
     }
 
     @Test
-    public void shouldPreserveOrderingInTurtleRoundTrip() throws OWLOntologyCreationException,
-            OWLOntologyStorageException {
+    public void testShouldPreserveOrderingInTurtleRoundTrip() throws Exception {
         roundTrip(new TurtleDocumentFormat());
     }
 
     @Test
-    public void shouldPreserveOrderingInManchesterSyntaxRoundTrip() throws OWLOntologyCreationException,
-            OWLOntologyStorageException {
+    public void testShouldPreserveOrderingInManchesterSyntaxRoundTrip() throws Exception {
         roundTrip(new ManchesterSyntaxDocumentFormat());
     }
 
     @Test
-    public void shouldPreserveOrderingInOWLXMLRoundTrip() throws OWLOntologyCreationException,
-            OWLOntologyStorageException {
+    public void testShouldPreserveOrderingInOWLXMLRoundTrip() throws Exception {
         roundTrip(new OWLXMLDocumentFormat());
     }
 }

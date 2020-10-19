@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -13,27 +13,26 @@
  */
 package com.github.owlcs.owlapi.tests.api.dataproperties;
 
+import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
+import org.junit.Assert;
 import org.junit.Test;
+import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.model.OWLOntology;
-
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
-import static org.junit.Assert.assertEquals;
 
 public class DisjointUnionTestCase extends TestBase {
 
     private static final String NS = "http://protege.org/protege/DisjointUnion.owl";
-    public static final OWLClass A = Class(IRI(NS + "#", "A"));
-    public static final OWLClass B = Class(IRI(NS + "#", "B"));
-    public static final OWLClass C = Class(IRI(NS + "#", "C"));
+    public static final OWLClass A = OWLFunctionalSyntaxFactory.Class(IRI.create(NS + "#", "A"));
+    public static final OWLClass B = OWLFunctionalSyntaxFactory.Class(IRI.create(NS + "#", "B"));
+    public static final OWLClass C = OWLFunctionalSyntaxFactory.Class(IRI.create(NS + "#", "C"));
 
     @Test
     public void testDisjointUnion() {
         OWLOntology ontology = getOWLOntology();
-        ontology.add(DisjointUnion(A, B, C));
-        assertEquals(1, ontology.disjointUnionAxioms(A).count());
-        assertEquals(0, ontology.disjointUnionAxioms(B).count());
+        ontology.add(OWLFunctionalSyntaxFactory.DisjointUnion(A, B, C));
+        Assert.assertEquals(1, ontology.disjointUnionAxioms(A).count());
+        Assert.assertEquals(0, ontology.disjointUnionAxioms(B).count());
     }
 }

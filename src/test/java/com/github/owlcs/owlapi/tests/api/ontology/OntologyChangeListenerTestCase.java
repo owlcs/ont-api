@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -13,17 +13,14 @@
  */
 package com.github.owlcs.owlapi.tests.api.ontology;
 
+import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
+import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 
 import java.util.HashSet;
 import java.util.Set;
-
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.SubClassOf;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Matthew Horridge, The University of Manchester, Bio-Health Informatics Group
@@ -33,9 +30,9 @@ public class OntologyChangeListenerTestCase extends TestBase {
     @Test
     public void testOntologyChangeListener() {
         OWLOntology ont = getOWLOntology();
-        OWLClass clsA = Class(iri("ClsA"));
-        OWLClass clsB = Class(iri("ClsB"));
-        OWLSubClassOfAxiom ax = SubClassOf(clsA, clsB);
+        OWLClass clsA = OWLFunctionalSyntaxFactory.Class(iri("ClsA"));
+        OWLClass clsB = OWLFunctionalSyntaxFactory.Class(iri("ClsB"));
+        OWLSubClassOfAxiom ax = OWLFunctionalSyntaxFactory.SubClassOf(clsA, clsB);
         final Set<OWLAxiom> impendingAdditions = new HashSet<>();
         final Set<OWLAxiom> impendingRemovals = new HashSet<>();
         final Set<OWLAxiom> additions = new HashSet<>();
@@ -59,15 +56,15 @@ public class OntologyChangeListenerTestCase extends TestBase {
             }
         });
         ont.getOWLOntologyManager().addAxiom(ont, ax);
-        assertTrue(additions.contains(ax));
-        assertTrue(impendingAdditions.contains(ax));
+        Assert.assertTrue(additions.contains(ax));
+        Assert.assertTrue(impendingAdditions.contains(ax));
         ont.remove(ax);
-        assertTrue(removals.contains(ax));
-        assertTrue(impendingRemovals.contains(ax));
+        Assert.assertTrue(removals.contains(ax));
+        Assert.assertTrue(impendingRemovals.contains(ax));
         // test that no op changes are not broadcasted
         removals.clear();
         ont.remove(ax);
-        assertFalse(removals.contains(ax));
-        assertTrue(impendingRemovals.contains(ax));
+        Assert.assertFalse(removals.contains(ax));
+        Assert.assertTrue(impendingRemovals.contains(ax));
     }
 }

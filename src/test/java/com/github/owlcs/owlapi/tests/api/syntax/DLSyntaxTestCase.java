@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -15,12 +15,11 @@
 package com.github.owlcs.owlapi.tests.api.syntax;
 
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
+import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.dlsyntax.renderer.DLSyntaxObjectRenderer;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
-
-import static org.junit.Assert.assertEquals;
 
 public class DLSyntaxTestCase extends TestBase {
 
@@ -32,7 +31,7 @@ public class DLSyntaxTestCase extends TestBase {
         OWLAxiom ax = df.getOWLDisjointClassesAxiom(a, b, c);
         DLSyntaxObjectRenderer visitor = new DLSyntaxObjectRenderer();
         String render = visitor.render(ax);
-        assertEquals("A ⊑ ¬ B, A ⊑ ¬ C, B ⊑ ¬ C", render);
+        Assert.assertEquals("A ⊑ ¬ B, A ⊑ ¬ C, B ⊑ ¬ C", render);
     }
 
     @Test
@@ -42,7 +41,7 @@ public class DLSyntaxTestCase extends TestBase {
         OWLAxiom ax = df.getOWLDisjointClassesAxiom(a, b);
         DLSyntaxObjectRenderer visitor = new DLSyntaxObjectRenderer();
         String render = visitor.render(ax);
-        assertEquals("A ⊑ ¬ B", render);
+        Assert.assertEquals("A ⊑ ¬ B", render);
     }
 
     @Test
@@ -54,6 +53,6 @@ public class DLSyntaxTestCase extends TestBase {
         OWLAxiom ax = df.getOWLDisjointClassesAxiom(a, b, c, d);
         DLSyntaxObjectRenderer visitor = new DLSyntaxObjectRenderer();
         String render = visitor.render(ax);
-        assertEquals("A ⊑ ¬ B, A ⊑ ¬ C, A ⊑ ¬ D, B ⊑ ¬ C, B ⊑ ¬ D, C ⊑ ¬ D", render);
+        Assert.assertEquals("A ⊑ ¬ B, A ⊑ ¬ C, A ⊑ ¬ D, B ⊑ ¬ C, B ⊑ ¬ D, C ⊑ ¬ D", render);
     }
 }

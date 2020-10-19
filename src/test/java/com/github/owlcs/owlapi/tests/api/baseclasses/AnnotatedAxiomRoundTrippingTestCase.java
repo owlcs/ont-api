@@ -21,6 +21,7 @@ import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLLiteral;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
@@ -46,8 +47,8 @@ public abstract class AnnotatedAxiomRoundTrippingTestCase extends AxiomsRoundTri
             axioms.add(ax.getAnnotatedAxiom(annos));
             axioms.add(OWLFunctionalSyntaxFactory.Declaration(prop));
             axioms.add(OWLFunctionalSyntaxFactory.Declaration(prop2));
-            axioms.add(ax.getAnnotatedAxiom(singleton(anno1)));
-            axioms.add(ax.getAnnotatedAxiom(singleton(anno2)));
+            axioms.add(ax.getAnnotatedAxiom(Collections.singleton(anno1)));
+            axioms.add(ax.getAnnotatedAxiom(Collections.singleton(anno2)));
             return axioms;
         };
     }

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -13,14 +13,12 @@
  */
 package com.github.owlcs.owlapi.tests.api.syntax;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.PrefixManager;
 import org.semanticweb.owlapi.util.DefaultPrefixManager;
 import org.semanticweb.owlapi.vocab.OWLRDFVocabulary;
-
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.IRI;
-import static org.junit.Assert.*;
 
 /**
  * @author Matthew Horridge, The University of Manchester, Information Management Group
@@ -28,29 +26,29 @@ import static org.junit.Assert.*;
 public class DefaultPrefixManagerTestCase {
 
     @Test
-    public void getPrefixIRIEmpty() {
+    public void testGetPrefixIRIEmpty() {
         DefaultPrefixManager pm = new DefaultPrefixManager();
         pm.setPrefix("foaf:", "http://xmlns.com/foaf/0.1/");
-        assertEquals("foaf:", pm.getPrefixIRI(IRI("http://xmlns.com/foaf/0.1/", "")));
+        Assert.assertEquals("foaf:", pm.getPrefixIRI(IRI.create("http://xmlns.com/foaf/0.1/", "")));
     }
 
     @Test
     public void testContainsDefaultPrefixNames() {
         PrefixManager pm = new DefaultPrefixManager();
-        assertTrue(pm.containsPrefixMapping("owl:"));
-        assertTrue(pm.containsPrefixMapping("rdf:"));
-        assertTrue(pm.containsPrefixMapping("rdfs:"));
-        assertTrue(pm.containsPrefixMapping("xml:"));
-        assertTrue(pm.containsPrefixMapping("xsd:"));
-        assertFalse(pm.containsPrefixMapping(":"));
-        assertNull(pm.getDefaultPrefix());
+        Assert.assertTrue(pm.containsPrefixMapping("owl:"));
+        Assert.assertTrue(pm.containsPrefixMapping("rdf:"));
+        Assert.assertTrue(pm.containsPrefixMapping("rdfs:"));
+        Assert.assertTrue(pm.containsPrefixMapping("xml:"));
+        Assert.assertTrue(pm.containsPrefixMapping("xsd:"));
+        Assert.assertFalse(pm.containsPrefixMapping(":"));
+        Assert.assertNull(pm.getDefaultPrefix());
     }
 
     @Test
     public void testPrefixIRIExpansion() {
         PrefixManager pm = new DefaultPrefixManager();
         IRI iri = pm.getIRI("rdfs:comment");
-        assertEquals(iri, OWLRDFVocabulary.RDFS_COMMENT.getIRI());
+        Assert.assertEquals(iri, OWLRDFVocabulary.RDFS_COMMENT.getIRI());
     }
 
     @Test
@@ -58,11 +56,11 @@ public class DefaultPrefixManagerTestCase {
         String defaultPrefix = "http://www.semanticweb.org/test/ont";
         PrefixManager pm = new DefaultPrefixManager();
         pm.setDefaultPrefix(defaultPrefix);
-        assertTrue(pm.containsPrefixMapping(":"));
-        assertNotNull(pm.getDefaultPrefix());
-        assertEquals(pm.getDefaultPrefix(), pm.getPrefix(":"));
+        Assert.assertTrue(pm.containsPrefixMapping(":"));
+        Assert.assertNotNull(pm.getDefaultPrefix());
+        Assert.assertEquals(pm.getDefaultPrefix(), pm.getPrefix(":"));
         String expansion = defaultPrefix + 'A';
         IRI iri = pm.getIRI(":A");
-        assertEquals(iri.toString(), expansion);
+        Assert.assertEquals(iri.toString(), expansion);
     }
 }

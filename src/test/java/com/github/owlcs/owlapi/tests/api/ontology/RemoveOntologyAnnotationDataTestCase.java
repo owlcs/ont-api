@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -13,23 +13,21 @@
  */
 package com.github.owlcs.owlapi.tests.api.ontology;
 
+import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.semanticweb.owlapi.change.RemoveOntologyAnnotationData;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.RemoveOntologyAnnotation;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Matthew Horridge, Stanford University, Bio-Medical Informatics Research Group
  */
 public class RemoveOntologyAnnotationDataTestCase {
 
-    private final OWLAnnotation mockAnnotation = mock(OWLAnnotation.class);
-    private final OWLOntology mockOntology = mock(OWLOntology.class);
+    private final OWLAnnotation mockAnnotation = Mockito.mock(OWLAnnotation.class);
+    private final OWLOntology mockOntology = Mockito.mock(OWLOntology.class);
 
     private RemoveOntologyAnnotationData createData() {
         return new RemoveOntologyAnnotationData(mockAnnotation);
@@ -39,35 +37,35 @@ public class RemoveOntologyAnnotationDataTestCase {
     public void testEquals() {
         RemoveOntologyAnnotationData data1 = createData();
         RemoveOntologyAnnotationData data2 = createData();
-        assertEquals(data1, data2);
-        assertEquals(data1.hashCode(), data2.hashCode());
+        Assert.assertEquals(data1, data2);
+        Assert.assertEquals(data1.hashCode(), data2.hashCode());
     }
 
     @Test
     public void testGettersReturnNotNull() {
         RemoveOntologyAnnotationData data = createData();
-        assertNotNull(data.getAnnotation());
-        assertNotNull(data.createOntologyChange(mockOntology));
+        Assert.assertNotNull(data.getAnnotation());
+        Assert.assertNotNull(data.createOntologyChange(mockOntology));
     }
 
     @Test
     public void testGettersEquals() {
         RemoveOntologyAnnotationData data = createData();
-        assertEquals(mockAnnotation, data.getAnnotation());
+        Assert.assertEquals(mockAnnotation, data.getAnnotation());
     }
 
     @Test
     public void testCreateOntologyChange() {
         RemoveOntologyAnnotationData data = createData();
         RemoveOntologyAnnotation change = data.createOntologyChange(mockOntology);
-        assertEquals(mockOntology, change.getOntology());
-        assertEquals(mockAnnotation, change.getAnnotation());
+        Assert.assertEquals(mockOntology, change.getOntology());
+        Assert.assertEquals(mockAnnotation, change.getAnnotation());
     }
 
     @Test
     public void testGetChangeData() {
         RemoveOntologyAnnotationData data = createData();
         RemoveOntologyAnnotation change = new RemoveOntologyAnnotation(mockOntology, mockAnnotation);
-        assertEquals(change.getChangeData(), data);
+        Assert.assertEquals(change.getChangeData(), data);
     }
 }

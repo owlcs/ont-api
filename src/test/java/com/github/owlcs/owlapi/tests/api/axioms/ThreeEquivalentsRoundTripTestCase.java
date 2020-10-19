@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -13,16 +13,11 @@
  */
 package com.github.owlcs.owlapi.tests.api.axioms;
 
+import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
+import org.junit.Assert;
 import org.junit.Test;
-import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLObjectProperty;
-import org.semanticweb.owlapi.model.OWLOntology;
-
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
-import static org.junit.Assert.assertTrue;
+import org.semanticweb.owlapi.model.*;
 
 /**
  * test for 3178902 adapted from the report Thimoty provided.
@@ -30,23 +25,23 @@ import static org.junit.Assert.assertTrue;
 public class ThreeEquivalentsRoundTripTestCase extends TestBase {
 
     @Test
-    public void shouldRoundTrip() throws Exception {
+    public void testShouldRoundTrip() throws Exception {
         // given
         String ns = "http://protege.org/ontologies";
-        OWLClass b = Class(IRI(ns + "#", "B"));
-        OWLClass c = Class(IRI(ns + "#", "C"));
-        OWLObjectProperty p = ObjectProperty(IRI(ns + "#", "p"));
-        OWLObjectProperty q = ObjectProperty(IRI(ns + "#", "q"));
-        OWLAxiom axiomToAdd = EquivalentClasses(Class(IRI(ns + "#", "A")), ObjectSomeValuesFrom(p, b),
-                ObjectSomeValuesFrom(q, c));
+        OWLClass b = OWLFunctionalSyntaxFactory.Class(IRI.create(ns + "#", "B"));
+        OWLClass c = OWLFunctionalSyntaxFactory.Class(IRI.create(ns + "#", "C"));
+        OWLObjectProperty p = OWLFunctionalSyntaxFactory.ObjectProperty(IRI.create(ns + "#", "p"));
+        OWLObjectProperty q = OWLFunctionalSyntaxFactory.ObjectProperty(IRI.create(ns + "#", "q"));
+        OWLAxiom axiomToAdd = OWLFunctionalSyntaxFactory.EquivalentClasses(OWLFunctionalSyntaxFactory.Class(IRI.create(ns + "#", "A")), OWLFunctionalSyntaxFactory.ObjectSomeValuesFrom(p, b),
+                OWLFunctionalSyntaxFactory.ObjectSomeValuesFrom(q, c));
         OWLOntology ontology = getOWLOntology();
         ontology.getOWLOntologyManager().addAxiom(ontology, axiomToAdd);
         // when
         ontology = roundTrip(ontology);
         // then
-        assertTrue(ontology.containsObjectPropertyInSignature(p.getIRI()));
-        assertTrue(ontology.containsObjectPropertyInSignature(q.getIRI()));
-        assertTrue(ontology.containsClassInSignature(b.getIRI()));
-        assertTrue(ontology.containsClassInSignature(c.getIRI()));
+        Assert.assertTrue(ontology.containsObjectPropertyInSignature(p.getIRI()));
+        Assert.assertTrue(ontology.containsObjectPropertyInSignature(q.getIRI()));
+        Assert.assertTrue(ontology.containsClassInSignature(b.getIRI()));
+        Assert.assertTrue(ontology.containsClassInSignature(c.getIRI()));
     }
 }

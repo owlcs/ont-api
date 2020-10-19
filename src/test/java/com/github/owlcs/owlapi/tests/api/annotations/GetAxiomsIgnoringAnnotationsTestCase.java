@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -13,15 +13,13 @@
  */
 package com.github.owlcs.owlapi.tests.api.annotations;
 
+import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
+import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
 
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.contains;
+import java.util.Collections;
 
 /**
  * @author Matthew Horridge, The University of Manchester, Information Management Group
@@ -29,20 +27,18 @@ import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.contains;
 public class GetAxiomsIgnoringAnnotationsTestCase extends TestBase {
 
     @Test
-    public void testGetAxiomsIgnoringAnnoations() {
-        OWLLiteral annoLiteral = Literal("value");
-        OWLAnnotationProperty annoProp = AnnotationProperty(iri("annoProp"));
+    public void testGetAxiomsIgnoringAnnotations() {
+        OWLLiteral annoLiteral = OWLFunctionalSyntaxFactory.Literal("value");
+        OWLAnnotationProperty annoProp = OWLFunctionalSyntaxFactory.AnnotationProperty(iri("annoProp"));
         OWLAnnotation anno = df.getOWLAnnotation(annoProp, annoLiteral);
-        OWLAxiom axiom = df.getOWLSubClassOfAxiom(Class(iri("A")),
-                Class(iri("B")), singleton(anno));
+        OWLAxiom axiom = df.getOWLSubClassOfAxiom(OWLFunctionalSyntaxFactory.Class(iri("A")),
+                OWLFunctionalSyntaxFactory.Class(iri("B")), Collections.singleton(anno));
         OWLOntology ont = getOWLOntology();
         ont.getOWLOntologyManager().addAxiom(ont, axiom);
-        assertTrue(contains(ont.axiomsIgnoreAnnotations(axiom), axiom));
+        Assert.assertTrue(ont.axiomsIgnoreAnnotations(axiom).anyMatch(axiom::equals));
         OWLAxiom noAnnotations = axiom.getAxiomWithoutAnnotations();
-        assertFalse(contains(ont.axiomsIgnoreAnnotations(axiom), noAnnotations));
-        assertTrue(contains(ont.axiomsIgnoreAnnotations(noAnnotations),
-                axiom));
-        assertFalse(contains(
-                ont.axiomsIgnoreAnnotations(noAnnotations), noAnnotations));
+        Assert.assertFalse(ont.axiomsIgnoreAnnotations(axiom).anyMatch(noAnnotations::equals));
+        Assert.assertTrue(ont.axiomsIgnoreAnnotations(noAnnotations).anyMatch(axiom::equals));
+        Assert.assertFalse(ont.axiomsIgnoreAnnotations(noAnnotations).anyMatch(noAnnotations::equals));
     }
 }

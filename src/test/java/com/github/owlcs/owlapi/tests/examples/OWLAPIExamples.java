@@ -620,7 +620,7 @@ public class OWLAPIExamples extends TestBase {
         OWLClass clsA = factory.getOWLClass(ontologyIRI + "#", "A");
         OWLClass clsB = factory.getOWLClass(ontologyIRI + "#", "B");
         SWRLVariable var = factory.getSWRLVariable(ontologyIRI + "#", "x");
-        SWRLRule rule = factory.getSWRLRule(singleton(factory.getSWRLClassAtom(clsA, var)), singleton(factory
+        SWRLRule rule = factory.getSWRLRule(Collections.singleton(factory.getSWRLClassAtom(clsA, var)), Collections.singleton(factory
                 .getSWRLClassAtom(clsB, var)));
         manager.applyChange(new AddAxiom(ontology, rule));
         OWLObjectProperty prop = factory.getOWLObjectProperty(ontologyIRI + "#", "propA");
@@ -707,7 +707,7 @@ public class OWLAPIExamples extends TestBase {
         // this case we just want to remove the individuals from the
         // ontology, so pass our reference to the ontology in as a
         // singleton set.
-        OWLEntityRemover remover = new OWLEntityRemover(singleton(ont));
+        OWLEntityRemover remover = new OWLEntityRemover(Collections.singleton(ont));
         // System.out.println("Number of individuals: "
         // + ont.getIndividualsInSignature().size());
         // Loop through each individual that is referenced in the
@@ -964,7 +964,7 @@ public class OWLAPIExamples extends TestBase {
         // restrictions. This uses the Visitor Pattern (google Visitor Design
         // Pattern for more information on this design pattern, or see
         // http://en.wikipedia.org/wiki/Visitor_pattern)
-        RestrictionVisitor restrictionVisitor = new RestrictionVisitor(singleton(ont));
+        RestrictionVisitor restrictionVisitor = new RestrictionVisitor(Collections.singleton(ont));
         // In this case, restrictions are used as (anonymous) superclasses, so
         // to get the restrictions on quokka we need to obtain the
         // subclass axioms for quokka.
@@ -1165,7 +1165,7 @@ public class OWLAPIExamples extends TestBase {
         OWLOntology ont = load(man);
         // Create the walker. Pass in the koala ontology - we need to put it
         // into a set though, so we just create a singleton set in this case.
-        OWLOntologyWalker walker = new OWLOntologyWalker(singleton(ont));
+        OWLOntologyWalker walker = new OWLOntologyWalker(Collections.singleton(ont));
         // Now ask our walker to walk over the ontology. We specify a visitor
         // who gets visited by the various objects as the walker encounters
         // them. We need to create out visitor. This can be any ordinary

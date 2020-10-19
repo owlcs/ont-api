@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -13,40 +13,42 @@
  */
 package com.github.owlcs.owlapi.tests.api.syntax;
 
+import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
+import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.io.StringDocumentSource;
-import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 
 import java.util.Optional;
 
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
-import static org.junit.Assert.*;
-
 public class FunctionalSyntaxCommentTestCase extends TestBase {
 
     @Test
-    public void shouldParseCommentAndSkipIt() throws OWLOntologyCreationException {
-        String input = "Prefix(xsd:=<http://www.w3.org/2001/XMLSchema#>)\nPrefix(owl:=<http://www.w3.org/2002/07/owl#>)\nPrefix(xml:=<http://www.w3.org/XML/1998/namespace>)\nPrefix(rdf:=<http://www.w3.org/1999/02/22-rdf-syntax-ns#>)\nPrefix(rdfs:=<http://www.w3.org/2000/01/rdf-schema#>)\nPrefix(skos:=<http://www.w3.org/2004/02/skos/core#>)\n\n"
+    public void testShouldParseCommentAndSkipIt() throws OWLOntologyCreationException {
+        String input = "Prefix(xsd:=<http://www.w3.org/2001/XMLSchema#>)\n"
+                + "Prefix(owl:=<http://www.w3.org/2002/07/owl#>)\n"
+                + "Prefix(xml:=<http://www.w3.org/XML/1998/namespace>)\n"
+                + "Prefix(rdf:=<http://www.w3.org/1999/02/22-rdf-syntax-ns#>)\n"
+                + "Prefix(rdfs:=<http://www.w3.org/2000/01/rdf-schema#>)\n"
+                + "Prefix(skos:=<http://www.w3.org/2004/02/skos/core#>)\n\n"
                 + "Ontology(<file:test.owl>\n" + "Declaration(Class(<urn:test.owl#ContactInformation>))\n"
                 + "#Test comment\n" + "Declaration(DataProperty(<urn:test.owl#city>))\n"
                 + "SubClassOf(<urn:test.owl#ContactInformation> DataMaxCardinality(1 <urn:test.owl#city> xsd:string))\n"
                 + ')';
         OWLOntology o = loadOntologyFromString(input);
-        OWLAxiom ax1 = Declaration(DataProperty(IRI("urn:test.owl#", "city")));
-        OWLAxiom ax2 = SubClassOf(Class(IRI("urn:test.owl#", "ContactInformation")), DataMaxCardinality(1, DataProperty(
-                IRI("urn:test.owl#", "city")), Datatype(OWL2Datatype.XSD_STRING.getIRI())));
-        OWLAxiom ax3 = Declaration(Class(IRI("urn:test.owl#", "ContactInformation")));
-        assertTrue(o.containsAxiom(ax1));
-        assertTrue(o.containsAxiom(ax2));
-        assertTrue(o.containsAxiom(ax3));
+        OWLAxiom ax1 = OWLFunctionalSyntaxFactory.Declaration(OWLFunctionalSyntaxFactory.DataProperty(IRI.create("urn:test.owl#", "city")));
+        OWLAxiom ax2 = OWLFunctionalSyntaxFactory.SubClassOf(OWLFunctionalSyntaxFactory.Class(IRI.create("urn:test.owl#", "ContactInformation")), OWLFunctionalSyntaxFactory.DataMaxCardinality(1, OWLFunctionalSyntaxFactory.DataProperty(
+                IRI.create("urn:test.owl#", "city")), OWLFunctionalSyntaxFactory.Datatype(OWL2Datatype.XSD_STRING.getIRI())));
+        OWLAxiom ax3 = OWLFunctionalSyntaxFactory.Declaration(OWLFunctionalSyntaxFactory.Class(IRI.create("urn:test.owl#", "ContactInformation")));
+        Assert.assertTrue(o.containsAxiom(ax1));
+        Assert.assertTrue(o.containsAxiom(ax2));
+        Assert.assertTrue(o.containsAxiom(ax3));
     }
 
     @Test
-    public void shouldParseCardinalityRestrictionWithMoreThanOneDigitRange() throws OWLOntologyCreationException {
+    public void testShouldParseCardinalityRestrictionWithMoreThanOneDigitRange() throws OWLOntologyCreationException {
         String in = "Prefix(:=<urn:test#>)" + "Prefix(a:=<urn:test#>)"
                 + "Prefix(rdfs:=<http://www.w3.org/2000/01/rdf-schema#>)"
                 + "Prefix(owl2xml:=<http://www.w3.org/2006/12/owl2-xml#>)" + "Prefix(test:=<urn:test#>)"
@@ -60,7 +62,7 @@ public class FunctionalSyntaxCommentTestCase extends TestBase {
         OWLOntology o = loadOntologyFromString(new StringDocumentSource(in));
         OWLClass a = df.getOWLClass(IRI.create("urn:test#", "A"));
         OWLDataProperty p = df.getOWLDataProperty(IRI.create("urn:test#", "dp"));
-        assertTrue(o.containsAxiom(df.getOWLSubClassOfAxiom(a, df.getOWLDataMinCardinality(257, p,
+        Assert.assertTrue(o.containsAxiom(df.getOWLSubClassOfAxiom(a, df.getOWLDataMinCardinality(257, p,
                 OWL2Datatype.RDFS_LITERAL.getDatatype(df)))));
     }
 
@@ -68,14 +70,14 @@ public class FunctionalSyntaxCommentTestCase extends TestBase {
     public void testConvertGetLoadedOntology() throws Exception {
         String input = "Prefix(:=<http://www.example.org/#>)\nOntology(<http://example.org/>\nSubClassOf(:a :b) )";
         OWLOntology origOnt = loadOntologyFromString(input);
-        assertNotNull(origOnt);
+        Assert.assertNotNull(origOnt);
         OWLOntologyManager manager = origOnt.getOWLOntologyManager();
-        assertEquals(1, manager.ontologies().count());
-        assertFalse(origOnt.getOntologyID().getVersionIRI().isPresent());
-        assertTrue(origOnt.getAxiomCount() > 0);
+        Assert.assertEquals(1, manager.ontologies().count());
+        Assert.assertFalse(origOnt.getOntologyID().getVersionIRI().isPresent());
+        Assert.assertTrue(origOnt.getAxiomCount() > 0);
         Optional<IRI> ontologyIRI = origOnt.getOntologyID().getOntologyIRI();
-        assertTrue(ontologyIRI.isPresent());
-        OWLOntology newOnt = manager.getOntology(get(ontologyIRI));
-        assertNotNull(newOnt);
+        Assert.assertTrue(ontologyIRI.isPresent());
+        OWLOntology newOnt = manager.getOntology(ontologyIRI.orElseThrow(AssertionError::new));
+        Assert.assertNotNull(newOnt);
     }
 }

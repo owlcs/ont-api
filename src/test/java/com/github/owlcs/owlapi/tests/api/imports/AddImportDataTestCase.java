@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -13,23 +13,21 @@
  */
 package com.github.owlcs.owlapi.tests.api.imports;
 
+import org.junit.Assert;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.semanticweb.owlapi.change.AddImportData;
 import org.semanticweb.owlapi.model.AddImport;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLOntology;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.mock;
 
 /**
  * @author Matthew Horridge, Stanford University, Bio-Medical Informatics Research Group
  */
 public class AddImportDataTestCase {
 
-    private final OWLImportsDeclaration mockDeclaration = mock(OWLImportsDeclaration.class);
-    private final OWLOntology mockOntology = mock(OWLOntology.class);
+    private final OWLImportsDeclaration mockDeclaration = Mockito.mock(OWLImportsDeclaration.class);
+    private final OWLOntology mockOntology = Mockito.mock(OWLOntology.class);
 
     private AddImportData createData() {
         return new AddImportData(mockDeclaration);
@@ -39,35 +37,35 @@ public class AddImportDataTestCase {
     public void testEquals() {
         AddImportData data1 = createData();
         AddImportData data2 = createData();
-        assertEquals(data1, data2);
-        assertEquals(data1.hashCode(), data2.hashCode());
+        Assert.assertEquals(data1, data2);
+        Assert.assertEquals(data1.hashCode(), data2.hashCode());
     }
 
     @Test
     public void testGettersReturnNotNull() {
         AddImportData data = createData();
-        assertNotNull(data.getDeclaration());
-        assertNotNull(data.createOntologyChange(mockOntology));
+        Assert.assertNotNull(data.getDeclaration());
+        Assert.assertNotNull(data.createOntologyChange(mockOntology));
     }
 
     @Test
     public void testGettersEquals() {
         AddImportData data = createData();
-        assertEquals(mockDeclaration, data.getDeclaration());
+        Assert.assertEquals(mockDeclaration, data.getDeclaration());
     }
 
     @Test
     public void testCreateOntologyChange() {
         AddImportData data = createData();
         AddImport change = data.createOntologyChange(mockOntology);
-        assertEquals(mockOntology, change.getOntology());
-        assertEquals(mockDeclaration, change.getImportDeclaration());
+        Assert.assertEquals(mockOntology, change.getOntology());
+        Assert.assertEquals(mockDeclaration, change.getImportDeclaration());
     }
 
     @Test
     public void testOntologyChangeSymmetry() {
         AddImportData data = createData();
         AddImport change = new AddImport(mockOntology, mockDeclaration);
-        assertEquals(change.getChangeData(), data);
+        Assert.assertEquals(change.getChangeData(), data);
     }
 }

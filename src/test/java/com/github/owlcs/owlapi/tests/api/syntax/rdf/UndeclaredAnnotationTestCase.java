@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -24,10 +24,7 @@ import org.semanticweb.owlapi.model.*;
 import javax.annotation.Nonnull;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asUnorderedSet;
+import java.util.stream.Collectors;
 
 /**
  * Created by ses on 3/10/14.
@@ -45,23 +42,23 @@ public class UndeclaredAnnotationTestCase extends TestBase {
         OWLOntology oo = loadOntologyFromString(input);
         RDFXMLDocumentFormat format = (RDFXMLDocumentFormat) oo.getFormat();
         Assert.assertNotNull(format);
-        assertTrue(format.getOntologyLoaderMetaData().isPresent());
-        assertEquals("Should have no unparsed triples", 0, format.getOntologyLoaderMetaData().get().getUnparsedTriples()
+        Assert.assertTrue(format.getOntologyLoaderMetaData().isPresent());
+        Assert.assertEquals("Should have no unparsed triples", 0, format.getOntologyLoaderMetaData().get().getUnparsedTriples()
                 .count());
-        Set<OWLAnnotationAssertionAxiom> annotationAxioms = asUnorderedSet(oo.axioms(AxiomType.ANNOTATION_ASSERTION));
-        assertEquals("annotation axiom count should be 2", 2, annotationAxioms.size());
+        Set<OWLAnnotationAssertionAxiom> annotationAxioms = oo.axioms(AxiomType.ANNOTATION_ASSERTION).collect(Collectors.toSet());
+        Assert.assertEquals("annotation axiom count should be 2", 2, annotationAxioms.size());
         OWLAnnotationProperty relProperty = df.getOWLAnnotationProperty("http://example.com/ns#", "rel");
         OWLAnnotationProperty predProperty = df.getOWLAnnotationProperty("http://example.com/ns#", "pred");
-        Set<OWLAnonymousIndividual> anonymousIndividualSet = asUnorderedSet(oo.anonymousIndividuals());
-        assertEquals("should be one anonymous individual", 1, anonymousIndividualSet.size());
+        Set<OWLAnonymousIndividual> anonymousIndividualSet = oo.anonymousIndividuals().collect(Collectors.toSet());
+        Assert.assertEquals("should be one anonymous individual", 1, anonymousIndividualSet.size());
         @Nonnull OWLAnonymousIndividual anonymousIndividual = anonymousIndividualSet.iterator().next();
         OWLAnnotationAssertionAxiom relAx = df.getOWLAnnotationAssertionAxiom(relProperty, IRI.create(
                 "http://example.com/ns#", "test"), anonymousIndividual);
         OWLLiteral notVisible = df.getOWLLiteral("Not visible", "");
         OWLAnnotationAssertionAxiom predAx = df.getOWLAnnotationAssertionAxiom(predProperty, anonymousIndividual,
                 notVisible);
-        assertTrue("should contain relax", annotationAxioms.contains(relAx));
-        assertTrue("should contain predax", annotationAxioms.contains(predAx));
+        Assert.assertTrue("should contain relax", annotationAxioms.contains(relAx));
+        Assert.assertTrue("should contain predax", annotationAxioms.contains(predAx));
     }
 
     @Test
@@ -88,9 +85,9 @@ public class UndeclaredAnnotationTestCase extends TestBase {
                 countBNodeAnnotations.incrementAndGet();
             }
         });
-        assertEquals(3, countPreds.intValue());
-        assertEquals(2, countLabels.intValue());
-        assertEquals(3, countBNodeAnnotations.intValue());
+        Assert.assertEquals(3, countPreds.intValue());
+        Assert.assertEquals(2, countLabels.intValue());
+        Assert.assertEquals(3, countBNodeAnnotations.intValue());
     }
 
     @Test
@@ -104,6 +101,6 @@ public class UndeclaredAnnotationTestCase extends TestBase {
                 + "                owl:minCardinality \"0\"^^xsd:nonNegativeInteger\n" + "   ] .";
         OWLOntology o = loadOntologyWithConfig(new StringDocumentSource(input), new OWLOntologyLoaderConfiguration()
                 .setStrict(true));
-        assertEquals(0, o.getLogicalAxiomCount());
+        Assert.assertEquals(0, o.getLogicalAxiomCount());
     }
 }

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -15,6 +15,7 @@ package com.github.owlcs.owlapi.tests.api.annotations;
 
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
@@ -25,8 +26,6 @@ import org.semanticweb.owlapi.model.*;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
-
-import static org.junit.Assert.assertTrue;
 
 public class SWRLAnnotationTestCase extends TestBase {
 
@@ -71,12 +70,12 @@ public class SWRLAnnotationTestCase extends TestBase {
     }
 
     @Test
-    public void shouldRoundTripAnnotation() throws Exception {
+    public void testShouldRoundTripAnnotation() throws Exception {
         OWLOntology ontology = createOntology();
-        assertTrue(ontology.containsAxiom(axiom));
+        Assert.assertTrue(ontology.containsAxiom(axiom));
         StringDocumentTarget saveOntology = saveOntology(ontology);
         ontology = loadOntologyFromString(saveOntology);
-        assertTrue(ontology.containsAxiom(axiom));
+        Assert.assertTrue(ontology.containsAxiom(axiom));
     }
 
     public OWLOntology createOntology() {
@@ -86,21 +85,25 @@ public class SWRLAnnotationTestCase extends TestBase {
     }
 
     @Test
-    public void replicateFailure() throws Exception {
+    public void testReplicateFailure() throws Exception {
         String input = HEAD + " rdf:ID=\"test-table5-prp-inv2-rule\"" + TAIL;
         OWLOntologyManager manager = setupManager();
         manager.setOntologyLoaderConfiguration(manager.getOntologyLoaderConfiguration().setLoadAnnotationAxioms(false));
-        OWLOntology ontology = manager.loadOntologyFromOntologyDocument(new StringDocumentSource(input, "test2test", new RDFXMLDocumentFormat(), null));
+        OWLOntology ontology = manager.loadOntologyFromOntologyDocument(new StringDocumentSource(input,
+                "test2test", new RDFXMLDocumentFormat(), null));
         debug(ontology);
-        assertTrue(ontology.axioms(AxiomType.SWRL_RULE).anyMatch(ax -> ax.toString().contains(makeSWRLRuleAnnotatedAxiomString(ontology))));
+        Assert.assertTrue(ontology.axioms(AxiomType.SWRL_RULE)
+                .anyMatch(ax -> ax.toString().contains(makeSWRLRuleAnnotatedAxiomString(ontology))));
     }
 
     @Test
-    public void replicateSuccess() throws Exception {
+    public void testReplicateSuccess() throws Exception {
         String input = HEAD + TAIL;
-        OWLOntology ontology = setupManager().loadOntologyFromOntologyDocument(new StringDocumentSource(input, "test", new RDFXMLDocumentFormat(), null));
+        OWLOntology ontology = setupManager().loadOntologyFromOntologyDocument(new StringDocumentSource(input,
+                "test", new RDFXMLDocumentFormat(), null));
         debug(ontology);
-        assertTrue(ontology.axioms(AxiomType.SWRL_RULE).anyMatch(ax -> ax.toString().contains(makeSWRLRuleAnnotatedAxiomString(ontology))));
+        Assert.assertTrue(ontology.axioms(AxiomType.SWRL_RULE)
+                .anyMatch(ax -> ax.toString().contains(makeSWRLRuleAnnotatedAxiomString(ontology))));
     }
 
     private void debug(OWLOntology ontology) {
@@ -122,10 +125,11 @@ public class SWRLAnnotationTestCase extends TestBase {
         // such way works both for OWL-API and ONT-API (in the OWL-API there are broken IRIs for all entities,
         // e.g. <#drives> instead of <urn:test#drives>. I presume that absolute IRI's are always correct)
         return String.format("DLSafeRule(" +
-                "Annotation(<%s> \"true\"^^xsd:boolean) " +
-                "Annotation(rdfs:comment \":i62, :i61\"^^xsd:string)  " +
-                "Body() " +
-                "Head(ObjectPropertyAtom(<%s> <%s> <%s>)) )", SWRLA.isRuleEnabled.getURI(), drives.getIRI(), i61.getIRI(), i62.getIRI());
+                        "Annotation(<%s> \"true\"^^xsd:boolean) " +
+                        "Annotation(rdfs:comment \":i62, :i61\"^^xsd:string)  " +
+                        "Body() " +
+                        "Head(ObjectPropertyAtom(<%s> <%s> <%s>)) )",
+                SWRLA.isRuleEnabled.getURI(), drives.getIRI(), i61.getIRI(), i62.getIRI());
     }
 
     /**

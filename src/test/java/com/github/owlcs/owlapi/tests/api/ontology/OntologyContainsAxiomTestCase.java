@@ -30,6 +30,7 @@ import org.semanticweb.owlapi.model.parameters.Imports;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.util.Collections;
 
 /**
  * @author Matthew Horridge, The University of Manchester, Information Management Group
@@ -52,13 +53,15 @@ public class OntologyContainsAxiomTestCase extends TestBase {
         OWLLiteral annoLiteral = OWLFunctionalSyntaxFactory.Literal("value");
         OWLAnnotationProperty annoProp = OWLFunctionalSyntaxFactory.AnnotationProperty(iri("annoProp"));
         OWLAnnotation anno = OWLFunctionalSyntaxFactory.Annotation(annoProp, annoLiteral);
-        OWLAxiom axiom = OWLFunctionalSyntaxFactory.SubClassOf(OWLFunctionalSyntaxFactory.Class(iri("A")), OWLFunctionalSyntaxFactory.Class(iri("B")), singleton(anno));
+        OWLAxiom axiom = OWLFunctionalSyntaxFactory.SubClassOf(OWLFunctionalSyntaxFactory.Class(iri("A")),
+                OWLFunctionalSyntaxFactory.Class(iri("B")), Collections.singleton(anno));
         OWLOntology ont = getOWLOntology();
         ont.getOWLOntologyManager().addAxiom(ont, axiom);
         Assertions.assertTrue(ont.containsAxiom(axiom));
         Assertions.assertTrue(ont.containsAxiom(axiom, Imports.EXCLUDED, AxiomAnnotations.IGNORE_AXIOM_ANNOTATIONS));
         Assertions.assertFalse(ont.containsAxiom(axiom.getAxiomWithoutAnnotations()));
-        Assertions.assertTrue(ont.containsAxiom(axiom.getAxiomWithoutAnnotations(), Imports.EXCLUDED, AxiomAnnotations.IGNORE_AXIOM_ANNOTATIONS));
+        Assertions.assertTrue(ont.containsAxiom(axiom.getAxiomWithoutAnnotations(),
+                Imports.EXCLUDED, AxiomAnnotations.IGNORE_AXIOM_ANNOTATIONS));
     }
 
     @Test
@@ -108,10 +111,10 @@ public class OntologyContainsAxiomTestCase extends TestBase {
     private void runTestOntologyContainsAxioms1(OWLDocumentFormat format) throws Exception {
         OWLOntology ont1 = getOWLOntology();
 
-        IRI ont1iri = get(ont1.getOntologyID().getOntologyIRI());
+        IRI ont1iri = ont1.getOntologyID().getOntologyIRI().orElseThrow(AssertionError::new);
         OWLOntology ont2 = getOWLOntology();
 
-        IRI ont2iri = get(ont2.getOntologyID().getOntologyIRI());
+        IRI ont2iri = ont2.getOntologyID().getOntologyIRI().orElseThrow(AssertionError::new);
         OWLImportsDeclaration ont2import = OWLFunctionalSyntaxFactory.ImportsDeclaration(ont1iri);
         ont1.getOWLOntologyManager().applyChange(new AddImport(ont2, ont2import));
         OWLAnnotationProperty annoProp = OWLFunctionalSyntaxFactory.AnnotationProperty(iri("annoProp"));
@@ -120,13 +123,13 @@ public class OntologyContainsAxiomTestCase extends TestBase {
         OWLAnnotation inont1anno = OWLFunctionalSyntaxFactory.Annotation(annoProp, ont1iri);
         OWLAnnotation inont2anno = OWLFunctionalSyntaxFactory.Annotation(annoProp, ont2iri);
         OWLClass a = OWLFunctionalSyntaxFactory.Class(iri("A"));
-        OWLAxiom axAdecl = OWLFunctionalSyntaxFactory.Declaration(a, singleton(inont1anno));
+        OWLAxiom axAdecl = OWLFunctionalSyntaxFactory.Declaration(a, Collections.singleton(inont1anno));
         ont1.getOWLOntologyManager().addAxiom(ont1, axAdecl);
         OWLClass b = OWLFunctionalSyntaxFactory.Class(iri("B"));
-        OWLAxiom axBdecl = OWLFunctionalSyntaxFactory.Declaration(b, singleton(inont2anno));
+        OWLAxiom axBdecl = OWLFunctionalSyntaxFactory.Declaration(b, Collections.singleton(inont2anno));
         ont2.getOWLOntologyManager().addAxiom(ont2, axBdecl);
         OWLAxiom axAsubB = OWLFunctionalSyntaxFactory.SubClassOf(OWLFunctionalSyntaxFactory.Class(iri("A")),
-                OWLFunctionalSyntaxFactory.Class(iri("B")), singleton(inont2anno));
+                OWLFunctionalSyntaxFactory.Class(iri("B")), Collections.singleton(inont2anno));
         ont2.getOWLOntologyManager().addAxiom(ont2, axAsubB);
 
         // annoProp is in ont1 and in the import closure of ont2
@@ -208,9 +211,9 @@ public class OntologyContainsAxiomTestCase extends TestBase {
 
     private void runTestOntologyContainsAxioms2(OWLDocumentFormat format) throws Exception {
         OWLOntology ont1 = getOWLOntology();
-        IRI ont1iri = get(ont1.getOntologyID().getOntologyIRI());
+        IRI ont1iri = ont1.getOntologyID().getOntologyIRI().orElseThrow(AssertionError::new);
         OWLOntology ont2 = getOWLOntology();
-        IRI ont2iri = get(ont2.getOntologyID().getOntologyIRI());
+        IRI ont2iri = ont2.getOntologyID().getOntologyIRI().orElseThrow(AssertionError::new);
         OWLImportsDeclaration ont2import = OWLFunctionalSyntaxFactory.ImportsDeclaration(ont1iri);
         ont2.getOWLOntologyManager().applyChange(new AddImport(ont2, ont2import));
         OWLAnnotationProperty annoProp = OWLFunctionalSyntaxFactory.AnnotationProperty(iri("annoProp"));
@@ -219,13 +222,13 @@ public class OntologyContainsAxiomTestCase extends TestBase {
         OWLAnnotation inOnt1Anno = OWLFunctionalSyntaxFactory.Annotation(annoProp, ont1iri);
         OWLAnnotation inOnt2Anno = OWLFunctionalSyntaxFactory.Annotation(annoProp, ont2iri);
         OWLClass a = OWLFunctionalSyntaxFactory.Class(iri("A"));
-        OWLAxiom axADecl = OWLFunctionalSyntaxFactory.Declaration(a, singleton(inOnt1Anno));
+        OWLAxiom axADecl = OWLFunctionalSyntaxFactory.Declaration(a, Collections.singleton(inOnt1Anno));
         ont1.getOWLOntologyManager().addAxiom(ont1, axADecl);
         OWLClass b = OWLFunctionalSyntaxFactory.Class(iri("B"));
-        OWLAxiom axBDecl = OWLFunctionalSyntaxFactory.Declaration(b, singleton(inOnt2Anno));
+        OWLAxiom axBDecl = OWLFunctionalSyntaxFactory.Declaration(b, Collections.singleton(inOnt2Anno));
         ont2.getOWLOntologyManager().addAxiom(ont2, axBDecl);
         OWLAxiom axAsubB = OWLFunctionalSyntaxFactory.SubClassOf(OWLFunctionalSyntaxFactory.Class(iri("A")),
-                OWLFunctionalSyntaxFactory.Class(iri("B")), singleton(inOnt2Anno));
+                OWLFunctionalSyntaxFactory.Class(iri("B")), Collections.singleton(inOnt2Anno));
         ont2.getOWLOntologyManager().addAxiom(ont2, axAsubB);
         // annoProp is in ont1 and in the import closure of ont2
         Assertions.assertTrue(containsConsiderEx(ont1, axAnnoPropDecl));

@@ -171,11 +171,11 @@ public class AxiomsRoundTrippingTestCase extends AxiomsRoundTrippingBase {
                     return axioms;
                 },
                 // 2:
-                () -> singleton(SubPropertyChainOf(Arrays.asList(propA, propB, propC), propD)),
+                () -> Collections.singleton(SubPropertyChainOf(Arrays.asList(propA, propB, propC), propD)),
                 // 3:
-                () -> singleton(AsymmetricObjectProperty(op)),
+                () -> Collections.singleton(AsymmetricObjectProperty(op)),
                 // 4:
-                () -> singleton(DifferentIndividuals(createIndividual(), createIndividual(), createIndividual(),
+                () -> Collections.singleton(DifferentIndividuals(createIndividual(), createIndividual(), createIndividual(),
                         createIndividual(), createIndividual(), createIndividual(), createIndividual(), createIndividual(),
                         createIndividual(), createIndividual())),
                 // 5:
@@ -188,79 +188,79 @@ public class AxiomsRoundTrippingTestCase extends AxiomsRoundTrippingBase {
                 () -> Sets.newHashSet(Declaration(RDFSLabel()), Declaration(peter, eAnn1, eAnn2), AnnotationAssertion(
                         RDFSLabel(), peter.getIRI(), Literal("X", "en"), ann1, ann2)),
                 // 8:
-                () -> singleton(InverseObjectProperties(oq, op)),
+                () -> Collections.singleton(InverseObjectProperties(oq, op)),
                 //
-                () -> singleton(InverseObjectProperties(op, oq)),
+                () -> Collections.singleton(InverseObjectProperties(op, oq)),
                 // 10:
                 () -> Sets.newHashSet(Declaration(clsA), AnnotationAssertion(apropA, clsA.getIRI(), IRI(
                         "http://www.semanticweb.org/owlapi#", "object"))),
                 // 11:
-                () -> singleton(SubClassOf(clsA, clsB, singleton(annoInner))),
+                () -> Collections.singleton(SubClassOf(clsA, clsB, Collections.singleton(annoInner))),
                 // 12:
-                () -> singleton(AnnotationPropertyDomain(RDFSComment(), iriA)),
+                () -> Collections.singleton(AnnotationPropertyDomain(RDFSComment(), iriA)),
                 //
-                () -> singleton(AnnotationPropertyRange(RDFSComment(), iriA)),
+                () -> Collections.singleton(AnnotationPropertyRange(RDFSComment(), iriA)),
                 // 14:
-                () -> singleton(SubAnnotationPropertyOf(apropA, RDFSLabel())),
+                () -> Collections.singleton(SubAnnotationPropertyOf(apropA, RDFSLabel())),
                 // 15:
-                () -> singleton(SubClassOf(clsA, DataMaxCardinality(3, dp, Integer()))),
+                () -> Collections.singleton(SubClassOf(clsA, DataMaxCardinality(3, dp, Integer()))),
                 // 16:
-                () -> singleton(SubClassOf(clsA, DataMinCardinality(3, dp, Integer()))),
+                () -> Collections.singleton(SubClassOf(clsA, DataMinCardinality(3, dp, Integer()))),
                 // 17:
-                () -> singleton(SubClassOf(clsA, DataExactCardinality(3, dp, Integer()))),
+                () -> Collections.singleton(SubClassOf(clsA, DataExactCardinality(3, dp, Integer()))),
                 // 18:
-                () -> singleton(DataPropertyRange(dp, DataUnionOf(disj1, disj2))),
+                () -> Collections.singleton(DataPropertyRange(dp, DataUnionOf(disj1, disj2))),
                 //
-                () -> Sets.newHashSet(HasKey(singleton(Annotation(apropA, Literal("Test", ""))), clsA, propA, propB, propC),
+                () -> Sets.newHashSet(HasKey(Collections.singleton(Annotation(apropA, Literal("Test", ""))), clsA, propA, propB, propC),
                         Declaration(apropA), Declaration(propA), Declaration(propB), Declaration(propC)),
                 // 20:
-                () -> singleton(DisjointClasses(Stream.generate(OWLFunctionalSyntaxFactory::createClass).limit(1000).collect(Collectors.toSet()))),
+                () -> Collections.singleton(DisjointClasses(Stream.generate(OWLFunctionalSyntaxFactory::createClass).limit(1000).collect(Collectors.toSet()))),
                 // 21:
-                () -> singleton(SubClassOf(clsB, ObjectSomeValuesFrom(op.getInverseProperty(), clsA))),
+                () -> Collections.singleton(SubClassOf(clsB, ObjectSomeValuesFrom(op.getInverseProperty(), clsA))),
                 // 22:
-                () -> singleton(SubDataPropertyOf(dp, dq)),
+                () -> Collections.singleton(SubDataPropertyOf(dp, dq)),
                 // 23:
-                () -> singleton(DataPropertyAssertion(dp, ind, Literal(33.3))),
+                () -> Collections.singleton(DataPropertyAssertion(dp, ind, Literal(33.3))),
                 // 24:
                 () -> Sets.newHashSet(NegativeDataPropertyAssertion(dp, ind, Literal(33.3)), NegativeDataPropertyAssertion(
                         dp, ind, Literal("weasel", "")), NegativeDataPropertyAssertion(dp, ind, Literal("weasel"))),
                 // 25:
-                () -> singleton(FunctionalDataProperty(dp)),
+                () -> Collections.singleton(FunctionalDataProperty(dp)),
                 // 26:
-                () -> singleton(DataPropertyDomain(dp, Class(iri("A")))),
+                () -> Collections.singleton(DataPropertyDomain(dp, Class(iri("A")))),
                 // 27:
-                () -> singleton(DataPropertyRange(dp, TopDatatype())),
+                () -> Collections.singleton(DataPropertyRange(dp, TopDatatype())),
                 // 28:
                 () -> Sets.newHashSet(DisjointDataProperties(dpA, dpB, dpC), Declaration(dpA), Declaration(dpB),
                         Declaration(dpC)),
                 // 29:
-                () -> singleton(DisjointDataProperties(dpA, dpB)),
+                () -> Collections.singleton(DisjointDataProperties(dpA, dpB)),
                 // 30:
-                () -> singleton(EquivalentDataProperties(dp, dq)),
+                () -> Collections.singleton(EquivalentDataProperties(dp, dq)),
                 // 31:
-                () -> singleton(AsymmetricObjectProperty(op)),
+                () -> Collections.singleton(AsymmetricObjectProperty(op)),
                 // 32:
                 () -> Sets.newHashSet(DatatypeDefinition(datatype, DataComplementOf(Integer())), Declaration(datatype)),
                 // 33:
                 () -> Sets.newHashSet(DifferentIndividuals(ind, indj), DifferentIndividuals(ind, NamedIndividual(iri(
                         "k")))),
                 // 34:
-                () -> singleton(DifferentIndividuals(ind, indj, NamedIndividual(iri("k")), NamedIndividual(iri("l")))),
+                () -> Collections.singleton(DifferentIndividuals(ind, indj, NamedIndividual(iri("k")), NamedIndividual(iri("l")))),
                 // 35:
                 () -> Sets.newHashSet(DisjointObjectProperties(propA, propB, propC), Declaration(propA), Declaration(propB),
                         Declaration(propC)),
                 // 36:
-                () -> singleton(DisjointObjectProperties(propA, propB)),
+                () -> Collections.singleton(DisjointObjectProperties(propA, propB)),
                 // 37:
                 () -> Sets.newHashSet(EquivalentObjectProperties(propA, propB), Declaration(propA), Declaration(propB)),
                 // 38:
-                () -> singleton(FunctionalObjectProperty(op)),
+                () -> Collections.singleton(FunctionalObjectProperty(op)),
                 // 39:
-                () -> singleton(InverseFunctionalObjectProperty(op)),
+                () -> Collections.singleton(InverseFunctionalObjectProperty(op)),
                 // 40:
-                () -> singleton(IrreflexiveObjectProperty(op)),
+                () -> Collections.singleton(IrreflexiveObjectProperty(op)),
                 // 41:
-                () -> singleton(DifferentIndividuals(Stream.generate(OWLFunctionalSyntaxFactory::createIndividual).limit(
+                () -> Collections.singleton(DifferentIndividuals(Stream.generate(OWLFunctionalSyntaxFactory::createIndividual).limit(
                         1000).collect(Collectors.toSet()))),
                 // 42:
                 () -> Sets.newHashSet(AnnotationAssertion(apropA, clsA.getIRI(), Literal("abc", "en")), Declaration(clsA)),
@@ -269,34 +269,34 @@ public class AxiomsRoundTrippingTestCase extends AxiomsRoundTrippingBase {
                         iriA, Literal("abcd", "")), AnnotationAssertion(apropA, iriA, Literal("abcde")), AnnotationAssertion(
                         apropA, iriA, Literal("abcdef", OWL2Datatype.XSD_STRING)), Declaration(clsA)),
                 // 44:
-                () -> singleton(NegativeObjectPropertyAssertion(op, ind, indj)),
+                () -> Collections.singleton(NegativeObjectPropertyAssertion(op, ind, indj)),
                 // 45:
-                () -> singleton(ObjectPropertyAssertion(op, ind, indj)),
+                () -> Collections.singleton(ObjectPropertyAssertion(op, ind, indj)),
                 // 46:
-                () -> singleton(SubPropertyChainOf(Arrays.asList(propA, propB, propC), propD, Sets.newHashSet(Annotation(
+                () -> Collections.singleton(SubPropertyChainOf(Arrays.asList(propA, propB, propC), propD, Sets.newHashSet(Annotation(
                         apropA, Literal("Test", "en")), Annotation(apropB, Literal("Test", ""))))),
                 // 47:
-                () -> singleton(ObjectPropertyDomain(op, clsA)),
+                () -> Collections.singleton(ObjectPropertyDomain(op, clsA)),
                 // 48:
-                () -> singleton(ObjectPropertyRange(op, clsA)),
+                () -> Collections.singleton(ObjectPropertyRange(op, clsA)),
                 // 49:
                 () -> Sets.newHashSet(Declaration(Class(IRI("http://www.test.com/ontology#", "Class%37A"))), Declaration(
                         ObjectProperty(IRI("http://www.test.com/ontology#", "prop%37A")))),
                 // 50:
-                () -> singleton(ReflexiveObjectProperty(op)),
+                () -> Collections.singleton(ReflexiveObjectProperty(op)),
                 // 51:
-                () -> singleton(SameIndividual(ind, indj)),
+                () -> Collections.singleton(SameIndividual(ind, indj)),
                 // 52:
-                () -> singleton(DataPropertyAssertion(dp, ind, Literal("Test \"literal\"\nStuff"))),
+                () -> Collections.singleton(DataPropertyAssertion(dp, ind, Literal("Test \"literal\"\nStuff"))),
                 // 53:
                 () -> Sets.newHashSet(DataPropertyAssertion(dp, ind, Literal("Test \"literal\"")), DataPropertyAssertion(dp,
                         ind, Literal("Test 'literal'")), DataPropertyAssertion(dp, ind, Literal("Test \"\"\"literal\"\"\""))),
                 // 54:
-                () -> singleton(SubObjectPropertyOf(op, oq)),
+                () -> Collections.singleton(SubObjectPropertyOf(op, oq)),
                 // 55:
-                () -> singleton(SymmetricObjectProperty(op)),
+                () -> Collections.singleton(SymmetricObjectProperty(op)),
                 // 56:
-                () -> singleton(TransitiveObjectProperty(op)),
+                () -> Collections.singleton(TransitiveObjectProperty(op)),
                 // 57:
                 () -> Sets.newHashSet(DataPropertyAssertion(dp, ind, Literal(3)), DataPropertyAssertion(dp, ind, Literal(
                         33.3)), DataPropertyAssertion(dp, ind, Literal(true)), DataPropertyAssertion(dp, ind, Literal(33.3f)),

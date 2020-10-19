@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -15,7 +15,8 @@
 package com.github.owlcs.owlapi.tests.api.annotations;
 
 import com.github.owlcs.owlapi.tests.api.baseclasses.AbstractRoundTrippingTestCase;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.formats.OWLXMLDocumentFormat;
 import org.semanticweb.owlapi.formats.RioTurtleDocumentFormat;
 import org.semanticweb.owlapi.formats.TurtleDocumentFormat;
@@ -23,10 +24,6 @@ import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.io.StringDocumentTarget;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyStorageException;
-import org.semanticweb.owlapi.model.OWLRuntimeException;
-
-import static org.junit.Assert.assertEquals;
 
 public class RoundTripOWLXMLToRioTurtleTestCase extends AbstractRoundTrippingTestCase {
 
@@ -101,12 +98,12 @@ public class RoundTripOWLXMLToRioTurtleTestCase extends AbstractRoundTrippingTes
         try {
             return m.loadOntologyFromOntologyDocument(new StringDocumentSource(original));
         } catch (OWLOntologyCreationException e) {
-            throw new OWLRuntimeException(e);
+            return Assertions.fail(e);
         }
     }
 
     @Test
-    public void shouldRoundTripThroughOWLXML() throws OWLOntologyCreationException, OWLOntologyStorageException {
+    public void testShouldRoundTripThroughOWLXML() throws Exception {
         OWLOntology ontology = loadOntologyFromString(original);
         StringDocumentTarget targetOWLXML = new StringDocumentTarget();
         ontology.saveOntology(new OWLXMLDocumentFormat(), targetOWLXML);
@@ -115,8 +112,7 @@ public class RoundTripOWLXMLToRioTurtleTestCase extends AbstractRoundTrippingTes
     }
 
     @Test
-    public void shouldRoundTripThroughOWLXMLOrTurtle() throws OWLOntologyCreationException,
-            OWLOntologyStorageException {
+    public void testShouldRoundTripThroughOWLXMLOrTurtle() throws Exception {
         OWLOntology ontology = loadOntologyFromString(original);
         OWLOntology o1 = roundTrip(ontology, new RioTurtleDocumentFormat());
         equal(ontology, o1);
@@ -125,25 +121,23 @@ public class RoundTripOWLXMLToRioTurtleTestCase extends AbstractRoundTrippingTes
     }
 
     @Test
-    public void shouldRoundTripThroughOWLXMLToTurtle() throws OWLOntologyCreationException,
-            OWLOntologyStorageException {
+    public void testShouldRoundTripThroughOWLXMLToTurtle() throws Exception {
         OWLOntology ontology = loadOntologyFromString(original);
         StringDocumentTarget targetTTL = new StringDocumentTarget();
         ontology.saveOntology(new TurtleDocumentFormat(), targetTTL);
         StringDocumentTarget targetTTLFromTTL = new StringDocumentTarget();
         ontology.saveOntology(new TurtleDocumentFormat(), targetTTLFromTTL);
-        assertEquals(targetTTL.toString(), targetTTLFromTTL.toString());
+        Assertions.assertEquals(targetTTL.toString(), targetTTLFromTTL.toString());
     }
 
     @Test
-    public void shouldRoundTripThroughOWLXMLToRioTurtle() throws OWLOntologyCreationException,
-            OWLOntologyStorageException {
+    public void testShouldRoundTripThroughOWLXMLToRioTurtle() throws Exception {
         OWLOntology ontology = loadOntologyFromString(original);
         StringDocumentTarget target1 = new StringDocumentTarget();
         ontology.saveOntology(new RioTurtleDocumentFormat(), target1);
         StringDocumentTarget target2 = new StringDocumentTarget();
         ontology.saveOntology(new RioTurtleDocumentFormat(), target2);
-        assertEquals(target1.toString().replaceAll("_:genid[0-9]+", "_:genid"), target2.toString().replaceAll(
-                "_:genid[0-9]+", "_:genid"));
+        Assertions.assertEquals(target1.toString().replaceAll("_:genid[0-9]+", "_:genid"),
+                target2.toString().replaceAll("_:genid[0-9]+", "_:genid"));
     }
 }

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -20,9 +20,6 @@ import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 /**
  * @author Matthew Horridge, The University of Manchester, Bio-Health Informatics Group
@@ -45,16 +42,17 @@ public class PrefixOntologyFormatTestCase extends AbstractRoundTrippingTestCase 
             throws OWLOntologyStorageException, OWLOntologyCreationException {
         OWLOntology ont2 = super.roundTripOntology(ont, format);
         OWLDocumentFormat ont2Format = ont2.getFormat();
-        if (format instanceof PrefixDocumentFormat && ont2Format instanceof PrefixDocumentFormat) {
-            PrefixDocumentFormat prefixFormat = (PrefixDocumentFormat) format;
-            prefixFormat.getPrefixName2PrefixMap();
-            PrefixDocumentFormat prefixFormat2 = (PrefixDocumentFormat) ont2Format;
-            prefixFormat.prefixNames().forEach(prefixName -> {
-                assertTrue("Can't find prefix '" + prefixName + "'", prefixFormat2.containsPrefixMapping(prefixName));
-                assertEquals(prefixFormat.getPrefix(prefixName),
-                        prefixFormat2.getPrefix(prefixName));
-            });
+        if (!(format instanceof PrefixDocumentFormat) || !(ont2Format instanceof PrefixDocumentFormat)) {
+            return ont2;
         }
+        PrefixDocumentFormat prefixFormat = (PrefixDocumentFormat) format;
+        prefixFormat.getPrefixName2PrefixMap();
+        PrefixDocumentFormat prefixFormat2 = (PrefixDocumentFormat) ont2Format;
+        prefixFormat.prefixNames().forEach(prefixName -> {
+            Assert.assertTrue("Can't find prefix '" + prefixName + "'", prefixFormat2.containsPrefixMapping(prefixName));
+            Assert.assertEquals(prefixFormat.getPrefix(prefixName),
+                    prefixFormat2.getPrefix(prefixName));
+        });
         return ont2;
     }
 }

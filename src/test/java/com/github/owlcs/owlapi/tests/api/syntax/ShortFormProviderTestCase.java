@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -13,42 +13,41 @@
  */
 package com.github.owlcs.owlapi.tests.api.syntax;
 
+import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
+import org.junit.Assert;
 import org.junit.Test;
+import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLClass;
 import org.semanticweb.owlapi.util.QNameShortFormProvider;
 
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.IRI;
-import static org.junit.Assert.assertEquals;
-
 public class ShortFormProviderTestCase {
 
     @Test
     public void shouldFindShortForm() {
-        OWLClass c = Class(IRI("http://www.ebi.ac.uk/fgpt/ontologies/test/", "TEST_00001"));
+        OWLClass c = OWLFunctionalSyntaxFactory.Class(IRI.create("http://www.ebi.ac.uk/fgpt/ontologies/test/", "TEST_00001"));
         QNameShortFormProvider shortener = new QNameShortFormProvider();
         String shortform = shortener.getShortForm(c);
-        assertEquals("test:TEST_00001", shortform);
+        Assert.assertEquals("test:TEST_00001", shortform);
     }
 
     @Test
     public void shouldFindShortFormForWoman() {
-        OWLClass c = Class(IRI("http://www.example.org/#", "Woman"));
+        OWLClass c = OWLFunctionalSyntaxFactory.Class(IRI.create("http://www.example.org/#", "Woman"));
         QNameShortFormProvider shortener = new QNameShortFormProvider();
         String shortform = shortener.getShortForm(c);
-        assertEquals("www:Woman", shortform);
+        Assert.assertEquals("www:Woman", shortform);
     }
 
     @Test
     public void shouldFindShortFormForSetPRefix() {
-        OWLClass c = Class(IRI("http://www.example.org/#", "Woman"));
+        OWLClass c = OWLFunctionalSyntaxFactory.Class(IRI.create("http://www.example.org/#", "Woman"));
         Map<String, String> prefixes = new HashMap<>();
         prefixes.put("test", "http://www.example.org/#");
         QNameShortFormProvider shortener = new QNameShortFormProvider(prefixes);
         String shortform = shortener.getShortForm(c);
-        assertEquals("test:Woman", shortform);
+        Assert.assertEquals("test:Woman", shortform);
     }
 }

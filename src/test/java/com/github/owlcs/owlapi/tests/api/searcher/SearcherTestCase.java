@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -13,84 +13,80 @@
  */
 package com.github.owlcs.owlapi.tests.api.searcher;
 
+import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
+import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.model.parameters.Imports;
 import org.semanticweb.owlapi.search.Filters;
+import org.semanticweb.owlapi.search.Searcher;
 
 import java.util.Collection;
-
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Boolean;
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
-import static org.junit.Assert.assertTrue;
-import static org.semanticweb.owlapi.model.parameters.Imports.INCLUDED;
-import static org.semanticweb.owlapi.search.Searcher.*;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.asUnorderedSet;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.contains;
+import java.util.stream.Collectors;
 
 public class SearcherTestCase extends TestBase {
 
     @Test
-    public void shouldSearch() {
+    public void testShouldSearch() {
         // given
         OWLOntology o = getOWLOntology();
-        OWLClass c = Class(IRI("urn:test#", "c"));
-        OWLClass d = Class(IRI("urn:test#", "d"));
-        OWLAxiom ax = SubClassOf(c, d);
+        OWLClass c = OWLFunctionalSyntaxFactory.Class(IRI.create("urn:test#", "c"));
+        OWLClass d = OWLFunctionalSyntaxFactory.Class(IRI.create("urn:test#", "d"));
+        OWLAxiom ax = OWLFunctionalSyntaxFactory.SubClassOf(c, d);
         o.getOWLOntologyManager().addAxiom(o, ax);
-        assertTrue(contains(o.axioms(AxiomType.SUBCLASS_OF), ax));
-        assertTrue(contains(o.axioms(c), ax));
+        Assert.assertTrue(o.axioms(AxiomType.SUBCLASS_OF).anyMatch(ax::equals));
+        Assert.assertTrue(o.axioms(c).anyMatch(ax::equals));
     }
 
     @Test
-    public void shouldSearchObjectProperties() {
+    public void testShouldSearchObjectProperties() {
         // given
         OWLOntology o = getOWLOntology();
-        OWLObjectProperty c = ObjectProperty(IRI("urn:test#", "c"));
-        OWLObjectProperty d = ObjectProperty(IRI("urn:test#", "d"));
-        OWLObjectProperty e = ObjectProperty(IRI("urn:test#", "e"));
-        OWLClass x = Class(IRI("urn:test#", "x"));
-        OWLClass y = Class(IRI("urn:test#", "Y"));
-        OWLAxiom ax = SubObjectPropertyOf(c, d);
-        OWLAxiom ax2 = ObjectPropertyDomain(c, x);
-        OWLAxiom ax3 = ObjectPropertyRange(c, y);
-        OWLAxiom ax4 = EquivalentObjectProperties(c, e);
+        OWLObjectProperty c = OWLFunctionalSyntaxFactory.ObjectProperty(IRI.create("urn:test#", "c"));
+        OWLObjectProperty d = OWLFunctionalSyntaxFactory.ObjectProperty(IRI.create("urn:test#", "d"));
+        OWLObjectProperty e = OWLFunctionalSyntaxFactory.ObjectProperty(IRI.create("urn:test#", "e"));
+        OWLClass x = OWLFunctionalSyntaxFactory.Class(IRI.create("urn:test#", "x"));
+        OWLClass y = OWLFunctionalSyntaxFactory.Class(IRI.create("urn:test#", "Y"));
+        OWLAxiom ax = OWLFunctionalSyntaxFactory.SubObjectPropertyOf(c, d);
+        OWLAxiom ax2 = OWLFunctionalSyntaxFactory.ObjectPropertyDomain(c, x);
+        OWLAxiom ax3 = OWLFunctionalSyntaxFactory.ObjectPropertyRange(c, y);
+        OWLAxiom ax4 = OWLFunctionalSyntaxFactory.EquivalentObjectProperties(c, e);
         o.getOWLOntologyManager().addAxiom(o, ax);
         o.getOWLOntologyManager().addAxiom(o, ax2);
         o.getOWLOntologyManager().addAxiom(o, ax3);
         o.getOWLOntologyManager().addAxiom(o, ax4);
-        assertTrue(contains(o.axioms(AxiomType.SUB_OBJECT_PROPERTY), ax));
-        Collection<OWLAxiom> axioms = asUnorderedSet(o.axioms(Filters.subObjectPropertyWithSuper, d, INCLUDED));
-        assertTrue(contains(sub(axioms.stream()), c));
-        axioms = asUnorderedSet(o.axioms(Filters.subObjectPropertyWithSub, c, INCLUDED));
-        assertTrue(contains(sup(axioms.stream()), d));
-        assertTrue(contains(domain(o.objectPropertyDomainAxioms(c)), x));
-        assertTrue(contains(equivalent(o.equivalentObjectPropertiesAxioms(c)), e));
+        Assert.assertTrue(o.axioms(AxiomType.SUB_OBJECT_PROPERTY).anyMatch(ax::equals));
+        Collection<OWLAxiom> axioms = o.axioms(Filters.subObjectPropertyWithSuper, d, Imports.INCLUDED).collect(Collectors.toSet());
+        Assert.assertTrue(Searcher.sub(axioms.stream()).anyMatch(c::equals));
+        axioms = o.axioms(Filters.subObjectPropertyWithSub, c, Imports.INCLUDED).collect(Collectors.toSet());
+        Assert.assertTrue(Searcher.sup(axioms.stream()).anyMatch(d::equals));
+        Assert.assertTrue(Searcher.domain(o.objectPropertyDomainAxioms(c)).anyMatch(x::equals));
+        Assert.assertTrue(Searcher.equivalent(o.equivalentObjectPropertiesAxioms(c)).anyMatch(e::equals));
     }
 
     @Test
-    public void shouldSearchDataProperties() {
+    public void testShouldSearchDataProperties() {
         // given
         OWLOntology o = getOWLOntology();
-        OWLDataProperty c = DataProperty(IRI("urn:test#", "c"));
-        OWLDataProperty d = DataProperty(IRI("urn:test#", "d"));
-        OWLDataProperty e = DataProperty(IRI("urn:test#", "e"));
-        OWLAxiom ax = SubDataPropertyOf(c, d);
-        OWLClass x = Class(IRI("urn:test#", "x"));
-        OWLAxiom ax2 = DataPropertyDomain(c, x);
-        OWLAxiom ax3 = DataPropertyRange(c, Boolean());
-        OWLAxiom ax4 = EquivalentDataProperties(c, e);
+        OWLDataProperty c = OWLFunctionalSyntaxFactory.DataProperty(IRI.create("urn:test#", "c"));
+        OWLDataProperty d = OWLFunctionalSyntaxFactory.DataProperty(IRI.create("urn:test#", "d"));
+        OWLDataProperty e = OWLFunctionalSyntaxFactory.DataProperty(IRI.create("urn:test#", "e"));
+        OWLAxiom ax = OWLFunctionalSyntaxFactory.SubDataPropertyOf(c, d);
+        OWLClass x = OWLFunctionalSyntaxFactory.Class(IRI.create("urn:test#", "x"));
+        OWLAxiom ax2 = OWLFunctionalSyntaxFactory.DataPropertyDomain(c, x);
+        OWLAxiom ax3 = OWLFunctionalSyntaxFactory.DataPropertyRange(c, OWLFunctionalSyntaxFactory.Boolean());
+        OWLAxiom ax4 = OWLFunctionalSyntaxFactory.EquivalentDataProperties(c, e);
         o.getOWLOntologyManager().addAxiom(o, ax);
         o.getOWLOntologyManager().addAxiom(o, ax2);
         o.getOWLOntologyManager().addAxiom(o, ax3);
         o.getOWLOntologyManager().addAxiom(o, ax4);
-        assertTrue(contains(o.axioms(AxiomType.SUB_DATA_PROPERTY), ax));
-        assertTrue(contains(sub(o.axioms(Filters.subDataPropertyWithSuper, d, INCLUDED)), c));
-        Collection<OWLAxiom> axioms = asUnorderedSet(o.axioms(Filters.subDataPropertyWithSub, c, INCLUDED));
-        assertTrue(contains(sup(axioms.stream()), d));
-        assertTrue(contains(domain(o.dataPropertyDomainAxioms(c)), x));
-        assertTrue(contains(range(o.dataPropertyRangeAxioms(c)), Boolean()));
-        assertTrue(contains(equivalent(o.equivalentDataPropertiesAxioms(c)), e));
+        Assert.assertTrue(o.axioms(AxiomType.SUB_DATA_PROPERTY).anyMatch(ax::equals));
+        Assert.assertTrue(Searcher.sub(o.axioms(Filters.subDataPropertyWithSuper, d, Imports.INCLUDED)).anyMatch(c::equals));
+        Collection<OWLAxiom> axioms = o.axioms(Filters.subDataPropertyWithSub, c, Imports.INCLUDED).collect(Collectors.toSet());
+        Assert.assertTrue(Searcher.sup(axioms.stream()).anyMatch(d::equals));
+        Assert.assertTrue(Searcher.domain(o.dataPropertyDomainAxioms(c)).anyMatch(x::equals));
+        Assert.assertTrue(Searcher.range(o.dataPropertyRangeAxioms(c)).anyMatch(OWLFunctionalSyntaxFactory.Boolean()::equals));
+        Assert.assertTrue(Searcher.equivalent(o.equivalentDataPropertiesAxioms(c)).anyMatch(e::equals));
     }
 }

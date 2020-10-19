@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,6 +14,7 @@
 
 package com.github.owlcs.owlapi.tests.api;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.functional.renderer.FunctionalSyntaxStorerFactory;
 import org.semanticweb.owlapi.krss2.renderer.KRSS2OWLSyntaxStorerFactory;
@@ -31,33 +32,30 @@ import org.semanticweb.owlapi.util.PriorityCollection;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-
 public class PriorityCollectionTestCase {
 
     @Test
-    public void shouldStoreStorers() {
-        List<OWLStorer> storers = Arrays
-                .asList(new RioBinaryRdfStorerFactory().get(),
-                        new RioJsonLDStorerFactory().get(),
-                        new RioJsonStorerFactory().get(),
-                        new RioN3StorerFactory().get(),
-                        new RioNQuadsStorerFactory().get(),
-                        new RioNTriplesStorerFactory().get(),
-                        new RioRDFXMLStorerFactory().get(),
-                        new RioTrigStorerFactory().get(),
-                        new RioTrixStorerFactory().get(),
-                        new RioTurtleStorerFactory().get(),
-                        new OBOFormatStorerFactory().get(),
-                        new RDFXMLStorerFactory().get(),
-                        new OWLXMLStorerFactory().get(),
-                        new FunctionalSyntaxStorerFactory().get(),
-                        new ManchesterSyntaxStorerFactory().get(),
-                        new KRSS2OWLSyntaxStorerFactory().get(),
-                        new TurtleStorerFactory().get(),
-                        new LatexStorerFactory().get());
+    public void testShouldStoreStorers() {
+        List<OWLStorer> storers = Arrays.asList(new RioBinaryRdfStorerFactory().get(),
+                new RioJsonLDStorerFactory().get(),
+                new RioJsonStorerFactory().get(),
+                new RioN3StorerFactory().get(),
+                new RioNQuadsStorerFactory().get(),
+                new RioNTriplesStorerFactory().get(),
+                new RioRDFXMLStorerFactory().get(),
+                new RioTrigStorerFactory().get(),
+                new RioTrixStorerFactory().get(),
+                new RioTurtleStorerFactory().get(),
+                new OBOFormatStorerFactory().get(),
+                new RDFXMLStorerFactory().get(),
+                new OWLXMLStorerFactory().get(),
+                new FunctionalSyntaxStorerFactory().get(),
+                new ManchesterSyntaxStorerFactory().get(),
+                new KRSS2OWLSyntaxStorerFactory().get(),
+                new TurtleStorerFactory().get(),
+                new LatexStorerFactory().get());
         PriorityCollection<OWLStorer> pc = new PriorityCollection<>(PriorityCollectionSorting.ON_SET_INJECTION_ONLY);
         pc.set(storers);
-        assertEquals(pc.toString(), storers.size(), pc.size());
+        Assert.assertEquals(pc.toString(), storers.size(), pc.size());
     }
 }

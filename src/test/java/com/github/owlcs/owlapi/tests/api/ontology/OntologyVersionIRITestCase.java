@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,7 +14,11 @@
 package com.github.owlcs.owlapi.tests.api.ontology;
 
 import com.github.owlcs.owlapi.tests.api.baseclasses.AbstractRoundTrippingTestCase;
-import org.semanticweb.owlapi.model.*;
+import org.junit.jupiter.api.Assertions;
+import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.model.OWLOntologyID;
 
 import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.IRI;
 import static org.semanticweb.owlapi.util.OWLAPIPreconditions.optional;
@@ -32,7 +36,7 @@ public class OntologyVersionIRITestCase extends AbstractRoundTrippingTestCase {
         try {
             return getOWLOntology(ontologyID);
         } catch (OWLOntologyCreationException e) {
-            throw new OWLRuntimeException(e);
+            return Assertions.fail(e);
         }
     }
 }

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -13,50 +13,60 @@
  */
 package com.github.owlcs.owlapi.tests.api.dataproperties;
 
+import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
+import org.junit.Assert;
 import org.junit.Test;
 import org.semanticweb.owlapi.formats.ManchesterSyntaxDocumentFormat;
 import org.semanticweb.owlapi.formats.PrefixDocumentFormat;
-import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLDisjointClassesAxiom;
-import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.Class;
-import static com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory.*;
-import static org.junit.Assert.assertTrue;
-import static org.semanticweb.owlapi.util.OWLAPIStreamUtils.equalStreams;
+import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.util.OWLAPIStreamUtils;
 
 public class DisjointClassesRoundTripTestCase extends TestBase {
 
     private static final String NS = "http://ns.owl";
 
     @Test
-    public void shouldParse() throws OWLOntologyCreationException {
+    public void testShouldParse() throws OWLOntologyCreationException {
         OWLOntology ontology = buildOntology();
-        String input = "Prefix: owl: <http://www.w3.org/2002/07/owl#>\n Prefix: piz: <http://ns.owl#>\n Prefix: rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n Prefix: xml: <http://www.w3.org/XML/1998/namespace>\n Prefix: xsd: <http://www.w3.org/2001/XMLSchema#>\n Prefix: rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n\n Ontology: <http://ns.owl>\n"
-                + " Class: piz:F\n Class: piz:E\n Class: piz:D\n Class: piz:C\n DisjointClasses: \n ( piz:D or piz:C),\n (piz:E or piz:C),\n (piz:F or piz:C)";
+        String input = "Prefix: owl: <http://www.w3.org/2002/07/owl#>\n "
+                + "Prefix: piz: <http://ns.owl#>\n "
+                + "Prefix: rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n "
+                + "Prefix: xml: <http://www.w3.org/XML/1998/namespace>\n "
+                + "Prefix: xsd: <http://www.w3.org/2001/XMLSchema#>\n "
+                + "Prefix: rdfs: <http://www.w3.org/2000/01/rdf-schema#>\n\n "
+                + "Ontology: <http://ns.owl>\n "
+                + "Class: piz:F\n "
+                + "Class: piz:E\n "
+                + "Class: piz:D\n "
+                + "Class: piz:C\n "
+                + "DisjointClasses: \n "
+                + "( piz:D or piz:C),\n "
+                + "(piz:E or piz:C),\n "
+                + "(piz:F or piz:C)";
         OWLOntology roundtripped = loadOntologyFromString(input);
-        assertTrue(input, equalStreams(ontology.logicalAxioms(), roundtripped.logicalAxioms()));
+        Assert.assertTrue(input, OWLAPIStreamUtils.equalStreams(ontology.logicalAxioms(), roundtripped.logicalAxioms()));
     }
 
     @Test
-    public void shouldRoundTrip() throws Exception {
+    public void testShouldRoundTrip() throws Exception {
         OWLOntology ontology = buildOntology();
         PrefixDocumentFormat format = new ManchesterSyntaxDocumentFormat();
         format.setPrefix("piz", NS + '#');
         OWLOntology roundtripped = roundTrip(ontology, format);
-        assertTrue(equalStreams(ontology.logicalAxioms(), roundtripped.logicalAxioms()));
+        Assert.assertTrue(OWLAPIStreamUtils.equalStreams(ontology.logicalAxioms(), roundtripped.logicalAxioms()));
     }
 
     private OWLOntology buildOntology() {
-        OWLClass c = Class(IRI(NS + "#", "C"));
-        OWLClass d = Class(IRI(NS + "#", "D"));
-        OWLClass e = Class(IRI(NS + "#", "E"));
-        OWLClass f = Class(IRI(NS + "#", "F"));
+        OWLClass c = OWLFunctionalSyntaxFactory.Class(IRI.create(NS + "#", "C"));
+        OWLClass d = OWLFunctionalSyntaxFactory.Class(IRI.create(NS + "#", "D"));
+        OWLClass e = OWLFunctionalSyntaxFactory.Class(IRI.create(NS + "#", "E"));
+        OWLClass f = OWLFunctionalSyntaxFactory.Class(IRI.create(NS + "#", "F"));
         OWLOntology ontology = getOWLOntology();
-        OWLDisjointClassesAxiom disjointClasses = DisjointClasses(ObjectUnionOf(c, d), ObjectUnionOf(c, e),
-                ObjectUnionOf(c, f));
+        OWLDisjointClassesAxiom disjointClasses = OWLFunctionalSyntaxFactory.DisjointClasses(
+                OWLFunctionalSyntaxFactory.ObjectUnionOf(c, d),
+                OWLFunctionalSyntaxFactory.ObjectUnionOf(c, e),
+                OWLFunctionalSyntaxFactory.ObjectUnionOf(c, f));
         ontology.add(disjointClasses);
         return ontology;
     }
