@@ -24,6 +24,7 @@ import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.tests.ModelData;
 import com.github.owlcs.ontapi.tests.model.ContainsAxiomsTest;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.vocabulary.SKOS;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -32,6 +33,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.semanticweb.owlapi.model.*;
 
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
@@ -43,47 +45,58 @@ public class ContainsAxiomsNoCacheTest extends ContainsAxiomsTest {
 
     public static Stream<Arguments> data() {
         return Stream.of(
-                of(ModelData.PIZZA, OWLSubClassOfAxiom.class, df -> {
-                    String ns = "http://www.co-ode.org/ontologies/pizza/pizza.owl#";
-                    OWLClass sub = df.getOWLClass(ns + "PizzaTopping");
-                    OWLClass sup = df.getOWLClass(ns + "Food");
-                    return df.getOWLSubClassOfAxiom(sub, sup);
+                of(ModelData.PIZZA, OWLDeclarationAxiom.class,
+                        (f, d) -> f.getOWLDeclarationAxiom(f.getOWLObjectProperty(d.getNS() + "hasCountryOfOrigin")))
+                , of(ModelData.PIZZA, OWLSubClassOfAxiom.class, (f, d) -> {
+                    OWLClass sub = f.getOWLClass(d.getNS() + "PizzaTopping");
+                    OWLClass sup = f.getOWLClass(d.getNS() + "Food");
+                    return f.getOWLSubClassOfAxiom(sub, sup);
                 })
-                , of(ModelData.TRAVEL, OWLDifferentIndividualsAxiom.class, df -> {
-                    String ns = "http://www.owl-ontologies.com/travel.owl#";
-                    OWLNamedIndividual i1 = df.getOWLNamedIndividual(ns + "ThreeStarRating");
-                    OWLNamedIndividual i2 = df.getOWLNamedIndividual(ns + "TwoStarRating");
-                    return df.getOWLDifferentIndividualsAxiom(i1, i2);
+                , of(ModelData.TRAVEL, OWLDifferentIndividualsAxiom.class, (f, d) -> {
+                    OWLNamedIndividual i1 = f.getOWLNamedIndividual(d.getNS() + "ThreeStarRating");
+                    OWLNamedIndividual i2 = f.getOWLNamedIndividual(d.getNS() + "TwoStarRating");
+                    return f.getOWLDifferentIndividualsAxiom(i1, i2);
                 })
-                , of(ModelData.PIZZA, OWLObjectPropertyRangeAxiom.class, df -> {
-                    String ns = "http://www.co-ode.org/ontologies/pizza/pizza.owl#";
-                    OWLObjectProperty property = df.getOWLObjectProperty(ns + "hasIngredient");
-                    OWLClass clazz = df.getOWLClass(ns + "Food");
-                    return df.getOWLObjectPropertyRangeAxiom(property, clazz);
+                , of(ModelData.PIZZA, OWLObjectPropertyRangeAxiom.class, (f, d) -> {
+                    OWLObjectProperty property = f.getOWLObjectProperty(d.getNS() + "hasIngredient");
+                    OWLClass clazz = f.getOWLClass(d.getNS() + "Food");
+                    return f.getOWLObjectPropertyRangeAxiom(property, clazz);
                 })
-                , of(ModelData.FAMILY, OWLDataPropertyRangeAxiom.class, df -> {
-                    String ns = "http://www.co-ode.org/roberts/family-tree.owl#";
-                    OWLDataProperty p = df.getOWLDataProperty(ns + "hasMarriageYear");
-                    OWLDatatype r = df.getIntegerOWLDatatype();
-                    return df.getOWLDataPropertyRangeAxiom(p, r);
+                , of(ModelData.FAMILY, OWLDataPropertyRangeAxiom.class, (f, d) -> {
+                    OWLDataProperty p = f.getOWLDataProperty(d.getNS() + "hasMarriageYear");
+                    OWLDatatype r = f.getIntegerOWLDatatype();
+                    return f.getOWLDataPropertyRangeAxiom(p, r);
                 })
-                , of(ModelData.PIZZA, OWLObjectPropertyDomainAxiom.class, df -> {
-                    String ns = "http://www.co-ode.org/ontologies/pizza/pizza.owl#";
-                    OWLObjectProperty property = df.getOWLObjectProperty(ns + "hasIngredient");
-                    OWLClass clazz = df.getOWLClass(ns + "Food");
-                    return df.getOWLObjectPropertyDomainAxiom(property, clazz);
+                , of(ModelData.PIZZA, OWLObjectPropertyDomainAxiom.class, (f, d) -> {
+                    OWLObjectProperty property = f.getOWLObjectProperty(d.getNS() + "hasIngredient");
+                    OWLClass clazz = f.getOWLClass(d.getNS() + "Food");
+                    return f.getOWLObjectPropertyDomainAxiom(property, clazz);
                 })
-                , of(ModelData.FAMILY, OWLDataPropertyDomainAxiom.class, df -> {
-                    String ns = "http://www.co-ode.org/roberts/family-tree.owl#";
-                    OWLDataProperty p = df.getOWLDataProperty(ns + "hasMarriageYear");
-                    OWLClass c = df.getOWLClass(ns + "Marriage");
-                    return df.getOWLDataPropertyDomainAxiom(p, c);
+                , of(ModelData.FAMILY, OWLDataPropertyDomainAxiom.class, (f, d) -> {
+                    OWLDataProperty p = f.getOWLDataProperty(d.getNS() + "hasMarriageYear");
+                    OWLClass c = f.getOWLClass(d.getNS() + "Marriage");
+                    return f.getOWLDataPropertyDomainAxiom(p, c);
+                })
+                , of(ModelData.PIZZA, OWLSubObjectPropertyOfAxiom.class, (f, d) -> {
+                    OWLObjectProperty sub = f.getOWLObjectProperty(d.getNS() + "isBaseOf");
+                    OWLObjectProperty sup = f.getOWLObjectProperty(d.getNS() + "isIngredientOf");
+                    return f.getOWLSubObjectPropertyOfAxiom(sub, sup);
+                })
+                , of(ModelData.FAMILY, OWLSubDataPropertyOfAxiom.class, (f, d) -> {
+                    OWLDataProperty sub = f.getOWLDataProperty(d.getNS() + "formerlyKnownAs");
+                    OWLDataProperty sup = f.getOWLDataProperty(d.getNS() + "knownAs");
+                    return f.getOWLSubDataPropertyOfAxiom(sub, sup);
+                })
+                , of(ModelData.NCBITAXON_CUT, OWLSubAnnotationPropertyOfAxiom.class, (f, d) -> {
+                    OWLAnnotationProperty sub = f.getOWLAnnotationProperty(SKOS.editorialNote.getURI());
+                    OWLAnnotationProperty sup = f.getOWLAnnotationProperty(SKOS.note.getURI());
+                    return f.getOWLSubAnnotationPropertyOfAxiom(sub, sup);
                 })
         );
     }
 
-    private static <X> Arguments of(ModelData data, Class<X> type, Function<OWLDataFactory, X> get) {
-        return Arguments.of(data, type, get);
+    private static <X> Arguments of(ModelData data, Class<X> type, BiFunction<OWLDataFactory, ModelData, X> get) {
+        return Arguments.of(data, type, (Function<OWLDataFactory, X>) f -> get.apply(f, data));
     }
 
     @Override

@@ -36,37 +36,32 @@ import java.util.Arrays;
  * Created by @ssz on 19.04.2020.
  */
 public enum ModelData {
-    PIZZA("/ontapi/pizza.ttl"),
-    FAMILY("/ontapi/family.ttl"),
-    PEOPLE("/ontapi/people.ttl"),
-    CAMERA("/ontapi/camera.ttl"),
-    KOALA("/ontapi/koala.ttl"),
-    TRAVEL("/ontapi/travel.ttl"),
-    WINE("/ontapi/wine.ttl") {
-        @Override
-        String getName() {
-            return "http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine";
-        }
-
+    PIZZA("/ontapi/pizza.ttl", "http://www.co-ode.org/ontologies/pizza/pizza.owl"),
+    FAMILY("/ontapi/family.ttl", "http://www.co-ode.org/roberts/family-tree.owl"),
+    PEOPLE("/ontapi/people.ttl", "http://owl.man.ac.uk/2006/07/sssw/people"),
+    CAMERA("/ontapi/camera.ttl", "http://www.xfront.com/owl/ontologies/camera/"),
+    KOALA("/ontapi/koala.ttl", "http://protege.stanford.edu/plugins/owl/owl-library/koala.owl"),
+    TRAVEL("/ontapi/travel.ttl", "http://www.owl-ontologies.com/travel.owl"),
+    WINE("/ontapi/wine.ttl", "http://www.w3.org/TR/2003/PR-owl-guide-20031209/wine") {
         @Override
         public OWLOntology fetch(OWLOntologyManager manager) {
             return load(manager, FOOD, this);
         }
     },
-    FOOD("/ontapi/food.ttl") {
-        @Override
-        String getName() {
-            return "http://www.w3.org/TR/2003/PR-owl-guide-20031209/food";
-        }
-
+    FOOD("/ontapi/food.ttl", "http://www.w3.org/TR/2003/PR-owl-guide-20031209/food") {
         @Override
         public OWLOntology fetch(OWLOntologyManager manager) {
             return load(manager, WINE, this);
         }
     },
-    NCBITAXON_CUT("/ontapi/ncbitaxon2.ttl"),
-    HP_CUT("/ontapi/hp-cut.ttl"),
-    FAMILY_PEOPLE_UNION(null) {
+    NCBITAXON_CUT("/ontapi/ncbitaxon2.ttl", "http://purl.bioontology.org/ontology/NCBITAXON/"),
+    HP_CUT("/ontapi/hp-cut.ttl", "http://purl.obolibrary.org/obo/hp.owl"),
+    FAMILY_PEOPLE_UNION(null, null) {
+        @Override
+        public String getNS() {
+            return "http://www.ex.org/tribe#";
+        }
+
         @Override
         public OWLOntologyDocumentSource getDocumentSource() {
             throw new UnsupportedOperationException();
@@ -74,7 +69,7 @@ public enum ModelData {
 
         @Override
         public OWLOntology fetch(OWLOntologyManager manager) {
-            String ns = "http://www.ex.org/tribe#";
+            String ns = getNS();
             OWLOntology family = load(manager, FAMILY);
             OWLOntology people = load(manager, PEOPLE);
             OWLOntology res;
@@ -121,14 +116,16 @@ public enum ModelData {
     ;
     private final Path file;
     private final OntFormat format;
+    private final String uri;
 
-    ModelData(String file) {
-        this(file, OntFormat.TURTLE);
+    ModelData(String file, String name) {
+        this(file, OntFormat.TURTLE, name);
     }
 
-    ModelData(String file, OntFormat format) {
+    ModelData(String file, OntFormat format, String name) {
         this.file = file == null ? null : toPath(file);
         this.format = format;
+        this.uri = name;
     }
 
     private static Path toPath(String file) {
@@ -147,10 +144,10 @@ public enum ModelData {
             manager.setOntologyLoaderConfiguration(conf);
             PriorityCollection<OWLOntologyIRIMapper> maps = manager.getIRIMappers();
             Arrays.stream(data)
-                    .map(d -> FileMap.create(IRI.create(d.getName()), d.getDocumentSource().getDocumentIRI()))
+                    .map(d -> FileMap.create(IRI.create(d.getURI()), d.getDocumentSource().getDocumentIRI()))
                     .forEach(maps::add);
             try {
-                res = manager.loadOntology(IRI.create(data[data.length - 1].getName()));
+                res = manager.loadOntology(IRI.create(data[data.length - 1].getURI()));
             } catch (OWLOntologyCreationException e) {
                 throw new AssertionError(e);
             }
@@ -201,7 +198,11 @@ public enum ModelData {
         return format.createOwlFormat();
     }
 
-    String getName() {
-        return name();
+    public String getURI() {
+        return uri;
+    }
+
+    public String getNS() {
+        return uri + "#";
     }
 }
