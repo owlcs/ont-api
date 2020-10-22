@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -20,6 +20,7 @@ import com.github.owlcs.ontapi.internal.objects.FactoryAccessor;
 import com.github.owlcs.ontapi.internal.objects.ONTAnnotationImpl;
 import com.github.owlcs.ontapi.jena.model.*;
 import org.apache.jena.graph.BlankNodeId;
+import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.graph.impl.LiteralLabel;
 import org.apache.jena.util.iterator.ExtendedIterator;
@@ -33,6 +34,13 @@ import java.util.function.Supplier;
 
 /**
  * A translator that provides {@link OWLAnnotationAssertionAxiom} implementations.
+ * <p>
+ * The formula is {@code s A t}, where:
+ * <ul>
+ * <li>{@code s} - IRI or anonymous individual</li>
+ * <li>{@code A} - annotation property</li>
+ * <li>{@code t} - IRI, anonymous individual, or literal</li>
+ * </ul>
  * Examples:
  * <pre>{@code
  *  foaf:LabelProperty vs:term_status "unstable" .
@@ -104,6 +112,19 @@ public class AnnotationAssertionTranslator
                 .getOWLAnnotationAssertionAxiom(p.getOWLObject(), s.getOWLObject(), v.getOWLObject(),
                         ONTObject.toSet(annotations));
         return ONTWrapperImpl.create(res, statement).append(annotations).append(s).append(p).append(v);
+    }
+
+    @Override
+    Triple createSearchTriple(OWLAnnotationAssertionAxiom axiom) {
+        OWLAnnotationSubject s = axiom.getSubject();
+        OWLAnnotationObject o = axiom.getValue();
+        if (s instanceof OWLAnonymousIndividual || o instanceof OWLAnonymousIndividual) {
+            return null;
+        }
+        Node subject = WriteHelper.toNode((IRI) s);
+        Node property = WriteHelper.toNode(axiom.getProperty());
+        Node object = o instanceof IRI ? WriteHelper.toNode((IRI) o) : WriteHelper.toNode((OWLLiteral) o);
+        return Triple.create(subject, property, object);
     }
 
     /**

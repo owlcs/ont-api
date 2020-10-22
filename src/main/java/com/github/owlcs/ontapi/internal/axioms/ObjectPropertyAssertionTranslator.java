@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -24,6 +24,7 @@ import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntObjectProperty;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import org.apache.jena.graph.BlankNodeId;
+import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.*;
@@ -35,10 +36,17 @@ import java.util.function.Supplier;
 
 /**
  * A translator that provides {@link OWLObjectPropertyAssertionAxiom} implementations.
+ * <p>
+ * The pattern is {@code a1 PN a2}, where:
+ * <ul>
+ * <li>{@code a1} and {@code a2} - individuals (named or anonymous)</li>
+ * <li>{@code PN} - named object property expression</li>
+ * </ul>
  * Example:
  * <pre>{@code
  * gr:Saturday rdf:type owl:NamedIndividual , gr:hasNext gr:Sunday ;
  * }</pre>
+ * <p>
  * Created by @szuev on 01.10.2016.
  */
 public class ObjectPropertyAssertionTranslator
@@ -103,6 +111,16 @@ public class ObjectPropertyAssertionTranslator
                         object.getOWLObject(), ONTObject.toSet(annotations));
         return ONTWrapperImpl.create(res, statement).append(annotations)
                 .append(subject).append(property).append(object);
+    }
+
+    @Override
+    Triple createSearchTriple(OWLObjectPropertyAssertionAxiom axiom) {
+        Node subject = WriteHelper.getNamedNode(axiom.getSubject());
+        if (subject == null) return null;
+        Node object = WriteHelper.getNamedNode(axiom.getObject());
+        if (object == null) return null;
+        Node property = WriteHelper.toNode(axiom.getProperty().asOWLObjectProperty());
+        return Triple.create(subject, property, object);
     }
 
     /**

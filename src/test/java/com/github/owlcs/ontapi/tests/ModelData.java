@@ -54,7 +54,12 @@ public enum ModelData {
             return load(manager, WINE, this);
         }
     },
-    NCBITAXON_CUT("/ontapi/ncbitaxon2.ttl", "http://purl.bioontology.org/ontology/NCBITAXON/"),
+    NCBITAXON_CUT("/ontapi/ncbitaxon2.ttl", "http://purl.bioontology.org/ontology/NCBITAXON/") {
+        @Override
+        public String getNS() {
+            return getURI();
+        }
+    },
     HP_CUT("/ontapi/hp-cut.ttl", "http://purl.obolibrary.org/obo/hp.owl"),
     FAMILY_PEOPLE_UNION(null, null) {
         @Override

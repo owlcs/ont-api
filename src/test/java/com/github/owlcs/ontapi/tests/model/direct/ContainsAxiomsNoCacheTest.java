@@ -92,6 +92,24 @@ public class ContainsAxiomsNoCacheTest extends ContainsAxiomsTest {
                     OWLAnnotationProperty sup = f.getOWLAnnotationProperty(SKOS.note.getURI());
                     return f.getOWLSubAnnotationPropertyOfAxiom(sub, sup);
                 })
+                , of(ModelData.NCBITAXON_CUT, OWLAnnotationAssertionAxiom.class, (f, d) -> {
+                    OWLNamedIndividual s = f.getOWLNamedIndividual(d.getNS() + "46063");
+                    OWLAnnotationProperty p = f.getOWLAnnotationProperty(SKOS.prefLabel.getURI());
+                    OWLLiteral o = f.getOWLLiteral("Chelone", "en");
+                    return f.getOWLAnnotationAssertionAxiom(p, s.getIRI(), o);
+                })
+                , of(ModelData.FAMILY, OWLDataPropertyAssertionAxiom.class, (f, d) -> {
+                    OWLNamedIndividual s = f.getOWLNamedIndividual(d.getNS() + "james_bright_1809");
+                    OWLDataProperty p = f.getOWLDataProperty(d.getNS() + "hasBirthYear");
+                    OWLLiteral o = f.getOWLLiteral(1809);
+                    return f.getOWLDataPropertyAssertionAxiom(p, s, o);
+                })
+                , of(ModelData.FAMILY, OWLObjectPropertyAssertionAxiom.class, (f, d) -> {
+                    OWLNamedIndividual s = f.getOWLNamedIndividual(d.getNS() + "james_bright_1809");
+                    OWLObjectProperty p = f.getOWLObjectProperty(d.getNS() + "isFatherOf");
+                    OWLNamedIndividual o = f.getOWLNamedIndividual(d.getNS() + "martha_ann_bright_1835");
+                    return f.getOWLObjectPropertyAssertionAxiom(p, s, o);
+                })
         );
     }
 

@@ -72,7 +72,7 @@ public class WriteHelper {
     }
 
     public static Resource toResource(OWLAnonymousIndividual individual) {
-        return new ResourceImpl(toBlankNode(individual), null);
+        return new ResourceImpl(toNode(individual), null);
     }
 
     public static Node toNode(HasIRI entity) {
@@ -83,9 +83,14 @@ public class WriteHelper {
         return NodeFactory.createURI(iri.getIRIString());
     }
 
-    public static Node toBlankNode(OWLAnonymousIndividual individual) {
+    public static Node toNode(OWLAnonymousIndividual individual) {
         BlankNodeId id = OWLAnonymousIndividualImpl.asONT(individual).getBlankNodeId();
         return NodeFactory.createBlankNode(id);
+    }
+
+    public static Node toNode(OWLLiteral literal) {
+        LiteralLabel lab = OWLLiteralImpl.asONT(literal).getLiteralLabel();
+        return NodeFactory.createLiteral(lab);
     }
 
     public static Resource toResource(IRI iri) {
@@ -101,12 +106,7 @@ public class WriteHelper {
     }
 
     public static Literal toLiteral(OWLLiteral literal) {
-        return new LiteralImpl(toLiteralNode(literal), null);
-    }
-
-    public static Node toLiteralNode(OWLLiteral literal) {
-        LiteralLabel lab = OWLLiteralImpl.asONT(literal).getLiteralLabel();
-        return NodeFactory.createLiteral(lab);
+        return new LiteralImpl(toNode(literal), null);
     }
 
     /**
@@ -461,7 +461,7 @@ public class WriteHelper {
 
     public static Literal addLiteral(OntModel model, OWLLiteral literal) {
         addDataRange(model, literal.getDatatype()).as(OntDataRange.Named.class);
-        return model.asRDFNode(toLiteralNode(literal)).asLiteral();
+        return model.asRDFNode(toNode(literal)).asLiteral();
     }
 
     /**

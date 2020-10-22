@@ -559,13 +559,14 @@ public class Graphs {
     }
 
     /**
-     * Answers {@code true} when all parts of the given RDF triple are URIs (i.e. not blank nodes or literals).
+     * Answers {@code true} if the given RDF (i.e. from the valid {@code Graph}) triple has an URI as a subject
+     * and non-blank node as an object (i.e. object must be an URI and a literal, not anonymous node).
      *
      * @param triple a regular graph {@link Triple}, not {@code null}
-     * @return boolean
+     * @return {@code boolean}
      */
-    public static boolean isNamedTriple(Triple triple) {
-        return triple.getObject().isURI() && triple.getSubject().isURI();
+    public static boolean isSimpleTriple(Triple triple) {
+        return !triple.getObject().isBlank() && triple.getSubject().isURI();
     }
 
     /**

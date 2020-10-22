@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -23,6 +23,7 @@ import com.github.owlcs.ontapi.jena.model.OntDataProperty;
 import com.github.owlcs.ontapi.jena.model.OntIndividual;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
+import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.graph.impl.LiteralLabel;
 import org.apache.jena.util.iterator.ExtendedIterator;
@@ -35,7 +36,13 @@ import java.util.function.Supplier;
 
 /**
  * A translator that provides {@link OWLDataPropertyAssertionAxiom} implementations.
- * The pattern is {@code a R v}.
+ * <p>
+ * The pattern is {@code a R v}, where:
+ * <ul>
+ * <li>{@code a} - individual (named or anonymous)</li>
+ * <li>{@code R} - data property</li>
+ * <li>{@code v} - literal</li>
+ * </ul>
  * <p>
  * Created by @szuev on 28.09.2016.
  */
@@ -87,6 +94,15 @@ public class DataPropertyAssertionTranslator
                 .getOWLDataPropertyAssertionAxiom(p.getOWLObject(), i.getOWLObject(), literal.getOWLObject(),
                         ONTObject.toSet(annotations));
         return ONTWrapperImpl.create(res, statement).append(annotations).append(i).append(p).append(literal);
+    }
+
+    @Override
+    Triple createSearchTriple(OWLDataPropertyAssertionAxiom axiom) {
+        Node subject = WriteHelper.getNamedNode(axiom.getSubject());
+        if (subject == null) return null;
+        Node property = WriteHelper.toNode(axiom.getProperty().asOWLDataProperty());
+        Node object = WriteHelper.toNode(axiom.getObject());
+        return Triple.create(subject, property, object);
     }
 
     /**
