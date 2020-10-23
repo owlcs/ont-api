@@ -116,14 +116,11 @@ public class AnnotationAssertionTranslator
 
     @Override
     Triple createSearchTriple(OWLAnnotationAssertionAxiom axiom) {
-        OWLAnnotationSubject s = axiom.getSubject();
-        OWLAnnotationObject o = axiom.getValue();
-        if (s instanceof OWLAnonymousIndividual || o instanceof OWLAnonymousIndividual) {
-            return null;
-        }
-        Node subject = WriteHelper.toNode((IRI) s);
+        Node subject = WriteHelper.getSearchNode(axiom.getSubject());
+        if (subject == null) return null;
+        Node object = WriteHelper.getSearchNode(axiom.getValue());
+        if (object == null) return null;
         Node property = WriteHelper.toNode(axiom.getProperty());
-        Node object = o instanceof IRI ? WriteHelper.toNode((IRI) o) : WriteHelper.toNode((OWLLiteral) o);
         return Triple.create(subject, property, object);
     }
 

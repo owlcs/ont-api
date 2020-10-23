@@ -14,24 +14,32 @@
 
 package com.github.owlcs.ontapi.tests.model.direct;
 
+import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.config.CacheSettings;
 import com.github.owlcs.ontapi.config.OntConfig;
 import com.github.owlcs.ontapi.internal.*;
+import com.github.owlcs.ontapi.jena.OntModelFactory;
+import com.github.owlcs.ontapi.jena.model.OntIndividual;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.tests.ModelData;
 import com.github.owlcs.ontapi.tests.model.ContainsAxiomsTest;
+import org.apache.jena.graph.BlankNodeId;
+import org.apache.jena.rdf.model.AnonId;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.SKOS;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.semanticweb.owlapi.model.*;
 
+import java.util.Collections;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -51,6 +59,11 @@ public class ContainsAxiomsNoCacheTest extends ContainsAxiomsTest {
                     OWLClass sub = f.getOWLClass(d.getNS() + "PizzaTopping");
                     OWLClass sup = f.getOWLClass(d.getNS() + "Food");
                     return f.getOWLSubClassOfAxiom(sub, sup);
+                })
+                , of(ModelData.PIZZA, OWLDisjointClassesAxiom.class, (f, d) -> {
+                    OWLClass c1 = f.getOWLClass(d.getNS() + "American");
+                    OWLClass c2 = f.getOWLClass(d.getNS() + "AmericanHot");
+                    return f.getOWLDisjointClassesAxiom(c1, c2);
                 })
                 , of(ModelData.TRAVEL, OWLDifferentIndividualsAxiom.class, (f, d) -> {
                     OWLNamedIndividual i1 = f.getOWLNamedIndividual(d.getNS() + "ThreeStarRating");
@@ -134,19 +147,85 @@ public class ContainsAxiomsNoCacheTest extends ContainsAxiomsTest {
     @ParameterizedTest(name = "[{index}] ::: type={1}, model={0}")
     @MethodSource("data")
     public <X extends OWLAxiom> void testAxiomTranslator(ModelData data, Class<X> type, Function<OWLDataFactory, X> get) {
+        testAxiomTranslator(m -> ((Ontology) data.fetch(m)).asGraphModel(), type, get);
+    }
+
+    @Test
+    public void testDisjointObjectPropertiesAxiomTranslator() {
+        String ns = "http://x#";
+        String p1 = ns + "p1";
+        String p2 = ns + "p2";
+        testAxiomTranslator(m -> createDisjointObjectPropertiesModel((OntologyManager) m, ns, p1, p2)
+                , OWLDisjointObjectPropertiesAxiom.class
+                , f -> f.getOWLDisjointObjectPropertiesAxiom(f.getOWLObjectProperty(p1), f.getOWLObjectProperty(p2)));
+
+        testAxiomTranslator(m -> createDisjointObjectPropertiesModel(m, ns, p1, p2)
+                , OWLDisjointObjectPropertiesAxiom.class);
+    }
+
+    private OntModel createDisjointObjectPropertiesModel(OntologyManager m, String ns, String p1, String p2) {
+        OntModel res = m.createOntology()
+                .asGraphModel().setNsPrefixes(OntModelFactory.STANDARD).setNsPrefix("x", ns);
+        res.createDisjointObjectProperties(res.createObjectProperty(p1), res.createObjectProperty(p2));
+        return res;
+    }
+
+    @Test
+    public void testSameIndividualsAxiomTranslator() {
+        String ns = "http://x#";
+        BlankNodeId b1 = BlankNodeId.create();
+        BlankNodeId b2 = BlankNodeId.create();
+        testAxiomTranslator(m -> createSameIndividualsModel((OntologyManager) m, ns, b1, b2)
+                , OWLSameIndividualAxiom.class
+                , f -> {
+                    DataFactory df = (DataFactory) f;
+                    return df.getOWLSameIndividualAxiom(df.getOWLAnonymousIndividual(b1), df.getOWLAnonymousIndividual(b2));
+                });
+
+        testAxiomTranslator(m -> createSameIndividualsModel(m, ns, b1, b2), OWLSameIndividualAxiom.class);
+    }
+
+    private OntModel createSameIndividualsModel(OntologyManager m, String ns, BlankNodeId b1, BlankNodeId b2) {
+        OntModel res = m.createOntology()
+                .asGraphModel().setNsPrefixes(OntModelFactory.STANDARD).setNsPrefix("x", ns);
+        OntIndividual i1 = res.createResource(new AnonId(b1))
+                .addProperty(RDF.type, res.createOntClass(ns + "C1"))
+                .as(OntIndividual.class);
+        OntIndividual i2 = res.createResource(new AnonId(b2))
+                .addProperty(RDF.type, res.createOntClass(ns + "C2"))
+                .as(OntIndividual.class);
+        i1.addSameAsStatement(i2);
+        return res;
+    }
+
+    private <X extends OWLAxiom> void testAxiomTranslator(Function<OntologyManager, OntModel> create, Class<X> type) {
+        OntologyManager m = (OntologyManager) newManager();
+        testAxiomTranslator(x -> create.apply(m)
+                , type
+                , f -> m.ontologies().findFirst().orElseThrow(AssertionError::new)
+                        .axioms(AxiomType.getTypeForClass(type))
+                        .findFirst().orElseThrow(AssertionError::new));
+    }
+
+    private <X extends OWLAxiom> void testAxiomTranslator(Function<OWLOntologyManager, OntModel> createOntModel,
+                                                          Class<X> axiomType,
+                                                          Function<OWLDataFactory, X> getAxiom) {
         OWLOntologyManager m = newManager();
         OWLDataFactory df = m.getOWLDataFactory();
-        AxiomTranslator<X> tr = AxiomParserProvider.get(type);
+        AxiomTranslator<X> tr = AxiomParserProvider.get(axiomType);
         Assertions.assertNotNull(tr);
 
-        X key = get.apply(df);
-
-        OntModel ont = ((Ontology) data.fetch(m)).asGraphModel();
+        OntModel ont = createOntModel.apply(m);
+        X key = getAxiom.apply(df);
         ONTObjectFactory f = AxiomTranslator.getObjectFactory(ont);
         InternalConfig c = AxiomTranslator.getConfig(ont);
         Optional<ONTObject<X>> ax = tr.findONTObject(key, ont, f, c);
         Assertions.assertTrue(ax.isPresent());
         Assertions.assertTrue(tr.containsONTObject(key, ont, f, c));
+
+        X key2 = key.getAnnotatedAxiom(Collections.singleton(df.getRDFSComment("XXXX")));
+        Assertions.assertFalse(tr.containsONTObject(key2, ont, f, c));
+        Assertions.assertFalse(tr.findONTObject(key2, ont, f, c).isPresent());
 
         ont.remove(ModelFactory.createModelForGraph(ax.get().toGraph()));
 

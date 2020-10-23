@@ -69,9 +69,9 @@ public abstract class AbstractSubPropertyTranslator<Axiom extends OWLAxiom, P ex
 
     @Override
     Triple createSearchTriple(Axiom axiom) {
-        Node subject = WriteHelper.getNamedNode(getSubProperty(axiom));
+        Node subject = WriteHelper.getSearchNode(getSubProperty(axiom));
         if (subject == null) return null;
-        Node object = WriteHelper.getNamedNode(getSuperProperty(axiom));
+        Node object = WriteHelper.getSearchNode(getSuperProperty(axiom));
         if (object == null) return null;
         return Triple.create(subject, RDFS.subPropertyOf.asNode(), object);
     }

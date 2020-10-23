@@ -233,8 +233,28 @@ public class WriteHelper {
         throw new OntApiException.IllegalArgument("Unsupported property-expression: " + expression);
     }
 
-    public static Node getNamedNode(OWLObject object) {
-        return object instanceof HasIRI ? toNode((HasIRI) object) : null;
+    /**
+     * Constructs or retrieves a {@code Node} from the given {@code OWLObject}.
+     * Expressions and external anonymous individuals are ignored.
+     * This is to perform optimization searching in a graph.
+     *
+     * @param obj {@link OWLObject}
+     * @return {@code Node} or {@code null}
+     */
+    public static Node getSearchNode(OWLObject obj) {
+        if (obj.isIRI()) {
+            return toNode((IRI) obj);
+        }
+        if (obj instanceof HasIRI) {
+            return toNode((HasIRI) obj);
+        }
+        if (obj instanceof OWLAnonymousIndividual) {
+            return toNode((OWLAnonymousIndividual) obj);
+        }
+        if (obj instanceof OWLLiteral) {
+            return toNode((OWLLiteral) obj);
+        }
+        return null;
     }
 
     public static void writeAssertionTriple(OntModel model,

@@ -34,7 +34,21 @@ import java.util.function.Supplier;
 /**
  * The base class for {@link ObjectPropertyDomainTranslator},
  * {@link DataPropertyDomainTranslator} and {@link AnnotationPropertyDomainTranslator} axioms.
- * All of them are based on a statement with {@code rdfs:domain} predicate.
+ * <p>
+ * There are 3 domain axioms:
+ * <ul>
+ * <li>object property domain {@code P rdfs:domain C}</li>
+ * <li>data property domain {@code R rdfs:domain C}</li>
+ * <li>annotation property domain {@code A rdfs:domain U}</li>
+ * </ul>
+ * Where:
+ * <ul>
+ * <li>{@code U} - IRI</li>
+ * <li>{@code A} - annotation property</li>
+ * <li>{@code R} - data property</li>
+ * <li>{@code P} - object property expression</li>
+ * <li>{@code C} - class expression</li>
+ * </ul>
  * <p>
  * Created by @szuev on 30.09.2016.
  */
@@ -64,15 +78,11 @@ public abstract class AbstractPropertyDomainTranslator<Axiom extends OWLAxiom
 
     @Override
     Triple createSearchTriple(Axiom axiom) {
-        Node subject = WriteHelper.getNamedNode(axiom.getProperty());
+        Node subject = WriteHelper.getSearchNode(axiom.getProperty());
         if (subject == null) return null;
-        Node object = extractNamedObject(axiom);
+        Node object = WriteHelper.getSearchNode(axiom.getDomain());
         if (object == null) return null;
         return Triple.create(subject, RDFS.domain.asNode(), object);
-    }
-
-    Node extractNamedObject(Axiom axiom) {
-        return WriteHelper.getNamedNode(axiom.getDomain());
     }
 
     /**

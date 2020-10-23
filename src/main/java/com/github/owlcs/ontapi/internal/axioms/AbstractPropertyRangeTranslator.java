@@ -31,6 +31,23 @@ import java.util.function.Supplier;
 /**
  * The base class for {@link ObjectPropertyRangeTranslator} and {@link DataPropertyRangeTranslator}
  * and {@link AnnotationPropertyRangeTranslator}.
+ * <p>
+ * There are 3 range axioms:
+ * <ul>
+ * <li>object property range {@code P rdfs:range C}</li>
+ * <li>data property range {@code R rdfs:range D}</li>
+ * <li>annotation property range {@code A rdfs:range U}</li>
+ * </ul>
+ * Where:
+ * <ul>
+ * <li>{@code U} - IRI</li>
+ * <li>{@code A} - annotation property</li>
+ * <li>{@code R} - data property</li>
+ * <li>{@code P} - object property expression</li>
+ * <li>{@code C} - class expression</li>
+ * <li>{@code D} - data range</li>
+ * </ul>
+ * <p>
  * Example:
  * <pre>{@code foaf:name rdfs:range rdfs:Literal}</pre>
  * <p>
@@ -62,15 +79,11 @@ public abstract class AbstractPropertyRangeTranslator<Axiom extends OWLAxiom
 
     @Override
     Triple createSearchTriple(Axiom axiom) {
-        Node subject = WriteHelper.getNamedNode(axiom.getProperty());
+        Node subject = WriteHelper.getSearchNode(axiom.getProperty());
         if (subject == null) return null;
-        Node object = extractNamedObject(axiom);
+        Node object = WriteHelper.getSearchNode(axiom.getRange());
         if (object == null) return null;
         return Triple.create(subject, RDFS.range.asNode(), object);
-    }
-
-    Node extractNamedObject(Axiom axiom) {
-        return WriteHelper.getNamedNode(axiom.getRange());
     }
 
     /**

@@ -52,6 +52,11 @@ import java.util.function.Supplier;
 public abstract class AbstractPropertyAssertionTranslator<P extends OWLPropertyExpression,
         A extends OWLAxiom & HasProperty<P>> extends AbstractSimpleTranslator<A> {
 
+    @Override
+    boolean testSearchTriple(Triple t) {
+        return true;
+    }
+
     /**
      * A base for annotation and positive property assertion axioms.
      *

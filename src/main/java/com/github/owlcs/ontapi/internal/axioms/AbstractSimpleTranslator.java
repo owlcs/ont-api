@@ -30,9 +30,13 @@ abstract class AbstractSimpleTranslator<Axiom extends OWLAxiom> extends AxiomTra
     private Triple getSearchTriple(Axiom axiom) {
         if (axiom instanceof WithTriple) {
             Triple res = ((WithTriple) axiom).asTriple();
-            return Graphs.isSimpleTriple(res) ? res : null;
+            return testSearchTriple(res) ? res : null;
         }
         return createSearchTriple(axiom);
+    }
+
+    boolean testSearchTriple(Triple t) {
+        return Graphs.isNamedTriple(t);
     }
 
     abstract Triple createSearchTriple(Axiom axiom);

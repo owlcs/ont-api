@@ -115,9 +115,9 @@ public class ObjectPropertyAssertionTranslator
 
     @Override
     Triple createSearchTriple(OWLObjectPropertyAssertionAxiom axiom) {
-        Node subject = WriteHelper.getNamedNode(axiom.getSubject());
+        Node subject = WriteHelper.getSearchNode(axiom.getSubject());
         if (subject == null) return null;
-        Node object = WriteHelper.getNamedNode(axiom.getObject());
+        Node object = WriteHelper.getSearchNode(axiom.getObject());
         if (object == null) return null;
         Node property = WriteHelper.toNode(axiom.getProperty().asOWLObjectProperty());
         return Triple.create(subject, property, object);

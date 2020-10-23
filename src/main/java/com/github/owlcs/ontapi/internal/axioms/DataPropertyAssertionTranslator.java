@@ -98,7 +98,7 @@ public class DataPropertyAssertionTranslator
 
     @Override
     Triple createSearchTriple(OWLDataPropertyAssertionAxiom axiom) {
-        Node subject = WriteHelper.getNamedNode(axiom.getSubject());
+        Node subject = WriteHelper.getSearchNode(axiom.getSubject());
         if (subject == null) return null;
         Node property = WriteHelper.toNode(axiom.getProperty().asOWLDataProperty());
         Node object = WriteHelper.toNode(axiom.getObject());

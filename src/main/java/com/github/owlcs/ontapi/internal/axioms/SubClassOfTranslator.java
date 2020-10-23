@@ -96,9 +96,9 @@ public class SubClassOfTranslator extends AbstractSimpleTranslator<OWLSubClassOf
 
     @Override
     protected Triple createSearchTriple(OWLSubClassOfAxiom axiom) {
-        Node subject = WriteHelper.getNamedNode(axiom.getSubClass());
+        Node subject = WriteHelper.getSearchNode(axiom.getSubClass());
         if (subject == null) return null;
-        Node object = WriteHelper.getNamedNode(axiom.getSuperClass());
+        Node object = WriteHelper.getSearchNode(axiom.getSuperClass());
         if (object == null) return null;
         return Triple.create(subject, RDFS.subClassOf.asNode(), object);
     }

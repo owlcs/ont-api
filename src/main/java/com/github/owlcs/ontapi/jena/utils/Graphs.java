@@ -146,7 +146,7 @@ public class Graphs {
      *
      * @param left  {@link Graph}
      * @param right {@link Graph}
-     * @return boolean
+     * @return {@code boolean}
      */
     public static boolean isSameBase(Graph left, Graph right) {
         return Objects.equals(getBase(left), getBase(right));
@@ -158,7 +158,7 @@ public class Graphs {
      * for each pair of encountered triples {@code t1, t2} from any iterator, {@code !t1.equals(t2)}.
      *
      * @param graph {@link Graph} to test
-     * @return boolean if {@code graph} is distinct
+     * @return {@code boolean} if {@code graph} is distinct
      * @see Spliterator#DISTINCT
      * @see UnionGraph#isDistinct()
      */
@@ -180,7 +180,7 @@ public class Graphs {
      * since their sizes are not always a sum of parts size.
      *
      * @param graph {@link Graph} to test
-     * @return boolean if {@code graph} is sized
+     * @return {@code boolean} if {@code graph} is sized
      * @see Spliterator#SIZED
      * @see Graphs#size(Graph)
      */
@@ -199,7 +199,7 @@ public class Graphs {
      * Returns the number of triples in the {@code graph} as {@code long}.
      *
      * @param graph {@link Graph}, not {@code null}
-     * @return long
+     * @return {@code long}
      * @see Graphs#isSized(Graph)
      */
     public static long size(Graph graph) {
@@ -559,14 +559,14 @@ public class Graphs {
     }
 
     /**
-     * Answers {@code true} if the given RDF (i.e. from the valid {@code Graph}) triple has an URI as a subject
-     * and non-blank node as an object (i.e. object must be an URI and a literal, not anonymous node).
+     * Answers {@code true} if all parts of the given RDF triple are URIs (i.e. not blank nodes or literals).
      *
      * @param triple a regular graph {@link Triple}, not {@code null}
      * @return {@code boolean}
      */
-    public static boolean isSimpleTriple(Triple triple) {
-        return !triple.getObject().isBlank() && triple.getSubject().isURI();
+    public static boolean isNamedTriple(Triple triple) {
+        // in a valid RDF triple a predicate is an URI by definition
+        return triple.getObject().isURI() && triple.getSubject().isURI();
     }
 
     /**

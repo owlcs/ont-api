@@ -22,7 +22,6 @@ import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
 import com.github.owlcs.ontapi.jena.model.OntAnnotationProperty;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
-import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.util.iterator.NullIterator;
@@ -72,11 +71,6 @@ public class AnnotationPropertyDomainTranslator
     @Override
     public boolean testStatement(OntStatement statement, AxiomsSettings config) {
         return config.isLoadAnnotationAxioms() && super.testStatement(statement, config);
-    }
-
-    @Override
-    Node extractNamedObject(OWLAnnotationPropertyDomainAxiom axiom) {
-        return WriteHelper.toNode(axiom.getDomain());
     }
 
     @Override

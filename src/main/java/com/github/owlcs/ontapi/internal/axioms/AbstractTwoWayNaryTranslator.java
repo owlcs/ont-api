@@ -79,8 +79,11 @@ public abstract class AbstractTwoWayNaryTranslator<Axiom extends OWLAxiom & OWLN
 
     @Override
     public ExtendedIterator<OntStatement> listStatements(OntModel model, AxiomsSettings config) {
-        return super.listStatements(model, config)
-                .andThen(OntModels.listLocalObjects(model, getDisjointView()).mapWith(OntObject::getMainStatement));
+        return super.listStatements(model, config).andThen(listDisjointStatements(model));
+    }
+
+    private ExtendedIterator<OntStatement> listDisjointStatements(OntModel model) {
+        return OntModels.listLocalObjects(model, getDisjointView()).mapWith(OntObject::getMainStatement);
     }
 
     @Override
@@ -97,13 +100,12 @@ public abstract class AbstractTwoWayNaryTranslator<Axiom extends OWLAxiom & OWLN
 
     @Override
     protected ExtendedIterator<OntStatement> listSearchStatements(Axiom key, OntModel model, AxiomsSettings config) {
-        ExtendedIterator<OntStatement> res = listStatements(model, config);
         Collection<Triple> search = getSearchTriples(key);
         if (search.isEmpty()) {
-            return res;
+            return listStatements(model, config);
         }
         Graph g = model.getBaseGraph();
-        return Iter.create(search).filterKeep(g::contains).mapWith(model::asStatement).andThen(res);
+        return Iter.create(search).filterKeep(g::contains).mapWith(model::asStatement).andThen(listDisjointStatements(model));
     }
 
     ONTObject<Axiom> makeAxiom(OntStatement statement,
