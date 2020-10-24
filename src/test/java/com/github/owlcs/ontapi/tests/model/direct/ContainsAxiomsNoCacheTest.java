@@ -112,16 +112,21 @@ public class ContainsAxiomsNoCacheTest extends ContainsAxiomsTest {
                     return f.getOWLAnnotationAssertionAxiom(p, s.getIRI(), o);
                 })
                 , of(ModelData.FAMILY, OWLDataPropertyAssertionAxiom.class, (f, d) -> {
-                    OWLNamedIndividual s = f.getOWLNamedIndividual(d.getNS() + "james_bright_1809");
+                    OWLNamedIndividual s = f.getOWLNamedIndividual(d.getNS() + "louise_templar_1993");
                     OWLDataProperty p = f.getOWLDataProperty(d.getNS() + "hasBirthYear");
-                    OWLLiteral o = f.getOWLLiteral(1809);
+                    OWLLiteral o = f.getOWLLiteral(1993);
                     return f.getOWLDataPropertyAssertionAxiom(p, s, o);
                 })
                 , of(ModelData.FAMILY, OWLObjectPropertyAssertionAxiom.class, (f, d) -> {
-                    OWLNamedIndividual s = f.getOWLNamedIndividual(d.getNS() + "james_bright_1809");
-                    OWLObjectProperty p = f.getOWLObjectProperty(d.getNS() + "isFatherOf");
-                    OWLNamedIndividual o = f.getOWLNamedIndividual(d.getNS() + "martha_ann_bright_1835");
+                    OWLNamedIndividual s = f.getOWLNamedIndividual(d.getNS() + "louise_templar_1993");
+                    OWLObjectProperty p = f.getOWLObjectProperty(d.getNS() + "hasFather");
+                    OWLNamedIndividual o = f.getOWLNamedIndividual(d.getNS() + "stephen_templar_1960");
                     return f.getOWLObjectPropertyAssertionAxiom(p, s, o);
+                })
+                , of(ModelData.FAMILY, OWLClassAssertionAxiom.class, (f, d) -> {
+                    OWLNamedIndividual s = f.getOWLNamedIndividual(d.getNS() + "louise_templar_1993");
+                    OWLClass c = f.getOWLClass(d.getNS() + "Woman");
+                    return f.getOWLClassAssertionAxiom(c, s);
                 })
         );
     }

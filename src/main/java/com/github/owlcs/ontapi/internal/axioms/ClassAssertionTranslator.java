@@ -43,7 +43,7 @@ import java.util.stream.Stream;
  * @see com.github.owlcs.ontapi.jena.impl.OntGraphModelImpl#listIndividuals()
  */
 @SuppressWarnings("WeakerAccess")
-public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionAxiom> {
+public class ClassAssertionTranslator extends AbstractSimpleTranslator<OWLClassAssertionAxiom> {
 
     @Override
     public void write(OWLClassAssertionAxiom axiom, OntModel model) {
@@ -102,6 +102,20 @@ public class ClassAssertionTranslator extends AxiomTranslator<OWLClassAssertionA
         OWLClassAssertionAxiom res = factory.getOWLDataFactory()
                 .getOWLClassAssertionAxiom(ce.getOWLObject(), i.getOWLObject(), TranslateHelper.toSet(annotations));
         return ONTWrapperImpl.create(res, statement).append(annotations).append(i).append(ce);
+    }
+
+    @Override
+    boolean testSearchTriple(Triple t) {
+        return t.getObject().isURI();
+    }
+
+    @Override
+    Triple createSearchTriple(OWLClassAssertionAxiom axiom) {
+        Node object = TranslateHelper.getSearchNode(axiom.getClassExpression());
+        if (object == null) return null;
+        Node subject = TranslateHelper.getSearchNode(axiom.getIndividual());
+        if (subject == null) return null;
+        return Triple.create(subject, RDF.type.asNode(), object);
     }
 
     /**
