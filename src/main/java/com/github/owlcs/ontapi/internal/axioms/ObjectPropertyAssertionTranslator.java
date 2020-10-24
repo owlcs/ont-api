@@ -108,16 +108,16 @@ public class ObjectPropertyAssertionTranslator
         Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);
         OWLObjectPropertyAssertionAxiom res = factory.getOWLDataFactory()
                 .getOWLObjectPropertyAssertionAxiom(property.getOWLObject(), subject.getOWLObject(),
-                        object.getOWLObject(), ONTObject.toSet(annotations));
+                        object.getOWLObject(), TranslateHelper.toSet(annotations));
         return ONTWrapperImpl.create(res, statement).append(annotations)
                 .append(subject).append(property).append(object);
     }
 
     @Override
     Triple createSearchTriple(OWLObjectPropertyAssertionAxiom axiom) {
-        Node subject = WriteHelper.getSearchNode(axiom.getSubject());
+        Node subject = TranslateHelper.getSearchNode(axiom.getSubject());
         if (subject == null) return null;
-        Node object = WriteHelper.getSearchNode(axiom.getObject());
+        Node object = TranslateHelper.getSearchNode(axiom.getObject());
         if (object == null) return null;
         Node property = WriteHelper.toNode(axiom.getProperty().asOWLObjectProperty());
         return Triple.create(subject, property, object);

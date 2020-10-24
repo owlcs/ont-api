@@ -124,9 +124,9 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
         if (list.size() != 2) {
             return null; // for Disjoint Objects (anonymous)
         }
-        Node left = WriteHelper.getSearchNode(list.get(0));
+        Node left = TranslateHelper.getSearchNode(list.get(0));
         if (left == null) return null;
-        Node right = WriteHelper.getSearchNode(list.get(1));
+        Node right = TranslateHelper.getSearchNode(list.get(1));
         if (right == null) return null;
         return Triple.create(left, getPredicate().asNode(), right);
     }

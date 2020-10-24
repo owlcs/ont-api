@@ -19,9 +19,6 @@ import org.apache.jena.graph.Triple;
 import org.apache.jena.mem.GraphMem;
 import org.semanticweb.owlapi.model.OWLObject;
 
-import java.util.Collection;
-import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -47,14 +44,14 @@ public interface ONTObject<O extends OWLObject> {
     /**
      * Lists all associated {@link Triple triple}s.
      *
-     * @return {@code Stream} of {@link Triple}s
+     * @return a {@code Stream} of {@link Triple}s
      */
     Stream<Triple> triples();
 
     /**
-     * Represents this container as in-memory {@link Graph}.
+     * Represents this container as in-memory {@code Graph}.
      *
-     * @return graph
+     * @return {@link Graph}.
      */
     default Graph toGraph() {
         GraphMem res = new GraphMem();
@@ -62,25 +59,4 @@ public interface ONTObject<O extends OWLObject> {
         return res;
     }
 
-    /**
-     * Accumulates the input {@link OWLObject}s extracted from {@link ONTObject}-containers into a {@code Set}.
-     *
-     * @param objects a {@code Collection} of {@link ONTObject}s, not {@code null}
-     * @param <X>     a type of {@link OWLObject}
-     * @return a {@code Set} of {@link X}s
-     */
-    static <X extends OWLObject> Set<X> toSet(Collection<? extends ONTObject<? extends X>> objects) {
-        return objects(objects).collect(Collectors.toSet());
-    }
-
-    /**
-     * Lists all {@link OWLObject}s from the collection of {@link ONTObject}s
-     *
-     * @param objects a {@code Collection} of {@link ONTObject}s, not {@code null}
-     * @param <X>     a type of {@link OWLObject}
-     * @return a {@code Stream} of {@link X}s
-     */
-    static <X extends OWLObject> Stream<X> objects(Collection<? extends ONTObject<? extends X>> objects) {
-        return objects.stream().map(ONTObject::getOWLObject);
-    }
 }

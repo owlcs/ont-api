@@ -79,9 +79,9 @@ public abstract class AbstractPropertyRangeTranslator<Axiom extends OWLAxiom
 
     @Override
     Triple createSearchTriple(Axiom axiom) {
-        Node subject = WriteHelper.getSearchNode(axiom.getProperty());
+        Node subject = TranslateHelper.getSearchNode(axiom.getProperty());
         if (subject == null) return null;
-        Node object = WriteHelper.getSearchNode(axiom.getRange());
+        Node object = TranslateHelper.getSearchNode(axiom.getRange());
         if (object == null) return null;
         return Triple.create(subject, RDFS.range.asNode(), object);
     }

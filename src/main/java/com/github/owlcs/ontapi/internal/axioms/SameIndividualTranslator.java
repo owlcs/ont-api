@@ -86,7 +86,7 @@ public class SameIndividualTranslator
         ONTObject<? extends OWLIndividual> b = factory.getIndividual(statement.getObject().as(getView()));
         Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);
         OWLSameIndividualAxiom res = factory.getOWLDataFactory()
-                .getOWLSameIndividualAxiom(a.getOWLObject(), b.getOWLObject(), ONTObject.toSet(annotations));
+                .getOWLSameIndividualAxiom(a.getOWLObject(), b.getOWLObject(), TranslateHelper.toSet(annotations));
         return ONTWrapperImpl.create(res, statement).append(annotations).append(a).append(b);
     }
 

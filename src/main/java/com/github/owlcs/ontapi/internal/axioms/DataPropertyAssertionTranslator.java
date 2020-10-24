@@ -92,13 +92,13 @@ public class DataPropertyAssertionTranslator
         Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);
         OWLDataPropertyAssertionAxiom res = factory.getOWLDataFactory()
                 .getOWLDataPropertyAssertionAxiom(p.getOWLObject(), i.getOWLObject(), literal.getOWLObject(),
-                        ONTObject.toSet(annotations));
+                        TranslateHelper.toSet(annotations));
         return ONTWrapperImpl.create(res, statement).append(annotations).append(i).append(p).append(literal);
     }
 
     @Override
     Triple createSearchTriple(OWLDataPropertyAssertionAxiom axiom) {
-        Node subject = WriteHelper.getSearchNode(axiom.getSubject());
+        Node subject = TranslateHelper.getSearchNode(axiom.getSubject());
         if (subject == null) return null;
         Node property = WriteHelper.toNode(axiom.getProperty().asOWLDataProperty());
         Node object = WriteHelper.toNode(axiom.getObject());

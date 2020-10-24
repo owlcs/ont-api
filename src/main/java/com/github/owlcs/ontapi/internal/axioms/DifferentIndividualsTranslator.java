@@ -108,7 +108,7 @@ public class DifferentIndividualsTranslator
         return makeAxiom(statement, factory.getAnnotations(statement, config),
                 factory::getIndividual,
                 (members, annotations) -> factory.getOWLDataFactory()
-                        .getOWLDifferentIndividualsAxiom(ONTObject.toSet(members), ONTObject.toSet(annotations)));
+                        .getOWLDifferentIndividualsAxiom(TranslateHelper.toSet(members), TranslateHelper.toSet(annotations)));
     }
 
     /**

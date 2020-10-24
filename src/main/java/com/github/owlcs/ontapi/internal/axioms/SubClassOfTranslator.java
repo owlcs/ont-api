@@ -90,15 +90,15 @@ public class SubClassOfTranslator extends AbstractSimpleTranslator<OWLSubClassOf
         ONTObject<? extends OWLClassExpression> sup = factory.getClass(statement.getObject().as(OntClass.class));
         Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);
         OWLSubClassOfAxiom res = factory.getOWLDataFactory()
-                .getOWLSubClassOfAxiom(sub.getOWLObject(), sup.getOWLObject(), ONTObject.toSet(annotations));
+                .getOWLSubClassOfAxiom(sub.getOWLObject(), sup.getOWLObject(), TranslateHelper.toSet(annotations));
         return ONTWrapperImpl.create(res, statement).append(annotations).append(sub).append(sup);
     }
 
     @Override
     protected Triple createSearchTriple(OWLSubClassOfAxiom axiom) {
-        Node subject = WriteHelper.getSearchNode(axiom.getSubClass());
+        Node subject = TranslateHelper.getSearchNode(axiom.getSubClass());
         if (subject == null) return null;
-        Node object = WriteHelper.getSearchNode(axiom.getSuperClass());
+        Node object = TranslateHelper.getSearchNode(axiom.getSuperClass());
         if (object == null) return null;
         return Triple.create(subject, RDFS.subClassOf.asNode(), object);
     }

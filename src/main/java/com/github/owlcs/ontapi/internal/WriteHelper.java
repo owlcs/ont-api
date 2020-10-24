@@ -36,13 +36,11 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * Helper for the axioms translation to the rdf-form (writing to graph).
- * <p>
- * Specification: <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Mapping_from_the_Structural_Specification_to_RDF_Graphs'>2 Mapping from the Structural Specification to RDF Graphs</a>
- * for handling common graph triples (operator 'T') see chapter "2.1 Translation of Axioms without Annotations"
- * for handling annotations (operator 'TANN') see chapters "2.2 Translation of Annotations" and "2.3 Translation of Axioms with Annotations".
+ * A collection of helper methods to perform translation of {@code OWLObject}s to the RDF-form (i.e. writing to a {@code Graph}).
  * <p>
  * Created by @szuev on 28.09.2016.
+ *
+ * @see ReadHelper
  */
 @SuppressWarnings("WeakerAccess")
 public class WriteHelper {
@@ -231,30 +229,6 @@ public class WriteHelper {
             return expression.asOWLAnnotationProperty().getIRI();
         }
         throw new OntApiException.IllegalArgument("Unsupported property-expression: " + expression);
-    }
-
-    /**
-     * Constructs or retrieves a {@code Node} from the given {@code OWLObject}.
-     * Expressions and external anonymous individuals are ignored.
-     * This is to perform optimization searching in a graph.
-     *
-     * @param obj {@link OWLObject}
-     * @return {@code Node} or {@code null}
-     */
-    public static Node getSearchNode(OWLObject obj) {
-        if (obj.isIRI()) {
-            return toNode((IRI) obj);
-        }
-        if (obj instanceof HasIRI) {
-            return toNode((HasIRI) obj);
-        }
-        if (obj instanceof OWLAnonymousIndividual) {
-            return toNode((OWLAnonymousIndividual) obj);
-        }
-        if (obj instanceof OWLLiteral) {
-            return toNode((OWLLiteral) obj);
-        }
-        return null;
     }
 
     public static void writeAssertionTriple(OntModel model,

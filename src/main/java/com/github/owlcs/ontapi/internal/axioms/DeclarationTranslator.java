@@ -107,7 +107,7 @@ public class DeclarationTranslator extends AbstractSimpleTranslator<OWLDeclarati
         ONTObject<? extends OWLEntity> entity = factory.getEntity(e);
         Collection<ONTObject<OWLAnnotation>> annotations = factory.getAnnotations(statement, config);
         OWLDeclarationAxiom res = factory.getOWLDataFactory().getOWLDeclarationAxiom(entity.getOWLObject(),
-                ONTObject.toSet(annotations));
+                TranslateHelper.toSet(annotations));
         return ONTWrapperImpl.create(res, statement).append(annotations);
     }
 

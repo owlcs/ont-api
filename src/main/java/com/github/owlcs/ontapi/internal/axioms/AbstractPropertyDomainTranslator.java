@@ -78,9 +78,9 @@ public abstract class AbstractPropertyDomainTranslator<Axiom extends OWLAxiom
 
     @Override
     Triple createSearchTriple(Axiom axiom) {
-        Node subject = WriteHelper.getSearchNode(axiom.getProperty());
+        Node subject = TranslateHelper.getSearchNode(axiom.getProperty());
         if (subject == null) return null;
-        Node object = WriteHelper.getSearchNode(axiom.getDomain());
+        Node object = TranslateHelper.getSearchNode(axiom.getDomain());
         if (object == null) return null;
         return Triple.create(subject, RDFS.domain.asNode(), object);
     }
