@@ -128,6 +128,8 @@ public class ContainsAxiomsNoCacheTest extends ContainsAxiomsTest {
                     OWLClass c = f.getOWLClass(d.getNS() + "Woman");
                     return f.getOWLClassAssertionAxiom(c, s);
                 })
+                , of(ModelData.PIZZA, OWLInverseFunctionalObjectPropertyAxiom.class,
+                        (f, d) -> f.getOWLInverseFunctionalObjectPropertyAxiom(f.getOWLObjectProperty(d.getNS() + "isBaseOf")))
         );
     }
 

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -15,7 +15,6 @@
 package com.github.owlcs.ontapi.internal.axioms;
 
 import com.github.owlcs.ontapi.config.AxiomsSettings;
-import com.github.owlcs.ontapi.internal.AxiomTranslator;
 import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.WriteHelper;
@@ -27,6 +26,7 @@ import com.github.owlcs.ontapi.jena.model.OntObjectProperty;
 import com.github.owlcs.ontapi.jena.model.OntProperty;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
+import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.util.iterator.ExtendedIterator;
@@ -37,6 +37,7 @@ import java.util.function.Supplier;
 
 /**
  * The base class to read and write axiom which is related to simple typed triple associated with object or data property.
+ * <p>
  * List of sub-classes:
  * {@link FunctionalDataPropertyTranslator},
  * {@link FunctionalObjectPropertyTranslator},
@@ -49,8 +50,8 @@ import java.util.function.Supplier;
  * <p>
  * Created by @szuev on 28.09.2016.
  */
-public abstract class AbstractPropertyTypeTranslator<Axiom extends OWLAxiom & HasProperty<?>,
-        P extends OntProperty> extends AxiomTranslator<Axiom> {
+public abstract class AbstractPropertyTypeTranslator<Axiom extends OWLAxiom & HasProperty<? extends OWLObject>,
+        P extends OntProperty> extends AbstractSimpleTranslator<Axiom> {
 
     abstract Resource getType();
 
@@ -76,6 +77,18 @@ public abstract class AbstractPropertyTypeTranslator<Axiom extends OWLAxiom & Ha
     @Override
     public void write(Axiom axiom, OntModel model) {
         WriteHelper.writeTriple(model, axiom.getProperty(), RDF.type, getType(), axiom.annotationsAsList());
+    }
+
+    @Override
+    boolean testSearchTriple(Triple t) {
+        return t.getSubject().isURI();
+    }
+
+    @Override
+    Triple createSearchTriple(Axiom axiom) {
+        Node n = TranslateHelper.getSearchNode(axiom.getProperty());
+        if (n == null) return null;
+        return Triple.create(n, RDF.type.asNode(), getType().asNode());
     }
 
     /**
