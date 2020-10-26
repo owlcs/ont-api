@@ -239,7 +239,7 @@ public class CacheConfigTest {
         try {
             o2.add(df.getOWLSubClassOfAxiom(df.getOWLClass("C"), df.getOWLClass("D")));
             Assertions.fail("Possible to add axiom");
-        } catch (OntologyModelImpl.ModificationDeniedException e) {
+        } catch (OntApiException.ModificationDenied e) {
             LOGGER.debug("Expected: '{}'", e.getMessage());
         }
         Assertions.assertEquals(size, g.size());
@@ -247,7 +247,7 @@ public class CacheConfigTest {
         try {
             o2.remove(axiom);
             Assertions.fail("Possible to delete axiom");
-        } catch (OntologyModelImpl.ModificationDeniedException e) {
+        } catch (OntApiException.ModificationDenied e) {
             LOGGER.debug("Expected: '{}'", e.getMessage());
         }
         Assertions.assertEquals(size, g.size());

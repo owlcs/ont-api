@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -65,26 +65,28 @@ import java.util.stream.Stream;
  * @see OntWriterConfiguration
  */
 @SuppressWarnings({"WeakerAccess", "unused"})
-public class OntConfig extends OntologyConfigurator implements
-        LoadControl<OntConfig>,
-        CacheControl<OntConfig>,
-        AxiomsControl<OntConfig> {
+public class OntConfig extends OntologyConfigurator
+        implements LoadControl<OntConfig>, CacheControl<OntConfig>, AxiomsControl<OntConfig> {
     private static final Logger LOGGER = LoggerFactory.getLogger(OntConfig.class);
     private static final long serialVersionUID = 656765031127374396L;
 
-    protected final Map<OntSettings, Object> map;
+    protected final Map<OntSettings, Object> data;
+    protected final Set<OntSettings> forbidden;
     private transient OntLoaderConfiguration loader;
     private transient OntWriterConfiguration writer;
 
+    /**
+     * Constructs a config.
+     * All its settings are taken from the {@code ./resources/ontapi.properties} file
+     * or, if missed in the file, from the {@link OntSettings defaults}.
+     */
     public OntConfig() {
-        this.map = new EnumMap<>(OntSettings.class);
+        this.data = new EnumMap<>(OntSettings.class);
+        this.forbidden = EnumSet.noneOf(OntSettings.class);
     }
 
     /**
-     * Creates a new config instance.
-     * All its settings are taken from {@code ./resources/ontapi.properties} file
-     * or default, if missed in the file.
-     * The returned instance is mutable.
+     * Creates a new config instance with the default settings and the given {@code ReadWriteLock}.
      *
      * @param lock {@link ReadWriteLock} or {@code null} for non-concurrent version
      * @return {@link OntConfig}
@@ -124,6 +126,16 @@ public class OntConfig extends OntologyConfigurator implements
         return new OntConfig().putAll(from);
     }
 
+    protected static Map<OntSettings, Object> serializableOnly(Map<OntSettings, Object> data) {
+        Map<OntSettings, Object> res = new EnumMap<>(OntSettings.class);
+        data.forEach((k, v) -> {
+            if (v instanceof Serializable) {
+                res.put(k, v);
+            }
+        });
+        return res;
+    }
+
     @SuppressWarnings("unchecked")
     protected static Set<IRI> ignoredImports(OntologyConfigurator owl) {
         try {
@@ -156,6 +168,19 @@ public class OntConfig extends OntologyConfigurator implements
     }
 
     /**
+     * Makes the given property-{@code keys} prohibited for modification.
+     * An attempt to modify the value for a locked property will cause {@link OntApiException.ModificationDenied}.
+     *
+     * @param keys {@code Array} of {@link OntSettings}-keys to lock
+     * @return {@link OntConfig} this config
+     * @since 2.1.0
+     */
+    public OntConfig lockProperty(OntSettings... keys) {
+        forbidden.addAll(Arrays.asList(keys));
+        return this;
+    }
+
+    /**
      * Copies configuration from the given config.
      *
      * @param from {@link OntologyConfigurator}, the source, can be {@code null}
@@ -167,9 +192,9 @@ public class OntConfig extends OntologyConfigurator implements
         if (from instanceof OntConfig) {
             Map<OntSettings, Object> tmp;
             if (from instanceof Concurrent) {
-                tmp = ((Concurrent) from).delegate.map;
+                tmp = ((Concurrent) from).delegate.data;
             } else {
-                tmp = ((OntConfig) from).map;
+                tmp = ((OntConfig) from).data;
             }
             tmp.forEach(this::put);
             return this;
@@ -202,11 +227,14 @@ public class OntConfig extends OntologyConfigurator implements
 
     @SuppressWarnings("unchecked")
     protected <X> X get(OntSettings key) {
-        return (X) map.computeIfAbsent(key, x -> key.getDefaultValue());
+        return (X) data.computeIfAbsent(key, x -> key.getDefaultValue());
     }
 
     protected OntConfig put(OntSettings key, Object value) {
-        if (Objects.requireNonNull(value).equals(map.put(key, value))) {
+        if (forbidden.contains(key)) {
+            throw new OntApiException.ModificationDenied("Changing property=" + key + " is forbidden.");
+        }
+        if (Objects.requireNonNull(value).equals(data.put(key, value))) {
             return this;
         }
         // the config's change is detected
@@ -215,11 +243,11 @@ public class OntConfig extends OntologyConfigurator implements
         return this;
     }
 
-    private OntConfig putPositive(OntSettings k, int v) {
+    protected OntConfig putPositive(OntSettings k, int v) {
         return put(k, requirePositive(v, k));
     }
 
-    private OntConfig putNonNegative(OntSettings k, int v) {
+    protected OntConfig putNonNegative(OntSettings k, int v) {
         return put(k, requireNonNegative(v, k));
     }
 
@@ -345,6 +373,17 @@ public class OntConfig extends OntologyConfigurator implements
     }
 
     /**
+     * An ONT-API manager's load config getter.
+     * {@inheritDoc}
+     *
+     * @return boolean
+     */
+    @Override
+    public int getModelCacheLevel() {
+        return get(OntSettings.ONT_API_LOAD_CONF_CACHE_MODEL);
+    }
+
+    /**
      * An ONT-API manager's load config setter.
      * {@inheritDoc}
      *
@@ -363,34 +402,10 @@ public class OntConfig extends OntologyConfigurator implements
     /**
      * An ONT-API manager's load config getter.
      * {@inheritDoc}
-     *
-     * @return boolean
-     */
-    @Override
-    public int getModelCacheLevel() {
-        return get(OntSettings.ONT_API_LOAD_CONF_CACHE_MODEL);
-    }
-
-    /**
-     * An ONT-API manager's load config getter.
-     * {@inheritDoc}
      */
     @Override
     public List<OntConfig.Scheme> getSupportedSchemes() {
         return get(OntSettings.ONT_API_LOAD_CONF_SUPPORTED_SCHEMES);
-    }
-
-    /**
-     * An ONT-API manager's load config setter.
-     * {@inheritDoc}
-     *
-     * @return this manager
-     * @see OntConfig#setSupportedSchemes(List)
-     * @since 1.1.0
-     */
-    @Override
-    public OntConfig disableWebAccess() {
-        return setSupportedSchemes(Collections.singletonList(DefaultScheme.FILE));
     }
 
     /**
@@ -404,6 +419,19 @@ public class OntConfig extends OntologyConfigurator implements
     @Override
     public OntConfig setSupportedSchemes(List<Scheme> schemes) {
         return put(OntSettings.ONT_API_LOAD_CONF_SUPPORTED_SCHEMES, Collections.unmodifiableList(schemes));
+    }
+
+    /**
+     * An ONT-API manager's load config setter.
+     * {@inheritDoc}
+     *
+     * @return this manager
+     * @see OntConfig#setSupportedSchemes(List)
+     * @since 1.1.0
+     */
+    @Override
+    public OntConfig disableWebAccess() {
+        return setSupportedSchemes(Collections.singletonList(DefaultScheme.FILE));
     }
 
     /**
@@ -1126,7 +1154,7 @@ public class OntConfig extends OntologyConfigurator implements
         if (loader != null) return loader;
         OntLoaderConfiguration res = new OntLoaderConfiguration();
         for (OntSettings s : OntSettings.LOAD_CONFIG_KEYS) {
-            res.map.put(s, get(s));
+            res.data.put(s, get(s));
         }
         return loader = res;
     }
@@ -1142,7 +1170,7 @@ public class OntConfig extends OntologyConfigurator implements
         if (writer != null) return writer;
         OntWriterConfiguration res = new OntWriterConfiguration();
         for (OntSettings s : OntSettings.WRITE_CONFIG_KEYS) {
-            res.map.put(s, get(s));
+            res.data.put(s, get(s));
         }
         return writer = res;
     }
@@ -1161,17 +1189,12 @@ public class OntConfig extends OntologyConfigurator implements
     }
 
     protected Map<OntSettings, Object> asMap() {
-        return loadMap(this.map, OntSettings.values());
+        return loadMap(this.data, OntSettings.values());
     }
 
     private void writeObject(ObjectOutputStream out) throws IOException {
-        Map<OntSettings, Object> tmp = new EnumMap<>(OntSettings.class);
-        this.map.forEach((k, v) -> {
-            if (v instanceof Serializable) {
-                tmp.put(k, v);
-            }
-        });
-        out.writeObject(tmp);
+        out.writeObject(serializableOnly(data));
+        out.writeObject(forbidden);
     }
 
     public enum DefaultScheme implements Scheme {
@@ -1208,7 +1231,7 @@ public class OntConfig extends OntologyConfigurator implements
 
         protected Concurrent(OntConfig from, ReadWriteLock lock) {
             this.delegate = Objects.requireNonNull(from);
-            this.lock = lock == null ? NoOpReadWriteLock.NO_OP_RW_LOCK : lock;
+            this.lock = NoOpReadWriteLock.nonNull(lock);
         }
 
         @Override

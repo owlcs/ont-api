@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -32,10 +32,10 @@ import java.util.Objects;
 public class OntWriterConfiguration extends OWLOntologyWriterConfiguration {
 
     private static final long serialVersionUID = 2369276991908772369L;
-    protected final Map<OntSettings, Object> map;
+    protected final Map<OntSettings, Object> data;
 
     protected OntWriterConfiguration() {
-        this.map = new EnumMap<>(OntSettings.class);
+        this.data = new EnumMap<>(OntSettings.class);
     }
 
     public OntWriterConfiguration(OWLOntologyWriterConfiguration from) {
@@ -48,23 +48,23 @@ public class OntWriterConfiguration extends OWLOntologyWriterConfiguration {
         }
     }
 
-    protected void copyONTSettings(OntWriterConfiguration from) {
-        this.map.putAll(from.map);
+    protected void copyONTSettings(OntWriterConfiguration conf) {
+        this.data.putAll(conf.data);
     }
 
     protected void copyOWLSettings(OWLOntologyWriterConfiguration from) {
-        this.map.put(OntSettings.OWL_API_WRITE_CONF_SAVE_IDS, from.shouldSaveIdsForAllAnonymousIndividuals());
-        this.map.put(OntSettings.OWL_API_WRITE_CONF_REMAP_IDS, from.shouldRemapAllAnonymousIndividualsIds());
-        this.map.put(OntSettings.OWL_API_WRITE_CONF_USE_NAMESPACE_ENTITIES, from.isUseNamespaceEntities());
-        this.map.put(OntSettings.OWL_API_WRITE_CONF_INDENTING, from.isIndenting());
-        this.map.put(OntSettings.OWL_API_WRITE_CONF_LABEL_AS_BANNER, from.isLabelsAsBanner());
-        this.map.put(OntSettings.OWL_API_WRITE_CONF_BANNERS_ENABLED, from.shouldUseBanners());
-        this.map.put(OntSettings.OWL_API_WRITE_CONF_INDENT_SIZE, from.getIndentSize());
+        this.data.put(OntSettings.OWL_API_WRITE_CONF_SAVE_IDS, from.shouldSaveIdsForAllAnonymousIndividuals());
+        this.data.put(OntSettings.OWL_API_WRITE_CONF_REMAP_IDS, from.shouldRemapAllAnonymousIndividualsIds());
+        this.data.put(OntSettings.OWL_API_WRITE_CONF_USE_NAMESPACE_ENTITIES, from.isUseNamespaceEntities());
+        this.data.put(OntSettings.OWL_API_WRITE_CONF_INDENTING, from.isIndenting());
+        this.data.put(OntSettings.OWL_API_WRITE_CONF_LABEL_AS_BANNER, from.isLabelsAsBanner());
+        this.data.put(OntSettings.OWL_API_WRITE_CONF_BANNERS_ENABLED, from.shouldUseBanners());
+        this.data.put(OntSettings.OWL_API_WRITE_CONF_INDENT_SIZE, from.getIndentSize());
     }
 
     @SuppressWarnings("unchecked")
     protected <X> X get(OntSettings key) {
-        return (X) map.computeIfAbsent(key, OntSettings::getDefaultValue);
+        return (X) data.computeIfAbsent(key, OntSettings::getDefaultValue);
     }
 
     @SuppressWarnings("SameParameterValue")
@@ -76,7 +76,7 @@ public class OntWriterConfiguration extends OWLOntologyWriterConfiguration {
         Objects.requireNonNull(v);
         if (Objects.equals(get(key), v)) return this;
         OntWriterConfiguration copy = new OntWriterConfiguration(this);
-        copy.map.put(key, v);
+        copy.data.put(key, v);
         return copy;
     }
 
@@ -223,7 +223,7 @@ public class OntWriterConfiguration extends OWLOntologyWriterConfiguration {
     }
 
     protected Map<OntSettings, Object> asMap() {
-        return OntConfig.loadMap(this.map, OntSettings.WRITE_CONFIG_KEYS);
+        return OntConfig.loadMap(this.data, OntSettings.WRITE_CONFIG_KEYS);
     }
 
     @Override

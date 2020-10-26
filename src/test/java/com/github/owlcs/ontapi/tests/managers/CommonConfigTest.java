@@ -14,9 +14,11 @@
 
 package com.github.owlcs.ontapi.tests.managers;
 
+import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.config.OntConfig;
+import com.github.owlcs.ontapi.config.OntSettings;
 import com.github.owlcs.ontapi.jena.impl.conf.OntModelConfig;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import org.junit.jupiter.api.Assertions;
@@ -85,5 +87,17 @@ public class CommonConfigTest {
         Assertions.assertEquals(7, imports.size());
 
         Assertions.assertTrue(new OntConfig().buildLoaderConfiguration().isIgnoredImport(IRI.create(OWL.NS)));
+    }
+
+    @Test
+    public void testLockProperty() {
+        OntConfig conf = new OntConfig();
+        Assertions.assertTrue(conf.isAllowBulkAnnotationAssertions());
+        Assertions.assertTrue(conf.buildLoaderConfiguration().isAllowBulkAnnotationAssertions());
+        Assertions.assertFalse(conf.setAllowBulkAnnotationAssertions(false).isAllowBulkAnnotationAssertions());
+        Assertions.assertFalse(conf.lockProperty(OntSettings.ONT_API_LOAD_CONF_ALLOW_BULK_ANNOTATION_ASSERTIONS).isAllowBulkAnnotationAssertions());
+        Assertions.assertThrows(OntApiException.ModificationDenied.class, () -> conf.setAllowBulkAnnotationAssertions(true));
+        Assertions.assertFalse(conf.isAllowBulkAnnotationAssertions());
+        Assertions.assertFalse(conf.buildLoaderConfiguration().isAllowBulkAnnotationAssertions());
     }
 }

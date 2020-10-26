@@ -62,7 +62,7 @@ public class RWLockedCollection<E extends Serializable> extends PriorityCollecti
      */
     public RWLockedCollection(ReadWriteLock lock, PriorityCollectionSorting sorting) {
         super(sorting);
-        this.lock = lock == null ? NoOpReadWriteLock.NO_OP_RW_LOCK : lock;
+        this.lock = NoOpReadWriteLock.nonNull(lock);
     }
 
     @Override

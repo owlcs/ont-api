@@ -68,12 +68,11 @@ import java.util.stream.Stream;
  * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl</a>
  */
 @SuppressWarnings("WeakerAccess")
-public class OntologyManagerImpl implements OntologyManager,
-        OWLOntologyFactory.OWLOntologyCreationHandler,
-        HasAdapter,
-        Serializable {
+public class OntologyManagerImpl
+        implements OntologyManager, OWLOntologyFactory.OWLOntologyCreationHandler, HasAdapter, Serializable {
     private static final Logger LOGGER = LoggerFactory.getLogger(OntologyManagerImpl.class);
     private static final long serialVersionUID = -4764329329583952286L;
+
     // listeners:
     protected final ListenersHolder listeners = new ListenersHolder();
     // configs:
@@ -99,8 +98,8 @@ public class OntologyManagerImpl implements OntologyManager,
     protected final OntologyCollection<OntInfo> content;
 
     /**
-     * Constructs a manager instance which is ready to use.
-     * OntologyFactory as parameter since a manager without it is useless.
+     * Constructs a ready to use manager instance.
+     * Parameter {@code ontologyFactory} is required, since without it a manager is useless.
      *
      * @param dataFactory     {@link DataFactory} - a factory to provide OWL Axioms and other OWL objects,
      *                        not {@code null}
@@ -115,23 +114,36 @@ public class OntologyManagerImpl implements OntologyManager,
 
     /**
      * Constructs an empty manager instance with the given settings.
-     * Notice: the returned instance is not ready to use:
-     * there is no any OntologyFactory inside to produce new ontologies.
+     * Notice: the returned instance is not ready to use: there is no any {@code OntologyFactory} inside to produce new ontologies.
+     * Third parameter ({@code sorting}) has no usage in ONT-API, but it is required by several OWLAPI native parts.
      *
-     * @param dataFactory {@link OWLDataFactory}, not not {@code null}
+     * @param dataFactory {@link OWLDataFactory}, not {@code null}
      * @param lock        {@link ReadWriteLock} or {@code null} for non-concurrent instance
-     * @param sorting     {@link PriorityCollectionSorting} OWL-API enum, can be not {@code null};
-     *                    Can't avoid using this parameter that is actually useless in ONT-API
+     * @param sorting     {@link PriorityCollectionSorting} OWL-API enum, may be {@code null}
      */
-    public OntologyManagerImpl(DataFactory dataFactory,
-                               ReadWriteLock lock,
-                               PriorityCollectionSorting sorting) {
-        this.dataFactory = Objects.requireNonNull(dataFactory, "Null Data Factory");
-        this.lock = lock == null ? NoOpReadWriteLock.NO_OP_RW_LOCK : lock;
-        PriorityCollectionSorting _sorting = sorting == null ? PriorityCollectionSorting.NEVER : sorting;
-        this.documentIRIMappers = new RWLockedCollection<>(this.lock, _sorting);
+    public OntologyManagerImpl(DataFactory dataFactory, ReadWriteLock lock, PriorityCollectionSorting sorting) {
+        this(dataFactory, lock = NoOpReadWriteLock.nonNull(lock), OntConfig.createConfig(lock),
+                sorting == null ? PriorityCollectionSorting.NEVER : sorting);
+    }
+
+    /**
+     * Constructs an empty manager instance with the given settings.
+     *
+     * @param factory {@link DataFactory} - a factory to provide {@code OWLObject}s, not {@code null}
+     * @param lock    {@link ReadWriteLock}, not {@code null}, not {@code null}
+     * @param config  {@link OntConfig} - a configuration settings, not {@code null}
+     * @param sorting {@link PriorityCollectionSorting} OWL-API enum, not {@code null}
+     */
+    protected OntologyManagerImpl(DataFactory factory,
+                                  ReadWriteLock lock,
+                                  OntConfig config,
+                                  PriorityCollectionSorting sorting) {
+        this.dataFactory = Objects.requireNonNull(factory);
+        this.lock = Objects.requireNonNull(lock);
+        this.config = Objects.requireNonNull(config);
+        this.documentIRIMappers = new RWLockedCollection<>(this.lock, Objects.requireNonNull(sorting));
         this.documentSourceMappers = new RWLockedCollection<>(this.lock);
-        this.ontologyFactories = new RWLockedCollection<OWLOntologyFactory>(this.lock, _sorting) {
+        this.ontologyFactories = new RWLockedCollection<OWLOntologyFactory>(this.lock, sorting) {
             @Override
             protected void onAdd(OWLOntologyFactory f) {
                 if (f instanceof OntologyFactory) return;
@@ -139,9 +151,8 @@ public class OntologyManagerImpl implements OntologyManager,
                         "Only " + OntologyFactory.class.getSimpleName() + " can be accepted.");
             }
         };
-        this.parserFactories = new RWLockedCollection<>(this.lock, _sorting);
-        this.ontologyStorers = new RWLockedCollection<>(this.lock, _sorting);
-        this.config = OntConfig.createConfig(this.lock);
+        this.parserFactories = new RWLockedCollection<>(this.lock, sorting);
+        this.ontologyStorers = new RWLockedCollection<>(this.lock, sorting);
         this.content = new OntologyCollectionImpl<>(this.lock);
         this.iris = createIRICache();
     }
@@ -267,10 +278,7 @@ public class OntologyManagerImpl implements OntologyManager,
     }
 
     protected OntLoaderConfiguration getOntLoaderConfiguration() {
-        if (loaderConfig != null) {
-            return loaderConfig;
-        }
-        return config.buildLoaderConfiguration();
+        return loaderConfig != null ? loaderConfig : config.buildLoaderConfiguration();
     }
 
     /**
@@ -299,10 +307,7 @@ public class OntologyManagerImpl implements OntologyManager,
     public OntWriterConfiguration getOntologyWriterConfiguration() {
         getLock().readLock().lock();
         try {
-            if (writerConfig != null) {
-                return writerConfig;
-            }
-            return this.config.buildWriterConfiguration();
+            return writerConfig != null ? writerConfig : this.config.buildWriterConfiguration();
         } finally {
             getLock().readLock().unlock();
         }
@@ -1534,7 +1539,7 @@ public class OntologyManagerImpl implements OntologyManager,
      * @param source {@link OWLOntologyDocumentSource}
      * @param conf   {@link OWLOntologyLoaderConfiguration}
      * @return {@link Ontology}
-     * @throws OWLOntologyCreationException if smth wrong
+     * @throws OWLOntologyCreationException if something is wrong
      */
     protected Ontology load(@Nullable IRI iri,
                             OWLOntologyDocumentSource source,

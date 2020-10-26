@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.io.Serializable;
 import java.lang.reflect.Field;
 import java.util.*;
 
@@ -47,10 +46,10 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
     private static final Logger LOGGER = LoggerFactory.getLogger(OntLoaderConfiguration.class);
     private static final long serialVersionUID = 1599596390911768315L;
 
-    protected final Map<OntSettings, Object> map;
+    protected final Map<OntSettings, Object> data;
 
     protected OntLoaderConfiguration() {
-        this.map = new EnumMap<>(OntSettings.class);
+        this.data = new EnumMap<>(OntSettings.class);
     }
 
     public OntLoaderConfiguration(OWLOntologyLoaderConfiguration from) {
@@ -63,10 +62,9 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
         }
     }
 
-
     @SuppressWarnings("unchecked")
     protected <X> X get(OntSettings key) {
-        return (X) map.computeIfAbsent(key, OntSettings::getDefaultValue);
+        return (X) data.computeIfAbsent(key, OntSettings::getDefaultValue);
     }
 
     private OntLoaderConfiguration setPositive(OntSettings k, int v) {
@@ -81,30 +79,30 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
         Objects.requireNonNull(v);
         if (Objects.equals(get(key), v)) return this;
         OntLoaderConfiguration copy = new OntLoaderConfiguration(this);
-        copy.map.put(key, v);
+        copy.data.put(key, v);
         return copy;
     }
 
     protected void copyOWLSettings(OWLOntologyLoaderConfiguration conf) {
-        this.map.put(OntSettings.OWL_API_LOAD_CONF_IGNORED_IMPORTS, new ArrayList<>(ignoredImports(conf)));
-        this.map.put(OntSettings.OWL_API_LOAD_CONF_ACCEPT_HTTP_COMPRESSION, conf.isAcceptingHTTPCompression());
-        this.map.put(OntSettings.OWL_API_LOAD_CONF_CONNECTION_TIMEOUT, conf.getConnectionTimeout());
-        this.map.put(OntSettings.OWL_API_LOAD_CONF_FOLLOW_REDIRECTS, conf.isFollowRedirects());
-        this.map.put(OntSettings.OWL_API_LOAD_CONF_LOAD_ANNOTATIONS, conf.isLoadAnnotationAxioms());
-        this.map.put(OntSettings.OWL_API_LOAD_CONF_MISSING_IMPORT_HANDLING_STRATEGY, conf.getMissingImportHandlingStrategy());
-        this.map.put(OntSettings.OWL_API_LOAD_CONF_MISSING_ONTOLOGY_HEADER_STRATEGY, conf.getMissingOntologyHeaderStrategy());
-        this.map.put(OntSettings.OWL_API_LOAD_CONF_REPORT_STACK_TRACES, conf.isReportStackTrace());
-        this.map.put(OntSettings.OWL_API_LOAD_CONF_RETRIES_TO_ATTEMPT, conf.getRetriesToAttempt());
-        this.map.put(OntSettings.OWL_API_LOAD_CONF_PARSE_WITH_STRICT_CONFIGURATION, conf.isStrict());
-        this.map.put(OntSettings.OWL_API_LOAD_CONF_TREAT_DUBLINCORE_AS_BUILTIN, conf.isTreatDublinCoreAsBuiltIn());
-        this.map.put(OntSettings.OWL_API_LOAD_CONF_PRIORITY_COLLECTION_SORTING, conf.getPriorityCollectionSorting());
-        this.map.put(OntSettings.OWL_API_LOAD_CONF_BANNED_PARSERS, conf.getBannedParsers());
-        this.map.put(OntSettings.OWL_API_LOAD_CONF_ENTITY_EXPANSION_LIMIT, conf.getEntityExpansionLimit());
-        this.map.put(OntSettings.OWL_API_AUTHORIZATION_VALUE, conf.getAuthorizationValue());
+        this.data.put(OntSettings.OWL_API_LOAD_CONF_IGNORED_IMPORTS, new ArrayList<>(ignoredImports(conf)));
+        this.data.put(OntSettings.OWL_API_LOAD_CONF_ACCEPT_HTTP_COMPRESSION, conf.isAcceptingHTTPCompression());
+        this.data.put(OntSettings.OWL_API_LOAD_CONF_CONNECTION_TIMEOUT, conf.getConnectionTimeout());
+        this.data.put(OntSettings.OWL_API_LOAD_CONF_FOLLOW_REDIRECTS, conf.isFollowRedirects());
+        this.data.put(OntSettings.OWL_API_LOAD_CONF_LOAD_ANNOTATIONS, conf.isLoadAnnotationAxioms());
+        this.data.put(OntSettings.OWL_API_LOAD_CONF_MISSING_IMPORT_HANDLING_STRATEGY, conf.getMissingImportHandlingStrategy());
+        this.data.put(OntSettings.OWL_API_LOAD_CONF_MISSING_ONTOLOGY_HEADER_STRATEGY, conf.getMissingOntologyHeaderStrategy());
+        this.data.put(OntSettings.OWL_API_LOAD_CONF_REPORT_STACK_TRACES, conf.isReportStackTrace());
+        this.data.put(OntSettings.OWL_API_LOAD_CONF_RETRIES_TO_ATTEMPT, conf.getRetriesToAttempt());
+        this.data.put(OntSettings.OWL_API_LOAD_CONF_PARSE_WITH_STRICT_CONFIGURATION, conf.isStrict());
+        this.data.put(OntSettings.OWL_API_LOAD_CONF_TREAT_DUBLINCORE_AS_BUILTIN, conf.isTreatDublinCoreAsBuiltIn());
+        this.data.put(OntSettings.OWL_API_LOAD_CONF_PRIORITY_COLLECTION_SORTING, conf.getPriorityCollectionSorting());
+        this.data.put(OntSettings.OWL_API_LOAD_CONF_BANNED_PARSERS, conf.getBannedParsers());
+        this.data.put(OntSettings.OWL_API_LOAD_CONF_ENTITY_EXPANSION_LIMIT, conf.getEntityExpansionLimit());
+        this.data.put(OntSettings.OWL_API_AUTHORIZATION_VALUE, conf.getAuthorizationValue());
     }
 
     protected void copyONTSettings(OntLoaderConfiguration conf) {
-        this.map.putAll(conf.map);
+        this.data.putAll(conf.data);
     }
 
     @SuppressWarnings("unchecked")
@@ -846,7 +844,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
     }
 
     protected Map<OntSettings, Object> asMap() {
-        return OntConfig.loadMap(this.map, OntSettings.LOAD_CONFIG_KEYS);
+        return OntConfig.loadMap(this.data, OntSettings.LOAD_CONFIG_KEYS);
     }
 
     @Override
@@ -863,13 +861,7 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
     }
 
     private void writeObject(ObjectOutputStream out) throws IOException {
-        Map<OntSettings, Object> tmp = new EnumMap<>(OntSettings.class);
-        this.map.forEach((k, v) -> {
-            if (v instanceof Serializable) {
-                tmp.put(k, v);
-            }
-        });
-        out.writeObject(tmp);
+        out.writeObject(OntConfig.serializableOnly(data));
     }
 
 }
