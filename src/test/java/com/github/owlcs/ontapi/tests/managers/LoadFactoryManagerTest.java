@@ -107,7 +107,7 @@ public class LoadFactoryManagerTest {
     }
 
     private static OntologyManager createManagerWithOWLAPIOntologyFactory() {
-        DataFactory df = OntManagers.DEFAULT_PROFILE.dataFactory();
+        DataFactory df = OntManagers.DEFAULT_PROFILE.createDataFactory();
         OntologyCreator builder = OntManagers.DEFAULT_PROFILE.createOntologyBuilder();
         OntologyFactory of = new OWLFactoryWrapper().asOntologyFactory(builder);
         return OntManagers.DEFAULT_PROFILE.createManager(df, of, null);

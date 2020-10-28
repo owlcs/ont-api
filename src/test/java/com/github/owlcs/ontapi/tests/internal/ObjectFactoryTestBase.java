@@ -39,7 +39,7 @@ abstract class ObjectFactoryTestBase {
     static final Logger LOGGER = LoggerFactory.getLogger(ObjectFactoryTestBase.class);
 
     static final OWLDataFactory ONT_DATA_FACTORY = OntManagers.getDataFactory();
-    static final OWLDataFactory OWL_DATA_FACTORY = OntManagers.createOWLProfile().dataFactory();
+    static final OWLDataFactory OWL_DATA_FACTORY = new OntManagers.OWLAPIImplProfile().createDataFactory();
 
     private static final String TEST_NS = "http://" + UUID.randomUUID() + "#";
 

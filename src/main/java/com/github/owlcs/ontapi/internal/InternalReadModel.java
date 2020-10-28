@@ -246,7 +246,7 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
      * @see com.github.owlcs.ontapi.config.CacheSettings#getLoadNodesCacheSize()
      */
     protected OntGraphModelImpl createSearchModel() {
-        if (!getConfig().useLoadNodesCache()) {
+        if (!useModelSearchOptimization(getConfig())) {
             return this;
         }
         return new SearchModel(getGraph(), getOntPersonality(), getConfig()) {
@@ -262,6 +262,16 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
                 return InternalReadModel.this.getObjectFactory();
             }
         };
+    }
+
+    /**
+     * Answers {@code true} if {@link SearchModel} optimization should be used to speed up content reading.
+     *
+     * @param config {@link InternalConfig}, not {@code null}
+     * @return {@code boolean}
+     */
+    protected boolean useModelSearchOptimization(InternalConfig config) {
+        return config.useLoadNodesCache();
     }
 
     @Override
@@ -649,7 +659,7 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
      *
      * @param type   {@link OWLComponentType}
      * @param config {@link InternalConfig}
-     * @return boolean
+     * @return {@code boolean}
      * @see #useAxiomsSearchOptimization(InternalConfig)
      */
     protected boolean useReferencingAxiomsSearchOptimization(OWLComponentType type, InternalConfig config) {
@@ -695,7 +705,7 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
      * Answers {@code true} if need to use {@link ByObjectSearcher}-search optimization instead of parsing cache.
      *
      * @param config {@link InternalConfig}
-     * @return boolean
+     * @return {@code boolean}
      * @see #useObjectsSearchOptimization(InternalConfig)
      * @see #useReferencingAxiomsSearchOptimization(OWLComponentType, InternalConfig)
      */
@@ -780,7 +790,7 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
      * then the cache is in a state strictly defined by the internal mechanisms,
      * and so there is no need to reset the cache.
      *
-     * @return boolean
+     * @return {@code boolean}
      */
     public boolean hasManuallyAddedAxioms() {
         return contentCaches().anyMatch(ObjectMap::hasNew);
@@ -825,7 +835,7 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
      *
      * @param type {@link OWLComponentType}, not {@code null}
      * @param o    {@link OWLObject} of the {@code type}
-     * @return boolean
+     * @return {@code boolean}
      * @see OWLComponentType
      */
     protected boolean containsComponent(OWLComponentType type, OWLObject o) {
@@ -911,7 +921,7 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
      * <p>
      *
      * @param config {@link InternalConfig}, not {@code null}
-     * @return boolean
+     * @return {@code boolean}
      * @see #useAxiomsSearchOptimization(InternalConfig)
      * @see #useReferencingAxiomsSearchOptimization(OWLComponentType, InternalConfig)
      */

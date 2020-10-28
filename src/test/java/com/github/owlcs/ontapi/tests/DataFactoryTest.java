@@ -38,7 +38,7 @@ import java.util.List;
  * @see <a href='https://github.com/owlcs/owlapi/blob/version5/contract/src/test/java/org/semanticweb/owlapi/api/test/OWLDataFactoryImplTestCase.java'>org.semanticweb.owlapi.api.test.OWLDataFactoryImplTestCase</a>
  */
 public class DataFactoryTest {
-    private static final OWLDataFactory OWL_DATA_FACTORY = OntManagers.createOWLProfile().dataFactory();
+    private static final OWLDataFactory OWL_DATA_FACTORY = new OntManagers.OWLAPIImplProfile().createDataFactory();
     private static final DataFactory ONT_DATA_FACTORY = OntManagers.getDataFactory();
 
     public static List<Data> getObjects() {

@@ -36,7 +36,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 public class OntManagersTest {
 
     public static List<TestProfile> getData() {
-        return Arrays.asList(new ONTStandard(), new ONTConcurrent(), new OWLStandard(), new OWLConcurrent());
+        return Arrays.asList(new ONTStandard(), new ONTConcurrent(), new ONTDirect(), new OWLStandard(), new OWLConcurrent());
     }
 
     @ParameterizedTest
@@ -256,6 +256,18 @@ public class OntManagersTest {
         @Override
         public Lock getWriteLock(OWLOntology o) {
             return getField(ReadWriteLock.class, "lock", getOntologyImplType(), o).writeLock();
+        }
+    }
+
+    private static class ONTDirect extends ONTStandard {
+        @Override
+        public OWLOntologyManager createManager() {
+            return OntManagers.createDirectManager();
+        }
+
+        @Override
+        public Class<? extends OWLOntologyManager> getManagerImplType() {
+            return findClass("com.github.owlcs.ontapi.OntManagers$DirectProfile$1");
         }
     }
 

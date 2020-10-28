@@ -14,6 +14,10 @@
 
 package com.github.owlcs.ontapi;
 
+import com.github.owlcs.ontapi.config.CacheSettings;
+import com.github.owlcs.ontapi.config.OntConfig;
+import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
+import com.github.owlcs.ontapi.config.OntSettings;
 import com.github.owlcs.ontapi.jena.OntModelFactory;
 import com.google.common.collect.LinkedListMultimap;
 import org.semanticweb.owlapi.io.OWLParserFactory;
@@ -61,16 +65,16 @@ public class OntManagers implements OWLOntologyManagerFactory {
     }
 
     public static final ONTAPIProfile DEFAULT_PROFILE = new ONTAPIProfile();
-    private static OWLOntologyManagerFactory managerFactory = () -> DEFAULT_PROFILE.create(false);
+    private static OWLOntologyManagerFactory managerFactory = () -> DEFAULT_PROFILE.createManager(false);
 
     /**
      * Returns the global data factory that can be used to create any {@code OWL-API} object,
-     * including {@link OWLAxiom OWL Axionms}, {@link OWLEntity OWL Entities} and {@link OWLLiteral}.
+     * including {@link OWLAxiom OWL Axionms}, {@link OWLEntity OWL Entities} and {@link OWLLiteral OWLLiterals}.
      * This allows to assembly ontology by adding into it any {@link OWLObject}
      * derived from the {@link DataFactory OWL Data Factory}.
      * <p>
      * Alternative way to assembly ontology is direct working with the {@link org.apache.jena.graph.Graph Graph}
-     * through the {@link com.github.owlcs.ontapi.jena.model.OntModel} view of the ontology,
+     * through the {@link com.github.owlcs.ontapi.jena.model.OntModel OntModel} view of the ontology,
      * that can be obtained using the method {@link Ontology#asGraphModel()}.
      * The first way of ontology editing is native for {@code OWL-API},
      * the second way is native for {@code Apache Jena} and provided by {@code ONT-API} as a feature,
@@ -79,11 +83,11 @@ public class OntManagers implements OWLOntologyManagerFactory {
      * @return {@link DataFactory} impl
      */
     public static DataFactory getDataFactory() {
-        return DEFAULT_PROFILE.dataFactory();
+        return DEFAULT_PROFILE.createDataFactory();
     }
 
     /**
-     * Creates a ready to use {@code ONT-API} ontology manager with default configuration,
+     * Creates a ready to use standard {@code ONT-API} ontology manager with default configuration,
      * that includes settings from {@link com.github.owlcs.ontapi.config.OntSettings /ontapi.properties},
      * various format-syntaxes for saving/loading ontologies from the {@code jena-arq}
      * and additional format-syntaxes from the {@code OWL-API} supply ({@code owlapi-rio}, {@code owlapi-oboformat}),
@@ -108,7 +112,7 @@ public class OntManagers implements OWLOntologyManagerFactory {
      * @return {@link OntologyManager} a fresh {@code ONT-API} manager instance
      */
     public static OntologyManager createManager() {
-        return DEFAULT_PROFILE.create(false);
+        return DEFAULT_PROFILE.createManager(false);
     }
 
     /**
@@ -120,17 +124,51 @@ public class OntManagers implements OWLOntologyManagerFactory {
      * Notes:
      * <ul>
      * <li>The returned manager is RDF-centric, that means the internal data is RDF and OWL support is done on top of RDF</li>
-     * <li>To manage concurrency a single {@link ReadWriteLock} is used</li>
+     * <li>To manage concurrency a single {@link ReadWriteLock} is used;
+     * any manager's component including ontologies use the same lock</li>
      * </ul>
      *
      * @return {@link OntologyManager} a fresh {@code ONT-API} manager instance with concurrency
      */
     public static OntologyManager createConcurrentManager() {
-        return DEFAULT_PROFILE.create(true);
+        return DEFAULT_PROFILE.createManager(true);
     }
 
     /**
-     * Creates an original {@code OWL-API} (i.e. pure native impl) ontology manager instance with default configuration.
+     * Creates a ready to use direct {@code ONT-API} ontology manager.
+     * Notes:
+     * <ul>
+     * <li>Unlike {@link #createManager() standard} and {@link #createConcurrentManager() concurrent} managers,
+     * this one does not contain any intermediate ontology
+     * component' and content' caches (i.e. caches of {@link OWLEntity}s and {@link OWLAxiom}s).
+     * Axioms are read <b>directly</b> from the underlying {@code Graph}.
+     * Therefore, all memory consumption and performance are determined by the graph level.</li>
+     * <li>Since there is no model-level caches,
+     * any {@link OWLOntology} method, that provides {@code Iterator} or {@code Stream} of {@link OWLObject}s,
+     * does not guarantee to be consistent of distinct elements,
+     * i.e. such {@code Iterator} or {@code Stream} may contain duplicates.
+     * For example, two symmetric statements with
+     * the {@link com.github.owlcs.ontapi.jena.vocabulary.OWL#disjointWith owl:disjointWith} predicate,
+     * correspond the same axiom {@code DisjointClasses},
+     * which may appear twice in the stream if there are two statements in the {@code Graph}
+     * (i.e. {@code A owl:disjointWith B} and {@code B owl:disjointWith A})</li>
+     * <li>Direct modification is prohibited,
+     * e.g. calling the methods {@link OWLOntology#add(OWLAxiom)} or {@link OWLOntology#remove(OWLAxiom)}
+     * will cause {@link OntApiException.ModificationDenied}</li>
+     * <li>It is still possible to modify the data using non-axiomatic RDF-view,
+     * i.e. through the method {@link Ontology#asGraphModel()} and {@link com.github.owlcs.ontapi.jena.model.OntModel OntModel}</li>
+     * </ul>
+     *
+     * @return {@link OntologyManager} a fresh {@code ONT-API} direct non-concurrent manager instance
+     * @see CacheSettings
+     * @since 2.1.0
+     */
+    public static OntologyManager createDirectManager() {
+        return new DirectProfile().createManager(false);
+    }
+
+    /**
+     * Creates a native {@code OWL-API} ontology manager instance with default configuration.
      * Notes:
      * <ul>
      * <li>The returned manager is OWL-centric, it does not support RDF out-of-the-box</li>
@@ -145,11 +183,11 @@ public class OntManagers implements OWLOntologyManagerFactory {
      * @throws OntApiException if there is no {@code owlapi-impl} in classpath or some unexpected error is occurred
      */
     public static OWLOntologyManager createOWLAPIImplManager() throws OntApiException {
-        return createOWLProfile().create(false);
+        return new OWLAPIImplProfile().createManager(false);
     }
 
     /**
-     * Creates an original {@code OWL-API} (i.e pure native impl) ontology manager instance
+     * Creates a native {@code OWL-API} ontology manager instance
      * with default configuration and locking to work in a concurrent environment.
      * Notes:
      * <ul>
@@ -166,13 +204,13 @@ public class OntManagers implements OWLOntologyManagerFactory {
      * @throws OntApiException if there is no {@code owlapi-impl} in classpath or some unexpected error is occurred
      */
     public static OWLOntologyManager createConcurrentOWLAPIImplManager() throws OntApiException {
-        return createOWLProfile().create(true);
+        return new OWLAPIImplProfile().createManager(true);
     }
 
     /**
-     * Returns the default static {@link OWLOntologyManagerFactory factory}.
+     * Returns the default static {@code OWLOntologyManagerFactory}.
      *
-     * @return profile
+     * @return {@link OWLOntologyManagerFactory}
      */
     public static OWLOntologyManagerFactory getFactory() {
         return managerFactory;
@@ -180,7 +218,7 @@ public class OntManagers implements OWLOntologyManagerFactory {
 
     /**
      * Changes a default static {@link OWLOntologyManagerFactory factory}.
-     * This a way to manage {@link #get()} method behaviour and should not be used without a really good reason.
+     * This is a back door to manage {@link #get()} method behaviour and should not be used without a really good reason.
      *
      * @param factory profile object, not {@code null}
      * @see OWLOntologyManagerFactory#get()
@@ -239,43 +277,140 @@ public class OntManagers implements OWLOntologyManagerFactory {
     }
 
     /**
-     * A factory abstraction to provide a manager and data-factory instances.
+     * Creates a {@code Profile profile} to retrieve
+     * <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl</a> and
+     * <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLDataFactoryImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl</a>
+     * instances from {@code OWL-API} supply
+     * (i.e. from {@code owlapi-apibinding} or directly from {@code owlapi-impl}) using reflection.
+     *
+     * @return {@link Profile}
+     * @throws OntApiException in case there is no {@code owlapi-impl} module in classpath
+     * @deprecated use constructor directly
      */
-    public interface Profile {
+    @Deprecated
+    public static Profile createOWLProfile() throws OntApiException {
+        OWLAPIImplProfile res = new OWLAPIImplProfile();
+        return new Profile() {
+            @Override
+            public OWLOntologyManager createManager(boolean concurrency) {
+                return res.createManager(concurrency);
+            }
+
+            @Override
+            public OWLDataFactory createDataFactory() {
+                return res.createDataFactory();
+            }
+        };
+    }
+
+    @Deprecated
+    public interface Profile extends CreationProfile {
+    }
+
+    /**
+     * A technical abstract facility to provide manager and data-factory instances.
+     * Used to simplify code.
+     */
+    interface CreationProfile {
 
         /**
          * Creates a new {@code OWLOntologyManager} instance.
          *
-         * @param concurrent boolean, if {@code true} the result manager expected to be thread-safe
+         * @param concurrency {@code boolean}, if {@code true} the result manager expected to be thread-safe
          * @return {@link OWLOntologyManager}
          */
-        OWLOntologyManager create(boolean concurrent);
+        OWLOntologyManager createManager(boolean concurrency);
 
         /**
-         * Provides a {@code OWLDataFactory} instance.
+         * Creates an {@code OWLDataFactory} instance.
          *
          * @return {@link OWLDataFactory}
          */
+        OWLDataFactory createDataFactory();
+
+        @Deprecated
+        default OWLOntologyManager create(boolean concurrent) {
+            return createManager(concurrent);
+        }
+
+        @Deprecated
         default OWLDataFactory dataFactory() {
-            return create(false).getOWLDataFactory();
+            return createDataFactory();
         }
     }
 
     /**
-     * An {@code ONT-API} impl of the {@link Profile}.
+     * An creation profile to provide standard cache-based {@code ONT-API} impls.
      */
-    public static class ONTAPIProfile implements Profile {
+    public static class ONTAPIProfile extends BaseCreationProfile {
+
+        @Override
+        public OntologyManager createManager(DataFactory dataFactory, OntologyFactory factory, ReadWriteLock lock) {
+            return new OntologyManagerImpl(dataFactory, factory, lock);
+        }
+    }
+
+    /**
+     * A creation profile to provide direct {@code ONT-API} impl.
+     */
+    static class DirectProfile extends BaseCreationProfile {
+
+        @Override
+        public OntologyManager createManager(DataFactory dataFactory, OntologyFactory factory, ReadWriteLock lock) {
+            OntConfig config = new OntConfig().setModelCacheLevel(CacheSettings.CACHE_ALL, false)
+                    .lockProperty(OntSettings.ONT_API_LOAD_CONF_CACHE_MODEL);
+            OntologyManager res = new OntologyManagerImpl(dataFactory, lock, config, PriorityCollectionSorting.NEVER) {
+
+                @Override
+                public void setOntologyConfigurator(OntologyConfigurator conf) {
+                    throw new OntApiException.ModificationDenied("Changing manager's configuration is denied in the direct mode");
+                }
+
+                @Override
+                public ModelConfig createModelConfig() {
+                    return new ModelConfig(this) {
+
+                        @Override
+                        public void setLoaderConf(OntLoaderConfiguration conf) {
+                            if (conf.getModelCacheLevel() != 0) {
+                                throw new OntApiException.ModificationDenied("The given loader configuration " +
+                                        "is not suitable for the direct mode");
+                            }
+                            super.setLoaderConf(conf);
+                        }
+                    };
+                }
+            };
+            res.getOntologyFactories().add(createOntologyFactory());
+            return res;
+        }
+    }
+
+    /**
+     * Base abstract impl to produce {@link DataFactory}, {@link OntologyFactory}, etc.
+     */
+    abstract static class BaseCreationProfile implements CreationProfile {
 
         public static final DataFactory DEFAULT_DATA_FACTORY = new DataFactoryImpl();
 
+        /**
+         * Creates a fresh {@link OntologyManager Ontology Manager} with the given data and ontology factories.
+         * The returned manager does not have any {@code OWL-API} storers and parsers,
+         * so it does not support reading and writing in formats that are not supported by {@code Apache Jena}.
+         *
+         * @param dataFactory {@link DataFactory}, not {@code null}
+         * @param factory     {@link OntologyFactory}, not {@code null}
+         * @param lock        {@link ReadWriteLock} or {@code null} for non-concurrent instance
+         * @return {@link OntologyManager}
+         */
+        abstract OntologyManager createManager(DataFactory dataFactory, OntologyFactory factory, ReadWriteLock lock);
+
         @Override
-        public OntologyManager create(boolean concurrent) {
-            ReadWriteLock lock = concurrent ? new ReentrantReadWriteLock() : NoOpReadWriteLock.NO_OP_RW_LOCK;
-            Set<OWLStorerFactory> storers = OWLLangRegistry.storerFactories().collect(Collectors.toSet());
-            Set<OWLParserFactory> parsers = OWLLangRegistry.parserFactories().collect(Collectors.toSet());
-            OntologyManager res = createManager(dataFactory(), lock);
-            res.getOntologyStorers().set(storers);
-            res.getOntologyParsers().set(parsers);
+        public OntologyManager createManager(boolean concurrency) {
+            OntologyManager res = createManager(createDataFactory(),
+                    concurrency ? new ReentrantReadWriteLock() : NoOpReadWriteLock.NO_OP_RW_LOCK);
+            initParsers(res);
+            initStorers(res);
             return res;
         }
 
@@ -293,23 +428,16 @@ public class OntManagers implements OWLOntologyManagerFactory {
             return createManager(dataFactory, createOntologyFactory(), lock);
         }
 
-        /**
-         * Creates a fresh {@link OntologyManager Ontology Manager}
-         * with the given data and ontology factories.
-         * The returned manager does not have any {@code OWL-API} storers and parsers,
-         * so ir does not support reading and writing in formats that are not supported by {@code Apache Jena}.
-         *
-         * @param dataFactory {@link DataFactory}, not {@code null}
-         * @param factory     {@link OntologyFactory}, not {@code null}
-         * @param lock        {@link ReadWriteLock} or {@code null} for non-concurrent instance
-         * @return {@link OntologyManager}
-         */
-        public OntologyManager createManager(DataFactory dataFactory, OntologyFactory factory, ReadWriteLock lock) {
-            return new OntologyManagerImpl(dataFactory, factory, lock);
+        void initParsers(OWLOntologyManager res) {
+            res.getOntologyParsers().set(OWLLangRegistry.parserFactories().collect(Collectors.toSet()));
+        }
+
+        void initStorers(OWLOntologyManager res) {
+            res.getOntologyStorers().set(OWLLangRegistry.storerFactories().collect(Collectors.toSet()));
         }
 
         @Override
-        public DataFactory dataFactory() {
+        public DataFactory createDataFactory() {
             return DEFAULT_DATA_FACTORY;
         }
 
@@ -324,10 +452,11 @@ public class OntManagers implements OWLOntologyManagerFactory {
         }
 
         /**
-         * Creates a default {@link OntologyFactory.Loader Ontology Load} -
+         * Creates a default {@link OntologyFactory.Loader Ontology Loader} -
          * an interface to read ontology documents.
          * The returned loader is capable to read a document using both {@code Apache Jena} and {@code OWL-API} mechanisms.
-         * The priority is for {@code Apache Jena}. The {@code OWL-API} native mechanisms are used as last attempt to read a document,
+         * The priority is for {@code Apache Jena}.
+         * The {@code OWL-API} native mechanisms are used as last attempt to read a document,
          * and will work only if the corresponding {@link OWLParserFactory parsers}s are registered inside the manager.
          *
          * @return {@link OntologyFactory.Loader}
@@ -370,24 +499,9 @@ public class OntManagers implements OWLOntologyManagerFactory {
     }
 
     /**
-     * Creates a {@link Profile profile} to retrieve
-     * <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>manager</a>
-     * and
-     * <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLDataFactoryImpl.java'>data factory</a>
-     * instances from {@code OWL-API} supply
-     * (i.e. from {@code owlapi-apibinding} or directly from {@code owlapi-impl}) using reflection.
-     *
-     * @return Profile
-     * @throws OntApiException in case no owlapi-* in classpath
-     */
-    public static Profile createOWLProfile() throws OntApiException {
-        return new OWLAPIImplProfile();
-    }
-
-    /**
-     * The {@code OWL-API} impl of {@link Profile} based on straightforward reflection.
-     * The dependency owlapi-impl must be in classpath,
-     * otherwise {@link OntApiException} is expected while initialization.
+     * The creation profile for {@code OWLAPI}, based on straightforward reflection.
+     * The module {@code owlapi-impl} must be in classpath,
+     * otherwise the {@link OntApiException} is expected.
      *
      * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl</a>
      * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl</a>
@@ -396,7 +510,7 @@ public class OntManagers implements OWLOntologyManagerFactory {
      * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyFactoryImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl</a>
      * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLDataFactoryImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl</a>
      */
-    public static class OWLAPIImplProfile implements Profile {
+    public static class OWLAPIImplProfile implements CreationProfile {
         private final Class<OWLOntologyManager> managerClass;
 
         public OWLAPIImplProfile() throws OntApiException {
@@ -425,8 +539,8 @@ public class OntManagers implements OWLOntologyManagerFactory {
         }
 
         @Override
-        public OWLOntologyManager create(boolean concurrent) {
-            ReadWriteLock lock = concurrent ? new ReentrantReadWriteLock() : NoOpReadWriteLock.NO_OP_RW_LOCK;
+        public OWLOntologyManager createManager(boolean concurrency) {
+            ReadWriteLock lock = concurrency ? new ReentrantReadWriteLock() : NoOpReadWriteLock.NO_OP_RW_LOCK;
             OWLDataFactory dataFactory = createDataFactory();
             OWLOntologyFactory loadFactory = createOntologyFactory(createOWLOntologyBuilder(lock));
             OWLOntologyManager res = createManager(dataFactory, lock);
@@ -460,10 +574,6 @@ public class OntManagers implements OWLOntologyManagerFactory {
         }
 
         @Override
-        public OWLDataFactory dataFactory() {
-            return createDataFactory();
-        }
-
         public OWLDataFactory createDataFactory() {
             return ReflectionUtils.newInstance(OWLDataFactory.class,
                     "uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl", LinkedListMultimap.create());
