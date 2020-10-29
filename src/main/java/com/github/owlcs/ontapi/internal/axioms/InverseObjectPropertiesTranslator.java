@@ -26,6 +26,7 @@ import com.github.owlcs.ontapi.jena.model.OntObjectProperty;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.*;
@@ -41,7 +42,8 @@ import java.util.stream.Stream;
 
 /**
  * A translator that provides {@link OWLInverseObjectPropertiesAxiom} implementations.
- * Do not confuse with {@link org.semanticweb.owlapi.model.OWLObjectInverseOf}.
+ * Do not confuse with {@link org.semanticweb.owlapi.model.OWLObjectInverseOf OWLObjectInverseOf} {@code OWLObject}.
+ * <p>
  * Example:
  * <pre>{@code
  * pizza:hasBase owl:inverseOf pizza:isBaseOf ;
@@ -49,7 +51,7 @@ import java.util.stream.Stream;
  * <p>
  * Created by @szuev on 30.09.2016.
  */
-public class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInverseObjectPropertiesAxiom> {
+public class InverseObjectPropertiesTranslator extends AbstractSimpleTranslator<OWLInverseObjectPropertiesAxiom> {
 
     @Override
     public void write(OWLInverseObjectPropertiesAxiom axiom, OntModel model) {
@@ -95,6 +97,15 @@ public class InverseObjectPropertiesTranslator extends AxiomTranslator<OWLInvers
         OWLInverseObjectPropertiesAxiom res = factory.getOWLDataFactory()
                 .getOWLInverseObjectPropertiesAxiom(f.getOWLObject(), s.getOWLObject(), TranslateHelper.toSet(annotations));
         return ONTWrapperImpl.create(res, statement).append(annotations).append(f).append(s);
+    }
+
+    @Override
+    Triple createSearchTriple(OWLInverseObjectPropertiesAxiom axiom) {
+        Node subject = TranslateHelper.getSearchNode(axiom.getFirstProperty());
+        if (subject == null) return null;
+        Node object = TranslateHelper.getSearchNode(axiom.getSecondProperty());
+        if (object == null) return null;
+        return Triple.create(subject, OWL.inverseOf.asNode(), object);
     }
 
     /**

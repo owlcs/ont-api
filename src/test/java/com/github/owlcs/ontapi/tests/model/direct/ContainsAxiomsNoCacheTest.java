@@ -134,8 +134,8 @@ public class ContainsAxiomsNoCacheTest extends ContainsAxiomsTest {
 
     public static Stream<Arguments> dynamicData() {
         String ns = "http://x#";
-        String u1 = ns + "p1";
-        String u2 = ns + "p2";
+        String u1 = ns + "u1";
+        String u2 = ns + "u2";
         BlankNodeId b1 = BlankNodeId.create();
         BlankNodeId b2 = BlankNodeId.create();
         return Stream.of(
@@ -148,6 +148,9 @@ public class ContainsAxiomsNoCacheTest extends ContainsAxiomsTest {
                 , of(OWLDatatypeDefinitionAxiom.class,
                         m -> createDatatypeDefinitionModel(m, ns, u1, u2),
                         f -> f.getOWLDatatypeDefinitionAxiom(f.getOWLDatatype(u1), f.getOWLDatatype(u2)))
+                , of(OWLInverseObjectPropertiesAxiom.class,
+                        m -> createInverseObjectPropertiesModel(m, ns, u1, u2),
+                        f -> f.getOWLInverseObjectPropertiesAxiom(f.getOWLObjectProperty(u1), f.getOWLObjectProperty(u2)))
         );
     }
 
@@ -185,6 +188,13 @@ public class ContainsAxiomsNoCacheTest extends ContainsAxiomsTest {
         OntModel res = m.createOntology()
                 .asGraphModel().setNsPrefixes(OntModelFactory.STANDARD).setNsPrefix("x", ns);
         res.createDatatype(d1).addEquivalentClass(res.createDatatype(d2));
+        return res;
+    }
+
+    private static OntModel createInverseObjectPropertiesModel(OntologyManager m, String ns, String p1, String p2) {
+        OntModel res = m.createOntology()
+                .asGraphModel().setNsPrefixes(OntModelFactory.STANDARD).setNsPrefix("x", ns);
+        res.createObjectProperty(p1).addInverseOfStatement(res.createObjectProperty(p2));
         return res;
     }
 
