@@ -24,6 +24,7 @@ import com.github.owlcs.ontapi.jena.model.OntDataRange;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.*;
@@ -37,16 +38,22 @@ import java.util.stream.Stream;
 
 /**
  * A translator that provides {@link OWLDatatypeDefinitionAxiom} implementations.
+ * <p>
  * The main statement is {@code DN owl:equivalentClass D},
  * where {@code DN} - an OWL datatype (named data range) and {@code D} - any data range.
+ * <p>
  * Example:
  * <pre>{@code
- * :data-type-3 rdf:type rdfs:Datatype ; owl:equivalentClass [ rdf:type rdfs:Datatype ; owl:unionOf ( :data-type-1  :data-type-2 ) ] .
+ * :data-type-3 rdf:type rdfs:Datatype ;
+ *              owl:equivalentClass [
+ *                       rdf:type rdfs:Datatype ;
+ *                       owl:unionOf ( :data-type-1  :data-type-2 )
+ *              ] .
  * }</pre>
  * <p>
  * Created by @szuev on 18.10.2016.
  */
-public class DatatypeDefinitionTranslator extends AxiomTranslator<OWLDatatypeDefinitionAxiom> {
+public class DatatypeDefinitionTranslator extends AbstractSimpleTranslator<OWLDatatypeDefinitionAxiom> {
 
     @Override
     public void write(OWLDatatypeDefinitionAxiom axiom, OntModel model) {
@@ -84,6 +91,14 @@ public class DatatypeDefinitionTranslator extends AxiomTranslator<OWLDatatypeDef
         OWLDatatypeDefinitionAxiom res = factory.getOWLDataFactory()
                 .getOWLDatatypeDefinitionAxiom(dt.getOWLObject(), dr.getOWLObject(), TranslateHelper.toSet(annotations));
         return ONTWrapperImpl.create(res, statement).append(annotations).append(dt).append(dr);
+    }
+
+    @Override
+    Triple createSearchTriple(OWLDatatypeDefinitionAxiom axiom) {
+        Node object = TranslateHelper.getSearchNode(axiom.getDataRange());
+        if (object == null) return null;
+        Node subject = WriteHelper.toNode(axiom.getDatatype());
+        return Triple.create(subject, OWL.equivalentClass.asNode(), object);
     }
 
     /**

@@ -170,13 +170,6 @@ public class ContainsAxiomsNoCacheTest extends ContainsAxiomsTest {
                 , OWLDisjointObjectPropertiesAxiom.class);
     }
 
-    private OntModel createDisjointObjectPropertiesModel(OntologyManager m, String ns, String p1, String p2) {
-        OntModel res = m.createOntology()
-                .asGraphModel().setNsPrefixes(OntModelFactory.STANDARD).setNsPrefix("x", ns);
-        res.createDisjointObjectProperties(res.createObjectProperty(p1), res.createObjectProperty(p2));
-        return res;
-    }
-
     @Test
     public void testSameIndividualsAxiomTranslator() {
         String ns = "http://x#";
@@ -192,6 +185,24 @@ public class ContainsAxiomsNoCacheTest extends ContainsAxiomsTest {
         testAxiomTranslator(m -> createSameIndividualsModel(m, ns, b1, b2), OWLSameIndividualAxiom.class);
     }
 
+    @Test
+    public void testDatatypeDefinitionAxiomTranslator() {
+        String ns = "http://x#";
+        String d1 = ns + "d1";
+        String d2 = ns + "d2";
+        testAxiomTranslator(m -> createDatatypeDefinitionModel((OntologyManager) m, ns, d1, d2)
+                , OWLDatatypeDefinitionAxiom.class
+                , f -> f.getOWLDatatypeDefinitionAxiom(f.getOWLDatatype(d1), f.getOWLDatatype(d2)));
+        testAxiomTranslator(m -> createDatatypeDefinitionModel(m, ns, d1, d2), OWLDatatypeDefinitionAxiom.class);
+    }
+
+    private OntModel createDisjointObjectPropertiesModel(OntologyManager m, String ns, String p1, String p2) {
+        OntModel res = m.createOntology()
+                .asGraphModel().setNsPrefixes(OntModelFactory.STANDARD).setNsPrefix("x", ns);
+        res.createDisjointObjectProperties(res.createObjectProperty(p1), res.createObjectProperty(p2));
+        return res;
+    }
+
     private OntModel createSameIndividualsModel(OntologyManager m, String ns, BlankNodeId b1, BlankNodeId b2) {
         OntModel res = m.createOntology()
                 .asGraphModel().setNsPrefixes(OntModelFactory.STANDARD).setNsPrefix("x", ns);
@@ -202,6 +213,13 @@ public class ContainsAxiomsNoCacheTest extends ContainsAxiomsTest {
                 .addProperty(RDF.type, res.createOntClass(ns + "C2"))
                 .as(OntIndividual.class);
         i1.addSameAsStatement(i2);
+        return res;
+    }
+
+    private OntModel createDatatypeDefinitionModel(OntologyManager m, String ns, String d1, String d2) {
+        OntModel res = m.createOntology()
+                .asGraphModel().setNsPrefixes(OntModelFactory.STANDARD).setNsPrefix("x", ns);
+        res.createDatatype(d1).addEquivalentClass(res.createDatatype(d2));
         return res;
     }
 
