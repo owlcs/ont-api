@@ -16,25 +16,21 @@ package com.github.owlcs.ontapi.tests.model.direct;
 
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.OntologyManager;
-import com.github.owlcs.ontapi.config.CacheSettings;
-import com.github.owlcs.ontapi.config.OntConfig;
 import com.github.owlcs.ontapi.tests.model.ContainsSignatureTest;
 import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 /**
- * To test {@link com.github.owlcs.ontapi.internal.DirectObjectMapImpl} for {@link org.semanticweb.owlapi.model.OWLEntity}.
+ * To test (implicitly) {@link com.github.owlcs.ontapi.internal.DirectObjectMapImpl} for {@link org.semanticweb.owlapi.model.OWLEntity}.
+ * <p>
  * Created by @ssz on 01.05.2020.
- *
- * @see com.github.owlcs.ontapi.tests.managers.CacheConfigTest
  */
 public class ContainsEntityNoCacheTest extends ContainsSignatureTest {
 
     @Override
     protected OWLOntologyManager newManager() {
-        OntologyManager m = OntManagers.createManager();
-        OntConfig conf = m.getOntologyConfigurator().setModelCacheLevel(CacheSettings.CACHE_COMPONENT, false);
-        Assertions.assertFalse(conf.useComponentCache());
-        return m;
+        OntologyManager res = OntManagers.createDirectManager();
+        Assertions.assertFalse(res.getOntologyConfigurator().useContentCache());
+        return res;
     }
 }

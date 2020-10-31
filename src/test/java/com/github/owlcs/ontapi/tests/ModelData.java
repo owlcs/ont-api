@@ -18,6 +18,10 @@ import com.github.owlcs.ontapi.OWLAdapter;
 import com.github.owlcs.ontapi.OntFormat;
 import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
+import com.github.owlcs.ontapi.jena.model.OntClass;
+import com.github.owlcs.ontapi.jena.model.OntDataProperty;
+import com.github.owlcs.ontapi.jena.model.OntIndividual;
+import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.utils.FileMap;
 import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.io.FileDocumentSource;
@@ -74,48 +78,9 @@ public enum ModelData {
 
         @Override
         public OWLOntology fetch(OWLOntologyManager manager) {
-            String ns = getNS();
-            OWLOntology family = load(manager, FAMILY);
-            OWLOntology people = load(manager, PEOPLE);
-            OWLOntology res;
-            try {
-                res = manager.createOntology();
-            } catch (OWLOntologyCreationException e) {
-                throw new AssertionError(e);
-            }
-            IRI peopleIRI = getIRI(people);
-            IRI familyIRI = getIRI(family);
-            String familyNS = familyIRI.getIRIString() + "#";
-            String peopleNS = peopleIRI.getIRIString() + "#";
-
-            OWLDataFactory df = manager.getOWLDataFactory();
-            OWLClass foremother = df.getOWLClass(ns + "foremother");
-            OWLClass super_bus_company = df.getOWLClass(ns + "super_bus_company");
-            OWLNamedIndividual i1 = df.getOWLNamedIndividual(ns + "Eva");
-            OWLAnonymousIndividual i2 = df.getOWLAnonymousIndividual();
-            OWLDataProperty dp = df.getOWLDataProperty(familyNS + "alsoKnownAs");
-
-            manager.applyChange(new AddImport(family, df.getOWLImportsDeclaration(peopleIRI)));
-            manager.applyChange(new AddImport(res, df.getOWLImportsDeclaration(familyIRI)));
-
-            res.add(df.getOWLDeclarationAxiom(foremother));
-            res.add(df.getOWLDeclarationAxiom(super_bus_company));
-            res.add(df.getOWLSubClassOfAxiom(super_bus_company, df.getOWLClass(peopleNS + "bus_company")));
-            res.add(df.getOWLEquivalentClassesAxiom(foremother,
-                    df.getOWLObjectIntersectionOf(df.getOWLClass(familyNS + "Woman"),
-                            df.getOWLObjectSomeValuesFrom(df.getOWLObjectProperty(familyNS + "isForemotherOf"),
-                                    df.getOWLClass(familyNS + "Person")))));
-            res.add(df.getOWLDeclarationAxiom(i1));
-            res.add(df.getOWLClassAssertionAxiom(df.getOWLClass(familyNS + "Foremother"), i1));
-            res.add(df.getOWLClassAssertionAxiom(foremother, i2));
-            res.add(df.getOWLAnnotationAssertionAxiom(i2, df.getRDFSComment("This is Eva")));
-            res.add(df.getOWLDataPropertyAssertionAxiom(dp, i1, df.getOWLLiteral("Eve")));
-            res.add(df.getOWLDataPropertyAssertionAxiom(dp, i2, df.getOWLLiteral("Eve")));
-
-            if (res instanceof Ontology) { // for debug
-                ((Ontology) res).asGraphModel().setNsPrefix("p", peopleNS).setNsPrefix("f", familyNS).setNsPrefix("t", ns);
-            }
-            return res;
+            return manager instanceof OntologyManager ?
+                    ModelData.createFamilyPeopleModelUsingONTAPI((OntologyManager) manager, getNS()) :
+                    ModelData.createFamilyPeopleModelUsingOWLAPI(manager, getNS());
         }
     },
     ;
@@ -181,6 +146,77 @@ public enum ModelData {
 
     static IRI getIRI(OWLOntology ont) {
         return ont.getOntologyID().getOntologyIRI().orElseThrow(AssertionError::new);
+    }
+
+    private static Ontology createFamilyPeopleModelUsingONTAPI(OntologyManager manager, String ns) {
+        Ontology family = (Ontology) load(manager, FAMILY);
+        Ontology people = (Ontology) load(manager, PEOPLE);
+
+        String familyNS = getIRI(family).getIRIString() + "#";
+        String peopleNS = getIRI(people).getIRIString() + "#";
+
+        Ontology res = manager.createOntology();
+        OntModel ont = res.asGraphModel().setNsPrefix("p", peopleNS).setNsPrefix("f", familyNS).setNsPrefix("t", ns);
+        ont.addImport(family.asGraphModel().addImport(people.asGraphModel()));
+
+        OntClass foremother = ont.createOntClass(ns + "foremother");
+        OntClass super_bus_company = ont.createOntClass(ns + "super_bus_company");
+        super_bus_company.addSuperClass(ont.getOntClass(peopleNS + "bus_company"));
+        foremother.addEquivalentClass(ont.createObjectIntersectionOf(ont.getOntClass(familyNS + "Woman"),
+                ont.createObjectSomeValuesFrom(ont.getObjectProperty(familyNS + "isForemotherOf"),
+                        ont.getOntClass(familyNS + "Person"))));
+        OntIndividual.Named i1 = ont.getOntClass(familyNS + "Foremother").createIndividual(ns + "Eva");
+        OntIndividual.Anonymous i2 = foremother.createIndividual();
+        i2.addComment("This is Eva");
+
+        OntDataProperty dp = ont.getDataProperty(familyNS + "alsoKnownAs");
+        i1.addAssertion(dp, ont.createLiteral("Eve"));
+        i2.addAssertion(dp, ont.createLiteral("Eve"));
+        return res;
+    }
+
+    private static OWLOntology createFamilyPeopleModelUsingOWLAPI(OWLOntologyManager manager, String ns) {
+        OWLOntology family = load(manager, FAMILY);
+        OWLOntology people = load(manager, PEOPLE);
+        OWLOntology res;
+        try {
+            res = manager.createOntology();
+        } catch (OWLOntologyCreationException e) {
+            return Assertions.fail(e);
+        }
+        IRI peopleIRI = getIRI(people);
+        IRI familyIRI = getIRI(family);
+        String familyNS = familyIRI.getIRIString() + "#";
+        String peopleNS = peopleIRI.getIRIString() + "#";
+
+        OWLDataFactory df = manager.getOWLDataFactory();
+        OWLClass foremother = df.getOWLClass(ns + "foremother");
+        OWLClass super_bus_company = df.getOWLClass(ns + "super_bus_company");
+        OWLNamedIndividual i1 = df.getOWLNamedIndividual(ns + "Eva");
+        OWLAnonymousIndividual i2 = df.getOWLAnonymousIndividual();
+        OWLDataProperty dp = df.getOWLDataProperty(familyNS + "alsoKnownAs");
+
+        manager.applyChange(new AddImport(family, df.getOWLImportsDeclaration(peopleIRI)));
+        manager.applyChange(new AddImport(res, df.getOWLImportsDeclaration(familyIRI)));
+
+        res.add(df.getOWLDeclarationAxiom(foremother));
+        res.add(df.getOWLDeclarationAxiom(super_bus_company));
+        res.add(df.getOWLSubClassOfAxiom(super_bus_company, df.getOWLClass(peopleNS + "bus_company")));
+        res.add(df.getOWLEquivalentClassesAxiom(foremother,
+                df.getOWLObjectIntersectionOf(df.getOWLClass(familyNS + "Woman"),
+                        df.getOWLObjectSomeValuesFrom(df.getOWLObjectProperty(familyNS + "isForemotherOf"),
+                                df.getOWLClass(familyNS + "Person")))));
+        res.add(df.getOWLDeclarationAxiom(i1));
+        res.add(df.getOWLClassAssertionAxiom(df.getOWLClass(familyNS + "Foremother"), i1));
+        res.add(df.getOWLClassAssertionAxiom(foremother, i2));
+        res.add(df.getOWLAnnotationAssertionAxiom(i2, df.getRDFSComment("This is Eva")));
+        res.add(df.getOWLDataPropertyAssertionAxiom(dp, i1, df.getOWLLiteral("Eve")));
+        res.add(df.getOWLDataPropertyAssertionAxiom(dp, i2, df.getOWLLiteral("Eve")));
+
+        if (res instanceof Ontology) { // for debug
+            ((Ontology) res).asGraphModel().setNsPrefix("p", peopleNS).setNsPrefix("f", familyNS).setNsPrefix("t", ns);
+        }
+        return res;
     }
 
     public OWLOntology fetch(OWLOntologyManager manager) {
