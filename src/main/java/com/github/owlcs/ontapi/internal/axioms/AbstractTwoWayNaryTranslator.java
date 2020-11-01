@@ -22,10 +22,8 @@ import com.github.owlcs.ontapi.jena.model.OntDisjoint;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntObject;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
-import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
-import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
@@ -104,8 +102,7 @@ public abstract class AbstractTwoWayNaryTranslator<Axiom extends OWLAxiom & OWLN
         if (search.isEmpty()) {
             return listStatements(model, config);
         }
-        Graph g = model.getBaseGraph();
-        return Iter.create(search).filterKeep(g::contains).mapWith(model::asStatement).andThen(listDisjointStatements(model));
+        return listSearchStatements(model, search).andThen(listDisjointStatements(model));
     }
 
     ONTObject<Axiom> makeAxiom(OntStatement statement,

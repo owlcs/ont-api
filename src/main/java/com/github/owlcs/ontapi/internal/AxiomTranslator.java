@@ -214,11 +214,21 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> extends BaseSearch
      */
     protected ExtendedIterator<OntStatement> listSearchStatements(Axiom key, OntModel model, AxiomsSettings config) {
         Collection<Triple> search = getSearchTriples(key);
-        if (!search.isEmpty()) {
-            Graph g = model.getBaseGraph();
-            return Iter.create(search).filterKeep(g::contains).mapWith(model::asStatement);
-        }
-        return listStatements(model, config);
+        return search.isEmpty() ? listStatements(model, config) : listSearchStatements(model, search);
+    }
+
+    /**
+     * Lists all statements-candidates from the given {@code model}
+     * that correspond to the collection of concrete or abstract triples.
+     *
+     * @param model  a {@link OntModel}, not {@code null}
+     * @param search a {@code Collection} of {@link Triple}s, not {@code null}
+     * @return {@link ExtendedIterator} of {@link OntStatement}s in-{@code model}
+     */
+    protected ExtendedIterator<OntStatement> listSearchStatements(OntModel model, Collection<Triple> search) {
+        Graph g = model.getBaseGraph();
+        return Iter.flatMap(Iter.create(search), t -> t.isConcrete() ? g.contains(t) ? Iter.of(t) : Iter.of() : g.find(t))
+                .mapWith(model::asStatement);
     }
 
     /**

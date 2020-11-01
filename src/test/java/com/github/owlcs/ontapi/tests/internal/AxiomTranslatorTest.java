@@ -25,6 +25,7 @@ import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.tests.ModelData;
 import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.rdf.model.AnonId;
+import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.SKOS;
@@ -53,6 +54,13 @@ public class AxiomTranslatorTest {
                 , of(OWLSubClassOfAxiom.class, ModelData.PIZZA, (f, d) -> {
                     OWLClass sub = f.getOWLClass(d.getNS() + "PizzaTopping");
                     OWLClass sup = f.getOWLClass(d.getNS() + "Food");
+                    return f.getOWLSubClassOfAxiom(sub, sup);
+                })
+                , of(OWLSubClassOfAxiom.class, ModelData.PIZZA, (f, d) -> {
+                    OWLClass sub = f.getOWLClass(d.getNS() + "RealItalianPizza");
+                    OWLObjectProperty p = f.getOWLObjectProperty(d.getNS() + "hasBase");
+                    OWLClass c = f.getOWLClass(d.getNS() + "ThinAndCrispyBase");
+                    OWLClassExpression sup = f.getOWLObjectAllValuesFrom(p, c);
                     return f.getOWLSubClassOfAxiom(sub, sup);
                 })
                 , of(OWLDisjointClassesAxiom.class, ModelData.PIZZA, (f, d) -> {
@@ -242,7 +250,8 @@ public class AxiomTranslatorTest {
         Assertions.assertFalse(tr.containsONTObject(key2, ont, f, c));
         Assertions.assertFalse(tr.findONTObject(key2, ont, f, c).isPresent());
 
-        ont.remove(ModelFactory.createModelForGraph(ax.get().toGraph()));
+        Model toDelete = ModelFactory.createModelForGraph(ax.get().toGraph());
+        ont.remove(toDelete);
 
         Assertions.assertFalse(tr.containsONTObject(key, ont, f, c));
         Assertions.assertFalse(tr.findONTObject(key, ont, f, c).isPresent());
