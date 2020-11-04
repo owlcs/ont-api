@@ -24,6 +24,7 @@ import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.owlapi.axioms.OWLEquivalentClassesAxiomImpl;
+import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Property;
 import org.semanticweb.owlapi.model.*;
@@ -37,12 +38,14 @@ import java.util.stream.Stream;
 
 /**
  * A translator that provides {@link OWLEquivalentClassesAxiom} implementations.
- * Base class {@link AbstractNaryTranslator}.
- * Example of ttl:
+ * <p>
+ * Example:
  * <pre>{@code
- *  pizza:SpicyTopping owl:equivalentClass [ a owl:Class; owl:intersectionOf ( pizza:PizzaTopping [a owl:Restriction; owl:onProperty pizza:hasSpiciness; owl:someValuesFrom pizza:Hot] )] ;
- * }
- * </pre>
+ * :Spiciness  a                owl:Class ;
+ *         owl:equivalentClass  [ a            owl:Class ;
+ *                                owl:unionOf  ( :Hot :Medium :Mild )
+ *                              ] .
+ * }</pre>
  * <p>
  * Created by @szuev on 29.09.2016.
  */
@@ -75,6 +78,20 @@ public class EquivalentClassesTranslator extends AbstractNaryTranslator<OWLEquiv
         OWLEquivalentClassesAxiom res = factory.getOWLDataFactory()
                 .getOWLEquivalentClassesAxiom(a.getOWLObject(), b.getOWLObject(), TranslateHelper.toSet(annotations));
         return ONTWrapperImpl.create(res, statement).append(annotations).append(a).append(b);
+    }
+
+    @Override
+    Triple getONTSearchTriple(OWLEquivalentClassesAxiom axiom) {
+        Triple res = super.getONTSearchTriple(axiom);
+        return res != null && TranslateHelper.isGoodSearchTriple(res) ? res : null;
+    }
+
+    @Override
+    Triple createSearchTriple(OWLObject subject, OWLObject object) {
+        Node left = TranslateHelper.getSearchNodeOrANY(subject);
+        Node right = TranslateHelper.getSearchNodeOrANY(object);
+        Triple res = Triple.create(left, getPredicate().asNode(), right);
+        return TranslateHelper.isGoodSearchTriple(res) ? res : null;
     }
 
     /**

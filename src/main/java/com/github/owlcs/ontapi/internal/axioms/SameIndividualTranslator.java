@@ -38,6 +38,7 @@ import java.util.stream.Stream;
 
 /**
  * A translator that provides {@link OWLSameIndividualAxiom} implementations.
+ * <p>
  * Example:
  * <pre>{@code
  * :indi1 owl:sameAs :indi2, :indi3 .
@@ -64,11 +65,8 @@ public class SameIndividualTranslator
 
     @Override
     Triple getONTSearchTriple(OWLSameIndividualAxiom axiom) {
-        if (axiom instanceof WithTriple) { // both named and anonymous individuals
-            Triple t = ((WithTriple) axiom).asTriple();
-            return PREDICATE.asNode().equals(t.getPredicate()) ? t : null;
-        }
-        return null;
+        // both named and anonymous individuals
+        return axiom instanceof WithTriple ? ((WithTriple) axiom).asTriple() : null;
     }
 
     @Override

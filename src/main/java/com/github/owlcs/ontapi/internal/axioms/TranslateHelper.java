@@ -16,7 +16,9 @@ package com.github.owlcs.ontapi.internal.axioms;
 
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.WriteHelper;
+import com.github.owlcs.ontapi.jena.utils.Graphs;
 import org.apache.jena.graph.Node;
+import org.apache.jena.graph.Triple;
 import org.semanticweb.owlapi.model.*;
 
 import java.util.Collection;
@@ -58,7 +60,7 @@ public class TranslateHelper {
      * Expressions and external anonymous individuals are ignored.
      * This is to perform optimization searching in a graph.
      *
-     * @param obj {@link OWLObject}
+     * @param obj {@link OWLObject}, not {@code null}
      * @return {@code Node} or {@code null}
      */
     public static Node getSearchNode(OWLObject obj) {
@@ -75,5 +77,40 @@ public class TranslateHelper {
             return WriteHelper.toNode((OWLLiteral) obj);
         }
         return null;
+    }
+
+    /**
+     * Creates a {@code Node} to be used while searching.
+     *
+     * @param obj {@link OWLObject}, not {@code null}
+     * @return {@code Node} or {@link Node#ANY ANY}
+     */
+    static Node getSearchNodeOrANY(OWLObject obj) {
+        Node res = getSearchNode(obj);
+        return res == null ? Node.ANY : res;
+    }
+
+    /**
+     * Answers a triple that can be used while searching (as a pattern or a concrete triple).
+     *
+     * @param t {@link Triple}, not {@code null}
+     * @return {@link Triple} either named or with {@link Node#ANY ANY} subject or object
+     */
+    static Triple toSearchTriple(Triple t) {
+        return Graphs.isNamedTriple(t) ? t : Triple.create(uriOrANY(t.getSubject()), t.getPredicate(), uriOrANY(t.getObject()));
+    }
+
+    /**
+     * Answers {@code true} if the given {@code triple} is good to be used in searching.
+     *
+     * @param t {@link Triple}, not {@code null}
+     * @return {@code boolean}
+     */
+    static boolean isGoodSearchTriple(Triple t) {
+        return t.getSubject() != Node.ANY || t.getObject() != Node.ANY;
+    }
+
+    private static Node uriOrANY(Node n) {
+        return n.isURI() ? n : Node.ANY;
     }
 }

@@ -110,7 +110,7 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
     }
 
     @Override
-    protected Collection<Triple> getSearchTriples(Axiom axiom) {
+    protected final Collection<Triple> getSearchTriples(Axiom axiom) {
         Triple res = getSearchTriple(axiom);
         return res == null ? Collections.emptyList() : Arrays.asList(res, Graphs.invertTriple(res));
     }
@@ -122,17 +122,21 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
         }
         List<? extends OWLObject> list = axiom.getOperandsAsList();
         if (list.size() != 2) {
-            return null; // for Disjoint Objects (anonymous)
+            return null; // can't be mapped to search triple
         }
-        Node left = TranslateHelper.getSearchNode(list.get(0));
-        if (left == null) return null;
-        Node right = TranslateHelper.getSearchNode(list.get(1));
-        if (right == null) return null;
-        return Triple.create(left, getPredicate().asNode(), right);
+        return createSearchTriple(list.get(0), list.get(1));
     }
 
     Triple getONTSearchTriple(Axiom axiom) {
         return axiom instanceof WithManyObjects.Simple ? ((WithManyObjects.Simple<?>) axiom).asTriple() : null;
+    }
+
+    Triple createSearchTriple(OWLObject subject, OWLObject object) {
+        Node left = TranslateHelper.getSearchNode(subject);
+        if (left == null) return null;
+        Node right = TranslateHelper.getSearchNode(object);
+        if (right == null) return null;
+        return Triple.create(left, getPredicate().asNode(), right);
     }
 
     /**

@@ -73,6 +73,14 @@ public class AxiomTranslatorTest {
                     OWLNamedIndividual i2 = f.getOWLNamedIndividual(d.getNS() + "TwoStarRating");
                     return f.getOWLDifferentIndividualsAxiom(i1, i2);
                 })
+                , of(OWLEquivalentClassesAxiom.class, ModelData.PIZZA, (f, d) -> {
+                    OWLClass sub = f.getOWLClass(d.getNS() + "RealItalianPizza");
+                    OWLClass c = f.getOWLClass(d.getNS() + "Pizza");
+                    OWLObjectProperty p = f.getOWLObjectProperty(d.getNS() + "hasCountryOfOrigin");
+                    OWLNamedIndividual i = f.getOWLNamedIndividual(d.getNS() + "Italy");
+                    OWLClassExpression sup = f.getOWLObjectIntersectionOf(c, f.getOWLObjectHasValue(p, i));
+                    return f.getOWLEquivalentClassesAxiom(sub, sup);
+                })
                 , of(OWLObjectPropertyRangeAxiom.class, ModelData.PIZZA, (f, d) -> {
                     OWLObjectProperty property = f.getOWLObjectProperty(d.getNS() + "hasIngredient");
                     OWLClass clazz = f.getOWLClass(d.getNS() + "Food");

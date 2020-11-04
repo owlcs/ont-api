@@ -98,32 +98,16 @@ public class SubClassOfTranslator extends AxiomTranslator<OWLSubClassOfAxiom> {
     @Override
     protected final Collection<Triple> getSearchTriples(OWLSubClassOfAxiom axiom) {
         Triple res = getSearchTriple(axiom);
-        return res == null ? Collections.emptySet() : Collections.singleton(res);
+        return TranslateHelper.isGoodSearchTriple(res) ? Collections.singleton(res) : Collections.emptySet();
     }
 
     private Triple getSearchTriple(OWLSubClassOfAxiom axiom) {
         if (axiom instanceof WithTriple) {
-            Triple t = ((WithTriple) axiom).asTriple();
-            return createSearchTriple(t.getSubject().isURI() ? t.getSubject() : Node.ANY,
-                    t.getObject().isURI() ? t.getObject() : Node.ANY);
+            return TranslateHelper.toSearchTriple(((WithTriple) axiom).asTriple());
         }
-        return createSearchTriple(axiom);
-    }
-
-    protected Triple createSearchTriple(OWLSubClassOfAxiom axiom) {
-        Node subject = TranslateHelper.getSearchNode(axiom.getSubClass());
-        if (subject == null) {
-            subject = Node.ANY;
-        }
-        Node object = TranslateHelper.getSearchNode(axiom.getSuperClass());
-        if (object == null) {
-            object = Node.ANY;
-        }
-        return createSearchTriple(subject, object);
-    }
-
-    private Triple createSearchTriple(Node subject, Node object) {
-        return subject == Node.ANY && object == Node.ANY ? null : Triple.create(subject, RDFS.subClassOf.asNode(), object);
+        Node subject = TranslateHelper.getSearchNodeOrANY(axiom.getSubClass());
+        Node object = TranslateHelper.getSearchNodeOrANY(axiom.getSuperClass());
+        return Triple.create(subject, RDFS.subClassOf.asNode(), object);
     }
 
     /**
