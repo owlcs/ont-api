@@ -15,6 +15,7 @@
 package com.github.owlcs.ontapi.tests.model;
 
 import org.semanticweb.owlapi.model.OWLObject;
+import org.semanticweb.owlapi.util.SimpleRenderer;
 
 import java.util.Objects;
 
@@ -36,7 +37,7 @@ abstract class SearchTester {
     }
 
     static String toString(OWLObject obj) {
-        return obj.toString().replaceAll("\\s_:[a-z\\d\\-]+", " _:x");
+        return new SimpleRenderer().render(obj).replaceAll("\\s_:[a-z\\d\\-]+", " _:x");
     }
 
 }

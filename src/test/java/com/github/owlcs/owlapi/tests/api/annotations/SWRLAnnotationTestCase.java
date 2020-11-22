@@ -22,6 +22,7 @@ import org.semanticweb.owlapi.formats.RDFXMLDocumentFormat;
 import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.io.StringDocumentTarget;
 import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.util.SimpleRenderer;
 
 import java.util.Objects;
 import java.util.Set;
@@ -31,14 +32,25 @@ public class SWRLAnnotationTestCase extends TestBase {
 
     private static final String NS = "http://protege.org/ontologies/SWRLAnnotation.owl";
     private static final String HEAD = "<?xml version=\"1.0\"?>\n"
-            + "<rdf:RDF xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\" xmlns:protege=\"http://protege.stanford.edu/plugins/owl/protege#\" xmlns=\"urn:test#\" xmlns:xsp=\"http://www.owl-ontologies.com/2005/08/07/xsp.owl#\"\n"
-            + "    xmlns:owl=\"http://www.w3.org/2002/07/owl#\" xmlns:sqwrl=\"http://sqwrl.stanford.edu/ontologies/built-ins/3.4/sqwrl.owl#\" xmlns:xsd=\"http://www.w3.org/2001/XMLSchema#\" xmlns:swrl=\"http://www.w3.org/2003/11/swrl#\"\n"
-            + "    xmlns:swrlb=\"http://www.w3.org/2003/11/swrlb#\" xmlns:rdfs=\"http://www.w3.org/2000/01/rdf-schema#\" xmlns:swrla=\"http://swrl.stanford.edu/ontologies/3.3/swrla.owl#\" xml:base=\"urn:test\">\n"
+            + "<rdf:RDF"
+            + " xmlns:rdf=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#\""
+            + " xmlns:protege=\"http://protege.stanford.edu/plugins/owl/protege#\""
+            + " xmlns=\"urn:test#\""
+            + " xmlns:xsp=\"http://www.owl-ontologies.com/2005/08/07/xsp.owl#\"\n"
+            + " xmlns:owl=\"http://www.w3.org/2002/07/owl#\""
+            + " xmlns:sqwrl=\"http://sqwrl.stanford.edu/ontologies/built-ins/3.4/sqwrl.owl#\""
+            + " xmlns:xsd=\"http://www.w3.org/2001/XMLSchema#\""
+            + " xmlns:swrl=\"http://www.w3.org/2003/11/swrl#\"\n"
+            + " xmlns:swrlb=\"http://www.w3.org/2003/11/swrlb#\""
+            + " xmlns:rdfs=\"http://www.w3.org/2000/01/rdf-schema#\""
+            + " xmlns:swrla=\"http://swrl.stanford.edu/ontologies/3.3/swrla.owl#\""
+            + " xml:base=\"urn:test\">\n"
             + "  <owl:Ontology rdf:about=\"\"></owl:Ontology>\n"
             + "  <owl:AnnotationProperty rdf:about=\"http://swrl.stanford.edu/ontologies/3.3/swrla.owl#isRuleEnabled\"/>\n"
             + "  <owl:ObjectProperty rdf:ID=\"hasDriver\"><owl:inverseOf><owl:ObjectProperty rdf:ID=\"drives\"/></owl:inverseOf></owl:ObjectProperty>\n"
             + "  <owl:ObjectProperty rdf:about=\"#drives\"><owl:inverseOf rdf:resource=\"#hasDriver\"/></owl:ObjectProperty>\n"
             + "  <swrl:Imp";
+
     private static final String TAIL = "><swrl:body><swrl:AtomList/></swrl:body>\n"
             + "    <swrl:head><swrl:AtomList><rdf:rest rdf:resource=\"http://www.w3.org/1999/02/22-rdf-syntax-ns#nil\"/>\n"
             + "        <rdf:first><swrl:IndividualPropertyAtom>\n"
@@ -49,6 +61,7 @@ public class SWRLAnnotationTestCase extends TestBase {
             + "    <swrla:isRuleEnabled rdf:datatype=\"http://www.w3.org/2001/XMLSchema#boolean\">true</swrla:isRuleEnabled>\n"
             + "    <rdfs:comment rdf:datatype=\"http://www.w3.org/2001/XMLSchema#string\">:i62, :i61</rdfs:comment></swrl:Imp>\n"
             + "</rdf:RDF>";
+
     protected OWLClass a = OWLFunctionalSyntaxFactory.Class(OWLFunctionalSyntaxFactory.IRI(NS + "#", "A"));
     protected OWLClass b = OWLFunctionalSyntaxFactory.Class(OWLFunctionalSyntaxFactory.IRI(NS + "#", "B"));
     protected OWLAxiom axiom;
@@ -92,8 +105,7 @@ public class SWRLAnnotationTestCase extends TestBase {
         OWLOntology ontology = manager.loadOntologyFromOntologyDocument(new StringDocumentSource(input,
                 "test2test", new RDFXMLDocumentFormat(), null));
         debug(ontology);
-        Assertions.assertTrue(ontology.axioms(AxiomType.SWRL_RULE)
-                .anyMatch(ax -> ax.toString().contains(makeSWRLRuleAnnotatedAxiomString(ontology))));
+        test(ontology);
     }
 
     @Test
@@ -102,14 +114,19 @@ public class SWRLAnnotationTestCase extends TestBase {
         OWLOntology ontology = setupManager().loadOntologyFromOntologyDocument(new StringDocumentSource(input,
                 "test", new RDFXMLDocumentFormat(), null));
         debug(ontology);
-        Assertions.assertTrue(ontology.axioms(AxiomType.SWRL_RULE)
-                .anyMatch(ax -> ax.toString().contains(makeSWRLRuleAnnotatedAxiomString(ontology))));
+        test(ontology);
     }
 
     private void debug(OWLOntology ontology) {
         LOGGER.debug("Model: ");
         com.github.owlcs.ontapi.utils.ReadWriteUtils.print(ontology);
         ontology.axioms().forEach(x -> LOGGER.debug(x.toString()));
+    }
+
+    private void test(OWLOntology ontology) {
+        String actual = ontology.axioms(AxiomType.SWRL_RULE).map(x -> new SimpleRenderer().render(x))
+                .findFirst().orElseThrow(AssertionError::new);
+        Assertions.assertEquals(makeSWRLRuleAnnotatedAxiomString(ontology), actual);
     }
 
     private String makeSWRLRuleAnnotatedAxiomString(OWLOntology ontology) {

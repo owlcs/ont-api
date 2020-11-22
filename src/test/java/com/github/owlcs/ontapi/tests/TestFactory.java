@@ -14,10 +14,12 @@
 
 package com.github.owlcs.ontapi.tests;
 
+import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.owlapi.OWLObjectImpl;
 import com.github.owlcs.ontapi.owlapi.objects.entity.OWLBuiltinDatatypeImpl;
 import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.util.SimpleRenderer;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;
 import org.semanticweb.owlapi.vocab.OWLFacet;
 
@@ -2912,11 +2914,12 @@ public final class TestFactory {
         }
 
         default void assertCheckToString(OWLObject expected, OWLObject actual) {
-            Assertions.assertEquals(expected.toString(), actual.toString(), "'" + expected + "': wrong toString");
+            String res = actual instanceof ONTObject ? new SimpleRenderer().render(actual) : actual.toString();
+            Assertions.assertEquals(expected.toString(), res, "Expected '" + expected + "': wrong toString");
         }
 
         default void assertCheckHashCode(OWLObject expected, OWLObject actual) {
-            Assertions.assertEquals(expected.hashCode(), actual.hashCode(), "'" + expected + "': wrong hashcode");
+            Assertions.assertEquals(expected.hashCode(), actual.hashCode(), "Expected '" + expected + "': wrong hashcode");
         }
 
         default void assertCheckProperties(OWLObject expected, OWLObject actual) {
