@@ -188,7 +188,6 @@ public class WriteHelper {
         throw new OntApiException.IllegalArgument("Unsupported " + facet);
     }
 
-
     /**
      * Extracts {@link IRI} from {@link OWLObject}.
      *

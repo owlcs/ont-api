@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2020, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -523,14 +523,6 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
         return DEFAULT_COMPARATOR.compare(this, Objects.requireNonNull(o));
     }
 
-    /**
-     * Returns string representation of this object.
-     * This method does not use {@link org.semanticweb.owlapi.io.ToStringRenderer} for two reasons:
-     * - to remove explicit usage of {@code javax.inject},
-     * - {@code toString} is not the kind of method that should change its behavior in runtime.
-     *
-     * @return String, not {@code null}
-     */
     @Override
     public String toString() {
         return new SimpleRenderer().render(this);
