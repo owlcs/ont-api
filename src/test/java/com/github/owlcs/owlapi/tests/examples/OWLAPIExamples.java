@@ -79,6 +79,8 @@ public class OWLAPIExamples extends TestBase {
             + "  <owl:FunctionalProperty rdf:ID=\"isHardWorking\"><rdfs:range rdf:resource=\"http://www.w3.org/2001/XMLSchema#boolean\"/><rdfs:domain rdf:resource=\"#Person\"/><rdf:type rdf:resource=\"http://www.w3.org/2002/07/owl#DatatypeProperty\"/></owl:FunctionalProperty>\n"
             + "  <Degree rdf:ID=\"MA\"/>\n</rdf:RDF>";
 
+    private static final String FILE_DIR_URI = TempDirectory.DIR.toUri().toString();
+
     /**
      * The examples here show how to load ontologies.
      *
@@ -402,7 +404,7 @@ public class OWLAPIExamples extends TestBase {
         // save the ontology).
         IRI ontologyIRI = IRI.create("http://www.co-ode.org/ontologies/", "testont.owl");
         // Create the document IRI for our ontology
-        IRI documentIRI = IRI.create("file:/tmp/", "MyOnt.owl");
+        IRI documentIRI = IRI.create(FILE_DIR_URI, "MyOnt.owl");
         // Set up a mapping, which maps the ontology to the document IRI
         SimpleIRIMapper mapper = new SimpleIRIMapper(ontologyIRI, documentIRI);
         manager.getIRIMappers().add(mapper);
@@ -606,7 +608,7 @@ public class OWLAPIExamples extends TestBase {
         IRI ontologyIRI = IRI.create("http://www.co-ode.org/ontologies/", "testont.owl");
         // Create a document IRI which can be resolved to point to where our
         // ontology will be saved.
-        IRI documentIRI = IRI.create("file:/tmp/", "SWRLTest.owl");
+        IRI documentIRI = IRI.create(FILE_DIR_URI, "SWRLTest.owl");
         // Set up a mapping, which maps the ontology to the document IRI
         SimpleIRIMapper mapper = new SimpleIRIMapper(ontologyIRI, documentIRI);
         manager.getIRIMappers().add(mapper);
@@ -678,7 +680,7 @@ public class OWLAPIExamples extends TestBase {
         // automatically and the change applied
         man.addAxiom(ont, ax);
         // Save our ontology
-        man.saveOntology(ont, IRI.create("file:/tmp/", "example.owl"));
+        man.saveOntology(ont, IRI.create(FILE_DIR_URI, "example.owl"));
     }
 
     /**
