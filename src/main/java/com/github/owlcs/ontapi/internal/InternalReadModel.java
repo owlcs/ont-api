@@ -765,6 +765,11 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
         return getHeaderCache().contains(a);
     }
 
+    public boolean containsIgnoreAnnotations(OWLAxiom a) {
+        ObjectMap<OWLAxiom> map = getAxiomsCache(OWLTopObjectType.get(a.getAxiomType()));
+        return map.contains(a) || map.keys().anyMatch(a::equalsIgnoreAnnotations);
+    }
+
     /**
      * Finds the container object which contains the given component object somewhere in its depths.
      *

@@ -829,7 +829,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, BaseModel {
 
     @Override
     public boolean containsAxiomIgnoreAnnotations(OWLAxiom axiom) {
-        return containsAxiom(axiom) || axioms(axiom.getAxiomType()).anyMatch(ax -> ax.equalsIgnoreAnnotations(axiom));
+        return base.containsIgnoreAnnotations(axiom);
     }
 
     @Override

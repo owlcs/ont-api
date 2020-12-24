@@ -264,20 +264,31 @@ public interface InternalModel extends OntModel, PersonalityModel, HasOntologyID
      * Answers {@code true} if the given axiom is present within this buffer-model.
      * It is equivalent to the expression {@code this.listOWLAxioms().anyMatch(a::equals)}.
      *
-     * @param a {@link OWLAxiom}, not {@code null}
+     * @param axiom {@link OWLAxiom}, not {@code null}
      * @return {@code true} if the axiom is present within the model
+     * @see #containsIgnoreAnnotations(OWLAxiom)
      * @see #contains(OWLAnnotation)
      */
-    boolean contains(OWLAxiom a);
+    boolean contains(OWLAxiom axiom);
 
     /**
      * Answers {@code true} if the given annotation is present in ontology header.
      *
-     * @param a {@link OWLAnnotation}, not {@code null}
+     * @param annotation {@link OWLAnnotation}, not {@code null}
      * @return {@code true} if the annotation is present within the model
      * @see #contains(OWLAxiom)
      */
-    boolean contains(OWLAnnotation a);
+    boolean contains(OWLAnnotation annotation);
+
+    /**
+     * Answers {@code true} if the given axiom is present within the model.
+     * While comparing axiom annotations (if present) are ignored.
+     *
+     * @param axiom {@link OWLAxiom}, not {@code null}
+     * @return {@code true} if base axiom (its main part) is present
+     * @see #contains(OWLAxiom)
+     */
+    boolean containsIgnoreAnnotations(OWLAxiom axiom);
 
     /**
      * Answers {@code true} if the ontology is ontologically empty (no header, no axioms).
