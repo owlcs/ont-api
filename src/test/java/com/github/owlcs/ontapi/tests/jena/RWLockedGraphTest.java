@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -15,7 +15,7 @@
 package com.github.owlcs.ontapi.tests.jena;
 
 import com.github.owlcs.ontapi.NoOpReadWriteLock;
-import com.github.owlcs.ontapi.internal.AxiomParserProvider;
+import com.github.owlcs.ontapi.internal.AxiomTranslator;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.jena.OntModelFactory;
 import com.github.owlcs.ontapi.jena.RWLockedGraph;
@@ -128,7 +128,7 @@ public class RWLockedGraphTest {
     @SuppressWarnings("SameParameterValue")
     private static Stream<OWLAxiom> listAxioms(Collection<AxiomType<? extends OWLAxiom>> types, OntModel m) {
         return types.stream()
-                .map(AxiomParserProvider::get)
+                .map(AxiomTranslator::get)
                 .flatMap(x -> x.axioms(m)).map(ONTObject::getOWLObject);
     }
 

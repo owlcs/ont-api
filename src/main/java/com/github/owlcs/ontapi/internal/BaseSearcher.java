@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -128,7 +128,7 @@ public abstract class BaseSearcher {
     }
 
     private static Set<AxiomTranslator<OWLAxiom>> selectTranslators(Stream<OWLTopObjectType> types) {
-        return types.map(OWLTopObjectType::getAxiomType).map(AxiomParserProvider::get).collect(Iter.toUnmodifiableSet());
+        return types.map(OWLTopObjectType::getAxiomType).map(AxiomTranslator::get).collect(Iter.toUnmodifiableSet());
     }
 
     @SuppressWarnings("unchecked")

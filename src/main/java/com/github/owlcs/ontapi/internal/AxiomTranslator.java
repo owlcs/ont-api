@@ -38,7 +38,7 @@ import java.util.stream.Stream;
  * <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Mapping_from_the_Structural_Specification_to_RDF_Graphs'>2.1 Translation of Axioms without Annotations</a>,
  * <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Axioms_that_are_Translated_to_Multiple_Triples'>2.3.2 Axioms that are Translated to Multiple Triples</a>.
  * And one more (and most useful) link: <a href='https://www.w3.org/TR/owl2-quick-reference/'>Quick Reference Guide</a>.
- * To get a particular instance of this class the method {@link AxiomParserProvider#get(AxiomType)} can be used.
+ * To get a particular instance of this class the method {@link AxiomTranslator#get(AxiomType)} can be used.
  * <p>
  * Created by @szuev on 28.09.2016.
  *
@@ -46,6 +46,17 @@ import java.util.stream.Stream;
  */
 @SuppressWarnings("WeakerAccess")
 public abstract class AxiomTranslator<Axiom extends OWLAxiom> extends BaseSearcher implements ObjectsSearcher<Axiom> {
+
+    /**
+     * Answers the {@link AxiomTranslator Axiom Translator} for the specified {@link AxiomType Axiom Type}.
+     *
+     * @param type {@link AxiomType}, not {@code null}
+     * @param <A>  the concrete subclass of {@link OWLAxiom}
+     * @return {@link AxiomTranslator} of the type of {@link A}
+     */
+    public static <A extends OWLAxiom> AxiomTranslator<A> get(AxiomType<A> type) {
+        return AxiomParserProvider.getTranslator(type);
+    }
 
     /**
      * If possible, gets the {@code model}'s {@link InternalConfig Config},

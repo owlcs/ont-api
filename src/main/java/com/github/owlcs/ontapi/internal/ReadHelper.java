@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -70,7 +70,7 @@ public class ReadHelper {
                                                       AxiomType<? extends OWLObjectPropertyAxiom> o,
                                                       AxiomType<? extends OWLDataPropertyAxiom> d) {
         return !conf.isIgnoreAnnotationAxiomOverlaps() ||
-                Iter.noneMatch(Iter.of(o, d).mapWith(AxiomParserProvider::get), a -> a.testStatement(statement, conf));
+                Iter.noneMatch(Iter.of(o, d).mapWith(AxiomTranslator::get), a -> a.testStatement(statement, conf));
     }
 
     /**

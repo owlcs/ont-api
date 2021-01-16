@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -61,7 +61,7 @@ import java.util.Set;
  * (that is, the set of axioms of any type, but with the exclusion of their components, exceeds the memory limit),
  * then this solution won't work.
  * To work with such large ontologies, it is recommended to use {@link AxiomTranslator Axiom Translator}s directly
- * (see {@link AxiomParserProvider#get(AxiomType)}).
+ * (see {@link AxiomTranslator#get(AxiomType)}).
  * <p>
  * TODO: Should it return {@link ONTObject}s, not just naked {@link OWLObject}s (see #87, #72)?
  * It seems it would be more convenient and could make this class useful not only as part of inner implementation.

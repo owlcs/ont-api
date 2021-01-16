@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -19,7 +19,7 @@ import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
-import com.github.owlcs.ontapi.internal.AxiomParserProvider;
+import com.github.owlcs.ontapi.internal.AxiomTranslator;
 import com.github.owlcs.ontapi.internal.WriteHelper;
 import com.github.owlcs.ontapi.jena.model.OntClass;
 import com.github.owlcs.ontapi.jena.model.OntModel;
@@ -237,7 +237,7 @@ public class AnnotationsOntModelTest extends OntModelTestBase {
         Assertions.assertTrue(owl2.containsAxiom(individualAxiom));
 
         Assertions.assertEquals(allowBulkAnnotationAssertions ? 4 : 2,
-                AxiomParserProvider.get(AxiomType.ANNOTATION_ASSERTION).statements(owl2.asGraphModel())
+                AxiomTranslator.get(AxiomType.ANNOTATION_ASSERTION).statements(owl2.asGraphModel())
                         .peek(x -> LOGGER.debug("TEST:::: {}", x)).count());
 
         if (allowBulkAnnotationAssertions) {

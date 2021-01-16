@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -17,7 +17,7 @@ package com.github.owlcs.ontapi.tests.internal;
 import com.github.owlcs.ontapi.BaseModel;
 import com.github.owlcs.ontapi.OntFormat;
 import com.github.owlcs.ontapi.OntManagers;
-import com.github.owlcs.ontapi.internal.AxiomParserProvider;
+import com.github.owlcs.ontapi.internal.AxiomTranslator;
 import com.github.owlcs.ontapi.internal.InternalModel;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.jena.OntModelFactory;
@@ -63,7 +63,7 @@ public class InternalModelTest {
     public void testSimpleAxiomTranslator() {
         OntModel model = OntModelFactory.createModel(loadResourceTTLFile("ontapi/pizza.ttl").getGraph());
         Assertions.assertEquals(945, model.statements()
-                .flatMap(s -> AxiomType.AXIOM_TYPES.stream().map(AxiomParserProvider::get)
+                .flatMap(s -> AxiomType.AXIOM_TYPES.stream().map(AxiomTranslator::get)
                         .filter(x -> x.testStatement(s))
                         .map(x -> x.toAxiom(s))).peek(x -> LOGGER.debug("{}", x)).count());
     }
@@ -79,7 +79,7 @@ public class InternalModelTest {
         types.forEach(view -> check(model, view));
 
         Map<OWLAxiom, Set<Triple>> axioms = types.stream()
-                .flatMap(view -> AxiomParserProvider.get(view).axioms(model))
+                .flatMap(view -> AxiomTranslator.get(AxiomType.getTypeForClass(view)).axioms(model))
                 .collect(Collectors.toMap(ONTObject::getOWLObject, i -> i.triples().collect(Collectors.toSet())));
 
         LOGGER.debug("Recreate model");
@@ -197,7 +197,7 @@ public class InternalModelTest {
     private static <Axiom extends OWLAxiom> void check(OntModel model, Class<Axiom> view) {
         LOGGER.debug("=========================");
         LOGGER.debug("{}:", view.getSimpleName());
-        AxiomParserProvider.get(view).axioms(model).forEach(e -> {
+        AxiomTranslator.get(AxiomType.getTypeForClass(view)).axioms(model).forEach(e -> {
             Axiom axiom = e.getOWLObject();
             Set<Triple> triples = e.triples().collect(Collectors.toSet());
             Assertions.assertNotNull(axiom, "Null axiom");
