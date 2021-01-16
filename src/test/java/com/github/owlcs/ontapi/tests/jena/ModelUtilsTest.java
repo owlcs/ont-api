@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -15,17 +15,16 @@
 package com.github.owlcs.ontapi.tests.jena;
 
 import com.github.owlcs.ontapi.jena.OntModelFactory;
-import com.github.owlcs.ontapi.jena.model.OntClass;
-import com.github.owlcs.ontapi.jena.model.OntID;
-import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntObject;
+import com.github.owlcs.ontapi.jena.model.*;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.utils.Models;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
+import org.apache.jena.graph.Node;
+import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.*;
-import org.apache.jena.vocabulary.RDF;
 import org.apache.jena.vocabulary.RDFS;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -168,5 +167,23 @@ public class ModelUtilsTest {
         Collections.shuffle(tmp = m.listStatements().toList());
         List<Statement> second = tmp.stream().sorted(comp).collect(Collectors.toList());
         Assertions.assertEquals(first, second);
+    }
+
+    @Test
+    public void testTripleToStatement() {
+        OntModel m = OntModelFactory.createModel();
+        m.createDisjointClasses(m.createOntClass("X1").addComment("A1"))
+                .addComment("A2")
+                .addComment("A3");
+
+        Triple t1 = Iter.findFirst(m.getBaseGraph().find(Node.ANY, RDF.type.asNode(), OWL.AllDisjointClasses.asNode()))
+                .orElseThrow(AssertionError::new);
+        OntStatement s1 = OntModels.toOntStatement(t1, m);
+        Assertions.assertEquals(2, s1.annotations().count());
+
+        Triple t2 = Iter.findFirst(m.getBaseGraph().find(Node.ANY, RDF.type.asNode(), OWL.Class.asNode()))
+                .orElseThrow(AssertionError::new);
+        OntStatement s2 = OntModels.toOntStatement(t2, m);
+        Assertions.assertEquals(1, s2.annotations().count());
     }
 }

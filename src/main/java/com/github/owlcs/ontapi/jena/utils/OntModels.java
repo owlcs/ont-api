@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -20,6 +20,7 @@ import com.github.owlcs.ontapi.jena.impl.*;
 import com.github.owlcs.ontapi.jena.model.*;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import org.apache.jena.graph.Graph;
+import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
@@ -362,5 +363,32 @@ public class OntModels {
      */
     public static ExtendedIterator<OntStatement> listAllAnnotations(OntStatement statement) {
         return Iter.flatMap(listAnnotations(statement), s -> Iter.concat(Iter.of(s), listAllAnnotations(s)));
+    }
+
+    /**
+     * Answers an {@link OntStatement Ontology Statement} in the specified {@code model}
+     * that wraps the given {@code triple}.
+     * This method differs from the method {@link OntModel#asStatement(Triple)}
+     * in that it provides {@link OntObject#getMainStatement() main statement} if it is possible.
+     *
+     * @param triple {@link Triple SPO}, not {@code null}
+     * @param model  {@link OntModel}, not {@code null}
+     * @return {@link OntStatement}
+     * @see OntModel#asStatement(Triple)
+     * @see OntObject#getMainStatement()
+     */
+    public static OntStatement toOntStatement(Triple triple, OntModel model) {
+        OntStatement res = model.asStatement(triple);
+        Resource subj = res.getSubject();
+        return Stream.of(OntEntity.class
+                , OntClass.class
+                , OntDataRange.class
+                , OntDisjoint.class
+                , OntObjectProperty.class
+                , OntNegativeAssertion.class
+                , OntSWRL.class)
+                .filter(subj::canAs).map(subj::as)
+                .map(OntObject::getMainStatement).filter(res::equals)
+                .findFirst().orElse(res);
     }
 }
