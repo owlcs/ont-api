@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -123,7 +123,23 @@ public abstract class AxiomTranslator<Axiom extends OWLAxiom> extends BaseSearch
      */
     public final ONTObject<Axiom> toAxiom(OntStatement statement) throws JenaException {
         OntModel m = statement.getModel();
-        return toAxiom(this, statement, getObjectFactory(m), getConfig(m));
+        return toAxiom(statement, getObjectFactory(m), getConfig(m));
+    }
+
+    /**
+     * Performs translation {@code OntStatement -> OWLAxiom}
+     * using the specified settings ({@code factory} and {@code config}).
+     *
+     * @param statement {@link OntStatement}
+     * @param factory   {@link ONTObjectFactory} to produce OWL-API Objects, not {@code null}
+     * @param config    {@link AxiomsSettings} to control process, not {@code null}
+     * @return {@link ONTObject} around {@link OWLAxiom}
+     * @throws JenaException if no possible to translate statement to axiom
+     */
+    public final ONTObject<Axiom> toAxiom(OntStatement statement,
+                                          ONTObjectFactory factory,
+                                          AxiomsSettings config) throws JenaException {
+        return toAxiom(this, statement, factory, config);
     }
 
     /**
