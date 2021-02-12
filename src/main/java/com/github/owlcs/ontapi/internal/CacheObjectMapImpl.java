@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -46,21 +46,21 @@ public class CacheObjectMapImpl<X extends OWLObject> implements ObjectMap<X> {
     private final Supplier<Iterator<ONTObject<X>>> loader;
     // soft reference:
     private final InternalCache.Loading<CacheObjectMapImpl<X>, CachedMap<X, ONTObject<X>>> map;
-
-    // a state flag that responds whether some axioms have been manually added to this map
-    // the dangerous of manual added axioms is that the same information can be represented in different ways.
-    private volatile boolean hasNew;
-
     // to control cache loading:
     // if true, then checking for duplicates and merging is performed,
     // otherwise possible duplicates will be overwritten
     private final boolean withMerge;
-
     // to use either Caffeine (if true) or LHM based cache,
     // both are synchronized, but Caffeine works faster in multi-thread, and LHM in single-thread environment.
     private final boolean parallel;
     // to control key-iteration
     private final boolean fastIterator;
+    // a state flag that responds whether some axioms have been manually added to this map
+    // the dangerous of manual added axioms is that the same information can be represented in different ways.
+    private boolean hasNew;
+    // a state flag that responds whether the cache contains annotated axioms.
+    // can be null, true or false
+    private Boolean hasAnnotatedAxioms;
 
     @SuppressWarnings("unused")
     public CacheObjectMapImpl(Supplier<Iterator<ONTObject<X>>> loader, boolean parallel) {
@@ -94,19 +94,52 @@ public class CacheObjectMapImpl<X extends OWLObject> implements ObjectMap<X> {
      */
     protected CachedMap<X, ONTObject<X>> loadMap() {
         this.hasNew = false;
+        this.hasAnnotatedAxioms = null;
         Iterator<ONTObject<X>> it = loader.get();
         Map<X, ONTObject<X>> res = createMap();
         if (withMerge) {
             while (it.hasNext()) {
-                WithMerge.add(res, it.next());
+                ONTObject<X> v = it.next();
+                setHasAxiomAnnotations(v);
+                WithMerge.add(res, v);
             }
+            setHasAxiomAnnotations();
             return CachedMap.create(res, WithMerge.getMerger(), parallel);
         }
         while (it.hasNext()) {
             ONTObject<X> v = it.next();
+            setHasAxiomAnnotations(v);
             res.put(v.getOWLObject(), v);
         }
+        setHasAxiomAnnotations();
         return CachedMap.create(res, null, parallel);
+    }
+
+    private void setHasAxiomAnnotations(ONTObject<X> v) {
+        if (hasAnnotatedAxioms != null) return;
+        X obj = v.getOWLObject();
+        if (!obj.isAxiom()) {
+            return;
+        }
+        if (((OWLAxiom) obj).isAnnotated()) {
+            hasAnnotatedAxioms = true;
+        }
+    }
+
+    private void setHasAxiomAnnotations() {
+        if (hasAnnotatedAxioms == null) {
+            hasAnnotatedAxioms = false;
+        }
+    }
+
+    /**
+     * Answers {@code true}
+     * iff this {@link ObjectMap ObjectMap} consists only plain {@link OWLAxiom Axiom}s.
+     *
+     * @return {@code boolean}
+     */
+    public boolean definitelyHasNoAnnotatedAxioms() {
+        return hasAnnotatedAxioms != null && !hasAnnotatedAxioms;
     }
 
     /**
@@ -187,13 +220,25 @@ public class CacheObjectMapImpl<X extends OWLObject> implements ObjectMap<X> {
     @Override
     public void remove(X key) {
         if (!isLoaded()) return;
-        getMap().remove(key);
+        if (!getMap().remove(key)) {
+            return;
+        }
+        if (hasAnnotatedAxioms != null && key.isAxiom()) {
+            hasAnnotatedAxioms = null;
+        }
     }
 
     @Override
     public void add(ONTObject<X> value) {
-        getMap().put(value.getOWLObject(), value);
+        X key = value.getOWLObject();
+        getMap().put(key, value);
         hasNew = true;
+        if (!key.isAxiom()) {
+            return;
+        }
+        if (((OWLAxiom) key).isAnnotated()) {
+            hasAnnotatedAxioms = true;
+        }
     }
 
     @Override
@@ -204,6 +249,8 @@ public class CacheObjectMapImpl<X extends OWLObject> implements ObjectMap<X> {
     @Override
     public void clear() {
         map.clear();
+        hasNew = false;
+        hasAnnotatedAxioms = null;
     }
 
     /**
@@ -284,13 +331,14 @@ public class CacheObjectMapImpl<X extends OWLObject> implements ObjectMap<X> {
          * Removes the mapping for a key from this map if it is present.
          *
          * @param key {@link K}
+         * @return {@code boolean} -- {@code true} if {@code key} has really been removed
          */
-        public void remove(K key) {
+        public boolean remove(K key) {
             if (map.remove(key) == null) {
-                return;
+                return false;
             }
             if (keys.isEmpty()) {
-                return;
+                return true;
             }
             List<K> list = keys.get(this);
             // must be in the end of the list:
@@ -300,6 +348,7 @@ public class CacheObjectMapImpl<X extends OWLObject> implements ObjectMap<X> {
                     break;
                 }
             }
+            return true;
         }
 
         /**

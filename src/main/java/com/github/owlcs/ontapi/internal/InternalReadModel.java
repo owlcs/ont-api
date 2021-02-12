@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -767,7 +767,22 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
 
     public boolean containsIgnoreAnnotations(OWLAxiom a) {
         ObjectMap<OWLAxiom> map = getAxiomsCache(OWLTopObjectType.get(a.getAxiomType()));
-        return map.contains(a) || map.keys().anyMatch(a::equalsIgnoreAnnotations);
+        if (containsNoAnnotations(map)) {
+            return map.contains(a.isAnnotated() ? a.getAxiomWithoutAnnotations() : a);
+        }
+        return map.contains(a) ||
+                (a.isAnnotated() && map.contains(a = a.getAxiomWithoutAnnotations())) ||
+                map.keys().anyMatch(a::equalsIgnoreAnnotations);
+    }
+
+    /**
+     * Answers {@code true} if the specified {@link ObjectMap map} does not contain annotated axioms.
+     *
+     * @param map {@link ObjectMap}
+     * @return {@code boolean}
+     */
+    protected boolean containsNoAnnotations(ObjectMap<? extends OWLAxiom> map) {
+        return map instanceof CacheObjectMapImpl && ((CacheObjectMapImpl<?>) map).definitelyHasNoAnnotatedAxioms();
     }
 
     /**
@@ -797,7 +812,7 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
      *
      * @return {@code boolean}
      */
-    public boolean hasManuallyAddedAxioms() {
+    protected boolean hasManuallyAddedAxioms() {
         return contentCaches().anyMatch(ObjectMap::hasNew);
     }
 
