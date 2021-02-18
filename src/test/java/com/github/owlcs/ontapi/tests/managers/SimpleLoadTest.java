@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -31,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -107,17 +108,21 @@ public class SimpleLoadTest {
 
         LOGGER.debug("Test separately skipped axioms:");
         LOGGER.debug("Test type <{}>", AxiomType.DECLARATION);
-        List<OWLAxiom> expectedDeclarations = Stream.of(
-                owlList.stream()
-                        .filter(a -> AxiomType.CLASS_ASSERTION.equals(a.getAxiomType()))
-                        .map(OWLClassAssertionAxiom.class::cast)
-                        .map(OWLClassAssertionAxiom::getIndividual)
-                        .filter(OWLIndividual::isNamed)
-                        .map(OWLIndividual::asOWLNamedIndividual)
-                        .map(factory::getOWLDeclarationAxiom),
-                owlList.stream()
-                        .filter(a -> AxiomType.DECLARATION.equals(a.getAxiomType()))).flatMap(Function.identity())
-                .sorted().distinct().collect(Collectors.toList());
+        List<OWLDeclarationAxiom> expectedDeclarations = owlList.stream()
+                .map(a -> {
+                    if (AxiomType.CLASS_ASSERTION.equals(a.getAxiomType())) {
+                        OWLIndividual i = ((OWLClassAssertionAxiom) a).getIndividual();
+                        if (i.isNamed()) {
+                            return factory.getOWLDeclarationAxiom(i.asOWLNamedIndividual());
+                        }
+                    }
+                    if (AxiomType.DECLARATION.equals(a.getAxiomType())) {
+                        return (OWLDeclarationAxiom) a;
+                    }
+                    return null;
+                })
+                .filter(Objects::nonNull)
+                .distinct().sorted().collect(Collectors.toList());
         List<OWLAxiom> actualDeclarations = ontList.stream()
                 .filter(a -> AxiomType.DECLARATION.equals(a.getAxiomType())).collect(Collectors.toList());
         Assertions.assertEquals(expectedDeclarations, actualDeclarations,
