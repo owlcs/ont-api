@@ -31,10 +31,10 @@
         <maven.compiler.target>11</maven.compiler.target>
         <maven.compiler.source>11</maven.compiler.source>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <version.jena>3.17.0</version.jena>
+        <version.jena>4.0.0</version.jena>
         <version.owlapi>5.1.14</version.owlapi>
         <version.slf4j>1.7.30</version.slf4j>
-        <version.caffeine>2.9.0</version.caffeine>
+        <version.caffeine>3.0.2</version.caffeine>
         <version.junit>5.8.0-M1</version.junit>
     </properties>
 
@@ -242,7 +242,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.2.0</version>
+                <version>3.3.0</version>
                 <executions>
                     <execution>
                         <id>attach-javadocs</id>

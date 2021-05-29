@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,6 +14,8 @@
 
 package com.github.owlcs.owlapi.tests.api.syntax.rdfxml;
 
+import com.github.owlcs.ontapi.OWLAdapter;
+import com.github.owlcs.owlapi.OWLManager;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -23,20 +25,13 @@ import org.semanticweb.owlapi.io.StringDocumentTarget;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.rdf.rdfxml.renderer.RDFXMLStorerFactory;
 
-
-@SuppressWarnings("javadoc")
 public class EntitiesTestCase extends TestBase {
 
     /**
-     * ONT-API comment:
-     * The test was modified to make it passed in ONT-API also.
-     * The config option 'useNamespaceEntities' is only for RDF/XML format.
-     * As for me it is incorrect to store this option in the global settings since it takes affect on a single format only, but whatever.
-     * In the ONT-API there is a substitution of formats and instead OWL-Storer there is Jena mechanism,
-     * so this option won't take affect and turns out to be unnecessary.
-     * But we always can use direct way with pure OWL format...
-     *
-     * @throws Exception
+     * By default Apache Jena does not understand prefix abbreviations defined as {@code ENTITY} construction
+     * (see <a href='https://www.w3.org/TR/owl-guide/#Namespaces'>OWL RDF/XML Namespaces</a>).
+     * Also, the option {@link com.github.owlcs.ontapi.config.OntSettings#OWL_API_WRITE_CONF_USE_NAMESPACE_ENTITIES
+     * owl.api.write.conf.use.namespace.entities.boolean} does not work for Jena readers/writers.
      */
     @Test
     public void testShouldRoundtripEntities() throws Exception {
@@ -54,23 +49,26 @@ public class EntitiesTestCase extends TestBase {
         String base = "urn:test";
         IRI iri = IRI.create(base + "#", "test");
 
-        OWLOntologyManager m = setupManager();
+        OWLOntologyManager m = TestBase.setupManager();
+
+        if (!OWLManager.DEBUG_USE_OWL) {
+            OWLAdapter.get().asONT(m.getOntologyConfigurator()).setUseOWLParsersToLoad(true);
+        }
 
         StringDocumentSource source = new StringDocumentSource(input, iri, new RDFXMLDocumentFormat(), null);
         OWLOntology o = m.loadOntologyFromOntologyDocument(source);
+
         Assertions.assertEquals(base, o.getOntologyID().getOntologyIRI().map(IRI::getIRIString).orElse(null));
         OWLDocumentFormat format = o.getFormat();
         Assertions.assertNotNull(format);
 
         m.getOntologyConfigurator().withUseNamespaceEntities(true);
         Assertions.assertTrue(m.getOntologyWriterConfiguration().isUseNamespaceEntities());
-        //m.setOntologyWriterConfiguration(m.getOntologyWriterConfiguration().withUseNamespaceEntities(true));
 
         StringDocumentTarget target = new StringDocumentTarget();
 
         OWLStorerFactory store = new RDFXMLStorerFactory();
         store.createStorer().storeOntology(o, target, format);
-        //o.getOWLOntologyManager().saveOntology(o, format, target);
         LOGGER.debug("As string:\n{}", target);
         Assertions.assertTrue(target.toString().contains("<owl:priorVersion rdf:resource=\"&vin;test\"/>"));
     }

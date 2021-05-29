@@ -14,7 +14,6 @@
 
 package com.github.owlcs.ontapi.tests.jena;
 
-import com.github.owlcs.ontapi.NoOpReadWriteLock;
 import com.github.owlcs.ontapi.internal.AxiomTranslator;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.jena.OntModelFactory;
@@ -27,8 +26,6 @@ import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import org.apache.jena.graph.Factory;
 import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.GraphStatisticsHandler;
-import org.apache.jena.graph.Node;
 import org.apache.jena.shared.PrefixMapping;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -181,14 +178,4 @@ public class RWLockedGraphTest {
         Assertions.assertEquals(THREADS_NUM_2, pm.numPrefixes());
     }
 
-    @SuppressWarnings("deprecation")
-    @Test
-    public void testGraphStatisticHandler() {
-        RWLockedGraph g = new RWLockedGraph(loadPizza(), NoOpReadWriteLock.NO_OP_RW_LOCK);
-        GraphStatisticsHandler gsh = g.getStatisticsHandler();
-        int size = g.size();
-        LOGGER.debug("Total size: {}", size);
-        Assertions.assertEquals(size, g.get().getStatisticsHandler().getStatistic(Node.ANY, Node.ANY, Node.ANY));
-        Assertions.assertEquals(size, gsh.getStatistic(Node.ANY, Node.ANY, Node.ANY));
-    }
 }
