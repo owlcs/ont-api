@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,6 +14,8 @@
 
 package com.github.owlcs.ontapi.utils;
 
+import com.github.owlcs.ontapi.OntologyManager;
+import com.github.owlcs.ontapi.tests.jena.UnionGraphTest;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.mem.GraphMem;
 import org.apache.jena.riot.Lang;
@@ -22,11 +24,6 @@ import org.apache.jena.util.FileManager;
 import org.semanticweb.owlapi.model.IRI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.github.owlcs.ontapi.OntologyManager;
-import com.github.owlcs.ontapi.jena.impl.conf.OntModelConfig;
-import com.github.owlcs.ontapi.jena.impl.conf.OntPersonality;
-import com.github.owlcs.ontapi.jena.impl.conf.PersonalityBuilder;
-import com.github.owlcs.ontapi.tests.jena.UnionGraphTest;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,6 +31,7 @@ import java.io.UncheckedIOException;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 
 /**
@@ -53,10 +51,6 @@ public enum SpinModels {
     AFN("/etc/functions-afn.ttl", "http://topbraid.org/functions-afn"),
     SMF_BASE("/etc/sparqlmotionfunctions.ttl", "http://topbraid.org/sparqlmotionfunctions"),
     SPINMAPL("/etc/spinmapl.spin.ttl", "http://topbraid.org/spin/spinmapl");
-
-    public static final OntPersonality ONT_SPIN_PERSONALITY = PersonalityBuilder.from(OntModelConfig.ONT_PERSONALITY_LAX)
-            .addPersonality(com.github.owlcs.ontapi.utils.SP.SPIN_PERSONALITY)
-            .build();
 
     private static final Logger LOGGER = LoggerFactory.getLogger(SpinModels.class);
 
@@ -84,7 +78,7 @@ public enum SpinModels {
         for (SpinModels f : values()) {
             Graph g = new GraphMem();
             try (InputStream in = UnionGraphTest.class.getResourceAsStream(f.file())) {
-                RDFDataMgr.read(g, in, null, Lang.TURTLE);
+                RDFDataMgr.read(g, Objects.requireNonNull(in), null, Lang.TURTLE);
             } catch (IOException e) {
                 throw new UncheckedIOException("Can't load " + f.file(), e);
             }

@@ -14,24 +14,16 @@
 
 package com.github.owlcs.ontapi.utils;
 
-import com.github.owlcs.ontapi.jena.impl.conf.OntModelConfig;
-import org.apache.jena.enhanced.Personality;
-import org.apache.jena.graph.Graph;
-import org.apache.jena.graph.Node;
-import org.apache.jena.rdf.model.*;
-import org.apache.jena.rdf.model.impl.ModelCom;
-import org.apache.jena.vocabulary.RDF;
-import org.apache.jena.vocabulary.RDFS;
-import org.topbraid.spin.vocabulary.SPIN;
-import org.topbraid.spin.vocabulary.SPL;
+import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.ResourceFactory;
 
 /**
- * A copy-paste from {@link org.topbraid.spin.vocabulary.SP}.
- * The difference: it does not modify {@link org.apache.jena.enhanced.BuiltinPersonalities#model the standard global jena personalities}.
+ * A copy-paste from {@code org.topbraid.spin.vocabulary.SP}.
  * <p>
  * Created by @szuev on 20.03.2018.
  */
-@SuppressWarnings({"WeakerAccess", "unused", "deprecation"})
+@SuppressWarnings({"WeakerAccess", "unused"})
 public class SP {
     public static final String SPIN_URI = "http://spinrdf.org";
     public static final String BASE_URI = SPIN_URI + "/sp";
@@ -163,62 +155,4 @@ public class SP {
         return ResourceFactory.createProperty(NS + local);
     }
 
-    public static Personality<RDFNode> SPIN_PERSONALITY = init(OntModelConfig.getStandardPersonality());
-
-    public static Model createModel(Graph graph) {
-        return new ModelCom(graph, SPIN_PERSONALITY);
-    }
-
-    /**
-     * @param p {@link Personality} to modify
-     * @return {@link Personality} the same instance
-     * @see org.topbraid.spin.vocabulary.SP#init(Personality)
-     */
-    @SuppressWarnings("JavadocReference")
-    public static Personality<RDFNode> init(Personality<RDFNode> p) {
-        p.add(org.topbraid.spin.model.Aggregation.class, newSimpleImplementation(SPL.Argument.asNode(), org.topbraid.spin.model.impl.AggregationImpl.class));
-        p.add(org.topbraid.spin.model.Argument.class, newSimpleImplementation(SPL.Argument.asNode(), org.topbraid.spin.model.impl.ArgumentImpl.class));
-        p.add(org.topbraid.spin.model.Attribute.class, newSimpleImplementation(SPL.Attribute.asNode(), org.topbraid.spin.model.impl.AttributeImpl.class));
-        p.add(org.topbraid.spin.model.Ask.class, newSimpleImplementation(Ask.asNode(), org.topbraid.spin.model.impl.AskImpl.class));
-        p.add(org.topbraid.spin.model.Bind.class, new org.topbraid.spin.util.SimpleImplementation2(Bind.asNode(), Let.asNode(), org.topbraid.spin.model.impl.BindImpl.class));
-        p.add(org.topbraid.spin.model.update.Clear.class, newSimpleImplementation(Clear.asNode(), org.topbraid.spin.model.update.impl.ClearImpl.class));
-        p.add(org.topbraid.spin.model.Construct.class, newSimpleImplementation(Construct.asNode(), org.topbraid.spin.model.impl.ConstructImpl.class));
-        p.add(org.topbraid.spin.model.update.Create.class, newSimpleImplementation(Create.asNode(), org.topbraid.spin.model.update.impl.CreateImpl.class));
-        p.add(org.topbraid.spin.model.update.Delete.class, newSimpleImplementation(Delete.asNode(), org.topbraid.spin.model.update.impl.DeleteImpl.class));
-        p.add(org.topbraid.spin.model.update.DeleteData.class, newSimpleImplementation(DeleteData.asNode(), org.topbraid.spin.model.update.impl.DeleteDataImpl.class));
-        p.add(org.topbraid.spin.model.update.DeleteWhere.class, newSimpleImplementation(DeleteWhere.asNode(), org.topbraid.spin.model.update.impl.DeleteWhereImpl.class));
-        p.add(org.topbraid.spin.model.Describe.class, newSimpleImplementation(Describe.asNode(), org.topbraid.spin.model.impl.DescribeImpl.class));
-        p.add(org.topbraid.spin.model.update.Drop.class, newSimpleImplementation(Drop.asNode(), org.topbraid.spin.model.update.impl.DropImpl.class));
-        p.add(org.topbraid.spin.model.ElementList.class, newSimpleImplementation(RDF.List.asNode(), org.topbraid.spin.model.impl.ElementListImpl.class));
-        p.add(org.topbraid.spin.model.Exists.class, newSimpleImplementation(Exists.asNode(), org.topbraid.spin.model.impl.ExistsImpl.class));
-        p.add(org.topbraid.spin.model.Function.class, newSimpleImplementation(SPIN.Function.asNode(), org.topbraid.spin.model.impl.FunctionImpl.class));
-        p.add(org.topbraid.spin.model.FunctionCall.class, newSimpleImplementation(SPIN.Function.asNode(), org.topbraid.spin.model.impl.FunctionCallImpl.class));
-        p.add(org.topbraid.spin.model.Filter.class, newSimpleImplementation(Filter.asNode(), org.topbraid.spin.model.impl.FilterImpl.class));
-        p.add(org.topbraid.spin.model.update.Insert.class, newSimpleImplementation(Insert.asNode(), org.topbraid.spin.model.update.impl.InsertImpl.class));
-        p.add(org.topbraid.spin.model.update.InsertData.class, newSimpleImplementation(InsertData.asNode(), org.topbraid.spin.model.update.impl.InsertDataImpl.class));
-        p.add(org.topbraid.spin.model.update.Load.class, newSimpleImplementation(Load.asNode(), org.topbraid.spin.model.update.impl.LoadImpl.class));
-        p.add(org.topbraid.spin.model.Minus.class, newSimpleImplementation(Minus.asNode(), org.topbraid.spin.model.impl.MinusImpl.class));
-        p.add(org.topbraid.spin.model.update.Modify.class, newSimpleImplementation(Modify.asNode(), org.topbraid.spin.model.update.impl.ModifyImpl.class));
-        p.add(org.topbraid.spin.model.Module.class, newSimpleImplementation(SPIN.Module.asNode(), org.topbraid.spin.model.impl.ModuleImpl.class));
-        p.add(org.topbraid.spin.model.NamedGraph.class, newSimpleImplementation(NamedGraph.asNode(), org.topbraid.spin.model.impl.NamedGraphImpl.class));
-        p.add(org.topbraid.spin.model.NotExists.class, newSimpleImplementation(NotExists.asNode(), org.topbraid.spin.model.impl.NotExistsImpl.class));
-        p.add(org.topbraid.spin.model.Optional.class, newSimpleImplementation(Optional.asNode(), org.topbraid.spin.model.impl.OptionalImpl.class));
-        p.add(org.topbraid.spin.model.Service.class, newSimpleImplementation(Service.asNode(), org.topbraid.spin.model.impl.ServiceImpl.class));
-        p.add(org.topbraid.spin.model.Select.class, newSimpleImplementation(Select.asNode(), org.topbraid.spin.model.impl.SelectImpl.class));
-        p.add(org.topbraid.spin.model.SubQuery.class, newSimpleImplementation(SubQuery.asNode(), org.topbraid.spin.model.impl.SubQueryImpl.class));
-        p.add(org.topbraid.spin.model.SPINInstance.class, newSimpleImplementation(RDFS.Resource.asNode(), org.topbraid.spin.model.impl.SPINInstanceImpl.class));
-        p.add(org.topbraid.spin.model.Template.class, newSimpleImplementation(SPIN.Template.asNode(), org.topbraid.spin.model.impl.TemplateImpl.class));
-        p.add(org.topbraid.spin.model.TemplateCall.class, newSimpleImplementation(RDFS.Resource.asNode(), org.topbraid.spin.model.impl.TemplateCallImpl.class));
-        p.add(org.topbraid.spin.model.TriplePath.class, newSimpleImplementation(TriplePath.asNode(), org.topbraid.spin.model.impl.TriplePathImpl.class));
-        p.add(org.topbraid.spin.model.TriplePattern.class, newSimpleImplementation(TriplePattern.asNode(), org.topbraid.spin.model.impl.TriplePatternImpl.class));
-        p.add(org.topbraid.spin.model.TripleTemplate.class, newSimpleImplementation(TripleTemplate.asNode(), org.topbraid.spin.model.impl.TripleTemplateImpl.class));
-        p.add(org.topbraid.spin.model.Union.class, newSimpleImplementation(Union.asNode(), org.topbraid.spin.model.impl.UnionImpl.class));
-        p.add(org.topbraid.spin.model.Values.class, newSimpleImplementation(Values.asNode(), org.topbraid.spin.model.impl.ValuesImpl.class));
-        p.add(org.topbraid.spin.model.Variable.class, newSimpleImplementation(Variable.asNode(), org.topbraid.spin.model.impl.VariableImpl.class));
-        return p;
-    }
-
-    private static org.topbraid.spin.util.SimpleImplementation newSimpleImplementation(Node n, Class<?> t) {
-        return new org.topbraid.spin.util.SimpleImplementation(n, t);
-    }
 }

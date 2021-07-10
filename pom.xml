@@ -172,19 +172,6 @@
             <version>${version.owlapi}</version>
             <scope>test</scope>
         </dependency>
-        <!--spin tests. NOTE: dependent on jena 3.4.0! -->
-        <dependency>
-            <groupId>org.topbraid</groupId>
-            <artifactId>shacl</artifactId>
-            <version>1.0.1</version>
-            <scope>test</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>org.apache.jena</groupId>
-                    <artifactId>jena-arq</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
     </dependencies>
 
     <profiles>

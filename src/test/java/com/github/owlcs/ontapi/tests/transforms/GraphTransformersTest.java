@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -31,9 +31,7 @@ import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import com.github.owlcs.ontapi.jena.vocabulary.SWRL;
 import com.github.owlcs.ontapi.transforms.*;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
-import com.github.owlcs.ontapi.utils.SP;
 import com.github.owlcs.ontapi.utils.SpinModels;
-import com.github.owlcs.ontapi.utils.SpinTransform;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Model;
@@ -45,7 +43,6 @@ import org.apache.jena.vocabulary.RDFS;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.io.OWLOntologyLoaderMetaData;
-import org.semanticweb.owlapi.io.RDFOntologyHeaderStatus;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.Imports;
 import org.slf4j.Logger;
@@ -67,65 +64,6 @@ public class GraphTransformersTest {
             .map(Resource::getURI)
             .map(IRI::create)
             .collect(Iter.toUnmodifiableSet());
-
-    @Test
-    public void testLoadSpinLibraryWithTransformation() throws Exception {
-        int axiomsCountSPINMAPL = 902; //895;//902;//856;
-        int axiomsCountTotal = 7701; //7685; //7796; //7625;
-
-        OntologyManager m = OntManagers.createManager();
-        // Setup spin manager:
-        m.getOntologyConfigurator()
-                .setGraphTransformers(GraphTransformers.get().addFirst(Transform.Factory.create(SpinTransform.class)))
-                .setPersonality(SpinModels.ONT_SPIN_PERSONALITY)
-                .disableWebAccess();
-        SpinModels.addMappings(m);
-        //noinspection deprecation
-        SpinModels.addMappings(FileManager.get());
-
-        IRI iri = SpinModels.SPINMAPL.getIRI();
-        Ontology spinmapl = m.loadOntology(iri);
-        String actualTree = Graphs.importsTreeAsString(spinmapl.asGraphModel().getGraph());
-        LOGGER.debug("Tree:\n{}", actualTree);
-        Assertions.assertEquals(27, actualTree.split("\n").length);
-
-        Assertions.assertEquals(10, m.ontologies().count());
-        m.ontologies().forEach(o -> {
-            IRI uri = o.getOntologyID().getOntologyIRI().orElseThrow(AssertionError::new);
-            OWLDocumentFormat f = Optional.ofNullable(m.getOntologyFormat(o)).orElseThrow(AssertionError::new);
-            OWLOntologyLoaderMetaData d = f.getOntologyLoaderMetaData().orElseThrow(AssertionError::new);
-            LOGGER.debug("Ontology: {}. MetaData: {}, {}, {}, {}",
-                    o,
-                    d.getHeaderState(),
-                    d.getTripleCount(),
-                    d.getUnparsedTriples().count(),
-                    d.getGuessedDeclarations().size());
-            Assertions.assertEquals(RDFOntologyHeaderStatus.PARSED_ONE_HEADER, d.getHeaderState());
-            if (SpinModels.SMF_BASE.getIRI().equals(uri)) {
-                return;
-            }
-            Assertions.assertNotEquals(0, d.getGuessedDeclarations().size());
-        });
-
-        Ontology spl = m.getOntology(SpinModels.SPL.getIRI());
-        Assertions.assertNotNull(spl);
-
-        //String splAsString = ReadWriteUtils.toString(spl.asGraphModel(), OntFormat.TURTLE);
-        //LOGGER.debug(splAsString);
-
-        Assertions.assertEquals(axiomsCountSPINMAPL, spinmapl.getAxiomCount());
-        Assertions.assertEquals(axiomsCountTotal, spinmapl.axioms(Imports.INCLUDED).count());
-
-        OWLAnnotationProperty spText = m.getOWLDataFactory().getOWLAnnotationProperty(IRI.create(SP.text.getURI()));
-        OWLAnnotationAssertionAxiom axiom = spl.axioms(AxiomType.ANNOTATION_ASSERTION).filter(a -> Objects.equals(a.getProperty(), spText))
-                .findAny().orElseThrow(() -> new AssertionError("Can't find any sp:text annotation assertion"));
-        Optional<OWLLiteral> literal = axiom.getValue().asLiteral();
-        Optional<OWLAnonymousIndividual> individual = axiom.getSubject().asAnonymousIndividual();
-        Assertions.assertTrue(literal.isPresent());
-        Assertions.assertTrue(individual.isPresent());
-        LOGGER.debug("Axioms related to query <{}>", literal.get().getLiteral().replace("\n", " "));
-        spl.referencingAxioms(individual.get()).map(String::valueOf).forEach(LOGGER::debug);
-    }
 
     @Test
     public void testLoadSpinLibraryWithoutTransforms() throws Exception {
