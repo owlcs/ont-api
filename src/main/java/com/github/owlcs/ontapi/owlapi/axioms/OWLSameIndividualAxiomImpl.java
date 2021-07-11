@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -13,8 +13,8 @@
  */
 package com.github.owlcs.ontapi.owlapi.axioms;
 
-import org.semanticweb.owlapi.model.*;
 import com.github.owlcs.ontapi.owlapi.objects.ce.OWLObjectOneOfImpl;
+import org.semanticweb.owlapi.model.*;
 
 import javax.annotation.Nonnull;
 import java.util.*;
@@ -52,7 +52,7 @@ public class OWLSameIndividualAxiomImpl extends OWLNaryIndividualAxiomImpl imple
 
     @Override
     public Collection<OWLSameIndividualAxiom> asPairwiseAxioms() {
-        if (individuals.size() == 2) {
+        if (individuals.size() < 3) {
             return createSet(this);
         }
         return walkPairwise((a, b) -> new OWLSameIndividualAxiomImpl(Arrays.asList(a, b), NO_ANNOTATIONS));
@@ -60,7 +60,7 @@ public class OWLSameIndividualAxiomImpl extends OWLNaryIndividualAxiomImpl imple
 
     @Override
     public Collection<OWLSameIndividualAxiom> splitToAnnotatedPairs() {
-        if (individuals.size() == 2) {
+        if (individuals.size() < 3) {
             return createSet(this);
         }
         return walkPairwise((a, b) -> new OWLSameIndividualAxiomImpl(Arrays.asList(a, b), annotations));

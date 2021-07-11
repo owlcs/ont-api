@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -266,20 +266,20 @@ public class ModelObjectTest {
     @Test
     public void testDataPropertyRangeEraseModelMethods() {
         testUnaryPropAxiom(df -> df.getOWLDataPropertyRangeAxiom(df.getOWLDataProperty("X"),
-                df.getOWLDataIntersectionOf(),
+                df.getOWLDataIntersectionOf(df.getStringOWLDatatype(), df.getIntegerOWLDatatype()),
                 Arrays.asList(df.getRDFSComment("x"), df.getRDFSLabel("y"))));
     }
 
     @Test
     public void testObjectPropertyRangeEraseModelMethods() {
         testUnaryPropAxiom(df -> df.getOWLObjectPropertyRangeAxiom(df.getOWLObjectProperty("X"),
-                df.getOWLObjectUnionOf(),
+                df.getOWLObjectUnionOf(df.getOWLClass("C"), df.getOWLThing()),
                 Arrays.asList(df.getRDFSComment("x"), df.getRDFSLabel("y"))));
     }
 
     @Test
     public void testClassAssertionEraseModelMethods() {
-        testUnaryPropAxiom(df -> df.getOWLClassAssertionAxiom(df.getOWLObjectUnionOf(),
+        testUnaryPropAxiom(df -> df.getOWLClassAssertionAxiom(df.getOWLObjectUnionOf(df.getOWLNothing(), df.getOWLClass("C")),
                 df.getOWLNamedIndividual("I"), Arrays.asList(df.getRDFSComment("x"), df.getRDFSLabel("y"))));
     }
 

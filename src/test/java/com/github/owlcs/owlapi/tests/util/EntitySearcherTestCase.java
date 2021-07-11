@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -20,8 +20,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
+import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;
 import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLProperty;
 import org.semanticweb.owlapi.model.PrefixManager;
 import org.semanticweb.owlapi.search.EntitySearcher;
 import org.semanticweb.owlapi.util.DefaultPrefixManager;
@@ -50,13 +50,14 @@ public class EntitySearcherTestCase extends TestBase {
 
     @Test
     public void testShouldReturnSuperProperty() {
-        List<OWLProperty> supers = EntitySearcher.getSuperProperties(subProperty, ontologies.stream()).collect(Collectors.toList());
+        List<OWLObjectPropertyExpression> supers = EntitySearcher.getSuperProperties(subProperty, ontologies.stream())
+                .collect(Collectors.toList());
         Assertions.assertTrue(supers.contains(superProperty));
     }
 
     @Test
     public void testShouldReturnSubProperty() {
-        Stream<OWLProperty> subs = EntitySearcher.getSubProperties(superProperty, ontologies.stream());
+        Stream<OWLObjectPropertyExpression> subs = EntitySearcher.getSubProperties(superProperty, ontologies.stream());
         Assertions.assertTrue(subs.anyMatch(x -> x.equals(subProperty)));
     }
 }

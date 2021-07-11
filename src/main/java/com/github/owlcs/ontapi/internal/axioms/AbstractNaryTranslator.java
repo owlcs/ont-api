@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -70,25 +70,46 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
 
     private static final Comparator<OWLObject> URI_FIRST_COMPARATOR = Comparator.comparing(IsAnonymous::isAnonymous);
 
-    void write(OWLNaryAxiom<OWL> thisAxiom, Collection<OWLAnnotation> annotations, OntModel model) {
-        List<OWL> operands = thisAxiom.operands().sorted(URI_FIRST_COMPARATOR).collect(Collectors.toList());
-        if (operands.isEmpty() && annotations.isEmpty()) { // nothing to write, skip
+    void writeTriple(OWLNaryAxiom<OWL> axiom, Collection<OWLAnnotation> annotations, OntModel model) {
+        List<OWL> operands = axiom.operands().sorted(URI_FIRST_COMPARATOR).collect(Collectors.toList());
+        if (operands.isEmpty() && annotations.isEmpty()) {
+            LOGGER.warn("Nothing to write, an empty axiom is given: {}", axiom);
             return;
         }
         if (operands.size() != 2) {
-            throw new OntApiException(getClass().getSimpleName() + ": expected two operands. Axiom: " + thisAxiom);
+            throw new OntApiException.IllegalArgument(getClass().getSimpleName() + ": expected two operands. Axiom: " + axiom);
         }
         WriteHelper.writeTriple(model, operands.get(0), getPredicate(), operands.get(1), annotations);
     }
 
     @Override
     public void write(Axiom axiom, OntModel model) {
-        Collection<? extends OWLNaryAxiom<OWL>> axioms = axiom.asPairwiseAxioms();
+        Collection<? extends OWLNaryAxiom<OWL>> axioms = toPairwiseAxioms(axiom);
         if (axioms.isEmpty()) {
             LOGGER.warn("Nothing to write, wrong axiom is given: {}", axiom);
             return;
         }
-        axioms.forEach(a -> write(a, axiom.annotationsAsList(), model));
+        List<OWLAnnotation> annotations = axiom.annotationsAsList();
+        axioms.forEach(a -> writeTriple(a, annotations, model));
+    }
+
+    /**
+     * Gets the specified axiom as a set of pairwise axioms.
+     * <p>
+     * This is a hack to preserve the original behavior:
+     * Since OWLAPI <b>5.1.15</b> the method {@link OWLNaryAxiom#asPairwiseAxioms()} returns
+     * same axiom in case it has single operand,
+     * see <a href='https://github.com/owlcs/owlapi/issues/776'>owlcs#776</a>.
+     *
+     * @param axiom {@link Axiom}
+     * @return a {@code Collection} of {@link OWL operand}s
+     * @see OWLNaryAxiom#asPairwiseAxioms()
+     */
+    private Collection<? extends OWLNaryAxiom<OWL>> toPairwiseAxioms(Axiom axiom) {
+        if (axiom.operands().count() == 1) {
+            return Collections.emptyList();
+        }
+        return axiom.asPairwiseAxioms();
     }
 
     abstract Property getPredicate();
@@ -217,7 +238,7 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
 
         @FactoryAccessor
         public final Collection<A> asPairwiseAxioms() {
-            if (count() == 2) {
+            if (count() < 3) {
                 return createSet(eraseModel());
             }
             return walkPairwise((a, b) -> createAxiom(a, b, null));
@@ -226,7 +247,7 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
         @FactoryAccessor
         @Override
         public final Collection<A> splitToAnnotatedPairs() {
-            if (count() == 2) {
+            if (count() < 3) {
                 return createSet(eraseModel());
             }
             List<OWLAnnotation> annotations = factoryAnnotations().collect(Collectors.toList());

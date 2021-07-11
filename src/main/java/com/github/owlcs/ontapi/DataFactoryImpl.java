@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -43,7 +43,7 @@ import static com.github.owlcs.ontapi.owlapi.InternalizedEntities.*;
 /**
  * The facility to create {@link OWLObject OWL-API Object}s including {@link OWLAxiom OWL Axiom}s.
  * All things produced by this factory are immutable objects and can be used as input parameters to build an ontology.
- *
+ * <p>
  * Impl notes:
  * It is a modified copy-paste from {@code uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryImpl}.
  * There are two main differences with the original (OWL-API) implementation: no compression and no cache.
@@ -54,7 +54,7 @@ import static com.github.owlcs.ontapi.owlapi.InternalizedEntities.*;
  * <li>The cache is present in ONT-API model implementation (see {@link com.github.owlcs.ontapi.internal.InternalModel}),
  * the original global caches from the OWL-API-impl seems to be superfluous here.</li>
  * </ul>
- *
+ * <p>
  * Also, this implementation is capable to produce
  * {@link OWLLiteral}s and {@link OWLAnonymousIndividual} based on Jena RDF terms:
  * {@link LiteralLabel} and {@link BlankNodeId} respectively.
@@ -749,8 +749,11 @@ public class DataFactoryImpl implements DataFactory {
                                                               Collection<OWLAnnotation> annotations) {
         notNull(classes, CLASS_EXPRESSIONS_CANNOT_BE_NULL_OR_CONTAIN_NULL);
         nonNullAnnotations(annotations);
+        // OWLDisjointClassesAxiomImpl internally makes a sorted distinct list,
+        OWLDisjointClassesAxiom res = new OWLDisjointClassesAxiomImpl(classes, annotations);
         // Hack to handle the case where classes has only a single member
         // which will usually be the result of :x owl:disjointWith :x .
+        classes = res.getOperandsAsList();
         if (classes.size() == 1) {
             OWLClassExpression clazz = classes.iterator().next();
             if (clazz.isOWLThing() || clazz.isOWLNothing()) {
@@ -759,10 +762,10 @@ public class DataFactoryImpl implements DataFactory {
                         "Please consider the possibility of adding " +
                         "the axiom SubClassOf(%s, owl:Nothing) instead.", clazz, clazz));
             }
-            List<OWLClassExpression> res = Arrays.asList(OWL_THING, clazz);
-            return getOWLDisjointClassesAxiom(res, createDisjointWithThingAnnotations(annotations, clazz));
+            return getOWLDisjointClassesAxiom(Arrays.asList(OWL_THING, clazz),
+                    createDisjointWithThingAnnotations(annotations, clazz));
         }
-        return new OWLDisjointClassesAxiomImpl(classes, annotations);
+        return res;
     }
 
     private Set<OWLAnnotation> createDisjointWithThingAnnotations(Collection<OWLAnnotation> annotations,
