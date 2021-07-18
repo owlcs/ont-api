@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -52,13 +52,13 @@ public abstract class OntIndividualImpl extends OntObjectImpl implements OntIndi
 
     // allowed predicates for subject (the pattern '_:x p ANY'):
     private static final Set<Node> FOR_SUBJECT = Stream.of(OWL.sameAs, OWL.differentFrom)
-            .map(FrontsNode::asNode).collect(Iter.toUnmodifiableSet());
+            .map(FrontsNode::asNode).collect(Collectors.toUnmodifiableSet());
     // allowed predicates for object (the pattern 'ANY p _:x'):
     private static final Set<Node> FOR_OBJECT = Stream.of(OWL.sameAs, OWL.differentFrom,
             OWL.sourceIndividual, OWL.targetIndividual, OWL.hasValue,
             OWL.annotatedSource, OWL.annotatedTarget,
             RDF.first, SWRL.argument1, SWRL.argument2)
-            .map(FrontsNode::asNode).collect(Iter.toUnmodifiableSet());
+            .map(FrontsNode::asNode).collect(Collectors.toUnmodifiableSet());
 
     public static OntFinder FINDER = OntFinder.ANY_SUBJECT_AND_OBJECT;
     public static ObjectFactory anonymousIndividualFactory = Factories.createCommon(AnonymousImpl.class, FINDER,
@@ -168,7 +168,7 @@ public abstract class OntIndividualImpl extends OntObjectImpl implements OntIndi
             return reserved.getProperties().stream()
                     .filter(n -> !bSet.contains(n))
                     .filter(n -> !FOR_SUBJECT.contains(n))
-                    .collect(Iter.toUnmodifiableSet());
+                    .collect(Collectors.toUnmodifiableSet());
         });
         // _:x @built-in-predicate @any:
         ExtendedIterator<Node> bySubject = eg.asGraph().find(node, Node.ANY, Node.ANY).mapWith(Triple::getPredicate);
@@ -186,7 +186,7 @@ public abstract class OntIndividualImpl extends OntObjectImpl implements OntIndi
             return reserved.getProperties().stream()
                     .filter(n -> !bSet.contains(n))
                     .filter(n -> !FOR_OBJECT.contains(n))
-                    .collect(Iter.toUnmodifiableSet());
+                    .collect(Collectors.toUnmodifiableSet());
         });
         // @any @built-in-predicate _:x
         ExtendedIterator<Node> byObject = eg.asGraph().find(Node.ANY, Node.ANY, node).mapWith(Triple::getPredicate);

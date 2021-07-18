@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
-import java.util.stream.Stream;
 
 /**
  * The transformer to restore declarations in the clear cases
@@ -91,11 +90,11 @@ import java.util.stream.Stream;
 @SuppressWarnings("WeakerAccess")
 public class ManifestDeclarator extends BaseDeclarator {
 
-    private static final List<Resource> SWRL_ARG1_ATOM_TYPES = Stream.of(SWRL.ClassAtom,
+    private static final List<Resource> SWRL_ARG1_ATOM_TYPES = List.of(SWRL.ClassAtom,
             SWRL.DatavaluedPropertyAtom, SWRL.IndividualPropertyAtom,
-            SWRL.DifferentIndividualsAtom, SWRL.SameIndividualAtom).collect(Iter.toUnmodifiableList());
-    private static final List<Resource> SWRL_ARG2_ATOM_TYPES = Stream.of(SWRL.IndividualPropertyAtom,
-            SWRL.DifferentIndividualsAtom, SWRL.SameIndividualAtom).collect(Iter.toUnmodifiableList());
+            SWRL.DifferentIndividualsAtom, SWRL.SameIndividualAtom);
+    private static final List<Resource> SWRL_ARG2_ATOM_TYPES = List.of(SWRL.IndividualPropertyAtom,
+            SWRL.DifferentIndividualsAtom, SWRL.SameIndividualAtom);
     protected final Set<? extends RDFNode> forbiddenClassCandidates;
 
     public ManifestDeclarator(Graph graph) {

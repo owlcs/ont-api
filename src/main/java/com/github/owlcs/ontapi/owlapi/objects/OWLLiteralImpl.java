@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -15,7 +15,6 @@
 package com.github.owlcs.ontapi.owlapi.objects;
 
 import com.github.owlcs.ontapi.AsNode;
-import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import com.github.owlcs.ontapi.jena.vocabulary.XSD;
 import com.github.owlcs.ontapi.owlapi.InternalizedEntities;
@@ -42,6 +41,7 @@ import java.lang.reflect.Field;
 import java.util.Locale;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -53,7 +53,7 @@ import java.util.stream.Stream;
 public class OWLLiteralImpl extends OWLObjectImpl implements OWLLiteral, AsNode {
 
     private static final Set<String> NUMBER_DATATYPES = Stream.of(XSD.integer, XSD.xfloat, XSD.xdouble)
-            .map(Resource::getURI).collect(Iter.toUnmodifiableSet());
+            .map(Resource::getURI).collect(Collectors.toUnmodifiableSet());
 
     protected static TypeMapper typeMapper = TypeMapper.getInstance();
 

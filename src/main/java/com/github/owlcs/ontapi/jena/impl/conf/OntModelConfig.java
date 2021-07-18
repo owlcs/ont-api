@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -28,6 +28,7 @@ import org.apache.jena.rdf.model.impl.*;
 import org.apache.jena.vocabulary.RDFS;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Settings and personalities that are used for constructing {@link OntModel}.
@@ -349,7 +350,7 @@ public class OntModelConfig {
 
     @SafeVarargs
     private static <K, V extends RDFNode> void toMap(Map<K, Set<Node>> map, K key, V... values) {
-        map.put(key, Arrays.stream(values).map(FrontsNode::asNode).collect(Iter.toUnmodifiableSet()));
+        map.put(key, Arrays.stream(values).map(FrontsNode::asNode).collect(Collectors.toUnmodifiableSet()));
     }
 
     /**

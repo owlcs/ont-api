@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -27,7 +27,6 @@ import org.apache.jena.util.iterator.*;
 
 import java.util.*;
 import java.util.function.*;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
@@ -172,29 +171,7 @@ public class Iter {
      * @return Set of {@link Node}
      */
     public static Set<Node> asUnmodifiableNodeSet(Collection<? extends RDFNode> nodes) {
-        return nodes.stream().map(FrontsNode::asNode).collect(toUnmodifiableSet());
-    }
-
-    /**
-     * Returns a {@code Collector} that accumulates the input elements into a new unmodifiable {@code Set}.
-     *
-     * @param <X> The type of input elements for the new collector
-     * @return a {@link Collector} which collects all the input elements into a unmodifiable {@code Set}
-     * @see Collectors#toSet()
-     */
-    public static <X> Collector<X, ?, Set<X>> toUnmodifiableSet() {
-        return Collectors.collectingAndThen(Collectors.toSet(), Collections::unmodifiableSet);
-    }
-
-    /**
-     * Returns a {@code Collector} that accumulates the input elements into a new unmodifiable {@code List}.
-     *
-     * @param <X> the type of the input elements
-     * @return a {@code Collector} which collects all the input elements into a unmodifiable {@code List}, in encounter order
-     * @see Collectors#toList()
-     */
-    public static <X> Collector<X, ?, List<X>> toUnmodifiableList() {
-        return Collectors.collectingAndThen(Collectors.toList(), Collections::unmodifiableList);
+        return nodes.stream().map(FrontsNode::asNode).collect(Collectors.toUnmodifiableSet());
     }
 
     /**

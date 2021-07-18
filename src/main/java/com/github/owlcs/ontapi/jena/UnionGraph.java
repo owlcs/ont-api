@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,6 +14,8 @@
 
 package com.github.owlcs.ontapi.jena;
 
+import com.github.owlcs.ontapi.jena.utils.Graphs;
+import com.github.owlcs.ontapi.jena.utils.Iter;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphListener;
 import org.apache.jena.graph.Triple;
@@ -22,8 +24,6 @@ import org.apache.jena.graph.impl.SimpleEventManager;
 import org.apache.jena.shared.PrefixMapping;
 import org.apache.jena.util.CollectionFactory;
 import org.apache.jena.util.iterator.ExtendedIterator;
-import com.github.owlcs.ontapi.jena.utils.Graphs;
-import com.github.owlcs.ontapi.jena.utils.Iter;
 
 import java.util.*;
 import java.util.stream.Stream;
@@ -283,7 +283,7 @@ public class UnionGraph extends CompositionBase {
     public boolean isEmpty() {
         // the default implementation use size(), which is extremely ineffective in general,
         // since implies iterating over whole graph
-        return !Iter.findFirst(find()).isPresent();
+        return Iter.findFirst(find()).isEmpty();
     }
 
     /**

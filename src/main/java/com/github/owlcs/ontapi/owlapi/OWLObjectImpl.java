@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -13,7 +13,6 @@
  */
 package com.github.owlcs.ontapi.owlapi;
 
-import com.github.owlcs.ontapi.jena.utils.Iter;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.AbstractCollectorEx;
 import org.semanticweb.owlapi.util.OWLClassExpressionCollector;
@@ -24,6 +23,7 @@ import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.Serializable;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -110,7 +110,7 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
      * @throws NullPointerException if {@code input} or any its element is {@code null}
      */
     protected static <X> List<X> toContentList(Collection<? extends X> input, String msg) {
-        return forOutput(Objects.requireNonNull(input, msg).stream()).collect(Iter.toUnmodifiableList());
+        return forOutput(Objects.requireNonNull(input, msg).stream()).collect(Collectors.toUnmodifiableList());
     }
 
     /**
@@ -137,7 +137,7 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
      */
     protected static List<OWLAnnotation> mergeAnnotations(HasAnnotations withAnnotations,
                                                           Stream<OWLAnnotation> other) {
-        return forOutput(Stream.concat(other, withAnnotations.annotations())).collect(Iter.toUnmodifiableList());
+        return forOutput(Stream.concat(other, withAnnotations.annotations())).collect(Collectors.toUnmodifiableList());
     }
 
     /**
@@ -154,7 +154,7 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
         if (Objects.requireNonNull(annotations, "Annotations cannot be null").isEmpty()) {
             return NO_ANNOTATIONS;
         }
-        return forOutput(annotations.stream()).collect(Iter.toUnmodifiableList());
+        return forOutput(annotations.stream()).collect(Collectors.toUnmodifiableList());
     }
 
     /**
@@ -281,55 +281,46 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
         return getAnnotationPropertySet().stream();
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public final Set<OWLClass> getClassesInSignature() {
         return getNamedClassSet();
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public final Set<OWLNamedIndividual> getIndividualsInSignature() {
         return getNamedIndividualSet();
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public final Set<OWLAnonymousIndividual> getAnonymousIndividuals() {
         return getAnonymousIndividualSet();
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public final Set<OWLDatatype> getDatatypesInSignature() {
         return getDatatypeSet();
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public final Set<OWLObjectProperty> getObjectPropertiesInSignature() {
         return getObjectPropertySet();
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public final Set<OWLDataProperty> getDataPropertiesInSignature() {
         return getDataPropertySet();
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public final Set<OWLAnnotationProperty> getAnnotationPropertiesInSignature() {
         return getAnnotationPropertySet();
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public final Set<OWLEntity> getSignature() {
         return getSignatureSet();
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public final Set<OWLClassExpression> getNestedClassExpressions() {
         return getClassExpressionSet();
@@ -355,7 +346,7 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
      */
     protected Set<OWLClass> getNamedClassSet() {
         Set<OWLClass> res = createSortedSet();
-        accept(new AbstractCollectorEx<OWLClass>(res) {
+        accept(new AbstractCollectorEx<>(res) {
             @Override
             public Collection<OWLClass> visit(OWLClass clazz) {
                 objects.add(clazz);
@@ -384,7 +375,7 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
      */
     protected Set<OWLNamedIndividual> getNamedIndividualSet() {
         Set<OWLNamedIndividual> res = createSortedSet();
-        accept(new AbstractCollectorEx<OWLNamedIndividual>(res) {
+        accept(new AbstractCollectorEx<>(res) {
             @Override
             public Collection<OWLNamedIndividual> visit(OWLNamedIndividual individual) {
                 objects.add(individual);
@@ -402,7 +393,7 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
      */
     protected Set<OWLAnonymousIndividual> getAnonymousIndividualSet() {
         Set<OWLAnonymousIndividual> res = createSortedSet();
-        accept(new AbstractCollectorEx<OWLAnonymousIndividual>(res) {
+        accept(new AbstractCollectorEx<>(res) {
             @Override
             public Collection<OWLAnonymousIndividual> visit(OWLAnonymousIndividual individual) {
                 objects.add(individual);
@@ -420,7 +411,7 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
      */
     protected Set<OWLDatatype> getDatatypeSet() {
         Set<OWLDatatype> res = createSortedSet();
-        accept(new AbstractCollectorEx<OWLDatatype>(res) {
+        accept(new AbstractCollectorEx<>(res) {
             @Override
             public Collection<OWLDatatype> visit(OWLDatatype datatype) {
                 objects.add(datatype);
@@ -438,7 +429,7 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
      */
     protected Set<OWLObjectProperty> getObjectPropertySet() {
         Set<OWLObjectProperty> res = createSortedSet();
-        accept(new AbstractCollectorEx<OWLObjectProperty>(res) {
+        accept(new AbstractCollectorEx<>(res) {
             @Override
             public Collection<OWLObjectProperty> visit(OWLObjectProperty property) {
                 objects.add(property);
@@ -456,7 +447,7 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
      */
     protected Set<OWLDataProperty> getDataPropertySet() {
         Set<OWLDataProperty> res = createSortedSet();
-        accept(new AbstractCollectorEx<OWLDataProperty>(res) {
+        accept(new AbstractCollectorEx<>(res) {
             @Override
             public Collection<OWLDataProperty> visit(OWLDataProperty property) {
                 objects.add(property);
@@ -474,7 +465,7 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
      */
     protected Set<OWLAnnotationProperty> getAnnotationPropertySet() {
         Set<OWLAnnotationProperty> res = createSortedSet();
-        accept(new AbstractCollectorEx<OWLAnnotationProperty>(res) {
+        accept(new AbstractCollectorEx<>(res) {
             @Override
             public Collection<OWLAnnotationProperty> visit(OWLAnnotationProperty property) {
                 objects.add(property);

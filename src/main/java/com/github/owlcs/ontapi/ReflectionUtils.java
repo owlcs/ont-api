@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -49,7 +49,7 @@ class ReflectionUtils {
      * Returns a proxy instance that implements {@code interfaceType} by dispatching method
      * invocations to {@code handler}.
      * The class loader of {@code interfaceType} will be used to define the proxy class.
-     * To implement multiple interfaces or specify a class loader, use {@link Proxy#newProxyInstance}.
+     * To implement multiple interfaces or specify a class loader, use {@code Proxy#newProxyInstance}.
      *
      * @param interfaceType {@link Class}
      * @param handler       {@link InvocationHandler}
@@ -105,8 +105,8 @@ class ReflectionUtils {
      */
     static <R> R newInstance(Class<R> type) throws OntApiException {
         try {
-            return type.newInstance();
-        } catch (InstantiationException | IllegalAccessException e) {
+            return type.getDeclaredConstructor().newInstance();
+        } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
             throw new OntApiException("Can't create instance of " + type.getName(), e);
         }
     }

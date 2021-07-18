@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -94,7 +94,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
         elements = Iter.peek(elements, n -> OntJenaException.notNull(n, "OntList: null element is specified."));
         RDFList list = listType != null ? createTypedList(model, listType, elements) : model.createList(elements);
         model.add(subject, predicate, list);
-        return new OntListImpl<N>(subject, predicate, list, listType, model, elementType) {
+        return new OntListImpl<>(subject, predicate, list, listType, model, elementType) {
             @Override
             public boolean isValid(RDFNode n) {
                 return true;
@@ -126,7 +126,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
                                                                   Property predicate,
                                                                   Resource listType,
                                                                   Class<N> elementType) {
-        return new OntListImpl<N>(subject, predicate, list, listType, model, elementType) {
+        return new OntListImpl<>(subject, predicate, list, listType, model, elementType) {
             @Override
             public boolean isValid(RDFNode n) { // n is already in cache
                 return OntObjectImpl.getNodeAs(n, elementType) != null;
@@ -163,7 +163,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
                                                                       Property predicate,
                                                                       Resource listType,
                                                                       Class<N> elementType) {
-        return new OntListImpl<N>(subject, predicate, list, listType, model, elementType) {
+        return new OntListImpl<>(subject, predicate, list, listType, model, elementType) {
             @Override
             public boolean isValid(RDFNode n) {
                 return PersonalityModel.canAs(elementType, n.asNode(), model);
@@ -395,7 +395,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
 
     @Override
     public boolean isEmpty() {
-        return isNil() || !Iter.findFirst(listMembers()).isPresent();
+        return isNil() || Iter.findFirst(listMembers()).isEmpty();
     }
 
     @Override
@@ -659,7 +659,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
             if (++i != index) {
                 continue;
             }
-            return new OntListImpl<E>(rest.getSubject(), rest.getPredicate(), list, listType, m, elementType) {
+            return new OntListImpl<>(rest.getSubject(), rest.getPredicate(), list, listType, m, elementType) {
                 @Override
                 public OntStatement getMainStatement() {
                     return OntStatementImpl.createNotAnnotatedOntStatementImpl(subject, predicate, getRDFList(), getModel());

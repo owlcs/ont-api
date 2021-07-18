@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -28,8 +28,6 @@ import org.semanticweb.owlapi.model.OWLOntologyWriterConfiguration;
 import org.semanticweb.owlapi.model.OWLPrimitive;
 
 import java.io.Serializable;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Function;
@@ -129,9 +127,7 @@ public class ModelConfig implements InternalConfig, Serializable {
      * @return a {@code Map} with {@link OWLPrimitive} class-types as keys and {@link InternalCache}s as values
      */
     public Map<Class<? extends OWLPrimitive>, InternalCache<?, ?>> getManagerCaches() {
-        Map<Class<? extends OWLPrimitive>, InternalCache<String, ? extends OWLPrimitive>> res = new HashMap<>();
-        res.put(IRI.class, manager.iris.asCache());
-        return Collections.unmodifiableMap(res);
+        return Map.of(IRI.class, manager.iris.asCache());
     }
 
     public OntPersonality getPersonality() {

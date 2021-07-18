@@ -20,7 +20,6 @@ import com.github.owlcs.ontapi.jena.OntModelFactory;
 import com.github.owlcs.ontapi.jena.RWLockedGraph;
 import com.github.owlcs.ontapi.jena.model.OntClass;
 import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
@@ -42,6 +41,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -59,7 +59,7 @@ public class RWLockedGraphTest {
     private static final List<AxiomType<? extends OWLAxiom>> EXCLUDED_TYPES = Arrays.asList(AxiomType.DECLARATION,
             AxiomType.ANNOTATION_ASSERTION, AxiomType.SUBCLASS_OF);
     private static final Set<AxiomType<? extends OWLAxiom>> CONSIDERED_TYPES = AxiomType.AXIOM_TYPES.stream()
-            .filter(x -> !EXCLUDED_TYPES.contains(x)).collect(Iter.toUnmodifiableSet()); // 453
+            .filter(x -> !EXCLUDED_TYPES.contains(x)).collect(Collectors.toUnmodifiableSet()); // 453
 
     private static void testRace(OntModel m) throws ExecutionException, InterruptedException {
         AtomicBoolean process = new AtomicBoolean(true);

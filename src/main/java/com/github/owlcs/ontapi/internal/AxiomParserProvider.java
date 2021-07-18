@@ -18,8 +18,6 @@ import com.github.owlcs.ontapi.internal.axioms.*;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.OWLAxiom;
 
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -30,55 +28,47 @@ import java.util.Objects;
  */
 public abstract class AxiomParserProvider {
 
-    private static final Map<AxiomType<?>, AxiomTranslator<? extends OWLAxiom>> MAP =
-            new HashMap<AxiomType<?>, AxiomTranslator<? extends OWLAxiom>>() {
-                {
-                    add(AxiomType.DATA_PROPERTY_DOMAIN, new DataPropertyDomainTranslator());
-                    add(AxiomType.SAME_INDIVIDUAL, new SameIndividualTranslator());
-                    add(AxiomType.SUB_OBJECT_PROPERTY, new SubObjectPropertyOfTranslator());
-                    add(AxiomType.ASYMMETRIC_OBJECT_PROPERTY, new AsymmetricObjectPropertyTranslator());
-                    add(AxiomType.FUNCTIONAL_OBJECT_PROPERTY, new FunctionalObjectPropertyTranslator());
-                    add(AxiomType.ANNOTATION_ASSERTION, new AnnotationAssertionTranslator());
-                    add(AxiomType.DISJOINT_UNION, new DisjointUnionTranslator());
-                    add(AxiomType.SWRL_RULE, new SWRLRuleTranslator());
-                    add(AxiomType.EQUIVALENT_CLASSES, new EquivalentClassesTranslator());
-                    add(AxiomType.ANNOTATION_PROPERTY_RANGE, new AnnotationPropertyRangeTranslator());
-                    add(AxiomType.DATATYPE_DEFINITION, new DatatypeDefinitionTranslator());
-                    add(AxiomType.DISJOINT_OBJECT_PROPERTIES, new DisjointObjectPropertiesTranslator());
-                    add(AxiomType.INVERSE_FUNCTIONAL_OBJECT_PROPERTY, new InverseFunctionalObjectPropertyTranslator());
-                    add(AxiomType.DATA_PROPERTY_ASSERTION, new DataPropertyAssertionTranslator());
-                    add(AxiomType.INVERSE_OBJECT_PROPERTIES, new InverseObjectPropertiesTranslator());
-                    add(AxiomType.REFLEXIVE_OBJECT_PROPERTY, new ReflexiveObjectPropertyTranslator());
-                    add(AxiomType.DIFFERENT_INDIVIDUALS, new DifferentIndividualsTranslator());
-                    add(AxiomType.FUNCTIONAL_DATA_PROPERTY, new FunctionalDataPropertyTranslator());
-                    add(AxiomType.DATA_PROPERTY_RANGE, new DataPropertyRangeTranslator());
-                    add(AxiomType.EQUIVALENT_OBJECT_PROPERTIES, new EquivalentObjectPropertiesTranslator());
-                    add(AxiomType.OBJECT_PROPERTY_RANGE, new ObjectPropertyRangeTranslator());
-                    add(AxiomType.NEGATIVE_DATA_PROPERTY_ASSERTION, new NegativeDataPropertyAssertionTranslator());
-                    add(AxiomType.SUB_PROPERTY_CHAIN_OF, new SubPropertyChainOfTranslator());
-                    add(AxiomType.ANNOTATION_PROPERTY_DOMAIN, new AnnotationPropertyDomainTranslator());
-                    add(AxiomType.TRANSITIVE_OBJECT_PROPERTY, new TransitiveObjectPropertyTranslator());
-                    add(AxiomType.EQUIVALENT_DATA_PROPERTIES, new EquivalentDataPropertiesTranslator());
-                    add(AxiomType.DISJOINT_DATA_PROPERTIES, new DisjointDataPropertiesTranslator());
-                    add(AxiomType.OBJECT_PROPERTY_DOMAIN, new ObjectPropertyDomainTranslator());
-                    add(AxiomType.SUB_ANNOTATION_PROPERTY_OF, new SubAnnotationPropertyOfTranslator());
-                    add(AxiomType.SUBCLASS_OF, new SubClassOfTranslator());
-                    add(AxiomType.DISJOINT_CLASSES, new DisjointClassesTranslator());
-                    add(AxiomType.SYMMETRIC_OBJECT_PROPERTY, new SymmetricObjectPropertyTranslator());
-                    add(AxiomType.SUB_DATA_PROPERTY, new SubDataPropertyOfTranslator());
-                    add(AxiomType.DECLARATION, new DeclarationTranslator());
-                    add(AxiomType.OBJECT_PROPERTY_ASSERTION, new ObjectPropertyAssertionTranslator());
-                    add(AxiomType.CLASS_ASSERTION, new ClassAssertionTranslator());
-                    add(AxiomType.HAS_KEY, new HasKeyTranslator());
-                    add(AxiomType.IRREFLEXIVE_OBJECT_PROPERTY, new IrreflexiveObjectPropertyTranslator());
-                    add(AxiomType.NEGATIVE_OBJECT_PROPERTY_ASSERTION, new NegativeObjectPropertyAssertionTranslator());
-
-                }
-
-                private <X extends OWLAxiom> void add(AxiomType<X> key, AxiomTranslator<X> value) {
-                    put(key, value);
-                }
-            };
+    private static final Map<AxiomType<?>, AxiomTranslator<? extends OWLAxiom>> MAP = Map.ofEntries(
+            Map.entry(AxiomType.DATA_PROPERTY_DOMAIN, new DataPropertyDomainTranslator()),
+            Map.entry(AxiomType.SAME_INDIVIDUAL, new SameIndividualTranslator()),
+            Map.entry(AxiomType.SUB_OBJECT_PROPERTY, new SubObjectPropertyOfTranslator()),
+            Map.entry(AxiomType.ASYMMETRIC_OBJECT_PROPERTY, new AsymmetricObjectPropertyTranslator()),
+            Map.entry(AxiomType.FUNCTIONAL_OBJECT_PROPERTY, new FunctionalObjectPropertyTranslator()),
+            Map.entry(AxiomType.ANNOTATION_ASSERTION, new AnnotationAssertionTranslator()),
+            Map.entry(AxiomType.DISJOINT_UNION, new DisjointUnionTranslator()),
+            Map.entry(AxiomType.SWRL_RULE, new SWRLRuleTranslator()),
+            Map.entry(AxiomType.EQUIVALENT_CLASSES, new EquivalentClassesTranslator()),
+            Map.entry(AxiomType.ANNOTATION_PROPERTY_RANGE, new AnnotationPropertyRangeTranslator()),
+            Map.entry(AxiomType.DATATYPE_DEFINITION, new DatatypeDefinitionTranslator()),
+            Map.entry(AxiomType.DISJOINT_OBJECT_PROPERTIES, new DisjointObjectPropertiesTranslator()),
+            Map.entry(AxiomType.INVERSE_FUNCTIONAL_OBJECT_PROPERTY, new InverseFunctionalObjectPropertyTranslator()),
+            Map.entry(AxiomType.DATA_PROPERTY_ASSERTION, new DataPropertyAssertionTranslator()),
+            Map.entry(AxiomType.INVERSE_OBJECT_PROPERTIES, new InverseObjectPropertiesTranslator()),
+            Map.entry(AxiomType.REFLEXIVE_OBJECT_PROPERTY, new ReflexiveObjectPropertyTranslator()),
+            Map.entry(AxiomType.DIFFERENT_INDIVIDUALS, new DifferentIndividualsTranslator()),
+            Map.entry(AxiomType.FUNCTIONAL_DATA_PROPERTY, new FunctionalDataPropertyTranslator()),
+            Map.entry(AxiomType.DATA_PROPERTY_RANGE, new DataPropertyRangeTranslator()),
+            Map.entry(AxiomType.EQUIVALENT_OBJECT_PROPERTIES, new EquivalentObjectPropertiesTranslator()),
+            Map.entry(AxiomType.OBJECT_PROPERTY_RANGE, new ObjectPropertyRangeTranslator()),
+            Map.entry(AxiomType.NEGATIVE_DATA_PROPERTY_ASSERTION, new NegativeDataPropertyAssertionTranslator()),
+            Map.entry(AxiomType.SUB_PROPERTY_CHAIN_OF, new SubPropertyChainOfTranslator()),
+            Map.entry(AxiomType.ANNOTATION_PROPERTY_DOMAIN, new AnnotationPropertyDomainTranslator()),
+            Map.entry(AxiomType.TRANSITIVE_OBJECT_PROPERTY, new TransitiveObjectPropertyTranslator()),
+            Map.entry(AxiomType.EQUIVALENT_DATA_PROPERTIES, new EquivalentDataPropertiesTranslator()),
+            Map.entry(AxiomType.DISJOINT_DATA_PROPERTIES, new DisjointDataPropertiesTranslator()),
+            Map.entry(AxiomType.OBJECT_PROPERTY_DOMAIN, new ObjectPropertyDomainTranslator()),
+            Map.entry(AxiomType.SUB_ANNOTATION_PROPERTY_OF, new SubAnnotationPropertyOfTranslator()),
+            Map.entry(AxiomType.SUBCLASS_OF, new SubClassOfTranslator()),
+            Map.entry(AxiomType.DISJOINT_CLASSES, new DisjointClassesTranslator()),
+            Map.entry(AxiomType.SYMMETRIC_OBJECT_PROPERTY, new SymmetricObjectPropertyTranslator()),
+            Map.entry(AxiomType.SUB_DATA_PROPERTY, new SubDataPropertyOfTranslator()),
+            Map.entry(AxiomType.DECLARATION, new DeclarationTranslator()),
+            Map.entry(AxiomType.OBJECT_PROPERTY_ASSERTION, new ObjectPropertyAssertionTranslator()),
+            Map.entry(AxiomType.CLASS_ASSERTION, new ClassAssertionTranslator()),
+            Map.entry(AxiomType.HAS_KEY, new HasKeyTranslator()),
+            Map.entry(AxiomType.IRREFLEXIVE_OBJECT_PROPERTY, new IrreflexiveObjectPropertyTranslator()),
+            Map.entry(AxiomType.NEGATIVE_OBJECT_PROPERTY_ASSERTION, new NegativeObjectPropertyAssertionTranslator())
+    );
 
     /**
      * Returns the parsers {@code Map}.
@@ -86,7 +76,7 @@ public abstract class AxiomParserProvider {
      * @return the {@code Map} with {@link AxiomType}-keys that contains {@link AxiomTranslator}s
      */
     public static Map<AxiomType<?>, AxiomTranslator<? extends OWLAxiom>> getParsers() {
-        return Collections.unmodifiableMap(MAP);
+        return MAP;
     }
 
     /**

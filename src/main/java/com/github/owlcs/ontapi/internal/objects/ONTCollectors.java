@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -40,7 +40,7 @@ public abstract class ONTCollectors {
      * @return {@link OWLObjectVisitorEx}
      */
     public static OWLObjectVisitorEx<Set<OWLClass>> forClasses(Set<OWLClass> res) {
-        return new SetCollector<OWLClass>(res) {
+        return new SetCollector<>(res) {
             @Override
             protected boolean testComponent(ONTComposite x) {
                 return x.canContainNamedClasses() || x.isNamedClass();
@@ -82,7 +82,7 @@ public abstract class ONTCollectors {
      * @return {@link OWLObjectVisitorEx}
      */
     public static OWLObjectVisitorEx<Set<OWLAnonymousIndividual>> forAnonymousIndividuals(Set<OWLAnonymousIndividual> res) {
-        return new SetCollector<OWLAnonymousIndividual>(res) {
+        return new SetCollector<>(res) {
             @Override
             protected boolean testComponent(ONTComposite x) {
                 return x.canContainAnonymousIndividuals() || x.isAnonymousIndividual();
@@ -103,7 +103,7 @@ public abstract class ONTCollectors {
      * @return {@link OWLObjectVisitorEx}
      */
     public static OWLObjectVisitorEx<Set<OWLNamedIndividual>> forNamedIndividuals(Set<OWLNamedIndividual> res) {
-        return new SetCollector<OWLNamedIndividual>(res) {
+        return new SetCollector<>(res) {
             @Override
             protected boolean testComponent(ONTComposite x) {
                 return x.canContainNamedIndividuals() || x.isNamedIndividual();
@@ -145,7 +145,7 @@ public abstract class ONTCollectors {
      * @return {@link OWLObjectVisitorEx}
      */
     public static OWLObjectVisitorEx<Set<OWLDatatype>> forDatatypes(Set<OWLDatatype> res) {
-        return new SetCollector<OWLDatatype>(res) {
+        return new SetCollector<>(res) {
             @Override
             protected boolean testComponent(ONTComposite x) {
                 return x.canContainDatatypes() || x.isDatatype();
@@ -187,7 +187,7 @@ public abstract class ONTCollectors {
      * @return {@link OWLObjectVisitorEx}
      */
     public static OWLObjectVisitorEx<Set<OWLObjectProperty>> forObjectProperties(Set<OWLObjectProperty> res) {
-        return new SetCollector<OWLObjectProperty>(res) {
+        return new SetCollector<>(res) {
             @Override
             protected boolean testComponent(ONTComposite x) {
                 return x.canContainObjectProperties() || x.isObjectProperty();
@@ -230,7 +230,7 @@ public abstract class ONTCollectors {
      * @return {@link OWLObjectVisitorEx}
      */
     public static OWLObjectVisitorEx<Set<OWLDataProperty>> forDataProperties(Set<OWLDataProperty> res) {
-        return new SetCollector<OWLDataProperty>(res) {
+        return new SetCollector<>(res) {
             @Override
             protected boolean testComponent(ONTComposite x) {
                 return x.canContainDataProperties() || x.isDataProperty();
@@ -272,7 +272,7 @@ public abstract class ONTCollectors {
      * @return {@link OWLObjectVisitorEx}
      */
     public static OWLObjectVisitorEx<Set<OWLAnnotationProperty>> forAnnotationProperties(Set<OWLAnnotationProperty> res) {
-        return new SetCollector<OWLAnnotationProperty>(res) {
+        return new SetCollector<>(res) {
             @Override
             protected boolean testComponent(ONTComposite x) {
                 return x.canContainAnnotationProperties() || x.isAnnotationProperty();

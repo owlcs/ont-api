@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,7 +14,6 @@
 
 package com.github.owlcs.ontapi.transforms;
 
-import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import com.github.owlcs.ontapi.transforms.vocabulary.AVC;
@@ -61,10 +60,8 @@ import java.util.stream.Stream;
 @SuppressWarnings("WeakerAccess")
 public class OWLDeclarationTransform extends TransformationModel {
 
-    private static final List<Resource> PROPERTY_TYPES = Stream.of(OWL.DatatypeProperty, OWL.ObjectProperty, OWL.AnnotationProperty)
-            .collect(Iter.toUnmodifiableList());
-    private static final List<Resource> CLASS_TYPES = Stream.of(OWL.Class, RDFS.Datatype)
-            .collect(Iter.toUnmodifiableList());
+    private static final List<Resource> PROPERTY_TYPES = List.of(OWL.DatatypeProperty, OWL.ObjectProperty, OWL.AnnotationProperty);
+    private static final List<Resource> CLASS_TYPES = List.of(OWL.Class, RDFS.Datatype);
 
 
     protected final TransformationModel manifestDeclarator;

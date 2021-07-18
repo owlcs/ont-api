@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -18,7 +18,6 @@ import com.github.owlcs.ontapi.jena.OntJenaException;
 import com.github.owlcs.ontapi.jena.model.OntEntity;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntObject;
-import com.github.owlcs.ontapi.jena.utils.Iter;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.Personality;
 import org.apache.jena.graph.Node;
@@ -31,6 +30,7 @@ import java.util.Collection;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -147,7 +147,7 @@ public interface OntPersonality {
          */
         default Set<Node> getProperties() {
             return Stream.of(getObjectProperties(), getAnnotationProperties(), getDatatypeProperties())
-                    .flatMap(Collection::stream).collect(Iter.toUnmodifiableSet());
+                    .flatMap(Collection::stream).collect(Collectors.toUnmodifiableSet());
         }
     }
 

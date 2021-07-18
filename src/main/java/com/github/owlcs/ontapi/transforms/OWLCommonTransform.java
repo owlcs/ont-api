@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -27,8 +27,9 @@ import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.vocabulary.RDFS;
 
-import java.util.*;
-import java.util.stream.Stream;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * The transformer to convert OWL 1 DL =&gt; OWL 2 DL
@@ -39,22 +40,17 @@ import java.util.stream.Stream;
 @SuppressWarnings("WeakerAccess")
 public class OWLCommonTransform extends TransformationModel {
     private static final RDFDatatype NON_NEGATIVE_INTEGER = XSDDatatype.XSDnonNegativeInteger;
-    private static final Map<Property, Property> QUALIFIED_CARDINALITY_REPLACEMENT =
-            Collections.unmodifiableMap(new HashMap<Property, Property>() {
-                {
-                    put(OWL.cardinality, OWL.qualifiedCardinality);
-                    put(OWL.maxCardinality, OWL.maxQualifiedCardinality);
-                    put(OWL.minCardinality, OWL.minQualifiedCardinality);
-                }
-            });
-    private static final Set<Property> DEPRECATED_OWL_FACETS = Stream.of(DEPRECATED.OWL.maxExclusive,
-            DEPRECATED.OWL.maxInclusive,
-            DEPRECATED.OWL.minExclusive, DEPRECATED.OWL.minInclusive).collect(Iter.toUnmodifiableSet());
-    private static final Set<Property> CARDINALITY_PREDICATES = Stream.of(OWL.cardinality, OWL.qualifiedCardinality,
+    private static final Map<Property, Property> QUALIFIED_CARDINALITY_REPLACEMENT = Map.of(
+            OWL.cardinality, OWL.qualifiedCardinality,
             OWL.maxCardinality, OWL.maxQualifiedCardinality,
-            OWL.minCardinality, OWL.minQualifiedCardinality).collect(Iter.toUnmodifiableSet());
-    private static final List<Resource> ANNOTATION_TYPES = Stream.of(OWL.Axiom, OWL.Annotation)
-            .collect(Iter.toUnmodifiableList());
+            OWL.minCardinality, OWL.minQualifiedCardinality);
+    private static final Set<Property> DEPRECATED_OWL_FACETS = Set.of(DEPRECATED.OWL.maxExclusive,
+            DEPRECATED.OWL.maxInclusive,
+            DEPRECATED.OWL.minExclusive, DEPRECATED.OWL.minInclusive);
+    private static final Set<Property> CARDINALITY_PREDICATES = Set.of(OWL.cardinality, OWL.qualifiedCardinality,
+            OWL.maxCardinality, OWL.maxQualifiedCardinality,
+            OWL.minCardinality, OWL.minQualifiedCardinality);
+    private static final List<Resource> ANNOTATION_TYPES = List.of(OWL.Axiom, OWL.Annotation);
     private final boolean processIndividuals;
 
     public OWLCommonTransform(Graph graph) {

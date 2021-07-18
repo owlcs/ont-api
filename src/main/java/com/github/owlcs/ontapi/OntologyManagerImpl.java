@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -143,7 +143,7 @@ public class OntologyManagerImpl
         this.config = Objects.requireNonNull(config);
         this.documentIRIMappers = new RWLockedCollection<>(this.lock, Objects.requireNonNull(sorting));
         this.documentSourceMappers = new RWLockedCollection<>(this.lock);
-        this.ontologyFactories = new RWLockedCollection<OWLOntologyFactory>(this.lock, sorting) {
+        this.ontologyFactories = new RWLockedCollection<>(this.lock, sorting) {
             @Override
             protected void onAdd(OWLOntologyFactory f) {
                 if (f instanceof OntologyFactory) return;
@@ -744,7 +744,7 @@ public class OntologyManagerImpl
         try {
             ID id = ID.create(Objects.requireNonNull(iri));
             Optional<OntInfo> res = content.get(id);
-            if (!res.isPresent()) {
+            if (res.isEmpty()) {
                 res = content.values().filter(e -> e.getOntologyID().match(iri)).findFirst();
             }
             return res.map(OntInfo::get).orElse(null);
@@ -778,7 +778,7 @@ public class OntologyManagerImpl
      */
     protected Optional<Ontology> ontology(OWLOntologyID id) {
         Optional<OntInfo> res = content.get(id);
-        if (!res.isPresent() && !id.isAnonymous()) {
+        if (res.isEmpty() && !id.isAnonymous()) {
             IRI iri = id.getOntologyIRI().orElseThrow(() -> new IllegalStateException("Should never happen."));
             res = content.values().filter(e -> e.getOntologyID().matchOntology(iri)).findFirst();
         }

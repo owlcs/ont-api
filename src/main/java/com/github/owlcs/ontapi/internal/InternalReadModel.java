@@ -337,7 +337,7 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
         if (!components.isEmpty()) {
             return false;
         }
-        return !Stream.concat(listOWLAnnotations(), listOWLAxioms()).findFirst().isPresent();
+        return Stream.concat(listOWLAnnotations(), listOWLAxioms()).findFirst().isEmpty();
     }
 
     public Stream<OWLEntity> listOWLEntities(IRI iri) {
@@ -1108,7 +1108,7 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
             return new CacheObjectMapImpl<>(toLoader(searcher), withMerge, parallel, fastIterator);
         }
         OntID id = getID();
-        return new CacheObjectMapImpl<OWLObject>(toLoader(searcher), withMerge, parallel, fastIterator) {
+        return new CacheObjectMapImpl<>(toLoader(searcher), withMerge, parallel, fastIterator) {
             @Override
             protected CachedMap<OWLObject, ONTObject<OWLObject>> loadMap() {
                 Instant start = Instant.now();

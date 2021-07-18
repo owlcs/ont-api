@@ -60,10 +60,11 @@ import java.util.stream.Stream;
 public class GraphTransformersTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(GraphTransformersTest.class);
 
-    private static final Set<IRI> ADDITIONAL_BUILT_IN_ENTITIES = Stream.of(RDF.List, RDFS.Resource, RDF.Property, RDFS.Class, OWL.Ontology)
+    private static final Set<IRI> ADDITIONAL_BUILT_IN_ENTITIES = Stream.of(
+            RDF.List, RDFS.Resource, RDF.Property, RDFS.Class, OWL.Ontology)
             .map(Resource::getURI)
             .map(IRI::create)
-            .collect(Iter.toUnmodifiableSet());
+            .collect(Collectors.toUnmodifiableSet());
 
     @Test
     public void testLoadSpinLibraryWithoutTransforms() throws Exception {

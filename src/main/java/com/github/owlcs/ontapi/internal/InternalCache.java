@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -130,7 +130,7 @@ public interface InternalCache<K, V> {
         Objects.requireNonNull(loader);
         @SuppressWarnings("unchecked")
         InternalCache<Key, Value> self = (InternalCache<Key, Value>) this;
-        return new Loading<Key, Value>() {
+        return new Loading<>() {
             @Override
             public Value get(Key key) {
                 return self.get(key, loader);
@@ -152,7 +152,7 @@ public interface InternalCache<K, V> {
      * @return {@link InternalCache}
      */
     static <K, V> InternalCache<K, V> createEmpty() {
-        return new InternalCache<K, V>() {
+        return new InternalCache<>() {
             @Override
             public void put(K key, V value) {
                 // nothing
@@ -206,7 +206,7 @@ public interface InternalCache<K, V> {
         if (caffeine) {
             return new CaffeineWrapper<>(Caffeine.newBuilder().maximumSize(size).build());
         }
-        return fromMap(new LinkedHashMap<K, V>((int) size, 0.75f, true) {
+        return fromMap(new LinkedHashMap<>((int) size, 0.75f, true) {
             @Override
             protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
                 return size() > size;
@@ -231,7 +231,7 @@ public interface InternalCache<K, V> {
                                               long size) {
         InternalCache<K, V> res = caffeine ?
                 new CaffeineWrapper<>(Caffeine.newBuilder().maximumSize(size).build(loader::apply), loader) :
-                fromMap(new LinkedHashMap<K, V>((int) size, 0.75f, true) {
+                fromMap(new LinkedHashMap<>((int) size, 0.75f, true) {
                     @Override
                     protected boolean removeEldestEntry(Map.Entry<K, V> eldest) {
                         return size() > size;
@@ -290,7 +290,7 @@ public interface InternalCache<K, V> {
      */
     static <K, V> Loading<K, V> createSingleton(Function<? super K, ? extends V> loader) {
         Objects.requireNonNull(loader);
-        return new Loading<K, V>() {
+        return new Loading<>() {
             private volatile V value;
 
             @Override
@@ -340,7 +340,7 @@ public interface InternalCache<K, V> {
      */
     static <K, V> Loading<K, V> createSoftSingleton(Function<? super K, ? extends V> loader) {
         Objects.requireNonNull(loader);
-        return new Loading<K, V>() {
+        return new Loading<>() {
             private volatile SoftReference<V> value;
 
             @Override
@@ -654,7 +654,7 @@ public interface InternalCache<K, V> {
             @SuppressWarnings("unchecked")
             InternalCache<Key, Value> self = (InternalCache<Key, Value>) this;
             if (cache instanceof LoadingCache && Objects.equals(this.embeddedLoader, loader)) {
-                return new Loading<Key, Value>() {
+                return new Loading<>() {
                     @SuppressWarnings("unchecked")
                     @Override
                     public Value get(Key key) {
@@ -667,7 +667,7 @@ public interface InternalCache<K, V> {
                     }
                 };
             }
-            return new Loading<Key, Value>() {
+            return new Loading<>() {
                 @Override
                 public Value get(Key key) {
                     return self.get(key, loader);

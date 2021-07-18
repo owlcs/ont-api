@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -286,13 +286,13 @@ public class Graphs {
      */
     public static String getName(Graph graph) {
         Optional<Node> res = ontologyNode(getBase(graph));
-        if (!res.isPresent()) return NULL_ONTOLOGY_IDENTIFIER;
+        if (res.isEmpty()) return NULL_ONTOLOGY_IDENTIFIER;
         List<String> versions = graph.find(res.get(), OWL.versionIRI.asNode(), Node.ANY)
                 .mapWith(Triple::getObject).mapWith(Node::toString).toList();
         if (versions.isEmpty()) {
-            return String.format("<%s>", res.get().toString());
+            return String.format("<%s>", res.get());
         }
-        return String.format("<%s%s>", res.get().toString(), versions.toString());
+        return String.format("<%s%s>", res.get(), versions);
     }
 
     /**

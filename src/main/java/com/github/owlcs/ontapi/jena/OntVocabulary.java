@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,7 +14,6 @@
 
 package com.github.owlcs.ontapi.jena;
 
-import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.vocabulary.*;
 import org.apache.jena.datatypes.BaseDatatype;
 import org.apache.jena.datatypes.RDFDatatype;
@@ -162,7 +161,7 @@ public interface OntVocabulary {
     default Set<Resource> getSystemALL() {
         return Stream.of(getSystemProperties(), getSystemResources())
                 .flatMap(Collection::stream)
-                .collect(Iter.toUnmodifiableSet());
+                .collect(Collectors.toUnmodifiableSet());
     }
 
     /**
@@ -173,7 +172,7 @@ public interface OntVocabulary {
     default Set<Property> getBuiltinOWLProperties() {
         return Stream.of(getBuiltinAnnotationProperties(), getBuiltinDatatypeProperties(), getBuiltinObjectProperties())
                 .flatMap(Collection::stream)
-                .collect(Iter.toUnmodifiableSet());
+                .collect(Collectors.toUnmodifiableSet());
     }
 
     /**
@@ -184,7 +183,7 @@ public interface OntVocabulary {
     default Set<Resource> getBuiltinOWLEntities() {
         return Stream.of(getBuiltinClasses(), getBuiltinDatatypes(), getBuiltinOWLProperties())
                 .flatMap(Collection::stream)
-                .collect(Iter.toUnmodifiableSet());
+                .collect(Collectors.toUnmodifiableSet());
     }
 
     /**
@@ -259,7 +258,7 @@ public interface OntVocabulary {
          * @return a {@link OntVocabulary} with single (specified) mapping
          */
         public static OntVocabulary create(Resource key, Resource... values) {
-            return create(key, Arrays.stream(values).collect(Iter.toUnmodifiableSet()));
+            return create(key, Arrays.stream(values).collect(Collectors.toUnmodifiableSet()));
         }
 
         /**
@@ -328,7 +327,7 @@ public interface OntVocabulary {
         protected static <T> Set<T> getConstants(Class<? extends T> type, Class<?>... vocabularies) {
             return Arrays.stream(vocabularies)
                     .flatMap(x -> constants(x, type))
-                    .collect(Iter.toUnmodifiableSet());
+                    .collect(Collectors.toUnmodifiableSet());
         }
 
         private static Map<String, Set<? extends Resource>> asMap(OntVocabulary voc) {
@@ -346,7 +345,7 @@ public interface OntVocabulary {
             if (input instanceof Set && input.getClass().getName().equals("java.util.Collections$UnmodifiableSet")) {
                 return (Set<X>) input;
             }
-            return input.stream().peek(Objects::requireNonNull).collect(Iter.toUnmodifiableSet());
+            return input.stream().peek(Objects::requireNonNull).collect(Collectors.toUnmodifiableSet());
         }
 
         /**
@@ -361,7 +360,7 @@ public interface OntVocabulary {
              * It seems it is not full:
              */
             public static final Set<Resource> OWL2_DATATYPES =
-                    Stream.of(RDF.xmlLiteral, RDF.PlainLiteral, RDF.langString,
+                    Set.of(RDF.xmlLiteral, RDF.PlainLiteral, RDF.langString,
                             RDFS.Literal, OWL.real, OWL.rational, XSD.xstring, XSD.normalizedString,
                             XSD.token, XSD.language, XSD.Name, XSD.NCName, XSD.NMTOKEN, XSD.decimal, XSD.integer,
                             XSD.xdouble, XSD.xfloat, XSD.xboolean,
@@ -370,19 +369,16 @@ public interface OntVocabulary {
                             XSD.unsignedLong, XSD.unsignedInt, XSD.unsignedShort, XSD.unsignedByte,
                             XSD.hexBinary, XSD.base64Binary,
                             XSD.anyURI, XSD.dateTime, XSD.dateTimeStamp
-                    ).collect(Iter.toUnmodifiableSet());
+                    );
             public static final Set<RDFDatatype> JENA_RDF_DATATYPE_SET = initBuiltInRDFDatatypes(TypeMapper.getInstance());
             public static final Set<Resource> DATATYPES = JENA_RDF_DATATYPE_SET.stream().map(RDFDatatype::getURI).
-                    map(ResourceFactory::createResource).collect(Iter.toUnmodifiableSet());
-            public static final Set<Resource> CLASSES = Stream.of(OWL.Nothing, OWL.Thing).collect(Iter.toUnmodifiableSet());
+                    map(ResourceFactory::createResource).collect(Collectors.toUnmodifiableSet());
+            public static final Set<Resource> CLASSES = Set.of(OWL.Nothing, OWL.Thing);
             public static final Set<Property> ANNOTATION_PROPERTIES =
-                    Stream.of(RDFS.label, RDFS.comment, RDFS.seeAlso, RDFS.isDefinedBy, OWL.versionInfo,
-                            OWL.backwardCompatibleWith, OWL.priorVersion, OWL.incompatibleWith, OWL.deprecated)
-                            .collect(Iter.toUnmodifiableSet());
-            public static final Set<Property> DATA_PROPERTIES =
-                    Stream.of(OWL.topDataProperty, OWL.bottomDataProperty).collect(Iter.toUnmodifiableSet());
-            public static final Set<Property> OBJECT_PROPERTIES =
-                    Stream.of(OWL.topObjectProperty, OWL.bottomObjectProperty).collect(Iter.toUnmodifiableSet());
+                    Set.of(RDFS.label, RDFS.comment, RDFS.seeAlso, RDFS.isDefinedBy, OWL.versionInfo,
+                            OWL.backwardCompatibleWith, OWL.priorVersion, OWL.incompatibleWith, OWL.deprecated);
+            public static final Set<Property> DATA_PROPERTIES = Set.of(OWL.topDataProperty, OWL.bottomDataProperty);
+            public static final Set<Property> OBJECT_PROPERTIES = Set.of(OWL.topObjectProperty, OWL.bottomObjectProperty);
             public static final Set<Property> PROPERTIES = getConstants(Property.class, VOCABULARIES);
             public static final Set<Resource> RESOURCES = getConstants(Resource.class, VOCABULARIES);
 
@@ -417,24 +413,21 @@ public interface OntVocabulary {
         @SuppressWarnings("WeakerAccess")
         protected static class SKOSImpl extends Impl {
             public static final Set<Property> ANNOTATION_PROPERTIES =
-                    Stream.of(SKOS.altLabel, SKOS.changeNote, SKOS.definition,
+                    Set.of(SKOS.altLabel, SKOS.changeNote, SKOS.definition,
                             SKOS.editorialNote, SKOS.example, SKOS.hiddenLabel, SKOS.historyNote,
-                            SKOS.note, SKOS.prefLabel, SKOS.scopeNote)
-                            .collect(Iter.toUnmodifiableSet());
+                            SKOS.note, SKOS.prefLabel, SKOS.scopeNote);
             public static final Set<Property> OBJECT_PROPERTIES =
-                    Stream.of(SKOS.broadMatch, SKOS.broader, SKOS.broaderTransitive,
+                    Set.of(SKOS.broadMatch, SKOS.broader, SKOS.broaderTransitive,
                             SKOS.closeMatch, SKOS.exactMatch, SKOS.hasTopConcept, SKOS.inScheme,
                             SKOS.mappingRelation, SKOS.member, SKOS.memberList, SKOS.narrowMatch,
                             SKOS.narrower, SKOS.narrowerTransitive, SKOS.related,
-                            SKOS.relatedMatch, SKOS.semanticRelation, SKOS.topConceptOf)
-                            .collect(Iter.toUnmodifiableSet());
+                            SKOS.relatedMatch, SKOS.semanticRelation, SKOS.topConceptOf);
             /**
              * NOTE: In the {@link org.semanticweb.owlapi.vocab.SKOSVocabulary} there is also skos:TopConcept
              * But in fact there is no such resource in the <a href='https://www.w3.org/2009/08/skos-reference/skos.htm'>specification</a>.
              */
             public static final Set<Resource> CLASSES =
-                    Stream.of(SKOS.Collection, SKOS.Concept, SKOS.ConceptScheme, SKOS.OrderedCollection)
-                            .collect(Iter.toUnmodifiableSet());
+                    Set.of(SKOS.Collection, SKOS.Concept, SKOS.ConceptScheme, SKOS.OrderedCollection);
 
             public static final Set<Property> PROPERTIES = getConstants(Property.class, SKOS.class);
             public static final Set<Resource> RESOURCES = getConstants(Resource.class, SKOS.class);
@@ -481,7 +474,7 @@ public interface OntVocabulary {
                            Set<Resource> swrlBuiltins,
                            Set<Property> allProperties,
                            Set<Resource> allResources) {
-                this(new HashMap<String, Set<? extends Resource>>() {
+                this(new HashMap<>() {
                     {
                         put(OWL.AnnotationProperty, annotationProperties);
                         put(OWL.DatatypeProperty, dataProperties);

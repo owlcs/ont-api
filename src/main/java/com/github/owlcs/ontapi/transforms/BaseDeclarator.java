@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -25,21 +25,20 @@ import org.apache.jena.vocabulary.RDFS;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * The collection of base methods for {@link ManifestDeclarator} and {@link ReasonerDeclarator}
  */
 @SuppressWarnings({"WeakerAccess", "UnusedReturnValue"})
 public abstract class BaseDeclarator extends TransformationModel {
-    private static final List<Property> RESTRICTION_PROPERTY_MARKERS = Stream.of(OWL.onProperty, OWL.allValuesFrom,
+    private static final List<Property> RESTRICTION_PROPERTY_MARKERS = List.of(OWL.onProperty, OWL.allValuesFrom,
             OWL.someValuesFrom, OWL.hasValue, OWL.onClass,
             OWL.onDataRange, OWL.cardinality, OWL.qualifiedCardinality,
             OWL.maxCardinality, OWL.maxQualifiedCardinality, OWL.minCardinality,
-            OWL.maxQualifiedCardinality, OWL.onProperties).collect(Iter.toUnmodifiableList());
+            OWL.maxQualifiedCardinality, OWL.onProperties);
 
-    private static final List<Property> ANONYMOUS_CLASS_MARKERS = Stream.of(OWL.intersectionOf, OWL.oneOf,
-            OWL.unionOf, OWL.complementOf).collect(Iter.toUnmodifiableList());
+    private static final List<Property> ANONYMOUS_CLASS_MARKERS = List.of(OWL.intersectionOf, OWL.oneOf,
+            OWL.unionOf, OWL.complementOf);
 
     private Set<String> datatypes;
 

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -44,7 +44,7 @@ public abstract class ONTWrapperImpl<O extends OWLObject> implements ONTObject<O
     }
 
     public static <X extends OWLObject> ONTWrapperImpl<X> create(X o, OntObject root) {
-        return new ONTWrapperImpl<X>(o) {
+        return new ONTWrapperImpl<>(o) {
             @Override
             public Stream<Triple> triples() {
                 return root.spec().map(FrontsTriple::asTriple);
@@ -53,7 +53,7 @@ public abstract class ONTWrapperImpl<O extends OWLObject> implements ONTObject<O
     }
 
     public static <X extends OWLObject> ONTWrapperImpl<X> create(X o) {
-        return new ONTWrapperImpl<X>(o) {
+        return new ONTWrapperImpl<>(o) {
             @Override
             public Stream<Triple> triples() {
                 return Stream.empty();
@@ -67,7 +67,7 @@ public abstract class ONTWrapperImpl<O extends OWLObject> implements ONTObject<O
     }
 
     protected static <X extends OWLObject> ONTWrapperImpl<X> create(X o, Triple root) {
-        return new ONTWrapperImpl<X>(o) {
+        return new ONTWrapperImpl<>(o) {
             @Override
             public Stream<Triple> triples() {
                 return Stream.of(root);
@@ -76,7 +76,7 @@ public abstract class ONTWrapperImpl<O extends OWLObject> implements ONTObject<O
     }
 
     protected static <X extends OWLObject> ONTWrapperImpl<X> create(ONTObject<X> other) {
-        return new ONTWrapperImpl<X>(other.getOWLObject()) {
+        return new ONTWrapperImpl<>(other.getOWLObject()) {
             @Override
             public Stream<Triple> triples() {
                 return other.triples();
@@ -171,7 +171,7 @@ public abstract class ONTWrapperImpl<O extends OWLObject> implements ONTObject<O
      * @return {@link ONTWrapperImpl}, new instance
      */
     public ONTWrapperImpl<O> append(Supplier<Stream<Triple>> triples) {
-        return new ONTWrapperImpl<O>(object) {
+        return new ONTWrapperImpl<>(object) {
             @Override
             public Stream<Triple> triples() {
                 return concat(triples.get());

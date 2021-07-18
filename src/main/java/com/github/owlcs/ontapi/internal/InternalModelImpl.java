@@ -444,7 +444,7 @@ public class InternalModelImpl extends InternalReadModel implements InternalMode
             if (!map.isLoaded()) {
                 return;
             }
-            if (!type.select(container).findFirst().isPresent()) return;
+            if (type.select(container).findFirst().isEmpty()) return;
             map.clear();
         });
     }

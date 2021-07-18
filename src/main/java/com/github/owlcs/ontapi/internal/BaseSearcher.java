@@ -34,6 +34,7 @@ import org.semanticweb.owlapi.model.OWLObject;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -128,7 +129,8 @@ public abstract class BaseSearcher {
     }
 
     private static Set<AxiomTranslator<OWLAxiom>> selectTranslators(Stream<OWLTopObjectType> types) {
-        return types.map(OWLTopObjectType::getAxiomType).map(AxiomTranslator::get).collect(Iter.toUnmodifiableSet());
+        return types.map(OWLTopObjectType::getAxiomType).map(AxiomTranslator::get)
+                .collect(Collectors.toUnmodifiableSet());
     }
 
     @SuppressWarnings("unchecked")
