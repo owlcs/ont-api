@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -21,7 +21,7 @@ import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.jena.impl.PersonalityModel;
 import com.github.owlcs.ontapi.jena.model.OntIndividual;
 import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.owlapi.objects.OWLAnonymousIndividualImpl;
+import com.github.owlcs.ontapi.owlapi.objects.AnonymousIndividualImpl;
 import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.graph.Triple;
 import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
@@ -40,10 +40,10 @@ import java.util.stream.Stream;
  * An {@link OWLAnonymousIndividual} implementation that is also an instance of {@link ONTObject}.
  * Created by @ssz on 07.08.2019.
  *
- * @see OWLAnonymousIndividualImpl
+ * @see AnonymousIndividualImpl
  * @since 2.0.0
  */
-public class ONTAnonymousIndividualImpl extends OWLAnonymousIndividualImpl
+public class ONTAnonymousIndividualImpl extends AnonymousIndividualImpl
         implements OWLAnonymousIndividual, HasObjectFactory, ONTSimple, ModelObject<OWLAnonymousIndividual>, AsRDFNode {
 
     protected final Supplier<OntModel> model;

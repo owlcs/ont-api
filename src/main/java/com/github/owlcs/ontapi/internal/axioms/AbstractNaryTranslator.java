@@ -24,7 +24,7 @@ import com.github.owlcs.ontapi.internal.objects.*;
 import com.github.owlcs.ontapi.jena.model.*;
 import com.github.owlcs.ontapi.jena.utils.Graphs;
 import com.github.owlcs.ontapi.jena.utils.Iter;
-import com.github.owlcs.ontapi.owlapi.objects.OWLAnonymousIndividualImpl;
+import com.github.owlcs.ontapi.owlapi.objects.AnonymousIndividualImpl;
 import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
@@ -411,7 +411,7 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
         @SuppressWarnings("rawtypes")
         public Object toContentItem(ONTObject x) {
             if (x instanceof OWLNamedIndividual) return ONTEntityImpl.getURI((OWLEntity) x);
-            return ((OWLAnonymousIndividualImpl) x).getBlankNodeId();
+            return ((AnonymousIndividualImpl) x).getBlankNodeId();
         }
     }
 

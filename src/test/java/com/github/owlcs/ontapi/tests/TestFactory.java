@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -16,7 +16,7 @@ package com.github.owlcs.ontapi.tests;
 
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.owlapi.OWLObjectImpl;
-import com.github.owlcs.ontapi.owlapi.objects.entity.OWLBuiltinDatatypeImpl;
+import com.github.owlcs.ontapi.owlapi.objects.entity.BuiltinDatatypeImpl;
 import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.SimpleRenderer;
@@ -991,7 +991,7 @@ public final class TestFactory {
 
                     @Override
                     public Class<? extends OWLObject> getSuperImplClassType() {
-                        return OWLBuiltinDatatypeImpl.class;
+                        return BuiltinDatatypeImpl.class;
                     }
 
                     @Override
@@ -1012,7 +1012,7 @@ public final class TestFactory {
 
                     @Override
                     public Class<? extends OWLObject> getSuperImplClassType() {
-                        return OWLBuiltinDatatypeImpl.class;
+                        return BuiltinDatatypeImpl.class;
                     }
 
                     @Override
@@ -1033,7 +1033,7 @@ public final class TestFactory {
 
                     @Override
                     public Class<? extends OWLObject> getSuperImplClassType() {
-                        return OWLBuiltinDatatypeImpl.class;
+                        return BuiltinDatatypeImpl.class;
                     }
 
                     @Override
@@ -1214,7 +1214,7 @@ public final class TestFactory {
 
                     @Override
                     public Class<? extends OWLObject> getSuperImplClassType() {
-                        return OWLBuiltinDatatypeImpl.class;
+                        return BuiltinDatatypeImpl.class;
                     }
 
                     @Override
@@ -1283,7 +1283,7 @@ public final class TestFactory {
 
                     @Override
                     public Class<? extends OWLObject> getSuperImplClassType() {
-                        return OWLBuiltinDatatypeImpl.class;
+                        return BuiltinDatatypeImpl.class;
                     }
 
                     @Override

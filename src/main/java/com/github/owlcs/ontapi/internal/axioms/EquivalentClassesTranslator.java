@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -23,7 +23,7 @@ import com.github.owlcs.ontapi.jena.model.OntClass;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
-import com.github.owlcs.ontapi.owlapi.axioms.OWLEquivalentClassesAxiomImpl;
+import com.github.owlcs.ontapi.owlapi.axioms.EquivalentClassesAxiomImpl;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Property;
@@ -98,7 +98,7 @@ public class EquivalentClassesTranslator extends AbstractNaryTranslator<OWLEquiv
      * Although the {@link OWLNaryAxiom} interface allows axioms with any arity,
      * an instance of this implementation has exactly {@code 2} operands, no more, no less.
      *
-     * @see OWLEquivalentClassesAxiomImpl
+     * @see com.github.owlcs.ontapi.owlapi.axioms.EquivalentClassesAxiomImpl
      */
     public abstract static class AxiomImpl extends ClassNaryAxiomImpl<OWLEquivalentClassesAxiom>
             implements OWLEquivalentClassesAxiom {
@@ -133,13 +133,13 @@ public class EquivalentClassesTranslator extends AbstractNaryTranslator<OWLEquiv
 
         @Override
         public Stream<OWLClass> namedClasses() {
-            return classExpressions().filter(OWLEquivalentClassesAxiomImpl::isNamed)
+            return classExpressions().filter(EquivalentClassesAxiomImpl::isNamed)
                     .map(OWLClassExpression::asOWLClass);
         }
 
         @Override
         public boolean containsNamedEquivalentClass() {
-            return members().map(ONTObject::getOWLObject).anyMatch(OWLEquivalentClassesAxiomImpl::isNamed);
+            return members().map(ONTObject::getOWLObject).anyMatch(EquivalentClassesAxiomImpl::isNamed);
         }
 
         @Override

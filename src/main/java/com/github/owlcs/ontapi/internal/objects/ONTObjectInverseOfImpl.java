@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -19,6 +19,7 @@ import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.ONTObjectFactory;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntObjectProperty;
+import com.github.owlcs.ontapi.owlapi.objects.ObjectInverseOfImpl;
 import org.apache.jena.graph.BlankNodeId;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLObject;
@@ -33,7 +34,7 @@ import java.util.stream.Stream;
  * An {@link OWLObjectInverseOf} implementation that is also {@link ONTObject}.
  * Created by @ssz on 19.08.2019.
  *
- * @see com.github.owlcs.ontapi.owlapi.objects.OWLObjectInverseOfImpl
+ * @see ObjectInverseOfImpl
  * @see OntObjectProperty.Inverse
  * @since 2.0.0
  */

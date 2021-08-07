@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -20,7 +20,7 @@ import com.github.owlcs.ontapi.internal.objects.*;
 import com.github.owlcs.ontapi.jena.model.*;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
-import com.github.owlcs.ontapi.owlapi.axioms.SWRLRuleImpl;
+import com.github.owlcs.ontapi.owlapi.axioms.RuleImpl;
 import org.apache.jena.graph.FrontsTriple;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.util.iterator.ExtendedIterator;
@@ -83,7 +83,7 @@ public class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
     }
 
     /**
-     * @see SWRLRuleImpl
+     * @see com.github.owlcs.ontapi.owlapi.axioms.RuleImpl
      */
     public static class AxiomImpl extends ONTAxiomImpl<SWRLRule> implements WithContent<AxiomImpl>, SWRLRule {
         protected final InternalCache.Loading<AxiomImpl, Object[]> content;
@@ -190,7 +190,7 @@ public class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
 
         @Override
         public Stream<SWRLVariable> variables() {
-            return SWRLRuleImpl.variables(this);
+            return RuleImpl.variables(this);
         }
 
         @Override
@@ -200,7 +200,7 @@ public class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
 
         @Override
         public Stream<OWLClassExpression> classAtomPredicates() {
-            return SWRLRuleImpl.classAtomPredicates(this);
+            return RuleImpl.classAtomPredicates(this);
         }
 
         @Override

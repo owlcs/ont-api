@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -21,7 +21,8 @@ import com.github.owlcs.ontapi.internal.ONTObjectFactory;
 import com.github.owlcs.ontapi.jena.model.OntDataRange;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
-import com.github.owlcs.ontapi.owlapi.objects.OWLLiteralImpl;
+import com.github.owlcs.ontapi.owlapi.objects.LiteralImpl;
+import com.github.owlcs.ontapi.owlapi.objects.dr.*;
 import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.RDFNode;
@@ -40,7 +41,7 @@ import java.util.stream.Stream;
  * <p>
  * Created by @ssz on 20.08.2019.
  *
- * @see com.github.owlcs.ontapi.owlapi.objects.dr.OWLAnonymousDataRangeImpl
+ * @see AnonymousDataRangeImpl
  * @see com.github.owlcs.ontapi.internal.ReadHelper#calcDataRange(OntDataRange, ONTObjectFactory, Set)
  * @see OntDataRange
  * @since 2.0.0
@@ -145,7 +146,7 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDataRange, OWL ex
     }
 
     /**
-     * @see com.github.owlcs.ontapi.owlapi.objects.dr.OWLDataUnionOfImpl
+     * @see DataUnionOfImpl
      * @see OntDataRange.UnionOf
      */
     public static class UF
@@ -167,7 +168,7 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDataRange, OWL ex
     }
 
     /**
-     * @see com.github.owlcs.ontapi.owlapi.objects.dr.OWLDataIntersectionOfImpl
+     * @see DataIntersectionOfImpl
      * @see OntDataRange.IntersectionOf
      */
     public static class IF
@@ -190,7 +191,7 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDataRange, OWL ex
     }
 
     /**
-     * @see com.github.owlcs.ontapi.owlapi.objects.dr.OWLDataOneOfImpl
+     * @see DataOneOfImpl
      * @see OntDataRange.OneOf
      */
     public static class OF
@@ -217,7 +218,7 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDataRange, OWL ex
 
         @Override
         protected Object toContentItem(ONTObject<? extends OWLLiteral> literal) {
-            return ((OWLLiteralImpl) literal).getLiteralLabel();
+            return ((LiteralImpl) literal).getLiteralLabel();
         }
 
         @Override
@@ -232,7 +233,7 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDataRange, OWL ex
     }
 
     /**
-     * @see com.github.owlcs.ontapi.owlapi.objects.dr.OWLDatatypeRestrictionImpl
+     * @see DatatypeRestrictionImpl
      * @see OntDataRange.Restriction
      */
     public static class R
@@ -332,7 +333,7 @@ public abstract class ONTAnonymousDataRangeImpl<ONT extends OntDataRange, OWL ex
     }
 
     /**
-     * @see com.github.owlcs.ontapi.owlapi.objects.dr.OWLDataComplementOfImpl
+     * @see DataComplementOfImpl
      * @see OntDataRange.ComplementOf
      */
     public static class CF

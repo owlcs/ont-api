@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -22,7 +22,7 @@ import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntNegativeAssertion;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
-import com.github.owlcs.ontapi.owlapi.objects.OWLLiteralImpl;
+import com.github.owlcs.ontapi.owlapi.objects.LiteralImpl;
 import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.graph.impl.LiteralLabel;
@@ -80,7 +80,7 @@ public class NegativeDataPropertyAssertionTranslator
     }
 
     /**
-     * @see com.github.owlcs.ontapi.owlapi.axioms.OWLNegativeDataPropertyAssertionAxiomImpl
+     * @see com.github.owlcs.ontapi.owlapi.axioms.NegativeDataPropertyAssertionAxiomImpl
      */
     public static class AxiomImpl
             extends NegativeAssertionImpl<OntNegativeAssertion.WithDataProperty, OWLNegativeDataPropertyAssertionAxiom,
@@ -119,7 +119,7 @@ public class NegativeDataPropertyAssertionTranslator
         @SuppressWarnings("rawtypes")
         @Override
         public Object fromObject(ONTObject o) {
-            return OWLLiteralImpl.asONT((OWLLiteral) o.getOWLObject()).getLiteralLabel();
+            return LiteralImpl.asONT((OWLLiteral) o.getOWLObject()).getLiteralLabel();
         }
 
         @Override

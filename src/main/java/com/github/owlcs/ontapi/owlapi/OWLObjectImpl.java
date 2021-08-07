@@ -28,9 +28,6 @@ import java.util.stream.Stream;
 
 /**
  * A base for any OWLObject in ONT-API.
- *
- * @author Matthew Horridge, The University Of Manchester, Bio-Health Informatics Group
- * @since 1.2.0
  */
 @ParametersAreNonnullByDefault
 @SuppressWarnings("WeakerAccess")
@@ -45,18 +42,6 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
     protected static final List<OWLAnnotation> NO_ANNOTATIONS = Collections.emptyList();
 
     protected int hashCode;
-
-    /**
-     * Creates a {@code Set}.
-     *
-     * @param values Array of {@link X}s without {@code null}s
-     * @param <X>    anything
-     * @return a modifiable {@code Set} of {@link X}s
-     */
-    @SafeVarargs
-    protected static <X> Set<X> createSet(X... values) {
-        return new HashSet<>(Arrays.asList(values));
-    }
 
     /**
      * Creates an immutable singleton {@code Set}.
@@ -142,7 +127,7 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
 
     /**
      * Transforms the given collection of annotations to the form that is required by OWL-API:
-     * an internal annotations collection must be distinct, nonnull and sorted.
+     * an internal annotations' collection must be distinct, nonnull and sorted.
      *
      * @param annotations a {@code Collection} of {@link OWLAnnotation}s
      * @return an unmodifiable sorted and distinct {@code List} of {@link OWLAnnotation annotation}s
@@ -200,7 +185,7 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
      * Compares iterators element by element (sensitive to order).
      * It was moved from the {@link org.semanticweb.owlapi.util.OWLAPIStreamUtils} to control behaviour.
      *
-     * @param left {@code Iterator} to compare, not {@code null}
+     * @param left  {@code Iterator} to compare, not {@code null}
      * @param right {@code Iterator} to compare, not {@code null}
      * @return {@code int}, a negative value if {@code left} comes before {@code right},
      * a positive value if {@code left} comes before {@code right},
@@ -357,7 +342,7 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
     }
 
     /**
-     * Gets all of the nested (includes top level) class expressions that are used in this object.
+     * Gets all the nested (includes top level) class expressions that are used in this object.
      * The set is a copy, changes are not reflected back.
      *
      * @return a modifiable unordered {@code Set} of {@link OWLClassExpression}s
@@ -368,7 +353,7 @@ public abstract class OWLObjectImpl implements OWLObject, Serializable {
     }
 
     /**
-     * Gets all of the individuals that are in the signature of this object.
+     * Gets all the individuals that are in the signature of this object.
      * The set is a copy, changes are not reflected back.
      *
      * @return a modifiable sorted {@code Set} containing the individuals that are in the signature of this object

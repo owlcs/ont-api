@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -19,6 +19,7 @@ import com.github.owlcs.ontapi.config.AxiomsSettings;
 import com.github.owlcs.ontapi.internal.*;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
+import com.github.owlcs.ontapi.owlapi.axioms.AxiomImpl;
 import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Resource;
@@ -40,7 +41,7 @@ import java.util.stream.Stream;
  * Created by @ssz on 15.09.2019.
  *
  * @param <X> - the {@link OWLAxiom} subtype, must be the same that this class implements
- * @see com.github.owlcs.ontapi.owlapi.axioms.OWLAxiomImpl
+ * @see AxiomImpl
  * @since 2.0.0
  */
 @SuppressWarnings("WeakerAccess")

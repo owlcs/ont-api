@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -21,7 +21,7 @@ import com.github.owlcs.ontapi.jena.model.OntStatement;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.utils.Models;
 import com.github.owlcs.ontapi.jena.vocabulary.XSD;
-import com.github.owlcs.ontapi.owlapi.objects.OWLLiteralImpl;
+import com.github.owlcs.ontapi.owlapi.objects.LiteralImpl;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLLiteral;
@@ -34,7 +34,7 @@ public class ByLiteral extends ByPrimitive<OWLLiteral> {
 
     @Override
     public ExtendedIterator<OntStatement> listStatements(OntModel model, OWLLiteral literal) {
-        Literal object = model.asRDFNode(OWLLiteralImpl.asONT(literal).asNode()).asLiteral();
+        Literal object = model.asRDFNode(LiteralImpl.asONT(literal).asNode()).asLiteral();
         ExtendedIterator<OntStatement> res = listByObject(model, object);
         // https://github.com/owlcs/owlapi/issues/783
         if (XSD.nonNegativeInteger.getURI().equals(object.getDatatypeURI())) {

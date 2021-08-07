@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,7 +14,7 @@
 
 package com.github.owlcs.owlapi.tests.api.swrl;
 
-import com.github.owlcs.ontapi.owlapi.axioms.SWRLRuleImpl;
+import com.github.owlcs.ontapi.owlapi.axioms.RuleImpl;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,7 +34,7 @@ public class SWRLAtomOrderingTestCase extends TestBase {
     protected SWRLAtom atomB;
     protected SWRLAtom atomC;
     protected SWRLAtom atomD;
-    private SWRLRuleImpl rule;
+    private RuleImpl rule;
     private final Set<SWRLAtom> body = new LinkedHashSet<>();
 
     @BeforeEach
@@ -49,7 +49,7 @@ public class SWRLAtomOrderingTestCase extends TestBase {
         body.add(atomA);
         Set<SWRLAtom> head = new LinkedHashSet<>();
         head.add(atomD);
-        rule = new SWRLRuleImpl(body, head, Collections.emptySet());
+        rule = new RuleImpl(body, head, Collections.emptySet());
     }
 
     @Test
