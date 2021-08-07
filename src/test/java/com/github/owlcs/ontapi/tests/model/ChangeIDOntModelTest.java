@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -25,7 +25,7 @@ import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.utils.Models;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
-import com.github.owlcs.ontapi.owlapi.objects.OWLAnnotationImplNotAnnotated;
+import com.github.owlcs.ontapi.owlapi.objects.AnnotationImplNotAnnotated;
 import com.github.owlcs.ontapi.utils.OntIRI;
 import org.apache.jena.rdf.model.*;
 import org.apache.jena.util.ResourceUtils;
@@ -281,7 +281,7 @@ public class ChangeIDOntModelTest extends OntModelTestBase {
         } else {
             Assertions.fail("Unknown node " + node);
         }
-        return new OWLAnnotationImplNotAnnotated(p, v);
+        return new AnnotationImplNotAnnotated(p, v);
     }
 
     private static class ApplyChangesWrapper {

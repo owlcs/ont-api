@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -15,8 +15,8 @@
 package com.github.owlcs.ontapi;
 
 import com.github.owlcs.ontapi.internal.ONTObjectFactory;
+import com.github.owlcs.ontapi.owlapi.ImportsDeclarationImpl;
 import com.github.owlcs.ontapi.owlapi.InternalizedEntities;
-import com.github.owlcs.ontapi.owlapi.OWLImportsDeclarationImpl;
 import com.github.owlcs.ontapi.owlapi.axioms.*;
 import com.github.owlcs.ontapi.owlapi.objects.*;
 import com.github.owlcs.ontapi.owlapi.objects.ce.*;
@@ -139,7 +139,7 @@ public class DataFactoryImpl implements DataFactory {
 
     @Override
     public OWLClass getOWLClass(IRI iri) {
-        return new OWLClassImpl(notNull(iri, IRI_CANNOT_BE_NULL));
+        return new ClassImpl(notNull(iri, IRI_CANNOT_BE_NULL));
     }
 
     @Override
@@ -214,27 +214,27 @@ public class DataFactoryImpl implements DataFactory {
 
     @Override
     public OWLObjectProperty getOWLObjectProperty(IRI iri) {
-        return new OWLObjectPropertyImpl(notNull(iri, IRI_CANNOT_BE_NULL));
+        return new ObjectPropertyImpl(notNull(iri, IRI_CANNOT_BE_NULL));
     }
 
     @Override
     public OWLObjectInverseOf getOWLObjectInverseOf(OWLObjectProperty property) {
-        return new OWLObjectInverseOfImpl(notNull(property, PROPERTY_CANNOT_BE_NULL));
+        return new ObjectInverseOfImpl(notNull(property, PROPERTY_CANNOT_BE_NULL));
     }
 
     @Override
     public OWLDataProperty getOWLDataProperty(IRI iri) {
-        return new OWLDataPropertyImpl(notNull(iri, IRI_CANNOT_BE_NULL));
+        return new DataPropertyImpl(notNull(iri, IRI_CANNOT_BE_NULL));
     }
 
     @Override
     public OWLAnnotationProperty getOWLAnnotationProperty(IRI iri) {
-        return new OWLAnnotationPropertyImpl(notNull(iri, IRI_CANNOT_BE_NULL));
+        return new AnnotationPropertyImpl(notNull(iri, IRI_CANNOT_BE_NULL));
     }
 
     @Override
     public OWLNamedIndividual getOWLNamedIndividual(IRI iri) {
-        return new OWLNamedIndividualImpl(notNull(iri, IRI_CANNOT_BE_NULL));
+        return new NamedIndividualImpl(notNull(iri, IRI_CANNOT_BE_NULL));
     }
 
     @Override
@@ -251,22 +251,22 @@ public class DataFactoryImpl implements DataFactory {
      * {@inheritDoc}
      *
      * @param id {@link BlankNodeId}, not {@code null}
-     * @return {@link OWLAnonymousIndividualImpl}
+     * @return {@link AnonymousIndividualImpl}
      * @since 1.3.0
      */
     @Override
     public OWLAnonymousIndividual getOWLAnonymousIndividual(BlankNodeId id) {
-        return new OWLAnonymousIndividualImpl(notNull(id, ID_CANNOT_BE_NULL));
+        return new AnonymousIndividualImpl(notNull(id, ID_CANNOT_BE_NULL));
     }
 
     @Override
     public OWLDatatype getOWLDatatype(IRI iri) {
-        return new OWLDatatypeImpl(notNull(iri, IRI_CANNOT_BE_NULL));
+        return new DatatypeImpl(notNull(iri, IRI_CANNOT_BE_NULL));
     }
 
     @Override
     public OWLAnnotation getOWLAnnotation(OWLAnnotationProperty property, OWLAnnotationValue value) {
-        return new OWLAnnotationImplNotAnnotated(property, value);
+        return new AnnotationImplNotAnnotated(property, value);
     }
 
     @Override
@@ -281,7 +281,7 @@ public class DataFactoryImpl implements DataFactory {
     public OWLAnnotation getOWLAnnotation(OWLAnnotationProperty property,
                                           OWLAnnotationValue value,
                                           Collection<OWLAnnotation> annotations) {
-        return new OWLAnnotationImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
+        return new AnnotationImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
                 notNull(value, VALUE_CANNOT_BE_NULL), nonNullAnnotations(annotations));
     }
 
@@ -292,12 +292,12 @@ public class DataFactoryImpl implements DataFactory {
 
     @Override
     public OWLDataOneOf getOWLDataOneOf(Collection<? extends OWLLiteral> values) {
-        return new OWLDataOneOfImpl(notNull(values, LITERALS_CANNOT_BE_NULL));
+        return new DataOneOfImpl(notNull(values, LITERALS_CANNOT_BE_NULL));
     }
 
     @Override
     public OWLDataComplementOf getOWLDataComplementOf(OWLDataRange range) {
-        return new OWLDataComplementOfImpl(notNull(range, DATA_RANGE_CANNOT_BE_NULL));
+        return new DataComplementOfImpl(notNull(range, DATA_RANGE_CANNOT_BE_NULL));
     }
 
     @Override
@@ -307,12 +307,12 @@ public class DataFactoryImpl implements DataFactory {
 
     @Override
     public OWLDataIntersectionOf getOWLDataIntersectionOf(Stream<? extends OWLDataRange> ranges) {
-        return new OWLDataIntersectionOfImpl(notNull(ranges, DATA_RANGES_CANNOT_BE_NULL).collect(Collectors.toList()));
+        return new DataIntersectionOfImpl(notNull(ranges, DATA_RANGES_CANNOT_BE_NULL).collect(Collectors.toList()));
     }
 
     @Override
     public OWLDataIntersectionOf getOWLDataIntersectionOf(Collection<? extends OWLDataRange> ranges) {
-        return new OWLDataIntersectionOfImpl(notNull(ranges, DATA_RANGES_CANNOT_BE_NULL));
+        return new DataIntersectionOfImpl(notNull(ranges, DATA_RANGES_CANNOT_BE_NULL));
     }
 
     @Override
@@ -322,13 +322,13 @@ public class DataFactoryImpl implements DataFactory {
 
     @Override
     public OWLDataUnionOf getOWLDataUnionOf(Collection<? extends OWLDataRange> ranges) {
-        return new OWLDataUnionOfImpl(notNull(ranges, DATA_RANGES_CANNOT_BE_NULL));
+        return new DataUnionOfImpl(notNull(ranges, DATA_RANGES_CANNOT_BE_NULL));
     }
 
     @Override
     public OWLDatatypeRestriction getOWLDatatypeRestriction(OWLDatatype datatype,
                                                             Collection<OWLFacetRestriction> restrictions) {
-        return new OWLDatatypeRestrictionImpl(notNull(datatype, DATATYPE_CANNOT_BE_NULL),
+        return new DatatypeRestrictionImpl(notNull(datatype, DATATYPE_CANNOT_BE_NULL),
                 notNull(restrictions, FACET_RESTRICTIONS_CANNOT_BE_NULL));
     }
 
@@ -341,7 +341,7 @@ public class DataFactoryImpl implements DataFactory {
 
     @Override
     public OWLFacetRestriction getOWLFacetRestriction(OWLFacet facet, OWLLiteral value) {
-        return new OWLFacetRestrictionImpl(notNull(facet, FACET_CANNOT_BE_NULL),
+        return new FacetRestrictionImpl(notNull(facet, FACET_CANNOT_BE_NULL),
                 notNull(value, FACET_VALUE_CANNOT_BE_NULL));
     }
 
@@ -353,12 +353,12 @@ public class DataFactoryImpl implements DataFactory {
 
     @Override
     public OWLObjectIntersectionOf getOWLObjectIntersectionOf(Collection<? extends OWLClassExpression> operands) {
-        return new OWLObjectIntersectionOfImpl(notNull(operands, CLASS_EXPRESSIONS_CANNOT_BE_NULL));
+        return new ObjectIntersectionOfImpl(notNull(operands, CLASS_EXPRESSIONS_CANNOT_BE_NULL));
     }
 
     @Override
     public OWLDataAllValuesFrom getOWLDataAllValuesFrom(OWLDataPropertyExpression property, OWLDataRange range) {
-        return new OWLDataAllValuesFromImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
+        return new DataAllValuesFromImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
                 notNull(range, DATA_RANGE_CANNOT_BE_NULL));
     }
 
@@ -376,7 +376,7 @@ public class DataFactoryImpl implements DataFactory {
     public OWLDataExactCardinality getOWLDataExactCardinality(int cardinality,
                                                               OWLDataPropertyExpression property,
                                                               OWLDataRange range) {
-        return new OWLDataExactCardinalityImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
+        return new DataExactCardinalityImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
                 nonNegativeCardinality(cardinality), notNull(range, DATA_RANGE_CANNOT_BE_NULL));
     }
 
@@ -397,7 +397,7 @@ public class DataFactoryImpl implements DataFactory {
     public OWLDataMaxCardinality getOWLDataMaxCardinality(int cardinality,
                                                           OWLDataPropertyExpression property,
                                                           OWLDataRange range) {
-        return new OWLDataMaxCardinalityImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
+        return new DataMaxCardinalityImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
                 nonNegativeCardinality(cardinality), notNull(range, DATA_RANGE_CANNOT_BE_NULL));
     }
 
@@ -418,7 +418,7 @@ public class DataFactoryImpl implements DataFactory {
     public OWLDataMinCardinality getOWLDataMinCardinality(int cardinality,
                                                           OWLDataPropertyExpression property,
                                                           OWLDataRange range) {
-        return new OWLDataMinCardinalityImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
+        return new DataMinCardinalityImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
                 nonNegativeCardinality(cardinality), notNull(range, DATA_RANGE_CANNOT_BE_NULL));
     }
 
@@ -432,7 +432,7 @@ public class DataFactoryImpl implements DataFactory {
 
     @Override
     public OWLDataSomeValuesFrom getOWLDataSomeValuesFrom(OWLDataPropertyExpression property, OWLDataRange range) {
-        return new OWLDataSomeValuesFromImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
+        return new DataSomeValuesFromImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
                 notNull(range, DATA_RANGE_CANNOT_BE_NULL));
     }
 
@@ -444,19 +444,19 @@ public class DataFactoryImpl implements DataFactory {
 
     @Override
     public OWLDataHasValue getOWLDataHasValue(OWLDataPropertyExpression property, OWLLiteral value) {
-        return new OWLDataHasValueImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
+        return new DataHasValueImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
                 notNull(value, VALUE_CANNOT_BE_NULL));
     }
 
     @Override
     public OWLObjectComplementOf getOWLObjectComplementOf(OWLClassExpression operand) {
-        return new OWLObjectComplementOfImpl(notNull(operand, CLASS_EXPRESSION_CANNOT_BE_NULL));
+        return new ObjectComplementOfImpl(notNull(operand, CLASS_EXPRESSION_CANNOT_BE_NULL));
     }
 
     @Override
     public OWLObjectAllValuesFrom getOWLObjectAllValuesFrom(OWLObjectPropertyExpression property,
                                                             OWLClassExpression classExpression) {
-        return new OWLObjectAllValuesFromImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
+        return new ObjectAllValuesFromImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
                 notNull(classExpression, CLASS_EXPRESSION_CANNOT_BE_NULL));
     }
 
@@ -467,7 +467,7 @@ public class DataFactoryImpl implements DataFactory {
 
     @Override
     public OWLObjectOneOf getOWLObjectOneOf(Collection<? extends OWLIndividual> values) {
-        return new OWLObjectOneOfImpl(notNull(values, CLASS_EXPRESSIONS_CANNOT_BE_NULL));
+        return new ObjectOneOfImpl(notNull(values, CLASS_EXPRESSIONS_CANNOT_BE_NULL));
     }
 
     @Override
@@ -480,7 +480,7 @@ public class DataFactoryImpl implements DataFactory {
     public OWLObjectExactCardinality getOWLObjectExactCardinality(int cardinality,
                                                                   OWLObjectPropertyExpression property,
                                                                   OWLClassExpression clazz) {
-        return new OWLObjectExactCardinalityImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
+        return new ObjectExactCardinalityImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
                 nonNegativeCardinality(cardinality), notNull(clazz, CLASS_EXPRESSION_CANNOT_BE_NULL));
     }
 
@@ -493,7 +493,7 @@ public class DataFactoryImpl implements DataFactory {
     public OWLObjectMinCardinality getOWLObjectMinCardinality(int cardinality,
                                                               OWLObjectPropertyExpression property,
                                                               OWLClassExpression clazz) {
-        return new OWLObjectMinCardinalityImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
+        return new ObjectMinCardinalityImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
                 nonNegativeCardinality(cardinality), notNull(clazz, CLASS_EXPRESSION_CANNOT_BE_NULL));
     }
 
@@ -506,25 +506,25 @@ public class DataFactoryImpl implements DataFactory {
     public OWLObjectMaxCardinality getOWLObjectMaxCardinality(int cardinality,
                                                               OWLObjectPropertyExpression property,
                                                               OWLClassExpression clazz) {
-        return new OWLObjectMaxCardinalityImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
+        return new ObjectMaxCardinalityImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
                 nonNegativeCardinality(cardinality), notNull(clazz, CLASS_EXPRESSION_CANNOT_BE_NULL));
     }
 
     @Override
     public OWLObjectHasSelf getOWLObjectHasSelf(OWLObjectPropertyExpression property) {
-        return new OWLObjectHasSelfImpl(notNull(property, PROPERTY_CANNOT_BE_NULL));
+        return new ObjectHasSelfImpl(notNull(property, PROPERTY_CANNOT_BE_NULL));
     }
 
     @Override
     public OWLObjectSomeValuesFrom getOWLObjectSomeValuesFrom(OWLObjectPropertyExpression property,
                                                               OWLClassExpression clazz) {
-        return new OWLObjectSomeValuesFromImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
+        return new ObjectSomeValuesFromImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
                 notNull(clazz, CLASS_EXPRESSION_CANNOT_BE_NULL));
     }
 
     @Override
     public OWLObjectHasValue getOWLObjectHasValue(OWLObjectPropertyExpression property, OWLIndividual individual) {
-        return new OWLObjectHasValueImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
+        return new ObjectHasValueImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
                 notNull(individual, INDIVIDUAL_CANNOT_BE_NULL));
     }
 
@@ -536,32 +536,32 @@ public class DataFactoryImpl implements DataFactory {
 
     @Override
     public OWLObjectUnionOf getOWLObjectUnionOf(Collection<? extends OWLClassExpression> operands) {
-        return new OWLObjectUnionOfImpl(notNull(operands, CLASS_EXPRESSIONS_CANNOT_BE_NULL));
+        return new ObjectUnionOfImpl(notNull(operands, CLASS_EXPRESSIONS_CANNOT_BE_NULL));
     }
 
     @Override
     public SWRLVariable getSWRLVariable(IRI var) {
-        return new SWRLVariableImpl(notNull(var, VAR_CANNOT_BE_NULL));
+        return new VariableImpl(notNull(var, VAR_CANNOT_BE_NULL));
     }
 
     @Override
     public SWRLIndividualArgument getSWRLIndividualArgument(OWLIndividual individual) {
-        return new SWRLIndividualArgumentImpl(notNull(individual, INDIVIDUAL_CANNOT_BE_NULL));
+        return new IndividualArgumentImpl(notNull(individual, INDIVIDUAL_CANNOT_BE_NULL));
     }
 
     @Override
     public SWRLLiteralArgument getSWRLLiteralArgument(OWLLiteral literal) {
-        return new SWRLLiteralArgumentImpl(notNull(literal, LITERAL_CANNOT_BE_NULL));
+        return new LiteralArgumentImpl(notNull(literal, LITERAL_CANNOT_BE_NULL));
     }
 
     @Override
     public SWRLClassAtom getSWRLClassAtom(OWLClassExpression predicate, SWRLIArgument arg) {
-        return new SWRLClassAtomImpl(notNull(predicate, PREDICATE_CANNOT_BE_NULL), notNull(arg, ARG_CANNOT_BE_NULL));
+        return new ClassAtomImpl(notNull(predicate, PREDICATE_CANNOT_BE_NULL), notNull(arg, ARG_CANNOT_BE_NULL));
     }
 
     @Override
     public SWRLDataRangeAtom getSWRLDataRangeAtom(OWLDataRange predicate, SWRLDArgument arg) {
-        return new SWRLDataRangeAtomImpl(notNull(predicate, PREDICATE_CANNOT_BE_NULL), notNull(arg, ARG_CANNOT_BE_NULL));
+        return new DataRangeAtomImpl(notNull(predicate, PREDICATE_CANNOT_BE_NULL), notNull(arg, ARG_CANNOT_BE_NULL));
     }
 
     @Override
@@ -572,7 +572,7 @@ public class DataFactoryImpl implements DataFactory {
     @Override
     public SWRLObjectPropertyAtom getSWRLObjectPropertyAtom(OWLObjectPropertyExpression property,
                                                             SWRLIArgument arg0, SWRLIArgument arg1) {
-        return new SWRLObjectPropertyAtomImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
+        return new ObjectPropertyAtomImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
                 notNull(arg0, ARG0_CANNOT_BE_NULL), notNull(arg1, ARG1_CANNOT_BE_NULL));
     }
 
@@ -580,25 +580,25 @@ public class DataFactoryImpl implements DataFactory {
     public SWRLDataPropertyAtom getSWRLDataPropertyAtom(OWLDataPropertyExpression property,
                                                         SWRLIArgument arg0,
                                                         SWRLDArgument arg1) {
-        return new SWRLDataPropertyAtomImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
+        return new DataPropertyAtomImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
                 notNull(arg0, ARG0_CANNOT_BE_NULL), notNull(arg1, ARG1_CANNOT_BE_NULL));
     }
 
     @Override
     public SWRLBuiltInAtom getSWRLBuiltInAtom(IRI builtInIRI, List<SWRLDArgument> args) {
-        return new SWRLBuiltInAtomImpl(notNull(builtInIRI, BUILT_IN_IRI_CANNOT_BE_NULL),
+        return new BuiltInAtomImpl(notNull(builtInIRI, BUILT_IN_IRI_CANNOT_BE_NULL),
                 notNull(args, ARGS_CANNOT_BE_NULL));
     }
 
     @Override
     public SWRLDifferentIndividualsAtom getSWRLDifferentIndividualsAtom(SWRLIArgument arg0, SWRLIArgument arg1) {
-        return new SWRLDifferentIndividualsAtomImpl(getOWLObjectProperty(OWLRDFVocabulary.OWL_DIFFERENT_FROM),
+        return new DifferentIndividualsAtomImpl(getOWLObjectProperty(OWLRDFVocabulary.OWL_DIFFERENT_FROM),
                 notNull(arg0, ARG0_CANNOT_BE_NULL), notNull(arg1, ARG1_CANNOT_BE_NULL));
     }
 
     @Override
     public SWRLSameIndividualAtom getSWRLSameIndividualAtom(SWRLIArgument arg0, SWRLIArgument arg1) {
-        return new SWRLSameIndividualAtomImpl(getOWLObjectProperty(OWLRDFVocabulary.OWL_SAME_AS),
+        return new SameIndividualAtomImpl(getOWLObjectProperty(OWLRDFVocabulary.OWL_SAME_AS),
                 notNull(arg0, ARG0_CANNOT_BE_NULL), notNull(arg1, ARG1_CANNOT_BE_NULL));
     }
 
@@ -609,32 +609,32 @@ public class DataFactoryImpl implements DataFactory {
 
     @Override
     public OWLLiteral getOWLLiteral(int i) {
-        return OWLLiteralImpl.createLiteral(i);
+        return LiteralImpl.createLiteral(i);
     }
 
     @Override
     public OWLLiteral getOWLLiteral(double d) {
-        return OWLLiteralImpl.createLiteral(d);
+        return LiteralImpl.createLiteral(d);
     }
 
     @Override
     public OWLLiteral getOWLLiteral(float f) {
-        return OWLLiteralImpl.createLiteral(f);
+        return LiteralImpl.createLiteral(f);
     }
 
     @Override
     public OWLLiteral getOWLLiteral(String txt) {
-        return OWLLiteralImpl.createLiteral(notNull(txt, VALUE_CANNOT_BE_NULL));
+        return LiteralImpl.createLiteral(notNull(txt, VALUE_CANNOT_BE_NULL));
     }
 
     @Override
     public OWLLiteral getOWLLiteral(String txt, String lang) {
-        return OWLLiteralImpl.createLiteral(notNull(txt, LITERAL_CANNOT_BE_NULL), lang);
+        return LiteralImpl.createLiteral(notNull(txt, LITERAL_CANNOT_BE_NULL), lang);
     }
 
     @Override
     public OWLLiteral getOWLLiteral(String txt, OWLDatatype dt) {
-        return OWLLiteralImpl.createLiteral(notNull(txt, LEXICAL_VALUE_CANNOT_BE_NULL),
+        return LiteralImpl.createLiteral(notNull(txt, LEXICAL_VALUE_CANNOT_BE_NULL),
                 notNull(dt, DATATYPE_CANNOT_BE_NULL));
     }
 
@@ -642,12 +642,12 @@ public class DataFactoryImpl implements DataFactory {
      * {@inheritDoc}
      *
      * @param label {@link LiteralLabel}, not {@code null}
-     * @return {@link OWLLiteralImpl}
+     * @return {@link LiteralImpl}
      * @since 1.3.0
      */
     @Override
     public OWLLiteral getOWLLiteral(LiteralLabel label) {
-        return OWLLiteralImpl.newLiteral(notNull(label, VALUE_CANNOT_BE_NULL));
+        return LiteralImpl.newLiteral(notNull(label, VALUE_CANNOT_BE_NULL));
     }
 
     @Override
@@ -688,7 +688,7 @@ public class DataFactoryImpl implements DataFactory {
     @Override
     public OWLAsymmetricObjectPropertyAxiom getOWLAsymmetricObjectPropertyAxiom(OWLObjectPropertyExpression properties,
                                                                                 Collection<OWLAnnotation> annotations) {
-        return new OWLAsymmetricObjectPropertyAxiomImpl(notNull(properties, PROPERTY_CANNOT_BE_NULL),
+        return new AsymmetricObjectPropertyAxiomImpl(notNull(properties, PROPERTY_CANNOT_BE_NULL),
                 nonNullAnnotations(annotations));
     }
 
@@ -696,7 +696,7 @@ public class DataFactoryImpl implements DataFactory {
     public OWLDataPropertyDomainAxiom getOWLDataPropertyDomainAxiom(OWLDataPropertyExpression property,
                                                                     OWLClassExpression domain,
                                                                     Collection<OWLAnnotation> annotations) {
-        return new OWLDataPropertyDomainAxiomImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
+        return new DataPropertyDomainAxiomImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
                 notNull(domain, DOMAIN_CANNOT_BE_NULL), nonNullAnnotations(annotations));
     }
 
@@ -704,7 +704,7 @@ public class DataFactoryImpl implements DataFactory {
     public OWLDataPropertyRangeAxiom getOWLDataPropertyRangeAxiom(OWLDataPropertyExpression property,
                                                                   OWLDataRange range,
                                                                   Collection<OWLAnnotation> annotations) {
-        return new OWLDataPropertyRangeAxiomImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
+        return new DataPropertyRangeAxiomImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
                 notNull(range, OWL_DATA_RANGE_CANNOT_BE_NULL), nonNullAnnotations(annotations));
     }
 
@@ -720,19 +720,19 @@ public class DataFactoryImpl implements DataFactory {
     public OWLSubDataPropertyOfAxiom getOWLSubDataPropertyOfAxiom(OWLDataPropertyExpression subProperty,
                                                                   OWLDataPropertyExpression superProperty,
                                                                   Collection<OWLAnnotation> annotations) {
-        return new OWLSubDataPropertyOfAxiomImpl(notNull(subProperty, SUB_PROPERTY_CANNOT_BE_NULL),
+        return new SubDataPropertyOfAxiomImpl(notNull(subProperty, SUB_PROPERTY_CANNOT_BE_NULL),
                 notNull(superProperty, SUPER_PROPERTY_CANNOT_BE_NULL), nonNullAnnotations(annotations));
     }
 
     @Override
     public OWLDeclarationAxiom getOWLDeclarationAxiom(OWLEntity entity, Collection<OWLAnnotation> annotations) {
-        return new OWLDeclarationAxiomImpl(notNull(entity, OWL_ENTITY_CANNOT_BE_NULL), nonNullAnnotations(annotations));
+        return new DeclarationAxiomImpl(notNull(entity, OWL_ENTITY_CANNOT_BE_NULL), nonNullAnnotations(annotations));
     }
 
     @Override
     public OWLDifferentIndividualsAxiom getOWLDifferentIndividualsAxiom(Collection<? extends OWLIndividual> individuals,
                                                                         Collection<OWLAnnotation> annotations) {
-        return new OWLDifferentIndividualsAxiomImpl(notNull(individuals, INDIVIDUALS_CANNOT_BE_NULL),
+        return new DifferentIndividualsAxiomImpl(notNull(individuals, INDIVIDUALS_CANNOT_BE_NULL),
                 nonNullAnnotations(annotations));
     }
 
@@ -762,7 +762,7 @@ public class DataFactoryImpl implements DataFactory {
             List<OWLClassExpression> res = Arrays.asList(OWL_THING, clazz);
             return getOWLDisjointClassesAxiom(res, createDisjointWithThingAnnotations(annotations, clazz));
         }
-        return new OWLDisjointClassesAxiomImpl(classes, annotations);
+        return new DisjointClassesAxiomImpl(classes, annotations);
     }
 
     private Set<OWLAnnotation> createDisjointWithThingAnnotations(Collection<OWLAnnotation> annotations,
@@ -782,48 +782,48 @@ public class DataFactoryImpl implements DataFactory {
     @Override
     public OWLDisjointDataPropertiesAxiom getOWLDisjointDataPropertiesAxiom(Collection<? extends OWLDataPropertyExpression> properties,
                                                                             Collection<OWLAnnotation> annotations) {
-        return new OWLDisjointDataPropertiesAxiomImpl(notNull(properties, PROPERTIES_CANNOT_BE_NULL),
+        return new DisjointDataPropertiesAxiomImpl(notNull(properties, PROPERTIES_CANNOT_BE_NULL),
                 nonNullAnnotations(annotations));
     }
 
     @Override
     public OWLDisjointObjectPropertiesAxiom getOWLDisjointObjectPropertiesAxiom(Collection<? extends OWLObjectPropertyExpression> properties,
                                                                                 Collection<OWLAnnotation> annotations) {
-        return new OWLDisjointObjectPropertiesAxiomImpl(notNull(properties, PROPERTIES_CANNOT_BE_NULL),
+        return new DisjointObjectPropertiesAxiomImpl(notNull(properties, PROPERTIES_CANNOT_BE_NULL),
                 nonNullAnnotations(annotations));
     }
 
     @Override
     public OWLEquivalentClassesAxiom getOWLEquivalentClassesAxiom(Collection<? extends OWLClassExpression> classes,
                                                                   Collection<OWLAnnotation> annotations) {
-        return new OWLEquivalentClassesAxiomImpl(notNull(classes, CLASS_EXPRESSIONS_CANNOT_BE_NULL),
+        return new EquivalentClassesAxiomImpl(notNull(classes, CLASS_EXPRESSIONS_CANNOT_BE_NULL),
                 nonNullAnnotations(annotations));
     }
 
     @Override
     public OWLEquivalentDataPropertiesAxiom getOWLEquivalentDataPropertiesAxiom(Collection<? extends OWLDataPropertyExpression> properties,
                                                                                 Collection<OWLAnnotation> annotations) {
-        return new OWLEquivalentDataPropertiesAxiomImpl(notNull(properties, PROPERTIES_CANNOT_BE_NULL),
+        return new EquivalentDataPropertiesAxiomImpl(notNull(properties, PROPERTIES_CANNOT_BE_NULL),
                 nonNullAnnotations(annotations));
     }
 
     @Override
     public OWLFunctionalDataPropertyAxiom getOWLFunctionalDataPropertyAxiom(OWLDataPropertyExpression property,
                                                                             Collection<OWLAnnotation> annotations) {
-        return new OWLFunctionalDataPropertyAxiomImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
+        return new FunctionalDataPropertyAxiomImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
                 nonNullAnnotations(annotations));
     }
 
     @Override
     public OWLFunctionalObjectPropertyAxiom getOWLFunctionalObjectPropertyAxiom(OWLObjectPropertyExpression property,
                                                                                 Collection<OWLAnnotation> annotations) {
-        return new OWLFunctionalObjectPropertyAxiomImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
+        return new FunctionalObjectPropertyAxiomImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
                 nonNullAnnotations(annotations));
     }
 
     @Override
     public OWLImportsDeclaration getOWLImportsDeclaration(IRI importedOntologyIRI) {
-        return new OWLImportsDeclarationImpl(notNull(importedOntologyIRI, IMPORTED_ONTOLOGY_IRI_CANNOT_BE_NULL));
+        return new ImportsDeclarationImpl(notNull(importedOntologyIRI, IMPORTED_ONTOLOGY_IRI_CANNOT_BE_NULL));
     }
 
     @Override
@@ -831,7 +831,7 @@ public class DataFactoryImpl implements DataFactory {
                                                                           OWLIndividual subject,
                                                                           OWLLiteral object,
                                                                           Collection<OWLAnnotation> annotations) {
-        return new OWLDataPropertyAssertionAxiomImpl(notNull(subject, SUBJECT_CANNOT_BE_NULL),
+        return new DataPropertyAssertionAxiomImpl(notNull(subject, SUBJECT_CANNOT_BE_NULL),
                 notNull(property, PROPERTY_CANNOT_BE_NULL),
                 notNull(object, OBJECT_CANNOT_BE_NULL),
                 nonNullAnnotations(annotations));
@@ -842,7 +842,7 @@ public class DataFactoryImpl implements DataFactory {
                                                                                           OWLIndividual subject,
                                                                                           OWLLiteral object,
                                                                                           Collection<OWLAnnotation> annotations) {
-        return new OWLNegativeDataPropertyAssertionAxiomImpl(notNull(subject, SUBJECT_CANNOT_BE_NULL),
+        return new NegativeDataPropertyAssertionAxiomImpl(notNull(subject, SUBJECT_CANNOT_BE_NULL),
                 notNull(property, PROPERTY_CANNOT_BE_NULL),
                 notNull(object, OBJECT_CANNOT_BE_NULL),
                 nonNullAnnotations(annotations));
@@ -853,7 +853,7 @@ public class DataFactoryImpl implements DataFactory {
                                                                                               OWLIndividual subject,
                                                                                               OWLIndividual object,
                                                                                               Collection<OWLAnnotation> annotations) {
-        return new OWLNegativeObjectPropertyAssertionAxiomImpl(notNull(subject, SUBJECT_CANNOT_BE_NULL),
+        return new NegativeObjectPropertyAssertionAxiomImpl(notNull(subject, SUBJECT_CANNOT_BE_NULL),
                 notNull(property, PROPERTY_CANNOT_BE_NULL),
                 notNull(object, OBJECT_CANNOT_BE_NULL),
                 nonNullAnnotations(annotations));
@@ -863,21 +863,21 @@ public class DataFactoryImpl implements DataFactory {
     public OWLClassAssertionAxiom getOWLClassAssertionAxiom(OWLClassExpression ces,
                                                             OWLIndividual individual,
                                                             Collection<OWLAnnotation> annotations) {
-        return new OWLClassAssertionAxiomImpl(notNull(individual, INDIVIDUAL_CANNOT_BE_NULL),
+        return new ClassAssertionAxiomImpl(notNull(individual, INDIVIDUAL_CANNOT_BE_NULL),
                 notNull(ces, CLASS_EXPRESSION_CANNOT_BE_NULL), nonNullAnnotations(annotations));
     }
 
     @Override
     public OWLInverseFunctionalObjectPropertyAxiom getOWLInverseFunctionalObjectPropertyAxiom(OWLObjectPropertyExpression property,
                                                                                               Collection<OWLAnnotation> annotations) {
-        return new OWLInverseFunctionalObjectPropertyAxiomImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
+        return new InverseFunctionalObjectPropertyAxiomImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
                 nonNullAnnotations(annotations));
     }
 
     @Override
     public OWLIrreflexiveObjectPropertyAxiom getOWLIrreflexiveObjectPropertyAxiom(OWLObjectPropertyExpression property,
                                                                                   Collection<OWLAnnotation> annotations) {
-        return new OWLIrreflexiveObjectPropertyAxiomImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
+        return new IrreflexiveObjectPropertyAxiomImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
                 nonNullAnnotations(annotations));
     }
 
@@ -885,7 +885,7 @@ public class DataFactoryImpl implements DataFactory {
     public OWLObjectPropertyDomainAxiom getOWLObjectPropertyDomainAxiom(OWLObjectPropertyExpression property,
                                                                         OWLClassExpression ces,
                                                                         Collection<OWLAnnotation> annotations) {
-        return new OWLObjectPropertyDomainAxiomImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
+        return new ObjectPropertyDomainAxiomImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
                 notNull(ces, CLASS_EXPRESSION_CANNOT_BE_NULL), nonNullAnnotations(annotations));
     }
 
@@ -893,7 +893,7 @@ public class DataFactoryImpl implements DataFactory {
     public OWLObjectPropertyRangeAxiom getOWLObjectPropertyRangeAxiom(OWLObjectPropertyExpression property,
                                                                       OWLClassExpression range,
                                                                       Collection<OWLAnnotation> annotations) {
-        return new OWLObjectPropertyRangeAxiomImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
+        return new ObjectPropertyRangeAxiomImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
                 notNull(range, RANGE_CANNOT_BE_NULL), nonNullAnnotations(annotations));
     }
 
@@ -901,7 +901,7 @@ public class DataFactoryImpl implements DataFactory {
     public OWLSubObjectPropertyOfAxiom getOWLSubObjectPropertyOfAxiom(OWLObjectPropertyExpression subProperty,
                                                                       OWLObjectPropertyExpression superProperty,
                                                                       Collection<OWLAnnotation> annotations) {
-        return new OWLSubObjectPropertyOfAxiomImpl(notNull(subProperty, SUB_PROPERTY_CANNOT_BE_NULL),
+        return new SubObjectPropertyOfAxiomImpl(notNull(subProperty, SUB_PROPERTY_CANNOT_BE_NULL),
                 notNull(superProperty, SUPER_PROPERTY_CANNOT_BE_NULL),
                 nonNullAnnotations(annotations));
     }
@@ -909,14 +909,14 @@ public class DataFactoryImpl implements DataFactory {
     @Override
     public OWLReflexiveObjectPropertyAxiom getOWLReflexiveObjectPropertyAxiom(OWLObjectPropertyExpression property,
                                                                               Collection<OWLAnnotation> annotations) {
-        return new OWLReflexiveObjectPropertyAxiomImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
+        return new ReflexiveObjectPropertyAxiomImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
                 nonNullAnnotations(annotations));
     }
 
     @Override
     public OWLSameIndividualAxiom getOWLSameIndividualAxiom(Collection<? extends OWLIndividual> individuals,
                                                             Collection<OWLAnnotation> annotations) {
-        return new OWLSameIndividualAxiomImpl(notNull(individuals, INDIVIDUALS_CANNOT_BE_NULL),
+        return new SameIndividualAxiomImpl(notNull(individuals, INDIVIDUALS_CANNOT_BE_NULL),
                 nonNullAnnotations(annotations));
     }
 
@@ -924,21 +924,21 @@ public class DataFactoryImpl implements DataFactory {
     public OWLSubClassOfAxiom getOWLSubClassOfAxiom(OWLClassExpression subClass,
                                                     OWLClassExpression superClass,
                                                     Collection<OWLAnnotation> annotations) {
-        return new OWLSubClassOfAxiomImpl(notNull(subClass, SUBCLASS_CANNOT_BE_NULL),
+        return new SubClassOfAxiomImpl(notNull(subClass, SUBCLASS_CANNOT_BE_NULL),
                 notNull(superClass, SUPERCLASS_CANNOT_BE_NULL), nonNullAnnotations(annotations));
     }
 
     @Override
     public OWLSymmetricObjectPropertyAxiom getOWLSymmetricObjectPropertyAxiom(OWLObjectPropertyExpression property,
                                                                               Collection<OWLAnnotation> annotations) {
-        return new OWLSymmetricObjectPropertyAxiomImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
+        return new SymmetricObjectPropertyAxiomImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
                 nonNullAnnotations(annotations));
     }
 
     @Override
     public OWLTransitiveObjectPropertyAxiom getOWLTransitiveObjectPropertyAxiom(OWLObjectPropertyExpression property,
                                                                                 Collection<OWLAnnotation> annotations) {
-        return new OWLTransitiveObjectPropertyAxiomImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
+        return new TransitiveObjectPropertyAxiomImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
                 nonNullAnnotations(annotations));
     }
 
@@ -946,7 +946,7 @@ public class DataFactoryImpl implements DataFactory {
     public OWLInverseObjectPropertiesAxiom getOWLInverseObjectPropertiesAxiom(OWLObjectPropertyExpression forwardProperty,
                                                                               OWLObjectPropertyExpression inverseProperty,
                                                                               Collection<OWLAnnotation> annotations) {
-        return new OWLInverseObjectPropertiesAxiomImpl(notNull(forwardProperty, FORWARD_PROPERTY_CANNOT_BE_NULL),
+        return new InverseObjectPropertiesAxiomImpl(notNull(forwardProperty, FORWARD_PROPERTY_CANNOT_BE_NULL),
                 notNull(inverseProperty, INVERSE_PROPERTY_CANNOT_BE_NULL), nonNullAnnotations(annotations));
     }
 
@@ -954,7 +954,7 @@ public class DataFactoryImpl implements DataFactory {
     public OWLSubPropertyChainOfAxiom getOWLSubPropertyChainOfAxiom(List<? extends OWLObjectPropertyExpression> chain,
                                                                     OWLObjectPropertyExpression superProperty,
                                                                     Collection<OWLAnnotation> annotations) {
-        return new OWLSubPropertyChainAxiomImpl(notNull(chain, CHAIN_CANNOT_BE_NULL),
+        return new SubPropertyChainAxiomImpl(notNull(chain, CHAIN_CANNOT_BE_NULL),
                 notNull(superProperty, SUPER_PROPERTY_CANNOT_BE_NULL), nonNullAnnotations(annotations));
     }
 
@@ -962,7 +962,7 @@ public class DataFactoryImpl implements DataFactory {
     public OWLHasKeyAxiom getOWLHasKeyAxiom(OWLClassExpression ce,
                                             Collection<? extends OWLPropertyExpression> properties,
                                             Collection<OWLAnnotation> annotations) {
-        return new OWLHasKeyAxiomImpl(notNull(ce, CLASS_EXPRESSION_CANNOT_BE_NULL),
+        return new HasKeyAxiomImpl(notNull(ce, CLASS_EXPRESSION_CANNOT_BE_NULL),
                 notNull(properties, PROPERTIES_CANNOT_BE_NULL), nonNullAnnotations(annotations));
     }
 
@@ -978,14 +978,14 @@ public class DataFactoryImpl implements DataFactory {
     public OWLDisjointUnionAxiom getOWLDisjointUnionAxiom(OWLClass clazz,
                                                           Collection<? extends OWLClassExpression> ces,
                                                           Collection<OWLAnnotation> annotations) {
-        return new OWLDisjointUnionAxiomImpl(notNull(clazz, OWL_CLASS_CANNOT_BE_NULL),
+        return new DisjointUnionAxiomImpl(notNull(clazz, OWL_CLASS_CANNOT_BE_NULL),
                 notNull(ces, CLASS_EXPRESSIONS_CANNOT_BE_NULL), notNull(annotations, ANNOTATIONS_CANNOT_BE_NULL));
     }
 
     @Override
     public OWLEquivalentObjectPropertiesAxiom getOWLEquivalentObjectPropertiesAxiom(Collection<? extends OWLObjectPropertyExpression> properties,
                                                                                     Collection<OWLAnnotation> annotations) {
-        return new OWLEquivalentObjectPropertiesAxiomImpl(notNull(properties, PROPERTIES_CANNOT_BE_NULL),
+        return new EquivalentObjectPropertiesAxiomImpl(notNull(properties, PROPERTIES_CANNOT_BE_NULL),
                 nonNullAnnotations(annotations));
     }
 
@@ -994,7 +994,7 @@ public class DataFactoryImpl implements DataFactory {
                                                                               OWLIndividual individual,
                                                                               OWLIndividual object,
                                                                               Collection<OWLAnnotation> annotations) {
-        return new OWLObjectPropertyAssertionAxiomImpl(notNull(individual, INDIVIDUAL_CANNOT_BE_NULL),
+        return new ObjectPropertyAssertionAxiomImpl(notNull(individual, INDIVIDUAL_CANNOT_BE_NULL),
                 notNull(property, PROPERTY_CANNOT_BE_NULL),
                 notNull(object, OBJECT_CANNOT_BE_NULL), nonNullAnnotations(annotations));
     }
@@ -1003,7 +1003,7 @@ public class DataFactoryImpl implements DataFactory {
     public OWLSubAnnotationPropertyOfAxiom getOWLSubAnnotationPropertyOfAxiom(OWLAnnotationProperty sub,
                                                                               OWLAnnotationProperty sup,
                                                                               Collection<OWLAnnotation> annotations) {
-        return new OWLSubAnnotationPropertyOfAxiomImpl(notNull(sub, SUB_PROPERTY_CANNOT_BE_NULL),
+        return new SubAnnotationPropertyOfAxiomImpl(notNull(sub, SUB_PROPERTY_CANNOT_BE_NULL),
                 notNull(sup, SUPER_PROPERTY_CANNOT_BE_NULL), nonNullAnnotations(annotations));
     }
 
@@ -1028,7 +1028,7 @@ public class DataFactoryImpl implements DataFactory {
                                                                       OWLAnnotationSubject subject,
                                                                       OWLAnnotationValue value,
                                                                       Collection<OWLAnnotation> annotations) {
-        return new OWLAnnotationAssertionAxiomImpl(notNull(subject, SUBJECT_CANNOT_BE_NULL),
+        return new AnnotationAssertionAxiomImpl(notNull(subject, SUBJECT_CANNOT_BE_NULL),
                 notNull(property, PROPERTY_CANNOT_BE_NULL),
                 notNull(value, VALUE_CANNOT_BE_NULL),
                 nonNullAnnotations(annotations));
@@ -1044,7 +1044,7 @@ public class DataFactoryImpl implements DataFactory {
     public OWLAnnotationPropertyDomainAxiom getOWLAnnotationPropertyDomainAxiom(OWLAnnotationProperty property,
                                                                                 IRI domain,
                                                                                 Collection<OWLAnnotation> annotations) {
-        return new OWLAnnotationPropertyDomainAxiomImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
+        return new AnnotationPropertyDomainAxiomImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
                 notNull(domain, DOMAIN_CANNOT_BE_NULL), nonNullAnnotations(annotations));
     }
 
@@ -1052,7 +1052,7 @@ public class DataFactoryImpl implements DataFactory {
     public OWLAnnotationPropertyRangeAxiom getOWLAnnotationPropertyRangeAxiom(OWLAnnotationProperty property,
                                                                               IRI range,
                                                                               Collection<OWLAnnotation> annotations) {
-        return new OWLAnnotationPropertyRangeAxiomImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
+        return new AnnotationPropertyRangeAxiomImpl(notNull(property, PROPERTY_CANNOT_BE_NULL),
                 notNull(range, RANGE_CANNOT_BE_NULL), nonNullAnnotations(annotations));
     }
 
@@ -1060,7 +1060,7 @@ public class DataFactoryImpl implements DataFactory {
     public OWLDatatypeDefinitionAxiom getOWLDatatypeDefinitionAxiom(OWLDatatype datatype,
                                                                     OWLDataRange range,
                                                                     Collection<OWLAnnotation> annotations) {
-        return new OWLDatatypeDefinitionAxiomImpl(notNull(datatype, DATATYPE_CANNOT_BE_NULL),
+        return new DatatypeDefinitionAxiomImpl(notNull(datatype, DATATYPE_CANNOT_BE_NULL),
                 notNull(range, DATA_RANGE_CANNOT_BE_NULL), nonNullAnnotations(annotations));
     }
 
@@ -1081,7 +1081,7 @@ public class DataFactoryImpl implements DataFactory {
     public SWRLRule getSWRLRule(Collection<? extends SWRLAtom> body,
                                 Collection<? extends SWRLAtom> head,
                                 Collection<OWLAnnotation> annotations) {
-        return new SWRLRuleImpl(notNull(body, BODY_CANNOT_BE_NULL),
+        return new RuleImpl(notNull(body, BODY_CANNOT_BE_NULL),
                 notNull(head, HEAD_CANNOT_BE_NULL), nonNullAnnotations(annotations));
     }
 

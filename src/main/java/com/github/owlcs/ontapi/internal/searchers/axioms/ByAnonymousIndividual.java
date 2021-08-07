@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -17,7 +17,7 @@ package com.github.owlcs.ontapi.internal.searchers.axioms;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntObject;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
-import com.github.owlcs.ontapi.owlapi.objects.OWLAnonymousIndividualImpl;
+import com.github.owlcs.ontapi.owlapi.objects.AnonymousIndividualImpl;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
@@ -29,7 +29,7 @@ import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
 public class ByAnonymousIndividual extends ByPrimitive<OWLAnonymousIndividual> {
     @Override
     protected ExtendedIterator<OntStatement> listStatements(OntModel model, OWLAnonymousIndividual individual) {
-        Resource object = model.wrapAsResource(OWLAnonymousIndividualImpl.asONT(individual).asNode());
+        Resource object = model.wrapAsResource(AnonymousIndividualImpl.asONT(individual).asNode());
         return super.listStatements(model, object);
     }
 

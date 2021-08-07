@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -18,6 +18,7 @@ import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.jena.model.OntDataProperty;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import com.github.owlcs.ontapi.owlapi.objects.entity.DataPropertyImpl;
 import org.semanticweb.owlapi.model.OWLDataProperty;
 
 import java.util.Set;
@@ -27,7 +28,7 @@ import java.util.function.Supplier;
  * An {@link OWLDataProperty} implementation that is also {@link ONTObject}.
  * Created by @ssz on 09.08.2019.
  *
- * @see com.github.owlcs.ontapi.owlapi.objects.entity.OWLDataPropertyImpl
+ * @see DataPropertyImpl
  * @since 2.0.0
  */
 public class ONTDataPropertyImpl extends ONTEntityImpl<OWLDataProperty> implements OWLDataProperty {

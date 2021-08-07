@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -24,7 +24,7 @@ import com.github.owlcs.ontapi.internal.objects.*;
 import com.github.owlcs.ontapi.jena.model.*;
 import com.github.owlcs.ontapi.jena.utils.Graphs;
 import com.github.owlcs.ontapi.jena.utils.Iter;
-import com.github.owlcs.ontapi.owlapi.objects.OWLAnonymousIndividualImpl;
+import com.github.owlcs.ontapi.owlapi.objects.AnonymousIndividualImpl;
 import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
@@ -390,7 +390,7 @@ public abstract class AbstractNaryTranslator<Axiom extends OWLAxiom & OWLNaryAxi
         @SuppressWarnings("rawtypes")
         public Object toContentItem(ONTObject x) {
             if (x instanceof OWLNamedIndividual) return ONTEntityImpl.getURI((OWLEntity) x);
-            return ((OWLAnonymousIndividualImpl) x).getBlankNodeId();
+            return ((AnonymousIndividualImpl) x).getBlankNodeId();
         }
     }
 

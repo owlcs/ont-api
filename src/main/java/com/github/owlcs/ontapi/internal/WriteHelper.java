@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -18,14 +18,11 @@ import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.jena.model.*;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
-import com.github.owlcs.ontapi.owlapi.objects.OWLAnonymousIndividualImpl;
-import com.github.owlcs.ontapi.owlapi.objects.OWLLiteralImpl;
-import org.apache.jena.graph.BlankNodeId;
+import com.github.owlcs.ontapi.owlapi.objects.AnonymousIndividualImpl;
+import com.github.owlcs.ontapi.owlapi.objects.LiteralImpl;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
-import org.apache.jena.graph.impl.LiteralLabel;
 import org.apache.jena.rdf.model.*;
-import org.apache.jena.rdf.model.impl.LiteralImpl;
 import org.apache.jena.rdf.model.impl.ResourceImpl;
 import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.*;
@@ -82,13 +79,11 @@ public class WriteHelper {
     }
 
     public static Node toNode(OWLAnonymousIndividual individual) {
-        BlankNodeId id = OWLAnonymousIndividualImpl.asONT(individual).getBlankNodeId();
-        return NodeFactory.createBlankNode(id);
+        return AnonymousIndividualImpl.asONT(individual).asNode();
     }
 
     public static Node toNode(OWLLiteral literal) {
-        LiteralLabel lab = OWLLiteralImpl.asONT(literal).getLiteralLabel();
-        return NodeFactory.createLiteral(lab);
+        return LiteralImpl.asONT(literal).asNode();
     }
 
     public static Resource toResource(IRI iri) {
@@ -103,8 +98,14 @@ public class WriteHelper {
         return ResourceFactory.createProperty(OntApiException.notNull(iri, "Null iri").getIRIString());
     }
 
+    /**
+     * Converts OWLAPI-literal to Jena-literal.
+     *
+     * @param literal {@link OWLLiteral}
+     * @return {@link Literal}
+     */
     public static Literal toLiteral(OWLLiteral literal) {
-        return new LiteralImpl(toNode(literal), null);
+        return new org.apache.jena.rdf.model.impl.LiteralImpl(toNode(literal), null);
     }
 
     /**
@@ -494,7 +495,7 @@ public class WriteHelper {
             @Override
             OntSWRL.Atom.WithDifferentIndividuals translate(OntModel model, SWRLDifferentIndividualsAtom atom) {
                 return model.createDifferentIndividualsSWRLAtom(addSWRLObject(model,
-                        atom.getFirstArgument()).as(OntSWRL.IArg.class),
+                                atom.getFirstArgument()).as(OntSWRL.IArg.class),
                         addSWRLObject(model, atom.getSecondArgument()).as(OntSWRL.IArg.class));
             }
         }),
@@ -510,7 +511,7 @@ public class WriteHelper {
             @Override
             OntSWRL.Atom.WithSameIndividuals translate(OntModel model, SWRLSameIndividualAtom atom) {
                 return model.createSameIndividualsSWRLAtom(addSWRLObject(model,
-                        atom.getFirstArgument()).as(OntSWRL.IArg.class),
+                                atom.getFirstArgument()).as(OntSWRL.IArg.class),
                         addSWRLObject(model, atom.getSecondArgument()).as(OntSWRL.IArg.class));
             }
         }),

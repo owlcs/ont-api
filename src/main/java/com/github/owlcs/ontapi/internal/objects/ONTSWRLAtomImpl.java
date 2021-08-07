@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -21,6 +21,7 @@ import com.github.owlcs.ontapi.internal.ONTObjectFactory;
 import com.github.owlcs.ontapi.jena.model.*;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
 import com.github.owlcs.ontapi.owlapi.OWLObjectImpl;
+import com.github.owlcs.ontapi.owlapi.objects.swrl.*;
 import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
@@ -37,7 +38,7 @@ import java.util.stream.Stream;
  * A {@link SWRLAtom} implementation that is also {@link ONTObject}.
  * Created by @ssz on 22.08.2019.
  *
- * @see com.github.owlcs.ontapi.owlapi.objects.swrl.SWRLAtomImpl
+ * @see AtomImpl
  * @see OntSWRL.Atom
  * @since 2.0.0
  */
@@ -236,7 +237,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
     }
 
     /**
-     * @see com.github.owlcs.ontapi.owlapi.objects.swrl.SWRLBuiltInAtomImpl
+     * @see BuiltInAtomImpl
      * @see OntSWRL.Atom.WithBuiltin
      */
     public static class BN extends ONTSWRLAtomImpl<OntSWRL.Atom.WithBuiltin, SWRLBuiltInAtom> implements SWRLBuiltInAtom {
@@ -362,7 +363,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
     }
 
     /**
-     * @see com.github.owlcs.ontapi.owlapi.objects.swrl.SWRLClassAtomImpl
+     * @see ClassAtomImpl
      * @see OntSWRL.Atom.WithClass
      */
     public static class CU
@@ -410,7 +411,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
     }
 
     /**
-     * @see com.github.owlcs.ontapi.owlapi.objects.swrl.SWRLDataRangeAtomImpl
+     * @see DataRangeAtomImpl
      * @see OntSWRL.Atom.WithDataRange
      */
     public static class DU
@@ -503,7 +504,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
     }
 
     /**
-     * @see com.github.owlcs.ontapi.owlapi.objects.swrl.SWRLSameIndividualAtomImpl
+     * @see SameIndividualAtomImpl
      * @see OntSWRL.Atom.WithSameIndividuals
      */
     public static class SIB
@@ -537,7 +538,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
     }
 
     /**
-     * @see com.github.owlcs.ontapi.owlapi.objects.swrl.SWRLDifferentIndividualsAtomImpl
+     * @see DifferentIndividualsAtomImpl
      * @see OntSWRL.Atom.WithDifferentIndividuals
      */
     public static class DIB
@@ -571,7 +572,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
     }
 
     /**
-     * @see com.github.owlcs.ontapi.owlapi.objects.swrl.SWRLDataPropertyAtomImpl
+     * @see DataPropertyAtomImpl
      * @see OntSWRL.Atom.WithDataProperty
      */
     public static class DPB extends Binary<OntDataProperty,
@@ -661,7 +662,7 @@ public abstract class ONTSWRLAtomImpl<ONT extends OntSWRL.Atom<?>, OWL extends S
     }
 
     /**
-     * @see com.github.owlcs.ontapi.owlapi.objects.swrl.SWRLObjectPropertyAtomImpl
+     * @see ObjectPropertyAtomImpl
      * @see OntSWRL.Atom.WithObjectProperty
      */
     public static class OPB

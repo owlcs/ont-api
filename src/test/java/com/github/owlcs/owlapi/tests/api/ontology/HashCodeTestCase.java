@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -13,7 +13,8 @@
  */
 package com.github.owlcs.owlapi.tests.api.ontology;
 
-import com.github.owlcs.ontapi.owlapi.objects.OWLLiteralImpl;
+import com.github.owlcs.ontapi.owlapi.objects.LiteralImpl;
+import com.github.owlcs.ontapi.owlapi.objects.entity.DatatypeImpl;
 import com.github.owlcs.owlapi.OWLManager;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -86,31 +87,31 @@ public class HashCodeTestCase {
 
     private static OWLDatatype createDT(IRI iri) {
         return OWLManager.DEBUG_USE_OWL ? new uk.ac.manchester.cs.owl.owlapi.OWLDatatypeImpl(iri) :
-                new com.github.owlcs.ontapi.owlapi.objects.entity.OWLDatatypeImpl(iri);
+                new DatatypeImpl(iri);
     }
 
     private static OWLLiteral createLiteral(int i) {
         return OWLManager.DEBUG_USE_OWL ? new uk.ac.manchester.cs.owl.owlapi.OWLLiteralImplInteger(i) :
-                OWLLiteralImpl.createLiteral(i);
+                LiteralImpl.createLiteral(i);
     }
 
     private static OWLLiteral createLiteral(double d) {
         return OWLManager.DEBUG_USE_OWL ? new uk.ac.manchester.cs.owl.owlapi.OWLLiteralImplDouble(d) :
-                OWLLiteralImpl.createLiteral(d);
+                LiteralImpl.createLiteral(d);
     }
 
     private static OWLLiteral createLiteral(float f) {
         return OWLManager.DEBUG_USE_OWL ? new uk.ac.manchester.cs.owl.owlapi.OWLLiteralImplFloat(f) :
-                OWLLiteralImpl.createLiteral(f);
+                LiteralImpl.createLiteral(f);
     }
 
     private static OWLLiteral createLiteral(boolean b) {
         return OWLManager.DEBUG_USE_OWL ? new uk.ac.manchester.cs.owl.owlapi.OWLLiteralImplBoolean(b) :
-                OWLLiteralImpl.createLiteral(b);
+                LiteralImpl.createLiteral(b);
     }
 
     private static OWLLiteral createLiteral(String s, OWLDatatype d) {
         return OWLManager.DEBUG_USE_OWL ? new uk.ac.manchester.cs.owl.owlapi.OWLLiteralImplNoCompression(s, null, d) :
-                OWLLiteralImpl.createLiteral(s, d);
+                LiteralImpl.createLiteral(s, d);
     }
 }

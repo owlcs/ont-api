@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -22,7 +22,7 @@ import com.github.owlcs.ontapi.internal.ONTObjectFactory;
 import com.github.owlcs.ontapi.jena.model.*;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
 import com.github.owlcs.ontapi.owlapi.OWLObjectImpl;
-import com.github.owlcs.ontapi.owlapi.objects.OWLAnonymousIndividualImpl;
+import com.github.owlcs.ontapi.owlapi.objects.AnonymousIndividualImpl;
 import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.Literal;
@@ -43,7 +43,7 @@ import java.util.stream.Stream;
  *
  * @param <ONT> any subtype of {@link OntClass}
  * @param <OWL> subtype of {@link OWLAnonymousClassExpression}, which matches {@link ONT}
- * @see com.github.owlcs.ontapi.owlapi.objects.ce.OWLAnonymousClassExpressionImpl
+ * @see com.github.owlcs.ontapi.owlapi.objects.ce.AnonymousClassExpressionImpl
  * @see ONTClassImpl
  * @see com.github.owlcs.ontapi.internal.ReadHelper#calcClassExpression(OntClass, ONTObjectFactory, Set)
  * @see OntClass
@@ -227,7 +227,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
     }
 
     /**
-     * @see com.github.owlcs.ontapi.owlapi.objects.ce.OWLObjectSomeValuesFromImpl
+     * @see com.github.owlcs.ontapi.owlapi.objects.ce.ObjectSomeValuesFromImpl
      * @see OntClass.ObjectSomeValuesFrom
      */
     public static class OSVF
@@ -250,7 +250,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
     }
 
     /**
-     * @see com.github.owlcs.ontapi.owlapi.objects.ce.OWLObjectAllValuesFromImpl
+     * @see com.github.owlcs.ontapi.owlapi.objects.ce.ObjectAllValuesFromImpl
      * @see OntClass.ObjectAllValuesFrom
      */
     public static class OAVF
@@ -273,7 +273,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
     }
 
     /**
-     * @see com.github.owlcs.ontapi.owlapi.objects.ce.OWLDataSomeValuesFromImpl
+     * @see com.github.owlcs.ontapi.owlapi.objects.ce.DataSomeValuesFromImpl
      * @see OntClass.DataSomeValuesFrom
      */
     public static class DSVF
@@ -296,7 +296,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
     }
 
     /**
-     * @see com.github.owlcs.ontapi.owlapi.objects.ce.OWLDataAllValuesFromImpl
+     * @see com.github.owlcs.ontapi.owlapi.objects.ce.DataAllValuesFromImpl
      * @see OntClass.DataAllValuesFrom
      */
     public static class DAVF
@@ -319,7 +319,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
     }
 
     /**
-     * @see com.github.owlcs.ontapi.owlapi.objects.ce.OWLDataSomeValuesFromImpl
+     * @see com.github.owlcs.ontapi.owlapi.objects.ce.DataSomeValuesFromImpl
      * @see OntClass.NaryDataSomeValuesFrom
      */
     public static class NDSVF
@@ -342,7 +342,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
     }
 
     /**
-     * @see com.github.owlcs.ontapi.owlapi.objects.ce.OWLDataAllValuesFromImpl
+     * @see com.github.owlcs.ontapi.owlapi.objects.ce.DataAllValuesFromImpl
      * @see OntClass.NaryDataAllValuesFrom
      */
     public static class NDAVF
@@ -365,7 +365,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
     }
 
     /**
-     * @see com.github.owlcs.ontapi.owlapi.objects.ce.OWLObjectHasValueImpl
+     * @see com.github.owlcs.ontapi.owlapi.objects.ce.ObjectHasValueImpl
      * @see OntClass.ObjectHasValue
      */
     public static class OHV
@@ -495,7 +495,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
     }
 
     /**
-     * @see com.github.owlcs.ontapi.owlapi.objects.ce.OWLDataHasValueImpl
+     * @see com.github.owlcs.ontapi.owlapi.objects.ce.DataHasValueImpl
      * @see OntClass.DataHasValue
      */
     public static class DHV
@@ -567,7 +567,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
      * It does not contain boolean datatype in signature -
      * see <a href='https://github.com/owlcs/owlapi/issues/783'>owlcs/owlapi##783</a>.
      *
-     * @see com.github.owlcs.ontapi.owlapi.objects.ce.OWLObjectHasSelfImpl
+     * @see com.github.owlcs.ontapi.owlapi.objects.ce.ObjectHasSelfImpl
      * @see OntClass.HasSelf
      */
     public static class OHS
@@ -644,7 +644,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
     }
 
     /**
-     * @see com.github.owlcs.ontapi.owlapi.objects.ce.OWLObjectExactCardinalityImpl
+     * @see com.github.owlcs.ontapi.owlapi.objects.ce.ObjectExactCardinalityImpl
      * @see OntClass.ObjectCardinality
      */
     public static class OEC
@@ -678,7 +678,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
     }
 
     /**
-     * @see com.github.owlcs.ontapi.owlapi.objects.ce.OWLDataExactCardinalityImpl
+     * @see com.github.owlcs.ontapi.owlapi.objects.ce.DataExactCardinalityImpl
      * @see OntClass.DataCardinality
      */
     public static class DEC
@@ -712,7 +712,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
     }
 
     /**
-     * @see com.github.owlcs.ontapi.owlapi.objects.ce.OWLObjectMinCardinalityImpl
+     * @see com.github.owlcs.ontapi.owlapi.objects.ce.ObjectMinCardinalityImpl
      * @see OntClass.ObjectMinCardinality
      */
     public static class OMIC
@@ -735,7 +735,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
     }
 
     /**
-     * @see com.github.owlcs.ontapi.owlapi.objects.ce.OWLDataMinCardinalityImpl
+     * @see com.github.owlcs.ontapi.owlapi.objects.ce.DataMinCardinalityImpl
      * @see OntClass.DataMinCardinality
      */
     public static class DMIC
@@ -758,7 +758,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
     }
 
     /**
-     * @see com.github.owlcs.ontapi.owlapi.objects.ce.OWLObjectMaxCardinalityImpl
+     * @see com.github.owlcs.ontapi.owlapi.objects.ce.ObjectMaxCardinalityImpl
      * @see OntClass.ObjectMaxCardinality
      */
     public static class OMAC
@@ -781,7 +781,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
     }
 
     /**
-     * @see com.github.owlcs.ontapi.owlapi.objects.ce.OWLDataMaxCardinalityImpl
+     * @see com.github.owlcs.ontapi.owlapi.objects.ce.DataMaxCardinalityImpl
      * @see OntClass.DataMaxCardinality
      */
     public static class DMAC
@@ -804,7 +804,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
     }
 
     /**
-     * @see com.github.owlcs.ontapi.owlapi.objects.ce.OWLObjectUnionOfImpl
+     * @see com.github.owlcs.ontapi.owlapi.objects.ce.ObjectUnionOfImpl
      * @see OntClass.UnionOf
      */
     public static class UF
@@ -839,7 +839,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
     }
 
     /**
-     * @see com.github.owlcs.ontapi.owlapi.objects.ce.OWLObjectIntersectionOfImpl
+     * @see com.github.owlcs.ontapi.owlapi.objects.ce.ObjectIntersectionOfImpl
      * @see OntClass.IntersectionOf
      */
     public static class IF
@@ -879,7 +879,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
     }
 
     /**
-     * @see com.github.owlcs.ontapi.owlapi.objects.ce.OWLObjectOneOfImpl
+     * @see com.github.owlcs.ontapi.owlapi.objects.ce.ObjectOneOfImpl
      * @see OntClass.OneOf
      */
     public static class OF
@@ -898,7 +898,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
         @Override
         protected Object toContentItem(ONTObject<? extends OWLIndividual> individual) {
             if (!individual.getOWLObject().isOWLNamedIndividual()) {
-                return ((OWLAnonymousIndividualImpl) individual).getBlankNodeId();
+                return ((AnonymousIndividualImpl) individual).getBlankNodeId();
             }
             return individual.getOWLObject().asOWLNamedIndividual().toStringID();
         }
@@ -997,7 +997,7 @@ public abstract class ONTAnonymousClassExpressionImpl<ONT extends OntClass, OWL 
     }
 
     /**
-     * @see com.github.owlcs.ontapi.owlapi.objects.ce.OWLObjectComplementOfImpl
+     * @see com.github.owlcs.ontapi.owlapi.objects.ce.ObjectComplementOfImpl
      * @see OntClass.ComplementOf
      */
     public static class CF
