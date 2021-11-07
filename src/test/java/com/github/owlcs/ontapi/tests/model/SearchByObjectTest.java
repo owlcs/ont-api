@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -150,7 +150,7 @@ public class SearchByObjectTest {
         ),
         PEOPLE(ModelData.PEOPLE,
                 T.DECLARATIONS.of(-31040926516L),
-                T.ANNOTATION_ASSERTIONS_BY_SUBJECT.of(14660248630L),
+                T.ANNOTATION_ASSERTIONS_BY_SUBJECT.of(8991342654L),
                 T.SUB_CLASS_OF_BY_SUBJECT.of(-6044474129L),
                 T.SUB_CLASS_OF_BY_OBJECT.of(-8307389053L),
                 T.EQUIVALENT_CLASS_BY_OPERAND.of(229986282L),
@@ -192,10 +192,10 @@ public class SearchByObjectTest {
         ),
         TRAVEL(ModelData.TRAVEL,
                 T.DECLARATIONS.of(-25825023334L),
-                T.ANNOTATION_ASSERTIONS_BY_SUBJECT.of(-3973926788L),
+                T.ANNOTATION_ASSERTIONS_BY_SUBJECT.of(-1500714876L),
                 T.SUB_CLASS_OF_BY_SUBJECT.of(3792566851L),
                 T.SUB_CLASS_OF_BY_OBJECT.of(1596226755L),
-                T.EQUIVALENT_CLASS_BY_OPERAND.of(-1797460855L),
+                T.EQUIVALENT_CLASS_BY_OPERAND.of(-2616901551L),
                 T.DISJOINT_CLASS_BY_OPERAND.of(13371010920L),
                 T.DATA_PROPERTY_ASSERTION_BY_SUBJECT.of(),
                 T.OBJECT_PROPERTY_ASSERTION_BY_SUBJECT.of(1580148819L),
@@ -262,12 +262,12 @@ public class SearchByObjectTest {
         ),
         FAMILY_PEOPLE_UNION(ModelData.FAMILY_PEOPLE_UNION,
                 T.DECLARATIONS.of(-637777500L),
-                T.ANNOTATION_ASSERTIONS_BY_SUBJECT.of(-311728567L),
+                T.ANNOTATION_ASSERTIONS_BY_SUBJECT.of(-1126745941L),
                 T.SUB_CLASS_OF_BY_SUBJECT.of(-730374961L),
                 T.SUB_CLASS_OF_BY_OBJECT.of(-730374961L),
                 T.EQUIVALENT_CLASS_BY_OPERAND.of(1108552553L),
                 T.DISJOINT_CLASS_BY_OPERAND.of(),
-                T.DATA_PROPERTY_ASSERTION_BY_SUBJECT.of(-2596921457L),
+                T.DATA_PROPERTY_ASSERTION_BY_SUBJECT.of(-362479247L),
                 T.OBJECT_PROPERTY_ASSERTION_BY_SUBJECT.of(),
                 T.CLASS_ASSERTION_BY_SUBJECT.of(-25907713L),
                 T.CLASS_ASSERTION_BY_OBJECT.of(-25907713L),

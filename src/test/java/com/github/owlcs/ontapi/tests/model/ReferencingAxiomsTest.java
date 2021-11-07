@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -130,15 +130,15 @@ public class ReferencingAxiomsTest {
                 T.ANNOTATION_PROPERTY.of(83282971L)
         ),
         PEOPLE(ModelData.PEOPLE,
-                T.IRI.of(-2052328542L),
-                T.LITERAL.of(14670462876L),
-                T.ANONYMOUS_INDIVIDUAL.of(7259412151L),
-                T.NAMED_INDIVIDUAL.of(10749291192L),
+                T.IRI.of(5841781774L),
+                T.LITERAL.of(9001556900L),
+                T.ANONYMOUS_INDIVIDUAL.of(3727386427L),
+                T.NAMED_INDIVIDUAL.of(29981213460L),
                 T.CLASS.of(-36032894329L),
-                T.DATATYPE.of(12391681305L),
+                T.DATATYPE.of(6722775329L),
                 T.OBJECT_PROPERTY.of(-16161584024L),
                 T.DATA_PROPERTY.of(),
-                T.ANNOTATION_PROPERTY.of(16238983895L)
+                T.ANNOTATION_PROPERTY.of(10570077919L)
         ),
         CAMERA(ModelData.CAMERA,
                 T.IRI.of(34678315922L),
@@ -163,15 +163,15 @@ public class ReferencingAxiomsTest {
                 T.ANNOTATION_PROPERTY.of(2255627747L)
         ),
         TRAVEL(ModelData.TRAVEL,
-                T.IRI.of(-10914071789L),
-                T.LITERAL.of(-3973926788L),
-                T.ANONYMOUS_INDIVIDUAL.of(1033568903L),
-                T.NAMED_INDIVIDUAL.of(-1214294187L),
-                T.CLASS.of(9634300081L),
-                T.DATATYPE.of(-5564259158L),
+                T.IRI.of(-8143972561L),
+                T.LITERAL.of(-1500714876L),
+                T.ANONYMOUS_INDIVIDUAL.of(2969337611L),
+                T.NAMED_INDIVIDUAL.of(-2571178087L),
+                T.CLASS.of(8814859385L),
+                T.DATATYPE.of(-3091047246L),
                 T.OBJECT_PROPERTY.of(-1128108216L),
                 T.DATA_PROPERTY.of(-8004661834L),
-                T.ANNOTATION_PROPERTY.of(-3973926788L)
+                T.ANNOTATION_PROPERTY.of(-1500714876L)
         ),
         WINE(ModelData.WINE,
                 T.IRI.of(141385965517L),
@@ -219,15 +219,15 @@ public class ReferencingAxiomsTest {
         ),
 
         FAMILY_PEOPLE_UNION(ModelData.FAMILY_PEOPLE_UNION,
-                T.IRI.of(-6160557032L),
-                T.LITERAL.of(-2908650024L),
-                T.ANONYMOUS_INDIVIDUAL.of(-281525676L),
+                T.IRI.of(-3321707360L),
+                T.LITERAL.of(-1489225188L),
+                T.ANONYMOUS_INDIVIDUAL.of(1137899160L),
                 T.NAMED_INDIVIDUAL.of(-3721888116L),
                 T.CLASS.of(2270078579L),
-                T.DATATYPE.of(-2908650024L),
+                T.DATATYPE.of(-1489225188L),
                 T.OBJECT_PROPERTY.of(1108552553L),
-                T.DATA_PROPERTY.of(-2596921457L),
-                T.ANNOTATION_PROPERTY.of(-311728567L)
+                T.DATA_PROPERTY.of(-362479247L),
+                T.ANNOTATION_PROPERTY.of(-1126745941L)
         ),
         ;
         private final ModelData resource;

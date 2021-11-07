@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -47,10 +47,10 @@ public class StructuralTransformationTestCase {
                 "[Declaration(Annotation(<urn:test#ann> \"test\"^^xsd:string) AnnotationProperty(<urn:test#ann>))]");
         map.put(b.decI(),
                 "[Declaration(Annotation(<urn:test#ann> \"test\"^^xsd:string) NamedIndividual(<urn:test#i>))]");
-        map.put(b.dDp(), "[DisjointDataProperties(<urn:test#dp> <urn:test#iri> )]");
-        map.put(b.dOp(), "[DisjointObjectProperties(<urn:test#iri> <urn:test#op> )]");
-        map.put(b.eDp(), "[EquivalentDataProperties(<urn:test#dp> <urn:test#iri> )]");
-        map.put(b.eOp(), "[EquivalentObjectProperties(<urn:test#iri> <urn:test#op> )]");
+        map.put(b.dDp(), "[DisjointDataProperties(<urn:test#dp> <urn:test#iri>)]");
+        map.put(b.dOp(), "[DisjointObjectProperties(<urn:test#iri> <urn:test#op>)]");
+        map.put(b.eDp(), "[EquivalentDataProperties(<urn:test#dp> <urn:test#iri>)]");
+        map.put(b.eOp(), "[EquivalentObjectProperties(<urn:test#iri> <urn:test#op>)]");
         map.put(b.fdp(),
                 "[SubClassOf(owl:Thing DataMaxCardinality(1 <urn:test#dp> rdfs:Literal))]");
         map.put(b.fop(), "[SubClassOf(owl:Thing ObjectMaxCardinality(1 <urn:test#op> owl:Thing))]");
@@ -72,7 +72,7 @@ public class StructuralTransformationTestCase {
         map.put(b.oRange(), "[SubClassOf(<http://www.semanticweb.org/ontology#X0> <urn:test#c>), "
                 + "SubClassOf(owl:Thing ObjectAllValuesFrom(<urn:test#op> <http://www.semanticweb.org/ontology#X0>))]");
         map.put(b.chain(),
-                "[SubObjectPropertyOf(Annotation(<urn:test#ann> \"test\"^^xsd:string) ObjectPropertyChain( <urn:test#iri> <urn:test#op> ) <urn:test#op>)]");
+                "[SubObjectPropertyOf(Annotation(<urn:test#ann> \"test\"^^xsd:string) ObjectPropertyChain(<urn:test#iri> <urn:test#op>) <urn:test#op>)]");
         map.put(b.ref(),
                 "[ReflexiveObjectProperty(Annotation(<urn:test#ann> \"test\"^^xsd:string) <urn:test#op>)]");
         map.put(b.same(), "[]");
@@ -85,37 +85,37 @@ public class StructuralTransformationTestCase {
         map.put(b.subObject(),
                 "[SubObjectPropertyOf(Annotation(<urn:test#ann> \"test\"^^xsd:string) <urn:test#op> owl:topObjectProperty)]");
         map.put(b.rule(),
-                "[DLSafeRule( Body(BuiltInAtom(<urn:swrl:var#v1> Variable(<urn:swrl:var#var3>) Variable(<urn:swrl:var#var4>) )) "
-                        + "Head(BuiltInAtom(<urn:swrl:var#v2> Variable(<urn:swrl:var#var5>) Variable(<urn:swrl:var#var6>) )) )]");
+                "[DLSafeRule(Body(BuiltInAtom(<urn:swrl:var#v1> Variable(<urn:swrl:var#var3>) Variable(<urn:swrl:var#var4>))) "
+                        + "Head(BuiltInAtom(<urn:swrl:var#v2> Variable(<urn:swrl:var#var5>) Variable(<urn:swrl:var#var6>))))]");
         map.put(b.symm(),
                 "[SymmetricObjectProperty(Annotation(<urn:test#ann> \"test\"^^xsd:string) <urn:test#op>)]");
         map.put(b.trans(),
                 "[TransitiveObjectProperty(Annotation(<urn:test#ann> \"test\"^^xsd:string) <urn:test#op>)]");
         map.put(b.hasKey(),
-                "[HasKey(Annotation(<urn:test#ann> \"test\"^^xsd:string) <urn:test#c> (<urn:test#iri> <urn:test#op> ) (<urn:test#dp> ))]");
+                "[HasKey(Annotation(<urn:test#ann> \"test\"^^xsd:string) <urn:test#c> (<urn:test#iri> <urn:test#op>) (<urn:test#dp>))]");
         map.put(b.bigRule(),
-                "[DLSafeRule(Annotation(<urn:test#ann> \"test\"^^xsd:string)  Body(BuiltInAtom(<urn:swrl:var#v1> Variable(<urn:swrl:var#var3>) Variable(<urn:swrl:var#var4>) ) "
+                "[DLSafeRule(Annotation(<urn:test#ann> \"test\"^^xsd:string) Body(BuiltInAtom(<urn:swrl:var#v1> Variable(<urn:swrl:var#var3>) Variable(<urn:swrl:var#var4>)) "
                         + "ClassAtom(<urn:test#c> Variable(<urn:swrl:var#var2>)) DataRangeAtom(<urn:test#datatype> Variable(<urn:swrl:var#var1>)) "
-                        + "BuiltInAtom(<urn:test#iri> Variable(<urn:swrl:var#var1>) ) DifferentFromAtom(Variable(<urn:swrl:var#var2>) <urn:test#i>) "
+                        + "BuiltInAtom(<urn:test#iri> Variable(<urn:swrl:var#var1>)) DifferentFromAtom(Variable(<urn:swrl:var#var2>) <urn:test#i>) "
                         + "SameAsAtom(Variable(<urn:swrl:var#var2>) <urn:test#iri>)) Head(BuiltInAtom(<urn:swrl:var#v2> Variable(<urn:swrl:var#var5>) "
-                        + "Variable(<urn:swrl:var#var6>) ) DataPropertyAtom(<urn:test#dp> Variable(<urn:swrl:var#var2>) \"false\"^^xsd:boolean) "
-                        + "ObjectPropertyAtom(<urn:test#op> Variable(<urn:swrl:var#var2>) Variable(<urn:swrl:var#var2>))) )]");
+                        + "Variable(<urn:swrl:var#var6>)) DataPropertyAtom(<urn:test#dp> Variable(<urn:swrl:var#var2>) \"false\"^^xsd:boolean) "
+                        + "ObjectPropertyAtom(<urn:test#op> Variable(<urn:swrl:var#var2>) Variable(<urn:swrl:var#var2>))))]");
         map.put(b.ann(),
                 "[AnnotationAssertion(Annotation(<urn:test#ann> \"test\"^^xsd:string) <urn:test#ann> <urn:test#iri> \"false\"^^xsd:boolean)]");
         map.put(b.asymm(),
                 "[AsymmetricObjectProperty(Annotation(<urn:test#ann> \"test\"^^xsd:string) <urn:test#op>)]");
-        map.put(b.annDom(), "[AnnotationPropertyDomain(<urn:test#ann> <urn:test#iri>)]");
-        map.put(b.annRange(), "[AnnotationPropertyRange(<urn:test#ann> <urn:test#iri>)]");
+        map.put(b.annDom(), "[AnnotationPropertyDomain(Annotation(<urn:test#ann> \"test\"^^xsd:string) <urn:test#ann> <urn:test#iri>)]");
+        map.put(b.annRange(), "[AnnotationPropertyRange(Annotation(<urn:test#ann> \"test\"^^xsd:string) <urn:test#ann> <urn:test#iri>)]");
         map.put(b.dRangeAnd(),
-                "[SubClassOf(owl:Thing DataAllValuesFrom(<urn:test#dp> DataIntersectionOf(<urn:test#datatype> DataOneOf(\"false\"^^xsd:boolean ) )))]");
+                "[SubClassOf(owl:Thing DataAllValuesFrom(<urn:test#dp> DataIntersectionOf(<urn:test#datatype> DataOneOf(\"false\"^^xsd:boolean))))]");
         map.put(b.dRangeOr(),
-                "[SubClassOf(owl:Thing DataAllValuesFrom(<urn:test#dp> DataUnionOf(<urn:test#datatype> DataOneOf(\"false\"^^xsd:boolean ) )))]");
+                "[SubClassOf(owl:Thing DataAllValuesFrom(<urn:test#dp> DataUnionOf(<urn:test#datatype> DataOneOf(\"false\"^^xsd:boolean))))]");
         map.put(b.dOneOf(),
-                "[SubClassOf(owl:Thing DataAllValuesFrom(<urn:test#dp> DataOneOf(\"false\"^^xsd:boolean )))]");
+                "[SubClassOf(owl:Thing DataAllValuesFrom(<urn:test#dp> DataOneOf(\"false\"^^xsd:boolean)))]");
         map.put(b.dNot(),
-                "[SubClassOf(owl:Thing DataAllValuesFrom(<urn:test#dp> DataComplementOf(DataOneOf(\"false\"^^xsd:boolean ))))]");
+                "[SubClassOf(owl:Thing DataAllValuesFrom(<urn:test#dp> DataComplementOf(DataOneOf(\"false\"^^xsd:boolean))))]");
         map.put(b.dRangeRestrict(),
-                "[SubClassOf(owl:Thing DataAllValuesFrom(<urn:test#dp> DataRangeRestriction(xsd:double "
+                "[SubClassOf(owl:Thing DataAllValuesFrom(<urn:test#dp> DatatypeRestriction(xsd:double "
                         + "facetRestriction(minExclusive \"5.0\"^^xsd:double) facetRestriction(maxExclusive \"6.0\"^^xsd:double))))]");
         map.put(b.assD(),
                 "[DataPropertyAssertion(Annotation(<urn:test#ann> \"test\"^^xsd:string) <urn:test#dp> <urn:test#i> \"false\"^^xsd:boolean)]");

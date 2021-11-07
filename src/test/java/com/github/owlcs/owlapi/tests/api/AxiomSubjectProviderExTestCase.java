@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2021, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -54,11 +54,11 @@ public class AxiomSubjectProviderExTestCase {
         map.put(b.subClass(), "<urn:test#c>");
         map.put(b.subData(), "<urn:test#dp>");
         map.put(b.subObject(), "<urn:test#op>");
-        map.put(b.rule(), "BuiltInAtom(<urn:swrl:var#v2> Variable(<urn:swrl:var#var5>) Variable(<urn:swrl:var#var6>) )");
+        map.put(b.rule(), "BuiltInAtom(<urn:swrl:var#v2> Variable(<urn:swrl:var#var5>) Variable(<urn:swrl:var#var6>))");
         map.put(b.symm(), "<urn:test#op>");
         map.put(b.trans(), "<urn:test#op>");
         map.put(b.hasKey(), "<urn:test#c>");
-        map.put(b.bigRule(), "BuiltInAtom(<urn:swrl:var#v2> Variable(<urn:swrl:var#var5>) Variable(<urn:swrl:var#var6>) )");
+        map.put(b.bigRule(), "BuiltInAtom(<urn:swrl:var#v2> Variable(<urn:swrl:var#var5>) Variable(<urn:swrl:var#var6>))");
         map.put(b.ann(), "urn:test#iri");
         map.put(b.asymm(), "<urn:test#op>");
         map.put(b.annDom(), "<urn:test#ann>");
