@@ -20,7 +20,7 @@
 
     <groupId>com.github.owlcs</groupId>
     <artifactId>ontapi</artifactId>
-    <version>3.0.0-SNAPSHOT</version>
+    <version>3.0.0</version>
     <packaging>jar</packaging>
 
     <name>${project.groupId}:${project.artifactId}</name>
@@ -35,7 +35,7 @@
         <version.owlapi>5.1.19</version.owlapi>
         <version.slf4j>1.7.32</version.slf4j>
         <version.caffeine>3.0.4</version.caffeine>
-        <version.junit>5.8.1</version.junit>
+        <version.junit>5.8.2</version.junit>
     </properties>
 
     <licenses>
