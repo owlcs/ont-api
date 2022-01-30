@@ -33,7 +33,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <version.jena>4.3.2</version.jena>
         <version.owlapi>5.1.19</version.owlapi>
-        <version.slf4j>1.7.32</version.slf4j>
+        <version.slf4j>1.7.35</version.slf4j>
         <version.caffeine>3.0.5</version.caffeine>
         <version.junit>5.8.2</version.junit>
     </properties>
@@ -242,7 +242,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>3.2.0</version>
+                <version>3.2.2</version>
                 <executions>
                     <execution>
                         <id>attache-tests</id>
@@ -255,7 +255,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
+                <version>3.9.0</version>
                 <configuration>
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
