@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2022, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -197,7 +197,7 @@ public class RioRendererTestCase extends TestBase {
         // node identifiers, so we
         // only test a minimum length and a maximum length
         // also note: the line separator is '\r\n' (two symbols) in windows, and '\n' in linux
-        Assertions.assertTrue(result.length() > 8150,
+        Assertions.assertTrue(result.length() > 7900,
                 "result.length()=" + result.length() + " was not inside the expected bounds");
         Assertions.assertTrue(result.length() < 9500,
                 "result.length()=" + result.length() + " was not inside the expected bounds");
