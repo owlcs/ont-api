@@ -24,12 +24,9 @@ import com.github.owlcs.ontapi.jena.UnionGraph;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.utils.Graphs;
 import com.github.owlcs.ontapi.jena.utils.OntModels;
-import org.apache.commons.io.output.WriterOutputStream;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphUtil;
 import org.apache.jena.graph.impl.WrappedGraph;
-import org.apache.jena.riot.RDFDataMgr;
-import org.apache.jena.shared.JenaException;
 import org.apache.jena.shared.PrefixMapping;
 import org.semanticweb.owlapi.io.*;
 import org.semanticweb.owlapi.model.*;
@@ -43,14 +40,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.OutputStream;
 import java.io.Serializable;
-import java.net.URL;
-import java.net.URLConnection;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -1731,71 +1721,48 @@ public class OntologyManagerImpl
                       OWLOntologyDocumentTarget target) throws OWLOntologyStorageException {
         if (!(ontology instanceof Ontology))
             throw new OntApiException.Unsupported("Unsupported OWLOntology instance: " + this);
-        OntFormat format = OntApiException.notNull(OntFormat.get(doc), "Can't determine format: " + doc);
-
         Ontology ont = (Ontology) ontology;
+        OntFormat format = OntApiException.notNull(OntFormat.get(doc), "Can't determine format: " + doc);
         if (!format.isJena()) {
-            getAdapter().asBaseModel(ont).getBase().clearCacheIfNeeded();
-            try {
-                for (OWLStorerFactory storer : getOntologyStorers()) {
-                    OWLStorer writer = storer.createStorer();
-                    if (!writer.canStoreOntology(doc)) {
-                        continue;
-                    }
-                    writer.storeOntology(ont, target, doc);
-                    return;
-                }
-                throw new OWLStorerNotFoundException(doc);
-            } catch (IOException e) {
-                throw new OWLOntologyStorageIOException(e);
-            }
+            writeUsingOWLStore(ont, doc, target);
+            return;
         }
-        OutputStream os = null;
-        if (target.getOutputStream().isPresent()) {
-            os = target.getOutputStream().get();
-        } else if (target.getDocumentIRI().isPresent()) {
-            IRI iri = target.getDocumentIRI().get();
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Save {} to {}", ont.getOntologyID(), iri);
-            }
-            try {
-                os = openStream(iri);
-            } catch (IOException e) {
-                throw new OWLOntologyStorageIOException(e);
-            }
-        } else if (target.getWriter().isPresent()) {
-            os = new WriterOutputStream(target.getWriter().get(), StandardCharsets.UTF_8);
-        }
-        if (os == null) {
-            throw new OWLOntologyStorageException("Null output stream, format = " + doc);
-        }
-        Graph graph = ont.asGraphModel().getBaseGraph();
-        if (doc.isPrefixOWLDocumentFormat()) {
-            PrefixMapping pm = OntGraphUtils.prefixMapping(doc.asPrefixOWLDocumentFormat());
-            graph = new WrappedGraph(graph) {
+        Graph graph = getBaseGraphWithPrefixes(ont, doc);
+        OntGraphUtils.writeGraph(graph, format.getLang(), target);
+    }
 
-                @Override
-                public PrefixMapping getPrefixMapping() {
-                    return pm;
-                }
-            };
-        }
+    protected void writeUsingOWLStore(Ontology ont,
+                                      OWLDocumentFormat doc,
+                                      OWLOntologyDocumentTarget target) throws OWLOntologyStorageException {
+        getAdapter().asBaseModel(ont).getBase().clearCacheIfNeeded();
         try {
-            RDFDataMgr.write(os, graph, format.getLang());
-        } catch (JenaException e) {
-            throw new OWLOntologyStorageException("Can't save " + ont.getOntologyID() + ". Format=" + format, e);
+            for (OWLStorerFactory storer : getOntologyStorers()) {
+                OWLStorer writer = storer.createStorer();
+                if (!writer.canStoreOntology(doc)) {
+                    continue;
+                }
+                writer.storeOntology(ont, target, doc);
+                return;
+            }
+            throw new OWLStorerNotFoundException(doc);
+        } catch (IOException e) {
+            throw new OWLOntologyStorageIOException(e);
         }
     }
 
-    private static OutputStream openStream(IRI iri) throws IOException {
-        if (OntConfig.DefaultScheme.FILE.same(iri)) {
-            Path file = Paths.get(iri.toURI());
-            Files.createDirectories(file.getParent());
-            return Files.newOutputStream(file);
+    protected static Graph getBaseGraphWithPrefixes(Ontology ont, OWLDocumentFormat doc) {
+        Graph graph = ont.asGraphModel().getBaseGraph();
+        if (!doc.isPrefixOWLDocumentFormat()) {
+            return graph;
         }
-        URL url = iri.toURI().toURL();
-        URLConnection conn = url.openConnection();
-        return conn.getOutputStream();
+        PrefixMapping pm = OntGraphUtils.prefixMapping(doc.asPrefixOWLDocumentFormat());
+        return new WrappedGraph(graph) {
+
+            @Override
+            public PrefixMapping getPrefixMapping() {
+                return pm;
+            }
+        };
     }
 
     /**

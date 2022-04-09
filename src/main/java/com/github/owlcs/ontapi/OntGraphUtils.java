@@ -14,6 +14,7 @@
 
 package com.github.owlcs.ontapi;
 
+import com.github.owlcs.ontapi.config.OntConfig;
 import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
 import com.github.owlcs.ontapi.jena.impl.OntIDImpl;
 import com.github.owlcs.ontapi.jena.utils.Graphs;
@@ -25,21 +26,21 @@ import org.apache.jena.rdf.model.impl.ModelCom;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
 import org.apache.jena.riot.RDFLanguages;
+import org.apache.jena.shared.JenaException;
 import org.apache.jena.shared.PrefixMapping;
 import org.semanticweb.owlapi.io.*;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLDocumentFormat;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.PrefixManager;
+import org.semanticweb.owlapi.model.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.io.*;
+import java.net.URL;
+import java.net.URLConnection;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 import static com.github.owlcs.ontapi.OntologyFactoryImpl.ConfigMismatchException;
@@ -385,6 +386,72 @@ public class OntGraphUtils {
             charset = StandardCharsets.UTF_8;
         }
         return new ReaderInputStream(reader, charset, 8192);
+    }
+
+    /**
+     * Writes the given {@code graph} to the {@code target} in the default serialization for {@code lang}.
+     *
+     * @param graph  {@link Graph}
+     * @param lang   {@link Lang}
+     * @param target {@link OWLOntologyDocumentTarget}
+     * @throws OWLOntologyStorageException in case of any error
+     */
+    public static void writeGraph(Graph graph, Lang lang, OWLOntologyDocumentTarget target) throws OWLOntologyStorageException {
+        String name = Graphs.getName(graph);
+        try (OutputStream os = target.getOutputStream().orElse(null)) {
+            if (os != null) {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Save {} to the output stream in the default serialization for {}", name, lang);
+                }
+                RDFDataMgr.write(os, graph, lang);
+                return;
+            }
+        } catch (JenaException | IOException ex) {
+            throw new OWLOntologyStorageException(String.format("Exception while writing %s to OutputStream; format=%s", name, lang), ex);
+        }
+        try (Writer wr = target.getWriter().orElse(null)) {
+            if (wr != null) {
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Save {} to the writer in the default serialization for {}", name, lang);
+                }
+                //using Java Writers risks corruption because of mismatch of character set. Only UTF-8 is safe.
+                //noinspection deprecation <- we take the risk, assuming that the provider knows what he is doing
+                RDFDataMgr.write(wr, graph, lang);
+                return;
+            }
+        } catch (JenaException | IOException ex) {
+            throw new OWLOntologyStorageException(String.format("Exception while writing %s to Writer; format=%s", name, lang), ex);
+        }
+        IRI iri = target.getDocumentIRI().orElse(null);
+        if (iri == null) {
+            throw new IllegalArgumentException("Broken document target specified: no Writer, no InputStream, no IRI");
+        }
+        try (OutputStream os = openOutputStream(iri)) {
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("Save {} to the {} in the default serialization for {}", name, iri, lang);
+            }
+            RDFDataMgr.write(os, graph, lang);
+        } catch (IOException ex) {
+            throw new OWLOntologyStorageException(String.format("Exception while writing %s to %s; format=%s", name, iri, lang), ex);
+        }
+    }
+
+    /**
+     * Opens the output stream for the specified {@code IRI}.
+     *
+     * @param iri {@link IRI}
+     * @return {@link OutputStream}
+     * @throws IOException if can't open strean
+     */
+    protected static OutputStream openOutputStream(IRI iri) throws IOException {
+        if (OntConfig.DefaultScheme.FILE.same(iri)) {
+            Path file = Paths.get(iri.toURI());
+            Files.createDirectories(file.getParent());
+            return Files.newOutputStream(file);
+        }
+        URL url = iri.toURI().toURL();
+        URLConnection conn = url.openConnection();
+        return conn.getOutputStream();
     }
 
     /**
