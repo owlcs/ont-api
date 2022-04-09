@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2022, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -16,7 +16,6 @@ package com.github.owlcs.ontapi;
 
 import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
 import com.github.owlcs.ontapi.jena.impl.OntIDImpl;
-import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.utils.Graphs;
 import com.github.owlcs.ontapi.jena.utils.Models;
 import com.github.owlcs.ontapi.transforms.GraphStats;
@@ -49,7 +48,7 @@ import static com.github.owlcs.ontapi.OntologyFactoryImpl.UnsupportedFormatExcep
 /**
  * Helper to work with {@link Graph Apache Jena Graph}s in OWL-API terms.
  * Used in different ONT-API components related to the OWL-API-api implementation.
- * Some of the methods were moved from another classes (e.g. from {@link OntologyFactoryImpl})
+ * Some methods were moved from another classes (e.g. from {@link OntologyFactoryImpl})
  * and can refer to another class namespace
  * (e.g. can throw exceptions defined as nested static in some external classes).
  * <p>
@@ -62,7 +61,7 @@ import static com.github.owlcs.ontapi.OntologyFactoryImpl.UnsupportedFormatExcep
  */
 @SuppressWarnings("WeakerAccess")
 public class OntGraphUtils {
-    private static final Logger LOGGER = LoggerFactory.getLogger(OntModel.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(OntGraphUtils.class);
 
     // following constants are copy-pasted from org.semanticweb.owlapi.io.DocumentSource:
     public static final String TEXT_PLAIN_REQUEST_TYPE = ", text/plain; q=0.1";

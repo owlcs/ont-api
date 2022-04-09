@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2021, owl.cs group.
+ * Copyright (c) 2022, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -54,6 +54,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -93,6 +94,8 @@ public class OntologyManagerImpl
     protected final RWLockedCollection<OWLStorerFactory> ontologyStorers;
     // primary parameters:
     protected final ReadWriteLock lock;
+    protected final Lock readLock;
+    protected final Lock writeLock;
     protected final DataFactory dataFactory;
     // the collection of ontologies:
     protected final OntologyCollection<OntInfo> content;
@@ -155,6 +158,8 @@ public class OntologyManagerImpl
         this.ontologyStorers = new RWLockedCollection<>(this.lock, sorting);
         this.content = new OntologyCollectionImpl<>(this.lock);
         this.iris = createIRICache();
+        this.readLock = this.lock.readLock();
+        this.writeLock = this.lock.writeLock();
     }
 
     @Override
@@ -208,11 +213,11 @@ public class OntologyManagerImpl
      */
     @Override
     public OntConfig getOntologyConfigurator() {
-        getLock().readLock().lock();
+        readLock.lock();
         try {
             return this.config;
         } finally {
-            getLock().readLock().unlock();
+            readLock.unlock();
         }
     }
 
@@ -223,7 +228,7 @@ public class OntologyManagerImpl
      */
     @Override
     public void setOntologyConfigurator(OntologyConfigurator conf) {
-        getLock().writeLock().lock();
+        writeLock.lock();
         try {
             // NOTE: OWL-API-contract tests shows that the configurator
             // may be shared between different manager instances, so need to pass the same instance,
@@ -236,7 +241,7 @@ public class OntologyManagerImpl
                 this.iris = createIRICache();
             }
         } finally {
-            getLock().writeLock().unlock();
+            writeLock.unlock();
         }
     }
 
@@ -247,7 +252,7 @@ public class OntologyManagerImpl
      */
     @Override
     public void setOntologyLoaderConfiguration(@Nullable OWLOntologyLoaderConfiguration config) {
-        getLock().writeLock().lock();
+        writeLock.lock();
         try {
             OntLoaderConfiguration conf = getAdapter().asONT(config);
             if (ModelConfig.hasChanges(getOntLoaderConfiguration(), conf)) {
@@ -258,7 +263,7 @@ public class OntologyManagerImpl
             }
             this.loaderConfig = conf;
         } finally {
-            getLock().writeLock().unlock();
+            writeLock.unlock();
         }
     }
 
@@ -269,11 +274,11 @@ public class OntologyManagerImpl
      */
     @Override
     public OntLoaderConfiguration getOntologyLoaderConfiguration() {
-        getLock().readLock().lock();
+        readLock.lock();
         try {
             return getOntLoaderConfiguration();
         } finally {
-            getLock().readLock().unlock();
+            readLock.unlock();
         }
     }
 
@@ -288,12 +293,12 @@ public class OntologyManagerImpl
      */
     @Override
     public void setOntologyWriterConfiguration(@Nullable OWLOntologyWriterConfiguration conf) {
-        getLock().writeLock().lock();
+        writeLock.lock();
         try {
             if (Objects.equals(writerConfig, conf)) return;
             writerConfig = getAdapter().asONT(conf);
         } finally {
-            getLock().writeLock().unlock();
+            writeLock.unlock();
         }
     }
 
@@ -305,11 +310,11 @@ public class OntologyManagerImpl
     @Override
     @Nonnull
     public OntWriterConfiguration getOntologyWriterConfiguration() {
-        getLock().readLock().lock();
+        readLock.lock();
         try {
             return writerConfig != null ? writerConfig : this.config.buildWriterConfiguration();
         } finally {
-            getLock().readLock().unlock();
+            readLock.unlock();
         }
     }
 
@@ -346,11 +351,11 @@ public class OntologyManagerImpl
      */
     @Override
     public void setDefaultChangeBroadcastStrategy(@Nonnull OWLOntologyChangeBroadcastStrategy strategy) {
-        getLock().writeLock().lock();
+        writeLock.lock();
         try {
             listeners.setDefaultChangeBroadcastStrategy(strategy);
         } finally {
-            getLock().writeLock().unlock();
+            writeLock.unlock();
         }
     }
 
@@ -359,11 +364,11 @@ public class OntologyManagerImpl
      */
     @Override
     public void addOntologyChangeListener(@Nonnull OWLOntologyChangeListener listener) {
-        getLock().writeLock().lock();
+        writeLock.lock();
         try {
             listeners.addOntologyChangeListener(listener);
         } finally {
-            getLock().writeLock().unlock();
+            writeLock.unlock();
         }
 
     }
@@ -375,11 +380,11 @@ public class OntologyManagerImpl
     @Override
     public void addOntologyChangeListener(@Nonnull OWLOntologyChangeListener listener,
                                           @Nonnull OWLOntologyChangeBroadcastStrategy strategy) {
-        getLock().writeLock().lock();
+        writeLock.lock();
         try {
             listeners.addOntologyChangeListener(listener, strategy);
         } finally {
-            getLock().writeLock().unlock();
+            writeLock.unlock();
         }
     }
 
@@ -388,11 +393,11 @@ public class OntologyManagerImpl
      */
     @Override
     public void removeOntologyChangeListener(@Nonnull OWLOntologyChangeListener listener) {
-        getLock().writeLock().lock();
+        writeLock.lock();
         try {
             listeners.removeOntologyChangeListener(listener);
         } finally {
-            getLock().writeLock().unlock();
+            writeLock.unlock();
         }
     }
 
@@ -401,11 +406,11 @@ public class OntologyManagerImpl
      */
     @Override
     public void addImpendingOntologyChangeListener(@Nonnull ImpendingOWLOntologyChangeListener listener) {
-        getLock().writeLock().lock();
+        writeLock.lock();
         try {
             listeners.addImpendingOntologyChangeListener(listener);
         } finally {
-            getLock().writeLock().unlock();
+            writeLock.unlock();
         }
     }
 
@@ -414,11 +419,11 @@ public class OntologyManagerImpl
      */
     @Override
     public void removeImpendingOntologyChangeListener(@Nonnull ImpendingOWLOntologyChangeListener listener) {
-        getLock().writeLock().lock();
+        writeLock.lock();
         try {
             listeners.removeImpendingOntologyChangeListener(listener);
         } finally {
-            getLock().writeLock().unlock();
+            writeLock.unlock();
         }
     }
 
@@ -427,11 +432,11 @@ public class OntologyManagerImpl
      */
     @Override
     public void addOntologyChangesVetoedListener(@Nonnull OWLOntologyChangesVetoedListener listener) {
-        getLock().writeLock().lock();
+        writeLock.lock();
         try {
             listeners.addOntologyChangesVetoedListener(listener);
         } finally {
-            getLock().writeLock().unlock();
+            writeLock.unlock();
         }
     }
 
@@ -440,11 +445,11 @@ public class OntologyManagerImpl
      */
     @Override
     public void removeOntologyChangesVetoedListener(@Nonnull OWLOntologyChangesVetoedListener listener) {
-        getLock().writeLock().lock();
+        writeLock.lock();
         try {
             listeners.removeOntologyChangesVetoedListener(listener);
         } finally {
-            getLock().writeLock().unlock();
+            writeLock.unlock();
         }
     }
 
@@ -453,11 +458,11 @@ public class OntologyManagerImpl
      */
     @Override
     public void addMissingImportListener(@Nonnull MissingImportListener listener) {
-        getLock().writeLock().lock();
+        writeLock.lock();
         try {
             listeners.addMissingImportListener(listener);
         } finally {
-            getLock().writeLock().unlock();
+            writeLock.unlock();
         }
     }
 
@@ -466,11 +471,11 @@ public class OntologyManagerImpl
      */
     @Override
     public void removeMissingImportListener(@Nonnull MissingImportListener listener) {
-        getLock().writeLock().lock();
+        writeLock.lock();
         try {
             listeners.removeMissingImportListener(listener);
         } finally {
-            getLock().writeLock().unlock();
+            writeLock.unlock();
         }
     }
 
@@ -479,11 +484,11 @@ public class OntologyManagerImpl
      */
     @Override
     public void addOntologyLoaderListener(@Nonnull OWLOntologyLoaderListener listener) {
-        getLock().writeLock().lock();
+        writeLock.lock();
         try {
             listeners.addOntologyLoaderListener(listener);
         } finally {
-            getLock().writeLock().unlock();
+            writeLock.unlock();
         }
     }
 
@@ -492,11 +497,11 @@ public class OntologyManagerImpl
      */
     @Override
     public void removeOntologyLoaderListener(@Nonnull OWLOntologyLoaderListener listener) {
-        getLock().writeLock().lock();
+        writeLock.lock();
         try {
             listeners.removeOntologyLoaderListener(listener);
         } finally {
-            getLock().writeLock().unlock();
+            writeLock.unlock();
         }
     }
 
@@ -505,11 +510,11 @@ public class OntologyManagerImpl
      */
     @Override
     public void addOntologyChangeProgessListener(@Nonnull OWLOntologyChangeProgressListener listener) {
-        getLock().writeLock().lock();
+        writeLock.lock();
         try {
             listeners.addOntologyChangeProgressListener(listener);
         } finally {
-            getLock().writeLock().unlock();
+            writeLock.unlock();
         }
     }
 
@@ -518,11 +523,11 @@ public class OntologyManagerImpl
      */
     @Override
     public void removeOntologyChangeProgessListener(@Nonnull OWLOntologyChangeProgressListener listener) {
-        getLock().writeLock().lock();
+        writeLock.lock();
         try {
             listeners.removeOntologyChangeProgressListener(listener);
         } finally {
-            getLock().writeLock().unlock();
+            writeLock.unlock();
         }
     }
 
@@ -532,13 +537,13 @@ public class OntologyManagerImpl
      */
     @Override
     public Ontology createOntology(@Nonnull OWLOntologyID id) {
-        getLock().writeLock().lock();
+        writeLock.lock();
         try {
             return create(id).get();
         } catch (OWLOntologyCreationException e) {
             throw new OntApiException("Unable to create ontology " + id, e);
         } finally {
-            getLock().writeLock().unlock();
+            writeLock.unlock();
         }
     }
 
@@ -585,7 +590,7 @@ public class OntologyManagerImpl
     public Ontology createOntology(@Nonnull IRI iri,
                                    @Nonnull Stream<OWLOntology> ontologies,
                                    boolean copyLogicalAxiomsOnly) {
-        getLock().writeLock().lock();
+        writeLock.lock();
         try {
             ID id = ID.create(Objects.requireNonNull(iri));
             if (contains(iri)) {
@@ -597,7 +602,7 @@ public class OntologyManagerImpl
         } catch (OWLOntologyAlreadyExistsException e) {
             throw new OntApiException("Unable to create ontology " + iri, e);
         } finally {
-            getLock().writeLock().unlock();
+            writeLock.unlock();
         }
     }
 
@@ -608,7 +613,7 @@ public class OntologyManagerImpl
      */
     @Override
     public Ontology createOntology(@Nonnull Stream<OWLAxiom> axioms, @Nonnull IRI iri) {
-        getLock().writeLock().lock();
+        writeLock.lock();
         try {
             ID id = ID.create(Objects.requireNonNull(iri));
             if (contains(iri)) {
@@ -620,7 +625,7 @@ public class OntologyManagerImpl
         } catch (OWLOntologyAlreadyExistsException e) {
             throw new OntApiException("Unable to create ontology " + iri, e);
         } finally {
-            getLock().writeLock().unlock();
+            writeLock.unlock();
         }
     }
 
@@ -632,7 +637,7 @@ public class OntologyManagerImpl
      */
     @Override
     public Ontology addOntology(@Nonnull Graph graph, @Nonnull OntLoaderConfiguration conf) {
-        getLock().writeLock().lock();
+        writeLock.lock();
         try {
             ID id = OntGraphUtils.getOntologyID(graph);
             Map<ID, Graph> graphs = OntGraphUtils.toGraphMap(graph);
@@ -652,7 +657,7 @@ public class OntologyManagerImpl
         } catch (OWLOntologyCreationException e) {
             throw new OntApiException("Unable put graph into the manager", e);
         } finally {
-            getLock().writeLock().unlock();
+            writeLock.unlock();
         }
     }
 
@@ -740,7 +745,7 @@ public class OntologyManagerImpl
     @Override
     @Nullable
     public Ontology getOntology(@Nonnull IRI iri) {
-        getLock().readLock().lock();
+        readLock.lock();
         try {
             ID id = ID.create(Objects.requireNonNull(iri));
             Optional<OntInfo> res = content.get(id);
@@ -749,7 +754,7 @@ public class OntologyManagerImpl
             }
             return res.map(OntInfo::get).orElse(null);
         } finally {
-            getLock().readLock().unlock();
+            readLock.unlock();
         }
     }
 
@@ -762,11 +767,11 @@ public class OntologyManagerImpl
      */
     @Override
     public Ontology getOntology(@Nonnull OWLOntologyID id) {
-        getLock().readLock().lock();
+        readLock.lock();
         try {
             return ontology(id).orElse(null);
         } finally {
-            getLock().readLock().unlock();
+            readLock.unlock();
         }
     }
 
@@ -804,11 +809,11 @@ public class OntologyManagerImpl
     @Override
     public boolean contains(@Nonnull IRI iri) {
         OntApiException.notNull(iri, "Ontology IRI cannot be null");
-        getLock().readLock().lock();
+        readLock.lock();
         try {
             return content.keys().anyMatch(o -> o.match(iri));
         } finally {
-            getLock().readLock().unlock();
+            readLock.unlock();
         }
     }
 
@@ -818,11 +823,11 @@ public class OntologyManagerImpl
      */
     @Override
     public boolean contains(@Nonnull OWLOntologyID id) {
-        getLock().readLock().lock();
+        readLock.lock();
         try {
             return !id.isAnonymous() && (content.contains(id) || content.keys().anyMatch(id::match));
         } finally {
-            getLock().readLock().unlock();
+            readLock.unlock();
         }
     }
 
@@ -832,11 +837,11 @@ public class OntologyManagerImpl
      */
     @Override
     public boolean contains(@Nonnull OWLOntology ontology) {
-        getLock().readLock().lock();
+        readLock.lock();
         try {
             return hasOntology(ontology);
         } finally {
-            getLock().readLock().unlock();
+            readLock.unlock();
         }
     }
 
@@ -856,11 +861,11 @@ public class OntologyManagerImpl
      */
     @Override
     public boolean containsVersion(@Nonnull IRI iri) {
-        getLock().readLock().lock();
+        readLock.lock();
         try {
             return content.keys().anyMatch(o -> o.matchVersion(iri));
         } finally {
-            getLock().readLock().unlock();
+            readLock.unlock();
         }
     }
 
@@ -869,11 +874,11 @@ public class OntologyManagerImpl
      */
     @Override
     public void removeOntology(OWLOntology ontology) {
-        getLock().writeLock().lock();
+        writeLock.lock();
         try {
             removeOntology(ontology.getOntologyID());
         } finally {
-            getLock().writeLock().unlock();
+            writeLock.unlock();
         }
     }
 
@@ -882,11 +887,11 @@ public class OntologyManagerImpl
      */
     @Override
     public void removeOntology(@Nonnull OWLOntologyID id) {
-        getLock().writeLock().lock();
+        writeLock.lock();
         try {
             content.remove(id).map(OntInfo::getModelConfig).ifPresent(x -> x.setManager(null));
         } finally {
-            getLock().writeLock().unlock();
+            writeLock.unlock();
         }
     }
 
@@ -895,13 +900,13 @@ public class OntologyManagerImpl
      */
     @Override
     public void clearOntologies() {
-        getLock().writeLock().lock();
+        writeLock.lock();
         try {
             listeners.clear();
             content.values().map(OntInfo::getModelConfig).forEach(x -> x.setManager(null));
             content.clear();
         } finally {
-            getLock().writeLock().unlock();
+            writeLock.unlock();
         }
     }
 
@@ -916,11 +921,11 @@ public class OntologyManagerImpl
      */
     @Override
     public Ontology getImportedOntology(@Nonnull OWLImportsDeclaration declaration) {
-        getLock().readLock().lock();
+        readLock.lock();
         try {
             return importedOntology(declaration.getIRI()).orElse(null);
         } finally {
-            getLock().readLock().unlock();
+            readLock.unlock();
         }
     }
 
@@ -959,13 +964,13 @@ public class OntologyManagerImpl
     @Nonnull
     @Override
     public IRI getOntologyDocumentIRI(@Nonnull OWLOntology ontology) {
-        getLock().readLock().lock();
+        readLock.lock();
         try {
             if (!hasOntology(ontology)) throw new UnknownOWLOntologyException(ontology.getOntologyID());
             return documentIRIByOntology(ontology)
                     .orElseThrow(() -> new OntApiException("Null document iri, ontology id=" + ontology.getOntologyID()));
         } finally {
-            getLock().readLock().unlock();
+            readLock.unlock();
         }
     }
 
@@ -987,13 +992,13 @@ public class OntologyManagerImpl
      */
     @Override
     public void setOntologyDocumentIRI(@Nonnull OWLOntology ontology, @Nonnull IRI documentIRI) {
-        getLock().writeLock().lock();
+        writeLock.lock();
         try {
             OWLOntologyID id = ontology.getOntologyID();
             OntInfo info = content.get(id).orElseThrow(() -> new UnknownOWLOntologyException(id));
             info.addDocumentIRI(documentIRI);
         } finally {
-            getLock().writeLock().unlock();
+            writeLock.unlock();
         }
     }
 
@@ -1008,12 +1013,12 @@ public class OntologyManagerImpl
      */
     @Override
     public void setOntologyFormat(@Nonnull OWLOntology ontology, @Nonnull OWLDocumentFormat format) {
-        getLock().writeLock().lock();
+        writeLock.lock();
         try {
             OWLOntologyID id = ontology.getOntologyID();
             content.get(id).orElseThrow(() -> new UnknownOWLOntologyException(id)).addFormat(format);
         } finally {
-            getLock().writeLock().unlock();
+            writeLock.unlock();
         }
     }
 
@@ -1024,12 +1029,12 @@ public class OntologyManagerImpl
     @Nullable
     @Override
     public OWLDocumentFormat getOntologyFormat(@Nonnull OWLOntology ontology) {
-        getLock().readLock().lock();
+        readLock.lock();
         try {
             OWLOntologyID id = ontology.getOntologyID();
             return content.get(id).map(OntInfo::getFormat).orElse(null);
         } finally {
-            getLock().readLock().unlock();
+            readLock.unlock();
         }
     }
 
@@ -1044,11 +1049,11 @@ public class OntologyManagerImpl
         // This method is called when a factory that we have asked to create or
         // load an ontology has created the ontology. We add the ontology to the
         // set of loaded ontologies.
-        getLock().writeLock().lock();
+        writeLock.lock();
         try {
             content.add(new OntInfo(getAdapter().asONT(ont)));
         } finally {
-            getLock().writeLock().unlock();
+            writeLock.unlock();
         }
     }
 
@@ -1058,7 +1063,7 @@ public class OntologyManagerImpl
      */
     @Override
     public Stream<OWLOntology> directImports(@Nonnull OWLOntology ontology) {
-        getLock().readLock().lock();
+        readLock.lock();
         try {
             if (!contains(ontology)) {
                 throw new UnknownOWLOntologyException(ontology.getOntologyID());
@@ -1067,7 +1072,7 @@ public class OntologyManagerImpl
                     .map(this::getImportedOntology)
                     .map(OWLOntology.class::cast).filter(Objects::nonNull);
         } finally {
-            getLock().readLock().unlock();
+            readLock.unlock();
         }
     }
 
@@ -1077,11 +1082,11 @@ public class OntologyManagerImpl
      */
     @Override
     public Stream<OWLOntology> imports(@Nonnull OWLOntology ontology) {
-        getLock().readLock().lock();
+        readLock.lock();
         try {
             return getImports(ontology, new LinkedHashSet<>()).stream();
         } finally {
-            getLock().readLock().unlock();
+            readLock.unlock();
         }
     }
 
@@ -1103,13 +1108,13 @@ public class OntologyManagerImpl
      */
     @Override
     public Stream<OWLOntology> importsClosure(@Nonnull OWLOntology ontology) {
-        getLock().readLock().lock();
+        readLock.lock();
         try {
             Set<OWLOntology> res = new HashSet<>();
             collectImportsClosure(ontology, res);
             return res.stream();
         } finally {
-            getLock().readLock().unlock();
+            readLock.unlock();
         }
     }
 
@@ -1128,11 +1133,11 @@ public class OntologyManagerImpl
      */
     @Override
     public List<OWLOntology> getSortedImportsClosure(@Nonnull OWLOntology ontology) {
-        getLock().readLock().lock();
+        readLock.lock();
         try {
             return ontology.importsClosure().sorted().collect(Collectors.toList());
         } finally {
-            getLock().readLock().unlock();
+            readLock.unlock();
         }
     }
 
@@ -1155,11 +1160,11 @@ public class OntologyManagerImpl
      */
     @Override
     public Stream<OWLOntology> ontologies() {
-        getLock().readLock().lock();
+        readLock.lock();
         try {
             return content.values().map(OntInfo::get);
         } finally {
-            getLock().readLock().unlock();
+            readLock.unlock();
         }
     }
 
@@ -1169,11 +1174,11 @@ public class OntologyManagerImpl
      */
     @Override
     public Stream<OWLOntologyID> ontologyIDsByVersion(@Nonnull IRI iri) {
-        getLock().readLock().lock();
+        readLock.lock();
         try {
             return content.keys().filter(o -> o.matchVersion(iri)).map(OWLOntologyID.class::cast);
         } finally {
-            getLock().readLock().unlock();
+            readLock.unlock();
         }
     }
 
@@ -1236,14 +1241,14 @@ public class OntologyManagerImpl
      */
     @Override
     public ChangeDetails applyChangesAndGetDetails(@Nonnull List<? extends OWLOntologyChange> changes) {
-        getLock().writeLock().lock();
+        writeLock.lock();
         try {
             listeners.broadcastImpendingChanges(changes);
             AtomicBoolean rollbackRequested = new AtomicBoolean(false);
             AtomicBoolean allNoOps = new AtomicBoolean(true);
             // list of changes applied successfully. These are the changes that
             // will be reverted in case of a rollback
-            List<OWLOntologyChange> appliedChanges = new ArrayList<>();
+            List<OWLOntologyChange> appliedChanges = new ArrayList<>(changes.size());
             listeners.fireBeginChanges(changes.size());
             actuallyApply(changes, rollbackRequested, allNoOps, appliedChanges);
             if (rollbackRequested.get()) {
@@ -1264,7 +1269,7 @@ public class OntologyManagerImpl
             listeners.broadcastOntologyChangesVetoed(changes, e);
             return new ChangeDetails(ChangeApplied.UNSUCCESSFULLY, Collections.emptyList());
         } finally {
-            getLock().writeLock().unlock();
+            writeLock.unlock();
         }
     }
 
@@ -1379,8 +1384,9 @@ public class OntologyManagerImpl
         return importedOntology.signature(Imports.INCLUDED)
                 .filter(ont::containsEntityInSignature)
                 .map(df::getOWLDeclarationAxiom)
-                .collect(Collectors.toSet())
-                .stream().map(func).collect(Collectors.toList());
+                .distinct()
+                .map(func)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -1403,9 +1409,8 @@ public class OntologyManagerImpl
      * @return {@link Ontology}
      */
     @Override
-    public Ontology copyOntology(@Nonnull OWLOntology source,
-                                 @Nonnull OntologyCopy settings) {
-        getLock().writeLock().lock();
+    public Ontology copyOntology(@Nonnull OWLOntology source, @Nonnull OntologyCopy settings) {
+        writeLock.lock();
         try {
             OntApiException.notNull(source, "Null source ontology.");
             if (settings != OntologyCopy.SHALLOW && settings != OntologyCopy.DEEP)
@@ -1455,7 +1460,7 @@ public class OntologyManagerImpl
             }
             return res;
         } finally {
-            getLock().writeLock().unlock();
+            writeLock.unlock();
         }
     }
 
@@ -1466,11 +1471,11 @@ public class OntologyManagerImpl
      */
     @Override
     public Ontology loadOntology(@Nonnull IRI source) throws OWLOntologyCreationException {
-        getLock().writeLock().lock();
+        writeLock.lock();
         try {
             return load(source, getOntologyLoaderConfiguration(), false);
         } finally {
-            getLock().writeLock().unlock();
+            writeLock.unlock();
         }
     }
 
@@ -1483,11 +1488,11 @@ public class OntologyManagerImpl
     @Override
     public Ontology loadOntologyFromOntologyDocument(@Nonnull OWLOntologyDocumentSource source,
                                                      @Nonnull OWLOntologyLoaderConfiguration conf) throws OWLOntologyCreationException {
-        getLock().writeLock().lock();
+        writeLock.lock();
         try {
             return load(null, source, conf);
         } finally {
-            getLock().writeLock().unlock();
+            writeLock.unlock();
         }
     }
 
@@ -1604,8 +1609,7 @@ public class OntologyManagerImpl
      * @return {@link Ontology}, can be null
      * @throws OWLOntologyCreationException ex
      */
-    protected Ontology loadImports(IRI declaration,
-                                   OWLOntologyLoaderConfiguration conf) throws OWLOntologyCreationException {
+    protected Ontology loadImports(IRI declaration, OWLOntologyLoaderConfiguration conf) throws OWLOntologyCreationException {
         listeners.incrementImportsLoadCount();
         try {
             return load(declaration, conf, true);
@@ -1630,7 +1634,7 @@ public class OntologyManagerImpl
     @Override
     public void makeLoadImportRequest(@Nonnull OWLImportsDeclaration declaration,
                                       @Nonnull OWLOntologyLoaderConfiguration conf) {
-        getLock().writeLock().lock();
+        writeLock.lock();
         try {
             IRI dec = declaration.getIRI();
             if (conf.isIgnoredImport(dec)) return;
@@ -1644,7 +1648,7 @@ public class OntologyManagerImpl
                 throw new UnloadableImportException(e, declaration);
             }
         } finally {
-            getLock().writeLock().unlock();
+            writeLock.unlock();
         }
     }
 
@@ -1680,11 +1684,11 @@ public class OntologyManagerImpl
     public void saveOntology(@Nonnull OWLOntology ontology,
                              @Nonnull OWLDocumentFormat ontologyFormat,
                              @Nonnull OWLOntologyDocumentTarget documentTarget) throws OWLOntologyStorageException {
-        getLock().readLock().lock();
+        readLock.lock();
         try {
             write(ontology, ontologyFormat, documentTarget);
         } finally {
-            getLock().readLock().unlock();
+            readLock.unlock();
         }
     }
 
