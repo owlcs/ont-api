@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2022, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,251 +14,51 @@
 
 package com.github.owlcs.ontapi;
 
-import com.github.owlcs.ontapi.jena.utils.Graphs;
-import org.apache.jena.atlas.web.ContentType;
 import org.apache.jena.graph.Graph;
-import org.apache.jena.riot.Lang;
-import org.apache.jena.riot.RDFDataMgr;
-import org.apache.jena.shared.PrefixMapping;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLDocumentFormat;
-import org.semanticweb.owlapi.model.PrefixManager;
 
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.util.Objects;
+import java.io.InputStream;
+import java.io.Reader;
 import java.util.Optional;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicReference;
-
 
 /**
- * This is an extended {@link OWLOntologyDocumentSource} to provide possibility to pass any graph as is.
+ * This is an extended {@link OWLOntologyDocumentSource} that allows to pass any graph into the manager as is.
  * <p>
- * There are default implementations of {@link #getInputStream()} and {@link #getReader()} methods,
- * so you can use this document-source with the original OWL-API impl as well.
- * But these methods are not used by ONT-API;
+ * Here, the default implementations of the {@link #getInputStream()} and {@link #getReader()} methods throw an error,
+ * these methods are not used by the ONT-API internals,
  * instead, the method {@link #getGraph()} (which provides a direct link to the graph) is used.
- * <p>
- * Note: you may want to disable transformations, otherwise the encapsulated graph may still have some changes
- * due to tuning by the {@link OntologyFactory loading factory}.
- * To do this, you can use method {@link com.github.owlcs.ontapi.config.OntConfig#setPerformTransformation(boolean)},
- * which turns off transformations throughout the manager,
- * or method {@link com.github.owlcs.ontapi.config.OntLoaderConfiguration#setPerformTransformation(boolean)}
- * for a particular ontology, or just override method {@link #withTransforms()}.
- * or
- * <p>
- * Created by szuev on 22.02.2017.
+ * To control transformations there is the method {@link #withTransforms()}.
  */
-@SuppressWarnings("WeakerAccess")
-public abstract class OntGraphDocumentSource implements OWLOntologyDocumentSource {
-
-    protected AtomicReference<Exception> exception = new AtomicReference<>();
+public interface OntGraphDocumentSource extends OWLOntologyDocumentSource {
 
     /**
-     * Returns the encapsulated {@link Graph Jena RDF Graph} instance.
+     * Returns the {@link Graph Jena RDF Graph} to be wrapped as an ontology into the manager.
      *
      * @return {@link Graph}
      */
-    public abstract Graph getGraph();
+    Graph getGraph();
 
     /**
-     * Answers {@code true} iff the graph must be put in order by the transformations mechanism.
+     * Answers whether the graph transformation is allowed.
+     * If the method returns {@code true} then the {@link #getGraph() graph}
+     * can be put in order by the internal transformations' mechanism, depending on config settings.
+     * If the method returns {@code false} then no transformations will be performed
+     * and the graph go to the manager as is, without any changes, regardless the config settings.
      *
-     * @return boolean, {@code true} if the graph transformations for this source are allowed
+     * @return {@code boolean}, {@code true} if the graph transformation for the source is allowed
      * @see com.github.owlcs.ontapi.config.LoadSettings#isPerformTransformation()
-     * @since 1.3.2
      */
-    public boolean withTransforms() {
+    default boolean withTransforms() {
         return true;
     }
 
-    /**
-     * Gets the IRI of this ontology document source.
-     * Every call to this method must return the same IRI, which must be unique within the manager.
-     *
-     * @return {@link IRI}, not {@code null}
-     */
     @Override
-    public IRI getDocumentIRI() {
-        return IRI.create("graph:" + OntGraphUtils.toString(getGraph()));
-    }
-
-    /**
-     * Gets a reader which an ontology can be read from.
-     * This method may be called multiple times and each invocation will return a new reader.
-     * This method is not used by ONT-API, but it can be used by OWL-API-impl.
-     *
-     * @return Optional around {@link Reader}
-     */
-    @Override
-    public Optional<Reader> getReader() {
-        return getInputStream().map(is -> new InputStreamReader(is, StandardCharsets.UTF_8));
-    }
-
-    /**
-     * Gets an input stream which an ontology can be read from.
-     * This method may be called multiple times and each invocation will return a new input stream.
-     * There are no direct usages in ONT-API, but it can be used by OWL-API-impl.
-     *
-     * @return Optional around {@link InputStream}
-     */
-    @Override
-    public Optional<InputStream> getInputStream() {
-        return format().map(OntFormat::getLang).map(lang -> toInputStream(getGraph(), lang, exception));
-    }
-
-    /**
-     * Creates a new {@code InputStream} for the given {@code Graph} and {@code lang}.
-     * Please don't forget to call {@link AutoCloseable#close()} - all exceptions are handled there.
-     *
-     * @param graph  {@link Graph} a graph to read from
-     * @param lang   {@link Lang} format syntax
-     * @param error {@link AtomicReference}, a container that will contain an {@code Exception} if it occurs
-     * @return {@code InputStream}
-     */
-    protected static InputStream toInputStream(Graph graph, Lang lang, AtomicReference<Exception> error) {
-        Objects.requireNonNull(graph);
-        Objects.requireNonNull(lang);
-        Objects.requireNonNull(error);
-        PipedInputStream in = new PipedInputStream();
-        CountDownLatch complete = new CountDownLatch(1);
-        FilterInputStream res = new FilterInputStream(in) {
-            private volatile boolean closed;
-
-            @Override
-            public void close() throws IOException {
-                // next 'close' should not throw an exception
-                if (closed) return;
-                closed = true;
-                try {
-                    super.close();
-                } catch (IOException e) {
-                    IOException x = findIOException(error.get(), graph, lang);
-                    if (x == null) {
-                        error.set(e);
-                    } else {
-                        x.addSuppressed(e);
-                    }
-                }
-                IOException ex = findIOException(error.get(), graph, lang);
-                if (ex != null) throw ex;
-            }
-        };
-
-        new Thread(() -> {
-            PipedOutputStream out;
-            try {
-                out = new PipedOutputStream(in);
-            } catch (IOException e) {
-                error.set(e);
-                return;
-            } finally {
-                complete.countDown();
-            }
-            try {
-                RDFDataMgr.write(out, graph, lang);
-            } catch (Exception ex) {
-                error.set(ex);
-            } finally {
-                try {
-                    out.close();
-                } catch (IOException e) {
-                    Exception x = error.get();
-                    if (x == null) {
-                        error.set(e);
-                    } else {
-                        x.addSuppressed(e);
-                    }
-                }
-            }
-        }).start();
-        try {
-            complete.await();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
-        return res;
-    }
-
-    private static IOException findIOException(Exception from, Graph graph, Lang lang) {
-        if (from == null) return null;
-        if (from instanceof IOException) return (IOException) from;
-        String name;
-        try {
-            name = Graphs.getName(graph);
-        } catch (Exception e) {
-            name = "{unknown: '" + e.getMessage() + "'}";
-        }
-        return new IOException(String.format("Convert output->input. Graph: %s, %s.", name, lang), from);
-    }
-
-    /**
-     * Returns an OWLDocumentFormat with prefixes from the graph (if it is supported by returned format).
-     *
-     * @return Optional around {@link OWLDocumentFormat}
-     */
-    @Override
-    public Optional<OWLDocumentFormat> getFormat() {
-        PrefixMapping pm = getGraph().getPrefixMapping();
-        return format().map(OntFormat::createOwlFormat)
-                .map(f -> {
-                    if (f.isPrefixOWLDocumentFormat()) {
-                        PrefixManager res = f.asPrefixOWLDocumentFormat();
-                        pm.getNsPrefixMap().forEach(res::setPrefix);
-                    }
-                    return f;
-                });
-    }
-
-    /**
-     * Returns an ONT-Format
-     *
-     * @return {@link OntFormat}
-     */
-    public OntFormat getOntFormat() {
-        return OntFormat.TURTLE;
-    }
-
-    private Optional<OntFormat> format() {
-        return Optional.of(getOntFormat());
+    default Optional<Reader> getReader() {
+        throw new UnsupportedOperationException("Inappropriate use of graph source.");
     }
 
     @Override
-    public Optional<String> getMIMEType() {
-        return format().map(OntFormat::getLang).map(Lang::getContentType).map(ContentType::getContentTypeStr);
-    }
-
-    @Override
-    public boolean hasAlredyFailedOnStreams() {
-        return exception.get() != null;
-    }
-
-    @Override
-    public boolean hasAlredyFailedOnIRIResolution() {
-        return false;
-    }
-
-    @Override
-    public void setIRIResolutionFailed(boolean value) {
-        throw new OntApiException.Unsupported("#setIRIResolutionFailed is not supported.");
-    }
-
-    /**
-     * Just a sugar factory method to produce simple {@link OWLOntologyDocumentSource} wrapper around the given graph.
-     * Note: the method {@link #withTransforms()} returns {@code true} for the produced instance.
-     *
-     * @param graph {@link Graph}
-     * @return {@link OntGraphDocumentSource}
-     */
-    public static OntGraphDocumentSource wrap(Graph graph) {
-        Objects.requireNonNull(graph, "Null graph");
-        return new OntGraphDocumentSource() {
-            @Override
-            public Graph getGraph() {
-                return graph;
-            }
-        };
+    default Optional<InputStream> getInputStream() {
+        throw new UnsupportedOperationException("Inappropriate use of graph source.");
     }
 }

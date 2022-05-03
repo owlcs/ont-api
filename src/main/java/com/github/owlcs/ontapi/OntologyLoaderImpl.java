@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2021, owl.cs group.
+ * Copyright (c) 2022, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -183,14 +183,13 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
             }
             // put ontology inside the manager:
             getAdapter().asHandler(manager).ontologyCreated(res);
-            OntFormat format = OntApiException.notNull(info.getFormat(), "Null format while loading " + info.name());
-            OWLDocumentFormat owl = format.newOWLFormat();
-            if (owl.isPrefixOWLDocumentFormat()) {
-                PrefixManager pm = owl.asPrefixOWLDocumentFormat();
+            OWLDocumentFormat format = info.getFormat();
+            if (format.isPrefixOWLDocumentFormat()) {
+                PrefixManager pm = format.asPrefixOWLDocumentFormat();
                 graph.getPrefixMapping().getNsPrefixMap().forEach(pm::setPrefix);
             }
-            owl.setOntologyLoaderMetaData(OntGraphUtils.makeParserMetaData(graph, info.getStats()));
-            manager.setOntologyFormat(res, owl);
+            format.setOntologyLoaderMetaData(OntGraphUtils.makeParserMetaData(graph, info.getStats()));
+            manager.setOntologyFormat(res, format);
             if (info.getSource() != null) {
                 manager.setOntologyDocumentIRI(res, info.getSource());
             }
@@ -461,15 +460,13 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
      * @return {@link GraphInfo graph-wrapper}
      */
     protected GraphInfo toGraphInfo(Ontology model, IRI src) {
-        OWLDocumentFormat owl = model.getOWLOntologyManager().getOntologyFormat(model);
+        OWLDocumentFormat format = model.getOWLOntologyManager().getOntologyFormat(model);
         Graph graph = model.asGraphModel().getBaseGraph();
-        OntFormat format = null;
-        if (owl != null) {
-            format = OntFormat.get(owl);
-            if (src != null && owl.isPrefixOWLDocumentFormat()) {
+        if (format != null) {
+            if (src != null && format.isPrefixOWLDocumentFormat()) {
                 // pass prefixes from the manager (that is supposed to be external) to the graph
                 graph.getPrefixMapping()
-                        .setNsPrefixes(OntGraphUtils.prefixMapping(owl.asPrefixOWLDocumentFormat()));
+                        .setNsPrefixes(OntGraphUtils.prefixMapping(format.asPrefixOWLDocumentFormat()));
             }
         }
         return createGraphInfo(graph, format, src, false);
@@ -478,13 +475,13 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
     /**
      * Creates a {@link Graph graph info} container.
      *
-     * @param graph         {@link Graph}
-     * @param format        {@link OntFormat}
-     * @param src           {@link IRI}
-     * @param withTransform boolean
+     * @param graph         {@link Graph}, not {@code null}
+     * @param format        {@link OWLDocumentFormat}, can be {@code null}
+     * @param src           {@link IRI}, can be {@code null}
+     * @param withTransform {@code boolean}
      * @return {@link GraphInfo}
      */
-    protected GraphInfo createGraphInfo(Graph graph, OntFormat format, IRI src, boolean withTransform) {
+    protected GraphInfo createGraphInfo(Graph graph, OWLDocumentFormat format, IRI src, boolean withTransform) {
         return new GraphInfo(graph, format, src, withTransform);
     }
 
@@ -510,8 +507,7 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
         if (source instanceof OntGraphDocumentSource) {
             OntGraphDocumentSource src = (OntGraphDocumentSource) source;
             Graph graph = src.getGraph();
-            OntFormat format = src.getOntFormat();
-            return createGraphInfo(graph, format, source.getDocumentIRI(), src.withTransforms());
+            return createGraphInfo(graph, src.getFormat().orElse(null), source.getDocumentIRI(), src.withTransforms());
         }
         if (loaded.containsKey(source.getDocumentIRI())) {
             return loaded.get(source.getDocumentIRI());
@@ -525,7 +521,7 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
             // jena:
             Graph graph = builder.createGraph();
             OntFormat format = OntGraphUtils.readGraph(graph, src, config);
-            GraphInfo res = createGraphInfo(graph, format, doc, true);
+            GraphInfo res = createGraphInfo(graph, format.newOWLFormat(), doc, true);
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Graph <{}> is loaded by jena. Source: {}[{}]. Format: {}",
                         res.name(), source.getClass().getSimpleName(), res.getSource(), res.getFormat());
@@ -602,7 +598,7 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
      * Creates a copy of specified manager special for loading operations through OWL-API mechanisms.
      * All loaded content would be stored inside a copy, not the original manager.
      *
-     * @param builder to get {@link OntologyFactory} instance
+     * @param builder       to get {@link OntologyFactory} instance
      * @param from          {@link OntologyManager}, the source manager
      * @param defaultConfig {@link OntLoaderConfiguration}, the default loader config, nullable
      * @return {@link OntologyManager}, the target manager
@@ -687,7 +683,7 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
      */
     public static class GraphInfo {
         // constant language format
-        private final OntFormat format;
+        private final OWLDocumentFormat format;
         // graph is also a prefixes holder
         private final Graph graph;
         // source may be null
@@ -699,9 +695,9 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
         private Set<String> imports;
         private GraphStats stats;
 
-        protected GraphInfo(Graph graph, OntFormat format, IRI source, boolean withTransforms) {
+        protected GraphInfo(Graph graph, OWLDocumentFormat format, IRI source, boolean withTransforms) {
             this.graph = graph;
-            this.format = format;
+            this.format = format == null ? OntFormat.TURTLE.newOWLFormat() : format;
             this.source = source;
             this.fresh = source != null;
             this.transforms = withTransforms;
@@ -743,7 +739,8 @@ public class OntologyLoaderImpl implements OntologyFactory.Loader {
             this.fresh = false;
         }
 
-        protected OntFormat getFormat() {
+        @Nonnull
+        protected OWLDocumentFormat getFormat() {
             return format;
         }
 

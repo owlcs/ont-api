@@ -154,7 +154,7 @@ public class OntGraphUtils {
     /**
      * Converts a {@link Triple Jena Triple} to {@link RDFTriple OWL-API RDFTriple}.
      *
-     * @param triple not null
+     * @param triple not {@code null}
      * @return RDFTriple
      */
     public static RDFTriple triple(Triple triple) {
@@ -262,20 +262,10 @@ public class OntGraphUtils {
             }
             Lang lang = format.getLang();
             try (Closeable stream = openInputStream(source, conf)) {
-                if (stream == null) {
-                    return null;
-                }
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("read {}, try <{}>", iri, lang);
                 }
-                String base = iri.toString();
-                if (stream instanceof InputStream) {
-                    RDFDataMgr.read(graph, (InputStream) stream, base, lang);
-                } else {
-                    //Use of Readers is not encouraged - use with a StringReader is the primary use case
-                    //noinspection deprecation <- we take the risk, assuming that the provider knows what he is doing
-                    RDFDataMgr.read(graph, (Reader) stream, base, lang);
-                }
+                readGraph(graph, stream, iri.toString(), lang);
                 return format;
             } catch (OWLOntologyInputSourceException | IOException e) {
                 throw new OWLOntologyCreationException(source.getClass().getSimpleName() +
@@ -284,12 +274,23 @@ public class OntGraphUtils {
                 // could be org.apache.jena.shared.JenaException ||
                 // org.apache.jena.atlas.AtlasException ||
                 // org.apache.jena.atlas.json.JsonParseException || ...
-                if (LOGGER.isDebugEnabled())
+                if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("<{}> failed: '{}'", lang, e.getMessage());
+                }
                 error.addSuppressed(new UnsupportedFormatException(e).putSource(iri).putFormat(format));
             }
         }
         throw error;
+    }
+
+    protected static void readGraph(Graph graph, Closeable stream, String base, Lang lang) {
+        if (stream instanceof InputStream) {
+            RDFDataMgr.read(graph, (InputStream) stream, base, lang);
+        } else {
+            //Jena discourages the use of Readers in favour of InputStreams (can't work with non-UTF8 encodings)
+            //noinspection deprecation <- we take that risk, assuming that the source provider knows what he is doing
+            RDFDataMgr.read(graph, (Reader) stream, base, lang);
+        }
     }
 
     /**
@@ -306,8 +307,7 @@ public class OntGraphUtils {
         if (source.getFormat().isPresent()) {
             OntFormat f = OntFormat.get(source.getFormat().get());
             if (f == null || !f.isReadSupported()) {
-                throw new UnsupportedFormatException("Format " +
-                        source.getFormat().get() + " is not supported.");
+                throw new UnsupportedFormatException("Format " + source.getFormat().get() + " is not supported.");
             }
             res.add(f);
             return res;
@@ -345,7 +345,7 @@ public class OntGraphUtils {
      *
      * @param source {@link OWLOntologyDocumentSource}
      * @param conf   {@link OntLoaderConfiguration}
-     * @return {@link InputStream} or {@link Reader}
+     * @return {@link InputStream} or {@link Reader}, never {@code null}
      * @throws OWLOntologyInputSourceException can't open or read source
      * @throws ConfigMismatchException         if the scheme is not allowed
      */

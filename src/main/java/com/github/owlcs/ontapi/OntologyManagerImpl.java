@@ -634,7 +634,7 @@ public class OntologyManagerImpl
             DocumentSourceMapping mapping = i -> graphs.entrySet()
                     .stream()
                     .filter(e -> matchIDs(e.getKey(), i))
-                    .map(e -> OntGraphDocumentSource.wrap(e.getValue()))
+                    .map(e -> OntGraphDocumentSourceImpl.of(e.getValue()))
                     .findFirst()
                     .orElse(null);
             RWLockedCollection<DocumentSourceMapping> store = getDocumentSourceMappers();

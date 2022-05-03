@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2022, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -286,7 +286,7 @@ public class CopyManagerTest {
         Assertions.assertNotNull(f);
         Assertions.assertNotNull(di);
         Assertions.assertEquals(OntFormat.TURTLE.createOwlFormat().getKey(), f.getKey());
-        Assertions.assertEquals(OntGraphDocumentSource.wrap(a.getBaseGraph()).getDocumentIRI(), di);
+        Assertions.assertEquals(OntGraphDocumentSourceImpl.of(a.getBaseGraph()).getDocumentIRI(), di);
     }
 
     @Test
@@ -467,9 +467,9 @@ public class CopyManagerTest {
     private void testManagerWithAnonymousOntologies(OntologyManager m) {
         Assertions.assertEquals(5, m.ontologies().count());
         Assertions.assertEquals(2, m.ontologies().filter(IsAnonymous::isAnonymous).count());
-        Assertions.assertEquals(3, m.ontologies().filter(x -> !x.imports().findFirst().isPresent()).count());
+        Assertions.assertEquals(3, m.ontologies().filter(x -> x.imports().findFirst().isEmpty()).count());
         Assertions.assertEquals(1, m.ontologies().filter(IsAnonymous::isAnonymous)
-                .filter(x -> !x.imports().findFirst().isPresent()).count());
+                .filter(x -> x.imports().findFirst().isEmpty()).count());
     }
 
 

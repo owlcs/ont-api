@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2022, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -47,11 +47,12 @@ import java.io.ObjectOutputStream;
 import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * To test {@link OntGraphDocumentSource}.
+ * To test {@link OntGraphDocumentSourceImpl}.
  * Created by @ssz on 23.09.2018.
  */
 public class GraphDocumentSourceTest {
@@ -60,7 +61,7 @@ public class GraphDocumentSourceTest {
     @Test
     public void testCommonValidateOGDS() {
         OntModel m = OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("/ontapi/pizza.ttl").getGraph());
-        OntGraphDocumentSource s = OntGraphDocumentSource.wrap(m.getGraph());
+        OntGraphDocumentSourceImpl s = OntGraphDocumentSourceImpl.of(m.getGraph());
         URI u1 = s.getDocumentIRI().toURI();
         Assertions.assertFalse(s.hasAlredyFailedOnStreams());
         Assertions.assertFalse(s.hasAlredyFailedOnIRIResolution());
@@ -76,10 +77,10 @@ public class GraphDocumentSourceTest {
 
     @Test
     public void testOntGraphDocumentSourceInOWL() throws OWLOntologyCreationException {
-        IRI pizza = IRI.create(MiscOntologyTest.class.getResource("/ontapi/pizza.ttl"));
+        IRI pizza = IRI.create(Objects.requireNonNull(MiscOntologyTest.class.getResource("/ontapi/pizza.ttl")));
         LOGGER.debug("File: {}", pizza);
         Ontology ont = OntManagers.createManager().loadOntology(pizza);
-        OWLOntologyDocumentSource src = OntGraphDocumentSource.wrap(ont.asGraphModel().getBaseGraph());
+        OWLOntologyDocumentSource src = OntGraphDocumentSourceImpl.of(ont.asGraphModel().getBaseGraph());
         URI uri = src.getDocumentIRI().toURI();
         LOGGER.debug("Load using pipes from: {}", uri);
         OWLOntology owl = OntManagers.createOWLAPIImplManager().loadOntologyFromOntologyDocument(src);
@@ -98,7 +99,7 @@ public class GraphDocumentSourceTest {
         OntModel c = OntModelFactory.createModel();
         c.setID(iris.get(2)).addImport(iris.get(0)).addImport(iris.get(1));
         ReadWriteUtils.print(c);
-        OntGraphDocumentSource src = OntGraphDocumentSource.wrap(c.getGraph());
+        OntGraphDocumentSource src = OntGraphDocumentSourceImpl.of(c.getGraph());
         LOGGER.debug("Load graph from: {}", src.getDocumentIRI().toURI());
         m.loadOntologyFromOntologyDocument(src);
         Assertions.assertEquals(3, m.ontologies().count());
@@ -109,7 +110,7 @@ public class GraphDocumentSourceTest {
     public void testUnsupportedFormatInOGDS() throws IOException {
         OntModel m = OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("/ontapi/pizza.ttl").getGraph());
         String uri = m.getID().getURI();
-        OntGraphDocumentSource unsupported = new OntGraphDocumentSource() {
+        OntGraphDocumentSourceImpl unsupported = new OntGraphDocumentSourceImpl() {
             @Override
             public Graph getGraph() {
                 return m.getGraph();
@@ -126,7 +127,7 @@ public class GraphDocumentSourceTest {
     @Test
     public void testBrokenOntGraphDocumentSource() throws IOException {
         String key = "TEST";
-        testBrokenOGDS(String.format("unknown: '%s'", key), new OntGraphDocumentSource() {
+        testBrokenOGDS(String.format("unknown: '%s'", key), new OntGraphDocumentSourceImpl() {
             @Override
             public Graph getGraph() {
                 return new GraphMem() {
@@ -140,7 +141,7 @@ public class GraphDocumentSourceTest {
         });
     }
 
-    private void testBrokenOGDS(String graphName, OntGraphDocumentSource ogds) throws IOException {
+    private void testBrokenOGDS(String graphName, OntGraphDocumentSourceImpl ogds) throws IOException {
         Assertions.assertFalse(ogds.hasAlredyFailedOnStreams());
         IOException expected = null;
         try (InputStream is1 = ogds.getInputStream().orElseThrow(AssertionError::new)) {
@@ -211,7 +212,7 @@ public class GraphDocumentSourceTest {
                 }));
 
         OntModel g = OntModelFactory.createModel(ReadWriteUtils.loadResourceTTLFile("/ontapi/pizza.ttl").getGraph());
-        OntGraphDocumentSource s1 = OntGraphDocumentSource.wrap(g.getBaseGraph());
+        OntGraphDocumentSourceImpl s1 = OntGraphDocumentSourceImpl.of(g.getBaseGraph());
         try {
             m.loadOntologyFromOntologyDocument(s1);
             Assertions.fail("No transforms are running");
@@ -219,7 +220,7 @@ public class GraphDocumentSourceTest {
             LOGGER.debug("Expected: {}", e.getMessage());
             Assertions.assertEquals(0, m.ontologies().count());
         }
-        OntGraphDocumentSource s2 = new OntGraphDocumentSource() {
+        OntGraphDocumentSourceImpl s2 = new OntGraphDocumentSourceImpl() {
             @Override
             public Graph getGraph() {
                 return g.getBaseGraph();
