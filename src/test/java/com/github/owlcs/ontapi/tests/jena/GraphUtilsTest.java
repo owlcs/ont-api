@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2022, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -19,6 +19,7 @@ import com.github.owlcs.ontapi.jena.RWLockedGraph;
 import com.github.owlcs.ontapi.jena.UnionGraph;
 import com.github.owlcs.ontapi.jena.utils.Graphs;
 import com.github.owlcs.ontapi.utils.SpinModels;
+import org.apache.jena.graph.Factory;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.graph.compose.MultiUnion;
@@ -45,6 +46,7 @@ import java.util.stream.Stream;
  * To test {@link Graphs} utility class.
  * Created by @szz on 11.06.2019.
  */
+@SuppressWarnings("deprecation")
 public class GraphUtilsTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(GraphUtilsTest.class);
 
@@ -122,7 +124,7 @@ public class GraphUtilsTest {
 
     @Test
     public void testIsSame() {
-        GraphMem g = new GraphMem();
+        Graph g = Factory.createGraphMem();
         Assertions.assertTrue(Graphs.isSameBase(g, g));
 
         Graph a = new UnionGraph(new GraphWrapper(new GraphWrapper(g)));

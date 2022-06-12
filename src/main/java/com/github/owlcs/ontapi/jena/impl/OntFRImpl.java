@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2022, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -20,6 +20,7 @@ import com.github.owlcs.ontapi.jena.impl.conf.OntFilter;
 import com.github.owlcs.ontapi.jena.impl.conf.OntFinder;
 import com.github.owlcs.ontapi.jena.model.OntFacetRestriction;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
+import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import com.github.owlcs.ontapi.jena.vocabulary.XSD;
 import org.apache.jena.enhanced.EnhGraph;
@@ -93,7 +94,10 @@ public abstract class OntFRImpl extends OntObjectImpl implements OntFacetRestric
     }
 
     private static OntFilter makeFilter(Property predicate) {
-        return OntFilter.BLANK.and((n, g) -> !g.asGraph().find(n, predicate.asNode(), Node.ANY).mapWith(Triple::getObject).filterKeep(Node::isLiteral).toList().isEmpty());
+        return OntFilter.BLANK.and(
+                (n, g) -> Iter.anyMatch(g.asGraph().find(n, predicate.asNode(), Node.ANY)
+                        .mapWith(Triple::getObject), Node::isLiteral)
+        );
     }
 
     private static Property predicate(Class<?> view) {

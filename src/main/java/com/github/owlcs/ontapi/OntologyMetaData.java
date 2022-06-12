@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2022, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -24,7 +24,6 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.mem.GraphMem;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
 import org.apache.jena.vocabulary.RDFS;
@@ -169,8 +168,8 @@ public class OntologyMetaData implements OWLOntologyLoaderMetaData {
     }
 
     /**
-     * Loads triple count in lazy manner if the associated graph is {@link org.apache.jena.mem.GraphMem Memory Graph}.
-     * Otherwise returns -1.
+     * Loads triple count in lazy manner if the associated graph is {@code GraphMem}.
+     * Otherwise, returns -1.
      * Lazy loading is in order to relieve performance on loading.
      * Anyway nobody uses this stupid interface.
      *
@@ -182,7 +181,7 @@ public class OntologyMetaData implements OWLOntologyLoaderMetaData {
     }
 
     protected int calcTripleCount() {
-        return graph instanceof GraphMem ? graph.size() : -1;
+        return Graphs.isGraphMem(graph) ? graph.size() : -1;
     }
 
     @Override

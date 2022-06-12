@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2021, owl.cs group.
+ * Copyright (c) 2022, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -22,6 +22,7 @@ import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import org.apache.jena.graph.*;
 import org.apache.jena.graph.compose.Dyadic;
 import org.apache.jena.graph.compose.Polyadic;
+import org.apache.jena.graph.impl.GraphWithPerform;
 import org.apache.jena.mem.GraphMem;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFDataMgr;
@@ -96,7 +97,7 @@ public class Graphs {
      * @see Dyadic
      */
     public static Graph getBase(Graph graph) {
-        if (graph instanceof GraphMem) {
+        if (isGraphMem(graph)) {
             return graph;
         }
         if (graph instanceof GraphWrapper) {
@@ -115,6 +116,26 @@ public class Graphs {
             return getBase(((Dyadic) graph).getL());
         }
         return graph;
+    }
+
+    /**
+     * Returns {@code GraphWithPerform} in-memory instance.
+     * @return {@link GraphWithPerform}
+     */
+    @SuppressWarnings("deprecation")
+    public static GraphWithPerform getGraphWithPerformInMem() {
+        return new GraphMem();
+    }
+
+    /**
+     * Answers {@code true} if the graph specified is {@code GraphMem}.
+     *
+     * @param graph {@link Graph}
+     * @return {@code boolean}
+     */
+    @SuppressWarnings("deprecation")
+    public static boolean isGraphMem(Graph graph) {
+        return graph instanceof GraphMem;
     }
 
     /**
@@ -163,7 +184,7 @@ public class Graphs {
      * @see UnionGraph#isDistinct()
      */
     public static boolean isDistinct(Graph graph) {
-        if (graph instanceof GraphMem) {
+        if (isGraphMem(graph)) {
             return true;
         }
         if (graph instanceof UnionGraph) {
@@ -185,7 +206,7 @@ public class Graphs {
      * @see Graphs#size(Graph)
      */
     public static boolean isSized(Graph graph) {
-        if (graph instanceof GraphMem) {
+        if (isGraphMem(graph)) {
             return true;
         }
         if (graph instanceof UnionGraph) {
@@ -203,12 +224,12 @@ public class Graphs {
      * @see Graphs#isSized(Graph)
      */
     public static long size(Graph graph) {
-        if (graph instanceof GraphMem) {
+        if (isGraphMem(graph)) {
             return graph.size();
         }
         if (graph instanceof UnionGraph && ((UnionGraph) graph).getUnderlying().isEmpty()) {
             Graph bg = ((UnionGraph) graph).getBaseGraph();
-            if (bg instanceof GraphMem) {
+            if (isGraphMem(bg)) {
                 return bg.size();
             }
         }
@@ -228,8 +249,12 @@ public class Graphs {
      * @throws StackOverflowError in case there is a loop in imports (i.e. a recursion in the hierarchy)
      */
     public static UnionGraph toUnion(Graph graph) {
-        if (graph instanceof UnionGraph) return (UnionGraph) graph;
-        if (graph instanceof GraphMem) return new UnionGraph(graph);
+        if (graph instanceof UnionGraph) {
+            return (UnionGraph) graph;
+        }
+        if (isGraphMem(graph)) {
+            return new UnionGraph(graph);
+        }
         return toUnion(getBase(graph), baseGraphs(graph).collect(Collectors.toSet()));
     }
 

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2021, owl.cs group.
+ * Copyright (c) 2022, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -455,9 +455,9 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntClass {
         MIN(OWL.minQualifiedCardinality, OWL.minCardinality);
         static final RDFDatatype NON_NEGATIVE_INTEGER = XSDDatatype.XSDnonNegativeInteger;
 
-        protected final Property qualifiedPredicate, predicate;
-        protected static final Node CLASS_REFERENCE = OWL.onClass.asNode();
-        protected static final Node RANGE_REFERENCE = OWL.onDataRange.asNode();
+        private final Property qualifiedPredicate, predicate;
+        static final Node CLASS_REFERENCE = OWL.onClass.asNode();
+        static final Node RANGE_REFERENCE = OWL.onDataRange.asNode();
 
         CardinalityType(Property qualifiedPredicate, Property predicate) {
             this.qualifiedPredicate = qualifiedPredicate;
@@ -997,9 +997,6 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntClass {
         }
     }
 
-    /**
-     * TODO: implement possibility to modify (issue https://github.com/avicomp/ont-api/issues/52)
-     */
     protected static abstract class NaryRestrictionCEImpl<O extends OntObject,
             P extends OntRealProperty, R extends NaryRestrictionCEImpl<?, ?, ?>>
             extends OntCEImpl implements NaryRestrictionCE<O, P> {
@@ -1149,12 +1146,12 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntClass {
         }
 
         private static boolean isCardinality(Node n, EnhGraph eg, Node p) {
-            return Iter.findFirst(objects(n, eg, p)
+            return Iter.findFirst(listObjects(n, eg, p)
                     .filterKeep(x -> isLiteral(x.getObject(), NON_NEGATIVE_INTEGER_URI))).isPresent();
         }
 
         private static boolean isList(Node n, EnhGraph eg, Node p) {
-            return Iter.findFirst(objects(n, eg, p)
+            return Iter.findFirst(listObjects(n, eg, p)
                     .filterKeep(x -> LIST_FACTORY.canWrap(x.getObject(), eg))).isPresent();
         }
 
@@ -1164,14 +1161,14 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntClass {
         }
 
         private static boolean isObjectOfType(Node n, EnhGraph eg, Node p, Class<? extends OntObject> t) {
-            return Iter.findFirst(objects(n, eg, p).filterKeep(x -> hasType(x.getObject(), eg, t))).isPresent();
+            return Iter.findFirst(listObjects(n, eg, p).filterKeep(x -> hasType(x.getObject(), eg, t))).isPresent();
         }
 
         private static boolean hasType(Node n, EnhGraph eg, Class<? extends OntObject> type) {
             return PersonalityModel.canAs(type, n, eg);
         }
 
-        private static ExtendedIterator<Triple> objects(Node n, EnhGraph eg, Node p) {
+        private static ExtendedIterator<Triple> listObjects(Node n, EnhGraph eg, Node p) {
             return eg.asGraph().find(n, p, ANY);
         }
 
@@ -1224,7 +1221,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntClass {
             }
             Graph g = eg.asGraph();
             if (g.contains(n, TYPE, RESTRICTION)) {
-                ExtendedIterator<Node> props = objects(n, eg, ON_PROPERTY).mapWith(Triple::getObject);
+                ExtendedIterator<Node> props = listObjects(n, eg, ON_PROPERTY).mapWith(Triple::getObject);
                 try {
                     while (props.hasNext()) {
                         Node p = props.next();
@@ -1251,7 +1248,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntClass {
                                 return Factory.OBJECT_HAS_VALUE;
                             }
                             // HasSelf
-                            if (Iter.findFirst(objects(n, eg, HAS_SELF)
+                            if (Iter.findFirst(listObjects(n, eg, HAS_SELF)
                                     .filterKeep(x -> TRUE.equals(x.getObject()))).isPresent()) {
                                 return Factory.OBJECT_HAS_SELF;
                             }
@@ -1275,7 +1272,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntClass {
                                 return Factory.DATA_EXACT_CARDINALITY;
                             }
                             // DataHasValue
-                            if (Iter.findFirst(objects(n, eg, HAS_VALUE)
+                            if (Iter.findFirst(listObjects(n, eg, HAS_VALUE)
                                     .filterKeep(x -> x.getObject().isLiteral())).isPresent()) {
                                 return Factory.DATA_HAS_VALUE;
                             }
@@ -1287,10 +1284,10 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntClass {
 
                 // very simplified factories for nary-restrictions:
                 if (g.contains(n, ON_PROPERTIES, ANY)) {
-                    if (Iter.findFirst(objects(n, eg, SOME_VALUES_FROM)).isPresent()) {
+                    if (Iter.findFirst(listObjects(n, eg, SOME_VALUES_FROM)).isPresent()) {
                         return Factory.DATA_NARY_SOME_VALUES_FROM;
                     }
-                    if (Iter.findFirst(objects(n, eg, ALL_VALUES_FROM)).isPresent()) {
+                    if (Iter.findFirst(listObjects(n, eg, ALL_VALUES_FROM)).isPresent()) {
                         return Factory.DATA_NARY_ALL_VALUES_FROM;
                     }
                 }

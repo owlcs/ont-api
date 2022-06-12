@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2022, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -61,7 +61,7 @@ public interface OntologyCreator {
      * Any ontology in ONT-API relies on a graph and just serves as a facade for it.
      * A {@code Graph} is a primary thing and a holder for raw data.
      * <p>
-     * By default the method offers a {@link org.apache.jena.mem.GraphMem},
+     * By default, the method offers a {@code GraphMem},
      * which demonstrates great performance for relatively small data.
      *
      * @return {@link Graph Jena Graph}

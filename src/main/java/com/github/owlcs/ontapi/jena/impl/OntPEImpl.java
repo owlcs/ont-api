@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2022, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -210,14 +210,14 @@ public abstract class OntPEImpl extends OntObjectImpl implements OntProperty {
 
         @Override
         public ExtendedIterator<EnhNode> iterator(EnhGraph eg) {
-            return triples(Node.ANY, eg)
+            return listTriples(Node.ANY, eg)
                     .filterKeep(x -> x.getSubject().isBlank())
                     .mapWith(x -> createInstance(x.getSubject(), eg));
         }
 
         @Override
         public boolean canWrap(Node node, EnhGraph eg) {
-            return node.isBlank() && Iter.findFirst(triples(node, eg)).isPresent();
+            return node.isBlank() && Iter.findFirst(listTriples(node, eg)).isPresent();
         }
 
         @Override
@@ -225,7 +225,7 @@ public abstract class OntPEImpl extends OntObjectImpl implements OntProperty {
             return new OntOPEImpl.InversePropertyImpl(node, eg);
         }
 
-        private ExtendedIterator<Triple> triples(Node node, EnhGraph eg) {
+        private ExtendedIterator<Triple> listTriples(Node node, EnhGraph eg) {
             // "_:x owl:inverseOf PN":
             return eg.asGraph().find(node, OWL_INVERSE_OF, Node.ANY).filterKeep(x -> named.canWrap(x.getObject(), eg));
         }

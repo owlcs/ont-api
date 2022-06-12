@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2022, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -20,8 +20,8 @@ import com.github.owlcs.ontapi.jena.impl.conf.OntPersonality;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
+import org.apache.jena.graph.Factory;
 import org.apache.jena.graph.Graph;
-import org.apache.jena.mem.GraphMem;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.impl.ModelCom;
 import org.apache.jena.shared.PrefixMapping;
@@ -61,11 +61,11 @@ public class OntModelFactory {
     /**
      * Creates default (in-memory) graph implementation.
      *
-     * @return {@link GraphMem in-memory Jena Graph}
+     * @return {@code GraphMem}
      * @see org.apache.jena.graph.Factory#createGraphMem()
      */
     public static Graph createDefaultGraph() {
-        return new GraphMem();
+        return Factory.createDefaultGraph();
     }
 
     /**

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2022, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -16,9 +16,10 @@ package com.github.owlcs.ontapi;
 
 import com.github.owlcs.ontapi.internal.InternalModel;
 import com.github.owlcs.ontapi.jena.model.OntModel;
+import com.github.owlcs.ontapi.jena.utils.Graphs;
 import com.github.owlcs.ontapi.owlapi.OWLObjectImpl;
+import org.apache.jena.graph.Factory;
 import org.apache.jena.graph.Graph;
-import org.apache.jena.mem.GraphMem;
 import org.apache.jena.riot.RDFDataMgr;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.model.parameters.AxiomAnnotations;
@@ -40,7 +41,8 @@ import java.util.stream.Stream;
 /**
  * An abstract {@link OWLOntology OWL-API Ontology} implementation with methods to read information
  * in the form of {@link OWLObject OWL Object}s from the underling graph-model.
- * It's an analogy of <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLImmutableOntologyImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLImmutableOntologyImpl</a>.
+ * It's an analogy of
+ * <a href="https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLImmutableOntologyImpl.java">uk.ac.manchester.cs.owl.owlapi.OWLImmutableOntologyImpl</a>.
  * <p>
  * Created by @szuev on 03.12.2016.
  */
@@ -221,7 +223,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, BaseModel {
     @Override
     public Stream<OWLEntity> signature() {
         return Stream.of(classesInSignature(), objectPropertiesInSignature(), dataPropertiesInSignature(),
-                individualsInSignature(), datatypesInSignature(), annotationPropertiesInSignature())
+                        individualsInSignature(), datatypesInSignature(), annotationPropertiesInSignature())
                 .flatMap(Function.identity());
     }
 
@@ -771,8 +773,8 @@ public abstract class OntBaseModelImpl implements OWLOntology, BaseModel {
         Stream<OWLSubClassOfAxiom> subClassOfAxioms = base.listOWLAxioms(OWLSubClassOfAxiom.class)
                 .filter(a -> a.getSubClass().isAnonymous());
         Stream<? extends OWLNaryClassAxiom> naryClassAxioms = Stream.of(
-                OWLEquivalentClassesAxiom.class,
-                OWLDisjointClassesAxiom.class).flatMap(base::listOWLAxioms)
+                        OWLEquivalentClassesAxiom.class,
+                        OWLDisjointClassesAxiom.class).flatMap(base::listOWLAxioms)
                 .filter(a -> a.classExpressions().allMatch(IsAnonymous::isAnonymous));
         return Stream.concat(subClassOfAxioms, naryClassAxioms);
     }
@@ -1111,7 +1113,7 @@ public abstract class OntBaseModelImpl implements OWLOntology, BaseModel {
     @SuppressWarnings("JavadocReference")
     private void readObject(ObjectInputStream in) throws IOException, ClassNotFoundException {
         in.defaultReadObject();
-        Graph base = new GraphMem();
+        Graph base = Factory.createDefaultGraph();
         RDFDataMgr.read(base, in, DEFAULT_SERIALIZATION_FORMAT.getLang());
         // set temporary model with default personality, it will be reset inside manager while its #readObject
         setBase(BaseModel.createInternalModel(base));
@@ -1120,9 +1122,9 @@ public abstract class OntBaseModelImpl implements OWLOntology, BaseModel {
     /**
      * Writes the object while serialization.
      * Note: only the base graph is serialized,
-     * so if you serialize and then de-serialize standalone ontology it will loss all its references,
+     * so if you serialize and then de-serialize standalone ontology it will lose all its references,
      * please use managers serialization, it will restore any links.
-     * Also please note: an exception is expected if the encapsulated graph is not {@link GraphMem}.
+     * Also, please note: an exception is expected if the encapsulated graph is not {@code  GraphMem}.
      *
      * @param out {@link ObjectOutputStream}
      * @throws IOException     if I/O errors occur while writing to the underlying <code>OutputStream</code>
@@ -1130,8 +1132,9 @@ public abstract class OntBaseModelImpl implements OWLOntology, BaseModel {
      */
     private void writeObject(ObjectOutputStream out) throws IOException, OntApiException {
         Graph g = base.getBaseGraph();
-        if (!(g instanceof GraphMem))
+        if (!Graphs.isGraphMem(g)) {
             throw new OntApiException(getOntologyID() + ":: Serialization is not supported for " + g.getClass());
+        }
         out.defaultWriteObject();
         // serialize only base graph (it will be wrapped as UnionGraph):
         RDFDataMgr.write(out, g, DEFAULT_SERIALIZATION_FORMAT.getLang());

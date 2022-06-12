@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2019, The University of Manchester, owl.cs group.
+ * Copyright (c) 2022, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -15,7 +15,6 @@
 package com.github.owlcs.ontapi.transforms;
 
 import com.github.owlcs.ontapi.jena.OntVocabulary;
-import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.transforms.vocabulary.AVC;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
@@ -86,9 +85,9 @@ public class RecursiveTransform extends TransformationModel {
      * @return Stream of {@link Triple triples}
      */
     public static Stream<Triple> anonymous(Graph graph) {
-        return Iter.asStream(graph.find(Triple.ANY)
-                .filterKeep(t -> t.getSubject().isBlank())
-                .filterKeep(t -> t.getObject().isBlank()));
+        return graph.stream()
+                .filter(t -> t.getSubject().isBlank())
+                .filter(t -> t.getObject().isBlank());
     }
 
     /**
@@ -118,19 +117,21 @@ public class RecursiveTransform extends TransformationModel {
     }
 
     private static Stream<Node> objectsBySubject(Graph graph, Node subject, Set<Triple> visited) {
-        Set<Node> nodes = Iter.asStream(graph.find(subject, Node.ANY, Node.ANY))
+        Set<Node> nodes = graph.stream(subject, Node.ANY, Node.ANY)
                 .filter(visited::add)
                 .map(Triple::getObject)
-                .filter(Node::isBlank).collect(Collectors.toSet());
+                .filter(Node::isBlank)
+                .collect(Collectors.toSet());
         return nodes.stream()
                 .flatMap(s -> Stream.concat(Stream.of(s), objectsBySubject(graph, s, visited)));
     }
 
     private static Stream<Node> subjectsByObject(Graph graph, Node object, Set<Triple> visited) {
-        Set<Node> nodes = Iter.asStream(graph.find(Node.ANY, Node.ANY, object))
+        Set<Node> nodes = graph.stream(Node.ANY, Node.ANY, object)
                 .filter(visited::add)
                 .map(Triple::getSubject)
-                .filter(Node::isBlank).collect(Collectors.toSet());
+                .filter(Node::isBlank)
+                .collect(Collectors.toSet());
         return nodes.stream()
                 .flatMap(o -> Stream.concat(Stream.of(o), subjectsByObject(graph, o, visited)));
     }
