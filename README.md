@@ -1,4 +1,4 @@
-# ONT-API (ver. 3.0.0)
+# ONT-API (ver. 3.x.x)
 
 ## Summary
 

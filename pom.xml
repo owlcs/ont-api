@@ -20,11 +20,11 @@
 
     <groupId>com.github.owlcs</groupId>
     <artifactId>ontapi</artifactId>
-    <version>3.0.1-SNAPSHOT</version>
+    <version>3.0.1</version>
     <packaging>jar</packaging>
 
     <name>${project.groupId}:${project.artifactId}</name>
-    <description>ONT-API is a RDF-centric library to work with OWL</description>
+    <description>ONT-API is an RDF-centric library to work with OWL</description>
     <url>https://github.com/owlcs/ont-api</url>
 
     <properties>
@@ -35,7 +35,7 @@
         <version.owlapi>5.1.20</version.owlapi>
         <version.slf4j>1.7.36</version.slf4j>
         <version.caffeine>3.1.1</version.caffeine>
-        <version.junit>5.8.2</version.junit>
+        <version.junit>5.9.0-RC1</version.junit>
     </properties>
 
     <licenses>
@@ -185,7 +185,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-gpg-plugin</artifactId>
-                        <version>1.6</version>
+                        <version>3.0.1</version>
                         <executions>
                             <execution>
                                 <id>sign-artifacts</id>
