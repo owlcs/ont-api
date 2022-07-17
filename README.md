@@ -1,8 +1,8 @@
-# ONT-API (ver. 3.0.0)
+# ONT-API (ver. 3.x.x)
 
 ## Summary
 
-ONT-API is a RDF-centric Java library to work with OWL.
+ONT-API is an RDF-centric Java library to work with OWL.
 
 For more info see [wiki](https://github.com/owlcs/ont-api/wiki).
 
