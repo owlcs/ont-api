@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2022, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -26,12 +26,12 @@ import com.github.owlcs.ontapi.jena.impl.conf.OntModelConfig;
 import com.github.owlcs.ontapi.jena.model.OntClass;
 import com.github.owlcs.ontapi.jena.model.OntEntity;
 import com.github.owlcs.ontapi.jena.model.OntModel;
+import com.github.owlcs.ontapi.jena.utils.Graphs;
 import com.github.owlcs.ontapi.tests.ModelData;
 import com.github.owlcs.ontapi.transforms.GraphTransformers;
 import com.github.owlcs.ontapi.utils.OntIRI;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import com.github.owlcs.ontapi.utils.SpinModels;
-import org.apache.jena.mem.GraphMem;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.util.FileManager;
@@ -308,6 +308,7 @@ public class CommonManagerTest {
         return m;
     }
 
+    @SuppressWarnings("LambdaBodyCanBeCodeBlock")
     private void editManagerTest(OntologyManager origin, OntologyManager copy) {
         String uri = "urn:iri.com#1";
         OntModel o1 = origin.getGraphModel(uri);
@@ -437,18 +438,18 @@ public class CommonManagerTest {
         Assertions.assertNotNull(m);
         if (isConcurrent) {
             Assertions.assertTrue(m.getBaseGraph() instanceof RWLockedGraph);
-            Assertions.assertTrue(((RWLockedGraph) m.getBaseGraph()).get() instanceof GraphMem);
+            Assertions.assertTrue(Graphs.isGraphMem(((RWLockedGraph) m.getBaseGraph()).get()));
         } else {
-            Assertions.assertTrue(m.getBaseGraph() instanceof GraphMem);
+            Assertions.assertTrue(Graphs.isGraphMem(m.getBaseGraph()));
         }
         Assertions.assertTrue(m.getGraph() instanceof UnionGraph);
         Assertions.assertEquals(m.getID().imports().count(), m.imports().count());
         UnionGraph u = (UnionGraph) m.getGraph();
         u.getUnderlying().listGraphs().forEachRemaining(g -> {
             if (g instanceof UnionGraph) {
-                Assertions.assertTrue(((UnionGraph) g).getBaseGraph() instanceof GraphMem);
+                Assertions.assertTrue(Graphs.isGraphMem(((UnionGraph) g).getBaseGraph()));
             } else {
-                Assertions.assertTrue(g instanceof GraphMem);
+                Assertions.assertTrue(Graphs.isGraphMem(g));
             }
         });
         u.listBaseGraphs().forEachRemaining(g -> Assertions.assertFalse(g instanceof UnionGraph));

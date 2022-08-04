@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2022, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -20,7 +20,7 @@ import com.github.owlcs.ontapi.jena.UnionGraph;
 import com.github.owlcs.ontapi.jena.model.*;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
-import org.apache.jena.mem.GraphMem;
+import org.apache.jena.sparql.graph.GraphFactory;
 import org.apache.jena.vocabulary.RDFS;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -172,7 +172,7 @@ public class StreamsTest {
     @Test
     public void testNonDistinctModelStreams() {
         String ns = "http://ex#";
-        UnionGraph g = new UnionGraph(new GraphMem(), null, null, false);
+        UnionGraph g = new UnionGraph(GraphFactory.createGraphMem(), null, null, false);
         OntModel a = OntModelFactory.createModel(g).setNsPrefixes(OntModelFactory.STANDARD).setNsPrefix("x", ns);
         OntModel b = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD).setNsPrefix("x", ns);
         a.setID(ns + "a");

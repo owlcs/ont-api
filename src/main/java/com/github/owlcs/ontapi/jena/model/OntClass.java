@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2022, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -33,8 +33,8 @@ import java.util.stream.Stream;
  * Created by szuev on 01.11.2016.
  *
  * @see Named - an OWL Class
- * @see <a href='https://www.w3.org/TR/owl2-quick-reference/#Class_Expressions'>2.1 Class Expressions</a>
- * @see <a href='https://www.w3.org/TR/owl2-syntax/#Class_Expressions'>8 Class Expressions</a>
+ * @see <a href="https://www.w3.org/TR/owl2-quick-reference/#Class_Expressions">2.1 Class Expressions</a>
+ * @see <a href="https://www.w3.org/TR/owl2-syntax/#Class_Expressions">8 Class Expressions</a>
  */
 public interface OntClass extends OntObject, AsNamed<OntClass.Named> {
 
@@ -121,7 +121,7 @@ public interface OntClass extends OntObject, AsNamed<OntClass.Named> {
      * in the same order but with exclusion of duplicates.
      * Note: {@code null}s in collection will cause {@link OntJenaException.IllegalArgument exception}.
      * For additional information about {@code HasKey} logical construction see
-     * <a href='https://www.w3.org/TR/owl2-syntax/#Keys'>9.5 Keys</a> specification.
+     * <a href="https://www.w3.org/TR/owl2-syntax/#Keys">9.5 Keys</a> specification.
      *
      * @param objectProperties {@link Collection} (preferably {@link Set})
      *                         of {@link OntObjectProperty object property expression}s
@@ -138,7 +138,7 @@ public interface OntClass extends OntObject, AsNamed<OntClass.Named> {
      * and returns the statement {@code C owl:hasKey ( P1 ... Pm R1 ... Rn )}
      * to allow the subsequent addition of annotations.
      * About RDF Graph annotation specification see, for example,
-     * <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Translation_of_Annotations'>2.3.1 Axioms that Generate a Main Triple</a>.
+     * <a href="https://www.w3.org/TR/owl2-mapping-to-rdf/#Translation_of_Annotations">2.3.1 Axioms that Generate a Main Triple</a>.
      *
      * @param properties Array of {@link OntRealProperty}s without {@code null}s
      * @return {@link OntStatement} with a possibility to annotate
@@ -613,7 +613,7 @@ public interface OntClass extends OntObject, AsNamed<OntClass.Named> {
          * in the same order but with exclusion of duplicates.
          * Note: {@code null}s in collection will cause {@link OntJenaException.IllegalArgument exception}.
          * For additional information about {@code DisjointUnion} logical construction see
-         * <a href='https://www.w3.org/TR/owl2-syntax/#Disjoint_Union_of_Class_Expressions'>9.1.4 Disjoint Union of Class Expressions</a>.
+         * <a href="https://www.w3.org/TR/owl2-syntax/#Disjoint_Union_of_Class_Expressions">9.1.4 Disjoint Union of Class Expressions</a>.
          *
          * @param classes {@link Collection} (preferably {@link Set}) of {@link OntClass class expression}s
          * @return {@link OntList} of {@link OntClass}s
@@ -644,7 +644,7 @@ public interface OntClass extends OntObject, AsNamed<OntClass.Named> {
          * Creates a {@code DisjointUnion} {@link OntList ontology list}
          * and returns the statement {@code CN owl:disjointUnionOf ( C1 ... Cn )} to allow the addition of annotations.
          * About RDF Graph annotation specification see, for example,
-         * <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Translation_of_Annotations'>2.3.1 Axioms that Generate a Main Triple</a>.
+         * <a href="https://www.w3.org/TR/owl2-mapping-to-rdf/#Translation_of_Annotations"'">2.3.1 Axioms that Generate a Main Triple</a>.
          *
          * @param classes Array of {@link OntClass class expressions} without {@code null}s,
          *                duplicates will be discarded and order will be saved

@@ -124,6 +124,7 @@ public class GraphDocumentSourceTest {
         testBrokenOGDS(uri, unsupported);
     }
 
+    @SuppressWarnings("deprecation")
     @Test
     public void testBrokenOntGraphDocumentSource() throws IOException {
         String key = "TEST";

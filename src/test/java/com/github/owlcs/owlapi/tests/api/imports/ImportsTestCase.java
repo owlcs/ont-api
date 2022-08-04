@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2022, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -20,7 +20,6 @@ import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Matchers;
 import org.mockito.Mockito;
 import org.semanticweb.owlapi.io.StringDocumentSource;
 import org.semanticweb.owlapi.model.*;
@@ -37,6 +36,7 @@ import java.io.OutputStream;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -201,7 +201,7 @@ public class ImportsTestCase extends TestBase {
         IRI testImport = IRI.create("http://test.org/", "TestPizzaImport.owl");
         IRI remap = IRI.create("urn:test:", "mockImport");
         OWLOntologyIRIMapper mock = Mockito.mock(OWLOntologyIRIMapper.class);
-        Mockito.when(mock.getDocumentIRI(Matchers.eq(testImport))).thenReturn(remap);
+        Mockito.when(mock.getDocumentIRI(Mockito.eq(testImport))).thenReturn(remap);
         m.getIRIMappers().set(mock);
         m.createOntology(remap);
         OWLOntology o = m.loadOntologyFromOntologyDocument(source);
@@ -225,7 +225,7 @@ public class ImportsTestCase extends TestBase {
         IRI remap = IRI.create("urn:test:", "mockImport");
         StringDocumentSource source = new StringDocumentSource(input);
         OWLOntologyIRIMapper mock = Mockito.mock(OWLOntologyIRIMapper.class);
-        Mockito.when(mock.getDocumentIRI(Matchers.eq(testImport))).thenReturn(remap);
+        Mockito.when(mock.getDocumentIRI(Mockito.eq(testImport))).thenReturn(remap);
         m.getIRIMappers().set(mock);
         m.createOntology(remap);
         OWLOntology o = m.loadOntologyFromOntologyDocument(source);
@@ -273,13 +273,13 @@ public class ImportsTestCase extends TestBase {
         AutoIRIMapper mapper = new AutoIRIMapper(new File(RESOURCES, "imports"), true);
         man.getIRIMappers().add(mapper);
         String name = "/owlapi/imports/thesubont.omn";
-        OWLOntology root = man.loadOntologyFromOntologyDocument(getClass().getResourceAsStream(name));
+        OWLOntology root = man.loadOntologyFromOntologyDocument(Objects.requireNonNull(getClass().getResourceAsStream(name)));
         Assertions.assertEquals(1, root.imports().count());
         for (OWLOntology ontology : man.ontologies().collect(Collectors.toList())) {
             man.removeOntology(ontology);
         }
         Assertions.assertEquals(0, man.ontologies().count());
-        root = man.loadOntologyFromOntologyDocument(getClass().getResourceAsStream(name));
+        root = man.loadOntologyFromOntologyDocument(Objects.requireNonNull(getClass().getResourceAsStream(name)));
         Assertions.assertEquals(1, root.imports().count());
     }
 
