@@ -644,7 +644,7 @@ public interface OntClass extends OntObject, AsNamed<OntClass.Named> {
          * Creates a {@code DisjointUnion} {@link OntList ontology list}
          * and returns the statement {@code CN owl:disjointUnionOf ( C1 ... Cn )} to allow the addition of annotations.
          * About RDF Graph annotation specification see, for example,
-         * <a href="https://www.w3.org/TR/owl2-mapping-to-rdf/#Translation_of_Annotations"'">2.3.1 Axioms that Generate a Main Triple</a>.
+         * <a href="https://www.w3.org/TR/owl2-mapping-to-rdf/#Translation_of_Annotations">2.3.1 Axioms that Generate a Main Triple</a>.
          *
          * @param classes Array of {@link OntClass class expressions} without {@code null}s,
          *                duplicates will be discarded and order will be saved

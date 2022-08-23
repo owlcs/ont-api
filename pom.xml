@@ -33,9 +33,10 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <version.jena>4.5.0</version.jena>
         <version.owlapi>5.1.20</version.owlapi>
-        <version.slf4j>1.7.36</version.slf4j>
+        <version.slf4j>2.0.0</version.slf4j>
         <version.caffeine>3.1.1</version.caffeine>
         <version.junit>5.9.0</version.junit>
+        <versio.mockito>4.7.0</versio.mockito>
     </properties>
 
     <licenses>
@@ -135,7 +136,7 @@
         <dependency>
             <groupId>org.mockito</groupId>
             <artifactId>mockito-core</artifactId>
-            <version>4.6.1</version>
+            <version>${versio.mockito}</version>
             <scope>test</scope>
         </dependency>
         <!--
