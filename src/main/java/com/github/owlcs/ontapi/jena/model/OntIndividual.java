@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2022, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -32,7 +32,7 @@ import java.util.stream.Stream;
  * Created by @szuev on 02.11.2016.
  */
 @SuppressWarnings("rawtypes")
-public interface OntIndividual extends OntObject, AsNamed<OntIndividual.Named> {
+public interface OntIndividual extends OntObject, AsNamed<OntIndividual.Named>, HasDisjoint<OntIndividual> {
 
     /**
      * Removes a class assertion statement for the given class.
@@ -100,9 +100,19 @@ public interface OntIndividual extends OntObject, AsNamed<OntIndividual.Named> {
     }
 
     /**
+     * Lists all {@code OntDisjoint} sections where this individual is a member.
+     *
+     * @return a {@code Stream} of {@link OntDisjoint.Individuals}
+     */
+    @Override
+    default Stream<OntDisjoint.Individuals> disjoints() {
+        return getModel().ontObjects(OntDisjoint.Individuals.class).filter(d -> d.members().anyMatch(this::equals));
+    }
+
+    /**
      * Lists all different individuals.
-     * The pattern to search for is {@code a1 owl:differentFrom a2},
-     * where {@code a1} is this {@link OntIndividual} and {@code a2} is one of the returned {@link OntIndividual}.
+     * The pattern to search for is {@code thisIndividual owl:differentFrom otherIndividual},
+     * where {@code otherIndividual} is one of the returned.
      *
      * @return {@code Stream} of {@link OntIndividual}s
      * @see OntDisjoint.Individuals

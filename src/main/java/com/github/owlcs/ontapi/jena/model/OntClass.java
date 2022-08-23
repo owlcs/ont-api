@@ -36,7 +36,7 @@ import java.util.stream.Stream;
  * @see <a href="https://www.w3.org/TR/owl2-quick-reference/#Class_Expressions">2.1 Class Expressions</a>
  * @see <a href="https://www.w3.org/TR/owl2-syntax/#Class_Expressions">8 Class Expressions</a>
  */
-public interface OntClass extends OntObject, AsNamed<OntClass.Named> {
+public interface OntClass extends OntObject, AsNamed<OntClass.Named>, HasDisjoint<OntClass> {
 
     /**
      * Answers a {@code Stream} over the class-expressions
@@ -167,7 +167,7 @@ public interface OntClass extends OntObject, AsNamed<OntClass.Named> {
      * Lists all individuals,
      * i.e. subjects from class-assertion statements {@code a rdf:type C}, where {@code C} is this class expression.
      *
-     * @return {@code Stream} of {@link OntIndividual}s
+     * @return a {@code Stream} of {@link OntIndividual}s
      */
     default Stream<OntIndividual> individuals() {
         return getModel().statements(null, RDF.type, this).map(s -> s.getSubject(OntIndividual.class));
@@ -205,10 +205,20 @@ public interface OntClass extends OntObject, AsNamed<OntClass.Named> {
     }
 
     /**
-     * Returns all disjoint classes.
-     * The statement patter to search for is {@code C1 owl:disjointWith C2}.
+     * Lists all {@code OntDisjoint} sections where this class is a member.
      *
-     * @return {@code Stream} of {@link OntClass}s
+     * @return a {@code Stream} of {@link OntDisjoint.Classes}
+     */
+    @Override
+    default Stream<OntDisjoint.Classes> disjoints() {
+        return getModel().ontObjects(OntDisjoint.Classes.class).filter(d -> d.members().anyMatch(this::equals));
+    }
+
+    /**
+     * Returns disjoint class-objects.
+     * The statement pattern to search for is {@code thisClass owl:disjointWith otherClass}.
+     *
+     * @return a {@code Stream} of {@link OntClass}s
      * @see OntDisjoint.Classes
      */
     default Stream<OntClass> disjointClasses() {

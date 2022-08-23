@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2022, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -33,7 +33,7 @@ import java.util.stream.Stream;
  * <p>
  * Created by @szuev on 08.11.2016.
  */
-public interface OntObjectProperty extends OntRealProperty, AsNamed<OntObjectProperty.Named> {
+public interface OntObjectProperty extends OntRealProperty, AsNamed<OntObjectProperty.Named>, HasDisjoint<OntObjectProperty> {
 
     /**
      * {@inheritDoc}
@@ -140,6 +140,16 @@ public interface OntObjectProperty extends OntRealProperty, AsNamed<OntObjectPro
     }
 
     /**
+     * Lists all {@code OntDisjoint} sections where this object property is a member.
+     *
+     * @return a {@code Stream} of {@link OntDisjoint.ObjectProperties}
+     */
+    @Override
+    default Stream<OntDisjoint.ObjectProperties> disjoints() {
+        return getModel().ontObjects(OntDisjoint.ObjectProperties.class).filter(d -> d.members().anyMatch(this::equals));
+    }
+
+    /**
      * Returns disjoint properties (statement: {@code P1 owl:propertyDisjointWith P2}).
      *
      * @return {@code Stream} of {@link OntObjectProperty}s
@@ -243,7 +253,7 @@ public interface OntObjectProperty extends OntRealProperty, AsNamed<OntObjectPro
      * Creates a property chain {@link OntList ontology list}
      * and returns the statement {@code P owl:propertyChainAxiom ( P1 ... Pn )} to allow the addition of annotations.
      * About RDF Graph annotation specification see, for example,
-     * <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Translation_of_Annotations'>2.3.1 Axioms that Generate a Main Triple</a>.
+     * <a href="https://www.w3.org/TR/owl2-mapping-to-rdf/#Translation_of_Annotations">2.3.1 Axioms that Generate a Main Triple</a>.
      *
      * @param properties Array of {@link OntObjectProperty}s without {@code null}s
      * @return {@link OntStatement} to provide the ability to add annotations subsequently

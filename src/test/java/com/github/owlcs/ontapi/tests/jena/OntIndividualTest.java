@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2022, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -212,4 +212,21 @@ public class OntIndividualTest {
         // named individuals:
         Assertions.assertEquals(5, m.namedIndividuals().peek(x -> Assertions.assertTrue(x.isURIResource())).count());
     }
+
+    @Test
+    public void testListDisjoints() {
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntIndividual i1 = m.createIndividual("I1");
+        OntIndividual i2 = m.createIndividual("I2");
+        OntIndividual i3 = m.createIndividual("I3");
+        OntIndividual i4 = m.createIndividual("I4");
+        m.createDifferentIndividuals(i1, i2);
+        m.createDifferentIndividuals(i1, i3);
+
+        Assertions.assertEquals(0, i4.disjoints().count());
+        Assertions.assertEquals(2, i1.disjoints().count());
+        Assertions.assertEquals(1, i2.disjoints().count());
+        Assertions.assertEquals(1, i3.disjoints().count());
+    }
+
 }

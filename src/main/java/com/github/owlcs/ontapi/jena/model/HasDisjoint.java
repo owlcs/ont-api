@@ -14,29 +14,18 @@
 
 package com.github.owlcs.ontapi.jena.model;
 
-import com.github.owlcs.ontapi.jena.OntJenaException;
+import java.util.stream.Stream;
 
 /**
- * A technical interface to access {@link P} properties from a []-list
- * on predicate {@link com.github.owlcs.ontapi.jena.vocabulary.OWL#onProperties owl:onProperties}.
- * <p>
- * Created by @ssz on 09.05.2019.
- *
- * @param <P> - any subtype of {@link OntRealProperty} in general case,
- *            but in the current model it can only be {@link OntDataProperty}
- * @see SetProperties
+ * A technical interface to provide {@link OntDisjoint}.
+ * @param <E> either {@link OntClass}, {@link OntIndividual}, {@link OntObjectProperty} or {@link OntDataProperty}
  */
-interface HasProperties<P extends OntRealProperty> extends HasRDFNodeList<P>, HasProperty<P> {
+interface HasDisjoint<E extends OntObject> {
 
     /**
-     * Gets the first property from {@code owl:onProperties} []-list.
-     * Currently in OWL2, a []-list from n-ary Restrictions may contain one and only one (data) property.
+     * Lists all {@code OntDisjoint} sections where this object is a member.
      *
-     * @return {@link P}
-     * @see OntDataRange#arity()
+     * @return a {@code Stream} of {@link OntDisjoint}s
      */
-    @Override
-    default P getProperty() {
-        return getList().first().orElseThrow(OntJenaException.IllegalState::new);
-    }
+    Stream<? extends OntDisjoint<E>> disjoints();
 }
