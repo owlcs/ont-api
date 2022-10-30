@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2022, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -157,7 +157,7 @@ public interface OntRealProperty extends OntProperty {
     OntRealProperty removeDisjointProperty(Resource property);
 
     /**
-     * Lists all of the declared domain class expressions of this property expression.
+     * Lists all the declared domain class expressions of this property expression.
      * In other words, returns the right-hand sides of statement {@code P rdfs:domain C},
      * where {@code P} is this property expression.
      *
@@ -166,6 +166,36 @@ public interface OntRealProperty extends OntProperty {
     @Override
     default Stream<OntClass> domains() {
         return objects(RDFS.domain, OntClass.class);
+    }
+
+    /**
+     * Gets all direct or indirect domains which present in RDF graph.
+     * Indirect domains are calculated using {@code OntClass.superClasses(true)} relationship.
+     * For example consider the following statements (only people can have names):
+     * <pre>
+     * {@code
+     * :Primate rdf:type owl:Class .
+     * :Person rdf:type owl:Class .
+     * :hasName rdf:type owl:DatatypeProperty .
+     * :hasName rdfs:domain :Person .
+     * :Person rdfs:subClassOf :Primate .
+     * }
+     * </pre>
+     * from these statements it can be derived that only primates can have names
+     * (which does not mean that all primates have names):
+     * <pre>
+     * {@code
+     * :hasName rdfs:domain :Primate .
+     * }
+     * </pre>
+     * The same true for object properties: if "only people can have dogs" then "only primates can have dogs"
+     *
+     * @param direct if {@code true} the method behaves the same as {@link #domains()}
+     * @return {@code Stream} of {@link OntClass class expression}s, distinct
+     */
+    default Stream<OntClass> domains(boolean direct) {
+       if (direct) return domains();
+       return domains().flatMap(d -> Stream.concat(Stream.of(d), d.superClasses(true))).distinct();
     }
 
     /**

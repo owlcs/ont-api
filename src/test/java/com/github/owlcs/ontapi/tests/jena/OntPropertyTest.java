@@ -23,6 +23,9 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Set;
+import java.util.stream.Collectors;
+
 /**
  * To test properties:
  * {@link OntNamedProperty}, {@link OntProperty} ({@link OntObjectProperty}, {@link OntObjectProperty.Named}, {@link OntDataProperty}, {@link OntRealProperty}, {@link OntAnnotationProperty}).
@@ -131,5 +134,20 @@ public class OntPropertyTest {
         Assertions.assertEquals(2, p.superProperties().count());
         p.removeSuperProperty(null);
         Assertions.assertEquals(0, p.superProperties().count());
+    }
+
+    @Test
+    public void testIndirectDomains() {
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD).setNsPrefix("", "http://ex.com#");
+        OntObjectProperty hasDog = m.createObjectProperty(m.expandPrefix(":hasDog"));
+        OntDataProperty hasName = m.createDataProperty(m.expandPrefix(":hasName"));
+        OntClass primate = m.createOntClass(m.expandPrefix(":Primate"));
+        OntClass person = m.createOntClass(m.expandPrefix(":Person"));
+        person.addSuperClass(primate);
+        hasName.addDomain(person);
+        hasDog.addDomain(person);
+
+        Assertions.assertEquals(Set.of(person, primate), hasDog.domains(false).collect(Collectors.toSet()));
+        Assertions.assertEquals(Set.of(person, primate), hasName.domains(false).collect(Collectors.toSet()));
     }
 }
