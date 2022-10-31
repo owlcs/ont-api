@@ -194,8 +194,8 @@ public interface OntRealProperty extends OntProperty {
      * @return {@code Stream} of {@link OntClass class expression}s, distinct
      */
     default Stream<OntClass> domains(boolean direct) {
-       if (direct) return domains();
-       return domains().flatMap(d -> Stream.concat(Stream.of(d), d.superClasses(true))).distinct();
+        if (direct) return domains();
+        return domains().flatMap(d -> Stream.concat(Stream.of(d), d.superClasses(false))).distinct();
     }
 
     /**

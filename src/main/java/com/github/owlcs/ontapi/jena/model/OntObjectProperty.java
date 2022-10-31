@@ -126,6 +126,34 @@ public interface OntObjectProperty extends OntRealProperty, AsNamed<OntObjectPro
     }
 
     /**
+     * Gets all direct or indirect ranges which present in RDF graph.
+     * Indirect ranges are calculated using {@code OntClass.subClasses(true)} relationship.
+     * For example consider the following statements (if someone has some dog, then this dog is a Dog):
+     * <pre>
+     * {@code
+     * :Dog rdf:type owl:Class .
+     * :Labrador rdf:type owl:Class .
+     * :Labrador rdfs:subClassOf :Dog .
+     * :hasDog rdf:type owl:ObjectProperty .
+     * :hasDog rdfs:range :Dog .
+     * }
+     * </pre>
+     * from these statements it can be derived that if someone has some dog, then this dog can be a Labrador:
+     * <pre>
+     * {@code
+     * :hasDog rdfs:domain :Labrador .
+     * }
+     * </pre>
+     *
+     * @param direct {@code boolean}
+     * @return {@code Stream} of {@link OntClass}es, distinct
+     */
+    default Stream<OntClass> ranges(boolean direct) {
+        if (direct) return ranges();
+        return ranges().flatMap(d -> Stream.concat(Stream.of(d), d.subClasses(false))).distinct();
+    }
+
+    /**
      * Lists all direct super properties, the pattern is {@code P1 rdfs:subPropertyOf P2}.
      *
      * @return {@code Stream} of {@link OntObjectProperty}s

@@ -22,6 +22,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class OntObjectPropertyTest {
 
@@ -175,4 +177,17 @@ public class OntObjectPropertyTest {
         Assertions.assertEquals(1, p3.disjoints().count());
     }
 
+    @Test
+    public void testIndirectRanges() {
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD).setNsPrefix("", "http://ex.com#");
+        OntObjectProperty hasDog = m.createObjectProperty(m.expandPrefix(":hasDog"));
+        OntClass dog = m.createOntClass(m.expandPrefix(":Dog"));
+        OntClass labrador = m.createOntClass(m.expandPrefix(":Labrador"));
+        OntClass retriever = m.createOntClass(m.expandPrefix(":LabradorRetriever"));
+        labrador.addSuperClass(dog);
+        retriever.addSuperClass(labrador);
+        hasDog.addRange(dog);
+
+        Assertions.assertEquals(Set.of(retriever, labrador, dog), hasDog.ranges(false).collect(Collectors.toSet()));
+    }
 }

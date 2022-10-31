@@ -141,13 +141,15 @@ public class OntPropertyTest {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD).setNsPrefix("", "http://ex.com#");
         OntObjectProperty hasDog = m.createObjectProperty(m.expandPrefix(":hasDog"));
         OntDataProperty hasName = m.createDataProperty(m.expandPrefix(":hasName"));
+        OntClass animal = m.createOntClass(m.expandPrefix(":Animal"));
         OntClass primate = m.createOntClass(m.expandPrefix(":Primate"));
         OntClass person = m.createOntClass(m.expandPrefix(":Person"));
+        primate.addSuperClass(animal);
         person.addSuperClass(primate);
         hasName.addDomain(person);
         hasDog.addDomain(person);
 
-        Assertions.assertEquals(Set.of(person, primate), hasDog.domains(false).collect(Collectors.toSet()));
-        Assertions.assertEquals(Set.of(person, primate), hasName.domains(false).collect(Collectors.toSet()));
+        Assertions.assertEquals(Set.of(person, primate, animal), hasDog.domains(false).collect(Collectors.toSet()));
+        Assertions.assertEquals(Set.of(person, primate, animal), hasName.domains(false).collect(Collectors.toSet()));
     }
 }
