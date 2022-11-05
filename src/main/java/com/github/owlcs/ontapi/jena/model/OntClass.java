@@ -196,6 +196,8 @@ public interface OntClass extends OntObject, AsNamed<OntClass.Named>, HasDisjoin
      * Lists all super classes for this class expression.
      * The search pattern is {@code C rdfs:subClassOf Ci},
      * where {@code C} is this instance, and {@code Ci} is one of the returned.
+     * <p>
+     * Equivalent to {@code this.superClasses(true).filter(other -> !other.equals(this))}.
      *
      * @return {@code Stream} of {@link OntClass}s
      * @see #superClasses(boolean)
@@ -450,6 +452,19 @@ public interface OntClass extends OntObject, AsNamed<OntClass.Named>, HasDisjoin
      */
     default Stream<OntRealProperty> fromHasKey() {
         return hasKeys().flatMap(OntList::members).distinct();
+    }
+
+    /**
+     * Answers true if this class is one of the roots of the local class hierarchy.
+     * This will be true if either (i) this class has either {@code owl:Thing} or {@code rdfs:Resource} as a direct super-class,
+     * or (ii) it has no declared super-classes.
+     * <p>
+     * {@code owl:Nothing} cannot be root.
+     *
+     * @return {@code true} if this class is the root of the class hierarchy in the model it is attached to
+     */
+    default boolean isHierarchyRoot() {
+        return !OWL.Nothing.equals(this) && superClasses(true).allMatch(s -> s.equals(OWL.Thing) || s.equals(RDFS.Resource));
     }
 
     /*

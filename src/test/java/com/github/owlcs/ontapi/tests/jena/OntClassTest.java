@@ -21,6 +21,7 @@ import com.github.owlcs.ontapi.jena.vocabulary.XSD;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import org.apache.jena.rdf.model.RDFList;
 import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.vocabulary.RDFS;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -193,4 +194,22 @@ public class OntClassTest {
         Assertions.assertEquals(1, c3.disjoints().count());
     }
 
+    @Test
+    public void testIsHierarchyRoot() {
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntClass c1 = m.createOntClass("C1");
+        OntClass c2 = m.createOntClass("C2");
+        OntClass c3 = m.createOntClass("C3");
+        OntClass c4 = m.createOntClass("C4");
+        c1.addSuperClass(c2);
+        c2.addSuperClass(c3);
+
+        Assertions.assertFalse(m.getOWLNothing().isHierarchyRoot());
+        Assertions.assertTrue(m.getOWLThing().isHierarchyRoot());
+        Assertions.assertTrue(m.createOntClass(RDFS.Resource.getURI()).isHierarchyRoot());
+        Assertions.assertFalse(c1.isHierarchyRoot());
+        Assertions.assertFalse(c2.isHierarchyRoot());
+        Assertions.assertTrue(c3.isHierarchyRoot());
+        Assertions.assertTrue(c4.isHierarchyRoot());
+    }
 }
