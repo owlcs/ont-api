@@ -212,4 +212,68 @@ public class OntClassTest {
         Assertions.assertTrue(c3.isHierarchyRoot());
         Assertions.assertTrue(c4.isHierarchyRoot());
     }
+
+    @Test
+    public void testHasDeclaredProperties() {
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntClass c1 = m.createObjectUnionOf(m.getOWLThing());
+        OntClass c2 = m.createObjectOneOf(m.createIndividual("i1"), m.createIndividual("i2"));
+        OntClass c3 = m.createOntClass("C3"); // root
+        OntClass c4 = m.createOntClass("C4"); // root
+        OntClass c5 = m.createOntClass("C5"); // root
+        c1.addSuperClass(c2.addSuperClass(c3));
+        c5.addSuperClass(m.getOWLThing());
+        OntDataProperty d1 = m.createDataProperty("d1").addDomain(c1);
+        OntDataProperty d2 = m.createDataProperty("d2").addDomain(c2);
+        OntObjectProperty o1 = m.createObjectProperty("o1").addDomain(c3);
+        OntObjectProperty o2 = m.createObjectProperty("o2"); // global
+
+        Assertions.assertFalse(c1.hasDeclaredProperty(m.getOWLBottomDataProperty(), true));
+        Assertions.assertFalse(c4.hasDeclaredProperty(m.getOWLTopObjectProperty(), false));
+
+        Assertions.assertTrue(c1.hasDeclaredProperty(d1, false));
+        Assertions.assertTrue(c1.hasDeclaredProperty(d2, false));
+        Assertions.assertTrue(c1.hasDeclaredProperty(o1, false));
+        Assertions.assertTrue(c1.hasDeclaredProperty(o2, false));
+        Assertions.assertTrue(c1.hasDeclaredProperty(d1, true));
+        Assertions.assertFalse(c1.hasDeclaredProperty(d2, true));
+        Assertions.assertFalse(c1.hasDeclaredProperty(o1, true));
+        Assertions.assertFalse(c1.hasDeclaredProperty(o2, true));
+
+        Assertions.assertFalse(c2.hasDeclaredProperty(d1, false));
+        Assertions.assertTrue(c2.hasDeclaredProperty(d2, false));
+        Assertions.assertTrue(c2.hasDeclaredProperty(o1, false));
+        Assertions.assertTrue(c2.hasDeclaredProperty(o2, false));
+        Assertions.assertFalse(c2.hasDeclaredProperty(d1, true));
+        Assertions.assertTrue(c2.hasDeclaredProperty(d2, true));
+        Assertions.assertFalse(c2.hasDeclaredProperty(o1, true));
+        Assertions.assertFalse(c2.hasDeclaredProperty(o2, true));
+
+        Assertions.assertFalse(c3.hasDeclaredProperty(d1, false));
+        Assertions.assertFalse(c3.hasDeclaredProperty(d2, false));
+        Assertions.assertTrue(c3.hasDeclaredProperty(o1, false));
+        Assertions.assertTrue(c3.hasDeclaredProperty(o2, false));
+        Assertions.assertFalse(c3.hasDeclaredProperty(d1, true));
+        Assertions.assertFalse(c3.hasDeclaredProperty(d2, true));
+        Assertions.assertTrue(c3.hasDeclaredProperty(o1, true));
+        Assertions.assertTrue(c3.hasDeclaredProperty(o2, true));
+
+        Assertions.assertFalse(c4.hasDeclaredProperty(d1, false));
+        Assertions.assertFalse(c4.hasDeclaredProperty(d2, false));
+        Assertions.assertFalse(c4.hasDeclaredProperty(o1, false));
+        Assertions.assertTrue(c4.hasDeclaredProperty(o2, false));
+        Assertions.assertFalse(c4.hasDeclaredProperty(d1, true));
+        Assertions.assertFalse(c4.hasDeclaredProperty(d2, true));
+        Assertions.assertFalse(c4.hasDeclaredProperty(o1, true));
+        Assertions.assertTrue(c4.hasDeclaredProperty(o2, true));
+
+        Assertions.assertFalse(c5.hasDeclaredProperty(d1, false));
+        Assertions.assertFalse(c5.hasDeclaredProperty(d2, false));
+        Assertions.assertFalse(c5.hasDeclaredProperty(o1, false));
+        Assertions.assertTrue(c5.hasDeclaredProperty(o2, false));
+        Assertions.assertFalse(c5.hasDeclaredProperty(d1, true));
+        Assertions.assertFalse(c5.hasDeclaredProperty(d2, true));
+        Assertions.assertFalse(c5.hasDeclaredProperty(o1, true));
+        Assertions.assertTrue(c5.hasDeclaredProperty(o2, true));
+    }
 }

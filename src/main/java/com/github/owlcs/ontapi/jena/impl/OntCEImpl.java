@@ -40,6 +40,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -341,6 +342,45 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntClass {
         model.deleteOntList(clazz, OWL.hasKey, clazz.findHasKey(rdfList).orElse(null));
     }
 
+    public static boolean testDomain(OntClass clazz, OntRealProperty property, boolean direct) {
+        if (property.isURIResource() && property.as(OntEntity.class).isBuiltIn()) {
+            return false;
+        }
+        AtomicBoolean isGlobal = new AtomicBoolean(true);
+        AtomicBoolean seenDirect = new AtomicBoolean(false);
+        try (Stream<OntClass> domains = property.domains()) {
+            if (!domains.allMatch(domain -> {
+                if (domain.equals(OWL.Thing) || domain.equals(RDFS.Resource)) {
+                    return false;
+                }
+                isGlobal.set(false);
+                if (clazz.equals(domain)) {
+                    seenDirect.set(true);
+                    return true;
+                } else {
+                    try (Stream<OntClass> superClasses = clazz.superClasses(false)) {
+                        return superClasses.anyMatch(domain::equals);
+                    }
+                }
+            })) {
+                return false;
+            }
+            if (direct) {
+                return seenDirect.get() || (isGlobal.get() && clazz.isHierarchyRoot());
+            }
+            return true;
+        }
+    }
+
+    public static boolean isHierarchyRoot(OntClass clazz) {
+        if (OWL.Nothing.equals(clazz)) {
+            return false;
+        }
+        try (Stream<OntClass> superClasses = clazz.superClasses(true)) {
+            return superClasses.allMatch(s -> s.equals(OWL.Thing) || s.equals(RDFS.Resource));
+        }
+    }
+
     @Override
     public Optional<OntStatement> findRootStatement() {
         return getRequiredRootStatement(this, OWL.Class);
@@ -388,6 +428,16 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntClass {
     @Override
     public Stream<OntClass> subClasses(boolean direct) {
         return hierarchy(this, OntClass.class, RDFS.subClassOf, true, direct);
+    }
+
+    @Override
+    public boolean hasDeclaredProperty(OntRealProperty property, boolean direct) {
+        return testDomain(this, property, direct);
+    }
+
+    @Override
+    public boolean isHierarchyRoot() {
+        return isHierarchyRoot(this);
     }
 
     protected enum ObjectRestrictionType implements PredicateFilterProvider {
@@ -1086,9 +1136,9 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntClass {
      * A factory to produce {@link OntClass}s.
      * <p>
      * Although it would be easy to produce this factory using {@link Factories#createFrom(OntFinder, Class[])},
-     * this variant with explicit methods must be a little bit faster,
+     * this variant with explicit methods must be a little faster,
      * since there is a reduction of number of some possible repetition calls.
-     * Also everything here is under control.
+     * Also, everything here is under control.
      * <p>
      * Created by @ssz on 01.09.2018.
      */

@@ -17,10 +17,7 @@ package com.github.owlcs.ontapi.jena.model;
 import com.github.owlcs.ontapi.jena.OntJenaException;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
-import org.apache.jena.rdf.model.Literal;
-import org.apache.jena.rdf.model.RDFList;
-import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.*;
 import org.apache.jena.vocabulary.RDFS;
 
 import java.util.*;
@@ -57,7 +54,7 @@ public interface OntClass extends OntObject, AsNamed<OntClass.Named>, HasDisjoin
      * the listing super classes for the class {@code A} will return only {@code B}.
      * And otherwise, if the flag {@code direct} is {@code false}, it will return {@code B} and also {@code C}.
      *
-     * @param direct boolean: if {@code true}, only answers the directly adjacent classes in the super-class relation,
+     * @param direct boolean: if {@code true} answers the directly adjacent classes in the super-class relation,
      *               otherwise answers all super-classes found in the {@code Graph} recursively
      * @return <b>distinct</b> {@code Stream} of super {@link OntClass class expression}s
      * @see #superClasses()
@@ -66,7 +63,7 @@ public interface OntClass extends OntObject, AsNamed<OntClass.Named>, HasDisjoin
     Stream<OntClass> superClasses(boolean direct);
 
     /**
-     * Answer a {@code Stream} over all of the class expressions
+     * Answer a {@code Stream} over all the class expressions
      * that are declared to be sub-classes of this class expression.
      * The return {@code Stream} is distinct and this instance is not included into it.
      * The flag {@code direct} allows some selectivity over the classes that appear in the {@code Stream}.
@@ -76,15 +73,50 @@ public interface OntClass extends OntObject, AsNamed<OntClass.Named>, HasDisjoin
      *   :C rdfs:subClassOf :B .
      * }</pre>
      * If the flag {@code direct} is {@code true},
-     * the listing sub classes for the class {@code A} will return only {@code B}.
+     * the listing subclasses for the class {@code A} will return only {@code B}.
      * And otherwise, if the flag {@code direct} is {@code false}, it will return {@code B} and also {@code C}.
      *
-     * @param direct boolean: if {@code true}, only answers the directly adjacent classes in the sub-class relation,
+     * @param direct boolean: if {@code true} answers the directly adjacent classes in the sub-class relation,
      *               otherwise answers all sub-classes found in the {@code Graph} recursively
      * @return <b>distinct</b> {@code Stream} of sub {@link OntClass class expression}s
      * @see #superClasses(boolean)
      */
     Stream<OntClass> subClasses(boolean direct);
+
+    /**
+     * Returns {@code true} if the given property is associated with a frame-like view of this class.
+     * This captures an informal notion of the <em>properties of a class</em>,
+     * by looking at the domains of the property in this class's model, and matching them to this class.
+     * A full description of the frame-like view of a class may be found in:
+     * <a href="https://jena.apache.org/documentation/notes/rdf-frames.html">Apache Jena: RDF frames how-to</a> for full details.<p>
+     * Note that many cases of determining whether a property is associated with a class depends on RDFS or OWL reasoning.
+     * This method may therefore return complete results only in models that have an attached reasoner.
+     * For built-in properties the method returns always {@code false}.
+     * If there is no domains for the property, then it is considered as global and is attached to root classes.
+     * <p>
+     * The behavior of this method must be identical to the behavior of the Jena method
+     * {@link org.apache.jena.ontology.OntClass#hasDeclaredProperty(Property, boolean)}.
+     *
+     * @param property {@link OntRealProperty}, not {@code null}
+     * @param direct   {@code boolean}: if {@code true} analyses only the directly adjacent domains in the subclass relation,
+     *                 otherwise takes into account the class hierarchy
+     * @return {@code boolean}, {@code true} if the property is associated with this class by its domain, otherwise {@code false}
+     */
+    boolean hasDeclaredProperty(OntRealProperty property, boolean direct);
+
+    /**
+     * Answers true if this class is one of the roots of the local class hierarchy.
+     * This will be true if either (i) this class has either {@code owl:Thing} or {@code rdfs:Resource} as a direct super-class,
+     * or (ii) it has no declared super-classes.
+     * <p>
+     * {@code owl:Nothing} cannot be root.
+     * <p>
+     * The behavior of this method must be identical to the behavior of the Jena method
+     * {@link org.apache.jena.ontology.OntClass#isHierarchyRoot()}.
+     *
+     * @return {@code true} if this class is the root of the class hierarchy in the model it is attached to
+     */
+    boolean isHierarchyRoot();
 
     /**
      * Lists all {@code HasKey} {@link OntList ontology []-list}s
@@ -266,7 +298,7 @@ public interface OntClass extends OntObject, AsNamed<OntClass.Named>, HasDisjoin
     }
 
     /**
-     * Adds the given class as a equivalent class
+     * Adds the given class as an equivalent class
      * and returns the corresponding statement to provide the ability to add annotations.
      *
      * @param other {@link OntClass}, not {@code null}
@@ -452,19 +484,6 @@ public interface OntClass extends OntObject, AsNamed<OntClass.Named>, HasDisjoin
      */
     default Stream<OntRealProperty> fromHasKey() {
         return hasKeys().flatMap(OntList::members).distinct();
-    }
-
-    /**
-     * Answers true if this class is one of the roots of the local class hierarchy.
-     * This will be true if either (i) this class has either {@code owl:Thing} or {@code rdfs:Resource} as a direct super-class,
-     * or (ii) it has no declared super-classes.
-     * <p>
-     * {@code owl:Nothing} cannot be root.
-     *
-     * @return {@code true} if this class is the root of the class hierarchy in the model it is attached to
-     */
-    default boolean isHierarchyRoot() {
-        return !OWL.Nothing.equals(this) && superClasses(true).allMatch(s -> s.equals(OWL.Thing) || s.equals(RDFS.Resource));
     }
 
     /*

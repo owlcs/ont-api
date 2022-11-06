@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2021, owl.cs group.
+ * Copyright (c) 2022, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -217,8 +217,19 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     static <X extends Resource> void collectIndirect(X object,
                                                      Function<X, ? extends Iterator<X>> listDirect,
                                                      Set<X> res) {
-        if (!res.add(object)) return;
-        listDirect.apply(object).forEachRemaining(c -> collectIndirect(c, listDirect, res));
+        Set<X> seen = new HashSet<>();
+        seen.add(object);
+        List<X> found = new LinkedList<>();
+        found.add(object);
+        while (found.size() != 0) {
+            X processed = found.remove(0);
+            listDirect.apply(processed).forEachRemaining(x -> {
+                if (seen.add(x)) {
+                    res.add(x);
+                    found.add(x);
+                }
+            });
+        }
     }
 
     /**
@@ -345,7 +356,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     }
 
     /**
-     * Gets the content of the object, i.e. its all characteristic statements (see {@link #listSpec()}),
+     * Gets the content of the object, i.e. it's all characteristic statements (see {@link #listSpec()}),
      * plus all the additional statements in which this object is the subject,
      * excluding those of them whose predicate is an annotation property.
      *
@@ -528,7 +539,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     }
 
     /**
-     * Lists all annotation property assertions (so called plain annotations) attached to this object
+     * Lists all annotation property assertions (so-called plain annotations) attached to this object
      * plus all bulk annotations of the root statement.
      *
      * @return Stream of {@link OntStatement}s
@@ -556,7 +567,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     }
 
     /**
-     * Lists all annotation property assertions (so called plain annotations) attached to this object.
+     * Lists all annotation property assertions (so-called plain annotations) attached to this object.
      *
      * @return Stream of {@link OntStatement}s
      * @see OntObjectImpl#listAssertions()
@@ -651,7 +662,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     /**
      * Returns an object from a first found statement with specified predicate.
      * Since the order in the graph is undefined
-     * in case there are more then one statement for a property the result is unpredictable.
+     * in case there are more than one statement for a property the result is unpredictable.
      *
      * @param predicate {@link Property}
      * @param view      Class
@@ -669,7 +680,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     /**
      * Finds a <b>first</b> object with the given {@code rdf:type}
      * attached to this ontology object on the given {@code predicate}.
-     * The result is unpredictable in case there more then one statement for these conditions.
+     * The result is unpredictable in case there more than one statement for these conditions.
      *
      * @param predicate {@link Property}
      * @param type      sub-class of {@link RDFNode}
@@ -685,7 +696,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
      *
      * @param predicate {@link Property} predicate, can be null
      * @param type      Interface to find and cast, not null
-     * @param <O>       any sub-type of {@link RDFNode}
+     * @param <O>       any subtype of {@link RDFNode}
      * @return Stream of {@link RDFNode node}s of the {@link O} type
      */
     @Override
@@ -711,7 +722,7 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     }
 
     /**
-     * Lists all subjects for the given predicate and type, considering this instance in a object relation.
+     * Lists all subjects for the given predicate and type, considering this instance in an object relation.
      *
      * @param predicate {@link Property}, can be {@code null}
      * @param type      class-type of interface to find and cast, not {@code null}
