@@ -342,6 +342,15 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntClass {
         model.deleteOntList(clazz, OWL.hasKey, clazz.findHasKey(rdfList).orElse(null));
     }
 
+    public static Stream<OntRealProperty> declaredProperties(OntClass clazz, boolean direct) {
+        OntModel m = clazz.getModel();
+        Stream<OntRealProperty> properties = Stream.concat(
+                m.statements(null, RDF.type, OWL.ObjectProperty).map(s -> s.getSubject().getAs(OntObjectProperty.class)),
+                m.statements(null, RDF.type, OWL.DatatypeProperty).map(s -> s.getSubject().getAs(OntDataProperty.class))
+        );
+        return properties.filter(p -> p != null && testDomain(clazz, p, direct)).map(p -> p.as(OntRealProperty.class));
+    }
+
     public static boolean testDomain(OntClass clazz, OntRealProperty property, boolean direct) {
         if (property.isURIResource() && property.as(OntEntity.class).isBuiltIn()) {
             return false;
@@ -351,7 +360,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntClass {
         try (Stream<OntClass> domains = property.domains()) {
             if (!domains.allMatch(domain -> {
                 if (domain.equals(OWL.Thing) || domain.equals(RDFS.Resource)) {
-                    return false;
+                    return true;
                 }
                 isGlobal.set(false);
                 if (clazz.equals(domain)) {
@@ -433,6 +442,11 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntClass {
     @Override
     public boolean hasDeclaredProperty(OntRealProperty property, boolean direct) {
         return testDomain(this, property, direct);
+    }
+
+    @Override
+    public Stream<OntRealProperty> declaredProperties(boolean direct) {
+        return declaredProperties(this, direct);
     }
 
     @Override

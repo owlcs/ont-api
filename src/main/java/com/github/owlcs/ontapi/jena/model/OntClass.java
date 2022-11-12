@@ -88,7 +88,8 @@ public interface OntClass extends OntObject, AsNamed<OntClass.Named>, HasDisjoin
      * This captures an informal notion of the <em>properties of a class</em>,
      * by looking at the domains of the property in this class's model, and matching them to this class.
      * A full description of the frame-like view of a class may be found in:
-     * <a href="https://jena.apache.org/documentation/notes/rdf-frames.html">Apache Jena: RDF frames how-to</a> for full details.<p>
+     * <a href="https://jena.apache.org/documentation/notes/rdf-frames.html">Apache Jena: RDF frames how-to</a> for full details.
+     * <p>
      * Note that many cases of determining whether a property is associated with a class depends on RDFS or OWL reasoning.
      * This method may therefore return complete results only in models that have an attached reasoner.
      * For built-in properties the method returns always {@code false}.
@@ -103,6 +104,25 @@ public interface OntClass extends OntObject, AsNamed<OntClass.Named>, HasDisjoin
      * @return {@code boolean}, {@code true} if the property is associated with this class by its domain, otherwise {@code false}
      */
     boolean hasDeclaredProperty(OntRealProperty property, boolean direct);
+
+    /**
+     * Returns a {@code Stream} over the {@link OntRealProperty properties} associated with a frame-like view of this class.
+     * This captures an intuitive notion of the <em>properties of a class</em>.
+     * This can be useful in presenting an ontology class in a user interface,
+     * for example by automatically constructing a form to instantiate instances of the class.
+     * The properties in the frame-like view of the class are determined by comparing
+     * the domain of properties in this class's {@link OntModel} with the class itself.
+     * See: <a href="https://jena.apache.org/documentation/notes/rdf-frames.html">Apache Jena: Presenting RDF as frames</a> for more details.
+     * <p>
+     * The behavior of this method must be identical to the behavior of the Jena method
+     * {@link org.apache.jena.ontology.OntClass#listDeclaredProperties(boolean)}}.
+     *
+     * @param direct {@code boolean}: if {@code true} analyses only the directly adjacent domains in the subclass relation,
+     *               otherwise takes into account the class hierarchy
+     * @return a <b>distinct</b> {@code Stream} of {@link OntRealProperty object and date properties}, attached to this class
+     * @see #properties()
+     */
+    Stream<OntRealProperty> declaredProperties(boolean direct);
 
     /**
      * Answers true if this class is one of the roots of the local class hierarchy.

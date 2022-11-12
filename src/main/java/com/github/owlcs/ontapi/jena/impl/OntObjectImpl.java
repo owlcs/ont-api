@@ -217,15 +217,13 @@ public class OntObjectImpl extends ResourceImpl implements OntObject {
     static <X extends Resource> void collectIndirect(X object,
                                                      Function<X, ? extends Iterator<X>> listDirect,
                                                      Set<X> res) {
-        Set<X> seen = new HashSet<>();
-        seen.add(object);
+        res.add(object);
         List<X> found = new LinkedList<>();
         found.add(object);
         while (found.size() != 0) {
             X processed = found.remove(0);
             listDirect.apply(processed).forEachRemaining(x -> {
-                if (seen.add(x)) {
-                    res.add(x);
+                if (res.add(x)) {
                     found.add(x);
                 }
             });

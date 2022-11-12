@@ -81,6 +81,11 @@ public class OntClassImpl extends OntObjectImpl implements OntClass.Named {
     }
 
     @Override
+    public Stream<OntRealProperty> declaredProperties(boolean direct) {
+        return OntCEImpl.declaredProperties(this, direct);
+    }
+
+    @Override
     public boolean isHierarchyRoot() {
         return OntCEImpl.isHierarchyRoot(this);
     }

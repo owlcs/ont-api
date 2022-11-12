@@ -276,4 +276,50 @@ public class OntClassTest {
         Assertions.assertFalse(c5.hasDeclaredProperty(o1, true));
         Assertions.assertTrue(c5.hasDeclaredProperty(o2, true));
     }
+
+    @Test
+    public void testListDeclaredProperties() {
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntClass c1 = m.createOntClass("C1");
+        OntClass c2 = m.createOntClass("C2");
+        OntClass c3 = m.createOntClass("C3");
+        OntClass c4 = m.createOntClass("C4");
+        OntClass c5 = m.createOntClass("C5");
+        c1.addSuperClass(c2);
+        c2.addSuperClass(c3);
+        c3.addSuperClass(c4);
+        c5.addSuperClass(m.getOWLThing());
+        OntDataProperty d1 = m.createDataProperty("d1");
+        OntDataProperty d2 = m.createDataProperty("d2");
+        OntObjectProperty o1 = m.createObjectProperty("o1");
+        OntObjectProperty o2 = m.createObjectProperty("o2");
+        o1.addSuperProperty(o2);
+        o2.addSuperProperty(m.getOWLTopObjectProperty());
+        d1.addDomain(c1);
+        d2.addDomain(c2);
+        o1.addDomain(c3);
+        o2.addDomain(m.getOWLThing());
+        m.getOWLBottomDataProperty().addDomain(m.getOWLNothing());
+
+        Assertions.assertEquals(Set.of(o2), m.getOWLThing().declaredProperties(true).collect(Collectors.toSet()));
+        Assertions.assertEquals(Set.of(o2), m.getOWLThing().declaredProperties(false).collect(Collectors.toSet()));
+
+        Assertions.assertEquals(Set.of(), m.getOWLNothing().declaredProperties(true).collect(Collectors.toSet()));
+        Assertions.assertEquals(Set.of(o2), m.getOWLNothing().declaredProperties(false).collect(Collectors.toSet()));
+
+        Assertions.assertEquals(Set.of(d1), c1.declaredProperties(true).collect(Collectors.toSet()));
+        Assertions.assertEquals(Set.of(d1, d2, o1, o2), c1.declaredProperties(false).collect(Collectors.toSet()));
+
+        Assertions.assertEquals(Set.of(d2), c2.declaredProperties(true).collect(Collectors.toSet()));
+        Assertions.assertEquals(Set.of(d2, o1, o2), c2.declaredProperties(false).collect(Collectors.toSet()));
+
+        Assertions.assertEquals(Set.of(o1), c3.declaredProperties(true).collect(Collectors.toSet()));
+        Assertions.assertEquals(Set.of(o1, o2), c3.declaredProperties(false).collect(Collectors.toSet()));
+
+        Assertions.assertEquals(Set.of(o2), c4.declaredProperties(true).collect(Collectors.toSet()));
+        Assertions.assertEquals(Set.of(o2), c4.declaredProperties(false).collect(Collectors.toSet()));
+
+        Assertions.assertEquals(Set.of(o2), c5.declaredProperties(true).collect(Collectors.toSet()));
+        Assertions.assertEquals(Set.of(o2), c5.declaredProperties(false).collect(Collectors.toSet()));
+    }
 }
