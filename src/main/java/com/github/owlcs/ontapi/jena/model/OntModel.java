@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, owl.cs group.
+ * Copyright (c) 2022, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -63,7 +63,7 @@ import java.util.stream.Stream;
  * @see <a href='https://www.w3.org/Submission/SWRL/'>SWRL: A Semantic Web Rule Language Combining OWL and RuleML</a>
  */
 public interface OntModel extends Model,
-        MutationModel<OntModel>, PrefixedModel<OntModel>, IOModel<OntModel>,
+        MutableModel<OntModel>, PrefixedModel<OntModel>, IOModel<OntModel>,
         CreateClasses, CreateRanges, CreateDisjoint, CreateSWRL {
 
     /**
@@ -210,7 +210,7 @@ public interface OntModel extends Model,
      * Also notice: the method {@link #namedIndividuals()} must return only explicitly declared named individuals,
      * while this method does not require the declaration {@link OWL#NamedIndividual owl:NamedIndividual}
      * to be present for an individual: according to the specification it is optional, for more details see
-     * <a href='https://www.w3.org/TR/owl2-syntax/#Typing_Constraints_of_OWL_2_DL'>5.8.1 Typing Constraints of OWL 2 DL</a>.
+     * <a href="https://www.w3.org/TR/owl2-syntax/#Typing_Constraints_of_OWL_2_DL">5.8.1 Typing Constraints of OWL 2 DL</a>.
      * Also note: in case of valid distinct {@link #getGraph() RDF graph}
      * the returned {@code Stream} is also distinct,
      * which means an individual that has more than one class assertions, must appear in the stream only once.
