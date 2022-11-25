@@ -152,4 +152,73 @@ public class OntPropertyTest {
         Assertions.assertEquals(Set.of(person, primate, animal), hasDog.domains(false).collect(Collectors.toSet()));
         Assertions.assertEquals(Set.of(person, primate, animal), hasName.domains(false).collect(Collectors.toSet()));
     }
+
+    @Test
+    public void testDeclaringClasses() {
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD).setNsPrefix("", "http://ex.com#");
+
+        OntClass c1 = m.createOntClass(":C1");
+        OntClass c2 = m.createOntClass(":C2");
+        OntClass c3 = m.createOntClass(":C3");
+        OntClass c4 = m.createOntClass(":C4");
+        OntClass c5 = m.getOWLThing();
+        OntClass c6 = m.getOWLNothing();
+
+        OntObjectProperty p1 = m.createObjectProperty(":p1");
+        OntObjectProperty p2 = m.createObjectProperty(":p2");
+        OntObjectProperty p3 = m.createObjectProperty(":p3");
+        OntObjectProperty p4 = m.createObjectProperty(":p4");
+        OntDataProperty p5 = m.createDataProperty(":p5");
+        OntDataProperty p6 = m.createDataProperty(":p6");
+        OntDataProperty p7 = m.createDataProperty(":p7");
+        OntObjectProperty p8 = m.getOWLTopObjectProperty();
+        OntDataProperty p9 = m.getOWLBottomDataProperty();
+        OntObjectProperty p10 = m.getOWLBottomObjectProperty();
+
+        p1.addSuperProperty(p2);
+        p2.addSuperProperty(p3);
+        p5.addSuperProperty(p6);
+
+        c1.addSuperClass(c2);
+        c2.addSuperClass(c3);
+        c1.addSuperClass(c4);
+
+        p1.addDomain(c1);
+        p2.addDomain(c2);
+        p4.addDomain(c4);
+        p6.addDomain(c3);
+        p7.addDomain(c1);
+        p8.addDomain(c5);
+        p9.addDomain(c6);
+
+        Assertions.assertEquals(Set.of(c1), p1.declaringClasses(true).collect(Collectors.toSet()));
+        Assertions.assertEquals(Set.of(c1), p1.declaringClasses(false).collect(Collectors.toSet()));
+
+        Assertions.assertEquals(Set.of(c2), p2.declaringClasses(true).collect(Collectors.toSet()));
+        Assertions.assertEquals(Set.of(c1, c2), p2.declaringClasses(false).collect(Collectors.toSet()));
+
+        Assertions.assertEquals(Set.of(c3, c4), p3.declaringClasses(true).collect(Collectors.toSet()));
+        Assertions.assertEquals(Set.of(c1, c2, c3, c4), p3.declaringClasses(false).collect(Collectors.toSet()));
+
+        Assertions.assertEquals(Set.of(c4), p4.declaringClasses(true).collect(Collectors.toSet()));
+        Assertions.assertEquals(Set.of(c1, c4), p4.declaringClasses(false).collect(Collectors.toSet()));
+
+        Assertions.assertEquals(Set.of(c3, c4), p5.declaringClasses(true).collect(Collectors.toSet()));
+        Assertions.assertEquals(Set.of(c1, c2, c3, c4), p5.declaringClasses(false).collect(Collectors.toSet()));
+
+        Assertions.assertEquals(Set.of(c3), p6.declaringClasses(true).collect(Collectors.toSet()));
+        Assertions.assertEquals(Set.of(c1, c2, c3), p6.declaringClasses(false).collect(Collectors.toSet()));
+
+        Assertions.assertEquals(Set.of(c1), p7.declaringClasses(true).collect(Collectors.toSet()));
+        Assertions.assertEquals(Set.of(c1), p7.declaringClasses(false).collect(Collectors.toSet()));
+
+        Assertions.assertEquals(Set.of(c3, c4), p8.declaringClasses(true).collect(Collectors.toSet()));
+        Assertions.assertEquals(Set.of(c1, c2, c3, c4), p8.declaringClasses(false).collect(Collectors.toSet()));
+
+        Assertions.assertEquals(Set.of(c3, c4), p9.declaringClasses(true).collect(Collectors.toSet()));
+        Assertions.assertEquals(Set.of(c1, c2, c3, c4), p9.declaringClasses(false).collect(Collectors.toSet()));
+
+        Assertions.assertEquals(Set.of(c3, c4), p10.declaringClasses(true).collect(Collectors.toSet()));
+        Assertions.assertEquals(Set.of(c1, c2, c3, c4), p10.declaringClasses(false).collect(Collectors.toSet()));
+    }
 }

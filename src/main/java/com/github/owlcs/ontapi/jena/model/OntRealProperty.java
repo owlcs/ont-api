@@ -61,6 +61,22 @@ public interface OntRealProperty extends OntProperty {
     Stream<? extends OntRealProperty> superProperties();
 
     /**
+     * Answers a {@code Stream} of all the classes in this ontology,
+     * such that each returned class has this property as one of its properties in
+     * {@link OntClass#declaredProperties(boolean)}.
+     * This simulates a frame-like view of properties and classes;
+     * for more details see the
+     * <a href="https://jena.apache.org/documentation/notes/rdf-frames.html">Apache Jena: Presenting RDF as frames</a>
+     * <p>
+     * The behavior of this method must be identical to the behavior of the Jena method
+     * {@link org.apache.jena.ontology.OntProperty#listDeclaringClasses(boolean)}.
+     *
+     * @param direct {@code boolean} if {@code true}, use only <em>direct</em> associations between classes and properties
+     * @return a {@code Stream} of the classes having this property as one of their declared properties
+     */
+    Stream<OntClass> declaringClasses(boolean direct);
+
+    /**
      * Lists all properties that are disjoint with this property.
      * In other words, returns all objects from statements of the form {@code P owl:propertyDisjointWith R},
      * where {@code P} is this property and {@code R} is a returned property of the same type.

@@ -390,6 +390,9 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntClass {
         }
     }
 
+    public static boolean isNotBuiltin(OntClass clazz) {
+        return !clazz.isURIResource() || !clazz.asNamed().isBuiltIn();
+    }
     @Override
     public Optional<OntStatement> findRootStatement() {
         return getRequiredRootStatement(this, OWL.Class);

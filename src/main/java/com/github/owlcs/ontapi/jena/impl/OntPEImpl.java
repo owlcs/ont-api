@@ -18,10 +18,7 @@ import com.github.owlcs.ontapi.jena.OntJenaException;
 import com.github.owlcs.ontapi.jena.impl.conf.BaseFactoryImpl;
 import com.github.owlcs.ontapi.jena.impl.conf.ObjectFactory;
 import com.github.owlcs.ontapi.jena.impl.conf.OntFinder;
-import com.github.owlcs.ontapi.jena.model.OntAnnotationProperty;
-import com.github.owlcs.ontapi.jena.model.OntDataProperty;
-import com.github.owlcs.ontapi.jena.model.OntObjectProperty;
-import com.github.owlcs.ontapi.jena.model.OntProperty;
+import com.github.owlcs.ontapi.jena.model.*;
 import com.github.owlcs.ontapi.jena.utils.Iter;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
@@ -37,6 +34,9 @@ import org.apache.jena.util.iterator.ExtendedIterator;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.github.owlcs.ontapi.jena.impl.WrappedFactoryImpl.of;
 
@@ -123,6 +123,22 @@ public abstract class OntPEImpl extends OntObjectImpl implements OntProperty {
 
     public static ObjectFactory createAnonymousObjectPropertyFactory() {
         return new AnonymousObjectPropertyFactory();
+    }
+
+    public static Stream<OntClass> declaringClasses(OntRealProperty property, boolean direct) {
+        Set<OntClass> domains = property.domains()
+                .flatMap(clazz -> Stream.concat(Stream.of(clazz), clazz.subClasses(false)))
+                .filter(OntCEImpl::isNotBuiltin)
+                .collect(Collectors.toSet());
+        if (domains.isEmpty()) {
+            Stream<OntClass> res = property.getModel().ontObjects(OntClass.class).filter(OntCEImpl::isNotBuiltin);
+            if (!direct) {
+                return res;
+            } else {
+                return res.filter(OntClass::isHierarchyRoot);
+            }
+        }
+        return domains.stream().filter(clazz -> clazz.hasDeclaredProperty(property, direct));
     }
 
     @Override
