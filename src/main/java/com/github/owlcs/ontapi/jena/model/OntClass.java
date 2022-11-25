@@ -52,10 +52,10 @@ public interface OntClass extends OntObject, AsNamed<OntClass.Named>, HasDisjoin
      * }</pre>
      * If the flag {@code direct} is {@code true},
      * the listing super classes for the class {@code A} will return only {@code B}.
-     * And otherwise, if the flag {@code direct} is {@code false}, it will return {@code B} and also {@code C}.
+     * Otherwise, the method will return {@code B} and also {@code C}.
      *
-     * @param direct boolean: if {@code true} answers the directly adjacent classes in the super-class relation,
-     *               otherwise answers all super-classes found in the {@code Graph} recursively
+     * @param direct {@code boolean}: if {@code true} answers the directly adjacent classes in the super-class relation,
+     *               otherwise answers all super-classes found in the {@code Graph} recursively, this class is not included
      * @return <b>distinct</b> {@code Stream} of super {@link OntClass class expression}s
      * @see #superClasses()
      * @see #subClasses(boolean)
@@ -63,7 +63,7 @@ public interface OntClass extends OntObject, AsNamed<OntClass.Named>, HasDisjoin
     Stream<OntClass> superClasses(boolean direct);
 
     /**
-     * Answer a {@code Stream} over all the class expressions
+     * Answers a {@code Stream} over all the class expressions
      * that are declared to be sub-classes of this class expression.
      * The return {@code Stream} is distinct and this instance is not included into it.
      * The flag {@code direct} allows some selectivity over the classes that appear in the {@code Stream}.
@@ -77,7 +77,7 @@ public interface OntClass extends OntObject, AsNamed<OntClass.Named>, HasDisjoin
      * And otherwise, if the flag {@code direct} is {@code false}, it will return {@code B} and also {@code C}.
      *
      * @param direct boolean: if {@code true} answers the directly adjacent classes in the sub-class relation,
-     *               otherwise answers all sub-classes found in the {@code Graph} recursively
+     *               otherwise answers all sub-classes found in the {@code Graph} recursively, this class is not included
      * @return <b>distinct</b> {@code Stream} of sub {@link OntClass class expression}s
      * @see #superClasses(boolean)
      */

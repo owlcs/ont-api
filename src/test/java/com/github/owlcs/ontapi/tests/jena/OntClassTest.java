@@ -21,7 +21,6 @@ import com.github.owlcs.ontapi.jena.vocabulary.XSD;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import org.apache.jena.rdf.model.RDFList;
 import org.apache.jena.rdf.model.RDFNode;
-import org.apache.jena.vocabulary.RDFS;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -197,20 +196,38 @@ public class OntClassTest {
     @Test
     public void testIsHierarchyRoot() {
         OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
-        OntClass c1 = m.createOntClass("C1");
-        OntClass c2 = m.createOntClass("C2");
-        OntClass c3 = m.createOntClass("C3");
-        OntClass c4 = m.createOntClass("C4");
+        OntClass c1 = m.createOntClass(":C1");
+        OntClass c2 = m.createOntClass(":C2");
+        OntClass c3 = m.createOntClass(":C3");
+        OntClass c4 = m.createOntClass(":C4");
+        OntClass c5 = m.createOntClass(":C5");
+        OntClass c6 = m.createOntClass(":C6");
+        OntClass c7 = m.createOntClass(":C7");
+        OntClass c8 = m.createOntClass(":C8");
+        OntClass c9 = m.createOntClass(":C9");
+        OntClass c10 = m.getOWLThing();
+        OntClass c11 = m.getOWLNothing();
+
         c1.addSuperClass(c2);
         c2.addSuperClass(c3);
+        c3.addSuperClass(c4);
+        c5.addSuperClass(c6);
+        c6.addSuperClass(c10);
+        c7.addSuperClass(c8);
+        c8.addSuperClass(c9);
+        c9.addSuperClass(c7);
 
-        Assertions.assertFalse(m.getOWLNothing().isHierarchyRoot());
-        Assertions.assertTrue(m.getOWLThing().isHierarchyRoot());
-        Assertions.assertTrue(m.createOntClass(RDFS.Resource.getURI()).isHierarchyRoot());
-        Assertions.assertFalse(c1.isHierarchyRoot());
-        Assertions.assertFalse(c2.isHierarchyRoot());
-        Assertions.assertTrue(c3.isHierarchyRoot());
-        Assertions.assertTrue(c4.isHierarchyRoot());
+        Assertions.assertFalse(c1.isHierarchyRoot());   // false
+        Assertions.assertFalse(c2.isHierarchyRoot());   // false
+        Assertions.assertFalse(c3.isHierarchyRoot());   // false
+        Assertions.assertTrue(c4.isHierarchyRoot());    // true
+        Assertions.assertFalse(c5.isHierarchyRoot());   // false
+        Assertions.assertTrue(c6.isHierarchyRoot());    // true
+        Assertions.assertFalse(c7.isHierarchyRoot());   // false
+        Assertions.assertFalse(c8.isHierarchyRoot());   // false
+        Assertions.assertFalse(c9.isHierarchyRoot());   // false
+        Assertions.assertTrue(c10.isHierarchyRoot());   // true
+        Assertions.assertFalse(c11.isHierarchyRoot());  // false
     }
 
     @Test
@@ -322,4 +339,5 @@ public class OntClassTest {
         Assertions.assertEquals(Set.of(o2), c5.declaredProperties(true).collect(Collectors.toSet()));
         Assertions.assertEquals(Set.of(o2), c5.declaredProperties(false).collect(Collectors.toSet()));
     }
+
 }

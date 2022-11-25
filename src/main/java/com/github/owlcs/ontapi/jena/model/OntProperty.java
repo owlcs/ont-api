@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2022, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -35,7 +35,7 @@ import java.util.stream.Stream;
 public interface OntProperty extends OntObject {
 
     /**
-     * Answers a {@code Stream} over all of the properties that are declared to be super-properties of this property.
+     * Answers a {@code Stream} over all the properties that are declared to be super-properties of this property.
      * Each element of the {@code Stream} will have the same type as this property instance:
      * if it is datatype property the method will return only data properties, etc.
      * The parameter {@code direct} controls selectivity over the properties that appear in the {@code Stream}.
@@ -61,7 +61,7 @@ public interface OntProperty extends OntObject {
     Stream<? extends OntProperty> superProperties(boolean direct);
 
     /**
-     * Answers a {@code Stream} over all of the properties that are declared to be sub-properties of this property.
+     * Answers a {@code Stream} over all the properties that are declared to be sub-properties of this property.
      * Each element of the {@code Stream} will have the same type as this property instance:
      * if it is datatype property the method will return only data properties, etc.
      * The parameter {@code direct} controls selectivity over the properties that appear in the {@code Stream}.

@@ -386,7 +386,7 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntClass {
             return false;
         }
         try (Stream<OntClass> superClasses = clazz.superClasses(true)) {
-            return superClasses.allMatch(s -> s.equals(OWL.Thing) || s.equals(RDFS.Resource));
+            return superClasses.allMatch(s -> s.equals(OWL.Thing) || s.equals(RDFS.Resource) || s.equals(clazz));
         }
     }
 

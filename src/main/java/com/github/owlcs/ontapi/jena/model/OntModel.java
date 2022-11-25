@@ -45,11 +45,11 @@ import java.util.stream.Stream;
  * it does not support {@link org.apache.jena.ontology.Profile Jena Profile}s, and model configuration
  * is delegated directly to the {@link com.github.owlcs.ontapi.jena.impl.conf.OntPersonality Ontology Personality}.
  * <p>
- * Note: it does not extends {@link InfModel} interface, although
+ * Note: it does not extend {@link InfModel} interface, although
  * encapsulated graph can always be wrapped as {@link InfModel} (see {@link OntModel#getInferenceModel(Reasoner)}).
  * <p>
  * Note: in additional to native Jena {@link org.apache.jena.util.iterator.ExtendedIterator Extended Iterator}s,
- * this model also provides access to RDF in the from of {@link Stream}s, that obey the same rules:
+ * this model also provides access to RDF in the form of {@link Stream}s, that obey the same rules:
  * both {@code Stream} and {@code ExtendedIterator} must be closed explicitly
  * if they are no longer needed but not yet exhausted.
  * For more details see {@link org.apache.jena.util.iterator.ClosableIterator}.
@@ -82,7 +82,7 @@ public interface OntModel extends Model,
      * <p>
      * Since OWL2 graph can only contain single {@code @uri rdf:type owl:Ontology} triple inside itself,
      * in case there are more than one such {@code Resource}s with the type {@link OWL#Ontology owl:Ontology},
-     * the method chooses the most bulky one (i.e. those that contains the most number of associated statements)
+     * the method chooses the most bulky one (i.e. those that contains the largest number of associated statements)
      * and all the other triples leave intact.
      * No changes in the {@code Graph} is made.
      * The method works only with the {@link #getBaseGraph() base graph}.
@@ -189,7 +189,7 @@ public interface OntModel extends Model,
      * Note: this method returns non-distinct stream,
      * while the expression {@code ontObjects(OntEntity.class)} is supposed to be distinct stream.
      * The duplicate elements (by {@code equals} and {@code hasCode}, not by real class-type)
-     * means that there is so called punning.
+     * means that there is so-called punning.
      *
      * @return {@code Stream} of {@link OntEntity}
      * @see #ontObjects(Class)
@@ -222,7 +222,7 @@ public interface OntModel extends Model,
 
     /**
      * Returns an ont-entity for the specified type and uri.
-     * This method can also be used to wrap builtin entities, which, in fact, are not belonging to the graph,
+     * This method can also be used to wrap builtin entities, which, in fact, does not belong to the graph,
      * but can be considered as belonged to the model.
      * An IRI for such a built-in entity must be in
      * the {@link com.github.owlcs.ontapi.jena.impl.conf.OntPersonality.Builtins Builtins Vocabulary},
@@ -299,8 +299,8 @@ public interface OntModel extends Model,
      * that statement remains unchanged in the graph, but becomes meaningless:
      * its right side will no longer be a class, but just uri.
      * But if a class is on the left side of the statement with the {@code rdfs:subClassOf} predicate,
-     * that statement is be removed from the graph along with its annotations,
-     * because it is belongs to the class content.
+     * that statement is being removed from the graph along with its annotations,
+     * because it belongs to the class content.
      *
      * @param obj {@link OntObject}
      * @return <b>this</b> model
@@ -377,7 +377,7 @@ public interface OntModel extends Model,
      * Since OWL2 graph can only contain the one {@code @uri rdf:type owl:Ontology} triple inside,
      * this method creates such statement if it absent;
      * in case there are more than one {@code Resource} with the type equaled to {@link OWL#Ontology owl:Ontology},
-     * it chooses the most bulky one (i.e. those that contains the most number of associated statements)
+     * it chooses the most bulky one (i.e. those that contains the largest number of associated statements)
      * and all the others leave intact.
      *
      * @return {@link OntID} an existing or fresh {@link Resource},
@@ -486,7 +486,7 @@ public interface OntModel extends Model,
     }
 
     /**
-     * Returns a entity of the given type and with the specified URI, creating it if needed.
+     * Returns an entity of the given type and with the specified URI, creating it if needed.
      *
      * @param type a class-type of entity
      * @param uri  String uri, not {@code null}
