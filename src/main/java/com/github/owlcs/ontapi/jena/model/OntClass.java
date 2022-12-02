@@ -37,11 +37,11 @@ public interface OntClass extends OntObject, AsNamed<OntClass.Named>, HasDisjoin
 
     /**
      * Answers a {@code Stream} over the class-expressions
-     * for which this class expression is declared to be sub-class.
+     * for which this class expression is declared a subclass.
      * The return {@code Stream} is distinct and this instance is not included into it.
      * <p>
      * The flag {@code direct} allows some selectivity over the classes that appear in the {@code Stream}.
-     * If it is {@code true} only direct sub-classes are returned,
+     * If it is {@code true} only direct subclasses are returned,
      * and the method is equivalent to the method {@link #superClasses()}
      * with except of some boundary cases (e.g. {@code <A> rdfs:subClassOf <A>}).
      * If it is {@code false}, the method returns all super classes recursively.
@@ -64,7 +64,7 @@ public interface OntClass extends OntObject, AsNamed<OntClass.Named>, HasDisjoin
 
     /**
      * Answers a {@code Stream} over all the class expressions
-     * that are declared to be sub-classes of this class expression.
+     * that are declared to be subclasses of this class expression.
      * The return {@code Stream} is distinct and this instance is not included into it.
      * The flag {@code direct} allows some selectivity over the classes that appear in the {@code Stream}.
      * Consider the following scenario:
@@ -76,8 +76,8 @@ public interface OntClass extends OntObject, AsNamed<OntClass.Named>, HasDisjoin
      * the listing subclasses for the class {@code A} will return only {@code B}.
      * And otherwise, if the flag {@code direct} is {@code false}, it will return {@code B} and also {@code C}.
      *
-     * @param direct boolean: if {@code true} answers the directly adjacent classes in the sub-class relation,
-     *               otherwise answers all sub-classes found in the {@code Graph} recursively, this class is not included
+     * @param direct boolean: if {@code true} answers the directly adjacent classes in the subclass relation,
+     *               otherwise answers all subclasses found in the {@code Graph} recursively, this class is not included
      * @return <b>distinct</b> {@code Stream} of sub {@link OntClass class expression}s
      * @see #superClasses(boolean)
      */
@@ -210,6 +210,17 @@ public interface OntClass extends OntObject, AsNamed<OntClass.Named>, HasDisjoin
      */
     OntClass removeHasKey(Resource list);
 
+    /**
+     * Answers {@code true} if this class is disjoint with the given class.
+     *
+     * @param candidate {@link Resource} a class to test
+     * @return {@code true} if this class is disjoint with the given class
+     */
+    boolean isDisjoint(Resource candidate);
+
+    /**
+     * {@inheritDoc}
+     */
     @Override
     default Named asNamed() {
         return as(Named.class);
@@ -412,6 +423,19 @@ public interface OntClass extends OntObject, AsNamed<OntClass.Named>, HasDisjoin
      */
     default OntClass addHasKey(OntRealProperty... properties) {
         addHasKeyStatement(properties);
+        return this;
+    }
+
+    /**
+     * Removes the given individual from the set of instances that are members of this class.
+     * This is effectively equivalent to the {@link OntIndividual#detachClass(Resource)} method
+     * if the specified resource is {@link OntIndividual}.
+     *
+     * @param individual {@link Resource} a resource denoting an individual that is no longer to be a member of this class
+     * @return <b>this</b> instance to allow cascading calls
+     */
+    default OntClass removeIndividual(Resource individual) {
+        getModel().remove(individual, RDF.type, this);
         return this;
     }
 
@@ -686,6 +710,22 @@ public interface OntClass extends OntObject, AsNamed<OntClass.Named>, HasDisjoin
          */
         OntList<OntClass> createDisjointUnion(Collection<OntClass> classes);
 
+        /**
+         * Deletes the given {@code DisjointUnion} list including its annotations.
+         *
+         * @param list {@link Resource} can be {@link OntList} or {@link RDFList}
+         * @return <b>this</b> instance to allow cascading calls
+         * @throws OntJenaException if the list is not found
+         * @see #addDisjointUnion(Collection)
+         * @see #createDisjointUnion(Collection)
+         * @see #addDisjointUnionOfStatement(OntClass...)
+         * @see #createDisjointUnion(Collection)
+         */
+        Named removeDisjointUnion(Resource list);
+
+        /**
+         * {@inheritDoc}
+         */
         @Override
         default Named asNamed() {
             return this;
@@ -803,19 +843,6 @@ public interface OntClass extends OntObject, AsNamed<OntClass.Named>, HasDisjoin
             addDisjointUnionOfStatement(classes);
             return this;
         }
-
-        /**
-         * Deletes the given {@code DisjointUnion} list including its annotations.
-         *
-         * @param list {@link Resource} can be {@link OntList} or {@link RDFList}
-         * @return <b>this</b> instance to allow cascading calls
-         * @throws OntJenaException if the list is not found
-         * @see #addDisjointUnion(Collection)
-         * @see #createDisjointUnion(Collection)
-         * @see #addDisjointUnionOfStatement(OntClass...)
-         * @see #createDisjointUnion(Collection)
-         */
-        Named removeDisjointUnion(Resource list);
 
         /**
          * {@inheritDoc}

@@ -112,6 +112,11 @@ public class OntClassImpl extends OntObjectImpl implements OntClass.Named {
     }
 
     @Override
+    public boolean isDisjoint(Resource candidate) {
+        return OntCEImpl.isDisjoint(this, candidate);
+    }
+
+    @Override
     public OntList<OntClass> createDisjointUnion(Collection<OntClass> classes) {
         return getModel().createOntList(this, OWL.disjointUnionOf, OntClass.class,
                 Objects.requireNonNull(classes).stream().distinct().iterator());

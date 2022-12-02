@@ -36,10 +36,7 @@ import org.apache.jena.rdf.model.impl.RDFListImpl;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDFS;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -393,6 +390,30 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntClass {
     public static boolean isNotBuiltin(OntClass clazz) {
         return !clazz.isURIResource() || !clazz.asNamed().isBuiltIn();
     }
+
+    public static boolean isDisjoint(OntClass clazz, Resource candidate) {
+        if (!candidate.canAs(OntClass.class)) {
+            return false;
+        }
+        OntClass other = candidate.as(OntClass.class);
+        try (Stream<OntClass> disjoints = other.disjointClasses()) {
+            if (disjoints.anyMatch(clazz::equals)) {
+                return true;
+            }
+        }
+        try (Stream<OntClass> disjoints = clazz.disjointClasses()) {
+            if (disjoints.anyMatch(other::equals)) {
+                return true;
+            }
+        }
+        try (Stream<OntDisjoint.Classes> disjoints = clazz.getModel().ontObjects(OntDisjoint.Classes.class)) {
+            return disjoints.anyMatch(d -> {
+                Set<OntClass> members = d.members().collect(Collectors.toSet());
+                return members.contains(clazz) && members.contains(other);
+            });
+        }
+    }
+
     @Override
     public Optional<OntStatement> findRootStatement() {
         return getRequiredRootStatement(this, OWL.Class);
@@ -430,6 +451,11 @@ public abstract class OntCEImpl extends OntObjectImpl implements OntClass {
     public OntCEImpl removeHasKey(Resource list) throws OntJenaException.IllegalArgument {
         removeHasKey(getModel(), this, list);
         return this;
+    }
+
+    @Override
+    public boolean isDisjoint(Resource candidate) {
+        return isDisjoint(this, candidate);
     }
 
     @Override

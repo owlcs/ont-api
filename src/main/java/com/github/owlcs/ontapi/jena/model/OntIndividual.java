@@ -41,7 +41,7 @@ public interface OntIndividual extends OntObject, AsNamed<OntIndividual.Named>, 
      * and in case {@code null} is specified
      * it removes all class assertion statements including all their annotations.
      * To delete the individual with its content
-     * the the method {@link OntModel#removeOntObject(OntObject)} can be used.
+     * the method {@link OntModel#removeOntObject(OntObject)} can be used.
      *
      * @param clazz {@link OntClass} or {@code null} to remove all class assertions
      * @return <b>this</b> instance to allow cascading calls
@@ -509,7 +509,7 @@ public interface OntIndividual extends OntObject, AsNamed<OntIndividual.Named>, 
          *
          * @param clazz {@link OntClass}, not {@code null}
          * @return <b>this</b> instance to allow cascading calls
-         * @throws OntJenaException in case the individual has only one class assertion and it is for the given class
+         * @throws OntJenaException in case the individual has only one class assertion, and it is for the given class
          */
         @Override
         Anonymous detachClass(Resource clazz) throws OntJenaException;

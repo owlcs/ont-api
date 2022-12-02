@@ -17,10 +17,13 @@ package com.github.owlcs.ontapi.tests.jena;
 import com.github.owlcs.ontapi.jena.OntJenaException;
 import com.github.owlcs.ontapi.jena.OntModelFactory;
 import com.github.owlcs.ontapi.jena.model.*;
+import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import com.github.owlcs.ontapi.jena.vocabulary.XSD;
 import com.github.owlcs.ontapi.utils.ReadWriteUtils;
 import org.apache.jena.rdf.model.RDFList;
 import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.Resource;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -338,6 +341,44 @@ public class OntClassTest {
 
         Assertions.assertEquals(Set.of(o2), c5.declaredProperties(true).collect(Collectors.toSet()));
         Assertions.assertEquals(Set.of(o2), c5.declaredProperties(false).collect(Collectors.toSet()));
+    }
+
+    @Test
+    public void testIsDisjoint() {
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntClass c1 = m.createOntClass(":C1");
+        OntClass c2 = m.createOntClass(":C2");
+        OntClass c3 = m.createOntClass(":C3");
+        OntClass c4 = m.createOntClass(":C4");
+        OntClass c5 = m.createOntClass(":C5");
+        OntObjectProperty p = m.createObjectProperty(":P");
+        c1.addDisjointClass(c2);
+        m.createDisjointClasses(c1, c3, c4);
+
+        Assertions.assertTrue(c1.isDisjoint(c2));
+        Assertions.assertTrue(c2.isDisjoint(c1));
+        Assertions.assertTrue(c1.isDisjoint(c3));
+        Assertions.assertTrue(c3.isDisjoint(c1));
+        Assertions.assertTrue(c1.isDisjoint(c4));
+        Assertions.assertTrue(c4.isDisjoint(c1));
+
+        Assertions.assertFalse(c1.isDisjoint(c5));
+        Assertions.assertFalse(c5.isDisjoint(c1));
+        Assertions.assertFalse(c1.isDisjoint(p));
+    }
+
+    @Test
+    public void testRemoveIndividual() {
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        OntClass c1 = m.createOntClass(":C1");
+        OntClass c2 = m.createOntClass(":C2");
+        Resource i1 = m.createResource(":I1", c1).addProperty(RDF.type, OWL.NamedIndividual);
+        m.createResource(":I2", c2).addProperty(RDF.type, OWL.NamedIndividual);
+        Assertions.assertEquals(2, m.individuals().count());
+
+        Assertions.assertSame(c1, c1.removeIndividual(i1));
+        Assertions.assertEquals(0, c1.individuals().count());
+        Assertions.assertEquals(1, m.individuals().count());
     }
 
 }
