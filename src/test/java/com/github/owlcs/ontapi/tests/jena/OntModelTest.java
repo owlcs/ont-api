@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2021, owl.cs group.
+ * Copyright (c) 2022, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -830,5 +830,38 @@ public class OntModelTest {
         Assertions.assertEquals(9, m.ontObjects(OntDataRange.class).count(), "Incorrect count of data ranges");
         Assertions.assertEquals(6, m.ontObjects(OntEntity.class).count(), "Incorrect count of entities");
     }
+
+    @Test
+    public void testHierarchyRoots() {
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+        m.setNsPrefixes(OntModelFactory.STANDARD);
+        OntClass c0 = m.createOntClass(":C0");
+        OntClass c1 = m.createOntClass(":C1");
+        OntClass c2 = m.createOntClass(":C2");
+        OntClass c3 = m.createOntClass(":C3");
+        OntClass c4 = m.createOntClass(":C4");
+        OntClass c5 = m.createOntClass(":C5");
+        OntClass c6 = m.createOntClass(":C6");
+        OntClass c7 = m.createOntClass(":C7");
+        OntClass c8 = m.createDataSomeValuesFrom(m.createDataProperty(":p1"), m.createDatatype(":dp"));
+        OntClass c9 = m.createObjectOneOf(m.createIndividual(":i1"), m.createIndividual(":i2"));
+        OntClass c10 = m.createObjectComplementOf(c6);
+        OntClass c11 = m.getOWLThing();
+        OntClass c12 = m.getOWLNothing();
+
+        c1.addSuperClass(c2);
+        c2.addSuperClass(c3);
+        c3.addSuperClass(c4);
+        c5.addSuperClass(c6);
+        c6.addSuperClass(c12);
+        c8.addSuperClass(c9);
+        c9.addSuperClass(c5);
+        c9.addSuperClass(c7);
+        c10.addSuperClass(c11);
+
+        Set<OntClass> roots = m.hierarchyRoots().collect(Collectors.toSet());
+        Assertions.assertEquals(Set.of(c0, c4, c7, c10), roots);
+    }
+
 }
 

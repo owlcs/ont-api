@@ -508,6 +508,18 @@ public interface OntModel extends Model,
     }
 
     /**
+     * Answers a {@code Stream} over the classes in this ontology model
+     * that represent the uppermost nodes of the class hierarchy.
+     *
+     * @return a {@code Stream} of the root {@link OntClass classes} in the local class hierarchy
+     */
+    default Stream<OntClass> hierarchyRoots() {
+        return ontObjects(OntClass.class)
+                .filter(c -> !c.isURIResource() || !c.asNamed().isBuiltIn())
+                .filter(OntClass::isHierarchyRoot);
+    }
+
+    /**
      * Lists all annotation properties.
      *
      * @return {@code Stream} of {@link OntAnnotationProperty Annotation Property}s

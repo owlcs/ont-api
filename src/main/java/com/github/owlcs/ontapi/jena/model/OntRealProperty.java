@@ -183,6 +183,7 @@ public interface OntRealProperty extends OntProperty {
      * _:x owl:qualifiedCardinality n.
      * _:x owl:onClass C.
      * }
+     * </pre>
      * Note that any such restrictions do not affect the global semantics of this property itself.
      * Restrictions define new class expressions, and the property constraints are local to that class expression.
      * This method is provided as a convenience to assist callers to navigate the relationships in the model.

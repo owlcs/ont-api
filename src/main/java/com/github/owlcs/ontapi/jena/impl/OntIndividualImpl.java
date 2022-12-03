@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2021, owl.cs group.
+ * Copyright (c) 2022, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -268,7 +268,7 @@ public abstract class OntIndividualImpl extends OntObjectImpl implements OntIndi
     /**
      * See description to the interface {@link OntIndividual.Anonymous}.
      * The current implementation allows treating b-node as anonymous individual
-     * in any case with exception of the following:
+     * in any case except the following cases:
      * <ul>
      * <li>it is a subject in statement "_:x rdf:type s", where "s" is not a class expression ("C").</li>
      * <li>it is a subject in statement "_:x @predicate @any", where @predicate is from reserved vocabulary
@@ -279,7 +279,7 @@ public abstract class OntIndividualImpl extends OntObjectImpl implements OntIndi
      * and not owl:sameAs, owl:differentFrom, owl:hasValue, owl:sourceIndividual and rdf:first.</li>
      * </ul>
      * <p>
-     * for notations and self-education see our main <a href='https://www.w3.org/TR/owl2-quick-reference/'>OWL2 Quick Refs</a>
+     * for notations and self-education see our main <a href="https://www.w3.org/TR/owl2-quick-reference/">OWL2 Quick Refs</a>
      */
     public static class AnonymousImpl extends OntIndividualImpl implements OntIndividual.Anonymous {
 
