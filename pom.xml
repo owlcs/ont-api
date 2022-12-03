@@ -33,10 +33,10 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <version.jena>4.6.1</version.jena>
         <version.owlapi>5.1.20</version.owlapi>
-        <version.slf4j>2.0.3</version.slf4j>
-        <version.caffeine>3.1.1</version.caffeine>
-        <version.junit>5.9.0</version.junit>
-        <versio.mockito>4.7.0</versio.mockito>
+        <version.slf4j>2.0.5</version.slf4j>
+        <version.caffeine>3.1.2</version.caffeine>
+        <version.junit>5.9.1</version.junit>
+        <versio.mockito>4.9.0</versio.mockito>
     </properties>
 
     <licenses>
