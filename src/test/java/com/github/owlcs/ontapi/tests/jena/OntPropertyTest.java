@@ -221,4 +221,40 @@ public class OntPropertyTest {
         Assertions.assertEquals(Set.of(c3, c4), p10.declaringClasses(true).collect(Collectors.toSet()));
         Assertions.assertEquals(Set.of(c1, c2, c3, c4), p10.declaringClasses(false).collect(Collectors.toSet()));
     }
+
+    @Test
+    public void testReferringRestrictions() {
+        OntModel m = OntModelFactory.createModel().setNsPrefixes(OntModelFactory.STANDARD);
+
+        OntObjectProperty p1 = m.createObjectProperty(":p1");
+        OntObjectProperty p2 = m.createObjectProperty(":p2");
+        m.createObjectAllValuesFrom(p1, m.createOntClass(":c1"));
+        m.createObjectSomeValuesFrom(p2, m.createOntClass(":c1"));
+        m.createObjectHasValue(p2, m.createIndividual(":i1"));
+        m.createHasSelf(p2);
+        m.createObjectCardinality(p1, 42, null);
+        m.createObjectCardinality(p1, 42, m.createOntClass(":c2"));
+        m.createObjectMaxCardinality(p2, 42, null);
+        m.createObjectMaxCardinality(p1, 42, m.createOntClass(":c2"));
+        m.createObjectMinCardinality(p1, 42, m.createOntClass(":c1"));
+        m.createObjectMinCardinality(p1, 42, null);
+
+        OntDataProperty p3 = m.createDataProperty(":p3");
+        OntDataProperty p4 = m.createDataProperty(":p4");
+        m.createDataAllValuesFrom(p3, m.createDatatype(":dt1"));
+        m.createDataSomeValuesFrom(p3, m.createDatatype(":dt1"));
+        m.createDataHasValue(p4, m.createTypedLiteral(42));
+        m.createDataCardinality(p3, 42, m.createDatatype(":dt1"));
+        m.createDataCardinality(p3, 42, null);
+        m.createDataMaxCardinality(p4, 42, m.createDataOneOf(m.createLiteral("a"), m.createLiteral("b")));
+        m.createDataMaxCardinality(p3, 43, null);
+        m.createDataMinCardinality(p4, 42, m.createDataRestriction(m.createDatatype(":dt1"),
+                m.createFacetRestriction(OntFacetRestriction.TotalDigits.class, m.createTypedLiteral(2))));
+        m.createDataMinCardinality(p4, 42, null);
+
+        Assertions.assertEquals(6, p1.referringRestrictions().count());
+        Assertions.assertEquals(4, p2.referringRestrictions().count());
+        Assertions.assertEquals(5, p3.referringRestrictions().count());
+        Assertions.assertEquals(4, p4.referringRestrictions().count());
+    }
 }

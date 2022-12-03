@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2020, The University of Manchester, owl.cs group.
+ * Copyright (c) 2022, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -58,7 +58,7 @@ interface CreateClasses {
     OntClass.DataSomeValuesFrom createDataSomeValuesFrom(OntDataProperty property, OntDataRange dr);
 
     /**
-     * Creates an Universal Quantification Object Property Restriction.
+     * Creates a Universal Quantification Object Property Restriction.
      * The RDF structure:
      * <pre>{@code
      * _:x rdf:type owl:Restriction .
@@ -74,7 +74,7 @@ interface CreateClasses {
     OntClass.ObjectAllValuesFrom createObjectAllValuesFrom(OntObjectProperty property, OntClass ce);
 
     /**
-     * Creates an Universal Quantification Data Property Restriction.
+     * Creates a Universal Quantification Data Property Restriction.
      * The RDF structure:
      * <pre>{@code
      * _:x rdf:type owl:Restriction .
@@ -130,7 +130,8 @@ interface CreateClasses {
      * _:x rdf:type owl:Restriction .
      * _:x owl:onProperty P .
      * _:x owl:minCardinality n .
-     * } or {@code
+     * }</pre> or
+     * <pre>{@code
      * _:x rdf:type owl:Restriction .
      * _:x owl:onProperty P .
      * _:x owl:minQualifiedCardinality n .
@@ -138,7 +139,7 @@ interface CreateClasses {
      * }</pre>
      *
      * @param property    {@link OntObjectProperty object property expression}, not {@code null}
-     * @param cardinality int, non-negative number
+     * @param cardinality {@code int}, non-negative number
      * @param ce          {@link OntClass class expression} or {@code null}
      * @return {@link OntClass.ObjectMinCardinality}
      * @see <a href='https://www.w3.org/TR/owl-syntax/#Minimum_Cardinality'>8.3.1 Minimum Cardinality</a>
@@ -153,7 +154,8 @@ interface CreateClasses {
      * _:x rdf:type owl:Restriction .
      * _:x owl:onProperty R .
      * _:x owl:minCardinality n .
-     * } or {@code
+     * }</pre> or
+     * <pre>{@code
      * _:x rdf:type owl:Restriction .
      * _:x owl:onProperty R .
      * _:x owl:minQualifiedCardinality n .
@@ -161,8 +163,8 @@ interface CreateClasses {
      * }</pre>
      *
      * @param property    {@link OntDataProperty data property}, not {@code null}
-     * @param cardinality int, non-negative number
-     * @param dr          {@link OntDataRange data range}, not {@code null}
+     * @param cardinality {@code int}, non-negative number
+     * @param dr          {@link OntDataRange data range} or {@code null}
      * @return {@link OntClass.DataMinCardinality}
      * @see <a href='https://www.w3.org/TR/owl-syntax/#Minimum_Cardinality_2'>8.5.1 Minimum Cardinality</a>
      */
@@ -177,7 +179,8 @@ interface CreateClasses {
      * _:x rdf:type owl:Restriction .
      * _:x owl:onProperty P .
      * _:x owl:maxCardinality n .
-     * } or {@code
+     * }</pre> or
+     * <pre>{@code
      * _:x rdf:type owl:Restriction .
      * _:x owl:onProperty P .
      * _:x owl:maxQualifiedCardinality n .
@@ -185,7 +188,7 @@ interface CreateClasses {
      * }</pre>
      *
      * @param property     {@link OntObjectProperty object property expression}, not {@code null}
-     * @param cardinality, int, non-negative number
+     * @param cardinality, {@code int}, non-negative number
      * @param ce           {@link OntClass class expression} or {@code null}
      * @return {@link OntClass.ObjectMaxCardinality}
      * @see <a href='https://www.w3.org/TR/owl-syntax/#Maximum_Cardinality'>8.3.2 Maximum Cardinality</a>
@@ -200,7 +203,8 @@ interface CreateClasses {
      * _:x rdf:type owl:Restriction .
      * _:x owl:onProperty R .
      * _:x owl:maxCardinality n .
-     * } or {@code
+     * }</pre> or
+     * <pre>{@code
      * _:x rdf:type owl:Restriction .
      * _:x owl:onProperty R .
      * _:x owl:maxQualifiedCardinality n .
@@ -208,8 +212,8 @@ interface CreateClasses {
      * }</pre>
      *
      * @param property    {@link OntDataProperty data property}, not {@code null}
-     * @param cardinality int, non-negative number
-     * @param dr          {@link OntDataRange data range}, not {@code null}
+     * @param cardinality {@code int}, non-negative number
+     * @param dr          {@link OntDataRange data range} or {@code null}
      * @return {@link OntClass.DataMaxCardinality}
      * @see <a href='https://www.w3.org/TR/owl-syntax/#Maximum_Cardinality_2'>8.5.2 Maximum Cardinality</a>
      */
@@ -224,7 +228,8 @@ interface CreateClasses {
      * _:x rdf:type owl:Restriction .
      * _:x owl:onProperty P .
      * _:x owl:cardinality n .
-     * } or {@code
+     * }</pre> or
+     * <pre>{@code
      * _:x rdf:type owl:Restriction .
      * _:x owl:onProperty P .
      * _:x owl:qualifiedCardinality n .
@@ -232,7 +237,7 @@ interface CreateClasses {
      * }</pre>
      *
      * @param property     {@link OntObjectProperty object property expression}, not {@code null}
-     * @param cardinality, int, non-negative number
+     * @param cardinality, {@code int}, non-negative number
      * @param ce           {@link OntClass class expression} or {@code null}
      * @return {@link OntClass.ObjectCardinality}
      * @see <a href='https://www.w3.org/TR/owl-syntax/#Exact_Cardinality'>8.3.3 Exact Cardinality</a>
@@ -247,7 +252,8 @@ interface CreateClasses {
      * _:x rdf:type owl:Restriction .
      * _:x owl:onProperty R .
      * _:x owl:cardinality n .
-     * } or {@code
+     * }</pre> or
+     * <pre>{@code
      * _:x rdf:type owl:Restriction .
      * _:x owl:onProperty R .
      * _:x owl:qualifiedCardinality n .
@@ -255,8 +261,8 @@ interface CreateClasses {
      * }</pre>
      *
      * @param property    {@link OntDataProperty data property}, not {@code null}
-     * @param cardinality int, non-negative number
-     * @param dr          {@link OntDataRange data range}, not {@code null}
+     * @param cardinality {@code int}, non-negative number
+     * @param dr          {@link OntDataRange data range} or {@code null}
      * @return {@link OntClass.DataCardinality}
      * @see <a href='https://www.w3.org/TR/owl-syntax/#Exact_Cardinality_2'>8.5.3 Exact Cardinality</a>
      */
@@ -278,7 +284,7 @@ interface CreateClasses {
     OntClass.HasSelf createHasSelf(OntObjectProperty property);
 
     /**
-     * Creates an Union of Class Expressions.
+     * Creates a Union of Class Expressions.
      * The RDF structure:
      * <pre>{@code
      * _:x rdf:type owl:Class .
@@ -334,8 +340,8 @@ interface CreateClasses {
     OntClass.ComplementOf createObjectComplementOf(OntClass ce);
 
     /**
-     * Creates a N-Ary Data Universal Quantification N-Ary Restriction.
-     * Note: currently an Unary Restriction is preferable since in OWL2 data-range arity is always {@code 1}.
+     * Creates an N-Ary Data Universal Quantification N-Ary Restriction.
+     * Note: currently a Unary Restriction is preferable since in OWL2 data-range arity is always {@code 1}.
      * The RDF structure:
      * <pre>{@code
      * _:x rdf:type owl:Restriction .
@@ -353,8 +359,8 @@ interface CreateClasses {
     OntClass.NaryDataAllValuesFrom createDataAllValuesFrom(Collection<OntDataProperty> properties, OntDataRange dr);
 
     /**
-     * Creates a N-Ary Data Existential Quantification N-Ary Restriction.
-     * Note: currently an Unary Restriction is preferable since in OWL2 data-range arity is always {@code 1}.
+     * Creates an N-Ary Data Existential Quantification N-Ary Restriction.
+     * Note: currently a Unary Restriction is preferable since in OWL2 data-range arity is always {@code 1}.
      * The RDF structure:
      * <pre>{@code
      * _:x rdf:type owl:Restriction .
@@ -383,7 +389,7 @@ interface CreateClasses {
     }
 
     /**
-     * Creates an Union of Class Expressions.
+     * Creates a Union of Class Expressions.
      *
      * @param classes Array of {@link OntClass class expression}s without {@code null}s
      * @return {@link OntClass.UnionOf}

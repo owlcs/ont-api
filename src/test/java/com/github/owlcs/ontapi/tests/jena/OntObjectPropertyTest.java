@@ -190,4 +190,5 @@ public class OntObjectPropertyTest {
 
         Assertions.assertEquals(Set.of(retriever, labrador, dog), hasDog.ranges(false).collect(Collectors.toSet()));
     }
+
 }

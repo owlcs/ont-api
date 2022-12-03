@@ -173,6 +173,24 @@ public interface OntRealProperty extends OntProperty {
     OntRealProperty removeDisjointProperty(Resource property);
 
     /**
+     * Answers a {@code Stream} over any restrictions that mention this property as
+     * the property that the restriction is adding some constraint to.
+     * For example:
+     * <pre>
+     * {@code
+     * _:x rdf:type owl:Restriction.
+     * _:x owl:onProperty P.
+     * _:x owl:qualifiedCardinality n.
+     * _:x owl:onClass C.
+     * }
+     * Note that any such restrictions do not affect the global semantics of this property itself.
+     * Restrictions define new class expressions, and the property constraints are local to that class expression.
+     * This method is provided as a convenience to assist callers to navigate the relationships in the model.
+     * @return a {@code Stream} whose values are the restrictions from the local model that reference this property.
+     */
+    Stream<? extends OntClass.RestrictionCE<? extends OntRealProperty>> referringRestrictions();
+
+    /**
      * Lists all the declared domain class expressions of this property expression.
      * In other words, returns the right-hand sides of statement {@code P rdfs:domain C},
      * where {@code P} is this property expression.

@@ -149,6 +149,17 @@ public interface OntDataProperty extends OntRealProperty, OntNamedProperty<OntDa
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    default Stream<OntClass.RestrictionCE<OntDataProperty>> referringRestrictions() {
+        //noinspection unchecked
+        return getModel().ontObjects(OntClass.RestrictionCE.class)
+                .filter(r -> r.getProperty().equals(this))
+                .map(r -> (OntClass.RestrictionCE<OntDataProperty>) r);
+    }
+
+    /**
      * Adds a statement {@code R rdfs:range D},
      * where {@code R} is this data property and {@code D} is the given data range expression.
      *

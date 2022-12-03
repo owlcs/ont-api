@@ -86,7 +86,7 @@ public class OntGraphModelImpl extends UnionModel implements OntModel, Personali
      * @param model {@link Model} graph holder, not {@code null}
      * @param node  {@link Node}, must be either uri or blank, not {@code null}
      * @return {@link Resource} in model
-     * @throws OntJenaException         in case the given node is uri and it takes part in {@code owl:imports}
+     * @throws OntJenaException         in case the given node is uri, and it takes part in {@code owl:imports}
      * @throws IllegalArgumentException in case the given node is not uri or blank (i.e. literal)
      */
     public static Resource createOntologyID(Model model, Node node) throws OntJenaException, IllegalArgumentException {
@@ -139,9 +139,9 @@ public class OntGraphModelImpl extends UnionModel implements OntModel, Personali
         Set<Triple> seen = new HashSet<>();
         return assertions
                 .mapWith(t -> {
-                    // to speedup the process,
+                    // to speed up the process,
                     // the investigation (that includes TTO, PS, HP, GALEN, FAMILY and PIZZA ontologies),
-                    // shows that the profit exists and it is significant sometimes:
+                    // shows that the profit exists, and it is significant sometimes:
                     if (system.contains(t.getObject())) {
                         return null;
                     }
@@ -184,8 +184,8 @@ public class OntGraphModelImpl extends UnionModel implements OntModel, Personali
      *
      * @param graph    {@link Graph} to test
      * @param it       {@code ExtendedIterator} obtained from the {@code graph}
-     * @param withSize if {@code true} attempts to include graph size as a estimated size of a future {@code Stream}
-     * @param <X>      type of iterator's items
+     * @param withSize if {@code true} attempts to include graph size as an estimated size of a future {@code Stream}
+     * @param <X>      type of stream items
      * @return {@code Stream} of {@link X}s
      */
     private static <X> Stream<X> asStream(Graph graph,
@@ -298,7 +298,7 @@ public class OntGraphModelImpl extends UnionModel implements OntModel, Personali
     }
 
     /**
-     * Lists all top-level sub-models built with the the given {@code personality}.
+     * Lists all top-level sub-models built with the given {@code personality}.
      *
      * @param personality {@link OntPersonality}, not {@code null}
      * @return {@code Stream} of {@link OntModel}s
@@ -341,7 +341,7 @@ public class OntGraphModelImpl extends UnionModel implements OntModel, Personali
 
     /**
      * Lists {@link OntGraphModelImpl model impl}s with the specified {@code personality}
-     * from the top tier of the imports hierarchy.
+     * from the top tier of the imports' hierarchy.
      *
      * @param personality {@link OntPersonality}, not {@code null}
      * @return <b>non-distinct</b> {@code ExtendedIterator} of {@link OntGraphModelImpl}s
@@ -881,8 +881,7 @@ public class OntGraphModelImpl extends UnionModel implements OntModel, Personali
 
     @Override
     public OntClass.DataCardinality createDataCardinality(OntDataProperty property, int cardinality, OntDataRange dr) {
-        return OntCEImpl.createCardinalityRestrictionCE(this,
-                OntClass.DataCardinality.class, property, cardinality, dr);
+        return OntCEImpl.createCardinalityRestrictionCE(this, OntClass.DataCardinality.class, property, cardinality, dr);
     }
 
     @Override

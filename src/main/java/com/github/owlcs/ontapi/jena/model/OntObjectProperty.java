@@ -278,6 +278,17 @@ public interface OntObjectProperty extends OntRealProperty, AsNamed<OntObjectPro
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    default Stream<OntClass.RestrictionCE<OntObjectProperty>> referringRestrictions() {
+        //noinspection unchecked
+        return getModel().ontObjects(OntClass.RestrictionCE.class)
+                .filter(r -> r.getProperty().equals(this))
+                .map(r -> (OntClass.RestrictionCE<OntObjectProperty>) r);
+    }
+
+    /**
      * Creates a property chain {@link OntList ontology list}
      * and returns the statement {@code P owl:propertyChainAxiom ( P1 ... Pn )} to allow the addition of annotations.
      * About RDF Graph annotation specification see, for example,
@@ -802,7 +813,7 @@ public interface OntObjectProperty extends OntRealProperty, AsNamed<OntObjectPro
 
     /**
      * Interface encapsulating an Ontology Named Object Property.
-     * It is an URI-{@link Resource Resource} and an extension to the standard jena {@link Property}.
+     * It is a URI-{@link Resource Resource} and an extension to the standard jena {@link Property}.
      * Also? it is an {@link OntEntity OWL Entity} and {@link OntRealProperty real ontology property}.
      * <p>
      * Created by szuev on 01.11.2016.
