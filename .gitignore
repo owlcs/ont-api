@@ -51,3 +51,6 @@ nohup.out
 
 /out/
 /target/
+/jena/.flattened-pom.xml
+/.flattened-pom.xml
+/ontapi/.flattened-pom.xml
