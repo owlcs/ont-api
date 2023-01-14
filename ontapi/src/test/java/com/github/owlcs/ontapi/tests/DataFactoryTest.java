@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2022, owl.cs group.
+ * Copyright (c) 2023, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -16,8 +16,9 @@ package com.github.owlcs.ontapi.tests;
 
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.OntManagers;
-import com.github.owlcs.ontapi.tests.TestFactory.AxiomData;
-import com.github.owlcs.ontapi.tests.TestFactory.Data;
+import com.github.owlcs.ontapi.TestDataCollection;
+import com.github.owlcs.ontapi.TestDataCollection.AxiomData;
+import com.github.owlcs.ontapi.TestDataCollection.Data;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -61,7 +62,7 @@ public class DataFactoryTest {
     private static final DataFactory ONT_DATA_FACTORY = OntManagers.getDataFactory();
 
     public static List<Data> getObjects() {
-        return TestFactory.getObjects();
+        return TestDataCollection.getObjects();
     }
 
     @ParameterizedTest

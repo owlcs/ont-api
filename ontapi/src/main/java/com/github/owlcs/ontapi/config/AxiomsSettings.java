@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2022, owl.cs group.
+ * Copyright (c) 2023, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -24,8 +24,8 @@ package com.github.owlcs.ontapi.config;
 public interface AxiomsSettings {
 
     /**
-     * Answers whether annotation axioms (instances of {@link org.semanticweb.owlapi.model.OWLAnnotationAxiom})
-     * should retrieve from the {@code Graph}.
+     * Answers whether annotation axioms (instances of {@link org.semanticweb.owlapi.model.OWLAnnotationAxiom OWLAnnotationAxiom})
+     * should be retrieved from the {@code Graph}.
      * If {@code false} then {@code Annotation Property Domain}, {@code Annotation Property Range},
      * {@code Annotation Property Assertion} and {@code SubAnnotationPropertyOf} OWL Axioms are ignored.
      * It is native OWL-API option, in OWL-API-impl it controls axioms loading from a source,
@@ -109,7 +109,7 @@ public interface AxiomsSettings {
      * Otherwise, (if the option is turned off), the annotation axioms of above type
      * are ignored in favour of object or data property axioms.
      * <p>
-     * Please note: {@link com.github.owlcs.ontapi.jena.impl.conf.OntPersonality.Punnings}
+     * Please note: {@link com.github.owlcs.ontapi.jena.impl.conf.OntPersonality.Punnings OntPersonality.Punnings}
      * is the general mechanism to control punnings.
      * It is accessible through the config methods
      * {@link OntConfig#getPersonality()} and {@link OntLoaderConfiguration#getPersonality()}.
@@ -193,4 +193,21 @@ public interface AxiomsSettings {
      */
     boolean isIgnoreAxiomsReadErrors();
 
+    /**
+     * Answers whether the {@link com.github.owlcs.ontapi.Ontology Ontology} read methods
+     * should return {@link com.github.owlcs.ontapi.internal.ONTObject ONTObjects}.
+     * If {@code true}, than every method that provides {@link org.semanticweb.owlapi.model.OWLObject OWLObjects} in any form,
+     * will actually return corresponding {@code ONTObject} implementation, otherwise, it will return a plain {@code OWLObject}.
+     * An {@code ONTObject} has an RDF-graph reference inside,
+     * and, therefore, all {@code OWLObject}-related RDF triples can be retrieved from it.
+     * A plain {@code OWLObject} is detached from parent ontology,
+     * it can be stored somewhere separately without dangerous of memory leak.
+     * The default value of this option is {@code false}.
+     *
+     * @return {@code true} if {@code ONTObject}s should be returned by {@code Ontology} getters
+     * @see OntSettings#ONT_API_LOAD_CONF_READ_ONT_OBJECTS
+     * @see AxiomsControl#setReadONTObjects(boolean)
+     * @since 3.3.0
+     */
+    boolean isReadONTObjects();
 }

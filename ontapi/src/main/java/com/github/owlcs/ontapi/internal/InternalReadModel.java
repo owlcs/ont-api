@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2022, owl.cs group.
+ * Copyright (c) 2023, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -19,6 +19,7 @@ import com.github.owlcs.ontapi.ID;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.RWLockedGraph;
 import com.github.owlcs.ontapi.internal.axioms.AbstractNaryTranslator;
+import com.github.owlcs.ontapi.internal.objects.ModelObject;
 import com.github.owlcs.ontapi.internal.searchers.axioms.AnnotationAssertionBySubject;
 import com.github.owlcs.ontapi.internal.searchers.axioms.ByAnnotationProperty;
 import com.github.owlcs.ontapi.internal.searchers.axioms.ByAnonymousIndividual;
@@ -443,7 +444,8 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
         if (e.canAs(OntIndividual.Named.class)) {
             res.add(df.getIndividual(e.as(OntIndividual.Named.class)));
         }
-        return res.stream().map(ONTObject::getOWLObject);
+        InternalConfig config = getConfig();
+        return res.stream().map(x -> getOWLObject(x, config));
     }
 
     public Stream<IRI> listPunningIRIs(boolean withImports) {
@@ -518,7 +520,7 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
     }
 
     public Stream<OWLAnnotation> listOWLAnnotations() {
-        return getHeaderCache().keys();
+        return keys(getHeaderCache(), getConfig());
     }
 
     @Override
@@ -679,7 +681,7 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
                                                                                 K parameter,
                                                                                 InternalConfig config) {
         ExtendedIterator<A> res = searcher.listONTAxioms(parameter, getSearchModel(), getObjectFactory(), config)
-                .mapWith(ONTObject::getOWLObject);
+                .mapWith(object -> getOWLObject(object, config));
         OWLTopObjectType key = OWLTopObjectType.get(type);
         if (key.isDistinct()) {
             return ModelIterators.reduce(res, config);
@@ -715,7 +717,7 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
             } else {
                 throw new OntApiException.IllegalArgument("Wrong type: " + filter);
             }
-            return ModelIterators.reduceDistinct(res.mapWith(ONTObject::getOWLObject), config);
+            return ModelIterators.reduceDistinct(res.mapWith(object -> getOWLObject(object, config)), config);
         }
         // the default way:
         if (OWLTopObjectType.ANNOTATION.hasComponent(filter)) {
@@ -723,12 +725,12 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
             return ModelIterators.reduce(OWLTopObjectType.axioms().flatMap(k -> {
                 ObjectMap<OWLAxiom> axioms = getContentCache(k);
                 Predicate<OWLAxiom> p = k.hasComponent(filter) ? a -> true : k::hasAnnotations;
-                return axioms.keys().filter(x -> p.test(x) && filter.contains(x, primitive));
+                return keys(axioms, config).filter(x -> p.test(x) && filter.contains(x, primitive));
             }), config);
         }
         // select only those container-types, that are capable to contain the primitive
         return ModelIterators.flatMap(filteredAxiomsCaches(OWLTopObjectType.axioms().filter(x -> x.hasComponent(filter))),
-                k -> k.keys().filter(x -> filter.contains(x, primitive)), config);
+                k -> keys(k, config).filter(x -> filter.contains(x, primitive)), config);
     }
 
     /**
@@ -791,17 +793,20 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
     }
 
     public Stream<OWLAxiom> listOWLAxioms() {
-        return ModelIterators.flatMap(filteredAxiomsCaches(OWLTopObjectType.axioms()), ObjectMap::keys, getConfig());
+        InternalConfig config = getConfig();
+        return ModelIterators.flatMap(filteredAxiomsCaches(OWLTopObjectType.axioms()), x -> keys(x, config), config);
     }
 
     @SuppressWarnings("unchecked")
     public Stream<OWLLogicalAxiom> listOWLLogicalAxioms() {
+        InternalConfig config = getConfig();
         return ModelIterators.flatMap(filteredAxiomsCaches(OWLTopObjectType.logical()),
-                m -> (Stream<OWLLogicalAxiom>) m.keys(), getConfig());
+                m -> (Stream<OWLLogicalAxiom>) keys(m, config), config);
     }
 
     public Stream<OWLAxiom> listOWLAxioms(Iterable<AxiomType<?>> filter) {
-        return ModelIterators.flatMap(filteredAxiomsCaches(OWLTopObjectType.axioms(filter)), ObjectMap::keys, getConfig());
+        InternalConfig config = getConfig();
+        return ModelIterators.flatMap(filteredAxiomsCaches(OWLTopObjectType.axioms(filter)), x -> keys(x, config), config);
     }
 
     @Override
@@ -811,7 +816,7 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
 
     @SuppressWarnings("unchecked")
     private <A extends OWLAxiom> Stream<A> listOWLAxioms(OWLTopObjectType type) {
-        return (Stream<A>) getAxiomsCache(type).keys();
+        return (Stream<A>) keys(getAxiomsCache(type), getConfig());
     }
 
     @SuppressWarnings("unchecked")
@@ -849,7 +854,7 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
         }
         return map.contains(a) ||
                 (a.isAnnotated() && map.contains(a = a.getAxiomWithoutAnnotations())) ||
-                map.keys().anyMatch(a::equalsIgnoreAnnotations);
+                keys(map, getConfig()).anyMatch(a::equalsIgnoreAnnotations);
     }
 
     /**
@@ -922,9 +927,8 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
      * @return {@code Stream} of {@link OWLObject}s
      * @see OWLComponentType
      */
-    @SuppressWarnings("unchecked")
     protected <O extends OWLObject> Stream<O> listComponents(OWLComponentType type) {
-        return (Stream<O>) getComponentCache(type).keys();
+        return keys(getComponentCache(type), getConfig());
     }
 
     /**
@@ -1058,7 +1062,7 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
      * @return {@code Stream} of {@link OWLObject} - containers from the {@link #content} cache
      */
     protected Stream<OWLObject> selectContentObjects(OWLComponentType type) {
-        return selectContent(type, k -> getContentCache(k).keys(), OWLTopObjectType::hasAnnotations);
+        return selectContent(type, k -> keys(getContentCache(k), getConfig()), OWLTopObjectType::hasAnnotations);
     }
 
     /**
@@ -1214,4 +1218,22 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
         return k -> searcher.containsONTObject(k, getSearchModel(), getObjectFactory(), getConfig());
     }
 
+    private static <X extends OWLObject> Stream<X> keys(ObjectMap<X> cache, InternalConfig config) {
+        return cache.keys().map(object -> strip(object, config));
+    }
+
+    private static <X extends OWLObject> X getOWLObject(ONTObject<X> object, InternalConfig config) {
+        return strip(object.getOWLObject(), config);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static <X extends OWLObject> X strip(X object, InternalConfig config) {
+        if (config.isReadONTObjects()) {
+            return object;
+        }
+        if (object instanceof ModelObject) {
+            return (X) ((ModelObject<?>) object).eraseModel();
+        }
+        return object;
+    }
 }

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2022, owl.cs group.
+ * Copyright (c) 2023, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -68,6 +68,7 @@ public interface InternalConfig extends CacheSettings, AxiomsSettings {
             map.put(Key.CACHE_NODES_SIZE, delegate.getLoadNodesCacheSize());
             map.put(Key.CACHE_OBJECTS_SIZE, delegate.getLoadObjectsCacheSize());
             map.put(Key.CONTENT_CACHE_LEVEL, delegate.getModelCacheLevel());
+            map.put(Key.READ_ONT_OBJECTS, delegate.isReadONTObjects());
         }
 
         @SuppressWarnings("unchecked")
@@ -103,6 +104,11 @@ public interface InternalConfig extends CacheSettings, AxiomsSettings {
         @Override
         public boolean isIgnoreAxiomsReadErrors() {
             return get(Key.IGNORE_READ_ERRORS);
+        }
+
+        @Override
+        public boolean isReadONTObjects() {
+            return get(Key.READ_ONT_OBJECTS);
         }
 
         @Override
@@ -149,6 +155,7 @@ public interface InternalConfig extends CacheSettings, AxiomsSettings {
             ALLOW_DECLARATIONS,
             SPLIT_AXIOM_ANNOTATIONS,
             IGNORE_READ_ERRORS,
+            READ_ONT_OBJECTS,
             CACHE_NODES_SIZE,
             CACHE_OBJECTS_SIZE,
             CONTENT_CACHE_LEVEL,
@@ -191,6 +198,11 @@ public interface InternalConfig extends CacheSettings, AxiomsSettings {
             @Override
             public boolean isIgnoreAxiomsReadErrors() {
                 return conf.isIgnoreAxiomsReadErrors();
+            }
+
+            @Override
+            public boolean isReadONTObjects() {
+                return conf.isReadONTObjects();
             }
 
             @Override

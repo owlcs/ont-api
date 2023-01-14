@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2022, owl.cs group.
+ * Copyright (c) 2023, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -16,8 +16,19 @@ package com.github.owlcs.ontapi.config;
 
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.jena.impl.conf.OntModelConfig;
-import com.github.owlcs.ontapi.jena.vocabulary.*;
-import com.github.owlcs.ontapi.transforms.*;
+import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import com.github.owlcs.ontapi.jena.vocabulary.RDF;
+import com.github.owlcs.ontapi.jena.vocabulary.SWRL;
+import com.github.owlcs.ontapi.jena.vocabulary.SWRLB;
+import com.github.owlcs.ontapi.jena.vocabulary.XSD;
+import com.github.owlcs.ontapi.transforms.GraphTransformers;
+import com.github.owlcs.ontapi.transforms.OWLCommonTransform;
+import com.github.owlcs.ontapi.transforms.OWLDeclarationTransform;
+import com.github.owlcs.ontapi.transforms.OWLIDTransform;
+import com.github.owlcs.ontapi.transforms.RDFSTransform;
+import com.github.owlcs.ontapi.transforms.SWRLTransform;
+import com.github.owlcs.ontapi.transforms.Transform;
+import com.github.owlcs.ontapi.transforms.TransformationModel;
 import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.MissingImportHandlingStrategy;
 import org.semanticweb.owlapi.model.MissingOntologyHeaderStrategy;
@@ -67,15 +78,13 @@ public enum OntSettings {
     ONT_API_LOAD_CONF_USE_OWL_PARSERS_TO_LOAD(false),
     ONT_API_LOAD_CONF_IGNORE_AXIOMS_READ_ERRORS(false),
     ONT_API_LOAD_CONF_SPLIT_AXIOM_ANNOTATIONS(false),
-
-    // cache options since 1.4.0
+    ONT_API_LOAD_CONF_READ_ONT_OBJECTS(false),
     ONT_API_LOAD_CONF_CACHE_MODEL(CacheSettings.CACHE_ALL),
     ONT_API_LOAD_CONF_CACHE_OBJECTS(2048),
     ONT_API_LOAD_CONF_CACHE_NODES(50_000),
-    ONT_API_MANAGER_CACHE_IRIS(2048),
-
-    // since 1.4.1
     ONT_API_LOAD_CONF_PROCESS_IMPORTS(true),
+
+    ONT_API_MANAGER_CACHE_IRIS(2048),
 
     OWL_API_LOAD_CONF_ACCEPT_HTTP_COMPRESSION(true),
     OWL_API_LOAD_CONF_CONNECTION_TIMEOUT(20_000),

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2022, owl.cs group.
+ * Copyright (c) 2023, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,6 +14,7 @@
 
 package com.github.owlcs.ontapi.tests.internal;
 
+import com.github.owlcs.ontapi.CommonOntologies;
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.Ontology;
@@ -25,7 +26,6 @@ import com.github.owlcs.ontapi.internal.ONTObjectFactory;
 import com.github.owlcs.ontapi.jena.OntModelFactory;
 import com.github.owlcs.ontapi.jena.model.OntIndividual;
 import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.tests.ModelData;
 import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.rdf.model.AnonId;
 import org.apache.jena.rdf.model.Model;
@@ -84,31 +84,31 @@ public class AxiomTranslatorTest {
 
     public static Stream<Arguments> resourceData() {
         return Stream.of(
-                of(OWLDeclarationAxiom.class, ModelData.PIZZA,
+                of(OWLDeclarationAxiom.class, CommonOntologies.PIZZA,
                         (f, d) -> f.getOWLDeclarationAxiom(f.getOWLObjectProperty(d.getNS() + "hasCountryOfOrigin")))
-                , of(OWLSubClassOfAxiom.class, ModelData.PIZZA, (f, d) -> {
+                , of(OWLSubClassOfAxiom.class, CommonOntologies.PIZZA, (f, d) -> {
                     OWLClass sub = f.getOWLClass(d.getNS() + "PizzaTopping");
                     OWLClass sup = f.getOWLClass(d.getNS() + "Food");
                     return f.getOWLSubClassOfAxiom(sub, sup);
                 })
-                , of(OWLSubClassOfAxiom.class, ModelData.PIZZA, (f, d) -> {
+                , of(OWLSubClassOfAxiom.class, CommonOntologies.PIZZA, (f, d) -> {
                     OWLClass sub = f.getOWLClass(d.getNS() + "RealItalianPizza");
                     OWLObjectProperty p = f.getOWLObjectProperty(d.getNS() + "hasBase");
                     OWLClass c = f.getOWLClass(d.getNS() + "ThinAndCrispyBase");
                     OWLClassExpression sup = f.getOWLObjectAllValuesFrom(p, c);
                     return f.getOWLSubClassOfAxiom(sub, sup);
                 })
-                , of(OWLDisjointClassesAxiom.class, ModelData.PIZZA, (f, d) -> {
+                , of(OWLDisjointClassesAxiom.class, CommonOntologies.PIZZA, (f, d) -> {
                     OWLClass c1 = f.getOWLClass(d.getNS() + "American");
                     OWLClass c2 = f.getOWLClass(d.getNS() + "AmericanHot");
                     return f.getOWLDisjointClassesAxiom(c1, c2);
                 })
-                , of(OWLDifferentIndividualsAxiom.class, ModelData.TRAVEL, (f, d) -> {
+                , of(OWLDifferentIndividualsAxiom.class, CommonOntologies.TRAVEL, (f, d) -> {
                     OWLNamedIndividual i1 = f.getOWLNamedIndividual(d.getNS() + "ThreeStarRating");
                     OWLNamedIndividual i2 = f.getOWLNamedIndividual(d.getNS() + "TwoStarRating");
                     return f.getOWLDifferentIndividualsAxiom(i1, i2);
                 })
-                , of(OWLEquivalentClassesAxiom.class, ModelData.PIZZA, (f, d) -> {
+                , of(OWLEquivalentClassesAxiom.class, CommonOntologies.PIZZA, (f, d) -> {
                     OWLClass sub = f.getOWLClass(d.getNS() + "RealItalianPizza");
                     OWLClass c = f.getOWLClass(d.getNS() + "Pizza");
                     OWLObjectProperty p = f.getOWLObjectProperty(d.getNS() + "hasCountryOfOrigin");
@@ -116,65 +116,65 @@ public class AxiomTranslatorTest {
                     OWLClassExpression sup = f.getOWLObjectIntersectionOf(c, f.getOWLObjectHasValue(p, i));
                     return f.getOWLEquivalentClassesAxiom(sub, sup);
                 })
-                , of(OWLObjectPropertyRangeAxiom.class, ModelData.PIZZA, (f, d) -> {
+                , of(OWLObjectPropertyRangeAxiom.class, CommonOntologies.PIZZA, (f, d) -> {
                     OWLObjectProperty property = f.getOWLObjectProperty(d.getNS() + "hasIngredient");
                     OWLClass clazz = f.getOWLClass(d.getNS() + "Food");
                     return f.getOWLObjectPropertyRangeAxiom(property, clazz);
                 })
-                , of(OWLDataPropertyRangeAxiom.class, ModelData.FAMILY, (f, d) -> {
+                , of(OWLDataPropertyRangeAxiom.class, CommonOntologies.FAMILY, (f, d) -> {
                     OWLDataProperty p = f.getOWLDataProperty(d.getNS() + "hasMarriageYear");
                     OWLDatatype r = f.getIntegerOWLDatatype();
                     return f.getOWLDataPropertyRangeAxiom(p, r);
                 })
-                , of(OWLObjectPropertyDomainAxiom.class, ModelData.PIZZA, (f, d) -> {
+                , of(OWLObjectPropertyDomainAxiom.class, CommonOntologies.PIZZA, (f, d) -> {
                     OWLObjectProperty property = f.getOWLObjectProperty(d.getNS() + "hasIngredient");
                     OWLClass clazz = f.getOWLClass(d.getNS() + "Food");
                     return f.getOWLObjectPropertyDomainAxiom(property, clazz);
                 })
-                , of(OWLDataPropertyDomainAxiom.class, ModelData.FAMILY, (f, d) -> {
+                , of(OWLDataPropertyDomainAxiom.class, CommonOntologies.FAMILY, (f, d) -> {
                     OWLDataProperty p = f.getOWLDataProperty(d.getNS() + "hasMarriageYear");
                     OWLClass c = f.getOWLClass(d.getNS() + "Marriage");
                     return f.getOWLDataPropertyDomainAxiom(p, c);
                 })
-                , of(OWLSubObjectPropertyOfAxiom.class, ModelData.PIZZA, (f, d) -> {
+                , of(OWLSubObjectPropertyOfAxiom.class, CommonOntologies.PIZZA, (f, d) -> {
                     OWLObjectProperty sub = f.getOWLObjectProperty(d.getNS() + "isBaseOf");
                     OWLObjectProperty sup = f.getOWLObjectProperty(d.getNS() + "isIngredientOf");
                     return f.getOWLSubObjectPropertyOfAxiom(sub, sup);
                 })
-                , of(OWLSubDataPropertyOfAxiom.class, ModelData.FAMILY, (f, d) -> {
+                , of(OWLSubDataPropertyOfAxiom.class, CommonOntologies.FAMILY, (f, d) -> {
                     OWLDataProperty sub = f.getOWLDataProperty(d.getNS() + "formerlyKnownAs");
                     OWLDataProperty sup = f.getOWLDataProperty(d.getNS() + "knownAs");
                     return f.getOWLSubDataPropertyOfAxiom(sub, sup);
                 })
-                , of(OWLSubAnnotationPropertyOfAxiom.class, ModelData.NCBITAXON_CUT, (f, d) -> {
+                , of(OWLSubAnnotationPropertyOfAxiom.class, CommonOntologies.NCBITAXON_CUT, (f, d) -> {
                     OWLAnnotationProperty sub = f.getOWLAnnotationProperty(SKOS.editorialNote.getURI());
                     OWLAnnotationProperty sup = f.getOWLAnnotationProperty(SKOS.note.getURI());
                     return f.getOWLSubAnnotationPropertyOfAxiom(sub, sup);
                 })
-                , of(OWLAnnotationAssertionAxiom.class, ModelData.NCBITAXON_CUT, (f, d) -> {
+                , of(OWLAnnotationAssertionAxiom.class, CommonOntologies.NCBITAXON_CUT, (f, d) -> {
                     OWLNamedIndividual s = f.getOWLNamedIndividual(d.getNS() + "46063");
                     OWLAnnotationProperty p = f.getOWLAnnotationProperty(SKOS.prefLabel.getURI());
                     OWLLiteral o = f.getOWLLiteral("Chelone", "en");
                     return f.getOWLAnnotationAssertionAxiom(p, s.getIRI(), o);
                 })
-                , of(OWLDataPropertyAssertionAxiom.class, ModelData.FAMILY, (f, d) -> {
+                , of(OWLDataPropertyAssertionAxiom.class, CommonOntologies.FAMILY, (f, d) -> {
                     OWLNamedIndividual s = f.getOWLNamedIndividual(d.getNS() + "louise_templar_1993");
                     OWLDataProperty p = f.getOWLDataProperty(d.getNS() + "hasBirthYear");
                     OWLLiteral o = f.getOWLLiteral(1993);
                     return f.getOWLDataPropertyAssertionAxiom(p, s, o);
                 })
-                , of(OWLObjectPropertyAssertionAxiom.class, ModelData.FAMILY, (f, d) -> {
+                , of(OWLObjectPropertyAssertionAxiom.class, CommonOntologies.FAMILY, (f, d) -> {
                     OWLNamedIndividual s = f.getOWLNamedIndividual(d.getNS() + "louise_templar_1993");
                     OWLObjectProperty p = f.getOWLObjectProperty(d.getNS() + "hasFather");
                     OWLNamedIndividual o = f.getOWLNamedIndividual(d.getNS() + "stephen_templar_1960");
                     return f.getOWLObjectPropertyAssertionAxiom(p, s, o);
                 })
-                , of(OWLClassAssertionAxiom.class, ModelData.FAMILY, (f, d) -> {
+                , of(OWLClassAssertionAxiom.class, CommonOntologies.FAMILY, (f, d) -> {
                     OWLNamedIndividual s = f.getOWLNamedIndividual(d.getNS() + "louise_templar_1993");
                     OWLClass c = f.getOWLClass(d.getNS() + "Woman");
                     return f.getOWLClassAssertionAxiom(c, s);
                 })
-                , of(OWLInverseFunctionalObjectPropertyAxiom.class, ModelData.PIZZA,
+                , of(OWLInverseFunctionalObjectPropertyAxiom.class, CommonOntologies.PIZZA,
                         (f, d) -> f.getOWLInverseFunctionalObjectPropertyAxiom(f.getOWLObjectProperty(d.getNS() + "isBaseOf")))
         );
     }
@@ -201,7 +201,7 @@ public class AxiomTranslatorTest {
         );
     }
 
-    private static <X> Arguments of(Class<X> type, ModelData data, BiFunction<OWLDataFactory, ModelData, X> createAxiom) {
+    private static <X> Arguments of(Class<X> type, CommonOntologies data, BiFunction<OWLDataFactory, CommonOntologies, X> createAxiom) {
         return Arguments.of(type, data, (Function<OWLDataFactory, X>) f -> createAxiom.apply(f, data));
     }
 
@@ -251,7 +251,7 @@ public class AxiomTranslatorTest {
 
     @ParameterizedTest(name = "[{index}] ::: type={0}, model={1}")
     @MethodSource("resourceData")
-    public <X extends OWLAxiom> void testContainsAndFind(Class<X> type, ModelData data, Function<OWLDataFactory, X> get) {
+    public <X extends OWLAxiom> void testContainsAndFind(Class<X> type, CommonOntologies data, Function<OWLDataFactory, X> get) {
         testContainsAndFind(m -> ((Ontology) data.fetch(m)).asGraphModel(), type, get);
     }
 

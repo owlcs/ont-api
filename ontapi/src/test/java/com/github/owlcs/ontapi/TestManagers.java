@@ -12,40 +12,17 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.github.owlcs.ontapi.tests.model;
+package com.github.owlcs.ontapi;
 
-import com.github.owlcs.ontapi.CommonOntologies;
-import com.github.owlcs.ontapi.OntManagers;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
-import org.semanticweb.owlapi.model.OWLAxiom;
-import org.semanticweb.owlapi.model.OWLDataFactory;
-import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyManager;
+public final class TestManagers {
 
-import java.util.Collections;
-
-/**
- * Created by @ssz on 22.09.2020.
- */
-public class ContainsAxiomsTest {
-
-    protected OWLOntologyManager newManager() {
-        return OntManagers.createManager();
-    }
-
-    @ParameterizedTest
-    @EnumSource(value = CommonOntologies.class)
-    public void testContainsAxioms(CommonOntologies data) {
-        OWLOntologyManager m = newManager();
-        OWLDataFactory df = m.getOWLDataFactory();
-        OWLOntology ont = data.fetch(m);
-
-        OWLAxiom ax = df.getOWLSubClassOfAxiom(df.getOWLClass("A"), df.getOWLClass("B"),
-                Collections.singletonList(df.getRDFSComment("For" + data)));
-        Assertions.assertFalse(ont.containsAxiom(ax));
-
-        ont.axioms().forEach(x -> Assertions.assertTrue(ont.containsAxiom(x)));
+    /**
+     * @return {@link OntologyManager}
+     * @see com.github.owlcs.ontapi.config.AxiomsSettings#isReadONTObjects()
+     */
+    public static OntologyManager createONTManager() {
+        OntologyManager res = OntManagers.createManager();
+        res.getOntologyConfigurator().setReadONTObjects(true);
+        return res;
     }
 }

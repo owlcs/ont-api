@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2022, owl.cs group.
+ * Copyright (c) 2023, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,13 +14,14 @@
 
 package com.github.owlcs.ontapi.tests.internal;
 
+import com.github.owlcs.ontapi.CommonOntologies;
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
+import com.github.owlcs.ontapi.TestManagers;
 import com.github.owlcs.ontapi.internal.PrefixMappingRenderer;
 import com.github.owlcs.ontapi.jena.vocabulary.XSD;
-import com.github.owlcs.ontapi.tests.ModelData;
 import org.apache.jena.vocabulary.RDFS;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -34,9 +35,9 @@ public class PrefixMappingRendererTest {
 
     @Test
     public void testAxiomsToString() {
-        OntologyManager m = OntManagers.createManager();
+        OntologyManager m = TestManagers.createONTManager();
         DataFactory df = m.getOWLDataFactory();
-        ModelData data = ModelData.FAMILY;
+        CommonOntologies data = CommonOntologies.FAMILY;
         Ontology o = (Ontology) data.fetch(m);
 
         OWLAxiom a1 = o.annotationAssertionAxioms(IRI.create(data.getNS() + "m138"))
@@ -73,7 +74,7 @@ public class PrefixMappingRendererTest {
     @Test
     public void testOntologyToString() {
         OntologyManager m = OntManagers.createManager();
-        ModelData data = ModelData.PIZZA;
+        CommonOntologies data = CommonOntologies.PIZZA;
         Ontology o = (Ontology) data.fetch(m);
         PrefixMappingRenderer pmr = new PrefixMappingRenderer(o.asGraphModel());
         Assertions.assertEquals("Ontology(OntologyID(OntologyIRI(<http://www.co-ode.org/ontologies/pizza/pizza.owl>) " +

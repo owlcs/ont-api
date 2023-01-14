@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2022, owl.cs group.
+ * Copyright (c) 2023, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,7 +14,7 @@
 
 package com.github.owlcs.ontapi.tests.internal;
 
-import com.github.owlcs.ontapi.OntManagers;
+import com.github.owlcs.ontapi.TestManagers;
 import com.github.owlcs.ontapi.internal.objects.ModelObject;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -114,7 +114,7 @@ public class ModelObjectTest {
         OWLAnnotation expected = df.getRDFSComment("x");
         OWLAnnotationAssertionAxiom ax = df.getOWLAnnotationAssertionAxiom(IRI.create("subject"), expected);
         OWLAnnotationAssertionAxiom res = (OWLAnnotationAssertionAxiom) CommonAxiomsTest
-                .createONTObject(OntManagers.createManager(), ax);
+                .createONTObject(TestManagers.createONTManager(), ax);
         Assertions.assertTrue(res instanceof ModelObject);
         OWLAnnotation actual = res.getAnnotation();
         Assertions.assertEquals(expected, actual);
@@ -325,7 +325,7 @@ public class ModelObjectTest {
 
     @SuppressWarnings("unchecked")
     private <X extends OWLNaryAxiom<?>> X testNaryAxiom(X expected) {
-        Collection<? extends OWLAxiom> res = SplitNaryAxiomsTest.createONTAxioms(OntManagers.createManager(), expected);
+        Collection<? extends OWLAxiom> res = SplitNaryAxiomsTest.createONTAxioms(TestManagers.createONTManager(), expected);
         Assertions.assertEquals(1, res.size());
         X actual = (X) res.iterator().next();
         Assertions.assertTrue(actual instanceof ModelObject);
@@ -362,7 +362,7 @@ public class ModelObjectTest {
             Object expected = property.apply(owl);
             LOGGER.debug("Test factory property '{}'", expected);
             Assertions.assertEquals(expected, property.apply(ont));
-            OWLObject res = CommonAxiomsTest.createONTObject(OntManagers.createManager(), ont);
+            OWLObject res = CommonAxiomsTest.createONTObject(TestManagers.createONTManager(), ont);
             Assertions.assertTrue(res instanceof ModelObject);
             X actual = (X) res;
             Assertions.assertEquals(owl, actual);

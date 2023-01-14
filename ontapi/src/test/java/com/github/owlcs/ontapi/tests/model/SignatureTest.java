@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2022, owl.cs group.
+ * Copyright (c) 2023, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,8 +14,8 @@
 
 package com.github.owlcs.ontapi.tests.model;
 
+import com.github.owlcs.ontapi.CommonOntologies;
 import com.github.owlcs.ontapi.OntManagers;
-import com.github.owlcs.ontapi.tests.ModelData;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -80,7 +80,7 @@ public class SignatureTest {
     }
 
     enum TestData {
-        PIZZA(ModelData.PIZZA,
+        PIZZA(CommonOntologies.PIZZA,
                 T.CLASS.of(-18549559397L),
                 T.CLASS_EXPRESSION.of(-42505386964L),
                 T.NAMED_INDIVIDUAL.of(627705256L),
@@ -89,7 +89,7 @@ public class SignatureTest {
                 T.ANNOTATION_PROPERTY.of(2561927052L),
                 T.DATA_PROPERTY.of()
         ),
-        FAMILY(ModelData.FAMILY,
+        FAMILY(CommonOntologies.FAMILY,
                 T.CLASS.of(-1268263574L),
                 T.CLASS_EXPRESSION.of(-16978651096L),
                 T.NAMED_INDIVIDUAL.of(85936112709L),
@@ -98,7 +98,7 @@ public class SignatureTest {
                 T.ANNOTATION_PROPERTY.of(1501132596L),
                 T.DATA_PROPERTY.of(-253462624L)
         ),
-        PEOPLE(ModelData.PEOPLE,
+        PEOPLE(CommonOntologies.PEOPLE,
                 T.CLASS.of(-44946003502L),
                 T.CLASS_EXPRESSION.of(-51187071185L),
                 T.NAMED_INDIVIDUAL.of(-27921947437L),
@@ -107,7 +107,7 @@ public class SignatureTest {
                 T.ANNOTATION_PROPERTY.of(374445982L),
                 T.DATA_PROPERTY.of()
         ),
-        CAMERA(ModelData.CAMERA,
+        CAMERA(CommonOntologies.CAMERA,
                 T.CLASS.of(8550118707L),
                 T.CLASS_EXPRESSION.of(7152927621L),
                 T.NAMED_INDIVIDUAL.of(-1151331346L),
@@ -116,7 +116,7 @@ public class SignatureTest {
                 T.ANNOTATION_PROPERTY.of(1501132596L),
                 T.DATA_PROPERTY.of(1045936326L)
         ),
-        KOALA(ModelData.KOALA,
+        KOALA(CommonOntologies.KOALA,
                 T.CLASS.of(4003478322L),
                 T.CLASS_EXPRESSION.of(6612435426L),
                 T.NAMED_INDIVIDUAL.of(11447501603L),
@@ -125,7 +125,7 @@ public class SignatureTest {
                 T.ANNOTATION_PROPERTY.of(-1366328290L),
                 T.DATA_PROPERTY.of(-1885133841L)
         ),
-        TRAVEL(ModelData.TRAVEL,
+        TRAVEL(CommonOntologies.TRAVEL,
                 T.CLASS.of(-12813239L),
                 T.CLASS_EXPRESSION.of(5669053922L),
                 T.NAMED_INDIVIDUAL.of(647180319L),
@@ -134,7 +134,7 @@ public class SignatureTest {
                 T.ANNOTATION_PROPERTY.of(2561927052L),
                 T.DATA_PROPERTY.of(-3029448884L)
         ),
-        WINE(ModelData.WINE,
+        WINE(CommonOntologies.WINE,
                 T.CLASS.of(-7328739440L),
                 T.CLASS_EXPRESSION.of(-12745569437L),
                 T.NAMED_INDIVIDUAL.of(3479779986L),
@@ -143,7 +143,7 @@ public class SignatureTest {
                 T.ANNOTATION_PROPERTY.of(1366640788L),
                 T.DATA_PROPERTY.of(-2003930395L)
         ),
-        FOOD(ModelData.FOOD,
+        FOOD(CommonOntologies.FOOD,
                 T.CLASS.of(-23236948086L),
                 T.CLASS_EXPRESSION.of(-15980117497L),
                 T.NAMED_INDIVIDUAL.of(-37834773654L),
@@ -152,7 +152,7 @@ public class SignatureTest {
                 T.ANNOTATION_PROPERTY.of(1501132596L),
                 T.DATA_PROPERTY.of()
         ),
-        NCBITAXON_CUT(ModelData.NCBITAXON_CUT,
+        NCBITAXON_CUT(CommonOntologies.NCBITAXON_CUT,
                 T.CLASS.of(-72461035056L),
                 T.CLASS_EXPRESSION.of(2872387903L),
                 T.NAMED_INDIVIDUAL.of(-75278820767L),
@@ -161,7 +161,7 @@ public class SignatureTest {
                 T.ANNOTATION_PROPERTY.of(7516115975L),
                 T.DATA_PROPERTY.of(-795195587L)
         ),
-        HP_CUT(ModelData.HP_CUT,
+        HP_CUT(CommonOntologies.HP_CUT,
                 T.CLASS.of(4720902778L),
                 T.CLASS_EXPRESSION.of(8426758568L),
                 T.NAMED_INDIVIDUAL.of(),
@@ -170,7 +170,7 @@ public class SignatureTest {
                 T.ANNOTATION_PROPERTY.of(6911265806L),
                 T.DATA_PROPERTY.of()
         ),
-        FAMILY_PEOPLE_UNION(ModelData.FAMILY_PEOPLE_UNION,
+        FAMILY_PEOPLE_UNION(CommonOntologies.FAMILY_PEOPLE_UNION,
                 T.CLASS.of(-1213682231L),
                 T.CLASS_EXPRESSION.of(2421052769L),
                 T.NAMED_INDIVIDUAL.of(899752725L),
@@ -180,10 +180,10 @@ public class SignatureTest {
                 T.DATA_PROPERTY.of(-1511256518L)
         ),
         ;
-        private final ModelData resource;
+        private final CommonOntologies resource;
         private final Tester[] expectations;
 
-        TestData(ModelData data, Tester... expectations) {
+        TestData(CommonOntologies data, Tester... expectations) {
             this.resource = data;
             this.expectations = expectations;
         }

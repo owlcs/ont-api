@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2022, owl.cs group.
+ * Copyright (c) 2023, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -165,6 +165,11 @@ public class ModelConfig implements InternalConfig, Serializable {
     }
 
     @Override
+    public boolean isReadONTObjects() {
+        return getLoaderConfig().isReadONTObjects();
+    }
+
+    @Override
     public int getLoadNodesCacheSize() {
         return getLoaderConfig().getLoadNodesCacheSize();
     }
@@ -182,16 +187,6 @@ public class ModelConfig implements InternalConfig, Serializable {
     @Override
     public boolean parallel() {
         return manager.isConcurrent();
-    }
-
-    /**
-     * Answers {@code true} if the specified config differs from this model config in important parameters.
-     *
-     * @param other {@link OntLoaderConfiguration} to test
-     * @return boolean
-     */
-    public boolean hasChanges(OntLoaderConfiguration other) {
-        return hasChanges(getLoaderConfig(), other);
     }
 
     /**
@@ -216,6 +211,7 @@ public class ModelConfig implements InternalConfig, Serializable {
                 , OntLoaderConfiguration::getLoadNodesCacheSize
                 , OntLoaderConfiguration::getLoadObjectsCacheSize
                 , OntLoaderConfiguration::getModelCacheLevel
+                , OntLoaderConfiguration::isReadONTObjects
         );
         return fields.anyMatch(c -> c.apply(left) != c.apply(right));
     }

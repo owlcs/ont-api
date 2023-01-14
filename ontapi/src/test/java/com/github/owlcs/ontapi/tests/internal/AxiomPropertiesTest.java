@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2022, owl.cs group.
+ * Copyright (c) 2023, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,8 +14,8 @@
 
 package com.github.owlcs.ontapi.tests.internal;
 
-import com.github.owlcs.ontapi.OntManagers;
-import com.github.owlcs.ontapi.tests.TestFactory;
+import com.github.owlcs.ontapi.TestDataCollection;
+import com.github.owlcs.ontapi.TestManagers;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.model.AxiomType;
@@ -55,112 +55,112 @@ public class AxiomPropertiesTest {
 
     @Test
     public void testSubClassOf() {
-        List<TestFactory.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.SUBCLASS_OF);
+        List<TestDataCollection.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.SUBCLASS_OF);
         testAxiom(data, OWLSubClassOfAxiom::isGCI);
     }
 
     @Test
     public void testPropertyChains() {
-        List<TestFactory.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.SUB_PROPERTY_CHAIN_OF);
+        List<TestDataCollection.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.SUB_PROPERTY_CHAIN_OF);
         testAxiom(data, OWLSubPropertyChainOfAxiom::isEncodingOfTransitiveProperty,
                 OWLSubPropertyChainOfAxiom::getPropertyChain);
     }
 
     @Test
     public void testHasKey() {
-        List<TestFactory.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.HAS_KEY);
+        List<TestDataCollection.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.HAS_KEY);
         testAxiom(data, (OWLHasKeyAxiom a) -> a.dataPropertyExpressions().collect(Collectors.toSet()),
                 (OWLHasKeyAxiom a) -> a.objectPropertyExpressions().collect(Collectors.toSet()));
     }
 
     @Test
     public void testEquivalentClasses() {
-        List<TestFactory.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.EQUIVALENT_CLASSES);
+        List<TestDataCollection.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.EQUIVALENT_CLASSES);
         testSplitNaryAxioms(data, OWLEquivalentClassesAxiom::containsNamedEquivalentClass,
                 OWLEquivalentClassesAxiom::containsOWLNothing, OWLEquivalentClassesAxiom::containsOWLThing);
     }
 
     @Test
     public void testSameIndividuals() {
-        List<TestFactory.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.SAME_INDIVIDUAL);
+        List<TestDataCollection.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.SAME_INDIVIDUAL);
         testSplitNaryAxioms(data, OWLSameIndividualAxiom::containsAnonymousIndividuals);
     }
 
     @Test
     public void testDisjointObjectProperties() {
-        List<TestFactory.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.DISJOINT_OBJECT_PROPERTIES);
+        List<TestDataCollection.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.DISJOINT_OBJECT_PROPERTIES);
         testAxiom(data, (OWLNaryPropertyAxiom<?> a) -> a.properties().collect(Collectors.toList()));
     }
 
     @Test
     public void testEquivalentObjectProperties() {
-        List<TestFactory.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.EQUIVALENT_OBJECT_PROPERTIES);
+        List<TestDataCollection.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.EQUIVALENT_OBJECT_PROPERTIES);
         testSplitNaryAxioms(data, (OWLNaryPropertyAxiom<?> a) -> a.properties().collect(Collectors.toList()));
     }
 
     @Test
     public void testDisjointDataProperties() {
-        List<TestFactory.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.DISJOINT_DATA_PROPERTIES);
+        List<TestDataCollection.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.DISJOINT_DATA_PROPERTIES);
         testAxiom(data, (OWLNaryPropertyAxiom<?> a) -> a.properties().collect(Collectors.toList()));
     }
 
     @Test
     public void testEquivalentDataProperties() {
-        List<TestFactory.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.EQUIVALENT_DATA_PROPERTIES);
+        List<TestDataCollection.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.EQUIVALENT_DATA_PROPERTIES);
         testSplitNaryAxioms(data, (OWLNaryPropertyAxiom<?> a) -> a.properties().collect(Collectors.toList()));
     }
 
     @Test
     public void testDataPropertyDomain() {
-        List<TestFactory.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.DATA_PROPERTY_DOMAIN);
+        List<TestDataCollection.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.DATA_PROPERTY_DOMAIN);
         testAxiom(data, (Function<OWLDataPropertyDomainAxiom, Object>) HasDomain::getDomain, HasProperty::getProperty);
     }
 
     @Test
     public void testObjectPropertyDomain() {
-        List<TestFactory.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.OBJECT_PROPERTY_DOMAIN);
+        List<TestDataCollection.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.OBJECT_PROPERTY_DOMAIN);
         testAxiom(data, (Function<OWLObjectPropertyDomainAxiom, Object>) HasDomain::getDomain, HasProperty::getProperty);
     }
 
     @Test
     public void testAnnotationPropertyDomain() {
-        List<TestFactory.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.ANNOTATION_PROPERTY_DOMAIN);
+        List<TestDataCollection.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.ANNOTATION_PROPERTY_DOMAIN);
         testAxiom(data, (Function<OWLAnnotationPropertyDomainAxiom, Object>) HasDomain::getDomain, HasProperty::getProperty);
     }
 
     @Test
     public void testAnnotationPropertyRange() {
-        List<TestFactory.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.ANNOTATION_PROPERTY_RANGE);
+        List<TestDataCollection.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.ANNOTATION_PROPERTY_RANGE);
         testAxiom(data, (Function<OWLAnnotationPropertyRangeAxiom, Object>) HasRange::getRange, HasProperty::getProperty);
     }
 
     @Test
     public void testDataPropertyRange() {
-        List<TestFactory.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.DATA_PROPERTY_RANGE);
+        List<TestDataCollection.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.DATA_PROPERTY_RANGE);
         testAxiom(data, (Function<OWLDataPropertyRangeAxiom, Object>) HasRange::getRange, HasProperty::getProperty);
     }
 
     @Test
     public void testObjectPropertyRange() {
-        List<TestFactory.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.OBJECT_PROPERTY_RANGE);
+        List<TestDataCollection.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.OBJECT_PROPERTY_RANGE);
         testAxiom(data, (Function<OWLObjectPropertyRangeAxiom, Object>) HasRange::getRange, HasProperty::getProperty);
     }
 
     @Test
     public void testDatatypeDefinition() {
-        List<TestFactory.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.DATATYPE_DEFINITION);
+        List<TestDataCollection.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.DATATYPE_DEFINITION);
         testAxiom(data, OWLDatatypeDefinitionAxiom::getDatatype, OWLDatatypeDefinitionAxiom::getDataRange);
     }
 
     @Test
     public void testClassAssertion() {
-        List<TestFactory.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.CLASS_ASSERTION);
+        List<TestDataCollection.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.CLASS_ASSERTION);
         testAxiom(data, OWLClassAssertionAxiom::getClassExpression, OWLClassAssertionAxiom::getIndividual);
     }
 
     @Test
     public void testSWRLRule() {
-        List<TestFactory.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.SWRL_RULE);
+        List<TestDataCollection.AxiomData> data = CommonAxiomsTest.getAxiomData(AxiomType.SWRL_RULE);
         testAxiom(data
                 , SWRLRule::bodyList
                 , SWRLRule::headList
@@ -174,14 +174,14 @@ public class AxiomPropertiesTest {
 
     @SuppressWarnings("unchecked")
     @SafeVarargs
-    private static <X extends OWLAxiom> void testAxiom(List<TestFactory.AxiomData> data,
+    private static <X extends OWLAxiom> void testAxiom(List<TestDataCollection.AxiomData> data,
                                                        Function<X, Object>... properties) {
         Assertions.assertFalse(data.isEmpty());
-        for (TestFactory.AxiomData a : data) {
+        for (TestDataCollection.AxiomData a : data) {
             LOGGER.debug("Test properties for '{}'", a);
             X owl = (X) a.create(ObjectFactoryTestBase.OWL_DATA_FACTORY);
             X ont = (X) a.create(ObjectFactoryTestBase.ONT_DATA_FACTORY);
-            X res = (X) CommonAxiomsTest.createONTObject(OntManagers.createManager(), owl);
+            X res = (X) CommonAxiomsTest.createONTObject(TestManagers.createONTManager(), owl);
             Assertions.assertEquals(owl, res);
             for (Function<X, Object> property : properties) {
                 Object expected = property.apply(owl);
@@ -193,15 +193,15 @@ public class AxiomPropertiesTest {
 
     @SuppressWarnings({"unchecked", "rawtypes"})
     @SafeVarargs
-    private static <X extends OWLNaryAxiom> void testSplitNaryAxioms(List<TestFactory.AxiomData> data,
+    private static <X extends OWLNaryAxiom> void testSplitNaryAxioms(List<TestDataCollection.AxiomData> data,
                                                                      Function<X, Object>... properties) {
         Assertions.assertFalse(data.isEmpty());
-        for (TestFactory.AxiomData a : data) {
+        for (TestDataCollection.AxiomData a : data) {
             LOGGER.debug("Test properties for '{}'", a);
             X base = (X) a.create(ObjectFactoryTestBase.OWL_DATA_FACTORY);
             Collection<X> owlList = ((X) a.create(ObjectFactoryTestBase.OWL_DATA_FACTORY)).asPairwiseAxioms();
             Collection<X> ontList = ((X) a.create(ObjectFactoryTestBase.ONT_DATA_FACTORY)).asPairwiseAxioms();
-            Collection<X> resList = (Collection<X>) SplitNaryAxiomsTest.createONTAxioms(OntManagers.createManager(), base);
+            Collection<X> resList = (Collection<X>) SplitNaryAxiomsTest.createONTAxioms(TestManagers.createONTManager(), base);
             for (X owl : owlList) {
                 X ont = ontList.stream().filter(owl::equals)
                         .findFirst().orElseThrow(AssertionError::new);

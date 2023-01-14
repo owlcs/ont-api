@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2022, owl.cs group.
+ * Copyright (c) 2023, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,10 +14,10 @@
 
 package com.github.owlcs.ontapi.tests.model;
 
+import com.github.owlcs.ontapi.CommonOntologies;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.jena.OntVocabulary;
 import com.github.owlcs.ontapi.jena.vocabulary.XSD;
-import com.github.owlcs.ontapi.tests.ModelData;
 import com.github.owlcs.ontapi.testutils.OWLEntityUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.jena.rdf.model.Resource;
@@ -45,7 +45,7 @@ import java.util.Map;
  */
 public class ContainsSignatureTest {
 
-    protected static Map<String, Boolean> createTestEntities(ModelData data, Class<? extends OWLEntity> type) {
+    protected static Map<String, Boolean> createTestEntities(CommonOntologies data, Class<? extends OWLEntity> type) {
         return createTestEntities(data.fetch(OntManagers.createOWLAPIImplManager()), type);
     }
 
@@ -68,15 +68,15 @@ public class ContainsSignatureTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = ModelData.class)
-    public void testContainsClasses(ModelData data) {
+    @EnumSource(value = CommonOntologies.class)
+    public void testContainsClasses(CommonOntologies data) {
         testContains(data, OWLClass.class);
     }
 
     @ParameterizedTest
-    @EnumSource(value = ModelData.class)
-    public void testContainsDatatypes(ModelData data) {
-        if (data == ModelData.FOOD) { // see https://github.com/owlcs/owlapi/issues/928
+    @EnumSource(value = CommonOntologies.class)
+    public void testContainsDatatypes(CommonOntologies data) {
+        if (data == CommonOntologies.FOOD) { // see https://github.com/owlcs/owlapi/issues/928
             Map<String, Boolean> d = new HashMap<>();
             d.put(XSD.xstring.getURI(), Boolean.TRUE);
             d.put(XSD.nonNegativeInteger.getURI(), Boolean.FALSE);
@@ -87,34 +87,34 @@ public class ContainsSignatureTest {
     }
 
     @ParameterizedTest
-    @EnumSource(value = ModelData.class)
-    public void testContainsNamedIndividuals(ModelData data) {
+    @EnumSource(value = CommonOntologies.class)
+    public void testContainsNamedIndividuals(CommonOntologies data) {
         testContains(data, OWLNamedIndividual.class);
     }
 
     @ParameterizedTest
-    @EnumSource(value = ModelData.class)
-    public void testContainsObjectProperty(ModelData data) {
+    @EnumSource(value = CommonOntologies.class)
+    public void testContainsObjectProperty(CommonOntologies data) {
         testContains(data, OWLObjectProperty.class);
     }
 
     @ParameterizedTest
-    @EnumSource(value = ModelData.class)
-    public void testContainsAnnotationProperty(ModelData data) {
+    @EnumSource(value = CommonOntologies.class)
+    public void testContainsAnnotationProperty(CommonOntologies data) {
         testContains(data, OWLAnnotationProperty.class);
     }
 
     @ParameterizedTest
-    @EnumSource(value = ModelData.class)
-    public void testContainsDataProperty(ModelData data) {
+    @EnumSource(value = CommonOntologies.class)
+    public void testContainsDataProperty(CommonOntologies data) {
         testContains(data, OWLDataProperty.class);
     }
 
-    protected void testContains(ModelData data, Class<? extends OWLEntity> type) {
+    protected void testContains(CommonOntologies data, Class<? extends OWLEntity> type) {
         testContains(data, type, createTestEntities(data, type));
     }
 
-    protected void testContains(ModelData data, Class<? extends OWLEntity> type, Map<String, Boolean> entities) {
+    protected void testContains(CommonOntologies data, Class<? extends OWLEntity> type, Map<String, Boolean> entities) {
         OWLOntology o = data.fetch(newManager());
         testContains(o, type, entities);
     }

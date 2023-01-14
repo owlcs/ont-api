@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2022, owl.cs group.
+ * Copyright (c) 2023, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -15,12 +15,12 @@
 package com.github.owlcs.ontapi.tests.internal;
 
 import com.github.owlcs.ontapi.DataFactory;
-import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
+import com.github.owlcs.ontapi.TestDataCollection;
+import com.github.owlcs.ontapi.TestDataCollection.Data;
+import com.github.owlcs.ontapi.TestManagers;
 import com.github.owlcs.ontapi.internal.ONTObject;
-import com.github.owlcs.ontapi.tests.TestFactory;
-import com.github.owlcs.ontapi.tests.TestFactory.Data;
 import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLObject;
@@ -35,12 +35,12 @@ import java.util.stream.Collectors;
 public class EntityTest extends ObjectFactoryTestBase {
 
     public static List<Data> getData() {
-        return TestFactory.getObjects().stream().filter(Data::isEntity).collect(Collectors.toList());
+        return TestDataCollection.getObjects().stream().filter(Data::isEntity).collect(Collectors.toList());
     }
 
     @Override
     OWLObject fromModel(Data data) {
-        OntologyManager m = OntManagers.createManager();
+        OntologyManager m = TestManagers.createONTManager();
         DataFactory df = m.getOWLDataFactory();
 
         OWLEntity ont = (OWLEntity) data.create(df);

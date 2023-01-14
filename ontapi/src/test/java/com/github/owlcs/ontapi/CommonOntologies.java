@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2022, owl.cs group.
+ * Copyright (c) 2023, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -12,12 +12,8 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.github.owlcs.ontapi.tests;
+package com.github.owlcs.ontapi;
 
-import com.github.owlcs.ontapi.OWLAdapter;
-import com.github.owlcs.ontapi.OntFormat;
-import com.github.owlcs.ontapi.Ontology;
-import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.jena.model.OntClass;
 import com.github.owlcs.ontapi.jena.model.OntDataProperty;
 import com.github.owlcs.ontapi.jena.model.OntIndividual;
@@ -50,7 +46,7 @@ import java.util.Arrays;
  * Collection of ontology resources for tests.
  * Created by @ssz on 19.04.2020.
  */
-public enum ModelData {
+public enum CommonOntologies {
     PIZZA("/ontapi/pizza.ttl", "http://www.co-ode.org/ontologies/pizza/pizza.owl"),
     FAMILY("/ontapi/family.ttl", "http://www.co-ode.org/roberts/family-tree.owl"),
     PEOPLE("/ontapi/people.ttl", "http://owl.man.ac.uk/2006/07/sssw/people"),
@@ -90,8 +86,8 @@ public enum ModelData {
         @Override
         public OWLOntology fetch(OWLOntologyManager manager) {
             return manager instanceof OntologyManager ?
-                    ModelData.createFamilyPeopleModelUsingONTAPI((OntologyManager) manager, getNS()) :
-                    ModelData.createFamilyPeopleModelUsingOWLAPI(manager, getNS());
+                    CommonOntologies.createFamilyPeopleModelUsingONTAPI((OntologyManager) manager, getNS()) :
+                    CommonOntologies.createFamilyPeopleModelUsingOWLAPI(manager, getNS());
         }
     },
     ;
@@ -99,17 +95,17 @@ public enum ModelData {
     private final OntFormat format;
     private final String uri;
 
-    ModelData(String resource, String name) {
+    CommonOntologies(String resource, String name) {
         this(resource, OntFormat.TURTLE, name);
     }
 
-    ModelData(String resource, OntFormat format, String name) {
+    CommonOntologies(String resource, OntFormat format, String name) {
         this.file = resource == null ? null : OWLIOUtils.getResourcePath(resource);
         this.format = format;
         this.uri = name;
     }
 
-    static OWLOntology load(OWLOntologyManager manager, ModelData... data) {
+    static OWLOntology load(OWLOntologyManager manager, CommonOntologies... data) {
         OWLOntology res = null;
         OWLOntologyLoaderConfiguration conf = createConfig(manager);
         long before = manager.ontologies().count();
@@ -125,7 +121,7 @@ public enum ModelData {
                 throw new AssertionError(e);
             }
         } else { // ONT-API
-            for (ModelData d : data) {
+            for (CommonOntologies d : data) {
                 try {
                     res = manager.loadOntologyFromOntologyDocument(d.getDocumentSource(), conf);
                 } catch (OWLOntologyCreationException e) {

@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2022, owl.cs group.
+ * Copyright (c) 2023, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -17,7 +17,11 @@ package com.github.owlcs.ontapi.config;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.jena.impl.conf.OntPersonality;
 import com.github.owlcs.ontapi.transforms.GraphTransformers;
-import org.semanticweb.owlapi.model.*;
+import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.MissingImportHandlingStrategy;
+import org.semanticweb.owlapi.model.MissingOntologyHeaderStrategy;
+import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
+import org.semanticweb.owlapi.model.PriorityCollectionSorting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +29,13 @@ import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.lang.reflect.Field;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 /**
  * This is an extended {@link OWLOntologyLoaderConfiguration} with ONT-API specific settings.
@@ -391,6 +401,15 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
     }
 
     /**
+     * An ONT-API config getter.
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isReadONTObjects() {
+        return get(OntSettings.ONT_API_LOAD_CONF_READ_ONT_OBJECTS);
+    }
+
+    /**
      * An ONT-API config setter.
      * {@inheritDoc}
      *
@@ -401,6 +420,18 @@ public class OntLoaderConfiguration extends OWLOntologyLoaderConfiguration imple
     @Override
     public OntLoaderConfiguration setIgnoreAxiomsReadErrors(boolean b) {
         return set(OntSettings.ONT_API_LOAD_CONF_IGNORE_AXIOMS_READ_ERRORS, b);
+    }
+
+    /**
+     * An ONT-API config setter.
+     * {@inheritDoc}
+     *
+     * @param b {@code true} to use {@code ONTObject}s as output
+     * @return {@link OntLoaderConfiguration}, a copied (new) or this instance in case no changes is made
+     */
+    @Override
+    public OntLoaderConfiguration setReadONTObjects(boolean b) {
+        return set(OntSettings.ONT_API_LOAD_CONF_READ_ONT_OBJECTS, b);
     }
 
     /**

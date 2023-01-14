@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2022, owl.cs group.
+ * Copyright (c) 2023, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,6 +14,7 @@
 
 package com.github.owlcs.ontapi.tests.managers;
 
+import com.github.owlcs.ontapi.CommonOntologies;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.Ontology;
@@ -32,7 +33,6 @@ import com.github.owlcs.ontapi.jena.model.OntClass;
 import com.github.owlcs.ontapi.jena.model.OntEntity;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.utils.Graphs;
-import com.github.owlcs.ontapi.tests.ModelData;
 import com.github.owlcs.ontapi.testutils.OWLIOUtils;
 import com.github.owlcs.ontapi.testutils.OntIRI;
 import com.github.owlcs.ontapi.testutils.SpinModels;
@@ -404,7 +404,7 @@ public class CommonManagerTest {
 
     @Test
     public void testDirectManagerReadAxioms() {
-        ModelData data = ModelData.PEOPLE;
+        CommonOntologies data = CommonOntologies.PEOPLE;
         long count = 412;
         long distinctCount = 409;
 
@@ -419,7 +419,7 @@ public class CommonManagerTest {
 
     @Test
     public void testDirectManagerModifyAxioms() {
-        ModelData data = ModelData.PEOPLE;
+        CommonOntologies data = CommonOntologies.PEOPLE;
         String classURI = data.getNS() + "person";
 
         Ontology o = (Ontology) data.fetch(OntManagers.createDirectManager());

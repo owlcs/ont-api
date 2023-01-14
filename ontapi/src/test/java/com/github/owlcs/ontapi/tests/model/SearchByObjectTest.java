@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2022, owl.cs group.
+ * Copyright (c) 2023, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,8 +14,8 @@
 
 package com.github.owlcs.ontapi.tests.model;
 
+import com.github.owlcs.ontapi.CommonOntologies;
 import com.github.owlcs.ontapi.OntManagers;
-import com.github.owlcs.ontapi.tests.ModelData;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.jena.vocabulary.RDFS;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -133,7 +133,7 @@ public class SearchByObjectTest {
     }
 
     enum TestData {
-        PIZZA(ModelData.PIZZA,
+        PIZZA(CommonOntologies.PIZZA,
                 T.DECLARATIONS.of(-5190508530L),
                 T.ANNOTATION_ASSERTIONS_BY_SUBJECT.of(5847447319L),
                 T.SUB_CLASS_OF_BY_SUBJECT.of(23994790843L),
@@ -147,7 +147,7 @@ public class SearchByObjectTest {
                 T.OBJECT_PROPERTY_RANGE_BY_SUBJECT.of(-5171741903L),
                 T.OBJECT_PROPERTY_DOMAIN_BY_SUBJECT.of(-1378986021L)
         ),
-        FAMILY(ModelData.FAMILY,
+        FAMILY(CommonOntologies.FAMILY,
                 T.DECLARATIONS.of(34226271096L),
                 T.ANNOTATION_ASSERTIONS_BY_SUBJECT.of(375920279L),
                 T.SUB_CLASS_OF_BY_SUBJECT.of(-405443220L),
@@ -161,7 +161,7 @@ public class SearchByObjectTest {
                 T.OBJECT_PROPERTY_RANGE_BY_SUBJECT.of(11112139379L),
                 T.OBJECT_PROPERTY_DOMAIN_BY_SUBJECT.of(-1766543680L)
         ),
-        PEOPLE(ModelData.PEOPLE,
+        PEOPLE(CommonOntologies.PEOPLE,
                 T.DECLARATIONS.of(-31040926516L),
                 T.ANNOTATION_ASSERTIONS_BY_SUBJECT.of(8991342654L),
                 T.SUB_CLASS_OF_BY_SUBJECT.of(-6044474129L),
@@ -175,7 +175,7 @@ public class SearchByObjectTest {
                 T.OBJECT_PROPERTY_RANGE_BY_SUBJECT.of(-2697317876L),
                 T.OBJECT_PROPERTY_DOMAIN_BY_SUBJECT.of(215400502L)
         ),
-        CAMERA(ModelData.CAMERA,
+        CAMERA(CommonOntologies.CAMERA,
                 T.DECLARATIONS.of(2967944221L),
                 T.ANNOTATION_ASSERTIONS_BY_SUBJECT.of(),
                 T.SUB_CLASS_OF_BY_SUBJECT.of(3537056616L),
@@ -189,7 +189,7 @@ public class SearchByObjectTest {
                 T.OBJECT_PROPERTY_RANGE_BY_SUBJECT.of(-4417906154L),
                 T.OBJECT_PROPERTY_DOMAIN_BY_SUBJECT.of(1118203354L)
         ),
-        KOALA(ModelData.KOALA,
+        KOALA(CommonOntologies.KOALA,
                 T.DECLARATIONS.of(6488467972L),
                 T.ANNOTATION_ASSERTIONS_BY_SUBJECT.of(2255627747L),
                 T.SUB_CLASS_OF_BY_SUBJECT.of(-4740693142L),
@@ -203,7 +203,7 @@ public class SearchByObjectTest {
                 T.OBJECT_PROPERTY_RANGE_BY_SUBJECT.of(166159343L),
                 T.OBJECT_PROPERTY_DOMAIN_BY_SUBJECT.of(1335386108L)
         ),
-        TRAVEL(ModelData.TRAVEL,
+        TRAVEL(CommonOntologies.TRAVEL,
                 T.DECLARATIONS.of(-25825023334L),
                 T.ANNOTATION_ASSERTIONS_BY_SUBJECT.of(-1500714876L),
                 T.SUB_CLASS_OF_BY_SUBJECT.of(3792566851L),
@@ -217,7 +217,7 @@ public class SearchByObjectTest {
                 T.OBJECT_PROPERTY_RANGE_BY_SUBJECT.of(3821903939L),
                 T.OBJECT_PROPERTY_DOMAIN_BY_SUBJECT.of(-1174852943L)
         ),
-        WINE(ModelData.WINE,
+        WINE(CommonOntologies.WINE,
                 T.DECLARATIONS.of(20065711780L),
                 T.ANNOTATION_ASSERTIONS_BY_SUBJECT.of(1282021579L),
                 T.SUB_CLASS_OF_BY_SUBJECT.of(23989074593L),
@@ -231,7 +231,7 @@ public class SearchByObjectTest {
                 T.OBJECT_PROPERTY_RANGE_BY_SUBJECT.of(-3535340229L),
                 T.OBJECT_PROPERTY_DOMAIN_BY_SUBJECT.of(-435085258L)
         ),
-        FOOD(ModelData.FOOD,
+        FOOD(CommonOntologies.FOOD,
                 T.DECLARATIONS.of(6794851452L),
                 T.ANNOTATION_ASSERTIONS_BY_SUBJECT.of(),
                 T.SUB_CLASS_OF_BY_SUBJECT.of(-2766054837L),
@@ -245,7 +245,7 @@ public class SearchByObjectTest {
                 T.OBJECT_PROPERTY_RANGE_BY_SUBJECT.of(-144528768L),
                 T.OBJECT_PROPERTY_DOMAIN_BY_SUBJECT.of(4534229856L)
         ),
-        NCBITAXON_CUT(ModelData.NCBITAXON_CUT,
+        NCBITAXON_CUT(CommonOntologies.NCBITAXON_CUT,
                 T.DECLARATIONS.of(244310200631L),
                 T.ANNOTATION_ASSERTIONS_BY_SUBJECT.of(120569949408L),
                 T.SUB_CLASS_OF_BY_SUBJECT.of(-1220817325L),
@@ -259,7 +259,7 @@ public class SearchByObjectTest {
                 T.OBJECT_PROPERTY_RANGE_BY_SUBJECT.of(-5754775670L),
                 T.OBJECT_PROPERTY_DOMAIN_BY_SUBJECT.of(-6535019425L)
         ),
-        HP_CUT(ModelData.HP_CUT,
+        HP_CUT(CommonOntologies.HP_CUT,
                 T.DECLARATIONS.of(-14640456193L),
                 T.ANNOTATION_ASSERTIONS_BY_SUBJECT.of(2061724906L),
                 T.SUB_CLASS_OF_BY_SUBJECT.of(-2245851740L),
@@ -273,7 +273,7 @@ public class SearchByObjectTest {
                 T.OBJECT_PROPERTY_RANGE_BY_SUBJECT.of(),
                 T.OBJECT_PROPERTY_DOMAIN_BY_SUBJECT.of()
         ),
-        FAMILY_PEOPLE_UNION(ModelData.FAMILY_PEOPLE_UNION,
+        FAMILY_PEOPLE_UNION(CommonOntologies.FAMILY_PEOPLE_UNION,
                 T.DECLARATIONS.of(-637777500L),
                 T.ANNOTATION_ASSERTIONS_BY_SUBJECT.of(-1126745941L),
                 T.SUB_CLASS_OF_BY_SUBJECT.of(-730374961L),
@@ -288,10 +288,10 @@ public class SearchByObjectTest {
                 T.OBJECT_PROPERTY_DOMAIN_BY_SUBJECT.of()
         ),
         ;
-        private final ModelData resource;
+        private final CommonOntologies resource;
         private final ByPrimitiveTester[] expectations;
 
-        TestData(ModelData data, ByPrimitiveTester... expectations) {
+        TestData(CommonOntologies data, ByPrimitiveTester... expectations) {
             this.resource = data;
             this.expectations = expectations;
         }
