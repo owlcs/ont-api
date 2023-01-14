@@ -2,7 +2,7 @@
 <!--
   ~ This file is part of the ONT API.
   ~ The contents of this file are subject to the LGPL License, Version 3.0.
-  ~ Copyright (c) 2022, owl.cs group.
+  ~ Copyright (c) 2023, owl.cs group.
   ~
   ~ This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
   ~ This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -37,12 +37,12 @@
         <maven.compiler.source>11</maven.compiler.source>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <revision>3.0.3-SNAPSHOT</revision>
-        <version.jena>4.6.1</version.jena>
+        <version.jena>4.7.0</version.jena>
         <version.owlapi>5.1.20</version.owlapi>
-        <version.slf4j>2.0.5</version.slf4j>
+        <version.slf4j>2.0.6</version.slf4j>
         <version.caffeine>3.1.2</version.caffeine>
-        <version.junit>5.9.1</version.junit>
-        <versio.mockito>4.9.0</versio.mockito>
+        <version.junit>5.9.2</version.junit>
+        <versio.mockito>4.11.0</versio.mockito>
     </properties>
 
     <licenses>
@@ -146,10 +146,6 @@
                 <version>${versio.mockito}</version>
                 <scope>test</scope>
             </dependency>
-            <!--
-            net.sourceforge.owlapi:owlapi-impl is required by tests on OWL-API reasoner and by OWL-API-tests (org.semanticweb) in comparing mode
-            (i.e. with -Ddebug.use.owl=true, see com.github.owlcs.owlapi.OWLManager)
-            -->
             <dependency>
                 <groupId>net.sourceforge.owlapi</groupId>
                 <artifactId>owlapi-impl</artifactId>
@@ -295,7 +291,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.0.0-M7</version>
+                <version>3.0.0-M8</version>
             </plugin>
         </plugins>
     </build>
