@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2022, owl.cs group.
+ * Copyright (c) 2023, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -28,64 +28,51 @@ public class FileRoundTripTestCase extends AbstractFileRoundTrippingTestCase {
 
     public static Stream<String> files() {
         return Stream.of(
-                "AnnotatedPropertyAssertions.rdf",
-                "ComplexSubProperty.rdf",
-                "DataAllValuesFrom.rdf",
-                "cardinalitywithwhitespace.owl",
-                "DataComplementOf.rdf",
-                "DataHasValue.rdf",
-                "DataIntersectionOf.rdf",
-                "DataMaxCardinality.rdf",
-                "DataMinCardinality.rdf",
-                "DataOneOf.rdf",
-                "DataSomeValuesFrom.rdf",
-                "DataUnionOf.rdf",
-                "DatatypeRestriction.rdf",
-                "TestDeclarations.rdf",
-                "Deprecated.rdf",
-                "DisjointClasses.rdf",
-                "HasKey.rdf",
-                "InverseOf.rdf",
-                "ObjectAllValuesFrom.rdf",
-                "ObjectCardinality.rdf",
-                "ObjectComplementOf.rdf",
-                "ObjectHasSelf.rdf",
-                "ObjectHasValue.rdf",
-                "ObjectIntersectionOf.rdf",
-                "ObjectMaxCardinality.rdf",
-                "ObjectMaxQualifiedCardinality.rdf",
-                "ObjectMinCardinality.rdf",
-                "ObjectMinQualifiedCardinality.rdf",
-                "ObjectOneOf.rdf",
-                "ObjectQualifiedCardinality.rdf",
-                "ObjectSomeValuesFrom.rdf",
-                "ObjectUnionOf.rdf",
-                "primer.functionalsyntax.txt",
-                "primer.owlxml.xml",
-                // WARNING: The entity http://example.com/owl/families/hasSSN inside primer.rdfxml.xml was an owl:DataProperty initially.
-                // I changed it to owl:DatatypeProperty. OWL-API treats an entity as owl:DatatypeProperty in such unclear cases
-                // (see org.semanticweb.owlapi.rdf.rdfxml.parser.Translators#DataSomeValuesFromTranslator#translate),
-                // but it doesn't seem correct to me.
-                "primer.rdfxml.xml",
-                "RDFSClass.rdf",
-                "koala.owl",
-                "SubClassOf.rdf",
-                "TestParser06.rdf",
-                // WARNING: There is ambiguous situation with Restriction inside TestParser07.rdf:
-                // the pair <http://example.org#r>, <http://example.org#z> could be a data property either an object property restriction.
-                // OWL-API decides that it is object property for some reasons.
-                // ONT-API would throw an exception in such case.
-                // To make test passed I changed initial TestParser07.rdf by adding declaration for <http://example.org#z> as Datatype.
-                // UPDATE: currently ONT-API(1.4.0) also chooses ObjectProperty in ambiguous situations.
-                "TestParser07.rdf",
-                "TestParser10.rdf",
-                // WARNING: data modified. Replace '\r\n' -> '\n'.
-                // Test had failed both for OWL-API and ONT-API due to Manchester and OWL/XML parsers.
-                // We don't test pure OWL things, so we don't need this particular checking.
-                "annotatedpropertychain.ttl.rdf",
-                "UntypedSubClassOf.rdf",
-                "SubClassOfUntypedOWLClass.rdf",
-                "SubClassOfUntypedSomeValuesFrom.rdf",
-                "XMLLiteral.rdf");
+                "AnnotatedPropertyAssertions.rdf",          // 1
+                "ComplexSubProperty.rdf",                   // 2
+                "DataAllValuesFrom.rdf",                    // 3
+                "cardinalitywithwhitespace.owl",            // 4
+                "DataComplementOf.rdf",                     // 5
+                "DataHasValue.rdf",                         // 6
+                "DataIntersectionOf.rdf",                   // 7
+                "DataMaxCardinality.rdf",                   // 8
+                "DataMinCardinality.rdf",                   // 9
+                "DataOneOf.rdf",                            // 10
+                "DataSomeValuesFrom.rdf",                   // 11
+                "DataUnionOf.rdf",                          // 12
+                "DatatypeRestriction.rdf",                  // 13
+                "TestDeclarations.rdf",                     // 14
+                "Deprecated.rdf",                           // 15
+                "DisjointClasses.rdf",                      // 16
+                "HasKey.rdf",                               // 17
+                "InverseOf.rdf",                            // 18
+                "ObjectAllValuesFrom.rdf",                  // 19
+                "ObjectCardinality.rdf",                    // 20
+                "ObjectComplementOf.rdf",                   // 21
+                "ObjectHasSelf.rdf",                        // 22
+                "ObjectHasValue.rdf",                       // 23
+                "ObjectIntersectionOf.rdf",                 // 24
+                "ObjectMaxCardinality.rdf",                 // 25
+                "ObjectMaxQualifiedCardinality.rdf",        // 26
+                "ObjectMinCardinality.rdf",                 // 27
+                "ObjectMinQualifiedCardinality.rdf",        // 28
+                "ObjectOneOf.rdf",                          // 29
+                "ObjectQualifiedCardinality.rdf",           // 30
+                "ObjectSomeValuesFrom.rdf",                 // 31
+                "ObjectUnionOf.rdf",                        // 32
+                "primer.functionalsyntax.txt",              // 33
+                "primer.owlxml.xml",                        // 34
+                "primer.rdfxml.xml",                        // 35
+                "RDFSClass.rdf",                            // 36
+                "koala.owl",                                // 37
+                "SubClassOf.rdf",                           // 38
+                "TestParser06.rdf",                         // 39
+                "TestParser07.rdf",                         // 40
+                "TestParser10.rdf",                         // 41
+                "annotatedpropertychain.ttl.rdf",           // 42
+                "UntypedSubClassOf.rdf",                    // 43
+                "SubClassOfUntypedOWLClass.rdf",            // 44
+                "SubClassOfUntypedSomeValuesFrom.rdf",      // 45
+                "XMLLiteral.rdf");                          // 46
     }
 }
