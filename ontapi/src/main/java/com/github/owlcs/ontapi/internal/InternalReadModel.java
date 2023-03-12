@@ -17,7 +17,6 @@ package com.github.owlcs.ontapi.internal;
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.ID;
 import com.github.owlcs.ontapi.OntApiException;
-import com.github.owlcs.ontapi.RWLockedGraph;
 import com.github.owlcs.ontapi.internal.axioms.AbstractNaryTranslator;
 import com.github.owlcs.ontapi.internal.objects.ModelObject;
 import com.github.owlcs.ontapi.internal.searchers.axioms.AnnotationAssertionBySubject;
@@ -365,7 +364,7 @@ abstract class InternalReadModel extends OntGraphModelImpl implements ListAxioms
      * Jena model method.
      * Since in ONT-API we use another kind of lock this method is disabled (i.e. R/W Lock inside manager).
      *
-     * @see RWLockedGraph
+     * @see com.github.sszuev.graphs.ReadWriteLockingGraph
      */
     @Override
     public Lock getLock() {

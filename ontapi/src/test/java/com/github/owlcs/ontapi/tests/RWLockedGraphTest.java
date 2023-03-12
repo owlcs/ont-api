@@ -1,7 +1,7 @@
 /*
  * This file is part of the ONT API.
  * The contents of this file are subject to the LGPL License, Version 3.0.
- * Copyright (c) 2022, owl.cs group.
+ * Copyright (c) 2023, owl.cs group.
  *
  * This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
  * This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
@@ -14,7 +14,6 @@
 
 package com.github.owlcs.ontapi.tests;
 
-import com.github.owlcs.ontapi.RWLockedGraph;
 import com.github.owlcs.ontapi.internal.AxiomTranslator;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.jena.OntModelFactory;
@@ -23,6 +22,7 @@ import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import com.github.owlcs.ontapi.testutils.OWLIOUtils;
+import com.github.sszuev.graphs.ReadWriteLockingGraph;
 import org.apache.jena.graph.Factory;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.riot.Lang;
@@ -55,7 +55,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * To test {@link RWLockedGraph}.
+ * To test {@link ReadWriteLockingGraph}.
  * Created by @ssz on 05.04.2019.
  */
 public class RWLockedGraphTest {
@@ -146,7 +146,7 @@ public class RWLockedGraphTest {
     @Test
     public void testRaceModifyAndList() throws Exception {
         Graph g = loadPizza();
-        Graph gg = new RWLockedGraph(g, new ReentrantReadWriteLock());
+        Graph gg = new ReadWriteLockingGraph(g, new ReentrantReadWriteLock());
         OntModel m = OntModelFactory.createModel(gg);
         Instant s = Instant.now();
         testRace(m);
@@ -156,7 +156,7 @@ public class RWLockedGraphTest {
 
     @Test
     public void testConcurrentPrefixes() throws ExecutionException, InterruptedException {
-        PrefixMapping pm = new RWLockedGraph(Factory.createGraphMem(), new ReentrantReadWriteLock()).getPrefixMapping();
+        PrefixMapping pm = new ReadWriteLockingGraph(Factory.createGraphMem(), new ReentrantReadWriteLock()).getPrefixMapping();
         ExecutorService service = Executors.newScheduledThreadPool(3);
         List<Future<?>> res = new ArrayList<>();
         for (int i = 0; i < THREADS_NUM_1; i++) {

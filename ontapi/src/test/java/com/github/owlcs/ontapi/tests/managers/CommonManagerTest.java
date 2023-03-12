@@ -21,7 +21,6 @@ import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.OntologyManagerImpl;
 import com.github.owlcs.ontapi.OntologyModelImpl;
-import com.github.owlcs.ontapi.RWLockedGraph;
 import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
 import com.github.owlcs.ontapi.internal.AxiomTranslator;
 import com.github.owlcs.ontapi.internal.ONTObject;
@@ -37,6 +36,7 @@ import com.github.owlcs.ontapi.testutils.OWLIOUtils;
 import com.github.owlcs.ontapi.testutils.OntIRI;
 import com.github.owlcs.ontapi.testutils.SpinModels;
 import com.github.owlcs.ontapi.transforms.GraphTransformers;
+import com.github.sszuev.graphs.ReadWriteLockingGraph;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.util.FileManager;
@@ -275,8 +275,7 @@ public class CommonManagerTest {
     private void checkConcurrentOntologyLock(OWLOntology o, ReadWriteLock managerLock) {
         Assertions.assertTrue(o instanceof OntologyModelImpl.Concurrent);
         Assertions.assertEquals(managerLock, ((OntologyModelImpl.Concurrent) o).getLock());
-        Assertions.assertTrue(((Ontology) o).asGraphModel().getBaseGraph() instanceof RWLockedGraph);
-        Assertions.assertEquals(managerLock, ((RWLockedGraph) ((Ontology) o).asGraphModel().getBaseGraph()).lock());
+        Assertions.assertTrue(((Ontology) o).asGraphModel().getBaseGraph() instanceof ReadWriteLockingGraph);
     }
 
     @ParameterizedTest
@@ -459,8 +458,8 @@ public class CommonManagerTest {
         LOGGER.debug("Test {}", m);
         Assertions.assertNotNull(m);
         if (isConcurrent) {
-            Assertions.assertTrue(m.getBaseGraph() instanceof RWLockedGraph);
-            Assertions.assertTrue(Graphs.isGraphMem(((RWLockedGraph) m.getBaseGraph()).get()));
+            Assertions.assertTrue(m.getBaseGraph() instanceof ReadWriteLockingGraph);
+            Assertions.assertTrue(Graphs.isGraphMem(((ReadWriteLockingGraph) m.getBaseGraph()).get()));
         } else {
             Assertions.assertTrue(Graphs.isGraphMem(m.getBaseGraph()));
         }

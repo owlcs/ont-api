@@ -41,6 +41,7 @@
         <version.owlapi>5.5.0</version.owlapi>
         <version.slf4j>2.0.6</version.slf4j>
         <version.caffeine>3.1.5</version.caffeine>
+        <version.concurrent-rdf-graph>1.0.0</version.concurrent-rdf-graph>
         <version.junit>5.9.2</version.junit>
         <versio.mockito>5.2.0</versio.mockito>
     </properties>
@@ -79,6 +80,17 @@
         <url>https://github.com/owlcs/ont-api</url>
     </scm>
 
+    <repositories>
+        <repository>
+            <id>central</id>
+            <url>https://repo1.maven.org/maven2</url>
+        </repository>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
+
     <distributionManagement>
         <snapshotRepository>
             <id>ossrh</id>
@@ -111,6 +123,11 @@
                 </exclusions>
             </dependency>
             <!-- other: -->
+            <dependency>
+                <groupId>com.github.sszuev</groupId>
+                <artifactId>concurrent-rdf-graph</artifactId>
+                <version>${version.concurrent-rdf-graph}</version>
+            </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
                 <artifactId>slf4j-api</artifactId>
