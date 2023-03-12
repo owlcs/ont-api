@@ -28,8 +28,8 @@
     <url>https://github.com/owlcs/ont-api</url>
 
     <modules>
-        <module>./jena</module>
-        <module>./ontapi</module>
+        <module>./jena-impl</module>
+        <module>./owlapi-impl</module>
         <module>./distribution</module>
     </modules>
 

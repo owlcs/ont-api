@@ -139,8 +139,8 @@
                         </goals>
                         <configuration>
                             <sources>
-                                <source>../jena/src/main/java</source>
-                                <source>../ontapi/src/main/java</source>
+                                <source>../jena-impl/src/main/java</source>
+                                <source>../owlapi-impl/src/main/java</source>
                             </sources>
                         </configuration>
                     </execution>
@@ -153,10 +153,10 @@
                         <configuration>
                             <resources>
                                 <resource>
-                                    <directory>../jena/src/main/resources</directory>
+                                    <directory>../jena-impl/src/main/resources</directory>
                                 </resource>
                                 <resource>
-                                    <directory>../ontapi/src/main/resources</directory>
+                                    <directory>../owlapi-impl/src/main/resources</directory>
                                 </resource>
                             </resources>
                         </configuration>
@@ -169,8 +169,8 @@
                         </goals>
                         <configuration>
                             <sources>
-                                <source>../jena/src/test/java</source>
-                                <source>../ontapi/src/test/java</source>
+                                <source>../jena-impl/src/test/java</source>
+                                <source>../owlapi-impl/src/test/java</source>
                             </sources>
                         </configuration>
                     </execution>
@@ -202,6 +202,9 @@
                         <goals>
                             <goal>jar</goal>
                         </goals>
+                        <configuration>
+                            <finalName>ontapi-${project.version}</finalName>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -214,6 +217,9 @@
                         <goals>
                             <goal>jar</goal>
                         </goals>
+                        <configuration>
+                            <finalName>ontapi-${project.version}</finalName>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -230,6 +236,9 @@
                         <goals>
                             <goal>test-jar</goal>
                         </goals>
+                        <configuration>
+                            <finalName>ontapi-${project.version}</finalName>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
