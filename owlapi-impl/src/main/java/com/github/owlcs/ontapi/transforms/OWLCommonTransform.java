@@ -19,8 +19,8 @@ import com.github.owlcs.ontapi.jena.utils.Models;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import com.github.owlcs.ontapi.jena.vocabulary.XSD;
-import com.github.owlcs.ontapi.transforms.vocabulary.AVC;
 import com.github.owlcs.ontapi.transforms.vocabulary.DEPRECATED;
+import com.github.owlcs.ontapi.transforms.vocabulary.ONTAPI;
 import org.apache.jena.datatypes.RDFDatatype;
 import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.graph.Graph;
@@ -234,9 +234,9 @@ public class OWLCommonTransform extends TransformationModel {
                 .forEach(s -> {
                     RDFNode o = s.getObject();
                     if (o.isURIResource()) {
-                        m.remove(s).add(s.getSubject(), OWL.onDatatype, s.getObject());
+                        m.remove(s).add(s.getSubject(), OWL.onDatatype, o);
                     } else if (o.isAnon()) {
-                        Resource auto = AVC.randomIRI().inModel(m);
+                        Resource auto = ONTAPI.randomIRI().inModel(m);
                         m.remove(s).add(s.getSubject(), OWL.onDatatype, auto);
                         auto.addProperty(OWL.equivalentClass, o);
                     }

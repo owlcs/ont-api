@@ -65,8 +65,7 @@ import java.util.stream.Stream;
  * <li>{@link #getGraphModel(String, String)}</li>
  * <li>{@link #getDocumentSourceMappers()} - since 1.3.0</li>
  * </ul>
- * <p>
- * Created by szuev on 24.10.2016.
+ * @see <a href="https://github.com/owlcs/owlapi/blob/version5/api/src/main/java/org/semanticweb/owlapi/model/OWLOntologyManager.java">org.semanticweb.owlapi.model.OWLOntologyManager</a>
  */
 @ParametersAreNonnullByDefault
 public interface OntologyManager extends OWLOntologyManager {

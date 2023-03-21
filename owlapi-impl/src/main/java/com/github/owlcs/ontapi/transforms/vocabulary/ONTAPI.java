@@ -25,7 +25,7 @@ import java.util.UUID;
  * Vocabulary with (possible, temporary) resources used by ONT-API only.
  * Might be moved to {@link com.github.owlcs.ontapi.jena.vocabulary} if necessary.
  */
-public class AVC {
+public class ONTAPI {
     public final static String URI = "https://github.com/owlcs/ont-api";
     public final static String NS = URI + "#";
 

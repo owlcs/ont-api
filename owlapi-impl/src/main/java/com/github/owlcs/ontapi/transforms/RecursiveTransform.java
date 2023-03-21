@@ -15,7 +15,7 @@
 package com.github.owlcs.ontapi.transforms;
 
 import com.github.owlcs.ontapi.jena.OntVocabulary;
-import com.github.owlcs.ontapi.transforms.vocabulary.AVC;
+import com.github.owlcs.ontapi.transforms.vocabulary.ONTAPI;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
@@ -44,7 +44,7 @@ import java.util.stream.Stream;
  * Created by @szuev on 24.01.2018.
  * <p>
  * Note: this transform is slow - the complexity is ~O(n*log(n))
- * @see AVC#error(String)
+ * @see ONTAPI#error(String)
  */
 @SuppressWarnings("WeakerAccess")
 public class RecursiveTransform extends TransformationModel {
@@ -158,7 +158,7 @@ public class RecursiveTransform extends TransformationModel {
     }
 
     public Triple createReplacement(Triple base) {
-        return createReplacement(base, n -> AVC.error(n).asNode());
+        return createReplacement(base, n -> ONTAPI.error(n).asNode());
     }
 
     public Triple createReplacement(Triple base, UnaryOperator<Node> mapper) {

@@ -20,7 +20,6 @@ import com.google.common.collect.ListMultimap;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.text.MessageFormat;
 import java.util.Objects;
@@ -32,22 +31,6 @@ import java.util.stream.Collectors;
  * Created by @ssz on 11.09.2018.
  */
 class ReflectionUtils {
-
-    /**
-     * Finds a static method by the class and its name.
-     *
-     * @param clazz {@link Class}
-     * @param name  String name
-     * @return {@link Method}
-     * @throws OntApiException if no method is found
-     */
-    static Method findStaticMethod(Class<?> clazz, String name) throws OntApiException {
-        try {
-            return clazz.getMethod(name);
-        } catch (NoSuchMethodException e) {
-            throw new OntApiException("Can't find method '" + name + "' in " + clazz, e);
-        }
-    }
 
     /**
      * Returns a proxy instance that implements {@code interfaceType} by dispatching method
@@ -110,7 +93,8 @@ class ReflectionUtils {
     static <R> R newInstance(Class<R> type) throws OntApiException {
         try {
             return type.getDeclaredConstructor().newInstance();
-        } catch (NoSuchMethodException | InvocationTargetException | InstantiationException | IllegalAccessException e) {
+        } catch (NoSuchMethodException | InvocationTargetException | InstantiationException |
+                 IllegalAccessException e) {
             throw new OntApiException("Can't create instance of " + type.getName(), e);
         }
     }

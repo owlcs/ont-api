@@ -30,7 +30,7 @@ import java.util.Objects;
  * The ontology building and loading factory, the 'core' - the main point to create and load ontologies.
  * See also base interface {@link OWLOntologyFactory} and its single implementation
  * <a href="https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyFactoryImpl.java">uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl</a> in the OWLAPI-impl module.
- * It is also an outer class for any {@link OWLOntologyCreationException}s sub-classes, which may occur during loading.
+ * It is also an outer class for any {@link OWLOntologyCreationException}s subclasses, which may occur during loading.
  * <p>
  * Created by szuev on 24.10.2016.
  *

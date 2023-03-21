@@ -16,7 +16,7 @@ package com.github.owlcs.ontapi.transforms;
 
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
-import com.github.owlcs.ontapi.transforms.vocabulary.AVC;
+import com.github.owlcs.ontapi.transforms.vocabulary.ONTAPI;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.RDFNode;
@@ -89,7 +89,7 @@ public class OWLDeclarationTransform extends TransformationModel {
     }
 
     protected void finalActions() {
-        getWorkModel().removeAll(null, RDF.type, AVC.AnonymousIndividual);
+        getWorkModel().removeAll(null, RDF.type, ONTAPI.AnonymousIndividual);
         // at times the ontology could contain some rdfs garbage,
         // even if other transformers (OWLTransformer, RDFSTransformer) have been used.
         listStatements(null, RDF.type, RDF.Property)

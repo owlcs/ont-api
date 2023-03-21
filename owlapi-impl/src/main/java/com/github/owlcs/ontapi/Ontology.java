@@ -35,8 +35,7 @@ import org.semanticweb.owlapi.model.OWLOntology;
  * Also, please note that although ONT-API supports the ability to change data simultaneously through both interfaces,
  * this is not always correct: an {@link Ontology} impls use caches,
  * and switching back and forth could flush these caches, which may degrade performance.
- * <p>
- * Created by szuev on 24.10.2016.
+ * @see <a href="https://github.com/owlcs/owlapi/blob/version5/api/src/main/java/org/semanticweb/owlapi/model/OWLOntology.java">org.semanticweb.owlapi.model.OWLOntology</a>
  */
 public interface Ontology extends OWLOntology {
 
@@ -55,6 +54,9 @@ public interface Ontology extends OWLOntology {
      * then the method {@link #clearCache()} may help.
      * Also note: any changes in the RDF-view will reset the internal cache,
      * that means next attempt to retrieve data from axiomatic view (i.e. list axioms) will take the same time as the very first one.
+     * <p>
+     * Note that returning {@code OntModel} is not thread-safe even with {@code ReadWriteLock} (see <a href="https://github.com/owlcs/ont-api/issues/46">issue #46</a>).
+     * But {@code asGraphModel().getGraph()} and {@code asGraphModel().getBaseGraph()} are thread-safe.
      *
      * @return {@link OntModel Ontology RDF Graph Model}, not {@code null}
      * @see org.apache.jena.graph.Graph

@@ -16,7 +16,7 @@ package com.github.owlcs.ontapi.transforms;
 
 import com.github.owlcs.ontapi.jena.utils.Iterators;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
-import com.github.owlcs.ontapi.transforms.vocabulary.AVC;
+import com.github.owlcs.ontapi.transforms.vocabulary.ONTAPI;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.Property;
@@ -113,7 +113,7 @@ public abstract class BaseDeclarator extends TransformationModel {
     }
 
     protected boolean isIndividual(Resource candidate) {
-        return hasType(candidate, OWL.NamedIndividual) || hasType(candidate, AVC.AnonymousIndividual);
+        return hasType(candidate, OWL.NamedIndividual) || hasType(candidate, ONTAPI.AnonymousIndividual);
     }
 
     protected BaseDeclarator declareObjectProperty(Resource resource) {
@@ -153,7 +153,7 @@ public abstract class BaseDeclarator extends TransformationModel {
             // test data from owl-api-contact contains such things also:
             undeclare(resource, OWL.NamedIndividual);
             // the temporary declaration:
-            declare(resource, AVC.AnonymousIndividual);
+            declare(resource, ONTAPI.AnonymousIndividual);
         } else {
             declare(resource, OWL.NamedIndividual);
         }
