@@ -40,7 +40,7 @@
         <maven.deploy.skip>true</maven.deploy.skip>
         <maven.install.skip>true</maven.install.skip>
 
-        <revision>3.0.4</revision>
+        <revision>3.0.5-SNAPSHOT</revision>
 
         <version.jena>4.7.0</version.jena>
         <version.owlapi>5.5.0</version.owlapi>
