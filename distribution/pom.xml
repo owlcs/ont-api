@@ -25,6 +25,8 @@
 
     <artifactId>ontapi</artifactId>
 
+    <name>${project.groupId}:${project.artifactId}</name>
+
     <properties>
         <maven.deploy.skip>false</maven.deploy.skip>
         <maven.install.skip>false</maven.install.skip>
