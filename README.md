@@ -1,5 +1,10 @@
 # ONT-API (ver. 3.x.x)
 
+<a href="https://maven-badges.herokuapp.com/maven-central/com.github.owlcs/ontapi"><img src="https://maven-badges.herokuapp.com/maven-central/com.github.owlcs/ontapi/badge.svg" height="25" alt="Maven Central"></a>
+<a href="https://javadoc.io/doc/com.github.owlcs/ontapi/latest/index.html"><img src="https://javadoc.io/badge2/com.github.owlcs/ontapi/javadoc.svg" height="25" alt="Javadoc"></a>
+<a href="https://jb.gg/OpenSourceSupport"><img src="https://resources.jetbrains.com/storage/products/company/brand/logos/IntelliJ_IDEA.svg" height="25" alt="JetBrains open source"></a>
+
+
 ## Summary
 
 ONT-API is an [RDF](https://www.w3.org/TR/rdf11-concepts/)-centric Java library to work with [OWL2](https://www.w3.org/TR/owl2-syntax/).
