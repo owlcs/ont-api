@@ -26,6 +26,7 @@
     <artifactId>ontapi</artifactId>
 
     <name>${project.groupId}:${project.artifactId}</name>
+    <url>https://github.com/owlcs/ont-api</url>
 
     <properties>
         <maven.deploy.skip>false</maven.deploy.skip>
