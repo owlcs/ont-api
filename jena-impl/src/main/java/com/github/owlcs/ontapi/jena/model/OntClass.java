@@ -36,7 +36,7 @@ import java.util.stream.Stream;
 /**
  * A base abstraction for any Class Expressions (both named and anonymous).
  * <p>
- * Created by szuev on 01.11.2016.
+ * Created @ssz on 01.11.2016.
  *
  * @see Named - an OWL Class
  * @see <a href="https://www.w3.org/TR/owl2-quick-reference/#Class_Expressions">2.1 Class Expressions</a>
@@ -689,7 +689,7 @@ public interface OntClass extends OntObject, AsNamed<OntClass.Named>, HasDisjoin
      * An OWL Class {@link OntEntity Entity}, a named class expression.
      * This is an analogue of {@link org.apache.jena.ontology.OntClass}, but for OWL2.
      * <p>
-     * Created by szuev on 01.11.2016.
+     * Created @ssz on 01.11.2016.
      *
      * @see <a href='https://www.w3.org/TR/owl2-syntax/#Classes'>5.1 Classes</a>
      */

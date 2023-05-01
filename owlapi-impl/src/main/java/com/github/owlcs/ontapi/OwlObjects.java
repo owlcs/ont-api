@@ -29,7 +29,7 @@ import java.util.stream.Stream;
  * Helper to work with {@link OWLObject} (mostly for retrieving components from {@link OWLAxiom owl-axioms}).
  * Note: its methods are recursive.
  * <p>
- * Created by @szuev on 08.02.2017.
+ * Created by @ssz on 08.02.2017.
  */
 @SuppressWarnings("WeakerAccess")
 public class OwlObjects {

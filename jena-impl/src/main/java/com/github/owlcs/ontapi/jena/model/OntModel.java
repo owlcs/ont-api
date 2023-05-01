@@ -62,7 +62,7 @@ import java.util.stream.Stream;
  * For more details see {@link org.apache.jena.util.iterator.ClosableIterator}.
  * In case of {@code Stream} try-with-resources can be used.
  * <p>
- * Created by @szuev on 11.11.2016.
+ * Created by @ssz on 11.11.2016.
  *
  * @see <a href='https://www.w3.org/TR/owl2-mapping-to-rdf'>OWL2 RDF mapping</a>
  * @see <a href='https://www.w3.org/TR/owl2-quick-reference/'>A Quick Guide</a>

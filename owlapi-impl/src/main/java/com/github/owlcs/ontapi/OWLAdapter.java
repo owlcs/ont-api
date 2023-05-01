@@ -37,7 +37,7 @@ import java.util.Objects;
  * there is no guarantee that any methods will work in case of external call.
  *
  * @since 1.3.0
- * Created by @szuev on 01.07.2018.
+ * Created by @ssz on 01.07.2018.
  */
 @SuppressWarnings("WeakerAccess")
 public class OWLAdapter implements HasAdapter.Adapter {

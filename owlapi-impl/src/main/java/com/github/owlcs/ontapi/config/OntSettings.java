@@ -53,7 +53,7 @@ import java.util.stream.Collectors;
  * is used as secondary attempt in case a property entry is absent in the file.
  * See <a href="file:../resources/ontapi.properties">ontapi.properties</a>
  * <p>
- * Created by @szuev on 14.04.2017.
+ * Created by @ssz on 14.04.2017.
  *
  * @see ConfigurationOptions
  */

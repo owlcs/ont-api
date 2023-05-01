@@ -28,7 +28,7 @@ import org.apache.jena.graph.Node;
  * Also, in addition to the standard jena methods,
  * this implementation includes nodes search and graph transformation functionality.
  * <p>
- * Created by @szuev on 03.11.2016.
+ * Created by @ssz on 03.11.2016.
  */
 public abstract class BaseFactoryImpl extends Implementation implements ObjectFactory {
 

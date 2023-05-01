@@ -44,7 +44,7 @@ import java.util.stream.Stream;
 /**
  * for SWRLRule Axiom.
  * <p>
- * Created by szuev on 19.10.2016.
+ * Created @ssz on 19.10.2016.
  */
 public class SWRLRuleOntModelTest extends OntModelTestBase {
 

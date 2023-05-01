@@ -32,7 +32,7 @@ import java.util.stream.Stream;
  * A transformation statistic object, which is an outcome of transform process.
  * Notice that it holds everything in memory.
  * <p>
- * Created by @szuev on 27.06.2018.
+ * Created by @ssz on 27.06.2018.
  */
 public class GraphStats {
     protected final Graph graph;

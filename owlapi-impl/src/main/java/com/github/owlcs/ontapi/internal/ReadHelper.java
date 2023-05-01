@@ -64,7 +64,7 @@ import java.util.stream.Stream;
 /**
  * A collection of helper methods to perform translation of RDF-Graph to the {@code OWLObject}s (i.e. reading from a {@code Graph}).
  * <p>
- * Created by @szuev on 25.11.2016.
+ * Created by @ssz on 25.11.2016.
  *
  * @see WriteHelper
  */

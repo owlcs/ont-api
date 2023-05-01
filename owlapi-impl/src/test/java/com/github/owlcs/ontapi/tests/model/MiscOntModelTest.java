@@ -58,7 +58,7 @@ import java.util.stream.Collectors;
 /**
  * For testing miscellaneous general model functionality.
  * <p>
- * Created by @szuev on 20.07.2018.
+ * Created by @ssz on 20.07.2018.
  */
 public class MiscOntModelTest extends OntModelTestBase {
 

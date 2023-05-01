@@ -50,7 +50,7 @@ import java.util.stream.Stream;
  * {@link RDFNode Jena RDF Node}, {@link Literal Jena Literal}, {@link Resource Jena Resource} and
  * {@link Statement Jena Statement}.
  * <p>
- * Created by szuev on 20.10.2016.
+ * Created @ssz on 20.10.2016.
  */
 @SuppressWarnings("WeakerAccess")
 public class Models {

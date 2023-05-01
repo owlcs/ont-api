@@ -56,7 +56,7 @@ import java.util.stream.Collectors;
  * to control changes in OWL-API formats (parsers and storers) in conjunction with ONT-API io-mechanisms.
  * Currently, it is mostly to compare OWL-API and ONT-API read/write support.
  * <p>
- * Created by @szuev on 10.01.2018.
+ * Created by @ssz on 10.01.2018.
  *
  * @see OntFormat
  */

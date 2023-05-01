@@ -368,7 +368,7 @@ public class GraphTransformers implements Serializable {
      * Note: it keeps any tracked (added and removed) {@code Triple} in memory.
      * This may be inappropriate for a huge graphs containing a lot of missed declarations.
      * <p>
-     * Created by @szuev on 27.06.2018.
+     * Created by @ssz on 27.06.2018.
      */
     public static class TransformListener extends GraphListenerBase {
 

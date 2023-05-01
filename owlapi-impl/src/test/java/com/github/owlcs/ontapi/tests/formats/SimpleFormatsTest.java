@@ -48,7 +48,7 @@ import java.util.stream.Stream;
  * "Good" means it is passed reloading test.
  * The pure OWL-API mechanism is used for loading a document in these formats.
  * <p>
- * Created by szuev on 20.12.2016.
+ * Created @ssz on 20.12.2016.
  */
 public class SimpleFormatsTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(SimpleFormatsTest.class);

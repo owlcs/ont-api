@@ -121,7 +121,7 @@ import java.util.stream.Stream;
 /**
  * An ONT-API default implementation of {@link OntologyManager Ontology Manager}.
  * <p>
- * Created by @szuev on 03.10.2016.
+ * Created by @ssz on 03.10.2016.
  *
  * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyManagerImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyManagerImpl</a>
  */

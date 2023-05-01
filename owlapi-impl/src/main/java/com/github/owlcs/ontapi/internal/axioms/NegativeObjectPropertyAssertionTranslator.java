@@ -48,7 +48,7 @@ import java.util.stream.Stream;
  * <pre>{@code
  * [ a owl:NegativePropertyAssertion; owl:sourceIndividual :ind1; owl:assertionProperty :objProp; owl:targetIndividual :ind2 ] .
  * }</pre>
- * Created by szuev on 12.10.2016.
+ * Created @ssz on 12.10.2016.
  */
 public class NegativeObjectPropertyAssertionTranslator
         extends AbstractNegativePropertyAssertionTranslator<OWLNegativeObjectPropertyAssertionAxiom, OntNegativeAssertion.WithObjectProperty> {

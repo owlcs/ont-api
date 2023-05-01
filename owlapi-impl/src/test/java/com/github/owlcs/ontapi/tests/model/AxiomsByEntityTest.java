@@ -67,7 +67,7 @@ import java.util.stream.Stream;
  * Also, to test {@link OntBaseModelImpl#referencingAxioms(OWLPrimitive)} and
  * {@link OWLAxiomCollection}#signature methods.
  * <p>
- * Created by @szuev on 20.02.2018.
+ * Created by @ssz on 20.02.2018.
  */
 public class AxiomsByEntityTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(AxiomsByEntityTest.class);
@@ -90,7 +90,7 @@ public class AxiomsByEntityTest {
     }
 
     /**
-     * Created by @szuev on 20.02.2018.
+     * Created by @ssz on 20.02.2018.
      */
     public enum Entity {
         CLASS {

@@ -19,7 +19,7 @@ import org.apache.jena.shared.JenaException;
 /**
  * The jena exception to use inside {@link com.github.owlcs.ontapi.transforms this package} only.
  * <p>
- * Created by @szuev on 25.01.2018.
+ * Created by @ssz on 25.01.2018.
  */
 @SuppressWarnings({"unused"})
 public class TransformException extends JenaException {

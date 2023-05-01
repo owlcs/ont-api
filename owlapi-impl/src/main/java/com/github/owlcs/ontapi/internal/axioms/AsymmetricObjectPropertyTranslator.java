@@ -45,7 +45,7 @@ import java.util.stream.Stream;
  * A translator that provides {@link OWLAsymmetricObjectPropertyAxiom} implementations,
  * which are defined as object property declarations with {@code owl:AsymmetricProperty} type.
  * <p>
- * Created by @szuev on 18.10.2016.
+ * Created by @ssz on 18.10.2016.
  */
 public class AsymmetricObjectPropertyTranslator
         extends AbstractPropertyTypeTranslator<OWLAsymmetricObjectPropertyAxiom, OntObjectProperty> {

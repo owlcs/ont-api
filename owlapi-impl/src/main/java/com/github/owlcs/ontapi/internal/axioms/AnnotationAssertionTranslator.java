@@ -66,7 +66,7 @@ import java.util.function.Supplier;
  *  pizza:UnclosedPizza rdfs:label "PizzaAberta"@pt .
  * }</pre>
  * <p>
- * Created by @szuev on 28.09.2016.
+ * Created by @ssz on 28.09.2016.
  */
 @SuppressWarnings("WeakerAccess")
 public class AnnotationAssertionTranslator

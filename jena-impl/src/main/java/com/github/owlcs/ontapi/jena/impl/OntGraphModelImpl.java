@@ -79,7 +79,7 @@ import java.util.stream.Stream;
  * Base model ONT-API implementation to work through jena only.
  * This is an analogue of {@link org.apache.jena.ontology.impl.OntModelImpl} to work in accordance with OWL2 DL specification.
  * <p>
- * Created by @szuev on 27.10.2016.
+ * Created by @ssz on 27.10.2016.
  *
  * @see UnionGraph
  */
@@ -571,10 +571,7 @@ public class OntGraphModelImpl extends UnionModel implements OntModel, Personali
      * @return {@link OntObject}, new instance
      */
     public <T extends OntObject> T createOntObject(Class<T> type, String uri) {
-        Node key = Graphs.createNode(uri);
-        T res = getOntPersonality().getObjectFactory(type).createInGraph(key, this).as(type);
-        getNodeCache().put(key, res);
-        return res;
+        return getOntPersonality().getObjectFactory(type).createInGraph(Graphs.createNode(uri), this).as(type);
     }
 
     @Override
@@ -582,7 +579,6 @@ public class OntGraphModelImpl extends UnionModel implements OntModel, Personali
         obj.clearAnnotations().content()
                 .peek(OntStatement::clearAnnotations)
                 .collect(Collectors.toSet()).forEach(this::remove);
-        getNodeCache().remove(obj.asNode());
         return this;
     }
 

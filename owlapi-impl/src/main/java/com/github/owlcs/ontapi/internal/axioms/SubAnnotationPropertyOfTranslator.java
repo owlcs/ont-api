@@ -45,7 +45,7 @@ import java.util.function.Supplier;
  * A translator that provides {@link OWLSubAnnotationPropertyOfAxiom} implementations.
  * See {@link AbstractSubPropertyTranslator}.
  * <p>
- * Created by @szuev on 30.09.2016.
+ * Created by @ssz on 30.09.2016.
  */
 public class SubAnnotationPropertyOfTranslator
         extends AbstractSubPropertyTranslator<OWLSubAnnotationPropertyOfAxiom, OntAnnotationProperty> {

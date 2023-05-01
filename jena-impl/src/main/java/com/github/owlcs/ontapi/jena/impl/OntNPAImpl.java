@@ -40,7 +40,7 @@ import java.util.Optional;
 /**
  * Implementation of the Negative Property Assertion.
  * <p>
- * Created by @szuev on 15.11.2016.
+ * Created by @ssz on 15.11.2016.
  */
 @SuppressWarnings("WeakerAccess")
 public abstract class OntNPAImpl<P extends OntRealProperty, T extends RDFNode>

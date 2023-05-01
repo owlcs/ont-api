@@ -48,7 +48,7 @@ import static com.github.owlcs.ontapi.jena.impl.WrappedFactoryImpl.of;
 /**
  * Implementation for Data Range Expressions.
  * <p>
- * Created by @szuev on 16.11.2016.
+ * Created by @ssz on 16.11.2016.
  */
 @SuppressWarnings("WeakerAccess")
 public class OntDRImpl extends OntObjectImpl implements OntDataRange {

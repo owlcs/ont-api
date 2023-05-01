@@ -74,7 +74,7 @@ import java.util.Set;
  * TODO: Should it return {@link ONTObject}s, not just naked {@link OWLObject}s (see #87, #72)?
  * It seems it would be more convenient and could make this class useful not only as part of inner implementation.
  * <p>
- * Created by @szuev on 26.10.2016.
+ * Created by @ssz on 26.10.2016.
  */
 public class InternalModelImpl extends InternalReadModel implements InternalModel {
 
@@ -384,7 +384,6 @@ public class InternalModelImpl extends InternalReadModel implements InternalMode
      * @param triple {@link Triple}
      */
     protected void delete(Triple triple) {
-        getNodeCache().remove(triple.getSubject());
         getBaseGraph().delete(triple);
     }
 
@@ -397,7 +396,6 @@ public class InternalModelImpl extends InternalReadModel implements InternalMode
     @Override
     public InternalModelImpl removeAll() {
         clearCache();
-        getNodeCache().clear();
         super.removeAll();
         return this;
     }

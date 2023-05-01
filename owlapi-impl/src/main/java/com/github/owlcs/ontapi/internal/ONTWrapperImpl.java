@@ -28,7 +28,7 @@ import java.util.stream.Stream;
 /**
  * An unmodifiable container for {@link OWLObject} and associated with it set of rdf-graph {@link Triple triple}s.
  * <p>
- * Created by @szuev on 27.11.2016.
+ * Created by @ssz on 27.11.2016.
  *
  * @param <O> any subtype of {@link OWLObject}
  */

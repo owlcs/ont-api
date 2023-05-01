@@ -30,7 +30,7 @@ import java.util.Optional;
 /**
  * An extended {@link IRI} with several new methods.
  * <p>
- * Created by @szuev on 27.09.2016.
+ * Created by @ssz on 27.09.2016.
  */
 public class OntIRI extends IRI {
     private static final String URI_RESOURCE_SEPARATOR = "#";

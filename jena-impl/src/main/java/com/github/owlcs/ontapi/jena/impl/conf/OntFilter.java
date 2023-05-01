@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
  * To filter resources.
  * Used by {@link CommonFactoryImpl default factory} and {@link MultiFactoryImpl} implementations as a component.
  * <p>
- * Created by szuev on 07.11.2016.
+ * Created @ssz on 07.11.2016.
  */
 @FunctionalInterface
 public interface OntFilter {

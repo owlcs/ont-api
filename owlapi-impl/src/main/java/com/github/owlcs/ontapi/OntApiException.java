@@ -21,7 +21,7 @@ import org.semanticweb.owlapi.model.OWLRuntimeException;
  * For a {@link com.github.owlcs.ontapi.jena Jena sybsustem}
  * there is its own exception: {@link com.github.owlcs.ontapi.jena.OntJenaException}.
  * <p>
- * Created by @szuev on 27.09.2016.
+ * Created by @ssz on 27.09.2016.
  */
 public class OntApiException extends OWLRuntimeException {
     public OntApiException(String message, Throwable cause) {
@@ -62,7 +62,7 @@ public class OntApiException extends OWLRuntimeException {
 
     /**
      * A {@code RuntimeException} for unsupported things.
-     * Created by @szuev on 29.09.2016.
+     * Created by @ssz on 29.09.2016.
      */
     public static class Unsupported extends OntApiException {
         public Unsupported() {

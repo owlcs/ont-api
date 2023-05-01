@@ -23,7 +23,7 @@ import org.semanticweb.owlapi.model.OWLLiteral;
 /**
  * An extended {@link OWLDataFactory OWL-API DataFactory} for creating entities, axioms and axiom components.
  * <p>
- * Created by @szuev on 16.08.2018.
+ * Created by @ssz on 16.08.2018.
  *
  * @since 1.3.0
  */

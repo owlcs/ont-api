@@ -60,7 +60,7 @@ import java.util.stream.Stream;
  * pizza:hasBase owl:inverseOf pizza:isBaseOf ;
  * }</pre>
  * <p>
- * Created by @szuev on 30.09.2016.
+ * Created by @ssz on 30.09.2016.
  */
 public class InverseObjectPropertiesTranslator extends AbstractSimpleTranslator<OWLInverseObjectPropertiesAxiom> {
 

@@ -39,7 +39,7 @@ import java.util.stream.Stream;
  * Range values for this property expression are restricted to individuals
  * (as distinct from datatype valued {@link OntDataProperty properties}).
  * <p>
- * Created by @szuev on 08.11.2016.
+ * Created by @ssz on 08.11.2016.
  */
 public interface OntObjectProperty extends OntRealProperty, AsNamed<OntObjectProperty.Named>, HasDisjoint<OntObjectProperty> {
 
@@ -824,7 +824,7 @@ public interface OntObjectProperty extends OntRealProperty, AsNamed<OntObjectPro
      * It is a URI-{@link Resource Resource} and an extension to the standard jena {@link Property}.
      * Also? it is an {@link OntEntity OWL Entity} and {@link OntRealProperty real ontology property}.
      * <p>
-     * Created by szuev on 01.11.2016.
+     * Created @ssz on 01.11.2016.
      *
      * @see <a href='https://www.w3.org/TR/owl2-syntax/#Object_Properties'>5.3 Object Properties</a>
      */

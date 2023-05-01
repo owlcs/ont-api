@@ -40,7 +40,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Created by @szuev on 30.01.2018.
+ * Created by @ssz on 30.01.2018.
  */
 @Disabled(value = "unstable")
 //todo: temporary ignored: right now this functionality is not used by the ONT-API and buggy

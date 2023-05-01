@@ -30,7 +30,7 @@ import java.util.stream.Stream;
 /**
  * A {@link ObjectFactory Ontology Object Factory} implementation to combine several other factories.
  * <p>
- * Created by szuev on 07.11.2016.
+ * Created @ssz on 07.11.2016.
  */
 @SuppressWarnings("WeakerAccess")
 public class MultiFactoryImpl extends BaseFactoryImpl {

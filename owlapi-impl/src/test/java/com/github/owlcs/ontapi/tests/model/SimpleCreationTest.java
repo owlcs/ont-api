@@ -38,7 +38,7 @@ import org.semanticweb.owlapi.model.OWLIndividual;
 
 /**
  * Just simple example test.
- * Created by @szuev on 27.09.2016.
+ * Created by @ssz on 27.09.2016.
  */
 public class SimpleCreationTest {
     private static final Logger LOGGER = Logger.getLogger(SimpleCreationTest.class);

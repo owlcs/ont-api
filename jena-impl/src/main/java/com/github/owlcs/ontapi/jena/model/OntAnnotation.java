@@ -38,7 +38,7 @@ import java.util.stream.Stream;
  * ] .
  * }</pre>
  * <p>
- * Created by @szuev on 26.03.2017.
+ * Created by @ssz on 26.03.2017.
  *
  * @see OntStatement
  * @see <a href='https://www.w3.org/TR/owl2-mapping-to-rdf/#Translation_of_Annotations'>2.2 Translation of Annotations</a>

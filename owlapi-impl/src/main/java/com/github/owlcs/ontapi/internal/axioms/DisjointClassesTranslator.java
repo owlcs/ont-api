@@ -56,7 +56,7 @@ import java.util.stream.Stream;
  * {@code [ a owl:AllDisjointClasses ; owl:members ( :Complex2 :Simple1 :Simple2 ) ] . }</li>
  * </ul>
  * <p>
- * Created by @szuev on 28.09.2016.
+ * Created by @ssz on 28.09.2016.
  */
 public class DisjointClassesTranslator
         extends AbstractTwoWayNaryTranslator<OWLDisjointClassesAxiom, OWLClassExpression, OntClass> {

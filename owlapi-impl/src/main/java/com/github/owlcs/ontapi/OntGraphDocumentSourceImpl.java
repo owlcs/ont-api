@@ -54,7 +54,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * or method {@link com.github.owlcs.ontapi.config.OntLoaderConfiguration#setPerformTransformation(boolean)}
  * for a particular ontology, or just override method {@link #withTransforms()}.
  * <p>
- * Created by szuev on 22.02.2017.
+ * Created @ssz on 22.02.2017.
  */
 @SuppressWarnings("WeakerAccess")
 public abstract class OntGraphDocumentSourceImpl implements OntGraphDocumentSource {

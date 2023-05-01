@@ -50,7 +50,7 @@ import java.util.stream.Stream;
  * key3=Some comment
  * }</pre>
  * <p>
- * Created by @szuev on 14.04.2017.
+ * Created by @ssz on 14.04.2017.
  */
 @SuppressWarnings({"WeakerAccess", "unused"})
 public class ExtendedProperties extends Properties {

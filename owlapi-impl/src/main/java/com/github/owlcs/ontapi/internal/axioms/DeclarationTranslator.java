@@ -66,7 +66,7 @@ import java.util.stream.Stream;
  * The entity declaration is a simple triplet with {@code rdf:type} predicate,
  * in OWL2 the subject and object of that triple are IRIs.
  * <p>
- * Created by @szuev on 28.09.2016.
+ * Created by @ssz on 28.09.2016.
  */
 @SuppressWarnings("WeakerAccess")
 public class DeclarationTranslator extends AbstractSimpleTranslator<OWLDeclarationAxiom> {

@@ -47,7 +47,7 @@ import java.util.stream.Stream;
  * The {@link PrefixMapping} of this graph is taken from the base graph,
  * and, therefore, any changes in it reflects both the base and this graph.
  * <p>
- * Created by szuev on 28.10.2016.
+ * Created @ssz on 28.10.2016.
  *
  * @see com.github.owlcs.ontapi.jena.impl.UnionModel
  */

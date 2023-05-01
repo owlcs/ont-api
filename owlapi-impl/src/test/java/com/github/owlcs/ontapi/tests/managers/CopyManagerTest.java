@@ -52,7 +52,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Created by @szuev on 26.01.2018.
+ * Created by @ssz on 26.01.2018.
  */
 public class CopyManagerTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(CopyManagerTest.class);

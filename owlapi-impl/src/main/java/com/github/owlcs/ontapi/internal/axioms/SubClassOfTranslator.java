@@ -60,7 +60,7 @@ import java.util.stream.Stream;
  *                           ] .
  * }</pre>
  * <p>
- * Created by @szuev on 28.09.2016.
+ * Created by @ssz on 28.09.2016.
  *
  * @see <a href='https://www.w3.org/TR/owl-syntax/#Subclass_Axioms'>9.1.1 Subclass Axioms</a>
  */

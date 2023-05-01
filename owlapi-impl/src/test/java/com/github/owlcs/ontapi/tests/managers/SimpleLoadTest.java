@@ -48,7 +48,7 @@ import java.util.stream.Stream;
 /**
  * for testing pizza, foaf and googrelations ontologies.
  * <p>
- * Created by @szuev on 30.09.2016.
+ * Created by @ssz on 30.09.2016.
  */
 public class SimpleLoadTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(SimpleLoadTest.class);

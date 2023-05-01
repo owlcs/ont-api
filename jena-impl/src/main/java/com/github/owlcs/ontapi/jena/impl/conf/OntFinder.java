@@ -33,7 +33,7 @@ import java.util.stream.Stream;
  * Subsequently, the search result Stream will be filtered by the {@link OntFilter} instance.
  * Used as a component in {@link CommonFactoryImpl default factory} and {@link MultiFactoryImpl} implementations
  * <p>
- * Created by szuev on 07.11.2016.
+ * Created @ssz on 07.11.2016.
  */
 @FunctionalInterface
 public interface OntFinder {

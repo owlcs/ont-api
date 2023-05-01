@@ -51,7 +51,7 @@ import java.util.stream.Stream;
  * pizza:isBaseOf rdf:type owl:ObjectProperty , owl:FunctionalProperty .
  * }</pre>
  * <p>
- * Created by @szuev on 29.09.2016.
+ * Created by @ssz on 29.09.2016.
  */
 public class FunctionalObjectPropertyTranslator
         extends AbstractPropertyTypeTranslator<OWLFunctionalObjectPropertyAxiom, OntObjectProperty> {

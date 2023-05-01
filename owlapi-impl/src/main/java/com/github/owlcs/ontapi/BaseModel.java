@@ -34,7 +34,7 @@ import java.util.Map;
  * Also, it is a collection of factory-methods to produce various {@link InternalModel} instances.
  * Note: this is an internal mechanism that can be changed at any time.
  * <p>
- * Created by @szuev on 07.04.2017.
+ * Created by @ssz on 07.04.2017.
  */
 public interface BaseModel {
 

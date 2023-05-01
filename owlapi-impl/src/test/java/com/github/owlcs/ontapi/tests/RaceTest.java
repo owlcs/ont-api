@@ -45,7 +45,7 @@ import java.util.stream.Stream;
  * Test for ontology edition racing:
  * one thread adds some axiom while another removes some axiom.
  * <p>
- * Created by @szuev on 04.07.2017.
+ * Created by @ssz on 04.07.2017.
  */
 public class RaceTest {
     // constants for test tuning:

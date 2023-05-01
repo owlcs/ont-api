@@ -55,7 +55,7 @@ import java.util.stream.Stream;
  * A builtin resource/property is a URI with known type, that does not require explicit declaration.
  * Note that all methods of this interface return unmodifiable {@code Set}s.
  * <p>
- * Created by @szuev on 04.04.2017.
+ * Created by @ssz on 04.04.2017.
  *
  * @see Factory
  */
@@ -195,7 +195,7 @@ public interface OntVocabulary {
      * to build {@link com.github.owlcs.ontapi.jena.impl.conf.OntPersonality}
      * and, also, in {@code com.github.owlcs.ontapi.transforms} subsystem.
      * <p>
-     * Created by @szuev on 21.12.2016.
+     * Created by @ssz on 21.12.2016.
      */
     class Factory {
 

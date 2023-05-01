@@ -48,7 +48,7 @@ import java.util.stream.Stream;
  * gr:equal rdf:type owl:TransitiveProperty ;
  * }</pre>
  * <p>
- * Created by @szuev on 28.09.2016.
+ * Created by @ssz on 28.09.2016.
  */
 public class TransitiveObjectPropertyTranslator
         extends AbstractPropertyTypeTranslator<OWLTransitiveObjectPropertyAxiom, OntObjectProperty> {

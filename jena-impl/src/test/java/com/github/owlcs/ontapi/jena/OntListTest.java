@@ -54,7 +54,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Created by @szuev on 10.07.2018.
+ * Created by @ssz on 10.07.2018.
  */
 public class OntListTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(OntListTest.class);

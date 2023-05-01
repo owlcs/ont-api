@@ -50,7 +50,7 @@ import java.util.stream.Stream;
  * :MyClass1 owl:hasKey ( :ob-prop-1 ) .
  * }</pre>
  * <p>
- * Created by @szuev on 17.10.2016.
+ * Created by @ssz on 17.10.2016.
  *
  * @see <a href='https://www.w3.org/TR/owl2-syntax/#Keys'>9.5 Keys</a>
  */

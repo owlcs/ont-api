@@ -51,7 +51,7 @@ import java.util.stream.Stream;
  * </ul>
  * Each of these axioms could be written in two ways: as single triple (or sequence of single triples) or as special anonymous node with rdf:List inside.
  * <p>
- * Created by szuev on 12.10.2016.
+ * Created @ssz on 12.10.2016.
  *
  * @param <Axiom> generic type of {@link OWLAxiom}
  * @param <OWL>   generic type of {@link OWLObject}

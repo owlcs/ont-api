@@ -44,7 +44,7 @@ import java.util.stream.Stream;
 /**
  * Test for {@code owl:AllDisjointClasses} and {@code owl:disjointWith} using jena and owl-api
  * <p>
- * Created by @szuev on 08.10.2016.
+ * Created by @ssz on 08.10.2016.
  */
 public class DisjointClassesOntModelTest extends OntModelTestBase {
 

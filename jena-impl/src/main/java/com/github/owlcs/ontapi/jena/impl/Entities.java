@@ -48,7 +48,7 @@ import java.util.function.Function;
 /**
  * This is an enumeration of all entity (configurable-)factories.
  * <p>
- * Created by szuev on 03.11.2016.
+ * Created @ssz on 03.11.2016.
  *
  * @see OntEntity
  */

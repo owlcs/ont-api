@@ -84,7 +84,7 @@ import java.util.stream.Collectors;
  * Settings and personalities that are used for constructing {@link OntModel}.
  * An access point to several predefined {@link OntPersonality Ontology Personality} constants.
  * <p>
- * Created by @szuev on 04.11.2016.
+ * Created by @ssz on 04.11.2016.
  */
 @SuppressWarnings("WeakerAccess")
 public class OntModelConfig {

@@ -62,7 +62,7 @@ import java.util.Objects;
 /**
  * Axiom Graph Translator accessor.
  * <p>
- * Created by @szuev on 28.09.2016.
+ * Created by @ssz on 28.09.2016.
  */
 public abstract class AxiomParserProvider {
 

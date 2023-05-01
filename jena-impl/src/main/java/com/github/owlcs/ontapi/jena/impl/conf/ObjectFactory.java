@@ -40,7 +40,7 @@ import java.util.stream.Stream;
  * <p>
  * TODO: consider a possibility to replace {@link EnhGraph} with {@link com.github.owlcs.ontapi.jena.impl.PersonalityModel}.
  * <p>
- * Created by @szuev on 03.11.2016.
+ * Created by @ssz on 03.11.2016.
  *
  * @see OntPersonality
  * @see com.github.owlcs.ontapi.jena.impl.PersonalityModel

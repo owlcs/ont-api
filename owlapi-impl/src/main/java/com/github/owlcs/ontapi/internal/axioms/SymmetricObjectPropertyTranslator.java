@@ -51,7 +51,7 @@ import java.util.stream.Stream;
  * gr:equal rdf:type owl:ObjectProperty ;  owl:inverseOf gr:equal ;  rdf:type owl:SymmetricProperty ,  owl:TransitiveProperty ;
  * }</pre>
  * <p>
- * Created by @szuev on 30.09.2016.
+ * Created by @ssz on 30.09.2016.
  */
 public class SymmetricObjectPropertyTranslator
         extends AbstractPropertyTypeTranslator<OWLSymmetricObjectPropertyAxiom, OntObjectProperty> {

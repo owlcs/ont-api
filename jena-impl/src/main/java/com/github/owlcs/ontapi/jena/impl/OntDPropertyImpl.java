@@ -33,7 +33,7 @@ import java.util.stream.Stream;
 /**
  * An ontology object implementation with declarative type {@link OWL#DatatypeProperty owl:DatatypeProperty}.
  * <p>
- * Created by szuev on 03.11.2016.
+ * Created @ssz on 03.11.2016.
  */
 public class OntDPropertyImpl extends OntPEImpl implements OntDataProperty {
 

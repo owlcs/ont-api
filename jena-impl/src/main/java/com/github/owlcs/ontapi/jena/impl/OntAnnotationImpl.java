@@ -47,7 +47,7 @@ import java.util.stream.Stream;
  * Note: the search is carried out only for the root annotations:
  * the result of snippet {@code model.ontObjects(OntAnnotation.class)} would not contain the nested annotations.
  * <p>
- * Created by @szuev on 26.03.2017.
+ * Created by @ssz on 26.03.2017.
  */
 @SuppressWarnings("WeakerAccess")
 public class OntAnnotationImpl extends OntObjectImpl implements OntAnnotation {

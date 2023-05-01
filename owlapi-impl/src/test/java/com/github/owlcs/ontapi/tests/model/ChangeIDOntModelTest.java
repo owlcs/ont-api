@@ -67,7 +67,7 @@ import java.util.stream.Stream;
 /**
  * Test changing OWLOntologyID through jena and owl-api
  * <p>
- * Created by @szuev on 08.10.2016.
+ * Created by @ssz on 08.10.2016.
  */
 public class ChangeIDOntModelTest extends OntModelTestBase {
 

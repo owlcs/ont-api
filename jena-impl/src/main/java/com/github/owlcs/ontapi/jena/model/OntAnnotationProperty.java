@@ -26,7 +26,7 @@ import java.util.stream.Stream;
  * the {@link OntEntity OWL Entity} and the {@link OntProperty abstract property expression} interfaces.
  * In OWL2 an Annotation Property cannot be anonymous.
  * <p>
- * Created by szuev on 01.11.2016.
+ * Created @ssz on 01.11.2016.
  *
  * @see <a href='https://www.w3.org/TR/owl2-syntax/#Annotation_Properties'>5.5 Annotation Properties</a>
  */

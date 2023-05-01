@@ -40,7 +40,7 @@ import org.slf4j.LoggerFactory;
  * The ontologies or/and test scenarios (but in some general terms only) were taken from
  * <a href="https://github.com/Galigator/openllet">openllet</a> (it is an alive fork of Pellet).
  * <p>
- * Created by @szuev on 19.04.2017.
+ * Created by @ssz on 19.04.2017.
  */
 public class FromPelletTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(FromPelletTest.class);

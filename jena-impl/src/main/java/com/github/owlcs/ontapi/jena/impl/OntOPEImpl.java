@@ -44,7 +44,7 @@ import java.util.stream.Stream;
  * Named instances should have a {@link OWL#OntologyProperty owl:ObjectProperty} type declarations.
  * Anonymous instances should have {@link OWL#inverseOf owl:inverseOf} predicate.
  * <p>
- * Created by szuev on 03.11.2016.
+ * Created @ssz on 03.11.2016.
  */
 @SuppressWarnings("WeakerAccess")
 public abstract class OntOPEImpl extends OntPEImpl implements OntObjectProperty {

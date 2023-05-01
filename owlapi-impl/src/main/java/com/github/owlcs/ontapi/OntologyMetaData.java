@@ -55,7 +55,7 @@ import java.util.stream.Stream;
  * A wrapper for {@link GraphStats Transformation Stats} to satisfy OWL-API.
  * Constructed while loading to provide some additional information about runtime changes in the source.
  * <p>
- * Created by @szuev on 28.06.2018.
+ * Created by @ssz on 28.06.2018.
  *
  * @see GraphStats
  */

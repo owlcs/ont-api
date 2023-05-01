@@ -65,7 +65,7 @@ import java.util.stream.Stream;
  * Example:
  * <pre>{@code pizza:France rdf:type owl:NamedIndividual, pizza:Country, owl:Thing.}</pre>
  * <p>
- * Created by @szuev on 28.09.2016.
+ * Created by @ssz on 28.09.2016.
  *
  * @see OntModel#individuals()
  * @see com.github.owlcs.ontapi.jena.impl.OntGraphModelImpl#listIndividuals()

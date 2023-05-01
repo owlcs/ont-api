@@ -64,7 +64,7 @@ import java.util.function.Supplier;
  * Example:
  * <pre>{@code foaf:name rdfs:range rdfs:Literal}</pre>
  * <p>
- * Created by @szuev on 30.09.2016.
+ * Created by @ssz on 30.09.2016.
  */
 public abstract class AbstractPropertyRangeTranslator<Axiom extends OWLAxiom
         & HasRange<? extends OWLObject> & HasProperty<? extends OWLPropertyExpression>,

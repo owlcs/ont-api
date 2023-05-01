@@ -49,7 +49,7 @@ import java.util.function.Supplier;
  * foaf:gender rdf:type owl:DatatypeProperty , owl:FunctionalProperty ;
  * }</pre>
  * <p>
- * Created by @szuev on 30.09.2016.
+ * Created by @ssz on 30.09.2016.
  */
 public class FunctionalDataPropertyTranslator
         extends AbstractPropertyTypeTranslator<OWLFunctionalDataPropertyAxiom, OntDataProperty> {

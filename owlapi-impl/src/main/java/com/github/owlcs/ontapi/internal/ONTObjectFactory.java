@@ -70,7 +70,7 @@ import java.util.Map;
  * Used by the {@link InternalModel} while read objects from the graph.
  * It is a functional analogue of {@code uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryInternals}.
  * <p>
- * Created by @szuev on 14.03.2018.
+ * Created by @ssz on 14.03.2018.
  *
  * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLDataFactoryInternals.java'>uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryInternals</a>
  * @see ONTObject

@@ -52,7 +52,7 @@ import java.util.Arrays;
 import java.util.stream.Stream;
 
 /**
- * Created by @szuev on 01.04.2018.
+ * Created by @ssz on 01.04.2018.
  */
 public class OWLTransformTest {
 

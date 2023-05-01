@@ -84,7 +84,7 @@ import java.util.stream.Stream;
 /**
  * To test core ({@link OntManagers}) (+ serialization)
  * <p>
- * Created by szuev on 22.12.2016.
+ * Created @ssz on 22.12.2016.
  */
 @SuppressWarnings("WeakerAccess")
 public class CommonManagerTest {

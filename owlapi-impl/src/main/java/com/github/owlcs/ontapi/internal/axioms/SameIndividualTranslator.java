@@ -53,7 +53,7 @@ import java.util.stream.Stream;
  * :individual1 owl:sameAs :individual2, :individual3 .
  * }</pre>
  * <p>
- * Created by szuev on 13.10.2016.
+ * Created @ssz on 13.10.2016.
  *
  * @see OWLSameIndividualAxiom
  */

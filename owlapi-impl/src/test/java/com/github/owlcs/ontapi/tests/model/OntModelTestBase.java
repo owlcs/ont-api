@@ -34,7 +34,7 @@ import java.util.stream.Stream;
 /**
  * base and utility class for ontology-model-tests
  * <p>
- * Created by @szuev on 02.10.2016.
+ * Created by @ssz on 02.10.2016.
  */
 abstract class OntModelTestBase {
     static final Logger LOGGER = LoggerFactory.getLogger(OntModelTestBase.class);

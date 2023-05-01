@@ -55,7 +55,7 @@ import java.util.stream.Stream;
 /**
  * The base for any Ontology Object {@link Resource} implementation.
  * <p>
- * Created by szuev on 03.11.2016.
+ * Created @ssz on 03.11.2016.
  */
 @SuppressWarnings("WeakerAccess")
 public class OntObjectImpl extends ResourceImpl implements OntObject {

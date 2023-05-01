@@ -47,7 +47,7 @@ import java.util.stream.Stream;
  * <a href="https://github.com/apache/jena/tree/master/jena-csv">jena-csv</a>.
  * Note: on loading Apache Jena has more priority than OWL-API, in other cases the enum order are used.
  * <p>
- * Created by @szuev on 27.09.2016.
+ * Created by @ssz on 27.09.2016.
  */
 public enum OntFormat {
     TURTLE("Turtle", "ttl", Arrays.asList(Lang.TURTLE, Lang.TTL, Lang.N3), // n3 is treated as turtle

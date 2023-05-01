@@ -44,7 +44,7 @@ import java.util.stream.Stream;
  * And one more (and most useful) link: <a href="https://www.w3.org/TR/owl2-quick-reference/">Quick Reference Guide</a>.
  * To get a particular instance of this class the method {@link AxiomTranslator#get(AxiomType)} can be used.
  * <p>
- * Created by @szuev on 28.09.2016.
+ * Created by @ssz on 28.09.2016.
  *
  * @param <Axiom> generic type of {@link OWLAxiom}
  */

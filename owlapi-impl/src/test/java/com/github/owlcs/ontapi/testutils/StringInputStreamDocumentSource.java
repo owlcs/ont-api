@@ -28,7 +28,7 @@ import java.util.Optional;
 /**
  * The {@link org.semanticweb.owlapi.io.OWLOntologyDocumentSource DocumentSource} providing InputStream.
  * <p>
- * Created by @szuev on 02.02.2018.
+ * Created by @ssz on 02.02.2018.
  *
  * @see org.semanticweb.owlapi.io.StringDocumentSource
  */

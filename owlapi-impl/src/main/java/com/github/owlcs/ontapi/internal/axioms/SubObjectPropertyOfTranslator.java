@@ -45,7 +45,7 @@ import java.util.stream.Stream;
  * A translator that provides {@link OWLSubObjectPropertyOfAxiom} implementations.
  * See also the base - {@link AbstractSubPropertyTranslator}.
  * <p>
- * Created by @szuev on 29.09.2016.
+ * Created by @ssz on 29.09.2016.
  */
 public class SubObjectPropertyOfTranslator extends AbstractSubPropertyTranslator<OWLSubObjectPropertyOfAxiom, OntObjectProperty> {
 

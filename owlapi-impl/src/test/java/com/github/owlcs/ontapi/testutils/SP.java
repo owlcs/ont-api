@@ -21,7 +21,7 @@ import org.apache.jena.rdf.model.ResourceFactory;
 /**
  * A copy-paste from {@code org.topbraid.spin.vocabulary.SP}.
  * <p>
- * Created by @szuev on 20.03.2018.
+ * Created by @ssz on 20.03.2018.
  */
 @SuppressWarnings({"WeakerAccess", "unused"})
 public class SP {

@@ -34,7 +34,7 @@ import java.util.stream.Stream;
  * This is an extended {@link Statement Jena Model Statement} with possibility to add, delete and find annotations
  * in the same form of {@code OntStatement} or {@link OntAnnotation Ontology Annotation} resources.
  * <p>
- * Created by @szuev on 13.11.2016.
+ * Created by @ssz on 13.11.2016.
  *
  * @see OntAnnotation
  * @see Statement

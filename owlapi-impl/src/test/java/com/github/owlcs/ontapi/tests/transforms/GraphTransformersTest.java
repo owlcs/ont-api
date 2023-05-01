@@ -74,7 +74,7 @@ import java.util.stream.Stream;
 /**
  * to test {@link GraphTransformers}
  * <p>
- * Created by @szuev on 30.10.2016.
+ * Created by @ssz on 30.10.2016.
  */
 public class GraphTransformersTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(GraphTransformersTest.class);

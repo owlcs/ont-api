@@ -52,7 +52,7 @@ import java.util.stream.Stream;
  * <p>
  * Using the method {@link #getMainStatement()} it is possible to add annotations with any nesting depth.
  * <p>
- * Created by @szuev on 10.07.2018.
+ * Created by @ssz on 10.07.2018.
  *
  * @param <E> the type of {@link RDFNode rdf-node}s in this list
  * @see RDFNodeList

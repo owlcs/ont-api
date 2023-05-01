@@ -29,7 +29,7 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 /**
- * Created by @szuev on 03.04.2018.
+ * Created by @ssz on 03.04.2018.
  */
 public class SignatureTest {
 

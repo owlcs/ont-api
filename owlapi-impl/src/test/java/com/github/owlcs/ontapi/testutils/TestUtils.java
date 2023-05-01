@@ -53,7 +53,7 @@ import java.util.stream.Stream;
 /**
  * Test Utils.
  * <p>
- * Created by @szuev on 16.10.2016.
+ * Created by @ssz on 16.10.2016.
  */
 @SuppressWarnings("WeakerAccess")
 public class TestUtils {

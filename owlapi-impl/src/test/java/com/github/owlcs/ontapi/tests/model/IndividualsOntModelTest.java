@@ -33,7 +33,7 @@ import org.semanticweb.owlapi.model.RemoveAxiom;
 /**
  * test individuals using jena-graph and owl-api
  * <p>
- * Created by @szuev on 08.10.2016.
+ * Created by @ssz on 08.10.2016.
  */
 public class IndividualsOntModelTest extends OntModelTestBase {
 

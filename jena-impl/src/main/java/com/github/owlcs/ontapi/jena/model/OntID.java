@@ -31,7 +31,7 @@ import java.util.stream.Stream;
  * from the main {@link com.github.owlcs.ontapi.jena.UnionGraph Union Graph}.
  * Similar, calling the method {@link #addImport(String)} simply adds the corresponding triple to the base graph.
  * <p>
- * Created by szuev on 09.11.2016.
+ * Created @ssz on 09.11.2016.
  *
  * @see <a href='https://www.w3.org/TR/owl-syntax/#Ontology_IRI_and_Version_IRI'>3.1 Ontology IRI and Version IRI</a>
  */

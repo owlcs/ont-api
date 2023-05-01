@@ -21,7 +21,7 @@ import org.apache.jena.rdf.model.ResourceFactory;
  * XML Schema Vocabulary
  * See <a href="http://www.w3.org/2001/XMLSchema">XSD</a>
  * <p>
- * Created by @szuev on 16.11.2016.
+ * Created by @ssz on 16.11.2016.
  */
 public class XSD extends org.apache.jena.vocabulary.XSD {
 

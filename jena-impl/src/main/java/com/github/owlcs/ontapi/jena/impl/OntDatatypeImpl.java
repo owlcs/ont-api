@@ -28,7 +28,7 @@ import java.util.Optional;
 /**
  * Named entity with rdf:type = rdfs:Datatype
  * <p>
- * Created by szuev on 03.11.2016.
+ * Created @ssz on 03.11.2016.
  */
 @SuppressWarnings("WeakerAccess")
 public class OntDatatypeImpl extends OntObjectImpl implements OntDataRange.Named {

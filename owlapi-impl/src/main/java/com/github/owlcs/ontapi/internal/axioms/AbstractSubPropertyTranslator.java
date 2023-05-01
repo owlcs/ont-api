@@ -36,7 +36,7 @@ import java.util.function.Supplier;
  * Example:
  * {@code foaf:msnChatID rdfs:subPropertyOf foaf:nick .}
  * <p>
- * Created by @szuev on 30.09.2016.
+ * Created by @ssz on 30.09.2016.
  */
 public abstract class AbstractSubPropertyTranslator<Axiom extends OWLAxiom, P extends OntProperty>
         extends AbstractSimpleTranslator<Axiom> {

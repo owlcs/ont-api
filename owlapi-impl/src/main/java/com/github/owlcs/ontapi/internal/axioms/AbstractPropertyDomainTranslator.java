@@ -62,7 +62,7 @@ import java.util.function.Supplier;
  * <li>{@code C} - class expression</li>
  * </ul>
  * <p>
- * Created by @szuev on 30.09.2016.
+ * Created by @ssz on 30.09.2016.
  */
 public abstract class AbstractPropertyDomainTranslator<Axiom extends OWLAxiom
         & HasDomain<? extends OWLObject> & HasProperty<? extends OWLPropertyExpression>,

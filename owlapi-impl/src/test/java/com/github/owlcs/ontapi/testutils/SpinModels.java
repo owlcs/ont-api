@@ -23,7 +23,7 @@ import org.semanticweb.owlapi.model.IRI;
  * Collection of all spin models (located in resources)
  * Please note: it is for tests purposes only!
  * <p>
- * Created by szuev on 21.04.2017.
+ * Created @ssz on 21.04.2017.
  */
 public enum SpinModels {
     SP("/etc/sp.ttl", "http://spinrdf.org/sp"),

@@ -60,7 +60,7 @@ import java.util.stream.Stream;
  *              ] .
  * }</pre>
  * <p>
- * Created by @szuev on 18.10.2016.
+ * Created by @ssz on 18.10.2016.
  */
 public class DatatypeDefinitionTranslator extends AbstractSimpleTranslator<OWLDatatypeDefinitionAxiom> {
 

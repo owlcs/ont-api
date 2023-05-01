@@ -55,7 +55,7 @@ import java.util.stream.Stream;
 /**
  * Default OntList implementation.
  * <p>
- * Created by @szuev on 10.07.2018.
+ * Created by @ssz on 10.07.2018.
  */
 @SuppressWarnings("WeakerAccess")
 public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implements OntList<E> {
@@ -380,7 +380,6 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
         if (!objectRDFList.equals(list)) {
             listAnnotations(m, subject, predicate, objectRDFList).toSet()
                     .forEach(a -> m.remove(a, OWL.annotatedTarget, objectRDFList).add(a, OWL.annotatedTarget, list));
-            m.getNodeCache().remove(objectRDFList.asNode());
         }
         this.objectRDFList = list;
         return this;

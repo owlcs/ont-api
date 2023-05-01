@@ -38,7 +38,7 @@ import org.apache.jena.rdf.model.RDFNode;
  * }</pre>
  *
  * <p>
- * Created by @szuev on 15.11.2016.
+ * Created by @ssz on 15.11.2016.
  *
  * @param <P> - either {@link OntObjectProperty object property expression} or {@link OntDataProperty data property}
  * @param <V> - either {@link OntIndividual} or {@link Literal}

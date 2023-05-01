@@ -62,7 +62,7 @@ import java.util.stream.Stream;
  * All of them have type {@link AxiomType#SWRL_RULE}.
  * Specification: <a href="https://www.w3.org/Submission/SWRL/">SWRL: A Semantic Web Rule Language Combining OWL and RuleML</a>.
  * <p>
- * Created by szuev on 20.10.2016.
+ * Created @ssz on 20.10.2016.
  */
 public class SWRLRuleTranslator extends AxiomTranslator<SWRLRule> {
 

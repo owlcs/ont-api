@@ -56,7 +56,7 @@ import java.util.function.Supplier;
  * {@link TransitiveObjectPropertyTranslator},
  * {@link InverseFunctionalObjectPropertyTranslator},
  * <p>
- * Created by @szuev on 28.09.2016.
+ * Created by @ssz on 28.09.2016.
  */
 public abstract class AbstractPropertyTypeTranslator<Axiom extends OWLAxiom & HasProperty<? extends OWLObject>,
         P extends OntProperty> extends AbstractSimpleTranslator<Axiom> {

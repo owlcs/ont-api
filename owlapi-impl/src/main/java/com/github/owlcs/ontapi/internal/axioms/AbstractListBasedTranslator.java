@@ -59,7 +59,7 @@ import java.util.stream.Stream;
  * <li>{@link SubPropertyChainOfTranslator}</li>
  * <li>{@link DisjointUnionTranslator}</li>
  * </ul>
- * Created by @szuev on 18.10.2016.
+ * Created by @ssz on 18.10.2016.
  */
 public abstract class AbstractListBasedTranslator<Axiom extends OWLLogicalAxiom,
         ONT_SUBJECT extends OntObject, OWL_SUBJECT extends OWLObject,

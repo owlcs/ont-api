@@ -50,7 +50,7 @@ import java.util.stream.Stream;
  * owl:topObjectProperty owl:propertyChainAxiom ( :ob-prop-1 :ob-prop-2 ) .
  * }</pre>
  * <p>
- * Created by @szuev on 18.10.2016.
+ * Created by @ssz on 18.10.2016.
  *
  * @see <a href='https://www.w3.org/TR/owl2-syntax/#Object_Subproperties'>9.2.1 Object Subproperties</a>
  */

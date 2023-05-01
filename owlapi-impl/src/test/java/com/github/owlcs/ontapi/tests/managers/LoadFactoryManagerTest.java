@@ -98,7 +98,7 @@ import java.util.stream.Stream;
  * To test loading mechanisms from {@link OntologyFactoryImpl}
  * including different {@link com.github.owlcs.ontapi.config.LoadSettings lading settings}.
  * <p>
- * Created by @szuev on 16.01.2018.
+ * Created by @ssz on 16.01.2018.
  */
 @SuppressWarnings("JavaDoc")
 public class LoadFactoryManagerTest {

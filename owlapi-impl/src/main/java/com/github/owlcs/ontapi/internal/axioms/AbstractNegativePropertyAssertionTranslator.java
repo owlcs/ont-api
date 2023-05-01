@@ -56,7 +56,7 @@ import java.util.stream.Stream;
  * {@link NegativeDataPropertyAssertionTranslator}
  * {@link NegativeObjectPropertyAssertionTranslator}
  * <p>
- * Created by szuev on 29.11.2016.
+ * Created @ssz on 29.11.2016.
  */
 public abstract class AbstractNegativePropertyAssertionTranslator<Axiom extends OWLPropertyAssertionAxiom<?, ?>,
         NPA extends OntNegativeAssertion<?, ?>> extends AxiomTranslator<Axiom> {

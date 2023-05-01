@@ -58,7 +58,7 @@ import java.util.stream.Stream;
  *                              ] .
  * }</pre>
  * <p>
- * Created by @szuev on 29.09.2016.
+ * Created by @ssz on 29.09.2016.
  */
 public class EquivalentClassesTranslator extends AbstractNaryTranslator<OWLEquivalentClassesAxiom, OWLClassExpression, OntClass> {
 

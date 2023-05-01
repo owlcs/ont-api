@@ -21,7 +21,7 @@ import org.apache.jena.rdf.model.ResourceFactory;
 /**
  * The vocabulary for <a href="http://topbraid.org/spin/spinmapl">topbraid spinmapl</a>
  * <p>
- * Created by szuev on 21.04.2017.
+ * Created @ssz on 21.04.2017.
  */
 @SuppressWarnings("unused")
 public class SPINMAPL {

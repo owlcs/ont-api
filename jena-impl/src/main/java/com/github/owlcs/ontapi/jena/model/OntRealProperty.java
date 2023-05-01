@@ -25,7 +25,7 @@ import java.util.stream.Stream;
  * A common (abstract) interface for any Ontology Data and Object Property expressions.
  * In OWL2 terms it is any {@link OntProperty Property Expression} minus {@link OntAnnotationProperty Annotation Property}.
  * <p>
- * Created by @szuev on 21.07.2018.
+ * Created by @ssz on 21.07.2018.
  */
 public interface OntRealProperty extends OntProperty {
 

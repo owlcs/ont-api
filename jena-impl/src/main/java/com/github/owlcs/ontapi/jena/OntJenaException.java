@@ -19,7 +19,7 @@ import org.apache.jena.shared.JenaException;
 /**
  * A base jena exception that is used inside ONT RDF Model subsystem (i.e. inside package {@link com.github.owlcs.ontapi.jena}).
  * <p>
- * Created by @szuev on 24.11.2016.
+ * Created by @ssz on 24.11.2016.
  */
 @SuppressWarnings({"unused"})
 public class OntJenaException extends JenaException {

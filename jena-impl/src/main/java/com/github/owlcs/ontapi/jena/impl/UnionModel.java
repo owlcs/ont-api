@@ -17,7 +17,6 @@ package com.github.owlcs.ontapi.jena.impl;
 import com.github.owlcs.ontapi.jena.OntJenaException;
 import com.github.owlcs.ontapi.jena.UnionGraph;
 import com.github.owlcs.ontapi.jena.utils.Graphs;
-import org.apache.jena.atlas.lib.Cache;
 import org.apache.jena.enhanced.Personality;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
@@ -38,7 +37,7 @@ import java.util.Set;
 /**
  * A {@link Model model} implementation which encapsulates {@link UnionGraph union graph}.
  * <p>
- * Created by @szuev on 12.04.2018.
+ * Created by @ssz on 12.04.2018.
  */
 @SuppressWarnings("WeakerAccess")
 public class UnionModel extends ModelCom {
@@ -104,15 +103,6 @@ public class UnionModel extends ModelCom {
     public UnionModel write(OutputStream out, String lang, String base) {
         getBaseModel().write(out, lang, base);
         return this;
-    }
-
-    /**
-     * Returns nodes cache.
-     *
-     * @return {@link Cache} with {@link Node} as key and {@link RDFNode} as value
-     */
-    protected Cache<Node, RDFNode> getNodeCache() {
-        return enhNodes;
     }
 
     /**

@@ -29,7 +29,7 @@ import java.util.stream.Stream;
 /**
  * The global OWL-API format syntax registry.
  * To control I/O behaviour with OWL-API formats.
- * Created by @szuev on 31.01.2018.
+ * Created by @ssz on 31.01.2018.
  *
  * @see OWLDocumentFormat
  * @see LangKey

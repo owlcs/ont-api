@@ -52,7 +52,7 @@ import java.util.Objects;
 /**
  * Test utils to work with io.
  * <p>
- * Created by @szuev on 27.09.2016.
+ * Created by @ssz on 27.09.2016.
  */
 @SuppressWarnings({"WeakerAccess", "SameParameterValue"})
 public class OWLIOUtils {

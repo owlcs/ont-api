@@ -32,7 +32,7 @@ import java.util.Objects;
  * <a href="https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyFactoryImpl.java">uk.ac.manchester.cs.owl.owlapi.OWLOntologyFactoryImpl</a> in the OWLAPI-impl module.
  * It is also an outer class for any {@link OWLOntologyCreationException}s subclasses, which may occur during loading.
  * <p>
- * Created by szuev on 24.10.2016.
+ * Created @ssz on 24.10.2016.
  *
  * @see OntologyBuilderImpl
  * @see OntologyLoaderImpl

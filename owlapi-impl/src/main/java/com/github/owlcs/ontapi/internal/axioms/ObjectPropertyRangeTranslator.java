@@ -49,7 +49,7 @@ import java.util.stream.Stream;
  * A translator that provides {@link OWLObjectPropertyRangeAxiom} implementations.
  * A Property Domain Axiom is a statement with predicate {@link org.apache.jena.vocabulary.RDFS#domain rdfs:domain}.
  * <p>
- * Created by @szuev on 28.09.2016.
+ * Created by @ssz on 28.09.2016.
  */
 public class ObjectPropertyRangeTranslator
         extends AbstractPropertyRangeTranslator<OWLObjectPropertyRangeAxiom, OntObjectProperty> {

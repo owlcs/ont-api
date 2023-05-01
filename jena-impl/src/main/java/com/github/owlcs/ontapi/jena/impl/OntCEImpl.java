@@ -71,7 +71,7 @@ import static com.github.owlcs.ontapi.jena.impl.WrappedFactoryImpl.of;
 /**
  * A base class for any class-expression implementation.
  * <p>
- * Created by szuev on 03.11.2016.
+ * Created @ssz on 03.11.2016.
  */
 @SuppressWarnings("WeakerAccess")
 public abstract class OntCEImpl extends OntObjectImpl implements OntClass {

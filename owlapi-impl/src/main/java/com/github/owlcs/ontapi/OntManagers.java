@@ -66,7 +66,7 @@ import java.util.stream.Collectors;
  * into your classpath, otherwise the corresponding methods ({@link #createOWLAPIImplManager()}, {@link #createConcurrentOWLAPIImplManager()})
  * will throw a runtime exception. Or better use {@code org.semanticweb.owlapi.apibinding.OWLManager}.
  * <p>
- * Created by @szuev on 27.09.2016.
+ * Created by @ssz on 27.09.2016.
  *
  * @see OntModelFactory
  */

@@ -49,7 +49,7 @@ import java.util.stream.Stream;
  * <pre>{@code
  * :ob-prop-1 rdf:type owl:ObjectProperty, owl:ReflexiveProperty .
  * }</pre>
- * Created by @szuev on 18.10.2016.
+ * Created by @ssz on 18.10.2016.
  */
 public class ReflexiveObjectPropertyTranslator
         extends AbstractPropertyTypeTranslator<OWLReflexiveObjectPropertyAxiom, OntObjectProperty> {

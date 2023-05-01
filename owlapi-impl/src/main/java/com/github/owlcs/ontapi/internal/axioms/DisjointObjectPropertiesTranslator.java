@@ -53,7 +53,7 @@ import java.util.stream.Stream;
  * <li>{@code  [ rdf:type owl:AllDisjointProperties; owl:members ( :dataProperty1 :dataProperty2 :dataProperty3 ) ]}</li>
  * </ul>
  * <p>
- * Created by szuev on 12.10.2016.
+ * Created @ssz on 12.10.2016.
  */
 public class DisjointObjectPropertiesTranslator
         extends AbstractTwoWayNaryTranslator<OWLDisjointObjectPropertiesAxiom, OWLObjectPropertyExpression, OntObjectProperty> {

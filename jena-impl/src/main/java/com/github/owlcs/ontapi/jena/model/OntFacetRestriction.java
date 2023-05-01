@@ -19,7 +19,7 @@ import org.apache.jena.rdf.model.Literal;
 /**
  * Interface encapsulating an Ontology Facet Restriction abstraction.
  * <p>
- * Created by @szuev on 02.11.2016.
+ * Created by @ssz on 02.11.2016.
  *
  * @see <a href='https://www.w3.org/TR/owl2-quick-reference/#Facets'>3.2 Facets</a>
  * @see <a href='https://www.w3.org/TR/xmlschema11-2/#rf-facets'>4.3 Constraining Facets</a>

@@ -59,7 +59,7 @@ import java.util.function.Supplier;
  * <li>{@code v} - literal</li>
  * </ul>
  * <p>
- * Created by @szuev on 28.09.2016.
+ * Created by @ssz on 28.09.2016.
  */
 public class DataPropertyAssertionTranslator
         extends AbstractPropertyAssertionTranslator<OWLDataPropertyExpression, OWLDataPropertyAssertionAxiom> {

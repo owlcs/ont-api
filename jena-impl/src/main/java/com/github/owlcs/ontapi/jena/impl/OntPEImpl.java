@@ -49,7 +49,7 @@ import static com.github.owlcs.ontapi.jena.impl.WrappedFactoryImpl.of;
  * Property Expression base impl-class.
  * No functionality, just a collection of factories related to all OWL property-expressions.
  * <p>
- * Created by @szuev on 08.11.2016.
+ * Created by @ssz on 08.11.2016.
  */
 @SuppressWarnings("WeakerAccess")
 public abstract class OntPEImpl extends OntObjectImpl implements OntProperty {

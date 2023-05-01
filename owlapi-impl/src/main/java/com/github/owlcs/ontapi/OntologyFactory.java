@@ -38,7 +38,7 @@ import java.io.Serializable;
  * and {@link OntologyLoader Loader},
  * which is responsible for loading ontologies to a manager from various document sources.
  * <p>
- * Created by @szuev
+ * Created by @ssz
  */
 @ParametersAreNonnullByDefault
 public interface OntologyFactory extends OWLOntologyFactory, HasAdapter {

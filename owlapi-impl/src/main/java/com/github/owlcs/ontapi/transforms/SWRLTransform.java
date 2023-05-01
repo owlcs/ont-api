@@ -37,7 +37,7 @@ import java.util.stream.Stream;
 /**
  * Class for performing transformations that fix known syntax errors in graphs containing SWRL.
  * <p>
- * Created by @szuev on 09.08.2018.
+ * Created by @ssz on 09.08.2018.
  *
  * @see SWRL
  */

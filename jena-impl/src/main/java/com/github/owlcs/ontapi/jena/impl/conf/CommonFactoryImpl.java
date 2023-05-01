@@ -31,7 +31,7 @@ import java.util.Objects;
  * <li>{@link OntFinder} to search for nodes in the graph.</li>
  * </ul>
  * <p>
- * Created by szuev on 07.11.2016.
+ * Created @ssz on 07.11.2016.
  */
 public class CommonFactoryImpl extends BaseFactoryImpl {
     private final OntMaker maker;

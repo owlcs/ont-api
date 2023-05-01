@@ -34,7 +34,7 @@ import org.apache.jena.vocabulary.XSD;
  * Currently, OWL2 models support only direct semantic with no additional entailment reasoning.
  * This corresponds to {@link org.apache.jena.ontology.OntModelSpec#OWL_MEM OWL_MEM spec} for {@link org.apache.jena.ontology.OntModel Jena OWL model}.
  * <p>
- * Created by szuev on 14.02.2017.
+ * Created @ssz on 14.02.2017.
  */
 public class OntModelFactory {
 

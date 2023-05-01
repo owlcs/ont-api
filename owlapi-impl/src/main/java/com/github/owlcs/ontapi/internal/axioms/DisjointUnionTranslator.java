@@ -53,7 +53,7 @@ import java.util.stream.Stream;
  * :MyClass1 owl:disjointUnionOf ( :MyClass2 [ a owl:Class ; owl:unionOf ( :MyClass3 :MyClass4  ) ] ) ;
  * }</pre>
  * <p>
- * Created by @szuev on 17.10.2016.
+ * Created by @ssz on 17.10.2016.
  *
  * @see <a href='https://www.w3.org/TR/owl2-syntax/#Disjoint_Union_of_Class_Expressions'>9.1.4 Disjoint Union of Class Expressions</a>
  */

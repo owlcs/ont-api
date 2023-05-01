@@ -28,7 +28,7 @@ import java.util.stream.Stream;
 /**
  * A base abstraction for Ontology Data Range Expressions (both named and anonymous).
  * <p>
- * Created by szuev on 01.11.2016.
+ * Created @ssz on 01.11.2016.
  *
  * @see Named - a named data range (i.e. OWL Datatype)
  * @see <a href='https://www.w3.org/TR/owl2-quick-reference/#Data_Ranges'>2.4 Data Ranges</a>
@@ -124,7 +124,7 @@ public interface OntDataRange extends OntObject, AsNamed<OntDataRange.Named> {
      * Interface encapsulating an Ontology Datatype, {@link OntEntity OWL Entity},
      * a named {@link OntDataRange data range} expression.
      * <p>
-     * Created by szuev on 01.11.2016.
+     * Created @ssz on 01.11.2016.
      *
      * @see <a href='https://www.w3.org/TR/owl2-syntax/#Datatypes'>5.2 Datatypes</a>
      */

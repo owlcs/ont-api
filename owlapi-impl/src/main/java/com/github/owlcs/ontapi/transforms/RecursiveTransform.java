@@ -41,7 +41,7 @@ import java.util.stream.Stream;
  *                                      owl:someValuesFrom  _:b0
  *                                  ] .
  * }</pre>
- * Created by @szuev on 24.01.2018.
+ * Created by @ssz on 24.01.2018.
  * <p>
  * Note: this transform is slow - the complexity is ~O(n*log(n))
  * @see ONTAPI#error(String)

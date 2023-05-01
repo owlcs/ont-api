@@ -84,7 +84,7 @@ import static com.github.owlcs.ontapi.OntologyFactoryImpl.UnsupportedFormatExcep
  * and can refer to another class namespace
  * (e.g. can throw exceptions defined as nested static in some external classes).
  * <p>
- * Created by @szuev on 19.08.2017.
+ * Created by @ssz on 19.08.2017.
  *
  * @see Graphs
  * @see DocumentSources

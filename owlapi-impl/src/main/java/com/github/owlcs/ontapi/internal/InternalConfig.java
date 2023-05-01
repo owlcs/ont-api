@@ -26,7 +26,7 @@ import java.util.Objects;
  * A container with various configuration settings
  * to manage mappings of the structural representation to RDF and vice versa.
  * <p>
- * Created by @szuev on 05.04.2017.
+ * Created by @ssz on 05.04.2017.
  */
 public interface InternalConfig extends CacheSettings, AxiomsSettings {
 

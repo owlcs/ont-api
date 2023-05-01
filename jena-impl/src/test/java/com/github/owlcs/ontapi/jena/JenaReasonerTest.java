@@ -45,7 +45,7 @@ import java.util.List;
  * The simplest reasoner test.
  * Modified copy-paste from jena-core-tests (org.apache.jena.reasoner.test.ManualExample)
  * <p>
- * Created by szuev on 26.04.2017.
+ * Created @ssz on 26.04.2017.
  */
 public class JenaReasonerTest {
 

@@ -71,7 +71,7 @@ import java.util.stream.Stream;
  * <li>{@link #isSplitAxiomAnnotations()} and {@link #setSplitAxiomAnnotations(boolean)} (<b>since 1.3.0</b>)</li>
  * </ul>
  * <p>
- * Created by szuev on 27.02.2017.
+ * Created @ssz on 27.02.2017.
  *
  * @see OntSettings
  * @see OntLoaderConfiguration
@@ -1262,7 +1262,7 @@ public class OntConfig extends OntologyConfigurator
     /**
      * A {@link OntConfig config}-wrapper with {@link ReadWriteLock R/W}-locked access.
      * <p>
-     * Created by @szuev on 05.07.2018.
+     * Created by @ssz on 05.07.2018.
      */
     public static class Concurrent extends OntConfig {
         private static final long serialVersionUID = 5910609264963651991L;

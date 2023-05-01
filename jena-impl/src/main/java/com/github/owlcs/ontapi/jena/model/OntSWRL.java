@@ -23,7 +23,7 @@ import java.util.stream.Stream;
 /**
  * A base for SWRL addition.
  * <p>
- * Created by @szuev on 02.11.2016.
+ * Created by @ssz on 02.11.2016.
  *
  * @see com.github.owlcs.ontapi.jena.vocabulary.SWRL
  * @see <a href='https://www.w3.org/Submission/SWRL'>specification</a>

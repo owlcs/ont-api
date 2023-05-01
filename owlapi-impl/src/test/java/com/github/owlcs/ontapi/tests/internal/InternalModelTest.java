@@ -68,7 +68,7 @@ import java.util.stream.Stream;
 /**
  * to test RDF->Axiom parsing
  * <p>
- * Created by @szuev on 27.11.2016.
+ * Created by @ssz on 27.11.2016.
  */
 public class InternalModelTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(InternalModelTest.class);

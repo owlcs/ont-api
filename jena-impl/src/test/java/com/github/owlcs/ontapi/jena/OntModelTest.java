@@ -15,7 +15,6 @@
 package com.github.owlcs.ontapi.jena;
 
 import com.github.owlcs.ontapi.jena.impl.OntCEImpl;
-import com.github.owlcs.ontapi.jena.impl.OntGraphModelImpl;
 import com.github.owlcs.ontapi.jena.impl.conf.OntModelConfig;
 import com.github.owlcs.ontapi.jena.model.OntAnnotationProperty;
 import com.github.owlcs.ontapi.jena.model.OntClass;
@@ -73,7 +72,7 @@ import java.util.stream.Stream;
 /**
  * To test {@link OntModel} and all its related functionality.
  * <p>
- * Created by szuev on 07.11.2016.
+ * Created @ssz on 07.11.2016.
  */
 public class OntModelTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(OntModelTest.class);
@@ -370,7 +369,7 @@ public class OntModelTest {
                 .addAssertion(m.getRDFSLabel(), m.createLiteral("Bob Label"));
 
         OntIndividual jhons = contact.createIndividual(dataNS + "jhons")
-                .addAssertion(contactInfo, skype.createLiteral("jhon-skype-id"));
+                .addAssertion(contactInfo, skype.createLiteral("john-skype-id"));
         person.createIndividual(dataNS + "Jhon").addAssertion(hasContact, jhons);
         bob.addNegativeAssertion(hasContact, jhons)
                 .addNegativeAssertion(contactInfo, phone.createLiteral("212 85 06"))
@@ -404,7 +403,6 @@ public class OntModelTest {
         Assertions.assertEquals(2, e.annotations().count());
         Assertions.assertEquals(2, e.statements().count());
         Assertions.assertSame(e, e.as(type));
-        Assertions.assertSame(e, ((OntGraphModelImpl) m).getNodeAs(e.asNode(), type));
     }
 
     @Test

@@ -51,7 +51,7 @@ import java.util.stream.Stream;
  * <pre>{@code
  * [ a owl:NegativePropertyAssertion; owl:sourceIndividual :ind1; owl:assertionProperty :dataProp; owl:targetValue "TEST"^^xsd:string ]
  * }</pre>
- * Created by szuev on 12.10.2016.
+ * Created @ssz on 12.10.2016.
  */
 public class NegativeDataPropertyAssertionTranslator
         extends AbstractNegativePropertyAssertionTranslator<OWLNegativeDataPropertyAssertionAxiom, OntNegativeAssertion.WithDataProperty> {

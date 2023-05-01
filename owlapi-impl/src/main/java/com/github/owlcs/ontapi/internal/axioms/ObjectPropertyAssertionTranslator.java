@@ -60,7 +60,7 @@ import java.util.function.Supplier;
  * gr:Saturday rdf:type owl:NamedIndividual , gr:hasNext gr:Sunday ;
  * }</pre>
  * <p>
- * Created by @szuev on 01.10.2016.
+ * Created by @ssz on 01.10.2016.
  */
 public class ObjectPropertyAssertionTranslator
         extends AbstractPropertyAssertionTranslator<OWLObjectPropertyExpression, OWLObjectPropertyAssertionAxiom> {

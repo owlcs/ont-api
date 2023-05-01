@@ -31,7 +31,7 @@ import java.lang.reflect.InvocationTargetException;
  * Also, to create new instance of the resource ({@link EnhNode}).
  * Used in factory ({@link CommonFactoryImpl}).
  * <p>
- * Created by szuev on 07.11.2016.
+ * Created @ssz on 07.11.2016.
  */
 public interface OntMaker {
 

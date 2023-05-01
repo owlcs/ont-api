@@ -51,7 +51,7 @@ import java.util.List;
 
 /**
  * To test annotated statements ({@link OntStatement}) and annotations within ont objects ({@link OntObject}).
- * Created by @szuev on 28.07.2018.
+ * Created by @ssz on 28.07.2018.
  */
 public class OntAnnotationsTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(OntAnnotationsTest.class);

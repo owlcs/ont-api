@@ -51,7 +51,7 @@ import java.util.stream.Stream;
  * pizza:hasBase rdf:type owl:InverseFunctionalProperty
  * }</pre>
  * <p>
- * Created by @szuev on 28.09.2016.
+ * Created by @ssz on 28.09.2016.
  */
 public class InverseFunctionalObjectPropertyTranslator
         extends AbstractPropertyTypeTranslator<OWLInverseFunctionalObjectPropertyAxiom, OntObjectProperty> {

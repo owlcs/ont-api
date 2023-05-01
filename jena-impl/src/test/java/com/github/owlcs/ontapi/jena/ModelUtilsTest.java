@@ -50,7 +50,7 @@ import java.util.stream.Stream;
 /**
  * To test {@link Models} and {@link OntModels} utilities.
  * <p>
- * Created by @szuev on 25.04.2018.
+ * Created by @ssz on 25.04.2018.
  */
 public class ModelUtilsTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(ModelUtilsTest.class);

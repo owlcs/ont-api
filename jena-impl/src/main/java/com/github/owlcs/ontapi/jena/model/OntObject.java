@@ -32,7 +32,7 @@ import java.util.stream.Stream;
  * which support Jena Polymorphism,
  * can be annotated and have a structure that is strictly defined according to the OWL2 specification.
  * <p>
- * Created by szuev on 01.11.2016.
+ * Created @ssz on 01.11.2016.
  */
 public interface OntObject extends OntResource {
 

@@ -47,7 +47,7 @@ import java.util.function.Supplier;
  * A translator that provides {@link OWLAnnotationPropertyDomainAxiom} implementations.
  * The main triple is {@code A rdfs:domain U}, where {@code A} is annotation property and {@code U} is IRI.
  * <p>
- * Created by @szuev on 30.09.2016.
+ * Created by @ssz on 30.09.2016.
  */
 public class AnnotationPropertyDomainTranslator
         extends AbstractPropertyDomainTranslator<OWLAnnotationPropertyDomainAxiom, OntAnnotationProperty> {

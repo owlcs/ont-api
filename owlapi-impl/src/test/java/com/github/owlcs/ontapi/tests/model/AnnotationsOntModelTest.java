@@ -73,7 +73,7 @@ import java.util.stream.Stream;
 /**
  * test for annotations.
  * <p>
- * Created by szuev on 11.10.2016.
+ * Created @ssz on 11.10.2016.
  */
 public class AnnotationsOntModelTest extends OntModelTestBase {
 

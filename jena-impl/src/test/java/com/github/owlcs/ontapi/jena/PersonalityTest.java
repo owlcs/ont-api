@@ -60,7 +60,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Created by @szuev on 27.03.2018.
+ * Created by @ssz on 27.03.2018.
  */
 @SuppressWarnings("WeakerAccess")
 public class PersonalityTest {

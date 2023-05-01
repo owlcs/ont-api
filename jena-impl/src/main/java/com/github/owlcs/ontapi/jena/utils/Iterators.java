@@ -52,7 +52,7 @@ import java.util.stream.StreamSupport;
 /**
  * Misc utils to work with Iterators, Streams, Collections, etc.,
  * which are related somehow to Jena or/and used inside {@link com.github.owlcs.ontapi.jena} package.
- * Created by szuev on 11.04.2017.
+ * Created @ssz on 11.04.2017.
  *
  * @see ExtendedIterator
  * @see ClosableIterator

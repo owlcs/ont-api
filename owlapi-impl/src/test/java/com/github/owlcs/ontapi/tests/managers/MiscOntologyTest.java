@@ -55,7 +55,7 @@ import java.util.stream.Collectors;
 /**
  * For testing miscellaneous general functionality related to manager and load settings.
  * <p>
- * Created by @szuev on 23.01.2018.
+ * Created by @ssz on 23.01.2018.
  */
 public class MiscOntologyTest {
     private static final Logger LOGGER = LoggerFactory.getLogger(MiscOntologyTest.class);

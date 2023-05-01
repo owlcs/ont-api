@@ -58,7 +58,7 @@ import java.util.stream.Stream;
  * _:x owl:members (a1 ... an). }</pre></li>
  * </ul>
  * <p>
- * Created by @szuev on 29.09.2016.
+ * Created by @ssz on 29.09.2016.
  */
 public class DifferentIndividualsTranslator
         extends AbstractTwoWayNaryTranslator<OWLDifferentIndividualsAxiom, OWLIndividual, OntIndividual> {

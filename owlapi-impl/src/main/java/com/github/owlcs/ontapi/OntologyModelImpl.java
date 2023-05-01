@@ -52,7 +52,7 @@ import java.util.stream.Stream;
  * The main ontology model implementation. Not concurrent. Editable.
  * Provides access to {@link OntModel}.
  * <p>
- * Created by @szuev on 27.09.2016.
+ * Created by @ssz on 27.09.2016.
  *
  * @see <a href='https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLOntologyImpl.java'>uk.ac.manchester.cs.owl.owlapi.OWLOntologyImpl</a>
  * @see OntBaseModelImpl
@@ -258,7 +258,7 @@ public class OntologyModelImpl extends OntBaseModelImpl implements Ontology, OWL
     /**
      * A concurrent version of {@link Ontology}.
      * <p>
-     * Created by szuev on 22.12.2016.
+     * Created @ssz on 22.12.2016.
      */
     @SuppressWarnings("WeakerAccess")
     public static class Concurrent extends OWLOntologyWrapper implements Ontology, BaseModel {

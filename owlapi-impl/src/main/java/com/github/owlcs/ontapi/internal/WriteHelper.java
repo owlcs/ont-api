@@ -104,7 +104,7 @@ import java.util.stream.Collectors;
 /**
  * A collection of helper methods to perform translation of {@code OWLObject}s to the RDF-form (i.e. writing to a {@code Graph}).
  * <p>
- * Created by @szuev on 28.09.2016.
+ * Created by @ssz on 28.09.2016.
  *
  * @see ReadHelper
  */

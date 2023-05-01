@@ -49,7 +49,7 @@ import java.util.stream.Stream;
  * Helper to work with {@link Graph Jena Graph} (generally with our {@link UnionGraph}) and with its related objects:
  * {@link Triple} and {@link Node}.
  * <p>
- * Created by szuev on 06.02.2017.
+ * Created @ssz on 06.02.2017.
  *
  * @see GraphUtil
  * @see GraphUtils

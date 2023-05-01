@@ -55,7 +55,7 @@ import java.util.Objects;
 /**
  * An Object Factory impl which maps {@link OntObject} to {@link OWLObject} directly having no cache.
  * <p>
- * Created by @szuev on 15.03.2018.
+ * Created by @ssz on 15.03.2018.
  *
  * @see ONTWrapperImpl
  */

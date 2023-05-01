@@ -49,7 +49,7 @@ import java.util.stream.Stream;
  * A translator that provides {@link OWLDataPropertyRangeAxiom} implementations.
  * A Property Range Axiom is a statement with the predicate {@link org.apache.jena.vocabulary.RDFS#range rdfs:range}.
  * <p>
- * Created by @szuev on 28.09.2016.
+ * Created by @ssz on 28.09.2016.
  */
 public class DataPropertyRangeTranslator extends AbstractPropertyRangeTranslator<OWLDataPropertyRangeAxiom, OntDataProperty> {
 

@@ -25,7 +25,7 @@ import java.util.stream.Stream;
  * This is an analogue of the {@link org.apache.jena.ontology.OntResource Jena OntResource} interface,
  * but for {@link OntModel OWL2 Ontology RDF Graph Model}.
  * <p>
- * Created by @szuev on 24.07.2018.
+ * Created by @ssz on 24.07.2018.
  */
 interface OntResource extends Resource {
 

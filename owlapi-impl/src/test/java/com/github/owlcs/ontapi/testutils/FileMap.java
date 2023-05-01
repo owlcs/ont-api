@@ -22,7 +22,7 @@ import java.util.Objects;
 
 /**
  * The analogue of {@link org.semanticweb.owlapi.util.SimpleIRIMapper}
- * Created by @szuev on 23.03.2017.
+ * Created by @ssz on 23.03.2017.
  */
 @SuppressWarnings("WeakerAccess")
 public class FileMap implements OWLOntologyIRIMapper {

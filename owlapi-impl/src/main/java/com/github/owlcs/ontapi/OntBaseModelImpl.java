@@ -115,7 +115,7 @@ import java.util.stream.Stream;
  * It's an analogy of
  * <a href="https://github.com/owlcs/owlapi/blob/version5/impl/src/main/java/uk/ac/manchester/cs/owl/owlapi/OWLImmutableOntologyImpl.java">uk.ac.manchester.cs.owl.owlapi.OWLImmutableOntologyImpl</a>.
  * <p>
- * Created by @szuev on 03.12.2016.
+ * Created by @ssz on 03.12.2016.
  */
 @SuppressWarnings("WeakerAccess")
 @ParametersAreNonnullByDefault

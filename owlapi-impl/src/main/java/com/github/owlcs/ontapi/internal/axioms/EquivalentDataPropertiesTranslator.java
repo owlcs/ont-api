@@ -50,7 +50,7 @@ import java.util.stream.Stream;
  * <pre>{@code
  *      gr:description rdf:type owl:DatatypeProperty ;  owl:equivalentProperty <http://schema.org/description> ;
  * }</pre>
- * Created by @szuev on 01.10.2016.
+ * Created by @ssz on 01.10.2016.
  */
 public class EquivalentDataPropertiesTranslator
         extends AbstractNaryTranslator<OWLEquivalentDataPropertiesAxiom, OWLDataPropertyExpression, OntDataProperty> {

@@ -95,7 +95,7 @@ import java.util.stream.Stream;
  * <li>DifferentIndividuals ({@link DifferentIndividualsTranslator})</li>
  * </ul>
  * <p>
- * Created by szuev on 13.10.2016.
+ * Created @ssz on 13.10.2016.
  *
  * @param <Axiom> generic type of {@link OWLAxiom}
  * @param <OWL>   generic type of {@link OWLObject}

@@ -51,7 +51,7 @@ import java.util.stream.Collectors;
  *  </rdf:type>
  *  </rdf:Description>
  * }</pre>
- * Created by szuev on 26.04.2017.
+ * Created @ssz on 26.04.2017.
  */
 public class WrongRDFListTransform extends TransformationModel {
 
