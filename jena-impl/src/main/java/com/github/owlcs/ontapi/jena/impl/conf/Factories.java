@@ -12,14 +12,9 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.github.owlcs.ontapi.jena.impl;
+package com.github.owlcs.ontapi.jena.impl.conf;
 
-import com.github.owlcs.ontapi.jena.impl.conf.CommonFactoryImpl;
-import com.github.owlcs.ontapi.jena.impl.conf.MultiFactoryImpl;
-import com.github.owlcs.ontapi.jena.impl.conf.ObjectFactory;
-import com.github.owlcs.ontapi.jena.impl.conf.OntFilter;
-import com.github.owlcs.ontapi.jena.impl.conf.OntFinder;
-import com.github.owlcs.ontapi.jena.impl.conf.OntMaker;
+import com.github.owlcs.ontapi.jena.impl.objects.OntObjectImpl;
 import com.github.owlcs.ontapi.jena.model.OntObject;
 import com.github.owlcs.ontapi.jena.utils.Iterators;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
@@ -36,43 +31,38 @@ import java.util.function.Function;
 import java.util.stream.Stream;
 
 /**
- * A helper(factory) to produce {@link ObjectFactory object factory} instances or its components.
+ * A helper (factory) to produce {@link ObjectFactory object factory} instances or its components.
  * <p>
  * Created by @ssz on 19.01.2019.
  */
-class Factories {
+public class Factories {
 
     @SafeVarargs
-    static ObjectFactory createFrom(OntFinder finder, Class<? extends OntObject>... types) {
+    public static ObjectFactory createFrom(OntFinder finder, Class<? extends OntObject>... types) {
         return createFrom(finder, Arrays.stream(types));
     }
 
-    static ObjectFactory createFrom(OntFinder finder, Stream<Class<? extends OntObject>> types) {
+    public static ObjectFactory createFrom(OntFinder finder, Stream<Class<? extends OntObject>> types) {
         return createMulti(finder, types.map(WrappedFactoryImpl::new));
     }
 
-    private static ObjectFactory createMulti(OntFinder finder, Stream<ObjectFactory> factories) {
-        return new MultiFactoryImpl(Objects.requireNonNull(finder, "Null finder"), null,
-                factories.peek(x -> Objects.requireNonNull(x, "Null component-factory")).toArray(ObjectFactory[]::new));
-    }
-
-    static ObjectFactory createCommon(Class<? extends OntObjectImpl> impl,
-                                      OntFinder finder,
-                                      OntFilter filter,
-                                      OntFilter... additional) {
+    public static ObjectFactory createCommon(Class<? extends OntObjectImpl> impl,
+                                             OntFinder finder,
+                                             OntFilter filter,
+                                             OntFilter... additional) {
         return createCommon(new OntMaker.Default(impl), finder, filter, additional);
     }
 
-    static ObjectFactory createCommon(OntMaker maker, OntFinder finder, OntFilter primary, OntFilter... additional) {
+    public static ObjectFactory createCommon(OntMaker maker, OntFinder finder, OntFilter primary, OntFilter... additional) {
         return new CommonFactoryImpl(Objects.requireNonNull(maker, "Null maker"),
                 Objects.requireNonNull(finder, "Null finder"),
                 Objects.requireNonNull(primary, "Null filter").accumulate(additional));
     }
 
-    static ObjectFactory createCommon(Class<? extends OntObject> type,
-                                      OntMaker maker,
-                                      OntFinder finder,
-                                      OntFilter filter) {
+    public static ObjectFactory createCommon(Class<? extends OntObject> type,
+                                             OntMaker maker,
+                                             OntFinder finder,
+                                             OntFilter filter) {
         Objects.requireNonNull(type, "Null type");
         return new CommonFactoryImpl(Objects.requireNonNull(maker, "Null maker"),
                 Objects.requireNonNull(finder, "Null finder"),
@@ -85,13 +75,18 @@ class Factories {
         };
     }
 
-    static OntFinder createFinder(Resource... types) {
+    public static OntFinder createFinder(Resource... types) {
         return createFinder(FrontsNode::asNode, types);
     }
 
     @SafeVarargs
-    static <R> OntFinder createFinder(Function<R, Node> asNode, R... types) {
+    public static <R> OntFinder createFinder(Function<R, Node> asNode, R... types) {
         return eg -> Iterators.distinct(listTriplesForTypes(eg.asGraph(), asNode, types).mapWith(Triple::getSubject));
+    }
+
+    private static ObjectFactory createMulti(OntFinder finder, Stream<ObjectFactory> factories) {
+        return new MultiFactoryImpl(Objects.requireNonNull(finder, "Null finder"), null,
+                factories.peek(x -> Objects.requireNonNull(x, "Null component-factory")).toArray(ObjectFactory[]::new));
     }
 
     @SafeVarargs

@@ -17,7 +17,7 @@ package com.github.owlcs.ontapi;
 import com.github.owlcs.ontapi.config.OntConfig;
 import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
 import com.github.owlcs.ontapi.jena.UnionGraph;
-import com.github.owlcs.ontapi.jena.impl.OntIDImpl;
+import com.github.owlcs.ontapi.jena.impl.objects.OntIDImpl;
 import com.github.owlcs.ontapi.jena.utils.Graphs;
 import com.github.owlcs.ontapi.jena.utils.Models;
 import com.github.owlcs.ontapi.transforms.GraphStats;

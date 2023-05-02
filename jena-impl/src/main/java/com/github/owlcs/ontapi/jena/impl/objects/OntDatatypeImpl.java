@@ -12,13 +12,11 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.github.owlcs.ontapi.jena.impl;
+package com.github.owlcs.ontapi.jena.impl.objects;
 
 import com.github.owlcs.ontapi.jena.model.OntDataRange;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
-import org.apache.jena.datatypes.BaseDatatype;
 import org.apache.jena.datatypes.RDFDatatype;
-import org.apache.jena.datatypes.TypeMapper;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.vocabulary.RDFS;
@@ -54,9 +52,6 @@ public class OntDatatypeImpl extends OntObjectImpl implements OntDataRange.Named
 
     @Override
     public RDFDatatype toRDFDatatype() {
-        return getModel().dtTypes.computeIfAbsent(getURI(), u -> {
-            RDFDatatype res = TypeMapper.getInstance().getTypeByName(u);
-            return res == null ? new BaseDatatype(u) : res;
-        });
+        return getModel().getRDFDatatype(getURI());
     }
 }

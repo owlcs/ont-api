@@ -542,4 +542,19 @@ public class Graphs {
     public static Triple invertTriple(Triple triple) {
         return Triple.create(triple.getObject(), triple.getPredicate(), triple.getSubject());
     }
+
+    /**
+     * Returns a {@link Spliterator} characteristics based on graph analysis.
+     *
+     * @param graph {@link Graph}
+     * @return int
+     */
+    public static int getSpliteratorCharacteristics(Graph graph) {
+        // a graph cannot return iterator with null-elements
+        int res = Spliterator.NONNULL;
+        if (isDistinct(graph)) {
+            return res | Spliterator.DISTINCT;
+        }
+        return res;
+    }
 }

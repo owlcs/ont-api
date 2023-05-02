@@ -14,7 +14,6 @@
 
 package com.github.owlcs.ontapi.jena;
 
-import com.github.owlcs.ontapi.jena.impl.OntIndividualImpl;
 import com.github.owlcs.ontapi.jena.impl.conf.CommonFactoryImpl;
 import com.github.owlcs.ontapi.jena.impl.conf.ObjectFactory;
 import com.github.owlcs.ontapi.jena.impl.conf.OntFilter;
@@ -23,6 +22,7 @@ import com.github.owlcs.ontapi.jena.impl.conf.OntMaker;
 import com.github.owlcs.ontapi.jena.impl.conf.OntModelConfig;
 import com.github.owlcs.ontapi.jena.impl.conf.OntPersonality;
 import com.github.owlcs.ontapi.jena.impl.conf.PersonalityBuilder;
+import com.github.owlcs.ontapi.jena.impl.objects.OntIndividualImpl;
 import com.github.owlcs.ontapi.jena.model.OntClass;
 import com.github.owlcs.ontapi.jena.model.OntDataProperty;
 import com.github.owlcs.ontapi.jena.model.OntDataRange;

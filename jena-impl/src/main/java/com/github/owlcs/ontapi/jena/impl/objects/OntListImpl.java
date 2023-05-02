@@ -12,13 +12,16 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.github.owlcs.ontapi.jena.impl;
+package com.github.owlcs.ontapi.jena.impl.objects;
 
 import com.github.owlcs.ontapi.jena.OntJenaException;
+import com.github.owlcs.ontapi.jena.impl.OntGraphModelImpl;
+import com.github.owlcs.ontapi.jena.impl.PersonalityModel;
 import com.github.owlcs.ontapi.jena.model.OntList;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntObject;
 import com.github.owlcs.ontapi.jena.model.OntStatement;
+import com.github.owlcs.ontapi.jena.utils.Graphs;
 import com.github.owlcs.ontapi.jena.utils.Iterators;
 import com.github.owlcs.ontapi.jena.utils.Models;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
@@ -131,12 +134,12 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
      * @return a fresh {@link OntList} instance which wraps an existing []-list within the model Graph
      * @see #asSafeOntList(RDFList, OntGraphModelImpl, OntObject, Property, Resource, Class)
      */
-    protected static <N extends RDFNode> OntListImpl<N> asOntList(RDFList list,
-                                                                  OntGraphModelImpl model,
-                                                                  OntObject subject,
-                                                                  Property predicate,
-                                                                  Resource listType,
-                                                                  Class<N> elementType) {
+    public static <N extends RDFNode> OntListImpl<N> asOntList(RDFList list,
+                                                               OntGraphModelImpl model,
+                                                               OntObject subject,
+                                                               Property predicate,
+                                                               Resource listType,
+                                                               Class<N> elementType) {
         return new OntListImpl<>(subject, predicate, list, listType, model, elementType) {
             @Override
             public boolean isValid(RDFNode n) { // n is already in cache
@@ -168,12 +171,12 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
      * @return a fresh {@link OntList} instance which wraps an existing []-list within the model Graph
      * @see #asOntList(RDFList, OntGraphModelImpl, OntObject, Property, Resource, Class)
      */
-    protected static <N extends RDFNode> OntListImpl<N> asSafeOntList(RDFList list,
-                                                                      OntGraphModelImpl model,
-                                                                      OntObject subject,
-                                                                      Property predicate,
-                                                                      Resource listType,
-                                                                      Class<N> elementType) {
+    public static <N extends RDFNode> OntListImpl<N> asSafeOntList(RDFList list,
+                                                                   OntGraphModelImpl model,
+                                                                   OntObject subject,
+                                                                   Property predicate,
+                                                                   Resource listType,
+                                                                   Class<N> elementType) {
         return new OntListImpl<>(subject, predicate, list, listType, model, elementType) {
             @Override
             public boolean isValid(RDFNode n) {
@@ -266,10 +269,10 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
         }.copy();
     }
 
-    protected static void checkRequiredInputs(OntObject s,
-                                              Property p,
-                                              Resource listType,
-                                              Class<?> elementType) throws RuntimeException {
+    public static void checkRequiredInputs(OntObject s,
+                                           Property p,
+                                           Resource listType,
+                                           Class<?> elementType) throws RuntimeException {
         Objects.requireNonNull(s, "Null subject");
         Objects.requireNonNull(p, "Null predicate");
         Objects.requireNonNull(elementType, "Null type");
@@ -279,11 +282,11 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
         if (!listType.isURIResource()) throw new IllegalArgumentException("List type must have URI");
     }
 
-    protected static void checkRequiredInputs(OntObject s,
-                                              Property p,
-                                              RDFNode o,
-                                              Resource listType,
-                                              Class<?> elementType) throws RuntimeException {
+    public static void checkRequiredInputs(OntObject s,
+                                           Property p,
+                                           RDFNode o,
+                                           Resource listType,
+                                           Class<?> elementType) throws RuntimeException {
         Objects.requireNonNull(o, "Null object");
         checkRequiredInputs(s, p, listType, elementType);
     }
@@ -348,7 +351,7 @@ public abstract class OntListImpl<E extends RDFNode> extends ResourceImpl implem
     }
 
     protected int getCharacteristics() {
-        return OntGraphModelImpl.getSpliteratorCharacteristics(getModel().getGraph());
+        return Graphs.getSpliteratorCharacteristics(getModel().getGraph());
     }
 
     @Override

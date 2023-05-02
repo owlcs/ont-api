@@ -16,18 +16,18 @@ package com.github.owlcs.ontapi.jena.impl.conf;
 
 import com.github.owlcs.ontapi.jena.OntJenaException;
 import com.github.owlcs.ontapi.jena.OntVocabulary;
-import com.github.owlcs.ontapi.jena.impl.Entities;
-import com.github.owlcs.ontapi.jena.impl.OntAnnotationImpl;
-import com.github.owlcs.ontapi.jena.impl.OntCEImpl;
-import com.github.owlcs.ontapi.jena.impl.OntDRImpl;
-import com.github.owlcs.ontapi.jena.impl.OntDisjointImpl;
-import com.github.owlcs.ontapi.jena.impl.OntFRImpl;
-import com.github.owlcs.ontapi.jena.impl.OntIDImpl;
-import com.github.owlcs.ontapi.jena.impl.OntIndividualImpl;
-import com.github.owlcs.ontapi.jena.impl.OntNPAImpl;
-import com.github.owlcs.ontapi.jena.impl.OntObjectImpl;
-import com.github.owlcs.ontapi.jena.impl.OntPEImpl;
-import com.github.owlcs.ontapi.jena.impl.OntSWRLImpl;
+import com.github.owlcs.ontapi.jena.impl.objects.Entity;
+import com.github.owlcs.ontapi.jena.impl.objects.OntAnnotationImpl;
+import com.github.owlcs.ontapi.jena.impl.objects.OntCEImpl;
+import com.github.owlcs.ontapi.jena.impl.objects.OntDRImpl;
+import com.github.owlcs.ontapi.jena.impl.objects.OntDisjointImpl;
+import com.github.owlcs.ontapi.jena.impl.objects.OntFRImpl;
+import com.github.owlcs.ontapi.jena.impl.objects.OntIDImpl;
+import com.github.owlcs.ontapi.jena.impl.objects.OntIndividualImpl;
+import com.github.owlcs.ontapi.jena.impl.objects.OntNPAImpl;
+import com.github.owlcs.ontapi.jena.impl.objects.OntObjectImpl;
+import com.github.owlcs.ontapi.jena.impl.objects.OntPEImpl;
+import com.github.owlcs.ontapi.jena.impl.objects.OntSWRLImpl;
 import com.github.owlcs.ontapi.jena.model.OntAnnotation;
 import com.github.owlcs.ontapi.jena.model.OntAnnotationProperty;
 import com.github.owlcs.ontapi.jena.model.OntClass;
@@ -134,13 +134,13 @@ public class OntModelConfig {
             .add(OntAnnotation.class, OntAnnotationImpl.annotationFactory)
 
             // entities:
-            .add(OntClass.Named.class, Entities.CLASS.createFactory())
-            .add(OntDataRange.Named.class, Entities.DATATYPE.createFactory())
-            .add(OntIndividual.Named.class, Entities.INDIVIDUAL.createFactory())
-            .add(OntObjectProperty.Named.class, Entities.OBJECT_PROPERTY.createFactory())
-            .add(OntDataProperty.class, Entities.DATA_PROPERTY.createFactory())
-            .add(OntAnnotationProperty.class, Entities.ANNOTATION_PROPERTY.createFactory())
-            .add(OntEntity.class, Entities.ALL)
+            .add(OntClass.Named.class, Entity.CLASS.createFactory())
+            .add(OntDataRange.Named.class, Entity.DATATYPE.createFactory())
+            .add(OntIndividual.Named.class, Entity.INDIVIDUAL.createFactory())
+            .add(OntObjectProperty.Named.class, Entity.OBJECT_PROPERTY.createFactory())
+            .add(OntDataProperty.class, Entity.DATA_PROPERTY.createFactory())
+            .add(OntAnnotationProperty.class, Entity.ANNOTATION_PROPERTY.createFactory())
+            .add(OntEntity.class, Entity.ALL)
 
             // individuals:
             .add(OntIndividual.Anonymous.class, OntIndividualImpl.anonymousIndividualFactory)

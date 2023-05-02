@@ -15,7 +15,7 @@
 package com.github.owlcs.ontapi.internal;
 
 import com.github.owlcs.ontapi.OntApiException;
-import com.github.owlcs.ontapi.jena.impl.Entities;
+import com.github.owlcs.ontapi.jena.impl.objects.Entity;
 import com.github.owlcs.ontapi.jena.model.OntAnnotationProperty;
 import com.github.owlcs.ontapi.jena.model.OntClass;
 import com.github.owlcs.ontapi.jena.model.OntDataProperty;
@@ -160,11 +160,11 @@ public interface ModelObjectFactory extends ONTObjectFactory {
      * Gets an {@link OWLEntity} as {@link ONTObject} from the {@link OntEntity}.
      *
      * @param uri  String, not {@code null}
-     * @param type {@link Entities}, not {@code null}
+     * @param type {@link Entity}, not {@code null}
      * @return {@link ONTObject} with {@link OntEntity}
      * @see ONTObjectFactory#getEntity(OntEntity)
      */
-    default ONTObject<? extends OWLEntity> getEntity(String uri, Entities type) {
+    default ONTObject<? extends OWLEntity> getEntity(String uri, Entity type) {
         switch (type) {
             case CLASS:
                 return getClass(uri);

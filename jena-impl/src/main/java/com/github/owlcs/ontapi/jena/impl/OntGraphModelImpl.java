@@ -17,6 +17,15 @@ package com.github.owlcs.ontapi.jena.impl;
 import com.github.owlcs.ontapi.jena.OntJenaException;
 import com.github.owlcs.ontapi.jena.UnionGraph;
 import com.github.owlcs.ontapi.jena.impl.conf.OntPersonality;
+import com.github.owlcs.ontapi.jena.impl.objects.OntCEImpl;
+import com.github.owlcs.ontapi.jena.impl.objects.OntDRImpl;
+import com.github.owlcs.ontapi.jena.impl.objects.OntDisjointImpl;
+import com.github.owlcs.ontapi.jena.impl.objects.OntFRImpl;
+import com.github.owlcs.ontapi.jena.impl.objects.OntIndividualImpl;
+import com.github.owlcs.ontapi.jena.impl.objects.OntListImpl;
+import com.github.owlcs.ontapi.jena.impl.objects.OntObjectImpl;
+import com.github.owlcs.ontapi.jena.impl.objects.OntSWRLImpl;
+import com.github.owlcs.ontapi.jena.impl.objects.OntStatementImpl;
 import com.github.owlcs.ontapi.jena.model.OntAnnotationProperty;
 import com.github.owlcs.ontapi.jena.model.OntClass;
 import com.github.owlcs.ontapi.jena.model.OntDataProperty;
@@ -36,7 +45,9 @@ import com.github.owlcs.ontapi.jena.utils.Graphs;
 import com.github.owlcs.ontapi.jena.utils.Iterators;
 import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
+import org.apache.jena.datatypes.BaseDatatype;
 import org.apache.jena.datatypes.RDFDatatype;
+import org.apache.jena.datatypes.TypeMapper;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
@@ -222,28 +233,13 @@ public class OntGraphModelImpl extends UnionModel implements OntModel, Personali
     private static <X> Stream<X> asStream(Graph graph,
                                           ExtendedIterator<X> it,
                                           boolean withSize) {
-        int characteristics = getSpliteratorCharacteristics(graph);
+        int characteristics = Graphs.getSpliteratorCharacteristics(graph);
         long size = -1;
         if (withSize && Graphs.isSized(graph)) {
             size = Graphs.size(graph);
             characteristics = characteristics | Spliterator.SIZED;
         }
         return Iterators.asStream(it, size, characteristics);
-    }
-
-    /**
-     * Returns a {@link Spliterator} characteristics based on graph analysis.
-     *
-     * @param graph {@link Graph}
-     * @return int
-     */
-    protected static int getSpliteratorCharacteristics(Graph graph) {
-        // a graph cannot return iterator with null-elements
-        int res = Spliterator.NONNULL;
-        if (Graphs.isDistinct(graph)) {
-            return res | Spliterator.DISTINCT;
-        }
-        return res;
     }
 
     /**
@@ -446,7 +442,7 @@ public class OntGraphModelImpl extends UnionModel implements OntModel, Personali
      */
     @Override
     public <O extends OntObject> Stream<O> ontObjects(Class<? extends O> type) {
-        return Iterators.asStream(listOntObjects(type), getSpliteratorCharacteristics(getGraph()));
+        return Iterators.asStream(listOntObjects(type), Graphs.getSpliteratorCharacteristics(getGraph()));
     }
 
     /**
@@ -532,7 +528,7 @@ public class OntGraphModelImpl extends UnionModel implements OntModel, Personali
 
     @Override
     public Stream<OntIndividual> individuals() {
-        return Iterators.asStream(listIndividuals(), getSpliteratorCharacteristics(getGraph()));
+        return Iterators.asStream(listIndividuals(), Graphs.getSpliteratorCharacteristics(getGraph()));
     }
 
     /**
@@ -998,6 +994,13 @@ public class OntGraphModelImpl extends UnionModel implements OntModel, Personali
     public OntSWRL.Imp createSWRLImp(Collection<OntSWRL.Atom<?>> head,
                                      Collection<OntSWRL.Atom<?>> body) {
         return OntSWRLImpl.createImp(this, head, body);
+    }
+
+    public RDFDatatype getRDFDatatype(String uri) {
+        return dtTypes.computeIfAbsent(uri, u -> {
+            RDFDatatype res = TypeMapper.getInstance().getTypeByName(u);
+            return res == null ? new BaseDatatype(u) : res;
+        });
     }
 
     public PrefixMapping getPrefixMapping() {

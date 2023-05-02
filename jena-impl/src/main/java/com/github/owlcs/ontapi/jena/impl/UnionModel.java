@@ -16,6 +16,7 @@ package com.github.owlcs.ontapi.jena.impl;
 
 import com.github.owlcs.ontapi.jena.OntJenaException;
 import com.github.owlcs.ontapi.jena.UnionGraph;
+import com.github.owlcs.ontapi.jena.impl.objects.OntObjectImpl;
 import com.github.owlcs.ontapi.jena.utils.Graphs;
 import org.apache.jena.enhanced.Personality;
 import org.apache.jena.graph.Graph;

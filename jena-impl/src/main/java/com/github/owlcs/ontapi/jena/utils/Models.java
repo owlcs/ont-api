@@ -14,7 +14,7 @@
 
 package com.github.owlcs.ontapi.jena.utils;
 
-import com.github.owlcs.ontapi.jena.impl.OntListImpl;
+import com.github.owlcs.ontapi.jena.impl.objects.OntListImpl;
 import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.jena.enhanced.EnhGraph;

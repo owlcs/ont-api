@@ -29,7 +29,7 @@ import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
 import com.github.owlcs.ontapi.internal.objects.WithContent;
 import com.github.owlcs.ontapi.internal.objects.WithoutAnnotations;
 import com.github.owlcs.ontapi.jena.OntJenaException;
-import com.github.owlcs.ontapi.jena.impl.Entities;
+import com.github.owlcs.ontapi.jena.impl.objects.Entity;
 import com.github.owlcs.ontapi.jena.model.OntEntity;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.model.OntObject;
@@ -93,8 +93,8 @@ public class DeclarationTranslator extends AbstractSimpleTranslator<OWLDeclarati
         if (!statement.getObject().isURIResource()) return false;
         if (!statement.isDeclaration()) return false;
         // again. this way is used to restrict illegal punnings
-        return Entities.find(statement.getResource())
-                .map(Entities::getActualType)
+        return Entity.find(statement.getResource())
+                .map(Entity::getActualType)
                 .map(t -> statement.getModel().getOntEntity(t, statement.getSubject()))
                 .isPresent();
     }
@@ -121,8 +121,8 @@ public class DeclarationTranslator extends AbstractSimpleTranslator<OWLDeclarati
     public ONTObject<OWLDeclarationAxiom> toAxiomWrap(OntStatement statement,
                                                       ONTObjectFactory factory,
                                                       AxiomsSettings config) {
-        OntEntity e = Entities.find(statement.getResource())
-                .map(Entities::getActualType)
+        OntEntity e = Entity.find(statement.getResource())
+                .map(Entity::getActualType)
                 .map(t -> statement.getModel().getOntEntity(t, statement.getSubject()))
                 .orElseThrow(() -> new OntJenaException.IllegalArgument("Can't find entity by the statement " + statement));
         ONTObject<? extends OWLEntity> entity = factory.getEntity(e);
@@ -222,11 +222,11 @@ public class DeclarationTranslator extends AbstractSimpleTranslator<OWLDeclarati
         /**
          * Returns an entity type from jena subsystem.
          *
-         * @return {@link Entities}
+         * @return {@link Entity}
          */
-        public Entities getResourceType() {
+        public Entity getResourceType() {
             Node type = getObjectNode();
-            return Entities.find(type)
+            return Entity.find(type)
                     .orElseThrow(() -> new OntApiException.IllegalState("Can't find type for " + subject));
         }
 

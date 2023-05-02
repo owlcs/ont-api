@@ -12,8 +12,10 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.github.owlcs.ontapi.jena.impl;
+package com.github.owlcs.ontapi.jena.impl.objects;
 
+import com.github.owlcs.ontapi.jena.impl.PersonalityModel;
+import com.github.owlcs.ontapi.jena.impl.conf.Factories;
 import com.github.owlcs.ontapi.jena.impl.conf.ObjectFactory;
 import com.github.owlcs.ontapi.jena.impl.conf.OntFilter;
 import com.github.owlcs.ontapi.jena.impl.conf.OntFinder;
@@ -52,7 +54,7 @@ import java.util.function.Function;
  *
  * @see OntEntity
  */
-public enum Entities {
+public enum Entity {
     CLASS(OWL.Class, OntClass.Named.class, OntClassImpl.class, Vocabulary.Entities::getClasses),
     DATATYPE(RDFS.Datatype, OntDataRange.Named.class, OntDatatypeImpl.class, Vocabulary.Entities::getDatatypes),
     ANNOTATION_PROPERTY(OWL.AnnotationProperty, OntAnnotationProperty.class, OntAPropertyImpl.class, Vocabulary.Entities::getAnnotationProperties),
@@ -100,7 +102,7 @@ public enum Entities {
     ;
     private static final OntFinder ENTITY_FINDER = Factories.createFinder(e -> e.getResourceType().asNode(), values());
     public static final ObjectFactory ALL = Factories.createFrom(ENTITY_FINDER,
-            Arrays.stream(values()).map(Entities::getActualType));
+            Arrays.stream(values()).map(Entity::getActualType));
 
     final Class<? extends OntObjectImpl> impl;
     final Class<? extends OntEntity> classType;
@@ -109,15 +111,16 @@ public enum Entities {
 
     /**
      * Creates an entity enum.
-     * @param resourceType {@link Resource}-type
-     * @param classType    class-type of the corresponding {@link OntEntity}
-     * @param impl         class-implementation
+     *
+     * @param resourceType   {@link Resource}-type
+     * @param classType      class-type of the corresponding {@link OntEntity}
+     * @param impl           class-implementation
      * @param extractNodeSet to retrieve {@link Node}s
      */
-    Entities(Resource resourceType,
-             Class<? extends OntEntity> classType,
-             Class<? extends OntObjectImpl> impl,
-             Function<Vocabulary.Entities, Set<Node>> extractNodeSet) {
+    Entity(Resource resourceType,
+           Class<? extends OntEntity> classType,
+           Class<? extends OntObjectImpl> impl,
+           Function<Vocabulary.Entities, Set<Node>> extractNodeSet) {
         this.classType = classType;
         this.resourceType = resourceType;
         this.impl = impl;
@@ -200,9 +203,9 @@ public enum Entities {
      * Finds the entity by the resource-type.
      *
      * @param type {@link Resource}
-     * @return {@link Optional} of {@link Entities}
+     * @return {@link Optional} of {@link Entity}
      */
-    public static Optional<Entities> find(Resource type) {
+    public static Optional<Entity> find(Resource type) {
         return find(type.asNode());
     }
 
@@ -210,10 +213,10 @@ public enum Entities {
      * Finds the entity by the node-type.
      *
      * @param type {@link Node}, not {@code null}
-     * @return {@link Optional} of {@link Entities}
+     * @return {@link Optional} of {@link Entity}
      */
-    public static Optional<Entities> find(Node type) {
-        for (Entities e : values()) {
+    public static Optional<Entity> find(Node type) {
+        for (Entity e : values()) {
             if (Objects.equals(e.getResourceType().asNode(), type)) return Optional.of(e);
         }
         return Optional.empty();
@@ -223,10 +226,10 @@ public enum Entities {
      * Finds the entity by the class-type.
      *
      * @param type {@link Class}
-     * @return {@link Optional} of {@link Entities}
+     * @return {@link Optional} of {@link Entity}
      */
-    public static Optional<Entities> find(Class<? extends OntEntity> type) {
-        for (Entities e : values()) {
+    public static Optional<Entity> find(Class<? extends OntEntity> type) {
+        for (Entity e : values()) {
             if (Objects.equals(e.getActualType(), type)) return Optional.of(e);
         }
         return Optional.empty();

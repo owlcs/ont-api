@@ -12,11 +12,11 @@
  * Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 
-package com.github.owlcs.ontapi.jena.impl;
+package com.github.owlcs.ontapi.jena.impl.conf;
 
 import com.github.owlcs.ontapi.jena.OntJenaException;
-import com.github.owlcs.ontapi.jena.impl.conf.BaseFactoryImpl;
-import com.github.owlcs.ontapi.jena.impl.conf.ObjectFactory;
+import com.github.owlcs.ontapi.jena.impl.PersonalityModel;
+import com.github.owlcs.ontapi.jena.impl.objects.OntObjectImpl;
 import com.github.owlcs.ontapi.jena.model.OntObject;
 import org.apache.jena.enhanced.EnhGraph;
 import org.apache.jena.enhanced.EnhNode;
@@ -43,7 +43,7 @@ public class WrappedFactoryImpl extends BaseFactoryImpl {
         this.type = Objects.requireNonNull(type);
     }
 
-    static WrappedFactoryImpl of(Class<? extends OntObject> type) {
+    public static WrappedFactoryImpl of(Class<? extends OntObject> type) {
         return new WrappedFactoryImpl(type);
     }
 

@@ -14,8 +14,8 @@
 
 package com.github.owlcs.ontapi.jena;
 
-import com.github.owlcs.ontapi.jena.impl.OntCEImpl;
 import com.github.owlcs.ontapi.jena.impl.conf.OntModelConfig;
+import com.github.owlcs.ontapi.jena.impl.objects.OntCEImpl;
 import com.github.owlcs.ontapi.jena.model.OntAnnotationProperty;
 import com.github.owlcs.ontapi.jena.model.OntClass;
 import com.github.owlcs.ontapi.jena.model.OntDataProperty;

@@ -15,7 +15,7 @@
 package com.github.owlcs.ontapi.jena;
 
 import com.github.owlcs.ontapi.jena.impl.OntGraphModelImpl;
-import com.github.owlcs.ontapi.jena.impl.OntStatementImpl;
+import com.github.owlcs.ontapi.jena.impl.objects.OntStatementImpl;
 import com.github.owlcs.ontapi.jena.model.OntAnnotation;
 import com.github.owlcs.ontapi.jena.model.OntAnnotationProperty;
 import com.github.owlcs.ontapi.jena.model.OntClass;
