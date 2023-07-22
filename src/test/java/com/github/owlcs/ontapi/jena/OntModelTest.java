@@ -129,7 +129,7 @@ public class OntModelTest {
     @Test
     public void testPizzaLoadCE() {
         LOGGER.debug("load pizza");
-        OntModel m = OntModelFactory.createModel(RDFIOUtils.loadResourceAsModel("/testdata/pizza.ttl", Lang.TURTLE).getGraph());
+        OntModel m = OntModelFactory.createModel(RDFIOUtils.loadResourceAsModel("/jena/pizza.ttl", Lang.TURTLE).getGraph());
         LOGGER.debug("Ontology: {}", m.getID());
 
         List<OntClass.Named> classes = m.ontObjects(OntClass.Named.class).collect(Collectors.toList());
@@ -178,21 +178,21 @@ public class OntModelTest {
     @Test
     public void testPizzaLoadProperties() {
         simplePropertiesValidation(
-                OntModelFactory.createModel(RDFIOUtils.loadResourceAsModel("/testdata/pizza.ttl", Lang.TURTLE).getGraph())
+                OntModelFactory.createModel(RDFIOUtils.loadResourceAsModel("/jena/pizza.ttl", Lang.TURTLE).getGraph())
         );
     }
 
     @Test
     public void testFamilyLoadProperties() {
         simplePropertiesValidation(
-                OntModelFactory.createModel(RDFIOUtils.loadResourceAsModel("/testdata/family.ttl", Lang.TURTLE).getGraph())
+                OntModelFactory.createModel(RDFIOUtils.loadResourceAsModel("/jena/family.ttl", Lang.TURTLE).getGraph())
         );
     }
 
     @Test
     public void testPizzaLoadIndividuals() {
         LOGGER.debug("load pizza");
-        OntModel m = OntModelFactory.createModel(RDFIOUtils.loadResourceAsModel("/testdata/pizza.ttl", Lang.TURTLE).getGraph());
+        OntModel m = OntModelFactory.createModel(RDFIOUtils.loadResourceAsModel("/jena/pizza.ttl", Lang.TURTLE).getGraph());
         List<OntIndividual> individuals = m.ontObjects(OntIndividual.class).collect(Collectors.toList());
         Map<OntIndividual, Set<OntClass>> classes = individuals.stream()
                 .collect(Collectors.toMap(Function.identity(), i -> i.classes().collect(Collectors.toSet())));
@@ -225,7 +225,7 @@ public class OntModelTest {
         long numClasses = 36;
 
         OntModel m = OntModelFactory.createModel();
-        try (InputStream in = OntModelTest.class.getResourceAsStream("/testdata/koala.owl")) {
+        try (InputStream in = OntModelTest.class.getResourceAsStream("/jena/koala.owl")) {
             m.read(in, null, Lang.RDFXML.getName());
         }
         RDFIOUtils.print(m);
@@ -293,7 +293,7 @@ public class OntModelTest {
     @Test
     public void testKoalaProperties() throws IOException {
         OntModel m = OntModelFactory.createModel();
-        try (InputStream in = OntModelTest.class.getResourceAsStream("/testdata/koala.owl")) {
+        try (InputStream in = OntModelTest.class.getResourceAsStream("/jena/koala.owl")) {
             m.read(in, null, Lang.RDFXML.getName());
         }
         simplePropertiesValidation(m);
@@ -674,7 +674,7 @@ public class OntModelTest {
 
     @Test
     public void testOntPropertyOrdinal() {
-        Graph g = RDFIOUtils.loadResourceAsModel("/testdata/pizza.ttl", Lang.TURTLE).getGraph();
+        Graph g = RDFIOUtils.loadResourceAsModel("/jena/pizza.ttl", Lang.TURTLE).getGraph();
         OntModel m = OntModelFactory.createModel(g);
         OntNamedProperty<?> p = m.getOntEntity(OntNamedProperty.class, m.expandPrefix(":isIngredientOf"));
         Assertions.assertNotNull(p);
@@ -685,7 +685,7 @@ public class OntModelTest {
 
     @Test
     public void testFamilyListObjects() {
-        OntModel m = OntModelFactory.createModel(RDFIOUtils.loadResourceAsModel("/testdata/family.ttl", Lang.TURTLE).getGraph(),
+        OntModel m = OntModelFactory.createModel(RDFIOUtils.loadResourceAsModel("/jena/family.ttl", Lang.TURTLE).getGraph(),
                 OntModelConfig.ONT_PERSONALITY_LAX);
         assertOntObjectsCount(m, OntEntity.class, 656);
         assertOntObjectsCount(m, OntNamedProperty.class, 90);

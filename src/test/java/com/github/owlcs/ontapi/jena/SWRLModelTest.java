@@ -127,7 +127,7 @@ public class SWRLModelTest {
 
     @Test
     public void testSWRLObjectsOnLoadOntology() {
-        Graph g = RDFIOUtils.loadResourceAsModel("/testdata/swrl-test.owl", Lang.RDFXML).getGraph();
+        Graph g = RDFIOUtils.loadResourceAsModel("/jena/swrl-test.owl", Lang.RDFXML).getGraph();
         OntModel m = OntModelFactory.createModel(g);
 
         RDFIOUtils.print(m);

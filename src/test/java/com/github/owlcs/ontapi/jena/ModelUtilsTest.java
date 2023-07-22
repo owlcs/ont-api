@@ -58,7 +58,7 @@ public class ModelUtilsTest {
     @Test
     public void testDeleteResources() {
         OntModel m = OntModelFactory.createModel()
-                .read(ModelUtilsTest.class.getResourceAsStream("/testdata/recursive-graph.ttl"), null, "ttl");
+                .read(ModelUtilsTest.class.getResourceAsStream("/jena/recursive-graph.ttl"), null, "ttl");
         String ns = m.getID().getURI() + "#";
         OntObject d = m.createDisjointClasses(
                 m.createOntClass(ns + "CL1"),
