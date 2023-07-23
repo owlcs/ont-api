@@ -108,6 +108,13 @@ public interface OntPersonality {
     Reserved getReserved();
 
     /**
+     * Gets resources system resources for the specified type.
+     * @param type {@link OntEntity}
+     * @return Set of {@code Node}s
+     */
+    Set<Node> forbidden(Class<? extends OntEntity> type);
+
+    /**
      * Lists all object-types encapsulated by this config, that extend the specified object-type.
      *
      * @param type {@code Class}-type of {@link OntObject}

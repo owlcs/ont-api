@@ -41,8 +41,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -71,11 +69,6 @@ public abstract class SearchModel extends OntGraphModelImpl implements HasObject
     private Boolean hasSubAnnotations;
     // all URIs
     private Set<String> systemURIs;
-    /**
-     * A collection of reserved uri-{@link Node}s, that cannot be OWL-entities.
-     * Used to speedup iteration in some cases (e.g. for class assertions).
-     */
-    protected final Map<Class<? extends OntObject>, Set<Node>> systemResources = new HashMap<>();
 
     public SearchModel(Graph graph, OntPersonality personality, InternalConfig conf) {
         this(graph, personality, conf, true);
@@ -138,7 +131,7 @@ public abstract class SearchModel extends OntGraphModelImpl implements HasObject
         }
         // do not cache, since the top model is used only to list local objects,
         // and, also, because these objects may differ from those retrieved from the full model,
-        // (for example sub model may contain declaration '<a> a owl:Class',
+        // (for example sub model may contain declaration {@code <a> a owl:Class},
         // while in the local graph there is '<a> a rdfs:Datatype' - i.e. a punning for the same entity <a>).
         // A shared cache for this case will lead to wrong result,
         // and a separated cache will not give a performance gain
@@ -150,11 +143,6 @@ public abstract class SearchModel extends OntGraphModelImpl implements HasObject
                 return SearchModel.this.getObjectFactory();
             }
         };
-    }
-
-    @Override
-    public Set<Node> getSystemResources(Class<? extends OntObject> type) {
-        return systemResources.computeIfAbsent(type, x -> super.getSystemResources(type));
     }
 
     /**

@@ -467,6 +467,7 @@ public class OntGraphModelImpl extends UnionModel implements OntModel, Personali
         return listOntObjects(getTopModel(), type);
     }
 
+    @SuppressWarnings("CommentedOutCode")
     @Override
     public Stream<OntEntity> ontEntities() {
         /*return Iter.asStream(listSubjectsWithProperty(RDF.type))
@@ -501,29 +502,13 @@ public class OntGraphModelImpl extends UnionModel implements OntModel, Personali
     /**
      * Gets 'punnings', i.e. the {@link OntEntity}s which have not only single type.
      *
-     * @param withImports if false takes into account only base model
+     * @param withImports if it false takes into account only base model
      * @return {@code Stream} of {@link OntEntity}s.
      */
     public Stream<OntEntity> ambiguousEntities(boolean withImports) {
         Set<Class<? extends OntEntity>> types = OntEntity.listEntityTypes().toSet();
         return ontEntities().filter(e -> withImports || e.isLocal()).filter(e -> types.stream()
                 .filter(view -> e.canAs(view) && (withImports || e.as(view).isLocal())).count() > 1);
-    }
-
-    /**
-     * {@inheritDoc}
-     * Currently there are {@code 185} such resources for a {@link OntClass.Named}
-     * (from OWL, RDFS, RDF, XSD, SWRL, SWRLB vocabularies).
-     * It is an auxiliary method for iteration optimization.
-     *
-     * @param type a {@code Class}-type of {@link OntObject}, not {@code null}
-     * @return an unmodifiable {@code Set} of {@link Node}s
-     */
-    @Override
-    public Set<Node> getSystemResources(Class<? extends OntObject> type) {
-        return getOntPersonality().getReserved().getResources().stream() // do not use model's cache
-                .filter(x -> !OntObjectImpl.wrapAsOntObject(x, OntGraphModelImpl.this).canAs(type))
-                .collect(Collectors.toUnmodifiableSet());
     }
 
     @Override
@@ -539,7 +524,7 @@ public class OntGraphModelImpl extends UnionModel implements OntModel, Personali
      */
     public ExtendedIterator<OntIndividual> listIndividuals() {
         return listIndividuals(this,
-                getSystemResources(OntClass.Named.class),
+                getOntPersonality().forbidden(OntClass.Named.class),
                 getGraph().find(Node.ANY, RDF.Nodes.type, Node.ANY));
     }
 

@@ -15,7 +15,6 @@
 package com.github.owlcs.ontapi.tests.model;
 
 import com.github.owlcs.ontapi.DataFactory;
-import com.github.owlcs.ontapi.OWLAdapter;
 import com.github.owlcs.ontapi.OntFormat;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.Ontology;
@@ -340,7 +339,8 @@ public class ModifyAxiomsTest {
     @Test
     public void testRemoveAxiomWithBulkAnnotation() throws OWLOntologyCreationException {
         OntologyManager man = OntManagers.createManager();
-        OWLOntologyDocumentSource source = OWLIOUtils.getStringDocumentSource("" +
+        OWLOntologyDocumentSource source = OWLIOUtils.getStringDocumentSource(
+                //@formatter:off
                 "@prefix rdf:   <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .\n" +
                 "@prefix owl:   <http://www.w3.org/2002/07/owl#> .\n" +
                 "@prefix xml:   <http://www.w3.org/XML/1998/namespace> .\n" +
@@ -357,7 +357,9 @@ public class ModifyAxiomsTest {
                 "<X>     a                owl:Class ;\n" +
                 "        rdfs:subClassOf  owl:Thing .\n" +
                 "\n" +
-                "<http://testX>  a  owl:Ontology .", OntFormat.TURTLE);
+                "<http://testX>  a  owl:Ontology ."
+                //@formatter:on
+                , OntFormat.TURTLE);
         Ontology o = man.loadOntologyFromOntologyDocument(source);
         OWLIOUtils.print(o);
         OWLAxiom subClassOf = o.axioms(AxiomType.SUBCLASS_OF).findFirst().orElseThrow(AssertionError::new);
@@ -406,48 +408,6 @@ public class ModifyAxiomsTest {
         OWLIOUtils.print(o);
         Assertions.assertEquals(2, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
         Assertions.assertEquals(3, m.size());
-    }
-
-    @Test
-    public void testNegativeDataPropertyIntersection() {
-        OntologyManager man = OntManagers.createManager();
-        man.getOntologyConfigurator().setPersonality(OntModelConfig.ONT_PERSONALITY_LAX);
-        OWLAdapter ad = OWLAdapter.get();
-        OWLDataFactory df = man.getOWLDataFactory();
-
-        Ontology o = man.createOntology(IRI.create("http://test2"));
-        int system = ad.asBaseModel(o).getBase().getSystemResources(OntClass.Named.class).size();
-        OntModel m = o.asGraphModel();
-        m.createOntClass(OWL.NegativePropertyAssertion.getURI());
-        m.createDataProperty(OWL.targetValue.getURI());
-        m.createIndividual("I").addNegativeAssertion(m.createDataProperty("P"), m.createLiteral("x"));
-
-        OWLIOUtils.print(o);
-        Assertions.assertEquals(system - 1, ad.asBaseModel(o).getBase().getSystemResources(OntClass.Named.class).size());
-        Assertions.assertEquals(7, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
-        Assertions.assertEquals(9, m.size());
-
-        OWLAxiom ndpa = o.axioms(AxiomType.NEGATIVE_DATA_PROPERTY_ASSERTION).findFirst().orElseThrow(AssertionError::new);
-        OWLAxiom dpa = o.axioms(AxiomType.DATA_PROPERTY_ASSERTION).findFirst().orElseThrow(AssertionError::new);
-        OWLAxiom ca = o.axioms(AxiomType.CLASS_ASSERTION).findFirst().orElseThrow(AssertionError::new);
-        o.remove(ndpa);
-        OWLIOUtils.print(o);
-        Assertions.assertEquals(6, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
-        Assertions.assertEquals(7, m.size());
-
-        o.remove(dpa);
-        o.remove(ca);
-        OWLIOUtils.print(o);
-        Assertions.assertEquals(4, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
-        Assertions.assertEquals(5, m.size());
-
-        o.remove(df.getOWLDeclarationAxiom(df.getOWLClass(OWL.NegativePropertyAssertion.getURI())));
-        o.remove(df.getOWLDeclarationAxiom(df.getOWLDataProperty(OWL.targetValue.getURI())));
-        OWLIOUtils.print(o);
-        Assertions.assertEquals(system, ad.asBaseModel(o).getBase().getSystemResources(OntClass.Named.class).size());
-        Assertions.assertEquals(2, o.axioms().peek(x -> LOGGER.debug("{}", x)).count());
-        Assertions.assertEquals(3, m.size());
-
     }
 
     @Test

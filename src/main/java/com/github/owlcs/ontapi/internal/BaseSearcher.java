@@ -151,7 +151,7 @@ public abstract class BaseSearcher {
      */
     protected static Set<Node> getSystemResources(OntModel model) {
         if (model instanceof PersonalityModel) {
-            return ((PersonalityModel) model).getSystemResources(OntClass.Named.class);
+            return ((PersonalityModel) model).getOntPersonality().forbidden(OntClass.Named.class);
         }
         return Collections.emptySet();
     }

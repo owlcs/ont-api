@@ -15,12 +15,19 @@
 package com.github.owlcs.ontapi.jena.impl.conf;
 
 import com.github.owlcs.ontapi.jena.OntJenaException;
+import com.github.owlcs.ontapi.jena.model.OntEntity;
 import com.github.owlcs.ontapi.jena.model.OntObject;
 import org.apache.jena.enhanced.Implementation;
 import org.apache.jena.enhanced.Personality;
+import org.apache.jena.graph.Node;
 import org.apache.jena.rdf.model.RDFNode;
+import org.apache.jena.rdf.model.Resource;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -29,21 +36,36 @@ import java.util.stream.Stream;
  * <p>
  * Created by @ssz on 10.11.2016.
  */
-@SuppressWarnings({"WeakerAccess"})
+@SuppressWarnings({"WeakerAccess", "unused"})
 public class OntPersonalityImpl extends Personality<RDFNode> implements OntPersonality {
     private final Punnings punnings;
     private final Builtins builtins;
     private final Reserved reserved;
+    private final Map<Class<? extends OntEntity>, Set<Node>> forbidden;
 
     public OntPersonalityImpl(Personality<RDFNode> other, Punnings punnings, Builtins builtins, Reserved reserved) {
         super(Objects.requireNonNull(other, "Null personalities"));
         this.builtins = Objects.requireNonNull(builtins, "Null builtins vocabulary");
         this.punnings = Objects.requireNonNull(punnings, "Null punnings vocabulary");
         this.reserved = Objects.requireNonNull(reserved, "Null reserved vocabulary");
+        this.forbidden = collectForbiddenResources(reserved, builtins);
     }
 
     protected OntPersonalityImpl(OntPersonalityImpl other) {
         this(other, other.getPunnings(), other.getBuiltins(), other.getReserved());
+    }
+
+    private static Map<Class<? extends OntEntity>, Set<Node>> collectForbiddenResources(Reserved reserved, Builtins builtins) {
+        Map<Class<? extends OntEntity>, Set<Node>> forbidden = new HashMap<>();
+        Set<Node> reservedResources = reserved.get(Resource.class);
+        OntEntity.entityTypes().forEach(type -> {
+            Set<Node> allowedResources = builtins.get(type);
+            Set<Node> forbiddenResources = reservedResources.stream()
+                    .filter(it -> !allowedResources.contains(it))
+                    .collect(Collectors.toUnmodifiableSet());
+            forbidden.put(type, forbiddenResources);
+        });
+        return forbidden;
     }
 
     @Override
@@ -59,6 +81,11 @@ public class OntPersonalityImpl extends Personality<RDFNode> implements OntPerso
     @Override
     public Reserved getReserved() {
         return reserved;
+    }
+
+    @Override
+    public Set<Node> forbidden(Class<? extends OntEntity> type) {
+        return forbidden.get(type);
     }
 
     /**
