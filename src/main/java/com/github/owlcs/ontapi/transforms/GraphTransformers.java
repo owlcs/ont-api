@@ -15,15 +15,15 @@
 package com.github.owlcs.ontapi.transforms;
 
 import com.github.owlcs.ontapi.OntApiException;
+import com.github.owlcs.ontapi.jena.GraphListenerBase;
 import com.github.owlcs.ontapi.jena.UnionGraph;
 import com.github.owlcs.ontapi.jena.utils.Graphs;
-import org.apache.jena.graph.Factory;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphEventManager;
 import org.apache.jena.graph.GraphUtil;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.shared.JenaException;
-import org.apache.jena.sparql.util.graph.GraphListenerBase;
+import org.apache.jena.sparql.graph.GraphFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -103,7 +103,7 @@ public class GraphTransformers implements Serializable {
      * @throws TransformException in case something wrong while processing
      */
     public static Graph convert(Graph from) throws TransformException {
-        Graph res = Factory.createGraphMem();
+        Graph res = GraphFactory.createGraphMem();
         GraphUtil.addInto(res, from);
         get().transform(res);
         return res;

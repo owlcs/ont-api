@@ -15,6 +15,7 @@
 package com.github.owlcs.ontapi.tests.transforms;
 
 import com.github.owlcs.ontapi.OntFormat;
+import com.github.owlcs.ontapi.jena.GraphListenerBase;
 import com.github.owlcs.ontapi.jena.OntModelFactory;
 import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.jena.utils.Graphs;
@@ -23,7 +24,6 @@ import com.github.owlcs.ontapi.transforms.OWLRecursiveTransform;
 import com.github.owlcs.ontapi.transforms.TransformationModel;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
-import org.apache.jena.sparql.util.graph.GraphListenerBase;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.params.ParameterizedTest;

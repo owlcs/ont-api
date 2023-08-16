@@ -14,10 +14,10 @@
 
 package com.github.owlcs.ontapi.internal;
 
+import com.github.owlcs.ontapi.jena.GraphListenerBase;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.graph.impl.CollectionGraph;
-import org.apache.jena.sparql.util.graph.GraphListenerBase;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,7 +68,7 @@ public class OWLTriples<V extends OWLObject> extends ONTWrapperImpl<V> {
     }
 
     /**
-     * A {@link GraphListenerBase Graph Listener} implementation
+     * A {@link org.apache.jena.graph.GraphListener Graph Listener} implementation
      * that monitors the {@code Graph} mutation while adding {@link OWLObject} into the cache-map.
      */
     public static class Listener extends GraphListenerBase {

@@ -30,27 +30,36 @@
         <maven.compiler.target>11</maven.compiler.target>
         <maven.compiler.source>11</maven.compiler.source>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.deploy.skip>true</maven.deploy.skip>
-        <maven.install.skip>true</maven.install.skip>
 
         <revision>3.0.5-SNAPSHOT</revision>
 
-        <version.jena>4.8.0</version.jena>
+        <!--https://mvnrepository.com/artifact/org.apache.jena/jena-arq-->
+        <version.jena>4.9.0</version.jena>
+        <!--https://mvnrepository.com/artifact/net.sourceforge.owlapi/owlapi-api-->
         <version.owlapi>5.5.0</version.owlapi>
+        <!--https://mvnrepository.com/artifact/org.slf4j/slf4j-api-->
         <version.slf4j>2.0.7</version.slf4j>
-        <version.caffeine>3.1.6</version.caffeine>
+        <!--https://mvnrepository.com/artifact/com.github.ben-manes.caffeine/caffeine-->
+        <version.caffeine>3.1.8</version.caffeine>
+        <!--https://jitpack.io/#sszuev/concurrent-rdf-graph-->
         <version.concurrent-rdf-graph>1.0.0</version.concurrent-rdf-graph>
-        <version.junit>5.9.3</version.junit>
-        <versio.mockito>5.3.1</versio.mockito>
+        <!--https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-->
+        <version.junit>5.10.0</version.junit>
+        <!--https://mvnrepository.com/artifact/org.mockito/mockito-core-->
+        <versio.mockito>5.4.0</versio.mockito>
 
-        <version.maven-gpg-plugin>3.0.1</version.maven-gpg-plugin>
-        <version.flatten-maven-plugin>1.4.1</version.flatten-maven-plugin>
-        <version.maven-source-plugin>3.2.1</version.maven-source-plugin>
+        <!--https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-gpg-plugin-->
+        <version.maven-gpg-plugin>3.1.0</version.maven-gpg-plugin>
+        <!--https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-source-plugin-->
+        <version.maven-source-plugin>3.3.0</version.maven-source-plugin>
+        <!--https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-javadoc-plugin-->
         <version.maven-javadoc-plugin>3.5.0</version.maven-javadoc-plugin>
+        <!--https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-jar-plugin-->
         <version.maven-jar-plugin>3.3.0</version.maven-jar-plugin>
+        <!--https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-compiler-plugin-->
         <version.maven-compiler-plugin>3.11.0</version.maven-compiler-plugin>
-        <version.maven-surefire-plugin>3.0.0</version.maven-surefire-plugin>
-        <version.build-helper-maven-plugin>3.3.0</version.build-helper-maven-plugin>
+        <!--https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-surefire-plugin-->
+        <version.maven-surefire-plugin>3.1.2</version.maven-surefire-plugin>
     </properties>
 
     <licenses>
@@ -221,11 +230,6 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>
                 <version>${version.maven-gpg-plugin}</version>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-                <version>${version.build-helper-maven-plugin}</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
