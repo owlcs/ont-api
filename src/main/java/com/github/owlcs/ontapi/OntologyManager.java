@@ -18,13 +18,17 @@ import com.github.owlcs.ontapi.config.OntConfig;
 import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
 import com.github.owlcs.ontapi.config.OntWriterConfiguration;
 import com.github.owlcs.ontapi.jena.model.OntModel;
+import javax.annotation.Nullable;
+import javax.annotation.ParametersAreNonnullByDefault;
 import org.apache.jena.graph.Graph;
 import org.semanticweb.owlapi.io.FileDocumentSource;
 import org.semanticweb.owlapi.io.IRIDocumentSource;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
+import org.semanticweb.owlapi.io.OWLOntologyDocumentTarget;
 import org.semanticweb.owlapi.io.OWLParserFactory;
 import org.semanticweb.owlapi.io.StreamDocumentSource;
 import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.OWLImportsDeclaration;
 import org.semanticweb.owlapi.model.OWLOntology;
 import org.semanticweb.owlapi.model.OWLOntologyAlreadyExistsException;
@@ -35,16 +39,17 @@ import org.semanticweb.owlapi.model.OWLOntologyID;
 import org.semanticweb.owlapi.model.OWLOntologyIRIMapper;
 import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
+import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.semanticweb.owlapi.model.OWLOntologyWriterConfiguration;
 import org.semanticweb.owlapi.model.OWLStorerFactory;
 import org.semanticweb.owlapi.model.OntologyConfigurator;
 import org.semanticweb.owlapi.model.parameters.OntologyCopy;
 
-import javax.annotation.Nullable;
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.File;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.Serializable;
+import java.io.Writer;
 import java.util.Set;
 import java.util.stream.Stream;
 
@@ -52,9 +57,9 @@ import java.util.stream.Stream;
  * An ONT-API Ontology manager, which is an extended {@link OWLOntologyManager OWL-API manager}.
  * It is the main point for creating, loading and accessing {@link Ontology Ontology Model}s.
  * Any ontology in this manager is a wrapper around a {@link Graph Jena Graph},
- * which may be linked to the another ontology through {@link com.github.owlcs.ontapi.jena.UnionGraph UnionGraph} interface.
+ * which may be linked to another ontology through {@link com.github.owlcs.ontapi.jena.UnionGraph UnionGraph} interface.
  * <p>
- * The following methods are new (i.e. added in ONT-API) and extend the original functionality provided by the OWL-API:
+ * The following methods are new (i.e., added in ONT-API) and extend the original functionality provided by the OWL-API:
  * <ul>
  * <li>{@link #addOntology(Graph)} - since 1.0.1</li>
  * <li>{@link #addOntology(Graph, OntLoaderConfiguration)} - since 1.2.0</li>
@@ -65,6 +70,7 @@ import java.util.stream.Stream;
  * <li>{@link #getGraphModel(String, String)}</li>
  * <li>{@link #getDocumentSourceMappers()} - since 1.3.0</li>
  * </ul>
+ *
  * @see <a href="https://github.com/owlcs/owlapi/blob/version5/api/src/main/java/org/semanticweb/owlapi/model/OWLOntologyManager.java">org.semanticweb.owlapi.model.OWLOntologyManager</a>
  */
 @ParametersAreNonnullByDefault
@@ -80,17 +86,17 @@ public interface OntologyManager extends OWLOntologyManager {
     DataFactory getOWLDataFactory();
 
     /**
-     * Returns the managers global config,
+     * Returns the manager's global config,
      * which is an extended {@link OntologyConfigurator OWL API Configurator} and
      * also a factory to create the snapshot configs {@link OntLoaderConfiguration} and {@link OntWriterConfiguration}.
-     * It contains settings to manage both reading and writing behaviour,
+     * It contains settings to manage both reading and writing behavior,
      * including a wide range of ONT-API specific settings.
      * This configuration is modifiable, but any change in it affects existing ontologies only
      * if the methods {@link #setOntologyLoaderConfiguration(OWLOntologyLoaderConfiguration)} or
      * {@link #setOntologyWriterConfiguration(OWLOntologyWriterConfiguration)} have not been called.
      * If none of these two methods were called,
      * then both newly added and existing ontologies pick up the config changes.
-     * Otherwise, the global config is almost useless. This behavior is the inherited from OWL-API.
+     * Otherwise, the global config is almost useless. This behavior is inherited from OWL-API.
      * Also, changes in this configuration do not affect on ontologies, loaded with the
      * {@link #loadOntologyFromOntologyDocument(OWLOntologyDocumentSource, OWLOntologyLoaderConfiguration)} method
      * - they already have their own overwritten configurations.
@@ -163,7 +169,7 @@ public interface OntologyManager extends OWLOntologyManager {
 
     /**
      * Gets an {@link RWLockedCollection extended OWL-API PriorityCollection}
-     * of {@link OntologyFactory Ontology Factories} - an iterable object,
+     * of {@link OntologyFactory Ontology Factories} - iterable object,
      * which allows to iterate and modify an internal collection.
      * Warning: any attempt to add OWLOntologyFactory into that Priority Collection
      * will cause throwing an {@link OntApiException ONT-API runtime exception}
@@ -284,7 +290,7 @@ public interface OntologyManager extends OWLOntologyManager {
      * The method also works with version IRI if it fails with ontology IRI.
      * So, the resulting ontology may have an ontology IRI that does not match the {@code iri}
      * specified as the method parameter.
-     * This behaviour is caused by the {@link OWLOntologyID#match(IRI)} method,
+     * This behavior is caused by the {@link OWLOntologyID#match(IRI)} method,
      * and present in all versions of the OWL-API v5.
      *
      * @param iri {@link IRI} which is an ontology IRI or a version IRI as described above, cannot be {@code null}
@@ -298,7 +304,7 @@ public interface OntologyManager extends OWLOntologyManager {
 
     /**
      * Finds the ontology by the specified {@code id}, which is allowed to be anonymous.
-     * If there is no such ontology it tries to find the first with the same ontology IRI as in the given {@code id}.
+     * If there is no such ontology, it tries to find the first with the same ontology IRI as in the given {@code id}.
      *
      * @param id {@link OWLOntologyID} ID, cannot be {@code null}
      * @return {@link Ontology} or {@code null}
@@ -326,8 +332,8 @@ public interface OntologyManager extends OWLOntologyManager {
     /**
      * Answers {@code true} if the manager contains an ontology with the given ontology {@code id}.
      * Be warned: this method returns always {@code false} for any anonymous id.
-     * For non-anonymous id it performs searching by ontology iri ignoring version iri.
-     * This is in order to make the behaviour the same as the original OWL-API method.
+     * For non-anonymous id it performs searching by ontology iri ignoring a version IRI.
+     * This is to make the behavior the same as the original OWL-API method.
      * To find an anonymous ontology use either the method {@link OntologyManager#getOntology(OWLOntologyID)}
      * or the method {@link OntologyManager#ontologies()} stream with filters.
      *
@@ -339,11 +345,11 @@ public interface OntologyManager extends OWLOntologyManager {
     boolean contains(OWLOntologyID id);
 
     /**
-     * Given an imports declaration, obtains the ontology that this import has been resolved to.
+     * Given an import declaration, obtains the ontology that this import has been resolved to.
      *
      * @param iri {@link OWLImportsDeclaration} the declaration that points to the imported ontology
-     * @return {@link Ontology} the ontology that the imports declaration resolves to,
-     * or {@code null} if the imports declaration could not be resolved to an ontology,
+     * @return {@link Ontology} the ontology that the import declaration resolves to,
+     * or {@code null} if the import declaration could not be resolved to an ontology,
      * because the ontology was not loaded or has been removed from this manager
      * @see OWLOntologyManager#getImportedOntology(OWLImportsDeclaration)
      * @see #getImportedOntology(IRI)
@@ -368,10 +374,10 @@ public interface OntologyManager extends OWLOntologyManager {
      * Note: this method doesn't throw a checked exception {@link OWLOntologyCreationException} as does OWL-API.
      * Instead, there is an unchecked exception {@link OntApiException}
      * that may wrap {@link OWLOntologyCreationException}.
-     * This is due to the fact that OWL-API and ONT-API physically work in different ways,
-     * and sometimes there is no possibility to retain the behaviour completely.
-     * Moreover, a method which do not work with resources
-     * and just create an object should not throw a checked exception.
+     * This is because OWL-API and ONT-API physically work in different ways,
+     * and sometimes there is no possibility to retain the behavior completely.
+     * Moreover, a method which does not work with resources
+     * and just creates an object should not throw a checked exception.
      *
      * @param id {@link OWLOntologyID}
      * @return ontology {@link Ontology}
@@ -399,44 +405,44 @@ public interface OntologyManager extends OWLOntologyManager {
 
     /**
      * Copies the specified ontology from the original manager into this one.
-     * The returned {@code OntologyModel} will be linked to this manager instance, i.e.
+     * The returned {@code OntologyModel} will be linked to this manager instance, i.e.,
      * the method {@link Ontology#getOWLOntologyManager()} called for this ontology
      * should return an instance of this manager.
      * The {@code source} could be any {@link OWLOntology ontology} implementation,
      * not necessarily provided by ONT-API.
      * <p>
-     * Note: the axioms list, retrieved from the returned ontology, may differ with the source axioms
+     * Note: the axiom's list, retrieved from the returned ontology, may differ with the source axioms
      * due to the different config settings (see {@link com.github.owlcs.ontapi.config.AxiomsSettings}).
      * <p>
      * Note: the second parameter is allowed to be either
      * {@link OntologyCopy#SHALLOW SHALLOW} or {@link OntologyCopy#DEEP DEEP}.
-     * In ONT-API the moving operation (i.e. {@code settings} = {@link OntologyCopy#MOVE MOVE}) is not supported,
+     * In ONT-API the moving operation (i.e., {@code settings} = {@link OntologyCopy#MOVE MOVE}) is not supported,
      * since the original (default-impl) OWL-API method requires the same instance returned.
      * This condition cannot be satisfied since we are dealing with different implementation.
-     * To perform moving it always possible just copy ontology using this method
+     * To perform moving it always possible copy ontology using this method
      * and then delete the source ontology using the method {@link #removeOntology(OWLOntology)}.
      * <p>
      * If the {@code settings} parameter is {@link OntologyCopy#SHALLOW SHALLOW} and
      * the source ontology is {@link Ontology}
-     * (i.e. not an {@link OWLOntology} instance produced by the default OWL-API impl),
+     * (i.e., not an {@link OWLOntology} instance produced by the default OWL-API impl),
      * then this operation is almost effectively equivalent to calling
      * the method {@link #addOntology(Graph, OntLoaderConfiguration)}
      * with the parameter-configuration where transformations and import processing are disabled
      * (for more info about these parameters see
      * {@link com.github.owlcs.ontapi.config.LoadSettings#isPerformTransformation()
      * and {@link com.github.owlcs.ontapi.config.LoadSettings#isProcessImports()}}).
-     * In this case only the base graph reference is copied, all actual data remains untouched.
-     * It results a possibility to share an ontology data between different managers.
+     * In this case, only the base graph reference is copied; all actual data remains untouched.
+     * It results in a possibility to share ontology data between different managers.
      * <p>
      * If the second parameter is {@link OntologyCopy#DEEP DEEP},
      * then the ontology data is really copied, triple by triple.
      * The document format (see {@link #getOntologyFormat(OWLOntology)}) and
      * the document source iri (see {@link #getOntologyDocumentIRI(OWLOntology)}) are also copied -
-     * and this matches the OWL-API default behaviour.
+     * and this matches the OWL-API default behavior.
      * <p>
      * In all cases, the method not only works with the base graph,
      * but also tries to restore all missed import references.
-     * I.e. if the source ontology has an import to another one,
+     * I.e., if the source ontology has an import to another one,
      * the returned ontology would also have a reference to an ontology with the same import declaration IRI,
      * if it is found in the manager.
      *
@@ -453,12 +459,12 @@ public interface OntologyManager extends OWLOntologyManager {
     /**
      * Loads an ontology by the specified {@code source} IRI.
      * Note: if a loaded ontology contains any {@code owl:imports} they will also be processed,
-     * i.e. in general case this method loads not only single ontology but the whole ontology family.
+     * i.e., in general case this method loads not only single ontology but the whole ontology family.
      * If there is a {@link DocumentSourceMapping Docuemnt Source Mapping} in the manager for the given IRI,
      * then the method processes the corresponding {@link OWLOntologyDocumentSource Document Source}.
      * Similar, if there is {@link OWLOntologyIRIMapper IRI Mapping} for the given IRI,
      * then the method uses a document IRI obtained from that mapper.
-     * In other cases the {@link IRIDocumentSource} is used and system tries to find a file or web-resource for it.
+     * In other cases the {@link IRIDocumentSource} is used, and the system tries to find a file or web-resource for it.
      *
      * @param source {@link IRI} the IRI that identifies the desirable ontology:
      *               it can be an ontology IRI, version IRI or document IRI to load directly,
@@ -473,15 +479,15 @@ public interface OntologyManager extends OWLOntologyManager {
 
     /**
      * Loads an ontology from the specified {@link OWLOntologyDocumentSource document source} using
-     * {@link OWLOntologyLoaderConfiguration Loader Configuration} to setup loading process.
+     * {@link OWLOntologyLoaderConfiguration Loader Configuration} to setup loading processes.
      * It is the most general way to load an ontology to the manager.
      * Notice: if the source contains any {@code owl:imports}, which absent in the manager, they will be processed also,
-     * i.e. this method loads not only single ontology in general case.
+     * i.e., this method loads not only single ontology in general case.
      *
      * @param source {@link OWLOntologyDocumentSource} the document source to produce i
      * @param config {@link OWLOntologyLoaderConfiguration} the loading settings, see {@link OntLoaderConfiguration}
      * @return {@link Ontology}
-     * @throws OWLOntologyCreationException in case any error occurs during reading source or construct the ontology
+     * @throws OWLOntologyCreationException in case any error occurs during a reading source or a construct the ontology
      * @see OWLOntologyManager#loadOntologyFromOntologyDocument(OWLOntologyDocumentSource, OWLOntologyLoaderConfiguration)
      */
     @Override
@@ -489,12 +495,39 @@ public interface OntologyManager extends OWLOntologyManager {
                                               OWLOntologyLoaderConfiguration config) throws OWLOntologyCreationException;
 
     /**
+     * {@inheritDoc}
+     * <b>Note: The caller is responsible for closing the {@code  outputStream}</b>
+     *
+     * @param ontology     The ontology to be saved.
+     * @param outputStream The output stream where the ontology will be saved to
+     * @throws OWLOntologyStorageException
+     */
+    @Override
+    default void saveOntology(OWLOntology ontology, OutputStream outputStream) throws OWLOntologyStorageException {
+        OWLOntologyManager.super.saveOntology(ontology, outputStream);
+    }
+
+    /**
+     * {@inheritDoc}
+     * <b>Note: the method calls {@link Writer#close()} produced by {@link OWLOntologyDocumentTarget#getWriter()},
+     * but DOES not call {@link OutputStream#close()} produced by {@link OWLOntologyDocumentTarget#getOutputStream()}</b>.
+     *
+     * @param ontology       The ontology to be saved.
+     * @param ontologyFormat The output format in which to save the ontology
+     * @param documentTarget The output target where the ontology will be saved to
+     * @throws OWLOntologyStorageException
+     */
+    @Override
+    void saveOntology(OWLOntology ontology, OWLDocumentFormat ontologyFormat, OWLOntologyDocumentTarget documentTarget)
+            throws OWLOntologyStorageException;
+
+    /**
      * Resolves the given IRI to the ontology if possible.
      * According to the specification,
      * a return ontology must have either a version IRI, an ontology IRI or a document IRI (in this order),
      * that matches the specified IRI.
-     * In case of ontology IRI, there should be only a single ontology in the manager that has this ontology IRI,
-     * otherwise this IRI cannot be considered as current version of the ontology series.
+     * In the case of ontology IRI, there should be only a single ontology in the manager that has this ontology IRI,
+     * otherwise this IRI cannot be considered as a current version of the ontology series.
      *
      * @param iri the declaration {@link IRI} to find the imported ontology
      * @return {@link Ontology} or {@code null}
@@ -587,7 +620,7 @@ public interface OntologyManager extends OWLOntologyManager {
     /**
      * Puts a graph to the manager.
      * This is a new (ONT-API) method.
-     * Note: graph transformation are not performed.
+     * Note: graph transformation is not performed.
      *
      * @param graph {@link Graph}
      * @return {@link Ontology}
@@ -619,7 +652,7 @@ public interface OntologyManager extends OWLOntologyManager {
      *
      * @param iri {@link IRI} the IRI of the ontology to be created
      * @return {@link Ontology} the newly created ONT-API ontology instance
-     * @throws OntApiException in case of error, this exception can wrap one of the OWL-API checked exception,
+     * @throws OntApiException in case of error, this exception can wrap one of the OWL-API checked exceptions,
      *                         e.g. {@link OWLOntologyCreationException}, {@link OWLOntologyAlreadyExistsException},
      *                         {@link  OWLOntologyDocumentAlreadyExistsException}.
      * @see OWLOntologyManager#createOntology(IRI)
@@ -651,11 +684,11 @@ public interface OntologyManager extends OWLOntologyManager {
      * In contrast, the {@link #loadOntology(IRI)} method, <i>no mapping</i> is performed on the specified IRI.
      * The loading settings are default (see {@link #getOntologyLoaderConfiguration()}).
      * Notice: if ontology contains reference to other ontologies (using {@code owl:imports}),
-     * they will be processed also, i.e. in general case if process finishes without any error,
+     * they will be processed also, i.e., in general case if a process finishes without any error,
      * not only a single ontology may be loaded.
      * In case of dependent ontologies all mappings
      * ({@link OWLOntologyIRIMapper IRI Mapping} and {@link DocumentSourceMapping Document Source Mapping})
-     * are included into consideration.
+     * are included in consideration.
      *
      * @param iri {@link IRI} the ontology document IRI where the ontology will be loaded from
      * @return {@link Ontology} the newly loaded ONT-API ontology instance
@@ -670,7 +703,7 @@ public interface OntologyManager extends OWLOntologyManager {
     /**
      * Loads an ontology from a file using default {@link OntLoaderConfiguration Loader Settings}.
      * Notice: if ontology contains reference to other ontologies (using {@code owl:imports}),
-     * they will be processed also, i.e. in general case if process finishes without any error,
+     * they will be processed also, i.e., in general case if the process finishes without any error,
      * not only a single ontology may be loaded.
      * Also note, if there are no any {@link OWLOntologyIRIMapper IRI Mapping} or
      * {@link DocumentSourceMapping Document Source Mapping} in the manager,
@@ -678,7 +711,7 @@ public interface OntologyManager extends OWLOntologyManager {
      *
      * @param file {@link File}, not {@code null}
      * @return {@link Ontology}
-     * @throws OWLOntologyCreationException if something is wrong in loading process
+     * @throws OWLOntologyCreationException if something is wrong in the loading process
      * @see OWLOntologyManager#loadOntologyFromOntologyDocument(File)
      */
     @Override
@@ -688,9 +721,10 @@ public interface OntologyManager extends OWLOntologyManager {
 
     /**
      * Loads an ontology form an {@code InputStream} using default {@link OntLoaderConfiguration Loader Settings}.
-     * Note: this method is not suitable for very large ontologies, since it caches the input stream to the memory.
+     * Note: this method is not suitable for a huge ontologies, since it caches the input stream to the memory.
      * Also note, if an ontology contains reference to other ontologies (using {@code owl:imports}),
-     * they will be processed also (if they absent in the manager), i.e. in general case (if process finishes without any error)
+     * they will be processed also (if they absent in the manager),
+     * i.e., in general case (if the process finishes without any error)
      * not only a single ontology may be loaded.
      * Also note, if there are no any {@link OWLOntologyIRIMapper IRI Mapping}s or
      * {@link DocumentSourceMapping Document Source Mapping}s in the manager,
@@ -698,7 +732,7 @@ public interface OntologyManager extends OWLOntologyManager {
      *
      * @param input {@link InputStream}
      * @return {@link Ontology}
-     * @throws OWLOntologyCreationException if something is wrong in loading process
+     * @throws OWLOntologyCreationException if something is wrong in the loading process
      * @see OWLOntologyManager#loadOntologyFromOntologyDocument(InputStream)
      */
     @Override

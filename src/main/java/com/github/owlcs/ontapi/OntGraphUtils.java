@@ -80,9 +80,9 @@ import static com.github.owlcs.ontapi.OntologyFactoryImpl.UnsupportedFormatExcep
 /**
  * Helper to work with {@link Graph Apache Jena Graph}s in OWL-API terms.
  * Used in different ONT-API components related to the OWL-API-api implementation.
- * Some methods were moved from another classes (e.g. from {@link OntologyFactoryImpl})
+ * Some methods were moved from other classes (e.g., from {@link OntologyFactoryImpl})
  * and can refer to another class namespace
- * (e.g. can throw exceptions defined as nested static in some external classes).
+ * (e.g., can throw exceptions defined as nested static in some external classes).
  * <p>
  * Created by @ssz on 19.08.2017.
  *
@@ -121,12 +121,12 @@ public class OntGraphUtils {
      * Builds a map form the ontology graph with {@link ID}s as keys and component {@link Graph Graph}s as values.
      * <p>
      * If the graph has no import declarations
-     * (i.e. no statements {@code _:x owl:imports uri}) then this graph is put into the map as is.
+     * (i.e., no statements {@code _:x owl:imports uri}) then this graph is put into the map as is.
      * If it is a composite graph with imports, the base graph will be unwrapped using method {@link Graphs#getBase(Graph)},
-     * i.e. not a graph itself will go as a value, but its base sub-graph.
-     * If the input graph is composite, it should consist of named graphs, only the root (top-level primary graph)
+     * i.e., not a graph itself will go as a value, but its base sub-graph.
+     * If the input graph is composite, it should consist of named graphs; only the root (top-level primary graph)
      * is allowed to be anonymous.
-     * Also, the graph-tree should not contain different children but with the same iri (i.e. {@code owl:Ontology} uri).
+     * Also, the graph-tree should not contain different children but with the same iri (i.e., {@code owl:Ontology} uri).
      * To check the equivalence of two graphs, the method {@link Graph#isIsomorphicWith(Graph)} is used.
      *
      * @param graph {@link Graph graph}, not {@code null}
@@ -143,7 +143,7 @@ public class OntGraphUtils {
     private static void assembleMap(ID id, Graph graph, Map<ID, Graph> res) {
         Set<String> imports = Graphs.getImports(graph);
         if (imports.isEmpty()) {
-            // do not analyse graph structure -> put it as is
+            // do not analyze graph structure -> put it as is
             put(id, graph, res);
             return;
         }
@@ -273,12 +273,14 @@ public class OntGraphUtils {
      * The method is public for more generality.
      *
      * @param graph  {@link Graph} the graph(empty) to put in
-     * @param source {@link OWLOntologyDocumentSource} the source (encapsulates IO-stream, IO-Reader or IRI of document)
+     * @param source {@link OWLOntologyDocumentSource} the source
+     *                                                (encapsulates IO-stream,
+     *                                                IO-Reader or IRI of the document)
      * @param conf   {@link OntLoaderConfiguration} config
      * @return {@link OntFormat} corresponding to the specified source
-     * @throws UnsupportedFormatException   if source can't be read into graph using jena.
+     * @throws UnsupportedFormatException   if the source can't be read into graph using jena.
      * @throws ConfigMismatchException      if there is some conflict with config settings,
-     *                                      anyway we can't continue
+     *                                       anyway, we can't continue
      * @throws OWLOntologyCreationException if there is some serious IO problem
      * @throws OntApiException              if some other problem
      */
@@ -321,7 +323,7 @@ public class OntGraphUtils {
         if (stream instanceof InputStream) {
             RDFDataMgr.read(graph, (InputStream) stream, base, lang);
         } else {
-            //Jena discourages the use of Readers in favour of InputStreams (can't work with non-UTF8 encodings)
+            //Jena discourages the use of Readers in favor of InputStreams (can't work with non-UTF8 encodings)
             //noinspection deprecation <- we take that risk, assuming that the source provider knows what he is doing
             RDFDataMgr.read(graph, (Reader) stream, base, lang);
         }
@@ -361,7 +363,7 @@ public class OntGraphUtils {
      * The method is public for more generality.
      *
      * @param source {@link OWLOntologyDocumentSource}
-     * @return {@link OntFormat} or null if it could not guess format from source
+     * @return {@link OntFormat} or null if it could not guess a format from source
      */
     public static OntFormat guessFormat(OWLOntologyDocumentSource source) {
         Lang lang;
@@ -380,7 +382,7 @@ public class OntGraphUtils {
      * @param source {@link OWLOntologyDocumentSource}
      * @param conf   {@link OntLoaderConfiguration}
      * @return {@link InputStream} or {@link Reader}, never {@code null}
-     * @throws OWLOntologyInputSourceException can't open or read source
+     * @throws OWLOntologyInputSourceException can't open or read a source
      * @throws ConfigMismatchException         if the scheme is not allowed
      */
     protected static Closeable openInputStream(OWLOntologyDocumentSource source,
@@ -405,33 +407,38 @@ public class OntGraphUtils {
 
     /**
      * Writes the given {@code graph} to the {@code target} in the default serialization for {@code lang}.
+     * <b>Note: the method calls {@link Writer#close()} produced by {@link OWLOntologyDocumentTarget#getWriter()},
+     * but DOES not call {@link OutputStream#close()} produced by {@link OWLOntologyDocumentTarget#getOutputStream()}</b>.
      *
      * @param graph  {@link Graph}, not {@code null}
      * @param lang   {@link Lang}}, not {@code null}
      * @param target {@link OWLOntologyDocumentTarget}}, not empty, not {@code null}
      * @throws OWLOntologyStorageException in case of any error
      */
+    @SuppressWarnings("deprecation") // for RDFDataMgr#write
     public static void writeGraph(Graph graph, Lang lang, OWLOntologyDocumentTarget target) throws OWLOntologyStorageException {
         String name = Graphs.getName(graph);
-        try (OutputStream os = target.getOutputStream().orElse(null)) {
-            if (os != null) {
+        try {
+            OutputStream outputStreamFromTarget = target.getOutputStream().orElse(null);
+            if (outputStreamFromTarget != null) {
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Save {} to the output stream in the default serialization for {}", name, lang);
                 }
-                RDFDataMgr.write(os, graph, lang);
+                RDFDataMgr.write(outputStreamFromTarget, graph, lang);
                 return;
             }
-        } catch (JenaException | IOException ex) {
+        } catch (JenaException ex) {
             throw new OWLOntologyStorageException(String.format("Exception while writing %s to OutputStream; format=%s", name, lang), ex);
         }
-        try (Writer wr = target.getWriter().orElse(null)) {
-            if (wr != null) {
+        try (Writer writerFromTarget = target.getWriter().orElse(null)) {
+            if (writerFromTarget != null) {
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Save {} to the writer in the default serialization for {}", name, lang);
                 }
-                //using Java Writers risks corruption because of mismatch of character set. Only UTF-8 is safe.
-                //noinspection deprecation <- we take the risk, assuming that the provider knows what he is doing
-                RDFDataMgr.write(wr, graph, lang);
+                //Using Java Writers risks corruption because of mismatch of a character set.
+                // Only UTF-8 is safe.
+                //No inspection deprecation <- we take the risk, assuming that the provider knows what he is doing
+                RDFDataMgr.write(writerFromTarget, graph, lang);
                 return;
             }
         } catch (JenaException | IOException ex) {
@@ -441,11 +448,11 @@ public class OntGraphUtils {
         if (iri == null) {
             throw new IllegalArgumentException("Broken document target specified: no Writer, no InputStream, no IRI");
         }
-        try (OutputStream os = openOutputStream(iri)) {
+        try (OutputStream outputStreamFromIri = openOutputStream(iri)) {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Save {} to the {} in the default serialization for {}", name, iri, lang);
             }
-            RDFDataMgr.write(os, graph, lang);
+            RDFDataMgr.write(outputStreamFromIri, graph, lang);
         } catch (JenaException | IOException ex) {
             throw new OWLOntologyStorageException(String.format("Exception while writing %s to %s; format=%s", name, iri, lang), ex);
         }

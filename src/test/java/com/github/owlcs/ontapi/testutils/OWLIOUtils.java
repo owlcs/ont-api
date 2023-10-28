@@ -22,10 +22,12 @@ import org.apache.commons.io.IOUtils;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.riot.Lang;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
 import org.semanticweb.owlapi.formats.TurtleDocumentFormat;
 import org.semanticweb.owlapi.io.FileDocumentSource;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
+import org.semanticweb.owlapi.io.OWLOntologyDocumentTarget;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.OWLOntology;
@@ -41,6 +43,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.StringWriter;
+import java.io.Writer;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -48,6 +51,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Test utils to work with io.
@@ -198,5 +202,54 @@ public class OWLIOUtils {
 
     public static InputStream openResourceStream(String resource) {
         return Objects.requireNonNull(OWLIOUtils.class.getResourceAsStream(resource), "Can't find resource " + resource);
+    }
+
+    public static OutputStream nullOutputStream(Runnable onClose) {
+        return new OutputStream() {
+            @Override
+            public void write(int b) {
+            }
+
+            @Override
+            public void close() {
+                onClose.run();
+            }
+        };
+    }
+
+    public static Writer nullWriter(Runnable onClose) {
+        return new Writer() {
+            @Override
+            public void write(@NotNull char[] cbuf, int off, int len) {
+            }
+
+            @Override
+            public void flush() {
+            }
+
+            @Override
+            public void close() {
+                onClose.run();
+            }
+        };
+    }
+
+    public static OWLOntologyDocumentTarget newOWLOntologyDocumentTarget(OutputStream outputStream, Writer writer) {
+        return new OWLOntologyDocumentTarget() {
+            @Override
+            public Optional<Writer> getWriter() {
+                return Optional.ofNullable(writer);
+            }
+
+            @Override
+            public Optional<OutputStream> getOutputStream() {
+                return Optional.ofNullable(outputStream);
+            }
+
+            @Override
+            public Optional<IRI> getDocumentIRI() {
+                return Optional.empty();
+            }
+        };
     }
 }

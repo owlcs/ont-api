@@ -69,12 +69,15 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
+import java.io.Writer;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -475,4 +478,33 @@ public class CommonManagerTest {
         });
         u.listBaseGraphs().forEachRemaining(g -> Assertions.assertFalse(g instanceof UnionGraph));
     }
+
+    @Test
+    public void testSaveOntologyOWLOntologyDocumentTargetClose() throws Exception {
+        // see #53
+        OWLOntologyManager m = OntManagers.createManager();
+        OWLOntology ont = m.createOntology();
+
+        AtomicBoolean targetWriterIsClosed = new AtomicBoolean(false);
+        Writer targetWriter = OWLIOUtils.nullWriter(() -> targetWriterIsClosed.set(true));
+
+        m.saveOntology(ont, OWLIOUtils.newOWLOntologyDocumentTarget(null, targetWriter));
+        // ensure the writer is closed
+        Assertions.assertTrue(targetWriterIsClosed.get());
+
+        AtomicBoolean targetOutputStreamIsClosed = new AtomicBoolean(false);
+        OutputStream targetOutputStream = OWLIOUtils.nullOutputStream(() -> targetOutputStreamIsClosed.set(true));
+
+        m.saveOntology(ont, OWLIOUtils.newOWLOntologyDocumentTarget(targetOutputStream, null));
+        // ensure the output-stream is NOT closed
+        Assertions.assertFalse(targetOutputStreamIsClosed.get());
+
+        AtomicBoolean bareOutputStreamIsClosed = new AtomicBoolean(false);
+        OutputStream bareOutputStream = OWLIOUtils.nullOutputStream(() -> bareOutputStreamIsClosed.set(true));
+
+        m.saveOntology(ont, bareOutputStream);
+        // ensure the output-stream is NOT closed
+        Assertions.assertFalse(bareOutputStreamIsClosed.get());
+    }
+
 }
