@@ -31,35 +31,33 @@
         <maven.compiler.source>11</maven.compiler.source>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-        <revision>3.0.5-SNAPSHOT</revision>
-
         <!--https://mvnrepository.com/artifact/org.apache.jena/jena-arq-->
-        <version.jena>4.9.0</version.jena>
+        <version.jena>4.10.0</version.jena>
         <!--https://mvnrepository.com/artifact/net.sourceforge.owlapi/owlapi-api-->
         <version.owlapi>5.5.0</version.owlapi>
         <!--https://mvnrepository.com/artifact/org.slf4j/slf4j-api-->
-        <version.slf4j>2.0.7</version.slf4j>
+        <version.slf4j>2.0.9</version.slf4j>
         <!--https://mvnrepository.com/artifact/com.github.ben-manes.caffeine/caffeine-->
         <version.caffeine>3.1.8</version.caffeine>
         <!--https://jitpack.io/#sszuev/concurrent-rdf-graph-->
         <version.concurrent-rdf-graph>1.0.0</version.concurrent-rdf-graph>
         <!--https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-->
-        <version.junit>5.10.0</version.junit>
+        <version.junit>5.10.1</version.junit>
         <!--https://mvnrepository.com/artifact/org.mockito/mockito-core-->
-        <versio.mockito>5.4.0</versio.mockito>
+        <versio.mockito>5.7.0</versio.mockito>
 
         <!--https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-gpg-plugin-->
         <version.maven-gpg-plugin>3.1.0</version.maven-gpg-plugin>
         <!--https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-source-plugin-->
         <version.maven-source-plugin>3.3.0</version.maven-source-plugin>
         <!--https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-javadoc-plugin-->
-        <version.maven-javadoc-plugin>3.5.0</version.maven-javadoc-plugin>
+        <version.maven-javadoc-plugin>3.6.2</version.maven-javadoc-plugin>
         <!--https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-jar-plugin-->
         <version.maven-jar-plugin>3.3.0</version.maven-jar-plugin>
         <!--https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-compiler-plugin-->
         <version.maven-compiler-plugin>3.11.0</version.maven-compiler-plugin>
         <!--https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-surefire-plugin-->
-        <version.maven-surefire-plugin>3.1.2</version.maven-surefire-plugin>
+        <version.maven-surefire-plugin>3.2.2</version.maven-surefire-plugin>
     </properties>
 
     <licenses>
@@ -118,6 +116,33 @@
             <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
     </distributionManagement>
+
+    <profiles>
+        <profile>
+            <id>release</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-gpg-plugin</artifactId>
+                        <version>${version.maven-gpg-plugin}</version>
+                        <executions>
+                            <execution>
+                                <id>sign-artifacts</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>sign</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 
     <dependencies>
         <!-- Apache Jena: -->
@@ -226,11 +251,6 @@
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-gpg-plugin</artifactId>
-                <version>${version.maven-gpg-plugin}</version>
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
