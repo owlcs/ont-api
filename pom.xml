@@ -20,7 +20,7 @@
 
     <groupId>com.github.owlcs</groupId>
     <artifactId>ontapi</artifactId>
-    <version>3.0.5</version>
+    <version>3.0.6-SNAPSHOT</version>
 
     <name>${project.groupId}:${project.artifactId}</name>
     <description>ONT-API is an RDF-centric library to work with OWL</description>
