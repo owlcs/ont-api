@@ -18,6 +18,7 @@ import com.github.owlcs.ontapi.testutils.OWLIOUtils;
 import com.github.owlcs.ontapi.transforms.Transform;
 import com.github.owlcs.owlapi.OWLManager;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
+import com.github.sszuev.jena.ontapi.impl.conf.OntModelConfig;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.io.StringDocumentSource;
@@ -156,7 +157,7 @@ public class ProfileValidationTestCase extends TestBase {
                         .setGraphTransformers(conf.getGraphTransformers()
                                 .addFirst(Transform.Factory.create(com.github.owlcs.ontapi.testutils.WrongRDFListTransform.class)))
                 .setSupportedSchemes(Stream.of(com.github.owlcs.ontapi.config.OntConfig.DefaultScheme.FILE).collect(Collectors.toList()))
-                        .setPersonality(com.github.owlcs.ontapi.jena.impl.conf.OntModelConfig.ONT_PERSONALITY_LAX));
+                        .setPersonality(OntModelConfig.ONT_PERSONALITY_LAX));
         return m;
     }
 

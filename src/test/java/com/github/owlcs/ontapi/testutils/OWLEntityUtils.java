@@ -14,7 +14,7 @@
 
 package com.github.owlcs.ontapi.testutils;
 
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import com.github.sszuev.jena.ontapi.vocabulary.OWL;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.EntityType;

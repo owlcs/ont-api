@@ -16,12 +16,12 @@ package com.github.owlcs.ontapi.tests.internal;
 
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.ONTWrapperImpl;
-import com.github.owlcs.ontapi.jena.OntModelFactory;
-import com.github.owlcs.ontapi.jena.model.OntClass;
-import com.github.owlcs.ontapi.jena.model.OntDisjoint;
-import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.owlapi.axioms.DisjointClassesAxiomImpl;
 import com.github.owlcs.ontapi.testutils.OWLIOUtils;
+import com.github.sszuev.jena.ontapi.OntModelFactory;
+import com.github.sszuev.jena.ontapi.model.OntClass;
+import com.github.sszuev.jena.ontapi.model.OntDisjoint;
+import com.github.sszuev.jena.ontapi.model.OntModel;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.model.OWLDisjointClassesAxiom;

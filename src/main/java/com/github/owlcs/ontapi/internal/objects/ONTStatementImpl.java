@@ -15,9 +15,10 @@
 package com.github.owlcs.ontapi.internal.objects;
 
 import com.github.owlcs.ontapi.OntApiException;
-import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntStatement;
-import com.github.owlcs.ontapi.jena.utils.Iterators;
+import com.github.sszuev.jena.ontapi.model.OntModel;
+import com.github.sszuev.jena.ontapi.model.OntStatement;
+import com.github.sszuev.jena.ontapi.utils.Iterators;
+import javax.annotation.Nullable;
 import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
@@ -29,7 +30,6 @@ import org.semanticweb.owlapi.model.HasComponents;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLObject;
 
-import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.Objects;

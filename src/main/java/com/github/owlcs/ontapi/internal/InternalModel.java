@@ -15,9 +15,10 @@
 package com.github.owlcs.ontapi.internal;
 
 import com.github.owlcs.ontapi.ID;
-import com.github.owlcs.ontapi.jena.UnionGraph;
-import com.github.owlcs.ontapi.jena.impl.PersonalityModel;
-import com.github.owlcs.ontapi.jena.model.OntModel;
+import com.github.sszuev.jena.ontapi.UnionGraph;
+import com.github.sszuev.jena.ontapi.impl.PersonalityModel;
+import com.github.sszuev.jena.ontapi.impl.conf.OntPersonality;
+import com.github.sszuev.jena.ontapi.model.OntModel;
 import org.apache.jena.rdf.model.Model;
 import org.semanticweb.owlapi.model.AxiomType;
 import org.semanticweb.owlapi.model.HasOntologyID;
@@ -160,7 +161,7 @@ public interface InternalModel extends OntModel, PersonalityModel, HasOntologyID
      * @param withImports if {@code false} the method takes into account only the base graph
      * @return a {@code Stream} of {@link IRI}s
      * @see <a href='https://www.w3.org/TR/owl2-new-features/#F12:_Punning'>2.4.1 F12: Punning</a>
-     * @see com.github.owlcs.ontapi.jena.impl.conf.OntPersonality.Punnings
+     * @see OntPersonality.Punnings
      */
     Stream<IRI> listPunningIRIs(boolean withImports);
 

@@ -17,7 +17,8 @@ package com.github.owlcs.ontapi;
 import com.github.owlcs.ontapi.config.OntConfig;
 import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
 import com.github.owlcs.ontapi.config.OntWriterConfiguration;
-import com.github.owlcs.ontapi.jena.model.OntModel;
+import com.github.sszuev.jena.ontapi.UnionGraph;
+import com.github.sszuev.jena.ontapi.model.OntModel;
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;
 import org.apache.jena.graph.Graph;
@@ -57,7 +58,7 @@ import java.util.stream.Stream;
  * An ONT-API Ontology manager, which is an extended {@link OWLOntologyManager OWL-API manager}.
  * It is the main point for creating, loading and accessing {@link Ontology Ontology Model}s.
  * Any ontology in this manager is a wrapper around a {@link Graph Jena Graph},
- * which may be linked to another ontology through {@link com.github.owlcs.ontapi.jena.UnionGraph UnionGraph} interface.
+ * which may be linked to another ontology through {@link UnionGraph UnionGraph} interface.
  * <p>
  * The following methods are new (i.e., added in ONT-API) and extend the original functionality provided by the OWL-API:
  * <ul>
@@ -391,7 +392,7 @@ public interface OntologyManager extends OWLOntologyManager {
      * taking into account the specified loading settings.
      * If the graph is composite and hierarchical
      * with {@code owl:imports} declarations as references between sub-graphs,
-     * it will be re-assembled retaining hierarchy, but in a new container - {@link com.github.owlcs.ontapi.jena.UnionGraph}.
+     * it will be re-assembled retaining hierarchy, but in a new container - {@link UnionGraph}.
      * Otherwise, if the graph is indivisible, it is passed into the manager as is.
      * This is a new (ONT-API) method.
      *

@@ -26,10 +26,11 @@ For more info about the library see the project [wiki](https://github.com/owlcs/
 * GNU LGPL Version 3.0
 
 ## Example
+
 ```java
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.Ontology;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import vocabulary.com.github.sszuev.jena.ontapi.OWL;
 import org.apache.jena.rdf.model.Model;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLDataFactory;

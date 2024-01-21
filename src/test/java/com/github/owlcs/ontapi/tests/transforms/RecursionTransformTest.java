@@ -15,13 +15,13 @@
 package com.github.owlcs.ontapi.tests.transforms;
 
 import com.github.owlcs.ontapi.OntFormat;
-import com.github.owlcs.ontapi.jena.GraphListenerBase;
-import com.github.owlcs.ontapi.jena.OntModelFactory;
-import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.utils.Graphs;
 import com.github.owlcs.ontapi.testutils.OWLIOUtils;
 import com.github.owlcs.ontapi.transforms.OWLRecursiveTransform;
 import com.github.owlcs.ontapi.transforms.TransformationModel;
+import com.github.sszuev.jena.ontapi.GraphListenerBase;
+import com.github.sszuev.jena.ontapi.OntModelFactory;
+import com.github.sszuev.jena.ontapi.model.OntModel;
+import com.github.sszuev.jena.ontapi.utils.Graphs;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Triple;
 import org.junit.jupiter.api.Assertions;

@@ -22,14 +22,15 @@ import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.ONTObjectFactory;
 import com.github.owlcs.ontapi.internal.OWLComponentType;
 import com.github.owlcs.ontapi.internal.ObjectsSearcher;
-import com.github.owlcs.ontapi.jena.impl.PersonalityModel;
-import com.github.owlcs.ontapi.jena.model.OntClass;
-import com.github.owlcs.ontapi.jena.model.OntIndividual;
-import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.utils.Iterators;
-import com.github.owlcs.ontapi.jena.utils.OntModels;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
-import com.github.owlcs.ontapi.jena.vocabulary.RDF;
+import com.github.sszuev.jena.ontapi.impl.OntGraphModelImpl;
+import com.github.sszuev.jena.ontapi.impl.PersonalityModel;
+import com.github.sszuev.jena.ontapi.model.OntClass;
+import com.github.sszuev.jena.ontapi.model.OntIndividual;
+import com.github.sszuev.jena.ontapi.model.OntModel;
+import com.github.sszuev.jena.ontapi.utils.Iterators;
+import com.github.sszuev.jena.ontapi.utils.OntModels;
+import com.github.sszuev.jena.ontapi.vocabulary.OWL;
+import com.github.sszuev.jena.ontapi.vocabulary.RDF;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.Resource;
@@ -99,7 +100,7 @@ public class NamedIndividualSearcher extends EntitySearcher<OWLNamedIndividual> 
      * @param model {@link OntModel}, not {@code null}
      * @return a {@code ExtendedIterator} of URIs
      * @see com.github.owlcs.ontapi.internal.axioms.ClassAssertionTranslator
-     * @see com.github.owlcs.ontapi.jena.impl.OntGraphModelImpl#listIndividuals(OntModel, Set, ExtendedIterator)
+     * @see OntGraphModelImpl#listIndividuals(OntModel, Set, ExtendedIterator)
      */
     protected ExtendedIterator<String> listIndividuals(OntModel model) {
         Set<Triple> seen = new HashSet<>();

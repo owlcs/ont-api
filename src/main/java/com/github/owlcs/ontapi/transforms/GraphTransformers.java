@@ -15,9 +15,9 @@
 package com.github.owlcs.ontapi.transforms;
 
 import com.github.owlcs.ontapi.OntApiException;
-import com.github.owlcs.ontapi.jena.GraphListenerBase;
-import com.github.owlcs.ontapi.jena.UnionGraph;
-import com.github.owlcs.ontapi.jena.utils.Graphs;
+import com.github.sszuev.jena.ontapi.GraphListenerBase;
+import com.github.sszuev.jena.ontapi.UnionGraph;
+import com.github.sszuev.jena.ontapi.utils.Graphs;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphEventManager;
 import org.apache.jena.graph.GraphUtil;

@@ -18,7 +18,7 @@ import com.github.owlcs.ontapi.internal.ModelObjectFactory;
 import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.objects.ONTAxiomImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
-import com.github.owlcs.ontapi.jena.model.OntModel;
+import com.github.sszuev.jena.ontapi.model.OntModel;
 import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.graph.Triple;
 import org.semanticweb.owlapi.model.HasProperty;

@@ -15,8 +15,8 @@
 package com.github.owlcs.ontapi.tests;
 
 import com.github.owlcs.ontapi.ID;
-import com.github.owlcs.ontapi.jena.OntModelFactory;
-import com.github.owlcs.ontapi.jena.model.OntModel;
+import com.github.sszuev.jena.ontapi.OntModelFactory;
+import com.github.sszuev.jena.ontapi.model.OntModel;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.semanticweb.owlapi.model.IRI;

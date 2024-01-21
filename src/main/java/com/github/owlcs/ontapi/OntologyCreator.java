@@ -15,7 +15,7 @@
 package com.github.owlcs.ontapi;
 
 import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
-import com.github.owlcs.ontapi.jena.UnionGraph;
+import com.github.sszuev.jena.ontapi.UnionGraph;
 import org.apache.jena.graph.Factory;
 import org.apache.jena.graph.Graph;
 

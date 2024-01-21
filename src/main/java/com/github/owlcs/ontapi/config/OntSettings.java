@@ -15,12 +15,6 @@
 package com.github.owlcs.ontapi.config;
 
 import com.github.owlcs.ontapi.OntApiException;
-import com.github.owlcs.ontapi.jena.impl.conf.OntModelConfig;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
-import com.github.owlcs.ontapi.jena.vocabulary.RDF;
-import com.github.owlcs.ontapi.jena.vocabulary.SWRL;
-import com.github.owlcs.ontapi.jena.vocabulary.SWRLB;
-import com.github.owlcs.ontapi.jena.vocabulary.XSD;
 import com.github.owlcs.ontapi.transforms.GraphTransformers;
 import com.github.owlcs.ontapi.transforms.OWLCommonTransform;
 import com.github.owlcs.ontapi.transforms.OWLDeclarationTransform;
@@ -29,6 +23,12 @@ import com.github.owlcs.ontapi.transforms.RDFSTransform;
 import com.github.owlcs.ontapi.transforms.SWRLTransform;
 import com.github.owlcs.ontapi.transforms.Transform;
 import com.github.owlcs.ontapi.transforms.TransformationModel;
+import com.github.sszuev.jena.ontapi.impl.conf.OntModelConfig;
+import com.github.sszuev.jena.ontapi.vocabulary.OWL;
+import com.github.sszuev.jena.ontapi.vocabulary.RDF;
+import com.github.sszuev.jena.ontapi.vocabulary.SWRL;
+import com.github.sszuev.jena.ontapi.vocabulary.SWRLB;
+import com.github.sszuev.jena.ontapi.vocabulary.XSD;
 import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.MissingImportHandlingStrategy;
 import org.semanticweb.owlapi.model.MissingOntologyHeaderStrategy;

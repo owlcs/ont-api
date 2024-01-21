@@ -14,11 +14,11 @@
 
 package com.github.owlcs.ontapi;
 
-import com.github.owlcs.ontapi.jena.utils.Graphs;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
-import com.github.owlcs.ontapi.jena.vocabulary.RDF;
 import com.github.owlcs.ontapi.transforms.GraphStats;
 import com.github.owlcs.ontapi.transforms.OWLIDTransform;
+import com.github.sszuev.jena.ontapi.utils.Graphs;
+import com.github.sszuev.jena.ontapi.vocabulary.OWL;
+import com.github.sszuev.jena.ontapi.vocabulary.RDF;
 import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;

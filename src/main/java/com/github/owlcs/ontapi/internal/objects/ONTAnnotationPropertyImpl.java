@@ -15,10 +15,10 @@
 package com.github.owlcs.ontapi.internal.objects;
 
 import com.github.owlcs.ontapi.internal.ONTObject;
-import com.github.owlcs.ontapi.jena.model.OntAnnotationProperty;
-import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.owlapi.objects.entity.AnnotationPropertyImpl;
+import com.github.sszuev.jena.ontapi.model.OntAnnotationProperty;
+import com.github.sszuev.jena.ontapi.model.OntModel;
+import com.github.sszuev.jena.ontapi.vocabulary.OWL;
 import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 

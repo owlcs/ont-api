@@ -15,17 +15,16 @@
 package com.github.owlcs.ontapi.internal.objects;
 
 import com.github.owlcs.ontapi.internal.PrefixMappingRenderer;
-import com.github.owlcs.ontapi.jena.vocabulary.RDF;
-import com.github.owlcs.ontapi.jena.vocabulary.XSD;
 import com.github.owlcs.ontapi.owlapi.objects.AnonymousIndividualImpl;
 import com.github.owlcs.ontapi.owlapi.objects.LiteralImpl;
+import com.github.sszuev.jena.ontapi.vocabulary.RDF;
+import com.github.sszuev.jena.ontapi.vocabulary.XSD;
+import javax.annotation.ParametersAreNonnullByDefault;
 import org.apache.jena.shared.PrefixMapping;
 import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
 import org.semanticweb.owlapi.model.OWLEntity;
 import org.semanticweb.owlapi.model.OWLLiteral;
 import org.semanticweb.owlapi.util.EscapeUtils;
-
-import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 class ONTPrefixMappingRenderer extends PrefixMappingRenderer {

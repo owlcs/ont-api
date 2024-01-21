@@ -14,11 +14,11 @@
 
 package com.github.owlcs.ontapi.transforms;
 
-import com.github.owlcs.ontapi.jena.OntVocabulary;
-import com.github.owlcs.ontapi.jena.utils.Iterators;
-import com.github.owlcs.ontapi.jena.utils.Models;
-import com.github.owlcs.ontapi.jena.vocabulary.RDF;
-import com.github.owlcs.ontapi.jena.vocabulary.SWRL;
+import com.github.sszuev.jena.ontapi.OntVocabulary;
+import com.github.sszuev.jena.ontapi.utils.Iterators;
+import com.github.sszuev.jena.ontapi.utils.Models;
+import com.github.sszuev.jena.ontapi.vocabulary.RDF;
+import com.github.sszuev.jena.ontapi.vocabulary.SWRL;
 import org.apache.jena.graph.FrontsTriple;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;

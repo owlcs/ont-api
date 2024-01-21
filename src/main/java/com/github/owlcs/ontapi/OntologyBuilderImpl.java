@@ -15,11 +15,11 @@
 package com.github.owlcs.ontapi;
 
 import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
-import com.github.owlcs.ontapi.jena.OntModelFactory;
-import com.github.owlcs.ontapi.jena.UnionGraph;
+import com.github.sszuev.jena.ontapi.OntModelFactory;
+import com.github.sszuev.jena.ontapi.UnionGraph;
+import javax.annotation.ParametersAreNonnullByDefault;
 import org.apache.jena.graph.Graph;
 
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.concurrent.locks.ReadWriteLock;
 
 /**

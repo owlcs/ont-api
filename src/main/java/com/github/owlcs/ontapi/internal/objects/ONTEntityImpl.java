@@ -14,9 +14,10 @@
 
 package com.github.owlcs.ontapi.internal.objects;
 
-import com.github.owlcs.ontapi.jena.OntJenaException;
-import com.github.owlcs.ontapi.jena.model.OntEntity;
-import com.github.owlcs.ontapi.jena.model.OntModel;
+import com.github.sszuev.jena.ontapi.OntJenaException;
+import com.github.sszuev.jena.ontapi.model.OntEntity;
+import com.github.sszuev.jena.ontapi.model.OntModel;
+import javax.annotation.Nullable;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.rdf.model.Resource;
@@ -33,7 +34,6 @@ import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 
-import javax.annotation.Nullable;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;

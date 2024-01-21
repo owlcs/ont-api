@@ -16,9 +16,9 @@ package com.github.owlcs.ontapi.tests.model;
 
 import com.github.owlcs.ontapi.CommonOntologies;
 import com.github.owlcs.ontapi.OntManagers;
-import com.github.owlcs.ontapi.jena.OntVocabulary;
-import com.github.owlcs.ontapi.jena.vocabulary.XSD;
 import com.github.owlcs.ontapi.testutils.OWLEntityUtils;
+import com.github.sszuev.jena.ontapi.OntVocabulary;
+import com.github.sszuev.jena.ontapi.vocabulary.XSD;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.jena.rdf.model.Resource;
 import org.junit.jupiter.api.Assertions;

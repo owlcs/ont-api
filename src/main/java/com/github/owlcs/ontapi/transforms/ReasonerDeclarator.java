@@ -14,9 +14,9 @@
 
 package com.github.owlcs.ontapi.transforms;
 
-import com.github.owlcs.ontapi.jena.utils.Iterators;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
-import com.github.owlcs.ontapi.jena.vocabulary.RDF;
+import com.github.sszuev.jena.ontapi.utils.Iterators;
+import com.github.sszuev.jena.ontapi.vocabulary.OWL;
+import com.github.sszuev.jena.ontapi.vocabulary.RDF;
 import org.apache.jena.datatypes.xsd.XSDDatatype;
 import org.apache.jena.graph.FrontsTriple;
 import org.apache.jena.graph.Graph;

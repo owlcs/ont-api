@@ -14,6 +14,7 @@
 
 package com.github.owlcs.ontapi.transforms.vocabulary;
 
+import com.github.sszuev.jena.ontapi.vocabulary.XSD;
 import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.ResourceFactory;
@@ -26,16 +27,16 @@ import org.apache.jena.rdf.model.ResourceFactory;
  * <p>
  * Created by @ssz on 27.02.2019.
  *
- * @see com.github.owlcs.ontapi.jena.vocabulary.OWL the correct OWL2 vocabulary
+ * @see com.github.sszuev.jena.ontapi.vocabulary.OWL the correct OWL2 vocabulary
  * @see org.apache.jena.vocabulary.OWL the correct OWL1 vocabulary
- * @see com.github.owlcs.ontapi.jena.vocabulary.XSD predicates that are used in facet restrictions
+ * @see XSD predicates that are used in facet restrictions
  * @see org.semanticweb.owlapi.vocab.OWLRDFVocabulary
  */
 public class DEPRECATED {
 
     public static class OWL {
 
-        public final static String NS = com.github.owlcs.ontapi.jena.vocabulary.OWL.NS;
+        public final static String NS = com.github.sszuev.jena.ontapi.vocabulary.OWL.NS;
 
         public static final Property propertyChain = property("propertyChain");
         public static final Property declaredAs = property("declaredAs");
@@ -85,7 +86,7 @@ public class DEPRECATED {
     }
 
     public static class RDF {
-        public final static String NS = com.github.owlcs.ontapi.jena.vocabulary.RDF.getURI();
+        public final static String NS = com.github.sszuev.jena.ontapi.vocabulary.RDF.getURI();
 
         // used in negative assertions:
         public static final Property subject = property("subject");

@@ -15,7 +15,9 @@
 package com.github.owlcs.ontapi.internal.objects;
 
 import com.github.owlcs.ontapi.internal.ONTObject;
-import com.github.owlcs.ontapi.jena.model.OntClass;
+import com.github.sszuev.jena.ontapi.model.OntClass;
+import com.github.sszuev.jena.ontapi.model.OntEntity;
+import javax.annotation.ParametersAreNonnullByDefault;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLAnonymousIndividual;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -45,7 +47,6 @@ import org.semanticweb.owlapi.model.OWLObjectSomeValuesFrom;
 import org.semanticweb.owlapi.model.OWLObjectUnionOf;
 import org.semanticweb.owlapi.model.OWLObjectVisitorEx;
 
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -418,7 +419,7 @@ public abstract class ONTCollectors {
      * A visitor to collect {@link OWLEntity Entities} in the form of {@code Set}.
      *
      * @see org.semanticweb.owlapi.util.OWLEntityCollector
-     * @see com.github.owlcs.ontapi.jena.model.OntEntity
+     * @see OntEntity
      */
     protected static class ForEntities extends SetCollector<OWLEntity> {
 

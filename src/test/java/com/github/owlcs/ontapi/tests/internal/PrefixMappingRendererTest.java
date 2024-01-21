@@ -21,7 +21,7 @@ import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyManager;
 import com.github.owlcs.ontapi.TestManagers;
 import com.github.owlcs.ontapi.internal.PrefixMappingRenderer;
-import com.github.owlcs.ontapi.jena.vocabulary.XSD;
+import com.github.sszuev.jena.ontapi.vocabulary.XSD;
 import org.apache.jena.vocabulary.RDFS;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

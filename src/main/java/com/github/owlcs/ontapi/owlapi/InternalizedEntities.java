@@ -14,15 +14,15 @@
 
 package com.github.owlcs.ontapi.owlapi;
 
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
-import com.github.owlcs.ontapi.jena.vocabulary.RDF;
-import com.github.owlcs.ontapi.jena.vocabulary.XSD;
 import com.github.owlcs.ontapi.owlapi.objects.LiteralImpl;
 import com.github.owlcs.ontapi.owlapi.objects.entity.AnnotationPropertyImpl;
 import com.github.owlcs.ontapi.owlapi.objects.entity.BuiltinDatatypeImpl;
 import com.github.owlcs.ontapi.owlapi.objects.entity.ClassImpl;
 import com.github.owlcs.ontapi.owlapi.objects.entity.DataPropertyImpl;
 import com.github.owlcs.ontapi.owlapi.objects.entity.ObjectPropertyImpl;
+import com.github.sszuev.jena.ontapi.vocabulary.OWL;
+import com.github.sszuev.jena.ontapi.vocabulary.RDF;
+import com.github.sszuev.jena.ontapi.vocabulary.XSD;
 import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLClass;

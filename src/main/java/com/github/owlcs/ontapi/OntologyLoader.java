@@ -15,6 +15,7 @@
 package com.github.owlcs.ontapi;
 
 import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
+import com.github.sszuev.jena.ontapi.UnionGraph;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyIRIMapper;
@@ -39,7 +40,7 @@ public interface OntologyLoader {
      * In case of any error the manager state should not be change.
      *
      * @param builder {@link OntologyCreator} to create {@link Ontology} instance with all its parts
-     *                ({@link com.github.owlcs.ontapi.jena.UnionGraph},
+     *                ({@link UnionGraph},
      *                {@link org.apache.jena.graph.Graph}), cannot be {@code null}
      * @param source  {@link OWLOntologyDocumentSource} the source (iri, file iri, stream, graph or whatever else),
      *                cannot be {@code null}

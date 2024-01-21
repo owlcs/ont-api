@@ -14,8 +14,8 @@
 
 package com.github.owlcs.ontapi.transforms;
 
-import com.github.owlcs.ontapi.jena.utils.Iterators;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
+import com.github.sszuev.jena.ontapi.utils.Iterators;
+import com.github.sszuev.jena.ontapi.vocabulary.OWL;
 import org.apache.jena.graph.FrontsNode;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;

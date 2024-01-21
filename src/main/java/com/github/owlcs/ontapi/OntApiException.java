@@ -14,12 +14,13 @@
 
 package com.github.owlcs.ontapi;
 
+import com.github.sszuev.jena.ontapi.OntJenaException;
 import org.semanticweb.owlapi.model.OWLRuntimeException;
 
 /**
  * A base {@code RuntimeException}, that must be used only in OWL-API part of implementation.
- * For a {@link com.github.owlcs.ontapi.jena Jena sybsustem}
- * there is its own exception: {@link com.github.owlcs.ontapi.jena.OntJenaException}.
+ * For a {@link com.github.sszuev.jena.ontapi Jena sybsustem}
+ * there is its own exception: {@link OntJenaException}.
  * <p>
  * Created by @ssz on 27.09.2016.
  */

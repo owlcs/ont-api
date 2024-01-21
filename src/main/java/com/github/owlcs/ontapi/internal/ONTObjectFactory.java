@@ -18,20 +18,20 @@ import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.OntManagers;
 import com.github.owlcs.ontapi.config.AxiomsSettings;
-import com.github.owlcs.ontapi.jena.model.OntAnnotationProperty;
-import com.github.owlcs.ontapi.jena.model.OntClass;
-import com.github.owlcs.ontapi.jena.model.OntDataProperty;
-import com.github.owlcs.ontapi.jena.model.OntDataRange;
-import com.github.owlcs.ontapi.jena.model.OntEntity;
-import com.github.owlcs.ontapi.jena.model.OntFacetRestriction;
-import com.github.owlcs.ontapi.jena.model.OntIndividual;
-import com.github.owlcs.ontapi.jena.model.OntObject;
-import com.github.owlcs.ontapi.jena.model.OntObjectProperty;
-import com.github.owlcs.ontapi.jena.model.OntProperty;
-import com.github.owlcs.ontapi.jena.model.OntRealProperty;
-import com.github.owlcs.ontapi.jena.model.OntSWRL;
-import com.github.owlcs.ontapi.jena.model.OntStatement;
-import com.github.owlcs.ontapi.jena.utils.OntModels;
+import com.github.sszuev.jena.ontapi.model.OntAnnotationProperty;
+import com.github.sszuev.jena.ontapi.model.OntClass;
+import com.github.sszuev.jena.ontapi.model.OntDataProperty;
+import com.github.sszuev.jena.ontapi.model.OntDataRange;
+import com.github.sszuev.jena.ontapi.model.OntEntity;
+import com.github.sszuev.jena.ontapi.model.OntFacetRestriction;
+import com.github.sszuev.jena.ontapi.model.OntIndividual;
+import com.github.sszuev.jena.ontapi.model.OntObject;
+import com.github.sszuev.jena.ontapi.model.OntObjectProperty;
+import com.github.sszuev.jena.ontapi.model.OntProperty;
+import com.github.sszuev.jena.ontapi.model.OntRealProperty;
+import com.github.sszuev.jena.ontapi.model.OntSWRL;
+import com.github.sszuev.jena.ontapi.model.OntStatement;
+import com.github.sszuev.jena.ontapi.utils.OntModels;
 import org.apache.jena.rdf.model.Literal;
 import org.apache.jena.rdf.model.RDFNode;
 import org.semanticweb.owlapi.model.IRI;
@@ -65,7 +65,7 @@ import java.util.Map;
 
 /**
  * An Internal Object Factory, which is responsible for mapping
- * {@link com.github.owlcs.ontapi.jena.model.OntObject} =&gt; {@link OWLObject} and
+ * {@link OntObject} =&gt; {@link OWLObject} and
  * for creating {@link ONTObject ONTObject}s.
  * Used by the {@link InternalModel} while read objects from the graph.
  * It is a functional analogue of {@code uk.ac.manchester.cs.owl.owlapi.OWLDataFactoryInternals}.

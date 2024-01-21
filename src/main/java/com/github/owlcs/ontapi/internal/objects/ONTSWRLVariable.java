@@ -15,9 +15,9 @@
 package com.github.owlcs.ontapi.internal.objects;
 
 import com.github.owlcs.ontapi.internal.ONTObject;
-import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntSWRL;
 import com.github.owlcs.ontapi.owlapi.objects.swrl.VariableImpl;
+import com.github.sszuev.jena.ontapi.model.OntModel;
+import com.github.sszuev.jena.ontapi.model.OntSWRL;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.semanticweb.owlapi.model.IRI;

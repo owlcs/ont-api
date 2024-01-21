@@ -17,6 +17,8 @@ package com.github.owlcs.owlapi.tests.api;
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.owlapi.OWLManager;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
+import com.github.sszuev.jena.ontapi.OntJenaException;
+import com.github.sszuev.jena.ontapi.impl.conf.OntModelConfig;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.Test;
@@ -98,7 +100,7 @@ public class PunnedDeclarationsNotAddedTestCase extends TestBase {
         OWLOntologyLoaderConfiguration conf = ((com.github.owlcs.ontapi.config.OntLoaderConfiguration) m
                 .getOntologyLoaderConfiguration())
                 .setAllowReadDeclarations(false)
-                .setPersonality(com.github.owlcs.ontapi.jena.impl.conf.OntModelConfig.ONT_PERSONALITY_STRICT);
+                .setPersonality(OntModelConfig.ONT_PERSONALITY_STRICT);
         m.setOntologyLoaderConfiguration(conf);
 
         OWLOntology o = m.createOntology(IRI.getNextDocumentIRI(URI_BASE));
@@ -118,7 +120,7 @@ public class PunnedDeclarationsNotAddedTestCase extends TestBase {
         } catch (OntApiException e) {
             LOGGER.debug("Exception: {}", e.getMessage());
             Throwable cause = e.getCause();
-            if (cause instanceof com.github.owlcs.ontapi.jena.OntJenaException) {
+            if (cause instanceof OntJenaException) {
                 LOGGER.debug("Cause: {}", cause.getMessage());
                 return;
             }

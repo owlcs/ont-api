@@ -15,9 +15,9 @@
 package com.github.owlcs.ontapi.internal.searchers.axioms;
 
 import com.github.owlcs.ontapi.internal.searchers.ForTopEntity;
-import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntStatement;
-import com.github.owlcs.ontapi.jena.utils.Iterators;
+import com.github.sszuev.jena.ontapi.model.OntModel;
+import com.github.sszuev.jena.ontapi.model.OntStatement;
+import com.github.sszuev.jena.ontapi.utils.Iterators;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLEntity;
 

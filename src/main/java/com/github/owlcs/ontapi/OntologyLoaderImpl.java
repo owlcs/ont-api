@@ -16,11 +16,11 @@ package com.github.owlcs.ontapi;
 
 import com.github.owlcs.ontapi.config.OntConfig;
 import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
-import com.github.owlcs.ontapi.jena.UnionGraph;
-import com.github.owlcs.ontapi.jena.utils.Graphs;
-import com.github.owlcs.ontapi.jena.vocabulary.OWL;
 import com.github.owlcs.ontapi.transforms.GraphStats;
 import com.github.owlcs.ontapi.transforms.TransformException;
+import com.github.sszuev.jena.ontapi.UnionGraph;
+import com.github.sszuev.jena.ontapi.utils.Graphs;
+import com.github.sszuev.jena.ontapi.vocabulary.OWL;
 import javax.annotation.Nonnull;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.GraphUtil;

@@ -18,6 +18,7 @@ import com.github.owlcs.ontapi.testutils.OWLIOUtils;
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.OWLManager;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
+import com.github.sszuev.jena.ontapi.impl.conf.OntModelConfig;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -190,7 +191,7 @@ public class OWLProfileTestCase extends TestBase {
         if (!OWLManager.DEBUG_USE_OWL) {
             // allow illegal punnings
             com.github.owlcs.ontapi.config.OntLoaderConfiguration conf = ((OntologyManager) m).getOntologyLoaderConfiguration()
-                    .setPersonality(com.github.owlcs.ontapi.jena.impl.conf.OntModelConfig.ONT_PERSONALITY_LAX);
+                    .setPersonality(OntModelConfig.ONT_PERSONALITY_LAX);
             m.setOntologyLoaderConfiguration(conf);
         }
         try {

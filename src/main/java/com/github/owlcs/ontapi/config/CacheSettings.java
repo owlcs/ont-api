@@ -15,6 +15,8 @@
 package com.github.owlcs.ontapi.config;
 
 import com.github.owlcs.ontapi.Ontology;
+import com.github.sszuev.jena.ontapi.impl.conf.ObjectFactory;
+import com.github.sszuev.jena.ontapi.model.OntModel;
 
 /**
  * A common interface to access cache settings.
@@ -68,7 +70,7 @@ public interface CacheSettings {
      * (see {@link com.github.owlcs.ontapi.internal.SearchModel}).
      * The system default size is {@code 50_000}.
      * <p>
-     * Each {@link com.github.owlcs.ontapi.jena.impl.conf.ObjectFactory object factory}
+     * Each {@link ObjectFactory object factory}
      * has its own nodes cache with the same size, but, as a rule, only a few factories have many nodes in their cache.
      * Average {@link org.apache.jena.graph.Node Node} (uri and blank) size is about 160 bytes (internal string ~ 150byte),
      * Experiments show that for the limit = 100_000, the total number of cached nodes is not more than 190_000
@@ -147,7 +149,7 @@ public interface CacheSettings {
      * </ul>
      * But non-modifiability concerns only the top-level {@link Ontology OWL Model} interface.
      * If it is not restricted in some other place, a graph is editable.
-     * So it is possible to modify model using {@link com.github.owlcs.ontapi.jena.model.OntModel} interface
+     * So it is possible to modify model using {@link OntModel} interface
      * (see the method {@link Ontology#asGraphModel()}).
      * Also, to add axiom a {@link com.github.owlcs.ontapi.internal.AxiomTranslator} mechanism can be used,
      * e.g. to add the axiom {@code A} into the RDF Model {@code m},

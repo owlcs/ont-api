@@ -34,13 +34,14 @@ import com.github.owlcs.ontapi.internal.objects.ONTSWRLAtomImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTSWRLIndividualImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTSWRLLiteralImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTSWRLVariable;
-import com.github.owlcs.ontapi.jena.model.OntClass;
-import com.github.owlcs.ontapi.jena.model.OntDataRange;
-import com.github.owlcs.ontapi.jena.model.OntFacetRestriction;
-import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntObjectProperty;
-import com.github.owlcs.ontapi.jena.model.OntSWRL;
-import com.github.owlcs.ontapi.jena.model.OntStatement;
+import com.github.sszuev.jena.ontapi.model.OntClass;
+import com.github.sszuev.jena.ontapi.model.OntDataRange;
+import com.github.sszuev.jena.ontapi.model.OntFacetRestriction;
+import com.github.sszuev.jena.ontapi.model.OntModel;
+import com.github.sszuev.jena.ontapi.model.OntObject;
+import com.github.sszuev.jena.ontapi.model.OntObjectProperty;
+import com.github.sszuev.jena.ontapi.model.OntSWRL;
+import com.github.sszuev.jena.ontapi.model.OntStatement;
 import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.graph.impl.LiteralLabel;
 import org.semanticweb.owlapi.model.IRI;
@@ -67,7 +68,7 @@ import java.util.Objects;
 import java.util.function.Supplier;
 
 /**
- * An extended Object Factory impl which maps {@link com.github.owlcs.ontapi.jena.model.OntObject OntObject}s
+ * An extended Object Factory impl which maps {@link OntObject OntObject}s
  * to {@link OWLObject OWLObject}s directly having no cache.
  * Unlike {@link SimpleObjectFactory}, every object created by this factory is
  * an {@link ONTObject} with a reference to the concrete model obtained from this factory.

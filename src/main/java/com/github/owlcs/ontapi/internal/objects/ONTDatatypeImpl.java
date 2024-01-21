@@ -16,12 +16,12 @@ package com.github.owlcs.ontapi.internal.objects;
 
 import com.github.owlcs.ontapi.OntApiException;
 import com.github.owlcs.ontapi.internal.ONTObject;
-import com.github.owlcs.ontapi.jena.model.OntDataRange;
-import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.vocabulary.RDF;
-import com.github.owlcs.ontapi.jena.vocabulary.XSD;
 import com.github.owlcs.ontapi.owlapi.objects.entity.BuiltinDatatypeImpl;
 import com.github.owlcs.ontapi.owlapi.objects.entity.DatatypeImpl;
+import com.github.sszuev.jena.ontapi.model.OntDataRange;
+import com.github.sszuev.jena.ontapi.model.OntModel;
+import com.github.sszuev.jena.ontapi.vocabulary.RDF;
+import com.github.sszuev.jena.ontapi.vocabulary.XSD;
 import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.OWLDatatype;
 import org.semanticweb.owlapi.vocab.OWL2Datatype;

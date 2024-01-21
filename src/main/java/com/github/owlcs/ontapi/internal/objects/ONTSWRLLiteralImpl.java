@@ -15,9 +15,9 @@
 package com.github.owlcs.ontapi.internal.objects;
 
 import com.github.owlcs.ontapi.internal.ONTObject;
-import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntSWRL;
 import com.github.owlcs.ontapi.owlapi.objects.swrl.LiteralArgumentImpl;
+import com.github.sszuev.jena.ontapi.model.OntModel;
+import com.github.sszuev.jena.ontapi.model.OntSWRL;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.apache.jena.graph.impl.LiteralLabel;
@@ -36,7 +36,7 @@ import java.util.stream.Stream;
  *
  * @see LiteralArgumentImpl
  * @see org.semanticweb.owlapi.model.SWRLDArgument
- * @see com.github.owlcs.ontapi.jena.model.OntSWRL.DArg
+ * @see OntSWRL.DArg
  * @since 2.0.0
  */
 @SuppressWarnings("WeakerAccess")

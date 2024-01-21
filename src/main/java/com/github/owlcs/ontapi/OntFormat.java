@@ -16,14 +16,14 @@ package com.github.owlcs.ontapi;
 
 import com.github.owlcs.ontapi.OWLLangRegistry.LangKey;
 import com.github.owlcs.ontapi.OWLLangRegistry.OWLLang;
-import com.github.owlcs.ontapi.jena.OntModelFactory;
+import com.github.sszuev.jena.ontapi.OntModelFactory;
+import javax.annotation.Nullable;
 import org.apache.jena.riot.Lang;
 import org.apache.jena.riot.RDFParserRegistry;
 import org.apache.jena.riot.RDFWriterRegistry;
 import org.semanticweb.owlapi.model.OWLDocumentFormat;
 import org.semanticweb.owlapi.model.PrefixManager;
 
-import javax.annotation.Nullable;
 import java.io.Writer;
 import java.util.Arrays;
 import java.util.Collections;

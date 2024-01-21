@@ -15,16 +15,16 @@
 package com.github.owlcs.ontapi.internal;
 
 import com.github.owlcs.ontapi.OntApiException;
-import com.github.owlcs.ontapi.jena.impl.objects.Entity;
-import com.github.owlcs.ontapi.jena.model.OntAnnotationProperty;
-import com.github.owlcs.ontapi.jena.model.OntClass;
-import com.github.owlcs.ontapi.jena.model.OntDataProperty;
-import com.github.owlcs.ontapi.jena.model.OntDataRange;
-import com.github.owlcs.ontapi.jena.model.OntEntity;
-import com.github.owlcs.ontapi.jena.model.OntIndividual;
-import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntObjectProperty;
-import com.github.owlcs.ontapi.jena.model.OntSWRL;
+import com.github.sszuev.jena.ontapi.impl.objects.Entity;
+import com.github.sszuev.jena.ontapi.model.OntAnnotationProperty;
+import com.github.sszuev.jena.ontapi.model.OntClass;
+import com.github.sszuev.jena.ontapi.model.OntDataProperty;
+import com.github.sszuev.jena.ontapi.model.OntDataRange;
+import com.github.sszuev.jena.ontapi.model.OntEntity;
+import com.github.sszuev.jena.ontapi.model.OntIndividual;
+import com.github.sszuev.jena.ontapi.model.OntModel;
+import com.github.sszuev.jena.ontapi.model.OntObjectProperty;
+import com.github.sszuev.jena.ontapi.model.OntSWRL;
 import org.apache.jena.graph.BlankNodeId;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.impl.LiteralLabel;

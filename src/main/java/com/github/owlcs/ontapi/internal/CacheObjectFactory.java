@@ -16,7 +16,7 @@ package com.github.owlcs.ontapi.internal;
 
 import com.github.owlcs.ontapi.DataFactory;
 import com.github.owlcs.ontapi.internal.objects.ONTIRI;
-import com.github.owlcs.ontapi.jena.model.OntModel;
+import com.github.sszuev.jena.ontapi.model.OntModel;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLAnnotationProperty;
 import org.semanticweb.owlapi.model.OWLClass;

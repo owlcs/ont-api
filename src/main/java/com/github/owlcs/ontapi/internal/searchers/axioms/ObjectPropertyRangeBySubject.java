@@ -19,7 +19,7 @@ import com.github.owlcs.ontapi.internal.ONTObject;
 import com.github.owlcs.ontapi.internal.ONTObjectFactory;
 import com.github.owlcs.ontapi.internal.OWLTopObjectType;
 import com.github.owlcs.ontapi.internal.axioms.ObjectPropertyRangeTranslator;
-import com.github.owlcs.ontapi.jena.model.OntModel;
+import com.github.sszuev.jena.ontapi.model.OntModel;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.apache.jena.vocabulary.RDFS;
 import org.semanticweb.owlapi.model.OWLObjectPropertyExpression;

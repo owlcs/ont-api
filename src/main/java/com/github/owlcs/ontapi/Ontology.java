@@ -15,7 +15,7 @@
 package com.github.owlcs.ontapi;
 
 import com.github.owlcs.ontapi.config.AxiomsSettings;
-import com.github.owlcs.ontapi.jena.model.OntModel;
+import com.github.sszuev.jena.ontapi.model.OntModel;
 import org.semanticweb.owlapi.model.OWLOntology;
 
 /**

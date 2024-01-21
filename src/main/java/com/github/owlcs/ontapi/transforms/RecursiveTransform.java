@@ -14,8 +14,8 @@
 
 package com.github.owlcs.ontapi.transforms;
 
-import com.github.owlcs.ontapi.jena.OntVocabulary;
 import com.github.owlcs.ontapi.transforms.vocabulary.ONTAPI;
+import com.github.sszuev.jena.ontapi.OntVocabulary;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;

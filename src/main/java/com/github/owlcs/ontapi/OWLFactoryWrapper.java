@@ -16,7 +16,8 @@ package com.github.owlcs.ontapi;
 
 import com.github.owlcs.ontapi.config.CacheSettings;
 import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
-import com.github.owlcs.ontapi.jena.UnionGraph;
+import com.github.sszuev.jena.ontapi.UnionGraph;
+import javax.annotation.ParametersAreNonnullByDefault;
 import org.apache.jena.graph.Graph;
 import org.semanticweb.owlapi.io.OWLOntologyCreationIOException;
 import org.semanticweb.owlapi.io.OWLOntologyDocumentSource;
@@ -47,7 +48,6 @@ import org.semanticweb.owlapi.util.PriorityCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.ParametersAreNonnullByDefault;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashMap;

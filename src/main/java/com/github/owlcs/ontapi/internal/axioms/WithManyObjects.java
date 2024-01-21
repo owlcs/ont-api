@@ -21,10 +21,12 @@ import com.github.owlcs.ontapi.internal.objects.ONTAxiomImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTObjectImpl;
 import com.github.owlcs.ontapi.internal.objects.WithContent;
 import com.github.owlcs.ontapi.internal.objects.WithoutAnnotations;
-import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntStatement;
-import com.github.owlcs.ontapi.jena.utils.Iterators;
 import com.github.owlcs.ontapi.owlapi.OWLObjectImpl;
+import com.github.sszuev.jena.ontapi.model.OntDisjoint;
+import com.github.sszuev.jena.ontapi.model.OntModel;
+import com.github.sszuev.jena.ontapi.model.OntStatement;
+import com.github.sszuev.jena.ontapi.utils.Iterators;
+import com.github.sszuev.jena.ontapi.vocabulary.OWL;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.util.iterator.ExtendedIterator;
 import org.semanticweb.owlapi.model.OWLAnnotation;
@@ -48,7 +50,7 @@ import java.util.stream.Stream;
 /**
  * A technical interface that describes an n-ary axiom,
  * which may be presented as a triple (arity is {@code 2}) or as
- * []-list based section (e.g. {@link com.github.owlcs.ontapi.jena.vocabulary.OWL#AllDisjointClasses owl:AllDisjointClasses}).
+ * []-list based section (e.g. {@link OWL#AllDisjointClasses owl:AllDisjointClasses}).
  * Note: for internal usage only, it is just to avoid copy-pasting.
  * <p>
  * Created by @ssz on 02.10.2019.
@@ -204,7 +206,7 @@ interface WithManyObjects<E extends OWLObject> extends WithTriple {
      * Creates an {@link ONTObject} container for the given {@link OntStatement};
      * the returned object is also {@link R}.
      * This method is intended to produce {@code n-ary} axioms
-     * that are mapped from {@link com.github.owlcs.ontapi.jena.model.OntDisjoint} list-based anonymous resources.
+     * that are mapped from {@link OntDisjoint} list-based anonymous resources.
      *
      * @param <R>       the desired {@link OWLAxiom axiom}-type
      * @param statement {@link OntStatement}, the source to parse, not {@code null}

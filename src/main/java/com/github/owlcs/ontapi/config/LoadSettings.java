@@ -19,10 +19,10 @@ import com.github.owlcs.ontapi.OntGraphDocumentSource;
 import com.github.owlcs.ontapi.Ontology;
 import com.github.owlcs.ontapi.OntologyFactory;
 import com.github.owlcs.ontapi.OntologyManager;
-import com.github.owlcs.ontapi.jena.impl.conf.OntPersonality;
-import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.transforms.GraphFilter;
 import com.github.owlcs.ontapi.transforms.GraphTransformers;
+import com.github.sszuev.jena.ontapi.impl.conf.OntPersonality;
+import com.github.sszuev.jena.ontapi.model.OntModel;
 import org.apache.jena.graph.Graph;
 import org.semanticweb.owlapi.model.IRI;
 

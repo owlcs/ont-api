@@ -20,7 +20,7 @@ import com.github.owlcs.ontapi.internal.InternalCache;
 import com.github.owlcs.ontapi.internal.InternalConfig;
 import com.github.owlcs.ontapi.internal.InternalModel;
 import com.github.owlcs.ontapi.internal.InternalModelImpl;
-import com.github.owlcs.ontapi.jena.impl.conf.OntPersonality;
+import com.github.sszuev.jena.ontapi.impl.conf.OntPersonality;
 import org.apache.jena.graph.Graph;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntologyLoaderConfiguration;

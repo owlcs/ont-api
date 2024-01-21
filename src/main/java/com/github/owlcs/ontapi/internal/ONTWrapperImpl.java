@@ -14,8 +14,8 @@
 
 package com.github.owlcs.ontapi.internal;
 
-import com.github.owlcs.ontapi.jena.model.OntObject;
-import com.github.owlcs.ontapi.jena.model.OntStatement;
+import com.github.sszuev.jena.ontapi.model.OntObject;
+import com.github.sszuev.jena.ontapi.model.OntStatement;
 import org.apache.jena.graph.FrontsTriple;
 import org.apache.jena.graph.Triple;
 import org.semanticweb.owlapi.model.OWLObject;

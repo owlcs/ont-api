@@ -15,12 +15,13 @@
 package com.github.owlcs.ontapi.owlapi.objects;
 
 import com.github.owlcs.ontapi.AsNode;
-import com.github.owlcs.ontapi.jena.vocabulary.RDF;
-import com.github.owlcs.ontapi.jena.vocabulary.XSD;
 import com.github.owlcs.ontapi.owlapi.InternalizedEntities;
 import com.github.owlcs.ontapi.owlapi.OWLObjectImpl;
 import com.github.owlcs.ontapi.owlapi.objects.entity.BuiltinDatatypeImpl;
 import com.github.owlcs.ontapi.owlapi.objects.entity.DatatypeImpl;
+import com.github.sszuev.jena.ontapi.vocabulary.RDF;
+import com.github.sszuev.jena.ontapi.vocabulary.XSD;
+import javax.annotation.Nullable;
 import org.apache.jena.datatypes.BaseDatatype;
 import org.apache.jena.datatypes.RDFDatatype;
 import org.apache.jena.datatypes.TypeMapper;
@@ -45,7 +46,6 @@ import org.semanticweb.owlapi.model.OWLNamedIndividual;
 import org.semanticweb.owlapi.model.OWLObject;
 import org.semanticweb.owlapi.model.OWLObjectProperty;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;

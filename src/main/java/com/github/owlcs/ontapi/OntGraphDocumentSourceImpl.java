@@ -14,7 +14,7 @@
 
 package com.github.owlcs.ontapi;
 
-import com.github.owlcs.ontapi.jena.utils.Graphs;
+import com.github.sszuev.jena.ontapi.utils.Graphs;
 import org.apache.jena.atlas.web.ContentType;
 import org.apache.jena.graph.Graph;
 import org.apache.jena.riot.Lang;

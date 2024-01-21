@@ -16,6 +16,7 @@ package com.github.owlcs.owlapi.tests.api.annotations;
 import com.github.owlcs.ontapi.testutils.OWLIOUtils;
 import com.github.owlcs.owlapi.OWLFunctionalSyntaxFactory;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
+import com.github.sszuev.jena.ontapi.vocabulary.SWRL;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -162,7 +163,7 @@ public class SWRLAnnotationTestCase extends TestBase {
     /**
      * <a href="http://swrl.stanford.edu/ontologies/3.3/swrla.owl#">SWRLA scheme</a>
      *
-     * @see com.github.owlcs.ontapi.jena.vocabulary.SWRL
+     * @see SWRL
      */
     public static class SWRLA {
         public final static String URI = "http://swrl.stanford.edu/ontologies/3.3/swrla.owl";

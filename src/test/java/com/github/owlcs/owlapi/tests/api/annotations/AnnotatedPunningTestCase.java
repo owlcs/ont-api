@@ -16,6 +16,7 @@ package com.github.owlcs.owlapi.tests.api.annotations;
 
 import com.github.owlcs.owlapi.OWLManager;
 import com.github.owlcs.owlapi.tests.api.baseclasses.TestBase;
+import com.github.sszuev.jena.ontapi.impl.conf.OntModelConfig;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -106,7 +107,7 @@ public class AnnotatedPunningTestCase extends TestBase {
                                                                 OWLEntity... entities) throws Exception {
         if (!OWLManager.DEBUG_USE_OWL) {
             m.setOntologyLoaderConfiguration(((com.github.owlcs.ontapi.config.OntLoaderConfiguration) m.getOntologyLoaderConfiguration())
-                    .setPersonality(com.github.owlcs.ontapi.jena.impl.conf.OntModelConfig.ONT_PERSONALITY_LAX));
+                    .setPersonality(OntModelConfig.ONT_PERSONALITY_LAX));
         }
         OWLDataFactory df = m.getOWLDataFactory();
         OWLAnnotationProperty annotationProperty = df.getOWLAnnotationProperty(":ap", new DefaultPrefixManager("http://localhost#"));

@@ -14,7 +14,8 @@
 
 package com.github.owlcs.ontapi;
 
-import com.github.owlcs.ontapi.jena.model.OntID;
+import com.github.sszuev.jena.ontapi.model.OntID;
+import com.github.sszuev.jena.ontapi.model.OntModel;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.NodeFactory;
 import org.semanticweb.owlapi.model.IRI;
@@ -68,7 +69,7 @@ public class ID extends OWLOntologyID implements AsNode {
     /**
      * Constructs an ontology identifier from the given {@link OntID Ontology Graph Model ID}.
      * The difference between these two IDs ( {@link OntID} and {@link ID this classs}) is
-     * that the former is used in the RDF representation (i.e. in {@link com.github.owlcs.ontapi.jena.model.OntModel}),
+     * that the former is used in the RDF representation (i.e. in {@link OntModel}),
      * while the other is in the axiomatic view (i.e. in {@link org.semanticweb.owlapi.model.OWLOntology}).
      *
      * @param id {@link OntID}, not {@code null}

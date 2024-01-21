@@ -13,6 +13,8 @@
  */
 package com.github.owlcs.ontapi.owlapi.axioms;
 
+import com.github.sszuev.jena.ontapi.vocabulary.OWL;
+import javax.annotation.Nonnull;
 import org.semanticweb.owlapi.model.OWLAnnotation;
 import org.semanticweb.owlapi.model.OWLAxiom;
 import org.semanticweb.owlapi.model.OWLClass;
@@ -20,7 +22,6 @@ import org.semanticweb.owlapi.model.OWLClassExpression;
 import org.semanticweb.owlapi.model.OWLEquivalentClassesAxiom;
 import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 
-import javax.annotation.Nonnull;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Stream;
@@ -39,8 +40,8 @@ public class EquivalentClassesAxiomImpl extends NaryClassAxiomImpl implements OW
 
     /**
      * Answers {@code true} if the given class expression is a named class,
-     * but not {@link com.github.owlcs.ontapi.jena.vocabulary.OWL#Thing owl:Thing}
-     * and not {@link com.github.owlcs.ontapi.jena.vocabulary.OWL#Nothing owl:Nothing}.
+     * but not {@link OWL#Thing owl:Thing}
+     * and not {@link OWL#Nothing owl:Nothing}.
      *
      * @param ce {@link OWLClassExpression}, not {@code null}
      * @return boolean

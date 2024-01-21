@@ -16,8 +16,9 @@ package com.github.owlcs.ontapi.config;
 
 import com.github.owlcs.ontapi.NoOpReadWriteLock;
 import com.github.owlcs.ontapi.OntApiException;
-import com.github.owlcs.ontapi.jena.impl.conf.OntPersonality;
 import com.github.owlcs.ontapi.transforms.GraphTransformers;
+import com.github.sszuev.jena.ontapi.impl.conf.OntPersonality;
+import javax.annotation.Nonnull;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.MissingImportHandlingStrategy;
 import org.semanticweb.owlapi.model.MissingOntologyHeaderStrategy;
@@ -27,7 +28,6 @@ import org.semanticweb.owlapi.model.PriorityCollectionSorting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;

@@ -15,9 +15,9 @@
 package com.github.owlcs.ontapi.internal.objects;
 
 import com.github.owlcs.ontapi.internal.ONTObject;
-import com.github.owlcs.ontapi.jena.model.OntIndividual;
-import com.github.owlcs.ontapi.jena.model.OntModel;
 import com.github.owlcs.ontapi.owlapi.objects.entity.NamedIndividualImpl;
+import com.github.sszuev.jena.ontapi.model.OntIndividual;
+import com.github.sszuev.jena.ontapi.model.OntModel;
 import org.semanticweb.owlapi.model.OWLNamedIndividual;
 
 import java.util.Set;

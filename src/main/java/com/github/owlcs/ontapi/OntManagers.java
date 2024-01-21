@@ -18,7 +18,9 @@ import com.github.owlcs.ontapi.config.CacheSettings;
 import com.github.owlcs.ontapi.config.OntConfig;
 import com.github.owlcs.ontapi.config.OntLoaderConfiguration;
 import com.github.owlcs.ontapi.config.OntSettings;
-import com.github.owlcs.ontapi.jena.OntModelFactory;
+import com.github.sszuev.jena.ontapi.OntModelFactory;
+import com.github.sszuev.jena.ontapi.model.OntModel;
+import com.github.sszuev.jena.ontapi.vocabulary.OWL;
 import com.google.common.collect.LinkedListMultimap;
 import org.semanticweb.owlapi.io.OWLParserFactory;
 import org.semanticweb.owlapi.model.OWLAxiom;
@@ -87,7 +89,7 @@ public class OntManagers implements OWLOntologyManagerFactory {
      * derived from the {@link DataFactory OWL Data Factory}.
      * <p>
      * Alternative way to assembly ontology is direct working with the {@link org.apache.jena.graph.Graph Graph}
-     * through the {@link com.github.owlcs.ontapi.jena.model.OntModel OntModel} view of the ontology,
+     * through the {@link OntModel OntModel} view of the ontology,
      * that can be obtained using the method {@link Ontology#asGraphModel()}.
      * The first way of ontology editing is native for {@code OWL-API},
      * the second way is native for {@code Apache Jena} and provided by {@code ONT-API} as a feature,
@@ -110,7 +112,7 @@ public class OntManagers implements OWLOntologyManagerFactory {
      * <ul>
      * <li>The returned manager is RDF-centric, that means the internal data is RDF and OWL support is done on top of RDF</li>
      * <li>If you don't need OWL-Axioms,
-     * the lightweight {@link com.github.owlcs.ontapi.jena.model.OntModel OntModel} can be used,
+     * the lightweight {@link OntModel OntModel} can be used,
      * see {@link OntModelFactory}.</li>
      * <li>More about format-syntaxes can be found in {@link OntFormat} class</li>
      * <li>This is the primary factory method to produce {@link OntologyManager}s
@@ -161,7 +163,7 @@ public class OntManagers implements OWLOntologyManagerFactory {
      * does not guarantee to be consistent of distinct elements,
      * i.e. such {@code Iterator} or {@code Stream} may contain duplicates.
      * For example, two symmetric statements with
-     * the {@link com.github.owlcs.ontapi.jena.vocabulary.OWL#disjointWith owl:disjointWith} predicate,
+     * the {@link OWL#disjointWith owl:disjointWith} predicate,
      * correspond the same axiom {@code DisjointClasses},
      * which may appear twice in the stream if there are two statements in the {@code Graph}
      * (i.e. {@code A owl:disjointWith B} and {@code B owl:disjointWith A})</li>
@@ -169,7 +171,7 @@ public class OntManagers implements OWLOntologyManagerFactory {
      * e.g. calling the methods {@link OWLOntology#add(OWLAxiom)} or {@link OWLOntology#remove(OWLAxiom)}
      * will cause {@link OntApiException.ModificationDenied}</li>
      * <li>It is still possible to modify the data using non-axiomatic RDF-view,
-     * i.e. through the method {@link Ontology#asGraphModel()} and {@link com.github.owlcs.ontapi.jena.model.OntModel OntModel}</li>
+     * i.e. through the method {@link Ontology#asGraphModel()} and {@link OntModel OntModel}</li>
      * </ul>
      *
      * @return {@link OntologyManager} a fresh {@code ONT-API} direct non-concurrent manager instance

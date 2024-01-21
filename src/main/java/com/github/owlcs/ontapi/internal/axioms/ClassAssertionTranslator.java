@@ -29,12 +29,13 @@ import com.github.owlcs.ontapi.internal.objects.ONTEntityImpl;
 import com.github.owlcs.ontapi.internal.objects.ONTStatementImpl;
 import com.github.owlcs.ontapi.internal.objects.WithContent;
 import com.github.owlcs.ontapi.internal.objects.WithoutAnnotations;
-import com.github.owlcs.ontapi.jena.model.OntClass;
-import com.github.owlcs.ontapi.jena.model.OntIndividual;
-import com.github.owlcs.ontapi.jena.model.OntModel;
-import com.github.owlcs.ontapi.jena.model.OntObject;
-import com.github.owlcs.ontapi.jena.model.OntStatement;
-import com.github.owlcs.ontapi.jena.vocabulary.RDF;
+import com.github.sszuev.jena.ontapi.impl.OntGraphModelImpl;
+import com.github.sszuev.jena.ontapi.model.OntClass;
+import com.github.sszuev.jena.ontapi.model.OntIndividual;
+import com.github.sszuev.jena.ontapi.model.OntModel;
+import com.github.sszuev.jena.ontapi.model.OntObject;
+import com.github.sszuev.jena.ontapi.model.OntStatement;
+import com.github.sszuev.jena.ontapi.vocabulary.RDF;
 import org.apache.jena.graph.Node;
 import org.apache.jena.graph.Triple;
 import org.apache.jena.rdf.model.RDFNode;
@@ -68,7 +69,7 @@ import java.util.stream.Stream;
  * Created by @ssz on 28.09.2016.
  *
  * @see OntModel#individuals()
- * @see com.github.owlcs.ontapi.jena.impl.OntGraphModelImpl#listIndividuals()
+ * @see OntGraphModelImpl#listIndividuals()
  */
 @SuppressWarnings("WeakerAccess")
 public class ClassAssertionTranslator extends AbstractSimpleTranslator<OWLClassAssertionAxiom> {
